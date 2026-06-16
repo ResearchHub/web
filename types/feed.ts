@@ -16,7 +16,6 @@ import { Comment, CommentType, ContentFormat, transformComment } from './comment
 import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
-import { User } from './user';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
@@ -37,47 +36,24 @@ export interface ParentCommentPreview {
   parentComment?: ParentCommentPreview | undefined; // Add recursive field
 }
 
-function parseFundingActivityCommentContent(rawContent: unknown): unknown {
-  if (typeof rawContent !== 'string') return rawContent;
-  try {
-    return JSON.parse(rawContent);
-  } catch {
-    return rawContent;
-  }
-}
-
-function transformFundingActivityTippedComment(
-  commentObj: Record<string, unknown>
-): FeedFundingActivityContent['tippedComment'] {
-  const review = commentObj.review as { score?: number; is_assessed?: boolean } | null | undefined;
-  const authorRaw = commentObj.author as Record<string, unknown> | undefined;
-  return {
-    id: commentObj.id as number,
-    content: parseFundingActivityCommentContent(commentObj.comment_content_json),
-    contentFormat: (commentObj.comment_content_type as ContentFormat) || 'QUILL_EDITOR',
-    commentType: commentObj.comment_type as CommentType,
-    score: (commentObj.score as number) || 0,
-    reviewScore: review?.score || 0,
-    isAssessed: review?.is_assessed ?? false,
-    ...(authorRaw ? { createdBy: transformAuthorProfile(authorRaw) } : {}),
-    ...(review ? { review: { score: review.score || 0 } } : {}),
-  };
-}
-
 function transformFundingActivityRecipient(recipients: unknown): AuthorProfile | undefined {
   const first = Array.isArray(recipients) ? recipients[0] : undefined;
   if (!first || typeof first !== 'object') return undefined;
 
-  const recipient = first as {
-    recipient_user?: Record<string, unknown>;
-    author_profile?: Record<string, unknown>;
-    author?: Record<string, unknown>;
-  };
-  const profileRaw = recipient.recipient_user ?? recipient.author_profile ?? recipient.author;
-  if (!profileRaw || typeof profileRaw !== 'object') return undefined;
+  const recipientUser = (first as { recipient_user?: Record<string, unknown> }).recipient_user;
+  if (!recipientUser || typeof recipientUser !== 'object') return undefined;
 
   try {
-    return transformAuthorProfile(profileRaw);
+    return transformAuthorProfile(recipientUser);
+  } catch {
+    return undefined;
+  }
+}
+
+function transformFundingActivityFunder(funder: unknown): AuthorProfile | undefined {
+  if (!funder || typeof funder !== 'object') return undefined;
+  try {
+    return transformAuthorProfile(funder as Record<string, unknown>);
   } catch {
     return undefined;
   }
@@ -267,11 +243,8 @@ export interface FeedFundingActivityContent extends BaseFeedContent {
   totalAmount: number;
   totalUsdCents: number;
   totalUsd: number;
+  activityDate?: string;
   recipient?: AuthorProfile;
-  tippedComment?: FeedCommentContent['comment'] & {
-    review?: { score: number };
-    createdBy?: AuthorProfile;
-  };
 }
 
 // Update the Content union type to include the base interface
@@ -897,10 +870,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
 
         const bounties = Array.isArray(content_object.bounties)
           ? content_object.bounties.map((bounty: Record<string, unknown>) =>
-              transformBounty({
-                created_by: author || content_object.author || null,
-                ...bounty,
-              })
+              transformBounty(bounty, { ignoreBaseAmount: true })
             )
           : undefined;
 
@@ -1165,16 +1135,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       try {
         const relatedWorkRaw = feedEntry.related_work;
 
-        let tippedComment: FeedFundingActivityContent['tippedComment'];
-        if (content_object.comment) {
-          tippedComment = transformFundingActivityTippedComment(content_object.comment);
-        }
-
         const totalAmountRaw = content_object.total_amount;
         const totalAmount =
           typeof totalAmountRaw === 'string'
             ? parseFloat(totalAmountRaw) || 0
             : totalAmountRaw || 0;
+
+        const funder = transformFundingActivityFunder(content_object.funder);
 
         const fundingActivityContent: FeedFundingActivityContent = {
           id: content_object.id ?? id,
@@ -1182,15 +1149,15 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             content_object.unified_document_id ?? relatedWorkRaw?.unified_document_id,
           contentType: 'FUNDINGACTIVITY',
           createdDate: action_date || created_date,
-          createdBy: transformAuthorProfile(author),
+          createdBy: funder ?? transformAuthorProfile(author),
           sourceType: content_object.source_type as FundingActivitySourceType,
           totalAmount,
           totalUsdCents: content_object.total_usd_cents || 0,
           totalUsd:
             content_object.total_usd ??
             (content_object.total_usd_cents ? content_object.total_usd_cents / 100 : 0),
+          activityDate: content_object.activity_date,
           recipient: transformFundingActivityRecipient(content_object.recipients),
-          tippedComment,
         };
         content = fundingActivityContent;
       } catch (error) {

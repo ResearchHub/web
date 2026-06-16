@@ -35,10 +35,6 @@ const FEED_TO_CONTENT_TYPE: Partial<Record<FeedContentType, ContentType>> = {
   PAPER: 'paper',
 };
 
-function isPeerReviewTipComment(commentType?: CommentType | string): boolean {
-  return commentType === 'PEER_REVIEW' || commentType === 'REVIEW';
-}
-
 export interface ActivityHeaderTarget {
   author: AuthorProfile;
   suffix?: string;
@@ -62,20 +58,19 @@ function getFundingActivityMessage(content: FeedFundingActivityContent): Activit
     };
   }
 
-  const tippedAuthor = content.tippedComment?.createdBy;
-  const isPeerReviewTip = isPeerReviewTipComment(content.tippedComment?.commentType);
-  if (!tippedAuthor) {
+  const recipient = content.recipient;
+  if (!recipient) {
     return {
       actor,
-      verb: isPeerReviewTip ? 'tipped review' : 'tipped comment',
+      verb: 'tipped review',
     };
   }
   return {
     actor,
     verb: 'tipped',
     target: {
-      author: tippedAuthor,
-      suffix: isPeerReviewTip ? "'s review" : "'s comment",
+      author: recipient,
+      suffix: "'s review",
     },
   };
 }
@@ -250,12 +245,7 @@ export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
 }
 
 export function getReviewScore(entry: FeedEntry): number | undefined {
-  if (entry.contentType === 'FUNDINGACTIVITY') {
-    const funding = entry.content as FeedFundingActivityContent;
-    const tippedComment = funding.tippedComment;
-    if (!isPeerReviewTipComment(tippedComment?.commentType)) return undefined;
-    return tippedComment?.review?.score ?? tippedComment?.reviewScore;
-  }
+  if (entry.contentType === 'FUNDINGACTIVITY') return undefined;
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
@@ -326,16 +316,7 @@ export interface FeedCommentPreview {
 }
 
 export function getCommentPreview(entry: FeedEntry): FeedCommentPreview | null {
-  if (entry.contentType === 'FUNDINGACTIVITY') {
-    const funding = entry.content as FeedFundingActivityContent;
-    const tippedComment = funding.tippedComment;
-    if (!tippedComment?.content) return null;
-    return {
-      content: tippedComment.content,
-      format: tippedComment.contentFormat,
-      isReview: isPeerReviewTipComment(tippedComment.commentType),
-    };
-  }
+  if (entry.contentType === 'FUNDINGACTIVITY') return null;
   if (entry.contentType !== 'COMMENT') return null;
   const { comment } = entry.content as FeedCommentContent;
   if (!comment?.content) return null;
