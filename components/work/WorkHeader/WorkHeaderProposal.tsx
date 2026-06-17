@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui/icons';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
+import { isFundraiseActive, getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
 import { WorkHeader } from './WorkHeader';
 
 interface WorkHeaderProposalProps {
@@ -27,7 +28,9 @@ export function WorkHeaderProposal({
   const { showShareModal } = useShareModalContext();
   const router = useRouter();
 
-  const activeFundraise = metadata.fundraising?.status === 'OPEN' ? metadata.fundraising : null;
+  const fundraise = metadata.fundraising ?? null;
+
+  const isActive = fundraise ? isFundraiseActive(fundraise) : false;
 
   const handleContributeSuccess = () => {
     setIsFundModalOpen(false);
@@ -39,16 +42,25 @@ export function WorkHeaderProposal({
     router.refresh();
   };
 
-  const primaryAction = activeFundraise ? (
-    <Button
-      variant="default"
-      size="lg"
-      onClick={() => setIsFundModalOpen(true)}
-      className="hidden tablet:flex gap-2"
-    >
-      <Icon name="giveRSC" size={20} color="white" />
-      Fund Proposal
-    </Button>
+  const primaryAction =
+    isActive && fundraise ? (
+      <Button
+        variant="default"
+        size="lg"
+        onClick={() => setIsFundModalOpen(true)}
+        className="hidden tablet:flex gap-2"
+      >
+        <Icon name="giveRSC" size={20} color="white" />
+        Fund Proposal
+      </Button>
+    ) : undefined;
+
+  const isClosed = fundraise ? getEffectiveStatus(fundraise) === 'CLOSED' : false;
+
+  const closedEyebrow = isClosed ? (
+    <span className="inline-flex items-center font-medium text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-gray-600 bg-gray-100">
+      Fundraise Closed
+    </span>
   ) : undefined;
 
   return (
@@ -60,14 +72,15 @@ export function WorkHeaderProposal({
         updatesCount={updatesCount}
         className={className}
         primaryAction={primaryAction}
+        eyebrow={closedEyebrow}
       />
 
-      {activeFundraise && (
+      {fundraise && isActive && (
         <ContributeToFundraiseModal
           isOpen={isFundModalOpen}
           onClose={() => setIsFundModalOpen(false)}
           onContributeSuccess={handleContributeSuccess}
-          fundraise={activeFundraise}
+          fundraise={fundraise}
           proposalTitle={work.title}
           work={work}
         />
