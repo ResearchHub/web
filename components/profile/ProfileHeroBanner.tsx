@@ -45,6 +45,8 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
     if (!isOwnProfile) setIsEditModalOpen(false);
   }, [isOwnProfile]);
 
+  const membershipDuration = author.createdDate ? specificTimeSince(author.createdDate) : null;
+
   return (
     <>
       <HeroHeader tabBar={tabBar}>
@@ -100,13 +102,17 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
 
             <div className="flex flex-col gap-1">
               <ProfileEducation educations={author.education ?? []} />
-              {author.createdDate && (
+              {membershipDuration && (
                 <div className="flex items-baseline gap-2 text-gray-600">
                   <FontAwesomeIcon
                     icon={faBirthdayCake}
                     className="h-5 w-5 self-start text-[#6B7280]"
                   />
-                  <span>Member for {specificTimeSince(author.createdDate)}</span>
+                  <span>
+                    {membershipDuration === 'just joined'
+                      ? 'Member just joined'
+                      : `Member for ${membershipDuration}`}
+                  </span>
                 </div>
               )}
             </div>
