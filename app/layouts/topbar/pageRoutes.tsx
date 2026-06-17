@@ -119,7 +119,7 @@ const ROUTE_RULES: RouteRule[] = [
   {
     match: (p) => p.startsWith('/moderators'),
     getInfo: () => ({
-      title: 'Moderation Dashboard',
+      title: 'Moderation',
       icon: <Shield size={24} className="text-gray-900" />,
     }),
   },

@@ -76,6 +76,10 @@ export function formatRSC({
   return valueToFormat.toLocaleString();
 }
 
+export function formatBadgeCount(count: number): string {
+  return count > 9 ? '9+' : count.toString();
+}
+
 /**
  * Returns the number of decimal places in a number
  * @example

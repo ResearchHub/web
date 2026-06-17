@@ -216,7 +216,7 @@ export default function UserMenu({
             <div className="px-6 py-2 hover:bg-gray-50">
               <div className="flex items-center">
                 <Shield className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Moderator Dashboard</span>
+                <span className="text-sm text-gray-700">Moderation</span>
               </div>
             </div>
           </Link>
