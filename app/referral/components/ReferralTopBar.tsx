@@ -159,8 +159,11 @@ export function ReferralTopBar() {
         .referral-topbar-cta {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
           height: 40px;
+          /* Hold width so swapping to "Copied!" doesn't resize the button. */
+          min-width: 158px;
           padding: 0 20px;
           border-radius: 12px;
           font-size: 14px;

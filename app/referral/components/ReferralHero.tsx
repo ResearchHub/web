@@ -241,6 +241,9 @@ export function ReferralHero() {
           justify-content: center;
           gap: 10px;
           height: 54px;
+          /* Reserve width for the longest label so the button doesn't shrink
+             (and shift the neighboring CTA) when it swaps to "Copied!". */
+          min-width: 200px;
           padding: 0 28px;
           border-radius: 14px;
           font-size: 16px;
