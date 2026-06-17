@@ -20,18 +20,13 @@ type RefreshPendingCountsOptions = { force?: boolean };
 interface PendingCountsState {
   counts: PendingModuleCounts | null;
   totalCount: number;
-  error: string | null;
 }
 
 interface PendingCountsValue extends PendingCountsState {
   refreshPendingCounts: (options?: RefreshPendingCountsOptions) => Promise<void>;
 }
 
-type PendingCountsAction =
-  | { type: 'reset' }
-  | { type: 'clear-error' }
-  | { type: 'set-counts'; counts: PendingModuleCounts }
-  | { type: 'set-error'; error: string };
+type PendingCountsAction = { type: 'reset' } | { type: 'set-counts'; counts: PendingModuleCounts };
 
 interface PendingCountsRequest {
   id: number;
@@ -42,7 +37,6 @@ interface PendingCountsRequest {
 const INITIAL_PENDING_COUNTS_STATE: PendingCountsState = {
   counts: null,
   totalCount: 0,
-  error: null,
 };
 
 const PendingCountsStateContext = createContext<PendingCountsState | null>(null);
@@ -54,6 +48,12 @@ function sumPendingCounts(counts: PendingModuleCounts): number {
   return Object.values(counts).reduce((sum, count) => sum + count, 0);
 }
 
+function resetPendingCountsRequest(request: PendingCountsRequest): void {
+  request.id += 1;
+  request.inFlight = null;
+  request.hasLoaded = false;
+}
+
 function pendingCountsReducer(
   state: PendingCountsState,
   action: PendingCountsAction
@@ -61,23 +61,18 @@ function pendingCountsReducer(
   switch (action.type) {
     case 'reset':
       return INITIAL_PENDING_COUNTS_STATE;
-    case 'clear-error':
-      return state.error ? { ...state, error: null } : state;
     case 'set-counts':
       return {
         counts: action.counts,
         totalCount: sumPendingCounts(action.counts),
-        error: null,
       };
-    case 'set-error':
-      return { ...state, error: action.error };
   }
 }
 
 export function PendingCountsProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { user, isLoading: isUserLoading } = useUser();
   const [state, dispatch] = useReducer(pendingCountsReducer, INITIAL_PENDING_COUNTS_STATE);
-  const isModerator = !!user?.isModerator;
+  const isModerator = !!(user?.isModerator || user?.moderator);
   // Tracks in-flight de-duping and latest-response wins.
   const requestRef = useRef<PendingCountsRequest>({
     id: 0,
@@ -91,9 +86,7 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
       const request = requestRef.current;
 
       if (!isModerator) {
-        request.id += 1;
-        request.inFlight = null;
-        request.hasLoaded = false;
+        resetPendingCountsRequest(request);
         dispatch({ type: 'reset' });
         return Promise.resolve();
       }
@@ -107,7 +100,6 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
       }
 
       const requestId = ++request.id;
-      dispatch({ type: 'clear-error' });
 
       const inFlight = (async () => {
         try {
@@ -116,16 +108,6 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
 
           request.hasLoaded = true;
           dispatch({ type: 'set-counts', counts: nextCounts });
-        } catch (refreshError) {
-          if (request.id !== requestId) return;
-
-          dispatch({
-            type: 'set-error',
-            error:
-              refreshError instanceof Error
-                ? refreshError.message
-                : 'Failed to fetch pending moderation counts',
-          });
         } finally {
           if (request.id === requestId) {
             request.inFlight = null;
@@ -142,8 +124,14 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
   useEffect(() => {
     if (isUserLoading) return;
 
+    if (!isModerator) {
+      resetPendingCountsRequest(requestRef.current);
+      dispatch({ type: 'reset' });
+      return;
+    }
+
     refreshPendingCounts().catch(() => undefined);
-  }, [isUserLoading, refreshPendingCounts]);
+  }, [isModerator, isUserLoading, refreshPendingCounts]);
 
   return (
     <RefreshPendingCountsContext.Provider value={refreshPendingCounts}>

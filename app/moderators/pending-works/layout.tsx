@@ -8,7 +8,7 @@ import { DEFAULT_PENDING_MODULE, slugToModule } from '@/services/content-moderat
 
 export default function PendingWorksLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
-  const { error: pendingCountsError, refreshPendingCounts } = usePendingCounts();
+  const { refreshPendingCounts } = usePendingCounts();
   const slug = pathname.split('/').pop() ?? '';
   const activeModule = slugToModule(slug) ?? DEFAULT_PENDING_MODULE;
 
@@ -24,9 +24,6 @@ export default function PendingWorksLayout({ children }: Readonly<{ children: Re
           <p className="text-sm text-gray-600 mt-1">
             Review and approve or decline pending submissions
           </p>
-          {pendingCountsError && (
-            <p className="text-xs text-red-600 mt-2">Pending counts could not be refreshed.</p>
-          )}
         </div>
 
         <div className="mb-4">
