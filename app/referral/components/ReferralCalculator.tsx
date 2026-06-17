@@ -24,9 +24,9 @@ export function ReferralCalculator() {
     }
   };
 
+  // Whole-number formatting to match the "contributes" input above (no cents).
   const formattedBonus = referralBonus.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   });
 
   // Slider fill: percentage of the 0–50k track that is "active", used to paint

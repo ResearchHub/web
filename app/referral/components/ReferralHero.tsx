@@ -1,41 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, Copy, Users } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
-import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
-import { Starfield } from '@/app/give/components/Starfield';
+import { ReferralMesh } from './ReferralMesh';
+import { ReferralNetworkGraphic } from './ReferralNetworkGraphic';
 import { useReferralShare } from './useReferralShare';
 
 export function ReferralHero() {
   const { copyLink, isCopied } = useReferralShare();
-
-  // The AnimatedGlobe canvas is sized in px, so we measure its column and clamp
-  // to keep it crisp on desktop while never overflowing on small screens.
-  const globeWrapRef = useRef<HTMLDivElement>(null);
-  const [globeSize, setGlobeSize] = useState(460);
-
-  useEffect(() => {
-    const el = globeWrapRef.current;
-    if (!el) return;
-    const measure = () => {
-      const w = el.getBoundingClientRect().width;
-      setGlobeSize(Math.round(Math.max(260, Math.min(480, w))));
-    };
-    measure();
-    let ro: ResizeObserver | null = null;
-    if (window.ResizeObserver) {
-      ro = new ResizeObserver(measure);
-      ro.observe(el);
-    } else {
-      window.addEventListener('resize', measure);
-    }
-    return () => {
-      if (ro) ro.disconnect();
-      else window.removeEventListener('resize', measure);
-    };
-  }, []);
 
   const handleSeeHowItWorks = () => {
     const target = document.getElementById('referral-how');
@@ -51,7 +24,7 @@ export function ReferralHero() {
 
   return (
     <section className="referral-hero">
-      <Starfield />
+      <ReferralMesh />
       <div className="referral-hero-blob" aria-hidden="true" />
       <Link
         href="/"
@@ -114,8 +87,8 @@ export function ReferralHero() {
           </div>
         </div>
 
-        <div className="referral-hero-globe" ref={globeWrapRef}>
-          <AnimatedGlobe size={globeSize} theme="dark" className="referral-hero-globe-canvas" />
+        <div className="referral-hero-graphic">
+          <ReferralNetworkGraphic />
         </div>
       </div>
 
@@ -124,12 +97,14 @@ export function ReferralHero() {
           position: relative;
           padding: 160px 28px 120px;
           overflow: hidden;
-          /* Deep-space cosmos: an indigo nebula glow near the globe falling off
-             into near-black, so the starfield and the glowing globe read. */
+          /* A vibrant brand-blue field (its own identity vs. the give cosmos and
+             the endowment light hero) that brightens around the network graphic
+             and settles to a deep indigo at the bottom so it meets the share
+             section's pixel-fade seam cleanly. */
           background:
-            radial-gradient(circle at 72% 40%, rgba(67, 56, 202, 0.42), transparent 55%),
-            radial-gradient(circle at 28% 82%, rgba(49, 46, 129, 0.3), transparent 60%),
-            linear-gradient(168deg, #0b1238 0%, #101a45 55%, #1a235e 100%);
+            radial-gradient(circle at 74% 40%, rgba(57, 113, 255, 0.5), transparent 52%),
+            radial-gradient(circle at 16% 84%, rgba(37, 99, 235, 0.32), transparent 58%),
+            linear-gradient(168deg, #14379b 0%, #163291 46%, #142a78 74%, #1a235e 100%);
           color: #e2e8f0;
           min-height: min(calc(100vh - 60px), 905px);
           display: flex;
@@ -157,14 +132,11 @@ export function ReferralHero() {
           gap: 64px;
           align-items: center;
         }
-        .referral-hero-globe {
+        .referral-hero-graphic {
           display: flex;
           align-items: center;
           justify-content: center;
           width: 100%;
-        }
-        .referral-hero-globe :global(.referral-hero-globe-canvas) {
-          max-width: 100%;
         }
         .referral-hero-blob {
           position: absolute;
@@ -308,9 +280,9 @@ export function ReferralHero() {
             grid-template-columns: 1fr;
             gap: 32px;
           }
-          .referral-hero-globe {
+          .referral-hero-graphic {
             order: -1;
-            max-width: 420px;
+            max-width: 380px;
             margin: 0 auto;
           }
           .referral-hero-h1 {
