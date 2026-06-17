@@ -135,6 +135,8 @@ export function isDeadlineInFuture(deadline: string): boolean {
   return deadlineDate.isAfter(now);
 }
 
+export const MEMBERSHIP_JUST_JOINED = 'just joined';
+
 export function specificTimeSince(dateInput: string | Date): string {
   const now = dayjs.utc();
   const joined = dayjs.utc(dateInput);
@@ -157,7 +159,7 @@ export function specificTimeSince(dateInput: string | Date): string {
   if (days > 0) result.push(`${days} day${days > 1 ? 's' : ''}`);
 
   if (result.length === 0) {
-    return 'just joined';
+    return MEMBERSHIP_JUST_JOINED;
   } else if (result.length === 1) {
     return result[0];
   } else if (result.length === 2) {

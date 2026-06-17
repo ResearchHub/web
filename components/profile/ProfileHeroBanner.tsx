@@ -7,7 +7,7 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
-import { specificTimeSince } from '@/utils/date';
+import { specificTimeSince, MEMBERSHIP_JUST_JOINED } from '@/utils/date';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useUser } from '@/contexts/UserContext';
@@ -109,7 +109,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
                     className="h-5 w-5 self-start text-[#6B7280]"
                   />
                   <span>
-                    {membershipDuration === 'just joined'
+                    {membershipDuration === MEMBERSHIP_JUST_JOINED
                       ? 'Member just joined'
                       : `Member for ${membershipDuration}`}
                   </span>
