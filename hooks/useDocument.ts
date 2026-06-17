@@ -99,6 +99,9 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.fundraise_goal_currency = 'USD';
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
 
+        if (postParams.applicationDeadline) {
+          payload.fundraise_end_date = postParams.applicationDeadline.toISOString();
+        }
         if (postParams.grantId) {
           payload.grant_id = postParams.grantId;
         }

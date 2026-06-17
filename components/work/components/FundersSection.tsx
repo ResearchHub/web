@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { computeGoalRate, Fundraise, getContributionTotal } from '@/types/funding';
 import { Work } from '@/types/work';
-import { isDeadlineInFuture } from '@/utils/date';
+import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
@@ -49,10 +49,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
   const displayedContributors = topContributors.slice(0, displayLimit);
   const hasMoreContributors = topContributors.length > displayLimit;
 
-  // Check if fundraise is active
-  const isActive =
-    fundraise.status === 'OPEN' &&
-    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const isActive = isFundraiseActive(fundraise);
 
   // Format contributors for modal
   const modalContributors = topContributors.map((contributor) => ({
