@@ -14,7 +14,6 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { RiskScoreBadge } from '@/components/Moderators/RiskScoreBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
@@ -188,7 +187,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               delimiterClassName="ml-0"
               showAbbreviatedInMobile={true}
               hideExpandButton={true}
-              afterAuthors={<RiskScoreBadge score={entry.riskScore} />}
             />
           )}
           {(entry.timestamp || paper.createdDate) && (

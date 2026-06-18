@@ -290,10 +290,10 @@ export const OpenFundingOpportunityModal = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-base font-semibold leading-[1.3] text-gray-900">
-                    White-glove setup
+                    Talk to our team
                   </div>
                   <div className="mt-0.5 text-sm leading-[1.5] text-gray-500">
-                    Book a 15-minute call and our team will set it up with you.
+                    Book a 15-minute call and our team will set you up with a funding opportunity.
                   </div>
                 </div>
                 <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-rhBlue-400 transition-colors group-hover:text-rhBlue-600" />

@@ -1,26 +1,31 @@
 'use client';
 
 import { ReactNode, useCallback, useEffect, useState } from 'react';
-import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DeclineModal } from '@/components/Moderators/DeclineModal';
 import { FeedItemGrantWithApplicants } from '@/components/Feed/items/FeedItemGrantWithApplicants';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
 import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
+import { RiskScoreEvents } from '@/components/profile/RiskScoreEvents';
 import {
   PendingModerationService,
   PENDING_MODULE_CONFIG,
   type PendingModule,
 } from '@/services/content-moderation.service';
 import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
+import { useRiskScoreEvents } from '@/hooks/useAuthor';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { FlagReasonKey } from '@/types/work';
 import { formatRiskScore } from '@/components/profile/riskScoreEvents.utils';
+import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
 interface PendingModerationListProps {
   module: PendingModule;
 }
+
+const EVENTS_PAGE_SIZE = 6;
 
 function getContentId(module: PendingModule, entry: FeedEntry): number | undefined {
   if (module === 'funding_opportunities') {
@@ -29,34 +34,59 @@ function getContentId(module: PendingModule, entry: FeedEntry): number | undefin
   return entry.content.id;
 }
 
-function getGrantEntryWithRiskScore(entry: FeedEntry): FeedEntry {
-  if (entry.riskScore == null) return entry;
+function PendingRiskScoreCard({ entry }: Readonly<{ entry: FeedEntry & { riskScore: number } }>) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const userId = String(entry.content.createdBy.user!.id);
+  const [eventsState, fetchEvents] = useRiskScoreEvents(isExpanded ? userId : null, {
+    pageSize: EVENTS_PAGE_SIZE,
+  });
+  const score = formatRiskScore(entry.riskScore, false);
 
-  const content = entry.content as FeedGrantContent;
-  const { display, label, hasScore } = formatRiskScore(entry.riskScore, false);
-  const riskScoreText = hasScore ? `${display} (${label})` : display;
-  const organization = [content.grant?.organization || content.organization, riskScoreText]
-    .filter(Boolean)
-    .join(' | ');
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50/70 p-3">
+      <Button
+        variant="ghost"
+        onClick={() => setIsExpanded((prev) => !prev)}
+        className={cn('h-auto w-full p-0 hover:bg-transparent cursor-pointer')}
+      >
+        <div className="w-full flex items-center justify-between gap-2">
+          <div className="text-left">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              Author Risk Score
+            </p>
+            <p className={cn('text-sm font-semibold tabular-nums', score.scoreClass)}>
+              {score.hasScore ? `${score.display} (${score.label})` : score.display}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-600">
+            {isExpanded ? 'Hide events' : 'View events'}
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </span>
+        </div>
+      </Button>
 
-  return {
-    ...entry,
-    content: {
-      ...content,
-      organization,
-      grant: {
-        ...content.grant,
-        organization,
-      },
-    },
-  };
+      {isExpanded && (
+        <div className="mt-3">
+          <RiskScoreEvents
+            events={eventsState.events}
+            count={eventsState.count}
+            page={eventsState.page}
+            pageSize={eventsState.pageSize}
+            isLoading={eventsState.isLoading}
+            error={eventsState.error}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function renderPendingGrantItem(entry: FeedEntry, footer: ReactNode): ReactNode {
   return (
     <>
       <div className="[&>div]:rounded-b-none [&>div>div:last-child]:hidden">
-        <FeedItemGrantWithApplicants entry={getGrantEntryWithRiskScore(entry)} />
+        <FeedItemGrantWithApplicants entry={entry} />
       </div>
       {footer && (
         <div className="-mt-px overflow-hidden rounded-b-[14px] border border-gray-200 border-t-gray-100 bg-white">
@@ -193,32 +223,42 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
           entries.map((entry) => {
             const id = getContentId(module, entry);
             const isActioning = actioningId === id;
+            const hasRiskScore = entry.riskScore != null;
 
-            const footer = id ? (
-              <div className="flex items-center gap-2 px-4 py-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleApprove(id, entry.id)}
-                  disabled={isActioning}
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  {isActioning ? 'Approving...' : 'Approve'}
-                </Button>
+            const footer =
+              id || hasRiskScore ? (
+                <div className="px-4 py-3 space-y-3">
+                  {hasRiskScore && (
+                    <PendingRiskScoreCard entry={entry as FeedEntry & { riskScore: number }} />
+                  )}
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeclineTarget({ id, entryId: entry.id })}
-                  disabled={isActioning}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <XCircle className="h-4 w-4 mr-1" />
-                  Decline
-                </Button>
-              </div>
-            ) : undefined;
+                  {id && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleApprove(id, entry.id)}
+                        disabled={isActioning}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        {isActioning ? 'Approving...' : 'Approve'}
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeclineTarget({ id, entryId: entry.id })}
+                        disabled={isActioning}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Decline
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : undefined;
 
             return <div key={entry.id}>{renderFeedItem(module, entry, footer)}</div>;
           })}

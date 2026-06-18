@@ -13,7 +13,6 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { RiskScoreBadge } from '@/components/Moderators/RiskScoreBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Star } from 'lucide-react';
@@ -137,7 +136,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
                     className="text-gray-500 font-normal text-sm"
                     delimiter="•"
                     timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
-                    afterAuthors={<RiskScoreBadge score={entry.riskScore} />}
                   />
                 )}
                 {hasReviewScore && (

@@ -16,7 +16,7 @@ const OPTIONS = [
   {
     value: 'OPTIONAL',
     label: 'Applicant chooses',
-    description: 'Applicants can submit either a public or a private proposals.',
+    description: 'Applicants can submit either public or private proposals.',
   },
   {
     value: 'PUBLIC',
