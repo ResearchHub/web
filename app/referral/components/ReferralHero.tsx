@@ -52,11 +52,12 @@ export function ReferralHero() {
           </div>
           <h1 className="referral-hero-h1">
             <span className="referral-h1-line">Refer a funder, </span>
-            <span className="referral-h1-accent">accelerate science.</span>
+            <span className="referral-h1-accent">get rewarded.</span>
           </h1>
           <p className="referral-hero-lead">
             Invite funders to ResearchHub and you both earn 10% in Funding Credits on everything
-            they contribute over the next 6 months.
+            they contribute over the next 6 months — credits you put toward the research you believe
+            in.
           </p>
           <div className="referral-hero-assurances">
             <span className="referral-hero-assurance">
