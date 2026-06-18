@@ -54,7 +54,6 @@ export interface ExpertSearchResult {
   query: string;
   inputType: InputType;
   config: Record<string, unknown>;
-  excludedSearchIds: number[];
   llmModel: string;
   status: SearchStatus;
   progress: number;
@@ -81,7 +80,6 @@ export interface ExpertSearchListItem {
   query: string;
   status: SearchStatus;
   expertCount: number;
-  excludedSearchIds: number[];
   createdAt: string;
   completedAt: string | null;
   createdBy: CreatedByInfo | null;
@@ -174,20 +172,6 @@ export function transformExpertResult(raw: any): ExpertResult {
   };
 }
 
-function transformExcludedSearchIds(raw: any): number[] {
-  if (!Array.isArray(raw)) return [];
-  const out: number[] = [];
-  const seen = new Set<number>();
-  for (const v of raw) {
-    const n = Number(v);
-    if (Number.isInteger(n) && n >= 1 && !seen.has(n)) {
-      seen.add(n);
-      out.push(n);
-    }
-  }
-  return out;
-}
-
 function pickExpertRows(raw: any): any[] {
   return Array.isArray(raw.experts) ? raw.experts : [];
 }
@@ -201,7 +185,6 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
     query: raw.query ?? '',
     inputType: raw.input_type ?? 'abstract',
     config: raw.config ?? {},
-    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     llmModel: raw.llm_model ?? '',
     status: raw.status ?? 'pending',
     progress: raw.progress ?? 0,
@@ -229,7 +212,6 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     query: raw.query ?? '',
     status: raw.status ?? 'pending',
     expertCount: raw.expert_count ?? 0,
-    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
     createdBy: transformCreatedBy(raw.created_by),
