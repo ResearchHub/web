@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import UserMenu from '@/components/menus/UserMenu';
 import type { User } from '@/types/user';
 import { TopBarSearchButton } from './TopBarSearchButton';
-import { formatRSC } from '@/utils/number';
+import { formatBadgeCount, formatRSC } from '@/utils/number';
 import { UserService } from '@/services/user.service';
 
 interface TopBarUserControlsProps {
@@ -48,7 +48,7 @@ export const TopBarUserControls = ({
   const rscDelta = user?.balanceHistory ?? 0;
   const [showDelta, setShowDelta] = useState(rscDelta > 0);
   const isModerator = !!user?.isModerator;
-  const pendingModerationLabel = pendingModerationCount > 9 ? '9+' : pendingModerationCount;
+  const pendingModerationLabel = formatBadgeCount(pendingModerationCount);
 
   useEffect(() => {
     setShowDelta(rscDelta > 0);
@@ -130,9 +130,7 @@ export const TopBarUserControls = ({
               <Icon name="notification" size={28} className="text-gray-500" />
               {unreadCount > 0 && (
                 <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
-                  <span className="font-medium text-[9px]">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+                  <span className="font-medium text-[9px]">{formatBadgeCount(unreadCount)}</span>
                 </div>
               )}
             </div>

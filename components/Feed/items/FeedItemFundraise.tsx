@@ -24,7 +24,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { formatCurrency } from '@/utils/currency';
-import { isDeadlineInFuture } from '@/utils/date';
+import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import Link from 'next/link';
 
 interface FeedItemFundraiseProps {
@@ -78,10 +78,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const imageUrl = post.previewImage ?? undefined;
 
   const fundraise = post.fundraise;
-  const isActive =
-    fundraise &&
-    fundraise.status === 'OPEN' &&
-    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const isActive = fundraise ? isFundraiseActive(fundraise) : false;
 
   const contributors =
     fundraise?.contributors?.topContributors?.map((c) => ({

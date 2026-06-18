@@ -4,7 +4,8 @@ import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
-import { formatDeadline, formatExactTime, isDeadlineInFuture } from '@/utils/date';
+import { formatDeadline, formatExactTime } from '@/utils/date';
+import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import type { Fundraise } from '@/types/funding';
 import type { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
@@ -74,10 +75,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       amounts: contributor.totalContribution,
     })) || [];
 
-  // Check if fundraise is active
-  const isActive =
-    fundraise.status === 'OPEN' &&
-    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const isActive = isFundraiseActive(fundraise);
 
   // Get status display for the top right when no contributors
   const getStatusDisplay = () => {

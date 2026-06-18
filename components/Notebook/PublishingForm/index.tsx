@@ -28,6 +28,7 @@ import {
   setDocumentTitle,
 } from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
+import { EndDateSection } from './components/EndDateSection';
 import { toast } from 'react-hot-toast';
 import {
   loadPublishingFormFromStorage,
@@ -48,6 +49,7 @@ import { ApiError } from '@/services/types';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
+const DEFAULT_FUNDRAISE_END_DAYS = '60';
 const FEATURE_FLAG_JOURNAL = false;
 
 const PUBLISH_LABEL: Record<string, string> = {
@@ -107,6 +109,7 @@ const FORM_DEFAULTS = {
   shortDescription: '',
   organization: '',
   applicationDeadline: null,
+  fundraiseEndDays: DEFAULT_FUNDRAISE_END_DAYS as '60',
   applicationVisibility: 'OPTIONAL' as const,
   isPublic: true,
 };
@@ -475,17 +478,20 @@ export function PublishingForm({
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
-          applicationDeadline:
-            formData.articleType === 'grant'
-              ? new Date('2029-12-31')
-              : formData.applicationDeadline,
+          applicationDeadline: (() => {
+            if (formData.articleType === 'grant') return new Date('2029-12-31');
+            if (isNewProposal) {
+              const days = parseInt(formData.fundraiseEndDays ?? DEFAULT_FUNDRAISE_END_DAYS, 10);
+              const date = new Date();
+              date.setDate(date.getDate() + days);
+              return date;
+            }
+            return formData.applicationDeadline;
+          })(),
           grantId,
           applicationVisibility:
             formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
-          isPublic:
-            formData.articleType === 'preregistration' && !formData.workId
-              ? formData.isPublic
-              : undefined,
+          isPublic: isNewProposal ? formData.isPublic : undefined,
         },
         formData.workId
       );
@@ -573,6 +579,11 @@ export function PublishingForm({
             {articleType === 'grant' && <GrantFundingAmountSection />}
             {articleType === 'grant' && <GrantApplicationVisibilitySection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
+            {articleType === 'preregistration' && !methods.watch('workId') && (
+              <div className="py-3 px-6">
+                <EndDateSection />
+              </div>
+            )}
             {articleType === 'preregistration' && !methods.watch('workId') && (
               <PreregistrationPrivacySection />
             )}

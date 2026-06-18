@@ -127,10 +127,10 @@ export const OpenFundingOpportunityModal = ({
         minimal ? 'md:!max-w-[520px]' : 'md:!max-w-[860px]'
       )}
     >
-      <div className="flex h-full flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row">
         {/* Left gradient rail */}
         {!minimal && (
-          <div className="relative flex flex-shrink-0 flex-col justify-center bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
+          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
             {/* Mobile close button (lives in the title section on small screens) */}
             <button
               type="button"
@@ -152,7 +152,7 @@ export const OpenFundingOpportunityModal = ({
               style={{ background: '#bcd2ff' }}
             />
             <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="mb-4 flex h-[235px] items-center justify-center">
+              <div className="mb-4 flex h-[235px] w-[235px] items-center justify-center">
                 <AnimatedGlobe size={235} />
               </div>
               <Dialog.Title
