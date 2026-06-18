@@ -91,10 +91,11 @@ export const OpenProposalModal = ({
   const initialStep: Step = minimal ? 'method' : 'benefits';
   const [step, setStep] = useState<Step>(initialStep);
 
-  // Reset to the first step whenever the modal is reopened so a returning user
-  // always starts from the configured entry step rather than a stale step.
+  // Reset when opening so a returning user starts from the configured entry step.
+  // Defer reset until open (not close) so the current step stays visible during
+  // the exit animation and doesn't flash back to the first step.
   useEffect(() => {
-    if (!isOpen) setStep(initialStep);
+    if (isOpen) setStep(initialStep);
   }, [isOpen, initialStep]);
 
   return (

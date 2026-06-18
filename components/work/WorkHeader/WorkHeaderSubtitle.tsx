@@ -67,7 +67,7 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
           <span>
             Proposal submitted privately to{' '}
             {linkedGrantHref ? (
-              <Link href={linkedGrantHref} className="hover:underline">
+              <Link href={linkedGrantHref} className="underline">
                 {linkedGrantTitle}
               </Link>
             ) : (
