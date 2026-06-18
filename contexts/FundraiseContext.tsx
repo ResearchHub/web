@@ -50,6 +50,7 @@ interface FundraiseProviderProps {
 
 export function FundraiseProvider({ children, grantId }: FundraiseProviderProps) {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -81,6 +82,12 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const [activated, setActivated] = useState(false);
   const activate = useCallback(() => setActivated(true), []);
 
+  useEffect(() => {
+    if (grantId != null) {
+      setActivated(true);
+    }
+  }, [grantId]);
+
   const fetchProposals = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
@@ -95,6 +102,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         ordering: feedParams.ordering,
       });
       setEntries(result.entries);
+      setTotalCount(result.count);
       setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
       setPage(1);
     } catch (error) {
@@ -126,6 +134,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         ordering: feedParams.ordering,
       });
       setEntries((prev) => [...prev, ...result.entries]);
+      setTotalCount(result.count);
       setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
       setPage(nextPage);
     } catch (error) {
@@ -164,7 +173,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       isLoadingMore,
       hasMore,
       loadMore,
-      proposalCount: entries.length,
+      proposalCount: totalCount,
       statusFilter,
       setStatusFilter,
       taxDeductible,
@@ -178,6 +187,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     }),
     [
       entries,
+      totalCount,
       activated,
       isLoading,
       isLoadingMore,
