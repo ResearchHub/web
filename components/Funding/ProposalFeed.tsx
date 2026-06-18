@@ -29,7 +29,7 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
         showPostHeaders={false}
         noEntriesElement={
           <div className="py-12 text-center">
-            <p className="text-gray-500">No proposals found</p>
+            <p className="text-gray-500">No proposals submitted yet</p>
           </div>
         }
       />

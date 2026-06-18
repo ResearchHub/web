@@ -68,6 +68,12 @@ interface ProposalSortAndFiltersProps {
 }
 
 export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({ className }) => {
+  const { entries, isLoading } = useFundraises();
+
+  if (!isLoading && entries.length === 0) {
+    return null;
+  }
+
   return (
     <div className={cn('flex items-center justify-end mt-2 sm:mt-4 mb-2', className)}>
       <SortDropdown />
