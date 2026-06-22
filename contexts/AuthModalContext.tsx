@@ -6,8 +6,15 @@ import { useSession } from 'next-auth/react';
 import { ReactNode } from 'react';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
+/** Cosmetic theming for the auth modal. 'catalyst' co-brands it for Catalyst NYC. */
+export type AuthModalVariant = 'default' | 'catalyst';
+
+interface ShowAuthModalOptions {
+  variant?: AuthModalVariant;
+}
+
 interface AuthModalContextType {
-  showAuthModal: (onSuccess?: () => void) => void;
+  showAuthModal: (onSuccess?: () => void, options?: ShowAuthModalOptions) => void;
   hideAuthModal: () => void;
 }
 
@@ -23,16 +30,19 @@ export function useAuthModalContext() {
 
 export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [variant, setVariant] = useState<AuthModalVariant>('default');
   const [pendingAction, setPendingAction] = useState<(() => void) | undefined>();
 
-  const showAuthModal = useCallback((onSuccess?: () => void) => {
+  const showAuthModal = useCallback((onSuccess?: () => void, options?: ShowAuthModalOptions) => {
     setIsOpen(true);
+    setVariant(options?.variant ?? 'default');
     AnalyticsService.logEvent(LogEvent.AUTH_MODAL_OPENED);
     setPendingAction(() => onSuccess);
   }, []);
 
   const hideAuthModal = useCallback(() => {
     setIsOpen(false);
+    setVariant('default');
     setPendingAction(undefined);
     AnalyticsService.logEvent(LogEvent.AUTH_MODAL_CLOSED);
   }, []);
@@ -47,7 +57,12 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthModalContext.Provider value={{ showAuthModal, hideAuthModal }}>
       {children}
-      <AuthModal isOpen={isOpen} onClose={hideAuthModal} onSuccess={handleSuccess} />
+      <AuthModal
+        isOpen={isOpen}
+        onClose={hideAuthModal}
+        onSuccess={handleSuccess}
+        variant={variant}
+      />
     </AuthModalContext.Provider>
   );
 }

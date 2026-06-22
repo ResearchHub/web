@@ -10,6 +10,7 @@ const EXCLUDED_PATHS = [
   '/', // landing page
   '/referral/join', // referral join page
   '/referral/join/apply-referral-code', // referral apply referral code page
+  '/catalyst-nyc', // Catalyst NYC QR landing opens its own branded auth modal
   // add any other paths where we don't want the modal to show
 ];
 
