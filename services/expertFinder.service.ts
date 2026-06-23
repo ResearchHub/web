@@ -77,7 +77,6 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_search_ids?: number[];
   additional_context?: string;
 }
 
