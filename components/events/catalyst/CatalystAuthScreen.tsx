@@ -10,10 +10,15 @@ import ForgotPassword from '@/components/Auth/screens/ForgotPassword';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
 import { isValidEmail } from '@/utils/validation';
-import { Logo } from '@/components/ui/Logo';
-import { CatalystNyc } from './CatalystNyc';
+import { useAutoFocus } from '@/hooks/useAutoFocus';
+import { CATALYST_NYC_EVENT } from './constants';
+import { CatalystLockup } from './CatalystLockup';
+import { CatalystScreenShell } from './CatalystScreenShell';
 
 type Screen = 'entry' | 'login' | 'signup' | 'verify' | 'forgot';
+type DeeperScreen = Exclude<Screen, 'entry'>;
+
+const { footer, auth } = CATALYST_NYC_EVENT;
 
 function GoogleGlyph() {
   return (
@@ -60,6 +65,7 @@ function InfoGlyph() {
 
 export function CatalystAuthScreen() {
   const router = useRouter();
+  const emailInputRef = useAutoFocus<HTMLInputElement>(true);
   const [screen, setScreen] = useState<Screen>('entry');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -106,192 +112,112 @@ export function CatalystAuthScreen() {
 
   const sharedProps = { email, setEmail, isLoading, error, setError, onClose: goToFeed };
 
+  const renderDeeperScreen = (deeperScreen: DeeperScreen) => {
+    switch (deeperScreen) {
+      case 'login':
+        return (
+          <Login
+            {...sharedProps}
+            setIsLoading={setIsLoading}
+            onBack={goEntry}
+            onForgotPassword={() => {
+              setError(null);
+              setScreen('forgot');
+            }}
+            onSuccess={goToFeed}
+            modalView
+          />
+        );
+      case 'signup':
+        return (
+          <Signup
+            {...sharedProps}
+            setIsLoading={setIsLoading}
+            onBack={goEntry}
+            onVerify={() => setScreen('verify')}
+            modalView
+          />
+        );
+      case 'verify':
+        return <VerifyEmail {...sharedProps} />;
+      case 'forgot':
+        return (
+          <ForgotPassword
+            {...sharedProps}
+            onBack={() => {
+              setError(null);
+              setScreen('login');
+            }}
+            modalView
+          />
+        );
+      default: {
+        const _exhaustive: never = deeperScreen;
+        return _exhaustive;
+      }
+    }
+  };
+
   return (
-    <div className="catalyst-auth">
-      <main className="screen">
-        <div className="screen__bg" />
-        <div className="screen__grid" />
-        <div className="content">
-          <div className="lockup">
-            <Logo variant="white" size={23} />
-            <span className="lockup__div" />
-            <span className="lockup__cat">
-              <b>Catalyst</b>
-              <CatalystNyc fill="#FFFFFF" height={13} />
-            </span>
-          </div>
+    <CatalystScreenShell>
+      <CatalystLockup variant="auth" />
 
-          <div className="main">
-            {screen === 'entry' ? (
-              <>
-                <h1 className="title">
-                  Sign-up to
-                  <br />
-                  claim your $500
-                </h1>
+      <div className="main">
+        {screen === 'entry' ? (
+          <>
+            <h1 className="title">
+              {auth.titleLines[0]}
+              <br />
+              {auth.titleLines[1]}
+            </h1>
 
-                <form onSubmit={handleContinue}>
-                  <label className="label" htmlFor="catalyst-email">
-                    Your Catalyst NYC email
-                  </label>
-                  <input
-                    className="field"
-                    id="catalyst-email"
-                    type="email"
-                    placeholder="name@institution.com"
-                    autoComplete="email"
-                    autoCapitalize="none"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  {error && <p className="err">{error}</p>}
-                  <button className="btn-primary" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Loading...' : 'Continue'}
-                  </button>
-                </form>
+            <form onSubmit={handleContinue}>
+              <label className="label" htmlFor="catalyst-email">
+                {auth.emailLabel}
+              </label>
+              <input
+                ref={emailInputRef}
+                className="field"
+                id="catalyst-email"
+                type="email"
+                placeholder={auth.emailPlaceholder}
+                autoComplete="email"
+                autoCapitalize="none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {error && <p className="err">{error}</p>}
+              <button className="btn-primary" type="submit" disabled={isLoading}>
+                {isLoading ? auth.loadingLabel : auth.continueLabel}
+              </button>
+            </form>
 
-                <div className="divider">
-                  <span />
-                  <em>OR</em>
-                  <span />
-                </div>
+            <div className="divider">
+              <span />
+              <em>OR</em>
+              <span />
+            </div>
 
-                <button className="btn-google" type="button" onClick={handleGoogle}>
-                  <GoogleGlyph />
-                  Continue with Google
-                </button>
+            <button className="btn-google" type="button" onClick={handleGoogle}>
+              <GoogleGlyph />
+              {auth.googleLabel}
+            </button>
 
-                <p className="note">
-                  <InfoGlyph />
-                  <span>
-                    Use the <strong>same email you registered with</strong>.
-                  </span>
-                </p>
-              </>
-            ) : (
-              <div className="catalyst-card">
-                {screen === 'login' && (
-                  <Login
-                    {...sharedProps}
-                    setIsLoading={setIsLoading}
-                    onBack={goEntry}
-                    onForgotPassword={() => {
-                      setError(null);
-                      setScreen('forgot');
-                    }}
-                    onSuccess={goToFeed}
-                    modalView
-                  />
-                )}
-                {screen === 'signup' && (
-                  <Signup
-                    {...sharedProps}
-                    setIsLoading={setIsLoading}
-                    onBack={goEntry}
-                    onVerify={() => setScreen('verify')}
-                    modalView
-                  />
-                )}
-                {screen === 'verify' && <VerifyEmail {...sharedProps} />}
-                {screen === 'forgot' && (
-                  <ForgotPassword
-                    {...sharedProps}
-                    onBack={() => {
-                      setError(null);
-                      setScreen('login');
-                    }}
-                    modalView
-                  />
-                )}
-              </div>
-            )}
-          </div>
+            <p className="note">
+              <InfoGlyph />
+              <span>
+                Use the <strong>{auth.noteHighlight}</strong>.
+              </span>
+            </p>
+          </>
+        ) : (
+          <div className="catalyst-card">{renderDeeperScreen(screen)}</div>
+        )}
+      </div>
 
-          <div className="foot">Catalyst NYC promotional event</div>
-        </div>
-      </main>
+      <div className="foot">{footer}</div>
 
       <style jsx>{`
-        .catalyst-auth {
-          font-family:
-            var(--font-geist-sans),
-            -apple-system,
-            system-ui,
-            sans-serif;
-          background: #11121a;
-          display: flex;
-          justify-content: center;
-          -webkit-font-smoothing: antialiased;
-          min-height: 100vh;
-          min-height: 100dvh;
-        }
-        .screen {
-          position: relative;
-          width: 100%;
-          /* Full-bleed on phones; only frame as a centered column on larger screens. */
-          max-width: none;
-          min-height: 100vh;
-          min-height: 100dvh;
-          background: #0c0720;
-          overflow: hidden;
-          color: #fff;
-        }
-        @media (min-width: 640px) {
-          .screen {
-            max-width: 393px;
-          }
-        }
-        .screen__bg {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            108% 86% at 24% 22%,
-            #7b43be 0%,
-            #5a2db0 24%,
-            #3a1f86 46%,
-            #20104e 72%,
-            #0c0720 100%
-          );
-        }
-        .screen__grid {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-          background-size: 22px 22px;
-          -webkit-mask-image: radial-gradient(120% 100% at 30% 20%, transparent 35%, #000 100%);
-          mask-image: radial-gradient(120% 100% at 30% 20%, transparent 35%, #000 100%);
-        }
-        .content {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-          min-height: 100dvh;
-          padding: 56px 30px 40px;
-        }
-        .lockup {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-        }
-        .lockup__div {
-          width: 1px;
-          height: 20px;
-          background: rgba(255, 255, 255, 0.32);
-        }
-        .lockup__cat {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-        }
-        .lockup__cat b {
-          font-size: 18px;
-          font-weight: 600;
-          letter-spacing: -0.04em;
-        }
         .main {
           flex: 1;
           display: flex;
@@ -335,6 +261,10 @@ export function CatalystAuthScreen() {
           border-color: rgba(255, 255, 255, 0.55);
           background: rgba(255, 255, 255, 0.12);
         }
+        .field:focus-visible {
+          outline: 2px solid rgba(255, 255, 255, 0.75);
+          outline-offset: 2px;
+        }
         .err {
           margin-top: 8px;
           font-size: 12.5px;
@@ -361,6 +291,10 @@ export function CatalystAuthScreen() {
         .btn-primary:disabled {
           opacity: 0.75;
           cursor: default;
+        }
+        .btn-primary:focus-visible {
+          outline: 2px solid #fff;
+          outline-offset: 2px;
         }
         .divider {
           display: flex;
@@ -402,15 +336,20 @@ export function CatalystAuthScreen() {
         .btn-google:hover {
           background: rgba(255, 255, 255, 0.16);
         }
+        .btn-google:focus-visible {
+          outline: 2px solid #fff;
+          outline-offset: 2px;
+        }
         .note {
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-wrap: wrap;
           gap: 8px;
           margin-top: 20px;
+          text-align: center;
           color: rgba(255, 255, 255, 0.82);
           font-size: 13px;
-          white-space: nowrap;
         }
         .note strong {
           font-weight: 600;
@@ -421,8 +360,6 @@ export function CatalystAuthScreen() {
           font-size: 12px;
           color: rgba(255, 255, 255, 0.5);
         }
-        /* Deeper auth steps reuse the app's light-themed screens; a white card
-           keeps them legible on the violet field. */
         .catalyst-card {
           width: 100%;
           background: #fff;
@@ -432,6 +369,6 @@ export function CatalystAuthScreen() {
           box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.6);
         }
       `}</style>
-    </div>
+    </CatalystScreenShell>
   );
 }

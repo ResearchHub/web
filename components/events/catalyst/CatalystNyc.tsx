@@ -1,6 +1,4 @@
-// Dot-matrix "NYC" mark, reproduced exactly from the Catalyst NYC design files
-// (5x7-style glyphs as 2.6px rounded cells). Fill is configurable so the mark can
-// render white on the violet arrival field and #7C3AED on the white auth screen.
+// Dot-matrix "NYC" mark from the Catalyst NYC design files (5x7-style glyphs as 2.6px cells).
 const NYC_CELLS: ReadonlyArray<readonly [number, number]> = [
   // N
   [0.0, 0.0],
@@ -53,9 +51,7 @@ const NATIVE_WIDTH = 53.1;
 const NATIVE_HEIGHT = 21.6;
 
 interface CatalystNycProps {
-  /** Cell fill color. White on the arrival field, #7C3AED on the auth screen. */
   fill: string;
-  /** Rendered height in px; width scales to keep the 53.1:21.6 aspect ratio. */
   height?: number;
   className?: string;
 }

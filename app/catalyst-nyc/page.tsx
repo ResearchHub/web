@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { CatalystFlow } from '@/components/catalyst/CatalystFlow';
+import { CatalystFlow } from '@/components/events/catalyst/CatalystFlow';
+import { CATALYST_NYC_EVENT } from '@/components/events/catalyst/constants';
 
 export const metadata: Metadata = {
-  title: 'Catalyst NYC — Join ResearchHub',
-  description:
-    'Catalyst NYC attendees: claim $500 in ResearchCoin to fund science. Sign up with the email you registered with.',
+  title: CATALYST_NYC_EVENT.metadata.title,
+  description: CATALYST_NYC_EVENT.metadata.description,
   // Event-specific QR landing; keep it out of search results.
   robots: { index: false, follow: false, nocache: true },
 };
