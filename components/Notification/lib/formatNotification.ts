@@ -1,5 +1,5 @@
 import { type IconName } from '@/components/ui/icons/Icon';
-import { FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
+import { FOUNDATION_BOUNTY_FLAT_USD, FOUNDATION_USER_ID } from '@/config/constants';
 import { Notification } from '@/types/notification';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 
@@ -196,15 +196,20 @@ export function getRSCAmountFromNotification(notification: Notification): number
   return null;
 }
 
-const isPeerReviewBountyNotification = (notification: Notification): boolean => {
+const isFoundationPeerReviewBountyNotification = (notification: Notification): boolean => {
+  const bountyCreatorId = notification.extra?.bountyCreatorId;
+
   return (
     notification.type === 'BOUNTY_FOR_YOU' &&
-    notification.extra?.bounty_type?.toUpperCase() === 'REVIEW'
+    notification.extra?.bounty_type?.toUpperCase() === 'REVIEW' &&
+    FOUNDATION_USER_ID !== null &&
+    bountyCreatorId !== undefined &&
+    bountyCreatorId.toString() === FOUNDATION_USER_ID.toString()
   );
 };
 
 export function getBountyForYouUsdOverride(notification: Notification): number | null {
-  if (isPeerReviewBountyNotification(notification)) {
+  if (isFoundationPeerReviewBountyNotification(notification)) {
     return FOUNDATION_BOUNTY_FLAT_USD;
   }
 
@@ -331,7 +336,9 @@ export function formatNotificationMessage(
       const bountyTypeAction = getBountyTypeAction(bountyType);
       const usdAmount = getBountyForYouUsdOverride(notification);
       const usdValue =
-        usdAmount !== null ? `$${usdAmount.toLocaleString()} USD` : formatUsdValue(amount, exchangeRate);
+        usdAmount !== null
+          ? `$${usdAmount.toLocaleString()} USD`
+          : formatUsdValue(amount, exchangeRate);
       return `Your expertise is needed! Earn ${usdValue} for ${bountyTypeAction} "${truncatedTitle}"`;
     }
 
