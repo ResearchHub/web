@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUser } from '@/contexts/UserContext';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import { CatalystArrivalScreen } from './CatalystArrivalScreen';
 import { CatalystAuthModal } from './CatalystAuthModal';
 import { CatalystAuthScreen } from './CatalystAuthScreen';
@@ -13,6 +12,7 @@ import { CatalystDesktopOffer } from './CatalystDesktopOffer';
 import { CatalystLoggedInScreen } from './CatalystLoggedInScreen';
 import { CatalystLockup } from './CatalystLockup';
 import { CatalystScreenShell } from './CatalystScreenShell';
+import { useCatalystLayout } from './useCatalystLayout';
 
 type Step = 'arrival' | 'auth';
 
@@ -70,7 +70,7 @@ function DesktopLoadingState() {
 export function CatalystFlow() {
   const router = useRouter();
   const { user, isLoading } = useUser();
-  const isMobile = useIsMobile();
+  const isMobile = useCatalystLayout();
   const [step, setStep] = useState<Step>('arrival');
   const [authOpen, setAuthOpen] = useState(false);
 

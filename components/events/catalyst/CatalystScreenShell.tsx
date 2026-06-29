@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { CatalystVioletBackdrop } from './CatalystVioletBackdrop';
 
 interface CatalystScreenShellProps {
   children: ReactNode;
@@ -15,8 +16,7 @@ export function CatalystScreenShell({
   return (
     <div className="catalyst-shell">
       <main className="screen">
-        <div className="screen__bg" />
-        <div className="screen__grid" />
+        <CatalystVioletBackdrop />
         <div className={`content ${contentLayout === 'spread' ? 'content--spread' : ''}`}>
           {children}
         </div>
@@ -45,28 +45,6 @@ export function CatalystScreenShell({
           background: #0c0720;
           overflow: hidden;
           color: #fff;
-        }
-        .screen__bg {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            108% 86% at 24% 22%,
-            #7b43be 0%,
-            #5a2db0 24%,
-            #3a1f86 46%,
-            #20104e 72%,
-            #0c0720 100%
-          );
-        }
-        .screen__grid {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-          background-size: 22px 22px;
-          -webkit-mask-image: radial-gradient(120% 100% at 30% 20%, transparent 35%, #000 100%);
-          mask-image: radial-gradient(120% 100% at 30% 20%, transparent 35%, #000 100%);
         }
         .content {
           position: relative;
