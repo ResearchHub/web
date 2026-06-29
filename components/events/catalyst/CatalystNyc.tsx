@@ -1,25 +1,25 @@
 const NYC_CELLS: ReadonlyArray<readonly [number, number]> = [
-  [0.0, 0.0],
-  [12.69, 0.0],
-  [0.0, 3.17],
+  [0, 0],
+  [12.69, 0],
+  [0, 3.17],
   [3.17, 3.17],
   [12.69, 3.17],
-  [0.0, 6.34],
+  [0, 6.34],
   [3.17, 6.34],
   [12.69, 6.34],
-  [0.0, 9.52],
+  [0, 9.52],
   [6.34, 9.52],
   [12.69, 9.52],
-  [0.0, 12.69],
+  [0, 12.69],
   [9.52, 12.69],
   [12.69, 12.69],
-  [0.0, 15.86],
+  [0, 15.86],
   [9.52, 15.86],
   [12.69, 15.86],
-  [0.0, 19.03],
+  [0, 19.03],
   [12.69, 19.03],
-  [18.89, 0.0],
-  [31.58, 0.0],
+  [18.89, 0],
+  [31.58, 0],
   [18.89, 3.17],
   [31.58, 3.17],
   [22.06, 6.34],
@@ -28,9 +28,9 @@ const NYC_CELLS: ReadonlyArray<readonly [number, number]> = [
   [25.23, 12.69],
   [25.23, 15.86],
   [25.23, 19.03],
-  [40.95, 0.0],
-  [44.12, 0.0],
-  [47.29, 0.0],
+  [40.95, 0],
+  [44.12, 0],
+  [47.29, 0],
   [37.78, 3.17],
   [50.46, 3.17],
   [37.78, 6.34],
@@ -52,7 +52,11 @@ interface CatalystNycProps {
   className?: string;
 }
 
-export function CatalystNyc({ fill, height = NATIVE_HEIGHT, className }: CatalystNycProps) {
+export function CatalystNyc({
+  fill,
+  height = NATIVE_HEIGHT,
+  className,
+}: Readonly<CatalystNycProps>) {
   const width = (height * NATIVE_WIDTH) / NATIVE_HEIGHT;
   return (
     <svg

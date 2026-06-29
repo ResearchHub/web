@@ -16,17 +16,25 @@ const {
 
 const MAX = creditAmount * (1 + yieldRate * maxYears);
 
+const BARS = Array.from({ length: barCount }, (_, i) => ({
+  year: i,
+  heightPct: Math.max(3, ((creditAmount * (1 + yieldRate * i)) / MAX) * 100),
+}));
+
 interface CatalystArrivalBodyProps {
   onClaim: () => void;
   compact?: boolean;
 }
 
-export function CatalystArrivalBody({ onClaim, compact = false }: CatalystArrivalBodyProps) {
+export function CatalystArrivalBody({
+  onClaim,
+  compact = false,
+}: Readonly<CatalystArrivalBodyProps>) {
   const [yr, setYr] = useState(0);
   const holdRef = useRef(0);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
       return undefined;
     }
@@ -46,9 +54,9 @@ export function CatalystArrivalBody({ onClaim, compact = false }: CatalystArriva
   }, []);
 
   const value = creditAmount * (1 + yieldRate * yr);
-  const yrText =
-    (yr === 0 ? 'Your starting balance today' : `After ${yr} ${yr === 1 ? 'year' : 'years'}`) +
-    ` · ${yieldLabel}`;
+  const yearWord = yr === 1 ? 'year' : 'years';
+  const phaseLabel = yr === 0 ? 'Your starting balance today' : `After ${yr} ${yearWord}`;
+  const yrText = `${phaseLabel} · ${yieldLabel}`;
 
   return (
     <>
@@ -56,20 +64,18 @@ export function CatalystArrivalBody({ onClaim, compact = false }: CatalystArriva
         <div className="balance">{formatMoney(value)}</div>
         <div className="yrline">{yrText}</div>
         <div className="bars">
-          {Array.from({ length: barCount }).map((_, i) => {
-            const barValue = creditAmount * (1 + yieldRate * i);
-            const height = Math.max(3, (barValue / MAX) * 100);
-            const active = i <= yr;
+          {BARS.map(({ year, heightPct }) => {
+            const active = year <= yr;
             return (
               <span
-                key={i}
+                key={year}
                 aria-hidden="true"
                 style={{
-                  height: `${height}%`,
+                  height: `${heightPct}%`,
                   background: active
                     ? 'linear-gradient(180deg,#86efac,#22c55e)'
                     : 'rgba(255,255,255,.13)',
-                  boxShadow: i === yr ? '0 0 0 2px rgba(134,239,172,.55)' : 'none',
+                  boxShadow: year === yr ? '0 0 0 2px rgba(134,239,172,.55)' : 'none',
                 }}
               />
             );

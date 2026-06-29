@@ -14,7 +14,7 @@ interface CatalystLockupProps {
   theme?: 'onDark' | 'onLight';
 }
 
-export function CatalystLockup({ theme = 'onDark' }: CatalystLockupProps) {
+export function CatalystLockup({ theme = 'onDark' }: Readonly<CatalystLockupProps>) {
   const onDark = theme === 'onDark';
 
   return (

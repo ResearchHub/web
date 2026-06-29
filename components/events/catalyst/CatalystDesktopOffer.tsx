@@ -9,7 +9,7 @@ interface CatalystDesktopOfferProps {
   onClaim: () => void;
 }
 
-export function CatalystDesktopOffer({ onClaim }: CatalystDesktopOfferProps) {
+export function CatalystDesktopOffer({ onClaim }: Readonly<CatalystDesktopOfferProps>) {
   return (
     <PageLayout rightSidebar={false}>
       <div className="mx-auto max-w-lg px-4 py-12 sm:py-16">

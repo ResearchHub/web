@@ -9,7 +9,7 @@ interface CatalystDesktopLoggedInProps {
   email: string;
 }
 
-export function CatalystDesktopLoggedIn({ email }: CatalystDesktopLoggedInProps) {
+export function CatalystDesktopLoggedIn({ email }: Readonly<CatalystDesktopLoggedInProps>) {
   const router = useRouter();
 
   return (

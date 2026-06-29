@@ -8,7 +8,7 @@ interface CatalystAuthEntryTitleProps {
   surface: 'dark' | 'light';
 }
 
-export function CatalystAuthEntryTitle({ surface }: CatalystAuthEntryTitleProps) {
+export function CatalystAuthEntryTitle({ surface }: Readonly<CatalystAuthEntryTitleProps>) {
   const onDark = surface === 'dark';
 
   return (
@@ -43,7 +43,7 @@ interface CatalystAuthEntryNoteProps {
   surface: 'dark' | 'light';
 }
 
-function InfoGlyph({ stroke }: { stroke: string }) {
+function InfoGlyph({ stroke }: Readonly<{ stroke: string }>) {
   return (
     <svg
       width="16"
@@ -63,7 +63,7 @@ function InfoGlyph({ stroke }: { stroke: string }) {
   );
 }
 
-export function CatalystAuthEntryNote({ surface }: CatalystAuthEntryNoteProps) {
+export function CatalystAuthEntryNote({ surface }: Readonly<CatalystAuthEntryNoteProps>) {
   const onDark = surface === 'dark';
 
   return (

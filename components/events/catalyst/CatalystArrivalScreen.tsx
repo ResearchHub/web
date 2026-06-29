@@ -8,7 +8,7 @@ interface CatalystArrivalScreenProps {
   onClaim: () => void;
 }
 
-export function CatalystArrivalScreen({ onClaim }: CatalystArrivalScreenProps) {
+export function CatalystArrivalScreen({ onClaim }: Readonly<CatalystArrivalScreenProps>) {
   return (
     <CatalystScreenShell contentLayout="spread">
       <CatalystLockup />

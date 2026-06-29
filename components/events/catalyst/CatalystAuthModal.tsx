@@ -16,23 +16,28 @@ interface CatalystAuthModalProps {
   onSuccess?: () => void;
 }
 
-export function CatalystAuthModal({ isOpen, onClose, onSuccess }: CatalystAuthModalProps) {
+export function CatalystAuthModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: Readonly<CatalystAuthModalProps>) {
   if (!isOpen) {
     return null;
   }
 
-  const handleBackgroundClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <div
-      className="fixed inset-0 !bg-black/50 flex items-center justify-center z-[60]"
-      onClick={handleBackgroundClick}
-    >
-      <div className="bg-white rounded-lg w-full max-w-md p-6 relative mx-4">
+    <div className="fixed inset-0 flex items-center justify-center z-[60]">
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 h-full w-full !bg-black/50"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="bg-white rounded-lg w-full max-w-md p-6 relative mx-4 z-[1]"
+      >
         <Button
           type="button"
           onClick={onClose}

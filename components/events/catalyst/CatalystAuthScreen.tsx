@@ -22,7 +22,7 @@ export function CatalystAuthScreen() {
       <CatalystLockup />
 
       <div className="main">
-        <div className={screen !== 'SELECT_PROVIDER' ? 'catalyst-card' : 'catalyst-entry'}>
+        <div className={screen === 'SELECT_PROVIDER' ? 'catalyst-entry' : 'catalyst-card'}>
           <AuthContent
             showHeader={false}
             modalView

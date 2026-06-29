@@ -16,7 +16,7 @@ export function CatalystLoggedInBody({
   variant,
   onContinue,
   showFooter = false,
-}: CatalystLoggedInBodyProps) {
+}: Readonly<CatalystLoggedInBodyProps>) {
   const isMobile = variant === 'mobile';
 
   return (
@@ -37,7 +37,7 @@ export function CatalystLoggedInBody({
         <a href={`mailto:${contact.email}`} className="contact-link">
           {contact.email}
         </a>
-        .
+        {'.'}
       </p>
 
       <button

@@ -11,7 +11,7 @@ interface CatalystScreenShellProps {
 export function CatalystScreenShell({
   children,
   contentLayout = 'stack',
-}: CatalystScreenShellProps) {
+}: Readonly<CatalystScreenShellProps>) {
   return (
     <div className="catalyst-shell">
       <main className="screen">

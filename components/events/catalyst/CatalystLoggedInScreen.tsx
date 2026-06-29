@@ -12,7 +12,7 @@ interface CatalystLoggedInScreenProps {
   email: string;
 }
 
-export function CatalystLoggedInScreen({ email }: CatalystLoggedInScreenProps) {
+export function CatalystLoggedInScreen({ email }: Readonly<CatalystLoggedInScreenProps>) {
   const router = useRouter();
 
   return (
