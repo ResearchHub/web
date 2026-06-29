@@ -16,7 +16,7 @@ export function CatalystLoggedInScreen({ email }: CatalystLoggedInScreenProps) {
 
   return (
     <CatalystScreenShell>
-      <CatalystLockup variant="loggedIn" />
+      <CatalystLockup />
 
       <div className="main">
         <h1 className="title">{loggedIn.title}</h1>

@@ -15,7 +15,7 @@ export const CATALYST_NYC_EVENT = {
   },
   auth: {
     titleLines: ['Sign-up to', 'claim your $500'] as const,
-    emailLabel: 'Your Catalyst NYC email',
+    emailLabel: 'Your email',
     emailPlaceholder: 'name@institution.com',
     continueLabel: 'Continue',
     loadingLabel: 'Loading...',

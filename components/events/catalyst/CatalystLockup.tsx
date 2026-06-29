@@ -3,53 +3,61 @@
 import { Logo } from '@/components/ui/Logo';
 import { CatalystNyc } from './CatalystNyc';
 
-export type CatalystLockupVariant = 'arrival' | 'auth' | 'loggedIn';
-
-const LOCKUP_SIZES: Record<
-  CatalystLockupVariant,
-  { logo: number; nyc: number; gap: number; divHeight: number; catFont: number; catGap: number }
-> = {
-  arrival: { logo: 25, nyc: 15, gap: 13, divHeight: 22, catFont: 21, catGap: 9 },
-  auth: { logo: 23, nyc: 13, gap: 11, divHeight: 20, catFont: 18, catGap: 8 },
-  loggedIn: { logo: 23, nyc: 13, gap: 11, divHeight: 20, catFont: 18, catGap: 8 },
-};
+const LOGO_SIZE = 25;
+const NYC_HEIGHT = 15;
+const GAP = 13;
+const DIV_HEIGHT = 22;
+const CAT_FONT = 21;
+const CAT_GAP = 9;
 
 interface CatalystLockupProps {
-  variant: CatalystLockupVariant;
+  /** White lockup for violet backgrounds; default lockup for light surfaces. */
+  theme?: 'onDark' | 'onLight';
 }
 
-export function CatalystLockup({ variant }: CatalystLockupProps) {
-  const sizes = LOCKUP_SIZES[variant];
+export function CatalystLockup({ theme = 'onDark' }: CatalystLockupProps) {
+  const onDark = theme === 'onDark';
 
   return (
     <div className="lockup">
-      <Logo variant="white" size={sizes.logo} />
-      <span className="lockup__div" />
+      <Logo variant={onDark ? 'white' : 'default'} size={LOGO_SIZE} />
+      <span className={`lockup__div ${onDark ? 'lockup__div--dark' : 'lockup__div--light'}`} />
       <span className="lockup__cat">
-        <b>Catalyst</b>
-        <CatalystNyc fill="#FFFFFF" height={sizes.nyc} />
+        <b className={onDark ? 'lockup__cat--dark' : 'lockup__cat--light'}>Catalyst</b>
+        <CatalystNyc fill={onDark ? '#FFFFFF' : '#7C3AED'} height={NYC_HEIGHT} />
       </span>
 
       <style jsx>{`
         .lockup {
           display: flex;
           align-items: center;
-          gap: ${sizes.gap}px;
+          gap: ${GAP}px;
         }
         .lockup__div {
           width: 1px;
-          height: ${sizes.divHeight}px;
+          height: ${DIV_HEIGHT}px;
+        }
+        .lockup__div--dark {
           background: rgba(255, 255, 255, 0.32);
+        }
+        .lockup__div--light {
+          background: rgba(0, 0, 0, 0.15);
         }
         .lockup__cat {
           display: flex;
           align-items: baseline;
-          gap: ${sizes.catGap}px;
+          gap: ${CAT_GAP}px;
         }
         .lockup__cat b {
-          font-size: ${sizes.catFont}px;
+          font-size: ${CAT_FONT}px;
           font-weight: 600;
           letter-spacing: -0.04em;
+        }
+        .lockup__cat--dark {
+          color: #fff;
+        }
+        .lockup__cat--light {
+          color: #0c0720;
         }
       `}</style>
     </div>

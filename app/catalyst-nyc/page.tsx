@@ -10,9 +10,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Standalone full-screen mobile flow for the Catalyst NYC QR code. Renders
- * outside the app chrome (no PageLayout) so the designed arrival/auth screens
- * own the full viewport.
+ * Catalyst NYC landing: full-screen mobile flow for QR scans; desktop uses
+ * PageLayout with a standard auth modal on Claim.
  */
 export default function CatalystNycPage() {
   return <CatalystFlow />;

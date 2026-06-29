@@ -46,11 +46,6 @@ export function CatalystScreenShell({
           overflow: hidden;
           color: #fff;
         }
-        @media (min-width: 640px) {
-          .screen {
-            max-width: 393px;
-          }
-        }
         .screen__bg {
           position: absolute;
           inset: 0;

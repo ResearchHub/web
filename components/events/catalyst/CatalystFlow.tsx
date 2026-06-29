@@ -1,68 +1,106 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUser } from '@/contexts/UserContext';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { CatalystArrivalScreen } from './CatalystArrivalScreen';
+import { CatalystAuthModal } from './CatalystAuthModal';
 import { CatalystAuthScreen } from './CatalystAuthScreen';
+import { CatalystDesktopLoggedIn } from './CatalystDesktopLoggedIn';
+import { CatalystDesktopOffer } from './CatalystDesktopOffer';
 import { CatalystLoggedInScreen } from './CatalystLoggedInScreen';
 import { CatalystLockup } from './CatalystLockup';
 import { CatalystScreenShell } from './CatalystScreenShell';
 
 type Step = 'arrival' | 'auth';
 
+function MobileLoadingState() {
+  return (
+    <CatalystScreenShell>
+      <CatalystLockup />
+      <div className="loading" aria-busy="true" aria-label="Loading" />
+      <style jsx>{`
+        .loading {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .loading::after {
+          content: '';
+          width: 28px;
+          height: 28px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .loading::after {
+            animation: none;
+            border-top-color: rgba(255, 255, 255, 0.5);
+          }
+        }
+      `}</style>
+    </CatalystScreenShell>
+  );
+}
+
+function DesktopLoadingState() {
+  return (
+    <PageLayout rightSidebar={false}>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600" />
+      </div>
+    </PageLayout>
+  );
+}
+
 /**
- * Catalyst NYC QR sign-up flow: violet arrival screen advances to the dark-violet
- * email-first auth screen when the attendee taps "Claim my $500". Logged-in users
- * see an email confirmation screen instead.
+ * Catalyst NYC QR sign-up flow. Mobile uses full-screen dressed-up screens; desktop
+ * uses normal page chrome with a standard auth modal on Claim.
  */
 export function CatalystFlow() {
+  const router = useRouter();
   const { user, isLoading } = useUser();
+  const isMobile = useIsMobile();
   const [step, setStep] = useState<Step>('arrival');
+  const [authOpen, setAuthOpen] = useState(false);
 
   if (isLoading) {
-    return (
-      <CatalystScreenShell>
-        <CatalystLockup variant="auth" />
-        <div className="loading" aria-busy="true" aria-label="Loading" />
-        <style jsx>{`
-          .loading {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .loading::after {
-            content: '';
-            width: 28px;
-            height: 28px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-          }
-          @keyframes spin {
-            to {
-              transform: rotate(360deg);
-            }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .loading::after {
-              animation: none;
-              border-top-color: rgba(255, 255, 255, 0.5);
-            }
-          }
-        `}</style>
-      </CatalystScreenShell>
-    );
+    return isMobile ? <MobileLoadingState /> : <DesktopLoadingState />;
   }
 
   if (user?.email) {
-    return <CatalystLoggedInScreen email={user.email} />;
+    return isMobile ? (
+      <CatalystLoggedInScreen email={user.email} />
+    ) : (
+      <CatalystDesktopLoggedIn email={user.email} />
+    );
   }
 
-  if (step === 'auth') {
-    return <CatalystAuthScreen />;
+  if (isMobile) {
+    if (step === 'auth') {
+      return <CatalystAuthScreen />;
+    }
+    return <CatalystArrivalScreen onClaim={() => setStep('auth')} />;
   }
 
-  return <CatalystArrivalScreen onClaim={() => setStep('auth')} />;
+  return (
+    <>
+      <CatalystDesktopOffer onClaim={() => setAuthOpen(true)} />
+      <CatalystAuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onSuccess={() => router.push('/')}
+      />
+    </>
+  );
 }
