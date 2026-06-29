@@ -5,7 +5,6 @@ import { CatalystVioletBackdrop } from './CatalystVioletBackdrop';
 
 interface CatalystScreenShellProps {
   children: ReactNode;
-  /** space-between layout for arrival; default stacks top-to-bottom */
   contentLayout?: 'spread' | 'stack';
 }
 

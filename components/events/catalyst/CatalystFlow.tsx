@@ -63,10 +63,6 @@ function DesktopLoadingState() {
   );
 }
 
-/**
- * Catalyst NYC QR sign-up flow. Mobile uses full-screen dressed-up screens; desktop
- * uses normal page chrome with a standard auth modal on Claim.
- */
 export function CatalystFlow() {
   const router = useRouter();
   const { user, isLoading } = useUser();

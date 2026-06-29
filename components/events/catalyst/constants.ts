@@ -1,4 +1,3 @@
-/** Catalyst NYC QR landing — swap this config to restyle for a future event. */
 export const CATALYST_NYC_EVENT = {
   route: '/catalyst-nyc',
   eventName: 'Catalyst NYC',

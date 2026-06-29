@@ -18,7 +18,6 @@ const MAX = creditAmount * (1 + yieldRate * maxYears);
 
 interface CatalystArrivalBodyProps {
   onClaim: () => void;
-  /** Compact layout for desktop in-page card */
   compact?: boolean;
 }
 

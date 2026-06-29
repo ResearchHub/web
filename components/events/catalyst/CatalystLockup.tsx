@@ -11,7 +11,6 @@ const CAT_FONT = 21;
 const CAT_GAP = 9;
 
 interface CatalystLockupProps {
-  /** White lockup for violet backgrounds; default lockup for light surfaces. */
   theme?: 'onDark' | 'onLight';
 }
 

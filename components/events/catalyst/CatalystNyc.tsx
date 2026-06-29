@@ -1,6 +1,4 @@
-// Dot-matrix "NYC" mark from the Catalyst NYC design files (5x7-style glyphs as 2.6px cells).
 const NYC_CELLS: ReadonlyArray<readonly [number, number]> = [
-  // N
   [0.0, 0.0],
   [12.69, 0.0],
   [0.0, 3.17],
@@ -20,7 +18,6 @@ const NYC_CELLS: ReadonlyArray<readonly [number, number]> = [
   [12.69, 15.86],
   [0.0, 19.03],
   [12.69, 19.03],
-  // Y
   [18.89, 0.0],
   [31.58, 0.0],
   [18.89, 3.17],
@@ -31,7 +28,6 @@ const NYC_CELLS: ReadonlyArray<readonly [number, number]> = [
   [25.23, 12.69],
   [25.23, 15.86],
   [25.23, 19.03],
-  // C
   [40.95, 0.0],
   [44.12, 0.0],
   [47.29, 0.0],
