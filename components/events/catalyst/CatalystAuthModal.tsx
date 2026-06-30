@@ -33,10 +33,10 @@ export function CatalystAuthModal({
         className="absolute inset-0 h-full w-full !bg-black/50"
         onClick={onClose}
       />
-      <div
-        role="dialog"
+      <dialog
+        open
         aria-modal="true"
-        className="bg-white rounded-lg w-full max-w-md p-6 relative mx-4 z-[1]"
+        className="relative z-[1] mx-4 my-0 w-full max-w-md rounded-lg border-0 bg-white p-6"
       >
         <Button
           type="button"
@@ -64,7 +64,7 @@ export function CatalystAuthModal({
           entryTitle={<CatalystAuthEntryTitle surface="light" />}
           entryNote={<CatalystAuthEntryNote surface="light" />}
         />
-      </div>
+      </dialog>
     </div>
   );
 }
