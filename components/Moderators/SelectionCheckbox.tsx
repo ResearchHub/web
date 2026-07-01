@@ -7,6 +7,7 @@ interface SelectionCheckboxProps {
   indeterminate?: boolean;
   onChange: () => void;
   ariaLabel: string;
+  disabled?: boolean;
 }
 
 export const SelectionCheckbox: FC<SelectionCheckboxProps> = ({
@@ -14,16 +15,22 @@ export const SelectionCheckbox: FC<SelectionCheckboxProps> = ({
   indeterminate = false,
   onChange,
   ariaLabel,
+  disabled = false,
 }) => (
   <button
+    type="button"
+    role="checkbox"
+    aria-checked={indeterminate ? 'mixed' : checked}
+    aria-label={ariaLabel}
     onClick={onChange}
+    disabled={disabled}
     className={cn(
       'flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors cursor-pointer',
       checked || indeterminate
         ? 'bg-indigo-600 border-indigo-600 text-white'
-        : 'border-gray-300 hover:border-indigo-400 bg-white'
+        : 'border-gray-300 hover:border-indigo-400 bg-white',
+      disabled && 'cursor-not-allowed opacity-50'
     )}
-    aria-label={ariaLabel}
   >
     {checked && !indeterminate && <Check className="w-3 h-3" />}
     {indeterminate && <Minus className="w-3 h-3" />}
