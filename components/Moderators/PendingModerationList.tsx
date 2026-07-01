@@ -449,39 +449,41 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
             </div>
 
             {selectedCount > 0 && (
-              <div className="flex flex-wrap items-center gap-1">
+              <div className="flex w-full flex-col gap-1 tablet:!w-auto tablet:!flex-row tablet:!items-center">
+                <div className="order-1 flex flex-wrap items-center gap-1 tablet:!order-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBulkApproveConfirm(true)}
+                    disabled={isBulkActioning}
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    {bulkAction === 'approve'
+                      ? 'Approving...'
+                      : `Approve ${allLoadedEntriesSelected ? 'all' : 'selected'} (${selectedCount})`}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBulkDeclineModal(true)}
+                    disabled={isBulkActioning}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    {bulkAction === 'decline'
+                      ? 'Declining...'
+                      : `Decline ${allLoadedEntriesSelected ? 'all' : 'selected'} (${selectedCount})`}
+                  </Button>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearSelection}
                   disabled={isBulkActioning}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="order-2 w-fit text-gray-500 hover:text-gray-700 tablet:!order-1"
                 >
                   Clear
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowBulkApproveConfirm(true)}
-                  disabled={isBulkActioning}
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  {bulkAction === 'approve'
-                    ? 'Approving...'
-                    : `Approve ${allLoadedEntriesSelected ? 'all' : 'selected'} (${selectedCount})`}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowBulkDeclineModal(true)}
-                  disabled={isBulkActioning}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <XCircle className="h-4 w-4 mr-1" />
-                  {bulkAction === 'decline'
-                    ? 'Declining...'
-                    : `Decline ${allLoadedEntriesSelected ? 'all' : 'selected'} (${selectedCount})`}
                 </Button>
               </div>
             )}
