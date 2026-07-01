@@ -30,6 +30,11 @@ type DeclineData = { reasonChoice: FlagReasonKey; reason: string };
 type SelectablePendingEntry = { entryId: string; contentId: number };
 
 const BULK_ACTION_BATCH_SIZE = 5;
+const PENDING_MODERATION_SKELETON_KEYS = [
+  'pending-moderation-skeleton-primary',
+  'pending-moderation-skeleton-secondary',
+  'pending-moderation-skeleton-tertiary',
+];
 
 function getContentId(module: PendingModule, entry: FeedEntry): number | undefined {
   if (module === 'funding_opportunities') {
@@ -159,12 +164,32 @@ function BulkProcessingOverlay({
   );
 }
 
-function PendingModerationSkeleton({ count = 3 }: Readonly<{ count?: number }>) {
+function getBulkActionButtonText({
+  action,
+  activeAction,
+  allLoadedEntriesSelected,
+  selectedCount,
+}: Readonly<{
+  action: ModerationAction;
+  activeAction: ModerationAction | null;
+  allLoadedEntriesSelected: boolean;
+  selectedCount: number;
+}>) {
+  if (activeAction === action) {
+    return action === 'approve' ? 'Approving...' : 'Declining...';
+  }
+
+  const actionLabel = action === 'approve' ? 'Approve' : 'Decline';
+  const selectionLabel = allLoadedEntriesSelected ? 'all' : 'selected';
+  return `${actionLabel} ${selectionLabel} (${selectedCount})`;
+}
+
+function PendingModerationSkeleton() {
   return (
     <div className="space-y-4">
-      {Array.from({ length: count }).map((_, index) => (
+      {PENDING_MODERATION_SKELETON_KEYS.map((skeletonKey) => (
         <div
-          key={`pending-moderation-skeleton-${index}`}
+          key={skeletonKey}
           className="bg-white border border-gray-200 rounded-lg p-6 animate-pulse"
         >
           <div className="h-5 bg-gray-200 rounded w-2/3 mb-3" />
@@ -248,6 +273,18 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
   const allLoadedEntriesSelected = selectableCount > 0 && selectedCount === selectableCount;
   const someLoadedEntriesSelected = selectedCount > 0 && selectedCount < selectableCount;
   const isBulkActioning = bulkAction != null;
+  const approveSelectedText = getBulkActionButtonText({
+    action: 'approve',
+    activeAction: bulkAction,
+    allLoadedEntriesSelected,
+    selectedCount,
+  });
+  const declineSelectedText = getBulkActionButtonText({
+    action: 'decline',
+    activeAction: bulkAction,
+    allLoadedEntriesSelected,
+    selectedCount,
+  });
 
   const loadNextPage = useCallback(async () => {
     if (!hasMore || isLoadingMore) return;
@@ -459,9 +496,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
-                    {bulkAction === 'approve'
-                      ? 'Approving...'
-                      : `Approve ${allLoadedEntriesSelected ? 'all' : 'selected'} (${selectedCount})`}
+                    {approveSelectedText}
                   </Button>
                   <Button
                     variant="ghost"
@@ -471,9 +506,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <XCircle className="h-4 w-4 mr-1" />
-                    {bulkAction === 'decline'
-                      ? 'Declining...'
-                      : `Decline ${allLoadedEntriesSelected ? 'all' : 'selected'} (${selectedCount})`}
+                    {declineSelectedText}
                   </Button>
                 </div>
                 <Button
