@@ -466,7 +466,6 @@ export class SearchService {
         doi: doc.doi,
         citations: doc.citations || 0,
         score: doc.score || 0,
-        hot_score: doc.hot_score || 0,
         unified_document_id: doc.unified_document_id?.toString() || doc.id.toString(),
       },
       created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),

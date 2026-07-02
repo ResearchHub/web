@@ -290,7 +290,6 @@ export interface ApiDocumentSearchResult {
   }>; // array of author objects
   created_date: string | null;
   paper_publish_date: string | null;
-  hot_score: number;
   score: number; // upvotes
   _search_score: number; // relevance score
   hubs: any[]; // hub objects
