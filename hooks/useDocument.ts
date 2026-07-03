@@ -22,7 +22,7 @@ export interface PreregistrationPostParams {
   articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
   title: string;
   noteId: ID;
-  proposalId?: ID | null;
+  proposalId?: ID;
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
@@ -61,6 +61,72 @@ type UpsertPostFn = (
 ) => Promise<UpsertPostResult>;
 type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
 
+const parseCurrencyAmount = (value: string): number => parseFloat(value.replace(/[^0-9.]/g, ''));
+
+const buildBasePayload = (postParams: PreregistrationPostParams) => ({
+  document_type: postParams.articleType,
+  title: postParams.title,
+  renderable_text: postParams.renderableText,
+  full_src: postParams.fullSrc,
+  full_json: postParams.fullJSON,
+  note_id: postParams.noteId,
+  hubs: postParams.topics,
+  authors: postParams.authors,
+  ...(postParams.image ? { image: postParams.image } : {}),
+});
+
+const addPreregistrationPayload = (payload: any, postParams: PreregistrationPostParams) => {
+  payload.reward_funders = postParams.rewardFunders;
+  payload.nft_supply = postParams.nftSupply;
+  payload.fundraise_goal_currency = 'USD';
+  payload.fundraise_goal_amount = parseCurrencyAmount(postParams.budget);
+
+  if (postParams.applicationDeadline) {
+    payload.fundraise_end_date = postParams.applicationDeadline.toISOString();
+  }
+  if (postParams.grantId) {
+    payload.grant_id = postParams.grantId;
+  }
+  if (typeof postParams.isPublic === 'boolean') {
+    payload.is_public = postParams.isPublic;
+  }
+};
+
+const addGrantPayload = (payload: any, postParams: PreregistrationPostParams) => {
+  payload.grant_amount = parseCurrencyAmount(postParams.budget);
+  payload.grant_currency = 'USD';
+  payload.grant_organization = postParams.organization;
+  payload.grant_description = postParams.description;
+  payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
+  payload.grant_contacts = postParams.contacts;
+
+  if (postParams.applicationVisibility) {
+    payload.grant_application_visibility = postParams.applicationVisibility;
+  }
+};
+
+const buildPostPayload = (postParams: PreregistrationPostParams, postId?: ID) => {
+  const payload: any = buildBasePayload(postParams);
+
+  if (postParams.articleType === 'REGISTERED_REPORT') {
+    payload.proposal_id = postParams.proposalId;
+  } else {
+    payload.assign_doi = postParams.assignDOI ?? false;
+  }
+
+  if (postId) {
+    payload.post_id = postId;
+  } else if (postParams.articleType === 'PREREGISTRATION') {
+    addPreregistrationPayload(payload, postParams);
+  }
+
+  if (postParams.articleType === 'GRANT') {
+    addGrantPayload(payload, postParams);
+  }
+
+  return payload;
+};
+
 export const useUpsertPost = (): UseUpsertPostReturn => {
   const [data, setData] = useState<TransformedWork | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,62 +140,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
     setError(null);
 
     try {
-      // Create the request payload
-      const payload: any = {
-        document_type: postParams.articleType,
-        title: postParams.title,
-        renderable_text: postParams.renderableText,
-        full_src: postParams.fullSrc,
-        full_json: postParams.fullJSON,
-        note_id: postParams.noteId,
-      };
-
-      if (postParams.articleType === 'REGISTERED_REPORT') {
-        payload.proposal_id = postParams.proposalId;
-        payload.hubs = postParams.topics;
-        payload.authors = postParams.authors;
-      } else {
-        payload.assign_doi = postParams.assignDOI ?? false;
-        payload.hubs = postParams.topics;
-        payload.authors = postParams.authors;
-      }
-
-      if (postParams.image) {
-        payload.image = postParams.image;
-      }
-
-      if (postId) {
-        payload.post_id = postId;
-      } else if (postParams.articleType === 'PREREGISTRATION') {
-        // Include fundraise fields for creation of proposals and grants
-        payload.reward_funders = postParams.rewardFunders;
-        payload.nft_supply = postParams.nftSupply;
-        payload.fundraise_goal_currency = 'USD';
-        payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
-
-        if (postParams.applicationDeadline) {
-          payload.fundraise_end_date = postParams.applicationDeadline.toISOString();
-        }
-        if (postParams.grantId) {
-          payload.grant_id = postParams.grantId;
-        }
-        if (typeof postParams.isPublic === 'boolean') {
-          payload.is_public = postParams.isPublic;
-        }
-      }
-
-      if (postParams.articleType === 'GRANT') {
-        payload.grant_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
-        payload.grant_currency = 'USD';
-        payload.grant_organization = postParams.organization;
-        payload.grant_description = postParams.description;
-        payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
-        payload.grant_contacts = postParams.contacts;
-        if (postParams.applicationVisibility) {
-          payload.grant_application_visibility = postParams.applicationVisibility;
-        }
-      }
-
+      const payload = buildPostPayload(postParams, postId);
       const response = (await PostService.upsert(payload)) as TransformedWork;
 
       // Extract fundraise ID from raw response if available

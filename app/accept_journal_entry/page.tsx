@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Confetti from 'react-confetti';
 import { AlertCircle, Loader2, PartyPopper } from 'lucide-react';
@@ -9,19 +9,21 @@ import { useUser } from '@/contexts/UserContext';
 import { NoteService } from '@/services/note.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 
+interface AcceptJournalEntryCardProps {
+  error?: string | null;
+  notebookPath?: string | null;
+  isAccepting?: boolean;
+  onRetry?: () => void;
+  onOpenNotebook?: () => void;
+}
+
 function AcceptJournalEntryCard({
   error,
   notebookPath,
   isAccepting = false,
   onRetry,
   onOpenNotebook,
-}: {
-  error?: string | null;
-  notebookPath?: string | null;
-  isAccepting?: boolean;
-  onRetry?: () => void;
-  onOpenNotebook?: () => void;
-}) {
+}: Readonly<AcceptJournalEntryCardProps>) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardDimensions, setCardDimensions] = useState({ width: 0, height: 0 });
 
@@ -41,6 +43,47 @@ function AcceptJournalEntryCard({
     return () => window.removeEventListener('resize', updateDimensions);
   }, [notebookPath]);
 
+  let cardContent: ReactNode;
+
+  if (error) {
+    cardContent = (
+      <>
+        <AlertCircle className="mb-4 h-10 w-10 text-red-500" aria-hidden="true" />
+        <h1 className="text-xl font-semibold text-gray-900">Unable to create draft</h1>
+        <p className="mt-2 text-sm text-gray-600">{error}</p>
+        <Button className="mt-6 w-full" onClick={onRetry} disabled={isAccepting}>
+          Try again
+        </Button>
+      </>
+    );
+  } else if (notebookPath) {
+    cardContent = (
+      <>
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
+          <PartyPopper className="h-9 w-9 text-primary-500" aria-hidden="true" />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Registered Report draft created</h1>
+        <p className="mt-2 px-4 text-base text-gray-500">
+          Your funded proposal is now ready as a private notebook draft. You can edit it before
+          publishing the Registered Report.
+        </p>
+        <Button className="mt-6 w-full" onClick={onOpenNotebook}>
+          Open notebook draft
+        </Button>
+      </>
+    );
+  } else {
+    cardContent = (
+      <>
+        <Loader2 className="mb-4 h-10 w-10 animate-spin text-primary-500" aria-hidden="true" />
+        <h1 className="text-xl font-semibold text-gray-900">Creating draft</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Your Registered Report draft will be ready shortly.
+        </p>
+      </>
+    );
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-9rem)] w-full items-center justify-center">
       <div
@@ -58,38 +101,7 @@ function AcceptJournalEntryCard({
           />
         )}
 
-        {error ? (
-          <>
-            <AlertCircle className="mb-4 h-10 w-10 text-red-500" aria-hidden="true" />
-            <h1 className="text-xl font-semibold text-gray-900">Unable to create draft</h1>
-            <p className="mt-2 text-sm text-gray-600">{error}</p>
-            <Button className="mt-6 w-full" onClick={onRetry} disabled={isAccepting}>
-              Try again
-            </Button>
-          </>
-        ) : notebookPath ? (
-          <>
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-              <PartyPopper className="h-9 w-9 text-primary-500" aria-hidden="true" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800">Registered Report draft created</h1>
-            <p className="mt-2 px-4 text-base text-gray-500">
-              Your funded proposal is now ready as a private notebook draft. You can edit it before
-              publishing the Registered Report.
-            </p>
-            <Button className="mt-6 w-full" onClick={onOpenNotebook}>
-              Open notebook draft
-            </Button>
-          </>
-        ) : (
-          <>
-            <Loader2 className="mb-4 h-10 w-10 animate-spin text-primary-500" aria-hidden="true" />
-            <h1 className="text-xl font-semibold text-gray-900">Creating draft</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Your Registered Report draft will be ready shortly.
-            </p>
-          </>
-        )}
+        {cardContent}
       </div>
     </div>
   );

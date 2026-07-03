@@ -112,15 +112,24 @@ export const transformContact = createTransformer<any, Contact>((raw) => ({
   authorProfile: raw.author_profile ? transformAuthorProfile(raw.author_profile) : undefined,
 }));
 
+const getPostContentType = (documentType?: string): ContentType => {
+  const normalizedDocumentType = documentType?.toLowerCase();
+
+  if (normalizedDocumentType === 'preregistration') {
+    return 'preregistration';
+  }
+
+  if (normalizedDocumentType === 'grant') {
+    return 'funding_request';
+  }
+
+  return 'post';
+};
+
 export const transformPost = createTransformer<any, Post>((raw) => ({
   id: raw.id,
   slug: raw.slug,
-  contentType:
-    raw.document_type?.toLowerCase() === 'preregistration'
-      ? 'preregistration'
-      : raw.document_type?.toLowerCase() === 'grant'
-        ? 'funding_request'
-        : 'post',
+  contentType: getPostContentType(raw.document_type),
   moderationStatus: raw.status as ModerationStatus | undefined,
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
@@ -137,24 +146,48 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   image: raw.image_url,
 }));
 
+const transformTopicsFromSources = (...sources: any[]): Topic[] | undefined => {
+  const topicSource = sources.find((source) => Array.isArray(source));
+  return topicSource?.map((topic: any) => transformTopic(topic));
+};
+
+const transformAuthorsFromSources = (...sources: any[]): Author[] | undefined => {
+  const authorSource = sources.find((source) => Array.isArray(source));
+  return authorSource?.map((author: any) => transformAuthor(author));
+};
+
+const getTopicIds = (raw: any): number[] | undefined => {
+  if (Array.isArray(raw.hub_ids)) {
+    return raw.hub_ids;
+  }
+
+  if (Array.isArray(raw.topic_ids)) {
+    return raw.topic_ids;
+  }
+
+  return undefined;
+};
+
+const getNoteImage = (raw: any): string | null =>
+  raw.registered_report_prefill?.image ??
+  raw.registered_report_prefill?.preview_img ??
+  raw.image_url ??
+  raw.primary_image ??
+  raw.preview_img ??
+  raw.preview_image ??
+  raw.cover_image ??
+  raw.image?.url ??
+  raw.image ??
+  null;
+
 const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | null => {
   if (!raw) return null;
 
   return {
-    authors: Array.isArray(raw.authors)
-      ? raw.authors.map((author: any) => transformAuthor(author))
-      : undefined,
+    authors: transformAuthorsFromSources(raw.authors),
     authorIds: Array.isArray(raw.author_ids) ? raw.author_ids : undefined,
-    topics: Array.isArray(raw.hubs)
-      ? raw.hubs.map((hub: any) => transformTopic(hub))
-      : Array.isArray(raw.topics)
-        ? raw.topics.map((topic: any) => transformTopic(topic))
-        : undefined,
-    topicIds: Array.isArray(raw.hub_ids)
-      ? raw.hub_ids
-      : Array.isArray(raw.topic_ids)
-        ? raw.topic_ids
-        : undefined,
+    topics: transformTopicsFromSources(raw.hubs, raw.topics),
+    topicIds: getTopicIds(raw),
     image: raw.image ?? null,
     previewImg: raw.preview_img ?? null,
     proposalId: raw.proposal_id ?? null,
@@ -175,35 +208,19 @@ export const transformNote = createTransformer<any, Note>((raw) => ({
   journeyId: raw.journey_id ?? null,
   proposalId: raw.proposal_id ?? raw.registered_report_prefill?.proposal_id ?? null,
   registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-  image:
-    raw.registered_report_prefill?.image ??
-    raw.registered_report_prefill?.preview_img ??
-    raw.image_url ??
-    raw.primary_image ??
-    raw.preview_img ??
-    raw.preview_image ??
-    raw.cover_image ??
-    raw.image?.url ??
-    raw.image ??
-    null,
-  topics: Array.isArray(raw.registered_report_prefill?.topics)
-    ? raw.registered_report_prefill.topics.map((topic: any) => transformTopic(topic))
-    : Array.isArray(raw.registered_report_prefill?.hubs)
-      ? raw.registered_report_prefill.hubs.map((hub: any) => transformTopic(hub))
-      : Array.isArray(raw.hubs)
-        ? raw.hubs.map((hub: any) => transformTopic(hub))
-        : Array.isArray(raw.topics)
-          ? raw.topics.map((topic: any) => transformTopic(topic))
-          : Array.isArray(raw.unified_document?.hubs)
-            ? raw.unified_document.hubs.map((hub: any) => transformTopic(hub))
-            : undefined,
-  authors: Array.isArray(raw.registered_report_prefill?.authors)
-    ? raw.registered_report_prefill.authors.map((author: any) => transformAuthor(author))
-    : Array.isArray(raw.authors)
-      ? raw.authors.map((author: any) => transformAuthor(author))
-      : Array.isArray(raw.author_profiles)
-        ? raw.author_profiles.map((author: any) => transformAuthor(author))
-        : undefined,
+  image: getNoteImage(raw),
+  topics: transformTopicsFromSources(
+    raw.registered_report_prefill?.topics,
+    raw.registered_report_prefill?.hubs,
+    raw.hubs,
+    raw.topics,
+    raw.unified_document?.hubs
+  ),
+  authors: transformAuthorsFromSources(
+    raw.registered_report_prefill?.authors,
+    raw.authors,
+    raw.author_profiles
+  ),
 }));
 
 export const transformNoteWithContent = createTransformer<any, NoteWithContent>((raw) => ({
