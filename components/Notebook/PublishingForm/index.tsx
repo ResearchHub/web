@@ -503,7 +503,7 @@ export function PublishingForm({
 
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
-      const proposalId = note?.proposalId ?? note?.registeredReportPrefill?.proposalId;
+      const proposalId = note?.proposalId ?? note?.registeredReportPrefill?.proposalId ?? null;
 
       if (formData.articleType === 'registered_report' && !proposalId) {
         toast.error('This Registered Report draft is missing its proposal link.');

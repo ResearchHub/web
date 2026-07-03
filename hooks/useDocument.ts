@@ -22,7 +22,7 @@ export interface PreregistrationPostParams {
   articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
   title: string;
   noteId: ID;
-  proposalId?: ID;
+  proposalId: ID | null;
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
@@ -61,7 +61,8 @@ type UpsertPostFn = (
 ) => Promise<UpsertPostResult>;
 type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
 
-const parseCurrencyAmount = (value: string): number => parseFloat(value.replace(/[^0-9.]/g, ''));
+const parseCurrencyAmount = (value: string): number =>
+  Number.parseFloat(value.replace(/[^0-9.]/g, ''));
 
 const buildBasePayload = (postParams: PreregistrationPostParams) => ({
   document_type: postParams.articleType,
