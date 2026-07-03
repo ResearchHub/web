@@ -100,6 +100,7 @@ export function SelectFundingOpportunityModal({
         </div>
       }
       maxWidth="max-w-[600px]"
+      className="md:!w-[600px]"
       padding="p-6"
       contentClassName="!pb-10"
     >

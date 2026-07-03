@@ -104,7 +104,7 @@ export const TopBarUserControls = ({
           {isModerator && (
             <Link href="/moderators" className="flex items-center">
               <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
-                <Shield size={28} className="text-gray-500" />
+                <Shield size={28} className="text-gray-900" strokeWidth={1.25} />
                 {pendingModerationCount > 0 && (
                   <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
                     <span className="font-medium text-[9px]">{pendingModerationLabel}</span>

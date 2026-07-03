@@ -73,10 +73,15 @@ export function ConfirmPublishModal({
   const guidelines = GUIDELINES[variant];
   const documentLabel = variant === 'rfp' ? 'funding opportunity' : 'research proposal';
 
+  // Reset local state only when the modal opens. Do not tie this to `initialTitle`:
+  // title edits call `onTitleChange`, which updates the parent/editor and feeds a new
+  // `title` prop back in — resetting on that prop would clear a checked agreement box.
   useEffect(() => {
-    setTitle(initialTitle);
-    setHasAgreed(false);
-  }, [initialTitle]);
+    if (isOpen) {
+      setTitle(initialTitle);
+      setHasAgreed(false);
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps -- sync from props only on open
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
