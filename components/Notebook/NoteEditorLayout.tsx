@@ -37,13 +37,20 @@ const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
   documentType?: string | null,
-  contentType?: string | null
+  contentType?: string | null,
+  isRegisteredReport?: boolean
 ): string | undefined {
+  if (isRegisteredReport) {
+    return 'Registered Report';
+  }
+
   switch (documentType) {
     case 'GRANT':
       return 'Funding Opportunity';
     case 'PREREGISTRATION':
       return 'Proposal';
+    case 'REGISTERED_REPORT':
+      return 'Registered Report';
     case 'DISCUSSION':
       return 'Preprint';
   }
@@ -124,7 +131,11 @@ export function NoteEditorLayout() {
   });
 
   const showTabs = Boolean(note) && !isLegacyNote;
-  const workTypeLabel = getWorkTypeLabel(note?.documentType, note?.post?.contentType);
+  const workTypeLabel = getWorkTypeLabel(
+    note?.documentType,
+    note?.post?.contentType,
+    Boolean(note?.registeredReportPrefill)
+  );
 
   const renderEditor = () => {
     // No note is targeted (notebook home) — render the landing view directly so
