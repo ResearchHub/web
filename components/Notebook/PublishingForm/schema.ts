@@ -36,7 +36,7 @@ const validateGrant = (data: any, ctx: z.RefinementCtx) => {
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
-    articleType: z.enum(['discussion', 'preregistration', 'grant'] as const, {
+    articleType: z.enum(['discussion', 'preregistration', 'grant', 'registered_report'] as const, {
       required_error: 'Please select a work type',
       invalid_type_error: 'Please select a valid work type',
     }),

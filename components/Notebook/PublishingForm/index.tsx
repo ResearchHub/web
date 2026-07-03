@@ -55,6 +55,7 @@ const FEATURE_FLAG_JOURNAL = false;
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
   grant: 'Funding Opportunity',
+  registered_report: 'Registered Report',
 };
 
 interface PublishingFormProps {
@@ -127,6 +128,7 @@ const mapDocumentTypeToArticleType = (
     DISCUSSION: 'discussion',
     GRANT: 'grant',
     PREREGISTRATION: 'preregistration',
+    REGISTERED_REPORT: 'registered_report',
   };
   return map[documentType] ?? null;
 };
@@ -174,6 +176,50 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
     setValue(
       'authors',
       post.authors.map((a: any) => ({ value: a.authorId.toString(), label: a.name }))
+    );
+  }
+};
+
+const populateFromDraftNote = (
+  note: any,
+  getValues: (name?: any) => any,
+  setValue: (name: any, value: any) => void
+) => {
+  const prefill = note.registeredReportPrefill;
+  const image = prefill?.image || prefill?.previewImg || note.image;
+  const topics = prefill?.topics ?? note.topics;
+  const topicIds = prefill?.topicIds ?? [];
+  const authors = prefill?.authors ?? note.authors;
+  const authorIds = prefill?.authorIds ?? [];
+
+  if (image && !getValues('coverImage')) {
+    setValue('coverImage', { file: null, url: image });
+  }
+
+  if (topics?.length > 0 && getValues('topics').length === 0) {
+    setValue(
+      'topics',
+      topics.map((topic: any) => ({ value: topic.id.toString(), label: topic.name }))
+    );
+  } else if (topicIds.length > 0 && getValues('topics').length === 0) {
+    setValue(
+      'topics',
+      topicIds.map((id: number) => ({ value: id.toString(), label: `Topic ${id}` }))
+    );
+  }
+
+  if (authors?.length > 0 && getValues('authors').length === 0) {
+    setValue(
+      'authors',
+      authors.map((author: any) => ({
+        value: author.authorId.toString(),
+        label: author.name,
+      }))
+    );
+  } else if (authorIds.length > 0 && getValues('authors').length === 0) {
+    setValue(
+      'authors',
+      authorIds.map((id: number) => ({ value: id.toString(), label: `Author ${id}` }))
     );
   }
 };
@@ -288,6 +334,7 @@ export function PublishingForm({
           methods.setValue('articleType', articleType);
         }
       }
+      populateFromDraftNote(note, methods.getValues, methods.setValue);
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
@@ -366,7 +413,8 @@ export function PublishingForm({
     if (
       articleType !== 'preregistration' &&
       articleType !== 'discussion' &&
-      articleType !== 'grant'
+      articleType !== 'grant' &&
+      articleType !== 'registered_report'
     ) {
       return;
     }
@@ -385,7 +433,9 @@ export function PublishingForm({
 
   const uploadCoverImage = async (formData: PublishingFormData): Promise<string | null | false> => {
     const needsImage =
-      formData.articleType === 'preregistration' || formData.articleType === 'grant';
+      formData.articleType === 'preregistration' ||
+      formData.articleType === 'grant' ||
+      formData.articleType === 'registered_report';
     const file = needsImage ? formData.coverImage?.file : null;
     if (!file) return null;
 
@@ -453,6 +503,13 @@ export function PublishingForm({
 
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
+      const proposalId = note?.proposalId ?? note?.registeredReportPrefill?.proposalId;
+
+      if (formData.articleType === 'registered_report' && !proposalId) {
+        toast.error('This Registered Report draft is missing its proposal link.');
+        setShowConfirmModal(false);
+        return;
+      }
 
       const response = await upsertPost(
         {
@@ -461,6 +518,7 @@ export function PublishingForm({
           nftSupply: formData.nftSupply || '1000',
           title: editedTitle,
           noteId: note?.id.toString(),
+          proposalId,
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
           fullSrc: html || '',
@@ -562,7 +620,9 @@ export function PublishingForm({
           )}
         >
           <div className="mx-auto w-full max-w-2xl pb-6">
-            {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
+            {(articleType === 'preregistration' ||
+              articleType === 'grant' ||
+              articleType === 'registered_report') && <WorkImageSection />}
             {articleType === 'grant' && (
               <>
                 <GrantDescriptionSection />

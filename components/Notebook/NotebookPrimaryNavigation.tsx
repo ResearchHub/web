@@ -40,7 +40,9 @@ export const NotebookPrimaryNavigation = ({
 
   const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
 
-  const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const hasNotes = notes?.some(
+    (n) => n.access === 'WORKSPACE' || n.access === 'SHARED' || n.access === 'PRIVATE'
+  );
 
   return (
     <div className="flex flex-col py-1.5 text-sm">

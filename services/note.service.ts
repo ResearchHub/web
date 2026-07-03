@@ -48,7 +48,7 @@ export interface UpdateNoteTitleParams {
 
 export interface GetOrganizationNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
-  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
+  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION' | 'REGISTERED_REPORT';
 }
 
 export interface NoteInvitePreview {
@@ -59,6 +59,39 @@ export interface NoteInvitePreview {
 
 export class NoteService {
   private static readonly BASE_PATH = '/api';
+
+  static async acceptJournalEntry(params: {
+    userId: number | string;
+    fundraiseId: number | string;
+  }): Promise<NoteWithContent> {
+    if (!params.userId || !params.fundraiseId) {
+      throw new NoteError('Missing required journal entry parameters', 'INVALID_PARAMS');
+    }
+
+    try {
+      const queryParams = new URLSearchParams({
+        user_id: params.userId.toString(),
+        fundraise_id: params.fundraiseId.toString(),
+      });
+      const response = await ApiClient.post<any>(
+        `${this.BASE_PATH}/researchhubpost/accept_journal_entry/?${queryParams.toString()}`,
+        {
+          user_id: params.userId,
+          fundraise_id: params.fundraiseId,
+        }
+      );
+      return transformNoteWithContent(response);
+    } catch (error) {
+      const errorMsg =
+        error instanceof ApiError
+          ? ((error.errors as Record<string, any> | undefined)?.error ??
+            (error.errors as Record<string, any> | undefined)?.detail ??
+            (error.errors as Record<string, any> | undefined)?.message ??
+            error.message)
+          : 'Failed to accept journal entry';
+      throw new NoteError(errorMsg, error instanceof Error ? error.message : 'UNKNOWN_ERROR');
+    }
+  }
 
   /**
    * Fetches a specific note by ID

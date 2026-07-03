@@ -19,9 +19,10 @@ export interface PreregistrationPostParams {
   topics: string[];
 
   // Document related
-  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT';
+  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
   title: string;
   noteId: ID;
+  proposalId?: ID | null;
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
@@ -81,10 +82,17 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         full_src: postParams.fullSrc,
         full_json: postParams.fullJSON,
         note_id: postParams.noteId,
-        assign_doi: postParams.assignDOI ?? false,
-        hubs: postParams.topics,
-        authors: postParams.authors,
       };
+
+      if (postParams.articleType === 'REGISTERED_REPORT') {
+        payload.proposal_id = postParams.proposalId;
+        payload.hubs = postParams.topics;
+        payload.authors = postParams.authors;
+      } else {
+        payload.assign_doi = postParams.assignDOI ?? false;
+        payload.hubs = postParams.topics;
+        payload.authors = postParams.authors;
+      }
 
       if (postParams.image) {
         payload.image = postParams.image;
@@ -142,6 +150,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         errorData?.msg ||
         errorData?.message ||
         errorData?.detail ||
+        errorData?.error ||
         'An error occurred while saving the proposal post';
       setError(errorMsg);
       throw err;
