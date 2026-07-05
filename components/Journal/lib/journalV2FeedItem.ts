@@ -292,7 +292,9 @@ function buildReviewFromTransformed(review: Review): Review | undefined {
 /** Collects reviews from transformed content first, then falls back to raw API reviews. */
 function collectReviews(content: JournalFeedContent, rawContent: RawRecord): Review[] {
   const transformedReviews = Array.isArray(content.reviews)
-    ? content.reviews.map(buildReviewFromTransformed).filter((review): review is Review => !!review)
+    ? content.reviews
+        .map((review) => buildReviewFromTransformed(review))
+        .filter((review): review is Review => !!review)
     : [];
 
   if (transformedReviews.length > 0) {
@@ -300,7 +302,9 @@ function collectReviews(content: JournalFeedContent, rawContent: RawRecord): Rev
   }
 
   return Array.isArray(rawContent.reviews)
-    ? rawContent.reviews.map(buildReviewFromRaw).filter((review): review is Review => !!review)
+    ? rawContent.reviews
+        .map((review, index) => buildReviewFromRaw(review, index))
+        .filter((review): review is Review => !!review)
     : [];
 }
 

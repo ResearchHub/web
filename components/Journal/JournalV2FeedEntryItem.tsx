@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useCallback } from 'react';
+import { FC, KeyboardEvent, MouseEvent, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Coins, FileInput, FileText, Landmark, Star } from 'lucide-react';
@@ -94,6 +94,16 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
   const handleCardClick = () => {
     handleFeedItemClick();
     updateLastClickedEntryId(entryIdKey);
+  };
+
+  const stopReviewScoreClick = (event: MouseEvent<HTMLSpanElement>) => {
+    event.stopPropagation();
+  };
+
+  const stopReviewScoreKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.stopPropagation();
+    }
   };
 
   const reviewSummary = viewModel.reviewSummary;
@@ -204,8 +214,11 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
                     width="w-[320px]"
                   >
                     <span
+                      role="button"
+                      tabIndex={0}
                       className="inline-flex items-center gap-1 font-extrabold font-mono text-base text-emerald-300 cursor-help"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={stopReviewScoreClick}
+                      onKeyDown={stopReviewScoreKeyDown}
                     >
                       <Star size={14} className="fill-amber-400 text-amber-400" />
                       {reviewSummary.average.toFixed(1)}/5
@@ -225,7 +238,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
         </Link>
 
         <div className="grid grid-cols-4 gap-0.5 bg-gray-50 px-3 py-3 sm:px-4">
-          {viewModel.trackerSteps.map(renderTrackerStep)}
+          {viewModel.trackerSteps.map((step, stepIndex) => renderTrackerStep(step, stepIndex))}
         </div>
       </article>
     </div>
