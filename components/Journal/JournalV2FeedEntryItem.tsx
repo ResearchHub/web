@@ -3,7 +3,7 @@
 import { FC, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, ClipboardList, FileText, Landmark, Newspaper, Star } from 'lucide-react';
+import { ArrowRight, Coins, FileInput, FileText, Landmark, Star } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -29,9 +29,9 @@ interface JournalV2FeedEntryItemProps {
 
 const STAGE_ICONS: Record<JournalV2Stage, typeof Landmark> = {
   funding_opportunity: Landmark,
-  proposal: ClipboardList,
-  registered_report: FileText,
-  preprint: Newspaper,
+  proposal: Coins,
+  registered_report: FileInput,
+  preprint: FileText,
 };
 
 const TRACKER_CLIP_PATHS = {
