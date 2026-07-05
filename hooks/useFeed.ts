@@ -12,7 +12,7 @@ interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
   source?: FeedSource;
-  endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+  endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'journal_v2_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   grantId?: number;
   createdBy?: number;

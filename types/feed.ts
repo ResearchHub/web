@@ -322,6 +322,10 @@ export interface RawApiFeedEntry {
   recommendation_id: string | null;
   content_type: string;
   content_object: any;
+  post_ids?: {
+    grant_post_id: number | null;
+    proposal_post_id: number | null;
+  };
   created_date: string;
   action: string;
   action_date: string;
@@ -931,12 +935,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               : [],
           };
 
-          // Add fundraise data if it's a PREREGISTRATION and has fundraise data
-          if (isPreregistration && content_object.fundraise) {
+          // Journal v2 registered reports also carry the source proposal fundraise.
+          if (content_object.fundraise) {
             try {
               postEntry.fundraise = transformFundraise(content_object.fundraise);
             } catch (fundraiseError) {
-              console.error('Error transforming fundraise for proposal:', fundraiseError);
+              console.error('Error transforming fundraise for post:', fundraiseError);
             }
           }
 

@@ -48,6 +48,14 @@ interface FeedContentProps {
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
+  renderEntry?: (props: {
+    entry: FeedEntry;
+    index: number;
+    ordering?: string;
+    registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
+    unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
+    getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  }) => ReactNode;
   /**
    * Drop the default `max-w-4xl` cap on the feed list so it fills its parent.
    * Use when the surrounding layout is already wider (e.g. sidebar-less pages).
@@ -83,6 +91,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   shouldRenderBountyAsComment,
   showBountyInfo = false,
   abstractCollapsedByDefault,
+  renderEntry,
   wideContent = false,
 }) => {
   const pathname = usePathname();
@@ -183,7 +192,16 @@ export const FeedContent: FC<FeedContentProps> = ({
                 }
               }
 
-              const feedItem = (
+              const feedItem = renderEntry ? (
+                renderEntry({
+                  entry,
+                  index,
+                  ordering,
+                  registerVisibleItem,
+                  unregisterVisibleItem,
+                  getVisibleItems,
+                })
+              ) : (
                 <FeedEntryItem
                   showPostHeaders={showPostHeaders}
                   showBountyInfo={showBountyInfo}
