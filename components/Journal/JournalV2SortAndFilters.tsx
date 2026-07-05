@@ -1,24 +1,16 @@
 'use client';
 
 import { FC, useEffect, useRef, useState } from 'react';
-import { ArrowUp, ChevronDown, ChevronUp, Clock, Star } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
-export type JournalSortOption = 'best' | 'newest' | 'upvotes' | 'peer_review_score';
+export type JournalSortOption = 'best' | 'newest' | 'peer_review_score';
 
 export const JOURNAL_SORT_OPTIONS: { label: string; value: JournalSortOption }[] = [
   { label: 'Best', value: 'best' },
   { label: 'Newest', value: 'newest' },
-  { label: 'Most upvoted', value: 'upvotes' },
   { label: 'Review score', value: 'peer_review_score' },
 ];
-
-const SORT_ICONS: Record<JournalSortOption, typeof Star> = {
-  best: Star,
-  newest: Clock,
-  upvotes: ArrowUp,
-  peer_review_score: Star,
-};
 
 function SortDropdown({
   sortBy,
@@ -55,8 +47,6 @@ function SortDropdown({
       {isOpen && (
         <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
           {JOURNAL_SORT_OPTIONS.map((option) => {
-            const OptionIcon = SORT_ICONS[option.value];
-
             return (
               <label
                 key={option.value}
@@ -76,7 +66,6 @@ function SortDropdown({
                     <span className="w-2 h-2 rounded-full bg-primary-500" />
                   )}
                 </span>
-                <OptionIcon size={14} className="text-gray-500" />
                 <span className="text-sm text-gray-800">{option.label}</span>
               </label>
             );
