@@ -35,6 +35,7 @@ export type Post = {
   id: number;
   slug: string;
   contentType: ContentType;
+  documentType?: string | null;
   moderationStatus?: ModerationStatus;
   fundraise?: Fundraise;
   grant?: Grant;
@@ -130,6 +131,7 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   id: raw.id,
   slug: raw.slug,
   contentType: getPostContentType(raw.document_type),
+  documentType: raw.document_type ?? null,
   moderationStatus: raw.status as ModerationStatus | undefined,
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
@@ -247,3 +249,14 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
   src: raw.src,
   json: raw.json,
 }));
+
+export const isRegisteredReportNote = (
+  note?: Pick<Note, 'documentType' | 'post' | 'registeredReportPrefill'> | null
+): boolean =>
+  note?.documentType === 'REGISTERED_REPORT' ||
+  note?.post?.documentType === 'REGISTERED_REPORT' ||
+  Boolean(note?.registeredReportPrefill);
+
+export const isPublishedRegisteredReportNote = (
+  note?: Pick<Note, 'documentType' | 'post' | 'registeredReportPrefill'> | null
+): boolean => Boolean(note?.post?.id) && isRegisteredReportNote(note);

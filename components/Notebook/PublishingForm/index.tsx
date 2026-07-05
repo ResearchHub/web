@@ -62,6 +62,7 @@ interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
   defaultArticleType?: string;
+  readOnly?: boolean;
 }
 
 const getButtonText = ({
@@ -298,6 +299,7 @@ export function PublishingForm({
   bountyAmount,
   onBountyClick,
   defaultArticleType,
+  readOnly = false,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
   const { user: currentUser } = useUser();
@@ -388,6 +390,8 @@ export function PublishingForm({
   }, [articleType, clearErrors]);
 
   const handlePublishClick = async () => {
+    if (readOnly) return;
+
     const result = await methods.trigger();
 
     if (!result) {
@@ -482,6 +486,8 @@ export function PublishingForm({
   };
 
   const handleConfirmPublish = async (editedTitle: string) => {
+    if (readOnly) return;
+
     try {
       setDocumentTitle(editor, editedTitle);
 
@@ -619,7 +625,21 @@ export function PublishingForm({
             isDeclined && 'pointer-events-none opacity-60'
           )}
         >
-          <div className="mx-auto w-full max-w-2xl pb-6">
+          {readOnly && (
+            <div className="mx-auto w-full max-w-2xl px-6 pt-4">
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">
+                This Registered Report has been published and can no longer be edited.
+              </div>
+            </div>
+          )}
+          <fieldset
+            disabled={readOnly}
+            aria-disabled={readOnly}
+            className={cn(
+              'm-0 mx-auto w-full max-w-2xl min-w-0 border-0 p-0 pb-6',
+              readOnly && 'pointer-events-none opacity-60'
+            )}
+          >
             {(articleType === 'preregistration' ||
               articleType === 'grant' ||
               articleType === 'registered_report') && <WorkImageSection />}
@@ -656,7 +676,7 @@ export function PublishingForm({
                 />
               )}
             {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
-          </div>
+          </fieldset>
         </div>
 
         <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
@@ -674,16 +694,18 @@ export function PublishingForm({
               variant="default"
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isPublishing || isDeclined || showPrivateWarning}
+              disabled={readOnly || isPublishing || isDeclined || showPrivateWarning}
             >
-              {getButtonText({
-                isLoadingUpsert: isLoadingUpsert || isUploadingImage,
-                isRedirecting,
-                isLinkingNonprofit,
-                articleType,
-                isJournalEnabled: isJournalEnabled ?? false,
-                hasWorkId: Boolean(methods.watch('workId')),
-              })}
+              {readOnly
+                ? 'Published'
+                : getButtonText({
+                    isLoadingUpsert: isLoadingUpsert || isUploadingImage,
+                    isRedirecting,
+                    isLinkingNonprofit,
+                    articleType,
+                    isJournalEnabled: isJournalEnabled ?? false,
+                    hasWorkId: Boolean(methods.watch('workId')),
+                  })}
             </Button>
           </div>
         </div>
