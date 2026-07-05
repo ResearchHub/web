@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, KeyboardEvent, MouseEvent, useCallback } from 'react';
+import { FC, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Coins, FileInput, FileText, Landmark, Star } from 'lucide-react';
@@ -96,16 +96,6 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
     updateLastClickedEntryId(entryIdKey);
   };
 
-  const stopReviewScoreClick = (event: MouseEvent<HTMLSpanElement>) => {
-    event.stopPropagation();
-  };
-
-  const stopReviewScoreKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.stopPropagation();
-    }
-  };
-
   const reviewSummary = viewModel.reviewSummary;
   const proposalHref = viewModel.trackerSteps.find((step) => step.stage === 'proposal')?.href;
 
@@ -151,7 +141,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
   };
 
   return (
-    <div ref={ref} className={index !== 0 ? 'mt-8' : undefined}>
+    <div ref={ref} className={index === 0 ? undefined : 'mt-8'}>
       <article className="overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <Link
           href={viewModel.href}
@@ -213,13 +203,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
                     position="top"
                     width="w-[320px]"
                   >
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      className="inline-flex items-center gap-1 font-extrabold font-mono text-base text-emerald-300 cursor-help"
-                      onClick={stopReviewScoreClick}
-                      onKeyDown={stopReviewScoreKeyDown}
-                    >
+                    <span className="inline-flex items-center gap-1 font-extrabold font-mono text-base text-emerald-300 cursor-help">
                       <Star size={14} className="fill-amber-400 text-amber-400" />
                       {reviewSummary.average.toFixed(1)}/5
                     </span>

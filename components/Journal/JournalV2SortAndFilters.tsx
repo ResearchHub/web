@@ -1,99 +1,45 @@
 'use client';
 
-import { FC, useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { FC } from 'react';
 import { cn } from '@/utils/styles';
 
 export type JournalSortOption = 'best' | 'newest' | 'peer_review_score';
 
-export const JOURNAL_SORT_OPTIONS: { label: string; value: JournalSortOption }[] = [
+export const JOURNAL_SORT_OPTIONS: ReadonlyArray<{
+  readonly label: string;
+  readonly value: JournalSortOption;
+}> = [
   { label: 'Best', value: 'best' },
   { label: 'Newest', value: 'newest' },
   { label: 'Review score', value: 'peer_review_score' },
 ];
 
-function SortDropdown({
-  sortBy,
-  onSortChange,
-}: {
-  sortBy: JournalSortOption;
-  onSortChange: (value: JournalSortOption) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLSpanElement>(null);
-  const selectedLabel = JOURNAL_SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? 'Best';
+interface SortDropdownProps {
+  readonly sortBy: JournalSortOption;
+  readonly onSortChange: (value: JournalSortOption) => void;
+}
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
-    if (event.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
+function SortDropdown({ sortBy, onSortChange }: Readonly<SortDropdownProps>) {
   return (
-    <span ref={containerRef} className="relative inline-flex" onKeyDown={handleKeyDown}>
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-      >
-        <span className="font-medium text-gray-700">{selectedLabel}</span>
-        {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-      </button>
-
-      {isOpen && (
-        <div
-          role="listbox"
-          aria-label="Sort journal entries"
-          className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100"
-        >
-          {JOURNAL_SORT_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="option"
-              aria-selected={sortBy === option.value}
-              className="flex w-full items-center gap-3 px-4 py-2.5 text-left cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => {
-                onSortChange(option.value);
-                setIsOpen(false);
-              }}
-            >
-              <span
-                className={cn(
-                  'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
-                  sortBy === option.value ? 'border-primary-500' : 'border-gray-300'
-                )}
-              >
-                {sortBy === option.value && (
-                  <span className="w-2 h-2 rounded-full bg-primary-500" />
-                )}
-              </span>
-              <span className="text-sm text-gray-800">{option.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </span>
+    <select
+      aria-label="Sort journal entries"
+      value={sortBy}
+      onChange={(event) => onSortChange(event.target.value as JournalSortOption)}
+      className="cursor-pointer bg-transparent pr-1 text-xs font-medium text-gray-700 outline-none transition-colors hover:text-gray-900 sm:text-sm"
+    >
+      {JOURNAL_SORT_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
 
 interface JournalV2SortAndFiltersProps {
-  className?: string;
-  sortBy: JournalSortOption;
-  onSortChange: (value: JournalSortOption) => void;
+  readonly className?: string;
+  readonly sortBy: JournalSortOption;
+  readonly onSortChange: (value: JournalSortOption) => void;
 }
 
 export const JournalV2SortAndFilters: FC<JournalV2SortAndFiltersProps> = ({
