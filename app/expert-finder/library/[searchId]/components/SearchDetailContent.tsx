@@ -4,13 +4,14 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, RefreshCw, FileText, Download, Mail, UserPlus } from 'lucide-react';
+import { Loader2, RefreshCw, Download, Mail, UserPlus, MoreHorizontal } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
-import { SearchDetailHeader } from './SearchDetailHeader';
+import { SearchDetailHeader, SearchDetailMeta } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
@@ -109,19 +110,58 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
       ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
       : searchDetail.expertResults.length;
 
+  const hasReports = Boolean(searchDetail.reportPdfUrl || searchDetail.reportCsvUrl);
+
+  const reportsMenu =
+    searchDetail.status === 'completed' && hasReports ? (
+      <BaseMenu
+        align="end"
+        trigger={
+          <button
+            type="button"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition-colors hover:bg-gray-50"
+            aria-label="Report options"
+          >
+            <MoreHorizontal className="h-5 w-5" aria-hidden />
+          </button>
+        }
+      >
+        {searchDetail.reportPdfUrl && (
+          <BaseMenuItem
+            onSelect={() => window.open(searchDetail.reportPdfUrl, '_blank', 'noopener')}
+          >
+            <Download className="h-4 w-4 mr-2" aria-hidden />
+            <span>Download PDF report</span>
+          </BaseMenuItem>
+        )}
+        {searchDetail.reportCsvUrl && (
+          <BaseMenuItem
+            onSelect={() => window.open(searchDetail.reportCsvUrl, '_blank', 'noopener')}
+          >
+            <Download className="h-4 w-4 mr-2" aria-hidden />
+            <span>Download CSV (contacts)</span>
+          </BaseMenuItem>
+        )}
+      </BaseMenu>
+    ) : null;
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: 'Library', href: '/expert-finder/library' },
-          {
-            label: searchDetail.name?.trim()
-              ? searchDetail.name
-              : `Search #${searchDetail.searchId}`,
-          },
-        ]}
-        className="mb-2"
-      />
+      <div>
+        <Breadcrumbs
+          items={[
+            { label: 'Library', href: '/expert-finder/library' },
+            {
+              label: searchDetail.name?.trim()
+                ? searchDetail.name
+                : `Search #${searchDetail.searchId}`,
+            },
+          ]}
+        />
+        <div className="mt-1">
+          <SearchDetailMeta search={searchDetail} />
+        </div>
+      </div>
 
       <SearchDetailHeader search={searchDetail} />
 
@@ -149,45 +189,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
       {searchDetail.status === 'completed' && (
         <>
-          {(searchDetail.reportPdfUrl || searchDetail.reportCsvUrl) && (
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex items-start gap-3 mb-2">
-                <FileText className="h-6 w-6 shrink-0 text-primary-600" aria-hidden />
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Expert Reports Available</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Download comprehensive reports with all expert recommendations and contact
-                    information.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3 mt-4">
-                {searchDetail.reportPdfUrl && (
-                  <a
-                    href={searchDetail.reportPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                  >
-                    <Download className="h-4 w-4 shrink-0" aria-hidden />
-                    Download PDF Report
-                  </a>
-                )}
-                {searchDetail.reportCsvUrl && (
-                  <a
-                    href={searchDetail.reportCsvUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-primary-300 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                  >
-                    <Download className="h-4 w-4 shrink-0" aria-hidden />
-                    Download CSV (Contacts)
-                  </a>
-                )}
-              </div>
-            </section>
-          )}
-
           <Tabs
             tabs={[
               {
@@ -223,32 +224,41 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
           {tab === TAB_EXPERT_RESULTS && searchDetail.expertResults.length > 0 ? (
             <section>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-                  Results ({displayedExpertTotal})
-                </h2>
-                <div className="flex flex-wrap items-center gap-2">
-                  {selectedIndices.size === searchDetail.expertResults.length ? (
-                    <Button
-                      variant="outlined"
-                      size="sm"
-                      onClick={() => setSelectedIndices(new Set())}
-                    >
-                      Unselect all
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      size="sm"
-                      onClick={() =>
-                        setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
-                      }
-                      disabled={searchDetail.expertResults.length === 0}
-                    >
-                      Select all
-                    </Button>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Results ({displayedExpertTotal})
+                  </h2>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-primary-600 transition-colors hover:text-primary-700 disabled:opacity-50"
+                    disabled={searchDetail.expertResults.length === 0}
+                    onClick={() =>
+                      setSelectedIndices((prev) =>
+                        prev.size === searchDetail.expertResults.length
+                          ? new Set()
+                          : new Set(searchDetail.expertResults.map((_, i) => i))
+                      )
+                    }
+                  >
+                    {selectedIndices.size === searchDetail.expertResults.length
+                      ? 'Unselect all'
+                      : 'Select all'}
+                  </button>
+                  {selectedIndices.size > 0 && (
+                    <span className="text-sm text-gray-500">· {selectedIndices.size} selected</span>
                   )}
-                  <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setShowAddExpertModal(true)}
+                  >
+                    <UserPlus className="h-4 w-4" aria-hidden />
+                    Add expert
+                  </Button>
                   <Button
                     variant="default"
                     size="sm"
@@ -264,15 +274,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     <Mail className="h-4 w-4" aria-hidden />
                     Generate emails
                   </Button>
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowAddExpertModal(true)}
-                  >
-                    <UserPlus className="h-4 w-4" aria-hidden />
-                    Add expert
-                  </Button>
+                  {reportsMenu}
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">

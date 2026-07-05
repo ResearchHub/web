@@ -284,26 +284,34 @@ export function GeneratedEmailsList({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-          Generated emails ({pagination.total})
-        </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {allSelected ? (
-            <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
-              Unselect all
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={handleSelectAll}
-              disabled={pageIds.length === 0}
-            >
-              Select all
-            </Button>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Generated emails ({pagination.total})
+          </h2>
+          <button
+            type="button"
+            className="text-sm font-medium text-primary-600 transition-colors hover:text-primary-700 disabled:opacity-50"
+            disabled={pageIds.length === 0}
+            onClick={allSelected ? () => setSelectedIds(new Set()) : handleSelectAll}
+          >
+            {allSelected ? 'Unselect all' : 'Select all'}
+          </button>
+          {selectedIds.size > 0 && (
+            <span className="text-sm text-gray-500">· {selectedIds.size} selected</span>
           )}
-          <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-2"
+            onClick={handleSendClick}
+            disabled={!canBulkActOnDrafts}
+          >
+            <Send className="h-4 w-4" aria-hidden />
+            Send emails
+          </Button>
           <BaseMenu
             align="end"
             disabled={!canBulkActOnDrafts}
@@ -325,10 +333,6 @@ export function GeneratedEmailsList({
               </button>
             }
           >
-            <BaseMenuItem disabled={!canBulkActOnDrafts} onSelect={() => handleSendClick()}>
-              <Send className="h-4 w-4 mr-2 shrink-0" aria-hidden />
-              <span>Send emails</span>
-            </BaseMenuItem>
             <BaseMenuItem
               disabled={!canBulkActOnDrafts}
               onSelect={() => setShowBulkMarkSentConfirm(true)}

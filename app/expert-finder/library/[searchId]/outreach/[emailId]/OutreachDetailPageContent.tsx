@@ -5,10 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Mail,
-  Trash2,
   Send,
   Loader2,
-  Save,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -40,7 +38,6 @@ import { cn } from '@/utils/styles';
 import {
   useGeneratedEmailDetail,
   useUpdateGeneratedEmail,
-  useDeleteGeneratedEmail,
   usePreviewEmails,
   useSendEmails,
 } from '@/hooks/useExpertFinder';
@@ -67,11 +64,9 @@ export function OutreachDetailPageContent({
   const { user } = useUser();
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
-  const [{ isLoading: isDeleting }, deleteEmail] = useDeleteGeneratedEmail();
   const [{ isLoading: isSendingPreview }, previewEmails] = usePreviewEmails();
   const [{ isLoading: isSendingToExpert }, sendEmails] = useSendEmails();
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
   const [showSendToExpertConfirm, setShowSendToExpertConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -128,25 +123,6 @@ export function OutreachDetailPageContent({
   }, [showSendToExpertConfirm, showPreviewConfirm, user?.email]);
 
   const isDraftLike = email != null && isGeneratedEmailDraftLike(email.status);
-  const hasEdits =
-    email != null &&
-    isDraftLike &&
-    (editSubject !== (email.emailSubject ?? '') || editBody !== (email.emailBody ?? ''));
-
-  const handleSaveDraft = async () => {
-    if (!emailId || !hasEdits) return;
-    setActionError(null);
-    try {
-      await updateEmail(emailId, {
-        email_subject: editSubject,
-        email_body: editBody,
-      });
-      refetch();
-      toast.success('Draft saved');
-    } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Failed to save draft');
-    }
-  };
 
   const handleMarkSentSubmit = async () => {
     if (!emailId) return;
@@ -163,18 +139,6 @@ export function OutreachDetailPageContent({
       toast.success('Email marked as sent.');
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to update');
-    }
-  };
-
-  const handleDelete = async () => {
-    setActionError(null);
-    try {
-      await deleteEmail(emailId);
-      window.location.href = backHref;
-    } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Failed to delete');
-    } finally {
-      setShowDeleteConfirm(false);
     }
   };
 
@@ -336,12 +300,11 @@ export function OutreachDetailPageContent({
 
       <div className="grid grid-cols-1 md:!grid-cols-2 items-start gap-4">
         <div className="min-w-0">
-          <div className="flex gap-3">
-            <div className="min-w-0">
-              <h1 className="text-base font-semibold text-gray-900 sm:!text-lg md:!text-xl mt-0.5">
-                {email.expertName || '—'}
-              </h1>
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-base font-semibold text-gray-900 sm:!text-lg md:!text-xl mt-0.5">
+              {email.expertName || '—'}
+            </h1>
+            <Badge variant={statusPresentation.variant}>{statusPresentation.label}</Badge>
           </div>
           {email.expertEmail && (
             <div className="flex gap-3">
@@ -371,7 +334,6 @@ export function OutreachDetailPageContent({
         <div className="min-w-0 flex flex-col gap-2">
           <div className="hidden sm:!block">{neighborNavBar}</div>
           <div className="flex flex-wrap items-center gap-2 justify-start md:!justify-end">
-            <Badge variant={statusPresentation.variant}>{statusPresentation.label}</Badge>
             {isGeneratedEmailBounced(email.status) && email.bouncedAt && (
               <span className="text-xs text-gray-500">
                 Bounced on {formatExactTime(email.bouncedAt)}
@@ -479,32 +441,14 @@ export function OutreachDetailPageContent({
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Email Body</label>
             {isDraftLike ? (
-              <>
-                <TemplateVariableEditor
-                  value={editBody}
-                  onChange={setEditBody}
-                  placeholder="Email body"
-                  valueAsHtml
-                  disabled={false}
-                  showVariablePanel={false}
-                />
-                {hasEdits && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="mt-3 gap-2"
-                    onClick={handleSaveDraft}
-                    disabled={isUpdating}
-                  >
-                    {isUpdating ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    ) : (
-                      <Save className="h-4 w-4" aria-hidden />
-                    )}
-                    Save draft
-                  </Button>
-                )}
-              </>
+              <TemplateVariableEditor
+                value={editBody}
+                onChange={setEditBody}
+                placeholder="Email body"
+                valueAsHtml
+                disabled={false}
+                showVariablePanel={false}
+              />
             ) : !email.emailBody?.trim() ? (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
                 —
@@ -521,34 +465,6 @@ export function OutreachDetailPageContent({
           </div>
         </div>
       </BaseSection>
-
-      {isDraftLike && (
-        <div className="flex justify-end pt-2">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="gap-2"
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4" aria-hidden />
-            Delete
-          </Button>
-        </div>
-      )}
-
-      <ConfirmationModal
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        title="Delete email?"
-        description="This draft will be permanently removed."
-        confirmLabel="Delete"
-        confirmVariant="destructive"
-        confirmIcon={<Trash2 className="h-4 w-4" aria-hidden />}
-        isConfirming={isDeleting}
-        blockDismissWhileConfirming={false}
-        onConfirm={handleDelete}
-      />
 
       <SendConfirmationModal
         isOpen={showSendToExpertConfirm}

@@ -12,6 +12,7 @@ interface ContentTypeBadgeProps {
   type:
     | 'paper'
     | 'funding'
+    | 'fundingOpportunity'
     | 'bounty'
     | 'review'
     | 'article'
@@ -184,6 +185,40 @@ export const ContentTypeBadge = ({
           <Icon name="createBounty" size={16} color="#374151" />
           <span>Proposal</span>
         </Badge>
+      </Tooltip>
+    );
+  }
+
+  if (type === 'fundingOpportunity') {
+    const badge = (
+      <Badge
+        variant="default"
+        size={size}
+        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+      >
+        <Icon name="fund" size={16} color="#374151" />
+        <span>Funding Opportunity</span>
+      </Badge>
+    );
+
+    if (!showTooltip) {
+      return badge;
+    }
+
+    return (
+      <Tooltip
+        content={
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center">
+              <Icon name="fund" size={24} color="#374151" />
+            </div>
+            <div>An open call for proposals, inviting researchers to apply for funding.</div>
+          </div>
+        }
+        position="top"
+        width="w-[360px]"
+      >
+        {badge}
       </Tooltip>
     );
   }

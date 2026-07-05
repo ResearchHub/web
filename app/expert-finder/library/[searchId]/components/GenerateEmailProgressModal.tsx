@@ -75,6 +75,8 @@ export function GenerateEmailProgressModal({
               expert_search_id: Number(searchId),
               expert_email: expert.email?.trim() ?? '',
               template: generation.template,
+              auto_generate_proposal: generation.autoGenerateProposal,
+              proposal_context: generation.proposalContext,
             });
           } else {
             await ExpertFinderService.generateEmail({
@@ -82,6 +84,8 @@ export function GenerateEmailProgressModal({
               expert_email: expert.email?.trim() ?? '',
               template: null,
               template_id: generation.templateId,
+              auto_generate_proposal: generation.autoGenerateProposal,
+              proposal_context: generation.proposalContext,
             });
           }
           if (cancelled) return;

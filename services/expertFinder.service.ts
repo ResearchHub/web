@@ -1,11 +1,23 @@
 import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
+import {
+  createDemoGeneratedEmail,
+  deleteDemoGeneratedEmail,
+  getDemoCreatedResponse,
+  getDemoGeneratedEmail,
+  getDemoProgressStream,
+  getDemoSearchResult,
+  isDemoGeneratedEmailId,
+  isDemoSearchId,
+  listDemoGeneratedEmails,
+  markDemoGeneratedEmailsSent,
+  updateDemoGeneratedEmail,
+} from '@/app/expert-finder/lib/demoMock';
 import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
 import {
   transformExpertResult,
   transformExpertSearch,
-  transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
   transformGeneratedEmail,
   transformSavedTemplate,
@@ -126,6 +138,9 @@ export interface GenerateEmailPayload {
   expert_email: string;
   template?: string | null;
   template_id?: number | null;
+  /** Optional service: auto-draft a personalized proposal for the invited expert. */
+  auto_generate_proposal?: boolean;
+  proposal_context?: string;
 }
 
 export interface CreateDraftEmailPayload {
@@ -181,6 +196,11 @@ export interface UpdateSavedTemplatePayload {
   email_body?: string;
 }
 
+/** Small artificial delay so demo mock calls don't resolve instantly (feels more real). */
+function simulateDemoLatency(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class ExpertFinderService {
   private static readonly BASE_PATH = '/api/research_ai/expert-finder';
 
@@ -189,11 +209,9 @@ export class ExpertFinderService {
    * POST /api/research_ai/expert-finder/searches/
    */
   static async createSearch(payload: ExpertSearchCreatePayload): Promise<ExpertSearchCreated> {
-    const raw = await ApiClient.post<Record<string, unknown>>(
-      `${this.BASE_PATH}/searches/`,
-      payload
-    );
-    return transformExpertSearchCreateResponse(raw);
+    // DEMO: short-circuit search creation so the flow runs without a backend.
+    void payload;
+    return getDemoCreatedResponse();
   }
 
   /**
@@ -201,6 +219,10 @@ export class ExpertFinderService {
    * GET /api/research_ai/expert-finder/searches/:searchId/
    */
   static async getSearch(searchId: number | string): Promise<ExpertSearchResult> {
+    // DEMO: return the curated result set for the demo search id.
+    if (isDemoSearchId(searchId)) {
+      return getDemoSearchResult();
+    }
     const response = await ApiClient.get<any>(`${this.BASE_PATH}/searches/${searchId}/`);
     return transformExpertSearch(response);
   }
@@ -263,6 +285,10 @@ export class ExpertFinderService {
    * @returns Response with response.body as ReadableStream (SSE)
    */
   static openProgressStream(searchId: number | string, signal?: AbortSignal): Promise<Response> {
+    // DEMO: play a short fake progress stream instead of hitting the backend.
+    if (isDemoSearchId(searchId)) {
+      return Promise.resolve(getDemoProgressStream());
+    }
     return ApiClient.getStream(`${this.BASE_PATH}/progress/${searchId}/`, {
       signal,
     });
@@ -316,6 +342,10 @@ export class ExpertFinderService {
   // ── Generated emails ─────────────────────────────────────────────────────
 
   static async generateEmail(payload: GenerateEmailPayload): Promise<GeneratedEmail> {
+    if (isDemoSearchId(payload.expert_search_id)) {
+      await simulateDemoLatency(600);
+      return createDemoGeneratedEmail(payload);
+    }
     const raw = await ApiClient.post<Record<string, unknown>>(
       `${this.BASE_PATH}/generate-email/`,
       payload
@@ -330,6 +360,12 @@ export class ExpertFinderService {
   }): Promise<GeneratedEmailListResponse> {
     const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
+
+    if (params?.search_id != null && isDemoSearchId(params.search_id)) {
+      const { emails, total } = listDemoGeneratedEmails(limit, offset);
+      return { emails, total, limit, offset };
+    }
+
     const searchParams = new URLSearchParams({
       limit: String(limit),
       offset: String(offset),
@@ -354,6 +390,10 @@ export class ExpertFinderService {
   }
 
   static async getEmail(emailId: number | string): Promise<GeneratedEmail> {
+    if (isDemoGeneratedEmailId(emailId)) {
+      const email = getDemoGeneratedEmail(emailId);
+      if (email) return email;
+    }
     const raw = await ApiClient.get<Record<string, unknown>>(
       `${this.BASE_PATH}/emails/${emailId}/`
     );
@@ -364,6 +404,10 @@ export class ExpertFinderService {
     emailId: number | string,
     payload: UpdateGeneratedEmailPayload
   ): Promise<GeneratedEmail> {
+    if (isDemoGeneratedEmailId(emailId)) {
+      const updated = updateDemoGeneratedEmail(emailId, payload);
+      if (updated) return updated;
+    }
     const raw = await ApiClient.patch<Record<string, unknown>>(
       `${this.BASE_PATH}/emails/${emailId}/`,
       payload
@@ -372,6 +416,10 @@ export class ExpertFinderService {
   }
 
   static async deleteEmail(emailId: number | string): Promise<void> {
+    if (isDemoGeneratedEmailId(emailId)) {
+      deleteDemoGeneratedEmail(emailId);
+      return;
+    }
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/emails/${emailId}/`);
   }
 
@@ -384,6 +432,14 @@ export class ExpertFinderService {
     reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
+    if (
+      payload.generated_email_ids.length > 0 &&
+      payload.generated_email_ids.every(isDemoGeneratedEmailId)
+    ) {
+      await simulateDemoLatency(900);
+      markDemoGeneratedEmailsSent(payload.generated_email_ids);
+      return { sent: payload.generated_email_ids.length };
+    }
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
       reply_to: payload.reply_to,
@@ -401,6 +457,13 @@ export class ExpertFinderService {
     generated_email_ids: number[];
     reply_to: string[];
   }): Promise<{ sent: number }> {
+    if (
+      payload.generated_email_ids.length > 0 &&
+      payload.generated_email_ids.every(isDemoGeneratedEmailId)
+    ) {
+      await simulateDemoLatency(600);
+      return { sent: payload.generated_email_ids.length };
+    }
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
       reply_to: payload.reply_to,

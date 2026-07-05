@@ -242,3 +242,38 @@ const ensureLeadingHeading = (doc: JSONContent, fallbackTitle: string): JSONCont
     ],
   };
 };
+
+export interface HtmlImportResult {
+  json: JSONContent;
+  html: string;
+  plainText: string;
+  title: string;
+}
+
+/**
+ * Parse an HTML string into TipTap JSON using the same extension kit as the
+ * live note editor. Used by prototype fixtures (e.g. proposal-demo route).
+ */
+export const htmlToTiptap = (html: string, fallbackTitle = 'Untitled'): HtmlImportResult => {
+  const editor = new Editor({
+    extensions: [
+      ...ExtensionKit({}),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      History.configure({ depth: 100 }),
+    ],
+    editable: false,
+    content: html,
+  });
+
+  try {
+    const normalizedJson = ensureLeadingHeading(editor.getJSON(), fallbackTitle);
+    const serializedHtml = editor.getHTML();
+    const plainText = editor.getText();
+    const headingTitle = getDocumentTitle(normalizedJson);
+    const title = (headingTitle && headingTitle.trim()) || fallbackTitle;
+
+    return { json: normalizedJson, html: serializedHtml, plainText, title };
+  } finally {
+    editor.destroy();
+  }
+};

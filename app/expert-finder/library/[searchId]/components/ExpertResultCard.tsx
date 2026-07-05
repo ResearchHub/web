@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Award, Building2, ExternalLink, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faOrcid, faGoogleScholar } from '@fortawesome/free-brands-svg-icons';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -23,6 +25,19 @@ interface ExpertResultCardProps {
 
 function empty(value: string | undefined): string {
   return value?.trim() || '';
+}
+
+// Render a branded icon for known source types (ORCID, Google Scholar),
+// falling back to a generic external-link glyph.
+function SourceIcon({ text }: { text: string }) {
+  const t = text.toLowerCase();
+  if (t.includes('orcid')) {
+    return <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 text-orcid-500" />;
+  }
+  if (t.includes('scholar')) {
+    return <FontAwesomeIcon icon={faGoogleScholar} className="h-4 w-4 text-[#4285F4]" />;
+  }
+  return <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />;
 }
 
 /** Show Read more when notes are longer than this */
@@ -102,11 +117,11 @@ export function ExpertResultCard({
                       href={src.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                      className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
                       aria-label={src.text}
                       title={src.text}
                     >
-                      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
+                      <SourceIcon text={src.text} />
                     </a>
                   </Tooltip>
                 ))
@@ -168,6 +183,18 @@ export function ExpertResultCard({
           </div>
         ) : null}
 
+        {expert.lastEmailSentAt ? (
+          <Alert variant="warning" className="py-2.5 px-3">
+            Emailed before
+            <span className="font-normal text-yellow-800/90">
+              {' '}
+              · {formatTimestamp(expert.lastEmailSentAt)}
+            </span>
+          </Alert>
+        ) : null}
+      </div>
+
+      <div className="mt-auto pt-4 shrink-0 flex flex-col gap-3">
         {notes ? (
           <div className="rounded-lg bg-gray-100 px-3 py-2.5">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -207,42 +234,32 @@ export function ExpertResultCard({
           </div>
         ) : null}
 
-        {expert.lastEmailSentAt ? (
-          <Alert variant="warning" className="py-2.5 px-3">
-            Emailed before
-            <span className="font-normal text-yellow-800/90">
-              {' '}
-              · {formatTimestamp(expert.lastEmailSentAt)}
-            </span>
-          </Alert>
-        ) : null}
-      </div>
-
-      <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
-        {onGenerateEmail && (
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            className="w-full gap-2"
-            onClick={() => onGenerateEmail(expert)}
-          >
-            <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Generate email
-          </Button>
-        )}
-        {email && !onGenerateEmail && (
-          <a
-            href={`mailto:${email}`}
-            className={cn(
-              'inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700',
-              'w-full'
-            )}
-          >
-            <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Contact Expert
-          </a>
-        )}
+        <div className="flex flex-col gap-2">
+          {onGenerateEmail && (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              className="w-full gap-2"
+              onClick={() => onGenerateEmail(expert)}
+            >
+              <Mail className="h-4 w-4 shrink-0" aria-hidden />
+              Generate email
+            </Button>
+          )}
+          {email && !onGenerateEmail && (
+            <a
+              href={`mailto:${email}`}
+              className={cn(
+                'inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700',
+                'w-full'
+              )}
+            >
+              <Mail className="h-4 w-4 shrink-0" aria-hidden />
+              Contact Expert
+            </a>
+          )}
+        </div>
       </div>
 
       {canEditContact && onSuccess ? (

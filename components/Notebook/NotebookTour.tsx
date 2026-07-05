@@ -7,7 +7,7 @@ import { cn } from '@/utils/styles';
 
 type Placement = 'top' | 'bottom' | 'left' | 'right' | 'center';
 
-interface TourStep {
+export interface TourStep {
   selector: string;
   title: string;
   description: string;
@@ -37,18 +37,21 @@ const STEPS: TourStep[] = [
 const SPOTLIGHT_PADDING = 8;
 const POPOVER_WIDTH = 320;
 
-interface NotebookTourProps {
+interface SpotlightTourProps {
   run: boolean;
   onClose: () => void;
+  steps: TourStep[];
 }
 
-export function NotebookTour({ run, onClose }: NotebookTourProps) {
+// Generic spotlight tour engine. `NotebookTour` (below) is the default
+// notebook onboarding variant; other flows can pass bespoke steps.
+export function SpotlightTour({ run, onClose, steps }: SpotlightTourProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  const step = STEPS[stepIndex];
+  const step = steps[stepIndex];
 
   // Restart from the first step each time the tour is (re)opened.
   useEffect(() => {
@@ -120,7 +123,7 @@ export function NotebookTour({ run, onClose }: NotebookTourProps) {
 
   if (!run || typeof document === 'undefined') return null;
 
-  const isLast = stepIndex === STEPS.length - 1;
+  const isLast = stepIndex === steps.length - 1;
   const handleNext = () => (isLast ? onClose() : setStepIndex((i) => i + 1));
   const handleBack = () => setStepIndex((i) => Math.max(0, i - 1));
 
@@ -197,4 +200,13 @@ export function NotebookTour({ run, onClose }: NotebookTourProps) {
     </div>,
     document.body
   );
+}
+
+interface NotebookTourProps {
+  run: boolean;
+  onClose: () => void;
+}
+
+export function NotebookTour({ run, onClose }: NotebookTourProps) {
+  return <SpotlightTour run={run} onClose={onClose} steps={STEPS} />;
 }

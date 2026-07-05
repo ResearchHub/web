@@ -18,6 +18,8 @@ interface RelatedWorkCardProps {
   size?: 'default' | 'sm' | 'lg' | 'xs';
   fundraiseData?: Fundraise;
   onFeedItemClick?: () => void;
+  /** Optional content rendered directly beneath the title (e.g. metadata). */
+  titleMeta?: React.ReactNode;
 }
 
 export const RelatedWorkCard = ({
@@ -27,6 +29,7 @@ export const RelatedWorkCard = ({
   size = 'default',
   fundraiseData,
   onFeedItemClick,
+  titleMeta,
 }: RelatedWorkCardProps) => {
   const { triggerEvent } = useClickContext();
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
@@ -79,6 +82,7 @@ export const RelatedWorkCard = ({
   const getBadgeType = ():
     | 'paper'
     | 'funding'
+    | 'fundingOpportunity'
     | 'bounty'
     | 'review'
     | 'article'
@@ -108,7 +112,7 @@ export const RelatedWorkCard = ({
         }
         return 'paper';
       case 'funding_request':
-        return 'funding';
+        return 'fundingOpportunity';
       default:
         return 'paper';
     }
@@ -189,6 +193,8 @@ export const RelatedWorkCard = ({
 
       {/* Paper title */}
       <h3 className={`font-medium text-gray-900 ${getTitleClass()}`}>{work.title}</h3>
+
+      {titleMeta && <div onClick={(e) => e.stopPropagation()}>{titleMeta}</div>}
 
       {/* Authors using AuthorList component */}
       {authors.length > 0 && (

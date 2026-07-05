@@ -11,6 +11,8 @@ import { NotePaperWrapper } from './NotePaperWrapper';
 import { NotePaperSkeleton } from './NotePaperSkeleton';
 import { NotebookHome } from './NotebookHome';
 import { NotebookTour } from './NotebookTour';
+import { ProposalDemoSidebar } from './ProposalDemo/ProposalDemoSidebar';
+import { ProposalDemoTour } from './ProposalDemo/ProposalDemoTour';
 import { NotebookTabs, type NotebookTab } from './NotebookTabs';
 import { NotesMenu } from './NotesMenu';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
@@ -33,6 +35,12 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
 const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
+
+// Query param the proposal-demo flow appends. Once seen for a note, we persist
+// it in sessionStorage so the demo chrome survives tab switches / reloads (the
+// param gets dropped) within the same browser session.
+const PROPOSAL_DEMO_PARAM = 'proposalDemo';
+const proposalDemoSessionKey = (noteId: string | number) => `proposal-demo-note-${noteId}`;
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
@@ -83,9 +91,26 @@ export function NoteEditorLayout() {
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
   const [isTourOpen, setIsTourOpen] = useState(false);
+  const [isDemoTourOpen, setIsDemoTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
+  const demoTourAutoStarted = useRef(false);
 
   const isNewlyCreatedNote = NEW_NOTE_PARAMS.some((param) => searchParams?.has(param));
+
+  // Whether this note is the proposal-demo note. Sticky per session via
+  // sessionStorage so the sidebar and bespoke tour persist past the initial
+  // redirect that carries `?proposalDemo=true`.
+  const [isProposalDemo, setIsProposalDemo] = useState(false);
+  useEffect(() => {
+    if (!note || typeof window === 'undefined') return;
+    const key = proposalDemoSessionKey(note.id);
+    if (searchParams?.get(PROPOSAL_DEMO_PARAM) === 'true') {
+      window.sessionStorage.setItem(key, 'true');
+      setIsProposalDemo(true);
+    } else {
+      setIsProposalDemo(window.sessionStorage.getItem(key) === 'true');
+    }
+  }, [note, searchParams]);
 
   // Surface the "Notebook" notes dropdown in the shared TopBar's left area.
   useEffect(() => {
@@ -102,13 +127,38 @@ export function NoteEditorLayout() {
   const isNoteReady = !isLoadingNote && Boolean(note) && isLegacyNote === false && Boolean(editor);
   useEffect(() => {
     if (isDesktop !== true || tourAutoStarted.current) return;
+    if (isProposalDemo) return; // demo runs its own bespoke tour instead
     if (tourDismissStatus !== 'checked' || isTourDismissed) return;
     if (!isNewlyCreatedNote) return;
     if (!isNoteReady) return;
     tourAutoStarted.current = true;
     setIsTourOpen(true);
     dismissTour();
-  }, [isDesktop, isNoteReady, tourDismissStatus, isTourDismissed, isNewlyCreatedNote, dismissTour]);
+  }, [
+    isDesktop,
+    isNoteReady,
+    tourDismissStatus,
+    isTourDismissed,
+    isNewlyCreatedNote,
+    isProposalDemo,
+    dismissTour,
+  ]);
+
+  // Bespoke proposal-demo tour. Runs once per session (a session flag prevents
+  // it replaying on refresh) after the note, editor, and sidebar are mounted.
+  useEffect(() => {
+    if (isDesktop !== true || demoTourAutoStarted.current) return;
+    if (!isProposalDemo || !isNoteReady || !note) return;
+    if (typeof window === 'undefined') return;
+    const seenKey = `${proposalDemoSessionKey(note.id)}-tour`;
+    if (window.sessionStorage.getItem(seenKey) === 'true') {
+      demoTourAutoStarted.current = true;
+      return;
+    }
+    demoTourAutoStarted.current = true;
+    window.sessionStorage.setItem(seenKey, 'true');
+    setIsDemoTourOpen(true);
+  }, [isDesktop, isProposalDemo, isNoteReady, note]);
 
   useEffect(() => {
     if (isLoadingNote) return;
@@ -191,7 +241,9 @@ export function NoteEditorLayout() {
 
   if (isDesktop === null) return null;
 
-  return (
+  const showDemoSidebar = isProposalDemo && showTabs;
+
+  const editorColumn = (
     <div className="mx-auto w-full max-w-4xl">
       {showTabs && (
         <div className="mb-4 flex items-center justify-between gap-2">
@@ -218,8 +270,28 @@ export function NoteEditorLayout() {
           <PublishingForm />
         </div>
       )}
+    </div>
+  );
+
+  return (
+    <>
+      {showDemoSidebar ? (
+        // Break out of PageLayout's max-w-[1180px] cap so the document can span
+        // the full viewport, then reserve the fixed panel's width on the right.
+        // This keeps the doc at its natural size (centered in the leftover space)
+        // instead of shrinking it to fit inside the narrower capped container.
+        <div className="lg:relative lg:left-1/2 lg:w-screen lg:-translate-x-1/2 lg:pr-[440px]">
+          {editorColumn}
+        </div>
+      ) : (
+        editorColumn
+      )}
+      {showDemoSidebar && <ProposalDemoSidebar />}
 
       {isDesktop && <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />}
-    </div>
+      {isDesktop && (
+        <ProposalDemoTour run={isDemoTourOpen} onClose={() => setIsDemoTourOpen(false)} />
+      )}
+    </>
   );
 }
