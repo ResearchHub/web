@@ -37,13 +37,6 @@ export default function JournalNewPage() {
       }
       rightSidebar={<RHJRightSidebar showBanner={false} />}
     >
-      <section className="sr-only">
-        <p>
-          The new ResearchHub Journal feed lists completed funded proposals and Registered Reports
-          in one post-based feed. Registered Reports appear first, and sorting is handled by the
-          backend within each state.
-        </p>
-      </section>
       <JournalNewPageContent />
     </PageLayout>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
@@ -21,7 +22,13 @@ function SortDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLSpanElement>(null);
-  const selectedLabel = JOURNAL_SORT_OPTIONS.find((o) => o.value === sortBy)?.label;
+  const selectedLabel = JOURNAL_SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? 'Best';
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -34,9 +41,11 @@ function SortDropdown({
   }, []);
 
   return (
-    <span ref={containerRef} className="relative inline-flex">
+    <span ref={containerRef} className="relative inline-flex" onKeyDown={handleKeyDown}>
       <button
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
         className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
       >
@@ -45,31 +54,36 @@ function SortDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
-          {JOURNAL_SORT_OPTIONS.map((option) => {
-            return (
-              <label
-                key={option.value}
-                className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => {
-                  onSortChange(option.value);
-                  setIsOpen(false);
-                }}
+        <div
+          role="listbox"
+          aria-label="Sort journal entries"
+          className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100"
+        >
+          {JOURNAL_SORT_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={sortBy === option.value}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-left cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => {
+                onSortChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              <span
+                className={cn(
+                  'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
+                  sortBy === option.value ? 'border-primary-500' : 'border-gray-300'
+                )}
               >
-                <span
-                  className={cn(
-                    'w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
-                    sortBy === option.value ? 'border-primary-500' : 'border-gray-300'
-                  )}
-                >
-                  {sortBy === option.value && (
-                    <span className="w-2 h-2 rounded-full bg-primary-500" />
-                  )}
-                </span>
-                <span className="text-sm text-gray-800">{option.label}</span>
-              </label>
-            );
-          })}
+                {sortBy === option.value && (
+                  <span className="w-2 h-2 rounded-full bg-primary-500" />
+                )}
+              </span>
+              <span className="text-sm text-gray-800">{option.label}</span>
+            </button>
+          ))}
         </div>
       )}
     </span>

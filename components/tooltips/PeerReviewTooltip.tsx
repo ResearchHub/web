@@ -20,7 +20,10 @@ export function PeerReviewTooltip({ reviews, averageScore, href }: PeerReviewToo
   };
 
   const assessedReviews = reviews.filter((r) => r.isAssessed);
-  const visibleReviews = assessedReviews.slice(0, MAX_VISIBLE_REVIEWERS);
+  const visibleReviews = (assessedReviews.length > 0 ? assessedReviews : reviews).slice(
+    0,
+    MAX_VISIBLE_REVIEWERS
+  );
   const reviewsHref = href ? (href.endsWith('/reviews') ? href : `${href}/reviews`) : undefined;
 
   return (
