@@ -186,7 +186,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
               </h2>
             </div>
 
-            <div className="flex flex-shrink-0 items-end gap-5 sm:justify-end">
+            <div className="flex w-full flex-shrink-0 items-end justify-between gap-5 sm:w-auto sm:justify-end">
               <div className="text-left sm:text-right">
                 <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
                   Average Review
