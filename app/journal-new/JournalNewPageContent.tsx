@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFeed } from '@/hooks/useFeed';
 import { JournalV2FeedEntryItem } from '@/components/Journal/JournalV2FeedEntryItem';
@@ -12,14 +12,6 @@ import {
 export function JournalNewPageContent() {
   const [journalSort, setJournalSort] = useState<JournalSortOption>('best');
 
-  const feedOptions = useMemo(
-    () => ({
-      endpoint: 'journal_v2_feed' as const,
-      ordering: journalSort,
-    }),
-    [journalSort]
-  );
-
   const {
     entries,
     isLoading,
@@ -28,7 +20,10 @@ export function JournalNewPageContent() {
     restoredScrollPosition,
     page,
     lastClickedEntryId,
-  } = useFeed('all', feedOptions);
+  } = useFeed('all', {
+    endpoint: 'journal_v2_feed',
+    ordering: journalSort,
+  });
 
   return (
     <FeedContent
