@@ -280,6 +280,28 @@ export interface AssociatedGrant {
   numApplicants: number;
 }
 
+export interface JournalV2PostIds {
+  grantPostId: number | null;
+  proposalPostId: number | null;
+}
+
+export interface JournalV2LinkedWork {
+  id?: number;
+  postId?: number | null;
+  slug?: string;
+}
+
+export interface JournalV2FeedMetadata {
+  documentType?: string;
+  journalState?: string;
+  postIds?: JournalV2PostIds;
+  proposal?: JournalV2LinkedWork;
+  fundingOpportunity?: JournalV2LinkedWork;
+  registeredReport?: JournalV2LinkedWork;
+  registeredReportPostId?: number;
+  preprint?: JournalV2LinkedWork;
+}
+
 export interface FeedEntry {
   id: string;
   recommendationId: string | null;
@@ -302,6 +324,7 @@ export interface FeedEntry {
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
+  journalV2?: JournalV2FeedMetadata;
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -461,6 +484,112 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
 
   return undefined;
 }
+
+const asRecord = (value: unknown): Record<string, any> | undefined =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, any>)
+    : undefined;
+
+const firstRecord = (...values: unknown[]): Record<string, any> | undefined => {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const record = value.map((item) => asRecord(item)).find((item) => item);
+      if (record) return record;
+    } else {
+      const record = asRecord(value);
+      if (record) return record;
+    }
+  }
+
+  return undefined;
+};
+
+const asNumber = (value: unknown): number | undefined => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : undefined;
+};
+
+const transformJournalV2LinkedWork = (value: unknown): JournalV2LinkedWork | undefined => {
+  const record = asRecord(value);
+  if (!record) return undefined;
+
+  const id = asNumber(record.id);
+  const postId = asNumber(record.post_id) ?? asNumber(record.postId) ?? null;
+  const slug = typeof record.slug === 'string' && record.slug.length > 0 ? record.slug : undefined;
+
+  if (!id && !postId && !slug) return undefined;
+
+  return {
+    id,
+    postId,
+    slug,
+  };
+};
+
+const transformJournalV2FeedMetadata = (
+  feedEntry: RawApiFeedEntry
+): JournalV2FeedMetadata | undefined => {
+  const contentObject = asRecord(feedEntry.content_object);
+  if (!contentObject) return undefined;
+
+  const fundraise = asRecord(contentObject.fundraise);
+  const fundingOpportunity = firstRecord(
+    contentObject.funding_opportunity,
+    contentObject.fundingOpportunity,
+    contentObject.grant,
+    fundraise?.grant
+  );
+  const registeredReport = firstRecord(
+    asRecord(contentObject.registered_report)?.post,
+    asRecord(contentObject.registeredReport)?.post,
+    contentObject.registered_report,
+    contentObject.registeredReport,
+    contentObject.registered_report_post,
+    contentObject.registeredReportPost
+  );
+  const preprint = firstRecord(
+    contentObject.preprint,
+    contentObject.paper,
+    contentObject.result,
+    contentObject.results
+  );
+
+  const metadata: JournalV2FeedMetadata = {
+    documentType:
+      typeof contentObject.type === 'string' && contentObject.type.length > 0
+        ? contentObject.type
+        : undefined,
+    journalState:
+      typeof contentObject.journal_state === 'string' && contentObject.journal_state.length > 0
+        ? contentObject.journal_state
+        : undefined,
+    postIds: feedEntry.post_ids
+      ? {
+          grantPostId: feedEntry.post_ids.grant_post_id,
+          proposalPostId: feedEntry.post_ids.proposal_post_id,
+        }
+      : undefined,
+    proposal: transformJournalV2LinkedWork(contentObject.proposal),
+    fundingOpportunity: transformJournalV2LinkedWork(fundingOpportunity),
+    registeredReport: transformJournalV2LinkedWork(registeredReport),
+    registeredReportPostId:
+      asNumber(contentObject.registered_report_post_id) ??
+      asNumber(contentObject.registeredReportPostId),
+    preprint: transformJournalV2LinkedWork(preprint),
+  };
+
+  const hasJournalV2Metadata =
+    Boolean(metadata.postIds) ||
+    Boolean(metadata.journalState) ||
+    metadata.documentType === 'REGISTERED_REPORT' ||
+    Boolean(metadata.proposal) ||
+    Boolean(metadata.fundingOpportunity) ||
+    Boolean(metadata.registeredReport) ||
+    Boolean(metadata.registeredReportPostId) ||
+    Boolean(metadata.preprint);
+
+  return hasJournalV2Metadata ? metadata : undefined;
+};
 
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
@@ -1086,6 +1215,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       image: g.image ?? null,
       numApplicants: g.num_applicants ?? 0,
     })),
+    journalV2: transformJournalV2FeedMetadata(feedEntry),
     nonprofit: nonprofit
       ? {
           id: nonprofit.id,

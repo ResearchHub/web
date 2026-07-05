@@ -1,5 +1,11 @@
-import { FeedEntry, FeedPaperContent, FeedPostContent, Review } from '@/types/feed';
-import { transformAuthorProfile } from '@/types/authorProfile';
+import {
+  FeedEntry,
+  FeedPaperContent,
+  FeedPostContent,
+  JournalV2FeedMetadata,
+  JournalV2LinkedWork,
+  Review,
+} from '@/types/feed';
 import { buildWorkUrl } from '@/utils/url';
 
 export type JournalV2Stage = 'funding_opportunity' | 'proposal' | 'registered_report' | 'preprint';
@@ -26,40 +32,6 @@ export interface JournalV2FeedItemViewModel {
 }
 
 type JournalFeedContent = FeedPostContent | FeedPaperContent;
-type RawRecord = Record<string, unknown>;
-
-/** Reads a plain object from an unknown API value. */
-function readRecord(value: unknown): RawRecord | undefined {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as RawRecord)
-    : undefined;
-}
-
-/** Reads the first plain object from a list of possible API fields. */
-function readFirstRecord(...values: unknown[]): RawRecord | undefined {
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      const item = value.map(readRecord).find(Boolean);
-      if (item) return item;
-    } else {
-      const item = readRecord(value);
-      if (item) return item;
-    }
-  }
-
-  return undefined;
-}
-
-/** Reads a finite numeric ID from an API value. */
-function readNumber(value: unknown): number | undefined {
-  const numberValue = Number(value);
-  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : undefined;
-}
-
-/** Reads a string field from an API value. */
-function readString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
 
 /** Reads a finite review score without treating null as zero. */
 function readScore(value: unknown): number | undefined {
@@ -68,25 +40,22 @@ function readScore(value: unknown): number | undefined {
   return Number.isFinite(score) ? score : undefined;
 }
 
-/** Reads a document ID from common API field names. */
-function readDocumentId(record?: RawRecord): number | undefined {
-  if (!record) return undefined;
-  return readNumber(record.id) ?? readNumber(record.post_id) ?? readNumber(record.postId);
+/** Reads the post-facing ID from transformed journal metadata. */
+function readLinkedWorkId(work?: JournalV2LinkedWork): number | undefined {
+  return work?.postId ?? work?.id ?? undefined;
 }
 
-/** Builds a work URL from a raw API object when it includes an ID. */
-function buildHrefFromRecord(
-  record: RawRecord | undefined,
+/** Builds a work URL from transformed journal metadata. */
+function buildHrefFromLinkedWork(
+  work: JournalV2LinkedWork | undefined,
   contentType: 'funding_request' | 'paper' | 'post' | 'preregistration'
 ): string | undefined {
-  if (!record) return undefined;
-
-  const id = readDocumentId(record);
+  const id = readLinkedWorkId(work);
   if (!id) return undefined;
 
   return buildWorkUrl({
     id,
-    slug: readString(record.slug),
+    slug: work?.slug,
     contentType,
   });
 }
@@ -96,12 +65,12 @@ function buildReportHref(id: string | number, slug?: string): string {
   return slug ? `/report/${id}/${slug}` : `/report/${id}`;
 }
 
-/** Builds the future Registered Report page URL from a raw API object. */
-function buildReportHrefFromRecord(record: RawRecord | undefined): string | undefined {
-  const id = readDocumentId(record);
+/** Builds the future Registered Report page URL from transformed journal metadata. */
+function buildReportHrefFromLinkedWork(work: JournalV2LinkedWork | undefined): string | undefined {
+  const id = readLinkedWorkId(work);
   if (!id) return undefined;
 
-  return buildReportHref(id, readString(record?.slug));
+  return buildReportHref(id, work?.slug);
 }
 
 /** Returns true when the transformed feed content is a paper/preprint. */
@@ -115,21 +84,24 @@ function isPostContent(content: FeedEntry['content']): content is FeedPostConten
 }
 
 /** Returns true when the item represents a Registered Report post. */
-function isRegisteredReportContent(content: JournalFeedContent, rawContent: RawRecord): boolean {
+function isRegisteredReportContent(
+  content: JournalFeedContent,
+  journalV2?: JournalV2FeedMetadata
+): boolean {
   return (
     (isPostContent(content) && content.postType === 'REGISTERED_REPORT') ||
-    rawContent.type === 'REGISTERED_REPORT' ||
-    rawContent.journal_state === 'registered_report'
+    journalV2?.documentType === 'REGISTERED_REPORT' ||
+    journalV2?.journalState === 'registered_report'
   );
 }
 
 /** Builds the primary card link for the transformed journal item. */
-function buildPrimaryHref(content: JournalFeedContent, rawContent: RawRecord): string {
+function buildPrimaryHref(content: JournalFeedContent, journalV2?: JournalV2FeedMetadata): string {
   if (isPaperContent(content)) {
     return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'paper' });
   }
 
-  if (isRegisteredReportContent(content, rawContent)) {
+  if (isRegisteredReportContent(content, journalV2)) {
     return buildReportHref(content.id, content.slug);
   }
 
@@ -140,46 +112,35 @@ function buildPrimaryHref(content: JournalFeedContent, rawContent: RawRecord): s
   return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'post' });
 }
 
-/** Builds the Funding Opportunity tracker link from post IDs when present. */
-function buildFundingOpportunityHref(entry: FeedEntry, rawContent: RawRecord): string | undefined {
-  const fundingOpportunity =
-    readFirstRecord(
-      rawContent.funding_opportunity,
-      rawContent.fundingOpportunity,
-      rawContent.grant,
-      readRecord(rawContent.fundraise)?.grant
-    ) ?? undefined;
-
-  if (entry.raw?.post_ids) {
-    const grantPostId = readNumber(entry.raw.post_ids.grant_post_id);
+/** Builds the Funding Opportunity tracker link from transformed post IDs when present. */
+function buildFundingOpportunityHref(journalV2?: JournalV2FeedMetadata): string | undefined {
+  if (journalV2?.postIds) {
+    const grantPostId = journalV2.postIds.grantPostId;
     if (!grantPostId) return undefined;
 
     return buildWorkUrl({
       id: grantPostId,
-      slug: readString(fundingOpportunity?.slug),
+      slug: journalV2.fundingOpportunity?.slug,
       contentType: 'funding_request',
     });
   }
 
-  return buildHrefFromRecord(fundingOpportunity, 'funding_request');
+  return buildHrefFromLinkedWork(journalV2?.fundingOpportunity, 'funding_request');
 }
 
-/** Builds the Proposal tracker link from post IDs when present. */
+/** Builds the Proposal tracker link from transformed post IDs when present. */
 function buildProposalHref(
-  entry: FeedEntry,
+  journalV2: JournalV2FeedMetadata | undefined,
   content: JournalFeedContent,
-  rawContent: RawRecord,
   primaryHref: string
 ): string | undefined {
-  const proposal = readFirstRecord(rawContent.proposal);
-
-  if (entry.raw?.post_ids) {
-    const proposalPostId = readNumber(entry.raw.post_ids.proposal_post_id);
+  if (journalV2?.postIds) {
+    const proposalPostId = journalV2.postIds.proposalPostId;
     if (!proposalPostId) return undefined;
 
     return buildWorkUrl({
       id: proposalPostId,
-      slug: readString(proposal?.slug),
+      slug: journalV2.proposal?.slug,
       contentType: 'preregistration',
     });
   }
@@ -188,69 +149,55 @@ function buildProposalHref(
     return primaryHref;
   }
 
-  return buildHrefFromRecord(proposal, 'preregistration');
+  return buildHrefFromLinkedWork(journalV2?.proposal, 'preregistration');
 }
 
 /** Builds the Registered Report tracker link when that stage exists. */
 function buildRegisteredReportHref(
   content: JournalFeedContent,
-  rawContent: RawRecord,
+  journalV2: JournalV2FeedMetadata | undefined,
   primaryHref: string
 ): string | undefined {
-  if (isRegisteredReportContent(content, rawContent)) {
+  if (isRegisteredReportContent(content, journalV2)) {
     return primaryHref;
   }
 
-  const registeredReport = readFirstRecord(
-    rawContent.registered_report,
-    rawContent.registeredReport,
-    rawContent.registered_report_post,
-    rawContent.registeredReportPost,
-    readRecord(rawContent.registered_report)?.post,
-    readRecord(rawContent.registeredReport)?.post
-  );
-  const registeredReportHref = buildReportHrefFromRecord(registeredReport);
+  const registeredReportHref = buildReportHrefFromLinkedWork(journalV2?.registeredReport);
   if (registeredReportHref) return registeredReportHref;
 
-  const registeredReportPostId =
-    readNumber(rawContent.registered_report_post_id) ??
-    readNumber(rawContent.registeredReportPostId);
+  const registeredReportPostId = journalV2?.registeredReportPostId;
   if (!registeredReportPostId) return undefined;
 
-  return buildReportHref(registeredReportPostId, readString(registeredReport?.slug));
+  return buildReportHref(registeredReportPostId, journalV2?.registeredReport?.slug);
 }
 
 /** Builds the Preprint tracker link when that stage exists. */
 function buildPreprintHref(
   content: JournalFeedContent,
-  rawContent: RawRecord,
+  journalV2: JournalV2FeedMetadata | undefined,
   primaryHref: string
 ): string | undefined {
   if (isPaperContent(content)) {
     return primaryHref;
   }
 
-  const preprint = readFirstRecord(
-    rawContent.preprint,
-    rawContent.paper,
-    rawContent.result,
-    rawContent.results
-  );
-
-  return buildHrefFromRecord(preprint, 'paper');
+  return buildHrefFromLinkedWork(journalV2?.preprint, 'paper');
 }
 
 /** Names the current stage represented by this feed entry. */
-function resolveCurrentStageLabel(content: JournalFeedContent, rawContent: RawRecord): string {
+function resolveCurrentStageLabel(
+  content: JournalFeedContent,
+  journalV2?: JournalV2FeedMetadata
+): string {
   if (
     isPaperContent(content) ||
-    rawContent.journal_state === 'preprint' ||
-    rawContent.journal_state === 'result'
+    journalV2?.journalState === 'preprint' ||
+    journalV2?.journalState === 'result'
   ) {
     return 'Preprint';
   }
 
-  if (isRegisteredReportContent(content, rawContent)) {
+  if (isRegisteredReportContent(content, journalV2)) {
     return 'Registered Report';
   }
 
@@ -260,22 +207,6 @@ function resolveCurrentStageLabel(content: JournalFeedContent, rawContent: RawRe
 /** Normalizes review scores to the x/5 scale shown in journal cards. */
 function normalizeScoreToFive(score: number): number {
   return score > 5 ? score / 2 : score;
-}
-
-/** Converts a raw API review into the transformed review shape used by tooltips. */
-function buildReviewFromRaw(value: unknown, index: number): Review | undefined {
-  const review = readRecord(value);
-  if (!review) return undefined;
-
-  const score = readScore(review.score);
-  if (score === undefined) return undefined;
-
-  return {
-    id: readNumber(review.id) ?? index,
-    score: normalizeScoreToFive(score),
-    author: transformAuthorProfile(review.author),
-    isAssessed: Boolean(review.is_assessed ?? review.isAssessed),
-  };
 }
 
 /** Converts transformed reviews to the x/5 score scale used by the journal feed. */
@@ -289,21 +220,11 @@ function buildReviewFromTransformed(review: Review): Review | undefined {
   };
 }
 
-/** Collects reviews from transformed content first, then falls back to raw API reviews. */
-function collectReviews(content: JournalFeedContent, rawContent: RawRecord): Review[] {
-  const transformedReviews = Array.isArray(content.reviews)
+/** Collects reviews from transformed content. */
+function collectReviews(content: JournalFeedContent): Review[] {
+  return Array.isArray(content.reviews)
     ? content.reviews
         .map((review) => buildReviewFromTransformed(review))
-        .filter((review): review is Review => !!review)
-    : [];
-
-  if (transformedReviews.length > 0) {
-    return transformedReviews;
-  }
-
-  return Array.isArray(rawContent.reviews)
-    ? rawContent.reviews
-        .map((review, index) => buildReviewFromRaw(review, index))
         .filter((review): review is Review => !!review)
     : [];
 }
@@ -329,12 +250,12 @@ export function buildJournalV2FeedItemViewModel(
     return undefined;
   }
 
-  const rawContent = readRecord(entry.raw?.content_object) ?? {};
-  const primaryHref = buildPrimaryHref(content, rawContent);
-  const fundingOpportunityHref = buildFundingOpportunityHref(entry, rawContent);
-  const proposalHref = buildProposalHref(entry, content, rawContent, primaryHref);
-  const registeredReportHref = buildRegisteredReportHref(content, rawContent, primaryHref);
-  const preprintHref = buildPreprintHref(content, rawContent, primaryHref);
+  const { journalV2 } = entry;
+  const primaryHref = buildPrimaryHref(content, journalV2);
+  const fundingOpportunityHref = buildFundingOpportunityHref(journalV2);
+  const proposalHref = buildProposalHref(journalV2, content, primaryHref);
+  const registeredReportHref = buildRegisteredReportHref(content, journalV2, primaryHref);
+  const preprintHref = buildPreprintHref(content, journalV2, primaryHref);
   const imageUrl = isPaperContent(content)
     ? content.previewImage || content.previewThumbnail || undefined
     : content.previewImage || content.fundraise?.postImage || undefined;
@@ -343,8 +264,8 @@ export function buildJournalV2FeedItemViewModel(
     title: content.title,
     href: primaryHref,
     imageUrl,
-    currentStageLabel: resolveCurrentStageLabel(content, rawContent),
-    reviewSummary: calculateReviewSummary(collectReviews(content, rawContent)),
+    currentStageLabel: resolveCurrentStageLabel(content, journalV2),
+    reviewSummary: calculateReviewSummary(collectReviews(content)),
     trackerSteps: [
       {
         stage: 'funding_opportunity',
