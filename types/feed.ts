@@ -493,7 +493,7 @@ const asRecord = (value: unknown): Record<string, any> | undefined =>
 const firstRecord = (...values: unknown[]): Record<string, any> | undefined => {
   for (const value of values) {
     if (Array.isArray(value)) {
-      const record = value.map((item) => asRecord(item)).find((item) => item);
+      const record = value.map((item) => asRecord(item)).find(Boolean);
       if (record) return record;
     } else {
       const record = asRecord(value);
