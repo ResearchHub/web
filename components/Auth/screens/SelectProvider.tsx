@@ -58,7 +58,10 @@ export default function SelectProvider({
           setError('Please verify your email before logging in');
         }
       } else {
-        onSignup();
+        // FIXME: Email signup is temporarily disabled - only Google signup allowed
+        setError(
+          'Email signup is temporarily disabled. Please use "Continue with Google" to create an account.'
+        );
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'An error occurred');
