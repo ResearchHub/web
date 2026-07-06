@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { CatalystLockup } from './CatalystLockup';
 import { CatalystLoggedInBody } from './CatalystLoggedInBody';
@@ -10,19 +9,12 @@ interface CatalystDesktopLoggedInProps {
 }
 
 export function CatalystDesktopLoggedIn({ email }: Readonly<CatalystDesktopLoggedInProps>) {
-  const router = useRouter();
-
   return (
     <PageLayout rightSidebar={false}>
       <div className="mx-auto max-w-lg px-4 py-12 sm:py-16">
         <div className="card">
           <CatalystLockup theme="onLight" />
-          <CatalystLoggedInBody
-            email={email}
-            variant="desktop"
-            onContinue={() => router.push('/')}
-            showFooter
-          />
+          <CatalystLoggedInBody email={email} variant="desktop" showFooter />
         </div>
       </div>
 

@@ -1,181 +1,201 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+import AnalyticsService from '@/services/analytics.service';
+import { AuthSharingService } from '@/services/auth-sharing.service';
 import { CATALYST_NYC_EVENT, formatCredit } from './constants';
 
-const { footer, loggedIn, contact, creditAmount } = CATALYST_NYC_EVENT;
+const { footer, loggedIn, creditAmount, route } = CATALYST_NYC_EVENT;
 
 interface CatalystLoggedInBodyProps {
   email: string;
   variant: 'mobile' | 'desktop';
-  onContinue: () => void;
   showFooter?: boolean;
 }
 
 export function CatalystLoggedInBody({
   email,
   variant,
-  onContinue,
   showFooter = false,
 }: Readonly<CatalystLoggedInBodyProps>) {
+  const router = useRouter();
   const isMobile = variant === 'mobile';
 
+  // Sign out across both RH apps, then return here so the attendee can re-auth with the correct email.
+  const handleSignOut = () => {
+    AuthSharingService.removeSharedAuthToken();
+    AnalyticsService.clearUserSession();
+    void signOut({ callbackUrl: route });
+  };
+
   return (
-    <>
-      <h1 className={`title ${isMobile ? 'title--mobile' : 'title--desktop'}`}>{loggedIn.title}</h1>
+    <div className={`box ${isMobile ? 'box--mobile' : 'box--desktop'}`}>
+      <h1 className="title">{loggedIn.title}</h1>
 
-      <p className={`body ${isMobile ? 'body--mobile' : 'body--desktop'}`}>
-        You&apos;re signed in as <strong>{email}</strong>. {loggedIn.bodyPrefix} —{' '}
-        {loggedIn.bodySuffix} {formatCredit(creditAmount)}.
+      <p className="eyebrow">{loggedIn.eyebrow}</p>
+      <p className="email">{email}</p>
+      <p className="sub">
+        {loggedIn.subtext} <strong>{formatCredit(creditAmount)}</strong>.
       </p>
 
-      <p className={`help ${isMobile ? 'help--mobile' : 'help--desktop'}`}>
-        {loggedIn.mismatchPrefix}{' '}
-        <strong>
-          {contact.name} ({contact.role})
-        </strong>{' '}
-        at{' '}
-        <a href={`mailto:${contact.email}`} className="contact-link">
-          {contact.email}
-        </a>
-        {'.'}
-      </p>
+      <div className="actions">
+        <button className="btn btn--primary" type="button" onClick={() => router.push('/')}>
+          {loggedIn.confirmLabel}
+        </button>
+        <button className="btn btn--secondary" type="button" onClick={handleSignOut}>
+          {loggedIn.signOutLabel}
+        </button>
+      </div>
 
-      <button
-        className={`cta ${isMobile ? 'cta--mobile' : 'cta--desktop'}`}
-        type="button"
-        onClick={onContinue}
-      >
-        {loggedIn.continueLabel}
-      </button>
-
-      {showFooter && (
-        <p className={`foot ${isMobile ? 'foot--mobile' : 'foot--desktop'}`}>{footer}</p>
-      )}
+      {showFooter && <p className="foot">{footer}</p>}
 
       <style jsx>{`
+        .box {
+          width: 100%;
+          text-align: left;
+        }
         .title {
           font-weight: 600;
-          letter-spacing: -0.03em;
-          text-align: left;
-          line-height: 1.05;
+          letter-spacing: -0.02em;
+          line-height: 1.12;
         }
-        .title--mobile {
-          font-size: 38px;
-          margin-bottom: 24px;
+        .box--mobile .title {
+          font-size: 30px;
           color: #fff;
+          margin-bottom: 24px;
         }
-        .title--desktop {
-          font-size: 32px;
-          line-height: 1.1;
-          margin: 24px 0 16px;
+        .box--desktop .title {
+          font-size: 24px;
           color: #0c0720;
+          margin: 20px 0 18px;
         }
-        .body {
-          font-size: 16px;
+        .eyebrow {
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+        .box--mobile .eyebrow {
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .box--desktop .eyebrow {
+          color: #6b7280;
+        }
+        .email {
+          font-weight: 600;
+          letter-spacing: -0.01em;
+          overflow-wrap: anywhere;
+          border-radius: 14px;
+          padding: 16px 18px;
+        }
+        .box--mobile .email {
+          font-size: 24px;
+          color: #fff;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .box--desktop .email {
+          font-size: 22px;
+          color: #0c0720;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+        }
+        .sub {
+          font-size: 15px;
           line-height: 1.5;
-          margin-bottom: 20px;
+          margin-top: 14px;
         }
-        .body--mobile {
-          color: rgba(255, 255, 255, 0.88);
-          margin-bottom: 20px;
+        .box--mobile .sub {
+          color: rgba(255, 255, 255, 0.72);
         }
-        .body--mobile strong {
+        .box--mobile .sub strong {
           color: #fff;
           font-weight: 600;
         }
-        .body--desktop {
-          color: #374151;
-          margin-bottom: 16px;
+        .box--desktop .sub {
+          color: #4b5563;
         }
-        .body--desktop strong {
+        .box--desktop .sub strong {
           color: #111827;
           font-weight: 600;
         }
-        .help {
-          font-size: 14px;
-          line-height: 1.5;
+        .actions {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 28px;
         }
-        .help--mobile {
-          color: rgba(255, 255, 255, 0.72);
-          margin-bottom: 28px;
-        }
-        .help--mobile strong {
-          color: rgba(255, 255, 255, 0.9);
-          font-weight: 600;
-        }
-        .help--desktop {
-          color: #6b7280;
-          margin-bottom: 24px;
-        }
-        .help--desktop strong {
-          color: #374151;
-          font-weight: 600;
-        }
-        .contact-link {
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
-        .body--mobile .contact-link,
-        .help--mobile .contact-link {
-          color: #c8b6f2;
-        }
-        .body--mobile .contact-link:hover,
-        .help--mobile .contact-link:hover {
-          color: #fff;
-        }
-        .body--desktop .contact-link,
-        .help--desktop .contact-link {
-          color: #3971ff;
-        }
-        .body--desktop .contact-link:hover,
-        .help--desktop .contact-link:hover {
-          color: #2563eb;
-        }
-        .contact-link:focus-visible {
-          outline: 2px solid #c8b6f2;
-          outline-offset: 2px;
-          border-radius: 2px;
-        }
-        .cta {
+        .btn {
           width: 100%;
-          border: none;
-          background: #3971ff;
-          color: #fff;
           font-family: inherit;
           font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.15s;
+          transition:
+            background 0.15s,
+            border-color 0.15s,
+            color 0.15s;
         }
-        .cta--mobile {
+        .box--mobile .btn {
           height: 56px;
           border-radius: 14px;
-          box-shadow: 0 10px 26px -8px rgba(57, 113, 255, 0.7);
         }
-        .cta--desktop {
+        .box--desktop .btn {
           height: 48px;
           border-radius: 12px;
         }
-        .cta:hover {
+        .btn--primary {
+          border: none;
+          background: #3971ff;
+          color: #fff;
+        }
+        .box--mobile .btn--primary {
+          box-shadow: 0 10px 26px -8px rgba(57, 113, 255, 0.7);
+        }
+        .btn--primary:hover {
           background: #2563eb;
         }
-        .cta:focus-visible {
-          outline: 2px solid #fff;
+        .btn--secondary {
+          background: transparent;
+        }
+        .box--mobile .btn--secondary {
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          color: #fff;
+        }
+        .box--mobile .btn--secondary:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .box--desktop .btn--secondary {
+          border: 1px solid #d1d5db;
+          color: #374151;
+        }
+        .box--desktop .btn--secondary:hover {
+          background: #f9fafb;
+        }
+        .btn:focus-visible {
+          outline: 2px solid;
           outline-offset: 2px;
+        }
+        .box--mobile .btn:focus-visible {
+          outline-color: #fff;
+        }
+        .box--desktop .btn:focus-visible {
+          outline-color: #3971ff;
         }
         .foot {
           text-align: center;
           font-size: 12px;
+          margin-top: 20px;
         }
-        .foot--mobile {
-          margin-top: 0;
+        .box--mobile .foot {
           color: rgba(255, 255, 255, 0.5);
         }
-        .foot--desktop {
-          margin-top: 20px;
+        .box--desktop .foot {
           color: #9ca3af;
         }
       `}</style>
-    </>
+    </div>
   );
 }

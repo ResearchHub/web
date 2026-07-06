@@ -22,17 +22,11 @@ export const CATALYST_NYC_EVENT = {
     noteHighlight: 'same email you registered with',
   },
   loggedIn: {
-    title: 'Confirm your email',
-    bodyPrefix:
-      'Please double-check that this is the same email you used to register for Catalyst NYC',
-    bodySuffix: "that's the address we'll use to credit your",
-    mismatchPrefix: 'If you need to use a different email, contact',
-    continueLabel: 'Continue to ResearchHub',
-  },
-  contact: {
-    name: 'Tyler Diorio, PhD',
-    role: 'Chief of Staff',
-    email: 'tyler@researchhub.com',
+    title: 'Is this the right email?',
+    eyebrow: 'Signed in as',
+    subtext: "This is where we'll credit your",
+    confirmLabel: 'Looks good',
+    signOutLabel: 'Sign out',
   },
   metadata: {
     title: 'Catalyst NYC — Join ResearchHub',

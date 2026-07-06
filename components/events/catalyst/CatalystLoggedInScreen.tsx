@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { CATALYST_NYC_EVENT } from './constants';
 import { CatalystLockup } from './CatalystLockup';
 import { CatalystLoggedInBody } from './CatalystLoggedInBody';
@@ -13,14 +12,12 @@ interface CatalystLoggedInScreenProps {
 }
 
 export function CatalystLoggedInScreen({ email }: Readonly<CatalystLoggedInScreenProps>) {
-  const router = useRouter();
-
   return (
     <CatalystScreenShell>
       <CatalystLockup />
 
       <div className="main">
-        <CatalystLoggedInBody email={email} variant="mobile" onContinue={() => router.push('/')} />
+        <CatalystLoggedInBody email={email} variant="mobile" />
       </div>
 
       <div className="foot">{footer}</div>
