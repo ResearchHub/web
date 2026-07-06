@@ -19,6 +19,11 @@ export interface BlockEditorProps {
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
   setEditor?: (editor: Editor | null) => void;
+  /**
+   * Render the default selection text menu. Disable when a surrounding surface
+   * supplies its own bubble menu (e.g. the proposal demo's AI-first toolbar).
+   */
+  showTextMenu?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
@@ -28,6 +33,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   setEditor,
   isLoading = false,
   editable = true,
+  showTextMenu = true,
 }) => {
   const menuContainerRef = useRef(null);
 
@@ -70,7 +76,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
           <>
             <ContentItemMenu editor={editor} />
             <LinkMenu editor={editor} appendTo={menuContainerRef} />
-            <TextMenu editor={editor} />
+            {showTextMenu && <TextMenu editor={editor} />}
             <ColumnsMenu editor={editor} appendTo={menuContainerRef} />
             <TableRowMenu editor={editor} appendTo={menuContainerRef} />
             <TableColumnMenu editor={editor} appendTo={menuContainerRef} />

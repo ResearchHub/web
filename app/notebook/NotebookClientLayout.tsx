@@ -16,10 +16,20 @@ import '@fontsource/inter/700.css';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { NotebookProvider } from '@/contexts/NotebookContext';
 import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
+import { ProposalDemoExperience } from '@/components/Notebook/ProposalDemo/ProposalDemoExperience';
+import { useProposalDemoMode } from '@/components/Notebook/ProposalDemo/useProposalDemoMode';
 import { clearPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 
 function NotebookContent({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => () => clearPendingGrant(), []);
+
+  const { isProposalDemo, exitDemo } = useProposalDemoMode();
+
+  // The proposal demo replaces the shared chrome entirely with its own
+  // conversation-first, full-screen experience.
+  if (isProposalDemo) {
+    return <ProposalDemoExperience onExit={exitDemo} />;
+  }
 
   // The shared layout's sidebar and TopBar are opaque white and the scroll
   // area is transparent, so wrapping in a gray surface turns just the content

@@ -129,6 +129,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
+      label: 'Reg. Reports',
+      href: '/rh-journal',
+      iconKey: 'journal',
+      description: 'Journal of registered reports funded on ResearchHub',
+    },
+    {
       label: 'Endowment',
       href: '/endowment',
       isLucideSprout: true,
@@ -167,6 +173,10 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
+    }
+
+    if (path === '/rh-journal') {
+      return currentPath.startsWith('/rh-journal');
     }
 
     if (path === '/endowment') {
