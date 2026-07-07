@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import AuthContent from '@/components/Auth/AuthContent';
 import type { AuthScreen } from '@/components/Auth/types';
 import { CatalystAuthEntryNote, CatalystAuthEntryTitle } from './CatalystAuthEntryChrome';
@@ -9,13 +8,16 @@ import { CATALYST_NYC_EVENT } from './constants';
 import { CatalystLockup } from './CatalystLockup';
 import { CatalystScreenShell } from './CatalystScreenShell';
 
-const { footer, auth } = CATALYST_NYC_EVENT;
+const { footer, auth, route } = CATALYST_NYC_EVENT;
 
-export function CatalystAuthScreen() {
-  const router = useRouter();
-  const [screen, setScreen] = useState<AuthScreen>('SELECT_PROVIDER');
+interface CatalystAuthScreenProps {
+  initialScreen?: AuthScreen;
+}
 
-  const goHome = () => router.push('/');
+export function CatalystAuthScreen({
+  initialScreen = 'SELECT_PROVIDER',
+}: Readonly<CatalystAuthScreenProps>) {
+  const [screen, setScreen] = useState<AuthScreen>(initialScreen);
 
   return (
     <CatalystScreenShell>
@@ -26,12 +28,11 @@ export function CatalystAuthScreen() {
           <AuthContent
             showHeader={false}
             modalView
-            callbackUrl="/"
+            initialScreen={initialScreen}
+            callbackUrl={route}
             appearance="catalyst"
             catalystSurface="dark"
             onScreenChange={setScreen}
-            onSuccess={goHome}
-            onClose={goHome}
             emailLabel={auth.emailLabel}
             entryTitle={<CatalystAuthEntryTitle surface="dark" />}
             entryNote={<CatalystAuthEntryNote surface="dark" />}

@@ -8,7 +8,7 @@ import { CatalystAuthEntryNote, CatalystAuthEntryTitle } from './CatalystAuthEnt
 import { CATALYST_NYC_EVENT } from './constants';
 import { CatalystLockup } from './CatalystLockup';
 
-const { auth } = CATALYST_NYC_EVENT;
+const { auth, route } = CATALYST_NYC_EVENT;
 
 interface CatalystAuthModalProps {
   isOpen: boolean;
@@ -57,7 +57,7 @@ export function CatalystAuthModal({
           onSuccess={onSuccess}
           showHeader={false}
           modalView
-          callbackUrl="/"
+          callbackUrl={route}
           appearance="catalyst"
           catalystSurface="light"
           emailLabel={auth.emailLabel}

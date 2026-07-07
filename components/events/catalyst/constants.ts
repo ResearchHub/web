@@ -22,11 +22,13 @@ export const CATALYST_NYC_EVENT = {
     noteHighlight: 'same email you registered with',
   },
   loggedIn: {
-    title: 'Is this the right email?',
+    titleSuffix: 'is on the way',
+    reviewNote:
+      'Our team manually reviews each request and will credit your account within 48 hours.',
     eyebrow: 'Signed in as',
-    subtext: "This is where we'll credit your",
-    confirmLabel: 'Looks good',
-    signOutLabel: 'Sign out',
+    emailNote: "Make sure this is the email you registered with — it's the account we'll credit.",
+    continueLabel: 'Explore ResearchHub',
+    signOutLabel: 'Not your email? Sign out',
   },
   metadata: {
     title: 'Catalyst NYC — Join ResearchHub',

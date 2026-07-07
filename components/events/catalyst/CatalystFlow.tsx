@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUser } from '@/contexts/UserContext';
 import { CatalystArrivalScreen } from './CatalystArrivalScreen';
@@ -64,7 +63,6 @@ function DesktopLoadingState() {
 }
 
 export function CatalystFlow() {
-  const router = useRouter();
   const { user, isLoading } = useUser();
   const isMobile = useCatalystLayout();
   const [step, setStep] = useState<Step>('arrival');
@@ -95,7 +93,7 @@ export function CatalystFlow() {
       <CatalystAuthModal
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}
-        onSuccess={() => router.push('/')}
+        onSuccess={() => setAuthOpen(false)}
       />
     </>
   );

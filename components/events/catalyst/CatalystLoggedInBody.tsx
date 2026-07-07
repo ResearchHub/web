@@ -31,17 +31,31 @@ export function CatalystLoggedInBody({
 
   return (
     <div className={`box ${isMobile ? 'box--mobile' : 'box--desktop'}`}>
-      <h1 className="title">{loggedIn.title}</h1>
+      <span className="check" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+          <path
+            d="M20 6 9 17l-5-5"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+
+      <h1 className="title">
+        Your {formatCredit(creditAmount)} {loggedIn.titleSuffix}
+      </h1>
+
+      <p className="review">{loggedIn.reviewNote}</p>
 
       <p className="eyebrow">{loggedIn.eyebrow}</p>
       <p className="email">{email}</p>
-      <p className="sub">
-        {loggedIn.subtext} <strong>{formatCredit(creditAmount)}</strong>.
-      </p>
+      <p className="email-note">{loggedIn.emailNote}</p>
 
       <div className="actions">
         <button className="btn btn--primary" type="button" onClick={() => router.push('/')}>
-          {loggedIn.confirmLabel}
+          {loggedIn.continueLabel}
         </button>
         <button className="btn btn--secondary" type="button" onClick={handleSignOut}>
           {loggedIn.signOutLabel}
@@ -55,20 +69,48 @@ export function CatalystLoggedInBody({
           width: 100%;
           text-align: left;
         }
+        .check {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 9999px;
+          margin-bottom: 18px;
+        }
+        .box--mobile .check {
+          background: rgba(34, 197, 94, 0.16);
+          color: #86efac;
+        }
+        .box--desktop .check {
+          background: rgba(34, 197, 94, 0.12);
+          color: #16a34a;
+        }
         .title {
           font-weight: 600;
           letter-spacing: -0.02em;
           line-height: 1.12;
         }
         .box--mobile .title {
-          font-size: 30px;
+          font-size: 32px;
           color: #fff;
-          margin-bottom: 24px;
+          margin-bottom: 14px;
         }
         .box--desktop .title {
-          font-size: 24px;
+          font-size: 26px;
           color: #0c0720;
-          margin: 20px 0 18px;
+          margin: 4px 0 12px;
+        }
+        .review {
+          font-size: 16px;
+          line-height: 1.5;
+          margin-bottom: 26px;
+        }
+        .box--mobile .review {
+          color: rgba(255, 255, 255, 0.8);
+        }
+        .box--desktop .review {
+          color: #374151;
         }
         .eyebrow {
           font-size: 12px;
@@ -91,35 +133,27 @@ export function CatalystLoggedInBody({
           padding: 16px 18px;
         }
         .box--mobile .email {
-          font-size: 24px;
+          font-size: 22px;
           color: #fff;
           background: rgba(255, 255, 255, 0.06);
           border: 1px solid rgba(255, 255, 255, 0.14);
         }
         .box--desktop .email {
-          font-size: 22px;
+          font-size: 20px;
           color: #0c0720;
           background: #f9fafb;
           border: 1px solid #e5e7eb;
         }
-        .sub {
-          font-size: 15px;
+        .email-note {
+          font-size: 13px;
           line-height: 1.5;
-          margin-top: 14px;
+          margin-top: 10px;
         }
-        .box--mobile .sub {
-          color: rgba(255, 255, 255, 0.72);
+        .box--mobile .email-note {
+          color: rgba(255, 255, 255, 0.6);
         }
-        .box--mobile .sub strong {
-          color: #fff;
-          font-weight: 600;
-        }
-        .box--desktop .sub {
-          color: #4b5563;
-        }
-        .box--desktop .sub strong {
-          color: #111827;
-          font-weight: 600;
+        .box--desktop .email-note {
+          color: #6b7280;
         }
         .actions {
           display: flex;
@@ -130,7 +164,6 @@ export function CatalystLoggedInBody({
         .btn {
           width: 100%;
           font-family: inherit;
-          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
           transition:
@@ -139,7 +172,7 @@ export function CatalystLoggedInBody({
             color 0.15s;
         }
         .box--mobile .btn {
-          height: 56px;
+          height: 54px;
           border-radius: 14px;
         }
         .box--desktop .btn {
@@ -150,6 +183,7 @@ export function CatalystLoggedInBody({
           border: none;
           background: #3971ff;
           color: #fff;
+          font-size: 16px;
         }
         .box--mobile .btn--primary {
           box-shadow: 0 10px 26px -8px rgba(57, 113, 255, 0.7);
@@ -159,10 +193,11 @@ export function CatalystLoggedInBody({
         }
         .btn--secondary {
           background: transparent;
+          font-size: 15px;
         }
         .box--mobile .btn--secondary {
           border: 1px solid rgba(255, 255, 255, 0.28);
-          color: #fff;
+          color: rgba(255, 255, 255, 0.9);
         }
         .box--mobile .btn--secondary:hover {
           background: rgba(255, 255, 255, 0.08);
