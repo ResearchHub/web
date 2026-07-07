@@ -63,7 +63,7 @@ export const SEED_MESSAGES: ChatMessage[] = [
   {
     id: 'seed-1',
     role: 'assistant',
-    content: `Hi ${DEMO_USER_FIRST_NAME} — I drafted this preregistration for you based on your ORCID and OpenAlex profiles. It builds on your work in vascular biology and cellular senescence, framing a proposal around Sirt6 in microvascular mural cells.`,
+    content: `Hi ${DEMO_USER_FIRST_NAME} — I drafted this preregistration for you based on your ORCID and OpenAlex profiles. It builds on your stroke atlas and blood-brain barrier work, framing a proposal around fibrotic extracellular-matrix signaling as a brake on remyelination in multiple sclerosis.`,
   },
   {
     id: 'seed-2',
@@ -74,7 +74,7 @@ export const SEED_MESSAGES: ChatMessage[] = [
 ];
 
 export const SUGGESTION_CHIPS: string[] = [
-  'Tighten the methods section',
+  'Tighten the approach section',
   'Suggest a budget breakdown',
   'Find related funding',
 ];
@@ -97,16 +97,15 @@ export interface SuggestedEditSpec {
 
 export const SUGGESTED_EDITS: SuggestedEditSpec[] = [
   {
-    deleteWordStart: 6,
-    deleteWordCount: 9,
-    insertText:
-      'with a sharper focus on how mural-cell Sirt6 loss propagates paracrine senescence to the neighboring endothelium',
+    deleteWordStart: 19,
+    deleteWordCount: 6,
+    insertText: 'stall at a defined transcriptional checkpoint short of the mature,',
   },
   {
-    deleteWordStart: 10,
+    deleteWordStart: 14,
     deleteWordCount: 8,
     insertText:
-      'which we will quantify with single-cell transcriptomics of the ischemic hindlimb at days 3, 7, and 14',
+      'and directly tests whether a shared fibrotic-ECM receptor program, rather than lesion-specific noise, defines it,',
   },
 ];
 
@@ -123,17 +122,17 @@ export const REWRITE_PRESETS: RewritePreset[] = [
   {
     label: 'Make it more concise',
     result:
-      'Sirt6 loss in mural cells drives paracrine senescence and stalls regeneration in ischemic limbs.',
+      'A fibrotic-ECM signaling program marks arrested oligodendrocytes and transfers across independent MS lesion atlases.',
   },
   {
     label: 'Strengthen the impact',
     result:
-      'these findings could establish the first senescence-targeted therapy for the millions living with non-healing ischemic limbs.',
+      'a validated, transferable ECM-receptor signature could turn a known matrix inhibitor of remyelination into the first cross-cohort readout of lineage arrest in MS.',
   },
   {
     label: 'Add a supporting citation',
     result:
-      'an effect consistent with recent single-cell evidence linking mural-cell dysfunction to impaired revascularization (Turiel et al., 2025).',
+      'an effect consistent with recent evidence that CSPG-degrading enzymes restore oligodendrocyte maturation in demyelinated lesions (Keough et al., 2016).',
   },
 ];
 
@@ -143,8 +142,8 @@ export const REWRITE_DEFAULT_RESULT =
 // Rotating pool of canned replies. We cycle through these as the user sends
 // messages so the conversation feels responsive without a real model.
 export const CANNED_REPLIES: string[] = [
-  "Good call. I've sharpened that section — I made the aims more specific, tied each one to a measurable outcome, and trimmed the background so the rationale reads faster. Want me to apply the same treatment to the rest of the document?",
-  'Here is a first pass at a budget: personnel (2 postdocs, 1 technician), consumables for the mural-cell isolation and senescence assays, small-animal costs for the ischemic limb model, and 10% for dissemination. I can break this into a per-year table if that helps.',
-  'Based on your profile, a few funding routes fit well: NIH R01 (NHLBI), AHA Innovative Project Award, and the ResearchHub Foundation open call for aging and regeneration. I can tailor the proposal framing to whichever you prefer.',
-  "Done — I revised the language to be more precise and added a sentence connecting it back to your prior findings. Let me know if the tone feels right or if you'd like it more concise.",
+  "Good call. I've sharpened that section — I made the aims more specific, tied the AUROC bar to a clear pass/fail call, and trimmed the background so the rationale reads faster. Want me to apply the same treatment to the rest of the document?",
+  'Here is a first pass at a budget breakdown: ~$4,200 for compute/storage to reprocess the three atlases, ~$500 for a data-and-code archive with a persistent identifier, and ~$300 for figures and documentation. I can break this into a per-month table if that helps.',
+  'Based on your profile, a few funding routes fit well: the NMSS Pilot Grant, the Adelson Medical Research Foundation, and the ResearchHub Foundation open call for neuroregeneration. I can tailor the proposal framing to whichever you prefer.',
+  "Done — I revised the language to be more precise and added a sentence connecting it back to the atlas findings. Let me know if the tone feels right or if you'd like it more concise.",
 ];
