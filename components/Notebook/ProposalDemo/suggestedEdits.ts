@@ -1,5 +1,11 @@
 import type { Editor } from '@tiptap/core';
-import { SUGGESTED_EDITS, SUGGESTION_COLOR } from './mockData';
+import {
+  DocEdit,
+  SUGGESTED_EDITS,
+  SUGGESTION_COLOR,
+  SUGGESTION_INSERT_COLOR,
+  SUGGESTION_STRIKE_COLOR,
+} from './mockData';
 
 /**
  * Types a colored replacement into the editor one word at a time, starting at
@@ -52,6 +58,94 @@ export function applyRewrite(
     .run();
 
   return streamInsertion(editor, to, replacement);
+}
+
+/**
+ * Streams `text` into the editor at `startPos`, one word at a time, each token
+ * carrying `color`. Unlike `streamInsertion`, the text is inserted verbatim
+ * (leading spaces/punctuation preserved) so callers control exact spacing.
+ */
+function streamVerbatim(
+  editor: Editor,
+  startPos: number,
+  text: string,
+  color: string
+): Promise<void> {
+  // Each token keeps its own leading whitespace, so concatenating the tokens
+  // reproduces `text` exactly (including a leading space or none at all).
+  const tokens = text.match(/\s*\S+/g) ?? [text];
+  let insertPos = startPos;
+  return new Promise((resolve) => {
+    let i = 0;
+    const tick = () => {
+      const chunk = tokens[i];
+      editor.commands.insertContentAt(insertPos, {
+        type: 'text',
+        text: chunk,
+        marks: [{ type: 'textStyle', attrs: { color } }],
+      });
+      insertPos += chunk.length;
+      i += 1;
+      if (i < tokens.length) {
+        window.setTimeout(tick, 60);
+      } else {
+        resolve();
+      }
+    };
+    tick();
+  });
+}
+
+// Finds the first occurrence of `needle` in the document and returns its doc
+// range, or null if not found. Assumes the needle sits within a single text
+// node (true for the demo fixture's plain paragraphs).
+function findRange(editor: Editor, needle: string): { from: number; to: number } | null {
+  let result: { from: number; to: number } | null = null;
+  editor.state.doc.descendants((node, pos) => {
+    if (result !== null) return false;
+    if (node.isText && node.text) {
+      const idx = node.text.indexOf(needle);
+      if (idx !== -1) {
+        result = { from: pos + idx, to: pos + idx + needle.length };
+        return false;
+      }
+    }
+    return true;
+  });
+  return result;
+}
+
+/**
+ * Applies a list of scripted edits as reviewable suggestions. Each edit's
+ * target is re-located from scratch (so earlier edits shifting later positions
+ * doesn't matter) and its green text is streamed in word by word. A 'replace'
+ * edit additionally strikes the target through in red. Returns true if at least
+ * one edit was applied.
+ */
+export async function applyDocEdits(editor: Editor, edits: DocEdit[]): Promise<boolean> {
+  let appliedAny = false;
+  for (const edit of edits) {
+    const range = findRange(editor, edit.target);
+    if (!range) continue;
+
+    if (edit.mode === 'replace') {
+      editor
+        .chain()
+        .setTextSelection(range)
+        .setMark('strike')
+        .setColor(SUGGESTION_STRIKE_COLOR)
+        .setTextSelection(range.to)
+        .scrollIntoView()
+        .run();
+    } else {
+      editor.chain().setTextSelection(range.to).scrollIntoView().run();
+    }
+
+    // eslint-disable-next-line no-await-in-loop -- sequential typing animation
+    await streamVerbatim(editor, range.to, edit.text, SUGGESTION_INSERT_COLOR);
+    appliedAny = true;
+  }
+  return appliedAny;
 }
 
 interface ParagraphRef {
@@ -114,8 +208,12 @@ export interface PendingEdit {
   to: number;
 }
 
+const SUGGESTION_COLORS = [SUGGESTION_COLOR, SUGGESTION_INSERT_COLOR, SUGGESTION_STRIKE_COLOR].map(
+  (c) => c.toLowerCase()
+);
+
 const isSuggestionColor = (color?: string | null) =>
-  (color || '').toLowerCase() === SUGGESTION_COLOR.toLowerCase();
+  SUGGESTION_COLORS.includes((color || '').toLowerCase());
 
 /**
  * Scans the document for pending suggested edits: maximal contiguous runs of
@@ -199,8 +297,11 @@ function replaceWithPlainText(editor: Editor, from: number, to: number, text: st
  * replacement as normal black text.
  */
 export function acceptEdit(editor: Editor, from: number, to: number) {
-  const { inserted } = splitRegion(editor, from, to);
-  replaceWithPlainText(editor, from, to, inserted.trimStart());
+  const { struck, inserted } = splitRegion(editor, from, to);
+  // Rewrite edits detach the insertion from the struck phrase with a leading
+  // space, so drop it on accept. Pure insertions (nothing struck) carry their
+  // own intended spacing and must be kept verbatim.
+  replaceWithPlainText(editor, from, to, struck ? inserted.trimStart() : inserted);
 }
 
 /**

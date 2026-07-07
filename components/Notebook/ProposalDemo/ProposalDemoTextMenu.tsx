@@ -10,10 +10,17 @@ import { Surface } from '@/components/Editor/components/ui/Surface';
 import { useTextmenuCommands } from '@/components/Editor/components/menus/TextMenu/hooks/useTextmenuCommands';
 import { useTextmenuStates } from '@/components/Editor/components/menus/TextMenu/hooks/useTextmenuStates';
 import { isTextSelected } from '@/components/Editor/lib/utils';
-import { applyRewrite } from './suggestedEdits';
-import { REWRITE_DEFAULT_RESULT, REWRITE_PRESETS } from './mockData';
+import { applyDocEdits, applyRewrite } from './suggestedEdits';
+import { REWRITE_COMMANDS, REWRITE_DEFAULT_RESULT, REWRITE_PRESETS } from './mockData';
 
 type Mode = 'actions' | 'rewrite';
+
+// Matches a free-typed rewrite instruction against the scripted rewrite
+// commands. A command fires when the instruction contains a trigger phrase.
+function matchRewriteCommand(instruction: string) {
+  const normalized = instruction.toLowerCase();
+  return REWRITE_COMMANDS.find((cmd) => cmd.triggers.some((t) => normalized.includes(t)));
+}
 
 /**
  * AI-first selection toolbar for the proposal demo. Leads with a "Rewrite"
@@ -49,12 +56,28 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
     setInstruction('');
   };
 
-  const submit = (resultText: string) => {
+  // A preset chip: wholesale strike-and-replace of the whole selection.
+  const applyPreset = (resultText: string) => {
     const range = selectionRef.current;
     if (!range) return;
     setMode('actions');
     setInstruction('');
     applyRewrite(editor, range.from, range.to, resultText);
+  };
+
+  // A free-typed instruction: a matching scripted command applies its
+  // fine-grained edits; otherwise fall back to a wholesale rewrite.
+  const submitInstruction = () => {
+    const range = selectionRef.current;
+    if (!range) return;
+    const command = matchRewriteCommand(instruction);
+    setMode('actions');
+    setInstruction('');
+    if (command) {
+      void applyDocEdits(editor, command.edits);
+      return;
+    }
+    applyRewrite(editor, range.from, range.to, REWRITE_DEFAULT_RESULT);
   };
 
   return (
@@ -164,7 +187,7 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  submit(REWRITE_DEFAULT_RESULT);
+                  submitInstruction();
                 } else if (e.key === 'Escape') {
                   e.preventDefault();
                   cancel();
@@ -175,7 +198,7 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
             />
             <button
               type="button"
-              onClick={() => submit(REWRITE_DEFAULT_RESULT)}
+              onClick={submitInstruction}
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-600 text-white transition-colors hover:bg-primary-700"
               aria-label="Rewrite selection"
             >
@@ -187,7 +210,7 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
               <button
                 key={preset.label}
                 type="button"
-                onClick={() => submit(preset.result)}
+                onClick={() => applyPreset(preset.result)}
                 className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-100"
               >
                 {preset.label}

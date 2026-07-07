@@ -83,6 +83,13 @@ export const SUGGESTION_CHIPS: string[] = [
 // (strikethrough on removed text, colored insertions).
 export const SUGGESTION_COLOR = '#B80672';
 
+// Color used for pure-insertion suggestions (new text the AI proposes adding,
+// with nothing struck through). Shown in green and reviewable the same way.
+export const SUGGESTION_INSERT_COLOR = '#0F8A3C';
+
+// Color used for the struck-through (deleted) side of a replacement suggestion.
+export const SUGGESTION_STRIKE_COLOR = '#C0392B';
+
 // Scripted document edits applied when the user sends a message: the Nth send
 // "revises" the Nth body paragraph — a phrase gets struck through and a
 // replacement is typed in word by word, Google Docs suggesting-mode style.
@@ -106,6 +113,105 @@ export const SUGGESTED_EDITS: SuggestedEditSpec[] = [
     deleteWordCount: 8,
     insertText:
       'and directly tests whether a shared fibrotic-ECM receptor program, rather than lesion-specific noise, defines it,',
+  },
+];
+
+// A single scripted document edit the AI proposes, located by its `target`
+// text (first occurrence). `text` is inserted verbatim (including any intended
+// leading space or punctuation) so it reads naturally in place.
+//   - 'insert' (default): drop `text` (green) immediately after `target`.
+//   - 'replace': strike `target` through (red) and add `text` (green) after it.
+export interface DocEdit {
+  /** Existing document text to locate. */
+  target: string;
+  /** Text to add, shown in green (kept verbatim). */
+  text: string;
+  /** How to apply the edit relative to `target`. Defaults to 'insert'. */
+  mode?: 'insert' | 'replace';
+}
+
+// A scripted chat command: when the user's message matches one of `triggers`,
+// the AI streams `reply` into the chat and applies `edits` to the doc as
+// green (and, for replacements, red-struck) reviewable suggestions. This
+// replaces the old "any message edits the next paragraph" behavior with
+// deterministic, message-specific edits.
+export interface DocCommand {
+  id: string;
+  /** Lowercased phrases; the command fires if the message contains any of them. */
+  triggers: string[];
+  /** Assistant reply streamed into the chat alongside the edit. */
+  reply: string;
+  edits: DocEdit[];
+}
+
+export const DOC_COMMANDS: DocCommand[] = [
+  {
+    id: 'alternate-analyses',
+    triggers: [
+      'alternate analyses',
+      'alternative analyses',
+      'alternate analysis',
+      'alternative analysis',
+    ],
+    reply:
+      'Done — I added a validated fallback method to each analysis so no aim leans on a single tool. Aim 1 now names Monocle3 or a PAGA-initialized Palantir trajectory as backup estimators and scVelo dynamical-mode velocity as an alternative to steady-state velocity; Aim 2 adds NicheNet or LIANA as an orthogonal ligand-receptor check, reports AUPRC alongside AUROC given the class imbalance, and falls back to scVI / scANVI integration if Harmony over- or under-corrects. Each addition is shown in green in the document — hover any one to accept or reject it.',
+    edits: [
+      {
+        target: 'mark the stalled state.',
+        text: ' If Slingshot lineage assignments prove unstable across subclustering resolutions, Monocle3 or a PAGA-initialized Palantir trajectory will serve as alternative estimators, and scVelo dynamical-mode velocity as an alternative to steady-state velocity for corroborating trajectory direction.',
+      },
+      {
+        target: 'onto the arrested compartment with CellChat',
+        text: ', with NicheNet or LIANA applied as an orthogonal ligand-receptor method to confirm the inferred ECM links are not specific to a single inference tool,',
+      },
+      {
+        target: 'in the held-out human atlas by AUROC',
+        text: ' (reported alongside AUPRC, given the class imbalance between arrested and myelinating nuclei)',
+      },
+      {
+        target: 'with Harmony batch correction',
+        text: ' (or scVI / scANVI integration, should Harmony over- or under-correct the shared oligodendrocyte-lineage axis)',
+      },
+    ],
+  },
+];
+
+// Scripted commands triggered from the selection toolbar's "Rewrite" input:
+// when the user highlights text, clicks Rewrite, and types an instruction
+// containing one of `triggers`, the AI applies `edits` (fine-grained strike +
+// green suggestions) instead of a wholesale replacement of the selection.
+export interface RewriteCommand {
+  id: string;
+  /** Lowercased phrases; the command fires if the instruction contains any of them. */
+  triggers: string[];
+  edits: DocEdit[];
+}
+
+export const REWRITE_COMMANDS: RewriteCommand[] = [
+  {
+    id: 'budget',
+    triggers: ['budget', 'cost', 'funding'],
+    edits: [
+      {
+        mode: 'replace',
+        target: 'total about $4,200,',
+        text: ' are estimated at $3,600–4,200, with the final figure depending on how many high-memory integration reruns the harmonization requires,',
+      },
+      {
+        mode: 'replace',
+        target: 'about $500',
+        text: ' approximately $400–500',
+      },
+      {
+        mode: 'replace',
+        target: 'about $300 is held',
+        text: ' $200–300 is held',
+      },
+      {
+        target: 'for figures and documentation.',
+        text: ' Any unspent balance, up to roughly $600, is retained as a contingency for additional compute or reruns, and funds may be reallocated across these categories as the analysis requires.',
+      },
+    ],
   },
 ];
 

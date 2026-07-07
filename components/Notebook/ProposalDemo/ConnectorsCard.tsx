@@ -33,7 +33,6 @@ function ConnectorChip({ logo, name, id, url }: ConnectorChipProps) {
 export function ConnectorsCard() {
   return (
     <div data-tour="proposal-demo-connectors" className="flex items-center gap-1.5">
-      <span className="text-[11px] font-medium text-gray-400">Context</span>
       <ConnectorChip
         logo={<FontAwesomeIcon icon={faOrcid} className="h-4 w-4 text-orcid-500" />}
         name="ORCID"

@@ -6,15 +6,23 @@ import { cn } from '@/utils/styles';
 import { PROPOSAL_DEMO_TITLE } from '@/components/Editor/lib/data/proposalDemoContent';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { ConnectorsCard } from './ConnectorsCard';
-import { applySuggestedEdit } from './suggestedEdits';
+import { applyDocEdits } from './suggestedEdits';
 import {
   ARTIFACT_CARD,
   CANNED_REPLIES,
   ChatMessage,
+  DOC_COMMANDS,
   INTRO_TOOL_STEPS,
   SEED_MESSAGES,
   SUGGESTION_CHIPS,
 } from './mockData';
+
+// Matches a user message against the scripted document commands. A command
+// fires when the message contains any of its trigger phrases.
+function matchDocCommand(text: string) {
+  const normalized = text.toLowerCase();
+  return DOC_COMMANDS.find((cmd) => cmd.triggers.some((t) => normalized.includes(t)));
+}
 
 function TypingIndicator() {
   return (
@@ -109,7 +117,6 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
   const [isBusy, setIsBusy] = useState(!skipIntro);
 
   const replyIndex = useRef(0);
-  const editIndex = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const introStarted = useRef(false);
   const prevPhase = useRef(phase);
@@ -206,14 +213,18 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
     setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: 'user', content: text }]);
     setIsTyping(true);
 
+    const command = matchDocCommand(text);
+
     window.setTimeout(() => {
       setIsTyping(false);
 
-      // While the reply streams into chat, "revise" the next body paragraph in
-      // the document, Google Docs suggesting-mode style.
-      if (editorRef.current) {
-        const editApplied = applySuggestedEdit(editorRef.current, editIndex.current);
-        if (editApplied) editIndex.current += 1;
+      // A matching command drives a specific, scripted set of green insertions
+      // in the document (Google Docs suggesting-mode style) and streams its own
+      // reply. Non-matching messages reply in chat only and leave the doc alone.
+      if (command && editorRef.current) {
+        void applyDocEdits(editorRef.current, command.edits);
+        streamReply(command.reply, () => setIsBusy(false));
+        return;
       }
 
       const reply = CANNED_REPLIES[replyIndex.current % CANNED_REPLIES.length];
