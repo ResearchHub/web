@@ -179,6 +179,43 @@ export class NoteService {
   }
 
   /**
+   * Fetches all notes the current user can access.
+   *
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async getAccessibleNotes(params?: GetOrganizationNotesParams): Promise<NoteListResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.documentType) queryParams.append('type', params.documentType);
+      const qs = queryParams.toString();
+
+      const response = await ApiClient.get<any>(
+        `${this.BASE_PATH}/note/accessible/${qs ? `?${qs}` : ''}`
+      );
+
+      if (!response || !Array.isArray(response.results)) {
+        throw new NoteError('Invalid response format', 'INVALID_RESPONSE');
+      }
+
+      return {
+        count: response.count || 0,
+        next: response.next || null,
+        previous: response.previous || null,
+        results: response.results.map(transformNote),
+      };
+    } catch (error) {
+      if (error instanceof NoteError) {
+        throw error;
+      }
+      throw new NoteError(
+        'Failed to fetch accessible notes',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
    * Creates a new note
    * @param params - The note creation parameters
    * @throws {NoteError} When the request fails or parameters are invalid
