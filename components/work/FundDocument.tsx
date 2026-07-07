@@ -22,10 +22,17 @@ interface FundDocumentProps {
   work: Work;
   metadata: WorkMetadata;
   content?: string;
+  contentJson?: string;
   authorPosts?: Comment[];
 }
 
-export const FundDocument = ({ work, metadata, content, authorPosts = [] }: FundDocumentProps) => {
+export const FundDocument = ({
+  work,
+  metadata,
+  content,
+  contentJson,
+  authorPosts = [],
+}: FundDocumentProps) => {
   const { activeTab } = useWorkTab();
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
@@ -186,7 +193,9 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                   documentAuthors={work.authors}
                 />
               ))}
-            {work.previewContent ? (
+            {contentJson ? (
+              <PostBlockEditor contentJson={contentJson} />
+            ) : work.previewContent ? (
               <PostBlockEditor content={work.previewContent} />
             ) : content ? (
               <div
@@ -283,6 +292,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     work,
     metadata,
     content,
+    contentJson,
     storageKey,
     isCurrentUserAuthor,
     authorPosts,

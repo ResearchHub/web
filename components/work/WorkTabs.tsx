@@ -34,6 +34,7 @@ interface WorkTabsProps {
   contentType?: 'paper' | 'post' | 'fund';
   onTabChange: (tab: TabType) => void;
   updatesCount?: number;
+  disableUrlUpdates?: boolean;
 }
 
 export const WorkTabs = ({
@@ -42,6 +43,7 @@ export const WorkTabs = ({
   contentType = 'paper',
   onTabChange,
   updatesCount = 0,
+  disableUrlUpdates = false,
 }: WorkTabsProps) => {
   const pathname = usePathname();
   const { user } = useUser();
@@ -105,7 +107,7 @@ export const WorkTabs = ({
       console.warn('Failed to track document tab click analytics:', error);
     }
 
-    if (typeof window !== 'undefined') {
+    if (!disableUrlUpdates && typeof window !== 'undefined') {
       const baseUrl =
         contentType === 'paper'
           ? `/paper/${work.id}/${work.slug}`

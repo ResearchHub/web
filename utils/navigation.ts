@@ -62,6 +62,18 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
+ * Handles redirection for registered report posts
+ * @param work The work object to check for registered report type
+ * @param id The post ID
+ * @param slug The post slug
+ */
+export function handleRegisteredReportRedirect(work: Work, id: string, slug: string) {
+  if (work.postType === 'REGISTERED_REPORT') {
+    redirect(`/report/${id}/${slug}`);
+  }
+}
+
+/**
  * Handles all post-related redirects (fundraise and question)
  * @param work The work object to check for redirects
  * @param id The post ID
@@ -71,6 +83,9 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 export function handlePostRedirect(work: Work, id: string, slug: string, tab?: string) {
   // Check for question redirect first
   handleQuestionRedirect(work, id, slug, tab);
+
+  // Registered reports have their own work page surface
+  handleRegisteredReportRedirect(work, id, slug);
 
   // Then check for fundraise redirect
   handleFundraiseRedirect(work, id, slug);

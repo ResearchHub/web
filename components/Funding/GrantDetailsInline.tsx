@@ -5,10 +5,11 @@ import { PostBlockEditor } from '@/components/work/PostBlockEditor';
 
 interface GrantDetailsInlineProps {
   content?: string;
+  contentJson?: string;
   imageUrl?: string;
 }
 
-export function GrantDetailsInline({ content, imageUrl }: GrantDetailsInlineProps) {
+export function GrantDetailsInline({ content, contentJson, imageUrl }: GrantDetailsInlineProps) {
   return (
     <div className="py-6">
       {imageUrl && (
@@ -17,7 +18,14 @@ export function GrantDetailsInline({ content, imageUrl }: GrantDetailsInlineProp
         </div>
       )}
 
-      {content ? (
+      {contentJson ? (
+        <div className="post-content max-w-[860px]">
+          <PostBlockEditor
+            contentJson={contentJson}
+            className="!border-0 !shadow-none !rounded-none !p-0 !mb-0"
+          />
+        </div>
+      ) : content ? (
         <div className="post-content max-w-[860px]">
           <PostBlockEditor
             content={content}
@@ -25,7 +33,9 @@ export function GrantDetailsInline({ content, imageUrl }: GrantDetailsInlineProp
           />
         </div>
       ) : (
-        <p className="text-gray-500 py-12 text-center">No details available for this grant.</p>
+        <p className="text-gray-500 py-12 text-center">
+          No details available for this funding opportunity.
+        </p>
       )}
     </div>
   );

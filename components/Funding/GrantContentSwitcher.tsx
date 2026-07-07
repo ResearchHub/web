@@ -9,17 +9,15 @@ import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
 interface GrantContentSwitcherProps {
   children: ReactNode;
   content?: string;
+  contentJson?: string;
   imageUrl?: string;
-  hasDescription: boolean;
-  grantId?: number | string;
 }
 
 export function GrantContentSwitcher({
   children,
   content,
+  contentJson,
   imageUrl,
-  hasDescription,
-  grantId,
 }: GrantContentSwitcherProps) {
   const { activeTab, activity } = useGrantTab();
   const { entries, isLoading, isLoadingMore, hasMore, loadMore } = activity;
@@ -38,7 +36,7 @@ export function GrantContentSwitcher({
     <>
       <div className={activeTab !== 'proposals' ? 'hidden' : undefined}>{children}</div>
       <div className={activeTab !== 'details' ? 'hidden' : undefined}>
-        <GrantDetailsInline content={content} imageUrl={imageUrl} />
+        <GrantDetailsInline content={content} contentJson={contentJson} imageUrl={imageUrl} />
       </div>
       <div className={activeTab !== 'activity' ? 'hidden' : undefined}>
         <div>

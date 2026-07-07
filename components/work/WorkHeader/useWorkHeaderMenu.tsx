@@ -87,6 +87,7 @@ export function useWorkHeaderMenuItems({
   const latestVersion = work.versions?.find((v) => v.isLatest);
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
+  const isRegisteredReport = work.postType === 'REGISTERED_REPORT';
 
   const handleEdit = useCallback(() => {
     if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
@@ -226,15 +227,18 @@ export function useWorkHeaderMenuItems({
           <span>Upload New Version</span>
         </BaseMenuItem>
       )}
-      {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-        <BaseMenuItem
-          disabled={isPublishing}
-          onSelect={() => executeAuthenticatedAction(handlePublish)}
-        >
-          <Icon name="rhJournal1" size={16} className="mr-2" />
-          <span>Publish to Journal</span>
-        </BaseMenuItem>
-      )}
+      {!isRegisteredReport &&
+        !isPublished &&
+        isModerator &&
+        work.contentType !== 'preregistration' && (
+          <BaseMenuItem
+            disabled={isPublishing}
+            onSelect={() => executeAuthenticatedAction(handlePublish)}
+          >
+            <Icon name="rhJournal1" size={16} className="mr-2" />
+            <span>Publish to Journal</span>
+          </BaseMenuItem>
+        )}
       {canInviteExperts && (
         <BaseMenuItem
           onSelect={() =>
