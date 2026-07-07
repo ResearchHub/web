@@ -18,9 +18,9 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
   return (
     <div className="group">
       <div className="relative py-3 rounded-lg px-4 -mx-4">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-3 w-full">
-            <div className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-gray-50">
+        <div className="flex items-center justify-between min-w-0">
+          <div className="flex gap-3 w-full min-w-0">
+            <div className="w-[38px] h-[38px] flex shrink-0 items-center justify-center rounded-full bg-gray-50">
               {IconComponent ? (
                 <IconComponent size={18} color={iconColor} />
               ) : (
@@ -28,10 +28,10 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
               )}
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex flex-col sm:!flex-row items-start sm:!items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
+                <div className="flex items-center gap-2 min-w-0 max-w-full">
+                  <p className="font-medium text-gray-900 truncate">{transaction.typeInfo.label}</p>
                   {transaction.isLocked &&
                     transaction.isPositive &&
                     !transaction.typeInfo.hideLockedBadge && (
@@ -50,18 +50,18 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
               <div className="text-xs text-gray-600 mt-0.5">{transaction.formattedDate}</div>
             </div>
 
-            <div className="flex flex-col items-end min-w-0 sm:!min-w-[140px]">
+            <div className="flex flex-col items-end w-[88px] min-[360px]:w-[104px] sm:w-[140px] shrink-0 min-w-0">
               <div className="flex items-center justify-end w-full">
-                <div className="flex flex-col items-end">
+                <div className="flex flex-col items-end min-w-0 max-w-full">
                   <span
                     className={cn(
-                      'text-sm font-bold truncate',
+                      'text-sm font-bold truncate max-w-full',
                       transaction.typeInfo.label === 'Deposit' ? 'text-green-600' : 'text-gray-900'
                     )}
                   >
                     {transaction.formattedAmount}
                   </span>
-                  <span className="text-[11px] text-gray-500 mt-0.5 truncate">
+                  <span className="text-[11px] text-gray-500 mt-0.5 truncate max-w-full">
                     {transaction.formattedUsdValue}
                   </span>
                 </div>

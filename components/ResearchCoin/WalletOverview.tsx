@@ -92,8 +92,8 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
       <div className="mb-4 mx-auto w-full">
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header bar — total balance + primary Deposit CTA */}
-          <div className="px-4 sm:px-6 py-5 border-b border-gray-100 flex items-center justify-between gap-4">
-            <div className="min-w-0">
+          <div className="px-4 sm:px-6 py-5 border-b border-gray-100 flex flex-col min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between gap-4">
+            <div className="min-w-0 w-full">
               {!isBalanceReady ? (
                 <div>
                   <div className="h-9 w-40 bg-gray-100 animate-pulse rounded" />
@@ -108,11 +108,12 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 w-full min-[420px]:w-auto">
               <Button
                 onClick={() => setIsDepositModalOpen(true)}
                 variant="default"
                 disabled={!isBalanceReady}
+                className="flex-1 min-[420px]:flex-none"
               >
                 <ArrowDownToLine className="h-4 w-4 mr-1.5" />
                 Deposit
@@ -121,6 +122,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 onClick={() => setIsWithdrawModalOpen(true)}
                 variant="outlined"
                 disabled={!isBalanceReady}
+                className="flex-1 min-[420px]:flex-none"
               >
                 <ArrowUpFromLine className="h-4 w-4 mr-1.5" />
                 Withdraw
@@ -128,76 +130,74 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
             </div>
           </div>
 
-          {/* Asset table — fixed columns guarantee alignment across rows */}
-          <table className="w-full border-collapse">
-            <tbody>
-              {/* Row 1 — ResearchCoin */}
-              <AssetRow
-                icon={
-                  <span className="inline-block [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
-                    <ResearchCoinIcon size={32} />
-                  </span>
-                }
-                name="ResearchCoin"
-                balance={
-                  isBalanceReady ? (
-                    <BalanceCell
-                      primary={
-                        showUSD
-                          ? (balance?.formattedUsd ?? '$0.00')
-                          : `${balance?.formatted ?? '0'} RSC`
-                      }
-                      secondary={
-                        showUSD
-                          ? `${balance?.formatted ?? '0'} RSC`
-                          : `${balance?.formattedUsd ?? '$0.00'}`
-                      }
-                    />
-                  ) : (
-                    <BalanceSkeleton />
-                  )
-                }
-                trailing={<CurrencyMenu items={rscMenuItems} />}
-              />
+          {/* Asset rows */}
+          <div>
+            {/* Row 1 - ResearchCoin */}
+            <AssetRow
+              icon={
+                <span className="inline-block [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
+                  <ResearchCoinIcon size={32} />
+                </span>
+              }
+              name="ResearchCoin"
+              balance={
+                isBalanceReady ? (
+                  <BalanceCell
+                    primary={
+                      showUSD
+                        ? (balance?.formattedUsd ?? '$0.00')
+                        : `${balance?.formatted ?? '0'} RSC`
+                    }
+                    secondary={
+                      showUSD
+                        ? `${balance?.formatted ?? '0'} RSC`
+                        : `${balance?.formattedUsd ?? '$0.00'}`
+                    }
+                  />
+                ) : (
+                  <BalanceSkeleton />
+                )
+              }
+              trailing={<CurrencyMenu items={rscMenuItems} />}
+            />
 
-              {/* Row 2 — Funding Credits */}
-              <AssetRow
-                icon={
-                  <span className="inline-block [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
-                    <ResearchCoinIcon size={32} variant="green" outlined />
-                  </span>
-                }
-                name={
-                  <span className="inline-flex items-center gap-1.5">
-                    Funding Credits
-                    <FundingCreditsTooltip>
-                      <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
-                    </FundingCreditsTooltip>
-                  </span>
-                }
-                balance={
-                  isBalanceReady ? (
-                    <BalanceCell
-                      primary={
-                        showUSD
-                          ? (lockedBalance?.formattedUsd ?? '$0.00')
-                          : `${lockedBalance?.formatted ?? '0'} RSC`
-                      }
-                      secondary={
-                        showUSD
-                          ? `${lockedBalance?.formatted ?? '0'} RSC`
-                          : `${lockedBalance?.formattedUsd ?? '$0.00'}`
-                      }
-                    />
-                  ) : (
-                    <BalanceSkeleton />
-                  )
-                }
-                trailing={<CurrencyMenu items={fcMenuItems} />}
-                isLast
-              />
-            </tbody>
-          </table>
+            {/* Row 2 - Funding Credits */}
+            <AssetRow
+              icon={
+                <span className="inline-block [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
+                  <ResearchCoinIcon size={32} variant="green" outlined />
+                </span>
+              }
+              name={
+                <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
+                  <span className="truncate">Funding Credits</span>
+                  <FundingCreditsTooltip>
+                    <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
+                  </FundingCreditsTooltip>
+                </span>
+              }
+              balance={
+                isBalanceReady ? (
+                  <BalanceCell
+                    primary={
+                      showUSD
+                        ? (lockedBalance?.formattedUsd ?? '$0.00')
+                        : `${lockedBalance?.formatted ?? '0'} RSC`
+                    }
+                    secondary={
+                      showUSD
+                        ? `${lockedBalance?.formatted ?? '0'} RSC`
+                        : `${lockedBalance?.formattedUsd ?? '$0.00'}`
+                    }
+                  />
+                ) : (
+                  <BalanceSkeleton />
+                )
+              }
+              trailing={<CurrencyMenu items={fcMenuItems} />}
+              isLast
+            />
+          </div>
         </div>
       </div>
 
@@ -228,27 +228,31 @@ interface AssetRowProps {
 function AssetRow({ icon, name, subtext, balance, trailing, isLast }: AssetRowProps) {
   const borderClass = isLast ? '' : 'border-b border-gray-100';
   return (
-    <tr className={borderClass}>
-      <td className="pl-4 sm:pl-6 py-4 align-middle w-px whitespace-nowrap">{icon}</td>
-      <td className="py-4 pl-3 sm:pl-4 pr-2 align-middle min-w-0">
-        <div className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">{name}</div>
+    <div className={`flex items-center gap-3 px-4 sm:px-6 py-4 min-w-0 ${borderClass}`}>
+      <div className="shrink-0">{icon}</div>
+      <div className="flex-1 min-w-0 pr-1">
+        <div className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight min-w-0 truncate">
+          {name}
+        </div>
         {subtext && <div className="text-[11px] sm:text-xs text-gray-500 mt-0.5">{subtext}</div>}
-      </td>
-      <td className="py-4 px-2 sm:px-4 align-middle text-left whitespace-nowrap w-px sm:min-w-[140px]">
+      </div>
+      <div className="w-[84px] min-[360px]:w-[104px] sm:w-[140px] shrink-0 text-right min-w-0">
         {balance}
-      </td>
-      <td className="py-4 pr-4 sm:pr-6 align-middle text-right whitespace-nowrap w-px">
-        {trailing}
-      </td>
-    </tr>
+      </div>
+      <div className="shrink-0 -mr-2 sm:mr-0">{trailing}</div>
+    </div>
   );
 }
 
 function BalanceCell({ primary, secondary }: { primary: string; secondary?: string }) {
   return (
-    <div>
-      <div className="text-xs sm:text-sm font-bold text-gray-900 leading-tight">{primary}</div>
-      {secondary && <div className="text-[11px] sm:text-xs text-gray-500 mt-0.5">{secondary}</div>}
+    <div className="min-w-0">
+      <div className="text-xs sm:text-sm font-bold text-gray-900 leading-tight truncate">
+        {primary}
+      </div>
+      {secondary && (
+        <div className="text-[11px] sm:text-xs text-gray-500 mt-0.5 truncate">{secondary}</div>
+      )}
     </div>
   );
 }

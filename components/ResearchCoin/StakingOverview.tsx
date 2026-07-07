@@ -81,7 +81,7 @@ export function StakingOverview() {
       <div className="mb-4 mx-auto w-full">
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header */}
-          <div className="px-4 sm:px-6 py-4 flex items-start justify-between gap-3 border-b border-gray-100">
+          <div className="px-4 sm:px-6 py-4 flex flex-col min-[390px]:flex-row min-[390px]:items-start min-[390px]:justify-between gap-3 border-b border-gray-100">
             <div className="flex items-center gap-3 min-w-0">
               <Sprout className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
               <div className="min-w-0">
@@ -89,7 +89,7 @@ export function StakingOverview() {
                   <span className="sm:hidden">Endowment</span>
                   <span className="hidden sm:inline">ResearchHub Endowment</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-xs text-gray-500 mt-0.5 min-[390px]:truncate">
                   Earn funding credits by holding ResearchCoin
                 </div>
               </div>
@@ -247,9 +247,9 @@ function StatRow({
 }) {
   const borderClass = isLast ? '' : 'border-b border-gray-100';
   return (
-    <li className={`px-4 sm:px-6 py-3 flex items-center justify-between gap-3 ${borderClass}`}>
-      <div className="text-xs sm:text-sm text-gray-700">{label}</div>
-      <div className="shrink-0">{value}</div>
+    <li className={`px-4 sm:px-6 py-3 flex items-start justify-between gap-3 ${borderClass}`}>
+      <div className="text-xs sm:text-sm text-gray-700 min-w-0 flex-1">{label}</div>
+      <div className="shrink-0 min-w-0 max-w-[52%] overflow-hidden text-right">{value}</div>
     </li>
   );
 }

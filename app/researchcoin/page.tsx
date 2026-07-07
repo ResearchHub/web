@@ -65,13 +65,13 @@ export default function ResearchCoinPage() {
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
-      <div className="w-full">
-        <div className="">
-          <div className="">
+      <div className="w-full min-w-0">
+        <div className="min-w-0">
+          <div className="min-w-0">
             <h1 className="sr-only">My Wallet</h1>
           </div>
-          <div className="flex">
-            <div className="flex-1">
+          <div className="flex min-w-0">
+            <div className="flex-1 min-w-0">
               {/* Banners — show MFA banner if user has funds and no MFA;
                   otherwise fall back to verification banner. Never both. */}
               {(() => {
