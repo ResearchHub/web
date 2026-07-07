@@ -26,7 +26,7 @@ export function CatalystLoggedInBody({
   const handleSignOut = () => {
     AuthSharingService.removeSharedAuthToken();
     AnalyticsService.clearUserSession();
-    void signOut({ callbackUrl: route });
+    signOut({ callbackUrl: route });
   };
 
   return (
