@@ -46,7 +46,7 @@ export interface UpdateNoteTitleParams {
   title: string;
 }
 
-export interface GetOrganizationNotesParams {
+export interface GetNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
   documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 }
@@ -141,7 +141,7 @@ export class NoteService {
    */
   static async getOrganizationNotes(
     orgSlug: string,
-    params?: GetOrganizationNotesParams
+    params?: GetNotesParams
   ): Promise<NoteListResponse> {
     if (!orgSlug) {
       throw new NoteError('Missing organization slug', 'INVALID_PARAMS');
@@ -183,7 +183,7 @@ export class NoteService {
    *
    * @throws {NoteError} When the request fails or parameters are invalid
    */
-  static async getAccessibleNotes(params?: GetOrganizationNotesParams): Promise<NoteListResponse> {
+  static async getAccessibleNotes(params?: GetNotesParams): Promise<NoteListResponse> {
     try {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
