@@ -195,8 +195,8 @@ export function GeneratedEmailsList({
         'Emails are being sent. You can close this window and monitor status in the outreach table.'
       );
       await handleBulkListRefresh();
-    } catch {
-      toast.error('Failed to send emails. Please try again.');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to send emails. Please try again.');
     }
   };
 
