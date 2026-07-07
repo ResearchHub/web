@@ -85,17 +85,12 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  const fetchNotes = useCallback(async (slug?: string) => {
-    if (!slug) {
-      setNotesError(new Error('No organization slug provided'));
-      return;
-    }
-
+  const fetchNotes = useCallback(async () => {
     setIsLoadingNotes(true);
     setNotesError(null);
 
     try {
-      const data = await NoteService.getOrganizationNotes(slug);
+      const data = await NoteService.getAccessibleNotes();
 
       setNotes(data.results);
       setTotalCount(data.count);
@@ -142,12 +137,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   );
 
   const refreshNotes = useCallback(async () => {
-    if (!selectedOrg?.slug) {
-      setNotesError(new Error('No organization slug provided'));
-      return;
-    }
-    await fetchNotes(selectedOrg.slug);
-  }, [selectedOrg?.slug, fetchNotes]);
+    await fetchNotes();
+  }, [fetchNotes]);
 
   const loadNote = useCallback(async (noteId: string) => {
     if (noteId === lastLoadedNoteIdRef.current) {
@@ -193,15 +184,16 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   );
 
   const refreshAll = useCallback(async () => {
-    if (!selectedOrg?.slug || !selectedOrg?.id) return;
-
-    const promises = [fetchNotes(selectedOrg.slug), fetchUsers(selectedOrg.id.toString())];
+    const promises = [fetchNotes()];
+    if (selectedOrg?.id) {
+      promises.push(fetchUsers(selectedOrg.id.toString()));
+    }
     if (activeNoteId) {
       promises.push(loadNote(activeNoteId));
     }
 
     await Promise.all(promises);
-  }, [selectedOrg?.slug, selectedOrg?.id, activeNoteId, fetchNotes, fetchUsers, loadNote]);
+  }, [selectedOrg?.id, activeNoteId, fetchNotes, fetchUsers, loadNote]);
 
   // Initial data loading when organization changes
   useEffect(() => {
@@ -211,20 +203,17 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
       return;
     }
 
+    fetchNotes();
+
     if (!selectedOrg) {
-      setNotes([]);
-      setTotalCount(0);
       setUsers(null);
-      setNotesError(null);
       setUsersError(null);
-      setIsLoadingNotes(false);
       setIsLoadingUsers(false);
       return;
     }
 
-    fetchNotes(selectedOrg.slug);
     fetchUsers(selectedOrg.id.toString());
-  }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
+  }, [selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
 
   useEffect(() => {
     if (activeNoteId) {
