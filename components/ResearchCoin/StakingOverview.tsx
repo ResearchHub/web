@@ -90,7 +90,10 @@ export function StakingOverview() {
                   <span className="hidden sm:inline">ResearchHub Endowment</span>
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5 truncate">
-                  Earn funding credits by holding ResearchCoin
+                  <span className="sm:hidden">Earn credits by holding RSC</span>
+                  <span className="hidden sm:inline">
+                    Earn funding credits by holding ResearchCoin
+                  </span>
                 </div>
               </div>
             </div>
