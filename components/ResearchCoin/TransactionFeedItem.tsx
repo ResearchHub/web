@@ -4,6 +4,7 @@ import { cn } from '@/utils/styles';
 import { colors } from '@/app/styles/colors';
 import { Badge } from '@/components/ui/Badge';
 import { FundingCreditsTooltip } from '@/components/tooltips/FundingCreditsTooltip';
+import { stripUsdSuffix } from './lib/display';
 
 interface TransactionFeedItemProps {
   transaction: FormattedTransaction;
@@ -31,7 +32,9 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
             <div className="flex-1 min-w-0">
               <div className="flex flex-col sm:!flex-row items-start sm:!items-center gap-2">
                 <div className="flex items-center gap-2 min-w-0 max-w-full">
-                  <p className="font-medium text-gray-900 truncate">{transaction.typeInfo.label}</p>
+                  <p className="text-sm sm:text-base font-medium text-gray-900 truncate">
+                    {transaction.typeInfo.label}
+                  </p>
                   {transaction.isLocked &&
                     transaction.isPositive &&
                     !transaction.typeInfo.hideLockedBadge && (
@@ -59,10 +62,10 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                       transaction.typeInfo.label === 'Deposit' ? 'text-green-600' : 'text-gray-900'
                     )}
                   >
-                    {transaction.formattedAmount}
+                    {stripUsdSuffix(transaction.formattedAmount)}
                   </span>
                   <span className="text-[11px] text-gray-500 mt-0.5 truncate max-w-full">
-                    {transaction.formattedUsdValue}
+                    {stripUsdSuffix(transaction.formattedUsdValue)}
                   </span>
                 </div>
               </div>

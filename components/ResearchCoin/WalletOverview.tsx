@@ -15,6 +15,7 @@ import { formatRSC, formatUsdValue } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { stripUsdSuffix } from './lib/display';
 
 interface WalletOverviewProps {
   /** Called after a balance-changing action (e.g. withdraw) so the parent can refresh sibling state (transaction feed). */
@@ -101,10 +102,14 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 </div>
               ) : (
                 <div>
-                  <div className="text-[26px] sm:text-[32px] font-bold leading-none text-gray-900 whitespace-nowrap">
-                    {totalPrimary}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1.5">{totalSecondary}</div>
+                  <ResponsiveUsdLabel
+                    value={totalPrimary}
+                    className="text-[26px] sm:text-[32px] font-bold leading-none text-gray-900 whitespace-nowrap"
+                  />
+                  <ResponsiveUsdLabel
+                    value={totalSecondary}
+                    className="text-sm text-gray-500 mt-1.5"
+                  />
                 </div>
               )}
             </div>
@@ -170,7 +175,10 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
               }
               name={
                 <span className="inline-flex items-center gap-1.5 min-w-0 max-w-full">
-                  <span className="truncate">Funding Credits</span>
+                  <span className="truncate">
+                    <span className="sm:hidden">Credits</span>
+                    <span className="hidden sm:inline">Funding Credits</span>
+                  </span>
                   <FundingCreditsTooltip>
                     <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
                   </FundingCreditsTooltip>
@@ -247,14 +255,22 @@ function AssetRow({ icon, name, subtext, balance, trailing, isLast }: AssetRowPr
 function BalanceCell({ primary, secondary }: { primary: string; secondary?: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-xs sm:text-sm font-bold text-gray-900 leading-tight truncate">
-        {primary}
-      </div>
+      <ResponsiveUsdLabel
+        value={primary}
+        className="text-xs sm:text-sm font-bold text-gray-900 leading-tight truncate"
+      />
       {secondary && (
-        <div className="text-[11px] sm:text-xs text-gray-500 mt-0.5 truncate">{secondary}</div>
+        <ResponsiveUsdLabel
+          value={secondary}
+          className="text-[11px] sm:text-xs text-gray-500 mt-0.5 truncate"
+        />
       )}
     </div>
   );
+}
+
+function ResponsiveUsdLabel({ value, className }: { value: string; className: string }) {
+  return <div className={className}>{stripUsdSuffix(value)}</div>;
 }
 
 function BalanceSkeleton() {

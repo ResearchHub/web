@@ -13,6 +13,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Switch } from '@/components/ui/Switch';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
+import { stripUsdSuffix } from './lib/display';
 
 const EMPTY = '—';
 
@@ -177,10 +178,12 @@ export function StakingOverview() {
                 value={
                   fundingCreditsTop ? (
                     <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">{fundingCreditsTop}</div>
+                      <div className="text-sm font-bold text-gray-900">
+                        {stripUsdSuffix(fundingCreditsTop)}
+                      </div>
                       {fundingCreditsBottom && (
                         <div className="text-[11px] text-gray-500 mt-0.5">
-                          {fundingCreditsBottom}
+                          {stripUsdSuffix(fundingCreditsBottom)}
                         </div>
                       )}
                     </div>
