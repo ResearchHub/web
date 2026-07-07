@@ -6,6 +6,6 @@ export function stripUsdSuffix(value: string): string {
   return value;
 }
 
-export function stripResearchHubPrefix(value: string): string {
-  return value.replace(/^ResearchHub\s+/i, '');
+export function stripMobileTransactionPrefix(value: string): string {
+  return value.replace(/^(ResearchHub|Fundraise)\s+/i, '');
 }

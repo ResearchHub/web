@@ -4,7 +4,7 @@ import { cn } from '@/utils/styles';
 import { colors } from '@/app/styles/colors';
 import { Badge } from '@/components/ui/Badge';
 import { FundingCreditsTooltip } from '@/components/tooltips/FundingCreditsTooltip';
-import { stripResearchHubPrefix, stripUsdSuffix } from './lib/display';
+import { stripMobileTransactionPrefix, stripUsdSuffix } from './lib/display';
 
 interface TransactionFeedItemProps {
   transaction: FormattedTransaction;
@@ -34,7 +34,7 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                 <div className="flex items-center gap-2 min-w-0 max-w-full">
                   <p className="text-sm sm:text-base font-medium text-gray-900 truncate">
                     <span className="sm:hidden">
-                      {stripResearchHubPrefix(transaction.typeInfo.label)}
+                      {stripMobileTransactionPrefix(transaction.typeInfo.label)}
                     </span>
                     <span className="hidden sm:inline">{transaction.typeInfo.label}</span>
                   </p>
