@@ -81,21 +81,24 @@ export function StakingOverview() {
       <div className="mb-4 mx-auto w-full">
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header */}
-          <div className="px-4 sm:px-6 py-4 flex flex-col min-[390px]:flex-row min-[390px]:items-start min-[390px]:justify-between gap-3 border-b border-gray-100">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="px-4 sm:px-6 py-4 flex items-start justify-between gap-3 border-b border-gray-100">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <Sprout className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
               <div className="min-w-0">
                 <div className="text-sm sm:text-base font-bold text-gray-900">
                   <span className="sm:hidden">Endowment</span>
                   <span className="hidden sm:inline">ResearchHub Endowment</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5 min-[390px]:truncate">
+                <div className="text-xs text-gray-500 mt-0.5 truncate">
                   Earn funding credits by holding ResearchCoin
                 </div>
               </div>
             </div>
             {isUserLoading || !user ? (
-              <div className="flex items-center gap-2 shrink-0" aria-label="Loading earning status">
+              <div
+                className="flex items-center gap-2 shrink-0 self-start sm:self-auto"
+                aria-label="Loading earning status"
+              >
                 <span className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
                 <span className="h-6 w-11 bg-gray-200 rounded-full animate-pulse" />
               </div>
@@ -126,10 +129,10 @@ export function StakingOverview() {
                     className="bg-gray-900 text-white border-gray-900 text-left"
                     disableTouchClick
                   >
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                       <span
                         className={cn(
-                          'text-xs font-semibold',
+                          'hidden sm:inline text-xs font-semibold',
                           switchChecked ? 'text-emerald-700' : 'text-gray-500'
                         )}
                       >

@@ -92,7 +92,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
       <div className="mb-4 mx-auto w-full">
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header bar — total balance + primary Deposit CTA */}
-          <div className="px-4 sm:px-6 py-5 border-b border-gray-100 flex flex-col min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between gap-4">
+          <div className="px-4 sm:px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="min-w-0 w-full">
               {!isBalanceReady ? (
                 <div>
@@ -101,19 +101,19 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 </div>
               ) : (
                 <div>
-                  <div className="text-2xl sm:text-[32px] font-bold leading-none text-gray-900">
+                  <div className="text-[26px] sm:text-[32px] font-bold leading-none text-gray-900 whitespace-nowrap">
                     {totalPrimary}
                   </div>
                   <div className="text-sm text-gray-500 mt-1.5">{totalSecondary}</div>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 shrink-0 w-full min-[420px]:w-auto">
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
               <Button
                 onClick={() => setIsDepositModalOpen(true)}
                 variant="default"
                 disabled={!isBalanceReady}
-                className="flex-1 min-[420px]:flex-none"
+                className="flex-1 sm:flex-none"
               >
                 <ArrowDownToLine className="h-4 w-4 mr-1.5" />
                 Deposit
@@ -122,7 +122,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 onClick={() => setIsWithdrawModalOpen(true)}
                 variant="outlined"
                 disabled={!isBalanceReady}
-                className="flex-1 min-[420px]:flex-none"
+                className="flex-1 sm:flex-none"
               >
                 <ArrowUpFromLine className="h-4 w-4 mr-1.5" />
                 Withdraw
