@@ -244,29 +244,6 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           ) : (
             <div className="hidden mobile:!block flex-shrink-0" />
           )}
-
-          {isActive && showContribute ? (
-            <Button
-              variant="default"
-              size="sm"
-              className="flex items-center gap-1.5"
-              onClick={handleContributeClick}
-            >
-              <Icon name="giveRSC" size={18} color="white" />
-              Fund proposal
-            </Button>
-          ) : onDetailsClick ? (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDetailsClick();
-              }}
-            >
-              Details
-            </Button>
-          ) : null}
         </div>
       </div>
 

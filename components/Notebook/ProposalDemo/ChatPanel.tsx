@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, FileText, Loader2 } from 'lucide-react';
+import { ArrowUp, Check, FileText, Loader2, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { PROPOSAL_DEMO_TITLE } from '@/components/Editor/lib/data/proposalDemoContent';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { ConnectorsCard } from './ConnectorsCard';
-import { applyDocEdits } from './suggestedEdits';
+import { acceptAllEdits, applyDocEdits, rejectAllEdits } from './suggestedEdits';
 import {
   ARTIFACT_CARD,
   CANNED_REPLIES,
@@ -23,6 +23,10 @@ function matchDocCommand(text: string) {
   const normalized = text.toLowerCase();
   return DOC_COMMANDS.find((cmd) => cmd.triggers.some((t) => normalized.includes(t)));
 }
+
+// Temporarily hide the in-chat document artifact card. The document pane still
+// opens automatically after the intro; flip back to `true` to restore the card.
+const SHOW_ARTIFACT_CARD = false;
 
 function TypingIndicator() {
   return (
@@ -90,6 +94,54 @@ function ArtifactCard({ onOpen }: { onOpen: () => void }) {
   );
 }
 
+/** Bulk accept/reject control attached to the assistant message that applied
+ * document suggestions. Lets the user resolve the whole batch in one click
+ * (per-change control lives in the document's right margin). */
+function SuggestionActions({
+  status,
+  onAccept,
+  onReject,
+}: {
+  status: 'pending' | 'accepted' | 'rejected';
+  onAccept: () => void;
+  onReject: () => void;
+}) {
+  if (status !== 'pending') {
+    const accepted = status === 'accepted';
+    return (
+      <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-gray-500 animate-fadeIn">
+        {accepted ? (
+          <Check className="h-3.5 w-3.5 text-green-600" />
+        ) : (
+          <X className="h-3.5 w-3.5 text-gray-400" />
+        )}
+        {accepted ? 'All changes accepted' : 'All changes discarded'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2.5 flex items-center gap-2 animate-fadeIn">
+      <button
+        type="button"
+        onClick={onAccept}
+        className="flex h-8 items-center gap-1.5 rounded-lg bg-green-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-green-700"
+      >
+        <Check className="h-4 w-4" />
+        Accept all
+      </button>
+      <button
+        type="button"
+        onClick={onReject}
+        className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+      >
+        <X className="h-4 w-4" />
+        Reject all
+      </button>
+    </div>
+  );
+}
+
 export type ChatPhase = 'intro' | 'split';
 
 interface ChatPanelProps {
@@ -115,6 +167,12 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
   const [artifactVisible, setArtifactVisible] = useState(skipIntro);
   // Composer is locked while a scripted sequence (intro / reply) is playing.
   const [isBusy, setIsBusy] = useState(!skipIntro);
+  // The assistant message that carries pending document suggestions, plus
+  // whether the user has resolved the batch from the chat's accept/reject-all.
+  const [suggestionMsg, setSuggestionMsg] = useState<{
+    id: string;
+    status: 'pending' | 'accepted' | 'rejected';
+  } | null>(null);
 
   const replyIndex = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -132,9 +190,9 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isTyping, stepsStarted, stepsDone, artifactVisible, showChips]);
 
-  const streamReply = (text: string, onDone?: () => void) => {
+  const streamReply = (text: string, onDone?: () => void, msgId?: string) => {
     const words = text.split(' ');
-    const id = `assistant-${Date.now()}`;
+    const id = msgId ?? `assistant-${Date.now()}`;
     setMessages((prev) => [...prev, { id, role: 'assistant', content: '' }]);
     let i = 0;
     const tick = () => {
@@ -222,8 +280,16 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
       // in the document (Google Docs suggesting-mode style) and streams its own
       // reply. Non-matching messages reply in chat only and leave the doc alone.
       if (command && editorRef.current) {
+        const msgId = `assistant-${Date.now()}`;
         void applyDocEdits(editorRef.current, command.edits);
-        streamReply(command.reply, () => setIsBusy(false));
+        streamReply(
+          command.reply,
+          () => {
+            setIsBusy(false);
+            setSuggestionMsg({ id: msgId, status: 'pending' });
+          },
+          msgId
+        );
         return;
       }
 
@@ -267,6 +333,19 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
           m.role === 'assistant' ? (
             <div key={m.id} className="text-[15px] leading-7 text-gray-800">
               {m.content}
+              {suggestionMsg?.id === m.id && (
+                <SuggestionActions
+                  status={suggestionMsg.status}
+                  onAccept={() => {
+                    if (editorRef.current) acceptAllEdits(editorRef.current);
+                    setSuggestionMsg((s) => (s ? { ...s, status: 'accepted' } : s));
+                  }}
+                  onReject={() => {
+                    if (editorRef.current) rejectAllEdits(editorRef.current);
+                    setSuggestionMsg((s) => (s ? { ...s, status: 'rejected' } : s));
+                  }}
+                />
+              )}
             </div>
           ) : (
             <div key={m.id} className="flex justify-end">
@@ -277,7 +356,7 @@ export function ChatPanel({ phase, skipIntro, onDraftReady, onOpenDocument }: Ch
           )
         )}
 
-        {artifactVisible && <ArtifactCard onOpen={onOpenDocument} />}
+        {SHOW_ARTIFACT_CARD && artifactVisible && <ArtifactCard onOpen={onOpenDocument} />}
 
         {isTyping && <TypingIndicator />}
 

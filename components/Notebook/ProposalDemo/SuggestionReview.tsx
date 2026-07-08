@@ -14,13 +14,20 @@ interface PositionedEdit {
   left: number;
 }
 
-// Don't render menus that would sit under the fixed header or off-screen.
-const TOP_BOUND = 96;
+// Don't render pills that would sit under the fixed header or off-screen.
+const TOP_BOUND = 72;
+// Gap between the document's right edge and the review pill.
+const MARGIN_GAP = 20;
+// Approximate pill height; used to keep stacked pills from overlapping.
+const PILL_HEIGHT = 40;
 
 /**
- * Renders a floating "approve / reject" control above each pending suggested
- * edit in the document (Google-Docs review style). Accepting turns the
- * suggested text into normal black copy; rejecting restores the original.
+ * Google-Docs-style suggestion review. For each pending suggested edit we
+ * render a compact accept/reject pill out in the right margin (outside the
+ * document paper) rather than floating it over the text — this keeps the copy
+ * readable and lets the user freely edit the suggested text before deciding.
+ * Bulk "accept/reject all" lives in the chat panel; these are the per-change
+ * controls.
  */
 export function SuggestionReview({ editor }: { editor: Editor }) {
   const [edits, setEdits] = useState<PositionedEdit[]>([]);
@@ -30,19 +37,34 @@ export function SuggestionReview({ editor }: { editor: Editor }) {
 
   const recompute = useCallback(() => {
     if (!editor || editor.isDestroyed) return;
+
+    // Anchor the pills to the right edge of the document paper so they sit in
+    // the gray margin, clamped to stay on-screen on narrower viewports.
+    const paper = (editor.view.dom as HTMLElement).closest(
+      '[data-tour="notebook-editor"]'
+    ) as HTMLElement | null;
+    const paperRight = paper?.getBoundingClientRect().right ?? editor.view.dom.getBoundingClientRect().right;
+    const left = Math.min(paperRight + MARGIN_GAP, window.innerWidth - 96);
+
     const regions = findPendingEdits(editor);
-    const positioned = regions
-      .map((r) => {
-        const start = editor.view.coordsAtPos(r.from);
-        return {
-          key: `${r.from}-${r.to}`,
-          from: r.from,
-          to: r.to,
-          top: start.top,
-          left: start.left,
-        };
-      })
-      .filter((p) => p.top > TOP_BOUND && p.top < window.innerHeight - 10);
+    const positioned: PositionedEdit[] = [];
+    let lastTop = -Infinity;
+    regions
+      .map((r) => ({ region: r, top: editor.view.coordsAtPos(r.from).top }))
+      .filter((r) => r.top > TOP_BOUND && r.top < window.innerHeight - 10)
+      .sort((a, b) => a.top - b.top)
+      .forEach(({ region, top }) => {
+        // Nudge overlapping pills down so each stays clickable.
+        const resolvedTop = Math.max(top, lastTop + PILL_HEIGHT);
+        lastTop = resolvedTop;
+        positioned.push({
+          key: `${region.from}-${region.to}`,
+          from: region.from,
+          to: region.to,
+          top: resolvedTop,
+          left,
+        });
+      });
     setEdits(positioned);
   }, [editor]);
 
@@ -66,33 +88,33 @@ export function SuggestionReview({ editor }: { editor: Editor }) {
       {edits.map((edit) => (
         <div
           key={edit.key}
-          className="fixed z-50 -translate-y-full"
-          style={{ top: edit.top - 6, left: Math.max(12, edit.left) }}
+          className="fixed z-50 flex items-center gap-0.5 rounded-full border border-gray-200 bg-white p-1 shadow-md"
+          style={{ top: edit.top, left: edit.left }}
         >
-          <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-md">
-            <button
-              type="button"
-              onClick={() => {
-                acceptEdit(editor, edit.from, edit.to);
-                recompute();
-              }}
-              className="flex h-6 items-center gap-1 rounded-md bg-green-50 px-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-100"
-            >
-              <Check className="h-3.5 w-3.5" />
-              Accept
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                rejectEdit(editor, edit.from, edit.to);
-                recompute();
-              }}
-              className="flex h-6 items-center gap-1 rounded-md px-2 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            >
-              <X className="h-3.5 w-3.5" />
-              Reject
-            </button>
-          </div>
+          <button
+            type="button"
+            title="Accept this change"
+            aria-label="Accept this change"
+            onClick={() => {
+              acceptEdit(editor, edit.from, edit.to);
+              recompute();
+            }}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-green-600 transition-colors hover:bg-green-50"
+          >
+            <Check className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            title="Reject this change"
+            aria-label="Reject this change"
+            onClick={() => {
+              rejectEdit(editor, edit.from, edit.to);
+              recompute();
+            }}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       ))}
     </>,

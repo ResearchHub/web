@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  // Hide the on-screen Next.js dev indicator badge (the corner logo showing
+  // route/build status). Compile and runtime errors are still surfaced.
+  devIndicators: false,
   redirects: async () => [
     {
       source: '/funding',

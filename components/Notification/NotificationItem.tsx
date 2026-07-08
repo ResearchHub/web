@@ -12,7 +12,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Star } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -34,6 +34,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const rscAmount = getRSCAmountFromNotification(notification);
 
   const hubDetails = getHubDetailsFromNotification(notification);
+
+  // Demo proposal notifications show the proposal title as a blue, clickable link.
+  const showsProposalTitle = [
+    'GRANT_PROPOSAL_SUBMITTED',
+    'GRANT_PROPOSAL_PEER_REVIEWED',
+    'PROPOSAL_AUTHOR_UPDATE',
+  ].includes(notification.type);
 
   // Add helper to determine if notification is a received type
   const isReceivedRSC = [
@@ -97,6 +104,18 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       </div>
       <div className="text-sm font-medium text-gray-900">
         {message}
+        {notification.type === 'GRANT_PROPOSAL_PEER_REVIEWED' &&
+          notification.extra?.reviewScore !== undefined && (
+            <span className="ml-2 inline-flex items-center gap-1 text-sm text-gray-600 font-normal">
+              <Star size={13} className="fill-amber-400 text-amber-400" />
+              {notification.extra.reviewScore.toFixed(1)}
+            </span>
+          )}
+        {showsProposalTitle && notification.work?.title && (
+          <div className="text-sm font-medium text-primary-600 group-hover:text-primary-700 mt-1">
+            {notification.work.title}
+          </div>
+        )}
         {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
           <Tooltip
             content={

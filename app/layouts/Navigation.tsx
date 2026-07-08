@@ -128,12 +128,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       iconKey: 'journal',
       description: 'Read and publish research papers',
     },
-    {
-      label: 'Reg. Reports',
-      href: '/rh-journal',
-      iconKey: 'journal',
-      description: 'Journal of registered reports funded on ResearchHub',
-    },
+
     {
       label: 'Endowment',
       href: '/endowment',

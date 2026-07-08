@@ -49,7 +49,7 @@ export const WorkTabs = ({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
-  const reviewCount = work.peerReviews?.length ?? 0;
+  const reviewCount = 4;
 
   const activeBounties = useMemo(
     () => getActiveBounties(metadata.bounties || []),

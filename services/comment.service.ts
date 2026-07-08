@@ -12,6 +12,10 @@ import {
 } from '@/types/comment';
 import { ID } from '@/types/root';
 import { mapAppContentTypeToApiType } from '@/utils/contentTypeMapping';
+import {
+  getDemoExpertReviewRawComments,
+  isDemoExpertReviewsProposalId,
+} from '@/components/work/lib/demoExpertReviews';
 
 interface FetchCommentsOptions {
   documentId: number;
@@ -167,9 +171,22 @@ export class CommentService {
 
     const response = await ApiClient.get<CommentResponse>(path);
 
+    const results = [...response.results];
+    let count = response.count;
+
+    // Demo-only: append scripted expert reviews below the real API reviews for
+    // one specific proposal, on the first page of the REVIEW feed only. They are
+    // raw API-shaped objects so they transform and render like any other review.
+    const isFirstPage = !page || page === 1;
+    if (isDemoExpertReviewsProposalId(documentId) && filter === 'REVIEW' && isFirstPage) {
+      const demoComments = getDemoExpertReviewRawComments();
+      results.push(...demoComments);
+      count += demoComments.length;
+    }
+
     return {
-      comments: response.results.map(transformComment),
-      count: response.count,
+      comments: results.map(transformComment),
+      count,
     };
   }
 

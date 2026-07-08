@@ -9,6 +9,10 @@ import { PeerReviewsSection } from './components/PeerReviewsSection';
 import { AiPeerReviewSection } from './components/AiPeerReviewSection';
 import { buildWorkUrl } from '@/utils/url';
 import { DOISection } from './components/DOISection';
+import {
+  getDemoExpertPeerReviews,
+  isDemoExpertReviewsProposalId,
+} from './lib/demoExpertReviews';
 
 interface ProposalSidebarProps {
   work: Work;
@@ -16,6 +20,12 @@ interface ProposalSidebarProps {
 }
 
 export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
+  // Demo-only: surface the scripted expert reviews in the sidebar's Peer
+  // Reviews summary for the one demo proposal, alongside any real reviews.
+  const peerReviews = isDemoExpertReviewsProposalId(work.id)
+    ? [...getDemoExpertPeerReviews(), ...(work.peerReviews ?? [])]
+    : work.peerReviews;
+
   return (
     <div className="space-y-12">
       {work.aiPeerReview && <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />}
@@ -29,9 +39,9 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
             work={work}
           />
         )}
-      {work.peerReviews && work.peerReviews.length > 0 && (
+      {peerReviews && peerReviews.length > 0 && (
         <PeerReviewsSection
-          peerReviews={work.peerReviews}
+          peerReviews={peerReviews}
           reviewsUrl={buildWorkUrl({
             id: work.id,
             contentType: work.contentType,

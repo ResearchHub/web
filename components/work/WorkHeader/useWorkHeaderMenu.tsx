@@ -220,21 +220,6 @@ export function useWorkHeaderMenuItems({
           <span>Edit</span>
         </BaseMenuItem>
       )}
-      {isAuthor && (
-        <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
-          <FileUp className="h-4 w-4 mr-2" />
-          <span>Upload New Version</span>
-        </BaseMenuItem>
-      )}
-      {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-        <BaseMenuItem
-          disabled={isPublishing}
-          onSelect={() => executeAuthenticatedAction(handlePublish)}
-        >
-          <Icon name="rhJournal1" size={16} className="mr-2" />
-          <span>Publish to Journal</span>
-        </BaseMenuItem>
-      )}
       {canInviteExperts && (
         <BaseMenuItem
           onSelect={() =>
@@ -247,64 +232,6 @@ export function useWorkHeaderMenuItems({
           <span>Invite experts</span>
         </BaseMenuItem>
       )}
-      {canCloseGrant && (
-        <BaseMenuItem
-          disabled={isClosingGrant}
-          onSelect={() =>
-            executeAuthenticatedAction(() => {
-              setIsCloseGrantModalOpen(true);
-            })
-          }
-        >
-          <Octagon className="h-4 w-4 mr-2" />
-          <span>Close RFP</span>
-        </BaseMenuItem>
-      )}
-      {isModerator && work.contentType === 'preregistration' && metadata.fundraising?.id && (
-        <>
-          <BaseMenuItem
-            disabled={isClosingFundraise}
-            onSelect={() =>
-              executeAuthenticatedAction(() => {
-                setFundraiseAction('close');
-              })
-            }
-          >
-            <Octagon className="h-4 w-4 mr-2" />
-            <span>Close fundraise & refund</span>
-          </BaseMenuItem>
-          <BaseMenuItem
-            disabled={isCompletingFundraise}
-            onSelect={() =>
-              executeAuthenticatedAction(() => {
-                setFundraiseAction('complete');
-              })
-            }
-          >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            <span>Complete fundraise</span>
-          </BaseMenuItem>
-          {canReopenFundraise && (
-            <BaseMenuItem
-              disabled={isReopeningFundraise}
-              onSelect={() =>
-                executeAuthenticatedAction(() => {
-                  setFundraiseAction('reopen');
-                })
-              }
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              <span>Reopen/Extend fundraise</span>
-            </BaseMenuItem>
-          )}
-        </>
-      )}
-      {pdfFormat && (
-        <BaseMenuItem onSelect={() => handleDownload(pdfFormat.url, 'document.pdf')}>
-          <Download className="h-4 w-4 mr-2" />
-          <span>Download PDF</span>
-        </BaseMenuItem>
-      )}
       {(isModerator || isHubEditor) && work.unifiedDocumentId != null && (
         <BaseMenuItem
           onSelect={() =>
@@ -315,10 +242,6 @@ export function useWorkHeaderMenuItems({
           <span>Find experts</span>
         </BaseMenuItem>
       )}
-      <BaseMenuItem onSelect={() => executeAuthenticatedAction(onOpenFlagModal)}>
-        <Flag className="h-4 w-4 mr-2" />
-        <span>Flag Content</span>
-      </BaseMenuItem>
     </>
   );
 

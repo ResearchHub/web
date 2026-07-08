@@ -77,6 +77,11 @@ export function ProposalDemoExperience({ onExit }: ProposalDemoExperienceProps) 
 
   return (
     <div className="flex h-screen flex-col bg-white">
+      {/* Suppress the Next.js dev error overlay/indicator (e.g. the red
+          "N Issues" badge) while the demo is on screen so it stays clean for
+          recording. Only active for this route; removed when the demo unmounts,
+          so normal development still surfaces overlays. */}
+      <style dangerouslySetInnerHTML={{ __html: 'nextjs-portal { display: none !important; }' }} />
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 px-4">
         <div className="flex items-center gap-3">
           <Logo size={24} />

@@ -130,6 +130,18 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   },
 
   // Grant moderation notifications
+  GRANT_PROPOSAL_SUBMITTED: {
+    icon: 'submit2',
+    useAvatar: true,
+  },
+  GRANT_PROPOSAL_PEER_REVIEWED: {
+    icon: 'peerReview1',
+    useAvatar: true,
+  },
+  PROPOSAL_AUTHOR_UPDATE: {
+    icon: 'edit',
+    useAvatar: true,
+  },
   GRANT_APPROVED: {
     icon: 'openGrant',
     useAvatar: false,
@@ -236,6 +248,18 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   if (notification.type === 'RSC_YIELD_OPT_IN') {
     return '/researchcoin';
+  }
+
+  if (
+    (notification.type === 'GRANT_PROPOSAL_SUBMITTED' ||
+      notification.type === 'GRANT_PROPOSAL_PEER_REVIEWED' ||
+      notification.type === 'PROPOSAL_AUTHOR_UPDATE') &&
+    notification.work
+  ) {
+    const { id, slug } = notification.work;
+    if (id && slug) {
+      return `/proposal/${id}/${slug}`;
+    }
   }
 
   if (notification.type === 'GRANT_APPROVED' && notification.work) {
@@ -423,6 +447,15 @@ export function formatNotificationMessage(
     }
 
     // Grant moderation notifications
+    case 'GRANT_PROPOSAL_SUBMITTED':
+      return 'A new proposal has been submitted to your funding opportunity';
+
+    case 'GRANT_PROPOSAL_PEER_REVIEWED':
+      return 'A candidate proposal has been peer reviewed';
+
+    case 'PROPOSAL_AUTHOR_UPDATE':
+      return 'An author submitted an update on a candidate proposal';
+
     case 'GRANT_APPROVED':
       return `Your funding opportunity has been approved.`;
 

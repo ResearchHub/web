@@ -117,7 +117,7 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
             className="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
           >
             <Sparkles className="h-4 w-4" />
-            Rewrite
+            Refine
           </button>
           {/* Placeholder for the upcoming selection-to-chat flow — inert for now. */}
           <button
@@ -200,7 +200,7 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
               type="button"
               onClick={submitInstruction}
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-600 text-white transition-colors hover:bg-primary-700"
-              aria-label="Rewrite selection"
+              aria-label="Refine selection"
             >
               <ArrowUp className="h-3.5 w-3.5" />
             </button>
@@ -211,7 +211,7 @@ export function ProposalDemoTextMenu({ editor }: { editor: Editor }) {
                 key={preset.label}
                 type="button"
                 onClick={() => applyPreset(preset.result)}
-                className="rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-100"
+                className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50"
               >
                 {preset.label}
               </button>

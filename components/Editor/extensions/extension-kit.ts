@@ -58,9 +58,15 @@ import { ReadOnlyFigure } from './ReadOnlyFigure';
 interface ExtensionKitProps {
   customDocument?: AnyExtension;
   placeholderConfig?: Partial<PlaceholderOptions>;
+  /**
+   * Drop the Mathematics extension, which renders `$…$` runs as inline LaTeX.
+   * Used by the proposal demo, whose budget copy contains plain dollar amounts
+   * that must not be interpreted as math.
+   */
+  disableMath?: boolean;
 }
 
-export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKitProps) => [
+export const ExtensionKit = ({ customDocument, placeholderConfig, disableMath }: ExtensionKitProps) => [
   customDocument || Document,
   Columns,
   TaskList,
@@ -143,7 +149,7 @@ export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKit
   }),
   Subscript,
   Superscript,
-  Mathematics,
+  ...(disableMath ? [] : [Mathematics]),
   Table,
   TableCell,
   TableHeader,

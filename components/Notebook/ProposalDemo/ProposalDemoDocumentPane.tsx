@@ -48,6 +48,7 @@ export function ProposalDemoDocumentPane() {
               editable
               setEditor={setEditor}
               showTextMenu={false}
+              disableMath
             />
             {editor && <ProposalDemoTextMenu editor={editor} />}
             {editor && <SuggestionReview editor={editor} />}

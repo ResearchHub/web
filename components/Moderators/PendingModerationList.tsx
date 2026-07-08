@@ -36,7 +36,8 @@ function getContentId(module: PendingModule, entry: FeedEntry): number | undefin
 
 function PendingRiskScoreCard({ entry }: Readonly<{ entry: FeedEntry & { riskScore: number } }>) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const userId = String(entry.content.createdBy.user!.id);
+  const authorUserId = entry.content.createdBy?.user?.id;
+  const userId = authorUserId != null ? String(authorUserId) : null;
   const [eventsState, fetchEvents] = useRiskScoreEvents(isExpanded ? userId : null, {
     pageSize: EVENTS_PAGE_SIZE,
   });
@@ -46,7 +47,8 @@ function PendingRiskScoreCard({ entry }: Readonly<{ entry: FeedEntry & { riskSco
     <div className="rounded-lg border border-gray-200 bg-gray-50/70 p-3">
       <Button
         variant="ghost"
-        onClick={() => setIsExpanded((prev) => !prev)}
+        onClick={() => userId && setIsExpanded((prev) => !prev)}
+        disabled={!userId}
         className={cn('h-auto w-full p-0 hover:bg-transparent cursor-pointer')}
       >
         <div className="w-full flex items-center justify-between gap-2">
@@ -58,14 +60,16 @@ function PendingRiskScoreCard({ entry }: Readonly<{ entry: FeedEntry & { riskSco
               {score.hasScore ? `${score.display} (${score.label})` : score.display}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-600">
-            {isExpanded ? 'Hide events' : 'View events'}
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </span>
+          {userId && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-600">
+              {isExpanded ? 'Hide events' : 'View events'}
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </span>
+          )}
         </div>
       </Button>
 
-      {isExpanded && (
+      {isExpanded && userId && (
         <div className="mt-3">
           <RiskScoreEvents
             events={eventsState.events}

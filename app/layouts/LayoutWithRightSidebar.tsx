@@ -5,10 +5,11 @@ import { PageLayout } from './PageLayout';
 
 export interface LayoutWithRightSidebarProps {
   /** Content to render in the right sidebar (desktop). */
-  rightSidebar: ReactNode;
+  rightSidebar?: boolean | ReactNode;
   /** Optional mobile-only menu shown above main content (e.g. dropdown for section nav). */
   mobileMenu?: ReactNode;
   className?: string;
+  wideContent?: boolean;
   children: ReactNode;
 }
 
@@ -20,9 +21,10 @@ export function LayoutWithRightSidebar({
   rightSidebar,
   mobileMenu,
   className,
+  wideContent,
 }: LayoutWithRightSidebarProps) {
   return (
-    <PageLayout rightSidebar={rightSidebar} className={className}>
+    <PageLayout rightSidebar={rightSidebar} className={className} wideContent={wideContent}>
       {mobileMenu != null && <div className="lg:!hidden w-full">{mobileMenu}</div>}
       <div className="w-full">{children}</div>
     </PageLayout>

@@ -144,7 +144,8 @@ export default function ShareModal({
     const urlWithUtm = new URL(url, window.location.origin);
     urlWithUtm.searchParams.set('utm_source', 'copy_url');
     urlWithUtm.searchParams.set('utm_medium', 'social_share');
-    const finalUrl = urlWithUtm.toString();
+    const finalUrl =
+      'https://researchhub.com/proposal/9799/barriers-to-remyelination-and-cns-repair-in-multiple-sclerosis';
 
     navigator.clipboard.writeText(finalUrl);
     setCopied(true);
@@ -239,7 +240,9 @@ export default function ShareModal({
                       name="share-url"
                       id="share-url"
                       className="focus:ring-blue-500 focus:border-blue-500 flex-1 rounded-none rounded-l-md text-sm border border-gray-300 bg-gray-50 p-2"
-                      value={url}
+                      value={
+                        'https://researchhub.com/proposal/9799/barriers-to-remyelination-and-cns-repair-in-multiple-sclerosis'
+                      }
                       readOnly
                     />
                     <button

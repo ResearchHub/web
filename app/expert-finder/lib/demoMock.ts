@@ -25,23 +25,23 @@ const DEMO_EMAIL_ID_START = 900001;
 const DEMO_WORK = {
   id: 32331,
   contentType: 'funding_request',
-  title: 'Neurodevelopmental and neuropsychiatric conditions',
+  title: 'Barriers to remyelination and CNS repair in Multiple Sclerosis',
   slug: 'neurodevelopmental-and-neuropsychiatric-conditions',
   createdDate: '2026-07-05T00:00:00Z',
   authors: [
     {
       authorProfile: {
-        fullName: 'ResearchHub Foundation',
+        fullName: 'The Myelin Repair Foundation',
         profileUrl: '#',
         user: { isVerified: true },
       },
     },
   ],
   abstract:
-    'Objective. This funding opportunity supports research into the biological mechanisms, early diagnosis, and treatment of neurodevelopmental and neuropsychiatric conditions, including autism spectrum disorder, ADHD, schizophrenia, and mood disorders. Priority is given to translational approaches that bridge molecular insight and clinical impact.',
+    'Understanding why remyelination fails in multiple sclerosis (MS), and how it might be restarted.',
   topics: [
-    { id: 1, name: 'Autism', slug: 'autism' },
-    { id: 2, name: 'Neuropsychiatry', slug: 'neuropsychiatry' },
+    { id: 1, name: 'Multiple Sclerosis', slug: 'multiple-sclerosis' },
+    { id: 2, name: 'Neuroscience', slug: 'neuroscience' },
   ],
   formats: [],
   figures: [],

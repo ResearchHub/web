@@ -8,6 +8,7 @@ import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleto
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
+import { getDemoProposalNotifications } from '@/components/Notification/lib/demoNotifications';
 
 export default function NotificationsPage() {
   const {
@@ -34,9 +35,14 @@ export default function NotificationsPage() {
     }
   };
 
+  // Demo: showcase scripted "new proposal submitted" notifications on top of
+  // whatever real notifications are loaded for the presentation.
+  const demoNotifications = getDemoProposalNotifications();
+  const mergedNotifications = [...demoNotifications, ...notificationData.results];
+
   return (
-    <PageLayout>
-      <div className="w-full">
+    <PageLayout rightSidebar={false}>
+      <div className="w-full max-w-3xl mx-auto">
         <div className="mb-4">
           <MainPageHeader
             icon={<Icon name="notification" size={24} className="text-gray-900" />}
@@ -49,7 +55,7 @@ export default function NotificationsPage() {
         <div className="py-6">
           <div className="bg-white">
             <NotificationList
-              notifications={notificationData.results}
+              notifications={mergedNotifications}
               loading={loading}
               error={error}
             />

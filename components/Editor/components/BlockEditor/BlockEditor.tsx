@@ -24,6 +24,11 @@ export interface BlockEditorProps {
    * supplies its own bubble menu (e.g. the proposal demo's AI-first toolbar).
    */
   showTextMenu?: boolean;
+  /**
+   * Drop the Mathematics extension so `$…$` runs render as plain text instead
+   * of inline LaTeX (used by the proposal demo's budget copy).
+   */
+  disableMath?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
@@ -34,6 +39,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   isLoading = false,
   editable = true,
   showTextMenu = true,
+  disableMath = false,
 }) => {
   const menuContainerRef = useRef(null);
 
@@ -42,6 +48,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     contentJson,
     onUpdate,
     editable,
+    disableMath,
   });
 
   useEffect(() => {

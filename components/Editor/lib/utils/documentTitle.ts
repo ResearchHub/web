@@ -26,8 +26,18 @@ export const setDocumentTitle = (editor: Editor | null, newTitle: string): void 
     .run();
 };
 
+const EMPTY_LEADING_BLOCK =
+  /^\s*(?:<(?:p|div)(?:\s[^>]*)?>\s*(?:&nbsp;|\u00a0|<br\s*\/?>\s*)*<\/(?:p|div)>\s*)+/i;
+
+/** Remove the document title (first h1) and any leading empty blocks left in its place. */
 export function removeTitleFromHTML(html: string): string {
-  return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
+  let result = html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, '');
+
+  while (EMPTY_LEADING_BLOCK.test(result)) {
+    result = result.replace(EMPTY_LEADING_BLOCK, '');
+  }
+
+  return result.trimStart();
 }
 
 /** Extract a plain-text string from a TipTap-style JSON template (top-level blocks only). */

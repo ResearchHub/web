@@ -17,6 +17,8 @@ import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { NewlyCreatedProposalModal } from '@/components/modals/NewlyCreatedProposalModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
+import { isDemoExpertReviewsProposalId } from './lib/demoExpertReviews';
+import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
 
 interface FundDocumentProps {
   work: Work;
@@ -124,6 +126,11 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     setIsProposalVideoModalOpen(true);
   };
 
+  const paperContentWithoutTitle = useMemo(() => {
+    const raw = work.previewContent || content;
+    return raw ? removeTitleFromHTML(raw) : undefined;
+  }, [work.previewContent, content]);
+
   // Render tab content based on activeTab
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
@@ -186,13 +193,15 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                   documentAuthors={work.authors}
                 />
               ))}
-            {work.previewContent ? (
-              <PostBlockEditor content={work.previewContent} />
-            ) : content ? (
-              <div
-                className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
+            {paperContentWithoutTitle ? (
+              work.previewContent ? (
+                <PostBlockEditor content={paperContentWithoutTitle} />
+              ) : (
+                <div
+                  className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
+                  dangerouslySetInnerHTML={{ __html: paperContentWithoutTitle }}
+                />
+              )
             ) : (
               <p className="text-gray-500">No content available</p>
             )}
@@ -228,6 +237,9 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
               commentType="REVIEW"
               key={`review-feed-${work.id}`}
               workAuthors={work.authors}
+              // Demo-only: this proposal is read-only, so hide the review editor
+              // while still showing the (fixture-injected) reviews below.
+              hideEditor={isDemoExpertReviewsProposalId(work.id)}
               belowEditor={<ReviewStatusBanner bounties={metadata.bounties || []} />}
               editorProps={{
                 placeholder: 'Write your review...',
@@ -282,7 +294,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     activeTab,
     work,
     metadata,
-    content,
+    paperContentWithoutTitle,
     storageKey,
     isCurrentUserAuthor,
     authorPosts,

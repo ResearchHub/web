@@ -29,6 +29,7 @@ export const useBlockEditor = ({
   onUpdate,
   customClass,
   includeTitle = false,
+  disableMath = false,
 }: {
   aiToken?: string;
   userId?: string;
@@ -39,6 +40,7 @@ export const useBlockEditor = ({
   onUpdate?: (editor: Editor) => void;
   customClass?: string;
   includeTitle?: boolean;
+  disableMath?: boolean;
 }) => {
   const editor = useEditor(
     {
@@ -49,6 +51,7 @@ export const useBlockEditor = ({
       extensions: [
         ...ExtensionKit({
           customDocument: editable ? CustomDocument : undefined,
+          disableMath,
           placeholderConfig: {
             includeChildren: true,
             showOnlyCurrent: false,

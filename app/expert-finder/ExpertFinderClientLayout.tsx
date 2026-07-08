@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutWithRightSidebar } from '../layouts/LayoutWithRightSidebar';
 import {
   ExpertFinderSidebar,
@@ -20,9 +20,11 @@ interface ExpertFinderClientLayoutProps {
 export default function ExpertFinderClientLayout({ children }: ExpertFinderClientLayoutProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   const isModerator = !!user?.isModerator;
   const isHubEditor = !!user?.authorProfile?.isHubEditor;
   const canAccessExpertFinder = isModerator || isHubEditor;
+  const isLibraryDemoRoute = pathname === '/expert-finder/library/990001';
 
   useEffect(() => {
     if (!isLoading && !canAccessExpertFinder) {
@@ -44,9 +46,10 @@ export default function ExpertFinderClientLayout({ children }: ExpertFinderClien
 
   return (
     <LayoutWithRightSidebar
-      rightSidebar={<ExpertFinderSidebar />}
-      mobileMenu={<ExpertFinderMenu />}
+      rightSidebar={isLibraryDemoRoute ? false : <ExpertFinderSidebar />}
+      mobileMenu={isLibraryDemoRoute ? undefined : <ExpertFinderMenu />}
       className={FULL_WIDTH_CLASS}
+      wideContent={isLibraryDemoRoute}
     >
       {children}
     </LayoutWithRightSidebar>

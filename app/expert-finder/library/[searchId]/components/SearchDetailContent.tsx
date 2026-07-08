@@ -4,18 +4,29 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, RefreshCw, Download, Mail, UserPlus, MoreHorizontal } from 'lucide-react';
+import {
+  CheckCircle2,
+  Loader2,
+  RefreshCw,
+  Download,
+  Mail,
+  UserPlus,
+  MoreHorizontal,
+} from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
+import { cn } from '@/utils/styles';
 import { SearchDetailHeader, SearchDetailMeta } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
+import { DemoSendEmailProgressModal } from './DemoSendEmailProgressModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
 
@@ -27,6 +38,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
+  const isLibraryDemo = searchId === '990001';
 
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
   const [showAddExpertModal, setShowAddExpertModal] = useState(false);
@@ -34,6 +46,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [sendingRecipients, setSendingRecipients] = useState<string[] | null>(null);
+  const [sentEmailCount, setSentEmailCount] = useState<number | null>(null);
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
   const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
 
@@ -49,6 +63,16 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const openGenerateForExperts = useCallback((experts: ExpertResult[]) => {
     setGenerateExperts(experts);
     setShowGenerateModal(true);
+  }, []);
+
+  const startDemoSend = useCallback((experts: ExpertResult[]) => {
+    const names = experts.map((e) => e.name?.trim() || e.email?.trim() || 'Unknown');
+    setSendingRecipients(names.length > 0 ? names : ['Unknown']);
+  }, []);
+
+  const handleDemoSendComplete = useCallback((count: number) => {
+    setSendingRecipients(null);
+    setSentEmailCount(Math.max(1, count));
   }, []);
 
   const handleGenerateConfirm = useCallback((payload: GenerateEmailConfirmPayload) => {
@@ -111,6 +135,10 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
       : searchDetail.expertResults.length;
 
   const hasReports = Boolean(searchDetail.reportPdfUrl || searchDetail.reportCsvUrl);
+  const pageClassName = cn(
+    'w-full mx-auto px-4 py-8 space-y-6',
+    isLibraryDemo ? 'max-w-6xl' : 'max-w-5xl'
+  );
 
   const reportsMenu =
     searchDetail.status === 'completed' && hasReports ? (
@@ -146,7 +174,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     ) : null;
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <div className={pageClassName}>
       <div>
         <Breadcrumbs
           items={[
@@ -267,12 +295,17 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       const experts = Array.from(selectedIndices).map(
                         (i) => searchDetail.expertResults[i]
                       );
+                      if (isLibraryDemo) {
+                        startDemoSend(experts);
+                        setSelectedIndices(new Set());
+                        return;
+                      }
                       openGenerateForExperts(experts);
                     }}
                     disabled={selectedIndices.size === 0}
                   >
                     <Mail className="h-4 w-4" aria-hidden />
-                    Generate emails
+                    {isLibraryDemo ? 'Send email' : 'Generate emails'}
                   </Button>
                   {reportsMenu}
                 </div>
@@ -285,7 +318,10 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     index={index}
                     selected={selectedIndices.has(index)}
                     onToggleSelect={toggleSelection}
-                    onGenerateEmail={(expert) => openGenerateForExperts([expert])}
+                    onGenerateEmail={(expert) =>
+                      isLibraryDemo ? startDemoSend([expert]) : openGenerateForExperts([expert])
+                    }
+                    emailCtaLabel={isLibraryDemo ? 'Send email' : undefined}
                     searchId={searchId}
                     onSuccess={refetch}
                   />
@@ -329,6 +365,34 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         generation={generatePayload}
         onDone={handleProgressDone}
       />
+      <DemoSendEmailProgressModal
+        isOpen={sendingRecipients != null}
+        recipients={sendingRecipients ?? []}
+        onComplete={handleDemoSendComplete}
+        onClose={() => setSendingRecipients(null)}
+      />
+      <BaseModal
+        isOpen={sentEmailCount != null}
+        onClose={() => setSentEmailCount(null)}
+        title={sentEmailCount != null && sentEmailCount > 1 ? 'Emails sent' : 'Email sent'}
+        size="md"
+        footer={
+          <div className="flex justify-end">
+            <Button variant="default" size="sm" onClick={() => setSentEmailCount(null)}>
+              Done
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" aria-hidden />
+          <p className="text-sm text-gray-600">
+            {sentEmailCount && sentEmailCount > 1
+              ? `${sentEmailCount} emails were sent successfully.`
+              : 'The email was sent successfully.'}
+          </p>
+        </div>
+      </BaseModal>
 
       {isInProgress && (
         <div className="flex flex-wrap items-center gap-3">

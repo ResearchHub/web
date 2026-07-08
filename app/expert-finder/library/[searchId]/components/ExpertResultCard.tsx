@@ -20,6 +20,7 @@ interface ExpertResultCardProps {
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
+  emailCtaLabel?: string;
   onSuccess?: () => Promise<void>;
 }
 
@@ -50,6 +51,7 @@ export function ExpertResultCard({
   selected,
   onToggleSelect,
   onGenerateEmail,
+  emailCtaLabel = 'Generate email',
   onSuccess,
 }: ExpertResultCardProps) {
   const [editOpen, setEditOpen] = useState(false);
@@ -244,7 +246,7 @@ export function ExpertResultCard({
               onClick={() => onGenerateEmail(expert)}
             >
               <Mail className="h-4 w-4 shrink-0" aria-hidden />
-              Generate email
+              {emailCtaLabel}
             </Button>
           )}
           {email && !onGenerateEmail && (

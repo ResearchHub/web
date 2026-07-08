@@ -312,3 +312,28 @@ export function rejectEdit(editor: Editor, from: number, to: number) {
   const { struck } = splitRegion(editor, from, to);
   replaceWithPlainText(editor, from, to, struck);
 }
+
+/** True when the document still has at least one pending suggested edit. */
+export function hasPendingEdits(editor: Editor): boolean {
+  return findPendingEdits(editor).length > 0;
+}
+
+/**
+ * Accept every pending suggested edit in one pass. Regions are resolved
+ * back-to-front so that mutating an earlier range never invalidates the
+ * document positions of the ones still to process.
+ */
+export function acceptAllEdits(editor: Editor) {
+  const edits = findPendingEdits(editor);
+  for (let i = edits.length - 1; i >= 0; i -= 1) {
+    acceptEdit(editor, edits[i].from, edits[i].to);
+  }
+}
+
+/** Reject every pending suggested edit in one pass (see `acceptAllEdits`). */
+export function rejectAllEdits(editor: Editor) {
+  const edits = findPendingEdits(editor);
+  for (let i = edits.length - 1; i >= 0; i -= 1) {
+    rejectEdit(editor, edits[i].from, edits[i].to);
+  }
+}

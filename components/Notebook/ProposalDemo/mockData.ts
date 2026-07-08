@@ -74,9 +74,9 @@ export const SEED_MESSAGES: ChatMessage[] = [
 ];
 
 export const SUGGESTION_CHIPS: string[] = [
-  'Tighten the approach section',
-  'Suggest a budget breakdown',
-  'Find related funding',
+  'Find new data source',
+  'Suggest alternate analyses',
+  'Add wiggle room to budget',
 ];
 
 // Google-Docs-"suggesting-mode" color used for the fake AI edits in the doc
@@ -194,22 +194,22 @@ export const REWRITE_COMMANDS: RewriteCommand[] = [
     edits: [
       {
         mode: 'replace',
-        target: 'total about $4,200,',
-        text: ' are estimated at $3,600–4,200, with the final figure depending on how many high-memory integration reruns the harmonization requires,',
+        target: 'total about 4,200 USD,',
+        text: ' are estimated at 3,600–4,200 USD, with the final figure depending on how many high-memory integration reruns the harmonization requires,',
       },
       {
         mode: 'replace',
-        target: 'about $500',
-        text: ' approximately $400–500',
+        target: 'about 500 USD',
+        text: ' approximately 400–500 USD',
       },
       {
         mode: 'replace',
-        target: 'about $300 is held',
-        text: ' $200–300 is held',
+        target: 'about 300 USD is held',
+        text: ' 200–300 USD is held',
       },
       {
         target: 'for figures and documentation.',
-        text: ' Any unspent balance, up to roughly $600, is retained as a contingency for additional compute or reruns, and funds may be reallocated across these categories as the analysis requires.',
+        text: ' Any unspent balance, up to roughly 600 USD, is retained as a contingency for additional compute or reruns, and funds may be reallocated across these categories as the analysis requires.',
       },
     ],
   },

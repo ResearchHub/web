@@ -11,6 +11,8 @@ interface PostBlockEditorProps {
   editable?: boolean;
   onEditorReady?: (editor: Editor | null) => void;
   className?: string;
+  /** Hide the first h1 (document title) and strip leading empty spacing. */
+  hideTitle?: boolean;
 }
 
 /**
@@ -22,7 +24,9 @@ export const PostBlockEditor = ({
   editable = false,
   onEditorReady,
   className,
+  hideTitle = false,
 }: PostBlockEditorProps) => {
+  const displayContent = hideTitle ? removeTitleFromHTML(content) : content;
   // Add custom styles to override the default ProseMirror padding
   useEffect(() => {
     // Add a custom style tag to override ProseMirror styles when used in posts
@@ -45,7 +49,11 @@ export const PostBlockEditor = ({
 
   return (
     <div className={cn('post-content bg-white rounded-lg shadow-sm border p-6 mb-6', className)}>
-      <BlockEditorClientWrapper content={content} editable={editable} setEditor={onEditorReady} />
+      <BlockEditorClientWrapper
+        content={displayContent}
+        editable={editable}
+        setEditor={onEditorReady}
+      />
     </div>
   );
 };

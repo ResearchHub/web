@@ -20,6 +20,8 @@ export interface NotificationExtra {
   hub?: NotificationHub;
   userHubScore?: string;
   rewardExpirationDate?: string;
+  // Average peer-review score (demo notifications only).
+  reviewScore?: number;
 }
 
 export interface NotificationBodyElement {
