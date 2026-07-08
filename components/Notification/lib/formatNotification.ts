@@ -142,6 +142,10 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'edit',
     useAvatar: true,
   },
+  PROPOSAL_VIDEO_UPDATE: {
+    icon: 'edit',
+    useAvatar: true,
+  },
   GRANT_APPROVED: {
     icon: 'openGrant',
     useAvatar: false,
@@ -248,6 +252,12 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   if (notification.type === 'RSC_YIELD_OPT_IN') {
     return '/researchcoin';
+  }
+
+  // Demo video-update notifications open a modal (handled in NotificationItem)
+  // rather than navigating, so intentionally return no navigation URL.
+  if (notification.type === 'PROPOSAL_VIDEO_UPDATE') {
+    return undefined;
   }
 
   if (
@@ -451,10 +461,13 @@ export function formatNotificationMessage(
       return 'A new proposal has been submitted to your funding opportunity';
 
     case 'GRANT_PROPOSAL_PEER_REVIEWED':
-      return 'A candidate proposal has been peer reviewed';
+      return `${userName} peer reviewed a candidate proposal`;
 
     case 'PROPOSAL_AUTHOR_UPDATE':
       return 'An author submitted an update on a candidate proposal';
+
+    case 'PROPOSAL_VIDEO_UPDATE':
+      return `${userName} posted a video update`;
 
     case 'GRANT_APPROVED':
       return `Your funding opportunity has been approved.`;

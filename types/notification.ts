@@ -22,6 +22,9 @@ export interface NotificationExtra {
   rewardExpirationDate?: string;
   // Average peer-review score (demo notifications only).
   reviewScore?: number;
+  // Playable video URL for a demo "video update" notification. When present,
+  // clicking the notification opens a video modal instead of navigating.
+  videoUrl?: string;
 }
 
 export interface NotificationBodyElement {

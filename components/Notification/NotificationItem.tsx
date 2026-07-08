@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Notification } from '@/types/notification';
 import { formatTimestamp } from '@/utils/date';
 import {
@@ -18,6 +19,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useRouter } from 'next/navigation';
+import { DemoVideoUpdateModal } from './DemoVideoUpdateModal';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -35,11 +37,30 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
+  // Demo-only: a "video update" notification opens a playable video modal on
+  // click instead of navigating anywhere.
+  const videoUrl = notification.extra?.videoUrl;
+  const isVideoNotification = !!videoUrl;
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  const isClickable = hasNavigationUrl || isVideoNotification;
+
+  const handleClick = () => {
+    if (isVideoNotification) {
+      setIsVideoModalOpen(true);
+      return;
+    }
+    if (hasNavigationUrl && formattedNavigationUrl) {
+      router.push(formattedNavigationUrl);
+    }
+  };
+
   // Demo proposal notifications show the proposal title as a blue, clickable link.
   const showsProposalTitle = [
     'GRANT_PROPOSAL_SUBMITTED',
     'GRANT_PROPOSAL_PEER_REVIEWED',
     'PROPOSAL_AUTHOR_UPDATE',
+    'PROPOSAL_VIDEO_UPDATE',
   ].includes(notification.type);
 
   // Add helper to determine if notification is a received type
@@ -146,7 +167,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     </div>
   );
 
-  const NavigationIndicator = hasNavigationUrl && (
+  const NavigationIndicator = isClickable && (
     <div className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0">
       <ChevronRight size={16} />
     </div>
@@ -158,19 +179,15 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         className={clsx(
           'relative py-3 px-2 border-b border-gray-200',
           notification.read
-            ? hasNavigationUrl
+            ? isClickable
               ? 'hover:bg-gray-50'
               : ''
-            : hasNavigationUrl
+            : isClickable
               ? 'bg-primary-50/40 hover:bg-primary-50/60'
               : 'bg-primary-50/40',
-          hasNavigationUrl ? 'cursor-pointer' : ''
+          isClickable ? 'cursor-pointer' : ''
         )}
-        onClick={() => {
-          if (hasNavigationUrl && formattedNavigationUrl) {
-            router.push(formattedNavigationUrl);
-          }
-        }}
+        onClick={handleClick}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -180,9 +197,19 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               {ContentSection}
             </div>
           </div>
-          {hasNavigationUrl && NavigationIndicator}
+          {NavigationIndicator}
         </div>
       </div>
+
+      {isVideoNotification && videoUrl && (
+        <DemoVideoUpdateModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
+          videoUrl={videoUrl}
+          title={notification.work?.title}
+          authorName={notification.actionUser?.fullName}
+        />
+      )}
     </div>
   );
 }

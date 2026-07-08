@@ -12,6 +12,7 @@ import type { User } from '@/types/user';
 export const DEMO_PROPOSAL_SUBMITTED_TYPE = 'GRANT_PROPOSAL_SUBMITTED';
 export const DEMO_PROPOSAL_PEER_REVIEWED_TYPE = 'GRANT_PROPOSAL_PEER_REVIEWED';
 export const DEMO_PROPOSAL_AUTHOR_UPDATE_TYPE = 'PROPOSAL_AUTHOR_UPDATE';
+export const DEMO_PROPOSAL_VIDEO_UPDATE_TYPE = 'PROPOSAL_VIDEO_UPDATE';
 
 interface DemoPerson {
   fullName: string;
@@ -42,7 +43,11 @@ const makeDemoUser = (id: number, { fullName, profileImage }: DemoPerson): User 
 };
 
 const PEOPLE = {
-  attila: { fullName: 'Attila Karsi', profileImage: '/people/attila.jpeg' },
+  attila: {
+    fullName: 'Attila Karsi, PhD',
+    profileImage: 'https://www.researchhub.com/people/attila.jpeg',
+  },
+  ruslan: { fullName: 'Ruslan', profileImage: '/people/ruslan.jpeg' },
   emilio: { fullName: 'Emilio Vega', profileImage: '/people/emilio.jpeg' },
   guy: { fullName: 'Guy Laurent', profileImage: '/people/guy.jpeg' },
   qingyu: { fullName: 'Qingyu Zhao', profileImage: '/people/qingyu.jpeg' },
@@ -56,6 +61,13 @@ interface DemoProposal {
 }
 
 const PROPOSALS = {
+  // The primary demo proposal (matches the funded/reviewed proposal elsewhere).
+  msRemyelination: {
+    id: 30,
+    slug: 'a-conserved-fibrotic-extracellular-matrix-brake-on-remyelination-cross-lesion-single-nucleus-mapping-of-oligodendrocyte-differentiation-arrest-in-multiple-sclerosis',
+    title:
+      'A conserved fibrotic extracellular-matrix brake on remyelination: cross-lesion single-nucleus mapping of oligodendrocyte differentiation arrest in multiple sclerosis',
+  },
   ecmCheckpoint: {
     id: 900101,
     slug: 'extracellular-matrix-repair-checkpoint-ms-lesions',
@@ -90,9 +102,26 @@ interface DemoNotificationSpec {
   minutesAgo: number;
   /** Average peer-review score, shown for peer-review notifications. */
   reviewScore?: number;
+  /** Playable video URL; when set, clicking opens a video modal. */
+  videoUrl?: string;
 }
 
 const DEMO_NOTIFICATIONS: DemoNotificationSpec[] = [
+  // Featured demo items (top of the list).
+  {
+    type: DEMO_PROPOSAL_PEER_REVIEWED_TYPE,
+    proposal: PROPOSALS.msRemyelination,
+    person: PEOPLE.attila,
+    minutesAgo: 3,
+    reviewScore: 5.0,
+  },
+  {
+    type: DEMO_PROPOSAL_VIDEO_UPDATE_TYPE,
+    proposal: PROPOSALS.msRemyelination,
+    person: PEOPLE.ruslan,
+    minutesAgo: 6,
+    videoUrl: '/rus.MP4',
+  },
   // New proposal submissions.
   {
     type: DEMO_PROPOSAL_SUBMITTED_TYPE,
@@ -165,7 +194,10 @@ export function getDemoProposalNotifications(): Notification[] {
       },
       type: spec.type,
       body: [],
-      extra: spec.reviewScore !== undefined ? { reviewScore: spec.reviewScore } : undefined,
+      extra:
+        spec.reviewScore !== undefined || spec.videoUrl !== undefined
+          ? { reviewScore: spec.reviewScore, videoUrl: spec.videoUrl }
+          : undefined,
       navigationUrl: `/proposal/${spec.proposal.id}/${spec.proposal.slug}`,
       read: false,
       readDate: null,
