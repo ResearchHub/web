@@ -17,6 +17,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useDemoFundraise, isDemoFundProposalId } from '@/components/Fund/lib/demoFunding';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -31,7 +32,7 @@ interface FundraiseProgressProps {
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
-  fundraise,
+  fundraise: fundraiseProp,
   fundraiseTitle,
   onContribute,
   showContribute = true,
@@ -45,6 +46,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   const { showUSD } = useCurrencyPreference();
   const { showShareModal } = useShareModalContext();
   const router = useRouter();
+
+  // Demo-only: once the scripted proposal has been "funded", render as a fully
+  // funded / COMPLETED fundraise. No-op for every other fundraise.
+  const fundraise = useDemoFundraise(fundraiseProp);
 
   if (!fundraise) return null;
 
@@ -255,6 +260,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         fundraise={fundraise}
         proposalTitle={fundraiseTitle}
         work={work}
+        isDemo={isDemoFundProposalId(work?.id)}
       />
     </>
   );

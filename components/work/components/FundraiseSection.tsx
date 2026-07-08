@@ -5,14 +5,19 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
+import { useDemoFundraise } from '@/components/Fund/lib/demoFunding';
 import { formatDate } from '@/utils/date';
 
 interface FundraiseSectionProps {
   fundraise: Fundraise;
 }
 
-export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
+export function FundraiseSection({ fundraise: fundraiseProp }: FundraiseSectionProps) {
   const { showUSD } = useCurrencyPreference();
+
+  // Demo-only: reflect the fully-funded / COMPLETED state after the scripted
+  // funding flow completes. No-op for every other fundraise.
+  const fundraise = useDemoFundraise(fundraiseProp) ?? fundraiseProp;
   const effectiveStatus = getEffectiveStatus(fundraise);
   const isCompleted = effectiveStatus === 'COMPLETED';
   const percentage = isCompleted

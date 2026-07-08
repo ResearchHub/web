@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { PaymentRequestButtonElement, useStripe } from '@stripe/react-stripe-js';
 import type { PaymentRequest, PaymentRequestPaymentMethodEvent } from '@stripe/stripe-js';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faApplePay } from '@fortawesome/free-brands-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { StripeProvider } from './StripeProvider';
 import { PaymentService } from '@/services/payment.service';
@@ -25,6 +27,11 @@ interface PaymentRequestButtonProps {
   onError?: (error: string) => void;
   /** Called when payment method availability is determined */
   onAvailabilityChange?: (available: boolean, type?: 'applePay' | 'googlePay') => void;
+  /**
+   * Demo-only: render a working Apple Pay-styled button that resolves to
+   * success on click, regardless of the device's real wallet capabilities.
+   */
+  isDemo?: boolean;
 }
 
 /**
@@ -198,7 +205,44 @@ const STRIPE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
  * Payment Request Button component wrapper.
  * Provides Apple Pay and Google Pay support via Stripe.
  */
+/**
+ * Demo-only: a fully functional Apple Pay-styled button that simulates a
+ * successful payment on click, so the demo works on any device/browser.
+ */
+function DemoPaymentRequestButton({ onSuccess }: Pick<PaymentRequestButtonProps, 'onSuccess'>) {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleClick = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      onSuccess?.();
+    }, 1200);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isProcessing}
+      className="w-full h-12 flex items-center justify-center gap-1 rounded-lg bg-black text-white text-base font-medium transition-opacity hover:opacity-90 disabled:opacity-70"
+    >
+      {isProcessing ? (
+        'Processing...'
+      ) : (
+        <>
+          <span>Pay with</span>
+          <FontAwesomeIcon icon={faApplePay} className="h-7 w-7" />
+        </>
+      )}
+    </button>
+  );
+}
+
 export function PaymentRequestButton(props: PaymentRequestButtonProps) {
+  if (props.isDemo) {
+    return <DemoPaymentRequestButton onSuccess={props.onSuccess} />;
+  }
+
   if (!STRIPE_KEY) {
     return (
       <Button type="button" variant="default" disabled className="w-full h-12 text-base">

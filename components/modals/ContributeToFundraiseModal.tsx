@@ -26,6 +26,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
+import { markDemoFundraiseFunded } from '@/components/Fund/lib/demoFunding';
 
 import AuthContent from '@/components/Auth/AuthContent';
 interface ContributeToFundraiseModalProps {
@@ -37,6 +38,12 @@ interface ContributeToFundraiseModalProps {
   proposalTitle?: string;
   /** Work object containing author information */
   work?: Work;
+  /**
+   * Demo-only: force-shows Apple Pay, pre-selects it, and short-circuits the
+   * payment so a test card "succeeds" instantly without hitting the backend.
+   * Only ever set for the scripted demo proposal.
+   */
+  isDemo?: boolean;
 }
 
 type ModalView = 'funding' | 'auth' | 'payment';
@@ -83,6 +90,7 @@ function ContributeToFundraiseModalInner({
   fundraise,
   proposalTitle,
   work,
+  isDemo = false,
 }: Readonly<ContributeToFundraiseModalProps>) {
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
@@ -209,6 +217,27 @@ function ContributeToFundraiseModalInner({
 
       setIsContributing(true);
       setError(null);
+
+      // Demo-only: skip the real payment intent / Stripe confirmation entirely.
+      // A short delay stands in for "processing", then we treat the fundraise
+      // as fully funded and fall through to the shared success handling below.
+      if (isDemo) {
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        markDemoFundraiseFunded(fundraise.id);
+        toast.success('Your contribution has been successfully added to the fundraise.');
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+          fundraise_id: fundraise.id,
+          payment_method: paymentMethod,
+          amount_usd: amountUsd,
+          amount_rsc: amountInRsc,
+        });
+        refreshUser?.();
+        if (onContributeSuccess) {
+          onContributeSuccess();
+        }
+        handleClose();
+        return;
+      }
 
       if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
         // RSC-based contribution. Locked funding credits are consumed when the
@@ -410,6 +439,10 @@ function ContributeToFundraiseModalInner({
         amount_rsc: amountInRsc,
       });
 
+      if (isDemo) {
+        markDemoFundraiseFunded(fundraise.id);
+      }
+
       toast.success('Your contribution has been successfully added to the fundraise.');
       refreshUser?.();
       if (onContributeSuccess) {
@@ -417,7 +450,7 @@ function ContributeToFundraiseModalInner({
       }
       handleClose();
     },
-    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose, isDemo]
   );
 
   // Get title based on current view
@@ -467,6 +500,7 @@ function ContributeToFundraiseModalInner({
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
             onStripeReady={handleStripeReady}
+            isDemo={isDemo}
           />
         );
 

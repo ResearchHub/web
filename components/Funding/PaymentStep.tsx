@@ -59,6 +59,11 @@ interface PaymentStepProps {
   onEndaomentPaymentConfirm?: (fundId: string) => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
+  /**
+   * Demo-only: force Apple Pay to be shown as the first, pre-selected payment
+   * option regardless of the device's real wallet capabilities.
+   */
+  isDemo?: boolean;
 }
 
 /**
@@ -80,17 +85,28 @@ export function PaymentStep({
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
   onStripeReady,
+  isDemo = false,
 }: PaymentStepProps) {
+  // Demo-only: pretend Apple Pay is available on this device so the option
+  // renders and can be pre-selected, even on hardware that can't actually
+  // use it (the payment itself is short-circuited elsewhere for the demo).
+  const effectiveWalletAvailability = useMemo(
+    () => (isDemo ? { checking: false, applePay: true, googlePay: false } : walletAvailability),
+    [isDemo, walletAvailability]
+  );
+
   const defaultPaymentMethod = useMemo(
     () =>
-      getDefaultPaymentMethod(
-        rscBalance,
-        lockedBalance,
-        amountInRsc,
-        PLATFORM_FEE_PERCENTAGE_RSC,
-        walletAvailability
-      ),
-    [rscBalance, lockedBalance, amountInRsc, walletAvailability]
+      isDemo
+        ? 'credit_card'
+        : getDefaultPaymentMethod(
+            rscBalance,
+            lockedBalance,
+            amountInRsc,
+            PLATFORM_FEE_PERCENTAGE_RSC,
+            walletAvailability
+          ),
+    [isDemo, rscBalance, lockedBalance, amountInRsc, walletAvailability]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
@@ -208,8 +224,9 @@ export function PaymentStep({
           onEndaomentFundSelected={setSelectedEndaomentFund}
           onStripeReady={onStripeReady}
           hideButton
-          walletAvailability={walletAvailability}
+          walletAvailability={effectiveWalletAvailability}
           hasNonprofit={hasNonprofit}
+          isDemo={isDemo}
         />
 
         {/* Receipt-style line items */}
@@ -333,6 +350,7 @@ export function PaymentStep({
               }
               onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
               onError={(err) => console.error('Payment request error:', err)}
+              isDemo={isDemo}
             />
           ) : selectedMethod === 'endaoment' ? (
             <EndaomentPaymentButton

@@ -9,6 +9,7 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
 import { isFundraiseActive, getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
+import { isDemoFundProposalId } from '@/components/Fund/lib/demoFunding';
 import { WorkHeader } from './WorkHeader';
 
 interface WorkHeaderProposalProps {
@@ -83,6 +84,7 @@ export function WorkHeaderProposal({
           fundraise={fundraise}
           proposalTitle={work.title}
           work={work}
+          isDemo={isDemoFundProposalId(work.id)}
         />
       )}
     </>

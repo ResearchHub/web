@@ -64,6 +64,8 @@ interface PaymentWidgetProps {
   walletAvailability: WalletAvailability;
   /** Whether the fundraise has a non-profit org attached */
   hasNonprofit?: boolean;
+  /** Demo-only: list Apple Pay first in the payment options. */
+  isDemo?: boolean;
 }
 
 /**
@@ -88,6 +90,7 @@ export function PaymentWidget({
   hideButton = false,
   walletAvailability,
   hasNonprofit = false,
+  isDemo = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -211,24 +214,34 @@ export function PaymentWidget({
   //   on Apple devices, so showing Google Pay would be misleading)
   // - While still checking, hide both wallet options to avoid showing
   //   options that may not be available
-  const visiblePaymentOptions = paymentOptions.filter((option) => {
-    if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
-    if (option.id === 'funding_credits') {
-      return lockedBalance > 0;
-    }
-    if (option.id === 'endaoment') {
-      return hasNonprofit;
-    }
-    if (option.id === 'apple_pay') {
-      return !walletAvailability.checking && walletAvailability.applePay;
-    }
-    if (option.id === 'google_pay') {
-      return (
-        !walletAvailability.checking && walletAvailability.googlePay && !walletAvailability.applePay
-      );
-    }
-    return true;
-  });
+  const visiblePaymentOptions = paymentOptions
+    .filter((option) => {
+      if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+      if (option.id === 'funding_credits') {
+        return lockedBalance > 0;
+      }
+      if (option.id === 'endaoment') {
+        return hasNonprofit;
+      }
+      if (option.id === 'apple_pay') {
+        return !walletAvailability.checking && walletAvailability.applePay;
+      }
+      if (option.id === 'google_pay') {
+        return (
+          !walletAvailability.checking &&
+          walletAvailability.googlePay &&
+          !walletAvailability.applePay
+        );
+      }
+      return true;
+    })
+    // Demo-only: surface Apple Pay as the first option in the list.
+    .sort((a, b) => {
+      if (!isDemo) return 0;
+      if (a.id === 'apple_pay') return -1;
+      if (b.id === 'apple_pay') return 1;
+      return 0;
+    });
 
   // Get the selected payment option details
   const selectedOption = paymentOptions.find((opt) => opt.id === selectedMethod);
