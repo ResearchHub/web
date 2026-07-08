@@ -43,6 +43,8 @@ interface FundraiseContextValue {
 const PAGE_SIZE = 20;
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
 
+let _sidebarFundraisesCache: FeedEntry[] = [];
+
 interface FundraiseProviderProps {
   children: ReactNode;
   grantId?: number;
@@ -60,9 +62,14 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const [sortBy, setSortBy] = useState<ProposalSortOption>('best');
 
   // Sidebar lazy-loaded data (ref-guarded, fetched at most once)
-  const [sidebarFundraises, setSidebarFundraises] = useState<FeedEntry[]>([]);
-  const [isSidebarLoading, setIsSidebarLoading] = useState(false);
-  const hasSidebarDataRef = useRef(false);
+  const [sidebarFundraises, setSidebarFundraisesRaw] =
+    useState<FeedEntry[]>(_sidebarFundraisesCache);
+  const [isSidebarLoading, setIsSidebarLoading] = useState(_sidebarFundraisesCache.length === 0);
+  const hasSidebarDataRef = useRef(_sidebarFundraisesCache.length > 0);
+  const setSidebarFundraises = useCallback((entries: FeedEntry[]) => {
+    _sidebarFundraisesCache = entries;
+    setSidebarFundraisesRaw(entries);
+  }, []);
 
   const feedParams = useMemo(() => {
     const isStatusCompleted = statusFilter === 'completed';
@@ -155,12 +162,12 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     } finally {
       setIsSidebarLoading(false);
     }
-  }, []);
+  }, [setSidebarFundraises]);
 
   const value = useMemo<FundraiseContextValue>(
     () => ({
       entries,
-      isLoading: activated ? isLoading : false,
+      isLoading: !activated || isLoading,
       isLoadingMore,
       hasMore,
       loadMore,

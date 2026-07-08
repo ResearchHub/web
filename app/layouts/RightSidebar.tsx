@@ -4,9 +4,7 @@ import { memo, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightLong } from '@fortawesome/pro-solid-svg-icons';
+import { Users, ArrowRight } from 'lucide-react';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { FundraiseProgressBar } from '@/components/Funding/FundraiseProgressBar';
@@ -18,40 +16,33 @@ import { PersonalizeFeedBanner } from './components/PersonalizeFeedBanner';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import {
+  GrantSidebarSectionSkeleton,
+  ProposalSidebarSectionSkeleton,
+} from './components/RightSidebarSkeleton';
 
 const ViewAllLink = ({ href }: { href: string }) => (
   <Link
     href={href}
-    className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
+    className="inline-flex items-center gap-1 whitespace-nowrap flex-shrink-0 text-xs font-medium text-primary-600 hover:text-primary-700"
   >
     View all
-    <FontAwesomeIcon icon={faArrowRightLong} fontSize={12} />
+    <ArrowRight className="h-3 w-3 flex-shrink-0" aria-hidden />
   </Link>
 );
 
-const SidebarSectionSkeleton = ({ rows = 3 }: { rows?: number }) => (
-  <div className="space-y-3 animate-pulse px-4">
-    {Array.from({ length: rows }).map((_, i) => (
-      <div key={i} className="space-y-2 py-2">
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
-        <div className="h-3 bg-gray-200 rounded w-1/2" />
-      </div>
-    ))}
-  </div>
-);
-
 const AvailableFundingSection = () => {
-  const { grants, fetchGrants, isLoading } = useGrants();
+  const { sidebarGrants, fetchSidebarGrants, isSidebarGrantsLoading } = useGrants();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
 
   useEffect(() => {
-    fetchGrants();
-  }, [fetchGrants]);
+    fetchSidebarGrants();
+  }, [fetchSidebarGrants]);
 
-  if (!isLoading && grants.length === 0) return null;
+  if (!isSidebarGrantsLoading && sidebarGrants.length === 0) return null;
 
-  const sortedGrants = [...grants].sort((a, b) => {
+  const sortedGrants = [...sidebarGrants].sort((a, b) => {
     const aContent = a.content as FeedGrantContent;
     const bContent = b.content as FeedGrantContent;
     const aName = (aContent.grant.shortTitle || aContent.title).toLowerCase();
@@ -72,8 +63,8 @@ const AvailableFundingSection = () => {
         className="pb-2"
       />
 
-      {isLoading ? (
-        <SidebarSectionSkeleton />
+      {isSidebarGrantsLoading ? (
+        <GrantSidebarSectionSkeleton />
       ) : (
         <div className="space-y-1">
           {visibleGrants.map((entry) => {
@@ -162,7 +153,7 @@ const NeedsFundingSection = () => {
       />
 
       {isSidebarLoading ? (
-        <SidebarSectionSkeleton />
+        <ProposalSidebarSectionSkeleton />
       ) : (
         <div className="space-y-1">
           {visibleFundraises.map((entry) => {

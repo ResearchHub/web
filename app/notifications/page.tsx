@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationList } from '@/components/Notification/NotificationList';
-import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleton';
+import { NotificationSkeletonList } from '@/components/skeletons/NotificationSkeleton';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
@@ -54,13 +54,7 @@ export default function NotificationsPage() {
               error={error}
             />
 
-            {isLoadingMore && (
-              <div>
-                {[...Array(10)].map((_, index) => (
-                  <NotificationSkeleton key={`skeleton-${index}`} />
-                ))}
-              </div>
-            )}
+            {isLoadingMore && <NotificationSkeletonList />}
 
             {!loading && notificationData.next && (
               <div className="mt-8 text-center">
