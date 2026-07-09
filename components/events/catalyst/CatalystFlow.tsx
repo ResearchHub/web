@@ -82,7 +82,7 @@ export function CatalystFlow() {
 
   if (isMobile) {
     if (step === 'auth') {
-      return <CatalystAuthScreen />;
+      return <CatalystAuthScreen onClose={() => setStep('arrival')} />;
     }
     return <CatalystArrivalScreen onClaim={() => setStep('auth')} />;
   }

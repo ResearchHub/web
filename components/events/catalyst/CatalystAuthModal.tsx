@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useId, useRef } from 'react';
 import AuthContent from '@/components/Auth/AuthContent';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,34 +22,67 @@ export function CatalystAuthModal({
   onClose,
   onSuccess,
 }: Readonly<CatalystAuthModalProps>) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const onCloseRef = useRef(onClose);
+  const titleId = useId();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) {
+      return undefined;
+    }
+
+    if (isOpen && !dialog.open) {
+      dialog.showModal();
+    } else if (!isOpen && dialog.open) {
+      dialog.close();
+    }
+
+    const handleClose = () => {
+      onCloseRef.current();
+    };
+
+    dialog.addEventListener('close', handleClose);
+    return () => {
+      dialog.removeEventListener('close', handleClose);
+    };
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    if (e.target === e.currentTarget) {
+      dialogRef.current?.close();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[60]">
-      <button
-        type="button"
-        aria-label="Close"
-        className="absolute inset-0 h-full w-full !bg-black/50"
-        onClick={onClose}
-      />
-      <dialog
-        open
-        aria-modal="true"
-        className="relative z-[1] mx-4 my-0 w-full max-w-md rounded-lg border-0 bg-white p-6"
-      >
+    <dialog
+      ref={dialogRef}
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-[60] m-0 flex h-full max-h-none w-full max-w-none items-center justify-center border-0 bg-transparent p-4 open:flex"
+      onClick={handleBackdropClick}
+    >
+      <div className="relative z-[1] w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
         <Button
           type="button"
-          onClick={onClose}
+          onClick={() => dialogRef.current?.close()}
           variant="ghost"
           size="icon"
+          aria-label="Close"
           className="absolute top-6 right-6 z-10"
         >
-          <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
+          <FontAwesomeIcon icon={faXmark} className="h-5 w-5" aria-hidden="true" />
         </Button>
 
-        <div className="mb-6 pr-8">
+        <div id={titleId} className="mb-6 pr-8">
           <CatalystLockup theme="onLight" />
         </div>
 
@@ -64,7 +98,13 @@ export function CatalystAuthModal({
           entryTitle={<CatalystAuthEntryTitle surface="light" />}
           entryNote={<CatalystAuthEntryNote surface="light" />}
         />
-      </dialog>
-    </div>
+      </div>
+
+      <style jsx>{`
+        dialog::backdrop {
+          background: rgba(0, 0, 0, 0.5);
+        }
+      `}</style>
+    </dialog>
   );
 }

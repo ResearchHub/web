@@ -12,10 +12,12 @@ const { footer, auth, route } = CATALYST_NYC_EVENT;
 
 interface CatalystAuthScreenProps {
   initialScreen?: AuthScreen;
+  onClose?: () => void;
 }
 
 export function CatalystAuthScreen({
   initialScreen = 'SELECT_PROVIDER',
+  onClose,
 }: Readonly<CatalystAuthScreenProps>) {
   const [screen, setScreen] = useState<AuthScreen>(initialScreen);
 
@@ -33,6 +35,7 @@ export function CatalystAuthScreen({
             appearance="catalyst"
             catalystSurface="dark"
             onScreenChange={setScreen}
+            onClose={onClose}
             emailLabel={auth.emailLabel}
             entryTitle={<CatalystAuthEntryTitle surface="dark" />}
             entryNote={<CatalystAuthEntryNote surface="dark" />}
