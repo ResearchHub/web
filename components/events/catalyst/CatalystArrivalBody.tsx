@@ -1,25 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useStakingYieldStats } from '@/hooks/useStakingYield';
 import { CATALYST_NYC_EVENT, formatMoney } from './constants';
 
-const {
-  creditAmount,
-  yieldRate,
-  yieldLabel,
-  barCount,
-  maxYears,
-  animationIntervalMs,
-  arrival,
-  footer,
-} = CATALYST_NYC_EVENT;
-
-const MAX = creditAmount * (1 + yieldRate * maxYears);
-
-const BARS = Array.from({ length: barCount }, (_, i) => ({
-  year: i,
-  heightPct: Math.max(3, ((creditAmount * (1 + yieldRate * i)) / MAX) * 100),
-}));
+const { creditAmount, barCount, maxYears, animationIntervalMs, arrival, footer } =
+  CATALYST_NYC_EVENT;
 
 interface CatalystArrivalBodyProps {
   onClaim: () => void;
@@ -30,10 +16,29 @@ export function CatalystArrivalBody({
   onClaim,
   compact = false,
 }: Readonly<CatalystArrivalBodyProps>) {
+  const { stats, isLoading, error } = useStakingYieldStats();
   const [yr, setYr] = useState(0);
   const holdRef = useRef(0);
 
+  const apy = stats?.apy;
+  const isReady = !isLoading && !error && typeof apy === 'number' && Number.isFinite(apy);
+  const yieldRate = isReady ? apy / 100 : null;
+  const yieldLabel = isReady ? `${apy.toFixed(1)}% / yr` : null;
+
+  const max = yieldRate !== null ? creditAmount * (1 + yieldRate * maxYears) : null;
+  const bars =
+    yieldRate !== null && max !== null
+      ? Array.from({ length: barCount }, (_, i) => ({
+          year: i,
+          heightPct: Math.max(3, ((creditAmount * (1 + yieldRate * i)) / max) * 100),
+        }))
+      : null;
+
   useEffect(() => {
+    if (!isReady) {
+      return undefined;
+    }
+
     const prefersReducedMotion = globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
       return undefined;
@@ -51,41 +56,49 @@ export function CatalystArrivalBody({
     }, animationIntervalMs);
 
     return () => clearInterval(id);
-  }, []);
+  }, [isReady]);
 
-  const value = creditAmount * (1 + yieldRate * yr);
+  const value = yieldRate !== null ? creditAmount * (1 + yieldRate * yr) : null;
   const yearWord = yr === 1 ? 'year' : 'years';
   const phaseLabel = yr === 0 ? 'Your starting balance today' : `After ${yr} ${yearWord}`;
-  const yrText = `${phaseLabel} · ${yieldLabel}`;
+  const yrText = yieldLabel !== null ? `${phaseLabel} · ${yieldLabel}` : null;
 
   return (
     <>
       <section className={`growth ${compact ? 'growth--compact' : ''}`}>
-        <div className="balance">{formatMoney(value)}</div>
-        <div className="yrline">{yrText}</div>
-        <div className="bars">
-          {BARS.map(({ year, heightPct }) => {
-            const active = year <= yr;
-            return (
-              <span
-                key={year}
-                aria-hidden="true"
-                style={{
-                  height: `${heightPct}%`,
-                  background: active
-                    ? 'linear-gradient(180deg,#86efac,#22c55e)'
-                    : 'rgba(255,255,255,.13)',
-                  boxShadow: year === yr ? '0 0 0 2px rgba(134,239,172,.55)' : 'none',
-                }}
-              />
-            );
-          })}
-        </div>
-        <div className="axis">
-          <span>Now</span>
-          <span>5 years</span>
-          <span>10 years</span>
-        </div>
+        {isReady && value !== null && yrText !== null && bars !== null ? (
+          <>
+            <div className="balance">{formatMoney(value)}</div>
+            <div className="yrline">{yrText}</div>
+            <div className="bars">
+              {bars.map(({ year, heightPct }) => {
+                const active = year <= yr;
+                return (
+                  <span
+                    key={year}
+                    aria-hidden="true"
+                    style={{
+                      height: `${heightPct}%`,
+                      background: active
+                        ? 'linear-gradient(180deg,#86efac,#22c55e)'
+                        : 'rgba(255,255,255,.13)',
+                      boxShadow: year === yr ? '0 0 0 2px rgba(134,239,172,.55)' : 'none',
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <div className="axis">
+              <span>Now</span>
+              <span>5 years</span>
+              <span>10 years</span>
+            </div>
+          </>
+        ) : (
+          <div className="yield-status" aria-busy={isLoading} aria-live="polite">
+            {isLoading ? 'Loading yield…' : 'Yield unavailable'}
+          </div>
+        )}
       </section>
 
       <h1 className={`headline ${compact ? 'headline--compact' : ''}`}>{arrival.headline}</h1>
@@ -140,6 +153,16 @@ export function CatalystArrivalBody({
           margin-top: 8px;
           font-size: 11px;
           color: #c8b6f2;
+        }
+        .yield-status {
+          display: flex;
+          align-items: center;
+          min-height: 140px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.65);
+        }
+        .growth--compact .yield-status {
+          min-height: 110px;
         }
         .headline {
           font-size: 29px;

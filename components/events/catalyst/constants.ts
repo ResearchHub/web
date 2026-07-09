@@ -3,8 +3,6 @@ export const CATALYST_NYC_EVENT = {
   eventName: 'Catalyst NYC',
   footer: 'Catalyst NYC promotional event',
   creditAmount: 500,
-  yieldRate: 0.561,
-  yieldLabel: '56.1% / yr',
   barCount: 11,
   maxYears: 10,
   animationIntervalMs: 900,
