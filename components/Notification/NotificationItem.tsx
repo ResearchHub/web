@@ -1,22 +1,21 @@
 import { Notification } from '@/types/notification';
-import { formatTimestamp } from '@/utils/date';
+import { formatTimeAgo } from '@/utils/date';
 import {
   getNotificationInfo,
+  getNotificationTitle,
   formatNotificationMessage,
-  getHubDetailsFromNotification,
   formatNavigationUrl,
-  getRSCAmountFromNotification,
+  getRSCAmountForBadge,
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
-import clsx from 'clsx';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface NotificationItemProps {
@@ -28,14 +27,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const notificationInfo = getNotificationInfo(notification);
   const { exchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
-  const message = formatNotificationMessage(notification, exchangeRate, showUSD);
+  const title = getNotificationTitle(notification);
+  const description = formatNotificationMessage(notification, exchangeRate, showUSD);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
-  const rscAmount = getRSCAmountFromNotification(notification);
+  const rscAmount = getRSCAmountForBadge(notification, description);
 
-  const hubDetails = getHubDetailsFromNotification(notification);
-
-  // Add helper to determine if notification is a received type
   const isReceivedRSC = [
     'FUNDRAISE_PAYOUT',
     'RSC_SUPPORT_ON_DIS',
@@ -44,20 +41,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     'BOUNTY_PAYOUT',
   ].includes(notification.type);
 
-  const IndicatorSection = (
-    <div className="w-2 flex-shrink-0 flex items-center justify-center self-center">
-      <div
-        className={clsx(
-          'w-2 h-2 rounded-full',
-          !notification.read ? 'bg-primary-500' : 'bg-transparent'
-        )}
-      ></div>
-    </div>
-  );
-
   const AvatarSection =
     notification.actionUser && notificationInfo.useAvatar ? (
-      <div className="flex-shrink-0 w-[40px] h-[40px]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <Avatar
           src={notification.actionUser?.authorProfile?.profileImage}
           alt={notification.actionUser?.fullName || 'User'}
@@ -66,103 +52,75 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         />
       </div>
     ) : (
-      <div
-        className={clsx(
-          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-white flex-shrink-0'
-        )}
-      >
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
         <Icon name={notificationInfo.icon} size={18} />
       </div>
     );
 
-  const ContentSection = (
-    <div className="flex-grow min-w-0">
-      <div className="flex items-center gap-2 mb-1">
-        {hubDetails && (
-          <div className="inline-block">
-            <TopicAndJournalBadge name={hubDetails.name} slug={hubDetails.slug} size="sm" />
-          </div>
-        )}
-        {rscAmount && (
-          <div className="inline-block">
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-3 border-b border-gray-200 px-4 py-4',
+        hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
+      )}
+      onClick={() => {
+        if (hasNavigationUrl && formattedNavigationUrl) {
+          router.push(formattedNavigationUrl);
+        }
+      }}
+    >
+      {AvatarSection}
+
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <p className="min-w-0 truncate text-sm font-semibold text-gray-900">{title}</p>
+          {rscAmount && (
             <CurrencyBadge
               amount={rscAmount}
               size="xs"
               variant={isReceivedRSC ? 'received' : 'badge'}
+              currency={showUSD ? 'USD' : 'RSC'}
               showText
-              className="py-0.5"
+              className="shrink-0 py-0.5"
             />
-          </div>
-        )}
-      </div>
-      <div className="text-sm font-medium text-gray-900">
-        {message}
-        {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
-          <Tooltip
-            content={
-              <p className="text-xs text-left p-1">
-                ResearchHub incentivizes scientists to share ongoing updates as their experiments
-                progress. There are no format or length requirements - interesting insights
-                described with brevity are preferred for keeping our community of funders informed
-                and interested in your work.
-              </p>
-            }
-            position="bottom"
-            width="w-72"
-          >
-            <Button
-              variant="ghost"
-              className="text-xs font-medium text-gray-600 cursor-help ml-1 h-auto w-auto p-0 rounded-none"
-              style={{ borderBottom: '1px dotted currentColor' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Learn more
-            </Button>
-          </Tooltip>
-        )}
-      </div>
-      <div className="text-xs text-gray-500 mt-1">
-        {formatTimestamp(notification.createdDate.toISOString())}
-      </div>
-    </div>
-  );
-
-  const NavigationIndicator = hasNavigationUrl && (
-    <div className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0">
-      <ChevronRight size={16} />
-    </div>
-  );
-
-  return (
-    <div className="group">
-      <div
-        className={clsx(
-          'relative py-3 px-2 border-b border-gray-200',
-          notification.read
-            ? hasNavigationUrl
-              ? 'hover:bg-gray-50'
-              : ''
-            : hasNavigationUrl
-              ? 'bg-primary-50/40 hover:bg-primary-50/60'
-              : 'bg-primary-50/40',
-          hasNavigationUrl ? 'cursor-pointer' : ''
-        )}
-        onClick={() => {
-          if (hasNavigationUrl && formattedNavigationUrl) {
-            router.push(formattedNavigationUrl);
-          }
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            {IndicatorSection}
-            <div className="ml-2 flex gap-3 items-center">
-              {AvatarSection}
-              {ContentSection}
-            </div>
-          </div>
-          {hasNavigationUrl && NavigationIndicator}
+          )}
         </div>
+
+        <p className="mt-0.5 text-sm text-gray-600 leading-snug">
+          {description}
+          {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
+            <Tooltip
+              content={
+                <p className="text-xs text-left p-1">
+                  ResearchHub incentivizes scientists to share ongoing updates as their experiments
+                  progress. There are no format or length requirements - interesting insights
+                  described with brevity are preferred for keeping our community of funders informed
+                  and interested in your work.
+                </p>
+              }
+              position="bottom"
+              width="w-72"
+            >
+              <Button
+                variant="ghost"
+                className="ml-1 inline h-auto w-auto cursor-help rounded-none p-0 text-xs font-medium text-gray-600"
+                style={{ borderBottom: '1px dotted currentColor' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                Learn more
+              </Button>
+            </Tooltip>
+          )}
+        </p>
+
+        <p className="mt-1 text-xs text-gray-400">
+          {formatTimeAgo(notification.createdDate.toISOString())}
+        </p>
+      </div>
+
+      <div className="flex flex-shrink-0 items-center gap-2 self-center">
+        {!notification.read && <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />}
+        {hasNavigationUrl && <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />}
       </div>
     </div>
   );
