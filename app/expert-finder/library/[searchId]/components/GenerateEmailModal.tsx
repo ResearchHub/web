@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useId } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, FileText, Sparkles } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
-import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { cn } from '@/utils/styles';
@@ -96,14 +95,46 @@ export function getTemplateDescription(value: string | null | undefined): string
 const CUSTOM_PLACEHOLDER =
   'e.g. Invitation to join an advisory board for a new research initiative';
 
+type CreationMode = 'ai' | 'template';
+
+interface CreationModeCardProps {
+  selected: boolean;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+}
+
+function CreationModeCard({ selected, icon, title, description, onClick }: CreationModeCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
+        selected
+          ? 'border-primary-600 bg-primary-50'
+          : 'border-gray-200 bg-white hover:border-gray-300'
+      )}
+    >
+      <div className={cn('mb-2', selected ? 'text-primary-600' : 'text-gray-500')}>{icon}</div>
+      <span
+        className={cn('text-sm font-semibold', selected ? 'text-primary-900' : 'text-gray-900')}
+      >
+        {title}
+      </span>
+      <span className="mt-1 text-sm leading-snug text-gray-500">{description}</span>
+    </button>
+  );
+}
+
 export function GenerateEmailModal({
   isOpen,
   onClose,
   experts,
   onConfirm,
 }: GenerateEmailModalProps) {
-  const aiCheckboxId = useId();
-  const [useAiGeneration, setUseAiGeneration] = useState(false);
+  const [creationMode, setCreationMode] = useState<CreationMode>('template');
   const [purpose, setPurpose] = useState<EmailTemplateKind>(
     EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration'
   );
@@ -115,7 +146,7 @@ export function GenerateEmailModal({
 
   useEffect(() => {
     if (isOpen) {
-      setUseAiGeneration(false);
+      setCreationMode('template');
       setPurpose(EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration');
       setCustomUseCase('');
       setSavedTemplateId(null);
@@ -127,13 +158,13 @@ export function GenerateEmailModal({
   const customTrimmed = customUseCase.trim();
   const canSubmitAi = !isCustom || customTrimmed.length > 0;
   const canSubmitFixed = savedTemplateId != null;
-  const canSubmit = useAiGeneration ? canSubmitAi : canSubmitFixed;
+  const canSubmit = creationMode === 'ai' ? canSubmitAi : canSubmitFixed;
 
   const selectedPurpose =
     EMAIL_TEMPLATE_OPTIONS.find((option) => option.value === purpose) ?? EMAIL_TEMPLATE_OPTIONS[0];
 
   const handleSubmit = () => {
-    if (useAiGeneration) {
+    if (creationMode === 'ai') {
       const template: string = isCustom ? `${CUSTOM_PREFIX} ${customTrimmed}` : purpose;
       onConfirm({ mode: 'ai', template });
     } else if (savedTemplateId != null) {
@@ -147,7 +178,7 @@ export function GenerateEmailModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Generate Outreach Emails"
-      size="lg"
+      size="xl"
       footer={
         <div className="flex items-center justify-end gap-2">
           <Button variant="outlined" size="sm" onClick={onClose}>
@@ -159,50 +190,30 @@ export function GenerateEmailModal({
         </div>
       }
     >
-      <div className="space-y-4">
-        {!useAiGeneration ? (
-          <Dropdown
-            label="Choose email template"
-            trigger={
-              <button
-                type="button"
-                className={cn(
-                  'flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
-                  savedTemplateId == null && 'text-gray-500'
-                )}
-              >
-                {savedTemplateId == null
-                  ? 'Choose email template…'
-                  : (templates.find((t) => t.id === savedTemplateId)?.name ??
-                    'Choose email template…')}
-                <ChevronDown
-                  className={cn(
-                    'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
-                    templateDropdownOpen && 'rotate-180'
-                  )}
-                />
-              </button>
-            }
-            onOpenChange={setTemplateDropdownOpen}
-            className="max-h-60 overflow-y-auto"
-          >
-            {templates.length === 0 ? (
-              <DropdownItem onClick={() => {}} className="text-gray-500 cursor-default" disabled>
-                No saved templates yet
-              </DropdownItem>
-            ) : (
-              templates.map((t) => (
-                <DropdownItem
-                  key={t.id}
-                  onClick={() => setSavedTemplateId(t.id)}
-                  className={savedTemplateId === t.id ? 'bg-gray-100 font-medium' : ''}
-                >
-                  {t.name}
-                </DropdownItem>
-              ))
-            )}
-          </Dropdown>
-        ) : (
+      <div className="space-y-5">
+        <div>
+          <p className="text-sm font-semibold text-gray-900 mb-3">
+            How would you like to create this email?
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <CreationModeCard
+              selected={creationMode === 'template'}
+              icon={<FileText className="h-5 w-5" aria-hidden />}
+              title="Use a template"
+              description="Reuse one of your saved email templates"
+              onClick={() => setCreationMode('template')}
+            />
+            <CreationModeCard
+              selected={creationMode === 'ai'}
+              icon={<Sparkles className="h-5 w-5" aria-hidden />}
+              title="Generate with AI"
+              description="Personalized for each expert based on the purpose you choose"
+              onClick={() => setCreationMode('ai')}
+            />
+          </div>
+        </div>
+
+        {creationMode === 'ai' ? (
           <>
             <Dropdown
               label="Email purpose"
@@ -264,14 +275,49 @@ export function GenerateEmailModal({
               </div>
             )}
           </>
+        ) : (
+          <Dropdown
+            label="Choose email template"
+            trigger={
+              <button
+                type="button"
+                className={cn(
+                  'flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
+                  savedTemplateId == null && 'text-gray-500'
+                )}
+              >
+                {savedTemplateId == null
+                  ? 'Choose email template…'
+                  : (templates.find((t) => t.id === savedTemplateId)?.name ??
+                    'Choose email template…')}
+                <ChevronDown
+                  className={cn(
+                    'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
+                    templateDropdownOpen && 'rotate-180'
+                  )}
+                />
+              </button>
+            }
+            onOpenChange={setTemplateDropdownOpen}
+            className="max-h-60 overflow-y-auto"
+          >
+            {templates.length === 0 ? (
+              <DropdownItem onClick={() => {}} className="text-gray-500 cursor-default" disabled>
+                No saved templates yet
+              </DropdownItem>
+            ) : (
+              templates.map((t) => (
+                <DropdownItem
+                  key={t.id}
+                  onClick={() => setSavedTemplateId(t.id)}
+                  className={savedTemplateId === t.id ? 'bg-gray-100 font-medium' : ''}
+                >
+                  {t.name}
+                </DropdownItem>
+              ))
+            )}
+          </Dropdown>
         )}
-
-        <Checkbox
-          id={aiCheckboxId}
-          checked={useAiGeneration}
-          onCheckedChange={setUseAiGeneration}
-          label="Use AI to generate the email"
-        />
       </div>
     </BaseModal>
   );
