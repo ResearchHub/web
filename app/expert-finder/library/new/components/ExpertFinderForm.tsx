@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
@@ -55,6 +55,18 @@ const defaultValues: ExpertFinderFormValues = {
   },
 };
 
+/**
+ * Parses the `unifiedDocumentId` query param used when arriving from the
+ * "Find experts" action on a work page, as opposed to the manual
+ * "New search" flow (pasting a URL) which has no such param.
+ */
+function getAutoStartUnifiedDocumentId(searchParams: ReturnType<typeof useSearchParams>): number | null {
+  const param = searchParams?.get('unifiedDocumentId');
+  if (!param) return null;
+  const parsed = Number.parseInt(param, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
 export function ExpertFinderForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -64,6 +76,13 @@ export function ExpertFinderForm() {
   const [selectedSearchId, setSelectedSearchId] = useState<number | null>(null);
   const [isResolvingUrl, setIsResolvingUrl] = useState(false);
   const [isEditingUrl, setIsEditingUrl] = useState(true);
+  const autoStartAttempted = useRef(false);
+
+  // Arriving with `unifiedDocumentId` in the URL means the user clicked "Find
+  // experts" from a work page. Skip the manual configuration form entirely
+  // and start the search immediately, going straight from loader to results.
+  const autoStartUnifiedDocumentId = getAutoStartUnifiedDocumentId(searchParams);
+  const isAutoStarting = autoStartUnifiedDocumentId != null;
 
   const {
     register,
@@ -132,6 +151,7 @@ export function ExpertFinderForm() {
   }, [urlValue, isEditingUrl, setValue]);
 
   useEffect(() => {
+    if (isAutoStarting) return;
     const param = searchParams?.get('unifiedDocumentId');
     const paramId = param ? Number.parseInt(param, 10) : Number.NaN;
     if (param && !Number.isNaN(paramId)) {
@@ -145,7 +165,32 @@ export function ExpertFinderForm() {
         scroll: false,
       });
     }
-  }, [searchParams, fetchedWork, setValue, router]);
+  }, [isAutoStarting, searchParams, fetchedWork, setValue, router]);
+
+  useEffect(() => {
+    if (!isAutoStarting || autoStartAttempted.current) return;
+    autoStartAttempted.current = true;
+
+    void (async () => {
+      try {
+        const response = await createSearch({
+          unified_document_id: autoStartUnifiedDocumentId!,
+          input_type: defaultValues.advanced.inputType,
+          config: {
+            expert_count: defaultValues.advanced.expertCount,
+            expertise_level: defaultValues.advanced.expertiseLevel,
+            region: defaultValues.advanced.region,
+            state: defaultValues.advanced.state,
+          },
+        });
+        setCreatedSearchId(response.searchId);
+      } catch (err) {
+        setResolveError(
+          err instanceof Error ? err.message : 'Failed to start search. Please try again.'
+        );
+      }
+    })();
+  }, [isAutoStarting, autoStartUnifiedDocumentId, createSearch]);
 
   const handleRerunSelect = useCallback(
     (search: ExpertSearchResult | null) => {
@@ -234,6 +279,18 @@ export function ExpertFinderForm() {
 
   if (createdSearchId !== null) {
     return <SearchSubmissionProgress searchId={createdSearchId} />;
+  }
+
+  if (isAutoStarting) {
+    if (resolveError) {
+      return <Alert variant="error">{resolveError}</Alert>;
+    }
+    return (
+      <div className="flex items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
+        <p className="text-sm text-gray-600">Starting search…</p>
+      </div>
+    );
   }
 
   const urlRegister = register('url');

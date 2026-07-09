@@ -10,6 +10,7 @@ import { AiPeerReviewSection } from './components/AiPeerReviewSection';
 import { buildWorkUrl } from '@/utils/url';
 import { DOISection } from './components/DOISection';
 import {
+  applyDemoPeerReviewOverrides,
   getDemoExpertPeerReviews,
   isDemoExpertReviewsProposalId,
 } from './lib/demoExpertReviews';
@@ -22,8 +23,10 @@ interface ProposalSidebarProps {
 export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
   // Demo-only: surface the scripted expert reviews in the sidebar's Peer
   // Reviews summary for the one demo proposal, alongside any real reviews.
+  // The real "AI Expert" review is rebranded as "AI Review" and, together
+  // with Attila's review, moved to the front of the list.
   const peerReviews = isDemoExpertReviewsProposalId(work.id)
-    ? [...getDemoExpertPeerReviews(), ...(work.peerReviews ?? [])]
+    ? applyDemoPeerReviewOverrides([...getDemoExpertPeerReviews(), ...(work.peerReviews ?? [])])
     : work.peerReviews;
 
   return (

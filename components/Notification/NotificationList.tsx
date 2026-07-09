@@ -13,7 +13,11 @@ export function NotificationList({ notifications, loading, error }: Notification
     return (
       <div>
         {[...Array(10)].map((_, index) => (
-          <NotificationSkeleton key={`initial-skeleton-${index}`} />
+          <NotificationSkeleton
+            key={`initial-skeleton-${index}`}
+            showBadge={index % 3 === 0}
+            showTitle={index % 4 === 1}
+          />
         ))}
       </div>
     );

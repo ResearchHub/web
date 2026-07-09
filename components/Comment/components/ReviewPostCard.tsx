@@ -86,7 +86,7 @@ export const ReviewPostCard: FC<ReviewPostCardProps> = ({
 
         <div className="mt-2 flex-1">
           {snippet && (
-            <p className="m-0 line-clamp-4 text-sm leading-snug text-gray-700">{snippet}</p>
+            <p className="m-0 line-clamp-[8] text-sm leading-snug text-gray-700">{snippet}</p>
           )}
           <button
             type="button"

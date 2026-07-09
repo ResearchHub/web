@@ -268,7 +268,13 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   ) {
     const { id, slug } = notification.work;
     if (id && slug) {
-      return `/proposal/${id}/${slug}`;
+      const defaultUrl = `/proposal/${id}/${slug}`;
+      // Demo notifications may point at a specific sub-page (e.g. `/reviews`) via
+      // an explicit navigationUrl; use it when it differs from the default.
+      if (notification.navigationUrl && notification.navigationUrl !== defaultUrl) {
+        return notification.navigationUrl;
+      }
+      return defaultUrl;
     }
   }
 

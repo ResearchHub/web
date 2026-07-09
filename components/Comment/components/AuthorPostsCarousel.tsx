@@ -6,6 +6,7 @@ import { cn } from '@/utils/styles';
 import type { PostCardData } from '../lib/postCard';
 import { EmbeddedPostCard } from './EmbeddedPostCard';
 import { ReviewPostCard } from './ReviewPostCard';
+import { VideoPostCard } from './VideoPostCard';
 
 interface AuthorPostsCarouselProps {
   cards: PostCardData[];
@@ -41,6 +42,14 @@ const CardForVariant: FC<{
     case 'review':
       return (
         <ReviewPostCard
+          data={card}
+          showRelatedWork={showRelatedWork}
+          showTypeBadge={showTypeBadge}
+        />
+      );
+    case 'video':
+      return (
+        <VideoPostCard
           data={card}
           showRelatedWork={showRelatedWork}
           showTypeBadge={showTypeBadge}

@@ -104,17 +104,15 @@ interface DemoNotificationSpec {
   reviewScore?: number;
   /** Playable video URL; when set, clicking opens a video modal. */
   videoUrl?: string;
+  /**
+   * Sub-path appended after `/proposal/{id}/{slug}` when navigating (e.g. `/reviews`).
+   * Defaults to the proposal's main page.
+   */
+  navigationSubPath?: string;
 }
 
 const DEMO_NOTIFICATIONS: DemoNotificationSpec[] = [
   // Featured demo items (top of the list).
-  {
-    type: DEMO_PROPOSAL_PEER_REVIEWED_TYPE,
-    proposal: PROPOSALS.msRemyelination,
-    person: PEOPLE.attila,
-    minutesAgo: 3,
-    reviewScore: 5.0,
-  },
   {
     type: DEMO_PROPOSAL_VIDEO_UPDATE_TYPE,
     proposal: PROPOSALS.msRemyelination,
@@ -122,13 +120,21 @@ const DEMO_NOTIFICATIONS: DemoNotificationSpec[] = [
     minutesAgo: 6,
     videoUrl: '/rus.MP4',
   },
-  // New proposal submissions.
   {
-    type: DEMO_PROPOSAL_SUBMITTED_TYPE,
-    proposal: PROPOSALS.ecmCheckpoint,
+    type: DEMO_PROPOSAL_PEER_REVIEWED_TYPE,
+    proposal: PROPOSALS.msRemyelination,
     person: PEOPLE.attila,
-    minutesAgo: 8,
+    minutesAgo: 3,
+    reviewScore: 5.0,
+    navigationSubPath: '/reviews',
   },
+  // New proposal submissions.
+  // {
+  //   type: DEMO_PROPOSAL_SUBMITTED_TYPE,
+  //   proposal: PROPOSALS.ecmCheckpoint,
+  //   person: PEOPLE.attila,
+  //   minutesAgo: 8,
+  // },
   {
     type: DEMO_PROPOSAL_SUBMITTED_TYPE,
     proposal: PROPOSALS.collagenCspg,
@@ -198,8 +204,8 @@ export function getDemoProposalNotifications(): Notification[] {
         spec.reviewScore !== undefined || spec.videoUrl !== undefined
           ? { reviewScore: spec.reviewScore, videoUrl: spec.videoUrl }
           : undefined,
-      navigationUrl: `/proposal/${spec.proposal.id}/${spec.proposal.slug}`,
-      read: false,
+      navigationUrl: `/proposal/${spec.proposal.id}/${spec.proposal.slug}${spec.navigationSubPath ?? ''}`,
+      read: spec.person.fullName === PEOPLE.attila.fullName,
       readDate: null,
       createdDate: new Date(now - spec.minutesAgo * 60 * 1000),
     } satisfies Notification;

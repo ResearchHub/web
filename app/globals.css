@@ -8,6 +8,13 @@
   --foreground: #171717;
 }
 
+/* TEMP (demo recording): hide the floating Next.js dev error/indicator toast
+   in the bottom-left. This only exists in dev; safe no-op in production.
+   Remove after recording. */
+nextjs-portal {
+  display: none !important;
+}
+
 /* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

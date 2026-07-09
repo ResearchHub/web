@@ -29,9 +29,15 @@ export interface PostCardReview extends PostCardBase {
   reviewContentFormat?: ContentFormat;
 }
 
-export type PostCardData = PostCardPost | PostCardReview;
+export interface PostCardVideo extends PostCardBase {
+  kind: 'video';
+  videoUrl: string;
+  posterUrl?: string;
+}
 
-const SNIPPET_MAX_LENGTH = 200;
+export type PostCardData = PostCardPost | PostCardReview | PostCardVideo;
+
+const SNIPPET_MAX_LENGTH = 360;
 
 export const getCommentSnippet = (comment: Comment, maxLength = SNIPPET_MAX_LENGTH): string => {
   try {

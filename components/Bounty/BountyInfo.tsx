@@ -200,15 +200,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
           <div className="flex items-start gap-6 min-w-0">
             <div className="flex flex-col leading-tight whitespace-nowrap">
               <span className="text-xs text-gray-500 uppercase tracking-wide">{bountyLabel}</span>
-              <span className="font-mono font-semibold text-primary-600 text-xl">
-                {formatCurrency({
-                  amount: Math.round(displayAmount),
-                  showUSD,
-                  exchangeRate,
-                  skipConversion: showUSD,
-                  shorten: true,
-                })}
-              </span>
+              <span className="font-mono font-semibold text-primary-600 text-xl">$150</span>
             </div>
 
             <div className="hidden sm:flex flex-col leading-tight">

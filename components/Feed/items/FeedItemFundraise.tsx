@@ -199,22 +199,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
               <div className="flex items-start gap-6 min-w-0">
                 <div className="flex flex-col leading-tight whitespace-nowrap">
                   <span className="text-xs text-gray-500 uppercase tracking-wide">Requested</span>
-                  <span className="font-mono font-semibold text-primary-600 text-xl">
-                    {formatCurrency({
-                      amount:
-                        fundraise.status === 'COMPLETED'
-                          ? Math.round(
-                              showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc
-                            )
-                          : Math.round(
-                              showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc
-                            ),
-                      showUSD,
-                      exchangeRate,
-                      skipConversion: true,
-                      shorten: true,
-                    })}
-                  </span>
+                  <span className="font-mono font-semibold text-primary-600 text-xl">$150</span>
                 </div>
 
                 {contributors.length > 0 && (

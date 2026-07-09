@@ -4,6 +4,7 @@ import { FC, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { PeerReview } from '@/types/work';
 import { Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -47,6 +48,9 @@ export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, r
                   >
                     {authorProfile.fullName}
                   </Link>
+                  {authorProfile.isVerified && (
+                    <VerifiedBadge size="xs" className="shrink-0" />
+                  )}
                 </div>
                 <div className="flex items-center gap-0.5 shrink-0">
                   {Array.from({ length: 5 }).map((_, i) => (

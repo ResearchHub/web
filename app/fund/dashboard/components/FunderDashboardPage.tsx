@@ -104,7 +104,7 @@ export const FunderDashboardPage: FC = () => {
 
   return (
     <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
-      {user.isModerator && (
+      {/* {user.isModerator && (
         <div className="mb-5 max-w-xs">
           <label className="text-xs font-medium text-gray-500 mb-1 block">
             View as user (moderator only)
@@ -115,11 +115,11 @@ export const FunderDashboardPage: FC = () => {
             placeholder="Search for a funder..."
           />
         </div>
-      )}
+      )} */}
 
       <div className="mb-5">
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-          {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
+          {firstName ? `Welcome back, Myelin Research Initiative.` : 'Welcome back.'}
         </h1>
         <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
       </div>

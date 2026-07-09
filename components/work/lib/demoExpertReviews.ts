@@ -678,3 +678,105 @@ export function getDemoExpertPeerReviews(): PeerReview[] {
     isAssessed: true,
   }));
 }
+
+// -- Display overrides for the demo proposal --------------------------------
+// The proposal already has one real, backend-generated review from the AI
+// reviewer account (identified by `NEXT_PUBLIC_AI_REVIEW_USER_ID`, the same
+// env var `FeedItemComment` uses to detect it). For this demo it's rebranded
+// as "AI Review" with a dedicated avatar and a verified badge, and the whole
+// review list is reordered so Attila's review leads, followed by the AI
+// review, then the rest in their original order.
+
+const AI_REVIEWER_USER_ID = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
+const AI_REVIEWER_FIRST_NAME = 'AI';
+const AI_REVIEWER_LAST_NAME = 'Review';
+const AI_REVIEWER_AVATAR =
+  'https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/02/blob_Yfubd6a';
+
+function isAiReviewerUserId(userId: unknown): boolean {
+  return AI_REVIEWER_USER_ID != null && String(userId ?? '') === String(AI_REVIEWER_USER_ID);
+}
+
+/** Full names listed first, in this order; everything else keeps its relative order after them. */
+const DEMO_REVIEW_PRIORITY_ORDER = ['Attila Karsi, PhD', `${AI_REVIEWER_FIRST_NAME} ${AI_REVIEWER_LAST_NAME}`];
+
+function reorderByPriority<T>(items: T[], getName: (item: T) => string): T[] {
+  const rest: T[] = [];
+  const byName = new Map<string, T[]>();
+
+  items.forEach((item) => {
+    const name = getName(item);
+    if (DEMO_REVIEW_PRIORITY_ORDER.includes(name)) {
+      const bucket = byName.get(name) ?? [];
+      bucket.push(item);
+      byName.set(name, bucket);
+    } else {
+      rest.push(item);
+    }
+  });
+
+  const ordered = DEMO_REVIEW_PRIORITY_ORDER.flatMap((name) => byName.get(name) ?? []);
+  return [...ordered, ...rest];
+}
+
+/**
+ * Rebrands the real AI-reviewer review (raw API comment shape) as "AI Review"
+ * with a new avatar and verified badge, then reorders the list per
+ * `DEMO_REVIEW_PRIORITY_ORDER`. No-op for any comment that isn't the AI review.
+ */
+export function applyDemoReviewOverrides(rawComments: any[]): any[] {
+  const overridden = rawComments.map((raw) => {
+    const createdBy = raw?.created_by;
+    if (!isAiReviewerUserId(createdBy?.id)) return raw;
+
+    const authorProfile = createdBy?.author_profile;
+    return {
+      ...raw,
+      created_by: {
+        ...createdBy,
+        first_name: AI_REVIEWER_FIRST_NAME,
+        last_name: AI_REVIEWER_LAST_NAME,
+        is_verified: true,
+        author_profile: authorProfile
+          ? {
+              ...authorProfile,
+              first_name: AI_REVIEWER_FIRST_NAME,
+              last_name: AI_REVIEWER_LAST_NAME,
+              profile_image: AI_REVIEWER_AVATAR,
+              is_verified: true,
+            }
+          : authorProfile,
+      },
+    };
+  });
+
+  return reorderByPriority(
+    overridden,
+    (raw) => `${raw?.created_by?.first_name ?? ''} ${raw?.created_by?.last_name ?? ''}`.trim()
+  );
+}
+
+/**
+ * Same rebrand + reorder as `applyDemoReviewOverrides`, for the already
+ * transformed `PeerReview[]` list used by the proposal sidebar.
+ */
+export function applyDemoPeerReviewOverrides(peerReviews: PeerReview[]): PeerReview[] {
+  const overridden = peerReviews.map((review) => {
+    if (!isAiReviewerUserId(review.createdBy.id)) return review;
+
+    return {
+      ...review,
+      createdBy: {
+        ...review.createdBy,
+        authorProfile: {
+          ...review.createdBy.authorProfile,
+          fullName: `${AI_REVIEWER_FIRST_NAME} ${AI_REVIEWER_LAST_NAME}`,
+          profileImage: AI_REVIEWER_AVATAR,
+          isVerified: true,
+        },
+      },
+    };
+  });
+
+  return reorderByPriority(overridden, (review) => review.createdBy.authorProfile.fullName);
+}

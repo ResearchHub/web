@@ -408,15 +408,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                   <span className="text-xs text-gray-500 uppercase tracking-wide">
                     {bountyLabel}
                   </span>
-                  <span className="font-mono font-semibold text-primary-600 text-xl">
-                    {formatCurrency({
-                      amount: Math.round(displayBountyAmount),
-                      showUSD,
-                      exchangeRate,
-                      skipConversion: showUSD,
-                      shorten: true,
-                    })}
-                  </span>
+                  <span className="font-mono font-semibold text-primary-600 text-xl">$150</span>
                 </div>
 
                 {showBackingUI && contributors.length > 0 && (
