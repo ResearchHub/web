@@ -60,8 +60,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 border-b border-gray-200 px-4 py-4',
-        hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
+        'flex items-start gap-3 border-b border-gray-200 px-4 py-4 transition-colors',
+        !notification.read && 'bg-primary-50',
+        hasNavigationUrl && 'cursor-pointer',
+        notification.read ? 'hover:bg-gray-50' : 'hover:bg-primary-100'
       )}
       onClick={() => {
         if (hasNavigationUrl && formattedNavigationUrl) {
@@ -118,8 +120,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         </p>
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-2 self-center">
-        {!notification.read && <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />}
+      <div className="flex flex-shrink-0 items-center self-center">
         {hasNavigationUrl && <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />}
       </div>
     </div>

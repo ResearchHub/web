@@ -85,6 +85,8 @@ const AvailableFundingSection = () => {
               slug: content.slug,
             });
             const amount = showUSD ? grant.amount.usd : grant.amount.rsc;
+            const organization = grant.organization?.trim();
+            const applicantCount = grant.applicants?.length ?? 0;
 
             return (
               <Link
@@ -96,17 +98,17 @@ const AvailableFundingSection = () => {
                   <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2">
                     {grant.shortTitle || content.title}
                   </h4>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
-                    <span className="truncate">
-                      {grant.organization || content.createdBy?.fullName}
-                    </span>
-                    {grant.applicants?.length > 0 && (
-                      <span className="flex items-center gap-1 flex-shrink-0">
-                        <Users size={12} />
-                        {grant.applicants.length}
-                      </span>
-                    )}
-                  </div>
+                  {(organization || applicantCount > 0) && (
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
+                      {organization && <span className="truncate">{organization}</span>}
+                      {applicantCount > 0 && (
+                        <span className="flex items-center gap-1 flex-shrink-0">
+                          <Users size={12} />
+                          {applicantCount}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="mt-1.5 text-sm font-semibold font-mono text-gray-900">
                     {formatCurrency({
                       amount,

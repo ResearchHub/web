@@ -24,8 +24,10 @@ export default function NotificationsPage() {
   }, [fetchNotifications]);
 
   useEffect(() => {
-    markAllAsRead();
-  }, []);
+    return () => {
+      markAllAsRead();
+    };
+  }, [markAllAsRead]);
 
   const handleLoadMore = () => {
     if (!isLoadingMore && notificationData.next) {
