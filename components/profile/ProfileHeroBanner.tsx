@@ -16,6 +16,24 @@ import { ProfileEditButton } from './ProfileEditButton';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileEducation } from './ProfileEducation';
 import { ProfileEditModal } from './ProfileEditModal';
+import { cn } from '@/utils/styles';
+
+const PROFILE_TAB_WIDTHS = ['w-20', 'w-16', 'w-16', 'w-24'] as const;
+
+export function ProfileTabsSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="flex items-center space-x-8 -mb-px animate-pulse">
+      {Array.from({ length: count }, (_, i) => (
+        <div
+          key={i}
+          className={cn('py-3 border-b-2', i === 0 ? 'border-primary-200' : 'border-transparent')}
+        >
+          <div className={cn('h-4 bg-gray-200 rounded', PROFILE_TAB_WIDTHS[i] ?? 'w-16')} />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface ProfileHeroBannerProps {
   author: AuthorProfile;
@@ -150,14 +168,20 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
   );
 }
 
-export function ProfileHeroBannerSkeleton({ tabBar }: { tabBar?: React.ReactNode }) {
+export function ProfileHeroBannerSkeleton({
+  tabBar,
+  tabCount = 3,
+}: {
+  tabBar?: React.ReactNode;
+  tabCount?: number;
+}) {
   return (
-    <HeroHeader tabBar={tabBar}>
-      <div className="animate-pulse flex flex-col sm:flex-row gap-6">
+    <HeroHeader tabBar={tabBar ?? <ProfileTabsSkeleton count={tabCount} />}>
+      <div className="animate-pulse flex flex-col sm:!flex-row gap-6">
         <div className="flex-shrink-0">
           <div className="w-32 h-32 bg-gray-200 rounded-full ring-4 ring-white" />
         </div>
-        <div className="flex flex-col flex-1 min-w-0 gap-3">
+        <div className="flex flex-col flex-1 min-w-0 gap-4">
           <div className="h-8 bg-gray-200 rounded w-48" />
           <div className="h-4 bg-gray-200 rounded w-40" />
           <div className="flex items-center gap-2">

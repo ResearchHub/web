@@ -4,8 +4,11 @@ import { WorkRightSidebarSkeleton } from '@/components/work/WorkRightSidebarSkel
 
 export default function PostLoading() {
   return (
-    <PageLayout topBanner={<WorkHeaderSkeleton />} rightSidebar={<WorkRightSidebarSkeleton />}>
-      <WorkSkeleton />
+    <PageLayout
+      topBanner={<WorkHeaderSkeleton tabCount={4} />}
+      rightSidebar={<WorkRightSidebarSkeleton />}
+    >
+      <WorkSkeleton showPdf={false} />
     </PageLayout>
   );
 }

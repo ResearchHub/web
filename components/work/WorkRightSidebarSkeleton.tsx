@@ -3,14 +3,7 @@
 export const WorkRightSidebarSkeleton = () => {
   return (
     <div className="space-y-8 animate-pulse">
-      {/* Earning Opportunity Banner skeleton */}
-      <div className="bg-gray-100 rounded-lg p-4">
-        <div className="h-5 w-3/4 bg-gray-200 rounded mb-2" />
-        <div className="h-4 w-full bg-gray-200 rounded mb-3" />
-        <div className="h-9 w-full bg-gray-200 rounded" />
-      </div>
-
-      {/* Topics Section skeleton */}
+      {/* Topics Section */}
       <div>
         <div className="h-5 w-16 bg-gray-200 rounded mb-3" />
         <div className="flex flex-wrap gap-2">
@@ -20,19 +13,19 @@ export const WorkRightSidebarSkeleton = () => {
         </div>
       </div>
 
-      {/* DOI Section skeleton */}
+      {/* DOI Section */}
       <div>
         <div className="h-5 w-10 bg-gray-200 rounded mb-2" />
         <div className="h-4 w-full bg-gray-200 rounded" />
       </div>
 
-      {/* License Section skeleton */}
+      {/* License Section */}
       <div>
         <div className="h-5 w-16 bg-gray-200 rounded mb-2" />
         <div className="h-4 w-24 bg-gray-200 rounded" />
       </div>
 
-      {/* Formats Section skeleton */}
+      {/* Formats Section */}
       <div>
         <div className="h-5 w-20 bg-gray-200 rounded mb-3" />
         <div className="flex gap-2">

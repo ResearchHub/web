@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { PillTabs } from '@/components/ui/PillTabs';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
+import { ActivityCardSkeletonList } from '@/components/Activity/ActivityCardSkeleton';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
 import { ActivityScope } from '@/services/activity.service';
 import { GrantService } from '@/services/grant.service';
@@ -105,22 +106,7 @@ export default function ActivityPage() {
             <ActivityCardFull key={entry.id} entry={entry} />
           ))}
 
-          {(isLoading || isLoadingMore) && (
-            <div className="py-8 space-y-6">
-              {[...Array(15)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="flex gap-2.5">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-1/3" />
-                      <div className="h-3 bg-gray-200 rounded w-2/3" />
-                      <div className="h-3 bg-gray-200 rounded w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {(isLoading || isLoadingMore) && <ActivityCardSkeletonList />}
 
           {!isLoading && !isLoadingMore && entries.length === 0 && (
             <div className="py-12 text-center">

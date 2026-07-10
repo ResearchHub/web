@@ -24,6 +24,7 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
         loadMore={loadMore}
+        skeletonVariant="fundraise"
         showFundraiseHeaders={false}
         showGrantHeaders={false}
         showPostHeaders={false}

@@ -2,35 +2,24 @@
 
 import { ReactNode, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { RightSidebarSkeleton } from './RightSidebarSkeleton';
+import { RightSidebar } from '../RightSidebar';
 
-const RightSidebar = dynamic(() => import('../RightSidebar').then((mod) => mod.RightSidebar), {
-  ssr: true,
-});
+function getSidebarInstanceKey(pathname: string, rightSidebar: boolean | ReactNode): string {
+  if (typeof rightSidebar !== 'boolean') {
+    return `custom:${pathname}`;
+  }
 
-const RightSidebarSkeleton = () => (
-  <div className="p-4 pt-0">
-    <div className="mb-6 h-40 bg-gray-100 rounded-lg animate-pulse" />
-    <div className="space-y-2">
-      <div className="h-4 bg-gray-100 rounded w-1/2 animate-pulse" />
-      <div className="space-y-3">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-200 rounded-full" />
-              <div className="h-4 bg-gray-200 rounded w-20" />
-            </div>
-            <div className="h-7 bg-gray-200 rounded-full w-16" />
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+  if (pathname.startsWith('/paper/create')) {
+    return 'rhj-create';
+  }
+
+  return 'default';
+}
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
   const pathname = usePathname();
@@ -57,8 +46,11 @@ export function RightSidebarContainer({
   isCompact,
   contentClassName,
 }: RightSidebarContainerProps) {
+  const pathname = usePathname();
   const sidebarHeight = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
+  const sidebarKey = getSidebarInstanceKey(pathname, rightSidebar);
+  const sidebarFallback = <RightSidebarSkeleton />;
 
   return (
     <>
@@ -71,8 +63,8 @@ export function RightSidebarContainer({
         )}
       >
         <div className={cn('p-4 h-full', contentClassName)}>
-          <Suspense fallback={<RightSidebarSkeleton />}>
-            <RightSidebarContent rightSidebar={rightSidebar} />
+          <Suspense fallback={sidebarFallback}>
+            <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
           </Suspense>
         </div>
       </aside>
@@ -83,8 +75,8 @@ export function RightSidebarContainer({
           onClose={() => setMobileSidebarOpen(false)}
           height="85vh"
         >
-          <Suspense fallback={<RightSidebarSkeleton />}>
-            <RightSidebarContent rightSidebar={rightSidebar} />
+          <Suspense fallback={sidebarFallback}>
+            <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
           </Suspense>
         </SwipeableDrawer>
       </div>

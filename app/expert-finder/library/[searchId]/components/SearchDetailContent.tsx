@@ -16,6 +16,7 @@ import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './Generate
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
+import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
 import type { ExpertResult } from '@/types/expertFinder';
 
 export interface SearchDetailContentProps {
@@ -73,15 +74,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     (searchDetail.status === 'pending' || searchDetail.status === 'processing');
 
   if (isLoading && !searchDetail) {
-    return (
-      <div className="w-full max-w-5xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-          <div className="h-32 bg-gray-200 rounded" />
-        </div>
-      </div>
-    );
+    return <SearchDetailSkeleton />;
   }
 
   if (error && !searchDetail) {
