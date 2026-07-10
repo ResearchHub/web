@@ -22,7 +22,6 @@ export function CatalystLoggedInBody({
   const router = useRouter();
   const isMobile = variant === 'mobile';
 
-  // Sign out across both RH apps, then return here so the attendee can re-auth with the correct email.
   const handleSignOut = () => {
     AuthSharingService.removeSharedAuthToken();
     AnalyticsService.clearUserSession();

@@ -13,7 +13,7 @@ export function CatalystScreenShell({
   contentLayout = 'stack',
 }: Readonly<CatalystScreenShellProps>) {
   return (
-    <div className="catalyst-shell">
+    <div className="catalyst-shell min-h-screen min-h-dvh bg-[#0c0720]">
       <main className="screen">
         <CatalystVioletBackdrop />
         <div className={`content ${contentLayout === 'spread' ? 'content--spread' : ''}`}>
