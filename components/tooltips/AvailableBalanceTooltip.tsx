@@ -13,7 +13,7 @@ export function AvailableBalanceTooltip({
   children,
   position = 'top',
   wrapperClassName,
-}: AvailableBalanceTooltipProps) {
+}: Readonly<AvailableBalanceTooltipProps>) {
   return (
     <RSCBalanceTooltip title="Available" position={position} wrapperClassName={wrapperClassName}>
       {children}

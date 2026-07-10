@@ -12,7 +12,7 @@ export function WalletCompositionBar({
   availableRsc,
   promotionalRsc,
   fundingCreditsRsc,
-}: WalletCompositionBarProps) {
+}: Readonly<WalletCompositionBarProps>) {
   const total = availableRsc + promotionalRsc + fundingCreditsRsc;
   if (total <= 0) return null;
 

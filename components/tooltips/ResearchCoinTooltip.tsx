@@ -13,7 +13,7 @@ export function ResearchCoinTooltip({
   children,
   position = 'top',
   wrapperClassName,
-}: ResearchCoinTooltipProps) {
+}: Readonly<ResearchCoinTooltipProps>) {
   return (
     <RSCBalanceTooltip title="ResearchCoin" position={position} wrapperClassName={wrapperClassName}>
       {children}

@@ -20,7 +20,7 @@ export function RSCBalanceTooltip({
   children,
   position = 'top',
   wrapperClassName,
-}: RSCBalanceTooltipProps) {
+}: Readonly<RSCBalanceTooltipProps>) {
   const content = (
     <div className="text-left">
       <div className="text-sm font-bold text-white mb-1">{title}</div>

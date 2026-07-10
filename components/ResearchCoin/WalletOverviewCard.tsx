@@ -55,7 +55,7 @@ export function WalletOverviewCard({
   onDeposit,
   onWithdraw,
   onFundResearch,
-}: WalletOverviewCardProps) {
+}: Readonly<WalletOverviewCardProps>) {
   const balance = formatBalance(availableRsc, exchangeRate);
   const lockedBalance = formatBalance(fundingCreditsRsc, exchangeRate);
 
@@ -233,7 +233,15 @@ interface AssetRowProps {
   className?: string;
 }
 
-function AssetRow({ icon, name, subtext, balance, trailing, isLast, className }: AssetRowProps) {
+function AssetRow({
+  icon,
+  name,
+  subtext,
+  balance,
+  trailing,
+  isLast,
+  className,
+}: Readonly<AssetRowProps>) {
   const borderClass = isLast ? '' : 'border-b border-gray-100';
   return (
     <div
@@ -258,7 +266,7 @@ function AssetRow({ icon, name, subtext, balance, trailing, isLast, className }:
   );
 }
 
-function BalanceCell({ primary, secondary }: { primary: string; secondary?: string }) {
+function BalanceCell({ primary, secondary }: Readonly<{ primary: string; secondary?: string }>) {
   return (
     <div className="min-w-0">
       <div className="h-10 flex items-center justify-end min-w-0">
@@ -277,7 +285,7 @@ function BalanceCell({ primary, secondary }: { primary: string; secondary?: stri
   );
 }
 
-function ResponsiveUsdLabel({ value, className }: { value: string; className: string }) {
+function ResponsiveUsdLabel({ value, className }: Readonly<{ value: string; className: string }>) {
   return <div className={className}>{stripUsdSuffix(value)}</div>;
 }
 
@@ -290,7 +298,7 @@ function BalanceSkeleton() {
   );
 }
 
-function CurrencyMenu({ items }: { items: CurrencyMenuItem[] }) {
+function CurrencyMenu({ items }: Readonly<{ items: CurrencyMenuItem[] }>) {
   return (
     <BaseMenu
       align="end"

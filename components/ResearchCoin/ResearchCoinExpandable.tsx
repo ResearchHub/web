@@ -47,7 +47,7 @@ export function ResearchCoinExpandable({
   exchangeRate,
   isBalanceReady,
   defaultExpanded = false,
-}: ResearchCoinExpandableProps) {
+}: Readonly<ResearchCoinExpandableProps>) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const combinedRsc = availableRsc + promotionalRsc;
   const combined = formatPair(combinedRsc, showUSD, exchangeRate);
@@ -129,6 +129,16 @@ export function ResearchCoinExpandable({
   );
 }
 
+interface SubtierRowProps {
+  dotColor: string;
+  label: string;
+  meta: string;
+  tooltip: ReactNode;
+  primary: string;
+  secondary: string;
+  isBalanceReady: boolean;
+}
+
 function SubtierRow({
   dotColor,
   label,
@@ -137,15 +147,7 @@ function SubtierRow({
   primary,
   secondary,
   isBalanceReady,
-}: {
-  dotColor: string;
-  label: string;
-  meta: string;
-  tooltip: ReactNode;
-  primary: string;
-  secondary: string;
-  isBalanceReady: boolean;
-}) {
+}: Readonly<SubtierRowProps>) {
   return (
     <div className="flex w-full items-start gap-3 px-4 sm:px-6 py-3 min-w-0 bg-gray-100">
       <div className="shrink-0 w-8 h-8 flex items-center justify-center" aria-hidden>
@@ -172,7 +174,10 @@ function SubtierRow({
   );
 }
 
-function ParentBalanceCell({ primary, secondary }: { primary: string; secondary?: string }) {
+function ParentBalanceCell({
+  primary,
+  secondary,
+}: Readonly<{ primary: string; secondary?: string }>) {
   return (
     <div className="min-w-0">
       <div className="h-10 flex items-center justify-end min-w-0">
@@ -189,7 +194,10 @@ function ParentBalanceCell({ primary, secondary }: { primary: string; secondary?
   );
 }
 
-function SubtierBalanceCell({ primary, secondary }: { primary: string; secondary?: string }) {
+function SubtierBalanceCell({
+  primary,
+  secondary,
+}: Readonly<{ primary: string; secondary?: string }>) {
   return (
     <div className="min-w-0">
       <div className="text-xs sm:text-sm font-bold text-gray-900 leading-none truncate">

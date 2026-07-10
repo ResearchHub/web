@@ -14,7 +14,7 @@ export function PromotionalBalanceTooltip({
   children,
   position = 'top',
   wrapperClassName,
-}: PromotionalBalanceTooltipProps) {
+}: Readonly<PromotionalBalanceTooltipProps>) {
   const content = (
     <div className="text-left">
       <div className="text-sm font-bold text-white mb-1">Promotional balance</div>
