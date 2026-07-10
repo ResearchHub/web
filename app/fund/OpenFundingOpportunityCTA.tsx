@@ -39,7 +39,7 @@ export function OpenFundingOpportunityCTA() {
           Funding Opportunity
         </Button>
 
-        <div className="pointer-events-none absolute left-0 top-full z-10 mt-2 hidden w-full rounded-md border border-gray-900 bg-gray-900 px-4 py-3 text-left text-sm text-white shadow-md group-hover:block max-sm:!hidden">
+        <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-full rounded-md border border-gray-900 bg-gray-900 px-4 py-3 text-left text-sm text-white shadow-md group-hover:block max-sm:!hidden">
           <div className="font-medium">Fund research with:</div>
           <ul className="mt-1.5 space-y-1">
             {FUNDING_METHODS.map((method) => (
