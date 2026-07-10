@@ -1,6 +1,5 @@
 import { FC } from 'react';
 import {
-  SkeletonCardImageMobile,
   SkeletonCardImageRight,
   SkeletonCardShell,
   SkeletonDescriptionLines,

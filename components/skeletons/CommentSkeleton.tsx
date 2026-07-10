@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import {
   SkeletonCardShell,
+  SkeletonFeedItemActionsFooter,
   SkeletonFeedItemHeader,
   SkeletonPrimaryActionPanel,
-  SkeletonVoteCommentActionsFooter,
 } from '@/components/Feed/skeletons/shared';
 
 type CommentSkeletonType = 'GENERIC_COMMENT' | 'REVIEW' | 'BOUNTY' | 'ANSWER' | 'AUTHOR_UPDATE';
@@ -67,7 +67,7 @@ const StandardCommentSkeleton: FC<{ commentType: CommentSkeletonType }> = ({ com
         <ContentLines />
       </div>
       <div className="border-t border-gray-200 px-4 py-3">
-        <SkeletonVoteCommentActionsFooter />
+        <SkeletonFeedItemActionsFooter />
       </div>
     </SkeletonCardShell>
   </div>

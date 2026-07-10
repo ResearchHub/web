@@ -73,12 +73,6 @@ export const SkeletonFeedItemActionsFooter: FC = () => (
   </div>
 );
 
-/** @deprecated Use `SkeletonFeedItemActionsFooter` */
-export const SkeletonActionsFooter: FC = () => <SkeletonFeedItemActionsFooter />;
-
-/** @deprecated Use `SkeletonFeedItemActionsFooter` */
-export const SkeletonVoteCommentActionsFooter: FC = () => <SkeletonFeedItemActionsFooter />;
-
 export const SkeletonPrimaryActionPanel: FC<{ buttonWidth?: string }> = ({
   buttonWidth = 'w-24',
 }) => (
