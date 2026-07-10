@@ -46,7 +46,7 @@ export function CatalystArrivalBody({
 
     const id = setInterval(() => {
       setYr((prev) => {
-        if (prev === 0 && holdRef.current < 3) {
+        if (prev === 0 && holdRef.current < 2) {
           holdRef.current += 1;
           return prev;
         }
@@ -61,7 +61,10 @@ export function CatalystArrivalBody({
   const value = yieldRate !== null ? creditAmount * (1 + yieldRate * yr) : null;
   const yearWord = yr === 1 ? 'year' : 'years';
   const phaseLabel = yr === 0 ? 'Your starting balance today' : `After ${yr} ${yearWord}`;
-  const yrText = yieldLabel !== null ? `${phaseLabel} · ${yieldLabel}` : null;
+  let yrText: string | null = null;
+  if (isReady) {
+    yrText = yr === 0 && yieldLabel !== null ? `${phaseLabel} · ${yieldLabel}` : phaseLabel;
+  }
 
   return (
     <>

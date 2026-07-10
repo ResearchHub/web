@@ -12,7 +12,6 @@ import { useCatalystLayout } from './useCatalystLayout';
 
 type Step = 'arrival' | 'auth';
 
-/** Tailwind-only so first paint never FOUCs styled-jsx (white page + bare "Catalyst"). */
 function CatalystLoadingState() {
   return (
     <div
