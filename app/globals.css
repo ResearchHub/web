@@ -113,4 +113,9 @@ mark {
   .page-layout-with-promo-banner {
     padding-top: 120px !important;
   }
+
+  /* Reserve space for fixed MobileBottomNav (h-16 + safe-area inset). */
+  .page-layout-with-mobile-bottom-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
 }
