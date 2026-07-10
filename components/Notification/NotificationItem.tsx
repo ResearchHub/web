@@ -43,14 +43,14 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
   const AvatarSection =
     notification.actionUser && notificationInfo.useAvatar ? (
-      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-        <Avatar
-          src={notification.actionUser?.authorProfile?.profileImage}
-          alt={notification.actionUser?.fullName || 'User'}
-          size="md"
-          authorId={notification.actionUser?.authorProfile?.id}
-        />
-      </div>
+      <Avatar
+        className="flex-shrink-0"
+        src={notification.actionUser?.authorProfile?.profileImage}
+        alt={notification.actionUser?.fullName || 'User'}
+        size="md"
+        authorId={notification.actionUser?.authorProfile?.id}
+        onClick={(e) => e.stopPropagation()}
+      />
     ) : (
       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
         <Icon name={notificationInfo.icon} size={18} />
