@@ -14,23 +14,15 @@ export function NotificationList({ notifications, loading, error }: Notification
   }
 
   if (error) {
-    return (
-      <div className="p-4 text-sm rounded-lg bg-red-50 text-red-600 border border-red-200">
-        {error}
-      </div>
-    );
+    return <p className="py-12 text-center text-sm text-red-600">{error}</p>;
   }
 
   if (!notifications?.length) {
-    return (
-      <div className="p-4 text-sm rounded-lg bg-gray-50 text-gray-600 border border-gray-200">
-        No notifications
-      </div>
-    );
+    return <p className="py-12 text-center text-sm text-gray-500">No notifications</p>;
   }
 
   return (
-    <div className="bg-white">
+    <div>
       {notifications.map((notification) => (
         <NotificationItem key={notification.id} notification={notification} />
       ))}

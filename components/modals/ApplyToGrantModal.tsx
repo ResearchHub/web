@@ -167,7 +167,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         key={noteId}
         onClick={() => handleSelectDraftNote(noteId)}
         className={cn(
-          'px-3 py-2 rounded-lg border cursor-pointer transition-all duration-200',
+          'min-w-0 px-3 py-2 rounded-lg border cursor-pointer transition-all duration-200',
           isSelected
             ? 'border-blue-300 bg-blue-50'
             : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
@@ -186,7 +186,10 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                 </>
               )}
             </div>
-            <h4 className="mt-0.5 truncate text-sm font-medium leading-snug text-gray-900">
+            <h4
+              className="mt-0.5 truncate text-sm font-medium leading-snug text-gray-900"
+              title={note.title || 'Untitled'}
+            >
               {note.title || 'Untitled'}
             </h4>
           </div>
@@ -209,11 +212,11 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       onClose={onClose}
       showCloseButton={false}
       padding="p-0"
-      className="md:!w-auto md:!h-auto md:!max-h-[88vh] md:!rounded-2xl md:!max-w-[760px]"
+      className="md:!w-auto md:!h-auto md:!max-h-[88vh] md:!rounded-2xl md:!max-w-[760px] overflow-x-hidden"
     >
-      <div className="flex h-full flex-col md:flex-row">
+      <div className="flex h-full min-w-0 flex-col md:flex-row">
         {/* Left visual rail */}
-        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-5 md:w-[300px] md:px-9 md:py-8">
+        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-5 md:w-[300px] md:max-w-[300px] md:px-9 md:py-8">
           {/* Mobile close button */}
           <button
             type="button"
@@ -235,7 +238,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             style={{ background: '#bcd2ff' }}
           />
 
-          <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="relative z-10 flex w-full min-w-0 max-w-full flex-col items-center text-center">
             <div className="mb-2 flex h-[100px] items-center justify-center md:h-[230px]">
               <div className="origin-center scale-[0.42] md:scale-100">
                 <AnimatedProposal scale={0.66} />
@@ -254,7 +257,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         </div>
 
         {/* Right content */}
-        <div className="relative flex min-h-0 flex-1 flex-col p-6 md:p-8">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-6 md:p-8">
           <button
             type="button"
             onClick={onClose}
@@ -264,7 +267,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             <X className="h-4 w-4" />
           </button>
 
-          <div className="flex items-center justify-between pr-10">
+          <div className="flex items-center justify-between gap-3 pr-10">
             <h3 className="text-sm font-medium text-gray-900">Choose how to apply</h3>
             <Tooltip
               content="Proposals are an ideal format for applying to funding. Share your research plan and funding needs upfront."
