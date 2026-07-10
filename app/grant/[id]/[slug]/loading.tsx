@@ -10,7 +10,7 @@ export default function GrantSlugLoading() {
 
       <div className="mt-4 space-y-8">
         {Array.from({ length: 3 }, (_, i) => (
-          <FeedItemSkeleton key={i} />
+          <FeedItemSkeleton key={i} variant="fundraise" />
         ))}
       </div>
     </div>

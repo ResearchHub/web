@@ -49,6 +49,7 @@ import { toast } from 'react-hot-toast';
 import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
+import { OutreachDetailSkeleton } from '@/components/ExpertFinder/OutreachDetailSkeleton';
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
@@ -240,14 +241,7 @@ export function OutreachDetailPageContent({
   };
 
   if (isLoading && !email) {
-    return (
-      <div className="w-full max-w-4xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3" />
-          <div className="h-32 bg-gray-200 rounded" />
-        </div>
-      </div>
-    );
+    return <OutreachDetailSkeleton />;
   }
 
   if (error && !email) {
