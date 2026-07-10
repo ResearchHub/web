@@ -28,7 +28,7 @@ export class FeedService {
     status?: string;
     userId?: string;
     viewAsUserId?: number;
-  }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
+  }): Promise<{ entries: FeedEntry[]; hasMore: boolean; count: number }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
@@ -84,6 +84,7 @@ export class FeedService {
       return {
         entries: transformedEntries,
         hasMore: !!response.next,
+        count: response.count ?? transformedEntries.length,
       };
     } catch (error) {
       console.error('Error fetching feed:', error);
@@ -91,6 +92,7 @@ export class FeedService {
       return {
         entries: [],
         hasMore: false,
+        count: 0,
       };
     }
   }

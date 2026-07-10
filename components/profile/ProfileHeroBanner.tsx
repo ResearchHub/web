@@ -7,7 +7,7 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
-import { specificTimeSince } from '@/utils/date';
+import { specificTimeSince, MEMBERSHIP_JUST_JOINED } from '@/utils/date';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useUser } from '@/contexts/UserContext';
@@ -62,6 +62,8 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
   useEffect(() => {
     if (!isOwnProfile) setIsEditModalOpen(false);
   }, [isOwnProfile]);
+
+  const membershipDuration = author.createdDate ? specificTimeSince(author.createdDate) : null;
 
   return (
     <>
@@ -118,13 +120,17 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
 
             <div className="flex flex-col gap-1">
               <ProfileEducation educations={author.education ?? []} />
-              {author.createdDate && (
+              {membershipDuration && (
                 <div className="flex items-baseline gap-2 text-gray-600">
                   <FontAwesomeIcon
                     icon={faBirthdayCake}
                     className="h-5 w-5 self-start text-[#6B7280]"
                   />
-                  <span>Member for {specificTimeSince(author.createdDate)}</span>
+                  <span>
+                    {membershipDuration === MEMBERSHIP_JUST_JOINED
+                      ? 'Member just joined'
+                      : `Member for ${membershipDuration}`}
+                  </span>
                 </div>
               )}
             </div>

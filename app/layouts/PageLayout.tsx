@@ -29,6 +29,7 @@ interface PageLayoutProps {
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
+  fundraiseGrantId?: number;
   /**
    * Drop the 860px main-content cap and let content fill the page container
    * (~1180px). Useful when `rightSidebar` is false and the page wants the
@@ -131,10 +132,10 @@ function PageLayoutInner({
   );
 }
 
-export function PageLayout(props: PageLayoutProps) {
+export function PageLayout({ fundraiseGrantId, ...props }: PageLayoutProps) {
   return (
     <GrantProvider>
-      <FundraiseProvider>
+      <FundraiseProvider grantId={fundraiseGrantId}>
         <FeedTabsVisibilityProvider>
           <TopBarSlotProvider>
             <PageLayoutInner {...props} />
