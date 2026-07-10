@@ -1,6 +1,6 @@
 import { Notification } from '@/types/notification';
 import { NotificationItem } from './NotificationItem';
-import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleton';
+import { NotificationSkeletonList } from '@/components/skeletons/NotificationSkeleton';
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -10,13 +10,7 @@ interface NotificationListProps {
 
 export function NotificationList({ notifications, loading, error }: NotificationListProps) {
   if (loading) {
-    return (
-      <div>
-        {[...Array(10)].map((_, index) => (
-          <NotificationSkeleton key={`initial-skeleton-${index}`} />
-        ))}
-      </div>
-    );
+    return <NotificationSkeletonList />;
   }
 
   if (error) {

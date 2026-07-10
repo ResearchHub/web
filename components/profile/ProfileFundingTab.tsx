@@ -42,6 +42,9 @@ export function ProfileFundingTab({ userId }: ProfileFundingTabProps) {
       showGrantHeaders={false}
       showPostHeaders={false}
       showFundraiseHeaders={false}
+      hideActions
+      wideContent
+      skeletonVariant="grant"
       noEntriesElement={
         <div className="py-12 text-center">
           <p className="text-gray-400 text-sm">No funding opportunities yet</p>

@@ -1,16 +1,7 @@
 'use client';
 
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import { EndowmentPromoBanner } from './EndowmentPromoBanner';
-
-const TopBar = dynamic(() => import('../TopBar').then((mod) => mod.TopBar), {
-  ssr: true,
-});
-
-const TopBarSkeleton = () => (
-  <div className="h-16 w-full border-b border-gray-200 bg-gray-50 animate-pulse" />
-);
+import { TopBar } from '../TopBar';
 
 interface TopBarContainerProps {
   isMobileTopNavHidden: boolean;
@@ -34,9 +25,7 @@ export function TopBarContainer({
         ${shouldHide ? '-translate-y-full' : 'translate-y-0'}`}
     >
       <EndowmentPromoBanner />
-      <Suspense fallback={<TopBarSkeleton />}>
-        <TopBar onMenuClick={onMenuClick} />
-      </Suspense>
+      <TopBar onMenuClick={onMenuClick} />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
@@ -29,11 +29,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [shortcutText, setShortcutText] = useState('Ctrl+K');
   const { totalCount: pendingModerationCount } = usePendingCounts();
   const { showAuthModal } = useAuthModalContext();
 
@@ -46,8 +44,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const topBarSlot = useTopBarSlot();
   const leftSlot = topBarSlot?.leftSlot;
 
-  const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
-  const pageInfo = getPageInfo(pathname, searchParams);
+  const pageInfo = getPageInfo(pathname);
   const showBackButton = pageInfo && !isRootNavigationPage(pathname);
 
   const profilePercent = useCallback(() => {
@@ -65,11 +62,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const isMac = typeof window !== 'undefined' && /Mac/.test(navigator.platform);
-    setShortcutText(isMac ? '⌘K' : 'Ctrl+K');
   }, []);
 
   const handleViewProfile = () => {
@@ -132,8 +124,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
-              currentSearchQuery={currentSearchQuery}
-              shortcutText={shortcutText}
               variant="desktop"
             />
 
@@ -147,8 +137,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
-              currentSearchQuery={currentSearchQuery}
-              shortcutText={shortcutText}
               variant="mobile"
             />
           </div>

@@ -230,6 +230,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab }) => {
       loadMore={loadMore}
       header={feedHeader}
       activeTab={activeTab}
+      showPostHeaders={false}
+      showGrantHeaders={false}
+      showFundraiseHeaders={false}
       restoredScrollPosition={restoredScrollPosition}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
       insertContent={insertContent}
