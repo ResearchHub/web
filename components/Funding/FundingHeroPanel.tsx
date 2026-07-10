@@ -27,7 +27,7 @@ export const FundingHeroPanel: FC<FundingHeroPanelProps> = ({ primaryCta }) => {
   const { user, isLoading: isLoadingUser } = useUser();
 
   return (
-    <div className="flex w-full flex-col gap-3 sm:w-72 z-[100]">
+    <div className="flex w-full flex-col gap-3 sm:w-72">
       {isLoadingUser ? (
         <ResearchCoinSnapshotSkeleton />
       ) : user ? (
