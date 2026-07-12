@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useTransition } from 'react';
+import { use, useEffect, useState, useTransition } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -167,6 +167,7 @@ function AuthorTabContent({
         restoredScrollPosition={restoredPublicationsScrollPosition}
         lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
         shouldRenderBountyAsComment={true}
+        wideContent
       />
     );
   }
@@ -212,6 +213,7 @@ function AuthorTabContent({
         restoredScrollPosition={restoredContributionsScrollPosition}
         lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
         shouldRenderBountyAsComment={true}
+        wideContent
       />
     </div>
   );
@@ -231,9 +233,19 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const currentTab = searchParams.get('tab') || 'contributions';
+  const urlTab = searchParams.get('tab') || 'contributions';
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pendingTab === urlTab) {
+      setPendingTab(null);
+    }
+  }, [urlTab, pendingTab]);
+
+  const currentTab = pendingTab ?? urlTab;
 
   const setTab = (tabId: string) => {
+    setPendingTab(tabId);
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
       params.set('tab', tabId);
@@ -282,8 +294,12 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     <Tabs tabs={tabs} activeTab={activeGroup} onTabChange={handleTopTabChange} variant="primary" />
   ) : undefined;
 
+  const profileLoading = isLoading || isUserLoading;
+
   const topBanner = (() => {
-    if (isLoading || isUserLoading) return <ProfileHeroBannerSkeleton tabBar={tabBar} />;
+    if (profileLoading) {
+      return <ProfileHeroBannerSkeleton />;
+    }
     if (error || userError || !user?.authorProfile) return undefined;
     return (
       <ProfileHeroBanner
@@ -294,7 +310,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     );
   })();
 
-  const profileLoading = isLoading || isUserLoading;
   const author = user?.authorProfile;
   const profileError = error || userError;
   const isOwnProfile = viewingOwnProfile;

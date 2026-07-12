@@ -99,6 +99,9 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.fundraise_goal_currency = 'USD';
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
 
+        if (postParams.applicationDeadline) {
+          payload.fundraise_end_date = postParams.applicationDeadline.toISOString();
+        }
         if (postParams.grantId) {
           payload.grant_id = postParams.grantId;
         }
@@ -136,7 +139,10 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
     } catch (err) {
       const errorData = err instanceof ApiError ? (err.errors as Record<string, any>) : {};
       const errorMsg =
-        errorData?.msg || errorData?.message || 'An error occurred while saving the proposal post';
+        errorData?.msg ||
+        errorData?.message ||
+        errorData?.detail ||
+        'An error occurred while saving the proposal post';
       setError(errorMsg);
       throw err;
     } finally {

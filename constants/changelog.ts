@@ -5,6 +5,10 @@
  * automatically invalidates the seen-flag for all users.
  */
 export const CHANGELOG_POST_IDS = [
+  '32502',
+  '32356',
+  '32355',
+  '32354',
   '32306',
   '32298',
   '32266',

@@ -3,6 +3,9 @@
 import { FC } from 'react';
 import { Flag, UserRoundPen, Users, DollarSign, FileCheck } from 'lucide-react';
 import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/SidebarNav';
+import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
+
+const PENDING_MODERATION_HREF = '/moderators/pending-works';
 
 const navigationItems: SidebarNavItem[] = [
   {
@@ -19,7 +22,7 @@ const navigationItems: SidebarNavItem[] = [
   },
   {
     name: 'Pending',
-    href: '/moderators/pending-works',
+    href: PENDING_MODERATION_HREF,
     icon: FileCheck,
     description: 'Review pending submissions',
   },
@@ -37,12 +40,25 @@ const navigationItems: SidebarNavItem[] = [
   },
 ];
 
-export const ModerationSidebar: FC = () => <SidebarNav items={navigationItems} />;
+const getNavigationItems = (pendingCount: number) =>
+  navigationItems.map((item) =>
+    item.href === PENDING_MODERATION_HREF ? { ...item, badgeCount: pendingCount } : item
+  );
 
-export const ModerationMenu: FC = () => (
-  <SidebarNavMenu
-    items={navigationItems}
-    menuTitle="Choose moderation area"
-    triggerFallbackLabel="Moderation"
-  />
-);
+export const ModerationSidebar: FC = () => {
+  const { totalCount } = usePendingCounts();
+
+  return <SidebarNav items={getNavigationItems(totalCount)} />;
+};
+
+export const ModerationMenu: FC = () => {
+  const { totalCount } = usePendingCounts();
+
+  return (
+    <SidebarNavMenu
+      items={getNavigationItems(totalCount)}
+      menuTitle="Choose moderation area"
+      triggerFallbackLabel="Moderation"
+    />
+  );
+};

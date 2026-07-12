@@ -207,6 +207,7 @@ export const MobileBottomNav: React.FC = () => {
     <>
       {/* Bottom Navigation Bar */}
       <nav
+        data-mobile-bottom-nav
         className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-gray-200 tablet:!hidden transition-all duration-300 ease-in-out ${
           isScrollingDown
             ? 'opacity-20 shadow-none'

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
+import { useFundraises } from '@/contexts/FundraiseContext';
 import type { GrantApplicationVisibility } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
@@ -37,6 +38,7 @@ export function WorkHeaderGrant({
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity } = useGrantTab();
+  const { proposalCount } = useFundraises();
 
   const handleTabChange = useCallback(
     (tabId: string) => setActiveTab(tabId as GrantBannerTab),
@@ -49,46 +51,59 @@ export function WorkHeaderGrant({
 
   const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
 
-  const privateNotice = requiresPrivateApplications ? (
-    <div className="flex items-center gap-1.5 text-sm text-amber-800">
-      <Lock className="h-3.5 w-3.5" />
-      <span>Applications to this RFP must be private.</span>
+  const subtitle = organization ? (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="text-base text-gray-500">Offered by</span>
+      <span className="text-base text-gray-600 font-medium">{organization}</span>
     </div>
-  ) : null;
-
-  const subtitle =
-    organization || privateNotice ? (
-      <div className="flex flex-col gap-1">
-        {organization && (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="text-base text-gray-500">Offered by</span>
-            <span className="text-base text-gray-600 font-medium">{organization}</span>
-          </div>
-        )}
-        {privateNotice}
-      </div>
-    ) : undefined;
+  ) : undefined;
 
   const primaryAction =
     grantId && isActive ? (
-      <SubmitProposalTooltip>
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => setIsApplyModalOpen(true)}
-          className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
-        >
-          Submit Proposal
-          <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
-        </Button>
-      </SubmitProposalTooltip>
+      <>
+        <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => setIsApplyModalOpen(true)}
+            className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+          >
+            Submit Proposal
+            <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+        </SubmitProposalTooltip>
+        {requiresPrivateApplications && (
+          <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
+            <Lock className="h-3 w-3 shrink-0" />
+            <span>Your proposal will be submitted privately</span>
+          </div>
+        )}
+      </>
     ) : undefined;
 
   const activityCount = activity.count;
 
   const grantTabs = [
     { id: 'details' as const, label: 'Details' },
-    { id: 'proposals' as const, label: 'Proposals' },
+    {
+      id: 'proposals' as const,
+      label: (
+        <div className="flex items-center">
+          <span>Proposals</span>
+          {proposalCount > 0 && (
+            <span
+              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                activeTab === 'proposals'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {proposalCount}
+            </span>
+          )}
+        </div>
+      ),
+    },
     {
       id: 'activity' as const,
       label: (

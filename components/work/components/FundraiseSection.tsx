@@ -1,10 +1,11 @@
 'use client';
 
 import { Fundraise } from '@/types/funding';
-import { Users } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
+import { formatDate } from '@/utils/date';
 
 interface FundraiseSectionProps {
   fundraise: Fundraise;
@@ -12,7 +13,8 @@ interface FundraiseSectionProps {
 
 export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
   const { showUSD } = useCurrencyPreference();
-  const isCompleted = fundraise.status === 'COMPLETED';
+  const effectiveStatus = getEffectiveStatus(fundraise);
+  const isCompleted = effectiveStatus === 'COMPLETED';
   const percentage = isCompleted
     ? 100
     : Math.min(100, Math.round((fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100));
@@ -69,8 +71,17 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-700">Status</span>
-          <span className="text-sm font-medium text-gray-900">{fundraise.status}</span>
+          <span className="text-sm font-medium text-gray-900">{effectiveStatus}</span>
         </div>
+
+        {fundraise.endDate && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-700">End date</span>
+            <span className="text-sm font-medium text-gray-900">
+              {formatDate(fundraise.endDate)}
+            </span>
+          </div>
+        )}
       </div>
     </section>
   );

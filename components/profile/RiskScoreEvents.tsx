@@ -26,8 +26,8 @@ type DeltaFilter = 'all' | 'true' | 'false';
 
 const DELTA_FILTER_OPTIONS: { label: string; value: DeltaFilter }[] = [
   { label: 'All', value: 'all' },
-  { label: 'Penalties only', value: 'true' },
-  { label: 'Rewards only', value: 'false' },
+  { label: 'Rewards only', value: 'true' },
+  { label: 'Penalties only', value: 'false' },
 ];
 
 interface EventFilters {
@@ -59,8 +59,8 @@ const endOfDayUtc = (date: string): string | undefined => (date ? `${date}T23:59
 type DeltaTone = 'penalty' | 'reward' | 'neutral';
 
 const getDeltaTone = (delta: number): DeltaTone => {
-  if (delta > 0) return 'penalty';
-  if (delta < 0) return 'reward';
+  if (delta > 0) return 'reward';
+  if (delta < 0) return 'penalty';
   return 'neutral';
 };
 

@@ -154,7 +154,7 @@ export function PaymentWidget({
       id: 'funding_credits',
       title: 'Funding Credits',
       description: renderRscBalance(lockedBalance),
-      icon: <ResearchCoinIcon size={18} color="#6366f1" outlined />,
+      icon: <ResearchCoinIcon size={18} variant="green" outlined />,
     },
     {
       id: 'rsc',

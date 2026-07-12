@@ -4,6 +4,8 @@ import { createTransformer } from './transformer';
 import type { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
+import { buildWorkUrl } from '@/utils/url';
+import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 
 export interface CreatedByInfo {
   userId: number;
@@ -23,6 +25,21 @@ export interface ExpertSourceLink {
   text: string;
 }
 
+export interface ExpertEmailedForCurrentDocument {
+  sentAt: string;
+  searchId: number;
+}
+
+export interface ExpertEmailedOnOtherDocument {
+  unifiedDocumentId: number;
+  documentType: string;
+  title: string;
+  slug: string;
+  id: number;
+  sentAt: string;
+  searchId: number;
+}
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   expertId: number | null;
@@ -36,8 +53,10 @@ export interface ExpertResult {
   affiliation: string;
   expertise: string;
   email: string;
-  /** ISO timestamp when an outreach email was last sent to this expert (any search), if known. */
+  /** @deprecated Legacy global timestamp; do not use for "emailed before" UI. */
   lastEmailSentAt: string | null;
+  emailedForCurrentDocument: ExpertEmailedForCurrentDocument | null;
+  emailedOnOtherDocuments: ExpertEmailedOnOtherDocument[];
   notes?: string;
   sources?: ExpertSourceLink[] | null;
 }
@@ -54,7 +73,6 @@ export interface ExpertSearchResult {
   query: string;
   inputType: InputType;
   config: Record<string, unknown>;
-  excludedSearchIds: number[];
   llmModel: string;
   status: SearchStatus;
   progress: number;
@@ -81,7 +99,6 @@ export interface ExpertSearchListItem {
   query: string;
   status: SearchStatus;
   expertCount: number;
-  excludedSearchIds: number[];
   createdAt: string;
   completedAt: string | null;
   createdBy: CreatedByInfo | null;
@@ -137,6 +154,74 @@ function parseExpertId(raw: any): number | null {
   return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
+function transformEmailedForCurrentDocument(raw: unknown): ExpertEmailedForCurrentDocument | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const sentAt = obj.sent_at != null ? String(obj.sent_at).trim() : '';
+  if (!sentAt) return null;
+  const searchId = Number(obj.search_id);
+  return {
+    sentAt,
+    searchId: Number.isInteger(searchId) ? searchId : 0,
+  };
+}
+
+function transformEmailedOnOtherDocument(raw: unknown): ExpertEmailedOnOtherDocument | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const id = Number(obj.id);
+  const sentAt = obj.sent_at != null ? String(obj.sent_at).trim() : '';
+  if (!Number.isInteger(id) || id < 1 || !sentAt) return null;
+  const unifiedDocumentId = Number(obj.unified_document_id);
+  const searchId = Number(obj.search_id);
+  return {
+    unifiedDocumentId: Number.isInteger(unifiedDocumentId) ? unifiedDocumentId : 0,
+    documentType: String(obj.document_type ?? '').trim(),
+    title: String(obj.title ?? '').trim(),
+    slug: String(obj.slug ?? '').trim(),
+    id,
+    sentAt,
+    searchId: Number.isInteger(searchId) ? searchId : 0,
+  };
+}
+
+function transformEmailedOnOtherDocuments(raw: unknown): ExpertEmailedOnOtherDocument[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ExpertEmailedOnOtherDocument[] = [];
+  for (const item of raw) {
+    const entry = transformEmailedOnOtherDocument(item);
+    if (entry) out.push(entry);
+  }
+  return out;
+}
+
+export function buildOutreachDocumentHref(entry: ExpertEmailedOnOtherDocument): string | null {
+  const contentType = mapApiDocumentTypeToClientType(
+    entry.documentType.toUpperCase() as ApiDocumentType
+  );
+  if (!contentType || entry.id < 1) return null;
+
+  const href = buildWorkUrl({
+    id: entry.id,
+    slug: entry.slug || undefined,
+    contentType,
+  });
+  return href === '#' ? null : href;
+}
+
+export function buildExpertSearchHref(searchId: number): string {
+  if (!Number.isInteger(searchId) || searchId < 1) return '#';
+  return `/expert-finder/library/${searchId}`;
+}
+
+export function outreachDocumentLabel(entry: ExpertEmailedOnOtherDocument): string {
+  const title = entry.title.trim();
+  if (title) return title;
+  const slug = entry.slug.trim();
+  if (slug) return slug;
+  return `${entry.documentType || 'Document'} #${entry.id}`;
+}
+
 export function transformExpertResult(raw: any): ExpertResult {
   const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
   const sources = sourcesRaw
@@ -169,23 +254,11 @@ export function transformExpertResult(raw: any): ExpertResult {
       raw.last_email_sent_at != null && String(raw.last_email_sent_at).trim() !== ''
         ? String(raw.last_email_sent_at).trim()
         : null,
+    emailedForCurrentDocument: transformEmailedForCurrentDocument(raw.emailed_for_current_document),
+    emailedOnOtherDocuments: transformEmailedOnOtherDocuments(raw.emailed_on_other_documents),
     notes: raw.notes ?? raw.recommendation_notes,
     sources: sources?.length ? sources : null,
   };
-}
-
-function transformExcludedSearchIds(raw: any): number[] {
-  if (!Array.isArray(raw)) return [];
-  const out: number[] = [];
-  const seen = new Set<number>();
-  for (const v of raw) {
-    const n = Number(v);
-    if (Number.isInteger(n) && n >= 1 && !seen.has(n)) {
-      seen.add(n);
-      out.push(n);
-    }
-  }
-  return out;
 }
 
 function pickExpertRows(raw: any): any[] {
@@ -201,7 +274,6 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
     query: raw.query ?? '',
     inputType: raw.input_type ?? 'abstract',
     config: raw.config ?? {},
-    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     llmModel: raw.llm_model ?? '',
     status: raw.status ?? 'pending',
     progress: raw.progress ?? 0,
@@ -229,7 +301,6 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     query: raw.query ?? '',
     status: raw.status ?? 'pending',
     expertCount: raw.expert_count ?? 0,
-    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
     createdBy: transformCreatedBy(raw.created_by),

@@ -18,7 +18,6 @@ export interface ProposalListResponse {
 export interface ProposalForModal {
   id: string;
   title: string;
-  status: 'published' | 'draft';
   createdDate: string;
   doi?: string;
   postId: number;
@@ -30,7 +29,6 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
   return {
     id: raw.id.toString(),
     title: raw.title || '',
-    status: raw.doi ? 'published' : 'draft',
     createdDate: raw.created_date,
     doi: raw.doi,
     postId: raw.note?.post?.id || raw.id, // Use note.post.id if available, fallback to raw.id

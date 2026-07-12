@@ -46,9 +46,10 @@ import {
 } from '@/hooks/useExpertFinder';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
-import { isValidEmail } from '@/utils/validation';
+import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
+import { OutreachDetailSkeleton } from '@/components/ExpertFinder/OutreachDetailSkeleton';
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
@@ -182,16 +183,16 @@ export function OutreachDetailPageContent({
 
   const handleSendPreview = async () => {
     if (!emailId || !email) return;
-    const trimmedReplyTo = (replyTo ?? '').trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      setActionError('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
       return;
     }
     setActionError(null);
     try {
       await previewEmails({
         generated_email_ids: [Number(emailId)],
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowPreviewConfirm(false);
       toast.success('Preview email sent to your email address.');
@@ -202,16 +203,16 @@ export function OutreachDetailPageContent({
 
   const handleSendToExpert = async () => {
     if (!emailId || !email) return;
-    const trimmedReplyTo = (replyTo ?? '').trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      setActionError('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
       return;
     }
     setActionError(null);
     try {
       await sendEmails({
         generated_email_ids: [Number(emailId)],
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowSendToExpertConfirm(false);
       refetch();
@@ -240,14 +241,7 @@ export function OutreachDetailPageContent({
   };
 
   if (isLoading && !email) {
-    return (
-      <div className="w-full max-w-4xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3" />
-          <div className="h-32 bg-gray-200 rounded" />
-        </div>
-      </div>
-    );
+    return <OutreachDetailSkeleton />;
   }
 
   if (error && !email) {

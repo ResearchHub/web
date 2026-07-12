@@ -1,13 +1,7 @@
 'use client';
 
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
-
-const LeftSidebar = dynamic(() => import('../LeftSidebar').then((mod) => mod.LeftSidebar), {
-  ssr: true,
-  loading: () => <div className="w-full h-screen bg-gray-100 animate-pulse" />,
-});
+import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
@@ -36,9 +30,7 @@ export function LeftSidebarContainer({ isOpen, isCompact }: LeftSidebarContainer
         isOpen ? '!translate-x-0' : '!-translate-x-full'
       )}
     >
-      <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse" />}>
-        <LeftSidebar />
-      </Suspense>
+      <LeftSidebar />
     </div>
   );
 }

@@ -25,12 +25,12 @@ import {
 } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService, CreatePaperPayload } from '@/services/paper.service';
+import { ApiError } from '@/services/types';
 import toast from 'react-hot-toast';
 import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { Callout } from '@/components/ui/Callout';
-import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -47,7 +47,6 @@ export default function UploadPDFPage() {
   const router = useRouter();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const { smAndDown } = useScreenSize();
-  const { withVerification } = useVerifiedAction();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -233,9 +232,9 @@ export default function UploadPDFPage() {
     if (validateCurrentStep()) {
       if (currentStepIndex < steps.length - 1) {
         setCurrentStepIndex(currentStepIndex + 1);
-        window.scrollTo(0, 0);
+        globalThis.scrollTo(0, 0);
       } else {
-        withVerification(() => handleSubmit());
+        handleSubmit();
       }
     }
   };
@@ -243,7 +242,7 @@ export default function UploadPDFPage() {
   const handleBack = () => {
     if (currentStepIndex > 0) {
       setCurrentStepIndex(currentStepIndex - 1);
-      window.scrollTo(0, 0);
+      globalThis.scrollTo(0, 0);
     } else {
       router.back();
     }
@@ -297,12 +296,18 @@ export default function UploadPDFPage() {
       const response = await PaperService.create(payload);
 
       toast.dismiss(loadingToast);
-      toast.success('Paper submitted successfully!');
+      const isPending = response.status === 'PENDING';
+      toast.success(
+        isPending
+          ? 'Paper submitted and is pending moderator review.'
+          : 'Paper submitted successfully!'
+      );
 
+      const statusParam = `&status=${response.status ?? ''}`;
       if (submitToJournal) {
         try {
-          const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true`;
-          const failureUrl = `${window.location.origin}/`;
+          const successUrl = `${globalThis.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true${statusParam}`;
+          const failureUrl = `${globalThis.location.origin}/`;
 
           const checkoutData = await PaperService.payForJournalSubmission(
             response.id,
@@ -311,7 +316,7 @@ export default function UploadPDFPage() {
           );
 
           if (checkoutData.url) {
-            window.location.href = checkoutData.url;
+            globalThis.location.href = checkoutData.url;
             return;
           } else {
             throw new Error('No checkout URL received from server');
@@ -324,13 +329,19 @@ export default function UploadPDFPage() {
         }
       } else {
         router.push(
-          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}`
+          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}${statusParam}`
         );
       }
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to submit paper. Please try again.');
+      const fallback = 'Failed to submit paper. Please try again.';
+      if (error instanceof ApiError) {
+        const errorData = error.errors as Record<string, any> | undefined;
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
+      } else {
+        toast.error(fallback);
+      }
       setIsSubmitting(false);
     }
   };

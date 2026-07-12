@@ -24,6 +24,18 @@ import {
 import type { ContentType, Work } from '@/types/work';
 import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
+import { ApiError } from './types/api';
+
+// TEMP: Disable outreach while AWS sender provider is broken. Set to false to re-enable.
+const OUTREACH_SENDING_DISABLED = true;
+const OUTREACH_DISABLED_MESSAGE =
+  'Expert outreach is temporarily unavailable. Please try again later.';
+
+function assertExpertFinderOutreachEnabled(): void {
+  if (OUTREACH_SENDING_DISABLED) {
+    throw new ApiError(OUTREACH_DISABLED_MESSAGE, 503);
+  }
+}
 
 // ── API enum values and display labels ─────────────
 
@@ -77,7 +89,6 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_search_ids?: number[];
   additional_context?: string;
 }
 
@@ -381,13 +392,14 @@ export class ExpertFinderService {
    */
   static async sendEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null) body.reply_to = payload.reply_to;
     if (payload.cc != null && payload.cc.length > 0) body.cc = payload.cc;
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/send/`, body);
     return { sent: raw.sent ?? 0 };
@@ -399,14 +411,13 @@ export class ExpertFinderService {
    */
   static async previewEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null && payload.reply_to !== '') {
-      body.reply_to = payload.reply_to;
-    }
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
     return { sent: raw.sent ?? 0 };
   }
@@ -475,6 +486,7 @@ export class ExpertFinderService {
     grantId: string | number,
     params: { emails: string[]; replyTo?: string; cc?: string[] }
   ): Promise<InviteApplicantsResponse> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = { emails: params.emails };
     if (params.replyTo) body.reply_to = params.replyTo;
     if (params.cc && params.cc.length) body.cc = params.cc;

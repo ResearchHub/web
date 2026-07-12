@@ -25,6 +25,7 @@ import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
+import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -44,26 +45,28 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                   <AuthModalProvider>
                     <ShareModalProvider>
                       <UserProvider>
-                        <VerificationProvider>
-                          <ExchangeRateProvider>
-                            <CurrencyPreferenceProvider>
-                              <NotificationProvider>
-                                <OrganizationProvider>
-                                  <PreferencesProvider>
-                                    <UserListsProvider>
-                                      <LeaderboardProvider>
-                                        <DismissedFeaturesProvider>
-                                          <FollowProvider>{children}</FollowProvider>
-                                          <FeatureNotifications />
-                                        </DismissedFeaturesProvider>
-                                      </LeaderboardProvider>
-                                    </UserListsProvider>
-                                  </PreferencesProvider>
-                                </OrganizationProvider>
-                              </NotificationProvider>
-                            </CurrencyPreferenceProvider>
-                          </ExchangeRateProvider>
-                        </VerificationProvider>
+                        <PendingCountsProvider>
+                          <VerificationProvider>
+                            <ExchangeRateProvider>
+                              <CurrencyPreferenceProvider>
+                                <NotificationProvider>
+                                  <OrganizationProvider>
+                                    <PreferencesProvider>
+                                      <UserListsProvider>
+                                        <LeaderboardProvider>
+                                          <DismissedFeaturesProvider>
+                                            <FollowProvider>{children}</FollowProvider>
+                                            <FeatureNotifications />
+                                          </DismissedFeaturesProvider>
+                                        </LeaderboardProvider>
+                                      </UserListsProvider>
+                                    </PreferencesProvider>
+                                  </OrganizationProvider>
+                                </NotificationProvider>
+                              </CurrencyPreferenceProvider>
+                            </ExchangeRateProvider>
+                          </VerificationProvider>
+                        </PendingCountsProvider>
                       </UserProvider>
                       <SignupModalContainer />
                     </ShareModalProvider>

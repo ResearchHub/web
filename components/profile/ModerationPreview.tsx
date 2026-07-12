@@ -1,7 +1,7 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
+import { useUser } from '@/contexts/UserContext';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { DetailValue } from '@/components/ui/CopyableText';
 import { cn } from '@/utils/styles';
@@ -25,8 +25,8 @@ function Row({
 }
 
 export function ModerationPreview({ userId }: ModerationPreviewProps) {
-  const searchParams = useSearchParams();
-  const showRiskScore = searchParams.get('riskscore') === 'true';
+  const { user: currentUser } = useUser();
+  const isModerator = !!currentUser?.isModerator;
   const [{ userDetails, isLoading }] = useUserDetailsForModerator(userId);
 
   if (isLoading) {
@@ -57,7 +57,7 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
     <section>
       <SidebarHeader title="Moderation" />
       <ul className="flex flex-col gap-1.5">
-        {showRiskScore && (
+        {isModerator && (
           <li className="text-sm text-gray-700 flex items-center gap-1">
             <span className="font-medium shrink-0">Score:</span>
             <span className={cn('font-semibold tabular-nums', score.scoreClass)}>

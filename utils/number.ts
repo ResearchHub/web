@@ -76,6 +76,10 @@ export function formatRSC({
   return valueToFormat.toLocaleString();
 }
 
+export function formatBadgeCount(count: number): string {
+  return count > 9 ? '9+' : count.toString();
+}
+
 /**
  * Returns the number of decimal places in a number
  * @example
@@ -138,6 +142,16 @@ export function formatUsdValue(
     maximumFractionDigits: 2,
   });
   return `${usdValue < 0 ? '-$' : '$'}${absValue} USD`;
+}
+
+/**
+ * Formats a value that is already in USD (no RSC conversion).
+ *
+ * @example
+ * formatLiteralUsd(5250.25) // "$5,250.25 USD"
+ */
+export function formatLiteralUsd(amount: number | string): string {
+  return formatUsdValue(amount.toString(), 0, false);
 }
 
 interface BalanceData {

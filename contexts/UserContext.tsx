@@ -20,19 +20,21 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingUser, setIsFetchingUser] = useState(() => status === 'authenticated');
   const [error, setError] = useState<Error | null>(null);
   const [isAnalyticsInitialized, setIsAnalyticsInitialized] = useState(false);
+
+  const isLoading = status === 'loading' || isFetchingUser;
 
   const fetchUserData = async (silent = false): Promise<User | null> => {
     if (!session?.authToken) {
       setUser(null);
-      if (!silent) setIsLoading(false);
+      if (!silent) setIsFetchingUser(false);
       return null;
     }
 
     try {
-      if (!silent) setIsLoading(true);
+      if (!silent) setIsFetchingUser(true);
       const userData = await AuthService.fetchUserData(session.authToken);
       const fetchedUser = userData.results[0] || null;
       setUser(fetchedUser);
@@ -46,7 +48,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (!silent) setError(err instanceof Error ? err : new Error('Failed to load user data'));
       return null;
     } finally {
-      if (!silent) setIsLoading(false);
+      if (!silent) setIsFetchingUser(false);
     }
   };
 
@@ -57,6 +59,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // Effect to load user data when session changes
   useEffect(() => {
     if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      setUser(null);
+      setIsFetchingUser(false);
+      return;
+    }
+
     fetchUserData();
   }, [session?.authToken, status]);
 

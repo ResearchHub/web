@@ -64,9 +64,7 @@ export function InviteExpertsModal({ isOpen, onClose, grantId }: InviteExpertsMo
         parts.push(`${result.queued} invitation${result.queued === 1 ? '' : 's'} sent`);
       }
       if (result.skippedExisting.length > 0) {
-        parts.push(
-          `${result.skippedExisting.length} already invited`
-        );
+        parts.push(`${result.skippedExisting.length} already invited`);
       }
       toast.success(parts.length ? parts.join(' · ') : 'Invitations queued');
       onClose();
@@ -155,7 +153,9 @@ export function InviteExpertsModal({ isOpen, onClose, grantId }: InviteExpertsMo
         </Button>
 
         {emails.length >= MAX_EMAILS && (
-          <p className="text-xs text-gray-500">You can invite up to {MAX_EMAILS} experts at once.</p>
+          <p className="text-xs text-gray-500">
+            You can invite up to {MAX_EMAILS} experts at once.
+          </p>
         )}
       </div>
     </BaseModal>

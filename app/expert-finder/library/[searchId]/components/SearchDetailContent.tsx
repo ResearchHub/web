@@ -4,11 +4,13 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, RefreshCw, FileText, Download, Mail, UserPlus } from 'lucide-react';
+import { Loader2, RefreshCw, Download, Mail, UserPlus, MoreVertical } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
+import { cn } from '@/utils/styles';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
@@ -16,10 +18,56 @@ import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './Generate
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
+import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
 import type { ExpertResult } from '@/types/expertFinder';
 
 export interface SearchDetailContentProps {
   searchId: string;
+}
+
+function SearchActionsMenu({
+  reportPdfUrl,
+  reportCsvUrl,
+  onAddExpert,
+}: {
+  reportPdfUrl?: string | null;
+  reportCsvUrl?: string | null;
+  onAddExpert: () => void;
+}) {
+  return (
+    <BaseMenu
+      align="end"
+      trigger={
+        <button
+          type="button"
+          className={cn(
+            'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
+            'hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
+          )}
+          aria-label="More search actions"
+        >
+          <MoreVertical className="h-4 w-4" aria-hidden />
+        </button>
+      }
+    >
+      <BaseMenuItem onSelect={onAddExpert}>
+        <UserPlus className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
+        <span>Add expert</span>
+      </BaseMenuItem>
+      {reportPdfUrl && (
+        <BaseMenuItem onSelect={() => window.open(reportPdfUrl, '_blank', 'noopener,noreferrer')}>
+          <Download className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
+          <span>Download PDF Report</span>
+        </BaseMenuItem>
+      )}
+      {reportCsvUrl && (
+        <BaseMenuItem onSelect={() => window.open(reportCsvUrl, '_blank', 'noopener,noreferrer')}>
+          <Download className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
+          <span>Download CSV (Contacts)</span>
+        </BaseMenuItem>
+      )}
+    </BaseMenu>
+  );
 }
 
 export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
@@ -73,15 +121,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     (searchDetail.status === 'pending' || searchDetail.status === 'processing');
 
   if (isLoading && !searchDetail) {
-    return (
-      <div className="w-full max-w-5xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-          <div className="h-32 bg-gray-200 rounded" />
-        </div>
-      </div>
-    );
+    return <SearchDetailSkeleton />;
   }
 
   if (error && !searchDetail) {
@@ -149,45 +189,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
       {searchDetail.status === 'completed' && (
         <>
-          {(searchDetail.reportPdfUrl || searchDetail.reportCsvUrl) && (
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex items-start gap-3 mb-2">
-                <FileText className="h-6 w-6 shrink-0 text-primary-600" aria-hidden />
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Expert Reports Available</h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Download comprehensive reports with all expert recommendations and contact
-                    information.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3 mt-4">
-                {searchDetail.reportPdfUrl && (
-                  <a
-                    href={searchDetail.reportPdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                  >
-                    <Download className="h-4 w-4 shrink-0" aria-hidden />
-                    Download PDF Report
-                  </a>
-                )}
-                {searchDetail.reportCsvUrl && (
-                  <a
-                    href={searchDetail.reportCsvUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-primary-300 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                  >
-                    <Download className="h-4 w-4 shrink-0" aria-hidden />
-                    Download CSV (Contacts)
-                  </a>
-                )}
-              </div>
-            </section>
-          )}
-
           <Tabs
             tabs={[
               {
@@ -264,15 +265,11 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     <Mail className="h-4 w-4" aria-hidden />
                     Generate emails
                   </Button>
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setShowAddExpertModal(true)}
-                  >
-                    <UserPlus className="h-4 w-4" aria-hidden />
-                    Add expert
-                  </Button>
+                  <SearchActionsMenu
+                    reportPdfUrl={searchDetail.reportPdfUrl}
+                    reportCsvUrl={searchDetail.reportCsvUrl}
+                    onAddExpert={() => setShowAddExpertModal(true)}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
@@ -293,15 +290,13 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
           ) : tab === TAB_EXPERT_RESULTS ? (
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600 space-y-3">
               <p>No experts found for this search.</p>
-              <Button
-                variant="outlined"
-                size="sm"
-                className="gap-2"
-                onClick={() => setShowAddExpertModal(true)}
-              >
-                <UserPlus className="h-4 w-4" aria-hidden />
-                Add expert manually
-              </Button>
+              <div className="flex justify-center">
+                <SearchActionsMenu
+                  reportPdfUrl={searchDetail.reportPdfUrl}
+                  reportCsvUrl={searchDetail.reportCsvUrl}
+                  onAddExpert={() => setShowAddExpertModal(true)}
+                />
+              </div>
             </div>
           ) : null}
         </>
