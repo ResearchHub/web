@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { NoteService, NoteError } from '@/services/note.service';
+import { NoteService, NoteError, type NoteInvitePreview } from '@/services/note.service';
 import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
@@ -8,6 +8,71 @@ import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/docume
 
 export interface UseNoteOptions {
   sendImmediately?: boolean;
+}
+
+interface UseNoteInviteState {
+  invite: NoteInvitePreview | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type FetchNoteInviteFn = (inviteKey: string) => Promise<NoteInvitePreview>;
+type UseNoteInviteReturn = [UseNoteInviteState, FetchNoteInviteFn];
+
+export function useNoteInvite(): UseNoteInviteReturn {
+  const [invite, setInvite] = useState<NoteInvitePreview | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchInvite = useCallback(async (inviteKey: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const inviteData = await NoteService.getNoteByInviteKey(inviteKey);
+      setInvite(inviteData);
+      return inviteData;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to fetch invited note');
+      setError(error);
+      setInvite(null);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ invite, isLoading, error }, fetchInvite];
+}
+
+interface UseAcceptNoteInviteState {
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type AcceptNoteInviteFn = (inviteKey: string) => Promise<boolean>;
+type UseAcceptNoteInviteReturn = [UseAcceptNoteInviteState, AcceptNoteInviteFn];
+
+export function useAcceptNoteInvite(): UseAcceptNoteInviteReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const acceptInvite = useCallback(async (inviteKey: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      return await NoteService.acceptNoteInvite(inviteKey);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to accept note invitation');
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, acceptInvite];
 }
 
 interface UseNoteState {

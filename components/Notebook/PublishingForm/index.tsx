@@ -2,7 +2,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
-import { WorkTypeSection } from './components/WorkTypeSection';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -29,6 +28,7 @@ import {
   setDocumentTitle,
 } from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
+import { EndDateSection } from './components/EndDateSection';
 import { toast } from 'react-hot-toast';
 import {
   loadPublishingFormFromStorage,
@@ -42,7 +42,6 @@ import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useUser } from '@/contexts/UserContext';
-import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
@@ -50,6 +49,7 @@ import { ApiError } from '@/services/types';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
+const DEFAULT_FUNDRAISE_END_DAYS = '60';
 const FEATURE_FLAG_JOURNAL = false;
 
 const PUBLISH_LABEL: Record<string, string> = {
@@ -61,7 +61,6 @@ interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
   defaultArticleType?: string;
-  isModal?: boolean;
 }
 
 const getButtonText = ({
@@ -110,6 +109,7 @@ const FORM_DEFAULTS = {
   shortDescription: '',
   organization: '',
   applicationDeadline: null,
+  fundraiseEndDays: DEFAULT_FUNDRAISE_END_DAYS as '60',
   applicationVisibility: 'OPTIONAL' as const,
   isPublic: true,
 };
@@ -252,7 +252,6 @@ export function PublishingForm({
   bountyAmount,
   onBountyClick,
   defaultArticleType,
-  isModal,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
   const { user: currentUser } = useUser();
@@ -326,13 +325,16 @@ export function PublishingForm({
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
-  const { withVerification } = useVerifiedAction();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+  const isPublicValue = watch('isPublic');
+  const selectedGrantValue = watch('selectedGrant');
+  const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
+  const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
 
   useEffect(() => {
     clearErrors();
@@ -369,13 +371,11 @@ export function PublishingForm({
       return;
     }
 
-    withVerification(() => {
-      if (selectedNonprofit) {
-        setShowNonprofitConfirmModal(true);
-      } else {
-        setShowConfirmModal(true);
-      }
-    });
+    if (selectedNonprofit) {
+      setShowNonprofitConfirmModal(true);
+    } else {
+      setShowConfirmModal(true);
+    }
   };
 
   const handleNonprofitConfirm = () => {
@@ -478,17 +478,20 @@ export function PublishingForm({
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
-          applicationDeadline:
-            formData.articleType === 'grant'
-              ? new Date('2029-12-31')
-              : formData.applicationDeadline,
+          applicationDeadline: (() => {
+            if (formData.articleType === 'grant') return new Date('2029-12-31');
+            if (isNewProposal) {
+              const days = parseInt(formData.fundraiseEndDays ?? DEFAULT_FUNDRAISE_END_DAYS, 10);
+              const date = new Date();
+              date.setDate(date.getDate() + days);
+              return date;
+            }
+            return formData.applicationDeadline;
+          })(),
           grantId,
           applicationVisibility:
             formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
-          isPublic:
-            formData.articleType === 'preregistration' && !formData.workId
-              ? formData.isPublic
-              : undefined,
+          isPublic: isNewProposal ? formData.isPublic : undefined,
         },
         formData.workId
       );
@@ -502,22 +505,30 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
-      if (formData.articleType === 'grant' && !formData.workId) {
+      const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
+      const isNewGrant = formData.articleType === 'grant' && !formData.workId;
+      const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
+
+      if (isNewGrantPending) {
         toast.success(
           'Your Funding Opportunity has been submitted and is pending moderator review.',
           {
             duration: 5000,
           }
         );
+      } else if (!isNewGrant && response.moderationStatus === 'PENDING') {
+        toast.success(`Your ${publishLabel} has been submitted and is pending moderator review.`, {
+          duration: 5000,
+        });
       } else {
-        toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+        toast.success(`${publishLabel} published successfully!`);
       }
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       const fallback = 'Error publishing. Please try again.';
       if (error instanceof ApiError) {
         const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || fallback);
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
       } else {
         toast.error(fallback);
       }
@@ -533,7 +544,7 @@ export function PublishingForm({
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-full">
+      <div className="flex w-full flex-col bg-white relative h-full">
         {isPublishing && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
@@ -550,8 +561,7 @@ export function PublishingForm({
             isDeclined && 'pointer-events-none opacity-60'
           )}
         >
-          <div className="pb-6">
-            {!isModal && <WorkTypeSection />}
+          <div className="mx-auto w-full max-w-2xl pb-6">
             {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
             {articleType === 'grant' && (
               <>
@@ -570,6 +580,11 @@ export function PublishingForm({
             {articleType === 'grant' && <GrantApplicationVisibilitySection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {articleType === 'preregistration' && !methods.watch('workId') && (
+              <div className="py-3 px-6">
+                <EndDateSection />
+              </div>
+            )}
+            {articleType === 'preregistration' && !methods.watch('workId') && (
               <PreregistrationPrivacySection />
             )}
             {FEATURE_FLAG_RESEARCH_COIN &&
@@ -584,31 +599,33 @@ export function PublishingForm({
           </div>
         </div>
 
-        <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
-          {articleType === 'preregistration' && !methods.watch('workId') && (
-            <PreregistrationPrivacyLockedAlert />
-          )}
-          {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Payment due:</span>
-              <span className="font-medium text-gray-900">$1,000 USD</span>
-            </div>
-          )}
-          <Button
-            variant="default"
-            onClick={handlePublishClick}
-            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isPublishing || isDeclined}
-          >
-            {getButtonText({
-              isLoadingUpsert: isLoadingUpsert || isUploadingImage,
-              isRedirecting,
-              isLinkingNonprofit,
-              articleType,
-              isJournalEnabled: isJournalEnabled ?? false,
-              hasWorkId: Boolean(methods.watch('workId')),
-            })}
-          </Button>
+        <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
+          <div className="mx-auto w-full max-w-2xl space-y-3">
+            {articleType === 'preregistration' && !methods.watch('workId') && (
+              <PreregistrationPrivacyLockedAlert />
+            )}
+            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Payment due:</span>
+                <span className="font-medium text-gray-900">$1,000 USD</span>
+              </div>
+            )}
+            <Button
+              variant="default"
+              onClick={handlePublishClick}
+              className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isPublishing || isDeclined || showPrivateWarning}
+            >
+              {getButtonText({
+                isLoadingUpsert: isLoadingUpsert || isUploadingImage,
+                isRedirecting,
+                isLinkingNonprofit,
+                articleType,
+                isJournalEnabled: isJournalEnabled ?? false,
+                hasWorkId: Boolean(methods.watch('workId')),
+              })}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -632,7 +649,7 @@ export function PublishingForm({
           isUpdate={Boolean(methods.watch('workId'))}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
-          zIndex={isModal ? 10000 : 100}
+          zIndex={100}
         />
       )}
     </FormProvider>

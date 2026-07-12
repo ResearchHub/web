@@ -16,6 +16,7 @@ import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
 import { FileText, FileUp, Users, Tags, ArrowLeft, Info, MessageCircle } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService } from '@/services/paper.service';
+import { ApiError } from '@/services/types';
 import toast from 'react-hot-toast';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -190,13 +191,23 @@ export default function UploadVersionForm({
       const newPaper = await PaperService.get(String(response.id));
 
       toast.dismiss(loadingToast);
-      toast.success('New version submitted successfully!');
+      toast.success(
+        response.status === 'PENDING'
+          ? 'New version submitted and is pending moderator review.'
+          : 'New version submitted successfully!'
+      );
 
       router.push(`/paper/${newPaper.id}/${newPaper.slug}`);
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to submit new version. Please try again.');
+      const fallback = 'Failed to submit new version. Please try again.';
+      if (error instanceof ApiError) {
+        const errorData = error.errors as Record<string, any> | undefined;
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
+      } else {
+        toast.error(fallback);
+      }
       setIsSubmitting(false);
     }
   };

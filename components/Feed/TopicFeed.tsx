@@ -58,6 +58,9 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
         hasMore={hasMore}
         loadMore={loadMore}
         activeTab={defaultTab}
+        showPostHeaders={false}
+        showGrantHeaders={false}
+        showFundraiseHeaders={false}
         filters={
           hub ? <DocumentFeedSortAndFilters variant="topic" topicName={hub.name} /> : undefined
         }

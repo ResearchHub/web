@@ -1,7 +1,6 @@
 'use client';
 
 import { FC, ReactNode, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FunderOverview, SupportedInstitution, SupportedResearcher } from '@/types/funder';
@@ -11,7 +10,6 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { FundingBreakdownModal } from './FundingBreakdownModal';
 
 interface FunderHeroProps {
   overview: FunderOverview;
@@ -21,7 +19,6 @@ interface FunderHeroProps {
 export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [isScientistsOpen, setIsScientistsOpen] = useState(false);
   const [isInstitutionsOpen, setIsInstitutionsOpen] = useState(false);
 
@@ -59,19 +56,9 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
           <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
             You have given
           </div>
-          <button
-            type="button"
-            onClick={() => setIsBreakdownOpen(true)}
-            className="mt-1 flex items-center gap-2 group text-left"
-          >
-            <span className="text-4xl tablet:text-5xl font-semibold tracking-tight text-primary-600 border-b-[3px] border-transparent group-hover:border-primary-600 transition-all">
-              {totalGiven}
-            </span>
-            <ChevronRight
-              size={20}
-              className="text-primary-400 group-hover:text-primary-600 transition-colors mt-1"
-            />
-          </button>
+          <div className="mt-1 text-4xl tablet:text-5xl font-semibold tracking-tight text-primary-600">
+            {totalGiven}
+          </div>
 
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 tablet:mt-4">
             <Stat
@@ -136,12 +123,6 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
           </Section>
         </div>
       </div>
-
-      <FundingBreakdownModal
-        isOpen={isBreakdownOpen}
-        onClose={() => setIsBreakdownOpen(false)}
-        overview={overview}
-      />
 
       <ScientistsModal
         isOpen={isScientistsOpen}

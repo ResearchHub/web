@@ -1,17 +1,19 @@
 'use client';
 
 import React from 'react';
-import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
-import { Tooltip } from '@/components/ui/Tooltip';
+import Link from 'next/link';
 import { ExternalLink, Sprout, Star, Vote } from 'lucide-react';
-
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { Tooltip } from '@/components/ui/Tooltip';
 import Icon from '@/components/ui/icons/Icon';
 
 interface SidebarItem {
   title: string;
   description: string;
   icon: React.ReactNode;
+  href?: string;
+  external?: boolean;
 }
 
 const useItems: SidebarItem[] = [
@@ -19,6 +21,13 @@ const useItems: SidebarItem[] = [
     title: 'Fund research',
     description: 'Support open research proposals on the platform.',
     icon: <Icon name="fund" size={16} color="#4b5563" />,
+    href: '/fund/proposals',
+  },
+  {
+    title: 'Open Funding Opportunity',
+    description: 'Fund specific research you care about.',
+    icon: <FundingIcon size={16} color="#4b5563" />,
+    href: '/fund',
   },
   {
     title: 'Tip contributions',
@@ -29,6 +38,8 @@ const useItems: SidebarItem[] = [
     title: 'Govern the platform',
     description: 'Vote on proposals and shape research incentives.',
     icon: <Vote className="w-4 h-4 text-gray-600" />,
+    href: 'https://snapshot.org/#/s:researchhub.eth',
+    external: true,
   },
 ];
 
@@ -37,28 +48,51 @@ const earnItems: SidebarItem[] = [
     title: 'Create proposal',
     description: 'Submit a research proposal for community funding.',
     icon: <FundingIcon size={16} color="#4b5563" />,
+    href: '/fund/proposals',
   },
   {
     title: 'Complete Peer Reviews',
     description: 'Earn RSC by peer reviewing preprints or proposals on ResearchHub.',
     icon: <Star className="w-4 h-4 text-gray-600" />,
+    href: '/earn',
   },
   {
     title: 'Create endowment',
     description: 'Lock RSC in an endowment and earn yield in the form of funding credits.',
     icon: <Sprout className="w-4 h-4 text-gray-600" />,
+    href: '/researchcoin',
   },
 ];
 
-function SidebarRow({ title, description, icon }: SidebarItem) {
+function SidebarRow({ title, description, icon, href, external }: SidebarItem) {
+  const tooltipContent = (
+    <div className="text-left">
+      <div className="text-sm font-bold text-white mb-1">{title}</div>
+      <p className="text-xs text-gray-300 leading-snug mb-2">{description}</p>
+      {href &&
+        (external ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-400 hover:text-primary-300 font-semibold text-xs inline-flex items-center gap-0.5"
+          >
+            Learn more <span className="text-[10px]">→</span>
+          </a>
+        ) : (
+          <Link
+            href={href}
+            className="text-primary-400 hover:text-primary-300 font-semibold text-xs inline-flex items-center gap-0.5"
+          >
+            Learn more <span className="text-[10px]">→</span>
+          </Link>
+        ))}
+    </div>
+  );
+
   return (
     <Tooltip
-      content={
-        <div className="text-left">
-          <div className="text-sm font-bold text-white mb-1">{title}</div>
-          <p className="text-xs text-gray-300 leading-snug">{description}</p>
-        </div>
-      }
+      content={tooltipContent}
       position="left"
       width="w-64"
       className="bg-gray-900 text-white border-gray-900 text-left"

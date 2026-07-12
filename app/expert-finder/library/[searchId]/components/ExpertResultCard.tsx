@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Award, Building2, ExternalLink, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import Link from 'next/link';
+import { Award, Building2, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -9,7 +10,13 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
 import type { ExpertResult } from '@/types/expertFinder';
+import {
+  buildExpertSearchHref,
+  buildOutreachDocumentHref,
+  outreachDocumentLabel,
+} from '@/types/expertFinder';
 import { ExpertFormModal } from './ExpertFormModal';
+import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
@@ -55,7 +62,10 @@ export function ExpertResultCard({
 
   const [notesExpanded, setNotesExpanded] = useState(false);
   const showNotesToggle = notes.length > NOTES_READ_MORE_MIN_LENGTH || notesExpanded;
-  const emailedBefore = Boolean(expert.lastEmailSentAt);
+  const emailedForCurrentDocument = expert.emailedForCurrentDocument;
+  const emailedOnOtherDocuments = expert.emailedOnOtherDocuments ?? [];
+  const hasOutreachHistory =
+    Boolean(emailedForCurrentDocument) || emailedOnOtherDocuments.length > 0;
 
   return (
     <article
@@ -63,7 +73,7 @@ export function ExpertResultCard({
         'flex h-full min-h-0 flex-col rounded-lg border bg-white p-5 shadow-sm',
         selected
           ? 'border-primary-600 ring-2 ring-primary-200'
-          : emailedBefore
+          : hasOutreachHistory
             ? 'border-yellow-300'
             : 'border-gray-200'
       )}
@@ -102,11 +112,11 @@ export function ExpertResultCard({
                       href={src.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                      className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
                       aria-label={src.text}
                       title={src.text}
                     >
-                      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
+                      <ExpertSourceLinkIcon url={src.url} text={src.text} />
                     </a>
                   </Tooltip>
                 ))
@@ -207,13 +217,70 @@ export function ExpertResultCard({
           </div>
         ) : null}
 
-        {expert.lastEmailSentAt ? (
+        {emailedForCurrentDocument ? (
           <Alert variant="warning" className="py-2.5 px-3">
-            Emailed before
+            Emailed for this RFP
+            {emailedForCurrentDocument.searchId > 0 &&
+            String(emailedForCurrentDocument.searchId) !== searchId ? (
+              <>
+                {' · '}
+                <Link
+                  href={buildExpertSearchHref(emailedForCurrentDocument.searchId)}
+                  className="font-medium underline-offset-2 hover:underline"
+                >
+                  Search #{emailedForCurrentDocument.searchId}
+                </Link>
+              </>
+            ) : null}
             <span className="font-normal text-yellow-800/90">
               {' '}
-              · {formatTimestamp(expert.lastEmailSentAt)}
+              · {formatTimestamp(emailedForCurrentDocument.sentAt)}
             </span>
+          </Alert>
+        ) : null}
+
+        {emailedOnOtherDocuments.length > 0 ? (
+          <Alert variant="info" className="py-2.5 px-3">
+            <div className="space-y-1">
+              <p>
+                {emailedOnOtherDocuments.length === 1
+                  ? 'Emailed on another document'
+                  : 'Emailed on other documents'}
+              </p>
+              <ul className="space-y-1 font-normal">
+                {emailedOnOtherDocuments.map((entry) => {
+                  const documentHref = buildOutreachDocumentHref(entry);
+                  const documentLabel = outreachDocumentLabel(entry);
+
+                  return (
+                    <li key={`${entry.unifiedDocumentId}-${entry.sentAt}`}>
+                      {documentHref ? (
+                        <Link
+                          href={documentHref}
+                          className="font-medium underline-offset-2 hover:underline"
+                        >
+                          {documentLabel}
+                        </Link>
+                      ) : (
+                        <span>{documentLabel}</span>
+                      )}
+                      {entry.searchId > 0 ? (
+                        <>
+                          <span className="text-blue-800/90"> · </span>
+                          <Link
+                            href={buildExpertSearchHref(entry.searchId)}
+                            className="font-medium underline-offset-2 hover:underline"
+                          >
+                            Search #{entry.searchId}
+                          </Link>
+                        </>
+                      ) : null}
+                      <span className="text-blue-800/90"> · {formatTimestamp(entry.sentAt)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </Alert>
         ) : null}
       </div>

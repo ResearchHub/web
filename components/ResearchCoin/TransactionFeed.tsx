@@ -159,7 +159,7 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
 
     const canExport = !isLoading && transactions.length > 0 && !isExporting;
     const headerActions = (
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-2 shrink-0 min-w-0 w-full sm:w-auto">
         <CurrencyToggle value={feedCurrency} onChange={handleCurrencyChange} />
         <BaseMenu
           align="end"
@@ -298,11 +298,11 @@ export function SectionCard({
   return (
     <div className="mb-4 mx-auto w-full">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 flex flex-col items-stretch gap-3 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-sm sm:text-base font-bold text-gray-900">{title}</h2>
+        <div className="px-4 sm:px-6 py-4 flex flex-col items-stretch gap-3 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between min-w-0">
+          <h2 className="text-sm sm:text-base font-bold text-gray-900 min-w-0">{title}</h2>
           {actions}
         </div>
-        <div className="px-4 sm:px-6 py-4">{children}</div>
+        <div className="px-4 sm:px-6 py-4 min-w-0">{children}</div>
       </div>
     </div>
   );
@@ -324,6 +324,7 @@ function CurrencyToggle({
       activeTab={value}
       onTabChange={(id) => onChange(id as FeedCurrency)}
       size="sm"
+      className="min-w-0 flex-1"
     />
   );
 }

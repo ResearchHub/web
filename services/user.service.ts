@@ -8,6 +8,8 @@ import {
   transformUserDetailsForModerator,
   transformRiskScoreEvent,
   transformInsight,
+  transformEarningOverview,
+  type EarningOverview,
 } from '@/types/user';
 
 interface University {
@@ -154,6 +156,14 @@ export class UserService {
   static async getStakingYieldDetails(): Promise<StakingYieldDetails> {
     const response = await ApiClient.get<any>(`/api/staking_yield/details/`);
     return transformStakingYieldDetails(response);
+  }
+
+  /**
+   * Get lifetime earning overview for a user (totals and breakdown by source).
+   */
+  static async getEarningOverview(userId: number): Promise<EarningOverview> {
+    const response = await ApiClient.get<any>(`/api/user/earning_overview/?user_id=${userId}`);
+    return transformEarningOverview(response);
   }
 
   /**

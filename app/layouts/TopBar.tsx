@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
@@ -12,7 +12,9 @@ import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
+import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
+import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
 import { TopBarBackButton } from './topbar/TopBarBackButton';
@@ -27,19 +29,22 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [shortcutText, setShortcutText] = useState('Ctrl+K');
+  const { totalCount: pendingModerationCount } = usePendingCounts();
   const { showAuthModal } = useAuthModalContext();
 
   const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
   const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
 
-  const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
-  const pageInfo = getPageInfo(pathname, searchParams);
+  // A page (e.g. the notebook) can inject a custom control here in place of the
+  // default breadcrumb.
+  const topBarSlot = useTopBarSlot();
+  const leftSlot = topBarSlot?.leftSlot;
+
+  const pageInfo = getPageInfo(pathname);
   const showBackButton = pageInfo && !isRootNavigationPage(pathname);
 
   const profilePercent = useCallback(() => {
@@ -57,11 +62,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const isMac = typeof window !== 'undefined' && /Mac/.test(navigator.platform);
-    setShortcutText(isMac ? '⌘K' : 'Ctrl+K');
   }, []);
 
   const handleViewProfile = () => {
@@ -85,13 +85,19 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </div>
             </Link>
 
-            {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
+            {leftSlot ? (
+              <div className="flex min-w-0 items-center">{leftSlot}</div>
+            ) : (
+              <>
+                {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
 
-            {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
+                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
 
-            {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
+                {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
 
-            {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
+                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
+              </>
+            )}
 
             {/* Inline feed tabs — desktop only, shown to the right of the title */}
             {showTopBarFeedTabs && (
@@ -112,13 +118,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               user={user}
               isLoading={isLoading}
               unreadCount={unreadCount}
+              pendingModerationCount={pendingModerationCount}
               avatarSize={32}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
-              currentSearchQuery={currentSearchQuery}
-              shortcutText={shortcutText}
               variant="desktop"
             />
 
@@ -126,13 +131,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               user={user}
               isLoading={isLoading}
               unreadCount={unreadCount}
+              pendingModerationCount={pendingModerationCount}
               avatarSize={40}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
-              currentSearchQuery={currentSearchQuery}
-              shortcutText={shortcutText}
               variant="mobile"
             />
           </div>

@@ -2,7 +2,7 @@ import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
 import { ID } from './root';
-import { ContentType } from './work';
+import { ContentType, ModerationStatus } from './work';
 import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
 import { Grant, transformGrant } from './grant';
@@ -25,6 +25,7 @@ export type Post = {
   id: number;
   slug: string;
   contentType: ContentType;
+  moderationStatus?: ModerationStatus;
   fundraise?: Fundraise;
   grant?: Grant;
   topics?: Topic[];
@@ -91,6 +92,7 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
       : raw.document_type?.toLowerCase() === 'grant'
         ? 'funding_request'
         : 'post',
+  moderationStatus: raw.status as ModerationStatus | undefined,
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
     : undefined,

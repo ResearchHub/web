@@ -2,9 +2,8 @@
 
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
@@ -14,9 +13,12 @@ import {
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
-import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
-import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
-import { importDocumentToTiptap } from '@/components/Editor/lib/convert';
+
+// An empty document for the "Start blank" funding-opportunity path.
+const BLANK_DOCUMENT = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }],
+} as typeof grantTemplate;
 
 export default function OrganizationPage() {
   const router = useRouter();
@@ -27,22 +29,12 @@ export default function OrganizationPage() {
 
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const [isImporting, setIsImporting] = useState(false);
 
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const isNewResearch = searchParams.get('newResearch') === 'true';
   const isNewGrant = searchParams.get('newGrant') === 'true';
-
-  const [showFundingModal, setShowFundingModal] = useState(false);
-  useEffect(() => {
-    if (isNewFunding) setShowFundingModal(true);
-  }, [isNewFunding]);
-
-  const stripQueryParam = (key: string) => {
-    const url = new URL(globalThis.window.location.href);
-    url.searchParams.delete(key);
-    router.replace(url.pathname + url.search, { scroll: false });
-  };
+  const grantSource = searchParams.get('grantSource');
+  const proposalSource = searchParams.get('proposalSource');
 
   const createNoteWithContent = async (
     orgSlug: string,
@@ -93,15 +85,28 @@ export default function OrganizationPage() {
         queryValue: 'true',
         documentType: 'DISCUSSION',
       });
+    } else if (isNewFunding) {
+      // "Upload a document" is handled inline in OpenProposalModal; here we
+      // only create from template/blank.
+      if (proposalSource === 'blank') {
+        createNoteWithContent(selectedOrg.slug, {
+          template: BLANK_DOCUMENT,
+          documentType: 'PREREGISTRATION',
+        });
+      } else {
+        handleStartFromTemplate();
+      }
     } else if (isNewGrant) {
+      // "Upload a document" is handled inline in OpenFundingOpportunityModal;
+      // here we only create from template/blank.
       createNoteWithContent(selectedOrg.slug, {
-        template: grantTemplate,
+        template: grantSource === 'blank' ? BLANK_DOCUMENT : grantTemplate,
         queryParam: 'newGrant',
         queryValue: 'true',
         documentType: 'GRANT',
       });
     }
-  }, [selectedOrg, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedOrg, isNewResearch, isNewFunding, isNewGrant, grantSource, proposalSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStartFromTemplate = async () => {
     if (!selectedOrg) return;
@@ -113,61 +118,12 @@ export default function OrganizationPage() {
     });
   };
 
-  const handleUploadFile = async (file: File) => {
-    if (!selectedOrg) return;
-    setIsImporting(true);
-    try {
-      const result = await importDocumentToTiptap(file);
-      const newNote = await createNote({
-        organizationSlug: selectedOrg.slug,
-        title: result.title,
-        grouping: 'WORKSPACE',
-        documentType: 'PREREGISTRATION',
-      });
-
-      if (newNote) {
-        await updateNoteContent({
-          note: newNote.id,
-          fullSrc: result.html,
-          fullJson: JSON.stringify(result.json),
-          plainText: result.plainText,
-        });
-        refreshNotes();
-        router.replace(`/notebook/${selectedOrg.slug}/${newNote.id}`);
-      }
-    } catch (error) {
-      console.error('Failed to import proposal document:', error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to import document. Please try a different file.';
-      toast.error(message, { style: { width: '320px' } });
-    } finally {
-      setIsImporting(false);
-    }
-  };
-
-  const handleFundingModalClose = () => {
-    setShowFundingModal(false);
-    stripQueryParam('newFunding');
-  };
-
+  // NoteEditorLayout (rendered as a sibling in the layout) already shows the
+  // appropriate UI (NotebookHome here), so rendering the document skeleton here
+  // just produces a redundant outline flash before the org resolves.
   if (isLoadingOrg) {
-    return <NotePaperSkeleton />;
+    return null;
   }
 
-  const isProposalProcessing = isCreatingNote || isUpdatingContent || isImporting;
-
-  return (
-    <>
-      <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />
-      <FundingTimelineModal
-        isOpen={showFundingModal}
-        onClose={handleFundingModalClose}
-        onStartFromTemplate={handleStartFromTemplate}
-        onUploadFile={handleUploadFile}
-        isProcessing={isProposalProcessing}
-      />
-    </>
-  );
+  return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
 }

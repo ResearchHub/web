@@ -48,29 +48,34 @@ export function CalloutBanner({
   return (
     <div
       className={cn(
-        'mb-6 rounded-lg px-4 py-4 flex items-center gap-4',
+        'mb-6 rounded-lg px-4 py-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4',
         styles.container,
         className
       )}
     >
-      <div
-        className={cn(
-          'shrink-0 h-10 w-10 rounded-full flex items-center justify-center',
-          styles.iconBg,
-          styles.iconColor
-        )}
-      >
-        {icon}
+      <div className="flex items-center gap-3 min-w-0">
+        <div
+          className={cn(
+            'shrink-0 h-10 w-10 rounded-full flex items-center justify-center',
+            styles.iconBg,
+            styles.iconColor
+          )}
+        >
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0 sm:hidden">
+          <h3 className="font-semibold text-sm leading-snug">{title}</h3>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-sm">{title}</h3>
+      <div className="hidden flex-1 min-w-0 sm:block">
+        <h3 className="font-semibold text-sm leading-snug">{title}</h3>
         <p className="text-sm opacity-90 mt-0.5 hidden sm:block">{description}</p>
       </div>
       <Button
         onClick={onCtaClick}
         size="default"
         className={cn(
-          'shrink-0 font-medium px-4 inline-flex items-center gap-1.5',
+          'shrink-0 font-medium px-4 inline-flex items-center gap-1.5 w-full sm:w-auto',
           styles.ctaButton
         )}
       >

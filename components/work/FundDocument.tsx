@@ -72,6 +72,18 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     const newParam = searchParams.get('new');
     if (newParam !== 'true') return;
 
+    // Always consume the flag first so it doesn't re-fire on re-renders.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('new');
+    router.replace(url.pathname + url.search, { scroll: false });
+
+    // Skip share/celebration modals for private proposals — the URL is not
+    // publicly accessible so there is nothing meaningful to share.
+    if (work.isPublic === false) return;
+
+    // Don't prompt the author to share a proposal that's still pending moderation.
+    if (work.moderationStatus === 'PENDING') return;
+
     if (isAuthorPostsExpEnabled) {
       setVideoModalInitialStep(1);
       setIsProposalVideoModalOpen(true);
@@ -83,13 +95,16 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
         shouldShowConfetti: true,
       });
     }
-
-    // Consume the flag so the modal doesn't re-open on subsequent re-renders
-    // or back/forward navigation.
-    const url = new URL(window.location.href);
-    url.searchParams.delete('new');
-    router.replace(url.pathname + url.search, { scroll: false });
-  }, [searchParams, router, pathname, work.title, showShareModal, isAuthorPostsExpEnabled]);
+  }, [
+    searchParams,
+    router,
+    pathname,
+    work.title,
+    work.moderationStatus,
+    work.isPublic,
+    showShareModal,
+    isAuthorPostsExpEnabled,
+  ]);
 
   const persistVideoCtaDismissal = () => {
     try {
@@ -141,6 +156,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                   fundraiseTitle={work.title}
                   work={work}
                   onContribute={() => {}}
+                  contributeOnMobileOnly
                   // Match the gray border used by AuthorPosts and PostBlockEditor
                   // on this page; the component's own primary-100 default is
                   // designed for use on backgrounds where the brand tint reads.

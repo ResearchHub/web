@@ -2,174 +2,215 @@ import { type IconName } from '@/components/ui/icons/Icon';
 import { Notification } from '@/types/notification';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 import { buildWorkUrl } from '@/utils/url';
+import { stripHtml, truncateText } from '@/utils/stringUtils';
 
 export interface NotificationTypeInfo {
   icon: IconName;
   useAvatar: boolean;
+  title: string;
 }
 
 const PROPOSAL_UPDATE_REWARD_USD = 50;
 
-export interface HubDetails {
-  name: string;
-  slug: string;
-  imageUrl?: string;
-}
-
-const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
+const NOTIFICATION_TYPE_MAP = {
   // Account notifications
   IDENTITY_VERIFICATION_UPDATED: {
     icon: 'verify2',
     useAvatar: false,
+    title: 'Verification updated',
   },
   ACCOUNT_VERIFIED: {
     icon: 'verify2',
     useAvatar: false,
+    title: 'Account verified',
   },
 
   // Bounty-related notifications
   BOUNTY_FOR_YOU: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Bounty opportunity',
   },
   BOUNTY_EXPIRING_SOON: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty expiring soon',
   },
   BOUNTY_ENTERED_ASSESSMENT: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty in assessment',
   },
   BOUNTY_ASSESSMENT_EXPIRING_SOON: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty assessment expiring',
   },
   BOUNTY_SOLUTION_IN_ASSESSMENT: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty solution in review',
   },
   BOUNTY_HUB_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Bounty expiring soon',
   },
   BOUNTY_PAYOUT: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Bounty payout',
   },
   FLAGGED_CONTENT_VERDICT: {
     icon: 'report',
     useAvatar: false,
+    title: 'Moderation decision',
   },
 
   // Paper-related notifications
   PAPER_CLAIM_PAYOUT: {
     icon: 'claimPaper',
     useAvatar: false,
+    title: 'Paper claim approved',
   },
   PAPER_CLAIMED: {
     icon: 'submit2',
     useAvatar: false,
+    title: 'Paper claim submitted',
   },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
     useAvatar: false,
+    title: 'New publications',
   },
 
   // Comment and thread notifications
   COMMENT: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New comment',
   },
   COMMENT_ON_COMMENT: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New reply',
   },
   COMMENT_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New thread reply',
   },
   REPLY_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New thread reply',
   },
   COMMENT_USER_MENTION: {
     icon: 'profile',
     useAvatar: true,
+    title: 'You were mentioned',
   },
   THREAD_ON_DOC: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New thread',
   },
 
   // Financial notifications
   RSC_WITHDRAWAL_COMPLETE: {
     icon: 'wallet1',
     useAvatar: false,
+    title: 'Withdrawal complete',
   },
   FUNDRAISE_PAYOUT: {
     icon: 'fundYourRsc2',
     useAvatar: false,
+    title: 'Funding payout',
   },
   RSC_SUPPORT_ON_DIS: {
     icon: 'fund',
     useAvatar: true,
+    title: 'New support',
   },
   RSC_SUPPORT_ON_DOC: {
     icon: 'fund',
     useAvatar: true,
+    title: 'New support',
   },
 
   // Proposal notifications
   PREREGISTRATION_UPDATE: {
     icon: 'edit',
     useAvatar: true,
+    title: 'Proposal update',
   },
   PREREGISTRATION_UPDATE_REMINDER: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Proposal update reminder',
   },
 
   // Grant moderation notifications
   GRANT_APPROVED: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Funding opportunity approved',
   },
   GRANT_DECLINED: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Funding opportunity declined',
+  },
+
+  // Content moderation notifications (papers, posts, proposals)
+  CONTENT_APPROVED: {
+    icon: 'verify2',
+    useAvatar: false,
+    title: 'Content approved',
+  },
+  CONTENT_DECLINED: {
+    icon: 'report',
+    useAvatar: false,
+    title: 'Content declined',
   },
 
   // RSC yield notifications
   RSC_YIELD_OPT_IN: {
     icon: 'fundYourRsc2',
     useAvatar: false,
+    title: 'Earn yield on RSC',
   },
+} satisfies Record<string, NotificationTypeInfo>;
+
+const DEFAULT_NOTIFICATION_INFO: NotificationTypeInfo = {
+  icon: 'notification',
+  useAvatar: false,
+  title: 'Notification',
 };
 
-export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
+function formatTypeFallbackTitle(type: string): string {
+  return type
+    .split('_')
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function lookupNotificationTypeInfo(type: string): NotificationTypeInfo | undefined {
+  if (type in NOTIFICATION_TYPE_MAP) {
+    return NOTIFICATION_TYPE_MAP[type as keyof typeof NOTIFICATION_TYPE_MAP];
+  }
+  return undefined;
+}
+
+export function getNotificationTitle(notification: Notification): string {
   return (
-    NOTIFICATION_TYPE_MAP[notification.type] || {
-      icon: 'notification',
-      useAvatar: false,
-    }
+    lookupNotificationTypeInfo(notification.type)?.title ??
+    formatTypeFallbackTitle(notification.type)
   );
 }
 
-export function getHubDetailsFromNotification(notification: Notification): HubDetails | null {
-  // For hub-related notifications, extract hub details
-  if (notification.extra?.hub) {
-    try {
-      return {
-        name: notification.extra.hub.name || '',
-        slug: notification.extra.hub.slug || '',
-        imageUrl: undefined,
-      };
-    } catch (error) {
-      console.error('Failed to parse hub details', error);
-      return null;
-    }
-  }
-  return null;
+export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
+  return lookupNotificationTypeInfo(notification.type) ?? DEFAULT_NOTIFICATION_INFO;
 }
 
 /**
@@ -196,6 +237,20 @@ export function getRSCAmountFromNotification(notification: Notification): number
   return null;
 }
 
+/** Matches formatted USD (`$1,234.56 USD`) or RSC (`1,234 RSC`) amounts in notification copy. */
+function notificationMessageIncludesAmount(message: string): boolean {
+  return /\$[\d,]+(?:\.\d+)?\s*USD\b/.test(message) || /\b[\d,]+(?:\.\d+)?\s+RSC\b/.test(message);
+}
+
+export function getRSCAmountForBadge(notification: Notification, message: string): number | null {
+  const amount = getRSCAmountFromNotification(notification);
+  if (!amount || notificationMessageIncludesAmount(message)) {
+    return null;
+  }
+
+  return amount;
+}
+
 /**
  * Transform ResearchHub URLs to relative paths and convert #comments to /conversation
  * Examples:
@@ -220,7 +275,7 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     }
   }
 
-  if (notification.type === 'GRANT_DECLINED') {
+  if (notification.type === 'GRANT_DECLINED' || notification.type === 'CONTENT_DECLINED') {
     return undefined;
   }
 
@@ -233,6 +288,14 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     if (id && slug) {
       return `/grant/${id}/${slug}`;
     }
+  }
+
+  if (notification.type === 'CONTENT_APPROVED' && notification.work?.id) {
+    return buildWorkUrl({
+      id: notification.work.id,
+      slug: notification.work.slug,
+      contentType: notification.work.contentType ?? 'paper',
+    });
   }
 
   const url = notification.navigationUrl;
@@ -282,6 +345,19 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   }
 }
 
+function getWorkTypeLabel(contentType?: string): string {
+  switch (contentType) {
+    case 'preregistration':
+      return 'proposal';
+    case 'paper':
+      return 'paper';
+    case 'post':
+      return 'post';
+    default:
+      return 'submission';
+  }
+}
+
 function getBountyTypeAction(bountyType: string): string {
   switch (bountyType?.toUpperCase()) {
     case 'REVIEW':
@@ -301,8 +377,7 @@ export function formatNotificationMessage(
   const { type, actionUser, work } = notification;
 
   const userName = actionUser ? actionUser.fullName : 'A user';
-  const docTitle = work?.title || 'an item';
-  const truncatedTitle = docTitle.length > 60 ? `${docTitle.slice(0, 60)}...` : docTitle;
+  const truncatedTitle = truncateText(stripHtml(work?.title || 'an item'), 60);
 
   switch (type) {
     // Financial notifications
@@ -397,6 +472,13 @@ export function formatNotificationMessage(
 
     case 'GRANT_DECLINED':
       return `Your funding opportunity has been declined.`;
+
+    // Content moderation notifications (papers, posts, proposals)
+    case 'CONTENT_APPROVED':
+      return `Your ${getWorkTypeLabel(work?.contentType)} "${truncatedTitle}" has been approved.`;
+
+    case 'CONTENT_DECLINED':
+      return `Your ${getWorkTypeLabel(work?.contentType)} "${truncatedTitle}" has been declined.`;
 
     case 'RSC_YIELD_OPT_IN':
       return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';

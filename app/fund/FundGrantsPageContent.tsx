@@ -32,6 +32,7 @@ export function FundGrantsPageContent() {
       hasMore={hasMoreGrants}
       loadMore={loadMoreGrants}
       filters={<GrantSortAndFilters sortBy={grantSort} onSortChange={setGrantSort} />}
+      skeletonVariant="grant"
       showGrantHeaders={false}
       showPostHeaders={false}
       showFundraiseHeaders={false}

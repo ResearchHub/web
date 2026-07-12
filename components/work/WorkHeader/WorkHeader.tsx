@@ -30,6 +30,7 @@ import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
 import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
 import { WorkHeaderSubtitle } from './WorkHeaderSubtitle';
 import { WorkHeaderBountyEyebrow } from './WorkHeaderBountyEyebrow';
+import { PendingReviewBadge } from './PendingReviewBadge';
 import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
@@ -148,7 +149,21 @@ export function WorkHeader({
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
   ) : undefined;
 
-  const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
+  const baseEyebrow = eyebrowOverride === undefined ? defaultEyebrow : eyebrowOverride;
+
+  // Papers, posts, and proposals carry their moderation state at the top level.
+  // Grants are exempt (their post stays APPROVED; grant.status drives their own
+  // eyebrow), so this badge never double-renders for them.
+  let resolvedEyebrow = baseEyebrow;
+  if (work.moderationStatus === 'PENDING') {
+    resolvedEyebrow = (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <PendingReviewBadge />
+        {baseEyebrow}
+      </div>
+    );
+  }
+
   const resolvedSubtitle =
     subtitleOverride !== undefined ? (
       subtitleOverride

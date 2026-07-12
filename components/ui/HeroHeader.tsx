@@ -11,6 +11,12 @@ interface HeroHeaderProps {
   children?: React.ReactNode;
   tabBar?: React.ReactNode;
   className?: string;
+  /**
+   * Top-align the title/subtitle with the CTA column instead of vertically
+   * centering them. Use when the CTA can vary in height (e.g. it contains a
+   * stats panel) so the title doesn't shift down as the CTA grows.
+   */
+  alignTop?: boolean;
 }
 
 export function HeroHeader({
@@ -22,6 +28,7 @@ export function HeroHeader({
   children,
   tabBar,
   className,
+  alignTop = false,
 }: HeroHeaderProps) {
   const hasHeader = title || eyebrow || subtitle || actions || cta;
 
@@ -35,7 +42,12 @@ export function HeroHeader({
       >
         {hasHeader && (
           <>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <div
+              className={cn(
+                'flex flex-col sm:flex-row gap-3 sm:gap-6',
+                alignTop ? 'sm:items-start' : 'sm:items-center'
+              )}
+            >
               <div className="flex-1 min-w-0">
                 {eyebrow && <div className="mb-2.5">{eyebrow}</div>}
                 {title && (

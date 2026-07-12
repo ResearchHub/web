@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
@@ -17,14 +16,6 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
-import { KeyInsightsModal } from '@/components/modals/KeyInsightsModal';
-import { KeyInsightsLine } from '@/components/work/KeyInsights/KeyInsightsLine';
-import { KeyInsightsPanel } from '@/components/work/KeyInsights/KeyInsightsPanel';
-import { useIsFunderDashboard } from '@/components/work/KeyInsights/useIsFunderDashboard';
-import { GrantInvitedExpertsSection } from '@/components/Funding/GrantInvitedExpertsSection';
-import { useUser } from '@/contexts/UserContext';
-import type { AuthorProfile } from '@/types/authorProfile';
-import type { User } from '@/types/user';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -33,27 +24,7 @@ interface FeedItemGrantWithApplicantsProps {
 
 const VISIBLE_PROPOSALS = 3;
 
-function canViewGrantInvitedExperts(
-  user: User | null | undefined,
-  createdBy: AuthorProfile
-): boolean {
-  if (!user) return false;
-  if (user.isModerator) return true;
-
-  const creatorUserId = createdBy.userId ?? createdBy.user?.id;
-  if (creatorUserId != null && creatorUserId === user.id) {
-    return true;
-  }
-
-  const authorId = user.authorProfile?.id;
-  if (authorId != null && authorId > 0 && authorId === createdBy.id) {
-    return true;
-  }
-
-  return false;
-}
-
-function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
+export function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
   return formatCurrency({ amount, showUSD, exchangeRate, skipConversion: true, shorten: true });
 }
 
@@ -62,24 +33,11 @@ interface ProposalRowProps {
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
-  showKeyInsights?: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({
-  application,
-  showUSD,
-  exchangeRate,
-  isLast,
-  showKeyInsights,
-}) => {
+const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
   const { profile, fundraise: fundraiseRaw } = application;
   const fundraise = fundraiseRaw!;
-  const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
-  const openInsightsModal = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsInsightsModalOpen(true);
-  };
 
   const askAmount = showUSD
     ? Math.round(fundraise.goalAmount.usd)
@@ -102,11 +60,8 @@ const ProposalRow: FC<ProposalRowProps> = ({
     <Link
       href={proposalHref}
       className={cn(
-        'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
-        !isLast && 'border-b border-gray-100',
-        showKeyInsights
-          ? 'grid-cols-[75px_1fr] funder-wide:grid-cols-[75px_1fr_340px]'
-          : 'grid-cols-[75px_1fr]'
+        'grid grid-cols-[75px_1fr] items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        !isLast && 'border-b border-gray-100'
       )}
     >
       {/* Ask amount */}
@@ -166,34 +121,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
             </>
           )}
         </div>
-
-        {/* Inline insights — all widths below funder-wide. Sits below the author meta row,
-            wrapped in a subtle gradient callout. */}
-        {showKeyInsights && application.keyInsight && (
-          <div className="funder-wide:hidden">
-            <KeyInsightsLine keyInsight={application.keyInsight} onOpenModal={openInsightsModal} />
-          </div>
-        )}
       </div>
-
-      {/* Side panel insights — funder-wide+ */}
-      {showKeyInsights && (
-        <div className="hidden funder-wide:block self-stretch border-l border-gray-200 pl-4">
-          {application.keyInsight ? (
-            <KeyInsightsPanel keyInsight={application.keyInsight} onOpenModal={openInsightsModal} />
-          ) : (
-            <div className="text-[11px] text-gray-400 italic pt-1">No insights yet</div>
-          )}
-        </div>
-      )}
-
-      {application.keyInsight && (
-        <KeyInsightsModal
-          isOpen={isInsightsModalOpen}
-          onClose={() => setIsInsightsModalOpen(false)}
-          keyInsight={application.keyInsight}
-        />
-      )}
     </Link>
   );
 };
@@ -205,13 +133,6 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const [expanded, setExpanded] = useState(false);
-  const [activeSection, setActiveSection] = useState<'proposals' | 'invited'>('proposals');
-  const [invitedTotal, setInvitedTotal] = useState<number | null>(null);
-  const isFunderDashboard = useIsFunderDashboard();
-  const { user } = useUser();
-  // On the funder dashboard the row is read-only (insights instead of Apply CTA).
-  const showKeyInsights = isFunderDashboard;
-  const showApplyFooter = !isFunderDashboard;
 
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
@@ -234,17 +155,6 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const shown = expanded ? allProposals : allProposals.slice(0, VISIBLE_PROPOSALS);
   const remaining = allProposals.length - VISIBLE_PROPOSALS;
   const hasProposals = allProposals.length > 0;
-
-  const unifiedDocumentId = content.unifiedDocumentId
-    ? Number(content.unifiedDocumentId)
-    : undefined;
-  const canViewInvitedExperts = canViewGrantInvitedExperts(user, grant.createdBy);
-  const showInvitedExperts =
-    isFunderDashboard &&
-    canViewInvitedExperts &&
-    unifiedDocumentId != null &&
-    !Number.isNaN(unifiedDocumentId);
-  const showSectionTabs = hasProposals && showInvitedExperts;
 
   const isClosed = grant.status === 'CLOSED' || grant.isExpired || !grant.isActive;
 
@@ -343,104 +253,62 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       {/* Proposal rows */}
       {hasProposals && (
         <>
-          {showSectionTabs ? (
-            <ButtonGroup
-              variant="section"
-              value={activeSection}
-              onChange={(value) => setActiveSection(value as 'proposals' | 'invited')}
-              options={[
-                {
-                  value: 'proposals',
-                  label: `Applicant Proposals (${allProposals.length})`,
-                },
-                {
-                  value: 'invited',
-                  label: `Invited Experts${invitedTotal != null ? ` (${invitedTotal})` : ''}`,
-                },
-              ]}
-            />
-          ) : (
-            <div className="px-5 py-2 border-b border-gray-100 bg-gray-50/80">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                Applicant Proposals
-              </span>
-            </div>
-          )}
-
-          {(!showSectionTabs || activeSection === 'proposals') && (
-            <div>
-              {shown.map((application, i) => (
-                <ProposalRow
-                  key={`${application.profile.id}-${application.fundraise!.id}-${i}`}
-                  application={application}
-                  showUSD={showUSD}
-                  exchangeRate={exchangeRate}
-                  isLast={
-                    i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
-                  }
-                  showKeyInsights={showKeyInsights}
-                />
-              ))}
-              {!expanded && remaining > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setExpanded(true)}
-                  className="w-full px-5 py-2.5 text-center text-xs font-semibold text-blue-500 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
-                >
-                  Show {remaining} more proposal{remaining > 1 ? 's' : ''}
-                </button>
-              )}
-              {expanded && remaining > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setExpanded(false)}
-                  className="w-full px-5 py-2.5 text-center text-xs font-semibold text-gray-400 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
-                >
-                  Show less
-                </button>
-              )}
-            </div>
-          )}
-
-          {showInvitedExperts && (
-            <GrantInvitedExpertsSection
-              unifiedDocumentId={unifiedDocumentId!}
-              canView={canViewInvitedExperts}
-              variant="tab-panel"
-              isActive={activeSection === 'invited'}
-              onTotalChange={setInvitedTotal}
-            />
-          )}
+          <div className="px-5 py-2 border-b border-gray-100 bg-gray-50/80">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+              Applicant Proposals
+            </span>
+          </div>
+          <div>
+            {shown.map((application, i) => (
+              <ProposalRow
+                key={`${application.profile.id}-${application.fundraise!.id}-${i}`}
+                application={application}
+                showUSD={showUSD}
+                exchangeRate={exchangeRate}
+                isLast={
+                  i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
+                }
+              />
+            ))}
+            {!expanded && remaining > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="w-full px-5 py-2.5 text-center text-xs font-semibold text-blue-500 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
+              >
+                Show {remaining} more proposal{remaining > 1 ? 's' : ''}
+              </button>
+            )}
+            {expanded && remaining > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="w-full px-5 py-2.5 text-center text-xs font-semibold text-gray-400 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
+              >
+                Show less
+              </button>
+            )}
+          </div>
         </>
       )}
 
-      {/* No proposals — placeholder; funder dashboard gets expand control below */}
+      {/* No proposals — experts invited state */}
       {!hasProposals && !isClosed && (
-        <div className="border-b border-gray-100 bg-gray-50/50">
-          <div className="px-5 py-4">
-            <div className="flex items-center justify-center gap-2 mb-1.5">
-              <RadiatingDot color="bg-emerald-500" size="sm" />
-              <span className="text-[11px] font-semibold text-gray-700">
-                Experts have been invited to apply
-              </span>
-            </div>
-            <p className="text-[11px] text-gray-600 text-center">
-              Anyone can apply. Be the first to submit yours.
-            </p>
+        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-center gap-2 mb-1.5">
+            <RadiatingDot color="bg-emerald-500" size="sm" />
+            <span className="text-[11px] font-semibold text-gray-700">
+              Experts have been invited to apply
+            </span>
           </div>
-          {showInvitedExperts && (
-            <GrantInvitedExpertsSection
-              unifiedDocumentId={unifiedDocumentId!}
-              canView={canViewInvitedExperts}
-              variant="standalone"
-              onTotalChange={setInvitedTotal}
-            />
-          )}
+          <p className="text-[11px] text-gray-600 text-center">
+            Anyone can apply. be the first to submit yours.
+          </p>
         </div>
       )}
 
-      {/* Footer — Apply CTA, hidden on the funder dashboard */}
-      {showApplyFooter && !isClosed && (
+      {/* Footer — Apply CTA */}
+      {!isClosed && (
         <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">
             {hasProposals

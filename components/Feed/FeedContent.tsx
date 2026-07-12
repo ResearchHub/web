@@ -3,7 +3,7 @@
 import { FC, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FeedItemSkeleton } from './FeedItemSkeleton';
+import { FeedItemSkeleton, FeedSkeletonVariant } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { FeedTab, FundingTab } from '@/hooks/useFeed';
@@ -39,6 +39,7 @@ interface FeedContentProps {
   showFundraiseHeaders?: boolean;
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
+  grantCardVariant?: 'default' | 'comprehensive';
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
@@ -52,6 +53,7 @@ interface FeedContentProps {
    * Use when the surrounding layout is already wider (e.g. sidebar-less pages).
    */
   wideContent?: boolean;
+  skeletonVariant?: FeedSkeletonVariant;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -73,6 +75,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   showFundraiseHeaders = true,
   showPostHeaders = true,
   showReadMoreCTA = false,
+  grantCardVariant = 'default',
   ordering,
   restoredScrollPosition,
   page,
@@ -82,6 +85,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   showBountyInfo = false,
   abstractCollapsedByDefault,
   wideContent = false,
+  skeletonVariant,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -123,6 +127,8 @@ export const FeedContent: FC<FeedContentProps> = ({
   const displayEntries = entries;
   const showLoadingSkeletons = isLoading || isLoadingMore;
   const skeletonCount = 3;
+  const resolvedSkeletonVariant =
+    skeletonVariant ?? (grantCardVariant === 'comprehensive' ? 'comprehensive' : 'paper');
 
   useEffect(() => {
     if (inView && hasMore && !showLoadingSkeletons) {
@@ -195,6 +201,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   showGrantHeaders={showGrantHeaders}
                   showFundraiseHeaders={showFundraiseHeaders}
                   showReadMoreCTA={showReadMoreCTA}
+                  grantCardVariant={grantCardVariant}
                   feedOrdering={ordering}
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
@@ -219,7 +226,12 @@ export const FeedContent: FC<FeedContentProps> = ({
             <div className={displayEntries.length > 0 ? 'mt-8' : ''}>
               <div className="space-y-8">
                 {[...Array(skeletonCount)].map((_, index) => (
-                  <FeedItemSkeleton key={`skeleton-${index}`} />
+                  <FeedItemSkeleton
+                    key={`skeleton-${index}`}
+                    variant={resolvedSkeletonVariant}
+                    hideActions={hideActions}
+                    showHeader={showPostHeaders}
+                  />
                 ))}
               </div>
             </div>

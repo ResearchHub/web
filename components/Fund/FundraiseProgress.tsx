@@ -4,7 +4,8 @@ import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
-import { formatDeadline, formatExactTime, isDeadlineInFuture } from '@/utils/date';
+import { formatDeadline, formatExactTime } from '@/utils/date';
+import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import type { Fundraise } from '@/types/funding';
 import type { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +23,7 @@ interface FundraiseProgressProps {
   fundraiseTitle: string;
   onContribute?: () => void;
   showContribute?: boolean;
+  contributeOnMobileOnly?: boolean;
   className?: string;
   showPercentage?: boolean;
   variant?: 'default' | 'minimal';
@@ -34,6 +36,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   fundraiseTitle,
   onContribute,
   showContribute = true,
+  contributeOnMobileOnly = false,
   className,
   showPercentage = false,
   variant = 'default',
@@ -74,10 +77,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       amounts: contributor.totalContribution,
     })) || [];
 
-  // Check if fundraise is active
-  const isActive =
-    fundraise.status === 'OPEN' &&
-    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const isActive = isFundraiseActive(fundraise);
 
   // Get status display for the top right when no contributors
   const getStatusDisplay = () => {
@@ -251,7 +251,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             <Button
               variant="default"
               size="sm"
-              className="flex items-center gap-1.5"
+              className={cn(
+                'flex items-center gap-1.5',
+                contributeOnMobileOnly && 'tablet:!hidden'
+              )}
               onClick={handleContributeClick}
             >
               <Icon name="giveRSC" size={18} color="white" />

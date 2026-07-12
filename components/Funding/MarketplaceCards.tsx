@@ -2,6 +2,7 @@
 
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
+import { useUser } from '@/contexts/UserContext';
 
 export type MarketplaceTab = 'grants' | 'proposals';
 
@@ -29,13 +30,20 @@ const marketplaceTabs = [
 ];
 
 export function MarketplaceCards({ selected = 'grants' }: MarketplaceCardsProps) {
+  const { user, isLoading: isLoadingUser } = useUser();
+  // Pull the tabs up only when the panel is or will be taller (snapshot visible).
+  // Logged-out users see just the CTA (shorter panel), so no offset is needed.
+  const snapshotVisible = isLoadingUser || !!user;
+
   return (
-    <Tabs
-      tabs={marketplaceTabs}
-      activeTab={selected}
-      onTabChange={() => {}}
-      variant="primary"
-      className="mt-4"
-    />
+    <div className={snapshotVisible ? 'sm:-mt-10' : ''}>
+      <Tabs
+        tabs={marketplaceTabs}
+        activeTab={selected}
+        onTabChange={() => {}}
+        variant="primary"
+        className="mt-4"
+      />
+    </div>
   );
 }
