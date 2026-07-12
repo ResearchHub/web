@@ -1,46 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { Building2, ExternalLink } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { ExpertSourceLinkIcon } from '@/components/ExpertFinder/ExpertSourceLinkIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import type { GrantInvitedExpert } from '@/types/expertFinder';
+import type { ExpertSourceLink, GrantInvitedExpert } from '@/types/expertFinder';
 
 interface GrantInvitedExpertCardProps {
   expert: GrantInvitedExpert;
   className?: string;
 }
 
-function ExpertSourceLinks({ expert }: { expert: GrantInvitedExpert }) {
-  const sources = expert.sources?.length ? expert.sources : [];
-  if (sources.length === 0) return null;
-
+function ExpertSourceLinkItem({ src }: { src: ExpertSourceLink }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-0.5">
-      {sources.map((src, i) => (
-        <Tooltip
-          key={`${src.url}-${i}`}
-          content={src.text}
-          position="top"
-          width="w-72"
-          className="text-left"
-          wrapperClassName="inline-flex shrink-0 items-center"
-        >
-          <a
-            href={src.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:text-primary-700"
-            aria-label={src.text}
-            title={src.text}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
-          </a>
-        </Tooltip>
-      ))}
-    </span>
+    <Tooltip
+      content={src.text}
+      position="top"
+      width="w-72"
+      className="text-left"
+      wrapperAs="span"
+      wrapperClassName="inline-flex shrink-0 items-center"
+    >
+      <a
+        href={src.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+        aria-label={src.text}
+        title={src.text}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ExpertSourceLinkIcon url={src.url} text={src.text} />
+      </a>
+    </Tooltip>
   );
 }
 
@@ -50,6 +44,7 @@ export function GrantInvitedExpertCard({ expert, className }: GrantInvitedExpert
   const university = expert.affiliation?.trim() || '';
   const authorId = expert.registeredUser?.author?.id;
   const hasAuthor = authorId != null && authorId > 0;
+  const sources = expert.sources?.length ? expert.sources : [];
 
   const nameLink = hasAuthor ? (
     <Link
@@ -93,9 +88,17 @@ export function GrantInvitedExpertCard({ expert, className }: GrantInvitedExpert
         className
       )}
     >
-      <div className="flex min-w-0 items-start justify-between gap-1">
+      <div className="min-w-0">
+        <div>
+          {sources.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1">
+              {sources.map((src, i) => (
+                <ExpertSourceLinkItem key={`${src.url}-${i}`} src={src} />
+              ))}
+            </div>
+          )}
+        </div>
         <div className="min-w-0 flex-1">{profileBlock}</div>
-        <ExpertSourceLinks expert={expert} />
       </div>
       {university ? (
         <div className="mt-1.5 flex min-w-0 items-start gap-1 text-[10px] leading-snug text-gray-500">
