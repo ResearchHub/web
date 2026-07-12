@@ -24,7 +24,7 @@ export const GrantInvitedExpertsGrid: FC<GrantInvitedExpertsGridProps> = ({
   }
 
   return (
-    <div className={cn('px-4 pt-3', className)}>
+    <div className={cn('p-4', className)}>
       <div className={GRANT_INVITED_EXPERTS_GRID_CLASS}>
         {experts.map((expert, i) => (
           <GrantInvitedExpertCard key={`${expert.expertId ?? expert.email}-${i}`} expert={expert} />
