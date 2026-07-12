@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
+import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
@@ -17,6 +18,10 @@ import { Application } from '@/types/funding';
 import { KeyInsightsModal } from '@/components/modals/KeyInsightsModal';
 import { KeyInsightsLine } from '@/components/work/KeyInsights/KeyInsightsLine';
 import { KeyInsightsPanel } from '@/components/work/KeyInsights/KeyInsightsPanel';
+import { GrantInvitedExpertsSection } from '@/components/Funding/GrantInvitedExpertsSection';
+import { useUser } from '@/contexts/UserContext';
+import type { AuthorProfile } from '@/types/authorProfile';
+import type { User } from '@/types/user';
 import { formatCompact } from './FeedItemGrantWithApplicants';
 
 interface FeedItemGrantComprehensiveProps {
@@ -25,6 +30,26 @@ interface FeedItemGrantComprehensiveProps {
 }
 
 const VISIBLE_PROPOSALS = 3;
+
+function canViewGrantInvitedExperts(
+  user: User | null | undefined,
+  createdBy: AuthorProfile
+): boolean {
+  if (!user) return false;
+  if (user.isModerator) return true;
+
+  const creatorUserId = createdBy.userId ?? createdBy.user?.id;
+  if (creatorUserId != null && creatorUserId === user.id) {
+    return true;
+  }
+
+  const authorId = user.authorProfile?.id;
+  if (authorId != null && authorId > 0 && authorId === createdBy.id) {
+    return true;
+  }
+
+  return false;
+}
 
 interface GrantDeploymentProgressProps {
   /** Funder's commitment ceiling — the bar is "full" when deployed reaches this. */
@@ -457,7 +482,10 @@ export const FeedItemGrantComprehensive: FC<FeedItemGrantComprehensiveProps> = (
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const { user } = useUser();
   const [expanded, setExpanded] = useState(false);
+  const [activeSection, setActiveSection] = useState<'proposals' | 'invited'>('proposals');
+  const [invitedTotal, setInvitedTotal] = useState<number | null>(null);
 
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
@@ -480,6 +508,14 @@ export const FeedItemGrantComprehensive: FC<FeedItemGrantComprehensiveProps> = (
   const shown = expanded ? allProposals : allProposals.slice(0, VISIBLE_PROPOSALS);
   const remaining = allProposals.length - VISIBLE_PROPOSALS;
   const hasProposals = allProposals.length > 0;
+
+  const unifiedDocumentId = content.unifiedDocumentId
+    ? Number(content.unifiedDocumentId)
+    : undefined;
+  const canViewInvitedExperts = canViewGrantInvitedExperts(user, grant.createdBy);
+  const showInvitedExperts =
+    canViewInvitedExperts && unifiedDocumentId != null && !Number.isNaN(unifiedDocumentId);
+  const showSectionTabs = hasProposals && showInvitedExperts;
 
   const isClosed = grant.status === 'CLOSED' || grant.isExpired || !grant.isActive;
 
@@ -544,57 +580,98 @@ export const FeedItemGrantComprehensive: FC<FeedItemGrantComprehensiveProps> = (
       {/* Proposal rows */}
       {hasProposals && (
         <>
-          <div className="px-5 py-2 border-b border-gray-100 bg-gray-50/80">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-              Applicant Proposals
-            </span>
-          </div>
-          <div>
-            {shown.map((application, i) => (
-              <ProposalRow
-                key={`${application.profile.id}-${application.fundraise!.id}-${i}`}
-                application={application}
-                showUSD={showUSD}
-                exchangeRate={exchangeRate}
-                isLast={
-                  i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
-                }
-              />
-            ))}
-            {!expanded && remaining > 0 && (
-              <button
-                type="button"
-                onClick={() => setExpanded(true)}
-                className="w-full px-5 py-2.5 text-center text-xs font-semibold text-blue-500 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
-              >
-                Show {remaining} more proposal{remaining > 1 ? 's' : ''}
-              </button>
-            )}
-            {expanded && remaining > 0 && (
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="w-full px-5 py-2.5 text-center text-xs font-semibold text-gray-400 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
-              >
-                Show less
-              </button>
-            )}
-          </div>
+          {showSectionTabs ? (
+            <ButtonGroup
+              variant="section"
+              value={activeSection}
+              onChange={(value) => setActiveSection(value as 'proposals' | 'invited')}
+              options={[
+                {
+                  value: 'proposals',
+                  label: `Applicant Proposals (${allProposals.length})`,
+                },
+                {
+                  value: 'invited',
+                  label: `Invited Experts${invitedTotal != null ? ` (${invitedTotal})` : ''}`,
+                },
+              ]}
+            />
+          ) : (
+            <div className="px-5 py-2 border-b border-gray-100 bg-gray-50/80">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                Applicant Proposals
+              </span>
+            </div>
+          )}
+
+          {(!showSectionTabs || activeSection === 'proposals') && (
+            <div>
+              {shown.map((application, i) => (
+                <ProposalRow
+                  key={`${application.profile.id}-${application.fundraise!.id}-${i}`}
+                  application={application}
+                  showUSD={showUSD}
+                  exchangeRate={exchangeRate}
+                  isLast={
+                    i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
+                  }
+                />
+              ))}
+              {!expanded && remaining > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded(true)}
+                  className="w-full px-5 py-2.5 text-center text-xs font-semibold text-blue-500 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
+                >
+                  Show {remaining} more proposal{remaining > 1 ? 's' : ''}
+                </button>
+              )}
+              {expanded && remaining > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded(false)}
+                  className="w-full px-5 py-2.5 text-center text-xs font-semibold text-gray-400 hover:bg-gray-50/80 transition-colors border-t border-gray-100 cursor-pointer"
+                >
+                  Show less
+                </button>
+              )}
+            </div>
+          )}
+
+          {showInvitedExperts && (
+            <GrantInvitedExpertsSection
+              unifiedDocumentId={unifiedDocumentId!}
+              canView={canViewInvitedExperts}
+              variant="tab-panel"
+              isActive={activeSection === 'invited'}
+              onTotalChange={setInvitedTotal}
+            />
+          )}
         </>
       )}
 
-      {/* No proposals — experts invited state */}
+      {/* No proposals — placeholder; funder dashboard gets expand control below */}
       {!hasProposals && !isClosed && (
-        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
-          <div className="flex items-center justify-center gap-2 mb-1.5">
-            <RadiatingDot color="bg-emerald-500" size="sm" />
-            <span className="text-[11px] font-semibold text-gray-700">
-              Experts have been invited to apply
-            </span>
+        <div className="border-b border-gray-100 bg-gray-50/50">
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-center gap-2 mb-1.5">
+              <RadiatingDot color="bg-emerald-500" size="sm" />
+              <span className="text-[11px] font-semibold text-gray-700">
+                Experts have been invited to apply
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-600 text-center">
+              Anyone can apply. Be the first to submit yours.
+            </p>
           </div>
-          <p className="text-[11px] text-gray-600 text-center">
-            Anyone can apply. be the first to submit yours.
-          </p>
+          {showInvitedExperts && (
+            <GrantInvitedExpertsSection
+              unifiedDocumentId={unifiedDocumentId!}
+              canView={canViewInvitedExperts}
+              variant="standalone"
+              onTotalChange={setInvitedTotal}
+            />
+          )}
         </div>
       )}
     </div>
