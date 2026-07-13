@@ -4,7 +4,6 @@ import { PostService } from '@/services/post.service';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
@@ -43,10 +42,8 @@ export default async function GrantSlugPage({ params }: Props) {
 
   return (
     <GrantContentSwitcher content={work.previewContent} imageUrl={work.image}>
-      <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-        {grant?.description && <ProposalSortAndFilters />}
-        <ProposalFeed />
-      </FundraiseProvider>
+      {grant?.description && <ProposalSortAndFilters />}
+      <ProposalFeed />
     </GrantContentSwitcher>
   );
 }

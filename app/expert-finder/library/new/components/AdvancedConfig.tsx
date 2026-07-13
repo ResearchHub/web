@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +23,6 @@ import {
 import { getFieldErrorMessage } from '@/utils/form';
 import { cn } from '@/utils/styles';
 import { SearchHistoryDropdown } from './SearchHistoryDropdown';
-import { ExcludeExpertsFromSearchesDropdown } from './ExcludeExpertsFromSearchesDropdown';
 
 const INPUT_TYPE_OPTIONS: { value: InputType; label: string }[] = [
   { value: 'full_content', label: 'Full Content' },
@@ -78,13 +77,6 @@ export function AdvancedConfig({
   }, [availableInputTypes, values.inputType]);
 
   const regionLabel = getRegionLabel(values.region);
-
-  const handleExcludeChange = useCallback(
-    (excludedSearchIds: number[]) => {
-      onChange({ ...values, excludedSearchIds });
-    },
-    [onChange, values]
-  );
 
   return (
     <CollapsibleSection
@@ -294,22 +286,12 @@ export function AdvancedConfig({
             </Dropdown>
           </div>
 
-          <div className="min-w-0 md:!col-span-2 border-t border-gray-200 pt-4 mt-2 space-y-4">
-            <div className="grid grid-cols-1 md:!grid-cols-2 gap-4">
-              <div className="min-w-0">
-                <SearchHistoryDropdown
-                  selectedSearchId={selectedSearchId}
-                  onSearchSelect={onRerunSelect}
-                  onLoadingChange={setIsLoadingRerun}
-                />
-              </div>
-              <div className="min-w-0">
-                <ExcludeExpertsFromSearchesDropdown
-                  value={values.excludedSearchIds}
-                  onExcludeChange={handleExcludeChange}
-                />
-              </div>
-            </div>
+          <div className="min-w-0 md:!col-span-2 border-t border-gray-200 pt-4 mt-2">
+            <SearchHistoryDropdown
+              selectedSearchId={selectedSearchId}
+              onSearchSelect={onRerunSelect}
+              onLoadingChange={setIsLoadingRerun}
+            />
           </div>
         </div>
       </div>

@@ -24,6 +24,18 @@ import {
 import type { ContentType, Work } from '@/types/work';
 import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
+import { ApiError } from './types/api';
+
+// TEMP: Disable outreach while AWS sender provider is broken. Set to false to re-enable.
+const OUTREACH_SENDING_DISABLED = true;
+const OUTREACH_DISABLED_MESSAGE =
+  'Expert outreach is temporarily unavailable. Please try again later.';
+
+function assertExpertFinderOutreachEnabled(): void {
+  if (OUTREACH_SENDING_DISABLED) {
+    throw new ApiError(OUTREACH_DISABLED_MESSAGE, 503);
+  }
+}
 
 // ── API enum values and display labels ─────────────
 
@@ -77,7 +89,6 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_search_ids?: number[];
   additional_context?: string;
 }
 
@@ -384,6 +395,7 @@ export class ExpertFinderService {
     reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
       reply_to: payload.reply_to,
@@ -401,6 +413,7 @@ export class ExpertFinderService {
     generated_email_ids: number[];
     reply_to: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
       reply_to: payload.reply_to,
@@ -473,6 +486,7 @@ export class ExpertFinderService {
     grantId: string | number,
     params: { emails: string[]; replyTo?: string; cc?: string[] }
   ): Promise<InviteApplicantsResponse> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = { emails: params.emails };
     if (params.replyTo) body.reply_to = params.replyTo;
     if (params.cc && params.cc.length) body.cc = params.cc;
