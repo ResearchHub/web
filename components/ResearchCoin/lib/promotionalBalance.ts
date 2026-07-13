@@ -1,23 +1,15 @@
 import type { User } from '@/types/user';
 
 /**
- * TODO(REMOVE): Temporary UI toggle until promotional balance ships on the backend.
- * Delete this constant and all references once hasEverHadPromotionalBalance reads real user data.
- */
-export const TEMP_FORCE_HAS_EVER_HAD_PROMO_BALANCE = true;
-
-/**
  * Whether the wallet should show the promotional-balance expandable UI.
  *
- * Backend: expose e.g. `has_ever_received_promotional_balance` on GET /api/user/
- * and map it in types/user.ts transformUser → user.hasEverReceivedPromotionalBalance
- * (true if the user has ever been credited promotional RSC, even if the balance is now 0).
+ * Gates on a nonzero promotional balance. If the section should persist after
+ * a promo balance is fully spent (showing 0), the backend needs to expose a
+ * "has ever received promotional balance" flag on GET /api/user/ — swap this
+ * to read that flag instead.
  */
-export function hasEverHadPromotionalBalance(_user: User | null | undefined): boolean {
-  if (TEMP_FORCE_HAS_EVER_HAD_PROMO_BALANCE) return true;
-
-  // return Boolean(_user?.hasEverReceivedPromotionalBalance);
-  return false;
+export function shouldShowPromoWallet(user: User | null | undefined): boolean {
+  return getPromotionalBalance(user) > 0;
 }
 
 /**

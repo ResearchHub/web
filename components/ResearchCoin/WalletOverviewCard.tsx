@@ -23,8 +23,6 @@ export interface WalletOverviewCardProps {
   showUSD: boolean;
   exchangeRate: number;
   isBalanceReady?: boolean;
-  /** Preview/demo only — start ResearchCoin expanded. */
-  defaultExpanded?: boolean;
   onDeposit?: () => void;
   onWithdraw?: () => void;
   onFundResearch?: () => void;
@@ -40,8 +38,7 @@ interface CurrencyMenuItem {
 const formatUsd = (n: number) => formatUsdValue(n.toString(), 0, false);
 
 /**
- * Presentational My Wallet card — same assembly as /researchcoin.
- * Used by WalletOverview (live data) and the promotional-balance preview (mock data).
+ * Presentational My Wallet card — the balance summary shown on /researchcoin.
  */
 export function WalletOverviewCard({
   availableRsc,
@@ -51,7 +48,6 @@ export function WalletOverviewCard({
   showUSD,
   exchangeRate,
   isBalanceReady = true,
-  defaultExpanded = false,
   onDeposit,
   onWithdraw,
   onFundResearch,
@@ -143,7 +139,6 @@ export function WalletOverviewCard({
             showUSD={showUSD}
             exchangeRate={exchangeRate}
             isBalanceReady={isBalanceReady}
-            defaultExpanded={defaultExpanded}
           />
         ) : (
           <AssetRow

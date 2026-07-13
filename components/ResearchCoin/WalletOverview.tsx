@@ -9,7 +9,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useUser } from '@/contexts/UserContext';
 import {
   getPromotionalBalance,
-  hasEverHadPromotionalBalance,
+  shouldShowPromoWallet,
 } from '@/components/ResearchCoin/lib/promotionalBalance';
 import { WalletOverviewCard } from './WalletOverviewCard';
 
@@ -27,7 +27,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
   const { user, refreshUser } = useUser();
   const rawBalance = user?.balance ?? null;
 
-  const showPromoWallet = hasEverHadPromotionalBalance(user);
+  const showPromoWallet = shouldShowPromoWallet(user);
   const promotionalRsc = getPromotionalBalance(user);
   const availableRsc = rawBalance ?? 0;
   const fundingCreditsRsc = user?.fundingCredits ?? 0;

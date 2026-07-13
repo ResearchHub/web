@@ -20,8 +20,6 @@ interface ResearchCoinExpandableProps {
   showUSD: boolean;
   exchangeRate: number | null;
   isBalanceReady: boolean;
-  /** Preview/demo only — start expanded so the gray subtler band is visible. */
-  defaultExpanded?: boolean;
 }
 
 const formatUsd = (n: number) => formatUsdValue(n.toString(), 0, false);
@@ -46,9 +44,8 @@ export function ResearchCoinExpandable({
   showUSD,
   exchangeRate,
   isBalanceReady,
-  defaultExpanded = false,
 }: Readonly<ResearchCoinExpandableProps>) {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [isExpanded, setIsExpanded] = useState(false);
   const combinedRsc = availableRsc + promotionalRsc;
   const combined = formatPair(combinedRsc, showUSD, exchangeRate);
   const available = formatPair(availableRsc, showUSD, exchangeRate);
