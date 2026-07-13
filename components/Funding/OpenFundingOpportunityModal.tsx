@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Dialog } from '@headlessui/react';
 import {
@@ -109,17 +109,36 @@ export const OpenFundingOpportunityModal = ({
 }: OpenFundingOpportunityModalProps) => {
   const initialStep: Step = minimal ? 'method' : 'benefits';
   const [step, setStep] = useState<Step>(initialStep);
+  const [pendingMethod, setPendingMethod] = useState<FundingOpportunityCreationMethod | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleClose = () => {
+    if (isPending) return;
+    onClose();
+  };
+
+  const handleConfirmMethod = (method: FundingOpportunityCreationMethod) => {
+    setPendingMethod(method);
+    startTransition(() => {
+      onConfirm(method);
+    });
+  };
 
   // Reset to the first step whenever the modal is reopened so a returning user
   // always starts from the configured entry step rather than a stale step.
+  // Skip while a route transition is pending so the method step doesn't flash
+  // back to the initial step before navigation completes.
   useEffect(() => {
-    if (!isOpen) setStep(initialStep);
-  }, [isOpen, initialStep]);
+    if (!isOpen && !isPending) {
+      setStep(initialStep);
+      setPendingMethod(null);
+    }
+  }, [isOpen, initialStep, isPending]);
 
   return (
     <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
+      isOpen={isOpen || isPending}
+      onClose={handleClose}
       showCloseButton={false}
       padding="p-0"
       className={cn(
@@ -134,7 +153,7 @@ export const OpenFundingOpportunityModal = ({
             {/* Mobile close button (lives in the title section on small screens) */}
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
               aria-label="Close"
             >
@@ -172,7 +191,7 @@ export const OpenFundingOpportunityModal = ({
         <div className="relative flex flex-1 flex-col p-6 md:p-10">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 z-10 hidden h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 md:inline-flex"
             aria-label="Close"
           >
@@ -252,9 +271,10 @@ export const OpenFundingOpportunityModal = ({
                     key={option.id}
                     type="button"
                     onClick={() =>
-                      option.id === 'upload' ? setStep('upload') : onConfirm(option.id)
+                      option.id === 'upload' ? setStep('upload') : handleConfirmMethod(option.id)
                     }
-                    className="group flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50/50"
+                    disabled={pendingMethod === option.id}
+                    className="group flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50/50 disabled:pointer-events-none disabled:opacity-60"
                   >
                     <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
                       {option.icon}
@@ -282,7 +302,7 @@ export const OpenFundingOpportunityModal = ({
                 href={WHITE_GLOVE_BOOKING_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={onClose}
+                onClick={handleClose}
                 className="group flex w-full items-center gap-4 rounded-xl border border-rhBlue-200 bg-blue-50/60 px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50"
               >
                 <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-rhBlue-600">
@@ -305,7 +325,7 @@ export const OpenFundingOpportunityModal = ({
               description="Import a Word, OpenDocument, or Markdown file and we'll set up your funding opportunity from it."
               documentType="GRANT"
               onBack={() => setStep('method')}
-              onClose={onClose}
+              onClose={handleClose}
             />
           )}
         </div>

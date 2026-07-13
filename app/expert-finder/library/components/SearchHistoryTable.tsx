@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
-import { SearchStatusBadge } from './SearchStatusBadge';
+import { SearchStatus } from './SearchStatus';
 import { formatTimestamp } from '@/utils/date';
 import type { ExpertSearchListItem } from '@/types/expertFinder';
 import { getSearchTableDisplayText } from '@/app/expert-finder/lib/utils';
@@ -27,7 +27,7 @@ export function SearchHistoryTable({ searches, onRowClick }: SearchHistoryTableP
   const data = searches.map((search) => ({
     searchId: search.searchId,
     name: getSearchTableDisplayText(search),
-    status: <SearchStatusBadge status={search.status} />,
+    status: <SearchStatus status={search.status} className="text-sm" />,
     expertCount: search.status === 'completed' ? search.expertCount : '—',
     createdBy: search.createdBy?.author?.fullName ?? '—',
     createdAt: formatTimestamp(search.createdAt, false),

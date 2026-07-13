@@ -68,6 +68,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   return (
     <GrantTabProvider defaultTab="details" grantId={grantId}>
       <PageLayout
+        fundraiseGrantId={grantId ? Number(grantId) : undefined}
         topBanner={
           <RegisteredReportGrantHeader
             work={work}

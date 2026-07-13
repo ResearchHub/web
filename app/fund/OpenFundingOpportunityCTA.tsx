@@ -16,7 +16,6 @@ export function OpenFundingOpportunityCTA() {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleOpen = () => {
     executeAuthenticatedAction(() => setIsModalOpen(true));
@@ -29,11 +28,7 @@ export function OpenFundingOpportunityCTA() {
 
   return (
     <>
-      <div
-        className="relative w-full"
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
+      <div className="group relative w-full">
         <Button
           variant="default"
           size="lg"
@@ -44,19 +39,17 @@ export function OpenFundingOpportunityCTA() {
           Funding Opportunity
         </Button>
 
-        {showTooltip && (
-          <div className="absolute left-0 top-full z-[10000] mt-2 w-full rounded-md border border-gray-900 bg-gray-900 px-4 py-3 text-left text-sm text-white shadow-md">
-            <div className="font-medium">Fund research with:</div>
-            <ul className="mt-1.5 space-y-1">
-              {FUNDING_METHODS.map((method) => (
-                <li key={method} className="flex items-center gap-2">
-                  <Check className="h-4 w-4 flex-shrink-0 text-green-400" />
-                  <span>{method}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-full rounded-md border border-gray-900 bg-gray-900 px-4 py-3 text-left text-sm text-white shadow-md group-hover:block max-sm:!hidden">
+          <div className="font-medium">Fund research with:</div>
+          <ul className="mt-1.5 space-y-1">
+            {FUNDING_METHODS.map((method) => (
+              <li key={method} className="flex items-center gap-2">
+                <Check className="h-4 w-4 flex-shrink-0 text-green-400" />
+                <span>{method}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <OpenFundingOpportunityModal

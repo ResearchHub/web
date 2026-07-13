@@ -166,7 +166,9 @@ export function ReviewsPageContent() {
       hasMore={hasMore}
       loadMore={loadMore}
       filters={filters}
+      skeletonVariant="bounty"
       showBountyFooter={false}
+      hideActions
       showPostHeaders={false}
       showFundraiseHeaders={false}
       restoredScrollPosition={restoredScrollPosition}
