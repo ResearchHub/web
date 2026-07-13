@@ -64,21 +64,16 @@ export function PeerReviewTooltip({ reviews, averageScore, href }: PeerReviewToo
         ))}
       </div>
 
-      {/* CTA */}
-      <div className="pt-2 border-t border-gray-200 text-center">
-        {reviewsHref ? (
+      {reviewsHref && (
+        <div className="pt-2 border-t border-gray-200 text-center">
           <Link
             href={reviewsHref}
             className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium"
           >
             View all reviews
           </Link>
-        ) : (
-          <p className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
-            View all reviews
-          </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

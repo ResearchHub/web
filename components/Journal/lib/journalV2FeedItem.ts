@@ -33,19 +33,16 @@ export interface JournalV2FeedItemViewModel {
 
 type JournalFeedContent = FeedPostContent | FeedPaperContent;
 
-/** Reads a finite review score without treating null as zero. */
 function readScore(value: unknown): number | undefined {
   if (value === null || value === undefined || value === '') return undefined;
   const score = Number(value);
   return Number.isFinite(score) ? score : undefined;
 }
 
-/** Reads the post-facing ID from transformed journal metadata. */
 function readLinkedWorkId(work?: JournalV2LinkedWork): number | undefined {
   return work?.postId ?? work?.id ?? undefined;
 }
 
-/** Builds a work URL from transformed journal metadata. */
 function buildHrefFromLinkedWork(
   work: JournalV2LinkedWork | undefined,
   contentType: 'funding_request' | 'paper' | 'post' | 'preregistration'
@@ -60,12 +57,10 @@ function buildHrefFromLinkedWork(
   });
 }
 
-/** Builds the future Registered Report page URL. */
 function buildReportHref(id: string | number, slug?: string): string {
   return slug ? `/report/${id}/${slug}` : `/report/${id}`;
 }
 
-/** Builds the future Registered Report page URL from transformed journal metadata. */
 function buildReportHrefFromLinkedWork(work: JournalV2LinkedWork | undefined): string | undefined {
   const id = readLinkedWorkId(work);
   if (!id) return undefined;
@@ -73,17 +68,14 @@ function buildReportHrefFromLinkedWork(work: JournalV2LinkedWork | undefined): s
   return buildReportHref(id, work?.slug);
 }
 
-/** Returns true when the transformed feed content is a paper/preprint. */
 function isPaperContent(content: FeedEntry['content']): content is FeedPaperContent {
   return content.contentType === 'PAPER';
 }
 
-/** Returns true when the transformed feed content is a post-like journal item. */
 function isPostContent(content: FeedEntry['content']): content is FeedPostContent {
   return content.contentType === 'POST' || content.contentType === 'PREREGISTRATION';
 }
 
-/** Returns true when the item represents a Registered Report post. */
 function isRegisteredReportContent(
   content: JournalFeedContent,
   journalV2?: JournalV2FeedMetadata
@@ -95,7 +87,6 @@ function isRegisteredReportContent(
   );
 }
 
-/** Builds the primary card link for the transformed journal item. */
 function buildPrimaryHref(content: JournalFeedContent, journalV2?: JournalV2FeedMetadata): string {
   if (isPaperContent(content)) {
     return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'paper' });
@@ -112,7 +103,6 @@ function buildPrimaryHref(content: JournalFeedContent, journalV2?: JournalV2Feed
   return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'post' });
 }
 
-/** Builds the Funding Opportunity tracker link from transformed post IDs when present. */
 function buildFundingOpportunityHref(journalV2?: JournalV2FeedMetadata): string | undefined {
   if (journalV2?.postIds) {
     const grantPostId = journalV2.postIds.grantPostId;
@@ -128,7 +118,6 @@ function buildFundingOpportunityHref(journalV2?: JournalV2FeedMetadata): string 
   return buildHrefFromLinkedWork(journalV2?.fundingOpportunity, 'funding_request');
 }
 
-/** Builds the Proposal tracker link from transformed post IDs when present. */
 function buildProposalHref(
   journalV2: JournalV2FeedMetadata | undefined,
   content: JournalFeedContent,
@@ -152,7 +141,6 @@ function buildProposalHref(
   return buildHrefFromLinkedWork(journalV2?.proposal, 'preregistration');
 }
 
-/** Builds the Registered Report tracker link when that stage exists. */
 function buildRegisteredReportHref(
   content: JournalFeedContent,
   journalV2: JournalV2FeedMetadata | undefined,
@@ -171,7 +159,6 @@ function buildRegisteredReportHref(
   return buildReportHref(registeredReportPostId, journalV2?.registeredReport?.slug);
 }
 
-/** Names the current stage represented by this feed entry. */
 function resolveCurrentStageLabel(
   content: JournalFeedContent,
   journalV2?: JournalV2FeedMetadata
@@ -191,12 +178,10 @@ function resolveCurrentStageLabel(
   return 'Funded Proposal';
 }
 
-/** Normalizes review scores to the x/5 scale shown in journal cards. */
 function normalizeScoreToFive(score: number): number {
   return score > 5 ? score / 2 : score;
 }
 
-/** Converts transformed reviews to the x/5 score scale used by the journal feed. */
 function buildReviewFromTransformed(review: Review): Review | undefined {
   const score = readScore(review.score);
   if (score === undefined) return undefined;
@@ -207,7 +192,6 @@ function buildReviewFromTransformed(review: Review): Review | undefined {
   };
 }
 
-/** Collects reviews from transformed content. */
 function collectReviews(content: JournalFeedContent): Review[] {
   return Array.isArray(content.reviews)
     ? content.reviews
@@ -216,7 +200,6 @@ function collectReviews(content: JournalFeedContent): Review[] {
     : [];
 }
 
-/** Calculates the average review score shown by the journal feed. */
 function calculateReviewSummary(reviews: Review[]): JournalV2ReviewSummary | undefined {
   if (reviews.length === 0) return undefined;
 
@@ -228,7 +211,6 @@ function calculateReviewSummary(reviews: Review[]): JournalV2ReviewSummary | und
   };
 }
 
-/** Builds the normalized data needed to render one journal v2 feed item. */
 export function buildJournalV2FeedItemViewModel(
   entry: FeedEntry
 ): JournalV2FeedItemViewModel | undefined {

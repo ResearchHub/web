@@ -5,7 +5,6 @@ type JsonRecord = Record<string, unknown>;
 const isRecord = (value: unknown): value is JsonRecord =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** Returns a valid source-proposal post ID, or null for malformed values. */
 export function normalizeRegisteredReportProposalId(value: unknown): number | null {
   const normalized =
     typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
@@ -13,7 +12,6 @@ export function normalizeRegisteredReportProposalId(value: unknown): number | nu
   return Number.isSafeInteger(normalized) && normalized > 0 ? normalized : null;
 }
 
-/** Reads the source-proposal post ID stored in a TipTap document's root attrs. */
 export function getRegisteredReportProposalIdFromDocument(document: unknown): number | null {
   if (!isRecord(document) || !isRecord(document.attrs)) return null;
 
@@ -21,10 +19,6 @@ export function getRegisteredReportProposalIdFromDocument(document: unknown): nu
   return isRecord(prefill) ? normalizeRegisteredReportProposalId(prefill.proposal_id) : null;
 }
 
-/**
- * Preserves the source-proposal binding that TipTap's root document schema
- * otherwise omits when serializing editor JSON.
- */
 export function mergeRegisteredReportPrefill(
   document: JSONContent,
   proposalId: unknown

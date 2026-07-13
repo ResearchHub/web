@@ -1,15 +1,15 @@
 import { Metadata } from 'next';
-import { MetadataService } from '@/services/metadata.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
-import { createRegisteredReportFallbackMetadata } from '@/components/work/registeredReportWorkUtils';
-import { RegisteredReportWork } from '@/types/registeredReport';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSidebar';
 import { RegisteredReportHeaderTabs } from '@/components/work/RegisteredReportHeaderTabs';
 import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
-import { getRegisteredReportWorkOrNotFound } from '@/components/work/registeredReportRouteServer';
+import {
+  getRegisteredReportMetadata,
+  getRegisteredReportWorkOrNotFound,
+} from '@/components/work/registeredReportRouteServer';
 
 interface Props {
   params: Promise<{
@@ -17,17 +17,6 @@ interface Props {
     slug: string;
   }>;
   children: React.ReactNode;
-}
-
-async function getRegisteredReportMetadata(work: RegisteredReportWork) {
-  if (!work.unifiedDocumentId) return createRegisteredReportFallbackMetadata(work);
-
-  try {
-    return await MetadataService.get(work.unifiedDocumentId.toString());
-  } catch (error) {
-    console.error('Failed to fetch registered report metadata:', error);
-    return createRegisteredReportFallbackMetadata(work);
-  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

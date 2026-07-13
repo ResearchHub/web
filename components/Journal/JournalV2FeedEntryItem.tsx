@@ -39,7 +39,6 @@ const TRACKER_CLIP_PATHS = {
   last: 'polygon(12px 0, 100% 0, 100% 100%, 0 100%)',
 } as const;
 
-/** Resolves the angled tracker shape for a stage position. */
 function resolveTrackerClipPath(stepIndex: number, stepCount: number): string {
   if (stepIndex === 0) return TRACKER_CLIP_PATHS.first;
   if (stepIndex === stepCount - 1) return TRACKER_CLIP_PATHS.last;

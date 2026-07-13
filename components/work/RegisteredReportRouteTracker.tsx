@@ -17,16 +17,13 @@ const TRACKER_CLIP_PATHS = {
 
 interface RegisteredReportRouteTrackerProps {
   payload: RegisteredReportWorkResponse;
-  rr: string;
+  reportId: number;
   currentStage: RegisteredReportStage;
 }
 
-/**
- * Renders the registered-report tracker with normal page links.
- */
 export function RegisteredReportRouteTracker({
   payload,
-  rr,
+  reportId,
   currentStage,
 }: RegisteredReportRouteTrackerProps) {
   return (
@@ -34,7 +31,7 @@ export function RegisteredReportRouteTracker({
       {payload.tracker.map((step, stepIndex) => {
         const StepIcon = STAGE_ICONS[step.stage];
         const state = getTrackerState(step.stage, step.exists, currentStage);
-        const href = buildRegisteredReportTrackerHref(step, rr);
+        const href = buildRegisteredReportTrackerHref(step, reportId);
         const isDisabled = !href || state === 'current';
         const className = cn(
           'relative flex min-h-[54px] items-center justify-center gap-2 border px-3 py-2 text-xs font-semibold transition-all',
@@ -63,6 +60,7 @@ export function RegisteredReportRouteTracker({
               key={step.stage}
               className={className}
               style={{ clipPath: resolveTrackerClipPath(stepIndex, payload.tracker.length) }}
+              aria-disabled={isDisabled}
               aria-current={state === 'current' ? 'step' : undefined}
             >
               {content}
@@ -87,18 +85,12 @@ export function RegisteredReportRouteTracker({
   );
 }
 
-/**
- * Resolves the clipped shape for a tracker segment.
- */
 function resolveTrackerClipPath(stepIndex: number, stepCount: number): string {
   if (stepIndex === 0) return TRACKER_CLIP_PATHS.first;
   if (stepIndex === stepCount - 1) return TRACKER_CLIP_PATHS.last;
   return TRACKER_CLIP_PATHS.middle;
 }
 
-/**
- * Resolves the visual state for a tracker segment.
- */
 function getTrackerState(
   stage: RegisteredReportStage,
   exists: boolean,

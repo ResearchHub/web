@@ -9,7 +9,7 @@ import { JournalNewPageContent } from './JournalNewPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'ResearchHub Journal',
-  description: 'Browse completed funded proposals and published Registered Reports.',
+  description: 'Browse published Registered Reports.',
   url: '/journal-new',
 });
 
@@ -20,9 +20,7 @@ export default function JournalNewPage() {
         <HeroHeader
           title="ResearchHub Journal"
           subtitle={
-            <p className="text-sm sm:text-base text-gray-500">
-              Browse funded proposals, Registered Reports, and results.
-            </p>
+            <p className="text-sm sm:text-base text-gray-500">Browse Registered Reports.</p>
           }
           cta={
             <Link

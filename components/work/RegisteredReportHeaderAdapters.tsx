@@ -11,7 +11,6 @@ interface RegisteredReportGrantHeaderProps {
   metadata: WorkMetadata;
   amountUsd?: number;
   grantId?: string;
-  currentGrantId?: number | string | null;
   isActive?: boolean;
   isPending?: boolean;
   organization?: string;
@@ -23,7 +22,6 @@ export function RegisteredReportGrantHeader({
   metadata,
   amountUsd,
   grantId,
-  currentGrantId,
   isActive,
   isPending,
   organization,
@@ -40,11 +38,7 @@ export function RegisteredReportGrantHeader({
       organization={organization}
       applicationVisibility={applicationVisibility}
       tabsWrapper={(tabs) => (
-        <RegisteredReportHeaderTabs
-          currentStage="grant"
-          currentPostId={work.id}
-          currentGrantId={currentGrantId ?? null}
-        >
+        <RegisteredReportHeaderTabs currentStage="grant" currentPostId={work.id}>
           {tabs}
         </RegisteredReportHeaderTabs>
       )}
@@ -69,12 +63,7 @@ export function RegisteredReportProposalHeader({
       metadata={metadata}
       updatesCount={updatesCount}
       tabsWrapper={(tabs) => (
-        <RegisteredReportHeaderTabs
-          currentStage="proposal"
-          currentPostId={work.id}
-          currentGrantId={work.linkedGrant?.id ?? null}
-          currentFundraiseId={metadata.fundraising?.id ?? null}
-        >
+        <RegisteredReportHeaderTabs currentStage="proposal" currentPostId={work.id}>
           {tabs}
         </RegisteredReportHeaderTabs>
       )}

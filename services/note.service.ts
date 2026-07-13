@@ -85,7 +85,6 @@ export interface NoteInvitePreview {
 export class NoteService {
   private static readonly BASE_PATH = '/api';
 
-  /** Ensures a newly-created Registered Report draft retains its proposal binding. */
   private static async persistRegisteredReportPrefill(
     note: NoteWithContent
   ): Promise<NoteWithContent> {

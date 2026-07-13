@@ -5,15 +5,14 @@ import { DOISection } from './components/DOISection';
 import { TopicsSection } from './components/TopicsSection';
 import type {
   RegisteredReportProposalReview,
-  RegisteredReportProposalSidebarData,
+  RegisteredReportProposalDetails,
 } from '@/types/registeredReport';
 
 interface RegisteredReportSidebarProps {
-  proposal: RegisteredReportProposalSidebarData | null;
+  proposal: RegisteredReportProposalDetails | null;
   reportDoi?: string;
 }
 
-/** Renders registered-report sidebar details supplied by the attached proposal. */
 export function RegisteredReportSidebar({ proposal, reportDoi }: RegisteredReportSidebarProps) {
   if (!proposal) {
     return (
@@ -27,13 +26,12 @@ export function RegisteredReportSidebar({ proposal, reportDoi }: RegisteredRepor
   return (
     <div className="space-y-12">
       <ProposalReviewsSection reviews={proposal.peerReviews} />
-      <TopicsSection topics={proposal.hubs} />
+      <TopicsSection topics={proposal.topics} />
       {reportDoi && <DOISection doi={reportDoi} />}
     </div>
   );
 }
 
-/** Renders a clear placeholder when the attached proposal is not accessible. */
 function RestrictedProposalSection() {
   return (
     <section>
@@ -45,7 +43,6 @@ function RestrictedProposalSection() {
   );
 }
 
-/** Renders proposal peer reviews with reviewer identity, score, status, and date. */
 function ProposalReviewsSection({ reviews }: { reviews: RegisteredReportProposalReview[] }) {
   return (
     <section>
@@ -63,9 +60,8 @@ function ProposalReviewsSection({ reviews }: { reviews: RegisteredReportProposal
   );
 }
 
-/** Renders one proposal peer-review summary. */
 function ProposalReview({ review }: { review: RegisteredReportProposalReview }) {
-  const reviewerName = review.createdBy?.fullName || 'Anonymous reviewer';
+  const reviewerName = review.reviewer?.fullName || 'Anonymous reviewer';
 
   return (
     <div>
@@ -92,7 +88,6 @@ function ProposalReview({ review }: { review: RegisteredReportProposalReview }) 
   );
 }
 
-/** Formats a peer-review timestamp relative to the current date. */
 function formatReviewDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Review date unavailable';

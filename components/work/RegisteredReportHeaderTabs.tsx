@@ -1,14 +1,12 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import type { RegisteredReportStage, RegisteredReportWorkResponse } from '@/types/registeredReport';
 import {
-  decodeRegisteredReportRoutePayload,
-  doesOptionalRouteIdMatch,
   doesRegisteredReportPayloadMatchRoute,
-  encodeRegisteredReportRoutePayload,
+  parseRegisteredReportId,
 } from '@/utils/registeredReportRoute';
 import { RegisteredReportRouteTracker } from './RegisteredReportRouteTracker';
 
@@ -16,51 +14,41 @@ interface RegisteredReportHeaderTabsProps {
   children: ReactNode;
   currentStage: RegisteredReportStage;
   currentPostId: number;
-  currentGrantId?: number | string | null;
-  currentFundraiseId?: number | string | null;
   reportPayload?: RegisteredReportWorkResponse;
 }
 
-/**
- * Renders the registered-report tracker above the normal work tabs when context exists.
- */
 export function RegisteredReportHeaderTabs({
   children,
   currentStage,
   currentPostId,
-  currentGrantId,
-  currentFundraiseId,
   reportPayload,
 }: RegisteredReportHeaderTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const routeToken = searchParams.get('rr');
+  const reportIdParam = searchParams.get('rr');
+  const requestedReportId = parseRegisteredReportId(reportIdParam);
   const [clientPayload, setClientPayload] = useState<RegisteredReportWorkResponse | null>(null);
-  const [clientToken, setClientToken] = useState<string | null>(null);
-
-  const reportToken = useMemo(() => {
-    if (!reportPayload) return null;
-    return encodeRegisteredReportRoutePayload({ r: reportPayload.work.id });
-  }, [reportPayload]);
+  const reportId =
+    reportPayload?.work.id ??
+    (clientPayload?.work.id === requestedReportId ? requestedReportId : null);
 
   useEffect(() => {
     if (reportPayload) return;
 
-    if (!routeToken) {
+    if (!reportIdParam) {
       setClientPayload(null);
-      setClientToken(null);
       return;
     }
 
-    const routePayload = decodeRegisteredReportRoutePayload(routeToken);
-    if (!routePayload) {
+    const reportId = parseRegisteredReportId(reportIdParam);
+    if (!reportId) {
       router.replace('/404');
       return;
     }
 
     let isActive = true;
 
-    PostService.getRegisteredReportWork(routePayload.r)
+    PostService.getRegisteredReportWork(reportId)
       .then((payload) => {
         if (!isActive) return;
 
@@ -69,22 +57,12 @@ export function RegisteredReportHeaderTabs({
           currentStage,
           currentPostId,
         });
-        const matchesGrant = doesOptionalRouteIdMatch({
-          tokenValue: routePayload.g,
-          currentValue: currentGrantId,
-        });
-        const matchesFundraise = doesOptionalRouteIdMatch({
-          tokenValue: routePayload.f,
-          currentValue: currentFundraiseId,
-        });
-
-        if (!matchesRoute || !matchesGrant || !matchesFundraise) {
+        if (!matchesRoute) {
           router.replace('/404');
           return;
         }
 
         setClientPayload(payload);
-        setClientToken(routeToken);
       })
       .catch(() => {
         if (isActive) {
@@ -95,25 +73,16 @@ export function RegisteredReportHeaderTabs({
     return () => {
       isActive = false;
     };
-  }, [
-    currentFundraiseId,
-    currentGrantId,
-    currentPostId,
-    currentStage,
-    reportPayload,
-    routeToken,
-    router,
-  ]);
+  }, [currentPostId, currentStage, reportPayload, reportIdParam, router]);
 
   const trackerPayload = reportPayload ?? clientPayload;
-  const trackerToken = reportToken ?? clientToken;
 
   return (
     <div className="space-y-3">
-      {trackerPayload && trackerToken && (
+      {trackerPayload && reportId && (
         <RegisteredReportRouteTracker
           payload={trackerPayload}
-          rr={trackerToken}
+          reportId={reportId}
           currentStage={currentStage}
         />
       )}

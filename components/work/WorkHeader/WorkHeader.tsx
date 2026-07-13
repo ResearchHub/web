@@ -130,12 +130,15 @@ export function WorkHeader({
     tab: 'bounties',
   });
 
-  const reviewsTabUrl = buildWorkUrl({
-    id: work.id,
-    contentType: work.contentType,
-    slug: work.slug,
-    tab: 'reviews',
-  });
+  const reviewsTabUrl =
+    work.postType === 'REGISTERED_REPORT'
+      ? undefined
+      : buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType,
+          slug: work.slug,
+          tab: 'reviews',
+        });
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 

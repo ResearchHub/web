@@ -3,9 +3,6 @@
 import { FileInput } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
 
-/**
- * Renders the single content tab for registered-report work pages.
- */
 export function RegisteredReportTabs() {
   return (
     <Tabs

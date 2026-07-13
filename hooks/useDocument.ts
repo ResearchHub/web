@@ -25,7 +25,7 @@ export interface PreregistrationPostParams {
   noteId: ID;
   proposalId: ID | null;
   renderableText: string;
-  fullJSON: string;
+  fullJson: unknown;
   fullSrc: string;
   assignDOI?: boolean;
   authors: number[];
@@ -70,7 +70,7 @@ const buildBasePayload = (postParams: PreregistrationPostParams) => ({
   title: postParams.title,
   renderable_text: postParams.renderableText,
   full_src: postParams.fullSrc,
-  full_json: postParams.fullJSON,
+  full_json: postParams.fullJson,
   note_id: postParams.noteId,
   hubs: postParams.topics,
   authors: postParams.authors,

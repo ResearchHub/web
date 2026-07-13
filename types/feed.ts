@@ -1054,7 +1054,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               : [],
           };
 
-          // Journal v2 registered reports also carry the source proposal fundraise.
           if (content_object.fundraise) {
             try {
               postEntry.fundraise = transformFundraise(content_object.fundraise);
