@@ -7,8 +7,11 @@ import {
   ExpertFinderSidebar,
   ExpertFinderMenu,
 } from '@/components/ExpertFinder/ExpertFinderSidebar';
+import {
+  ExpertFinderSidebarSkeleton,
+  ExpertFinderMenuSkeleton,
+} from '@/components/ExpertFinder/ExpertFinderSidebarSkeleton';
 import { useUser } from '@/contexts/UserContext';
-import { LoadingSkeleton } from '../layouts/components/LoadingSkeleton';
 
 const FULL_WIDTH_CLASS =
   'tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full';
@@ -32,9 +35,17 @@ export default function ExpertFinderClientLayout({ children }: ExpertFinderClien
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
-        <LoadingSkeleton />
-      </div>
+      <LayoutWithRightSidebar
+        rightSidebar={<ExpertFinderSidebarSkeleton />}
+        mobileMenu={<ExpertFinderMenuSkeleton />}
+        className={FULL_WIDTH_CLASS}
+      >
+        <div className="w-full max-w-5xl mx-auto px-4 py-8 animate-pulse">
+          <div className="h-8 w-1/3 bg-gray-200 rounded mb-4" />
+          <div className="h-4 w-2/3 bg-gray-200 rounded mb-8" />
+          <div className="h-32 bg-gray-200 rounded" />
+        </div>
+      </LayoutWithRightSidebar>
     );
   }
 

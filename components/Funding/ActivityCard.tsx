@@ -56,9 +56,21 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
             />
           </AuthorTooltip>
         </div>
-        <span className="text-sm font-medium text-gray-900 leading-tight truncate">
-          {author?.fullName || 'Unknown'}
-        </span>
+        {author?.id ? (
+          <AuthorTooltip authorId={author.id} placement="bottom">
+            <Link
+              href={`/author/${author.id}`}
+              prefetch={false}
+              className="text-sm font-medium text-gray-900 leading-tight truncate hover:text-blue-600"
+            >
+              {author.fullName || 'Unknown'}
+            </Link>
+          </AuthorTooltip>
+        ) : (
+          <span className="text-sm font-medium text-gray-900 leading-tight truncate">
+            {author?.fullName || 'Unknown'}
+          </span>
+        )}
         <span className="text-sm leading-tight mb-1">
           <span className="text-gray-500">{actionLabel}</span>
           <FeedEntryIcon name={actionIcon} />

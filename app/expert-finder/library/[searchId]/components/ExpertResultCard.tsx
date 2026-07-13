@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Award, Building2, ExternalLink, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { Award, Building2, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -16,6 +16,7 @@ import {
   outreachDocumentLabel,
 } from '@/types/expertFinder';
 import { ExpertFormModal } from './ExpertFormModal';
+import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
@@ -111,11 +112,11 @@ export function ExpertResultCard({
                       href={src.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                      className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
                       aria-label={src.text}
                       title={src.text}
                     >
-                      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
+                      <ExpertSourceLinkIcon url={src.url} text={src.text} />
                     </a>
                   </Tooltip>
                 ))

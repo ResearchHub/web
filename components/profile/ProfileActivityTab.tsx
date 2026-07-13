@@ -42,6 +42,9 @@ function ProposalsContent({ userId }: { userId: number }) {
       showGrantHeaders={false}
       showPostHeaders={false}
       showFundraiseHeaders={false}
+      hideActions
+      skeletonVariant="fundraise"
+      wideContent
       noEntriesElement={
         <div className="py-12 text-center">
           <p className="text-gray-400 text-sm">No proposals yet</p>

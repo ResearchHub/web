@@ -156,6 +156,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                   fundraiseTitle={work.title}
                   work={work}
                   onContribute={() => {}}
+                  contributeOnMobileOnly
                   // Match the gray border used by AuthorPosts and PostBlockEditor
                   // on this page; the component's own primary-100 default is
                   // designed for use on backgrounds where the brand tint reads.

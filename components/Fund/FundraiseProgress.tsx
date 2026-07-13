@@ -23,6 +23,7 @@ interface FundraiseProgressProps {
   fundraiseTitle: string;
   onContribute?: () => void;
   showContribute?: boolean;
+  contributeOnMobileOnly?: boolean;
   className?: string;
   showPercentage?: boolean;
   variant?: 'default' | 'minimal';
@@ -35,6 +36,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   fundraiseTitle,
   onContribute,
   showContribute = true,
+  contributeOnMobileOnly = false,
   className,
   showPercentage = false,
   variant = 'default',
@@ -249,7 +251,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             <Button
               variant="default"
               size="sm"
-              className="flex items-center gap-1.5"
+              className={cn(
+                'flex items-center gap-1.5',
+                contributeOnMobileOnly && 'tablet:!hidden'
+              )}
               onClick={handleContributeClick}
             >
               <Icon name="giveRSC" size={18} color="white" />
