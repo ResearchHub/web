@@ -25,6 +25,7 @@ import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import { isPublishedRegisteredReportNote, isRegisteredReportNote } from '@/types/note';
+import { normalizeRegisteredReportProposalId } from '@/utils/registeredReportPrefill';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
 // first time someone lands in the editor on a freshly-created note.
@@ -127,8 +128,13 @@ export function NoteEditorLayout() {
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
+  const registeredReportProposalId = normalizeRegisteredReportProposalId(
+    note?.proposalId ?? note?.registeredReportPrefill?.proposalId
+  );
+
   const [, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
+    registeredReportProposalId,
   });
 
   const showTabs = Boolean(note) && !isLegacyNote;

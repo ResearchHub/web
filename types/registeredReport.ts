@@ -1,12 +1,7 @@
-import { Work, transformPost } from './work';
-import { stripHtml } from '../utils/stringUtils';
+import { transformPost, type Work } from './work';
 
-export type RegisteredReportStage = 'grant' | 'proposal' | 'registered_report' | 'preprint';
-type RegisteredReportTrackerLabel =
-  | 'Funding Opportunity'
-  | 'Proposal'
-  | 'Registered Report'
-  | 'Preprint';
+export type RegisteredReportStage = 'grant' | 'proposal' | 'registered_report';
+type RegisteredReportTrackerLabel = 'Funding Opportunity' | 'Proposal' | 'Registered Report';
 
 export interface RegisteredReportTrackerStep {
   stage: RegisteredReportStage;
@@ -14,8 +9,55 @@ export interface RegisteredReportTrackerStep {
   exists: boolean;
   isCurrent: boolean;
   postId: number | null;
-  documentType: 'GRANT' | 'PREREGISTRATION' | 'REGISTERED_REPORT' | 'PAPER' | null;
-  url: string | null;
+  title: string | null;
+  documentType: 'GRANT' | 'PREREGISTRATION' | 'REGISTERED_REPORT' | null;
+}
+
+export interface RegisteredReportTrackerLink {
+  postId: number | null;
+  title: string | null;
+}
+
+export interface RegisteredReportProposalUser {
+  id: number;
+  fullName: string;
+  isVerified: boolean;
+}
+
+export interface RegisteredReportProposalAuthor extends RegisteredReportProposalUser {
+  profileImage: string | null;
+}
+
+export interface RegisteredReportProposalHub {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface RegisteredReportProposalReview {
+  id: number;
+  score: number;
+  isAssessed: boolean;
+  createdBy: RegisteredReportProposalUser | null;
+  createdDate: string;
+  updatedDate: string;
+}
+
+export interface RegisteredReportProposalSidebarData {
+  id: number;
+  slug: string;
+  title: string;
+  doi: string | null;
+  authors: RegisteredReportProposalAuthor[];
+  createdBy: RegisteredReportProposalUser | null;
+  createdDate: string;
+  updatedDate: string;
+  documentType: 'PREREGISTRATION';
+  hubs: RegisteredReportProposalHub[];
+  imageUrl: string | null;
+  status: string;
+  unifiedDocumentId: number;
+  peerReviews: RegisteredReportProposalReview[];
 }
 
 export type RegisteredReportWork = Work & {
@@ -28,8 +70,9 @@ export type RegisteredReportWork = Work & {
 export interface RegisteredReportWorkResponse {
   id: number;
   work: RegisteredReportWork;
+  proposal: RegisteredReportProposalSidebarData | null;
   tracker: RegisteredReportTrackerStep[];
-  links: Record<RegisteredReportStage, string | null>;
+  links: Record<RegisteredReportStage, RegisteredReportTrackerLink>;
 }
 
 type RawRegisteredReportTrackerStep = {
@@ -38,15 +81,67 @@ type RawRegisteredReportTrackerStep = {
   exists?: boolean;
   is_current?: boolean;
   post_id?: number | null;
+  title?: string | null;
   document_type?: RegisteredReportTrackerStep['documentType'];
-  url?: string | null;
+};
+
+type RawRegisteredReportTrackerLink = {
+  post_id?: number | null;
+  title?: string | null;
+};
+
+type RawRegisteredReportProposalUser = {
+  id?: number;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_verified?: boolean;
+};
+
+type RawRegisteredReportProposalAuthor = RawRegisteredReportProposalUser & {
+  profile_image?: string | null;
+  user?: RawRegisteredReportProposalUser | null;
+};
+
+type RawRegisteredReportProposalHub = {
+  id?: number;
+  name?: string | null;
+  slug?: string | null;
+};
+
+type RawRegisteredReportProposalReview = {
+  id?: number;
+  score?: number | null;
+  is_assessed?: boolean;
+  created_by?: RawRegisteredReportProposalUser | null;
+  created_date?: string | null;
+  updated_date?: string | null;
+};
+
+type RawRegisteredReportProposal = {
+  id?: number;
+  slug?: string | null;
+  title?: string | null;
+  doi?: string | null;
+  authors?: RawRegisteredReportProposalAuthor[];
+  created_by?: RawRegisteredReportProposalUser | null;
+  created_date?: string | null;
+  updated_date?: string | null;
+  document_type?: 'PREREGISTRATION';
+  hubs?: RawRegisteredReportProposalHub[];
+  image_url?: string | null;
+  status?: string | null;
+  unified_document_id?: number;
+  peer_reviews?: RawRegisteredReportProposalReview[];
 };
 
 type RawRegisteredReportWorkResponse = {
   id: number;
   work: Record<string, any>;
+  content_object?: {
+    proposal?: RawRegisteredReportProposal | null;
+  };
   tracker?: RawRegisteredReportTrackerStep[];
-  links?: Partial<Record<RegisteredReportStage, string | null>>;
+  links?: Partial<Record<RegisteredReportStage, RawRegisteredReportTrackerLink>>;
   metrics?: any;
 };
 
@@ -57,8 +152,8 @@ const DEFAULT_TRACKER_STEPS: RegisteredReportTrackerStep[] = [
     exists: false,
     isCurrent: false,
     postId: null,
+    title: null,
     documentType: null,
-    url: null,
   },
   {
     stage: 'proposal',
@@ -66,8 +161,8 @@ const DEFAULT_TRACKER_STEPS: RegisteredReportTrackerStep[] = [
     exists: false,
     isCurrent: false,
     postId: null,
+    title: null,
     documentType: null,
-    url: null,
   },
   {
     stage: 'registered_report',
@@ -75,34 +170,19 @@ const DEFAULT_TRACKER_STEPS: RegisteredReportTrackerStep[] = [
     exists: false,
     isCurrent: false,
     postId: null,
+    title: null,
     documentType: null,
-    url: null,
-  },
-  {
-    stage: 'preprint',
-    label: 'Preprint',
-    exists: false,
-    isCurrent: false,
-    postId: null,
-    documentType: null,
-    url: null,
   },
 ];
 
 function isRegisteredReportStage(stage: string | undefined): stage is RegisteredReportStage {
-  return (
-    stage === 'grant' ||
-    stage === 'proposal' ||
-    stage === 'registered_report' ||
-    stage === 'preprint'
-  );
+  return stage === 'grant' || stage === 'proposal' || stage === 'registered_report';
 }
 
 function getTrackerLabel(stage: RegisteredReportStage): RegisteredReportTrackerLabel {
   if (stage === 'grant') return 'Funding Opportunity';
   if (stage === 'proposal') return 'Proposal';
-  if (stage === 'registered_report') return 'Registered Report';
-  return 'Preprint';
+  return 'Registered Report';
 }
 
 function transformTrackerStep(
@@ -116,53 +196,118 @@ function transformTrackerStep(
     exists: Boolean(raw.exists),
     isCurrent: Boolean(raw.is_current),
     postId: raw.post_id ?? null,
+    title: raw.title ?? null,
     documentType: raw.document_type ?? null,
-    url: raw.url ?? null,
   };
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function transformTrackerLink(
+  raw: RawRegisteredReportTrackerLink | undefined
+): RegisteredReportTrackerLink {
+  return {
+    postId: raw?.post_id ?? null,
+    title: raw?.title ?? null,
+  };
 }
 
-function removeLeadingTitle(text: string, title: string): string {
-  const normalizedText = text.trim();
-  const normalizedTitle = title.trim();
+/** Converts a compact API user value into sidebar-ready display data. */
+function transformProposalUser(
+  raw: RawRegisteredReportProposalUser | null | undefined
+): RegisteredReportProposalUser | null {
+  if (!raw || typeof raw.id !== 'number' || !Number.isInteger(raw.id)) return null;
 
-  if (!normalizedTitle || !normalizedText.startsWith(normalizedTitle)) {
-    return normalizedText;
-  }
-
-  return normalizedText.slice(normalizedTitle.length).trim();
+  return {
+    id: raw.id,
+    fullName: `${raw.first_name ?? ''} ${raw.last_name ?? ''}`.trim() || 'Unknown user',
+    isVerified: Boolean(raw.is_verified),
+  };
 }
 
-function plainTextToHtml(text: string, title: string): string {
-  return removeLeadingTitle(text, title)
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br />')}</p>`)
-    .join('');
+/** Converts a compact API author value into sidebar-ready display data. */
+function transformProposalAuthor(
+  raw: RawRegisteredReportProposalAuthor
+): RegisteredReportProposalAuthor | null {
+  if (typeof raw.id !== 'number' || !Number.isInteger(raw.id)) return null;
+
+  const user = transformProposalUser(raw.user);
+  return {
+    id: raw.id,
+    fullName:
+      `${raw.first_name ?? ''} ${raw.last_name ?? ''}`.trim() || user?.fullName || 'Unknown author',
+    isVerified: user?.isVerified ?? false,
+    profileImage: raw.profile_image ?? null,
+  };
 }
 
-function getRegisteredReportStagePreview(raw: any): string {
-  const richContent =
-    raw.full_markdown || raw.formatted_html || raw.full_src || raw.note?.latest_version?.src;
+/** Converts proposal review data into the shape rendered by the report sidebar. */
+function transformProposalReview(
+  raw: RawRegisteredReportProposalReview
+): RegisteredReportProposalReview | null {
+  if (typeof raw.id !== 'number' || !Number.isInteger(raw.id)) return null;
 
-  if (richContent && typeof richContent === 'string') {
-    return richContent;
+  return {
+    id: raw.id,
+    score: Number(raw.score) || 0,
+    isAssessed: Boolean(raw.is_assessed),
+    createdBy: transformProposalUser(raw.created_by),
+    createdDate: raw.created_date ?? '',
+    updatedDate: raw.updated_date ?? '',
+  };
+}
+
+/** Converts proposal hub data into the topic shape used by the sidebar. */
+function transformProposalHub(
+  raw: RawRegisteredReportProposalHub
+): RegisteredReportProposalHub | null {
+  if (typeof raw.id !== 'number' || !Number.isInteger(raw.id) || !raw.slug) return null;
+
+  return {
+    id: raw.id,
+    name: raw.name ?? raw.slug,
+    slug: raw.slug,
+  };
+}
+
+/** Converts the source-proposal API payload into registered-report sidebar data. */
+function transformProposalSidebarData(
+  raw: RawRegisteredReportProposal | null | undefined
+): RegisteredReportProposalSidebarData | null {
+  if (!raw || typeof raw.id !== 'number' || !Number.isInteger(raw.id) || !raw.slug || !raw.title) {
+    return null;
   }
 
-  if (raw.renderable_text) {
-    return plainTextToHtml(raw.renderable_text, stripHtml(raw.title || raw.paper_title || ''));
-  }
+  return {
+    id: raw.id,
+    slug: raw.slug,
+    title: raw.title,
+    doi: raw.doi ?? null,
+    authors: (raw.authors ?? [])
+      .map(transformProposalAuthor)
+      .filter((author): author is RegisteredReportProposalAuthor => !!author),
+    createdBy: transformProposalUser(raw.created_by),
+    createdDate: raw.created_date ?? '',
+    updatedDate: raw.updated_date ?? '',
+    documentType: 'PREREGISTRATION',
+    hubs: (raw.hubs ?? [])
+      .map(transformProposalHub)
+      .filter((hub): hub is RegisteredReportProposalHub => !!hub),
+    imageUrl: raw.image_url ?? null,
+    status: raw.status ?? '',
+    unifiedDocumentId: raw.unified_document_id ?? 0,
+    peerReviews: (raw.peer_reviews ?? [])
+      .map(transformProposalReview)
+      .filter((review): review is RegisteredReportProposalReview => !!review),
+  };
+}
 
-  return '';
+/** Calculates the score shown for assessed source-proposal peer reviews. */
+function getProposalReviewScore(proposal: RegisteredReportProposalSidebarData | null) {
+  const assessedReviews = proposal?.peerReviews.filter((review) => review.isAssessed) ?? [];
+  if (assessedReviews.length === 0) return undefined;
+
+  return (
+    assessedReviews.reduce((total, review) => total + review.score, 0) / assessedReviews.length
+  );
 }
 
 function normalizeRegisteredReportWork(raw: any, metrics?: any): any {
@@ -181,13 +326,6 @@ function normalizeRegisteredReportWork(raw: any, metrics?: any): any {
   };
 }
 
-function normalizeRegisteredReportStageWork(raw: any): any {
-  return {
-    ...raw,
-    full_markdown: getRegisteredReportStagePreview(raw),
-  };
-}
-
 function transformRegisteredReportWork(raw: any, metrics?: any): RegisteredReportWork {
   return {
     ...transformPost(normalizeRegisteredReportWork(raw, metrics)),
@@ -196,10 +334,6 @@ function transformRegisteredReportWork(raw: any, metrics?: any): RegisteredRepor
     fullSrc: raw.full_src ?? null,
     fullMarkdown: raw.full_markdown ?? null,
   };
-}
-
-export function transformRegisteredReportStageWork(raw: any): Work {
-  return transformPost(normalizeRegisteredReportStageWork(raw));
 }
 
 export function transformRegisteredReportWorkResponse(
@@ -214,16 +348,28 @@ export function transformRegisteredReportWorkResponse(
     const apiStep = apiTracker.find((step) => step.stage === defaultStep.stage);
     return apiStep ?? defaultStep;
   });
+  const proposal = transformProposalSidebarData(raw.content_object?.proposal);
+  const work = transformRegisteredReportWork(raw.work, raw.metrics);
+  const proposalReviewScore = getProposalReviewScore(proposal);
 
   return {
     id: raw.id,
-    work: transformRegisteredReportWork(raw.work, raw.metrics),
+    work:
+      proposalReviewScore === undefined || !work.metrics
+        ? work
+        : {
+            ...work,
+            metrics: {
+              ...work.metrics,
+              reviewScore: proposalReviewScore,
+            },
+          },
+    proposal,
     tracker,
     links: {
-      grant: raw.links?.grant ?? null,
-      proposal: raw.links?.proposal ?? null,
-      registered_report: raw.links?.registered_report ?? null,
-      preprint: raw.links?.preprint ?? null,
+      grant: transformTrackerLink(raw.links?.grant),
+      proposal: transformTrackerLink(raw.links?.proposal),
+      registered_report: transformTrackerLink(raw.links?.registered_report),
     },
   };
 }

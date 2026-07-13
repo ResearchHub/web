@@ -10,7 +10,7 @@ import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer'
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
-import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
+import { RegisteredReportGrantHeader } from '@/components/work/RegisteredReportHeaderAdapters';
 
 interface Props {
   params: Promise<{
@@ -69,11 +69,12 @@ export default async function GrantSlugLayout({ params, children }: Props) {
     <GrantTabProvider defaultTab="details" grantId={grantId}>
       <PageLayout
         topBanner={
-          <WorkHeaderGrant
+          <RegisteredReportGrantHeader
             work={work}
             metadata={metadata}
             amountUsd={grant?.amount?.usd}
             grantId={grantId?.toString()}
+            currentGrantId={grantId ?? null}
             isActive={isActive}
             isPending={isPending}
             organization={grant?.organization}

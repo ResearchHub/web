@@ -3,6 +3,31 @@ import { transformNote, transformNoteContent, transformNoteWithContent } from '@
 import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
+import {
+  getRegisteredReportProposalIdFromDocument,
+  mergeRegisteredReportPrefill,
+  normalizeRegisteredReportProposalId,
+} from '@/utils/registeredReportPrefill';
+import type { JSONContent } from '@tiptap/core';
+
+const parseEditorDocument = (contentJson: unknown): JSONContent | null => {
+  if (!contentJson) return null;
+
+  if (typeof contentJson === 'object' && !Array.isArray(contentJson)) {
+    return contentJson as JSONContent;
+  }
+
+  if (typeof contentJson !== 'string') return null;
+
+  try {
+    const parsed = JSON.parse(contentJson);
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as JSONContent)
+      : null;
+  } catch {
+    return null;
+  }
+};
 
 export class NoteError extends Error {
   constructor(
@@ -60,6 +85,38 @@ export interface NoteInvitePreview {
 export class NoteService {
   private static readonly BASE_PATH = '/api';
 
+  /** Ensures a newly-created Registered Report draft retains its proposal binding. */
+  private static async persistRegisteredReportPrefill(
+    note: NoteWithContent
+  ): Promise<NoteWithContent> {
+    const proposalId = normalizeRegisteredReportProposalId(
+      note.proposalId ?? note.registeredReportPrefill?.proposalId
+    );
+    const document = parseEditorDocument(note.contentJson);
+
+    if (
+      !proposalId ||
+      !document ||
+      getRegisteredReportProposalIdFromDocument(document) === proposalId
+    ) {
+      return note;
+    }
+
+    const content = await this.updateNoteContent({
+      note: note.id,
+      full_src: note.content ?? '',
+      plain_text: note.plainText,
+      full_json: JSON.stringify(mergeRegisteredReportPrefill(document, proposalId)),
+    });
+
+    return {
+      ...note,
+      content: content.src,
+      contentJson: content.json,
+      plainText: content.plain_text,
+    };
+  }
+
   static async acceptJournalEntry(params: {
     userId: number | string;
     fundraiseId: number | string;
@@ -80,7 +137,7 @@ export class NoteService {
           fundraise_id: params.fundraiseId,
         }
       );
-      return transformNoteWithContent(response);
+      return this.persistRegisteredReportPrefill(transformNoteWithContent(response));
     } catch (error) {
       const errorMsg =
         error instanceof ApiError

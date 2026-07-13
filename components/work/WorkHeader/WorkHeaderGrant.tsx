@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { ArrowUpFromLine, Lock } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -22,6 +22,7 @@ interface WorkHeaderGrantProps {
   organization?: string;
   applicationVisibility?: GrantApplicationVisibility;
   className?: string;
+  tabsWrapper?: (tabs: ReactNode) => ReactNode;
 }
 
 export function WorkHeaderGrant({
@@ -34,6 +35,7 @@ export function WorkHeaderGrant({
   organization,
   applicationVisibility,
   className,
+  tabsWrapper,
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity } = useGrantTab();
@@ -106,6 +108,7 @@ export function WorkHeaderGrant({
   ];
 
   const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
+  const resolvedTabs = tabsWrapper ? tabsWrapper(tabs) : tabs;
 
   return (
     <WorkHeader
@@ -114,7 +117,7 @@ export function WorkHeaderGrant({
       className={className}
       eyebrow={eyebrow}
       subtitle={subtitle}
-      tabs={tabs}
+      tabs={resolvedTabs}
       primaryAction={primaryAction}
       hideVoteWidget
       grantModalProps={

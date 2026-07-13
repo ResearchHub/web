@@ -125,7 +125,9 @@ export const WorkTabs = ({
         bounties: `${baseUrl}/bounties`,
         history: `${baseUrl}/history`,
       };
-      const newUrl = tabUrlMap[tab] || baseUrl;
+      const baseNewUrl = tabUrlMap[tab] || baseUrl;
+      const rr = new URLSearchParams(window.location.search).get('rr');
+      const newUrl = rr ? `${baseNewUrl}?rr=${encodeURIComponent(rr)}` : baseNewUrl;
 
       window.history.replaceState(null, '', newUrl);
     }

@@ -1,96 +1,123 @@
 'use client';
 
-import { FileInput } from 'lucide-react';
-import { useEffect } from 'react';
-import { Tabs } from '@/components/ui/Tabs';
-import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
-import { WorkTabs } from './WorkTabs';
-import { useWorkTab } from './WorkHeader/WorkTabContext';
-import { RegisteredReportPizzaTracker } from './RegisteredReportPizzaTracker';
-import { useRegisteredReportWork } from './RegisteredReportWorkContext';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { PostService } from '@/services/post.service';
+import type { RegisteredReportStage, RegisteredReportWorkResponse } from '@/types/registeredReport';
+import {
+  decodeRegisteredReportRoutePayload,
+  doesOptionalRouteIdMatch,
+  doesRegisteredReportPayloadMatchRoute,
+  encodeRegisteredReportRoutePayload,
+} from '@/utils/registeredReportRoute';
+import { RegisteredReportRouteTracker } from './RegisteredReportRouteTracker';
 
-function ReportOnlyTabs() {
-  return (
-    <Tabs
-      tabs={[
-        {
-          id: 'report',
-          label: (
-            <div className="flex items-center">
-              <FileInput className="h-4 w-4 mr-2" />
-              <span>Report</span>
-            </div>
-          ),
-        },
-      ]}
-      activeTab="report"
-      onTabChange={() => {}}
-      className="border-b-0"
-    />
-  );
+interface RegisteredReportHeaderTabsProps {
+  children: ReactNode;
+  currentStage: RegisteredReportStage;
+  currentPostId: number;
+  currentGrantId?: number | string | null;
+  currentFundraiseId?: number | string | null;
+  reportPayload?: RegisteredReportWorkResponse;
 }
 
-function FundingOpportunityTabs() {
-  const { activeTab, setActiveTab, activity } = useGrantTab();
-  const tabs = [
-    { id: 'details' as const, label: 'Details' },
-    { id: 'proposals' as const, label: 'Proposals' },
-    {
-      id: 'activity' as const,
-      label: (
-        <div className="flex items-center">
-          <span>Updates</span>
-          {activity.count > 0 && (
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'activity'
-                  ? 'bg-primary-100 text-primary-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {activity.count}
-            </span>
-          )}
-        </div>
-      ),
-    },
-  ];
+/**
+ * Renders the registered-report tracker above the normal work tabs when context exists.
+ */
+export function RegisteredReportHeaderTabs({
+  children,
+  currentStage,
+  currentPostId,
+  currentGrantId,
+  currentFundraiseId,
+  reportPayload,
+}: RegisteredReportHeaderTabsProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const routeToken = searchParams.get('rr');
+  const [clientPayload, setClientPayload] = useState<RegisteredReportWorkResponse | null>(null);
+  const [clientToken, setClientToken] = useState<string | null>(null);
 
-  return (
-    <Tabs
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={(tabId) => setActiveTab(tabId as GrantBannerTab)}
-      className="border-b-0"
-    />
-  );
-}
-
-export function RegisteredReportHeaderTabs() {
-  const { active } = useRegisteredReportWork();
-  const { setActiveTab } = useWorkTab();
+  const reportToken = useMemo(() => {
+    if (!reportPayload) return null;
+    return encodeRegisteredReportRoutePayload({ r: reportPayload.work.id });
+  }, [reportPayload]);
 
   useEffect(() => {
-    setActiveTab('paper');
-  }, [active.stage, active.work.id, setActiveTab]);
+    if (reportPayload) return;
+
+    if (!routeToken) {
+      setClientPayload(null);
+      setClientToken(null);
+      return;
+    }
+
+    const routePayload = decodeRegisteredReportRoutePayload(routeToken);
+    if (!routePayload) {
+      router.replace('/404');
+      return;
+    }
+
+    let isActive = true;
+
+    PostService.getRegisteredReportWork(routePayload.r)
+      .then((payload) => {
+        if (!isActive) return;
+
+        const matchesRoute = doesRegisteredReportPayloadMatchRoute({
+          payload,
+          currentStage,
+          currentPostId,
+        });
+        const matchesGrant = doesOptionalRouteIdMatch({
+          tokenValue: routePayload.g,
+          currentValue: currentGrantId,
+        });
+        const matchesFundraise = doesOptionalRouteIdMatch({
+          tokenValue: routePayload.f,
+          currentValue: currentFundraiseId,
+        });
+
+        if (!matchesRoute || !matchesGrant || !matchesFundraise) {
+          router.replace('/404');
+          return;
+        }
+
+        setClientPayload(payload);
+        setClientToken(routeToken);
+      })
+      .catch(() => {
+        if (isActive) {
+          router.replace('/404');
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    currentFundraiseId,
+    currentGrantId,
+    currentPostId,
+    currentStage,
+    reportPayload,
+    routeToken,
+    router,
+  ]);
+
+  const trackerPayload = reportPayload ?? clientPayload;
+  const trackerToken = reportToken ?? clientToken;
 
   return (
     <div className="space-y-3">
-      <RegisteredReportPizzaTracker />
-      {active.stage === 'registered_report' ? (
-        <ReportOnlyTabs />
-      ) : active.stage === 'grant' ? (
-        <FundingOpportunityTabs />
-      ) : (
-        <WorkTabs
-          work={active.work}
-          metadata={active.metadata}
-          contentType="fund"
-          onTabChange={setActiveTab}
-          updatesCount={active.authorPosts.length}
-          disableUrlUpdates
+      {trackerPayload && trackerToken && (
+        <RegisteredReportRouteTracker
+          payload={trackerPayload}
+          rr={trackerToken}
+          currentStage={currentStage}
         />
       )}
+      {children}
     </div>
   );
 }

@@ -47,6 +47,10 @@ import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { ApiError } from '@/services/types';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
+import {
+  mergeRegisteredReportPrefill,
+  normalizeRegisteredReportProposalId,
+} from '@/utils/registeredReportPrefill';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
@@ -492,7 +496,7 @@ export function PublishingForm({
       setDocumentTitle(editor, editedTitle);
 
       const text = editor?.getText();
-      const json = editor?.getJSON();
+      const json = editor?.getJSON() ?? { type: 'doc', content: [] };
       const html = editor?.getHTML();
       const formData = methods.getValues();
 
@@ -509,13 +513,20 @@ export function PublishingForm({
 
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
-      const proposalId = note?.proposalId ?? note?.registeredReportPrefill?.proposalId ?? null;
+      const proposalId = normalizeRegisteredReportProposalId(
+        note?.proposalId ?? note?.registeredReportPrefill?.proposalId
+      );
 
       if (formData.articleType === 'registered_report' && !proposalId) {
         toast.error('This Registered Report draft is missing its proposal link.');
         setShowConfirmModal(false);
         return;
       }
+
+      const fullJson =
+        formData.articleType === 'registered_report'
+          ? mergeRegisteredReportPrefill(json, proposalId)
+          : json;
 
       const response = await upsertPost(
         {
@@ -526,7 +537,7 @@ export function PublishingForm({
           noteId: note?.id.toString(),
           proposalId,
           renderableText: text || '',
-          fullJSON: JSON.stringify(json),
+          fullJSON: JSON.stringify(fullJson),
           fullSrc: html || '',
           assignDOI: !formData.workId,
           topics: formData.topics.map((topic) => topic.value),

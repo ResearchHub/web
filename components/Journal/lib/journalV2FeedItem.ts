@@ -8,7 +8,7 @@ import {
 } from '@/types/feed';
 import { buildWorkUrl } from '@/utils/url';
 
-export type JournalV2Stage = 'funding_opportunity' | 'proposal' | 'registered_report' | 'preprint';
+export type JournalV2Stage = 'funding_opportunity' | 'proposal' | 'registered_report';
 
 export interface JournalV2StageLink {
   stage: JournalV2Stage;
@@ -171,19 +171,6 @@ function buildRegisteredReportHref(
   return buildReportHref(registeredReportPostId, journalV2?.registeredReport?.slug);
 }
 
-/** Builds the Preprint tracker link when that stage exists. */
-function buildPreprintHref(
-  content: JournalFeedContent,
-  journalV2: JournalV2FeedMetadata | undefined,
-  primaryHref: string
-): string | undefined {
-  if (isPaperContent(content)) {
-    return primaryHref;
-  }
-
-  return buildHrefFromLinkedWork(journalV2?.preprint, 'paper');
-}
-
 /** Names the current stage represented by this feed entry. */
 function resolveCurrentStageLabel(
   content: JournalFeedContent,
@@ -255,7 +242,6 @@ export function buildJournalV2FeedItemViewModel(
   const fundingOpportunityHref = buildFundingOpportunityHref(journalV2);
   const proposalHref = buildProposalHref(journalV2, content, primaryHref);
   const registeredReportHref = buildRegisteredReportHref(content, journalV2, primaryHref);
-  const preprintHref = buildPreprintHref(content, journalV2, primaryHref);
   const imageUrl = isPaperContent(content)
     ? content.previewImage || content.previewThumbnail || undefined
     : content.previewImage || content.fundraise?.postImage || undefined;
@@ -281,11 +267,6 @@ export function buildJournalV2FeedItemViewModel(
         stage: 'registered_report',
         label: 'Registered Report',
         href: registeredReportHref,
-      },
-      {
-        stage: 'preprint',
-        label: 'Preprint',
-        href: preprintHref,
       },
     ],
   };

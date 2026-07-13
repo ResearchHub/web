@@ -299,7 +299,6 @@ export interface JournalV2FeedMetadata {
   fundingOpportunity?: JournalV2LinkedWork;
   registeredReport?: JournalV2LinkedWork;
   registeredReportPostId?: number;
-  preprint?: JournalV2LinkedWork;
 }
 
 export interface FeedEntry {
@@ -547,13 +546,6 @@ const transformJournalV2FeedMetadata = (
     contentObject.registered_report_post,
     contentObject.registeredReportPost
   );
-  const preprint = firstRecord(
-    contentObject.preprint,
-    contentObject.paper,
-    contentObject.result,
-    contentObject.results
-  );
-
   const metadata: JournalV2FeedMetadata = {
     documentType:
       typeof contentObject.type === 'string' && contentObject.type.length > 0
@@ -575,7 +567,6 @@ const transformJournalV2FeedMetadata = (
     registeredReportPostId:
       asNumber(contentObject.registered_report_post_id) ??
       asNumber(contentObject.registeredReportPostId),
-    preprint: transformJournalV2LinkedWork(preprint),
   };
 
   const hasJournalV2Metadata =
@@ -585,8 +576,7 @@ const transformJournalV2FeedMetadata = (
     Boolean(metadata.proposal) ||
     Boolean(metadata.fundingOpportunity) ||
     Boolean(metadata.registeredReport) ||
-    Boolean(metadata.registeredReportPostId) ||
-    Boolean(metadata.preprint);
+    Boolean(metadata.registeredReportPostId);
 
   return hasJournalV2Metadata ? metadata : undefined;
 };

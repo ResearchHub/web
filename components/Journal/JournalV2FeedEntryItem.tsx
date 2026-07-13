@@ -3,7 +3,7 @@
 import { FC, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Coins, FileInput, FileText, Landmark, Star } from 'lucide-react';
+import { ArrowRight, Coins, FileInput, Landmark, Star } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -31,7 +31,6 @@ const STAGE_ICONS: Record<JournalV2Stage, typeof Landmark> = {
   funding_opportunity: Landmark,
   proposal: Coins,
   registered_report: FileInput,
-  preprint: FileText,
 };
 
 const TRACKER_CLIP_PATHS = {
@@ -221,7 +220,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
           </div>
         </Link>
 
-        <div className="grid grid-cols-4 gap-0.5 bg-gray-50 px-3 py-3 sm:px-4">
+        <div className="grid grid-cols-3 gap-0.5 bg-gray-50 px-3 py-3 sm:px-4">
           {viewModel.trackerSteps.map((step, stepIndex) => renderTrackerStep(step, stepIndex))}
         </div>
       </article>

@@ -10,6 +10,7 @@ import {
   UpdatePaperMetadataPayload,
   UpdatePaperAbstractPayload,
 } from '@/services/paper.service';
+import { normalizeRegisteredReportProposalId } from '@/utils/registeredReportPrefill';
 
 export interface PreregistrationPostParams {
   // Funding related
@@ -110,7 +111,11 @@ const buildPostPayload = (postParams: PreregistrationPostParams, postId?: ID) =>
   const payload: any = buildBasePayload(postParams);
 
   if (postParams.articleType === 'REGISTERED_REPORT') {
-    payload.proposal_id = postParams.proposalId;
+    const proposalId = normalizeRegisteredReportProposalId(postParams.proposalId);
+    if (!proposalId) {
+      throw new Error('Registered Report publication requires a valid source proposal ID.');
+    }
+    payload.proposal_id = proposalId;
   } else {
     payload.assign_doi = postParams.assignDOI ?? false;
   }

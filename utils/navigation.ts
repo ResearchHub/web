@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
-import { generateSlug, buildWorkUrl } from '@/utils/url';
+import { appendQueryString, generateSlug, buildWorkUrl } from '@/utils/url';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -100,7 +100,12 @@ export function handlePostRedirect(work: Work, id: string, slug: string, tab?: s
  * @param id The post ID
  * @param currentPath The current path (e.g., 'post', 'question', 'fund', 'paper', 'grant')
  */
-export function handleMissingSlugRedirect(work: Work, id: string, currentPath: string = 'post') {
+export function handleMissingSlugRedirect(
+  work: Work,
+  id: string,
+  currentPath: string = 'post',
+  searchParams?: URLSearchParams
+) {
   // Use existing slug if available, otherwise try to generate from title
   let slug = work.slug;
 
@@ -114,7 +119,7 @@ export function handleMissingSlugRedirect(work: Work, id: string, currentPath: s
   }
 
   // Construct the redirect URL
-  const redirectPath = `/${currentPath}/${id}/${slug}`;
+  const redirectPath = appendQueryString(`/${currentPath}/${id}/${slug}`, searchParams);
   redirect(redirectPath);
 }
 

@@ -1,12 +1,15 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
-import { RegisteredReportWorkShell } from '@/components/work/RegisteredReportWorkShell';
 import { createRegisteredReportFallbackMetadata } from '@/components/work/registeredReportWorkUtils';
 import { RegisteredReportWork } from '@/types/registeredReport';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSidebar';
+import { RegisteredReportHeaderTabs } from '@/components/work/RegisteredReportHeaderTabs';
+import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
+import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
+import { getRegisteredReportWorkOrNotFound } from '@/components/work/registeredReportRouteServer';
 
 interface Props {
   params: Promise<{
@@ -14,29 +17,6 @@ interface Props {
     slug: string;
   }>;
   children: React.ReactNode;
-}
-
-async function getRegisteredReportWork(id: string) {
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
-
-  try {
-    return await PostService.getRegisteredReportWork(id);
-  } catch {
-    notFound();
-  }
-}
-
-async function getRegisteredReportContent(contentUrl?: string): Promise<string | undefined> {
-  if (!contentUrl) return undefined;
-
-  try {
-    return await PostService.getContent(contentUrl);
-  } catch (error) {
-    console.error('Failed to fetch registered report content:', error);
-    return undefined;
-  }
 }
 
 async function getRegisteredReportMetadata(work: RegisteredReportWork) {
@@ -54,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, slug } = await params;
 
   try {
-    const payload = await getRegisteredReportWork(id);
+    const payload = await getRegisteredReportWorkOrNotFound(id);
     const work = payload.work;
     const previewText = stripHtml(work.previewContent || work.abstract || '').substring(0, 155);
 
@@ -76,23 +56,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function RegisteredReportLayout({ params, children }: Props) {
   const { id } = await params;
-  const payload = await getRegisteredReportWork(id);
-  const inlineFormattedContent =
-    payload.work.formattedHtml || payload.work.fullSrc || payload.work.fullMarkdown || undefined;
-  const [metadata, content] = await Promise.all([
-    getRegisteredReportMetadata(payload.work),
-    inlineFormattedContent
-      ? Promise.resolve(inlineFormattedContent)
-      : getRegisteredReportContent(payload.work.contentUrl),
-  ]);
+  const payload = await getRegisteredReportWorkOrNotFound(id);
+  const metadata = await getRegisteredReportMetadata(payload.work);
 
   return (
-    <RegisteredReportWorkShell
-      initialPayload={payload}
-      initialMetadata={metadata}
-      initialReportContent={content}
-    >
-      {children}
-    </RegisteredReportWorkShell>
+    <WorkTabProvider>
+      <PageLayout
+        topBanner={
+          <WorkHeader
+            work={payload.work}
+            metadata={metadata}
+            contentType="post"
+            tabs={
+              <RegisteredReportHeaderTabs
+                currentStage="registered_report"
+                currentPostId={payload.work.id}
+                reportPayload={payload}
+              >
+                <RegisteredReportTabs />
+              </RegisteredReportHeaderTabs>
+            }
+          />
+        }
+        rightSidebar={
+          <RegisteredReportSidebar proposal={payload.proposal} reportDoi={payload.work.doi} />
+        }
+      >
+        {children}
+      </PageLayout>
+    </WorkTabProvider>
   );
 }

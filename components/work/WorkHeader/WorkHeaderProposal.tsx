@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +16,7 @@ interface WorkHeaderProposalProps {
   metadata: WorkMetadata;
   updatesCount?: number;
   className?: string;
+  tabsWrapper?: (tabs: ReactNode) => ReactNode;
 }
 
 export function WorkHeaderProposal({
@@ -23,6 +24,7 @@ export function WorkHeaderProposal({
   metadata,
   updatesCount,
   className,
+  tabsWrapper,
 }: WorkHeaderProposalProps) {
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
@@ -73,6 +75,7 @@ export function WorkHeaderProposal({
         className={className}
         primaryAction={primaryAction}
         eyebrow={closedEyebrow}
+        tabsWrapper={tabsWrapper}
       />
 
       {fundraise && isActive && (

@@ -7,8 +7,9 @@ import { CommentService } from '@/services/comment.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
+import { WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
+import { RegisteredReportProposalHeader } from '@/components/work/RegisteredReportHeaderAdapters';
 
 interface Props {
   params: Promise<{
@@ -67,7 +68,11 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
     <WorkTabProvider>
       <PageLayout
         topBanner={
-          <WorkHeaderProposal work={work} metadata={metadata} updatesCount={authorPosts.length} />
+          <RegisteredReportProposalHeader
+            work={work}
+            metadata={metadata}
+            updatesCount={authorPosts.length}
+          />
         }
         rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
       >

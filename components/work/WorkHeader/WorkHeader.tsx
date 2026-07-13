@@ -44,6 +44,7 @@ interface WorkHeaderProps {
   eyebrow?: ReactNode;
   subtitle?: ReactNode;
   tabs?: ReactNode;
+  tabsWrapper?: (tabs: ReactNode) => ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
   grantModalProps?: {
@@ -65,6 +66,7 @@ export function WorkHeader({
   eyebrow: eyebrowOverride,
   subtitle: subtitleOverride,
   tabs: tabsOverride,
+  tabsWrapper,
   primaryAction,
   hideVoteWidget = false,
   grantModalProps,
@@ -232,7 +234,12 @@ export function WorkHeader({
     />
   );
 
-  const resolvedTabs = tabsOverride !== undefined ? tabsOverride : defaultTabs;
+  const resolvedTabs =
+    tabsOverride !== undefined
+      ? tabsOverride
+      : tabsWrapper
+        ? tabsWrapper(defaultTabs)
+        : defaultTabs;
 
   return (
     <>

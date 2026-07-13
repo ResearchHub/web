@@ -5,6 +5,7 @@ import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
 import { debounce, DebouncedFunc } from 'lodash';
 import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
+import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 
 export interface UseNoteOptions {
   sendImmediately?: boolean;
@@ -276,6 +277,7 @@ interface UseUpdateNoteState {
 interface UpdateNoteOptions {
   onTitleUpdate?: (newTitle: string) => void;
   debounceMs?: number;
+  registeredReportProposalId?: number | string | null;
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
@@ -285,6 +287,11 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
+  const optionsRef = useRef(options);
+
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor, noteId: ID) => Promise<void>>>(
     debounce(async (editor: Editor, noteId: ID) => {
@@ -293,7 +300,10 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         return;
       }
 
-      const json = editor.getJSON();
+      const json = mergeRegisteredReportPrefill(
+        editor.getJSON(),
+        optionsRef.current.registeredReportProposalId
+      );
       const html = editor.getHTML();
       const newTitle = getDocumentTitleFromEditor(editor) || '';
 
@@ -311,7 +321,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
               noteId,
               title: newTitle,
             }).then(() => {
-              options.onTitleUpdate?.(newTitle);
+              optionsRef.current.onTitleUpdate?.(newTitle);
             })
           );
         }
