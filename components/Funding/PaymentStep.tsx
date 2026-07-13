@@ -133,15 +133,18 @@ export function PaymentStep({
   });
 
   // Calculate fees in USD - fees are ADDED on top of user's input
-  // Fee percentage depends on the selected payment method
-  const currentFeePercentage =
-    selectedMethod && selectedMethod in PAYMENT_FEES
+  // Fee percentage depends on the selected payment method.
+  // Demo-only: waive all fees so the scripted amount is exactly what's due.
+  const currentFeePercentage = isDemo
+    ? 0
+    : selectedMethod && selectedMethod in PAYMENT_FEES
       ? PAYMENT_FEES[selectedMethod as keyof typeof PAYMENT_FEES]
       : PLATFORM_FEE_PERCENTAGE_RSC;
   const platformFeeUsd = amountInUsd * (currentFeePercentage / 100);
 
-  // Payment processing fee only for non-RSC methods
-  const hasProcessingFee = selectedMethod && METHODS_WITH_PROCESSING_FEE.includes(selectedMethod);
+  // Payment processing fee only for non-RSC methods (waived in demo)
+  const hasProcessingFee =
+    !isDemo && selectedMethod && METHODS_WITH_PROCESSING_FEE.includes(selectedMethod);
   const processingFeeUsd = hasProcessingFee
     ? amountInUsd * (PAYMENT_PROCESSING_FEE.percentage / 100) +
       PAYMENT_PROCESSING_FEE.fixedCents / 100
@@ -240,7 +243,8 @@ export function PaymentStep({
                 <span className="text-sm text-gray-900">{formatUsd(amountInUsd)}</span>
               </div>
 
-              {/* Platform fee with tooltip */}
+              {/* Platform fee with tooltip (waived entirely in demo mode) */}
+              {!isDemo && (
               <div className="py-1.5 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm text-gray-600">
@@ -287,6 +291,7 @@ export function PaymentStep({
                 </div>
                 <span className="text-sm text-gray-600">{formatUsd(platformFeeUsd)}</span>
               </div>
+              )}
 
               {/* Payment processing fee - only for non-RSC methods */}
               {hasProcessingFee && (

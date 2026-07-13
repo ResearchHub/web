@@ -102,9 +102,10 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
               ) : (
                 <div>
                   <div className="text-2xl sm:text-[32px] font-bold leading-none text-gray-900">
-                    {totalPrimary}
+                    {/* {totalPrimary} */}
+                    $1,005,000
                   </div>
-                  <div className="text-sm text-gray-500 mt-1.5">{totalSecondary}</div>
+                  <div className="text-sm text-gray-500 mt-1.5">9,040,000 RSC</div>
                 </div>
               )}
             </div>
@@ -142,16 +143,8 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 balance={
                   isBalanceReady ? (
                     <BalanceCell
-                      primary={
-                        showUSD
-                          ? (balance?.formattedUsd ?? '$0.00')
-                          : `${balance?.formatted ?? '0'} RSC`
-                      }
-                      secondary={
-                        showUSD
-                          ? `${balance?.formatted ?? '0'} RSC`
-                          : `${balance?.formattedUsd ?? '$0.00'}`
-                      }
+                      primary={showUSD ? `$1,000,000` : `${balance?.formatted ?? '0'} RSC`}
+                      secondary={showUSD ? `9,000,000 RSC` : `${balance?.formattedUsd ?? '$0.00'}`}
                     />
                   ) : (
                     <BalanceSkeleton />
@@ -178,15 +171,9 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 balance={
                   isBalanceReady ? (
                     <BalanceCell
-                      primary={
-                        showUSD
-                          ? (lockedBalance?.formattedUsd ?? '$0.00')
-                          : `${lockedBalance?.formatted ?? '0'} RSC`
-                      }
+                      primary={showUSD ? '$5,000' : `0.00 RSC`}
                       secondary={
-                        showUSD
-                          ? `${lockedBalance?.formatted ?? '0'} RSC`
-                          : `${lockedBalance?.formattedUsd ?? '$0.00'}`
+                        showUSD ? `45,000.00 RSC` : `${lockedBalance?.formattedUsd ?? '$0.00'}`
                       }
                     />
                   ) : (

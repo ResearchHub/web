@@ -156,9 +156,7 @@ export function StakingOverview() {
                 label="Annualized Yield"
                 value={
                   annualizedYield != null ? (
-                    <span className="text-sm font-bold text-gray-900">
-                      {annualizedYield.toFixed(1)}%
-                    </span>
+                    <span className="text-sm font-bold text-gray-900">35.2%</span>
                   ) : isLoadingDetails ? (
                     <ValueSkeleton />
                   ) : (
@@ -171,11 +169,9 @@ export function StakingOverview() {
                 value={
                   fundingCreditsTop ? (
                     <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">{fundingCreditsTop}</div>
+                      <div className="text-sm font-bold text-gray-900">$5,000.00</div>
                       {fundingCreditsBottom && (
-                        <div className="text-[11px] text-gray-500 mt-0.5">
-                          {fundingCreditsBottom}
-                        </div>
+                        <div className="text-[11px] text-gray-500 mt-0.5">45,000.00 RSC</div>
                       )}
                     </div>
                   ) : isLoadingDetails ? (

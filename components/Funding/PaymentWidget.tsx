@@ -113,10 +113,19 @@ export function PaymentWidget({
     onCreditCardCompleteChange?.(isComplete);
   };
 
+  const { exchangeRate } = useExchangeRate();
+
+  // Demo-only: present a scripted wallet regardless of the real user's holdings.
+  // Static USD + RSC pairs (no live conversion) to keep the demo numbers simple.
+  const DEMO_FUNDING_CREDITS = { usd: 5_000, rsc: 45_000 };
+  const DEMO_RSC_BALANCE = { usd: 1_005_000, rsc: 9_040_000 };
+  const effectiveLockedBalance = isDemo ? DEMO_FUNDING_CREDITS.rsc : lockedBalance;
+  const effectiveRscBalance = isDemo ? DEMO_RSC_BALANCE.rsc : rscBalance;
+
   // Calculate if RSC balance is insufficient (only when RSC is selected)
   const { insufficientBalance } = usePaymentCalculations({
     amountInRsc,
-    rscBalance,
+    rscBalance: effectiveRscBalance,
     paymentMethod: 'rsc', // Always calculate for RSC to check balance
   });
 
@@ -139,11 +148,12 @@ export function PaymentWidget({
     onEndaomentFundSelected?.(selectedEndaomentFund);
   }, [selectedEndaomentFund, onEndaomentFundSelected]);
 
-  const { exchangeRate } = useExchangeRate();
   const formatWhole = (amount: number) =>
     amount.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  const renderRscBalance = (rsc: number) => {
-    const usd = exchangeRate ? rsc * exchangeRate : 0;
+  // Dollar amount first, then the RSC equivalent. `usdOverride` lets the demo
+  // pin an exact dollar figure instead of deriving it from the live rate.
+  const renderRscBalance = (rsc: number, usdOverride?: number) => {
+    const usd = usdOverride ?? (exchangeRate ? rsc * exchangeRate : 0);
     return (
       <>
         <span className="text-gray-700 font-medium">${formatWhole(usd)}</span>
@@ -156,13 +166,16 @@ export function PaymentWidget({
     {
       id: 'funding_credits',
       title: 'Funding Credits',
-      description: renderRscBalance(lockedBalance),
+      description: renderRscBalance(
+        effectiveLockedBalance,
+        isDemo ? DEMO_FUNDING_CREDITS.usd : undefined
+      ),
       icon: <ResearchCoinIcon size={18} variant="green" outlined />,
     },
     {
       id: 'rsc',
       title: 'ResearchCoin',
-      description: renderRscBalance(rscBalance),
+      description: renderRscBalance(effectiveRscBalance, isDemo ? DEMO_RSC_BALANCE.usd : undefined),
       icon: <ResearchCoinIcon size={18} />,
     },
     {
@@ -218,7 +231,7 @@ export function PaymentWidget({
     .filter((option) => {
       if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
       if (option.id === 'funding_credits') {
-        return lockedBalance > 0;
+        return effectiveLockedBalance > 0;
       }
       if (option.id === 'endaoment') {
         return hasNonprofit;

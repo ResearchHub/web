@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Hourglass } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { WalletOverview } from '@/components/ResearchCoin/WalletOverview';
@@ -20,6 +20,40 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { CalloutBanner } from '@/components/banners/CalloutBanner';
 import { AuthService } from '@/services/auth.service';
 import './researchcoin-wallet.css';
+
+/**
+ * Full-screen white "Five days later..." intro overlay that fades out on load.
+ * Holds briefly, then fades to transparent over ~2s before unmounting.
+ */
+function FiveDaysLaterOverlay() {
+  const [mounted, setMounted] = useState(true);
+  const [fading, setFading] = useState(false);
+
+  useEffect(() => {
+    const holdTimer = setTimeout(() => setFading(true), 900);
+    const removeTimer = setTimeout(() => setMounted(false), 900 + 2000);
+    return () => {
+      clearTimeout(holdTimer);
+      clearTimeout(removeTimer);
+    };
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <div
+      aria-hidden
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white transition-opacity duration-[2000ms] ease-in-out ${
+        fading ? 'opacity-0' : 'opacity-100'
+      }`}
+    >
+      <Hourglass className="mb-6 h-16 w-16 text-primary-600" strokeWidth={1.5} />
+      <p className="text-4xl font-semibold tracking-tight text-primary-600 sm:!text-5xl">
+        Five days later ...
+      </p>
+    </div>
+  );
+}
 
 export default function ResearchCoinPage() {
   const { status } = useSession();
@@ -65,6 +99,7 @@ export default function ResearchCoinPage() {
 
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
+      <FiveDaysLaterOverlay />
       <div className="w-full">
         <div className="">
           <div className="">

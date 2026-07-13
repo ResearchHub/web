@@ -2,20 +2,19 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import Image from 'next/image';
-import { ArrowLeft, ArrowDownToLine, CreditCard, ChevronDown } from 'lucide-react';
+import { ArrowLeft, CreditCard, ChevronDown, Check } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import { useCreateContribution } from '@/hooks/useFundraise';
-import { useSession } from 'next-auth/react';
-import { BalanceInfo } from './BalanceInfo';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ID } from '@/types/root';
-import { useUser } from '@/contexts/UserContext';
+
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,6 +26,13 @@ interface FundResearchModalProps {
 
 type Currency = 'RSC' | 'USD';
 type Step = 'amount' | 'payment';
+type PaymentMethod = 'funding_credits' | 'rsc' | 'credit_card';
+
+// Demo-only mocked wallet: pretend the funder is holding earned funding credits
+// alongside a large spendable RSC balance so the funding-credits flow can be
+// shown end to end without hitting the backend. RSC ≈ USD 1:1 for the demo.
+const MOCK_FUNDING_CREDITS = 5_000;
+const MOCK_RSC_BALANCE = 1_000_000;
 
 const ModalHeader = ({
   title,
@@ -109,26 +115,39 @@ const CurrencyInput = ({
 );
 
 // Payment Step Components
-const PaymentOption = ({
+const SelectablePaymentOption = ({
   icon,
   title,
   subtitle,
+  selected,
+  disabled,
+  onSelect,
 }: {
   icon: React.ReactNode;
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
 }) => (
-  <button className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl hover:border-gray-300 w-full">
-    <div className="w-6 h-6 text-gray-700 mb-3">{icon}</div>
-    <span className="font-semibold text-gray-900">{title}</span>
-    {subtitle && <span className="text-sm text-gray-500 mt-1">{subtitle}</span>}
+  <button
+    type="button"
+    onClick={onSelect}
+    disabled={disabled}
+    className={cn(
+      'flex items-center gap-3 w-full p-4 border rounded-xl text-left transition-colors',
+      selected ? 'border-primary-500 bg-primary-50/40' : 'border-gray-200 hover:border-gray-300',
+      disabled && 'opacity-50 cursor-not-allowed hover:border-gray-200'
+    )}
+  >
+    <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">{icon}</div>
+    <div className="flex-1 min-w-0">
+      <span className="block font-semibold text-gray-900">{title}</span>
+      {subtitle && <span className="block text-sm text-gray-500">{subtitle}</span>}
+    </div>
+    {selected && <Check className="w-5 h-5 text-primary-600 flex-shrink-0" />}
   </button>
 );
-
-const PaymentIcons = {
-  card: <CreditCard className="w-6 h-6" />,
-  deposit: <ArrowDownToLine className="w-6 h-6" />,
-};
 
 const FeeBreakdown = ({
   totalAmount,
@@ -236,19 +255,26 @@ export function FundResearchModal({
   nftImageSrc,
   fundraiseId,
 }: FundResearchModalProps) {
-  const { user } = useUser();
-  const userBalance = user?.balance || 0;
   const [step, setStep] = useState<Step>('amount');
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('funding_credits');
+  const [isContributing, setIsContributing] = useState(false);
   const RSC_TO_USD = 1;
   const NFT_THRESHOLD_USD = 1000;
 
-  const [
-    { data: contributionData, isLoading: isContributing, error: contributionError },
-    createContribution,
-  ] = useCreateContribution();
+  // Reset transient state whenever the modal re-opens so the demo always
+  // starts on the amount step with funding credits preselected.
+  useEffect(() => {
+    if (isOpen) {
+      setStep('amount');
+      setInputAmount(0);
+      setCurrency('RSC');
+      setPaymentMethod('funding_credits');
+      setIsContributing(false);
+    }
+  }, [isOpen]);
 
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -288,18 +314,15 @@ export function FundResearchModal({
     return Math.floor(amountUSD / NFT_THRESHOLD_USD);
   };
 
+  // Demo-only: skip the real payment intent / contribution request entirely.
+  // A short delay stands in for "processing", then we surface a success toast
+  // and close, mirroring the scripted funding-credits demo flow.
   const handleCreateContribution = async () => {
-    try {
-      await createContribution(fundraiseId, {
-        amount: getRscAmount(),
-        amount_currency: currency,
-      });
-
-      onClose();
-    } catch (error) {
-      // Error is handled by the hook
-      console.error('Contribution failed:', error);
-    }
+    setIsContributing(true);
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    setIsContributing(false);
+    toast.success('Your contribution has been successfully added to the fundraise.');
+    onClose();
   };
 
   // Step rendering functions
@@ -369,9 +392,23 @@ export function FundResearchModal({
     </div>
   );
 
+  const formatRscBalance = (rsc: number) => (
+    <>
+      <span className="text-gray-700 font-medium">${(rsc * RSC_TO_USD).toLocaleString()}</span>
+      <span className="text-gray-500"> · {rsc.toLocaleString()} RSC</span>
+    </>
+  );
+
+  const getSelectedBalance = () => {
+    if (paymentMethod === 'funding_credits') return MOCK_FUNDING_CREDITS;
+    if (paymentMethod === 'rsc') return MOCK_RSC_BALANCE;
+    return Infinity;
+  };
+
   const renderPaymentStep = () => {
     const rscAmount = getRscAmount();
-    const insufficientBalance = userBalance < rscAmount;
+    const selectedBalance = getSelectedBalance();
+    const insufficientBalance = rscAmount > selectedBalance;
 
     const platformFee = Math.floor(rscAmount * 0.09);
     const daoFee = Math.floor(rscAmount * 0.02);
@@ -395,9 +432,28 @@ export function FundResearchModal({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <PaymentOption icon={PaymentIcons.card} title="Card" subtitle="Visa, Mastercard" />
-          <PaymentOption icon={PaymentIcons.deposit} title="Deposit" subtitle="Bank transfer" />
+        <div className="space-y-3">
+          <SelectablePaymentOption
+            icon={<ResearchCoinIcon size={22} variant="green" outlined />}
+            title="Funding Credits"
+            subtitle={formatRscBalance(MOCK_FUNDING_CREDITS)}
+            selected={paymentMethod === 'funding_credits'}
+            onSelect={() => setPaymentMethod('funding_credits')}
+          />
+          <SelectablePaymentOption
+            icon={<ResearchCoinIcon size={22} />}
+            title="ResearchCoin"
+            subtitle={formatRscBalance(MOCK_RSC_BALANCE)}
+            selected={paymentMethod === 'rsc'}
+            onSelect={() => setPaymentMethod('rsc')}
+          />
+          <SelectablePaymentOption
+            icon={<CreditCard className="w-[22px] h-[22px] text-gray-600" />}
+            title="Credit Card"
+            subtitle="Visa, Mastercard"
+            selected={paymentMethod === 'credit_card'}
+            onSelect={() => setPaymentMethod('credit_card')}
+          />
         </div>
 
         {nftRewardsEnabled && nftCount > 0 && (
@@ -406,14 +462,22 @@ export function FundResearchModal({
           </Alert>
         )}
 
-        <div className="mt-6">
-          <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
-        </div>
-
-        {contributionError && (
-          <Alert className="mt-4" variant="error">
-            {contributionError}
-          </Alert>
+        {(paymentMethod === 'funding_credits' || paymentMethod === 'rsc') && (
+          <div className="mt-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">
+                {paymentMethod === 'funding_credits'
+                  ? 'Available funding credits:'
+                  : 'Available RSC balance:'}
+              </span>
+              <span className="text-sm font-medium">{selectedBalance.toLocaleString()} RSC</span>
+            </div>
+            {insufficientBalance && (
+              <div className="mt-1 text-sm text-orange-600">
+                {`You need ${(rscAmount - selectedBalance).toLocaleString()} RSC more for this contribution`}
+              </div>
+            )}
+          </div>
         )}
 
         <Button
