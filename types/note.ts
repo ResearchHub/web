@@ -196,6 +196,17 @@ const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | n
   };
 };
 
+const serializeNoteJson = (value: unknown): string | undefined => {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return undefined;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
+};
+
 export const transformNote = createTransformer<any, Note>((raw) => ({
   id: raw.id,
   access: raw.access,
@@ -231,7 +242,7 @@ export const transformNoteWithContent = createTransformer<any, NoteWithContent>(
   versionId: raw.latest_version?.id || 0,
   versionDate: raw.latest_version?.created_date || raw.created_date,
   plainText: raw.latest_version?.plain_text || '',
-  contentJson: raw.latest_version?.json,
+  contentJson: serializeNoteJson(raw.latest_version?.json),
 }));
 
 export interface NoteContent {
@@ -247,7 +258,7 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
   note: raw.note,
   plain_text: raw.plain_text,
   src: raw.src,
-  json: raw.json,
+  json: serializeNoteJson(raw.json) ?? '',
 }));
 
 export const isRegisteredReportNote = (

@@ -11,6 +11,7 @@ function StatusDot({ className }: Readonly<{ className?: string }>) {
 export function PublishedStatusSection() {
   const { currentNote: note, isLoading } = useNotebookContext();
   const articleType = note?.post?.contentType;
+  const documentType = note?.post?.documentType;
   const slug = note?.post?.slug;
   const workId = note?.post?.id;
 
@@ -25,6 +26,10 @@ export function PublishedStatusSection() {
   }
 
   const getWorkPath = () => {
+    if (documentType === 'REGISTERED_REPORT') {
+      return `/report/${workId}/${slug}`;
+    }
+
     const contentType =
       articleType === 'preregistration'
         ? 'preregistration'

@@ -62,6 +62,14 @@ function getWorkTypeLabel(
   return undefined;
 }
 
+function PublishedRegisteredReportNotice() {
+  return (
+    <div className="rounded-md bg-yellow-100 px-3 py-1.5 text-sm font-medium text-yellow-700">
+      This Registered Report has been published and can no longer be edited.
+    </div>
+  );
+}
+
 export function NoteEditorLayout() {
   const {
     currentNote: note,
@@ -197,9 +205,6 @@ export function NoteEditorLayout() {
             <span className="text-sm font-medium text-gray-700">{workTypeLabel}</span>
           )}
           <PublishedStatusSection />
-          {isPublishedRegisteredReport && (
-            <span className="text-sm font-medium text-gray-500">Read-only</span>
-          )}
         </div>
         <BlockEditor
           content={note.content}
@@ -218,20 +223,27 @@ export function NoteEditorLayout() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       {showTabs && (
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <NotebookTabs active={activeTab} onChange={setActiveTab} />
-          <div className="flex items-center gap-2">
-            {activeTab === 'document' && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setActiveTab('details')}
-                className="gap-1.5"
-              >
-                {isPublishedRegisteredReport ? 'View details' : 'Add details'}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
+        <div className="mb-4">
+          {isPublishedRegisteredReport && (
+            <div className="mb-2 flex justify-center">
+              <PublishedRegisteredReportNotice />
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <NotebookTabs active={activeTab} onChange={setActiveTab} />
+            <div className="flex items-center gap-2">
+              {activeTab === 'document' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setActiveTab('details')}
+                  className="gap-1.5"
+                >
+                  {isPublishedRegisteredReport ? 'View details' : 'Add details'}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}

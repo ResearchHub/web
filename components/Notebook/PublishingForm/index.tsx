@@ -638,13 +638,6 @@ export function PublishingForm({
             isDeclined && 'pointer-events-none opacity-60'
           )}
         >
-          {readOnly && (
-            <div className="mx-auto w-full max-w-2xl px-6 pt-4">
-              <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">
-                This Registered Report has been published and can no longer be edited.
-              </div>
-            </div>
-          )}
           <fieldset
             disabled={readOnly}
             aria-disabled={readOnly}
