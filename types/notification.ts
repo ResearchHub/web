@@ -2,6 +2,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 import { User, transformUser } from './user';
 import type { ContentType } from './work';
 import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
+import { stripHtml } from '@/utils/stringUtils';
 
 export interface NotificationHub {
   name: string;
@@ -125,7 +126,7 @@ const transformWorkRaw = (raw: any): NotificationForWork | undefined => {
       if (!firstDoc) return undefined;
       return {
         id: firstDoc.id,
-        title: firstDoc.title || firstDoc.paper_title || '',
+        title: stripHtml(firstDoc.title || firstDoc.paper_title || ''),
         slug: firstDoc.slug,
         contentType: contentType,
       };
@@ -134,7 +135,7 @@ const transformWorkRaw = (raw: any): NotificationForWork | undefined => {
     else {
       return {
         id: raw.documents.id,
-        title: raw.documents.title || raw.documents.paper_title || '',
+        title: stripHtml(raw.documents.title || raw.documents.paper_title || ''),
         slug: raw.documents.slug,
         contentType: contentType,
       };
@@ -150,7 +151,7 @@ const transformWorkRaw = (raw: any): NotificationForWork | undefined => {
   if (raw.id && (raw.title || raw.paper_title)) {
     return {
       id: raw.id,
-      title: raw.title || raw.paper_title || '',
+      title: stripHtml(raw.title || raw.paper_title || ''),
       slug: raw.slug,
       contentType: contentType,
     };

@@ -29,6 +29,7 @@ interface PageLayoutProps {
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
+  fundraiseGrantId?: number;
   /**
    * Drop the 860px main-content cap and let content fill the page container
    * (~1180px). Useful when `rightSidebar` is false and the page wants the
@@ -84,11 +85,13 @@ function PageLayoutInner({
             When the EndowmentPromoBanner is visible above the TopBar on mobile
             we add ~56px to the existing top padding to clear the extra strip.
             The banner itself is hidden at >= 768px (tablet:!hidden) so the
-            offset is reset by the inner media query below. */}
+            offset is reset by the inner media query below.
+            Bottom padding on mobile clears the fixed MobileBottomNav. */}
         <div
           ref={scrollContainerRef}
           className={cn(
             'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+            'page-layout-with-mobile-bottom-nav',
             isCompact ? 'pt-12' : 'pt-16',
             isPromoBannerVisible && 'page-layout-with-promo-banner'
           )}
@@ -98,7 +101,7 @@ function PageLayoutInner({
           <div className="flex mx-auto w-full max-w-[1180px]">
             <main
               className={cn(
-                'flex-1 min-w-0 px-4 tablet:!px-8 pb-20 tablet:!pb-4',
+                'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',
                 topBanner ? 'py-3 sm:py-6' : 'py-6 mt-4'
               )}
             >
@@ -129,10 +132,10 @@ function PageLayoutInner({
   );
 }
 
-export function PageLayout(props: PageLayoutProps) {
+export function PageLayout({ fundraiseGrantId, ...props }: PageLayoutProps) {
   return (
     <GrantProvider>
-      <FundraiseProvider>
+      <FundraiseProvider grantId={fundraiseGrantId}>
         <FeedTabsVisibilityProvider>
           <TopBarSlotProvider>
             <PageLayoutInner {...props} />

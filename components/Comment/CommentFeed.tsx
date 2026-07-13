@@ -287,6 +287,26 @@ function CommentFeedContent({
         </div>
       )}
 
+      {commentType === 'BOUNTY' && (loading || filteredComments.length > 0) && (
+        <>
+          <div className="flex justify-between items-center mb-4">
+            <CommentSortAndFilters commentType={commentType} commentCount={count} />
+            {canCreateBounty && (
+              <Button
+                onClick={() => executeAuthenticatedAction(handleCreateBounty)}
+                variant="outlined"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create Bounty
+              </Button>
+            )}
+          </div>
+          <div className="h-px bg-gray-200 my-4" />
+        </>
+      )}
+
       <div className="comment-list-container">
         {loading ? (
           <CommentLoader count={3} commentType={commentType} />
@@ -299,25 +319,6 @@ function CommentFeedContent({
           />
         ) : (
           <>
-            {commentType === 'BOUNTY' && (
-              <div className="flex justify-between items-center mb-4">
-                <CommentSortAndFilters commentType={commentType} commentCount={count} />
-                {canCreateBounty && (
-                  <Button
-                    onClick={() => executeAuthenticatedAction(handleCreateBounty)}
-                    variant="outlined"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Create Bounty
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {commentType === 'BOUNTY' && <div className="h-px bg-gray-200 my-4"></div>}
-
             <CommentList
               commentType={commentType}
               comments={filteredComments}
