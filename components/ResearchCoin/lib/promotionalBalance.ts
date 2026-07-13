@@ -21,12 +21,8 @@ export function hasEverHadPromotionalBalance(_user: User | null | undefined): bo
 }
 
 /**
- * Current promotional RSC principal.
- *
- * Backend: expose e.g. `promotional_balance` on GET /api/user/
- * and map it in types/user.ts transformUser → user.promotionalBalance.
+ * Current promotional RSC principal, from `balances.rsc_promotional` on GET /api/user/.
  */
-export function getPromotionalBalance(_user: User | null | undefined): number {
-  // return _user?.promotionalBalance ?? 0;
-  return 0;
+export function getPromotionalBalance(user: User | null | undefined): number {
+  return user?.promotionalBalance ?? 0;
 }

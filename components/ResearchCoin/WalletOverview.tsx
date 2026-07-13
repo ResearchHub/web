@@ -30,7 +30,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
   const showPromoWallet = hasEverHadPromotionalBalance(user);
   const promotionalRsc = getPromotionalBalance(user);
   const availableRsc = rawBalance ?? 0;
-  const fundingCreditsRsc = user?.lockedBalance ?? 0;
+  const fundingCreditsRsc = user?.fundingCredits ?? 0;
   const isBalanceReady = !isFetchingExchangeRate && rawBalance != null;
 
   const handleWithdrawSuccess = () => {
