@@ -297,6 +297,7 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
   if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
   if (articleType === 'grant')
     return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
+  if (articleType === 'registered_report') return `/report/${responseId}/${slug}`;
   return `/post/${responseId}/${slug}`;
 };
 
