@@ -129,6 +129,8 @@ export function WalletOverviewCard({
         availableRsc={availableRsc}
         promotionalRsc={promotionalRsc}
         fundingCreditsRsc={fundingCreditsRsc}
+        showUSD={showUSD}
+        exchangeRate={exchangeRate}
       />
 
       <div>
@@ -254,7 +256,7 @@ function AssetRow({
       <div className="w-[84px] min-[360px]:w-[104px] sm:w-[140px] shrink-0 text-right min-w-0">
         {balance}
       </div>
-      <div className="w-10 h-10 shrink-0 flex items-center justify-center -mr-2 sm:mr-0">
+      <div className="w-10 h-10 shrink-0 flex items-center justify-center -mr-2 mt-1 sm:mr-0">
         {trailing}
       </div>
     </div>

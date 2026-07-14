@@ -19,8 +19,8 @@ export function PromotionalBalanceTooltip({
     <div className="text-left">
       <div className="text-sm font-bold text-white mb-1">Promotional balance</div>
       <p className="text-xs text-gray-300 leading-snug mb-3">
-        Promotional RSC works like ResearchCoin for endowment yield, but the principal cannot be
-        withdrawn.
+        Promotional Balance earns yield and can be used to fund research. Principal is
+        non-withdrawable.
       </p>
       <ul className="space-y-1.5">
         <li className="flex items-start gap-2 text-xs text-gray-200">

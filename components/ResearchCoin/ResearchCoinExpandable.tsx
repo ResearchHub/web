@@ -81,7 +81,7 @@ export function ResearchCoinExpandable({
             <BalanceSkeleton />
           )}
         </div>
-        <div className="w-10 h-10 shrink-0 flex items-center justify-center -mr-2 sm:mr-0">
+        <div className="w-10 h-10 shrink-0 flex items-center justify-center -mr-2 mt-1 sm:mr-0">
           <ChevronDown
             className={cn(
               'h-[18px] w-[18px] text-gray-400 transition-transform',
