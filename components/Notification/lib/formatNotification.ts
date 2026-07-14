@@ -162,6 +162,18 @@ const NOTIFICATION_TYPE_MAP = {
     title: 'Funding opportunity declined',
   },
 
+  // RFP owner notifications
+  GRANT_APPLICATION_SUBMITTED: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'New proposal submitted',
+  },
+  PROPOSAL_PEER_REVIEW: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'Peer review on proposal',
+  },
+
   // Content moderation notifications (papers, posts, proposals)
   CONTENT_APPROVED: {
     icon: 'verify2',
@@ -487,6 +499,13 @@ export function formatNotificationMessage(
 
     case 'GRANT_DECLINED':
       return `Your funding opportunity has been declined.`;
+
+    // RFP owner notifications
+    case 'GRANT_APPLICATION_SUBMITTED':
+      return `${userName} submitted a new proposal to your funding opportunity: "${truncatedTitle}"`;
+
+    case 'PROPOSAL_PEER_REVIEW':
+      return `${userName} left a peer review on a proposal to your funding opportunity: "${truncatedTitle}"`;
 
     // Content moderation notifications (papers, posts, proposals)
     case 'CONTENT_APPROVED':
