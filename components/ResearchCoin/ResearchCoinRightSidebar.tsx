@@ -134,7 +134,7 @@ export const ResearchCoinRightSidebar = () => {
           <SidebarHeader title="Resources" />
           <div className="space-y-2 pl-1 ml-1">
             <a
-              href="https://blog.researchhub.foundation/researchcoin/"
+              href="https://docs.researchhub.com/researchcoin/what-is-researchcoin"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50 -mx-3"
