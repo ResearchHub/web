@@ -180,6 +180,13 @@ const NOTIFICATION_TYPE_MAP = {
     useAvatar: false,
     title: 'Earn yield on RSC',
   },
+
+  // Funding credits reminder
+  FUNDING_CREDITS_REMINDER: {
+    icon: 'fundYourRsc2',
+    useAvatar: false,
+    title: 'Unused funding credits',
+  },
 } satisfies Record<string, NotificationTypeInfo>;
 
 const DEFAULT_NOTIFICATION_INFO: NotificationTypeInfo = {
@@ -243,6 +250,10 @@ function notificationMessageIncludesAmount(message: string): boolean {
 }
 
 export function getRSCAmountForBadge(notification: Notification, message: string): number | null {
+  if (notification.type === 'FUNDING_CREDITS_REMINDER') {
+    return null;
+  }
+
   const amount = getRSCAmountFromNotification(notification);
   if (!amount || notificationMessageIncludesAmount(message)) {
     return null;
@@ -281,6 +292,10 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   if (notification.type === 'RSC_YIELD_OPT_IN') {
     return '/researchcoin';
+  }
+
+  if (notification.type === 'FUNDING_CREDITS_REMINDER') {
+    return '/fund/proposals';
   }
 
   if (notification.type === 'GRANT_APPROVED' && notification.work) {
@@ -482,6 +497,15 @@ export function formatNotificationMessage(
 
     case 'RSC_YIELD_OPT_IN':
       return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';
+
+    case 'FUNDING_CREDITS_REMINDER': {
+      const raw = notification.extra?.amount ?? '0';
+      const formattedAmount =
+        showUSD && exchangeRate > 0
+          ? formatUsdValue(raw, exchangeRate).replace(/\s*USD$/, '')
+          : `${formatRSC({ amount: parseFloat(raw) || 0, round: true })} RSC`;
+      return `You have ${formattedAmount} of unused funding credits. Use them to fund science.`;
+    }
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
