@@ -9,6 +9,7 @@ import {
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
@@ -42,7 +43,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   ].includes(notification.type);
 
   const AvatarSection =
-    notification.actionUser && notificationInfo.useAvatar ? (
+    notification.type === 'FUNDING_CREDITS_REMINDER' ? (
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
+        <ResearchCoinIcon variant="green" size={32} />
+      </div>
+    ) : notification.actionUser && notificationInfo.useAvatar ? (
       <Avatar
         className="flex-shrink-0"
         src={notification.actionUser?.authorProfile?.profileImage}
