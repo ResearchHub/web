@@ -15,7 +15,7 @@ interface ButtonGroupProps {
   onChange: (value: string) => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'outlined' | 'pill';
+  variant?: 'default' | 'outlined' | 'pill' | 'section';
 }
 
 export function ButtonGroup({
@@ -44,6 +44,8 @@ export function ButtonGroup({
         return 'flex gap-0 border border-gray-300 bg-white rounded-lg';
       case 'pill':
         return 'flex gap-2 p-1 border border-gray-300 bg-white rounded-lg';
+      case 'section':
+        return 'flex border-b border-gray-100 bg-gray-50/80';
       default:
         return cn('flex gap-1 bg-gray-100 rounded-xl', containerPadding[size]);
     }
@@ -65,6 +67,14 @@ export function ButtonGroup({
           isActive ? 'bg-gray-200 text-gray-900' : 'text-gray-600 hover:bg-gray-100'
         );
 
+      case 'section':
+        return cn(
+          'px-5 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer',
+          isActive
+            ? 'text-gray-900 border-b-2 border-gray-900 -mb-px'
+            : 'text-gray-500 hover:text-gray-700'
+        );
+
       default:
         return cn(
           'font-medium rounded-lg transition-all flex items-center gap-2 whitespace-nowrap',
@@ -80,6 +90,8 @@ export function ButtonGroup({
         return 'bg-gray-200 text-gray-600 rounded font-medium';
       case 'pill':
         return 'bg-gray-300 text-gray-700 rounded font-medium';
+      case 'section':
+        return 'bg-gray-200 text-gray-600 rounded font-medium';
       default:
         return 'bg-gray-200 text-gray-700 rounded font-medium';
     }
@@ -90,6 +102,7 @@ export function ButtonGroup({
       {options.map((option) => (
         <button
           key={option.value}
+          type="button"
           onClick={() => onChange(option.value)}
           className={buttonClasses(value === option.value)}
         >

@@ -16,7 +16,7 @@ import {
   outreachDocumentLabel,
 } from '@/types/expertFinder';
 import { ExpertFormModal } from './ExpertFormModal';
-import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
+import { ExpertSourceLinkIcon } from '@/components/ExpertFinder/ExpertSourceLinkIcon';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;

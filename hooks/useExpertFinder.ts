@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import {
   ExpertFinderService,
@@ -12,13 +12,14 @@ import {
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { ApiError } from '@/services/types/api';
 import type {
   ExpertResult,
   ExpertSearchCreated,
-  InvitedExperts,
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
+  GrantInvitedExpert,
   SavedTemplate,
 } from '@/types/expertFinder';
 import type { Work } from '@/types/work';
@@ -307,71 +308,115 @@ export function useWorkByUnifiedDocumentId(
   return [{ work, isLoading, error }, fetch];
 }
 
-// ── useDocumentInvited ─────────────────────────────────────────────────────
+// ── useGrantInvitedExperts ───────────────────────────────────────────────────
 
-export interface UseDocumentInvitedReturn {
-  data: InvitedExperts | null;
+export interface UseGrantInvitedExpertsReturn {
+  experts: GrantInvitedExpert[];
+  total: number;
+  page: number;
+  totalPages: number;
   isLoading: boolean;
   error: Error | null;
-  refresh: () => void;
+  isForbidden: boolean;
+  hasLoaded: boolean;
+  load: (unifiedDocumentId: number) => Promise<void>;
+  goToPage: (page: number) => Promise<void>;
+  reset: () => void;
 }
 
-/**
- * Fetches invited experts for a unified document.
- */
-export function useDocumentInvited(
-  unifiedDocumentId: number | null | undefined
-): UseDocumentInvitedReturn {
-  const [data, setData] = useState<InvitedExperts | null>(null);
+export function useGrantInvitedExperts(): UseGrantInvitedExpertsReturn {
+  const [experts, setExperts] = useState<GrantInvitedExpert[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isForbidden, setIsForbidden] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const unifiedDocumentIdRef = useRef<number | null>(null);
 
-  const load = useCallback(
-    async (signal?: { cancelled: boolean }) => {
-      if (unifiedDocumentId == null) return;
+  const pageSize = ExpertFinderService.GRANT_INVITED_EXPERTS_PAGE_SIZE;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const reset = useCallback(() => {
+    unifiedDocumentIdRef.current = null;
+    setExperts([]);
+    setTotal(0);
+    setPage(1);
+    setIsLoading(false);
+    setError(null);
+    setIsForbidden(false);
+    setHasLoaded(false);
+  }, []);
+
+  const fetchPage = useCallback(
+    async (unifiedDocumentId: number, pageNum: number) => {
+      unifiedDocumentIdRef.current = unifiedDocumentId;
       setIsLoading(true);
       setError(null);
 
       try {
-        const result = await ExpertFinderService.getDocumentInvited(unifiedDocumentId);
-        if (signal?.cancelled) return;
-        setData(result);
+        const result = await ExpertFinderService.listInvitedExperts({
+          unifiedDocumentId,
+          offset: (pageNum - 1) * pageSize,
+        });
+
+        if (unifiedDocumentIdRef.current !== unifiedDocumentId) return;
+
+        setExperts(result.items);
+        setTotal(result.total);
+        setPage(pageNum);
+        setHasLoaded(true);
       } catch (err) {
-        if (signal?.cancelled) return;
+        if (unifiedDocumentIdRef.current !== unifiedDocumentId) return;
+
+        if (err instanceof ApiError && err.status === 403) {
+          setIsForbidden(true);
+          setExperts([]);
+          setTotal(0);
+          setHasLoaded(true);
+          return;
+        }
+
         setError(err instanceof Error ? err : new Error('Failed to load invited experts'));
-        setData(null);
       } finally {
-        if (!signal?.cancelled) setIsLoading(false);
+        if (unifiedDocumentIdRef.current === unifiedDocumentId) {
+          setIsLoading(false);
+        }
       }
     },
-    [unifiedDocumentId]
+    [pageSize]
   );
 
-  useEffect(() => {
-    if (unifiedDocumentId == null) {
-      setData(null);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
+  const load = useCallback(
+    async (unifiedDocumentId: number) => {
+      setIsForbidden(false);
+      await fetchPage(unifiedDocumentId, 1);
+    },
+    [fetchPage]
+  );
 
-    const signal = { cancelled: false };
-    load(signal);
-    return () => {
-      signal.cancelled = true;
-    };
-  }, [unifiedDocumentId, load]);
+  const goToPage = useCallback(
+    async (pageNum: number) => {
+      const unifiedDocumentId = unifiedDocumentIdRef.current;
+      if (unifiedDocumentId == null || pageNum < 1) return;
+      await fetchPage(unifiedDocumentId, pageNum);
+    },
+    [fetchPage]
+  );
 
-  const refresh = useCallback(() => {
-    if (unifiedDocumentId != null) load();
-  }, [unifiedDocumentId, load]);
-
-  if (unifiedDocumentId == null) {
-    return { data: null, isLoading: false, error: null, refresh: () => {} };
-  }
-
-  return { data, isLoading, error, refresh };
+  return {
+    experts,
+    total,
+    page,
+    totalPages,
+    isLoading,
+    error,
+    isForbidden,
+    hasLoaded,
+    load,
+    goToPage,
+    reset,
+  };
 }
 
 // ── useGeneratedEmails ──────────────────────────────────────────────────────

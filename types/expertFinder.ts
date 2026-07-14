@@ -440,6 +440,44 @@ export const transformInvitedExperts = createTransformer<any, InvitedExperts>((r
   totalCount: raw.total_count ?? 0,
 }));
 
+// ── Grant invited experts (experts list API) ──────────────────────────────────
+
+export interface RegisteredExpertUser {
+  userId: number;
+  author: AuthorProfile | null;
+}
+
+export interface GrantInvitedExpert extends ExpertResult {
+  displayName: string;
+  registeredUser: RegisteredExpertUser | null;
+}
+
+export interface GrantInvitedExpertsList {
+  items: GrantInvitedExpert[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export const transformGrantInvitedExpert = createTransformer<any, GrantInvitedExpert>((raw) => {
+  const base = transformExpertResult(raw);
+  const displayName = String(raw.display_name ?? '').trim() || base.name || 'Unknown';
+
+  const registeredRaw = raw.registered_user;
+  const registeredUser: RegisteredExpertUser | null = registeredRaw
+    ? {
+        userId: registeredRaw.user_id ?? 0,
+        author: registeredRaw.author ? transformAuthorProfile(registeredRaw.author) : null,
+      }
+    : null;
+
+  return {
+    ...base,
+    displayName,
+    registeredUser,
+  };
+});
+
 // ── Saved templates (app-level, camelCase) ───────────────────────────────────
 
 export interface SavedTemplate {
