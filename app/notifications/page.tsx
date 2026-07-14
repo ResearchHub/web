@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationList } from '@/components/Notification/NotificationList';
 import { NotificationSkeletonList } from '@/components/skeletons/NotificationSkeleton';
-import { Button } from '@/components/ui/Button';
 
 export default function NotificationsPage() {
   const {
@@ -29,11 +29,15 @@ export default function NotificationsPage() {
     };
   }, [markAllAsRead]);
 
-  const handleLoadMore = () => {
-    if (!isLoadingMore && notificationData.next) {
-      fetchNextPage();
-    }
-  };
+  const { ref: sentinelRef } = useInView({
+    threshold: 0,
+    rootMargin: '200px',
+    onChange: (inView) => {
+      if (inView && notificationData.next && !loading && !isLoadingMore) {
+        fetchNextPage();
+      }
+    },
+  });
 
   return (
     <PageLayout
@@ -49,19 +53,10 @@ export default function NotificationsPage() {
           error={error}
         />
 
-        {isLoadingMore && <NotificationSkeletonList />}
+        {isLoadingMore && <NotificationSkeletonList count={5} />}
 
-        {!loading && notificationData.next && (
-          <div className="mt-8 text-center">
-            <Button
-              onClick={handleLoadMore}
-              disabled={isLoadingMore}
-              variant="link"
-              className="text-indigo-600 hover:text-indigo-500"
-            >
-              {isLoadingMore ? 'Loading...' : 'Load more'}
-            </Button>
-          </div>
+        {!loading && !isLoadingMore && notificationData.next && (
+          <div ref={sentinelRef} className="h-10" aria-hidden="true" />
         )}
       </div>
     </PageLayout>

@@ -58,7 +58,7 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
   }, []);
 
   const fetchNextPage = useCallback(async () => {
-    if (!notificationData.next || loading) return;
+    if (!notificationData.next || loading || isLoadingMore) return;
     try {
       setIsLoadingMore(true);
       const response = await NotificationService.getNotificationsByUrl(notificationData.next);
@@ -73,7 +73,7 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
     } finally {
       setIsLoadingMore(false);
     }
-  }, [notificationData.next, loading]);
+  }, [notificationData.next, loading, isLoadingMore]);
 
   const refreshUnreadCount = async () => {
     try {
