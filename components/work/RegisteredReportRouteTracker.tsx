@@ -1,119 +1,65 @@
 'use client';
 
 import Link from 'next/link';
-import { Coins, FileInput, Landmark } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import type { RegisteredReportStage, RegisteredReportTrackerStep } from '@/types/registeredReport';
-import { cn } from '@/utils/styles';
 import { buildRegisteredReportTrackerHref } from '@/utils/registeredReportRoute';
-
-const STAGE_ICONS: Record<RegisteredReportStage, typeof Landmark> = {
-  grant: Landmark,
-  proposal: Coins,
-  registered_report: FileInput,
-};
-
-const TRACKER_CLIP_PATHS = {
-  first: 'polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%)',
-  middle: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)',
-  last: 'polygon(12px 0, 100% 0, 100% 100%, 0 100%)',
-} as const;
+import { useRegisteredReportWorkflow } from '@/contexts/RegisteredReportWorkflowContext';
 
 interface RegisteredReportRouteTrackerProps {
   tracker: RegisteredReportTrackerStep[];
   reportId: number;
   currentStage: RegisteredReportStage;
-  onNavigate: () => void;
 }
 
 export function RegisteredReportRouteTracker({
   tracker,
   reportId,
   currentStage,
-  onNavigate,
 }: RegisteredReportRouteTrackerProps) {
-  return (
-    <div className="mt-4 grid grid-cols-3 gap-0.5 bg-gray-50 py-1">
-      {tracker.map((step, stepIndex) => {
-        const StepIcon = STAGE_ICONS[step.stage];
-        const state = getTrackerState(step.stage, step.exists, currentStage);
-        const href = buildRegisteredReportTrackerHref(step, reportId);
-        const isDisabled = !href || state === 'current';
-        const className = cn(
-          'relative flex min-h-[54px] items-center justify-center gap-2 border px-3 py-2 text-xs font-semibold transition-all',
-          state === 'current' &&
-            'z-10 scale-[1.02] border-primary-700 bg-primary-700 text-white shadow-md ring-2 ring-primary-200 ring-offset-2',
-          state === 'complete' &&
-            'border-primary-500 bg-primary-500 text-white hover:bg-primary-600 hover:shadow-sm',
-          state === 'missing' && 'border-gray-200 bg-white text-gray-400',
-          stepIndex === 0 && 'rounded-l-lg',
-          stepIndex === tracker.length - 1 && 'rounded-r-lg',
-          isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
-        );
-        const content = (
-          <>
-            <StepIcon size={16} />
-            <span className="hidden sm:inline">{step.label}</span>
-            {state === 'current' && (
-              <span className="absolute bottom-1 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-white/80" />
-            )}
-          </>
-        );
+  const { cacheTracker } = useRegisteredReportWorkflow();
 
-        if (isDisabled || !href) {
-          return (
-            <div
-              key={step.stage}
-              className={className}
-              style={{ clipPath: resolveTrackerClipPath(stepIndex, tracker.length) }}
-              aria-disabled={isDisabled}
-              aria-current={state === 'current' ? 'step' : undefined}
-            >
-              {content}
-            </div>
-          );
-        }
+  return (
+    <nav aria-label="Research journey" className="flex flex-wrap items-center gap-1.5 text-sm">
+      {tracker.map((step, stepIndex) => {
+        const href = buildRegisteredReportTrackerHref(step, reportId);
+        const isCurrent = step.stage === currentStage;
 
         return (
-          <Link
-            key={step.stage}
-            href={href}
-            className={className}
-            style={{ clipPath: resolveTrackerClipPath(stepIndex, tracker.length) }}
-            onClick={onNavigate}
-          >
-            {content}
-          </Link>
+          <div key={step.stage} className="flex items-center gap-1.5">
+            {stepIndex > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-400" />}
+            {href && !isCurrent ? (
+              <Link
+                href={href}
+                onClick={() => cacheTracker({ reportId, tracker })}
+                className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
+              >
+                {step.label}
+              </Link>
+            ) : (
+              <span
+                className={isCurrent ? 'font-semibold text-gray-900' : 'text-gray-400'}
+                aria-current={isCurrent ? 'page' : undefined}
+              >
+                {step.label}
+              </span>
+            )}
+          </div>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
 export function RegisteredReportRouteTrackerSkeleton() {
   return (
-    <div className="mt-4 grid grid-cols-3 gap-0.5 bg-gray-50 py-1" aria-hidden="true">
-      {['grant', 'proposal', 'registered-report'].map((stage) => (
-        <div
-          key={stage}
-          className="h-[54px] animate-pulse border border-gray-200 bg-gray-100 first:rounded-l-lg last:rounded-r-lg"
-        />
+    <div className="flex items-center gap-1.5" aria-hidden="true">
+      {['w-24', 'w-16', 'w-28'].map((width, index) => (
+        <div key={width} className="flex items-center gap-1.5">
+          {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-300" />}
+          <div className={`h-4 ${width} animate-pulse rounded bg-gray-200`} />
+        </div>
       ))}
     </div>
   );
-}
-
-function resolveTrackerClipPath(stepIndex: number, stepCount: number): string {
-  if (stepIndex === 0) return TRACKER_CLIP_PATHS.first;
-  if (stepIndex === stepCount - 1) return TRACKER_CLIP_PATHS.last;
-  return TRACKER_CLIP_PATHS.middle;
-}
-
-function getTrackerState(
-  stage: RegisteredReportStage,
-  exists: boolean,
-  currentStage: RegisteredReportStage
-): 'current' | 'complete' | 'missing' {
-  if (stage === currentStage) return 'current';
-  if (exists) return 'complete';
-  return 'missing';
 }

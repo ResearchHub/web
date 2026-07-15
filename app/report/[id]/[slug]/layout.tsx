@@ -3,7 +3,7 @@ import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSidebar';
-import { RegisteredReportHeaderTabs } from '@/components/work/RegisteredReportHeaderTabs';
+import { RegisteredReportRouteTracker } from '@/components/work/RegisteredReportRouteTracker';
 import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
 import { hasRegisteredReportSourceProposal } from '@/utils/registeredReportRoute';
@@ -62,18 +62,19 @@ export default async function RegisteredReportLayout({ params, children }: Props
             metadata={metadata}
             contentType="post"
             reviewsTabUrl={reviewsTabUrl}
-            tabs={
-              <RegisteredReportHeaderTabs
+            preTitle={
+              <RegisteredReportRouteTracker
+                tracker={payload.tracker}
+                reportId={payload.work.id}
                 currentStage="registered_report"
-                currentPostId={payload.work.id}
-                reportPayload={payload}
-              >
-                <RegisteredReportTabs
-                  reportId={payload.work.id}
-                  slug={slug}
-                  hasSourceProposal={hasSourceProposal}
-                />
-              </RegisteredReportHeaderTabs>
+              />
+            }
+            tabs={
+              <RegisteredReportTabs
+                reportId={payload.work.id}
+                slug={slug}
+                hasSourceProposal={hasSourceProposal}
+              />
             }
           />
         }

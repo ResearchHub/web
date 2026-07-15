@@ -16,6 +16,7 @@ interface WorkHeaderProposalProps {
   metadata: WorkMetadata;
   updatesCount?: number;
   className?: string;
+  preTitle?: ReactNode;
   tabsWrapper?: (tabs: ReactNode) => ReactNode;
 }
 
@@ -24,6 +25,7 @@ export function WorkHeaderProposal({
   metadata,
   updatesCount,
   className,
+  preTitle,
   tabsWrapper,
 }: WorkHeaderProposalProps) {
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
@@ -75,6 +77,7 @@ export function WorkHeaderProposal({
         className={className}
         primaryAction={primaryAction}
         eyebrow={closedEyebrow}
+        preTitle={preTitle}
         tabsWrapper={tabsWrapper}
       />
 

@@ -23,6 +23,7 @@ interface WorkHeaderGrantProps {
   organization?: string;
   applicationVisibility?: GrantApplicationVisibility;
   className?: string;
+  preTitle?: ReactNode;
   tabsWrapper?: (tabs: ReactNode) => ReactNode;
 }
 
@@ -36,6 +37,7 @@ export function WorkHeaderGrant({
   organization,
   applicationVisibility,
   className,
+  preTitle,
   tabsWrapper,
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -136,6 +138,7 @@ export function WorkHeaderGrant({
       metadata={metadata}
       className={className}
       eyebrow={eyebrow}
+      preTitle={preTitle}
       subtitle={subtitle}
       tabs={resolvedTabs}
       primaryAction={primaryAction}

@@ -4,7 +4,7 @@ import type { GrantApplicationVisibility } from '@/types/grant';
 import type { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { WorkHeaderGrant, WorkHeaderProposal } from '@/components/work/WorkHeader';
-import { RegisteredReportHeaderTabs } from './RegisteredReportHeaderTabs';
+import { RegisteredReportRouteTrackerLoader } from './RegisteredReportRouteTrackerLoader';
 
 interface RegisteredReportGrantHeaderProps {
   work: Work;
@@ -37,11 +37,7 @@ export function RegisteredReportGrantHeader({
       isPending={isPending}
       organization={organization}
       applicationVisibility={applicationVisibility}
-      tabsWrapper={(tabs) => (
-        <RegisteredReportHeaderTabs currentStage="grant" currentPostId={work.id}>
-          {tabs}
-        </RegisteredReportHeaderTabs>
-      )}
+      preTitle={<RegisteredReportRouteTrackerLoader currentStage="grant" currentPostId={work.id} />}
     />
   );
 }
@@ -62,11 +58,9 @@ export function RegisteredReportProposalHeader({
       work={work}
       metadata={metadata}
       updatesCount={updatesCount}
-      tabsWrapper={(tabs) => (
-        <RegisteredReportHeaderTabs currentStage="proposal" currentPostId={work.id}>
-          {tabs}
-        </RegisteredReportHeaderTabs>
-      )}
+      preTitle={
+        <RegisteredReportRouteTrackerLoader currentStage="proposal" currentPostId={work.id} />
+      }
     />
   );
 }
