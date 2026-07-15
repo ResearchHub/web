@@ -3,15 +3,15 @@
 import { FC, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Coins, FileInput, Landmark, Star } from 'lucide-react';
+import { ChevronDown, Coins, FileInput, Landmark, Star } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { getUnifiedDocumentId } from '@/types/analytics';
-import { cn } from '@/utils/styles';
 import {
   buildJournalV2FeedItemViewModel,
   JournalV2Stage,
@@ -32,18 +32,6 @@ const STAGE_ICONS: Record<JournalV2Stage, typeof Landmark> = {
   proposal: Coins,
   registered_report: FileInput,
 };
-
-const TRACKER_CLIP_PATHS = {
-  first: 'polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%)',
-  middle: 'polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%)',
-  last: 'polygon(12px 0, 100% 0, 100% 100%, 0 100%)',
-} as const;
-
-function resolveTrackerClipPath(stepIndex: number, stepCount: number): string {
-  if (stepIndex === 0) return TRACKER_CLIP_PATHS.first;
-  if (stepIndex === stepCount - 1) return TRACKER_CLIP_PATHS.last;
-  return TRACKER_CLIP_PATHS.middle;
-}
 
 export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
   entry,
@@ -96,56 +84,14 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
 
   const reviewSummary = viewModel.reviewSummary;
   const proposalHref = viewModel.trackerSteps.find((step) => step.stage === 'proposal')?.href;
-
-  const renderTrackerStep = (step: JournalV2StageLink, stepIndex: number) => {
-    const StepIcon = STAGE_ICONS[step.stage];
-    const className = cn(
-      'relative flex min-h-[54px] items-center justify-center gap-2 border px-3 py-2 text-xs font-semibold transition-colors',
-      step.href
-        ? 'border-primary-500 bg-primary-500 text-white hover:bg-primary-600'
-        : 'border-gray-200 bg-white text-gray-400',
-      stepIndex === 0 && 'rounded-l-lg',
-      stepIndex === viewModel.trackerSteps.length - 1 && 'rounded-r-lg'
-    );
-    const style = {
-      clipPath: resolveTrackerClipPath(stepIndex, viewModel.trackerSteps.length),
-    };
-    const content = (
-      <>
-        <StepIcon size={16} />
-        <span className="hidden sm:inline">{step.label}</span>
-      </>
-    );
-
-    if (!step.href) {
-      return (
-        <div key={step.label} className={className} style={style} aria-disabled="true">
-          {content}
-        </div>
-      );
-    }
-
-    return (
-      <Link
-        key={step.label}
-        href={step.href}
-        onClick={(e) => e.stopPropagation()}
-        className={className}
-        style={style}
-      >
-        {content}
-      </Link>
-    );
-  };
+  const availableTrackerSteps = viewModel.trackerSteps.filter(
+    (step): step is JournalV2StageLink & { href: string } => Boolean(step.href)
+  );
 
   return (
     <div ref={ref} className={index === 0 ? undefined : 'mt-8'}>
       <article className="overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        <Link
-          href={viewModel.href}
-          onClick={handleCardClick}
-          className="group block relative h-[200px] overflow-hidden bg-gray-900 sm:h-[165px]"
-        >
+        <div className="group relative h-[200px] overflow-hidden bg-gray-900 sm:h-[165px]">
           {viewModel.imageUrl ? (
             <Image
               src={viewModel.imageUrl}
@@ -167,8 +113,15 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
             />
           )}
 
+          <Link
+            href={viewModel.href}
+            onClick={handleCardClick}
+            className="absolute inset-0"
+            aria-label={`View ${viewModel.title}`}
+          />
+
           <div
-            className="absolute bottom-0 inset-x-0 flex flex-col gap-3 px-5 py-3 border-t border-white/[0.08] sm:flex-row sm:items-end sm:justify-between"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col gap-3 border-t border-white/[0.08] px-5 py-3 sm:flex-row sm:items-end sm:justify-between"
             style={{
               backdropFilter: 'blur(16px) saturate(1.4)',
               WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
@@ -185,7 +138,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
             </div>
 
             <div className="flex w-full flex-shrink-0 items-end justify-between gap-5 sm:w-auto sm:justify-end">
-              <div className="text-left sm:text-right">
+              <div className="pointer-events-auto text-left sm:text-right">
                 <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
                   Average Review
                 </div>
@@ -211,16 +164,40 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
                 )}
               </div>
 
-              <span className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/15 bg-white px-3 text-xs font-semibold text-gray-900 shadow-sm transition-colors group-hover:bg-gray-100">
-                View
-                <ArrowRight size={14} />
-              </span>
+              <div className="pointer-events-auto">
+                <BaseMenu
+                  trigger={
+                    <button
+                      type="button"
+                      className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/15 bg-white px-3 text-xs font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-100"
+                    >
+                      View
+                      <ChevronDown size={14} aria-hidden="true" />
+                    </button>
+                  }
+                  align="end"
+                  className="min-w-[12rem]"
+                >
+                  {availableTrackerSteps.map((step) => {
+                    const StepIcon = STAGE_ICONS[step.stage];
+
+                    return (
+                      <BaseMenuItem key={step.stage} asChild>
+                        <Link
+                          href={step.href}
+                          onClick={handleCardClick}
+                          className="flex items-center gap-2 px-2 py-1.5"
+                        >
+                          <StepIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                          {step.label}
+                        </Link>
+                      </BaseMenuItem>
+                    );
+                  })}
+                </BaseMenu>
+              </div>
             </div>
           </div>
-        </Link>
-
-        <div className="grid grid-cols-3 gap-0.5 bg-gray-50 px-3 py-3 sm:px-4">
-          {viewModel.trackerSteps.map((step, stepIndex) => renderTrackerStep(step, stepIndex))}
         </div>
       </article>
     </div>
