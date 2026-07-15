@@ -3,7 +3,7 @@ import { cn } from '@/utils/styles';
 import DocumentSkeleton from '@/components/skeletons/DocumentSkeleton';
 
 const TAB_WIDTHS = ['w-16', 'w-24', 'w-28', 'w-32', 'w-24'];
-const DESKTOP_CHARS_PER_LINE = 50;
+const DESKTOP_CHARS_PER_LINE = 75;
 const MOBILE_CHARS_PER_LINE = 30;
 
 function titleLineCount(length: number, charsPerLine: number): number {
