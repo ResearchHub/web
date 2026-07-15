@@ -63,7 +63,7 @@ export function doesRegisteredReportPayloadMatchRoute({
   currentStage,
   currentPostId,
 }: {
-  payload: RegisteredReportWorkResponse;
+  payload: Pick<RegisteredReportWorkResponse, 'tracker'>;
   currentStage: RegisteredReportStage;
   currentPostId: number | string;
 }): boolean {
@@ -72,4 +72,13 @@ export function doesRegisteredReportPayloadMatchRoute({
 
   const currentStep = payload.tracker.find((step) => step.stage === currentStage);
   return currentStep?.exists === true && currentStep.postId === postId;
+}
+
+export function hasRegisteredReportSourceProposal(
+  payload: Pick<RegisteredReportWorkResponse, 'proposal' | 'tracker'>
+): boolean {
+  return Boolean(
+    payload.proposal &&
+    payload.tracker.some((step) => step.stage === 'proposal' && step.exists && step.postId)
+  );
 }

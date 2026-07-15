@@ -45,6 +45,11 @@ export interface RegisteredReportWorkResponse {
   tracker: RegisteredReportTrackerStep[];
 }
 
+export interface RegisteredReportTrackerPayload {
+  reportId: number;
+  tracker: RegisteredReportTrackerStep[];
+}
+
 type RawTrackerStep = {
   stage?: string;
   exists?: boolean;
@@ -198,13 +203,22 @@ function transformProposalDetails(
   };
 }
 
-function calculateReviewScore(
+export function getAverageProposalPeerReviewScore(
   proposal: RegisteredReportProposalDetails | null
 ): number | undefined {
-  const reviews = proposal?.peerReviews.filter((review) => review.isAssessed) ?? [];
+  const reviews = proposal?.peerReviews ?? [];
   if (reviews.length === 0) return undefined;
 
   return reviews.reduce((total, review) => total + review.score, 0) / reviews.length;
+}
+
+export function createRegisteredReportTrackerPayload(
+  payload: RegisteredReportWorkResponse
+): RegisteredReportTrackerPayload {
+  return {
+    reportId: payload.work.id,
+    tracker: payload.tracker,
+  };
 }
 
 function transformPeerReview(review: RegisteredReportProposalReview): PeerReview | null {
@@ -262,7 +276,7 @@ export function transformRegisteredReportWorkResponse(
       .map((step) => [step.stage, step])
   );
   const proposal = transformProposalDetails(raw.content_object?.proposal);
-  const reviewScore = calculateReviewScore(proposal);
+  const reviewScore = getAverageProposalPeerReviewScore(proposal);
   const peerReviews = (proposal?.peerReviews ?? [])
     .map(transformPeerReview)
     .filter((review): review is PeerReview => review !== null);

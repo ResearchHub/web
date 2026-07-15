@@ -2,7 +2,12 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { MetadataService, type WorkMetadata } from '@/services/metadata.service';
 import { PostService } from '@/services/post.service';
-import type { RegisteredReportWork, RegisteredReportWorkResponse } from '@/types/registeredReport';
+import {
+  getAverageProposalPeerReviewScore,
+  type RegisteredReportProposalDetails,
+  type RegisteredReportWork,
+  type RegisteredReportWorkResponse,
+} from '@/types/registeredReport';
 import { createRegisteredReportFallbackMetadata } from './registeredReportWorkUtils';
 
 export const getRegisteredReportWorkOrNotFound = cache(
@@ -29,14 +34,24 @@ const getMetadataByDocumentId = cache(async (documentId: number): Promise<WorkMe
 });
 
 export async function getRegisteredReportMetadata(
-  work: RegisteredReportWork
+  work: RegisteredReportWork,
+  proposal: RegisteredReportProposalDetails | null = null
 ): Promise<WorkMetadata> {
   const documentId = work.unifiedDocumentId;
-  if (!documentId) return createRegisteredReportFallbackMetadata(work);
+  const metadata = !documentId
+    ? createRegisteredReportFallbackMetadata(work)
+    : ((await getMetadataByDocumentId(documentId)) ?? createRegisteredReportFallbackMetadata(work));
+  const proposalReviewScore = getAverageProposalPeerReviewScore(proposal);
 
-  return (
-    (await getMetadataByDocumentId(documentId)) ?? createRegisteredReportFallbackMetadata(work)
-  );
+  if (proposalReviewScore === undefined) return metadata;
+
+  return {
+    ...metadata,
+    metrics: {
+      ...metadata.metrics,
+      reviewScore: proposalReviewScore,
+    },
+  };
 }
 
 export async function getRegisteredReportContent(

@@ -6,6 +6,7 @@ import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSideb
 import { RegisteredReportHeaderTabs } from '@/components/work/RegisteredReportHeaderTabs';
 import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
+import { hasRegisteredReportSourceProposal } from '@/utils/registeredReportRoute';
 import {
   getRegisteredReportMetadata,
   getRegisteredReportWorkOrNotFound,
@@ -44,9 +45,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function RegisteredReportLayout({ params, children }: Props) {
-  const { id } = await params;
+  const { id, slug } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
-  const metadata = await getRegisteredReportMetadata(payload.work);
+  const metadata = await getRegisteredReportMetadata(payload.work, payload.proposal);
+  const hasSourceProposal = hasRegisteredReportSourceProposal(payload);
+  const reviewsTabUrl = hasSourceProposal
+    ? `/report/${payload.work.id}/${slug}/reviews`
+    : undefined;
 
   return (
     <WorkTabProvider>
@@ -56,13 +61,18 @@ export default async function RegisteredReportLayout({ params, children }: Props
             work={payload.work}
             metadata={metadata}
             contentType="post"
+            reviewsTabUrl={reviewsTabUrl}
             tabs={
               <RegisteredReportHeaderTabs
                 currentStage="registered_report"
                 currentPostId={payload.work.id}
                 reportPayload={payload}
               >
-                <RegisteredReportTabs />
+                <RegisteredReportTabs
+                  reportId={payload.work.id}
+                  slug={slug}
+                  hasSourceProposal={hasSourceProposal}
+                />
               </RegisteredReportHeaderTabs>
             }
           />

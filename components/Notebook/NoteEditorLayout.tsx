@@ -145,7 +145,8 @@ export function NoteEditorLayout() {
     registeredReportProposalId,
   });
 
-  const showTabs = Boolean(note) && !isLegacyNote;
+  const isCurrentNote = note?.id.toString() === activeNoteId;
+  const showTabs = isCurrentNote && !isLegacyNote;
   const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
   const isEditorReadOnly =
     isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
@@ -180,6 +181,10 @@ export function NoteEditorLayout() {
           </div>
         </NotePaperWrapper>
       );
+    }
+
+    if (!isCurrentNote) {
+      return <NotePaperSkeleton />;
     }
 
     if (!note) {

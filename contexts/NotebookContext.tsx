@@ -81,6 +81,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   const [isLoadingNote, setIsLoadingNote] = useState(false);
   const [noteError, setNoteError] = useState<Error | null>(null);
   const lastLoadedNoteIdRef = useRef<string | null>(null);
+  const loadRequestIdRef = useRef(0);
+  const currentNoteRef = useRef<NoteWithContent | null>(null);
 
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -150,7 +152,14 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   }, [selectedOrg?.slug, fetchNotes]);
 
   const loadNote = useCallback(async (noteId: string) => {
-    if (noteId === lastLoadedNoteIdRef.current) {
+    const requestId = ++loadRequestIdRef.current;
+
+    if (
+      noteId === lastLoadedNoteIdRef.current &&
+      currentNoteRef.current?.id.toString() === noteId
+    ) {
+      setNoteError(null);
+      setIsLoadingNote(false);
       return;
     }
 
@@ -160,13 +169,21 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     try {
       const note = await NoteService.getNote(noteId);
 
+      if (requestId !== loadRequestIdRef.current) return;
+
+      currentNoteRef.current = note;
       setCurrentNote(note);
       lastLoadedNoteIdRef.current = noteId;
     } catch (err) {
+      if (requestId !== loadRequestIdRef.current) return;
+
       setNoteError(err instanceof Error ? err : new Error('Failed to load note'));
+      currentNoteRef.current = null;
       setCurrentNote(null);
     } finally {
-      setIsLoadingNote(false);
+      if (requestId === loadRequestIdRef.current) {
+        setIsLoadingNote(false);
+      }
     }
   }, []);
 
@@ -185,11 +202,13 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
         )
       );
 
-      if (currentNote) {
-        setCurrentNote((prev) => (prev ? { ...prev, title: newTitle } : null));
-      }
+      setCurrentNote((previousNote) => {
+        const updatedNote = previousNote ? { ...previousNote, title: newTitle } : null;
+        currentNoteRef.current = updatedNote;
+        return updatedNote;
+      });
     },
-    [activeNoteId, currentNote]
+    [activeNoteId]
   );
 
   const refreshAll = useCallback(async () => {

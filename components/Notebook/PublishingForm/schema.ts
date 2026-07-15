@@ -12,13 +12,21 @@ const addIssue = (ctx: z.RefinementCtx, path: string, message: string) => {
 const parseBudget = (budget?: string): number =>
   Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
 
+const requireCoverImage = (data: any, ctx: z.RefinementCtx, workType: string) => {
+  if (!data.coverImage?.file && !data.coverImage?.url) {
+    addIssue(ctx, 'coverImage', `Cover image is required for ${workType}`);
+  }
+};
+
 const validatePreregistration = (data: any, ctx: z.RefinementCtx) => {
   if (parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding goal must be greater than 0');
   }
-  if (!data.coverImage?.file && !data.coverImage?.url) {
-    addIssue(ctx, 'coverImage', 'Cover image is required for proposal');
-  }
+  requireCoverImage(data, ctx, 'a proposal');
+};
+
+const validateRegisteredReport = (data: any, ctx: z.RefinementCtx) => {
+  requireCoverImage(data, ctx, 'a registered report');
 };
 
 const validateGrant = (data: any, ctx: z.RefinementCtx) => {
@@ -84,6 +92,9 @@ export const publishingFormSchema = z
 
     if (data.articleType === 'preregistration') {
       validatePreregistration(data, ctx);
+    }
+    if (data.articleType === 'registered_report') {
+      validateRegisteredReport(data, ctx);
     }
     if (data.articleType === 'grant') {
       validateGrant(data, ctx);

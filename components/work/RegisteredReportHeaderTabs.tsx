@@ -3,12 +3,21 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PostService } from '@/services/post.service';
-import type { RegisteredReportStage, RegisteredReportWorkResponse } from '@/types/registeredReport';
+import {
+  createRegisteredReportTrackerPayload,
+  type RegisteredReportStage,
+  type RegisteredReportTrackerPayload,
+  type RegisteredReportWorkResponse,
+} from '@/types/registeredReport';
 import {
   doesRegisteredReportPayloadMatchRoute,
   parseRegisteredReportId,
 } from '@/utils/registeredReportRoute';
-import { RegisteredReportRouteTracker } from './RegisteredReportRouteTracker';
+import { useRegisteredReportWorkflow } from '@/contexts/RegisteredReportWorkflowContext';
+import {
+  RegisteredReportRouteTracker,
+  RegisteredReportRouteTrackerSkeleton,
+} from './RegisteredReportRouteTracker';
 
 interface RegisteredReportHeaderTabsProps {
   children: ReactNode;
@@ -25,18 +34,35 @@ export function RegisteredReportHeaderTabs({
 }: RegisteredReportHeaderTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { getCachedTracker, cacheTracker } = useRegisteredReportWorkflow();
   const reportIdParam = searchParams.get('rr');
   const requestedReportId = parseRegisteredReportId(reportIdParam);
-  const [clientPayload, setClientPayload] = useState<RegisteredReportWorkResponse | null>(null);
-  const reportId =
-    reportPayload?.work.id ??
-    (clientPayload?.work.id === requestedReportId ? requestedReportId : null);
+  const cachedTracker = requestedReportId ? getCachedTracker(requestedReportId) : null;
+  const cachedRouteTracker =
+    cachedTracker &&
+    doesRegisteredReportPayloadMatchRoute({
+      payload: cachedTracker,
+      currentStage,
+      currentPostId,
+    })
+      ? cachedTracker
+      : null;
+  const [clientTracker, setClientTracker] = useState<RegisteredReportTrackerPayload | null>(null);
+  const reportTracker = reportPayload
+    ? createRegisteredReportTrackerPayload(reportPayload)
+    : (cachedRouteTracker ??
+      (clientTracker?.reportId === requestedReportId ? clientTracker : null));
 
   useEffect(() => {
-    if (reportPayload) return;
+    if (reportPayload) {
+      cacheTracker(createRegisteredReportTrackerPayload(reportPayload));
+      return;
+    }
+
+    if (cachedRouteTracker) return;
 
     if (!reportIdParam) {
-      setClientPayload(null);
+      setClientTracker(null);
       return;
     }
 
@@ -62,7 +88,9 @@ export function RegisteredReportHeaderTabs({
           return;
         }
 
-        setClientPayload(payload);
+        const tracker = createRegisteredReportTrackerPayload(payload);
+        setClientTracker(tracker);
+        cacheTracker(tracker);
       })
       .catch(() => {
         if (isActive) {
@@ -73,19 +101,28 @@ export function RegisteredReportHeaderTabs({
     return () => {
       isActive = false;
     };
-  }, [currentPostId, currentStage, reportPayload, reportIdParam, router]);
-
-  const trackerPayload = reportPayload ?? clientPayload;
+  }, [
+    cacheTracker,
+    cachedRouteTracker,
+    currentPostId,
+    currentStage,
+    reportPayload,
+    reportIdParam,
+    router,
+  ]);
 
   return (
     <div className="space-y-3">
-      {trackerPayload && reportId && (
+      {reportTracker ? (
         <RegisteredReportRouteTracker
-          payload={trackerPayload}
-          reportId={reportId}
+          tracker={reportTracker.tracker}
+          reportId={reportTracker.reportId}
           currentStage={currentStage}
+          onNavigate={() => cacheTracker(reportTracker)}
         />
-      )}
+      ) : requestedReportId ? (
+        <RegisteredReportRouteTrackerSkeleton />
+      ) : null}
       {children}
     </div>
   );

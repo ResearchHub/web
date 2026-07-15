@@ -52,6 +52,7 @@ import {
   mergeRegisteredReportPrefill,
   normalizeRegisteredReportProposalId,
 } from '@/utils/registeredReportPrefill';
+import { isRegisteredReportNote, type NoteWithContent } from '@/types/note';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
@@ -139,6 +140,13 @@ const mapDocumentTypeToArticleType = (
   return map[documentType] ?? null;
 };
 
+const getArticleTypeFromNote = (
+  note: Pick<NoteWithContent, 'documentType' | 'post'>
+): PublishingFormData['articleType'] | null => {
+  const documentType = note.post?.documentType ?? note.documentType;
+  return documentType ? mapDocumentTypeToArticleType(documentType) : null;
+};
+
 const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
   if (!grant) return;
   if (grant.endDate) setValue('applicationDeadline', new Date(grant.endDate));
@@ -161,7 +169,11 @@ const populateGrantFields = (grant: any, setValue: (name: any, value: any) => vo
 
 const populateFromPost = (post: any, setValue: (name: any, value: any) => void) => {
   setValue('workId', post.id.toString());
-  setValue('articleType', mapContentTypeToArticleType(post.contentType));
+  setValue(
+    'articleType',
+    (post.documentType && mapDocumentTypeToArticleType(post.documentType)) ??
+      mapContentTypeToArticleType(post.contentType)
+  );
 
   if (post.contentType === 'preregistration') {
     setValue('budget', post.fundraise?.goalAmount.usd.toString());
@@ -334,15 +346,18 @@ export function PublishingForm({
       const storedData = loadPublishingFormFromStorage(note.id.toString());
       if (storedData) {
         restoreFromStorage(storedData, methods.setValue);
-      } else {
-        const articleType =
-          (note.documentType && mapDocumentTypeToArticleType(note.documentType)) ??
-          resolveArticleType(searchParams, defaultArticleType)?.type;
-        if (articleType) {
-          methods.setValue('articleType', articleType);
-        }
       }
       populateFromDraftNote(note, methods.getValues, methods.setValue);
+
+      const articleType = isRegisteredReportNote(note)
+        ? 'registered_report'
+        : (storedData?.articleType ??
+          getArticleTypeFromNote(note) ??
+          resolveArticleType(searchParams, defaultArticleType)?.type);
+
+      if (articleType) {
+        methods.setValue('articleType', articleType);
+      }
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
@@ -446,11 +461,11 @@ export function PublishingForm({
       formData.articleType === 'preregistration' ||
       formData.articleType === 'grant' ||
       formData.articleType === 'registered_report';
-    const file = needsImage ? formData.coverImage?.file : null;
-    if (!file) return null;
+    const coverImage = needsImage ? formData.coverImage : null;
+    if (!coverImage?.file) return coverImage?.url ?? null;
 
     try {
-      const result = await uploadAsset(file, 'post');
+      const result = await uploadAsset(coverImage.file, 'post');
       return result.objectKey;
     } catch (error) {
       console.error('Error uploading image:', error);

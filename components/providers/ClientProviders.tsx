@@ -26,6 +26,7 @@ import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
+import { RegisteredReportWorkflowProvider } from '@/contexts/RegisteredReportWorkflowContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -55,7 +56,11 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                       <UserListsProvider>
                                         <LeaderboardProvider>
                                           <DismissedFeaturesProvider>
-                                            <FollowProvider>{children}</FollowProvider>
+                                            <FollowProvider>
+                                              <RegisteredReportWorkflowProvider>
+                                                {children}
+                                              </RegisteredReportWorkflowProvider>
+                                            </FollowProvider>
                                             <FeatureNotifications />
                                           </DismissedFeaturesProvider>
                                         </LeaderboardProvider>

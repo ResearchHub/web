@@ -1,5 +1,8 @@
+'use client';
+
+import Link from 'next/link';
 import { Coins, FileInput, Landmark } from 'lucide-react';
-import type { RegisteredReportStage, RegisteredReportWorkResponse } from '@/types/registeredReport';
+import type { RegisteredReportStage, RegisteredReportTrackerStep } from '@/types/registeredReport';
 import { cn } from '@/utils/styles';
 import { buildRegisteredReportTrackerHref } from '@/utils/registeredReportRoute';
 
@@ -16,19 +19,21 @@ const TRACKER_CLIP_PATHS = {
 } as const;
 
 interface RegisteredReportRouteTrackerProps {
-  payload: RegisteredReportWorkResponse;
+  tracker: RegisteredReportTrackerStep[];
   reportId: number;
   currentStage: RegisteredReportStage;
+  onNavigate: () => void;
 }
 
 export function RegisteredReportRouteTracker({
-  payload,
+  tracker,
   reportId,
   currentStage,
+  onNavigate,
 }: RegisteredReportRouteTrackerProps) {
   return (
     <div className="mt-4 grid grid-cols-3 gap-0.5 bg-gray-50 py-1">
-      {payload.tracker.map((step, stepIndex) => {
+      {tracker.map((step, stepIndex) => {
         const StepIcon = STAGE_ICONS[step.stage];
         const state = getTrackerState(step.stage, step.exists, currentStage);
         const href = buildRegisteredReportTrackerHref(step, reportId);
@@ -41,7 +46,7 @@ export function RegisteredReportRouteTracker({
             'border-primary-500 bg-primary-500 text-white hover:bg-primary-600 hover:shadow-sm',
           state === 'missing' && 'border-gray-200 bg-white text-gray-400',
           stepIndex === 0 && 'rounded-l-lg',
-          stepIndex === payload.tracker.length - 1 && 'rounded-r-lg',
+          stepIndex === tracker.length - 1 && 'rounded-r-lg',
           isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
         );
         const content = (
@@ -59,7 +64,7 @@ export function RegisteredReportRouteTracker({
             <div
               key={step.stage}
               className={className}
-              style={{ clipPath: resolveTrackerClipPath(stepIndex, payload.tracker.length) }}
+              style={{ clipPath: resolveTrackerClipPath(stepIndex, tracker.length) }}
               aria-disabled={isDisabled}
               aria-current={state === 'current' ? 'step' : undefined}
             >
@@ -69,18 +74,30 @@ export function RegisteredReportRouteTracker({
         }
 
         return (
-          <a
+          <Link
             key={step.stage}
             href={href}
-            target="_blank"
-            rel="noopener noreferrer"
             className={className}
-            style={{ clipPath: resolveTrackerClipPath(stepIndex, payload.tracker.length) }}
+            style={{ clipPath: resolveTrackerClipPath(stepIndex, tracker.length) }}
+            onClick={onNavigate}
           >
             {content}
-          </a>
+          </Link>
         );
       })}
+    </div>
+  );
+}
+
+export function RegisteredReportRouteTrackerSkeleton() {
+  return (
+    <div className="mt-4 grid grid-cols-3 gap-0.5 bg-gray-50 py-1" aria-hidden="true">
+      {['grant', 'proposal', 'registered-report'].map((stage) => (
+        <div
+          key={stage}
+          className="h-[54px] animate-pulse border border-gray-200 bg-gray-100 first:rounded-l-lg last:rounded-r-lg"
+        />
+      ))}
     </div>
   );
 }

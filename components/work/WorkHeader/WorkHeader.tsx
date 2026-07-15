@@ -47,6 +47,7 @@ interface WorkHeaderProps {
   tabsWrapper?: (tabs: ReactNode) => ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
+  reviewsTabUrl?: string;
   grantModalProps?: {
     isApplyToGrantModalOpen: boolean;
     onCloseApplyToGrantModal: () => void;
@@ -69,6 +70,7 @@ export function WorkHeader({
   tabsWrapper,
   primaryAction,
   hideVoteWidget = false,
+  reviewsTabUrl: reviewsTabUrlOverride,
   grantModalProps,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -130,7 +132,7 @@ export function WorkHeader({
     tab: 'bounties',
   });
 
-  const reviewsTabUrl =
+  const defaultReviewsTabUrl =
     work.postType === 'REGISTERED_REPORT'
       ? undefined
       : buildWorkUrl({
@@ -139,6 +141,7 @@ export function WorkHeader({
           slug: work.slug,
           tab: 'reviews',
         });
+  const reviewsTabUrl = reviewsTabUrlOverride ?? defaultReviewsTabUrl;
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 

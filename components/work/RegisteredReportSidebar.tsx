@@ -46,7 +46,7 @@ function RestrictedProposalSection() {
 function ProposalReviewsSection({ reviews }: { reviews: RegisteredReportProposalReview[] }) {
   return (
     <section>
-      <SidebarHeader title="Proposal Peer Reviews" className="mb-3" />
+      <SidebarHeader title="Peer Reviews" className="mb-3" />
       {reviews.length === 0 ? (
         <p className="text-sm text-gray-500">No peer reviews are available.</p>
       ) : (

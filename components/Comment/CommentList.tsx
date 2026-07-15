@@ -9,6 +9,7 @@ interface CommentListProps {
   isRootList?: boolean;
   contentType: ContentType;
   commentType?: CommentType;
+  readOnly?: boolean;
 }
 
 const CommentList: React.FC<CommentListProps> = ({
@@ -17,6 +18,7 @@ const CommentList: React.FC<CommentListProps> = ({
   isRootList = false,
   contentType,
   commentType,
+  readOnly = false,
 }) => {
   return (
     <div className="space-y-8">
@@ -26,6 +28,7 @@ const CommentList: React.FC<CommentListProps> = ({
           key={`comment-${comment.id}`}
           comment={comment}
           contentType={contentType}
+          readOnly={readOnly}
         />
       ))}
     </div>
