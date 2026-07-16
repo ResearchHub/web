@@ -197,7 +197,7 @@ const NOTIFICATION_TYPE_MAP = {
   FUNDING_CREDITS_REMINDER: {
     icon: 'fundYourRsc2',
     useAvatar: false,
-    title: 'Unused funding credits',
+    title: 'You earned funding credits!',
   },
 } satisfies Record<string, NotificationTypeInfo>;
 
@@ -505,7 +505,7 @@ export function formatNotificationMessage(
       return `${userName} submitted a new proposal to your funding opportunity: "${truncatedTitle}"`;
 
     case 'PROPOSAL_PEER_REVIEW':
-      return `${userName} left a peer review on a proposal to your funding opportunity: "${truncatedTitle}"`;
+      return `${userName} peer reviewed a proposal linked to your funding opportunity`;
 
     // Content moderation notifications (papers, posts, proposals)
     case 'CONTENT_APPROVED':
@@ -523,7 +523,7 @@ export function formatNotificationMessage(
         showUSD && exchangeRate > 0
           ? formatUsdValue(raw, exchangeRate).replace(/\s*USD$/, '')
           : `${formatRSC({ amount: parseFloat(raw) || 0, round: true })} RSC`;
-      return `You have ${formattedAmount} of unused funding credits. Use them to fund science.`;
+      return `You have ${formattedAmount} of accrued funding credits. Use them to fund science.`;
     }
 
     default:
