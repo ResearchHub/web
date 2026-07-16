@@ -40,6 +40,72 @@ export interface ExpertEmailedOnOtherDocument {
   searchId: number;
 }
 
+// ── Proposal drafts ──────────────────────────────────────────────────────────
+
+export type ProposalDraftStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+export type ProposalDraftStep =
+  | 'QUEUED'
+  | 'BUILDING_PROFILE'
+  | 'DRAFTING'
+  | 'JUDGING'
+  | 'REVISING'
+  | 'VERIFYING'
+  | 'WRITING_NOTE'
+  | 'DONE';
+
+/** AI-generated proposal draft for a search expert. */
+export interface ProposalDraft {
+  id: number;
+  searchExpertId: number | null;
+  noteId: number | null;
+  status: ProposalDraftStatus;
+  step: ProposalDraftStep;
+  roundsUsed: number;
+  errorMessage: string;
+  processingTime: number | null;
+  createdDate: string;
+  completedAt: string | null;
+}
+
+export function isProposalDraftActive(draft: ProposalDraft | null | undefined): boolean {
+  return draft != null && (draft.status === 'PENDING' || draft.status === 'PROCESSING');
+}
+
+const PROPOSAL_DRAFT_STEP_LABELS: Record<ProposalDraftStep, string> = {
+  QUEUED: 'Queued',
+  BUILDING_PROFILE: 'Building expert profile',
+  DRAFTING: 'Drafting proposal',
+  JUDGING: 'Reviewing draft',
+  REVISING: 'Revising draft',
+  VERIFYING: 'Verifying draft',
+  WRITING_NOTE: 'Writing proposal note',
+  DONE: 'Done',
+};
+
+export function proposalDraftStepLabel(step: ProposalDraftStep | string): string {
+  return PROPOSAL_DRAFT_STEP_LABELS[step as ProposalDraftStep] ?? 'Processing';
+}
+
+export function parsePositiveInt(raw: unknown): number | null {
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 ? n : null;
+}
+
+export const transformProposalDraft = createTransformer<any, ProposalDraft>((raw) => ({
+  id: raw.id ?? 0,
+  searchExpertId: parsePositiveInt(raw.search_expert),
+  noteId: parsePositiveInt(raw.note),
+  status: raw.status ?? 'PENDING',
+  step: raw.step ?? 'QUEUED',
+  roundsUsed: raw.rounds_used ?? 0,
+  errorMessage: raw.error_message ?? '',
+  processingTime: raw.processing_time ?? null,
+  createdDate: raw.created_date ?? '',
+  completedAt: raw.completed_at ?? null,
+}));
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   expertId: number | null;
@@ -59,6 +125,10 @@ export interface ExpertResult {
   emailedOnOtherDocuments: ExpertEmailedOnOtherDocument[];
   notes?: string;
   sources?: ExpertSourceLink[] | null;
+  /** SearchExpert row id in the current search; needed to create proposal drafts. */
+  searchExpertId: number | null;
+  /** Most recent proposal draft for this expert in the current search. */
+  proposalDraft: ProposalDraft | null;
 }
 
 export interface ReportUrls {
@@ -148,10 +218,7 @@ function transformExpertSource(raw: string | Record<string, unknown>): ExpertSou
 }
 
 function parseExpertId(raw: any): number | null {
-  const idRaw = raw?.id ?? raw?.expert_id;
-  if (idRaw == null || idRaw === '') return null;
-  const n = Number(idRaw);
-  return Number.isInteger(n) && n >= 1 ? n : null;
+  return parsePositiveInt(raw?.id ?? raw?.expert_id);
 }
 
 function transformEmailedForCurrentDocument(raw: unknown): ExpertEmailedForCurrentDocument | null {
@@ -258,6 +325,8 @@ export function transformExpertResult(raw: any): ExpertResult {
     emailedOnOtherDocuments: transformEmailedOnOtherDocuments(raw.emailed_on_other_documents),
     notes: raw.notes ?? raw.recommendation_notes,
     sources: sources?.length ? sources : null,
+    searchExpertId: parsePositiveInt(raw.search_expert_id),
+    proposalDraft: raw.proposal_draft ? transformProposalDraft(raw.proposal_draft) : null,
   };
 }
 
@@ -362,6 +431,10 @@ function transformGeneratedEmailListNavigation(raw: any): GeneratedEmailListNavi
 export interface GeneratedEmail {
   id: number;
   expertSearch: number | null;
+  proposalDraftId: number | null;
+  noteInvitationId: number | null;
+  /** Absolute invite URL included in proposal-outreach emails (…/note/join/<key>). */
+  proposalInviteUrl: string | null;
   expertName: string;
   expertTitle: string;
   expertAffiliation: string;
@@ -391,6 +464,12 @@ export interface GeneratedEmailListResponse {
 export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => ({
   id: raw.id ?? 0,
   expertSearch: raw.expert_search ?? null,
+  proposalDraftId: parsePositiveInt(raw.proposal_draft),
+  noteInvitationId: parsePositiveInt(raw.note_invitation),
+  proposalInviteUrl:
+    raw.proposal_invite_url != null && String(raw.proposal_invite_url).trim() !== ''
+      ? String(raw.proposal_invite_url).trim()
+      : null,
   expertName: raw.expert_name ?? '',
   expertTitle: raw.expert_title ?? '',
   expertAffiliation: raw.expert_affiliation ?? '',

@@ -29,6 +29,9 @@ export function extractApiErrorMessage(error: unknown, defaultMessage: string): 
     if ((error as any).error && typeof (error as any).error === 'string') {
       return (error as any).error;
     }
+    if (errors?.detail && typeof errors.detail === 'string') {
+      return errors.detail;
+    }
   }
   if (error instanceof Error) return error.message;
   return defaultMessage;

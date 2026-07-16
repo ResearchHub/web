@@ -2,7 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Award, Building2, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import {
+  Award,
+  Building2,
+  FileText,
+  GraduationCap,
+  Info,
+  Loader2,
+  Mail,
+  Pencil,
+  Sparkles,
+} from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -14,7 +26,11 @@ import {
   buildExpertSearchHref,
   buildOutreachDocumentHref,
   outreachDocumentLabel,
+  proposalDraftStepLabel,
 } from '@/types/expertFinder';
+import { useProposalDraft } from '@/hooks/useExpertFinder';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { NoteService } from '@/services/note.service';
 import { ExpertFormModal } from './ExpertFormModal';
 import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
 
@@ -25,6 +41,10 @@ interface ExpertResultCardProps {
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
+  /** Generate an outreach email carrying the expert's completed proposal draft. */
+  onGenerateProposalEmail?: (expert: ExpertResult) => void;
+  /** Whether this search supports AI proposal drafting (grant-linked searches). */
+  proposalDraftsEnabled?: boolean;
   onSuccess?: () => Promise<void>;
 }
 
@@ -42,9 +62,17 @@ export function ExpertResultCard({
   selected,
   onToggleSelect,
   onGenerateEmail,
+  onGenerateProposalEmail,
+  proposalDraftsEnabled,
   onSuccess,
 }: ExpertResultCardProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
+  const [isOpeningNote, setIsOpeningNote] = useState(false);
+  const [
+    { draft: proposalDraft, isGenerating: isDraftingProposal, isStarting: isStartingDraft },
+    startProposalDraft,
+  ] = useProposalDraft(expert.proposalDraft, expert.searchExpertId);
   const name = empty(expert.name);
   const canEditContact = expert.expertId != null && Boolean(onSuccess);
   const title = empty(expert.title);
@@ -66,6 +94,30 @@ export function ExpertResultCard({
   const emailedOnOtherDocuments = expert.emailedOnOtherDocuments ?? [];
   const hasOutreachHistory =
     Boolean(emailedForCurrentDocument) || emailedOnOtherDocuments.length > 0;
+
+  const canDraftProposal = Boolean(proposalDraftsEnabled) && expert.searchExpertId != null;
+  const proposalCompleted = proposalDraft?.status === 'COMPLETED';
+  const proposalFailed = proposalDraft?.status === 'FAILED';
+
+  const handleStartProposalDraft = async () => {
+    try {
+      await startProposalDraft();
+    } catch (e) {
+      toast.error(extractApiErrorMessage(e, 'Failed to start proposal draft'));
+    }
+  };
+
+  const handleViewProposal = async () => {
+    if (!proposalDraft?.noteId) return;
+    setIsOpeningNote(true);
+    try {
+      const note = await NoteService.getNote(String(proposalDraft.noteId));
+      router.push(`/notebook/${note.organization.slug}/${proposalDraft.noteId}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to open proposal');
+      setIsOpeningNote(false);
+    }
+  };
 
   return (
     <article
@@ -286,6 +338,67 @@ export function ExpertResultCard({
       </div>
 
       <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
+        {canDraftProposal ? (
+          isDraftingProposal && proposalDraft ? (
+            <div className="flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-sm text-primary-700">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+              <span className="truncate">{proposalDraftStepLabel(proposalDraft.step)}…</span>
+            </div>
+          ) : proposalCompleted && proposalDraft ? (
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outlined"
+                size="sm"
+                className="flex-1 gap-2"
+                onClick={handleViewProposal}
+                disabled={isOpeningNote || proposalDraft.noteId == null}
+              >
+                {isOpeningNote ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                ) : (
+                  <FileText className="h-4 w-4 shrink-0" aria-hidden />
+                )}
+                View proposal
+              </Button>
+              {onGenerateProposalEmail && email ? (
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="flex-1 gap-2"
+                  onClick={() => onGenerateProposalEmail({ ...expert, proposalDraft })}
+                >
+                  <Mail className="h-4 w-4 shrink-0" aria-hidden />
+                  Email proposal
+                </Button>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outlined"
+                size="sm"
+                className="w-full gap-2"
+                onClick={handleStartProposalDraft}
+                disabled={isStartingDraft}
+              >
+                {isStartingDraft ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                ) : (
+                  <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+                )}
+                {proposalFailed ? 'Retry proposal draft' : 'Draft proposal'}
+              </Button>
+              {proposalFailed ? (
+                <p className="text-xs text-red-600">
+                  {proposalDraft?.errorMessage?.trim() || 'The previous proposal draft failed.'}
+                </p>
+              ) : null}
+            </>
+          )
+        ) : null}
         {onGenerateEmail && (
           <Button
             type="button"

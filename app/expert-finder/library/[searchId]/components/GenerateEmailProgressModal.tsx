@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { Check, Loader2, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Progress } from '@/components/ui/Progress';
-import { ExpertFinderService } from '@/services/expertFinder.service';
+import {
+  ExpertFinderService,
+  PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+} from '@/services/expertFinder.service';
 import type { ExpertResult } from '@/types/expertFinder';
 import type { GenerateEmailConfirmPayload } from './GenerateEmailModal';
 
@@ -70,16 +73,28 @@ export function GenerateEmailProgressModal({
         });
 
         try {
-          if (generation.mode === 'ai') {
+          const basePayload = {
+            expert_search_id: Number(searchId),
+            expert_email: expert.email?.trim() ?? '',
+          };
+          if (generation.mode === 'proposal') {
+            const draft = expert.proposalDraft;
+            if (!draft || draft.status !== 'COMPLETED') {
+              throw new Error('No completed proposal draft for this expert');
+            }
             await ExpertFinderService.generateEmail({
-              expert_search_id: Number(searchId),
-              expert_email: expert.email?.trim() ?? '',
+              ...basePayload,
+              template: PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+              proposal_draft_id: draft.id,
+            });
+          } else if (generation.mode === 'ai') {
+            await ExpertFinderService.generateEmail({
+              ...basePayload,
               template: generation.template,
             });
           } else {
             await ExpertFinderService.generateEmail({
-              expert_search_id: Number(searchId),
-              expert_email: expert.email?.trim() ?? '',
+              ...basePayload,
               template: null,
               template_id: generation.templateId,
             });

@@ -12,6 +12,7 @@ import {
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { isProposalDraftActive } from '@/types/expertFinder';
 import type {
   ExpertResult,
   ExpertSearchCreated,
@@ -19,6 +20,7 @@ import type {
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
+  ProposalDraft,
   SavedTemplate,
 } from '@/types/expertFinder';
 import type { Work } from '@/types/work';
@@ -253,6 +255,101 @@ export function useAddExpert(): UseAddExpertReturn {
   );
 
   return [{ isLoading, error }, addExpert];
+}
+
+// ── useProposalDraft ─────────────────────────────────────────────────────────
+
+const PROPOSAL_DRAFT_POLL_INTERVAL_MS = 5000;
+
+interface UseProposalDraftState {
+  draft: ProposalDraft | null;
+  /** True while the draft is queued or the agent is running. */
+  isGenerating: boolean;
+  isStarting: boolean;
+}
+
+type StartProposalDraftFn = () => Promise<ProposalDraft>;
+type UseProposalDraftReturn = [UseProposalDraftState, StartProposalDraftFn];
+
+/**
+ * Tracks a search expert's proposal draft: seeds from the draft embedded in
+ * the search detail, starts new generation, and polls until it completes.
+ */
+export function useProposalDraft(
+  initialDraft: ProposalDraft | null,
+  searchExpertId: number | null
+): UseProposalDraftReturn {
+  const [draft, setDraft] = useState<ProposalDraft | null>(initialDraft);
+  const [isStarting, setIsStarting] = useState(false);
+
+  // Reconcile with the draft embedded in the parent's search detail. The local
+  // copy wins only while it is at least as fresh: drop it when this hook
+  // instance is reused for a different expert (index-keyed cards), adopt
+  // higher draft ids, and adopt same-id terminal states the parent saw before
+  // our polling did.
+  useEffect(() => {
+    setDraft((prev) => {
+      if (prev && prev.searchExpertId != null && prev.searchExpertId !== searchExpertId) {
+        return initialDraft;
+      }
+      if (!initialDraft) return prev;
+      if (!prev || initialDraft.id > prev.id) return initialDraft;
+      if (
+        initialDraft.id === prev.id &&
+        isProposalDraftActive(prev) &&
+        !isProposalDraftActive(initialDraft)
+      ) {
+        return initialDraft;
+      }
+      return prev;
+    });
+  }, [initialDraft, searchExpertId]);
+
+  const isGenerating = isProposalDraftActive(draft);
+  const draftId = draft?.id ?? null;
+
+  useEffect(() => {
+    if (draftId == null || !isGenerating) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const updated = await ExpertFinderService.getProposalDraft(draftId);
+        if (cancelled) return;
+        setDraft((prev) =>
+          prev &&
+          prev.id === updated.id &&
+          prev.status === updated.status &&
+          prev.step === updated.step &&
+          prev.noteId === updated.noteId
+            ? prev
+            : updated
+        );
+      } catch {
+        // Transient poll failure; the next tick retries.
+      }
+    };
+    const interval = setInterval(poll, PROPOSAL_DRAFT_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [draftId, isGenerating]);
+
+  const start = useCallback(async (): Promise<ProposalDraft> => {
+    if (searchExpertId == null) {
+      throw new Error('Expert is not part of this search');
+    }
+    setIsStarting(true);
+    try {
+      const created = await ExpertFinderService.createProposalDraft(searchExpertId);
+      setDraft(created);
+      return created;
+    } finally {
+      setIsStarting(false);
+    }
+  }, [searchExpertId]);
+
+  return [{ draft, isGenerating, isStarting }, start];
 }
 
 // ── useWorkByUnifiedDocumentId ───────────────────────────────────────────────

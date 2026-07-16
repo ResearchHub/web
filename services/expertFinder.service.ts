@@ -3,15 +3,18 @@ import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
 import {
+  parsePositiveInt,
   transformExpertResult,
   transformExpertSearch,
   transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
   transformGeneratedEmail,
+  transformProposalDraft,
   transformSavedTemplate,
   transformInvitedExperts,
   type InvitedExperts,
   type ExpertResult,
+  type ProposalDraft,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
@@ -115,7 +118,11 @@ export type EmailTemplateKind =
   | 'peer-review'
   | 'publication'
   | 'rfp-outreach'
+  | 'proposal-draft-outreach'
   | 'custom';
+
+/** Template kind the backend enforces for emails linked to a proposal draft. */
+export const PROPOSAL_DRAFT_OUTREACH_TEMPLATE: EmailTemplateKind = 'proposal-draft-outreach';
 
 // ── Generated emails API ───────────────────────────────────────────────────
 
@@ -137,6 +144,8 @@ export interface GenerateEmailPayload {
   expert_email: string;
   template?: string | null;
   template_id?: number | null;
+  /** Completed proposal draft to link; forces the proposal-draft-outreach template. */
+  proposal_draft_id?: number | null;
 }
 
 export interface CreateDraftEmailPayload {
@@ -322,6 +331,44 @@ export class ExpertFinderService {
       `${this.BASE_PATH}/documents/${unifiedDocumentId}/invited/`
     );
     return transformInvitedExperts(raw);
+  }
+
+  // ── Proposal drafts ──────────────────────────────────────────────────────
+
+  /**
+   * Start AI proposal-draft generation for a search expert.
+   * POST /api/research_ai/expert-finder/proposal-drafts/
+   *
+   * If a draft is already in progress for this expert (409), the existing
+   * draft is fetched and returned so callers can attach to it.
+   */
+  static async createProposalDraft(searchExpertId: number): Promise<ProposalDraft> {
+    try {
+      const raw = await ApiClient.post<Record<string, unknown>>(
+        `${this.BASE_PATH}/proposal-drafts/`,
+        { search_expert_id: searchExpertId }
+      );
+      return transformProposalDraft(raw);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        const existingId = parsePositiveInt((err.errors as any)?.proposal_draft_id);
+        if (existingId != null) {
+          return this.getProposalDraft(existingId);
+        }
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Fetch a proposal draft (poll while status is PENDING/PROCESSING).
+   * GET /api/research_ai/expert-finder/proposal-drafts/:draftId/
+   */
+  static async getProposalDraft(draftId: number | string): Promise<ProposalDraft> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/proposal-drafts/${draftId}/`
+    );
+    return transformProposalDraft(raw);
   }
 
   // ── Generated emails ─────────────────────────────────────────────────────

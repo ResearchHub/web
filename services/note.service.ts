@@ -74,8 +74,8 @@ export class NoteService {
       const response = await ApiClient.get<any>(`${this.BASE_PATH}/note/${noteId}/`);
       return transformNoteWithContent(response);
     } catch (error) {
-      const { data = {} } = error instanceof ApiError ? JSON.parse(error.message) : {};
-      const errorMsg = data?.detail || 'Failed to fetch note content';
+      const detail = error instanceof ApiError ? (error.errors as any)?.detail : undefined;
+      const errorMsg = typeof detail === 'string' ? detail : 'Failed to fetch note content';
       throw new NoteError(errorMsg);
     }
   }

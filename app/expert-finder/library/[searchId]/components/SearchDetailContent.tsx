@@ -98,6 +98,14 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     setShowGenerateModal(true);
   }, []);
 
+  // Proposal-outreach emails skip the template chooser: the backend forces the
+  // proposal-draft-outreach template when a draft is linked.
+  const openProposalEmailForExperts = useCallback((experts: ExpertResult[]) => {
+    setGenerateExperts(experts);
+    setGeneratePayload({ mode: 'proposal' });
+    setShowProgressModal(true);
+  }, []);
+
   const handleGenerateConfirm = useCallback((payload: GenerateEmailConfirmPayload) => {
     setGeneratePayload(payload);
     setShowGenerateModal(false);
@@ -148,6 +156,9 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     searchDetail.status === 'completed'
       ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
       : searchDetail.expertResults.length;
+
+  // Proposal drafting only applies to searches linked to a grant/funding round.
+  const proposalDraftsEnabled = searchDetail.work?.contentType === 'funding_request';
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -281,6 +292,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     selected={selectedIndices.has(index)}
                     onToggleSelect={toggleSelection}
                     onGenerateEmail={(expert) => openGenerateForExperts([expert])}
+                    onGenerateProposalEmail={(expert) => openProposalEmailForExperts([expert])}
+                    proposalDraftsEnabled={proposalDraftsEnabled}
                     searchId={searchId}
                     onSuccess={refetch}
                   />

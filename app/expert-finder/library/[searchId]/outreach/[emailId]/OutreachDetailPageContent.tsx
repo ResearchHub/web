@@ -328,6 +328,21 @@ export function OutreachDetailPageContent({
         </Alert>
       )}
 
+      {email.proposalInviteUrl && (
+        <Alert variant="info" className="py-2.5 px-3">
+          This email includes an invite link giving the expert editor access to the drafted
+          proposal:{' '}
+          <a
+            href={email.proposalInviteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline-offset-2 hover:underline break-all"
+          >
+            {email.proposalInviteUrl}
+          </a>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 md:!grid-cols-2 items-start gap-4">
         <div className="min-w-0">
           <div className="flex gap-3">

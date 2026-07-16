@@ -8,11 +8,16 @@ import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
-import type { EmailTemplateKind } from '@/services/expertFinder.service';
+import {
+  PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+  type EmailTemplateKind,
+} from '@/services/expertFinder.service';
 
 export type GenerateEmailConfirmPayload =
   | { mode: 'ai'; template: string }
-  | { mode: 'fixed'; templateId: number };
+  | { mode: 'fixed'; templateId: number }
+  /** Proposal outreach: each expert's completed proposal draft is linked into the email. */
+  | { mode: 'proposal' };
 
 interface GenerateEmailModalProps {
   isOpen: boolean;
@@ -70,6 +75,7 @@ const CUSTOM_PREFIX = 'custom:';
 export function getTemplateDisplayLabel(value: string | null | undefined): string {
   if (value == null || value.trim() === '') return 'Saved template';
   const v = value.trim();
+  if (v === PROPOSAL_DRAFT_OUTREACH_TEMPLATE) return 'Proposal Invitation';
   const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === v);
   if (opt) return opt.label;
   if (v.toLowerCase().startsWith(CUSTOM_PREFIX)) {
@@ -84,6 +90,9 @@ export function getTemplateDisplayLabel(value: string | null | undefined): strin
 export function getTemplateDescription(value: string | null | undefined): string {
   if (value == null || value.trim() === '') return '';
   const v = value.trim();
+  if (v === PROPOSAL_DRAFT_OUTREACH_TEMPLATE) {
+    return 'Invite them to review and co-edit a proposal drafted on their behalf';
+  }
   const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === v);
   if (opt) return opt.description;
   if (v.toLowerCase().startsWith(CUSTOM_PREFIX)) {
