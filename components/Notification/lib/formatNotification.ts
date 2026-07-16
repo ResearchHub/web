@@ -162,6 +162,18 @@ const NOTIFICATION_TYPE_MAP = {
     title: 'Funding opportunity declined',
   },
 
+  // RFP owner notifications
+  GRANT_APPLICATION_SUBMITTED: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'New proposal submitted',
+  },
+  PROPOSAL_PEER_REVIEW: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'Peer review on proposal',
+  },
+
   // Content moderation notifications (papers, posts, proposals)
   CONTENT_APPROVED: {
     icon: 'verify2',
@@ -185,7 +197,7 @@ const NOTIFICATION_TYPE_MAP = {
   FUNDING_CREDITS_REMINDER: {
     icon: 'fundYourRsc2',
     useAvatar: false,
-    title: 'Unused funding credits',
+    title: 'You earned funding credits!',
   },
 } satisfies Record<string, NotificationTypeInfo>;
 
@@ -488,6 +500,13 @@ export function formatNotificationMessage(
     case 'GRANT_DECLINED':
       return `Your funding opportunity has been declined.`;
 
+    // RFP owner notifications
+    case 'GRANT_APPLICATION_SUBMITTED':
+      return `${userName} submitted a new proposal to your funding opportunity: "${truncatedTitle}"`;
+
+    case 'PROPOSAL_PEER_REVIEW':
+      return `${userName} peer reviewed a proposal linked to your funding opportunity`;
+
     // Content moderation notifications (papers, posts, proposals)
     case 'CONTENT_APPROVED':
       return `Your ${getWorkTypeLabel(work?.contentType)} "${truncatedTitle}" has been approved.`;
@@ -504,7 +523,7 @@ export function formatNotificationMessage(
         showUSD && exchangeRate > 0
           ? formatUsdValue(raw, exchangeRate).replace(/\s*USD$/, '')
           : `${formatRSC({ amount: parseFloat(raw) || 0, round: true })} RSC`;
-      return `You have ${formattedAmount} of unused funding credits. Use them to fund science.`;
+      return `You have ${formattedAmount} of accrued funding credits. Use them to fund science.`;
     }
 
     default:
