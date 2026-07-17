@@ -22,7 +22,7 @@ import { Progress } from '@/components/ui/Progress';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
-import type { ExpertResult } from '@/types/expertFinder';
+import type { ExpertResult, ProposalDraft } from '@/types/expertFinder';
 import {
   buildExpertSearchHref,
   buildOutreachDocumentHref,
@@ -54,6 +54,107 @@ function empty(value: string | undefined): string {
 
 /** Show Read more when notes are longer than this */
 const NOTES_READ_MORE_MIN_LENGTH = 25;
+
+interface ProposalDraftSectionProps {
+  draft: ProposalDraft | null;
+  isStarting: boolean;
+  startError: string | null;
+  isOpeningNote: boolean;
+  onStart: () => void;
+  onOpenNote: () => void;
+}
+
+function ProposalDraftSection({
+  draft,
+  isStarting,
+  startError,
+  isOpeningNote,
+  onStart,
+  onOpenNote,
+}: ProposalDraftSectionProps) {
+  if (draft && isProposalDraftActive(draft)) {
+    const progress = proposalDraftStepProgress(draft);
+    return (
+      <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5" aria-live="polite">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary-600" aria-hidden />
+          <span>Drafting proposal…</span>
+          <span className="ml-auto text-xs font-normal tabular-nums text-gray-500">
+            {progress.position}/{progress.total}
+          </span>
+        </div>
+        <Progress value={progress.position} max={progress.total} size="sm" className="mt-2" />
+        <p className="mt-1.5 text-xs text-gray-500">{progress.label}</p>
+      </div>
+    );
+  }
+
+  if (startError || draft?.status === 'FAILED') {
+    return (
+      <div className="flex flex-col gap-2">
+        <Alert variant="error" className="py-2.5 px-3">
+          <p>Proposal draft failed</p>
+          <p className="font-normal">
+            {startError || draft?.errorMessage || 'An error occurred while drafting the proposal.'}
+          </p>
+        </Alert>
+        <Button
+          type="button"
+          variant="outlined"
+          size="sm"
+          className="w-full gap-2"
+          onClick={onStart}
+          disabled={isStarting}
+        >
+          {isStarting ? (
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+          ) : (
+            <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+          )}
+          Retry proposal draft
+        </Button>
+      </div>
+    );
+  }
+
+  if (isProposalDraftComplete(draft)) {
+    return (
+      <Button
+        type="button"
+        variant="outlined"
+        size="sm"
+        className="w-full gap-2"
+        onClick={onOpenNote}
+        disabled={isOpeningNote}
+      >
+        {isOpeningNote ? (
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+        ) : (
+          <FileText className="h-4 w-4 shrink-0" aria-hidden />
+        )}
+        Open proposal
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outlined"
+      size="sm"
+      className="w-full gap-2"
+      onClick={onStart}
+      disabled={isStarting}
+    >
+      {isStarting ? (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+      ) : (
+        <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+      )}
+      Draft proposal
+    </Button>
+  );
+}
 
 export function ExpertResultCard({
   expert,
@@ -338,88 +439,14 @@ export function ExpertResultCard({
 
       <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
         {showProposalDraft ? (
-          draft && isProposalDraftActive(draft) ? (
-            <div
-              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5"
-              aria-live="polite"
-            >
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary-600" aria-hidden />
-                <span>Drafting proposal…</span>
-                <span className="ml-auto text-xs font-normal tabular-nums text-gray-500">
-                  {proposalDraftStepProgress(draft).position}/
-                  {proposalDraftStepProgress(draft).total}
-                </span>
-              </div>
-              <Progress
-                value={proposalDraftStepProgress(draft).position}
-                max={proposalDraftStepProgress(draft).total}
-                size="sm"
-                className="mt-2"
-              />
-              <p className="mt-1.5 text-xs text-gray-500">
-                {proposalDraftStepProgress(draft).label}
-              </p>
-            </div>
-          ) : startError || draft?.status === 'FAILED' ? (
-            <div className="flex flex-col gap-2">
-              <Alert variant="error" className="py-2.5 px-3">
-                <p>Proposal draft failed</p>
-                <p className="font-normal">
-                  {startError ||
-                    draft?.errorMessage ||
-                    'An error occurred while drafting the proposal.'}
-                </p>
-              </Alert>
-              <Button
-                type="button"
-                variant="outlined"
-                size="sm"
-                className="w-full gap-2"
-                onClick={handleStartDraft}
-                disabled={isStarting}
-              >
-                {isStarting ? (
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-                ) : (
-                  <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
-                )}
-                Retry proposal draft
-              </Button>
-            </div>
-          ) : isProposalDraftComplete(draft) ? (
-            <Button
-              type="button"
-              variant="outlined"
-              size="sm"
-              className="w-full gap-2"
-              onClick={() => void handleOpenNote()}
-              disabled={isOpeningNote}
-            >
-              {isOpeningNote ? (
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-              ) : (
-                <FileText className="h-4 w-4 shrink-0" aria-hidden />
-              )}
-              Open proposal
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outlined"
-              size="sm"
-              className="w-full gap-2"
-              onClick={handleStartDraft}
-              disabled={isStarting}
-            >
-              {isStarting ? (
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-              ) : (
-                <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
-              )}
-              Draft proposal
-            </Button>
-          )
+          <ProposalDraftSection
+            draft={draft}
+            isStarting={isStarting}
+            startError={startError}
+            isOpeningNote={isOpeningNote}
+            onStart={handleStartDraft}
+            onOpenNote={() => void handleOpenNote()}
+          />
         ) : null}
         {onGenerateEmail && (
           <Button
