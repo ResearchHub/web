@@ -364,12 +364,12 @@ export function ExpertResultCard({
           ) : startError || draft?.status === 'FAILED' ? (
             <div className="flex flex-col gap-2">
               <Alert variant="error" className="py-2.5 px-3">
-                Proposal draft failed
-                <span className="block font-normal">
+                <p>Proposal draft failed</p>
+                <p className="font-normal">
                   {startError ||
                     draft?.errorMessage ||
                     'An error occurred while drafting the proposal.'}
-                </span>
+                </p>
               </Alert>
               <Button
                 type="button"
