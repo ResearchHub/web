@@ -1,11 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
-import { Award, Building2, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  Award,
+  Building2,
+  FileText,
+  GraduationCap,
+  Info,
+  Loader2,
+  Mail,
+  Pencil,
+  Sparkles,
+} from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
+import { Progress } from '@/components/ui/Progress';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
@@ -13,8 +26,13 @@ import type { ExpertResult } from '@/types/expertFinder';
 import {
   buildExpertSearchHref,
   buildOutreachDocumentHref,
+  isProposalDraftActive,
+  isProposalDraftComplete,
   outreachDocumentLabel,
+  proposalDraftStepProgress,
 } from '@/types/expertFinder';
+import { useProposalDraft } from '@/hooks/useExpertFinder';
+import { NoteService } from '@/services/note.service';
 import { ExpertFormModal } from './ExpertFormModal';
 import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
 
@@ -26,6 +44,8 @@ interface ExpertResultCardProps {
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
   onSuccess?: () => Promise<void>;
+  /** Enables AI proposal drafts (grant-linked searches only). */
+  proposalDraftsEnabled?: boolean;
 }
 
 function empty(value: string | undefined): string {
@@ -43,8 +63,39 @@ export function ExpertResultCard({
   onToggleSelect,
   onGenerateEmail,
   onSuccess,
+  proposalDraftsEnabled,
 }: ExpertResultCardProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
+  const [isOpeningNote, setIsOpeningNote] = useState(false);
+
+  // Refresh the search detail once a draft settles so selection-based flows
+  // (e.g. proposal invitation emails) see the latest draft state.
+  const handleDraftSettled = useCallback(() => {
+    void onSuccess?.();
+  }, [onSuccess]);
+  const [{ draft, isStarting, startError }, startDraft] = useProposalDraft(
+    expert.proposalDraft,
+    handleDraftSettled
+  );
+  const showProposalDraft = Boolean(proposalDraftsEnabled) && expert.searchExpertId != null;
+
+  const handleStartDraft = useCallback(() => {
+    if (expert.searchExpertId != null) void startDraft(expert.searchExpertId);
+  }, [expert.searchExpertId, startDraft]);
+
+  const handleOpenNote = useCallback(async () => {
+    if (draft?.noteId == null) return;
+    setIsOpeningNote(true);
+    try {
+      const note = await NoteService.getNote(String(draft.noteId));
+      router.push(`/notebook/${note.organization.slug}/${draft.noteId}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to open the proposal note');
+    } finally {
+      setIsOpeningNote(false);
+    }
+  }, [draft?.noteId, router]);
   const name = empty(expert.name);
   const canEditContact = expert.expertId != null && Boolean(onSuccess);
   const title = empty(expert.title);
@@ -286,6 +337,90 @@ export function ExpertResultCard({
       </div>
 
       <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
+        {showProposalDraft ? (
+          draft && isProposalDraftActive(draft) ? (
+            <div
+              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5"
+              aria-live="polite"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary-600" aria-hidden />
+                <span>Drafting proposal…</span>
+                <span className="ml-auto text-xs font-normal tabular-nums text-gray-500">
+                  {proposalDraftStepProgress(draft).position}/
+                  {proposalDraftStepProgress(draft).total}
+                </span>
+              </div>
+              <Progress
+                value={proposalDraftStepProgress(draft).position}
+                max={proposalDraftStepProgress(draft).total}
+                size="sm"
+                className="mt-2"
+              />
+              <p className="mt-1.5 text-xs text-gray-500">
+                {proposalDraftStepProgress(draft).label}
+              </p>
+            </div>
+          ) : startError || draft?.status === 'FAILED' ? (
+            <div className="flex flex-col gap-2">
+              <Alert variant="error" className="py-2.5 px-3">
+                Proposal draft failed
+                <span className="block font-normal">
+                  {startError ||
+                    draft?.errorMessage ||
+                    'An error occurred while drafting the proposal.'}
+                </span>
+              </Alert>
+              <Button
+                type="button"
+                variant="outlined"
+                size="sm"
+                className="w-full gap-2"
+                onClick={handleStartDraft}
+                disabled={isStarting}
+              >
+                {isStarting ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                ) : (
+                  <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+                )}
+                Retry proposal draft
+              </Button>
+            </div>
+          ) : isProposalDraftComplete(draft) ? (
+            <Button
+              type="button"
+              variant="outlined"
+              size="sm"
+              className="w-full gap-2"
+              onClick={() => void handleOpenNote()}
+              disabled={isOpeningNote}
+            >
+              {isOpeningNote ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+              ) : (
+                <FileText className="h-4 w-4 shrink-0" aria-hidden />
+              )}
+              Open proposal
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outlined"
+              size="sm"
+              className="w-full gap-2"
+              onClick={handleStartDraft}
+              disabled={isStarting}
+            >
+              {isStarting ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+              ) : (
+                <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+              )}
+              Draft proposal
+            </Button>
+          )
+        ) : null}
         {onGenerateEmail && (
           <Button
             type="button"
