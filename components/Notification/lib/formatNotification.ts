@@ -264,8 +264,7 @@ const isFoundationPeerReviewBountyNotification = (notification: Notification): b
     notification.type === 'BOUNTY_FOR_YOU' &&
     notification.extra?.bounty_type?.toUpperCase() === 'REVIEW' &&
     FOUNDATION_USER_ID !== null &&
-    bountyCreatorId !== undefined &&
-    bountyCreatorId.toString() === FOUNDATION_USER_ID.toString()
+    bountyCreatorId?.toString() === FOUNDATION_USER_ID.toString()
   );
 };
 
