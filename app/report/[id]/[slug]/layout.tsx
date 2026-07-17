@@ -74,6 +74,7 @@ export default async function RegisteredReportLayout({ params, children }: Props
                 reportId={payload.work.id}
                 slug={slug}
                 hasSourceProposal={hasSourceProposal}
+                reviewCount={payload.proposal?.peerReviews.length ?? 0}
               />
             }
           />

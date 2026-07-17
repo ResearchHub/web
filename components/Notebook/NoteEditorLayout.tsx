@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
@@ -26,7 +26,6 @@ import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import { isPublishedRegisteredReportNote, isRegisteredReportNote } from '@/types/note';
 import { normalizeRegisteredReportProposalId } from '@/utils/registeredReportPrefill';
-import { useShareModalContext } from '@/contexts/ShareContext';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
 // first time someone lands in the editor on a freshly-created note.
@@ -36,7 +35,6 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
 const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
-const JOURNAL_ENTRY_ACCEPTED_PARAM = 'journalEntryAccepted';
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
@@ -84,14 +82,11 @@ export function NoteEditorLayout() {
   } = useNotebookContext();
 
   const { selectedOrg } = useOrganizationContext();
-  const { showShareModal } = useShareModalContext();
   const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
   const topBarSlot = useTopBarSlot();
   const setLeftSlot = topBarSlot?.setLeftSlot;
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const {
@@ -106,7 +101,6 @@ export function NoteEditorLayout() {
   );
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
-  const journalEntrySuccessModalNoteId = useRef<string | null>(null);
 
   const isNewlyCreatedNote = NEW_NOTE_PARAMS.some((param) => searchParams?.has(param));
 
@@ -123,29 +117,6 @@ export function NoteEditorLayout() {
   // opening earlier anchors to the skeleton and the popover jumps when the real
   // content swaps in.
   const isNoteReady = !isLoadingNote && Boolean(note) && isLegacyNote === false && Boolean(editor);
-
-  useEffect(() => {
-    if (
-      searchParams?.get(JOURNAL_ENTRY_ACCEPTED_PARAM) !== 'true' ||
-      !isNoteReady ||
-      !activeNoteId ||
-      journalEntrySuccessModalNoteId.current === activeNoteId
-    ) {
-      return;
-    }
-
-    journalEntrySuccessModalNoteId.current = activeNoteId;
-    const params = new URLSearchParams(searchParams?.toString());
-    params.delete(JOURNAL_ENTRY_ACCEPTED_PARAM);
-    const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-    showShareModal({
-      action: 'USER_CREATED_REGISTERED_REPORT',
-      docTitle: note?.title ?? 'Registered Report',
-      url: `${window.location.origin}${pathname}`,
-      shouldShowConfetti: true,
-    });
-  }, [activeNoteId, isNoteReady, note?.title, pathname, router, searchParams, showShareModal]);
 
   useEffect(() => {
     if (isDesktop !== true || tourAutoStarted.current) return;

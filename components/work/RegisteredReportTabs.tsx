@@ -8,12 +8,14 @@ interface RegisteredReportTabsProps {
   reportId: number;
   slug: string;
   hasSourceProposal: boolean;
+  reviewCount: number;
 }
 
 export function RegisteredReportTabs({
   reportId,
   slug,
   hasSourceProposal,
+  reviewCount,
 }: RegisteredReportTabsProps) {
   const pathname = usePathname();
   const reportHref = `/report/${reportId}/${slug}`;
@@ -37,8 +39,21 @@ export function RegisteredReportTabs({
             href: `${reportHref}/reviews`,
             label: (
               <div className="flex items-center">
-                <Star className="h-4 w-4 mr-2" />
+                <Star
+                  className={`h-4 w-4 mr-2 ${
+                    activeTab === 'reviews' ? 'text-primary-500' : 'text-gray-500'
+                  }`}
+                />
                 <span>Peer Reviews</span>
+                <span
+                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'reviews'
+                      ? 'bg-primary-100 text-primary-600'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
+                  {reviewCount}
+                </span>
               </div>
             ),
           },

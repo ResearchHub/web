@@ -3,31 +3,6 @@ import { transformNote, transformNoteContent, transformNoteWithContent } from '@
 import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
-import {
-  getRegisteredReportProposalIdFromDocument,
-  mergeRegisteredReportPrefill,
-  normalizeRegisteredReportProposalId,
-} from '@/utils/registeredReportPrefill';
-import type { JSONContent } from '@tiptap/core';
-
-const parseEditorDocument = (contentJson: unknown): JSONContent | null => {
-  if (!contentJson) return null;
-
-  if (typeof contentJson === 'object' && !Array.isArray(contentJson)) {
-    return contentJson as JSONContent;
-  }
-
-  if (typeof contentJson !== 'string') return null;
-
-  try {
-    const parsed = JSON.parse(contentJson);
-    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
-      ? (parsed as JSONContent)
-      : null;
-  } catch {
-    return null;
-  }
-};
 
 export class NoteError extends Error {
   constructor(
@@ -84,70 +59,6 @@ export interface NoteInvitePreview {
 
 export class NoteService {
   private static readonly BASE_PATH = '/api';
-
-  private static async persistRegisteredReportPrefill(
-    note: NoteWithContent
-  ): Promise<NoteWithContent> {
-    const proposalId = normalizeRegisteredReportProposalId(
-      note.proposalId ?? note.registeredReportPrefill?.proposalId
-    );
-    const document = parseEditorDocument(note.contentJson);
-
-    if (
-      !proposalId ||
-      !document ||
-      getRegisteredReportProposalIdFromDocument(document) === proposalId
-    ) {
-      return note;
-    }
-
-    const content = await this.updateNoteContent({
-      note: note.id,
-      full_src: note.content ?? '',
-      plain_text: note.plainText,
-      full_json: JSON.stringify(mergeRegisteredReportPrefill(document, proposalId)),
-    });
-
-    return {
-      ...note,
-      content: content.src,
-      contentJson: content.json,
-      plainText: content.plain_text,
-    };
-  }
-
-  static async acceptJournalEntry(params: {
-    userId: number | string;
-    fundraiseId: number | string;
-  }): Promise<NoteWithContent> {
-    if (!params.userId || !params.fundraiseId) {
-      throw new NoteError('Missing required journal entry parameters', 'INVALID_PARAMS');
-    }
-
-    try {
-      const queryParams = new URLSearchParams({
-        user_id: params.userId.toString(),
-        fundraise_id: params.fundraiseId.toString(),
-      });
-      const response = await ApiClient.post<any>(
-        `${this.BASE_PATH}/researchhubpost/accept_journal_entry/?${queryParams.toString()}`,
-        {
-          user_id: params.userId,
-          fundraise_id: params.fundraiseId,
-        }
-      );
-      return this.persistRegisteredReportPrefill(transformNoteWithContent(response));
-    } catch (error) {
-      const errorMsg =
-        error instanceof ApiError
-          ? ((error.errors as Record<string, any> | undefined)?.error ??
-            (error.errors as Record<string, any> | undefined)?.detail ??
-            (error.errors as Record<string, any> | undefined)?.message ??
-            error.message)
-          : 'Failed to accept journal entry';
-      throw new NoteError(errorMsg, error instanceof Error ? error.message : 'UNKNOWN_ERROR');
-    }
-  }
 
   /**
    * Fetches a specific note by ID

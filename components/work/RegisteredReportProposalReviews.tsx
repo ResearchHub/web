@@ -1,5 +1,6 @@
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
+import { Alert } from '@/components/ui/Alert';
 import type { WorkMetadata } from '@/services/metadata.service';
 import type { Work } from '@/types/work';
 
@@ -18,6 +19,10 @@ export function RegisteredReportProposalReviews({
 }: RegisteredReportProposalReviewsProps) {
   return (
     <div className="mt-6 space-y-6">
+      <Alert variant="info">
+        These peer reviews were completed for the proposal that led to this Registered Report. They
+        provide context for the study&apos;s original design.
+      </Alert>
       <CommentFeed
         documentId={proposal.id}
         unifiedDocumentId={proposal.unifiedDocumentId || null}

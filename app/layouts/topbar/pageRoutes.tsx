@@ -110,13 +110,6 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/accept_journal_entry',
-    getInfo: () => ({
-      title: 'Registered Report',
-      icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/report/'),
     getInfo: () => ({
       title: 'Registered Report',

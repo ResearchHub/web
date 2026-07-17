@@ -20,15 +20,16 @@ export const roundRscAmount = (amount: number): number => {
 
 export function extractApiErrorMessage(error: unknown, defaultMessage: string): string {
   if (error instanceof ApiError) {
-    const errors = error.errors as any;
-    if (errors?.error) {
-      const errorMsg = errors.error;
-      if (Array.isArray(errorMsg) && errorMsg.length > 0) return errorMsg[0];
-      if (typeof errorMsg === 'string') return errorMsg;
+    const errors = error.errors as Record<string, unknown> | undefined;
+    const fields = ['error', 'detail', 'message', 'msg', 'non_field_errors'];
+
+    for (const field of fields) {
+      const value = errors?.[field];
+      if (typeof value === 'string' && value) return value;
+      if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
     }
-    if ((error as any).error && typeof (error as any).error === 'string') {
-      return (error as any).error;
-    }
+
+    if (error.message) return error.message;
   }
   if (error instanceof Error) return error.message;
   return defaultMessage;

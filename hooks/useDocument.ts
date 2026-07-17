@@ -30,6 +30,8 @@ export interface PreregistrationPostParams {
   assignDOI?: boolean;
   authors: number[];
   image: string | null;
+  previewImg?: string | null;
+  editorType?: 'CK_EDITOR';
 
   // Grant specific
   applicationDeadline?: Date | null;
@@ -75,6 +77,8 @@ const buildBasePayload = (postParams: PreregistrationPostParams) => ({
   hubs: postParams.topics,
   authors: postParams.authors,
   ...(postParams.image ? { image: postParams.image } : {}),
+  ...(postParams.previewImg ? { preview_img: postParams.previewImg } : {}),
+  ...(postParams.editorType ? { editor_type: postParams.editorType } : {}),
 });
 
 const addPreregistrationPayload = (payload: any, postParams: PreregistrationPostParams) => {

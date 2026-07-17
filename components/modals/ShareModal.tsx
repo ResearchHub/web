@@ -9,7 +9,6 @@ import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 export type ShareAction =
   | 'USER_OPENED_PROPOSAL'
-  | 'USER_CREATED_REGISTERED_REPORT'
   | 'USER_PEER_REVIEWED'
   | 'USER_FUNDED_PROPOSAL'
   | 'USER_SHARED_DOCUMENT';
@@ -33,18 +32,6 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
       </>
     ),
     socialText: (docTitle) => `New experiment proposal: ${docTitle}\n\n`,
-  },
-  USER_CREATED_REGISTERED_REPORT: {
-    IconComponent: PartyPopper,
-    title: () => <>Registered Report draft created</>,
-    description: () => (
-      <>
-        Your funded proposal is now ready as a private notebook draft. You can edit it before
-        publishing the Registered Report.
-      </>
-    ),
-    socialText: () => '',
-    showSharing: false,
   },
   USER_PEER_REVIEWED: {
     IconComponent: PartyPopper,

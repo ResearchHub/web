@@ -46,6 +46,7 @@ import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { ApiError } from '@/services/types';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import {
   getRegisteredReportProposalIdFromDocument,
@@ -313,6 +314,22 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
   return `/post/${responseId}/${slug}`;
 };
 
+const getPublishingErrorMessage = (error: unknown, articleType: string): string => {
+  if (error instanceof ApiError) {
+    if (articleType === 'registered_report' && error.status === 502) {
+      return 'DOI registration failed. Please retry publishing.';
+    }
+
+    if (articleType === 'registered_report' && (error.status === 401 || error.status === 403)) {
+      return 'Only moderators can publish Registered Reports.';
+    }
+
+    return extractApiErrorMessage(error, 'Error publishing. Please try again.');
+  }
+
+  return 'Error publishing. Please try again.';
+};
+
 export function PublishingForm({
   bountyAmount,
   onBountyClick,
@@ -401,6 +418,8 @@ export function PublishingForm({
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+  const canPublishRegisteredReport =
+    articleType !== 'registered_report' || currentUser?.isModerator === true;
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
@@ -412,6 +431,11 @@ export function PublishingForm({
 
   const handlePublishClick = async () => {
     if (readOnly) return;
+
+    if (!canPublishRegisteredReport) {
+      toast.error('Only moderators can publish Registered Reports.');
+      return;
+    }
 
     const result = await methods.trigger();
 
@@ -517,6 +541,24 @@ export function PublishingForm({
       const html = editor?.getHTML();
       const formData = methods.getValues();
 
+      if (formData.articleType === 'registered_report' && !currentUser?.isModerator) {
+        toast.error('Only moderators can publish Registered Reports.');
+        setShowConfirmModal(false);
+        return;
+      }
+
+      if (formData.articleType === 'registered_report' && editedTitle.trim().length < 20) {
+        toast.error('Registered Report titles must be at least 20 characters.');
+        setShowConfirmModal(false);
+        return;
+      }
+
+      if (formData.articleType === 'registered_report' && (text?.trim().length ?? 0) < 50) {
+        toast.error('Registered Report content must be at least 50 characters.');
+        setShowConfirmModal(false);
+        return;
+      }
+
       const imagePath = await uploadCoverImage(formData);
       if (imagePath === false) {
         setShowConfirmModal(false);
@@ -569,6 +611,11 @@ export function PublishingForm({
             .filter((id) => !Number.isNaN(id)),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
+          previewImg:
+            formData.articleType === 'registered_report'
+              ? (note?.registeredReportPrefill?.previewImg ?? null)
+              : undefined,
+          editorType: formData.articleType === 'registered_report' ? 'CK_EDITOR' : undefined,
           organization: formData.organization,
           description: formData.shortDescription,
           applicationDeadline: (() => {
@@ -618,13 +665,7 @@ export function PublishingForm({
       }
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
-      const fallback = 'Error publishing. Please try again.';
-      if (error instanceof ApiError) {
-        const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
-      } else {
-        toast.error(fallback);
-      }
+      toast.error(getPublishingErrorMessage(error, articleType));
       console.error('Error publishing:', error);
     } finally {
       setShowConfirmModal(false);
@@ -712,11 +753,22 @@ export function PublishingForm({
                 <span className="font-medium text-gray-900">$1,000 USD</span>
               </div>
             )}
+            {articleType === 'registered_report' && !canPublishRegisteredReport && (
+              <p className="text-sm text-red-600">
+                Only moderators can publish Registered Reports.
+              </p>
+            )}
             <Button
               variant="default"
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={readOnly || isPublishing || isDeclined || showPrivateWarning}
+              disabled={
+                readOnly ||
+                isPublishing ||
+                isDeclined ||
+                showPrivateWarning ||
+                !canPublishRegisteredReport
+              }
             >
               {readOnly
                 ? 'Published'
