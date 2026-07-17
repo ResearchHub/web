@@ -57,10 +57,10 @@ export default async function FundUpdatesPage({ params }: Props) {
 
   const work = await getFundingProject(id);
 
-  const [metadata, content, authorUpdates] = await Promise.all([
+  const [metadata, content, authorPosts] = await Promise.all([
     MetadataService.get(work.unifiedDocumentId?.toString() || ''),
     getWorkHTMLContent(work),
-    CommentService.fetchAuthorUpdates({
+    CommentService.fetchAuthorPosts({
       documentId: work.id,
       contentType: work.contentType,
     }),
@@ -68,12 +68,7 @@ export default async function FundUpdatesPage({ params }: Props) {
 
   return (
     <>
-      <FundDocument
-        work={work}
-        metadata={metadata}
-        content={content}
-        authorUpdates={authorUpdates}
-      />
+      <FundDocument work={work} metadata={metadata} content={content} authorPosts={authorPosts} />
       <SearchHistoryTracker work={work} />
       <WorkDocumentTracker work={work} metadata={metadata} tab="updates" />
     </>

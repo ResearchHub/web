@@ -3,6 +3,7 @@ import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
 import {
+  transformExpertResult,
   transformExpertSearch,
   transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
@@ -10,6 +11,7 @@ import {
   transformSavedTemplate,
   transformInvitedExperts,
   type InvitedExperts,
+  type ExpertResult,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
@@ -22,6 +24,18 @@ import {
 import type { ContentType, Work } from '@/types/work';
 import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
+import { ApiError } from './types/api';
+
+// TEMP: Disable outreach while AWS sender provider is broken. Set to false to re-enable.
+const OUTREACH_SENDING_DISABLED = true;
+const OUTREACH_DISABLED_MESSAGE =
+  'Expert outreach is temporarily unavailable. Please try again later.';
+
+function assertExpertFinderOutreachEnabled(): void {
+  if (OUTREACH_SENDING_DISABLED) {
+    throw new ApiError(OUTREACH_DISABLED_MESSAGE, 503);
+  }
+}
 
 // ── API enum values and display labels ─────────────
 
@@ -66,9 +80,8 @@ export function getRegionLabel(value: Region): string {
 }
 
 export interface ExpertSearchCreatePayload {
-  unified_document_id?: number | null;
-  query?: string;
-  input_type?: InputType;
+  unified_document_id: number;
+  input_type: InputType;
   name?: string;
   config: {
     expert_count: number;
@@ -76,9 +89,22 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_expert_names?: string[];
   additional_context?: string;
 }
+
+/** PATCH body for canonical expert (wire format, snake_case). */
+export type PatchExpertPayload = Partial<{
+  honorific: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  name_suffix: string;
+  academic_title: string;
+  affiliation: string;
+  expertise: string;
+  notes: string;
+  email: string;
+}>;
 
 // ── Email template kind (purpose) ───────────────────
 
@@ -107,14 +133,9 @@ export const GENERATED_EMAIL_STATUS_VALUES = [
 export type GeneratedEmailStatus = (typeof GENERATED_EMAIL_STATUS_VALUES)[number];
 
 export interface GenerateEmailPayload {
-  expert_name: string;
-  template: string | null;
-  expert_title?: string;
-  expert_affiliation?: string;
-  expert_email?: string;
-  expertise?: string;
-  notes?: string;
-  expert_search_id?: number | null;
+  expert_search_id: number;
+  expert_email: string;
+  template?: string | null;
   template_id?: number | null;
 }
 
@@ -134,10 +155,35 @@ export interface CreateDraftEmailPayload {
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
 
+export interface AddExpertPayload {
+  email: string;
+  honorific?: string;
+  first_name?: string;
+  middle_name?: string;
+  last_name?: string;
+  name_suffix?: string;
+  academic_title?: string;
+  affiliation?: string;
+  expertise?: string;
+  notes?: string;
+}
+
 export interface CreateSavedTemplatePayload {
   name: string;
   email_subject?: string;
   email_body?: string;
+}
+
+interface RawInviteApplicantsResponse {
+  queued: number;
+  skipped_existing: string[];
+  generated_email_ids: number[];
+}
+
+export interface InviteApplicantsResponse {
+  queued: number;
+  skippedExisting: string[];
+  generatedEmailIds: number[];
 }
 
 export interface UpdateSavedTemplatePayload {
@@ -151,20 +197,46 @@ export class ExpertFinderService {
 
   /**
    * Submit a new expert search.
-   * POST /api/research_ai/expert-finder/search/
+   * POST /api/research_ai/expert-finder/searches/
    */
   static async createSearch(payload: ExpertSearchCreatePayload): Promise<ExpertSearchCreated> {
-    const raw = await ApiClient.post<Record<string, unknown>>(`${this.BASE_PATH}/search/`, payload);
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/`,
+      payload
+    );
     return transformExpertSearchCreateResponse(raw);
   }
 
   /**
    * Fetch full detail for a single expert search.
-   * GET /api/research_ai/expert-finder/search/:searchId/
+   * GET /api/research_ai/expert-finder/searches/:searchId/
    */
   static async getSearch(searchId: number | string): Promise<ExpertSearchResult> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/search/${searchId}/`);
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/searches/${searchId}/`);
     return transformExpertSearch(response);
+  }
+
+  /**
+   * Partial update of a canonical expert row.
+   * PATCH /api/research_ai/expert-finder/experts/:expertId/
+   */
+  static async patchExpert(expertId: number | string, payload: PatchExpertPayload): Promise<void> {
+    await ApiClient.patch<void>(`${this.BASE_PATH}/experts/${expertId}/`, payload);
+  }
+
+  /**
+   * Manually add an expert to an existing search.
+   * POST /api/research_ai/expert-finder/searches/:searchId/experts/
+   */
+  static async addExpert(
+    searchId: number | string,
+    payload: AddExpertPayload
+  ): Promise<ExpertResult> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/${searchId}/experts/`,
+      payload
+    );
+    return transformExpertResult(raw);
   }
 
   /**
@@ -254,24 +326,11 @@ export class ExpertFinderService {
 
   // ── Generated emails ─────────────────────────────────────────────────────
 
-  static async generateEmail(
-    payload: GenerateEmailPayload,
-    options?: { save?: boolean; action?: 'generate' }
-  ): Promise<any | GeneratedEmail> {
-    const preview = options?.save === false || options?.action === 'generate';
-    const query = preview
-      ? `?${options?.action === 'generate' ? 'action=generate' : 'save=false'}`
-      : '';
+  static async generateEmail(payload: GenerateEmailPayload): Promise<GeneratedEmail> {
     const raw = await ApiClient.post<Record<string, unknown>>(
-      `${this.BASE_PATH}/generate-email/${query}`,
+      `${this.BASE_PATH}/generate-email/`,
       payload
     );
-    if (preview) {
-      return {
-        subject: (raw.subject as string) ?? '',
-        body: (raw.body as string) ?? '',
-      };
-    }
     return transformGeneratedEmail(raw);
   }
 
@@ -333,13 +392,14 @@ export class ExpertFinderService {
    */
   static async sendEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null) body.reply_to = payload.reply_to;
     if (payload.cc != null && payload.cc.length > 0) body.cc = payload.cc;
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/send/`, body);
     return { sent: raw.sent ?? 0 };
@@ -351,14 +411,13 @@ export class ExpertFinderService {
    */
   static async previewEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null && payload.reply_to !== '') {
-      body.reply_to = payload.reply_to;
-    }
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
     return { sent: raw.sent ?? 0 };
   }
@@ -415,5 +474,31 @@ export class ExpertFinderService {
 
   static async deleteTemplate(templateId: number | string): Promise<void> {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/templates/${templateId}/`);
+  }
+
+  // ── RFP applicant invitations ────────────────────────────────────────────
+
+  /**
+   * Invite experts to apply to an RFP (grant) by email.
+   * POST /api/research_ai/expert-finder/rfp/:grantId/invite-applicants/
+   */
+  static async inviteApplicants(
+    grantId: string | number,
+    params: { emails: string[]; replyTo?: string; cc?: string[] }
+  ): Promise<InviteApplicantsResponse> {
+    assertExpertFinderOutreachEnabled();
+    const body: Record<string, unknown> = { emails: params.emails };
+    if (params.replyTo) body.reply_to = params.replyTo;
+    if (params.cc && params.cc.length) body.cc = params.cc;
+
+    const response = await ApiClient.post<RawInviteApplicantsResponse>(
+      `${this.BASE_PATH}/rfp/${grantId}/invite-applicants/`,
+      body
+    );
+    return {
+      queued: response.queued ?? 0,
+      skippedExisting: response.skipped_existing ?? [],
+      generatedEmailIds: response.generated_email_ids ?? [],
+    };
   }
 }

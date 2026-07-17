@@ -4,8 +4,10 @@ import React, { ReactNode, useState } from 'react';
 import { SectionHeaderProps } from './renderUtils';
 import hljs from 'highlight.js';
 import { useEffect } from 'react';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, classifyUrl } from '@/utils/url';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { InlineRichLink } from '@/components/Embed';
+import { normalizeRichLinks } from './embedDoc';
 
 interface TipTapRendererProps {
   content: any;
@@ -139,6 +141,12 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
           : [],
     };
   }
+
+  // Upgrade legacy comments in-place: URL-only text tokens and link marks
+  // whose anchor text equals the href become `richLink` nodes so they
+  // render with the same inline preview + hover surface as freshly pasted
+  // links. Idempotent — already-converted docs pass through unchanged.
+  documentContent = normalizeRichLinks(documentContent);
 
   // If truncation is enabled, extract the full text to check length
   let shouldTruncate = false;
@@ -528,6 +536,16 @@ const RenderNode: React.FC<RenderNodeProps> = ({
     });
 
     return <li className="tiptap-list-item">{getRenderedChildren(children, node.content)}</li>;
+  }
+
+  // Inline rich link node — same component the editor's NodeView uses, so
+  // the rendered surface is byte-identical between editor and read-only.
+  // Re-derive the embed from the URL rather than trusting stored attrs so
+  // legacy comments self-heal whenever classifyUrl improves (e.g. picking
+  // up a LinkedIn URN from the /posts/ slug format).
+  if (node.type === 'richLink' && node.attrs?.url) {
+    const embed = classifyUrl(node.attrs.url);
+    return <InlineRichLink url={node.attrs.url} embed={embed} />;
   }
 
   // Handle image

@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { RadioGroup } from '@headlessui/react';
-import { FileUp, Notebook, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-react';
+import { FileUp, Eye, BadgeCheck, BookOpen, Loader2 } from 'lucide-react';
 import type { SearchSuggestion } from '@/types/search';
 import { PaperActionCard } from './PaperActionCard';
 import { Alert } from '@/components/ui/Alert';
 import { Callout } from '@/components/ui/Callout';
 
-type PublishOption = 'notebook' | 'pdf' | null;
+type PublishOption = 'pdf' | null;
 
 interface SelectedPaper {
   id: string;
@@ -53,12 +53,6 @@ export default function WorkCreatePage() {
 
   const publishOptions = [
     {
-      id: 'notebook',
-      title: 'Draft in Lab Notebook',
-      description: 'Write and format your research directly in our editor',
-      icon: Notebook,
-    },
-    {
       id: 'pdf',
       title: 'Upload your manuscript',
       description: 'Upload your existing manuscript',
@@ -70,8 +64,6 @@ export default function WorkCreatePage() {
     startTransition(() => {
       if (optionId === 'pdf') {
         router.push('/paper/create/pdf');
-      } else if (optionId === 'notebook') {
-        router.push(`/notebook?newResearch=true`);
       }
     });
   };

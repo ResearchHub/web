@@ -12,7 +12,7 @@ import LoadMoreReplies from './LoadMoreReplies';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
-import { getDisplayBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
+import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
 import { transformCommentToFeedItem, transformBountyCommentToFeedItem } from '@/types/feed';
 import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
@@ -72,6 +72,7 @@ export const CommentItem = ({
   const { user } = useUser();
   // Check if the current user is the author of the comment
   const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
+  const canAwardBounty = canManageBounties(user);
 
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
@@ -225,6 +226,8 @@ export const CommentItem = ({
               showTooltips={showTooltips}
               isAuthor={isAuthor}
               showCreatorActions={isAuthor}
+              canAwardBounty={canAwardBounty}
+              showContributeButton={false}
               onAward={(bountyId) => {
                 setSelectedBountyId(bountyId);
                 setShowAwardModal(true);
@@ -381,8 +384,9 @@ export const CommentItem = ({
         }
 
         .prose pre code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-            'Courier New', monospace;
+          font-family:
+            ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+            monospace;
           font-size: 0.875rem;
           line-height: 1.5;
           background: none;

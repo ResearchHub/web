@@ -81,8 +81,8 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${SITE_URL}/leaderboard/funders`, changeFrequency: 'daily', priority: 0.5 },
   { url: `${SITE_URL}/about`, changeFrequency: 'monthly', priority: 0.5 },
   { url: `${SITE_URL}/researchcoin`, changeFrequency: 'monthly', priority: 0.5 },
-  { url: `${SITE_URL}/about/tos`, changeFrequency: 'yearly', priority: 0.3 },
-  { url: `${SITE_URL}/about/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/tos`, changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${SITE_URL}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
 ];
 
 export async function generateSitemaps() {

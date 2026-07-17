@@ -27,8 +27,6 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 
-// Import inline deposit views
-import { DepositRSCView } from './DepositRSCView';
 import AuthContent from '@/components/Auth/AuthContent';
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
@@ -41,7 +39,7 @@ interface ContributeToFundraiseModalProps {
   work?: Work;
 }
 
-type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
+type ModalView = 'funding' | 'auth' | 'payment';
 
 /**
  * Outer wrapper that lazily provides StripeProvider context.
@@ -158,11 +156,6 @@ function ContributeToFundraiseModalInner({
       maximumFractionDigits: 2,
     });
   };
-
-  const handleDepositSuccess = useCallback(() => {
-    refreshUser?.();
-    setCurrentView('payment');
-  }, [refreshUser]);
 
   // Track when modal/drawer opens
   useEffect(() => {
@@ -335,10 +328,6 @@ function ContributeToFundraiseModalInner({
     }
   };
 
-  const handleOpenDeposit = useCallback(() => {
-    setCurrentView('deposit-rsc');
-  }, []);
-
   // Handle quick amount selection
   const handleQuickAmountSelect = useCallback((amount: number) => {
     setSelectedQuickAmount(amount);
@@ -353,9 +342,7 @@ function ContributeToFundraiseModalInner({
   const remainingGoalUsd = Math.max(0, goalAmountUsd - currentAmountUsd);
 
   const handleBack = useCallback(() => {
-    if (currentView === 'deposit-rsc') {
-      setCurrentView('payment');
-    } else if (currentView === 'payment' || currentView === 'auth') {
+    if (currentView === 'payment' || currentView === 'auth') {
       setCurrentView('funding');
     }
   }, [currentView]);
@@ -442,8 +429,6 @@ function ContributeToFundraiseModalInner({
         return 'Sign in to continue';
       case 'payment':
         return 'Select Payment Method';
-      case 'deposit-rsc':
-        return 'Deposit RSC';
       default:
         return 'Fund Proposal';
     }
@@ -465,9 +450,6 @@ function ContributeToFundraiseModalInner({
   // Render content based on current view
   const renderContent = () => {
     switch (currentView) {
-      case 'deposit-rsc':
-        return <DepositRSCView currentBalance={rscBalance} onSuccess={handleDepositSuccess} />;
-
       case 'payment':
         return (
           <PaymentStep
@@ -484,7 +466,6 @@ function ContributeToFundraiseModalInner({
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
-            onDepositRsc={handleOpenDeposit}
             onStripeReady={handleStripeReady}
           />
         );

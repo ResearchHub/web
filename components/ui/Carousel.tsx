@@ -8,9 +8,20 @@ interface CarouselProps {
   children: ReactNode;
   className?: string;
   onReachEnd?: () => void;
+  arrowOffset?: 'inset' | 'outset';
 }
 
-export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd }) => {
+const ARROW_POSITION = {
+  inset: { left: '-left-4', right: '-right-7' },
+  outset: { left: '-left-8', right: '-right-11' },
+} as const;
+
+export const Carousel: FC<CarouselProps> = ({
+  children,
+  className,
+  onReachEnd,
+  arrowOffset = 'inset',
+}) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -22,11 +33,14 @@ export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd })
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 1);
+    // `px-3 -mx-3` on the scroller means scrollLeft at rest equals paddingLeft, not 0.
+    const paddingLeft = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+    const atStart = el.scrollLeft <= paddingLeft + 1;
+    setCanScrollLeft(!atStart);
     const isScrollable = el.scrollWidth > el.clientWidth + 1;
     const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 100;
     setCanScrollRight(!nearEnd && isScrollable);
-    if (el.scrollLeft > 0) hasScrolledRef.current = true;
+    if (!atStart) hasScrolledRef.current = true;
     if (nearEnd && hasScrolledRef.current && onReachEndRef.current) {
       onReachEndRef.current();
     }
@@ -57,12 +71,17 @@ export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd })
     });
   };
 
+  const arrowPosition = ARROW_POSITION[arrowOffset];
+
   return (
     <div className={cn('group/carousel relative', className)}>
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-800 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer"
+          className={cn(
+            'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-800 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer',
+            arrowPosition.left
+          )}
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -80,7 +99,8 @@ export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd })
         onClick={() => scroll('right')}
         disabled={!canScrollRight}
         className={cn(
-          'absolute -right-7 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
+          'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
+          arrowPosition.right,
           canScrollRight
             ? 'text-gray-900 hover:bg-gray-200 active:scale-95 cursor-pointer'
             : 'text-gray-300 opacity-50 cursor-default'

@@ -7,18 +7,24 @@ import { Button } from '@/components/ui/Button';
 import { CheckCircle, Eye, Share2, MessageCircle, Award, Link, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useUser } from '@/contexts/UserContext';
+import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 
 export default function SubmissionSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useUser();
+  const canCreateBounty = canManageBounties(user);
   const [paperTitle, setPaperTitle] = useState<string>('');
   const [paperId, setPaperId] = useState<string | null>(null);
   const [isJournal, setIsJournal] = useState<boolean>(false);
+  const [isPending, setIsPending] = useState<boolean>(false);
 
   useEffect(() => {
     const title = searchParams.get('paperTitle');
     const id = searchParams.get('paperId');
     const journalSubmission = searchParams.get('isJournal') === 'true';
+    setIsPending(searchParams.get('status') === 'PENDING');
     // Parameter to manually override which view to show
     const forceView = searchParams.get('forceView');
 
@@ -54,6 +60,18 @@ export default function SubmissionSuccessPage() {
     }
   };
 
+  let submissionMessage: string;
+  if (isPending) {
+    submissionMessage =
+      "Your research paper has been submitted and is pending moderator review. You'll be notified once it's approved and visible on the platform.";
+  } else if (isJournal) {
+    submissionMessage =
+      'Your research paper has been submitted to the ResearchHub Journal. It will go through peer review before publication.';
+  } else {
+    submissionMessage =
+      'Your research paper has been successfully submitted to ResearchHub as a preprint and is now available on the platform.';
+  }
+
   return (
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -66,11 +84,7 @@ export default function SubmissionSuccessPage() {
 
           {paperTitle && <h2 className="text-lg font-medium text-gray-800 mb-4">"{paperTitle}"</h2>}
 
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-            {isJournal
-              ? 'Your research paper has been submitted to the ResearchHub Journal. It will go through peer review before publication.'
-              : 'Your research paper has been successfully submitted to ResearchHub as a preprint and is now available on the platform.'}
-          </p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">{submissionMessage}</p>
 
           <div className="flex items-center justify-center mt-8 mb-8">
             {paperId && (
@@ -179,7 +193,9 @@ export default function SubmissionSuccessPage() {
             <div className="mt-12 pt-8 border-t border-gray-200">
               <h3 className="text-center text-xl font-medium text-gray-900 mb-6">What's Next?</h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div
+                className={`grid grid-cols-1 gap-6 ${canCreateBounty ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+              >
                 <div className="bg-gray-50 p-6 rounded-lg flex flex-col h-full">
                   <div className="flex-grow">
                     <div className="flex justify-center mb-4">
@@ -206,33 +222,35 @@ export default function SubmissionSuccessPage() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-lg flex flex-col h-full">
-                  <div className="flex-grow">
-                    <div className="flex justify-center mb-4">
-                      <div className="bg-purple-100 p-3 rounded-full">
-                        <Award className="h-6 w-6 text-purple-600" />
+                {canCreateBounty && (
+                  <div className="bg-gray-50 p-6 rounded-lg flex flex-col h-full">
+                    <div className="flex-grow">
+                      <div className="flex justify-center mb-4">
+                        <div className="bg-purple-100 p-3 rounded-full">
+                          <Award className="h-6 w-6 text-purple-600" />
+                        </div>
                       </div>
+                      <h4 className="font-medium text-gray-900 mb-2 text-center">
+                        Open a Peer Review Bounty
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-6 text-center">
+                        Create a ResearchCoin bounty to entice users to review your paper.
+                      </p>
                     </div>
-                    <h4 className="font-medium text-gray-900 mb-2 text-center">
-                      Open a Peer Review Bounty
-                    </h4>
-                    <p className="text-sm text-gray-600 mb-6 text-center">
-                      Create a ResearchCoin bounty to entice users to review your paper.
-                    </p>
+                    <div className="mt-auto">
+                      {paperId && (
+                        <Button
+                          onClick={() => router.push(`/paper/${paperId}/bounties`)}
+                          variant="outlined"
+                          className="w-full"
+                          size="sm"
+                        >
+                          Create bounty
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-auto">
-                    {paperId && (
-                      <Button
-                        onClick={() => router.push(`/paper/${paperId}/bounties`)}
-                        variant="outlined"
-                        className="w-full"
-                        size="sm"
-                      >
-                        Create bounty
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                )}
 
                 <div className="bg-gray-50 p-6 rounded-lg flex flex-col h-full">
                   <div className="flex-grow">

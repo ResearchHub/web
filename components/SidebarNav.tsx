@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { formatBadgeCount } from '@/utils/number';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 
@@ -13,12 +14,23 @@ export interface SidebarNavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
+  badgeCount?: number;
   disabled?: boolean;
 }
 
 interface SidebarNavProps {
   items: SidebarNavItem[];
 }
+
+const NavBadgeCount: FC<{ badgeCount?: number }> = ({ badgeCount }) => {
+  if (!badgeCount || badgeCount <= 0) return null;
+
+  return (
+    <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-600 px-1 text-[9px] font-medium leading-none text-white">
+      {formatBadgeCount(badgeCount)}
+    </span>
+  );
+};
 
 /** Desktop sidebar: vertical list of links. */
 export const SidebarNav: FC<SidebarNavProps> = ({ items }) => {
@@ -40,8 +52,11 @@ export const SidebarNav: FC<SidebarNavProps> = ({ items }) => {
                 >
                   <div className="flex items-center space-x-3">
                     <Icon className="h-5 w-5 flex-shrink-0 text-gray-400" />
-                    <div>
-                      <div className="font-medium text-gray-500">{item.name}</div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-gray-500 truncate">{item.name}</div>
+                        <NavBadgeCount badgeCount={item.badgeCount} />
+                      </div>
                       <div className="text-xs text-gray-400">{item.description}</div>
                     </div>
                   </div>
@@ -67,8 +82,11 @@ export const SidebarNav: FC<SidebarNavProps> = ({ items }) => {
                       isActive ? 'text-primary-600' : 'text-gray-500 group-hover:text-gray-700'
                     )}
                   />
-                  <div>
-                    <div className="font-medium">{item.name}</div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium truncate">{item.name}</div>
+                      <NavBadgeCount badgeCount={item.badgeCount} />
+                    </div>
                     <div className="text-xs text-gray-500 group-hover:text-gray-600">
                       {item.description}
                     </div>
@@ -118,6 +136,7 @@ export const SidebarNavMenu: FC<SidebarNavMenuProps> = ({
                 <>
                   <activeItem.icon className="h-4 w-4" />
                   <span className="font-medium">{activeItem.name}</span>
+                  <NavBadgeCount badgeCount={activeItem.badgeCount} />
                 </>
               ) : (
                 <span className="font-medium text-gray-500">{triggerFallbackLabel}</span>
@@ -144,7 +163,10 @@ export const SidebarNavMenu: FC<SidebarNavMenuProps> = ({
               >
                 <Icon className="h-4 w-4 text-gray-400" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-500">{item.name}</span>
+                  <span className="flex items-center gap-2 text-sm font-medium text-gray-500">
+                    {item.name}
+                    <NavBadgeCount badgeCount={item.badgeCount} />
+                  </span>
                   <span className="text-xs text-gray-400">{item.description}</span>
                 </div>
               </BaseMenuItem>
@@ -162,7 +184,10 @@ export const SidebarNavMenu: FC<SidebarNavMenuProps> = ({
             >
               <Icon className={cn('h-4 w-4', isActive ? 'text-primary-600' : 'text-gray-500')} />
               <div className="flex flex-col">
-                <span className="text-sm font-medium">{item.name}</span>
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  {item.name}
+                  <NavBadgeCount badgeCount={item.badgeCount} />
+                </span>
                 <span className="text-xs text-gray-500">{item.description}</span>
               </div>
             </BaseMenuItem>

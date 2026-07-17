@@ -19,15 +19,18 @@ import {
   findLatestFoundationBounty,
   getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
-import { BaseMenu } from '@/components/ui/form/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
+
+import type { GrantApplicationVisibility } from '@/types/grant';
 
 import { useWorkVote, useWorkPermissions } from './WorkHeaderHooks';
 import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
 import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
 import { WorkHeaderSubtitle } from './WorkHeaderSubtitle';
 import { WorkHeaderBountyEyebrow } from './WorkHeaderBountyEyebrow';
+import { PendingReviewBadge } from './PendingReviewBadge';
 import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
@@ -49,6 +52,7 @@ interface WorkHeaderProps {
     grantId: string;
     grantAmountUsd?: number;
     grantOrganization?: string;
+    grantApplicationVisibility?: GrantApplicationVisibility;
   };
 }
 
@@ -94,6 +98,13 @@ export function WorkHeader({
     closeReopenModal,
     confirmReopenFundraise,
     isReopeningFundraise,
+    showCloseGrantModal,
+    closeCloseGrantModal,
+    confirmCloseGrant,
+    isClosingGrant,
+    showInviteExpertsModal,
+    closeInviteExpertsModal,
+    inviteExpertsGrantId,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -138,7 +149,21 @@ export function WorkHeader({
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
   ) : undefined;
 
-  const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
+  const baseEyebrow = eyebrowOverride === undefined ? defaultEyebrow : eyebrowOverride;
+
+  // Papers, posts, and proposals carry their moderation state at the top level.
+  // Grants are exempt (their post stays APPROVED; grant.status drives their own
+  // eyebrow), so this badge never double-renders for them.
+  let resolvedEyebrow = baseEyebrow;
+  if (work.moderationStatus === 'PENDING') {
+    resolvedEyebrow = (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <PendingReviewBadge />
+        {baseEyebrow}
+      </div>
+    );
+  }
+
   const resolvedSubtitle =
     subtitleOverride !== undefined ? (
       subtitleOverride
@@ -168,15 +193,15 @@ export function WorkHeader({
       >
         <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
       </button>
-      <button onClick={shareAction} className={btnClass} aria-label="Share">
-        <Share className="h-5 w-5" />
-      </button>
       <button
         onClick={() => setMobileSidebarOpen(true)}
         className={cn(btnClass, 'lg:hidden')}
         aria-label="Show insights"
       >
         <Lightbulb className="h-5 w-5" />
+      </button>
+      <button onClick={shareAction} className={cn(btnClass, '!hidden lg:!flex')} aria-label="Share">
+        <Share className="h-5 w-5" />
       </button>
       <BaseMenu
         align="start"
@@ -186,6 +211,12 @@ export function WorkHeader({
           </button>
         }
       >
+        <div className="lg:hidden">
+          <BaseMenuItem onSelect={shareAction}>
+            <Share className="h-4 w-4 mr-2" />
+            Share
+          </BaseMenuItem>
+        </div>
         {menuItems}
       </BaseMenu>
     </div>
@@ -242,10 +273,18 @@ export function WorkHeader({
         grantId={grantModalProps?.grantId}
         grantAmountUsd={grantModalProps?.grantAmountUsd}
         grantOrganization={grantModalProps?.grantOrganization}
+        grantApplicationVisibility={grantModalProps?.grantApplicationVisibility}
         showReopenModal={showReopenModal}
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}
         isReopeningFundraise={isReopeningFundraise}
+        showCloseGrantModal={showCloseGrantModal}
+        onCloseCloseGrantModal={closeCloseGrantModal}
+        onConfirmCloseGrant={confirmCloseGrant}
+        isClosingGrant={isClosingGrant}
+        showInviteExpertsModal={showInviteExpertsModal}
+        onCloseInviteExpertsModal={closeInviteExpertsModal}
+        inviteExpertsGrantId={inviteExpertsGrantId}
       />
     </>
   );

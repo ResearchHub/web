@@ -1,4 +1,5 @@
 import { Bounty } from '@/types/bounty';
+import type { User } from '@/types/user';
 import { FOUNDATION_USER_ID, FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
 
 /**
@@ -506,6 +507,28 @@ export const isFoundationBounty = (bounty: Bounty): boolean => {
   const creatorUserId = getCreatorUserId(bounty);
   return creatorUserId === FOUNDATION_USER_ID;
 };
+
+/**
+ * True when the given user ID is the ResearchHub Foundation account.
+ * Use with the logged-in user's `user.id` to gate create/award UI.
+ */
+export const isFoundationUser = (userId?: number | null): boolean =>
+  FOUNDATION_USER_ID != null && userId === FOUNDATION_USER_ID;
+
+/**
+ * True when the user is a platform moderator.
+ */
+export const isModeratorUser = (user?: User | null): boolean =>
+  !!user?.isModerator || !!user?.moderator;
+
+/**
+ * True when the user can create or award bounties (Foundation account or moderator).
+ */
+export const canManageBounties = (user?: User | null): boolean =>
+  isFoundationUser(user?.id) || isModeratorUser(user);
+
+/** Set to true to re-enable bounty backing (Support button, Backers list). */
+export const ENABLE_BOUNTY_BACKING = false;
 
 /**
  * Calculates the display amount for a bounty in USD.

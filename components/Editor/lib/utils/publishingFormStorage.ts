@@ -1,4 +1,5 @@
 import { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
+import type { GrantApplicationVisibility } from '@/types/grant';
 
 const STORAGE_KEY = 'publishing_forms';
 const MAX_STORED_NOTES = 20;
@@ -94,6 +95,7 @@ export interface SelectedGrantData {
   imageUrl: string;
   fundingAmount: number;
   organization: string;
+  applicationVisibility?: GrantApplicationVisibility;
 }
 
 export const setPendingGrant = (grant: SelectedGrantData) => {

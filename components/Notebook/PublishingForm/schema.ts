@@ -65,6 +65,9 @@ export const publishingFormSchema = z
     shortDescription: z.string().optional(),
     organization: z.string().optional(),
     applicationDeadline: z.date().nullable().optional(),
+    fundraiseEndDays: z.enum(['30', '60', '90']).optional(),
+    applicationVisibility: z.enum(['OPTIONAL', 'PRIVATE', 'PUBLIC'] as const).optional(),
+    isPublic: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.topics.length === 0) {

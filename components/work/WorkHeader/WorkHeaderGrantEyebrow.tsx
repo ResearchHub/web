@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/utils/styles';
+import { PendingReviewBadge } from './PendingReviewBadge';
 
 function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -31,11 +32,7 @@ export function WorkHeaderGrantEyebrow({
           {formatCompactAmount(amountUsd)} available
         </span>
       )}
-      {isPending && (
-        <span className="inline-flex items-center font-medium text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-yellow-700 bg-yellow-100">
-          Pending Review
-        </span>
-      )}
+      {isPending && <PendingReviewBadge />}
     </div>
   );
 }

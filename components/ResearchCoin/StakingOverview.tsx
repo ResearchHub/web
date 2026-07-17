@@ -1,0 +1,307 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { Sprout } from 'lucide-react';
+import { ConfirmModal } from '../modals/ConfirmModal';
+import { cn } from '@/utils/styles';
+import { useUser } from '@/contexts/UserContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { UserService, type StakingYieldDetails } from '@/services/user.service';
+import { StakingMultiplierTooltip } from '@/components/tooltips/StakingMultiplierTooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Switch } from '@/components/ui/Switch';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
+import { stripUsdSuffix } from './lib/display';
+
+const EMPTY = '—';
+
+export function StakingOverview() {
+  const { user, isLoading: isUserLoading, refreshUser } = useUser();
+  const { exchangeRate } = useExchangeRate();
+  const { showUSD } = useCurrencyPreference();
+  const [details, setDetails] = useState<StakingYieldDetails | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+  const [isUpdatingStaking, setIsUpdatingStaking] = useState(false);
+  const [isOptOutConfirmOpen, setIsOptOutConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    UserService.getStakingYieldDetails()
+      .then(setDetails)
+      .catch(() => setDetails(null))
+      .finally(() => setIsLoadingDetails(false));
+  }, []);
+
+  const isOptedIn = user?.isStakingOptedIn ?? false;
+  // The endowment yields on the user's available RSC balance. If they hold
+  // none, the endowment effectively cannot earn, so we surface a dedicated
+  // empty state instead of a row of dashes.
+  const hasNoRsc = !!user && (user.balance ?? 0) <= 0;
+
+  const handleStakingToggle = async (checked: boolean) => {
+    if (!user || isUpdatingStaking) return;
+    if (!checked) {
+      setIsOptOutConfirmOpen(true);
+      return;
+    }
+    await performStakingUpdate(true);
+  };
+
+  const performStakingUpdate = async (checked: boolean) => {
+    setIsUpdatingStaking(true);
+    try {
+      await UserService.updateStakingOptIn(checked);
+      await refreshUser({ silent: true });
+    } catch (error) {
+      console.error('Failed to update staking preference:', error);
+    } finally {
+      setIsUpdatingStaking(false);
+    }
+  };
+
+  const annualizedYield = details?.apy ?? null;
+  const totalYieldEarned = details?.totalYieldEarned ?? null;
+  const currentMultiplier = details?.currentMultiplier ?? null;
+
+  const fundingCreditsEarned = useMemo(
+    () => formatFundingCreditsAmount(totalYieldEarned, exchangeRate),
+    [totalYieldEarned, exchangeRate]
+  );
+  const fundingCreditsTop = showUSD ? fundingCreditsEarned.usd : fundingCreditsEarned.rsc;
+  const fundingCreditsBottom = showUSD
+    ? fundingCreditsEarned.rsc
+    : fundingCreditsEarned.usd
+      ? `${fundingCreditsEarned.usd}`
+      : null;
+
+  const nextTier = useMemo(() => getNextTierDetails(details?.balanceLots), [details]);
+
+  return (
+    <>
+      <div className="mb-4 mx-auto w-full">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {/* Header */}
+          <div className="px-4 sm:px-6 py-4 flex items-start justify-between gap-3 border-b border-gray-100">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <Sprout className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-bold text-gray-900">
+                  <span className="sm:hidden">Endowment</span>
+                  <span className="hidden sm:inline">ResearchHub Endowment</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="sm:hidden">Earn credits by holding RSC</span>
+                  <span className="hidden sm:inline">
+                    Earn funding credits by holding ResearchCoin
+                  </span>
+                </div>
+              </div>
+            </div>
+            {isUserLoading || !user ? (
+              <div
+                className="flex items-center gap-2 shrink-0 self-start sm:self-auto"
+                aria-label="Loading earning status"
+              >
+                <span className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                <span className="h-6 w-11 bg-gray-200 rounded-full animate-pulse" />
+              </div>
+            ) : (
+              (() => {
+                const switchChecked = !hasNoRsc && isOptedIn;
+                const tooltipContent = hasNoRsc ? (
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white mb-1">Endowment off</div>
+                    <p className="text-xs text-gray-300 leading-snug">
+                      Deposit ResearchCoin to start earning funding credits.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white mb-1">Earn ResearchCoin</div>
+                    <p className="text-xs text-gray-300 leading-snug">
+                      Toggle earning of funding credits
+                    </p>
+                  </div>
+                );
+                const label = switchChecked ? 'Earning' : 'Not earning';
+                return (
+                  <Tooltip
+                    content={tooltipContent}
+                    position="top"
+                    width={hasNoRsc ? 'w-60' : 'w-56'}
+                    className="bg-gray-900 text-white border-gray-900 text-left"
+                    disableTouchClick
+                  >
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                      <span
+                        className={cn(
+                          'hidden sm:inline text-xs font-semibold',
+                          switchChecked ? 'text-emerald-700' : 'text-gray-500'
+                        )}
+                      >
+                        {label}
+                      </span>
+                      <Switch
+                        checked={switchChecked}
+                        onCheckedChange={(next) => handleStakingToggle(next)}
+                        disabled={hasNoRsc || isUpdatingStaking}
+                        className={cn(switchChecked && 'bg-emerald-600')}
+                      />
+                    </div>
+                  </Tooltip>
+                );
+              })()
+            )}
+          </div>
+
+          {hasNoRsc ? (
+            <EndowmentEmptyState annualizedYield={annualizedYield} />
+          ) : (
+            <ul>
+              <StatRow
+                label="Annualized Yield"
+                value={
+                  annualizedYield != null ? (
+                    <span className="text-sm font-bold text-gray-900">
+                      {annualizedYield.toFixed(1)}%
+                    </span>
+                  ) : isLoadingDetails ? (
+                    <ValueSkeleton />
+                  ) : (
+                    <EmptyValue />
+                  )
+                }
+              />
+              <StatRow
+                label="Funding credits earned"
+                value={
+                  fundingCreditsTop ? (
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900">
+                        {stripUsdSuffix(fundingCreditsTop)}
+                      </div>
+                      {fundingCreditsBottom && (
+                        <div className="text-[11px] text-gray-500 mt-0.5">
+                          {stripUsdSuffix(fundingCreditsBottom)}
+                        </div>
+                      )}
+                    </div>
+                  ) : isLoadingDetails ? (
+                    <ValueSkeleton />
+                  ) : (
+                    <EmptyValue />
+                  )
+                }
+              />
+              <StatRow
+                label={
+                  <span className="inline-flex items-center gap-1.5">
+                    Current multiplier
+                    <StakingMultiplierTooltip
+                      currentMultiplier={currentMultiplier ?? 1}
+                      nextMultiplier={nextTier?.projectedMultiplier ?? null}
+                      daysUntilNext={nextTier?.daysUntilNext ?? null}
+                      progress={nextTier?.progress ?? null}
+                    />
+                  </span>
+                }
+                value={
+                  currentMultiplier != null ? (
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-amber-600">
+                        {currentMultiplier.toFixed(2)}×
+                      </div>
+                      {nextTier && (
+                        <div className="text-[11px] text-gray-500 mt-0.5">
+                          {nextTier.projectedMultiplier.toFixed(2)}× in {nextTier.daysUntilNext}{' '}
+                          {nextTier.daysUntilNext === 1 ? 'day' : 'days'}
+                        </div>
+                      )}
+                    </div>
+                  ) : isLoadingDetails ? (
+                    <ValueSkeleton />
+                  ) : (
+                    <EmptyValue />
+                  )
+                }
+                isLast
+              />
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <ConfirmModal
+        isOpen={isOptOutConfirmOpen}
+        onClose={() => setIsOptOutConfirmOpen(false)}
+        onConfirm={() => performStakingUpdate(false)}
+        title="Turn off earnings?"
+        message="You will no longer earn funding credits on your ResearchCoin balance."
+        confirmText="Turn off"
+        cancelText="Cancel"
+      />
+    </>
+  );
+}
+
+function StatRow({
+  label,
+  value,
+  isLast,
+}: {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  isLast?: boolean;
+}) {
+  const borderClass = isLast ? '' : 'border-b border-gray-100';
+  return (
+    <li className={`px-4 sm:px-6 py-3 flex items-start justify-between gap-3 ${borderClass}`}>
+      <div className="text-xs sm:text-sm text-gray-700 min-w-0 flex-1">{label}</div>
+      <div className="shrink-0 min-w-0 max-w-[52%] overflow-hidden text-right">{value}</div>
+    </li>
+  );
+}
+
+function ValueSkeleton() {
+  return <div className="h-4 w-16 bg-gray-100 animate-pulse rounded" />;
+}
+
+function EmptyValue() {
+  return <span className="text-sm text-gray-400">{EMPTY}</span>;
+}
+
+interface EndowmentEmptyStateProps {
+  annualizedYield: number | null;
+}
+
+function EndowmentEmptyState({ annualizedYield }: EndowmentEmptyStateProps) {
+  return (
+    <div className="px-5 sm:px-8 py-6 sm:py-8 flex flex-col items-center text-center">
+      {/* Layered icon — sprout sitting in front of a funding-credits coin badge */}
+      <div className="relative mb-4">
+        <div className="relative flex items-center justify-center h-16 w-16 rounded-full bg-white ring-1 ring-gray-200 shadow-sm">
+          <Sprout className="h-8 w-8 text-emerald-600" />
+          <span className="absolute -bottom-1 -right-1 inline-flex items-center justify-center h-7 w-7 rounded-full bg-white ring-1 ring-gray-200 shadow-sm">
+            <ResearchCoinIcon size={18} color="#6366f1" outlined />
+          </span>
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-bold text-gray-900">Your endowment is off</h3>
+      <p className="mt-1.5 max-w-sm text-sm text-gray-600">
+        Deposit ResearchCoin to activate the endowment and start earning funding credits
+        {annualizedYield != null ? (
+          <>
+            {' '}
+            at{' '}
+            <span className="font-semibold text-emerald-700">
+              {annualizedYield.toFixed(1)}% APY
+            </span>
+          </>
+        ) : null}
+        .
+      </p>
+    </div>
+  );
+}

@@ -5,7 +5,8 @@ import { Progress } from '@/components/ui/Progress';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
-import { formatDeadline, formatExactTime, isDeadlineInFuture, formatDate } from '@/utils/date';
+import { formatDeadline, formatExactTime, formatDate } from '@/utils/date';
+import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import type { Fundraise } from '@/types/funding';
 import type { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
@@ -51,9 +52,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 
   const deadlineText = fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined;
   const isEnded = deadlineText?.includes('Ended');
-  const isActive =
-    fundraise.status === 'OPEN' &&
-    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const isActive = isFundraiseActive(fundraise);
 
   // Calculate progress percentage with a minimum of 5% for visibility
   const progressPercentage =

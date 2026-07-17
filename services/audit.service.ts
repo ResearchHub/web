@@ -44,7 +44,7 @@ interface FlaggedContentApiResponse {
     id: ID;
     name: string;
   };
-  item: any;
+  item: any | null;
   created_date: string;
   hubs: any[];
 }
@@ -81,7 +81,7 @@ export interface FlaggedContent {
     id: ID;
     name: string;
   };
-  item: any;
+  item: any | null;
   createdDate: string;
   hubs: any[];
 }
@@ -127,10 +127,10 @@ const transformFlaggedContent = (apiItem: FlaggedContentApiResponse): FlaggedCon
   flaggedBy: {
     id: apiItem.flagged_by.id,
     authorProfile: {
-      id: apiItem.flagged_by.author_profile.id,
+      id: apiItem.flagged_by.author_profile?.id,
       firstName: apiItem.flagged_by.first_name,
       lastName: apiItem.flagged_by.last_name,
-      profileImage: apiItem.flagged_by.author_profile.profile_image,
+      profileImage: apiItem.flagged_by.author_profile?.profile_image,
     },
   },
   verdict: apiItem.verdict
@@ -138,10 +138,10 @@ const transformFlaggedContent = (apiItem: FlaggedContentApiResponse): FlaggedCon
         createdBy: {
           id: apiItem.verdict.created_by.id,
           authorProfile: {
-            id: apiItem.verdict.created_by.author_profile.id,
+            id: apiItem.verdict.created_by.author_profile?.id,
             firstName: apiItem.verdict.created_by.first_name,
             lastName: apiItem.verdict.created_by.last_name,
-            profileImage: apiItem.verdict.created_by.author_profile.profile_image,
+            profileImage: apiItem.verdict.created_by.author_profile?.profile_image,
           },
         },
         createdDate: apiItem.verdict.created_date,

@@ -33,7 +33,12 @@ export function WorkAbstractEditor({
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkMenuPosition, setLinkMenuPosition] = useState<{ x: number; y: number } | null>(null);
-  const [selectedLink, setSelectedLink] = useState<{ url: string; text: string } | null>(null);
+  const [selectedLink, setSelectedLink] = useState<{
+    url: string;
+    text: string;
+    kind: 'link' | 'richLink';
+    pos?: number;
+  } | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -81,7 +86,7 @@ export function WorkAbstractEditor({
           event.preventDefault();
           const rect = link.getBoundingClientRect();
           setLinkMenuPosition({ x: rect.left, y: rect.bottom + window.scrollY });
-          setSelectedLink({ url: link.href, text: link.textContent || '' });
+          setSelectedLink({ url: link.href, text: link.textContent || '', kind: 'link' });
           return true;
         } else {
           setLinkMenuPosition(null);

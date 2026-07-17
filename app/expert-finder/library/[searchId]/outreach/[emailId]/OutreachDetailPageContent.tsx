@@ -29,11 +29,13 @@ import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfir
 import { Textarea } from '@/components/ui/form/Textarea';
 import {
   getGeneratedEmailStatusPresentation,
+  isGeneratedEmailBounced,
   isGeneratedEmailClosed,
   isGeneratedEmailDraftLike,
   isGeneratedEmailFailed,
   isGeneratedEmailPipelineBusy,
 } from '@/app/expert-finder/lib/generatedEmailStatus';
+import { formatExactTime } from '@/utils/date';
 import { cn } from '@/utils/styles';
 import {
   useGeneratedEmailDetail,
@@ -44,9 +46,10 @@ import {
 } from '@/hooks/useExpertFinder';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
-import { isValidEmail } from '@/utils/validation';
+import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
+import { OutreachDetailSkeleton } from '@/components/ExpertFinder/OutreachDetailSkeleton';
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
@@ -180,16 +183,16 @@ export function OutreachDetailPageContent({
 
   const handleSendPreview = async () => {
     if (!emailId || !email) return;
-    const trimmedReplyTo = (replyTo ?? '').trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      setActionError('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
       return;
     }
     setActionError(null);
     try {
       await previewEmails({
         generated_email_ids: [Number(emailId)],
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowPreviewConfirm(false);
       toast.success('Preview email sent to your email address.');
@@ -200,16 +203,16 @@ export function OutreachDetailPageContent({
 
   const handleSendToExpert = async () => {
     if (!emailId || !email) return;
-    const trimmedReplyTo = (replyTo ?? '').trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      setActionError('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
       return;
     }
     setActionError(null);
     try {
       await sendEmails({
         generated_email_ids: [Number(emailId)],
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowSendToExpertConfirm(false);
       refetch();
@@ -238,14 +241,7 @@ export function OutreachDetailPageContent({
   };
 
   if (isLoading && !email) {
-    return (
-      <div className="w-full max-w-4xl mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3" />
-          <div className="h-32 bg-gray-200 rounded" />
-        </div>
-      </div>
-    );
+    return <OutreachDetailSkeleton />;
   }
 
   if (error && !email) {
@@ -266,7 +262,7 @@ export function OutreachDetailPageContent({
 
   const isClosed = isGeneratedEmailClosed(email.status);
   const isSent = email.status === 'sent';
-  const statusPresentation = getGeneratedEmailStatusPresentation(email.status);
+  const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
   /** No overflow actions once the message is sent or retired (draft / failed / in-flight still get Preview, etc.). */
   const showOutreachMoreMenu = !isClosed && !isSent;
@@ -370,6 +366,18 @@ export function OutreachDetailPageContent({
           <div className="hidden sm:!block">{neighborNavBar}</div>
           <div className="flex flex-wrap items-center gap-2 justify-start md:!justify-end">
             <Badge variant={statusPresentation.variant}>{statusPresentation.label}</Badge>
+            {isGeneratedEmailBounced(email.status) && email.bouncedAt && (
+              <span className="text-xs text-gray-500">
+                Bounced on {formatExactTime(email.bouncedAt)}
+              </span>
+            )}
+            {!isGeneratedEmailBounced(email.status) && email.openCount > 0 && email.openedAt && (
+              <span className="text-xs text-gray-500">
+                {email.openCount === 1
+                  ? `Opened on ${formatExactTime(email.openedAt)}`
+                  : `Opened ${email.openCount} times, first on ${formatExactTime(email.openedAt)}`}
+              </span>
+            )}
             {isDraftLike && (
               <Button
                 variant="default"

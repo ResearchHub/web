@@ -1,35 +1,41 @@
-'use client';
+import { SubtabsNav, type SubtabsSection } from './components/SubtabsNav';
+import { Hero } from './components/Hero';
+import { FundedAt } from './components/FundedAt';
+import { Problem } from './components/Problem';
+import { Solution } from './components/Solution';
+import { FundingMarketplace } from './components/FundingMarketplace';
+import { ResearchCoin } from './components/ResearchCoin';
+import { PartnershipSection } from './components/PartnershipSection';
+import { TeamSection } from './components/TeamSection';
+import { CTASection } from './components/CTASection';
+import { LandingPageFooter } from '@/components/landing/LandingPageFooter';
 
-import { AboutValues } from './components/AboutValues';
-import { AboutMission } from './components/AboutMission';
-import { AboutContact } from './components/AboutContact';
-import { AboutFAQ } from './components/AboutFAQ';
-import { AboutResearchCoin } from './components/AboutResearchCoin';
-import { usePathname } from 'next/navigation';
-import { PageBanner } from './components/PageBanner';
-import { AboutTabs } from './components/AboutTabs';
+const sections: ReadonlyArray<SubtabsSection> = [
+  { id: 'about', label: 'About' },
+  { id: 'team', label: 'Team' },
+];
 
-const AboutPage = () => {
-  const pathname = usePathname();
+const AboutPage = () => (
+  <>
+    <SubtabsNav sections={sections} />
 
-  return (
-    <div>
-      <PageBanner
-        title="About ResearchHub"
-        subtitle="Our Mission is to Accelerate the Pace of Scientific Research."
-      />
+    <section id="about">
+      <Hero />
+      <Problem />
+      <Solution />
+      <FundingMarketplace />
+      <FundedAt />
+      <ResearchCoin />
+      <PartnershipSection />
+    </section>
 
-      <AboutTabs activeTab={pathname} />
+    <section id="team">
+      <TeamSection />
+    </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AboutValues />
-        <AboutMission />
-        <AboutResearchCoin />
-        <AboutFAQ />
-        <AboutContact />
-      </div>
-    </div>
-  );
-};
+    <CTASection />
+    <LandingPageFooter />
+  </>
+);
 
 export default AboutPage;

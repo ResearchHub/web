@@ -1,27 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { RadiatingDot } from '@/components/ui/RadiatingDot';
-
-const CHANGELOG_VERSION = 'v1.0.1';
-const CHANGELOG_STORAGE_KEY = `rh-changelog-seen-${CHANGELOG_VERSION}`;
 
 export const FooterLinks: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();
-  const [hasSeenChangelog, setHasSeenChangelog] = useState(true);
-
-  useEffect(() => {
-    const hasSeen = localStorage.getItem(CHANGELOG_STORAGE_KEY);
-    setHasSeenChangelog(!!hasSeen);
-  }, []);
-
-  const handleChangelogClick = () => {
-    localStorage.setItem(CHANGELOG_STORAGE_KEY, 'true');
-    setHasSeenChangelog(true);
-  };
 
   return (
     <div className="px-4 py-6 border-t text-sm">
@@ -77,18 +62,11 @@ export const FooterLinks: React.FC = () => {
         <a href="https://docs.researchhub.com/" className="hover:text-gray-700">
           Docs
         </a>
-        <a
-          href="/changelog"
-          className={`flex items-center gap-1 ${hasSeenChangelog ? 'hover:text-gray-700' : 'text-orange-500 hover:text-orange-600'}`}
-          onClick={handleChangelogClick}
-        >
-          {!hasSeenChangelog && <RadiatingDot color="bg-orange-500" size="sm" />}
-          Changelog
-        </a>
-        <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
+        <ChangelogLink />
+        <a href="https://www.researchhub.com/tos" className="hover:text-gray-700">
           Terms
         </a>
-        <a href="https://www.researchhub.com/about/privacy" className="hover:text-gray-700">
+        <a href="https://www.researchhub.com/privacy" className="hover:text-gray-700">
           Privacy
         </a>
         <a

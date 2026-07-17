@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationList } from '@/components/Notification/NotificationList';
-import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleton';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { Icon } from '@/components/ui/icons';
-import { Button } from '@/components/ui/Button';
+import { NotificationSkeletonList } from '@/components/skeletons/NotificationSkeleton';
 
 export default function NotificationsPage() {
   const {
@@ -25,57 +24,40 @@ export default function NotificationsPage() {
   }, [fetchNotifications]);
 
   useEffect(() => {
-    markAllAsRead();
-  }, []);
+    return () => {
+      markAllAsRead();
+    };
+  }, [markAllAsRead]);
 
-  const handleLoadMore = () => {
-    if (!isLoadingMore && notificationData.next) {
-      fetchNextPage();
-    }
-  };
+  const { ref: sentinelRef } = useInView({
+    threshold: 0,
+    rootMargin: '200px',
+    onChange: (inView) => {
+      if (inView && notificationData.next && !loading && !isLoadingMore) {
+        fetchNextPage();
+      }
+    },
+  });
 
   return (
-    <PageLayout>
-      <div className="w-full">
-        <div className="mb-4">
-          <MainPageHeader
-            icon={<Icon name="notification" size={24} className="text-gray-900" />}
-            title="Notifications"
-            subtitle="Stay updated with your latest activity"
-            showTitle={false}
-          />
-        </div>
+    <PageLayout
+      rightSidebar={false}
+      topBanner={
+        <HeroHeader title="Notifications" subtitle="Stay updated with your latest activity" />
+      }
+    >
+      <div className="max-w-3xl mx-auto">
+        <NotificationList
+          notifications={notificationData.results}
+          loading={loading}
+          error={error}
+        />
 
-        <div className="py-6">
-          <div className="bg-white">
-            <NotificationList
-              notifications={notificationData.results}
-              loading={loading}
-              error={error}
-            />
+        {isLoadingMore && <NotificationSkeletonList count={5} />}
 
-            {isLoadingMore && (
-              <div>
-                {[...Array(10)].map((_, index) => (
-                  <NotificationSkeleton key={`skeleton-${index}`} />
-                ))}
-              </div>
-            )}
-
-            {!loading && notificationData.next && (
-              <div className="mt-8 text-center">
-                <Button
-                  onClick={handleLoadMore}
-                  disabled={isLoadingMore}
-                  variant="link"
-                  className="text-indigo-600 hover:text-indigo-500"
-                >
-                  {isLoadingMore ? 'Loading...' : 'Load more'}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
+        {!loading && !isLoadingMore && notificationData.next && (
+          <div ref={sentinelRef} className="h-10" aria-hidden="true" />
+        )}
       </div>
     </PageLayout>
   );

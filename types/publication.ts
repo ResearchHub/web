@@ -151,52 +151,60 @@ export const transformPublicationToFeedEntry = (
 ): FeedEntry => {
   const { documents, hubs, created_date } = publication;
 
+  if (!documents) {
+    throw new Error('Publication documents field is missing');
+  }
+
+  const authors = documents.authors || [];
+  const firstAuthor = authors[0];
+
   return {
-    id: documents.id.toString(),
+    id: documents.id?.toString() || '',
     recommendationId: publication.recommendation_id,
     timestamp: documents.paper_publish_date || created_date,
     action: 'publish',
     contentType: 'PAPER',
     content: {
-      unifiedDocumentId: publication.id.toString(),
+      unifiedDocumentId: publication.id?.toString() || '',
       id: documents.id,
       contentType: 'PAPER',
       createdDate: created_date,
       textPreview: stripHtml(documents.abstract || ''),
-      slug: documents.slug,
-      title: documents.title,
-      authors: documents.authors.map((author) => ({
+      slug: documents.slug || '',
+      title: documents.title || '',
+      authors: authors.map((author) => ({
         id: author.id,
         profileImage: '',
-        firstName: author.first_name,
-        lastName: author.last_name,
-        fullName: `${author.first_name} ${author.last_name}`,
+        firstName: author.first_name || '',
+        lastName: author.last_name || '',
+        fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim() || 'Unknown Author',
         profileUrl: '',
         isClaimed: false,
         isVerified: false,
       })),
-      topics: (
-        hubs.map((hub: any) => ({
+      topics: (hubs || [])
+        .map((hub: any) => ({
           id: hub.id,
           name: hub.name,
           hub_image: hub.hub_image,
           slug: hub.slug,
-        })) || []
-      ).slice(0, 2),
+        }))
+        .slice(0, 2),
       createdBy: {
-        id: documents.authors[0]?.id || 0,
+        id: firstAuthor?.id || 0,
         profileImage: '',
-        firstName: documents.authors[0]?.first_name || '',
-        lastName: documents.authors[0]?.last_name || '',
+        firstName: firstAuthor?.first_name || '',
+        lastName: firstAuthor?.last_name || '',
         fullName:
-          `${documents.authors[0]?.first_name || ''} ${documents.authors[0]?.last_name || ''}`.trim(),
+          `${firstAuthor?.first_name || ''} ${firstAuthor?.last_name || ''}`.trim() ||
+          'Unknown Author',
         profileUrl: '',
         isClaimed: false,
         isVerified: false,
       },
       journal: {
         id: 0,
-        name: '', // TODO do we need this and what is this? DOI? do not think that we have it in the response.. documents.external_source,
+        name: '',
         slug: '',
         description: '',
       },

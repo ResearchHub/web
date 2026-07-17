@@ -55,13 +55,8 @@ export function NetworkSelector({
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-900">{selectedNetwork.name}</span>
-            {showBadges && getBadge(value) && (
-              <span
-                className={cn(
-                  'text-xs px-2 py-0.5 rounded-full font-medium',
-                  value === 'BASE' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                )}
-              >
+            {showBadges && value === 'BASE' && getBadge(value) && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-700">
                 {getBadge(value)}
               </span>
             )}
@@ -112,15 +107,8 @@ export function NetworkSelector({
             <div className="flex-1 flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-900">{config.name}</span>
-                {showBadges && getBadge(network) && (
-                  <span
-                    className={cn(
-                      'text-xs px-2 py-0.5 rounded-full font-medium',
-                      network === 'BASE'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-amber-100 text-amber-700'
-                    )}
-                  >
+                {showBadges && network === 'BASE' && getBadge(network) && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-700">
                     {getBadge(network)}
                   </span>
                 )}

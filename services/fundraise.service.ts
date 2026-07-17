@@ -113,4 +113,59 @@ export class FundraiseService {
     );
     return transformFundraise(response);
   }
+
+  /**
+   * Fetch the current user's USD contributions across fundraises.
+   */
+  static async getUsdContributions(
+    options: { page?: number } = {}
+  ): Promise<UsdContributionsResponse> {
+    const { page = 1 } = options;
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/usd_contributions/?page=${page}`);
+    return {
+      count: response.count,
+      next: response.next,
+      previous: response.previous,
+      results: (response.results ?? []).map(transformUsdContribution),
+    };
+  }
+}
+
+export type UsdContributionStatus = 'PENDING' | 'SUBMITTED' | 'COMPLETED' | 'FAILED' | string;
+
+export interface UsdContribution {
+  id: number;
+  fundraise: ID;
+  amountCents: number;
+  amountUsd: number;
+  amountRsc: number;
+  feeCents: number;
+  feeUsd: number;
+  rscUsdRate: number;
+  status: UsdContributionStatus;
+  createdDate: string;
+  updatedDate: string;
+}
+
+export interface UsdContributionsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: UsdContribution[];
+}
+
+function transformUsdContribution(raw: any): UsdContribution {
+  return {
+    id: raw.id,
+    fundraise: raw.fundraise,
+    amountCents: raw.amount_cents,
+    amountUsd: parseFloat(raw.amount_usd),
+    amountRsc: parseFloat(raw.amount_rsc),
+    feeCents: raw.fee_cents,
+    feeUsd: parseFloat(raw.fee_usd),
+    rscUsdRate: parseFloat(raw.rsc_usd_rate),
+    status: raw.status,
+    createdDate: raw.created_date,
+    updatedDate: raw.updated_date,
+  };
 }

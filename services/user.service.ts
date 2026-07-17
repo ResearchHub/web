@@ -2,8 +2,14 @@ import { ApiClient } from './client';
 import {
   User,
   UserDetailsForModerator,
+  RiskScoreEventsResponse,
+  RiskScoreEventsFilters,
   transformUser,
   transformUserDetailsForModerator,
+  transformRiskScoreEvent,
+  transformInsight,
+  transformEarningOverview,
+  type EarningOverview,
 } from '@/types/user';
 
 interface University {
@@ -20,6 +26,65 @@ interface UniversityApiResponse {
   next: string | null;
   previous: string | null;
   results: University[];
+}
+
+/**
+ * Per-balance-lot staking detail. Each lot tracks a chunk of stake with its own age
+ * and multiplier progression (the longer it's been staked, the higher the multiplier).
+ */
+export interface StakingBalanceLot {
+  amount: number;
+  createdDate: string;
+  effectiveStartDate: string;
+  ageDays: number;
+  currentMultiplier: number;
+  nextMultiplier: number | null;
+  daysUntilNextMultiplier: number | null;
+  nextMultiplierDate: string | null;
+  projectedOverallMultiplier: number | null;
+}
+
+export interface StakingYieldDetails {
+  isStakingOptedIn: boolean;
+  stakingOptedInDate: string | null;
+  currentStake: number;
+  currentMultiplier: number;
+  currentWeightedStake: number;
+  totalYieldEarned: number;
+  latestAccrualDate: string | null;
+  apy: number;
+  balanceLots: StakingBalanceLot[];
+}
+
+function transformStakingBalanceLot(raw: any): StakingBalanceLot {
+  return {
+    amount: parseFloat(raw.amount),
+    createdDate: raw.created_date,
+    effectiveStartDate: raw.effective_start_date,
+    ageDays: raw.age_days,
+    currentMultiplier: parseFloat(raw.current_multiplier),
+    nextMultiplier: raw.next_multiplier == null ? null : parseFloat(raw.next_multiplier),
+    daysUntilNextMultiplier: raw.days_until_next_multiplier,
+    nextMultiplierDate: raw.next_multiplier_date,
+    projectedOverallMultiplier:
+      raw.projected_overall_multiplier == null
+        ? null
+        : parseFloat(raw.projected_overall_multiplier),
+  };
+}
+
+function transformStakingYieldDetails(raw: any): StakingYieldDetails {
+  return {
+    isStakingOptedIn: raw.is_staking_opted_in,
+    stakingOptedInDate: raw.staking_opted_in_date,
+    currentStake: parseFloat(raw.current_stake),
+    currentMultiplier: parseFloat(raw.current_multiplier),
+    currentWeightedStake: parseFloat(raw.current_weighted_stake),
+    totalYieldEarned: parseFloat(raw.total_yield_earned),
+    latestAccrualDate: raw.latest_accrual_date,
+    apy: raw.apy,
+    balanceLots: (raw.balance_lots ?? []).map(transformStakingBalanceLot),
+  };
 }
 
 export class UserService {
@@ -86,11 +151,19 @@ export class UserService {
   }
 
   /**
-   * Get staking yield details including APY
+   * Get staking yield details for the current user (APY, current stake, total yield earned, balance lots, etc).
    */
-  static async getStakingYieldDetails(): Promise<{ apy: number }> {
-    const response = await ApiClient.get<{ apy: number }>(`/api/staking_yield/details/`);
-    return response;
+  static async getStakingYieldDetails(): Promise<StakingYieldDetails> {
+    const response = await ApiClient.get<any>(`/api/staking_yield/details/`);
+    return transformStakingYieldDetails(response);
+  }
+
+  /**
+   * Get lifetime earning overview for a user (totals and breakdown by source).
+   */
+  static async getEarningOverview(userId: number): Promise<EarningOverview> {
+    const response = await ApiClient.get<any>(`/api/user/earning_overview/?user_id=${userId}`);
+    return transformEarningOverview(response);
   }
 
   /**
@@ -99,6 +172,33 @@ export class UserService {
    */
   static async updateBalanceHistoryClicked(): Promise<void> {
     await ApiClient.post<void>(`/api/user/update_balance_history_clicked/`);
+  }
+
+  static async fetchRiskScoreEvents(
+    userId: string,
+    params?: RiskScoreEventsFilters
+  ): Promise<RiskScoreEventsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.pageSize) searchParams.set('page_size', params.pageSize.toString());
+    if (params?.eventType) searchParams.set('event_type', params.eventType);
+    if (params?.deltaPositive !== undefined)
+      searchParams.set('delta_positive', String(params.deltaPositive));
+    if (params?.actionDateAfter) searchParams.set('action_date_after', params.actionDateAfter);
+    if (params?.actionDateBefore) searchParams.set('action_date_before', params.actionDateBefore);
+
+    const query = searchParams.toString();
+    const queryString = query ? `?${query}` : '';
+    const url = `/api/moderator/${userId}/risk_score_events/${queryString}`;
+    const response = await ApiClient.get<any>(url);
+
+    return {
+      count: response.count ?? 0,
+      next: response.next ?? null,
+      previous: response.previous ?? null,
+      results: (response.results ?? []).map(transformRiskScoreEvent),
+      insights: (response.insights ?? []).map(transformInsight),
+    };
   }
 
   /**

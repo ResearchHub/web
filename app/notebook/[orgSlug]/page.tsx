@@ -13,7 +13,12 @@ import {
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
-import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
+
+// An empty document for the "Start blank" funding-opportunity path.
+const BLANK_DOCUMENT = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }],
+} as typeof grantTemplate;
 
 export default function OrganizationPage() {
   const router = useRouter();
@@ -28,6 +33,8 @@ export default function OrganizationPage() {
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const isNewResearch = searchParams.get('newResearch') === 'true';
   const isNewGrant = searchParams.get('newGrant') === 'true';
+  const grantSource = searchParams.get('grantSource');
+  const proposalSource = searchParams.get('proposalSource');
 
   const createNoteWithContent = async (
     orgSlug: string,
@@ -71,32 +78,51 @@ export default function OrganizationPage() {
   useEffect(() => {
     if (!selectedOrg) return;
 
-    if (isNewFunding) {
-      createNoteWithContent(selectedOrg.slug, {
-        template: proposalTemplate,
-        queryParam: 'newFunding',
-        queryValue: 'true',
-        documentType: 'PREREGISTRATION',
-      });
-    } else if (isNewResearch) {
+    if (isNewResearch) {
       createNoteWithContent(selectedOrg.slug, {
         template: getInitialContent('research'),
         queryParam: 'newResearch',
         queryValue: 'true',
         documentType: 'DISCUSSION',
       });
+    } else if (isNewFunding) {
+      // "Upload a document" is handled inline in OpenProposalModal; here we
+      // only create from template/blank.
+      if (proposalSource === 'blank') {
+        createNoteWithContent(selectedOrg.slug, {
+          template: BLANK_DOCUMENT,
+          documentType: 'PREREGISTRATION',
+        });
+      } else {
+        handleStartFromTemplate();
+      }
     } else if (isNewGrant) {
+      // "Upload a document" is handled inline in OpenFundingOpportunityModal;
+      // here we only create from template/blank.
       createNoteWithContent(selectedOrg.slug, {
-        template: grantTemplate,
+        template: grantSource === 'blank' ? BLANK_DOCUMENT : grantTemplate,
         queryParam: 'newGrant',
         queryValue: 'true',
         documentType: 'GRANT',
       });
     }
-  }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedOrg, isNewResearch, isNewFunding, isNewGrant, grantSource, proposalSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleStartFromTemplate = async () => {
+    if (!selectedOrg) return;
+    await createNoteWithContent(selectedOrg.slug, {
+      template: proposalTemplate,
+      queryParam: 'template',
+      queryValue: 'preregistration',
+      documentType: 'PREREGISTRATION',
+    });
+  };
+
+  // NoteEditorLayout (rendered as a sibling in the layout) already shows the
+  // appropriate UI (NotebookHome here), so rendering the document skeleton here
+  // just produces a redundant outline flash before the org resolves.
   if (isLoadingOrg) {
-    return <NotePaperSkeleton />;
+    return null;
   }
 
   return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;

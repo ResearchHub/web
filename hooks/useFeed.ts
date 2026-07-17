@@ -19,11 +19,18 @@ interface UseFeedOptions {
   ordering?: string;
   filter?: string;
   userId?: string;
+  viewAsUserId?: number;
   isDebugMode?: boolean;
   initialData?: {
     entries: FeedEntry[];
     hasMore: boolean;
   };
+  /**
+   * Defer the initial fetch until set true. Useful when a parent param
+   * (e.g. createdBy) needs to resolve from another async source first,
+   * so we don't double-fire — once with undefined, once with the value.
+   */
+  enabled?: boolean;
 }
 
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
@@ -49,6 +56,10 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   useEffect(() => {
     if (status === 'loading') {
+      return;
+    }
+
+    if (options.enabled === false) {
       return;
     }
 
@@ -79,6 +90,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     page,
     currentTab,
     options.initialData,
+    options.enabled,
     isLoading,
     hasAttemptedLoad,
   ]);
@@ -95,7 +107,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.ordering !== currentOptions.ordering ||
       options.isDebugMode !== currentOptions.isDebugMode ||
       options.filter !== currentOptions.filter ||
-      options.userId !== currentOptions.userId;
+      options.userId !== currentOptions.userId ||
+      options.viewAsUserId !== currentOptions.viewAsUserId;
 
     if (relevantOptionsChanged) {
       setCurrentOptions(options);
@@ -137,6 +150,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         includeHotScoreBreakdown: options.isDebugMode,
         filter: options.filter,
         userId: options.userId,
+        viewAsUserId: options.viewAsUserId,
       });
 
       setEntries(result.entries);
@@ -183,6 +197,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         includeHotScoreBreakdown: options.isDebugMode,
         filter: options.filter,
         userId: options.userId,
+        viewAsUserId: options.viewAsUserId,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);

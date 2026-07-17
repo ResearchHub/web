@@ -11,6 +11,9 @@ interface GrantContextValue {
   error: string | null;
   /** Lazy fetch -- only fires one API call, then caches. Safe to call repeatedly. */
   fetchGrants: () => Promise<void>;
+  sidebarGrants: FeedEntry[];
+  isSidebarGrantsLoading: boolean;
+  fetchSidebarGrants: () => Promise<void>;
   /** Seed grants from SSR data without triggering a fetch */
   setInitialGrants: (grants: FeedEntry[]) => void;
   selectGrant: (grantId: number | string | null) => void;
@@ -21,6 +24,7 @@ interface GrantContextValue {
 const GrantContext = createContext<GrantContextValue | null>(null);
 
 let _grantsCache: FeedEntry[] = [];
+let _sidebarGrantsCache: FeedEntry[] = [];
 
 interface GrantProviderProps {
   children: ReactNode;
@@ -37,6 +41,16 @@ export function GrantProvider({ children }: GrantProviderProps) {
   }, []);
 
   const hasDataRef = useRef(_grantsCache.length > 0);
+
+  const [sidebarGrants, setSidebarGrantsRaw] = useState<FeedEntry[]>(_sidebarGrantsCache);
+  const [isSidebarGrantsLoading, setIsSidebarGrantsLoading] = useState(
+    _sidebarGrantsCache.length === 0
+  );
+  const hasSidebarGrantsRef = useRef(_sidebarGrantsCache.length > 0);
+  const setSidebarGrants = useCallback((entries: FeedEntry[]) => {
+    _sidebarGrantsCache = entries;
+    setSidebarGrantsRaw(entries);
+  }, []);
 
   const fetchGrants = useCallback(async () => {
     if (hasDataRef.current) return;
@@ -61,6 +75,30 @@ export function GrantProvider({ children }: GrantProviderProps) {
       setIsLoading(false);
     }
   }, [setGrants]);
+
+  const fetchSidebarGrants = useCallback(async () => {
+    if (hasSidebarGrantsRef.current) return;
+    hasSidebarGrantsRef.current = true;
+
+    setIsSidebarGrantsLoading(true);
+    setError(null);
+
+    try {
+      const result = await GrantService.getGrants({
+        page: 1,
+        pageSize: 5,
+        status: 'OPEN',
+        ordering: 'newest',
+      });
+
+      setSidebarGrants(result.grants);
+    } catch (err) {
+      console.error('Failed to fetch sidebar grants:', err);
+      setError('Failed to load funding opportunities.');
+    } finally {
+      setIsSidebarGrantsLoading(false);
+    }
+  }, [setSidebarGrants]);
 
   const setInitialGrants = useCallback((initialGrants: FeedEntry[]) => {
     if (hasDataRef.current) return;
@@ -108,6 +146,9 @@ export function GrantProvider({ children }: GrantProviderProps) {
         isLoading,
         error,
         fetchGrants,
+        sidebarGrants,
+        isSidebarGrantsLoading,
+        fetchSidebarGrants,
         setInitialGrants,
         selectGrant,
         getGrantById,

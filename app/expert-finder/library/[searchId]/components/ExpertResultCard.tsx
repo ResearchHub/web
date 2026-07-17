@@ -2,19 +2,30 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Award, Building2, ExternalLink, GraduationCap, Info, Mail } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/Button';
+import { Award, Building2, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { Alert } from '@/components/ui/Alert';
+import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
+import { formatTimestamp } from '@/utils/date';
 import type { ExpertResult } from '@/types/expertFinder';
+import {
+  buildExpertSearchHref,
+  buildOutreachDocumentHref,
+  outreachDocumentLabel,
+} from '@/types/expertFinder';
+import { ExpertFormModal } from './ExpertFormModal';
+import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
   index: number;
+  searchId: string;
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
+  onSuccess?: () => Promise<void>;
 }
 
 function empty(value: string | undefined): string {
@@ -27,11 +38,15 @@ const NOTES_READ_MORE_MIN_LENGTH = 25;
 export function ExpertResultCard({
   expert,
   index,
+  searchId,
   selected,
   onToggleSelect,
   onGenerateEmail,
+  onSuccess,
 }: ExpertResultCardProps) {
+  const [editOpen, setEditOpen] = useState(false);
   const name = empty(expert.name);
+  const canEditContact = expert.expertId != null && Boolean(onSuccess);
   const title = empty(expert.title);
   const affiliation = empty(expert.affiliation);
   const expertiseStr = empty(expert.expertise);
@@ -47,30 +62,63 @@ export function ExpertResultCard({
 
   const [notesExpanded, setNotesExpanded] = useState(false);
   const showNotesToggle = notes.length > NOTES_READ_MORE_MIN_LENGTH || notesExpanded;
+  const emailedForCurrentDocument = expert.emailedForCurrentDocument;
+  const emailedOnOtherDocuments = expert.emailedOnOtherDocuments ?? [];
+  const hasOutreachHistory =
+    Boolean(emailedForCurrentDocument) || emailedOnOtherDocuments.length > 0;
 
   return (
     <article
       className={cn(
         'flex h-full min-h-0 flex-col rounded-lg border bg-white p-5 shadow-sm',
-        selected ? 'border-primary-600 ring-2 ring-primary-200' : 'border-gray-200'
+        selected
+          ? 'border-primary-600 ring-2 ring-primary-200'
+          : hasOutreachHistory
+            ? 'border-yellow-300'
+            : 'border-gray-200'
       )}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <header className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="text-base font-semibold text-gray-900 shrink-0">{name || '—'}</h3>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            {canEditContact ? (
+              <button
+                type="button"
+                className="inline-flex shrink-0 rounded p-0.5 text-gray-500 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                aria-label="Edit name"
+                title="Edit name"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil className="h-4 w-4 shrink-0" aria-hidden />
+              </button>
+            ) : null}
+            <h3
+              className="min-w-0 max-w-full flex-1 basis-0 truncate text-base font-semibold text-gray-900"
+              title={name || undefined}
+            >
+              {name || '—'}
+            </h3>
             {sources.length > 0
               ? sources.map((src, i) => (
-                  <a
+                  <Tooltip
                     key={`${src.url}-${i}`}
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-w-0 max-w-full items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                    content={src.text}
+                    position="top"
+                    width="w-72"
+                    className="text-left"
+                    wrapperClassName="inline-flex shrink-0 items-center"
                   >
-                    <span className="truncate">{src.text}</span>
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
-                  </a>
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                      aria-label={src.text}
+                      title={src.text}
+                    >
+                      <ExpertSourceLinkIcon url={src.url} text={src.text} />
+                    </a>
+                  </Tooltip>
                 ))
               : null}
           </div>
@@ -84,7 +132,7 @@ export function ExpertResultCard({
           ) : null}
         </header>
         {onToggleSelect && (
-          <div className="flex shrink-0 items-center justify-end pt-0.5">
+          <div className="flex shrink-0 items-center justify-end pt-1">
             <Checkbox
               checked={selected ?? false}
               onCheckedChange={() => onToggleSelect(index)}
@@ -168,6 +216,73 @@ export function ExpertResultCard({
             </div>
           </div>
         ) : null}
+
+        {emailedForCurrentDocument ? (
+          <Alert variant="warning" className="py-2.5 px-3">
+            Emailed for this RFP
+            {emailedForCurrentDocument.searchId > 0 &&
+            String(emailedForCurrentDocument.searchId) !== searchId ? (
+              <>
+                {' · '}
+                <Link
+                  href={buildExpertSearchHref(emailedForCurrentDocument.searchId)}
+                  className="font-medium underline-offset-2 hover:underline"
+                >
+                  Search #{emailedForCurrentDocument.searchId}
+                </Link>
+              </>
+            ) : null}
+            <span className="font-normal text-yellow-800/90">
+              {' '}
+              · {formatTimestamp(emailedForCurrentDocument.sentAt)}
+            </span>
+          </Alert>
+        ) : null}
+
+        {emailedOnOtherDocuments.length > 0 ? (
+          <Alert variant="info" className="py-2.5 px-3">
+            <div className="space-y-1">
+              <p>
+                {emailedOnOtherDocuments.length === 1
+                  ? 'Emailed on another document'
+                  : 'Emailed on other documents'}
+              </p>
+              <ul className="space-y-1 font-normal">
+                {emailedOnOtherDocuments.map((entry) => {
+                  const documentHref = buildOutreachDocumentHref(entry);
+                  const documentLabel = outreachDocumentLabel(entry);
+
+                  return (
+                    <li key={`${entry.unifiedDocumentId}-${entry.sentAt}`}>
+                      {documentHref ? (
+                        <Link
+                          href={documentHref}
+                          className="font-medium underline-offset-2 hover:underline"
+                        >
+                          {documentLabel}
+                        </Link>
+                      ) : (
+                        <span>{documentLabel}</span>
+                      )}
+                      {entry.searchId > 0 ? (
+                        <>
+                          <span className="text-blue-800/90"> · </span>
+                          <Link
+                            href={buildExpertSearchHref(entry.searchId)}
+                            className="font-medium underline-offset-2 hover:underline"
+                          >
+                            Search #{entry.searchId}
+                          </Link>
+                        </>
+                      ) : null}
+                      <span className="text-blue-800/90"> · {formatTimestamp(entry.sentAt)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </Alert>
+        ) : null}
       </div>
 
       <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
@@ -196,6 +311,16 @@ export function ExpertResultCard({
           </a>
         )}
       </div>
+
+      {canEditContact && onSuccess ? (
+        <ExpertFormModal
+          isOpen={editOpen}
+          onClose={() => setEditOpen(false)}
+          searchId={searchId}
+          expert={expert}
+          onSuccess={onSuccess}
+        />
+      ) : null}
     </article>
   );
 }

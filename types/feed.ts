@@ -6,7 +6,6 @@ import { Work, transformPaper, transformPost, FundingRequest, ContentType } from
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
-import { transformAiPeerReviewFeedSummary, type AiPeerReviewFeedSummary } from './aiPeerReview';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
@@ -88,7 +87,7 @@ export interface FeedPostContent extends BaseFeedContent {
   contentType: 'PREREGISTRATION' | 'POST';
   postType?: string; // The actual type from content_object.type
   fundraise?: Fundraise;
-  fundraiseContribution?: { amount: number; currency: string };
+  fundraiseContribution?: { amount: number; currency: 'USD' | 'RSC' };
   textPreview: string;
   slug: string;
   title: string;
@@ -142,6 +141,7 @@ export interface FeedCommentContent extends BaseFeedContent {
       objectId: number;
     };
   };
+  hasBounties?: boolean;
   isRemoved?: boolean;
   relatedDocumentId?: number | string;
   relatedDocumentContentType?: ContentType;
@@ -297,10 +297,11 @@ export interface FeedEntry {
   isAssessed?: boolean;
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
+  /** Author's moderation risk score; only present on the pending-moderation feed. */
+  riskScore?: number | null;
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
-  aiPeerReview?: AiPeerReviewFeedSummary | null;
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -333,6 +334,7 @@ export interface RawApiFeedEntry {
     base_wallet_address: string;
   };
   hot_score_v2?: number;
+  risk_score?: number | null;
   associated_grants?: Array<{
     id: number;
     post_id: number;
@@ -396,7 +398,6 @@ export interface RawApiFeedEntry {
     vote_type: number;
     item: number;
   };
-  ai_peer_review?: unknown;
   metrics?: {
     votes: number;
     adjusted_score?: number;
@@ -732,6 +733,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Transform the comment to get score and other properties
         const transformedComment = transformComment(commentData);
 
+        const hasBounties =
+          Array.isArray(content_object.bounties) && content_object.bounties.length > 0;
+
         // Create a FeedCommentContent object
         const commentContent: FeedCommentContent = {
           id: content_object.id,
@@ -741,6 +745,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           updatedDate: content_object.updated_date || action_date || created_date,
           createdBy: transformAuthorProfile(author || content_object.author),
           isRemoved: content_object.is_removed,
+          hasBounties,
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
@@ -921,6 +926,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                   id: review.id,
                   score: review.score,
                   author: transformAuthorProfile(review.author),
+                  isAssessed: review.is_assessed ?? false,
                 }))
               : [],
           };
@@ -947,7 +953,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       contentType = content_type as 'PURCHASE' | 'USDFUNDRAISECONTRIBUTION';
       try {
         const contributionEntry: FeedPostContent = {
-          id: content_object.id || id,
+          id: content_object.post_id ?? content_object.id ?? id,
           unifiedDocumentId: content_object.unified_document_id,
           contentType: 'PREREGISTRATION',
           createdDate: action_date || created_date,
@@ -969,7 +975,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdBy: transformAuthorProfile(author),
           fundraiseContribution: {
             amount: content_object.amount || 0,
-            currency: content_object.currency || 'USD',
+            currency: content_object.currency === 'RSC' ? 'RSC' : 'USD',
           },
         };
         content = contributionEntry;
@@ -1027,6 +1033,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     relatedWork,
     contentType,
     hotScoreV2: hot_score_v2,
+    riskScore: feedEntry.risk_score,
     hotScoreBreakdown: hot_score_breakdown,
     externalMetrics: external_metadata?.metrics
       ? {
@@ -1084,7 +1091,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           baseWalletAddress: nonprofit.base_wallet_address,
         }
       : undefined,
-    aiPeerReview: transformAiPeerReviewFeedSummary(feedEntry.ai_peer_review),
   } as FeedEntry;
 };
 

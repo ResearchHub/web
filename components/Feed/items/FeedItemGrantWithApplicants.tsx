@@ -9,13 +9,11 @@ import { Button } from '@/components/ui/Button';
 import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
-import { AiVerdictBadge } from '@/components/Feed/AiVerdictBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { useUser } from '@/contexts/UserContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
 
@@ -26,7 +24,7 @@ interface FeedItemGrantWithApplicantsProps {
 
 const VISIBLE_PROPOSALS = 3;
 
-function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
+export function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
   return formatCurrency({ amount, showUSD, exchangeRate, skipConversion: true, shorten: true });
 }
 
@@ -35,16 +33,9 @@ interface ProposalRowProps {
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
-  showAiVerdict: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({
-  application,
-  showUSD,
-  exchangeRate,
-  isLast,
-  showAiVerdict,
-}) => {
+const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
   const { profile, fundraise: fundraiseRaw } = application;
   const fundraise = fundraiseRaw!;
 
@@ -69,10 +60,9 @@ const ProposalRow: FC<ProposalRowProps> = ({
     <Link
       href={proposalHref}
       className={cn(
-        'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        'grid grid-cols-[75px_1fr] items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
       )}
-      style={{ gridTemplateColumns: '75px 1fr' }}
     >
       {/* Ask amount */}
       <div className="text-center py-1 px-0.5  border-r border-gray-200">
@@ -91,12 +81,20 @@ const ProposalRow: FC<ProposalRowProps> = ({
         </p>
         <div className="flex items-center gap-1.5">
           <Avatar src={profile.profileImage || ''} alt={profile.fullName} size="xxs" />
-          <span className="text-[12px] text-gray-500 truncate">{profile.fullName}</span>
-          {fundraise.nonprofit?.name && (
+          {/* Desktop: always show name */}
+          <span className="text-[12px] text-gray-500 truncate hidden sm:inline">
+            {profile.fullName}
+          </span>
+          {fundraise.nonprofit?.name ? (
             <>
-              <span className="text-gray-300">·</span>
+              {/* Desktop: separator between name and org */}
+              <span className="text-gray-300 hidden sm:inline">·</span>
+              {/* Both: org name (mobile primary label) */}
               <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
             </>
+          ) : (
+            /* Mobile fallback: name when no org */
+            <span className="text-[12px] text-gray-500 truncate sm:hidden">{profile.fullName}</span>
           )}
           {hasAssessedReviews && (
             <>
@@ -122,12 +120,6 @@ const ProposalRow: FC<ProposalRowProps> = ({
               </Tooltip>
             </>
           )}
-          {showAiVerdict && application.aiPeerReview?.overallRating === 'excellent' && (
-            <>
-              <span className="text-gray-300">·</span>
-              <AiVerdictBadge rating="excellent" size="sm" />
-            </>
-          )}
         </div>
       </div>
     </Link>
@@ -140,9 +132,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const { user } = useUser();
   const [expanded, setExpanded] = useState(false);
-  const showAiVerdict = !!user?.isModerator;
 
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
@@ -224,7 +214,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
             background: 'rgba(0,0,0,0.5)',
           }}
         >
-          <div>
+          <div className="min-w-0">
             <div className="text-[9px] font-semibold uppercase tracking-wider text-white/40 mb-0.5">
               {grant.organization || content.organization || 'ResearchHub Grant'}
             </div>
@@ -232,7 +222,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
               {grant.shortTitle || content.title}
             </div>
           </div>
-          <div className="flex gap-5">
+          <div className="flex gap-5 flex-shrink-0">
             {[
               {
                 label: 'Available Funding',
@@ -243,7 +233,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
               { label: 'Duration', value: 'Rolling', accent: false },
             ].map((stat) => (
               <div key={stat.label} className="sm:text-right">
-                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60">
+                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
                   {stat.label}
                 </div>
                 <div
@@ -278,7 +268,6 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
                 isLast={
                   i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
                 }
-                showAiVerdict={showAiVerdict}
               />
             ))}
             {!expanded && remaining > 0 && (
@@ -318,7 +307,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         </div>
       )}
 
-      {/* Footer */}
+      {/* Footer — Apply CTA */}
       {!isClosed && (
         <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">

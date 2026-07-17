@@ -7,12 +7,14 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 interface CommentEmptyStateProps {
   commentType: CommentType;
   onCreateBounty: () => void;
+  canCreateBounty?: boolean;
   work?: Work;
 }
 
 export const CommentEmptyState = ({
   commentType,
   onCreateBounty,
+  canCreateBounty = false,
   work,
 }: CommentEmptyStateProps) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
@@ -56,7 +58,7 @@ export const CommentEmptyState = ({
       <h3 className="mb-2 text-lg font-medium text-gray-900">{message}</h3>
       <p className="text-sm text-gray-500">{description}</p>
 
-      {commentType === 'BOUNTY' && (
+      {commentType === 'BOUNTY' && canCreateBounty && (
         <div className="mt-6">
           <Button
             onClick={() => executeAuthenticatedAction(onCreateBounty)}

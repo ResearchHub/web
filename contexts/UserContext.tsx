@@ -20,19 +20,21 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingUser, setIsFetchingUser] = useState(() => status === 'authenticated');
   const [error, setError] = useState<Error | null>(null);
   const [isAnalyticsInitialized, setIsAnalyticsInitialized] = useState(false);
+
+  const isLoading = status === 'loading' || isFetchingUser;
 
   const fetchUserData = async (silent = false): Promise<User | null> => {
     if (!session?.authToken) {
       setUser(null);
-      if (!silent) setIsLoading(false);
+      if (!silent) setIsFetchingUser(false);
       return null;
     }
 
     try {
-      if (!silent) setIsLoading(true);
+      if (!silent) setIsFetchingUser(true);
       const userData = await AuthService.fetchUserData(session.authToken);
       const fetchedUser = userData.results[0] || null;
       setUser(fetchedUser);
@@ -46,7 +48,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (!silent) setError(err instanceof Error ? err : new Error('Failed to load user data'));
       return null;
     } finally {
-      if (!silent) setIsLoading(false);
+      if (!silent) setIsFetchingUser(false);
     }
   };
 
@@ -57,6 +59,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // Effect to load user data when session changes
   useEffect(() => {
     if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      setUser(null);
+      setIsFetchingUser(false);
+      return;
+    }
+
     fetchUserData();
   }, [session?.authToken, status]);
 
@@ -73,34 +82,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
         // Track Google OAuth sign-up if applicable
         if (user.authProvider === 'google' && user.hasCompletedOnboarding === false) {
-          const urlParams = new URLSearchParams(window.location.search);
-          const urlHPExperimentVariant = urlParams.get(Experiment.HomepageExperiment);
-
-          if (urlHPExperimentVariant) {
-            /**
-             * Due to authentication flow limitations:
-             *
-             * 1. Credentials/Email flow: Track signed_up event immediately after client-side registration
-             *    (cookies accessible in Signup.tsx component)
-             *
-             * 2. Google OAuth: Track during user context initialization by checking authProvider === 'google'
-             *    (cookies accessible after redirect from Google OAuth)
-             *
-             * We track here instead of in SelectProvider because:
-             * - Google OAuth redirects to a new page, losing the original context
-             * - The experiment variant is passed via URL parameter and needs to be captured after redirect
-             * - UserContext is the first place where we have both user data and access to URL parameters
-             * - This ensures we capture the experiment variant before it gets cleaned up
-             */
-            AnalyticsService.logSignedUp('google', {
-              homepage_experiment: urlHPExperimentVariant,
-            });
-          }
+          AnalyticsService.logSignedUp('google', {});
         }
 
         // Clean up URL parameter
         const newUrl = new URL(window.location.href);
-        newUrl.searchParams.delete(Experiment.HomepageExperiment);
         window.history.replaceState({}, '', newUrl.toString());
 
         // Mark analytics as initialized for this user

@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ArrowUpFromLine } from 'lucide-react';
+import { ArrowUpFromLine, Lock } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
+import { useFundraises } from '@/contexts/FundraiseContext';
+import type { GrantApplicationVisibility } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 
@@ -19,6 +21,7 @@ interface WorkHeaderGrantProps {
   isActive?: boolean;
   isPending?: boolean;
   organization?: string;
+  applicationVisibility?: GrantApplicationVisibility;
   className?: string;
 }
 
@@ -30,10 +33,12 @@ export function WorkHeaderGrant({
   isActive = true,
   isPending = false,
   organization,
+  applicationVisibility,
   className,
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity } = useGrantTab();
+  const { proposalCount } = useFundraises();
 
   const handleTabChange = useCallback(
     (tabId: string) => setActiveTab(tabId as GrantBannerTab),
@@ -44,6 +49,8 @@ export function WorkHeaderGrant({
     <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
   );
 
+  const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
+
   const subtitle = organization ? (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <span className="text-base text-gray-500">Offered by</span>
@@ -53,24 +60,50 @@ export function WorkHeaderGrant({
 
   const primaryAction =
     grantId && isActive ? (
-      <SubmitProposalTooltip>
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => setIsApplyModalOpen(true)}
-          className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
-        >
-          Submit Proposal
-          <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
-        </Button>
-      </SubmitProposalTooltip>
+      <>
+        <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => setIsApplyModalOpen(true)}
+            className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+          >
+            Submit Proposal
+            <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+        </SubmitProposalTooltip>
+        {requiresPrivateApplications && (
+          <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
+            <Lock className="h-3 w-3 shrink-0" />
+            <span>Your proposal will be submitted privately</span>
+          </div>
+        )}
+      </>
     ) : undefined;
 
   const activityCount = activity.count;
 
   const grantTabs = [
     { id: 'details' as const, label: 'Details' },
-    { id: 'proposals' as const, label: 'Proposals' },
+    {
+      id: 'proposals' as const,
+      label: (
+        <div className="flex items-center">
+          <span>Proposals</span>
+          {proposalCount > 0 && (
+            <span
+              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                activeTab === 'proposals'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {proposalCount}
+            </span>
+          )}
+        </div>
+      ),
+    },
     {
       id: 'activity' as const,
       label: (
@@ -112,6 +145,7 @@ export function WorkHeaderGrant({
               grantId,
               grantAmountUsd: amountUsd,
               grantOrganization: organization,
+              grantApplicationVisibility: applicationVisibility,
             }
           : undefined
       }

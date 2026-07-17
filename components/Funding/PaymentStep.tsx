@@ -57,8 +57,6 @@ interface PaymentStepProps {
   onPaymentRequestSuccess?: (paymentMethod?: 'apple_pay' | 'google_pay') => void;
   /** Called when Endaoment payment is confirmed */
   onEndaomentPaymentConfirm?: (fundId: string) => void;
-  /** Called when user wants to deposit RSC */
-  onDepositRsc?: () => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
 }
@@ -81,7 +79,6 @@ export function PaymentStep({
   onConfirmPayment,
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
-  onDepositRsc,
   onStripeReady,
 }: PaymentStepProps) {
   const defaultPaymentMethod = useMemo(
@@ -205,7 +202,6 @@ export function PaymentStep({
           rscBalance={rscBalance}
           lockedBalance={lockedBalance}
           onPreviewTransaction={handlePreviewTransaction}
-          onDepositRsc={onDepositRsc}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}

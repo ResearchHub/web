@@ -13,6 +13,8 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { Sprout } from 'lucide-react';
+import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -33,6 +35,7 @@ interface NavItem {
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
+  { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
   { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
@@ -51,6 +54,9 @@ const isPathActive = (path: string, currentPath: string): boolean => {
   }
   if (path === '/journal') {
     return currentPath.startsWith('/journal');
+  }
+  if (path === '/endowment') {
+    return currentPath.startsWith('/endowment');
   }
   if (path === '/lists') {
     return currentPath === '/lists' || currentPath.startsWith('/list/');
@@ -163,6 +169,8 @@ export const MobileBottomNav: React.FC = () => {
         );
       case 'more':
         return <FontAwesomeIcon icon={faBars} fontSize={iconSize} color={iconColor} />;
+      case 'endowment':
+        return <Sprout size={iconSize} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />;
       case 'journal':
         return (
           <Icon
@@ -199,6 +207,7 @@ export const MobileBottomNav: React.FC = () => {
     <>
       {/* Bottom Navigation Bar */}
       <nav
+        data-mobile-bottom-nav
         className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-gray-200 tablet:!hidden transition-all duration-300 ease-in-out ${
           isScrollingDown
             ? 'opacity-20 shadow-none'
@@ -327,10 +336,10 @@ export const MobileBottomNav: React.FC = () => {
 
             {/* Utility Links */}
             <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-              <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
+              <a href="https://www.researchhub.com/tos" className="hover:text-gray-700">
                 Terms
               </a>
-              <a href="https://www.researchhub.com/about/privacy" className="hover:text-gray-700">
+              <a href="https://www.researchhub.com/privacy" className="hover:text-gray-700">
                 Privacy
               </a>
               <a
@@ -356,6 +365,7 @@ export const MobileBottomNav: React.FC = () => {
               <a href="https://www.researchhub.com/about" className="hover:text-gray-700">
                 About
               </a>
+              <ChangelogLink />
             </div>
           </div>
         </div>

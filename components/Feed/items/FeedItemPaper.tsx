@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { FeedPaperContent, FeedEntry } from '@/types/feed';
@@ -14,6 +14,7 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { RiskScoreBadge } from '@/components/Moderators/RiskScoreBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
@@ -33,6 +34,7 @@ interface FeedItemPaperProps {
   highlights?: Highlight[];
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
+  footer?: ReactNode;
 }
 
 /**
@@ -49,6 +51,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   highlights,
   showBountyInfo,
   abstractCollapsedByDefault,
+  footer,
 }) => {
   const searchParams = useSearchParams();
   const isDebugMode = searchParams.has('debug');
@@ -96,6 +99,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={showBountyInfo}
       hideReportButton={false}
+      footer={footer}
       cardImage={
         thumbnailUrl ? (
           <ImageSection
@@ -184,6 +188,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               delimiterClassName="ml-0"
               showAbbreviatedInMobile={true}
               hideExpandButton={true}
+              afterAuthors={<RiskScoreBadge score={entry.riskScore} />}
             />
           )}
           {(entry.timestamp || paper.createdDate) && (

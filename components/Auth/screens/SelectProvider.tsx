@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { signIn } from 'next-auth/react';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
@@ -6,7 +7,8 @@ import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useReferral } from '@/contexts/ReferralContext';
 import { Button } from '@/components/ui/Button';
-import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
+import type { AuthAppearance, CatalystSurface } from '../types';
+import { CATALYST_NYC_EVENT } from '@/components/events/catalyst/constants';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -20,6 +22,34 @@ interface SelectProviderProps {
   setIsLoading?: (isLoading: boolean) => void;
   /** URL to redirect to after Google OAuth login */
   callbackUrl?: string;
+  appearance?: AuthAppearance;
+  catalystSurface?: CatalystSurface;
+  entryTitle?: ReactNode;
+  entryNote?: ReactNode;
+  emailLabel?: string;
+}
+
+function GoogleGlyph() {
+  return (
+    <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+      <path
+        fill="#FFC107"
+        d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+      />
+    </svg>
+  );
 }
 
 export default function SelectProvider({
@@ -33,9 +63,18 @@ export default function SelectProvider({
   showHeader = true,
   setIsLoading,
   callbackUrl,
+  appearance = 'default',
+  catalystSurface = 'dark',
+  entryTitle,
+  entryNote,
+  emailLabel,
 }: SelectProviderProps) {
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
   const { referralCode } = useReferral();
+  const { auth } = CATALYST_NYC_EVENT;
+  const isCatalystDark = appearance === 'catalyst' && catalystSurface === 'dark';
+  const isCatalystLight = appearance === 'catalyst' && catalystSurface === 'light';
+  const resolvedEmailLabel = emailLabel ?? auth.emailLabel;
 
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -52,18 +91,7 @@ export default function SelectProvider({
 
       if (response.exists) {
         if (response.auth === 'google') {
-          const originalCallbackUrl = '/';
-          let finalCallbackUrl = originalCallbackUrl;
-
-          const experimentVariant = getHomepageExperimentVariant();
-          if (experimentVariant) {
-            // Create URL with experiment parameter
-            const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
-            experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
-            finalCallbackUrl = experimentUrl.toString();
-          }
-
-          signIn('google', { callbackUrl: finalCallbackUrl });
+          handleGoogleSignIn();
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -80,26 +108,16 @@ export default function SelectProvider({
   };
 
   const handleGoogleSignIn = async () => {
-    AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((error) => {
-      console.error('Analytics failed:', error);
+    AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((analyticsError) => {
+      console.error('Analytics failed:', analyticsError);
     });
 
-    // Use prop if provided, otherwise check URL params, fallback to home
     const searchParams = new URLSearchParams(window.location.search);
     const originalCallbackUrl = callbackUrl || searchParams.get('callbackUrl') || '/';
 
     let finalCallbackUrl = originalCallbackUrl;
 
-    const homepageExperimentVariant = getHomepageExperimentVariant();
-    if (homepageExperimentVariant) {
-      // Create URL with experiment parameter
-      const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
-      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
-      finalCallbackUrl = experimentUrl.toString();
-    }
-
     if (referralCode) {
-      // Create referral application URL with referral code and redirect as URL parameters
       const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
       referralUrl.searchParams.set('refr', referralCode);
       referralUrl.searchParams.set('redirect', originalCallbackUrl);
@@ -109,9 +127,163 @@ export default function SelectProvider({
     signIn('google', { callbackUrl: finalCallbackUrl });
   };
 
+  if (isCatalystDark) {
+    return (
+      <div className="catalyst-entry">
+        {entryTitle}
+
+        {error && <p className="err">{error}</p>}
+
+        <form onSubmit={handleCheckAccount}>
+          <label className="label" htmlFor="catalyst-email">
+            {resolvedEmailLabel}
+          </label>
+          <input
+            ref={emailInputRef}
+            className="field"
+            id="catalyst-email"
+            type="email"
+            placeholder={auth.emailPlaceholder}
+            autoComplete="email"
+            autoCapitalize="none"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button className="btn-primary" type="submit" disabled={isLoading}>
+            {isLoading ? auth.loadingLabel : auth.continueLabel}
+          </button>
+
+          <div className="divider">
+            <span />
+            <em>OR</em>
+            <span />
+          </div>
+
+          <button className="btn-google" type="button" onClick={handleGoogleSignIn}>
+            <GoogleGlyph />
+            {auth.googleLabel}
+          </button>
+        </form>
+
+        {entryNote}
+
+        <style jsx>{`
+          .label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.72);
+            margin-bottom: 8px;
+          }
+          .field {
+            width: 100%;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 14px;
+            padding: 0 16px;
+            font-family: inherit;
+            font-size: 15px;
+            color: #fff;
+            outline: none;
+            transition:
+              border-color 0.15s,
+              background 0.15s;
+          }
+          .field::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+          }
+          .field:focus {
+            border-color: rgba(255, 255, 255, 0.55);
+            background: rgba(255, 255, 255, 0.12);
+          }
+          .field:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, 0.75);
+            outline-offset: 2px;
+          }
+          .err {
+            margin-bottom: 8px;
+            font-size: 12.5px;
+            color: #fca5a5;
+          }
+          .btn-primary {
+            width: 100%;
+            height: 56px;
+            margin-top: 14px;
+            border: none;
+            border-radius: 14px;
+            background: #3971ff;
+            color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 26px -8px rgba(57, 113, 255, 0.7);
+            transition: background 0.15s;
+          }
+          .btn-primary:hover {
+            background: #2563eb;
+          }
+          .btn-primary:disabled {
+            opacity: 0.75;
+            cursor: default;
+          }
+          .btn-primary:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+          }
+          .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+          }
+          .divider span {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.18);
+          }
+          .divider em {
+            font-style: normal;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.5);
+          }
+          .btn-google {
+            width: 100%;
+            height: 54px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            transition: background 0.15s;
+          }
+          .btn-google:hover {
+            background: rgba(255, 255, 255, 0.16);
+          }
+          .btn-google:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div>
-      {showHeader && (
+      {showHeader && appearance === 'default' && (
         <>
           <h2 className="text-xl font-bold tracking-tight text-gray-900 !leading-10 mr-6">
             Welcome to ResearchHub{' '}
@@ -126,14 +298,25 @@ export default function SelectProvider({
         </>
       )}
 
+      {isCatalystLight && entryTitle}
+
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
       <form onSubmit={handleCheckAccount}>
+        {isCatalystLight && (
+          <label
+            className="block text-xs font-semibold text-gray-600 mb-2"
+            htmlFor="catalyst-email-light"
+          >
+            {resolvedEmailLabel}
+          </label>
+        )}
         <input
           type="email"
+          id={isCatalystLight ? 'catalyst-email-light' : undefined}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder={isCatalystLight ? auth.emailPlaceholder : 'Email'}
           autoCapitalize="none"
           autoComplete="email"
           className="w-full p-3 border rounded mb-4"
@@ -141,7 +324,7 @@ export default function SelectProvider({
         />
 
         <Button type="submit" disabled={isLoading} className="w-full" size="lg">
-          {isLoading ? 'Loading...' : 'Continue'}
+          {isLoading ? auth.loadingLabel : auth.continueLabel}
         </Button>
 
         <div className="relative my-8">
@@ -176,9 +359,11 @@ export default function SelectProvider({
               fill="#EA4335"
             />
           </svg>
-          Continue with Google
+          {auth.googleLabel}
         </button>
       </form>
+
+      {isCatalystLight && entryNote}
     </div>
   );
 }

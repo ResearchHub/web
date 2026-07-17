@@ -34,6 +34,10 @@ export interface PreregistrationPostParams {
   organization?: string | null;
   description?: string | null;
   contacts?: number[];
+  applicationVisibility?: 'OPTIONAL' | 'PRIVATE' | 'PUBLIC';
+
+  // Preregistration specific (create-only — server marks it read-only on update)
+  isPublic?: boolean;
 
   // RFP attachment
   grantId?: string | null;
@@ -95,8 +99,14 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.fundraise_goal_currency = 'USD';
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
 
+        if (postParams.applicationDeadline) {
+          payload.fundraise_end_date = postParams.applicationDeadline.toISOString();
+        }
         if (postParams.grantId) {
           payload.grant_id = postParams.grantId;
+        }
+        if (typeof postParams.isPublic === 'boolean') {
+          payload.is_public = postParams.isPublic;
         }
       }
 
@@ -107,6 +117,9 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.grant_description = postParams.description;
         payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
         payload.grant_contacts = postParams.contacts;
+        if (postParams.applicationVisibility) {
+          payload.grant_application_visibility = postParams.applicationVisibility;
+        }
       }
 
       const response = (await PostService.upsert(payload)) as TransformedWork;
@@ -126,7 +139,10 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
     } catch (err) {
       const errorData = err instanceof ApiError ? (err.errors as Record<string, any>) : {};
       const errorMsg =
-        errorData?.msg || errorData?.message || 'An error occurred while saving the proposal post';
+        errorData?.msg ||
+        errorData?.message ||
+        errorData?.detail ||
+        'An error occurred while saving the proposal post';
       setError(errorMsg);
       throw err;
     } finally {

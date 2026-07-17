@@ -35,14 +35,6 @@ interface TipServiceArgs {
   amount: number;
 }
 
-// Deposit interfaces
-export interface DepositRequest {
-  amount: number;
-  transaction_hash: string;
-  from_address: string;
-  network: string;
-}
-
 // Define the pending deposit response interface
 export interface PendingDeposit {
   id: number;
@@ -85,7 +77,6 @@ export interface WithdrawalResponse {
 export class TransactionService {
   private static readonly BASE_PATH = '/api/transactions';
   private static readonly WITHDRAWAL_PATH = '/api/withdrawal';
-  private static readonly DEPOSIT_PATH = '/api/deposit/start_deposit_rsc';
   private static readonly DEPOSITS_PATH = '/api/deposit';
   private static readonly PURCHASE_PATH = '/api/purchase/'; // Define purchase path
 
@@ -182,22 +173,6 @@ export class TransactionService {
 
   static async exportTransactionsCSV() {
     return ApiClient.getBlob(`${this.BASE_PATH}/turbotax_csv_export/`);
-  }
-
-  /**
-   * Saves a deposit transaction to the backend
-   * @param depositData - The deposit transaction data
-   * @throws Error when the API request fails
-   */
-  static async saveDeposit(depositData: DepositRequest): Promise<void> {
-    try {
-      await ApiClient.post<void>(`${this.DEPOSIT_PATH}/`, depositData);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to save deposit: ${error.message}`);
-      }
-      throw new Error('Failed to save deposit: Unknown error');
-    }
   }
 
   /**

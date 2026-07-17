@@ -7,15 +7,17 @@ import Link from 'next/link';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faHouse as faHouseSolid,
-  faBookmark as faBookmarkSolid,
-} from '@fortawesome/pro-solid-svg-icons';
-import {
-  faHouse as faHouseLight,
-  faBookmark as faBookmarkLight,
-} from '@fortawesome/pro-light-svg-icons';
+import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { Sprout } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useUser } from '@/contexts/UserContext';
+
+const ENDOWMENT_NAV_FEATURE = 'endowment_nav_new_badge';
+// Stop showing the "New" badge on the Endowment nav item after this date,
+// regardless of dismissal state. Using UTC to avoid timezone drift.
+const ENDOWMENT_NEW_BADGE_CUTOFF = new Date(Date.UTC(2026, 7, 1));
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -33,6 +35,13 @@ interface NavigationItem {
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
+  isLucideSprout?: boolean;
+  /** Show a "New" badge next to the label. Pair with `newFeatureName` so the
+   *  badge is dismissed once the user clicks the item. */
+  isNew?: boolean;
+  /** Feature key passed to `useDismissableFeature` so the badge persists its
+   *  dismissed state per-user. */
+  newFeatureName?: string;
 }
 
 interface NavigationProps {
@@ -74,6 +83,15 @@ export const Navigation: React.FC<NavigationProps> = ({
   const router = useRouter();
   const { user } = useUser();
 
+  // Dismissable "New" badge for the Endowment nav item. Lifted to the parent
+  // so the click handler in NavLink can call dismissFeature() without each
+  // NavLink unconditionally calling the hook.
+  const {
+    isDismissed: isEndowmentBadgeDismissed,
+    dismissFeature: dismissEndowmentBadge,
+    dismissStatus: endowmentBadgeStatus,
+  } = useDismissableFeature(ENDOWMENT_NAV_FEATURE);
+
   const handleNavigate = useCallback(
     (href: string) => {
       router.push(href);
@@ -111,18 +129,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
-      label: 'Notebook',
-      href: '/notebook',
-      iconKey: 'notebook',
-      description: 'Access your research notes',
-      requiresAuth: true,
-    },
-    {
-      label: 'Lists',
-      href: '/lists',
-      isFontAwesome: true,
-      description: 'View and manage your saved lists',
-      requiresAuth: true,
+      label: 'Endowment',
+      href: '/endowment',
+      isLucideSprout: true,
+      isNew: true,
+      newFeatureName: ENDOWMENT_NAV_FEATURE,
+      description: 'Earn Funding Credits on your RSC deposits',
     },
   ];
 
@@ -157,9 +169,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath.startsWith('/notebook');
     }
 
-    // Special case for lists page - match /lists and /list/[id]
-    if (path === '/lists') {
-      return currentPath === '/lists' || currentPath.startsWith('/list/');
+    if (path === '/endowment') {
+      return currentPath.startsWith('/endowment');
     }
 
     // Default case - exact match
@@ -170,7 +181,11 @@ export const Navigation: React.FC<NavigationProps> = ({
     item: NavigationItem;
     currentPath: string;
     onUnimplementedFeature: (featureName: string) => void;
-  }> = ({ item, currentPath, onUnimplementedFeature }) => {
+    /** When true, render the "New" badge next to the label. */
+    showNewBadge?: boolean;
+    /** Fired alongside navigation to mark the new-badge feature as seen. */
+    onDismissNew?: () => void;
+  }> = ({ item, currentPath, onUnimplementedFeature, showNewBadge, onDismissNew }) => {
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
     const buttonStyles = getButtonStyles(item.href, currentPath);
@@ -192,6 +207,10 @@ export const Navigation: React.FC<NavigationProps> = ({
         e.preventDefault();
         onUnimplementedFeature(item.label);
         return;
+      }
+
+      if (onDismissNew) {
+        onDismissNew();
       }
 
       if (item.requiresAuth) {
@@ -216,18 +235,14 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
-          {item.href === '/lists' ? (
-            <FontAwesomeIcon
-              icon={isActive ? faBookmarkSolid : faBookmarkLight}
-              fontSize={24}
-              color={iconColor}
-            />
-          ) : isHomeIcon ? (
+          {isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
               fontSize={20}
               color={iconColor}
             />
+          ) : item.isLucideSprout ? (
+            <Sprout size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           ) : item.iconKey ? (
             <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           ) : (
@@ -235,7 +250,18 @@ export const Navigation: React.FC<NavigationProps> = ({
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="truncate text-[16px] font-semibold">{item.label}</span>
+          <span className="inline-flex items-center gap-2 truncate text-[16px] font-semibold">
+            {item.label}
+            {showNewBadge && (
+              <Badge
+                variant="success"
+                size="xs"
+                className="!rounded-md !bg-primary-500 !text-white !border-primary-600 uppercase tracking-wider font-bold"
+              >
+                New
+              </Badge>
+            )}
+          </span>
         </div>
       </Link>
     );
@@ -243,14 +269,28 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <div className="space-y-1.5">
-      {navigationItems.map((item) => (
-        <NavLink
-          key={item.href}
-          item={item}
-          currentPath={currentPath}
-          onUnimplementedFeature={onUnimplementedFeature}
-        />
-      ))}
+      {navigationItems.map((item) => {
+        const isBeforeEndowmentCutoff = Date.now() < ENDOWMENT_NEW_BADGE_CUTOFF.getTime();
+        const isEndowmentNewBadge =
+          item.newFeatureName === ENDOWMENT_NAV_FEATURE &&
+          item.isNew === true &&
+          isBeforeEndowmentCutoff &&
+          endowmentBadgeStatus === 'checked' &&
+          !isEndowmentBadgeDismissed;
+
+        return (
+          <NavLink
+            key={item.href}
+            item={item}
+            currentPath={currentPath}
+            onUnimplementedFeature={onUnimplementedFeature}
+            showNewBadge={isEndowmentNewBadge}
+            onDismissNew={
+              item.newFeatureName === ENDOWMENT_NAV_FEATURE ? dismissEndowmentBadge : undefined
+            }
+          />
+        );
+      })}
     </div>
   );
 };

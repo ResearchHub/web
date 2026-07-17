@@ -1,26 +1,31 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Check, Files, PenLine, HelpCircle } from 'lucide-react';
+import { Plus, Files, PenLine, HelpCircle, Lock, ArrowRight, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { PostService, ProposalForModal } from '@/services/post.service';
-import { GrantService } from '@/services/grant.service';
+import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
+import { NoteService } from '@/services/note.service';
 import { setPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { useUser } from '@/contexts/UserContext';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { cn } from '@/utils/styles';
+import type { GrantApplicationVisibility } from '@/types/grant';
+import type { Note } from '@/types/note';
+import type { ProposalForModal } from '@/services/post.service';
 
 const ProposalSkeleton = () => (
   <div className="space-y-2">
     {[1, 2, 3].map((i) => (
-      <div key={i} className="p-3 rounded-xl border-2 border-gray-200">
+      <div key={i} className="px-3 py-2 rounded-lg border border-gray-200">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="h-4 w-16 bg-gray-200 rounded-full animate-pulse mb-1.5"></div>
-            <div className="h-5 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-3.5 w-16 bg-gray-200 rounded-full animate-pulse mb-1.5"></div>
+            <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
           </div>
           <div className="w-4 h-4 bg-gray-200 rounded-full animate-pulse flex-shrink-0"></div>
         </div>
@@ -39,93 +44,103 @@ interface ApplyToGrantModalProps {
   grantShortTitle?: string;
   grantImageUrl?: string;
   grantOrganization?: string;
+  grantApplicationVisibility?: GrantApplicationVisibility;
 }
 
 export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   isOpen,
   onClose,
-  onUseSelected,
   grantId,
   grantTitle,
   grantAmountUsd,
   grantShortTitle,
   grantImageUrl,
   grantOrganization,
+  grantApplicationVisibility,
 }) => {
-  const [proposals, setProposals] = useState<ProposalForModal[]>([]);
-  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [draftNotes, setDraftNotes] = useState<Note[]>([]);
+  const [selectedDraftNoteId, setSelectedDraftNoteId] = useState<string | null>(null);
   const [draftNewSelected, setDraftNewSelected] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const { user } = useUser();
+  const { selectedOrg } = useOrganizationContext();
   const router = useRouter();
 
-  const selectedProposal = proposals.find((p) => p.id === selectedProposalId);
+  const selectedDraftNote = draftNotes.find((n) => n.id.toString() === selectedDraftNoteId);
 
-  const handleSelectDraftNew = () => {
-    setDraftNewSelected(true);
-    setSelectedProposalId(null);
-  };
-
-  const handleSelectProposal = (id: string) => {
-    setSelectedProposalId(id);
-    setDraftNewSelected(false);
-  };
-
-  const handleDraftNew = () => {
+  const setPendingGrantForGrant = () => {
     setPendingGrant({
       id: grantId,
       shortTitle: grantShortTitle || grantTitle || '',
       imageUrl: grantImageUrl || '',
       fundingAmount: grantAmountUsd || 0,
       organization: grantOrganization || '',
+      applicationVisibility: grantApplicationVisibility,
     });
+  };
+
+  const handleSelectDraftNew = () => {
+    setDraftNewSelected(true);
+    setSelectedDraftNoteId(null);
+  };
+
+  const handleSelectDraftNote = (id: string) => {
+    setSelectedDraftNoteId(id);
+    setDraftNewSelected(false);
+  };
+
+  const handleDraftNew = () => {
+    setPendingGrantForGrant();
     onClose();
     router.push('/notebook?newFunding=true');
   };
 
+  const handleContinueWithDraft = () => {
+    if (!selectedDraftNote) return;
+
+    setPendingGrantForGrant();
+    onClose();
+    router.push(
+      `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
+    );
+  };
+
+  const handleFooterAction = () => {
+    if (draftNewSelected) {
+      handleDraftNew();
+      return;
+    }
+    handleContinueWithDraft();
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setSelectedProposalId(null);
+      setSelectedDraftNoteId(null);
       setDraftNewSelected(false);
       if (user?.id) {
-        fetchProposals();
+        fetchDraftNotes();
       }
     }
-  }, [isOpen, user?.id]);
+  }, [isOpen, user?.id, selectedOrg?.slug]);
 
-  // Fetch proposals
-  const fetchProposals = async () => {
-    if (!user?.id) return;
+  const fetchDraftNotes = async () => {
+    if (!user?.id || !selectedOrg?.slug) {
+      setDraftNotes([]);
+      return;
+    }
 
     setLoading(true);
     try {
-      const proposals = await PostService.getProposalsByUser(user.id);
-      setProposals(proposals);
+      const response = await NoteService.getOrganizationNotes(selectedOrg.slug, {
+        status: 'DRAFT',
+        documentType: 'PREREGISTRATION',
+      });
+      setDraftNotes(response.results);
     } catch (error) {
-      console.error('Error fetching proposals:', error);
-      // Show error state or fallback
-      setProposals([]);
+      console.error('Error fetching draft notes:', error);
+      setDraftNotes([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Handle applying to grant with selected proposal
-  const handleApplyToGrant = async () => {
-    if (!selectedProposal) return;
-
-    setSubmitting(true);
-    try {
-      await GrantService.applyToGrant(grantId, selectedProposal.postId);
-      toast.success('Successfully applied to RFP!');
-      onClose();
-      onUseSelected(selectedProposal);
-    } catch (error) {
-      console.error('Error applying to RFP:', error);
-      toast.error('Failed to apply to RFP. Please try again.');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -141,165 +156,207 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     }
   };
 
-  const headerTitle = (
-    <div className="flex flex-col gap-1">
-      <span className="text-lg font-medium text-gray-900">Apply to Funding</span>
-      {grantTitle && (
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm text-gray-500 truncate">{grantTitle}</span>
+  const hasSelection = draftNewSelected || selectedDraftNote;
+
+  const renderDraftNoteCard = (note: Note) => {
+    const noteId = note.id.toString();
+    const isSelected = noteId === selectedDraftNoteId && !draftNewSelected;
+
+    return (
+      <div
+        key={noteId}
+        onClick={() => handleSelectDraftNote(noteId)}
+        className={cn(
+          'min-w-0 px-3 py-2 rounded-lg border cursor-pointer transition-all duration-200',
+          isSelected
+            ? 'border-blue-300 bg-blue-50'
+            : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <Badge variant="default" size="sm">
+                Draft
+              </Badge>
+              {note.createdDate && (
+                <>
+                  <span className="text-gray-300">&middot;</span>
+                  <span className="text-[11px] text-gray-400">{formatDate(note.createdDate)}</span>
+                </>
+              )}
+            </div>
+            <h4
+              className="mt-0.5 truncate text-sm font-medium leading-snug text-gray-900"
+              title={note.title || 'Untitled'}
+            >
+              {note.title || 'Untitled'}
+            </h4>
+          </div>
+          <input
+            type="radio"
+            name="proposal-option"
+            value={noteId}
+            checked={isSelected}
+            onChange={() => handleSelectDraftNote(noteId)}
+            className="w-4 h-4 flex-shrink-0 text-blue-600 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-      )}
-    </div>
-  );
-
-  const canApply = selectedProposal && !draftNewSelected;
-
-  const footerContent = (
-    <Button
-      variant="default"
-      onClick={draftNewSelected ? handleDraftNew : handleApplyToGrant}
-      disabled={draftNewSelected ? submitting : !canApply || submitting}
-      className={`w-full ${draftNewSelected ? 'bg-gray-900 hover:bg-black text-white' : ''}`}
-      size="lg"
-    >
-      {draftNewSelected ? (
-        <>
-          <PenLine size={16} className="mr-2" />
-          Start drafting
-        </>
-      ) : (
-        <>
-          <Check size={16} className="mr-2" />
-          {submitting ? 'Applying...' : 'Apply with selected proposal'}
-        </>
-      )}
-    </Button>
-  );
+      </div>
+    );
+  };
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={headerTitle}
-      maxWidth="max-w-[600px]"
-      padding="p-6"
-      footer={footerContent}
+      showCloseButton={false}
+      padding="p-0"
+      className="md:!w-auto md:!h-auto md:!max-h-[88vh] md:!rounded-2xl md:!max-w-[760px] overflow-x-hidden"
     >
-      <div className="space-y-3">
-        {/* Section title */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-900">Choose how to apply</h3>
-          <Tooltip
-            content="Proposals are an ideal format for applying to funding. Share your research plan and funding needs upfront."
-            position="bottom"
-            width="w-72"
+      <div className="flex h-full min-w-0 flex-col md:flex-row">
+        {/* Left visual rail */}
+        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-5 md:w-[300px] md:max-w-[300px] md:px-9 md:py-8">
+          {/* Mobile close button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
+            aria-label="Close"
           >
-            <span className="inline-flex items-center gap-1 text-xs text-gray-500 cursor-help border-b border-dashed border-gray-400">
-              <HelpCircle className="w-3 h-3" />
-              What is a proposal?
-            </span>
-          </Tooltip>
+            <X className="h-4 w-4" />
+          </button>
+          {/* Soft glow blobs */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-50 blur-[40px]"
+            style={{ background: '#ffd9b0' }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
+            style={{ background: '#bcd2ff' }}
+          />
+
+          <div className="relative z-10 flex w-full min-w-0 max-w-full flex-col items-center text-center">
+            <div className="mb-2 flex h-[100px] items-center justify-center md:h-[230px]">
+              <div className="origin-center scale-[0.42] md:scale-100">
+                <AnimatedProposal scale={0.66} />
+              </div>
+            </div>
+            <Dialog.Title
+              as="h2"
+              className="text-[26px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
+            >
+              Apply to Funding
+            </Dialog.Title>
+            {grantTitle && (
+              <p className="mt-3 text-base leading-[1.5] text-gray-600">{grantTitle}</p>
+            )}
+          </div>
         </div>
 
-        {/* Scrollable options list */}
-        <div className="max-h-[320px] overflow-y-auto space-y-2 pr-1">
-          {/* Draft new proposal — always first */}
-          <div
-            onClick={handleSelectDraftNew}
-            className={`p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-              draftNewSelected
-                ? 'border-blue-300 bg-blue-50'
-                : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
-            }`}
+        {/* Right content */}
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-6 md:p-8">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 hidden h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 md:inline-flex"
+            aria-label="Close"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0">
-                <Plus size={20} className="text-gray-500" />
-              </div>
-              <span className="text-sm font-medium text-gray-900 flex-1">Draft a new proposal</span>
-              <input
-                type="radio"
-                name="proposal-option"
-                checked={draftNewSelected}
-                onChange={handleSelectDraftNew}
-                className="w-4 h-4 flex-shrink-0 text-blue-600 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="flex items-center justify-between gap-3 pr-10">
+            <h3 className="text-sm font-medium text-gray-900">Choose how to apply</h3>
+            <Tooltip
+              content="Proposals are an ideal format for applying to funding. Share your research plan and funding needs upfront."
+              position="bottom"
+              width="w-72"
+            >
+              <span className="inline-flex items-center gap-1 text-xs text-gray-500 cursor-help border-b border-dashed border-gray-400">
+                <HelpCircle className="w-3 h-3" />
+                What is a proposal?
+              </span>
+            </Tooltip>
           </div>
 
-          {/* Existing proposals */}
-          {loading ? (
-            <ProposalSkeleton />
-          ) : proposals.length > 0 ? (
-            proposals.map((proposal) => {
-              const isSelected = proposal.id === selectedProposalId && !draftNewSelected;
-              const isDraft = proposal.status === 'draft';
-              const isSelectable = !isDraft;
-
-              return (
-                <div
-                  key={proposal.id}
-                  onClick={() => isSelectable && handleSelectProposal(proposal.id)}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                    isDraft
-                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                      : isSelected
-                        ? 'border-blue-300 bg-blue-50 cursor-pointer'
-                        : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        {isDraft ? (
-                          <Badge variant="default" size="sm">
-                            Draft
-                          </Badge>
-                        ) : (
-                          <Badge variant="success" size="sm">
-                            Published
-                          </Badge>
-                        )}
-                        {proposal.createdDate && (
-                          <>
-                            <span className="text-gray-300">&middot;</span>
-                            <span className="text-[11px] text-gray-400">
-                              {formatDate(proposal.createdDate)}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      <h4
-                        className={`text-sm font-medium leading-snug ${isDraft ? 'text-gray-500' : 'text-gray-900'}`}
-                      >
-                        {proposal.title}
-                      </h4>
-                    </div>
-                    <input
-                      type="radio"
-                      name="proposal-option"
-                      value={proposal.id}
-                      checked={isSelected}
-                      onChange={() => isSelectable && handleSelectProposal(proposal.id)}
-                      disabled={isDraft}
-                      className={`w-4 h-4 flex-shrink-0 focus:ring-2 ${
-                        isDraft
-                          ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed'
-                          : 'text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500'
-                      }`}
-                    />
-                  </div>
+          <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 md:max-h-[360px]">
+            <div
+              onClick={handleSelectDraftNew}
+              className={cn(
+                'px-3 py-2 rounded-lg border cursor-pointer transition-all duration-200',
+                draftNewSelected
+                  ? 'border-blue-300 bg-blue-50'
+                  : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center flex-shrink-0">
+                  <Plus size={18} className="text-gray-500" />
                 </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-8">
-              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Files className="w-6 h-6 text-gray-400" />
+                <span className="text-sm font-medium text-gray-900 flex-1">
+                  Draft a new proposal
+                </span>
+                <input
+                  type="radio"
+                  name="proposal-option"
+                  checked={draftNewSelected}
+                  onChange={handleSelectDraftNew}
+                  className="w-4 h-4 flex-shrink-0 text-blue-600 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-blue-500"
+                />
               </div>
-              <p className="text-sm text-gray-500">Your proposals will appear here</p>
             </div>
-          )}
+
+            {loading ? (
+              <ProposalSkeleton />
+            ) : (
+              <>
+                {draftNotes.map(renderDraftNoteCard)}
+                {draftNotes.length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Files className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-500">Your draft proposals will appear here</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {grantApplicationVisibility === 'PRIVATE' && (
+              <div className="rounded-lg border border-primary-600 bg-primary-50 p-3">
+                <div className="flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 flex-shrink-0 text-primary-700" />
+                  <p className="text-xs font-medium text-primary-900">Private submission</p>
+                </div>
+                <p className="mt-1 text-xs text-primary-700">
+                  Only funders and vetted peer-reviewers will be able to view your proposal.
+                </p>
+              </div>
+            )}
+            <Button
+              variant={draftNewSelected ? 'dark' : 'default'}
+              onClick={handleFooterAction}
+              disabled={!hasSelection}
+              className="w-full"
+              size="lg"
+            >
+              {draftNewSelected ? (
+                <>
+                  <PenLine size={16} className="mr-2" />
+                  Start drafting
+                </>
+              ) : (
+                <>
+                  Continue
+                  <ArrowRight size={16} className="ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </BaseModal>

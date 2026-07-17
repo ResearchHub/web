@@ -18,10 +18,10 @@ export interface ProposalListResponse {
 export interface ProposalForModal {
   id: string;
   title: string;
-  status: 'published' | 'draft';
   createdDate: string;
   doi?: string;
   postId: number;
+  isPublic: boolean;
 }
 
 // Transform proposal from API response to modal format
@@ -29,10 +29,10 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
   return {
     id: raw.id.toString(),
     title: raw.title || '',
-    status: raw.doi ? 'published' : 'draft',
     createdDate: raw.created_date,
     doi: raw.doi,
     postId: raw.note?.post?.id || raw.id, // Use note.post.id if available, fallback to raw.id
+    isPublic: raw.unified_document?.is_public ?? true,
   };
 };
 
@@ -48,6 +48,11 @@ export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
   static async get(id: string): Promise<Work> {
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+    return transformPost(response);
+  }
+
+  static async getPublic(id: string): Promise<Work> {
     const response = await ApiClient.getPublic<any>(`${this.BASE_PATH}/${id}/`);
     return transformPost(response);
   }

@@ -4,12 +4,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import {
   ExpertFinderService,
+  type AddExpertPayload,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
+  type PatchExpertPayload,
   type UpdateGeneratedEmailPayload,
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import type {
+  ExpertResult,
   ExpertSearchCreated,
   InvitedExperts,
   ExpertSearchResult,
@@ -177,6 +181,78 @@ export function useCreateExpertSearch(): UseCreateExpertSearchReturn {
   );
 
   return [{ created, isLoading, error }, createSearch];
+}
+
+// ── usePatchExpert ────────────────────────────────────────────────────────────
+
+interface UsePatchExpertState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type PatchExpertFn = (expertId: number, payload: PatchExpertPayload) => Promise<void>;
+type UsePatchExpertReturn = [UsePatchExpertState, PatchExpertFn];
+
+/**
+ * PATCH canonical expert (contact / name fields).
+ */
+export function usePatchExpert(): UsePatchExpertReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const patchExpert = useCallback(async (expertId: number, payload: PatchExpertPayload) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderService.patchExpert(expertId, payload);
+    } catch (err: unknown) {
+      const message = extractApiErrorMessage(err, 'Failed to update expert');
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, patchExpert];
+}
+
+// ── useAddExpert ──────────────────────────────────────────────────────────────
+
+interface UseAddExpertState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type AddExpertFn = (searchId: number | string, payload: AddExpertPayload) => Promise<ExpertResult>;
+type UseAddExpertReturn = [UseAddExpertState, AddExpertFn];
+
+/**
+ * Manually add an expert to an existing search.
+ */
+export function useAddExpert(): UseAddExpertReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const addExpert = useCallback(
+    async (searchId: number | string, payload: AddExpertPayload): Promise<ExpertResult> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await ExpertFinderService.addExpert(searchId, payload);
+        return result;
+      } catch (err: unknown) {
+        const message = extractApiErrorMessage(err, 'Failed to add expert');
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, addExpert];
 }
 
 // ── useWorkByUnifiedDocumentId ───────────────────────────────────────────────
@@ -496,7 +572,7 @@ interface UsePreviewEmailsState {
 
 type PreviewEmailsFn = (payload: {
   generated_email_ids: number[];
-  reply_to?: string;
+  reply_to: string[];
 }) => Promise<{ sent: number }>;
 type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
 
@@ -510,7 +586,7 @@ export function usePreviewEmails(): UsePreviewEmailsReturn {
   const previewEmails = useCallback(
     async (payload: {
       generated_email_ids: number[];
-      reply_to?: string;
+      reply_to: string[];
     }): Promise<{ sent: number }> => {
       setIsLoading(true);
       setError(null);
@@ -540,7 +616,7 @@ interface UseSendEmailsState {
 
 type SendEmailsFn = (payload: {
   generated_email_ids: number[];
-  reply_to?: string;
+  reply_to: string[];
   cc?: string[];
 }) => Promise<{ sent: number }>;
 type UseSendEmailsReturn = [UseSendEmailsState, SendEmailsFn];
@@ -555,7 +631,7 @@ export function useSendEmails(): UseSendEmailsReturn {
   const sendEmails = useCallback(
     async (payload: {
       generated_email_ids: number[];
-      reply_to?: string;
+      reply_to: string[];
       cc?: string[];
     }): Promise<{ sent: number }> => {
       setIsLoading(true);

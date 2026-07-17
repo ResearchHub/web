@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService, CreatePaperPayload } from '@/services/paper.service';
+import { ApiError } from '@/services/types';
 import toast from 'react-hot-toast';
 import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
@@ -231,7 +232,7 @@ export default function UploadPDFPage() {
     if (validateCurrentStep()) {
       if (currentStepIndex < steps.length - 1) {
         setCurrentStepIndex(currentStepIndex + 1);
-        window.scrollTo(0, 0);
+        globalThis.scrollTo(0, 0);
       } else {
         handleSubmit();
       }
@@ -241,7 +242,7 @@ export default function UploadPDFPage() {
   const handleBack = () => {
     if (currentStepIndex > 0) {
       setCurrentStepIndex(currentStepIndex - 1);
-      window.scrollTo(0, 0);
+      globalThis.scrollTo(0, 0);
     } else {
       router.back();
     }
@@ -295,12 +296,18 @@ export default function UploadPDFPage() {
       const response = await PaperService.create(payload);
 
       toast.dismiss(loadingToast);
-      toast.success('Paper submitted successfully!');
+      const isPending = response.status === 'PENDING';
+      toast.success(
+        isPending
+          ? 'Paper submitted and is pending moderator review.'
+          : 'Paper submitted successfully!'
+      );
 
+      const statusParam = `&status=${response.status ?? ''}`;
       if (submitToJournal) {
         try {
-          const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true`;
-          const failureUrl = `${window.location.origin}/`;
+          const successUrl = `${globalThis.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true${statusParam}`;
+          const failureUrl = `${globalThis.location.origin}/`;
 
           const checkoutData = await PaperService.payForJournalSubmission(
             response.id,
@@ -309,7 +316,7 @@ export default function UploadPDFPage() {
           );
 
           if (checkoutData.url) {
-            window.location.href = checkoutData.url;
+            globalThis.location.href = checkoutData.url;
             return;
           } else {
             throw new Error('No checkout URL received from server');
@@ -322,13 +329,19 @@ export default function UploadPDFPage() {
         }
       } else {
         router.push(
-          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}`
+          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}${statusParam}`
         );
       }
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to submit paper. Please try again.');
+      const fallback = 'Failed to submit paper. Please try again.';
+      if (error instanceof ApiError) {
+        const errorData = error.errors as Record<string, any> | undefined;
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
+      } else {
+        toast.error(fallback);
+      }
       setIsSubmitting(false);
     }
   };
@@ -461,7 +474,7 @@ export default function UploadPDFPage() {
                     By checking this box, you confirm that you have read and agree to the
                     ResearchHub{' '}
                     <a
-                      href="https://www.researchhub.com/about/tos"
+                      href="https://www.researchhub.com/tos"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 hover:text-primary-700 hover:underline"
@@ -545,10 +558,6 @@ export default function UploadPDFPage() {
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">DOI Assignment</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
                   </li>
                   <li className="flex items-center">
@@ -590,10 +599,6 @@ export default function UploadPDFPage() {
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700">Open Access Publication</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">DOI Assignment</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}

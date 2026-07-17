@@ -76,6 +76,33 @@ export function formatRSC({
   return valueToFormat.toLocaleString();
 }
 
+export function formatBadgeCount(count: number): string {
+  return count > 9 ? '9+' : count.toString();
+}
+
+/**
+ * Returns the number of decimal places in a number
+ * @example
+ * getDecimalPlaces(100) // 0
+ * getDecimalPlaces(10.5) // 1
+ * getDecimalPlaces(10.25) // 2
+ */
+export function getDecimalPlaces(num: number): number {
+  const str = String(num);
+  const idx = str.indexOf('.');
+  return idx === -1 ? 0 : str.length - idx - 1;
+}
+
+/**
+ * Returns the maximum number of decimal places across multiple numbers
+ * @example
+ * getMaxDecimalPlaces(100, 10.5, 89.5) // 1
+ * getMaxDecimalPlaces(100, 10.25, 89.75) // 2
+ */
+export function getMaxDecimalPlaces(...nums: number[]): number {
+  return Math.max(...nums.map(getDecimalPlaces));
+}
+
 /**
  * Formats a transaction amount with a + or - prefix and RSC suffix
  * @param amount The amount to format
@@ -115,6 +142,16 @@ export function formatUsdValue(
     maximumFractionDigits: 2,
   });
   return `${usdValue < 0 ? '-$' : '$'}${absValue} USD`;
+}
+
+/**
+ * Formats a value that is already in USD (no RSC conversion).
+ *
+ * @example
+ * formatLiteralUsd(5250.25) // "$5,250.25 USD"
+ */
+export function formatLiteralUsd(amount: number | string): string {
+  return formatUsdValue(amount.toString(), 0, false);
 }
 
 interface BalanceData {

@@ -28,14 +28,13 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/earn',
   '/fund',
   '/fund/proposals',
-  '/dashboard',
-  '/dashboard/impact',
   '/journal',
   '/notebook',
   '/browse',
   '/leaderboard',
   '/lists',
   '/settings',
+  '/endowment',
 ]);
 
 export const isRootNavigationPage = (pathname: string): boolean =>
@@ -120,7 +119,7 @@ const ROUTE_RULES: RouteRule[] = [
   {
     match: (p) => p.startsWith('/moderators'),
     getInfo: () => ({
-      title: 'Moderation Dashboard',
+      title: 'Moderation',
       icon: <Shield size={24} className="text-gray-900" />,
     }),
   },
@@ -129,13 +128,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Expert Finder',
       icon: <Users size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/dashboard'),
-    getInfo: () => ({
-      title: 'My Dashboard',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {
@@ -150,6 +142,13 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Settings',
       icon: <Settings size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p === '/endowment',
+    getInfo: () => ({
+      title: 'ResearchHub Endowment',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {

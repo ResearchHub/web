@@ -21,6 +21,140 @@ const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
 
 const SUPPORTED_ROUTE_SEGMENTS = Object.keys(ROUTE_SEGMENT_TO_CONTENT_TYPE).join(', ');
 
+/**
+ * Matches an HTTP/HTTPS URL anywhere in a string. Stops at whitespace and a
+ * few characters that commonly bracket URLs in prose. The match may include
+ * trailing punctuation — strip it with `trimUrlTrailingPunctuation` if you
+ * need a clean URL.
+ *
+ * Safe to share across modules for `String.prototype.match` and
+ * `String.prototype.replace`; do not use with `regex.exec` / `matchAll`
+ * without recreating the regex (the `g` flag is stateful in those APIs).
+ */
+export const URL_REGEX = /https?:\/\/[^\s<>"'`)]+/gi;
+
+/**
+ * Strips trailing sentence/parenthesis punctuation that `URL_REGEX` greedily
+ * picks up when a URL appears inline in prose (e.g. "see https://x.com." →
+ * "https://x.com").
+ */
+export const trimUrlTrailingPunctuation = (url: string): string => url.replace(/[.,;:!?)\]]+$/, '');
+
+/**
+ * Removes all HTTP/HTTPS URLs from a text blob. Whitespace left behind is not
+ * collapsed; the caller can normalize as needed.
+ */
+export const stripUrls = (text: string): string => text.replace(URL_REGEX, '');
+
+/**
+ * URL classification primitives. Pure functions / data — no React, no DOM.
+ *
+ * `classifyUrl` looks at a URL and tags it with one of a small set of "kinds"
+ * so callers can decide how to render or handle it (e.g. embed it as a
+ * playable card, render an inline rich link, etc.). The result is intentionally
+ * lightweight (kind + url + a few optional ids) so it can flow through the
+ * codebase as plain JSON.
+ */
+export type UrlKind = 'youtube' | 'tiktok' | 'x' | 'linkedin' | 'webpage';
+
+/**
+ * LinkedIn post IDs live in one of three URN namespaces depending on what
+ * kind of object the post is (a native post, a re-share, or a generic UGC
+ * object). The numeric ID alone is *not* enough to embed — `urn:li:activity:`
+ * vs `urn:li:share:` vs `urn:li:ugcPost:` resolve to different posts (or
+ * 404). LinkedIn share URLs encode the right namespace as a keyword
+ * immediately before the ID: `…-<type>-<id>-<XYZA>`.
+ */
+export type LinkedInUrnType = 'activity' | 'share' | 'ugcPost';
+
+export interface DetectedUrl {
+  kind: UrlKind;
+  url: string;
+  videoId?: string;
+  linkedinUrn?: string;
+  linkedinUrnType?: LinkedInUrnType;
+  tweetId?: string;
+}
+
+export function classifyUrl(url: string): DetectedUrl | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  // Restrict to web URLs so things like `mailto:`, `tel:`, `ftp:` don't end
+  // up classified as embeddable webpages. The carousel + chip + paste-handler
+  // all key off this, so excluding them here is enough to keep emails out of
+  // the EmbedCarousel that renders below comments.
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  const host = u.hostname.replace(/^www\./, '');
+
+  if (host === 'youtube.com' || host === 'm.youtube.com') {
+    const v = u.searchParams.get('v');
+    if (v) return { kind: 'youtube', url, videoId: v };
+    const shorts = u.pathname.match(/^\/shorts\/([\w-]+)/);
+    if (shorts) return { kind: 'youtube', url, videoId: shorts[1] };
+  }
+  if (host === 'youtu.be') {
+    const id = u.pathname.slice(1);
+    if (id) return { kind: 'youtube', url, videoId: id };
+  }
+  if (host.endsWith('tiktok.com')) {
+    const m = u.pathname.match(/\/video\/(\d+)/);
+    if (m) return { kind: 'tiktok', url, videoId: m[1] };
+    return { kind: 'tiktok', url };
+  }
+  if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com') {
+    const m = u.pathname.match(/\/status\/(\d+)/);
+    return { kind: 'x', url, tweetId: m ? m[1] : undefined };
+  }
+  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+    // LinkedIn carries the URN type in two places:
+    //   1. Explicit URN form `urn:li:<type>:<id>` (used in /feed/update/ paths).
+    //   2. Share-URL slug `…/posts/<slug>-<type>-<id>-<XYZA>?…` where <type>
+    //      is one of activity/share/ugcPost. Older /posts/ URLs omit the
+    //      keyword and just have `…-<id>-<XYZA>`; we fall back to `activity`
+    //      for those (the historical default).
+    // Picking the wrong URN type is what produces a 404 in the embed
+    // iframe — `urn:li:activity:<share-id>` doesn't resolve.
+    const explicit = url.match(/urn:li:(activity|share|ugcPost):(\d{15,25})/i);
+    const slug = url.match(/-(?:(activity|share|ugcPost)-)?(\d{15,25})-[A-Za-z0-9]+(?=\?|\/|#|$)/i);
+    const id = explicit?.[2] || slug?.[2];
+    const rawType = explicit?.[1] || slug?.[1];
+    const linkedinUrnType: LinkedInUrnType = (() => {
+      if (!rawType) return 'activity';
+      const lower = rawType.toLowerCase();
+      if (lower === 'ugcpost') return 'ugcPost';
+      if (lower === 'share') return 'share';
+      return 'activity';
+    })();
+    return {
+      kind: 'linkedin',
+      url,
+      linkedinUrn: id,
+      linkedinUrnType: id ? linkedinUrnType : undefined,
+    };
+  }
+  return { kind: 'webpage', url };
+}
+
+/**
+ * Scans `text` for the first URL and returns it as a `DetectedUrl`, trimming
+ * trailing prose punctuation. Returns `null` if no classifiable URL is found.
+ */
+export function extractFirstUrl(text: string): DetectedUrl | null {
+  if (!text) return null;
+  const matches = text.match(URL_REGEX);
+  if (!matches) return null;
+  for (const raw of matches) {
+    const url = trimUrlTrailingPunctuation(raw);
+    const detected = classifyUrl(url);
+    if (detected) return detected;
+  }
+  return null;
+}
+
 /** Hostname without leading www. for same-site checks. */
 function hostnameWithoutWww(hostname: string): string {
   const h = hostname.toLowerCase();
@@ -152,7 +286,7 @@ export const buildWorkUrl = ({
   contentType: ContentType;
   doi?: string | null;
   slug?: string;
-  tab?: 'reviews' | 'bounties' | 'conversation';
+  tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
 }) => {
   let baseUrl = '';
 

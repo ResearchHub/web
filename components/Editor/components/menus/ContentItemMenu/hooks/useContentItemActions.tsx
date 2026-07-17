@@ -2,6 +2,7 @@ import { Node } from '@tiptap/pm/model';
 import { NodeSelection } from '@tiptap/pm/state';
 import { Editor } from '@tiptap/react';
 import { useCallback } from 'react';
+import { Command } from '@/components/Editor/extensions/SlashCommand/types';
 
 const useContentItemActions = (
   editor: Editor,
@@ -79,12 +80,34 @@ const useContentItemActions = (
     }
   }, [currentNode, currentNodePos, editor]);
 
+  const turnInto = useCallback(
+    (command: Command) => {
+      if (currentNodePos === -1) return;
+
+      if (command.convertAction) {
+        editor.chain().setMeta('hideDragHandle', true).setNodeSelection(currentNodePos).run();
+        command.convertAction(editor);
+        return;
+      }
+
+      editor
+        .chain()
+        .setMeta('hideDragHandle', true)
+        .setNodeSelection(currentNodePos)
+        .deleteSelection()
+        .run();
+      command.action(editor);
+    },
+    [editor, currentNodePos]
+  );
+
   return {
     resetTextFormatting,
     duplicateNode,
     copyNodeToClipboard,
     deleteNode,
     handleAdd,
+    turnInto,
   };
 };
 

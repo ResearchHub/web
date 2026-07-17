@@ -1,18 +1,10 @@
-import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
+import DocumentSkeleton from '@/components/skeletons/DocumentSkeleton';
 
 export default function GrantSlugLoading() {
   return (
-    <div>
-      <div className="flex items-center justify-between mt-6 mb-2">
-        <div className="h-5 w-52 rounded bg-gray-200 animate-pulse" />
-        <div className="h-5 w-24 rounded bg-gray-200 animate-pulse" />
-      </div>
-
-      <div className="mt-4 space-y-8">
-        {Array.from({ length: 3 }, (_, i) => (
-          <FeedItemSkeleton key={i} />
-        ))}
-      </div>
+    <div className="py-6">
+      <div className="w-full h-[200px] sm:h-[280px] rounded-xl bg-gray-200 animate-pulse mb-6" />
+      <DocumentSkeleton className="max-w-[860px] !px-0 !pt-0" lines={12} />
     </div>
   );
 }

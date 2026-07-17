@@ -1,6 +1,3 @@
-import { PaperIcon } from '@/components/ui/icons';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
-import { Coins, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
@@ -30,8 +27,6 @@ export const ContentTypeBadge = ({
   type,
   className = '',
   size = 'default',
-  score,
-  maxScore = 5,
   showTooltip = true,
 }: ContentTypeBadgeProps) => {
   if (type === 'paper') {
@@ -136,7 +131,7 @@ export const ContentTypeBadge = ({
         className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
       >
         <Icon name="fund" size={16} color="#374151" />
-        <span>RFP</span>
+        <span>Funding Opportunity</span>
       </Badge>
     );
 

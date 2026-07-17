@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useTransition } from 'react';
+import { use, useEffect, useState, useTransition } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -9,6 +9,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
+import { FeedEntry } from '@/types/feed';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import { ModerationTab } from '@/components/profile/ModerationTab';
@@ -141,16 +142,15 @@ function AuthorTabContent({
     const entries =
       restoredPublicationsEntries ||
       publications
-        .filter((publication) => {
+        .map((publication) => {
           try {
-            const entry = transformPublicationToFeedEntry(publication);
-            return !!entry;
+            return transformPublicationToFeedEntry(publication);
           } catch (error) {
-            console.error('[Publication] Could not parse publication', error);
-            return false;
+            console.warn('[Publication] Could not parse publication', error);
+            return null;
           }
         })
-        .map((publication) => transformPublicationToFeedEntry(publication));
+        .filter((entry): entry is FeedEntry => !!entry);
 
     return (
       <FeedContent
@@ -167,6 +167,7 @@ function AuthorTabContent({
         restoredScrollPosition={restoredPublicationsScrollPosition}
         lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
         shouldRenderBountyAsComment={true}
+        wideContent
       />
     );
   }
@@ -177,12 +178,16 @@ function AuthorTabContent({
 
   const entries =
     restoredContributionsEntries ||
-    contributions.map((contribution) =>
-      transformContributionToFeedEntry({
-        contribution,
-        contributionType,
+    contributions
+      .map((contribution) => {
+        try {
+          return transformContributionToFeedEntry({ contribution, contributionType });
+        } catch (error) {
+          console.error('[Contribution] Could not transform contribution', error);
+          return null;
+        }
       })
-    );
+      .filter((entry): entry is FeedEntry => !!entry);
 
   return (
     <div>
@@ -208,6 +213,7 @@ function AuthorTabContent({
         restoredScrollPosition={restoredContributionsScrollPosition}
         lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
         shouldRenderBountyAsComment={true}
+        wideContent
       />
     </div>
   );
@@ -227,9 +233,19 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const currentTab = searchParams.get('tab') || 'contributions';
+  const urlTab = searchParams.get('tab') || 'contributions';
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pendingTab === urlTab) {
+      setPendingTab(null);
+    }
+  }, [urlTab, pendingTab]);
+
+  const currentTab = pendingTab ?? urlTab;
 
   const setTab = (tabId: string) => {
+    setPendingTab(tabId);
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
       params.set('tab', tabId);
@@ -278,8 +294,12 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     <Tabs tabs={tabs} activeTab={activeGroup} onTabChange={handleTopTabChange} variant="primary" />
   ) : undefined;
 
+  const profileLoading = isLoading || isUserLoading;
+
   const topBanner = (() => {
-    if (isLoading || isUserLoading) return <ProfileHeroBannerSkeleton tabBar={tabBar} />;
+    if (profileLoading) {
+      return <ProfileHeroBannerSkeleton />;
+    }
     if (error || userError || !user?.authorProfile) return undefined;
     return (
       <ProfileHeroBanner
@@ -290,7 +310,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     );
   })();
 
-  const profileLoading = isLoading || isUserLoading;
   const author = user?.authorProfile;
   const profileError = error || userError;
   const isOwnProfile = viewingOwnProfile;

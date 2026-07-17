@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
+import { EndaomentProvider } from '@/contexts/EndaomentContext';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'ResearchCoin (RSC)',
@@ -9,5 +10,5 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 });
 
 export default function ResearchCoinLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <EndaomentProvider>{children}</EndaomentProvider>;
 }
