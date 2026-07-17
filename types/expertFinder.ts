@@ -78,7 +78,7 @@ export function isProposalDraftActive(draft: ProposalDraft | null | undefined): 
 }
 
 export function isProposalDraftComplete(draft: ProposalDraft | null | undefined): boolean {
-  return draft != null && draft.status === 'COMPLETED' && draft.noteId != null;
+  return draft?.status === 'COMPLETED' && draft.noteId != null;
 }
 
 /** 1-based position of the draft's current step, for progress display. */
