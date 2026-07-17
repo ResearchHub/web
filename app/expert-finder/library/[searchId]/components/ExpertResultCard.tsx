@@ -71,7 +71,7 @@ function ProposalDraftSection({
   isOpeningNote,
   onStart,
   onOpenNote,
-}: ProposalDraftSectionProps) {
+}: Readonly<ProposalDraftSectionProps>) {
   if (draft && isProposalDraftActive(draft)) {
     const progress = proposalDraftStepProgress(draft);
     return (
