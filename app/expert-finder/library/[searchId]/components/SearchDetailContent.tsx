@@ -19,7 +19,7 @@ import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
-import type { ExpertResult } from '@/types/expertFinder';
+import type { ExpertResult, ProposalDraft } from '@/types/expertFinder';
 
 export interface SearchDetailContentProps {
   searchId: string;
@@ -93,18 +93,40 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     });
   }, []);
 
-  const openGenerateForExperts = useCallback((experts: ExpertResult[]) => {
-    setGenerateExperts(experts);
-    setShowGenerateModal(true);
-  }, []);
+  // Live proposal drafts reported by the cards, which poll while a draft is
+  // running. The drafts embedded in searchDetail are only as fresh as the
+  // last search fetch, so payload-building merges these over them.
+  const [liveProposalDrafts, setLiveProposalDrafts] = useState<Map<number, ProposalDraft | null>>(
+    () => new Map()
+  );
 
-  // Proposal-outreach emails skip the template chooser: the backend forces the
-  // proposal-draft-outreach template when a draft is linked.
-  const openProposalEmailForExperts = useCallback((experts: ExpertResult[]) => {
-    setGenerateExperts(experts);
-    setGeneratePayload({ mode: 'proposal' });
-    setShowProgressModal(true);
-  }, []);
+  const handleProposalDraftChange = useCallback(
+    (searchExpertId: number, draft: ProposalDraft | null) => {
+      setLiveProposalDrafts((prev) => {
+        if (prev.get(searchExpertId) === draft) return prev;
+        const next = new Map(prev);
+        next.set(searchExpertId, draft);
+        return next;
+      });
+    },
+    []
+  );
+
+  const openGenerateForExperts = useCallback(
+    (experts: ExpertResult[]) => {
+      setGenerateExperts(
+        experts.map((expert) => {
+          if (expert.searchExpertId == null || !liveProposalDrafts.has(expert.searchExpertId)) {
+            return expert;
+          }
+          const live = liveProposalDrafts.get(expert.searchExpertId) ?? null;
+          return live !== expert.proposalDraft ? { ...expert, proposalDraft: live } : expert;
+        })
+      );
+      setShowGenerateModal(true);
+    },
+    [liveProposalDrafts]
+  );
 
   const handleGenerateConfirm = useCallback((payload: GenerateEmailConfirmPayload) => {
     setGeneratePayload(payload);
@@ -292,8 +314,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     selected={selectedIndices.has(index)}
                     onToggleSelect={toggleSelection}
                     onGenerateEmail={(expert) => openGenerateForExperts([expert])}
-                    onGenerateProposalEmail={(expert) => openProposalEmailForExperts([expert])}
                     proposalDraftsEnabled={proposalDraftsEnabled}
+                    onProposalDraftChange={handleProposalDraftChange}
                     searchId={searchId}
                     onSuccess={refetch}
                   />
@@ -325,6 +347,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}
         experts={generateExperts}
+        showProposalOption={proposalDraftsEnabled}
         onConfirm={handleGenerateConfirm}
       />
       <GenerateEmailProgressModal

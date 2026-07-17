@@ -23,6 +23,8 @@ interface GenerateEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
   experts: ExpertResult[];
+  /** Offer the proposal-invitation purpose (grant-linked searches). */
+  showProposalOption?: boolean;
   onConfirm: (payload: GenerateEmailConfirmPayload) => void;
 }
 
@@ -31,6 +33,17 @@ export interface EmailTemplateOption {
   label: string;
   description: string;
 }
+
+/**
+ * Purpose option for proposal-outreach emails. Kept out of
+ * EMAIL_TEMPLATE_OPTIONS because it is only offered on grant-linked searches
+ * and requires a completed proposal draft for every selected expert.
+ */
+export const PROPOSAL_EMAIL_OPTION: EmailTemplateOption = {
+  value: PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+  label: 'Proposal Invitation',
+  description: 'Invite them to review and co-edit a proposal drafted on their behalf',
+};
 
 export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
   {
@@ -75,7 +88,7 @@ const CUSTOM_PREFIX = 'custom:';
 export function getTemplateDisplayLabel(value: string | null | undefined): string {
   if (value == null || value.trim() === '') return 'Saved template';
   const v = value.trim();
-  if (v === PROPOSAL_DRAFT_OUTREACH_TEMPLATE) return 'Proposal Invitation';
+  if (v === PROPOSAL_EMAIL_OPTION.value) return PROPOSAL_EMAIL_OPTION.label;
   const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === v);
   if (opt) return opt.label;
   if (v.toLowerCase().startsWith(CUSTOM_PREFIX)) {
@@ -90,9 +103,7 @@ export function getTemplateDisplayLabel(value: string | null | undefined): strin
 export function getTemplateDescription(value: string | null | undefined): string {
   if (value == null || value.trim() === '') return '';
   const v = value.trim();
-  if (v === PROPOSAL_DRAFT_OUTREACH_TEMPLATE) {
-    return 'Invite them to review and co-edit a proposal drafted on their behalf';
-  }
+  if (v === PROPOSAL_EMAIL_OPTION.value) return PROPOSAL_EMAIL_OPTION.description;
   const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === v);
   if (opt) return opt.description;
   if (v.toLowerCase().startsWith(CUSTOM_PREFIX)) {
@@ -141,6 +152,7 @@ export function GenerateEmailModal({
   isOpen,
   onClose,
   experts,
+  showProposalOption,
   onConfirm,
 }: GenerateEmailModalProps) {
   const [creationMode, setCreationMode] = useState<CreationMode>('template');
@@ -153,29 +165,50 @@ export function GenerateEmailModal({
   const [templateDropdownOpen, setTemplateDropdownOpen] = useState(false);
   const [{ templates }] = useSavedTemplates({ limit: 100, immediate: isOpen });
 
+  // The proposal purpose is valid only when every selected expert has a
+  // completed draft; `experts` is a snapshot taken when the modal opens, so
+  // this cannot flip mid-edit.
+  const proposalReady =
+    Boolean(showProposalOption) &&
+    experts.length > 0 &&
+    experts.every((e) => e.proposalDraft?.status === 'COMPLETED');
+
   useEffect(() => {
     if (isOpen) {
-      setCreationMode('template');
-      setPurpose(EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration');
+      setCreationMode(proposalReady ? 'ai' : 'template');
+      setPurpose(
+        proposalReady
+          ? PROPOSAL_EMAIL_OPTION.value
+          : (EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration')
+      );
       setCustomUseCase('');
       setSavedTemplateId(null);
     }
-  }, [isOpen]);
+  }, [isOpen, proposalReady]);
 
   const count = experts.length;
   const isCustom = purpose === 'custom';
+  const isProposal = purpose === PROPOSAL_EMAIL_OPTION.value;
   const customTrimmed = customUseCase.trim();
-  const canSubmitAi = !isCustom || customTrimmed.length > 0;
+  const canSubmitAi = isProposal ? proposalReady : !isCustom || customTrimmed.length > 0;
   const canSubmitFixed = savedTemplateId != null;
   const canSubmit = creationMode === 'ai' ? canSubmitAi : canSubmitFixed;
 
+  const purposeOptions = showProposalOption
+    ? [PROPOSAL_EMAIL_OPTION, ...EMAIL_TEMPLATE_OPTIONS]
+    : EMAIL_TEMPLATE_OPTIONS;
+
   const selectedPurpose =
-    EMAIL_TEMPLATE_OPTIONS.find((option) => option.value === purpose) ?? EMAIL_TEMPLATE_OPTIONS[0];
+    purposeOptions.find((option) => option.value === purpose) ?? purposeOptions[0];
 
   const handleSubmit = () => {
     if (creationMode === 'ai') {
-      const template: string = isCustom ? `${CUSTOM_PREFIX} ${customTrimmed}` : purpose;
-      onConfirm({ mode: 'ai', template });
+      if (isProposal) {
+        onConfirm({ mode: 'proposal' });
+      } else {
+        const template: string = isCustom ? `${CUSTOM_PREFIX} ${customTrimmed}` : purpose;
+        onConfirm({ mode: 'ai', template });
+      }
     } else if (savedTemplateId != null) {
       onConfirm({ mode: 'fixed', templateId: savedTemplateId });
     }
@@ -248,21 +281,32 @@ export function GenerateEmailModal({
               onOpenChange={setPurposeDropdownOpen}
               className="max-h-72 overflow-y-auto"
             >
-              {EMAIL_TEMPLATE_OPTIONS.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  onClick={() => setPurpose(option.value)}
-                  className={cn(
-                    'items-start text-left',
-                    purpose === option.value && 'bg-gray-100 font-medium'
-                  )}
-                >
-                  <div className="w-full text-left">
-                    <div className="text-sm text-gray-900">{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.description}</div>
-                  </div>
-                </DropdownItem>
-              ))}
+              {purposeOptions.map((option) => {
+                const disabled = option.value === PROPOSAL_EMAIL_OPTION.value && !proposalReady;
+                return (
+                  <DropdownItem
+                    key={option.value}
+                    disabled={disabled}
+                    onClick={() => {
+                      if (!disabled) setPurpose(option.value);
+                    }}
+                    className={cn(
+                      'items-start text-left',
+                      purpose === option.value && 'bg-gray-100 font-medium',
+                      disabled && 'cursor-default opacity-60'
+                    )}
+                  >
+                    <div className="w-full text-left">
+                      <div className="text-sm text-gray-900">{option.label}</div>
+                      <div className="text-xs text-gray-500">
+                        {disabled
+                          ? 'Requires a completed proposal draft for every selected expert'
+                          : option.description}
+                      </div>
+                    </div>
+                  </DropdownItem>
+                );
+              })}
             </Dropdown>
 
             {isCustom && (

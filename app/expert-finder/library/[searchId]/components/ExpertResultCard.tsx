@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -21,7 +21,7 @@ import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
-import type { ExpertResult } from '@/types/expertFinder';
+import type { ExpertResult, ProposalDraft } from '@/types/expertFinder';
 import {
   buildExpertSearchHref,
   buildOutreachDocumentHref,
@@ -41,10 +41,13 @@ interface ExpertResultCardProps {
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
-  /** Generate an outreach email carrying the expert's completed proposal draft. */
-  onGenerateProposalEmail?: (expert: ExpertResult) => void;
   /** Whether this search supports AI proposal drafting (grant-linked searches). */
   proposalDraftsEnabled?: boolean;
+  /**
+   * Reports this card's live (polled) proposal draft so the parent can use
+   * fresh draft state when building generate-email payloads.
+   */
+  onProposalDraftChange?: (searchExpertId: number, draft: ProposalDraft | null) => void;
   onSuccess?: () => Promise<void>;
 }
 
@@ -62,8 +65,8 @@ export function ExpertResultCard({
   selected,
   onToggleSelect,
   onGenerateEmail,
-  onGenerateProposalEmail,
   proposalDraftsEnabled,
+  onProposalDraftChange,
   onSuccess,
 }: ExpertResultCardProps) {
   const router = useRouter();
@@ -98,6 +101,12 @@ export function ExpertResultCard({
   const canDraftProposal = Boolean(proposalDraftsEnabled) && expert.searchExpertId != null;
   const proposalCompleted = proposalDraft?.status === 'COMPLETED';
   const proposalFailed = proposalDraft?.status === 'FAILED';
+
+  useEffect(() => {
+    if (expert.searchExpertId != null) {
+      onProposalDraftChange?.(expert.searchExpertId, proposalDraft);
+    }
+  }, [expert.searchExpertId, proposalDraft, onProposalDraftChange]);
 
   const handleStartProposalDraft = async () => {
     try {
@@ -345,35 +354,21 @@ export function ExpertResultCard({
               <span className="truncate">{proposalDraftStepLabel(proposalDraft.step)}…</span>
             </div>
           ) : proposalCompleted && proposalDraft ? (
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outlined"
-                size="sm"
-                className="flex-1 gap-2"
-                onClick={handleViewProposal}
-                disabled={isOpeningNote || proposalDraft.noteId == null}
-              >
-                {isOpeningNote ? (
-                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-                ) : (
-                  <FileText className="h-4 w-4 shrink-0" aria-hidden />
-                )}
-                View proposal
-              </Button>
-              {onGenerateProposalEmail && email ? (
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  className="flex-1 gap-2"
-                  onClick={() => onGenerateProposalEmail({ ...expert, proposalDraft })}
-                >
-                  <Mail className="h-4 w-4 shrink-0" aria-hidden />
-                  Email proposal
-                </Button>
-              ) : null}
-            </div>
+            <Button
+              type="button"
+              variant="outlined"
+              size="sm"
+              className="w-full gap-2"
+              onClick={handleViewProposal}
+              disabled={isOpeningNote || proposalDraft.noteId == null}
+            >
+              {isOpeningNote ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+              ) : (
+                <FileText className="h-4 w-4 shrink-0" aria-hidden />
+              )}
+              View proposal
+            </Button>
           ) : (
             <>
               <Button
