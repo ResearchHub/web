@@ -37,17 +37,14 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
-  isCompact: boolean;
   contentClassName?: string;
 }
 
 export function RightSidebarContainer({
   rightSidebar,
-  isCompact,
   contentClassName,
 }: RightSidebarContainerProps) {
   const pathname = usePathname();
-  const sidebarHeight = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   const sidebarKey = getSidebarInstanceKey(pathname, rightSidebar);
   const sidebarFallback = <RightSidebarSkeleton />;
@@ -56,10 +53,10 @@ export function RightSidebarContainer({
     <>
       <aside
         className={cn(
-          'sticky top-10 overflow-y-auto mt-10',
+          'sticky top-0 overflow-y-auto mt-10 scrollbar-on-hover',
+          'h-[calc(100vh-var(--top-bar-height))]',
           'lg:!block !hidden right-sidebar:!block',
-          'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30',
-          sidebarHeight
+          'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30'
         )}
       >
         <div className={cn('p-4 h-full', contentClassName)}>
