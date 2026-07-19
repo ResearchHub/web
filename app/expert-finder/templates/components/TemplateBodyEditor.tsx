@@ -173,7 +173,10 @@ export function TemplateVariableEditor({
   showVariablePanel = true,
 }: TemplateVariableEditorProps) {
   const [showVariables, setShowVariables] = useState(false);
-  const showToolbar = valueAsHtml && !disabled;
+  /** Full formatting toolbar when editable; copy-only when disabled so outreach can still copy body. */
+  const showFormattingToolbar = valueAsHtml && !disabled;
+  const showCopyOnlyToolbar = valueAsHtml && disabled;
+  const showToolbar = showFormattingToolbar || showCopyOnlyToolbar;
 
   const editor = useEditor({
     extensions: [
@@ -336,75 +339,77 @@ export function TemplateVariableEditor({
       >
         {showToolbar && (
           <div className="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1">
-            <div className="flex flex-wrap items-center gap-0.5">
-              <button
-                type="button"
-                title="Bold"
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={cn(
-                  'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
-                  editor.isActive('bold') && 'bg-gray-200 text-gray-900'
-                )}
-              >
-                <Bold className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                title="Italic"
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={cn(
-                  'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
-                  editor.isActive('italic') && 'bg-gray-200 text-gray-900'
-                )}
-              >
-                <Italic className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                title="Underline"
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={cn(
-                  'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
-                  editor.isActive('underline') && 'bg-gray-200 text-gray-900'
-                )}
-              >
-                <UnderlineIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                title="Strikethrough"
-                onClick={() => editor.chain().focus().toggleStrike().run()}
-                className={cn(
-                  'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
-                  editor.isActive('strike') && 'bg-gray-200 text-gray-900'
-                )}
-              >
-                <Strikethrough className="h-4 w-4" />
-              </button>
-              <span className="mx-0.5 h-4 w-px bg-gray-300" aria-hidden />
-              <button
-                type="button"
-                title="Link"
-                onClick={handleLink}
-                className={cn(
-                  'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
-                  editor.isActive('link') && 'bg-gray-200 text-gray-900'
-                )}
-              >
-                <LinkIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                title="Bullet list"
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={cn(
-                  'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
-                  editor.isActive('bulletList') && 'bg-gray-200 text-gray-900'
-                )}
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
+            {showFormattingToolbar && (
+              <div className="flex flex-wrap items-center gap-0.5">
+                <button
+                  type="button"
+                  title="Bold"
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  className={cn(
+                    'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+                    editor.isActive('bold') && 'bg-gray-200 text-gray-900'
+                  )}
+                >
+                  <Bold className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Italic"
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  className={cn(
+                    'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+                    editor.isActive('italic') && 'bg-gray-200 text-gray-900'
+                  )}
+                >
+                  <Italic className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Underline"
+                  onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  className={cn(
+                    'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+                    editor.isActive('underline') && 'bg-gray-200 text-gray-900'
+                  )}
+                >
+                  <UnderlineIcon className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Strikethrough"
+                  onClick={() => editor.chain().focus().toggleStrike().run()}
+                  className={cn(
+                    'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+                    editor.isActive('strike') && 'bg-gray-200 text-gray-900'
+                  )}
+                >
+                  <Strikethrough className="h-4 w-4" />
+                </button>
+                <span className="mx-0.5 h-4 w-px bg-gray-300" aria-hidden />
+                <button
+                  type="button"
+                  title="Link"
+                  onClick={handleLink}
+                  className={cn(
+                    'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+                    editor.isActive('link') && 'bg-gray-200 text-gray-900'
+                  )}
+                >
+                  <LinkIcon className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Bullet list"
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  className={cn(
+                    'rounded p-1.5 text-gray-600 hover:bg-gray-200 hover:text-gray-900',
+                    editor.isActive('bulletList') && 'bg-gray-200 text-gray-900'
+                  )}
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+            )}
             <div className="ml-auto flex items-center">
               <button
                 type="button"

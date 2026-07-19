@@ -121,7 +121,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     (searchDetail.status === 'pending' || searchDetail.status === 'processing');
 
   if (isLoading && !searchDetail) {
-    return <SearchDetailSkeleton />;
+    return <SearchDetailSkeleton activeTab={tab} />;
   }
 
   if (error && !searchDetail) {
@@ -198,7 +198,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               },
               {
                 id: TAB_OUTREACH,
-                label: 'Outreach',
+                label: 'Messaging',
                 href: outreachTabHref,
               },
             ]}

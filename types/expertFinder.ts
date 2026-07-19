@@ -372,6 +372,8 @@ export interface GeneratedEmail {
   template: string | null;
   status: string;
   notes: string;
+  /** Expert profile links for outreach CTAs (LinkedIn, X, etc.). */
+  sources: ExpertSourceLink[] | null;
   bouncedAt: string | null;
   openedAt: string | null;
   openCount: number;
@@ -388,27 +390,37 @@ export interface GeneratedEmailListResponse {
   offset: number;
 }
 
-export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => ({
-  id: raw.id ?? 0,
-  expertSearch: raw.expert_search ?? null,
-  expertName: raw.expert_name ?? '',
-  expertTitle: raw.expert_title ?? '',
-  expertAffiliation: raw.expert_affiliation ?? '',
-  expertEmail: raw.expert_email ?? '',
-  expertise: raw.expertise ?? '',
-  emailSubject: raw.email_subject ?? '',
-  emailBody: raw.email_body ?? '',
-  template: raw.template ?? '',
-  status: raw.status ?? 'draft',
-  notes: raw.notes ?? '',
-  bouncedAt: raw.bounced_at ?? null,
-  openedAt: raw.opened_at ?? null,
-  openCount: raw.open_count ?? 0,
-  createdAt: raw.created_at ?? '',
-  updatedAt: raw.updated_at ?? '',
-  createdBy: transformCreatedBy(raw.created_by),
-  listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
-}));
+export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => {
+  const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
+  const sources = sourcesRaw
+    ? sourcesRaw
+        .map((item: string | Record<string, unknown>) => transformExpertSource(item))
+        .filter((s: ExpertSourceLink | null): s is ExpertSourceLink => s != null)
+    : null;
+
+  return {
+    id: raw.id ?? 0,
+    expertSearch: raw.expert_search ?? null,
+    expertName: raw.expert_name ?? '',
+    expertTitle: raw.expert_title ?? '',
+    expertAffiliation: raw.expert_affiliation ?? '',
+    expertEmail: raw.expert_email ?? '',
+    expertise: raw.expertise ?? '',
+    emailSubject: raw.email_subject ?? '',
+    emailBody: raw.email_body ?? '',
+    template: raw.template ?? '',
+    status: raw.status ?? 'draft',
+    notes: raw.notes ?? '',
+    sources: sources?.length ? sources : null,
+    bouncedAt: raw.bounced_at ?? null,
+    openedAt: raw.opened_at ?? null,
+    openCount: raw.open_count ?? 0,
+    createdAt: raw.created_at ?? '',
+    updatedAt: raw.updated_at ?? '',
+    createdBy: transformCreatedBy(raw.created_by),
+    listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
+  };
+});
 
 // ── Document invited experts (app-level, camelCase) ───────────────────────────
 

@@ -6,10 +6,8 @@ import { useRouter } from 'next/navigation';
 import {
   Mail,
   Trash2,
-  Send,
   Loader2,
   Save,
-  Eye,
   ChevronLeft,
   ChevronRight,
   MoreVertical,
@@ -25,14 +23,12 @@ import { Input } from '@/components/ui/form/Input';
 import { Badge } from '@/components/ui/Badge';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
-import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfirmationModal';
 import { Textarea } from '@/components/ui/form/Textarea';
 import {
   getGeneratedEmailStatusPresentation,
   isGeneratedEmailBounced,
   isGeneratedEmailClosed,
   isGeneratedEmailDraftLike,
-  isGeneratedEmailFailed,
   isGeneratedEmailPipelineBusy,
 } from '@/app/expert-finder/lib/generatedEmailStatus';
 import { formatExactTime } from '@/utils/date';
@@ -41,15 +37,11 @@ import {
   useGeneratedEmailDetail,
   useUpdateGeneratedEmail,
   useDeleteGeneratedEmail,
-  usePreviewEmails,
-  useSendEmails,
 } from '@/hooks/useExpertFinder';
-import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
-import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 import { OutreachDetailSkeleton } from '@/components/ExpertFinder/OutreachDetailSkeleton';
+import { OutreachChannelActions } from '@/app/expert-finder/library/[searchId]/outreach/components/OutreachChannelActions';
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
@@ -65,16 +57,11 @@ export function OutreachDetailPageContent({
   librarySearchId,
 }: OutreachDetailPageContentProps) {
   const router = useRouter();
-  const { user } = useUser();
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
   const [{ isLoading: isDeleting }, deleteEmail] = useDeleteGeneratedEmail();
-  const [{ isLoading: isSendingPreview }, previewEmails] = usePreviewEmails();
-  const [{ isLoading: isSendingToExpert }, sendEmails] = useSendEmails();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
-  const [showSendToExpertConfirm, setShowSendToExpertConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showMarkSentConfirm, setShowMarkSentConfirm] = useState(false);
   const [closeNotes, setCloseNotes] = useState('');
@@ -82,7 +69,6 @@ export function OutreachDetailPageContent({
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
-  const { replyTo, setReplyTo } = useOutreachReplyTo();
 
   const backHref = useMemo(
     () => `/expert-finder/library/${librarySearchId}?tab=${TAB_OUTREACH}`,
@@ -122,12 +108,6 @@ export function OutreachDetailPageContent({
     }
   }, [email?.id, email?.emailSubject, email?.emailBody]);
 
-  useEffect(() => {
-    if (!showSendToExpertConfirm && !showPreviewConfirm) return;
-    if (!user?.email) return;
-    setReplyTo((prev) => (prev.trim() ? prev : user.email));
-  }, [showSendToExpertConfirm, showPreviewConfirm, user?.email]);
-
   const isDraftLike = email != null && isGeneratedEmailDraftLike(email.status);
   const hasEdits =
     email != null &&
@@ -161,7 +141,7 @@ export function OutreachDetailPageContent({
       setShowMarkSentConfirm(false);
       setMarkSentNotes('');
       refetch();
-      toast.success('Email marked as sent.');
+      toast.success('Marked as sent.');
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to update');
     }
@@ -179,49 +159,6 @@ export function OutreachDetailPageContent({
     }
   };
 
-  const displaySubject = email != null && isDraftLike ? editSubject : (email?.emailSubject ?? '');
-
-  const handleSendPreview = async () => {
-    if (!emailId || !email) return;
-    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
-    if (!replyValidation.valid) {
-      setActionError(replyValidation.error);
-      return;
-    }
-    setActionError(null);
-    try {
-      await previewEmails({
-        generated_email_ids: [Number(emailId)],
-        reply_to: replyValidation.emails,
-      });
-      setShowPreviewConfirm(false);
-      toast.success('Preview email sent to your email address.');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to send preview email');
-    }
-  };
-
-  const handleSendToExpert = async () => {
-    if (!emailId || !email) return;
-    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
-    if (!replyValidation.valid) {
-      setActionError(replyValidation.error);
-      return;
-    }
-    setActionError(null);
-    try {
-      await sendEmails({
-        generated_email_ids: [Number(emailId)],
-        reply_to: replyValidation.emails,
-      });
-      setShowSendToExpertConfirm(false);
-      refetch();
-      toast.success('Email sent to the expert.');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to send email');
-    }
-  };
-
   const handleCloseEmail = async () => {
     if (!emailId) return;
     setActionError(null);
@@ -234,9 +171,9 @@ export function OutreachDetailPageContent({
       setShowCloseConfirm(false);
       setCloseNotes('');
       refetch();
-      toast.success('Email marked as closed.');
+      toast.success('Marked as closed.');
     } catch (e) {
-      setActionError(e instanceof Error ? e.message : 'Failed to close email');
+      setActionError(e instanceof Error ? e.message : 'Failed to close message');
     }
   };
 
@@ -264,12 +201,10 @@ export function OutreachDetailPageContent({
   const isSent = email.status === 'sent';
   const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
-  /** No overflow actions once the message is sent or retired (draft / failed / in-flight still get Preview, etc.). */
   const showOutreachMoreMenu = !isClosed && !isSent;
-  const failedOrDraftForPreview =
-    isGeneratedEmailDraftLike(email.status) || isGeneratedEmailFailed(email.status);
 
-  const displayTitle = displaySubject || `Email for ${email.expertName}`;
+  const displaySubject = isDraftLike ? editSubject : (email.emailSubject ?? '');
+  const displayTitle = displaySubject || `Message for ${email.expertName}`;
   const breadcrumbLabel = displayTitle.length > 40 ? `${displayTitle.slice(0, 40)}…` : displayTitle;
 
   const breadcrumbItems = [
@@ -288,7 +223,7 @@ export function OutreachDetailPageContent({
         variant="ghost"
         size="icon"
         disabled={!neighborNav.prevHref}
-        aria-label="Previous email"
+        aria-label="Previous message"
         onClick={() => {
           if (neighborNav.prevHref) router.push(neighborNav.prevHref);
         }}
@@ -303,7 +238,7 @@ export function OutreachDetailPageContent({
         variant="ghost"
         size="icon"
         disabled={!neighborNav.nextHref}
-        aria-label="Next email"
+        aria-label="Next message"
         onClick={() => {
           if (neighborNav.nextHref) router.push(neighborNav.nextHref);
         }}
@@ -323,8 +258,8 @@ export function OutreachDetailPageContent({
 
       {pipelineBusy && (
         <Alert variant="warning">
-          This email is {email.status === 'sending' ? 'being sent' : 'processing'}. Some actions may
-          be unavailable until it finishes.
+          This message is {email.status === 'sending' ? 'being sent' : 'processing'}. Some actions
+          may be unavailable until it finishes.
         </Alert>
       )}
 
@@ -379,21 +314,12 @@ export function OutreachDetailPageContent({
               </span>
             )}
             {isDraftLike && (
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2"
-                onClick={() => setShowSendToExpertConfirm(true)}
-                disabled={isSendingToExpert}
-                title="Send this email to the expert"
-              >
-                {isSendingToExpert ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <Send className="h-4 w-4" aria-hidden />
-                )}
-                Send
-              </Button>
+              <OutreachChannelActions
+                expertEmail={email.expertEmail}
+                emailSubject={displaySubject}
+                emailBody={editBody}
+                sources={email.sources}
+              />
             )}
             {showOutreachMoreMenu && (
               <BaseMenu
@@ -405,21 +331,12 @@ export function OutreachDetailPageContent({
                       'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
                       'hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
                     )}
-                    aria-label="More email actions"
+                    aria-label="More messaging actions"
                   >
                     <MoreVertical className="h-4 w-4" aria-hidden />
                   </button>
                 }
               >
-                {failedOrDraftForPreview && (
-                  <BaseMenuItem
-                    disabled={isSendingPreview || pipelineBusy}
-                    onSelect={() => setShowPreviewConfirm(true)}
-                  >
-                    <Eye className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
-                    <span>Preview</span>
-                  </BaseMenuItem>
-                )}
                 {isDraftLike && (
                   <BaseMenuItem
                     disabled={isUpdating}
@@ -455,7 +372,7 @@ export function OutreachDetailPageContent({
               label="Subject"
               value={editSubject}
               onChange={(e) => setEditSubject(e.target.value)}
-              placeholder="Email subject"
+              placeholder="Message subject"
             />
           ) : (
             <Input label="Subject" value={email.emailSubject} readOnly className="bg-gray-50" />
@@ -471,13 +388,13 @@ export function OutreachDetailPageContent({
 
         <div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Email Body</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Message body</label>
             {isDraftLike ? (
               <>
                 <TemplateVariableEditor
                   value={editBody}
                   onChange={setEditBody}
-                  placeholder="Email body"
+                  placeholder="Message body"
                   valueAsHtml
                   disabled={false}
                   showVariablePanel={false}
@@ -534,7 +451,7 @@ export function OutreachDetailPageContent({
       <ConfirmationModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Delete email?"
+        title="Delete message?"
         description="This draft will be permanently removed."
         confirmLabel="Delete"
         confirmVariant="destructive"
@@ -544,37 +461,11 @@ export function OutreachDetailPageContent({
         onConfirm={handleDelete}
       />
 
-      <SendConfirmationModal
-        isOpen={showSendToExpertConfirm}
-        onClose={() => setShowSendToExpertConfirm(false)}
-        isSubmitting={isSendingToExpert}
-        title="Send this email to the expert?"
-        description="This email will be sent to the expert."
-        replyTo={replyTo}
-        onReplyToChange={setReplyTo}
-        onConfirm={handleSendToExpert}
-        confirmLabel="Send"
-        confirmIcon={<Send className="h-4 w-4" aria-hidden />}
-      />
-
-      <SendConfirmationModal
-        isOpen={showPreviewConfirm}
-        onClose={() => setShowPreviewConfirm(false)}
-        isSubmitting={isSendingPreview}
-        title="Send test email"
-        description="A test copy is sent to your inbox. Reply To is included on the message for the preview send."
-        replyTo={replyTo}
-        onReplyToChange={setReplyTo}
-        onConfirm={handleSendPreview}
-        confirmLabel="Send"
-        confirmIcon={<Eye className="h-4 w-4" aria-hidden />}
-      />
-
       <ConfirmationModal
         isOpen={showMarkSentConfirm}
         onClose={() => setShowMarkSentConfirm(false)}
         title="Mark as sent?"
-        description="Use this if you already sent the message outside ResearchHub (e.g. from Gmail). Optional note helps your team see how it went out."
+        description="Use this after you sent the message from your personal inbox or social account. Optional note can record the channel (e.g. Email, LinkedIn, X)."
         descriptionClassName="mb-3"
         confirmLabel="Mark as sent"
         confirmClassName="gap-2 bg-amber-500 text-white hover:bg-amber-600"
@@ -586,7 +477,7 @@ export function OutreachDetailPageContent({
           label="Notes (optional)"
           value={markSentNotes}
           onChange={(e) => setMarkSentNotes(e.target.value)}
-          placeholder="e.g. Sent manually via Gmail"
+          placeholder="e.g. Sent via LinkedIn"
           rows={3}
           className="mb-4"
         />
@@ -596,7 +487,7 @@ export function OutreachDetailPageContent({
         isOpen={showCloseConfirm}
         onClose={() => setShowCloseConfirm(false)}
         title="Mark as closed?"
-        description="This retires the generated email (inactive). You can add an optional note for your team."
+        description="This retires the generated message (inactive). You can add an optional note for your team."
         descriptionClassName="mb-3"
         confirmLabel="Mark closed"
         isConfirming={isUpdating}
@@ -606,7 +497,7 @@ export function OutreachDetailPageContent({
           label="Notes (optional)"
           value={closeNotes}
           onChange={(e) => setCloseNotes(e.target.value)}
-          placeholder="e.g. Replaced by outreach email id 456"
+          placeholder="e.g. Replaced by outreach message id 456"
           rows={3}
           className="mb-4"
         />

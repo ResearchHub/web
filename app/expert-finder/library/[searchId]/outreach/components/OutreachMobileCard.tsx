@@ -10,7 +10,11 @@ import {
   getTemplateDescription,
 } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import type { GeneratedEmail } from '@/types/expertFinder';
-import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
+import {
+  getGeneratedEmailStatusPresentation,
+  isGeneratedEmailDraftLike,
+} from '@/app/expert-finder/lib/generatedEmailStatus';
+import { OutreachChannelActions } from './OutreachChannelActions';
 
 const SUBJECT_TRUNCATE_LENGTH = 50;
 
@@ -41,6 +45,7 @@ export function OutreachMobileCard({
   const templateDescription = getTemplateDescription(email.template);
   const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const createdByName = email.createdBy?.author?.fullName;
+  const isDraft = isGeneratedEmailDraftLike(email.status);
 
   const selectTrailing =
     onToggleSelect != null ? (
@@ -79,6 +84,17 @@ export function OutreachMobileCard({
         )}
         <p className="text-xs text-gray-500">{formatTimestamp(email.createdAt, false)}</p>
       </div>
+      {isDraft ? (
+        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+          <OutreachChannelActions
+            expertEmail={email.expertEmail}
+            emailSubject={email.emailSubject}
+            emailBody={email.emailBody}
+            sources={email.sources}
+            size="sm"
+          />
+        </div>
+      ) : null}
     </ListCard>
   );
 }

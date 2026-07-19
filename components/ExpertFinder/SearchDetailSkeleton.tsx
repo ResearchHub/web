@@ -1,6 +1,23 @@
 'use client';
 
 import { FC } from 'react';
+import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
+import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
+import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
+import type { SortableColumn } from '@/components/ui/Table/TableContainer';
+import { useScreenSize } from '@/hooks/useScreenSize';
+import { cn } from '@/utils/styles';
+
+/** Keep in sync with OutreachTable columns (skeleton-only; avoid importing the table module). */
+const MESSAGING_SKELETON_COLUMNS: SortableColumn[] = [
+  { key: 'subject', label: 'Subject', sortable: false },
+  { key: 'expertName', label: 'Expert', sortable: false },
+  { key: 'status', label: 'Status', sortable: false },
+  { key: 'createdBy', label: 'Created By', sortable: false },
+  { key: 'createdAt', label: 'Created Date', sortable: false },
+  { key: 'reachOut', label: 'Reach out', sortable: false },
+];
 
 function SkeletonBreadcrumbs() {
   return (
@@ -55,23 +72,28 @@ function SkeletonExpertResultCard() {
   );
 }
 
-export const SearchDetailSkeleton: FC = () => (
-  <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
-    <SkeletonBreadcrumbs />
-
-    <div className="flex flex-wrap items-start gap-3 animate-pulse">
-      <div className="h-6 w-28 bg-gray-200 rounded-full" />
-      <div className="h-6 w-20 bg-gray-200 rounded-full" />
-      <div className="h-4 w-36 bg-gray-200 rounded" />
-    </div>
-
-    <SkeletonRelatedWorkCard />
-
+function SkeletonTabs({ activeTab }: { activeTab: string }) {
+  const isOutreach = activeTab === TAB_OUTREACH;
+  return (
     <div className="flex gap-4 border-b border-gray-200 animate-pulse">
-      <div className="h-9 w-28 bg-gray-200 rounded-t-md border-b-2 border-gray-300" />
-      <div className="h-9 w-20 bg-gray-200 rounded-t-md" />
+      <div
+        className={cn(
+          'h-9 w-28 rounded-t-md bg-gray-200',
+          !isOutreach && 'border-b-2 border-gray-300'
+        )}
+      />
+      <div
+        className={cn(
+          'h-9 w-24 rounded-t-md bg-gray-200',
+          isOutreach && 'border-b-2 border-gray-300'
+        )}
+      />
     </div>
+  );
+}
 
+function ExpertResultsTabSkeleton() {
+  return (
     <section>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4 animate-pulse">
         <div className="h-6 w-32 bg-gray-200 rounded" />
@@ -88,5 +110,56 @@ export const SearchDetailSkeleton: FC = () => (
         ))}
       </div>
     </section>
+  );
+}
+
+function MessagingTabSkeleton() {
+  const { mdAndUp } = useScreenSize();
+  return (
+    <section>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 animate-pulse">
+        <div className="h-6 w-48 bg-gray-200 rounded" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="h-8 w-24 bg-gray-200 rounded-md" />
+          <div className="h-4 w-16 bg-gray-200 rounded" />
+          <div className="h-8 w-8 bg-gray-200 rounded-md" />
+        </div>
+      </div>
+      <div className="p-4">
+        {mdAndUp ? (
+          <TableSkeleton
+            columns={MESSAGING_SKELETON_COLUMNS}
+            rowCount={EXPERT_FINDER_LIST_PAGE_SIZE}
+          />
+        ) : (
+          <ListCardSkeleton rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
+        )}
+      </div>
+    </section>
+  );
+}
+
+export interface SearchDetailSkeletonProps {
+  /** Which tab content to skeleton — matches `?tab=` so Messaging does not flash Expert results. */
+  activeTab?: typeof TAB_EXPERT_RESULTS | typeof TAB_OUTREACH;
+}
+
+export const SearchDetailSkeleton: FC<SearchDetailSkeletonProps> = ({
+  activeTab = TAB_EXPERT_RESULTS,
+}) => (
+  <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <SkeletonBreadcrumbs />
+
+    <div className="flex flex-wrap items-start gap-3 animate-pulse">
+      <div className="h-6 w-28 bg-gray-200 rounded-full" />
+      <div className="h-6 w-20 bg-gray-200 rounded-full" />
+      <div className="h-4 w-36 bg-gray-200 rounded" />
+    </div>
+
+    <SkeletonRelatedWorkCard />
+
+    <SkeletonTabs activeTab={activeTab} />
+
+    {activeTab === TAB_OUTREACH ? <MessagingTabSkeleton /> : <ExpertResultsTabSkeleton />}
   </div>
 );
