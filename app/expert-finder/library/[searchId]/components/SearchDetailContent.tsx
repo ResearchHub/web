@@ -224,11 +224,11 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
           {tab === TAB_EXPERT_RESULTS && searchDetail.expertResults.length > 0 ? (
             <section>
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-                    Results ({displayedExpertTotal})
-                  </h2>
+              <div className="mb-4 space-y-2">
+                <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
+                  Results ({displayedExpertTotal})
+                </h2>
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     {selectedIndices.size === searchDetail.expertResults.length ? (
                       <Button
@@ -252,28 +252,28 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     )}
                     <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      const experts = Array.from(selectedIndices).map(
-                        (i) => searchDetail.expertResults[i]
-                      );
-                      openGenerateForExperts(experts);
-                    }}
-                    disabled={selectedIndices.size === 0}
-                  >
-                    <Mail className="h-4 w-4" aria-hidden />
-                    Generate emails
-                  </Button>
-                  <SearchActionsMenu
-                    reportPdfUrl={searchDetail.reportPdfUrl}
-                    reportCsvUrl={searchDetail.reportCsvUrl}
-                    onAddExpert={() => setShowAddExpertModal(true)}
-                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => {
+                        const experts = Array.from(selectedIndices).map(
+                          (i) => searchDetail.expertResults[i]
+                        );
+                        openGenerateForExperts(experts);
+                      }}
+                      disabled={selectedIndices.size === 0}
+                    >
+                      <Mail className="h-4 w-4" aria-hidden />
+                      Generate emails
+                    </Button>
+                    <SearchActionsMenu
+                      reportPdfUrl={searchDetail.reportPdfUrl}
+                      reportCsvUrl={searchDetail.reportCsvUrl}
+                      onAddExpert={() => setShowAddExpertModal(true)}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
