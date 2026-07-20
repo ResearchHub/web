@@ -1,10 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle, FilePlus2, Loader2, RefreshCw } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle,
+  FilePlus2,
+  Loader2,
+  MoreHorizontal,
+  RefreshCw,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { NoteService } from '@/services/note.service';
 import {
@@ -265,6 +273,7 @@ export function JournalContent() {
               {entries.map((entry) => {
                 const proposalId = getProposalId(entry);
                 const isCreating = creatingProposalId === proposalId;
+                const isDraftCreationDisabled = isCreating || draftToOpen !== null;
 
                 return (
                   <FeedItemPost
@@ -273,21 +282,33 @@ export function JournalContent() {
                     showActions={false}
                     showHeader={false}
                     footer={
-                      <div className="flex items-center border-t border-gray-100 px-4 py-3">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => createDraft(proposalId)}
-                          disabled={isCreating || draftToOpen !== null}
-                          className="gap-1.5"
+                      <div className="flex items-center justify-end border-t border-gray-100 bg-gray-50 px-3 py-1.5">
+                        <BaseMenu
+                          align="end"
+                          disabled={isDraftCreationDisabled}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              aria-label="Registered Report actions"
+                              className="h-8 w-8 !p-0 text-gray-500 hover:text-gray-700"
+                            >
+                              {isCreating ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <MoreHorizontal className="h-5 w-5" />
+                              )}
+                            </Button>
+                          }
                         >
-                          {isCreating ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
+                          <BaseMenuItem
+                            onSelect={() => createDraft(proposalId)}
+                            className="flex items-center gap-2"
+                          >
                             <FilePlus2 className="h-4 w-4" />
-                          )}
-                          {isCreating ? 'Creating draft…' : 'Create Registered Report draft'}
-                        </Button>
+                            <span>Create Registered Report draft</span>
+                          </BaseMenuItem>
+                        </BaseMenu>
                       </div>
                     }
                   />
