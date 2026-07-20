@@ -20,8 +20,8 @@ export function RegisteredReportProposalReviews({
   return (
     <div className="mt-6 space-y-6">
       <Alert variant="info">
-        These peer reviews were completed for the proposal that led to this Registered Report. They
-        provide context for the study&apos;s original design.
+        These peer reviews were written for the proposal submission that led to this Registered
+        Report, and may have been addressed in the current version.
       </Alert>
       <CommentFeed
         documentId={proposal.id}
