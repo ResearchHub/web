@@ -5,11 +5,7 @@ import { TableContainer, SortableColumn } from '@/components/ui/Table/TableConta
 import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
-import {
-  getGeneratedEmailStatusPresentation,
-  isGeneratedEmailDraftLike,
-} from '@/app/expert-finder/lib/generatedEmailStatus';
-import { OutreachChannelActions } from './OutreachChannelActions';
+import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
 
 function statusCell(email: GeneratedEmail) {
   const { label, variant } = getGeneratedEmailStatusPresentation(email.status, email.openCount);
@@ -30,7 +26,6 @@ const OUTREACH_TABLE_COLUMNS: SortableColumn[] = [
   { key: 'status', label: 'Status', sortable: false },
   { key: 'createdBy', label: 'Created By', sortable: false },
   { key: 'createdAt', label: 'Created Date', sortable: false },
-  { key: 'reachOut', label: 'Reach out', sortable: false },
 ];
 
 export { OUTREACH_TABLE_COLUMNS };
@@ -97,7 +92,6 @@ export function OutreachTable({
 
   const data = emails.map((email) => {
     const subjectText = truncate(email.emailSubject, SUBJECT_TRUNCATE_LENGTH);
-    const isDraft = isGeneratedEmailDraftLike(email.status);
     const row: Record<string, unknown> = {
       id: email.id,
       subject: (
@@ -113,17 +107,6 @@ export function OutreachTable({
       status: statusCell(email),
       createdBy: email.createdBy?.author?.fullName ?? '—',
       createdAt: formatTimestamp(email.createdAt, false),
-      reachOut: isDraft ? (
-        <OutreachChannelActions
-          expertEmail={email.expertEmail}
-          emailSubject={email.emailSubject}
-          emailBody={email.emailBody}
-          sources={email.sources}
-          size="sm"
-        />
-      ) : (
-        <span className="text-xs text-gray-400">—</span>
-      ),
     };
     if (selectedIds && onSelectionChange) {
       row.select = (

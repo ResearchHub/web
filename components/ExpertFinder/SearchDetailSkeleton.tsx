@@ -16,7 +16,6 @@ const MESSAGING_SKELETON_COLUMNS: SortableColumn[] = [
   { key: 'status', label: 'Status', sortable: false },
   { key: 'createdBy', label: 'Created By', sortable: false },
   { key: 'createdAt', label: 'Created Date', sortable: false },
-  { key: 'reachOut', label: 'Reach out', sortable: false },
 ];
 
 function SkeletonBreadcrumbs() {
@@ -95,13 +94,17 @@ function SkeletonTabs({ activeTab }: { activeTab: string }) {
 function ExpertResultsTabSkeleton() {
   return (
     <section>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 animate-pulse">
-        <div className="h-6 w-32 bg-gray-200 rounded" />
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-4 animate-pulse">
+        <div className="flex flex-col gap-2">
+          <div className="h-6 w-32 bg-gray-200 rounded" />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="h-8 w-20 bg-gray-200 rounded-md" />
+            <div className="h-4 w-16 bg-gray-200 rounded" />
+          </div>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="h-8 w-20 bg-gray-200 rounded-md" />
-          <div className="h-4 w-16 bg-gray-200 rounded" />
           <div className="h-8 w-32 bg-gray-200 rounded-md" />
-          <div className="h-8 w-24 bg-gray-200 rounded-md" />
+          <div className="h-8 w-8 bg-gray-200 rounded-md" />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
@@ -117,12 +120,11 @@ function MessagingTabSkeleton() {
   const { mdAndUp } = useScreenSize();
   return (
     <section>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 animate-pulse">
+      <div className="mb-4 space-y-2 animate-pulse">
         <div className="h-6 w-48 bg-gray-200 rounded" />
         <div className="flex flex-wrap items-center gap-2">
           <div className="h-8 w-24 bg-gray-200 rounded-md" />
           <div className="h-4 w-16 bg-gray-200 rounded" />
-          <div className="h-8 w-8 bg-gray-200 rounded-md" />
         </div>
       </div>
       <div className="p-4">

@@ -224,32 +224,36 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
           {tab === TAB_EXPERT_RESULTS && searchDetail.expertResults.length > 0 ? (
             <section>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-                  Results ({displayedExpertTotal})
-                </h2>
+              <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
+                    Results ({displayedExpertTotal})
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedIndices.size === searchDetail.expertResults.length ? (
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        onClick={() => setSelectedIndices(new Set())}
+                      >
+                        Unselect all
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        onClick={() =>
+                          setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
+                        }
+                        disabled={searchDetail.expertResults.length === 0}
+                      >
+                        Select all
+                      </Button>
+                    )}
+                    <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
+                  </div>
+                </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {selectedIndices.size === searchDetail.expertResults.length ? (
-                    <Button
-                      variant="outlined"
-                      size="sm"
-                      onClick={() => setSelectedIndices(new Set())}
-                    >
-                      Unselect all
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      size="sm"
-                      onClick={() =>
-                        setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
-                      }
-                      disabled={searchDetail.expertResults.length === 0}
-                    >
-                      Select all
-                    </Button>
-                  )}
-                  <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
                   <Button
                     variant="default"
                     size="sm"

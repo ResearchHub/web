@@ -9,10 +9,9 @@ import {
   parsePageQueryParam,
 } from '@/app/expert-finder/lib/paginationParams';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, MoreVertical, Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { ExpertFinderService } from '@/services/expertFinder.service';
@@ -25,7 +24,6 @@ import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import { toast } from 'react-hot-toast';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { isGeneratedEmailDraftLike } from '@/app/expert-finder/lib/generatedEmailStatus';
-import { cn } from '@/utils/styles';
 
 const DEFAULT_EMPTY_MESSAGE = (
   <>
@@ -207,56 +205,44 @@ export function GeneratedEmailsList({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div className="mb-4 space-y-2">
         <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
           Generated messages ({pagination.total})
         </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {allSelected ? (
-            <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
-              Unselect all
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={handleSelectAll}
-              disabled={pageIds.length === 0}
-            >
-              Select all
-            </Button>
-          )}
-          <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
-          <BaseMenu
-            align="end"
-            disabled={!canBulkDeleteDrafts}
-            trigger={
-              <button
-                type="button"
-                className={cn(
-                  'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
-                  'hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-                  !canBulkDeleteDrafts && 'cursor-not-allowed opacity-50'
-                )}
-                aria-label="Bulk actions for selected drafts"
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {allSelected ? (
+              <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
+                Unselect all
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={handleSelectAll}
+                disabled={pageIds.length === 0}
               >
-                {bulkDeleteBusy ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <MoreVertical className="h-4 w-4" aria-hidden />
-                )}
-              </button>
-            }
-          >
-            <BaseMenuItem
+                Select all
+              </Button>
+            )}
+            <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
+          </div>
+          {selectedIds.size > 0 ? (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-2"
               disabled={!canBulkDeleteDrafts}
-              className="text-red-600 focus:bg-red-50 focus:text-red-700"
-              onSelect={() => setShowBulkDeleteConfirm(true)}
+              onClick={() => setShowBulkDeleteConfirm(true)}
             >
-              <Trash2 className="h-4 w-4 mr-2 shrink-0" aria-hidden />
-              <span>Delete</span>
-            </BaseMenuItem>
-          </BaseMenu>
+              {bulkDeleteBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Trash2 className="h-4 w-4" aria-hidden />
+              )}
+              Delete
+            </Button>
+          ) : null}
         </div>
       </div>
 

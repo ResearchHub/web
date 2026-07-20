@@ -1,12 +1,10 @@
 'use client';
 
-import type { MouseEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
-import { Mail, Send } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/utils/styles';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import type { ExpertSourceLink } from '@/types/expertFinder';
 import {
   buildMailtoHref,
@@ -21,8 +19,14 @@ export interface OutreachChannelActionsProps {
   emailBody?: string;
   sources?: ExpertSourceLink[] | null;
   className?: string;
-  size?: 'sm' | 'md';
 }
+
+const channelButtonClass = (enabled: boolean) =>
+  cn(
+    'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+    enabled ? 'hover:bg-gray-50' : 'cursor-not-allowed opacity-50'
+  );
 
 export function OutreachChannelActions({
   expertEmail,
@@ -30,18 +34,10 @@ export function OutreachChannelActions({
   emailBody = '',
   sources,
   className,
-  size = 'md',
 }: OutreachChannelActionsProps) {
   const email = expertEmail.trim();
   const linkedinUrl = getSourceUrlByNetwork(sources, 'linkedin');
   const xUrl = getSourceUrlByNetwork(sources, 'x');
-  const hasAnyChannel = Boolean(email || linkedinUrl || xUrl);
-  const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  const isSm = size === 'sm';
-
-  const stopRowClick = (e: MouseEvent) => {
-    e.stopPropagation();
-  };
 
   const copyBodyThen = async (next: () => void) => {
     if (emailBody.trim()) {
@@ -84,55 +80,40 @@ export function OutreachChannelActions({
   };
 
   return (
-    <div
-      className={cn('inline-flex', className)}
-      onClick={stopRowClick}
-      onKeyDown={(e) => e.stopPropagation()}
-    >
-      <BaseMenu
-        align="end"
-        disabled={!hasAnyChannel}
-        trigger={
-          <button
-            type="button"
-            className={cn(
-              'inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
-              'hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-              isSm ? 'h-7 w-7' : 'h-8 w-8',
-              !hasAnyChannel && 'cursor-not-allowed opacity-50 hover:bg-white'
-            )}
-            disabled={!hasAnyChannel}
-            aria-label="Send message"
-            title={hasAnyChannel ? 'Send via…' : 'No outreach channels available'}
-          >
-            <Send className={iconClass} aria-hidden />
-          </button>
-        }
+    <div className={cn('inline-flex items-center gap-2', className)} role="group" aria-label="Send">
+      <span className="text-sm font-medium text-gray-700">Send:</span>
+      <button
+        type="button"
+        className={channelButtonClass(Boolean(xUrl))}
+        disabled={!xUrl}
+        aria-label="Send via X"
+        title={xUrl ? 'Copy body and open X profile' : 'No X profile available'}
+        onClick={() => xUrl && openProfile(xUrl)}
       >
-        <BaseMenuItem disabled={!email} onSelect={handleEmail}>
-          <Mail className="h-4 w-4 mr-2 shrink-0 text-gray-600" aria-hidden />
-          <span>Email</span>
-        </BaseMenuItem>
-        <BaseMenuItem disabled={!xUrl} onSelect={() => xUrl && openProfile(xUrl)}>
-          <FontAwesomeIcon
-            icon={faXTwitter}
-            className="h-4 w-4 mr-2 shrink-0 text-gray-900"
-            aria-hidden
-          />
-          <span>X</span>
-        </BaseMenuItem>
-        <BaseMenuItem
-          disabled={!linkedinUrl}
-          onSelect={() => linkedinUrl && openProfile(linkedinUrl)}
-        >
-          <FontAwesomeIcon
-            icon={faLinkedin}
-            className="h-4 w-4 mr-2 shrink-0 text-[#0077B5]"
-            aria-hidden
-          />
-          <span>LinkedIn</span>
-        </BaseMenuItem>
-      </BaseMenu>
+        <FontAwesomeIcon icon={faXTwitter} className="h-4 w-4 text-gray-900" aria-hidden />
+      </button>
+      <button
+        type="button"
+        className={channelButtonClass(Boolean(linkedinUrl))}
+        disabled={!linkedinUrl}
+        aria-label="Send via LinkedIn"
+        title={
+          linkedinUrl ? 'Copy body and open LinkedIn profile' : 'No LinkedIn profile available'
+        }
+        onClick={() => linkedinUrl && openProfile(linkedinUrl)}
+      >
+        <FontAwesomeIcon icon={faLinkedin} className="h-4 w-4 text-[#0077B5]" aria-hidden />
+      </button>
+      <button
+        type="button"
+        className={channelButtonClass(Boolean(email))}
+        disabled={!email}
+        aria-label="Send via Email"
+        title={email ? 'Copy body and open email' : 'No email available'}
+        onClick={handleEmail}
+      >
+        <Mail className="h-4 w-4 text-gray-600" aria-hidden />
+      </button>
     </div>
   );
 }
