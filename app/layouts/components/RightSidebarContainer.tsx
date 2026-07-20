@@ -59,10 +59,12 @@ export function RightSidebarContainer({
           'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30'
         )}
       >
-        <div className={cn('p-4 h-full', contentClassName)}>
-          <Suspense fallback={sidebarFallback}>
-            <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-          </Suspense>
+        <div className={cn('h-full', contentClassName)}>
+          <div className="p-4">
+            <Suspense fallback={sidebarFallback}>
+              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+            </Suspense>
+          </div>
         </div>
       </aside>
 
