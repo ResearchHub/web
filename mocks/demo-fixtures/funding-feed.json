@@ -1,0 +1,248 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 32094,
+      "content_type": "RESEARCHHUBPOST",
+      "content_object": {
+        "id": 32094,
+        "slug": "inflammatory-spread-from-neurons-to-whole-body-in-a-fly-model-of-amyotrophic-lateral-sclerosis-als",
+        "title": "Inflammatory spread from neurons to whole body in a fly model of amyotrophic lateral sclerosis (ALS)",
+        "type": "PREREGISTRATION",
+        "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/192192/2ba646f0-4346-432c-b7c8-4584a7a53b2f/cleanshot-2026-04-25-at-10.png",
+        "institution": null,
+        "unified_document_id": 9131904,
+        "authors": [
+          {
+            "id": 8588915,
+            "first_name": "Kenan",
+            "last_name": "Krakovic",
+            "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKarj4eM9Cy6_EWRs5u-y0oAjSoiO_CcMzzu1HkDtSagCqvyw=s96-c",
+            "headline": null,
+            "user": {
+              "id": 192192,
+              "first_name": "Kenan",
+              "last_name": "Krakovic",
+              "is_verified": true
+            }
+          }
+        ],
+        "reviews": [
+          {
+            "author": {
+              "id": 8571279,
+              "first_name": "Vanessa",
+              "last_name": "Bertolucci",
+              "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/22/blob_5SSmrb9",
+              "headline": "Translational Biochemist | Women's Bone Health",
+              "user": {
+                "id": 186851,
+                "first_name": "Vanessa",
+                "last_name": "Bertolucci",
+                "is_verified": true
+              }
+            },
+            "id": 16940,
+            "is_assessed": false,
+            "score": 4.0
+          }
+        ],
+        "fundraise": {
+          "id": 777,
+          "status": "OPEN",
+          "goal_amount": { "usd": 15000.0, "rsc": 180956.9 },
+          "goal_currency": "USD",
+          "amount_raised": { "usd": 674.0, "rsc": 8118.4 },
+          "start_date": "2026-03-30T04:29:50.920674Z",
+          "end_date": "2026-09-30T04:29:50.920674Z",
+          "contributors": { "total": 4, "top": [] },
+          "created_by": {
+            "id": 192192,
+            "author_profile": {
+              "id": 8588915,
+              "is_verified": true,
+              "first_name": "Kenan",
+              "last_name": "Krakovic",
+              "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKarj4eM9Cy6_EWRs5u-y0oAjSoiO_CcMzzu1HkDtSagCqvyw=s96-c"
+            },
+            "first_name": "Kenan",
+            "last_name": "Krakovic"
+          }
+        },
+        "bounties": []
+      },
+      "action_date": "2026-03-30T04:29:50.844333Z",
+      "action": "PUBLISH",
+      "author": {
+        "id": 8588915,
+        "first_name": "Kenan",
+        "last_name": "Krakovic",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKarj4eM9Cy6_EWRs5u-y0oAjSoiO_CcMzzu1HkDtSagCqvyw=s96-c",
+        "headline": null,
+        "user": {
+          "id": 192192,
+          "first_name": "Kenan",
+          "last_name": "Krakovic",
+          "is_verified": true
+        }
+      },
+      "metrics": { "votes": 10, "replies": 3, "adjusted_score": 10 },
+      "hot_score_v2": 150,
+      "hot_score_breakdown": null,
+      "external_metadata": null,
+      "recommendation_id": null,
+      "pdf_copyright_allows_display": true,
+      "adjusted_score": 10
+    },
+    {
+      "id": 88103,
+      "content_type": "RESEARCHHUBPOST",
+      "content_object": {
+        "id": 88103,
+        "slug": "precision-phenotyping-of-an-autism-model-fmr1",
+        "title": "Precision phenotyping of an autism model (fmr1)",
+        "type": "PREREGISTRATION",
+        "image_url": null,
+        "institution": null,
+        "unified_document_id": 9900003,
+        "authors": [
+          {
+            "id": 990025,
+            "first_name": "Martina",
+            "last_name": "Rossi",
+            "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/07/02/blob_M6cfKAR",
+            "headline": "PhD Medical Writer | Cell Biology & Gene Therapy",
+            "user": {
+              "id": 990025,
+              "first_name": "Martina",
+              "last_name": "Rossi",
+              "is_verified": true
+            }
+          }
+        ],
+        "reviews": [],
+        "fundraise": {
+          "id": 88301,
+          "status": "OPEN",
+          "goal_amount": { "usd": 10000.0, "rsc": 121740.0 },
+          "goal_currency": "USD",
+          "amount_raised": { "usd": 0.0, "rsc": 0.0 },
+          "start_date": "2026-07-15T16:00:00.000000Z",
+          "end_date": "2026-09-15T16:00:00.000000Z",
+          "contributors": { "total": 0, "top": [] },
+          "created_by": {
+            "id": 990025,
+            "author_profile": {
+              "id": 990025,
+              "is_verified": true,
+              "first_name": "Martina",
+              "last_name": "Rossi",
+              "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/07/02/blob_M6cfKAR"
+            },
+            "first_name": "Martina",
+            "last_name": "Rossi"
+          }
+        },
+        "bounties": []
+      },
+      "action_date": "2026-07-15T16:00:00.000000Z",
+      "action": "PUBLISH",
+      "author": {
+        "id": 990025,
+        "first_name": "Martina",
+        "last_name": "Rossi",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/07/02/blob_M6cfKAR",
+        "headline": "PhD Medical Writer | Cell Biology & Gene Therapy",
+        "user": {
+          "id": 990025,
+          "first_name": "Martina",
+          "last_name": "Rossi",
+          "is_verified": true
+        }
+      },
+      "metrics": { "votes": 0, "replies": 0, "adjusted_score": 0 },
+      "hot_score_v2": 0,
+      "hot_score_breakdown": null,
+      "external_metadata": null,
+      "recommendation_id": null,
+      "pdf_copyright_allows_display": true,
+      "adjusted_score": 0
+    },
+    {
+      "id": 88102,
+      "content_type": "RESEARCHHUBPOST",
+      "content_object": {
+        "id": 88102,
+        "slug": "tau-imaging-in-early-alzheimers-disease",
+        "title": "Tau Imaging in Early Alzheimer's Disease",
+        "type": "PREREGISTRATION",
+        "image_url": null,
+        "institution": null,
+        "unified_document_id": 9900002,
+        "authors": [
+          {
+            "id": 9800002,
+            "first_name": "Elena",
+            "last_name": "Vasquez",
+            "profile_image": null,
+            "headline": "Professor of Neurology, Stanford",
+            "user": {
+              "id": 9800002,
+              "first_name": "Elena",
+              "last_name": "Vasquez",
+              "is_verified": true
+            }
+          }
+        ],
+        "reviews": [],
+        "fundraise": {
+          "id": 88302,
+          "status": "OPEN",
+          "goal_amount": { "usd": 25000.0, "rsc": 304350.0 },
+          "goal_currency": "USD",
+          "amount_raised": { "usd": 9000.0, "rsc": 109566.0 },
+          "start_date": "2026-06-01T10:00:00.000000Z",
+          "end_date": "2026-09-01T10:00:00.000000Z",
+          "contributors": { "total": 2, "top": [] },
+          "created_by": {
+            "id": 9800002,
+            "author_profile": {
+              "id": 9800002,
+              "is_verified": true,
+              "first_name": "Elena",
+              "last_name": "Vasquez",
+              "profile_image": null
+            },
+            "first_name": "Elena",
+            "last_name": "Vasquez"
+          }
+        },
+        "bounties": []
+      },
+      "action_date": "2026-06-01T10:00:00.000000Z",
+      "action": "PUBLISH",
+      "author": {
+        "id": 9800002,
+        "first_name": "Elena",
+        "last_name": "Vasquez",
+        "profile_image": null,
+        "headline": "Professor of Neurology, Stanford",
+        "user": {
+          "id": 9800002,
+          "first_name": "Elena",
+          "last_name": "Vasquez",
+          "is_verified": true
+        }
+      },
+      "metrics": { "votes": 5, "replies": 1, "adjusted_score": 5 },
+      "hot_score_v2": 110,
+      "hot_score_breakdown": null,
+      "external_metadata": null,
+      "recommendation_id": null,
+      "pdf_copyright_allows_display": true,
+      "adjusted_score": 5
+    }
+  ]
+}

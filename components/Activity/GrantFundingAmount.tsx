@@ -21,5 +21,9 @@ export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, classN
     shorten: true,
   });
 
-  return <span className={cn('text-xs font-medium text-gray-900', className)}>{formatted}</span>;
+  return (
+    <span className={cn('font-mono text-sm font-medium text-green-600', className)}>
+      {formatted}
+    </span>
+  );
 };

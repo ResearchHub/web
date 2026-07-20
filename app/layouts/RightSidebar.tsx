@@ -31,7 +31,7 @@ const ViewAllLink = ({ href }: { href: string }) => (
   </Link>
 );
 
-const AvailableFundingSection = () => {
+export const AvailableFundingSection = () => {
   const { sidebarGrants, fetchSidebarGrants, isSidebarGrantsLoading } = useGrants();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -133,7 +133,7 @@ const AvailableFundingSection = () => {
   );
 };
 
-const NeedsFundingSection = () => {
+export const NeedsFundingSection = () => {
   const { sidebarFundraises, isSidebarLoading, fetchSidebarFundraises } = useFundraises();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();

@@ -20,6 +20,7 @@ export interface PageInfo {
 
 export const ROOT_NAVIGATION_PATHS = new Set([
   '/',
+  '/home',
   '/following',
   '/latest',
   '/popular',
@@ -47,7 +48,8 @@ interface RouteRule {
 
 const ROUTE_RULES: RouteRule[] = [
   {
-    match: (p) => ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(p),
+    match: (p) =>
+      ['/', '/home', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(p),
     getInfo: () => ({
       title: 'Home',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,

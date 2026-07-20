@@ -1,0 +1,4218 @@
+{
+ "next": "https://api.researchhub.com/api/activity_feed/?page=3&page_size=25",
+ "previous": "https://api.researchhub.com/api/activity_feed/?page_size=25",
+ "results": [
+  {
+   "id": 4678999,
+   "content_type": "RESEARCHHUBPOST",
+   "content_object": {
+    "id": 40199,
+    "slug": "longevity-biomarkers-in-human-cell-reprogramming",
+    "title": "Longevity Biomarkers in Human Cell Reprogramming",
+    "type": "GRANT",
+    "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/39602/f89ee9ff-5bea-4b67-81b3-e38ae10daed2/immuno-fluoro.png",
+    "unified_document_id": 9400199,
+    "grant": {
+     "id": 401,
+     "status": "OPEN",
+     "amount": {
+      "usd": 10000,
+      "rsc": 123051.499
+     },
+     "organization": "ResearchHub Foundation",
+     "short_title": "Longevity biomarkers",
+     "is_expired": false,
+     "is_active": true,
+     "application_count": 6,
+     "applications": []
+    },
+    "bounties": [],
+    "reviews": []
+   },
+   "action_date": "2026-07-15T18:00:00.000000Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 39602,
+    "first_name": "ResearchHub",
+    "last_name": "Foundation",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow",
+    "headline": "ResearchHub Foundation",
+    "user": {
+     "id": 39602,
+     "first_name": "ResearchHub",
+     "last_name": "Foundation",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "votes": 5,
+    "replies": 0,
+    "adjusted_score": 5
+   },
+   "hot_score_v2": 100,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 5,
+   "is_nonprofit": false,
+   "nonprofit": null,
+   "associated_grants": []
+  },
+  {
+   "id": 4678380,
+   "content_type": "PURCHASE",
+   "content_object": {
+    "id": 21283,
+    "hub": {
+     "id": 11040,
+     "name": "Neurodevelopmental Disorder",
+     "slug": "neurodevelopmental-disorder"
+    },
+    "amount": 1229.797,
+    "post_id": 32587,
+    "category": null,
+    "currency": "USD",
+    "subcategory": null,
+    "proposal_slug": "discovering-multi-omics-biomarkers-for-adhd-in-a-nigerian-children-cohort-through-integrated-genome-wide-genotyping-dna-methylation-and-multi-omics-factor-analysis-mofa2",
+    "proposal_title": "Discovering Multi-Omics Biomarkers for ADHD in a Nigerian Children Cohort Through Integrated Genome-Wide Genotyping, DNA Methylation and Multi-Omics Factor Analysis (MOFA2)",
+    "unified_document_id": 9321838,
+    "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/192192/2ba646f0-4346-432c-b7c8-4584a7a53b2f/cleanshot-2026-04-25-at-10.png"
+   },
+   "created_date": "2026-07-14T20:13:02.521017Z",
+   "action_date": "2026-07-14T20:13:02.349946Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 991840,
+    "first_name": "Jacob",
+    "last_name": "Haase",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/03/30/blob_y5Utg3U",
+    "headline": "Oncology | CRISPR | Diagnostics & Biomarker",
+    "user": {
+     "id": 58685,
+     "first_name": "Jacob",
+     "last_name": "Haase",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "adjusted_score": 0
+   },
+   "hot_score_v2": 0,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 0,
+   "associated_grants": [
+    {
+     "id": 401,
+     "post_id": 40199,
+     "organization": "ResearchHub Foundation",
+     "short_title": "Longevity Biomarkers Grant",
+     "amount": "10000.00",
+     "currency": "USD",
+     "status": "OPEN",
+     "description": "Funding research into longevity biomarkers and human cell reprogramming.",
+     "image": "https://storage.prod.researchhub.com/uploads/posts/users/39602/f89ee9ff-5bea-4b67-81b3-e38ae10daed2/immuno-fluoro.png",
+     "num_applicants": 6
+    }
+   ]
+  },
+  {
+   "id": 4678376,
+   "content_type": "PURCHASE",
+   "content_object": {
+    "id": 21282,
+    "hub": {
+     "id": 22675,
+     "name": "Liver Damage",
+     "slug": "liver-damage"
+    },
+    "amount": 7371.354,
+    "post_id": 32204,
+    "category": null,
+    "currency": "USD",
+    "subcategory": null,
+    "proposal_slug": "same-pathway-as-mots-c-cheaper-safer-the-brain-body-imaging-data-just-doesnt-exist-yet",
+    "proposal_title": "Same Pathway as MOTS-c. Cheaper. Safer. The Brain-Body Imaging Data Just Doesn't Exist Yet",
+    "unified_document_id": 9162971,
+    "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/202146/a9fe702f-b1b0-45d8-8270-db239bb70b3c/brightn_header.jpg"
+   },
+   "created_date": "2026-07-14T19:10:26.922801Z",
+   "action_date": "2026-07-14T19:10:26.696626Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 932947,
+    "first_name": "Jeffrey",
+    "last_name": "Koury",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/01/blob_Ut50nMY",
+    "headline": "President at ResearchHub Foundation",
+    "user": {
+     "id": 34416,
+     "first_name": "Jeffrey",
+     "last_name": "Koury",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "adjusted_score": 0
+   },
+   "hot_score_v2": 0,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 0,
+   "associated_grants": [
+    {
+     "id": 401,
+     "post_id": 40199,
+     "organization": "ResearchHub Foundation",
+     "short_title": "Longevity Biomarkers Grant",
+     "amount": "10000.00",
+     "currency": "USD",
+     "status": "OPEN",
+     "description": "Funding research into longevity biomarkers and human cell reprogramming.",
+     "image": "https://storage.prod.researchhub.com/uploads/posts/users/39602/f89ee9ff-5bea-4b67-81b3-e38ae10daed2/immuno-fluoro.png",
+     "num_applicants": 6
+    }
+   ]
+  },
+  {
+   "id": 4678375,
+   "content_type": "PURCHASE",
+   "content_object": {
+    "id": 21281,
+    "hub": {
+     "id": 22675,
+     "name": "Liver Damage",
+     "slug": "liver-damage"
+    },
+    "amount": 25609.893,
+    "post_id": 32204,
+    "category": null,
+    "currency": "USD",
+    "subcategory": null,
+    "proposal_slug": "same-pathway-as-mots-c-cheaper-safer-the-brain-body-imaging-data-just-doesnt-exist-yet",
+    "proposal_title": "Same Pathway as MOTS-c. Cheaper. Safer. The Brain-Body Imaging Data Just Doesn't Exist Yet",
+    "unified_document_id": 9162971,
+    "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/202410/c5218a88-a44d-41b0-877f-98c8a17536cc/nucelocapsid.png"
+   },
+   "created_date": "2026-07-14T16:39:49.037812Z",
+   "action_date": "2026-07-14T16:39:48.848321Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 11,
+    "first_name": "Brian",
+    "last_name": "Armstrong",
+    "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mA5TckEtf6gNvFbi_sBOzDVMZEhGda7cWZqLRR4LFA",
+    "headline": "Co-founder and CEO of Coinbase.",
+    "user": {
+     "id": 3,
+     "first_name": "Brian",
+     "last_name": "Armstrong",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "adjusted_score": 0
+   },
+   "hot_score_v2": 46,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 0,
+   "associated_grants": [
+    {
+     "id": 401,
+     "post_id": 40199,
+     "organization": "ResearchHub Foundation",
+     "short_title": "Longevity Biomarkers Grant",
+     "amount": "10000.00",
+     "currency": "USD",
+     "status": "OPEN",
+     "description": "Funding research into longevity biomarkers and human cell reprogramming.",
+     "image": "https://storage.prod.researchhub.com/uploads/posts/users/39602/f89ee9ff-5bea-4b67-81b3-e38ae10daed2/immuno-fluoro.png",
+     "num_applicants": 6
+    }
+   ]
+  },
+  {
+   "id": 4678374,
+   "content_type": "RHCOMMENTMODEL",
+   "content_object": {
+    "id": 88968,
+    "hub": {
+     "id": 61738,
+     "name": "Gene",
+     "slug": "gene-1"
+    },
+    "post": {
+     "id": 32496,
+     "hub": {
+      "id": 61738,
+      "name": "Gene",
+      "slug": "gene-1"
+     },
+     "slug": "phoenix-expr-non-invasive-salivary-and-urinary-extracellular-rna-profiling-to-read-metabolic-and-neurovascular-gene-expression-states-in-community-primary-care",
+     "type": "PREREGISTRATION",
+     "grant": null,
+     "title": "PHOENIX-Expr: Non-invasive Salivary and Urinary Extracellular RNA Profiling to Read Metabolic and Neurovascular Gene-Expression States in Community Primary Care",
+     "reviews": [
+      {
+       "id": 18418,
+       "score": 4,
+       "author": {
+        "id": 8623156,
+        "user": {
+         "id": 197732,
+         "last_name": "Review",
+         "first_name": "AI",
+         "is_verified": true
+        },
+        "headline": "",
+        "last_name": "Review",
+        "first_name": "AI",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/02/blob_Yfubd6a"
+       },
+       "is_assessed": true
+      },
+      {
+       "id": 18520,
+       "score": 4,
+       "author": {
+        "id": 8672194,
+        "user": {
+         "id": 202521,
+         "last_name": "Azadi",
+         "first_name": "Hamed",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Azadi",
+        "first_name": "Hamed",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLiEdRIVo_Ibx6_fVi-y4hBJfdi1WHwxtSkIecWg3WCGZm6klTO=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18521,
+       "score": 4,
+       "author": {
+        "id": 8672194,
+        "user": {
+         "id": 202521,
+         "last_name": "Azadi",
+         "first_name": "Hamed",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Azadi",
+        "first_name": "Hamed",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLiEdRIVo_Ibx6_fVi-y4hBJfdi1WHwxtSkIecWg3WCGZm6klTO=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18555,
+       "score": 4,
+       "author": {
+        "id": 8630321,
+        "user": {
+         "id": 199467,
+         "last_name": "Sagar",
+         "first_name": "Raj",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Sagar",
+        "first_name": "Raj",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKKYksXFo24rZy1h6Lw2-N1-_1dC8hTOr6n1FAaKDcetFcraXyH=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18636,
+       "score": 4,
+       "author": {
+        "id": 983927,
+        "user": {
+         "id": 50496,
+         "last_name": "gundog",
+         "first_name": "i",
+         "is_verified": true
+        },
+        "headline": "İlker GÜNDOĞ",
+        "last_name": "Gündoğ",
+        "first_name": "İlker",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
+       },
+       "is_assessed": false
+      }
+     ],
+     "bounties": [
+      {
+       "id": 7553,
+       "hub": {
+        "id": 61738,
+        "name": "Gene",
+        "slug": "gene-1"
+       },
+       "amount": "1732.0000000000",
+       "status": "OPEN",
+       "category": null,
+       "bounty_type": "REVIEW",
+       "subcategory": null,
+       "contributors": [],
+       "contributions": [
+        {
+         "id": 7553,
+         "amount": 1732,
+         "author": {
+          "id": 973869,
+          "user": {
+           "id": 39602,
+           "last_name": "Account",
+           "first_name": "Main",
+           "is_verified": true
+          },
+          "headline": "",
+          "last_name": "Foundation",
+          "first_name": "ResearchHub",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+         }
+        }
+       ],
+       "document_type": "PREREGISTRATION",
+       "expiration_date": "2026-07-17T03:01:18.958000Z"
+      }
+     ],
+     "category": null,
+     "fundraise": {
+      "id": 932,
+      "status": "OPEN",
+      "end_date": "2026-08-28T16:35:24.893000Z",
+      "created_by": {
+       "id": 203199,
+       "last_name": "Chaudhary",
+       "first_name": "Aryan",
+       "author_profile": {
+        "id": 8682369,
+        "user": 203199,
+        "claimed": true,
+        "h_index": 6,
+        "twitter": null,
+        "facebook": null,
+        "headline": null,
+        "linkedin": null,
+        "orcid_id": "https://orcid.org/0000-0002-4751-9542",
+        "education": [],
+        "i10_index": 6,
+        "last_name": "Chaudhary",
+        "first_name": "Aryan",
+        "university": null,
+        "description": null,
+        "is_verified": false,
+        "author_score": 0,
+        "country_code": null,
+        "created_date": "2026-06-29T08:44:24.017611Z",
+        "openalex_ids": [],
+        "updated_date": "2026-06-29T08:44:24.017620Z",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKfWGBRXK_gtjG_37b0IsfYCmODFvAWpuIyVvXNPRX_tj-kjg=s96-c",
+        "created_source": "RESEARCHHUB",
+        "google_scholar": null,
+        "merged_with_author": null,
+        "two_year_mean_citedness": 1.8214285714285714,
+        "last_full_fetch_from_openalex": null
+       }
+      },
+      "start_date": "2026-06-29T16:35:26.223414Z",
+      "goal_amount": {
+       "rsc": 121489.05676873097,
+       "usd": 10000
+      },
+      "contributors": {
+       "top": [
+        {
+         "id": 76360,
+         "last_name": "L",
+         "first_name": "Y",
+         "contributions": [
+          {
+           "date": "2026-06-30T14:01:41.660Z",
+           "amount": 66.109,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 5570124,
+          "user": 76360,
+          "claimed": true,
+          "h_index": 26,
+          "twitter": "https://x.com/HaoYin20",
+          "facebook": null,
+          "headline": "Cardiovascular biologists",
+          "linkedin": "https://www.linkedin.com/in/hao-yin-a032a770",
+          "orcid_id": "https://orcid.org/0000-0002-0018-3228",
+          "education": [
+           {
+            "id": 8180,
+            "name": "University of Calgary",
+            "year": {
+             "label": "2010",
+             "value": "2010"
+            },
+            "major": "Biochemistry and Molecular Biology",
+            "degree": {
+             "label": "Doctor of Philosophy",
+             "value": "PhD"
+            },
+            "summary": "Biochemistry and Molecular Biology PhD '10, University of Calgary",
+            "is_public": true
+           }
+          ],
+          "i10_index": 45,
+          "last_name": "Yin",
+          "first_name": "Hao",
+          "university": null,
+          "description": "",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2024-11-05T19:59:34.941672Z",
+          "openalex_ids": [
+           "https://openalex.org/A5069103834"
+          ],
+          "updated_date": "2026-07-02T19:50:47.950998Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/01/13/blob_CLfn3XG",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.ca/citations?hl=en&user=IbrDx00AAAAJ",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 7.392857142857143,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 66.109,
+          "usd": 0,
+          "rsc_usd_snapshot": 4.9618393755937
+         }
+        }
+       ],
+       "total": 1
+      },
+      "amount_raised": {
+       "rsc": 66.109,
+       "usd": 5.4415600679036
+      },
+      "goal_currency": "USD"
+     },
+     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/203199/a57fc530-30b3-45d9-b688-e65250a3e007/39237a4a-c3f0-48c0-a441-ed8e5f607010.png",
+     "purchases": [],
+     "subcategory": null,
+     "created_date": "2026-06-29T16:35:26.150144Z",
+     "renderable_text": "PHOENIX-Expr: Non-invasive Salivary and Urinary Extracellular RNA Profiling to Read Metabolic and Neurovascular Gene-Expression States in Community Primary Care\n\n1. Abstract\n\nThis proposal will develop and validate a low-burden, non-invasive extracellular...",
+     "unified_document_id": 9305772
+    },
+    "paper": null,
+    "author": {
+     "id": 983927,
+     "user": {
+      "id": 50496,
+      "last_name": "gundog",
+      "first_name": "i",
+      "is_verified": true
+     },
+     "headline": "İlker GÜNDOĞ",
+     "last_name": "Gündoğ",
+     "first_name": "İlker",
+     "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
+    },
+    "review": {
+     "id": 18636,
+     "score": 4,
+     "object_id": 88968,
+     "created_by": 50496,
+     "is_removed": false,
+     "content_type": 118,
+     "unified_document": 9305772
+    },
+    "bounties": [],
+    "category": null,
+    "parent_id": null,
+    "purchases": [],
+    "thread_id": 80029,
+    "subcategory": null,
+    "comment_type": "REVIEW",
+    "document_type": "PREREGISTRATION",
+    "parent_comment": null,
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"When I read the PHOENIX-Expr proposal, the first thing that caught my attention was its aim to read metabolic and neurovascular gene expression status by profiling extracellular RNA (exRNA) from completely non-invasive samples such as saliva and urine. Obtaining this kind of information without the need for blood draws or biopsies is a really attractive idea, especially considering its applicability in primary care settings. The fact that it's designed as a nine-month, $10,000 pilot study shows that its scope is kept realistic and measurable; aiming for a \\\"proof of concept\\\" level of validation rather than making overly ambitious clinical claims with a budget of this scale is a logical approach. The emphasis on \\\"Rigorous Pilot Design\\\" and \\\"Open Science\\\" in the evaluation notes is positive; the methodological rigor and the open sharing of data are a good stance against reproducibility issues in this field. However, I think the \\\"Limited Novelty\\\" designation is also not unfair — the relationship between saliva and urine exRNA and metabolic diseases, and even neurodegenerative processes, is an area that has been increasingly studied in recent years;  The added value here seems to focus less on discovering a new biomarker and more on transferring existing methods to a community health/primary care setting and testing their practical applicability. This isn't actually a deficiency, but rather stems from the translational nature of the study's aim. What I'm most curious about is how to standardize the logistics of sample collection, storage, and processing in a community primary care setting—because the stability of saliva/urine RNA is a significant variable in non-laboratory conditions. If this protocol is clear, it could significantly contribute to the reliability of the results. Overall, despite its modest budget, I see it as a well-framed, realistic, and literature-aligned pilot study proposal; its real test lies in demonstrating how transferable the collected data is to clinical decision-making processes.\"}]}]}",
+    "comment_content_type": "TIPTAP"
+   },
+   "created_date": "2026-07-14T16:27:30.136670Z",
+   "action_date": "2026-07-14T16:27:29.177788Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 983927,
+    "first_name": "İlker",
+    "last_name": "Gündoğ",
+    "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c",
+    "headline": "İlker GÜNDOĞ",
+    "user": {
+     "id": 50496,
+     "first_name": "i",
+     "last_name": "gundog",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "votes": 1,
+    "replies": 0,
+    "adjusted_score": 1
+   },
+   "hot_score_v2": 81,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 1
+  },
+  {
+   "id": 4678362,
+   "content_type": "RHCOMMENTMODEL",
+   "content_object": {
+    "id": 88967,
+    "hub": {
+     "id": 37,
+     "name": "Sociology",
+     "slug": "sociology"
+    },
+    "post": {
+     "id": 32308,
+     "hub": {
+      "id": 37,
+      "name": "Sociology",
+      "slug": "sociology"
+     },
+     "slug": "system-dynamics-and-configurational-analysis-of-uhc-policy-effects-on-hiv-related-health-outcomes-in-southeast-asia",
+     "type": "PREREGISTRATION",
+     "grant": null,
+     "title": "System Dynamics and Configurational Analysis of UHC Policy Effects on HIV-Related Health Outcomes in Southeast Asia",
+     "reviews": [
+      {
+       "id": 17749,
+       "score": 4,
+       "author": {
+        "id": 8623156,
+        "user": {
+         "id": 197732,
+         "last_name": "Review",
+         "first_name": "AI",
+         "is_verified": true
+        },
+        "headline": "",
+        "last_name": "Review",
+        "first_name": "AI",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/02/blob_Yfubd6a"
+       },
+       "is_assessed": true
+      },
+      {
+       "id": 17893,
+       "score": 3,
+       "author": {
+        "id": 8587524,
+        "user": {
+         "id": 191875,
+         "last_name": "Iqbal",
+         "first_name": "Muhammad",
+         "is_verified": true
+        },
+        "headline": "Professor Medicine",
+        "last_name": "Shah",
+        "first_name": "Hafiz Syed Zaigham Ali",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/21/blob_e9yhjA4"
+       },
+       "is_assessed": true
+      },
+      {
+       "id": 17931,
+       "score": 4,
+       "author": {
+        "id": 8646336,
+        "user": {
+         "id": 200265,
+         "last_name": "Bhunia",
+         "first_name": "Saptarshi",
+         "is_verified": true
+        },
+        "headline": null,
+        "last_name": "Bhunia",
+        "first_name": "Saptarshi",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKJpBlQQ1yH07ylhacTe3nZ0HijIooKFPJ0-FJCQ8bJOM9_rtXa=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17963,
+       "score": 4,
+       "author": {
+        "id": 8626164,
+        "user": {
+         "id": 199080,
+         "last_name": "Ghiboub",
+         "first_name": "Mohaemmed",
+         "is_verified": true
+        },
+        "headline": "Amsterdam University Medical Center",
+        "last_name": "Ghiboub",
+        "first_name": "Mohammed",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/05/08/blob_qwFOzQG"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17979,
+       "score": 4,
+       "author": {
+        "id": 8655233,
+        "user": {
+         "id": 201587,
+         "last_name": "ninef",
+         "first_name": "violin",
+         "is_verified": false
+        },
+        "headline": "Scopus Reviewer",
+        "last_name": "Ninef",
+        "first_name": "Violin",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIPoOr7Hxejf6iaRITeCulAKGxDzDGWxERtQlU3KGXvP4F_E_g=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18009,
+       "score": 5,
+       "author": {
+        "id": 8656258,
+        "user": {
+         "id": 201709,
+         "last_name": "solt",
+         "first_name": "Avalace X",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "solt",
+        "first_name": "Avalace X",
+        "profile_image": null
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18017,
+       "score": 3,
+       "author": {
+        "id": 8656358,
+        "user": {
+         "id": 201718,
+         "last_name": "Parakra",
+         "first_name": "Rinky",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Parakra",
+        "first_name": "Rinky",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIAIH-OMhed63fS6fRpqJlOm2i2F0vfBKTW0vxF1qkJ1kN7Ab8=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18021,
+       "score": 3,
+       "author": {
+        "id": 8625733,
+        "user": {
+         "id": 198946,
+         "last_name": "",
+         "first_name": "Noorjahan",
+         "is_verified": false
+        },
+        "headline": "Data Analyst & Research Analyst",
+        "last_name": "Siddiqui",
+        "first_name": "Noorjahan",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/05/07/blob_mIKCPKy"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17949,
+       "score": 4,
+       "author": {
+        "id": 8653408,
+        "user": {
+         "id": 201482,
+         "last_name": "Akbar",
+         "first_name": "Alfin Nur Rahman",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Akbar",
+        "first_name": "Alfin Nur Rahman",
+        "profile_image": null
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17978,
+       "score": 4,
+       "author": {
+        "id": 8650753,
+        "user": {
+         "id": 200368,
+         "last_name": "Mohamed",
+         "first_name": "Yasser",
+         "is_verified": false
+        },
+        "headline": "",
+        "last_name": "Mohamed",
+        "first_name": "Yasser",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLUiJ8C8jzjkLs--clvq3erEd4GCFkT_tBuRZNp8NsGt0j3NW-i=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18007,
+       "score": 4,
+       "author": {
+        "id": 983927,
+        "user": {
+         "id": 50496,
+         "last_name": "gundog",
+         "first_name": "i",
+         "is_verified": true
+        },
+        "headline": "İlker GÜNDOĞ",
+        "last_name": "Gündoğ",
+        "first_name": "İlker",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18014,
+       "score": 5,
+       "author": {
+        "id": 8656334,
+        "user": {
+         "id": 201714,
+         "last_name": "Mack",
+         "first_name": "Boss",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Mack",
+        "first_name": "Boss",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLx9lowS8tlD0vay3UUlSNrWjTpYBTwpw8XAnXBdzuwAbHvXGLE=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17950,
+       "score": 4,
+       "author": {
+        "id": 8653408,
+        "user": {
+         "id": 201482,
+         "last_name": "Akbar",
+         "first_name": "Alfin Nur Rahman",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Akbar",
+        "first_name": "Alfin Nur Rahman",
+        "profile_image": null
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18034,
+       "score": 5,
+       "author": {
+        "id": 8661329,
+        "user": {
+         "id": 201827,
+         "last_name": "eddin",
+         "first_name": "nosayr",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "eddin",
+        "first_name": "nosayr",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJ3Y9bNZgdUQ_OCvDitzyiKnT2UXSVjD1tBeXwngNr3zM3txQ=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18059,
+       "score": 3,
+       "author": {
+        "id": 8661953,
+        "user": {
+         "id": 201880,
+         "last_name": "muin",
+         "first_name": "abdul",
+         "is_verified": false
+        },
+        "headline": "Health Administration and Health Policy Researcher",
+        "last_name": "muin",
+        "first_name": "abdul",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/08/blob"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18090,
+       "score": 4,
+       "author": {
+        "id": 8663191,
+        "user": {
+         "id": 202058,
+         "last_name": "Pamuji",
+         "first_name": "Agus",
+         "is_verified": false
+        },
+        "headline": "Universitas Islam Negeri Siber Syekh Nurjati",
+        "last_name": "Pamuji",
+        "first_name": "Agus",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIZKig-hjlqM_YCsO84YpGD8qCz7CZ1OfkdW4PAN0_TcPVAnkA=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18038,
+       "score": 4,
+       "author": {
+        "id": 8661734,
+        "user": {
+         "id": 201835,
+         "last_name": "",
+         "first_name": ": Sítrino-Santagracia.",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "",
+        "first_name": ": Sítrino-Santagracia.",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJtaxQ2VYWSVkVFSwwUqC9cpfaCPqVqlYJ2HHA7CWYP51RpTBFM=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18060,
+       "score": 4,
+       "author": {
+        "id": 8661969,
+        "user": {
+         "id": 201885,
+         "last_name": "Wulandari",
+         "first_name": "Dewi",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Wulandari",
+        "first_name": "Dewi",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKMHZzQLtzYxQ9JYqj-6n1jQw51hrJgISEbv5xd6YflszA0KOnf=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18076,
+       "score": 4,
+       "author": {
+        "id": 8643268,
+        "user": {
+         "id": 200172,
+         "last_name": "Smith, PhD",
+         "first_name": "Dr. KM",
+         "is_verified": true
+        },
+        "headline": "Accessibility, Disability, health Educator",
+        "last_name": "Smith, PhD",
+        "first_name": "Keyonda",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKhaQ9HV77TMI7ag2MRXbIFDMYITV0jWPtiyFEovcTjf8Jzdj5Edw=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18084,
+       "score": 4,
+       "author": {
+        "id": 8662340,
+        "user": {
+         "id": 201998,
+         "last_name": "Ashari",
+         "first_name": "Reza",
+         "is_verified": false
+        },
+        "headline": "Policy and Health Management",
+        "last_name": "Ashari",
+        "first_name": "Reza",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/10/blob"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18091,
+       "score": 4,
+       "author": {
+        "id": 8663191,
+        "user": {
+         "id": 202058,
+         "last_name": "Pamuji",
+         "first_name": "Agus",
+         "is_verified": false
+        },
+        "headline": "Universitas Islam Negeri Siber Syekh Nurjati",
+        "last_name": "Pamuji",
+        "first_name": "Agus",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIZKig-hjlqM_YCsO84YpGD8qCz7CZ1OfkdW4PAN0_TcPVAnkA=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18081,
+       "score": 3,
+       "author": {
+        "id": 989906,
+        "user": {
+         "id": 56714,
+         "last_name": "Masak",
+         "first_name": "Elon",
+         "is_verified": false
+        },
+        "headline": "",
+        "last_name": "Masak",
+        "first_name": "Elon",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLdQPpNtZKZvhfWiN72WFyKROM8A3zGtk6fv9vVdDVUTI4=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18050,
+       "score": 5,
+       "author": {
+        "id": 8661926,
+        "user": {
+         "id": 201860,
+         "last_name": "Shahzady",
+         "first_name": "Alishba",
+         "is_verified": false
+        },
+        "headline": "",
+        "last_name": "BiBi",
+        "first_name": "Alishba",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKaOQ0p26csYNO874Q_Ws18UTCIl0J3zFox4qW4k2QDX0MnPQ=s96-c"
+       },
+       "is_assessed": false
+      }
+     ],
+     "bounties": [
+      {
+       "id": 7464,
+       "hub": {
+        "id": 37,
+        "name": "Sociology",
+        "slug": "sociology"
+       },
+       "amount": "1452.0000000000",
+       "status": "CLOSED",
+       "category": null,
+       "bounty_type": "REVIEW",
+       "subcategory": {
+        "id": 198,
+        "name": "Epidemiology",
+        "slug": "epidemiology"
+       },
+       "contributors": [],
+       "contributions": [
+        {
+         "id": 7464,
+         "amount": 1452,
+         "author": {
+          "id": 973869,
+          "user": {
+           "id": 39602,
+           "last_name": "Account",
+           "first_name": "Main",
+           "is_verified": true
+          },
+          "headline": "",
+          "last_name": "Foundation",
+          "first_name": "ResearchHub",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+         }
+        }
+       ],
+       "document_type": "PREREGISTRATION",
+       "expiration_date": "2026-06-16T21:05:52.779811Z"
+      }
+     ],
+     "category": null,
+     "fundraise": {
+      "id": 861,
+      "status": "OPEN",
+      "end_date": "2026-06-18T16:52:56.764947Z",
+      "created_by": {
+       "id": 183857,
+       "last_name": "Hung",
+       "first_name": "Jason",
+       "author_profile": {
+        "id": 8336024,
+        "user": 183857,
+        "claimed": true,
+        "h_index": 0,
+        "twitter": "https://dataverse.harvard.edu/dataverse/gaidproject",
+        "facebook": null,
+        "headline": "Applied Social & Health Data Scientist (Primary)",
+        "linkedin": "https://aiinsocietyhub.com/",
+        "orcid_id": "https://orcid.org/0000-0002-0267-3925",
+        "education": [
+         {
+          "id": 8202,
+          "name": "University of Cambridge",
+          "year": {
+           "label": "2025",
+           "value": "2025"
+          },
+          "major": "Sociology (Quantitative)",
+          "degree": {
+           "label": "Doctor of Philosophy",
+           "value": "PhD"
+          },
+          "summary": "Sociology (Quantitative) PhD '25, University of Cambridge",
+          "is_public": false,
+          "university": {
+           "id": 8202,
+           "city": "",
+           "name": "University of Cambridge",
+           "state": "",
+           "country": "United Kingdom",
+           "updated_date": "2020-11-24T21:44:27.626362Z"
+          }
+         },
+         {
+          "id": 8030,
+          "name": "University College London, University of London",
+          "year": {
+           "label": "2020",
+           "value": "2020"
+          },
+          "major": "Education, Gender and International Development",
+          "degree": {
+           "label": "Master of Arts",
+           "value": "MA"
+          },
+          "summary": "Education, Gender and International Development MA '20, University College London, University of London",
+          "is_public": false,
+          "university": {
+           "id": 8030,
+           "city": "",
+           "name": "University College London, University of London",
+           "state": "",
+           "country": "United Kingdom",
+           "updated_date": "2020-11-24T21:44:27.625409Z"
+          }
+         },
+         {
+          "id": 4005,
+          "name": "London School of Economics and Political Science, University of London",
+          "year": {
+           "label": "2019",
+           "value": "2019"
+          },
+          "major": "Sociology (Quantitative)",
+          "degree": {
+           "label": "Master of Science",
+           "value": "MS"
+          },
+          "summary": "Sociology (Quantitative) MS '19, London School of Economics and Political Science, University of London",
+          "is_public": false,
+          "university": {
+           "id": 4005,
+           "name": "London School of Economics and Political Science, University of London"
+          }
+         },
+         {
+          "id": 8848,
+          "name": "University of Warwick",
+          "year": {
+           "label": "2018",
+           "value": "2018"
+          },
+          "major": "Sociology and Quantitative Methods",
+          "degree": {
+           "label": "Bachelor's Degree",
+           "value": "BA"
+          },
+          "summary": "Sociology and Quantitative Methods BA '18, University of Warwick",
+          "is_public": false,
+          "university": {
+           "id": 8848,
+           "city": "",
+           "name": "University of Warwick",
+           "state": "",
+           "country": "United Kingdom",
+           "updated_date": "2020-11-24T21:44:27.629430Z"
+          }
+         }
+        ],
+        "i10_index": 0,
+        "last_name": "Hung",
+        "first_name": "Jason",
+        "university": null,
+        "description": "Been primarily trained in applied social and health data science; \nCurrently working on internet measurement and environmental sustainability research with digital geopolitical implications as a postdoc;\nHave transitioned into AI safety research",
+        "is_verified": true,
+        "author_score": 0,
+        "country_code": null,
+        "created_date": "2025-11-20T11:23:44.779103Z",
+        "openalex_ids": [],
+        "updated_date": "2026-05-21T10:35:40.984086Z",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob",
+        "created_source": "RESEARCHHUB",
+        "google_scholar": "",
+        "merged_with_author": null,
+        "two_year_mean_citedness": 0,
+        "last_full_fetch_from_openalex": null
+       }
+      },
+      "start_date": "2026-05-19T16:52:56.765140Z",
+      "goal_amount": {
+       "rsc": 60336.30554077296,
+       "usd": 5000
+      },
+      "contributors": {
+       "top": [
+        {
+         "id": 181770,
+         "last_name": "Hansora",
+         "first_name": "Dharmesh",
+         "contributions": [
+          {
+           "date": "2026-06-15T16:27:57.093Z",
+           "amount": 928.966,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 8113466,
+          "user": 181770,
+          "claimed": true,
+          "h_index": 0,
+          "twitter": "https://x.com/iDhansora",
+          "facebook": null,
+          "headline": "Postdoc Researcher at NREL",
+          "linkedin": "https://www.linkedin.com/in/dharmesh-hansora-46458a34/",
+          "orcid_id": "https://orcid.org/0000-0002-3928-1773",
+          "education": [
+           {
+            "id": 6889,
+            "name": "Ulsan National Institute of Science and Technology",
+            "year": {
+             "label": "2023",
+             "value": "2023"
+            },
+            "major": "Chemical Engineering",
+            "degree": {
+             "label": "Doctor of Education",
+             "value": "EdD"
+            },
+            "summary": "Chemical Engineering EdD '23, Ulsan National Institute of Science and Technology",
+            "is_public": false,
+            "university": {
+             "id": 6889,
+             "city": "",
+             "name": "Ulsan National Institute of Science and Technology",
+             "state": "",
+             "country": "Korea, Republic of",
+             "updated_date": "2020-11-24T21:44:27.620132Z"
+            }
+           }
+          ],
+          "i10_index": 0,
+          "last_name": "Hansora",
+          "first_name": "Dharmesh",
+          "university": null,
+          "description": "Material Science, Physical Science, Solar Photochemistry, Solar fuels",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2025-09-11T17:15:13.924735Z",
+          "openalex_ids": [],
+          "updated_date": "2025-09-11T20:06:52.756300Z",
+          "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKT-EfUKq_GA73UAObcJr-pw_F04EmJDqUO1k8-H48VMp2tyaEx1w=s96-c",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.com/citations?user=HsNcVF0AAAAJ&hl=en",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 0,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 928.966,
+          "usd": 0,
+          "rsc_usd_snapshot": 99.99995923494181
+         }
+        },
+        {
+         "id": 14,
+         "last_name": "Joyce",
+         "first_name": "Patrick",
+         "contributions": [
+          {
+           "date": "2026-05-19T20:54:15.425Z",
+           "amount": 823.719,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 22,
+          "user": 14,
+          "claimed": true,
+          "h_index": 9,
+          "twitter": "https://twitter.com/joycesticks",
+          "facebook": null,
+          "headline": "",
+          "linkedin": "https://www.linkedin.com/in/patrick-joyce-396b953b/",
+          "orcid_id": null,
+          "education": [
+           {
+            "id": 765,
+            "city": "Boston",
+            "name": "Boston University",
+            "year": {
+             "label": "2015",
+             "value": "2015"
+            },
+            "state": "MA",
+            "degree": {
+             "label": "Master's Degree",
+             "value": "Master's Degree"
+            },
+            "country": "United States",
+            "summary": "Master's Degree '15, Boston University",
+            "is_public": true,
+            "created_date": "2020-11-24T21:44:27.590818Z",
+            "updated_date": "2020-11-24T21:44:27.590820Z"
+           }
+          ],
+          "i10_index": 8,
+          "last_name": "Joyce",
+          "first_name": "Patrick",
+          "university": null,
+          "description": "Med student interested in neuroscience and its clinical applications",
+          "is_verified": true,
+          "author_score": 3,
+          "country_code": null,
+          "created_date": "2019-11-19T20:10:16.840995Z",
+          "openalex_ids": [
+           "https://openalex.org/A5051784742",
+           "https://openalex.org/A5092177346",
+           "https://openalex.org/A5066208241"
+          ],
+          "updated_date": "2025-08-01T19:12:18.661017Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2019/11/19/blob",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": null,
+          "merged_with_author": null,
+          "two_year_mean_citedness": 0.9090909090909091,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 823.719,
+          "usd": 0,
+          "rsc_usd_snapshot": 100.4468783722716
+         }
+        },
+        {
+         "id": 73794,
+         "last_name": "Rust",
+         "first_name": "Ruslan",
+         "contributions": [
+          {
+           "date": "2026-05-19T17:26:18.856Z",
+           "amount": 411.86,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 4945925,
+          "user": 73794,
+          "claimed": true,
+          "h_index": 25,
+          "twitter": "https://x.com/rust_ruslan",
+          "facebook": null,
+          "headline": "Assistant Professor in Neuroscience and Physiology at University of Southern California",
+          "linkedin": "https://www.linkedin.com/in/ruslan-rust/",
+          "orcid_id": "https://orcid.org/0000-0003-3376-3453",
+          "education": [
+           {
+            "id": 1667,
+            "city": "",
+            "name": "ETHZ - ETH Zurich",
+            "year": {
+             "label": "2019",
+             "value": "2019"
+            },
+            "major": "Neuroscience",
+            "state": "",
+            "degree": {
+             "label": "Doctor of Philosophy",
+             "value": "PhD"
+            },
+            "country": "Switzerland",
+            "summary": "Neuroscience PhD '19, ETHZ - ETH Zurich",
+            "is_public": true,
+            "created_date": "2020-11-24T21:44:27.595024Z",
+            "updated_date": "2020-11-24T21:44:27.595026Z"
+           }
+          ],
+          "i10_index": 45,
+          "last_name": "Rust",
+          "first_name": "Ruslan",
+          "university": null,
+          "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer’s disease.",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2024-10-17T17:22:24.986612Z",
+          "openalex_ids": [
+           "https://openalex.org/A5002943149"
+          ],
+          "updated_date": "2026-07-02T19:50:47.999762Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/17/blob_UbuEj4i",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.com/citations?user=-Mc-aPAAAAAJ&hl=en&oi=ao",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 5.961538461538462,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 411.86,
+          "usd": 0,
+          "rsc_usd_snapshot": 50.000032499928004
+         }
+        },
+        {
+         "id": 76360,
+         "last_name": "L",
+         "first_name": "Y",
+         "contributions": [
+          {
+           "date": "2026-05-19T17:49:28.473Z",
+           "amount": 41.186,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 5570124,
+          "user": 76360,
+          "claimed": true,
+          "h_index": 26,
+          "twitter": "https://x.com/HaoYin20",
+          "facebook": null,
+          "headline": "Cardiovascular biologists",
+          "linkedin": "https://www.linkedin.com/in/hao-yin-a032a770",
+          "orcid_id": "https://orcid.org/0000-0002-0018-3228",
+          "education": [
+           {
+            "id": 8180,
+            "name": "University of Calgary",
+            "year": {
+             "label": "2010",
+             "value": "2010"
+            },
+            "major": "Biochemistry and Molecular Biology",
+            "degree": {
+             "label": "Doctor of Philosophy",
+             "value": "PhD"
+            },
+            "summary": "Biochemistry and Molecular Biology PhD '10, University of Calgary",
+            "is_public": true
+           }
+          ],
+          "i10_index": 45,
+          "last_name": "Yin",
+          "first_name": "Hao",
+          "university": null,
+          "description": "",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2024-11-05T19:59:34.941672Z",
+          "openalex_ids": [
+           "https://openalex.org/A5069103834"
+          ],
+          "updated_date": "2026-07-02T19:50:47.950998Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/01/13/blob_CLfn3XG",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.ca/citations?hl=en&user=IbrDx00AAAAJ",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 7.392857142857143,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 41.186,
+          "usd": 0,
+          "rsc_usd_snapshot": 5.0000032499928
+         }
+        }
+       ],
+       "total": 4
+      },
+      "amount_raised": {
+       "rsc": 2205.731,
+       "usd": 182.7863821152798
+      },
+      "goal_currency": "USD"
+     },
+     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/183857/39e2ab73-842e-484e-b7f5-26a36ea34c70/screenshot-2026-05-19-at-10.png",
+     "purchases": [],
+     "subcategory": {
+      "id": 198,
+      "name": "Epidemiology",
+      "slug": "epidemiology"
+     },
+     "created_date": "2026-05-19T16:52:56.713837Z",
+     "renderable_text": "System Dynamics and Configurational Analysis of UHC Policy Effects on HIV-Related Health Outcomes in Southeast Asia\n\nPI: Jason Hung, C2F Postdoctoral Fellow (Chulalongkorn), Pulse Research Fellow (Internet Society), Fellow (CORDA Democracy)\nCo-I: Adrian S...",
+     "unified_document_id": 9240748
+    },
+    "paper": null,
+    "author": {
+     "id": 8336024,
+     "user": {
+      "id": 183857,
+      "last_name": "Hung",
+      "first_name": "Jason",
+      "is_verified": true
+     },
+     "headline": "Applied Social & Health Data Scientist (Primary)",
+     "last_name": "Hung",
+     "first_name": "Jason",
+     "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob"
+    },
+    "review": null,
+    "bounties": [],
+    "category": null,
+    "parent_id": 88019,
+    "purchases": [],
+    "thread_id": 79131,
+    "subcategory": {
+     "id": 198,
+     "name": "Epidemiology",
+     "slug": "epidemiology"
+    },
+    "comment_type": "GENERIC_COMMENT",
+    "document_type": "PREREGISTRATION",
+    "parent_comment": {
+     "id": 88019,
+     "hub": {
+      "id": 37,
+      "name": "Sociology",
+      "slug": "sociology"
+     },
+     "post": {
+      "id": 32308,
+      "hub": {
+       "id": 37,
+       "name": "Sociology",
+       "slug": "sociology"
+      },
+      "slug": "system-dynamics-and-configurational-analysis-of-uhc-policy-effects-on-hiv-related-health-outcomes-in-southeast-asia",
+      "type": "PREREGISTRATION",
+      "grant": null,
+      "title": "System Dynamics and Configurational Analysis of UHC Policy Effects on HIV-Related Health Outcomes in Southeast Asia",
+      "reviews": [
+       {
+        "id": 17749,
+        "score": 4,
+        "author": {
+         "id": 8623156,
+         "user": {
+          "id": 197732,
+          "last_name": "Review",
+          "first_name": "AI",
+          "is_verified": true
+         },
+         "headline": "",
+         "last_name": "Review",
+         "first_name": "AI",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/02/blob_Yfubd6a"
+        },
+        "is_assessed": true
+       },
+       {
+        "id": 17893,
+        "score": 3,
+        "author": {
+         "id": 8587524,
+         "user": {
+          "id": 191875,
+          "last_name": "Iqbal",
+          "first_name": "Muhammad",
+          "is_verified": true
+         },
+         "headline": "Professor Medicine",
+         "last_name": "Shah",
+         "first_name": "Hafiz Syed Zaigham Ali",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/21/blob_e9yhjA4"
+        },
+        "is_assessed": true
+       },
+       {
+        "id": 17931,
+        "score": 4,
+        "author": {
+         "id": 8646336,
+         "user": {
+          "id": 200265,
+          "last_name": "Bhunia",
+          "first_name": "Saptarshi",
+          "is_verified": true
+         },
+         "headline": null,
+         "last_name": "Bhunia",
+         "first_name": "Saptarshi",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKJpBlQQ1yH07ylhacTe3nZ0HijIooKFPJ0-FJCQ8bJOM9_rtXa=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 17963,
+        "score": 4,
+        "author": {
+         "id": 8626164,
+         "user": {
+          "id": 199080,
+          "last_name": "Ghiboub",
+          "first_name": "Mohaemmed",
+          "is_verified": true
+         },
+         "headline": "Amsterdam University Medical Center",
+         "last_name": "Ghiboub",
+         "first_name": "Mohammed",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/05/08/blob_qwFOzQG"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 17979,
+        "score": 4,
+        "author": {
+         "id": 8655233,
+         "user": {
+          "id": 201587,
+          "last_name": "ninef",
+          "first_name": "violin",
+          "is_verified": false
+         },
+         "headline": "Scopus Reviewer",
+         "last_name": "Ninef",
+         "first_name": "Violin",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIPoOr7Hxejf6iaRITeCulAKGxDzDGWxERtQlU3KGXvP4F_E_g=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18009,
+        "score": 5,
+        "author": {
+         "id": 8656258,
+         "user": {
+          "id": 201709,
+          "last_name": "solt",
+          "first_name": "Avalace X",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "solt",
+         "first_name": "Avalace X",
+         "profile_image": null
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18017,
+        "score": 3,
+        "author": {
+         "id": 8656358,
+         "user": {
+          "id": 201718,
+          "last_name": "Parakra",
+          "first_name": "Rinky",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "Parakra",
+         "first_name": "Rinky",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIAIH-OMhed63fS6fRpqJlOm2i2F0vfBKTW0vxF1qkJ1kN7Ab8=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18021,
+        "score": 3,
+        "author": {
+         "id": 8625733,
+         "user": {
+          "id": 198946,
+          "last_name": "",
+          "first_name": "Noorjahan",
+          "is_verified": false
+         },
+         "headline": "Data Analyst & Research Analyst",
+         "last_name": "Siddiqui",
+         "first_name": "Noorjahan",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/05/07/blob_mIKCPKy"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 17949,
+        "score": 4,
+        "author": {
+         "id": 8653408,
+         "user": {
+          "id": 201482,
+          "last_name": "Akbar",
+          "first_name": "Alfin Nur Rahman",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "Akbar",
+         "first_name": "Alfin Nur Rahman",
+         "profile_image": null
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 17978,
+        "score": 4,
+        "author": {
+         "id": 8650753,
+         "user": {
+          "id": 200368,
+          "last_name": "Mohamed",
+          "first_name": "Yasser",
+          "is_verified": false
+         },
+         "headline": "",
+         "last_name": "Mohamed",
+         "first_name": "Yasser",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLUiJ8C8jzjkLs--clvq3erEd4GCFkT_tBuRZNp8NsGt0j3NW-i=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18007,
+        "score": 4,
+        "author": {
+         "id": 983927,
+         "user": {
+          "id": 50496,
+          "last_name": "gundog",
+          "first_name": "i",
+          "is_verified": true
+         },
+         "headline": "İlker GÜNDOĞ",
+         "last_name": "Gündoğ",
+         "first_name": "İlker",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18014,
+        "score": 5,
+        "author": {
+         "id": 8656334,
+         "user": {
+          "id": 201714,
+          "last_name": "Mack",
+          "first_name": "Boss",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "Mack",
+         "first_name": "Boss",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLx9lowS8tlD0vay3UUlSNrWjTpYBTwpw8XAnXBdzuwAbHvXGLE=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 17950,
+        "score": 4,
+        "author": {
+         "id": 8653408,
+         "user": {
+          "id": 201482,
+          "last_name": "Akbar",
+          "first_name": "Alfin Nur Rahman",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "Akbar",
+         "first_name": "Alfin Nur Rahman",
+         "profile_image": null
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18034,
+        "score": 5,
+        "author": {
+         "id": 8661329,
+         "user": {
+          "id": 201827,
+          "last_name": "eddin",
+          "first_name": "nosayr",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "eddin",
+         "first_name": "nosayr",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJ3Y9bNZgdUQ_OCvDitzyiKnT2UXSVjD1tBeXwngNr3zM3txQ=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18059,
+        "score": 3,
+        "author": {
+         "id": 8661953,
+         "user": {
+          "id": 201880,
+          "last_name": "muin",
+          "first_name": "abdul",
+          "is_verified": false
+         },
+         "headline": "Health Administration and Health Policy Researcher",
+         "last_name": "muin",
+         "first_name": "abdul",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/08/blob"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18090,
+        "score": 4,
+        "author": {
+         "id": 8663191,
+         "user": {
+          "id": 202058,
+          "last_name": "Pamuji",
+          "first_name": "Agus",
+          "is_verified": false
+         },
+         "headline": "Universitas Islam Negeri Siber Syekh Nurjati",
+         "last_name": "Pamuji",
+         "first_name": "Agus",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIZKig-hjlqM_YCsO84YpGD8qCz7CZ1OfkdW4PAN0_TcPVAnkA=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18038,
+        "score": 4,
+        "author": {
+         "id": 8661734,
+         "user": {
+          "id": 201835,
+          "last_name": "",
+          "first_name": ": Sítrino-Santagracia.",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "",
+         "first_name": ": Sítrino-Santagracia.",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJtaxQ2VYWSVkVFSwwUqC9cpfaCPqVqlYJ2HHA7CWYP51RpTBFM=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18060,
+        "score": 4,
+        "author": {
+         "id": 8661969,
+         "user": {
+          "id": 201885,
+          "last_name": "Wulandari",
+          "first_name": "Dewi",
+          "is_verified": false
+         },
+         "headline": null,
+         "last_name": "Wulandari",
+         "first_name": "Dewi",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKMHZzQLtzYxQ9JYqj-6n1jQw51hrJgISEbv5xd6YflszA0KOnf=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18076,
+        "score": 4,
+        "author": {
+         "id": 8643268,
+         "user": {
+          "id": 200172,
+          "last_name": "Smith, PhD",
+          "first_name": "Dr. KM",
+          "is_verified": true
+         },
+         "headline": "Accessibility, Disability, health Educator",
+         "last_name": "Smith, PhD",
+         "first_name": "Keyonda",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKhaQ9HV77TMI7ag2MRXbIFDMYITV0jWPtiyFEovcTjf8Jzdj5Edw=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18084,
+        "score": 4,
+        "author": {
+         "id": 8662340,
+         "user": {
+          "id": 201998,
+          "last_name": "Ashari",
+          "first_name": "Reza",
+          "is_verified": false
+         },
+         "headline": "Policy and Health Management",
+         "last_name": "Ashari",
+         "first_name": "Reza",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/10/blob"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18091,
+        "score": 4,
+        "author": {
+         "id": 8663191,
+         "user": {
+          "id": 202058,
+          "last_name": "Pamuji",
+          "first_name": "Agus",
+          "is_verified": false
+         },
+         "headline": "Universitas Islam Negeri Siber Syekh Nurjati",
+         "last_name": "Pamuji",
+         "first_name": "Agus",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIZKig-hjlqM_YCsO84YpGD8qCz7CZ1OfkdW4PAN0_TcPVAnkA=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18081,
+        "score": 3,
+        "author": {
+         "id": 989906,
+         "user": {
+          "id": 56714,
+          "last_name": "Masak",
+          "first_name": "Elon",
+          "is_verified": false
+         },
+         "headline": "",
+         "last_name": "Masak",
+         "first_name": "Elon",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLdQPpNtZKZvhfWiN72WFyKROM8A3zGtk6fv9vVdDVUTI4=s96-c"
+        },
+        "is_assessed": false
+       },
+       {
+        "id": 18050,
+        "score": 5,
+        "author": {
+         "id": 8661926,
+         "user": {
+          "id": 201860,
+          "last_name": "Shahzady",
+          "first_name": "Alishba",
+          "is_verified": false
+         },
+         "headline": "",
+         "last_name": "BiBi",
+         "first_name": "Alishba",
+         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKaOQ0p26csYNO874Q_Ws18UTCIl0J3zFox4qW4k2QDX0MnPQ=s96-c"
+        },
+        "is_assessed": false
+       }
+      ],
+      "bounties": [
+       {
+        "id": 7464,
+        "hub": {
+         "id": 37,
+         "name": "Sociology",
+         "slug": "sociology"
+        },
+        "amount": "1452.0000000000",
+        "status": "CLOSED",
+        "category": null,
+        "bounty_type": "REVIEW",
+        "subcategory": {
+         "id": 198,
+         "name": "Epidemiology",
+         "slug": "epidemiology"
+        },
+        "contributors": [],
+        "contributions": [
+         {
+          "id": 7464,
+          "amount": 1452,
+          "author": {
+           "id": 973869,
+           "user": {
+            "id": 39602,
+            "last_name": "Account",
+            "first_name": "Main",
+            "is_verified": true
+           },
+           "headline": "",
+           "last_name": "Foundation",
+           "first_name": "ResearchHub",
+           "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+          }
+         }
+        ],
+        "document_type": "PREREGISTRATION",
+        "expiration_date": "2026-06-16T21:05:52.779811Z"
+       }
+      ],
+      "category": null,
+      "fundraise": {
+       "id": 861,
+       "status": "OPEN",
+       "end_date": "2026-06-18T16:52:56.764947Z",
+       "created_by": {
+        "id": 183857,
+        "last_name": "Hung",
+        "first_name": "Jason",
+        "author_profile": {
+         "id": 8336024,
+         "user": 183857,
+         "claimed": true,
+         "h_index": 0,
+         "twitter": "https://dataverse.harvard.edu/dataverse/gaidproject",
+         "facebook": null,
+         "headline": "Applied Social & Health Data Scientist (Primary)",
+         "linkedin": "https://aiinsocietyhub.com/",
+         "orcid_id": "https://orcid.org/0000-0002-0267-3925",
+         "education": [
+          {
+           "id": 8202,
+           "name": "University of Cambridge",
+           "year": {
+            "label": "2025",
+            "value": "2025"
+           },
+           "major": "Sociology (Quantitative)",
+           "degree": {
+            "label": "Doctor of Philosophy",
+            "value": "PhD"
+           },
+           "summary": "Sociology (Quantitative) PhD '25, University of Cambridge",
+           "is_public": false,
+           "university": {
+            "id": 8202,
+            "city": "",
+            "name": "University of Cambridge",
+            "state": "",
+            "country": "United Kingdom",
+            "updated_date": "2020-11-24T21:44:27.626362Z"
+           }
+          },
+          {
+           "id": 8030,
+           "name": "University College London, University of London",
+           "year": {
+            "label": "2020",
+            "value": "2020"
+           },
+           "major": "Education, Gender and International Development",
+           "degree": {
+            "label": "Master of Arts",
+            "value": "MA"
+           },
+           "summary": "Education, Gender and International Development MA '20, University College London, University of London",
+           "is_public": false,
+           "university": {
+            "id": 8030,
+            "city": "",
+            "name": "University College London, University of London",
+            "state": "",
+            "country": "United Kingdom",
+            "updated_date": "2020-11-24T21:44:27.625409Z"
+           }
+          },
+          {
+           "id": 4005,
+           "name": "London School of Economics and Political Science, University of London",
+           "year": {
+            "label": "2019",
+            "value": "2019"
+           },
+           "major": "Sociology (Quantitative)",
+           "degree": {
+            "label": "Master of Science",
+            "value": "MS"
+           },
+           "summary": "Sociology (Quantitative) MS '19, London School of Economics and Political Science, University of London",
+           "is_public": false,
+           "university": {
+            "id": 4005,
+            "name": "London School of Economics and Political Science, University of London"
+           }
+          },
+          {
+           "id": 8848,
+           "name": "University of Warwick",
+           "year": {
+            "label": "2018",
+            "value": "2018"
+           },
+           "major": "Sociology and Quantitative Methods",
+           "degree": {
+            "label": "Bachelor's Degree",
+            "value": "BA"
+           },
+           "summary": "Sociology and Quantitative Methods BA '18, University of Warwick",
+           "is_public": false,
+           "university": {
+            "id": 8848,
+            "city": "",
+            "name": "University of Warwick",
+            "state": "",
+            "country": "United Kingdom",
+            "updated_date": "2020-11-24T21:44:27.629430Z"
+           }
+          }
+         ],
+         "i10_index": 0,
+         "last_name": "Hung",
+         "first_name": "Jason",
+         "university": null,
+         "description": "Been primarily trained in applied social and health data science; \nCurrently working on internet measurement and environmental sustainability research with digital geopolitical implications as a postdoc;\nHave transitioned into AI safety research",
+         "is_verified": true,
+         "author_score": 0,
+         "country_code": null,
+         "created_date": "2025-11-20T11:23:44.779103Z",
+         "openalex_ids": [],
+         "updated_date": "2026-05-21T10:35:40.984086Z",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob",
+         "created_source": "RESEARCHHUB",
+         "google_scholar": "",
+         "merged_with_author": null,
+         "two_year_mean_citedness": 0,
+         "last_full_fetch_from_openalex": null
+        }
+       },
+       "start_date": "2026-05-19T16:52:56.765140Z",
+       "goal_amount": {
+        "rsc": 60336.30554077296,
+        "usd": 5000
+       },
+       "contributors": {
+        "top": [
+         {
+          "id": 181770,
+          "last_name": "Hansora",
+          "first_name": "Dharmesh",
+          "contributions": [
+           {
+            "date": "2026-06-15T16:27:57.093Z",
+            "amount": 928.966,
+            "currency": "RSC"
+           }
+          ],
+          "author_profile": {
+           "id": 8113466,
+           "user": 181770,
+           "claimed": true,
+           "h_index": 0,
+           "twitter": "https://x.com/iDhansora",
+           "facebook": null,
+           "headline": "Postdoc Researcher at NREL",
+           "linkedin": "https://www.linkedin.com/in/dharmesh-hansora-46458a34/",
+           "orcid_id": "https://orcid.org/0000-0002-3928-1773",
+           "education": [
+            {
+             "id": 6889,
+             "name": "Ulsan National Institute of Science and Technology",
+             "year": {
+              "label": "2023",
+              "value": "2023"
+             },
+             "major": "Chemical Engineering",
+             "degree": {
+              "label": "Doctor of Education",
+              "value": "EdD"
+             },
+             "summary": "Chemical Engineering EdD '23, Ulsan National Institute of Science and Technology",
+             "is_public": false,
+             "university": {
+              "id": 6889,
+              "city": "",
+              "name": "Ulsan National Institute of Science and Technology",
+              "state": "",
+              "country": "Korea, Republic of",
+              "updated_date": "2020-11-24T21:44:27.620132Z"
+             }
+            }
+           ],
+           "i10_index": 0,
+           "last_name": "Hansora",
+           "first_name": "Dharmesh",
+           "university": null,
+           "description": "Material Science, Physical Science, Solar Photochemistry, Solar fuels",
+           "is_verified": true,
+           "author_score": 0,
+           "country_code": null,
+           "created_date": "2025-09-11T17:15:13.924735Z",
+           "openalex_ids": [],
+           "updated_date": "2025-09-11T20:06:52.756300Z",
+           "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKT-EfUKq_GA73UAObcJr-pw_F04EmJDqUO1k8-H48VMp2tyaEx1w=s96-c",
+           "created_source": "RESEARCHHUB",
+           "google_scholar": "https://scholar.google.com/citations?user=HsNcVF0AAAAJ&hl=en",
+           "merged_with_author": null,
+           "two_year_mean_citedness": 0,
+           "last_full_fetch_from_openalex": null
+          },
+          "total_contribution": {
+           "rsc": 928.966,
+           "usd": 0,
+           "rsc_usd_snapshot": 99.99995923494181
+          }
+         },
+         {
+          "id": 14,
+          "last_name": "Joyce",
+          "first_name": "Patrick",
+          "contributions": [
+           {
+            "date": "2026-05-19T20:54:15.425Z",
+            "amount": 823.719,
+            "currency": "RSC"
+           }
+          ],
+          "author_profile": {
+           "id": 22,
+           "user": 14,
+           "claimed": true,
+           "h_index": 9,
+           "twitter": "https://twitter.com/joycesticks",
+           "facebook": null,
+           "headline": "",
+           "linkedin": "https://www.linkedin.com/in/patrick-joyce-396b953b/",
+           "orcid_id": null,
+           "education": [
+            {
+             "id": 765,
+             "city": "Boston",
+             "name": "Boston University",
+             "year": {
+              "label": "2015",
+              "value": "2015"
+             },
+             "state": "MA",
+             "degree": {
+              "label": "Master's Degree",
+              "value": "Master's Degree"
+             },
+             "country": "United States",
+             "summary": "Master's Degree '15, Boston University",
+             "is_public": true,
+             "created_date": "2020-11-24T21:44:27.590818Z",
+             "updated_date": "2020-11-24T21:44:27.590820Z"
+            }
+           ],
+           "i10_index": 8,
+           "last_name": "Joyce",
+           "first_name": "Patrick",
+           "university": null,
+           "description": "Med student interested in neuroscience and its clinical applications",
+           "is_verified": true,
+           "author_score": 3,
+           "country_code": null,
+           "created_date": "2019-11-19T20:10:16.840995Z",
+           "openalex_ids": [
+            "https://openalex.org/A5051784742",
+            "https://openalex.org/A5092177346",
+            "https://openalex.org/A5066208241"
+           ],
+           "updated_date": "2025-08-01T19:12:18.661017Z",
+           "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2019/11/19/blob",
+           "created_source": "RESEARCHHUB",
+           "google_scholar": null,
+           "merged_with_author": null,
+           "two_year_mean_citedness": 0.9090909090909091,
+           "last_full_fetch_from_openalex": null
+          },
+          "total_contribution": {
+           "rsc": 823.719,
+           "usd": 0,
+           "rsc_usd_snapshot": 100.4468783722716
+          }
+         },
+         {
+          "id": 73794,
+          "last_name": "Rust",
+          "first_name": "Ruslan",
+          "contributions": [
+           {
+            "date": "2026-05-19T17:26:18.856Z",
+            "amount": 411.86,
+            "currency": "RSC"
+           }
+          ],
+          "author_profile": {
+           "id": 4945925,
+           "user": 73794,
+           "claimed": true,
+           "h_index": 25,
+           "twitter": "https://x.com/rust_ruslan",
+           "facebook": null,
+           "headline": "Assistant Professor in Neuroscience and Physiology at University of Southern California",
+           "linkedin": "https://www.linkedin.com/in/ruslan-rust/",
+           "orcid_id": "https://orcid.org/0000-0003-3376-3453",
+           "education": [
+            {
+             "id": 1667,
+             "city": "",
+             "name": "ETHZ - ETH Zurich",
+             "year": {
+              "label": "2019",
+              "value": "2019"
+             },
+             "major": "Neuroscience",
+             "state": "",
+             "degree": {
+              "label": "Doctor of Philosophy",
+              "value": "PhD"
+             },
+             "country": "Switzerland",
+             "summary": "Neuroscience PhD '19, ETHZ - ETH Zurich",
+             "is_public": true,
+             "created_date": "2020-11-24T21:44:27.595024Z",
+             "updated_date": "2020-11-24T21:44:27.595026Z"
+            }
+           ],
+           "i10_index": 45,
+           "last_name": "Rust",
+           "first_name": "Ruslan",
+           "university": null,
+           "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer’s disease.",
+           "is_verified": true,
+           "author_score": 0,
+           "country_code": null,
+           "created_date": "2024-10-17T17:22:24.986612Z",
+           "openalex_ids": [
+            "https://openalex.org/A5002943149"
+           ],
+           "updated_date": "2026-07-02T19:50:47.999762Z",
+           "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/17/blob_UbuEj4i",
+           "created_source": "RESEARCHHUB",
+           "google_scholar": "https://scholar.google.com/citations?user=-Mc-aPAAAAAJ&hl=en&oi=ao",
+           "merged_with_author": null,
+           "two_year_mean_citedness": 5.961538461538462,
+           "last_full_fetch_from_openalex": null
+          },
+          "total_contribution": {
+           "rsc": 411.86,
+           "usd": 0,
+           "rsc_usd_snapshot": 50.000032499928004
+          }
+         },
+         {
+          "id": 76360,
+          "last_name": "L",
+          "first_name": "Y",
+          "contributions": [
+           {
+            "date": "2026-05-19T17:49:28.473Z",
+            "amount": 41.186,
+            "currency": "RSC"
+           }
+          ],
+          "author_profile": {
+           "id": 5570124,
+           "user": 76360,
+           "claimed": true,
+           "h_index": 26,
+           "twitter": "https://x.com/HaoYin20",
+           "facebook": null,
+           "headline": "Cardiovascular biologists",
+           "linkedin": "https://www.linkedin.com/in/hao-yin-a032a770",
+           "orcid_id": "https://orcid.org/0000-0002-0018-3228",
+           "education": [
+            {
+             "id": 8180,
+             "name": "University of Calgary",
+             "year": {
+              "label": "2010",
+              "value": "2010"
+             },
+             "major": "Biochemistry and Molecular Biology",
+             "degree": {
+              "label": "Doctor of Philosophy",
+              "value": "PhD"
+             },
+             "summary": "Biochemistry and Molecular Biology PhD '10, University of Calgary",
+             "is_public": true
+            }
+           ],
+           "i10_index": 45,
+           "last_name": "Yin",
+           "first_name": "Hao",
+           "university": null,
+           "description": "",
+           "is_verified": true,
+           "author_score": 0,
+           "country_code": null,
+           "created_date": "2024-11-05T19:59:34.941672Z",
+           "openalex_ids": [
+            "https://openalex.org/A5069103834"
+           ],
+           "updated_date": "2026-07-02T19:50:47.950998Z",
+           "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/01/13/blob_CLfn3XG",
+           "created_source": "RESEARCHHUB",
+           "google_scholar": "https://scholar.google.ca/citations?hl=en&user=IbrDx00AAAAJ",
+           "merged_with_author": null,
+           "two_year_mean_citedness": 7.392857142857143,
+           "last_full_fetch_from_openalex": null
+          },
+          "total_contribution": {
+           "rsc": 41.186,
+           "usd": 0,
+           "rsc_usd_snapshot": 5.0000032499928
+          }
+         }
+        ],
+        "total": 4
+       },
+       "amount_raised": {
+        "rsc": 2205.731,
+        "usd": 182.7863821152798
+       },
+       "goal_currency": "USD"
+      },
+      "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/183857/39e2ab73-842e-484e-b7f5-26a36ea34c70/screenshot-2026-05-19-at-10.png",
+      "purchases": [],
+      "subcategory": {
+       "id": 198,
+       "name": "Epidemiology",
+       "slug": "epidemiology"
+      },
+      "created_date": "2026-05-19T16:52:56.713837Z",
+      "renderable_text": "System Dynamics and Configurational Analysis of UHC Policy Effects on HIV-Related Health Outcomes in Southeast Asia\n\nPI: Jason Hung, C2F Postdoctoral Fellow (Chulalongkorn), Pulse Research Fellow (Internet Society), Fellow (CORDA Democracy)\nCo-I: Adrian S...",
+      "unified_document_id": 9240748
+     },
+     "paper": null,
+     "author": {
+      "id": 8587524,
+      "user": {
+       "id": 191875,
+       "last_name": "Iqbal",
+       "first_name": "Muhammad",
+       "is_verified": true
+      },
+      "headline": "Professor Medicine",
+      "last_name": "Shah",
+      "first_name": "Hafiz Syed Zaigham Ali",
+      "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/21/blob_e9yhjA4"
+     },
+     "review": {
+      "id": 17893,
+      "score": 3,
+      "object_id": 88019,
+      "created_by": 191875,
+      "is_removed": false,
+      "content_type": 118,
+      "unified_document": 9240748
+     },
+     "bounties": [],
+     "category": null,
+     "parent_id": null,
+     "purchases": [
+      {
+       "id": 21113,
+       "user": {
+        "id": 39602,
+        "last_name": "Account",
+        "first_name": "Main",
+        "is_verified": true,
+        "created_date": "2023-06-05T19:43:38.239592Z",
+        "updated_date": "2024-11-29T15:13:55.271981Z"
+       },
+       "amount": "60",
+       "purchase_type": "BOOST"
+      }
+     ],
+     "thread_id": 79131,
+     "subcategory": {
+      "id": 198,
+      "name": "Epidemiology",
+      "slug": "epidemiology"
+     },
+     "comment_type": "REVIEW",
+     "document_type": "PREREGISTRATION",
+     "parent_comment": null,
+     "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Reviewer Credentials \"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I am an advanced-trained clinician-scientist in Epidemiology and Bioinformatics (PhD, 2025) and Biotechnology (Master, 2021) as well as a qualified clinician (MBBS, 2018). I combine the methodologies of epidemiological modeling, complex systems analysis, and data-driven methods in my research to investigate the effects of health policy on disease outcomes. My expertise lies in applying multi-omics, AI-based analytics, and configurational approaches to discover dynamic processes underlying issues of public health, especially metabolic conditions, infectious diseases, and health systems fortification. This system dynamics and configurational analysis project on UHC policies on HIV outcomes suits perfectly my background in the feedback-based modeling and interdisciplinary research on health policy.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"AI Usage:\"},{\"type\":\"text\",\"text\":\" None\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Conflicts of Interests:\"},{\"type\":\"text\",\"text\":\" None\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Overall Impact: Score (3.5/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"This proposal fills a real and unexplored gap in the world health policy research. The motivation behind the desire to leave behind the same linear associations and to embrace vibrant, feedback-based mechanistic explanations of counter-intuitive UHC-HIV associations in Southeast Asia is timely and prematurely sound in a methodological regard. The combination of system dynamics, qualitative comparative analysis, and network analysis into a single coherent framework is conceptually innovative, and the open-science policy pre-registration, GitHub deposit, assigning a Zenodo DOI, etc. demonstrate high modern standards of the research.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"With that said, there are a few grave structural tensions of the proposal that needs to be resolved prior to the approval of funding. The most basic one is the circularity between the previous empirical research which is the basis of the overall theoretical basis of the proposal and the modelling exercise proposed. The targets of calibration are virtually chosen based on prior fixed effects estimates of the PI, that is, the model of the system dynamics is being developed to reproduce the PI own results. This is not, per se, wrong but is not sufficiently stated as a restriction and significantly reduces the purport of the independent scientific validation. The budget of 5000, the fact that the PI is only 0.12 FTE, and the three streams of analytical work require three years to complete and interdepend with each other, also push the limits of credibility. The proposal, as it is now, is at the risk of being under-resourced to the extent of affecting the quality of output.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"What is Already Established:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"i). The PI has already established strong counter-intuitive relationships between UHC policy indicators and HIV-related outcomes in fixed-effects panel analyses across eight Southeast Asian countries which provides a good empirical base that would not require re-estimation in this project.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"ii). The methodological literature on system dynamics modelling of infectious disease policy and crisp-set QCA of health systems are long standing and thus the proposed approaches are legitimate with low technical risk.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"iii). The open-science infrastructure (GitHub repositories, Zenodo DOI, ResearchHub pre-registration) is well defined and easy to implement.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Opportunities for Advancement:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"i). Causal claims would be much more reinforced with independent validation of the system dynamics model with data that is not in the calibration set, that is, outside of the 20202025 holdout and preferably with a different country.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"ii). It would be much more effective to restructure the QCA part to country-year level (rather than country level) to make more cases (N>>8) and less logical remainder issue, as observed in the proposal.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"iii). The policy shock index created by GDELT does not have a methodology of its construction. Creating and pre-registering a clear, reproducible way to compute this index would be a new contribution of data infrastructure to the area.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Importance (Significance and Innovation): Score (4/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The best section of this proposal is the scientific rationale. The finding that there is no significant relationship between aggregate health expenditure and HIV incidence and that there is a significant relationship between targeted service coverage and HIV incidence and that structural barriers are temporally reversed in contemporaneous and lagged specifications is a consistent set of empirical puzzles which cannot be linearly modeled. It is an intellectual correct step to apply complexity science methods to provide these patterns with a mechanistic account.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Formally specified, the three hypotheses are clearly stated. The H1, detection feedback loop, is the most developed with a mathematically explicit formulation which relates true and observed incidence in terms of detection coverage. The delayed constraint mechanism H2, takes a plausible stock-flow structure to the temporal reversal discovery. H3, configurational causation using csQCA, incorporates a set-theoretic aspect, which can be given by neither system dynamics nor regression. This is truly an interdisciplinary mix.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Strengths:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1. The feedback hypothesis model is not imposed on the pre-existing data - it is constructed directly as a result of theoretically driven re-evaluation of previous empirical trends, which is the correct order of abductive modelling study.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2. The fact that each sub-model has a formal mathematical representation of its parameters and model assumptions is much more rigorous than most proposals at this funding level, and enables external critiques of the design to have meaning.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Areas for Improvement:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1. The innovation argument could have been more compelling, had the proposal explicitly placed it in opposition to at least two or three similar system dynamics or QCA studies within the literature on health systems of HIV and other infectious diseases. The novelty claim is currently based almost solely on the lack of previous complexity science implementations to Southeast Asian UHC data, a limited framing. It would be more clear to explain why similar studies that have been conducted elsewhere in sub-Saharan Africa or Eastern Europe, etc. failed to answer such questions.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2. The mathematical form adopted on the detection feedback equation -I obs= I true x one plus kappa x D - is presented as an assumption but the functional form is not explained. The other possible detection linkage functions, like the logistic or threshold-based functions, would result in qualitatively different dynamics. This modelling selection ought to be recognised in the proposal and the sensitivity to functional form should be mentioned.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"2. Rigor and Feasibility (Approach, Team, Budget): Score (3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Design and Methodology of the study:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The three-sub-model model is logically consistent. The choice of the sub-models to be coupled by common variables C(t) between Sub-model 3 and Sub-model 1, S(t) between Sub-models 2 and 1, and B(t) between Sub-models 2 and 3 is appropriately defined, and the logic of coupling is internally coherent. The calibration plan, based on NLS estimation on 20132019 data and validation on 20202025, is typical.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"But the biggest issue of methodology is the risk of tautology inherent in the calibration method. The calibration of the system dynamics model is performed in such a way that it recreates the directions and magnitudes of the coefficients found in Hung and Smith (2026a, 2026b). However, these coefficients are a result of fixed-effects panel models estimated by the same PI. It implies that the SD model is being tested against its own prior estimates as opposed to an independent empirical standard. The proposal is not sufficiently specific on what would be considered a failed calibration in this regard, or what would happen in case the SD model recreates the previous findings by assuming implausible parameter estimates.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The section that is the methodologically weakest is the QCA component. The five conditions and outcome are outlined, thresholds are given and the examination of necessity and sufficiency outlined in conventional terms. However the proposal does not indicate how the membership scores will be allocated in the case of continuous conditions like HIGHSPEND or HIGHCOVERAGE, except that the median is mentioned. The selection of full membership, crossover and full non-membership anchors, fuzzy-set calibration, is a substantive analytical choice, which must be pre-specified, particularly when using the LLM-assisted coding, where non-trivial reliability issues arise.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The weakest of the three streams is the network analysis section. It has been proposed that centrality and vulnerability studies are to be done and that the network outputs will cross validate edge weights within the system dynamics model but the direction of validation is ambiguous. When edge weights have been initialised based on previous regression coefficients, and then optimised using SD calibration, then the network analysis is a post-hoc to both of which questions the independent analytical contribution that the network analysis is making. This needs to be clarified.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Feasibility:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The most worrying feasibility problem is the 6-month time frame. Building sub-modes, parameter estimation, Monte Carlo sensitivity analysis with 1,000 runs, calculating QCA conditions via calibration on 50-100 policy documents, this time with the help of a code-writing assistant, network construction and vulnerability analysis and writing a paper, all done by a single PI working at 0.12 FTE, is not a realistic workflow unless a few of these activities are much easier in practice than they seem on paper. According to the Gantt chart, model validation is planned to start in October and counterfactual analysis in November, and submissions are made by 15 November. That gives about two weeks to complete the scenario analysis, interpretation of complete results, and preparation of the manuscript, which is not plausible.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Research Team:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The proposal is purely PI with no co-investigators, research assistants, or named collaborators. In such a project with such a comprehensive methodology, which must also have system dynamics modelling skills, QCA analytical skills, network science implementation, and global health domain knowledge, having a single investigator with 0.12 FTE is a major structural constraint. Although the PI may have all of these competencies, the amount of work planned is not compatible with the time and energy allocation mentioned.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Budget and Justification:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The budget of 5,000 stands out because of its frugality. The line items are easily displayed and justified separately. But there are two areas of concern. First, the PI compensation of 0.12 FTE over six months is 3,600 USD, which means that the salary rate is 50,000 USD/year, but it is not mentioned. This is an unknown number to the reviewer in terms of whether this is a proportionate allocation without the understanding of the full-time compensation basis of the PI. Second, the budget will be distributed among such activities as QCA calibration and manuscript preparation: $600 on a Claude subscription and 280 on LLM API credits will be spent almost 18 percent of the total budget. The use of commercial AI tools to do the analytical work that is central to the research outputs is not a trivial methodological issue and needs to be brought up more publicly in the context of reproducibility, version control, and possible systematic error in condition coding due to the use of LLM.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\" 3. Open Science and Reproducibility: Score (4.5/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"This section is main part this proposal. Pre-registration of the model before actual construction, code and model specification on GitHub under an MIT licence, DOI assignment on Zenodo, and posting of a preprint when the manuscript is finished are all thorough and reflective of the open-science practice as opposed to performative compliance.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"One gap: \"},{\"type\":\"text\",\"text\":\"the proposal promises to publish code and processed datasets but does not describe how the results of the QCA coding assisted by the LLM will be reproducible, which are the core of condition calibration. Outputs of LLM are not consistent in terms of session, model version, or provider. In case the QCA calibration is based on the results of Claude or DeepSeek, the coding rubric, prompts, raw LLM results and human verification decisions must be stored and released as supplementary material in order to enable independent replication.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Recommendations:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1. The pre-registered analysis plan must contain the complete specification of fuzzy-set calibration anchors, to each condition, to discourage post-hoc tuning of thresholds based on the results that come up.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2. The LLM coding protocol (the system prompt, coding rubric, and human verification procedure) must be stored as a separate auxiliary document that is stored with the code repository.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"3. It should be stated in the proposal what version of the LLMs used in condition coding and manuscript assistance should be reported since the versions of tools are the appropriate parameter of reproducibility.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\" 4. Integration and Interdisciplinary Scope (Theoretical) Score (3.5/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The most truly innovative feature of this proposal is the conceptual integration of system dynamics, QCA and network analysis. The concept that SD models should be able to produce the dynamic processes, QCA should understand what configurations of policy states are good enough to produce sustained effects, and network analysis should demonstrate structural weaknesses - all three in an informative and cross-validating way - is a bold one, and thinkable in terms of intellectual consistency.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Practically, though, the integration is not as specified as it seems. The network analysis is stated to cross-validate SD edge weights, but the validation logic, what defines an agreement, a conflict, and what is the outcome of conflicting the two, is not defined. The QCA conditions are determined nationally in terms of data averaged over a multi-year window, whereas SD model is calculated on an annual time step. There is a lack of clarity on how the knowledge gained through a country-level configurational analysis will be used or interpreted together with a dynamic model in the form of a time series to be calibrated at the annual level.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Strengths:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1. The methodologically defensible and practically efficient method of initialising the graph with prior fixed-effects coefficients as initial edge weights in the network graph is a well-described proposal.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2. It is an epistemic restriction that is correct to accept in the present state of N=8 data that the data provided by csQCA can be used to identify patterns, but not to make inferences.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Areas for Improvement:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1. The proposal must state a formal integration protocol, albeit a simple one, which gives the rules of decision to determine how outputs of one stream of analysis are to change the input or interpretation of another. In the absence of this, the three methods run a risk of being parallel, and not truly integrated analyses.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2. Sub-model 3, the Spending-Coverage Disconnect, is defined as ancillary, yet plays a key role in connecting the other sub-models. Its title of being ancillary is modest and can be confusing to the reviewers on the significance of the specific architecture in the entire building.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\" 5. Additional Recommendations\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Risk Management:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The risk register and contingency plan are not provided in the proposal. The two most notable threats are, first, that the system dynamics model will fail to converge on the parameter values that both replicate the empirical calibration targets and meet the theoretical constraints, and, second, that the WHO GHO or UNAIDS GAM APIs will not be able to provide full or consistent data in the 20232025 period, which the proposal itself warns are to be verified. The two are both realistic failure modes whose probability is non-trivial and neither has a contingency specified.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"At least a short description of how it will deal with model non-convergence (will it pursue alternative parameterisations, will it cut back on the scope of the SD model, or will it renegotiate the targets of the calibration efforts) should be included in the proposal and what will happen to the QCA component should 20232025 UNAIDS data not be available.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Ethical Considerations:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The proposal rightly notes that there is no ethical approval needed since only secondary, publicly available, aggregated, national-level data will be used. There are no qualms on this front.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Broader Impact:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The proposal will focus on BMC Public Health as the main publication medium, which is suitable due to the methodological and applied nature. Nevertheless, the argument on broader impact could be more concrete in that it details more the secondary audience. Wellcome Trust, NIHR, and MRC are noted as scale-up funding application targets, a realistic downstream pathway, in the proposal, but the process by which this 6-month exploratory project is translated into a competitive Wellcome Trust application is not described. A mote word as to what exact gap in the scale-up application this preliminary evidence would seal, which hypothesis is the least yet to be determined by further evidence, what area is the intended extension point, would render this assertion possible instead of wishful.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\" 6. Final Recommendation\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Funding Recommendation: \"},{\"type\":\"text\",\"marks\":[{\"type\":\"underline\"}],\"text\":\"Fund with Moderate Revisions\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"underline\"}],\"text\":\"Required Prior to Full Funding:\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1. A clear recognition of the circular validation risk with a definition of what would be regarded as a failed or unexpected outcome which is not identical with the previous fixed-effects estimates.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2. Complete pre-registration of the QCA calibration protocol, which consists of fuzzy-set anchors of all five conditions and the LLM coding rubric and human verification procedure.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"3. An updated or clearly defined schedule that overlays tasks with the 0.12 FTE allocation and which analytical parts will be deferred in case of time constraints.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"4. A short contingency plan to deal with model non-convergence and possible API data gap of 20232025.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"5. Explanation of logic of the network analysis integration - i.e. what analytical choices are controlled by network outputs and SD calibration outputs where they are in conflict.\"}]}]}",
+     "comment_content_type": "TIPTAP"
+    },
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Hi \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" I appreciate your review on this proposal submission. You made numerous valuable points that I have taken into account, and I just responded to the AI reviewer and you on the Updates tab. \"}]}]}",
+    "comment_content_type": "TIPTAP"
+   },
+   "created_date": "2026-07-14T15:53:39.310059Z",
+   "action_date": "2026-07-14T15:53:37.959949Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 8336024,
+    "first_name": "Jason",
+    "last_name": "Hung",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob",
+    "headline": "Applied Social & Health Data Scientist (Primary)",
+    "user": {
+     "id": 183857,
+     "first_name": "Jason",
+     "last_name": "Hung",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "votes": 1,
+    "replies": 0,
+    "adjusted_score": 1
+   },
+   "hot_score_v2": 0,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 1
+  },
+  {
+   "id": 4678313,
+   "content_type": "RHCOMMENTMODEL",
+   "content_object": {
+    "id": 88966,
+    "hub": {
+     "id": 37,
+     "name": "Sociology",
+     "slug": "sociology"
+    },
+    "post": {
+     "id": 32308,
+     "hub": {
+      "id": 37,
+      "name": "Sociology",
+      "slug": "sociology"
+     },
+     "slug": "system-dynamics-and-configurational-analysis-of-uhc-policy-effects-on-hiv-related-health-outcomes-in-southeast-asia",
+     "type": "PREREGISTRATION",
+     "grant": null,
+     "title": "System Dynamics and Configurational Analysis of UHC Policy Effects on HIV-Related Health Outcomes in Southeast Asia",
+     "reviews": [
+      {
+       "id": 17749,
+       "score": 4,
+       "author": {
+        "id": 8623156,
+        "user": {
+         "id": 197732,
+         "last_name": "Review",
+         "first_name": "AI",
+         "is_verified": true
+        },
+        "headline": "",
+        "last_name": "Review",
+        "first_name": "AI",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/02/blob_Yfubd6a"
+       },
+       "is_assessed": true
+      },
+      {
+       "id": 17893,
+       "score": 3,
+       "author": {
+        "id": 8587524,
+        "user": {
+         "id": 191875,
+         "last_name": "Iqbal",
+         "first_name": "Muhammad",
+         "is_verified": true
+        },
+        "headline": "Professor Medicine",
+        "last_name": "Shah",
+        "first_name": "Hafiz Syed Zaigham Ali",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/21/blob_e9yhjA4"
+       },
+       "is_assessed": true
+      },
+      {
+       "id": 17931,
+       "score": 4,
+       "author": {
+        "id": 8646336,
+        "user": {
+         "id": 200265,
+         "last_name": "Bhunia",
+         "first_name": "Saptarshi",
+         "is_verified": true
+        },
+        "headline": null,
+        "last_name": "Bhunia",
+        "first_name": "Saptarshi",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKJpBlQQ1yH07ylhacTe3nZ0HijIooKFPJ0-FJCQ8bJOM9_rtXa=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17963,
+       "score": 4,
+       "author": {
+        "id": 8626164,
+        "user": {
+         "id": 199080,
+         "last_name": "Ghiboub",
+         "first_name": "Mohaemmed",
+         "is_verified": true
+        },
+        "headline": "Amsterdam University Medical Center",
+        "last_name": "Ghiboub",
+        "first_name": "Mohammed",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/05/08/blob_qwFOzQG"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17979,
+       "score": 4,
+       "author": {
+        "id": 8655233,
+        "user": {
+         "id": 201587,
+         "last_name": "ninef",
+         "first_name": "violin",
+         "is_verified": false
+        },
+        "headline": "Scopus Reviewer",
+        "last_name": "Ninef",
+        "first_name": "Violin",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIPoOr7Hxejf6iaRITeCulAKGxDzDGWxERtQlU3KGXvP4F_E_g=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18009,
+       "score": 5,
+       "author": {
+        "id": 8656258,
+        "user": {
+         "id": 201709,
+         "last_name": "solt",
+         "first_name": "Avalace X",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "solt",
+        "first_name": "Avalace X",
+        "profile_image": null
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18017,
+       "score": 3,
+       "author": {
+        "id": 8656358,
+        "user": {
+         "id": 201718,
+         "last_name": "Parakra",
+         "first_name": "Rinky",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Parakra",
+        "first_name": "Rinky",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIAIH-OMhed63fS6fRpqJlOm2i2F0vfBKTW0vxF1qkJ1kN7Ab8=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18021,
+       "score": 3,
+       "author": {
+        "id": 8625733,
+        "user": {
+         "id": 198946,
+         "last_name": "",
+         "first_name": "Noorjahan",
+         "is_verified": false
+        },
+        "headline": "Data Analyst & Research Analyst",
+        "last_name": "Siddiqui",
+        "first_name": "Noorjahan",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/05/07/blob_mIKCPKy"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17949,
+       "score": 4,
+       "author": {
+        "id": 8653408,
+        "user": {
+         "id": 201482,
+         "last_name": "Akbar",
+         "first_name": "Alfin Nur Rahman",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Akbar",
+        "first_name": "Alfin Nur Rahman",
+        "profile_image": null
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17978,
+       "score": 4,
+       "author": {
+        "id": 8650753,
+        "user": {
+         "id": 200368,
+         "last_name": "Mohamed",
+         "first_name": "Yasser",
+         "is_verified": false
+        },
+        "headline": "",
+        "last_name": "Mohamed",
+        "first_name": "Yasser",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLUiJ8C8jzjkLs--clvq3erEd4GCFkT_tBuRZNp8NsGt0j3NW-i=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18007,
+       "score": 4,
+       "author": {
+        "id": 983927,
+        "user": {
+         "id": 50496,
+         "last_name": "gundog",
+         "first_name": "i",
+         "is_verified": true
+        },
+        "headline": "İlker GÜNDOĞ",
+        "last_name": "Gündoğ",
+        "first_name": "İlker",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18014,
+       "score": 5,
+       "author": {
+        "id": 8656334,
+        "user": {
+         "id": 201714,
+         "last_name": "Mack",
+         "first_name": "Boss",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Mack",
+        "first_name": "Boss",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLx9lowS8tlD0vay3UUlSNrWjTpYBTwpw8XAnXBdzuwAbHvXGLE=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 17950,
+       "score": 4,
+       "author": {
+        "id": 8653408,
+        "user": {
+         "id": 201482,
+         "last_name": "Akbar",
+         "first_name": "Alfin Nur Rahman",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Akbar",
+        "first_name": "Alfin Nur Rahman",
+        "profile_image": null
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18034,
+       "score": 5,
+       "author": {
+        "id": 8661329,
+        "user": {
+         "id": 201827,
+         "last_name": "eddin",
+         "first_name": "nosayr",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "eddin",
+        "first_name": "nosayr",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJ3Y9bNZgdUQ_OCvDitzyiKnT2UXSVjD1tBeXwngNr3zM3txQ=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18059,
+       "score": 3,
+       "author": {
+        "id": 8661953,
+        "user": {
+         "id": 201880,
+         "last_name": "muin",
+         "first_name": "abdul",
+         "is_verified": false
+        },
+        "headline": "Health Administration and Health Policy Researcher",
+        "last_name": "muin",
+        "first_name": "abdul",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/08/blob"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18090,
+       "score": 4,
+       "author": {
+        "id": 8663191,
+        "user": {
+         "id": 202058,
+         "last_name": "Pamuji",
+         "first_name": "Agus",
+         "is_verified": false
+        },
+        "headline": "Universitas Islam Negeri Siber Syekh Nurjati",
+        "last_name": "Pamuji",
+        "first_name": "Agus",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIZKig-hjlqM_YCsO84YpGD8qCz7CZ1OfkdW4PAN0_TcPVAnkA=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18038,
+       "score": 4,
+       "author": {
+        "id": 8661734,
+        "user": {
+         "id": 201835,
+         "last_name": "",
+         "first_name": ": Sítrino-Santagracia.",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "",
+        "first_name": ": Sítrino-Santagracia.",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJtaxQ2VYWSVkVFSwwUqC9cpfaCPqVqlYJ2HHA7CWYP51RpTBFM=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18060,
+       "score": 4,
+       "author": {
+        "id": 8661969,
+        "user": {
+         "id": 201885,
+         "last_name": "Wulandari",
+         "first_name": "Dewi",
+         "is_verified": false
+        },
+        "headline": null,
+        "last_name": "Wulandari",
+        "first_name": "Dewi",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKMHZzQLtzYxQ9JYqj-6n1jQw51hrJgISEbv5xd6YflszA0KOnf=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18076,
+       "score": 4,
+       "author": {
+        "id": 8643268,
+        "user": {
+         "id": 200172,
+         "last_name": "Smith, PhD",
+         "first_name": "Dr. KM",
+         "is_verified": true
+        },
+        "headline": "Accessibility, Disability, health Educator",
+        "last_name": "Smith, PhD",
+        "first_name": "Keyonda",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKhaQ9HV77TMI7ag2MRXbIFDMYITV0jWPtiyFEovcTjf8Jzdj5Edw=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18084,
+       "score": 4,
+       "author": {
+        "id": 8662340,
+        "user": {
+         "id": 201998,
+         "last_name": "Ashari",
+         "first_name": "Reza",
+         "is_verified": false
+        },
+        "headline": "Policy and Health Management",
+        "last_name": "Ashari",
+        "first_name": "Reza",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/06/10/blob"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18091,
+       "score": 4,
+       "author": {
+        "id": 8663191,
+        "user": {
+         "id": 202058,
+         "last_name": "Pamuji",
+         "first_name": "Agus",
+         "is_verified": false
+        },
+        "headline": "Universitas Islam Negeri Siber Syekh Nurjati",
+        "last_name": "Pamuji",
+        "first_name": "Agus",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIZKig-hjlqM_YCsO84YpGD8qCz7CZ1OfkdW4PAN0_TcPVAnkA=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18081,
+       "score": 3,
+       "author": {
+        "id": 989906,
+        "user": {
+         "id": 56714,
+         "last_name": "Masak",
+         "first_name": "Elon",
+         "is_verified": false
+        },
+        "headline": "",
+        "last_name": "Masak",
+        "first_name": "Elon",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLdQPpNtZKZvhfWiN72WFyKROM8A3zGtk6fv9vVdDVUTI4=s96-c"
+       },
+       "is_assessed": false
+      },
+      {
+       "id": 18050,
+       "score": 5,
+       "author": {
+        "id": 8661926,
+        "user": {
+         "id": 201860,
+         "last_name": "Shahzady",
+         "first_name": "Alishba",
+         "is_verified": false
+        },
+        "headline": "",
+        "last_name": "BiBi",
+        "first_name": "Alishba",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKaOQ0p26csYNO874Q_Ws18UTCIl0J3zFox4qW4k2QDX0MnPQ=s96-c"
+       },
+       "is_assessed": false
+      }
+     ],
+     "bounties": [
+      {
+       "id": 7464,
+       "hub": {
+        "id": 37,
+        "name": "Sociology",
+        "slug": "sociology"
+       },
+       "amount": "1452.0000000000",
+       "status": "CLOSED",
+       "category": null,
+       "bounty_type": "REVIEW",
+       "subcategory": {
+        "id": 198,
+        "name": "Epidemiology",
+        "slug": "epidemiology"
+       },
+       "contributors": [],
+       "contributions": [
+        {
+         "id": 7464,
+         "amount": 1452,
+         "author": {
+          "id": 973869,
+          "user": {
+           "id": 39602,
+           "last_name": "Account",
+           "first_name": "Main",
+           "is_verified": true
+          },
+          "headline": "",
+          "last_name": "Foundation",
+          "first_name": "ResearchHub",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+         }
+        }
+       ],
+       "document_type": "PREREGISTRATION",
+       "expiration_date": "2026-06-16T21:05:52.779811Z"
+      }
+     ],
+     "category": null,
+     "fundraise": {
+      "id": 861,
+      "status": "OPEN",
+      "end_date": "2026-06-18T16:52:56.764947Z",
+      "created_by": {
+       "id": 183857,
+       "last_name": "Hung",
+       "first_name": "Jason",
+       "author_profile": {
+        "id": 8336024,
+        "user": 183857,
+        "claimed": true,
+        "h_index": 0,
+        "twitter": "https://dataverse.harvard.edu/dataverse/gaidproject",
+        "facebook": null,
+        "headline": "Applied Social & Health Data Scientist (Primary)",
+        "linkedin": "https://aiinsocietyhub.com/",
+        "orcid_id": "https://orcid.org/0000-0002-0267-3925",
+        "education": [
+         {
+          "id": 8202,
+          "name": "University of Cambridge",
+          "year": {
+           "label": "2025",
+           "value": "2025"
+          },
+          "major": "Sociology (Quantitative)",
+          "degree": {
+           "label": "Doctor of Philosophy",
+           "value": "PhD"
+          },
+          "summary": "Sociology (Quantitative) PhD '25, University of Cambridge",
+          "is_public": false,
+          "university": {
+           "id": 8202,
+           "city": "",
+           "name": "University of Cambridge",
+           "state": "",
+           "country": "United Kingdom",
+           "updated_date": "2020-11-24T21:44:27.626362Z"
+          }
+         },
+         {
+          "id": 8030,
+          "name": "University College London, University of London",
+          "year": {
+           "label": "2020",
+           "value": "2020"
+          },
+          "major": "Education, Gender and International Development",
+          "degree": {
+           "label": "Master of Arts",
+           "value": "MA"
+          },
+          "summary": "Education, Gender and International Development MA '20, University College London, University of London",
+          "is_public": false,
+          "university": {
+           "id": 8030,
+           "city": "",
+           "name": "University College London, University of London",
+           "state": "",
+           "country": "United Kingdom",
+           "updated_date": "2020-11-24T21:44:27.625409Z"
+          }
+         },
+         {
+          "id": 4005,
+          "name": "London School of Economics and Political Science, University of London",
+          "year": {
+           "label": "2019",
+           "value": "2019"
+          },
+          "major": "Sociology (Quantitative)",
+          "degree": {
+           "label": "Master of Science",
+           "value": "MS"
+          },
+          "summary": "Sociology (Quantitative) MS '19, London School of Economics and Political Science, University of London",
+          "is_public": false,
+          "university": {
+           "id": 4005,
+           "name": "London School of Economics and Political Science, University of London"
+          }
+         },
+         {
+          "id": 8848,
+          "name": "University of Warwick",
+          "year": {
+           "label": "2018",
+           "value": "2018"
+          },
+          "major": "Sociology and Quantitative Methods",
+          "degree": {
+           "label": "Bachelor's Degree",
+           "value": "BA"
+          },
+          "summary": "Sociology and Quantitative Methods BA '18, University of Warwick",
+          "is_public": false,
+          "university": {
+           "id": 8848,
+           "city": "",
+           "name": "University of Warwick",
+           "state": "",
+           "country": "United Kingdom",
+           "updated_date": "2020-11-24T21:44:27.629430Z"
+          }
+         }
+        ],
+        "i10_index": 0,
+        "last_name": "Hung",
+        "first_name": "Jason",
+        "university": null,
+        "description": "Been primarily trained in applied social and health data science; \nCurrently working on internet measurement and environmental sustainability research with digital geopolitical implications as a postdoc;\nHave transitioned into AI safety research",
+        "is_verified": true,
+        "author_score": 0,
+        "country_code": null,
+        "created_date": "2025-11-20T11:23:44.779103Z",
+        "openalex_ids": [],
+        "updated_date": "2026-05-21T10:35:40.984086Z",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob",
+        "created_source": "RESEARCHHUB",
+        "google_scholar": "",
+        "merged_with_author": null,
+        "two_year_mean_citedness": 0,
+        "last_full_fetch_from_openalex": null
+       }
+      },
+      "start_date": "2026-05-19T16:52:56.765140Z",
+      "goal_amount": {
+       "rsc": 60336.30554077296,
+       "usd": 5000
+      },
+      "contributors": {
+       "top": [
+        {
+         "id": 181770,
+         "last_name": "Hansora",
+         "first_name": "Dharmesh",
+         "contributions": [
+          {
+           "date": "2026-06-15T16:27:57.093Z",
+           "amount": 928.966,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 8113466,
+          "user": 181770,
+          "claimed": true,
+          "h_index": 0,
+          "twitter": "https://x.com/iDhansora",
+          "facebook": null,
+          "headline": "Postdoc Researcher at NREL",
+          "linkedin": "https://www.linkedin.com/in/dharmesh-hansora-46458a34/",
+          "orcid_id": "https://orcid.org/0000-0002-3928-1773",
+          "education": [
+           {
+            "id": 6889,
+            "name": "Ulsan National Institute of Science and Technology",
+            "year": {
+             "label": "2023",
+             "value": "2023"
+            },
+            "major": "Chemical Engineering",
+            "degree": {
+             "label": "Doctor of Education",
+             "value": "EdD"
+            },
+            "summary": "Chemical Engineering EdD '23, Ulsan National Institute of Science and Technology",
+            "is_public": false,
+            "university": {
+             "id": 6889,
+             "city": "",
+             "name": "Ulsan National Institute of Science and Technology",
+             "state": "",
+             "country": "Korea, Republic of",
+             "updated_date": "2020-11-24T21:44:27.620132Z"
+            }
+           }
+          ],
+          "i10_index": 0,
+          "last_name": "Hansora",
+          "first_name": "Dharmesh",
+          "university": null,
+          "description": "Material Science, Physical Science, Solar Photochemistry, Solar fuels",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2025-09-11T17:15:13.924735Z",
+          "openalex_ids": [],
+          "updated_date": "2025-09-11T20:06:52.756300Z",
+          "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKT-EfUKq_GA73UAObcJr-pw_F04EmJDqUO1k8-H48VMp2tyaEx1w=s96-c",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.com/citations?user=HsNcVF0AAAAJ&hl=en",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 0,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 928.966,
+          "usd": 0,
+          "rsc_usd_snapshot": 99.99995923494181
+         }
+        },
+        {
+         "id": 14,
+         "last_name": "Joyce",
+         "first_name": "Patrick",
+         "contributions": [
+          {
+           "date": "2026-05-19T20:54:15.425Z",
+           "amount": 823.719,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 22,
+          "user": 14,
+          "claimed": true,
+          "h_index": 9,
+          "twitter": "https://twitter.com/joycesticks",
+          "facebook": null,
+          "headline": "",
+          "linkedin": "https://www.linkedin.com/in/patrick-joyce-396b953b/",
+          "orcid_id": null,
+          "education": [
+           {
+            "id": 765,
+            "city": "Boston",
+            "name": "Boston University",
+            "year": {
+             "label": "2015",
+             "value": "2015"
+            },
+            "state": "MA",
+            "degree": {
+             "label": "Master's Degree",
+             "value": "Master's Degree"
+            },
+            "country": "United States",
+            "summary": "Master's Degree '15, Boston University",
+            "is_public": true,
+            "created_date": "2020-11-24T21:44:27.590818Z",
+            "updated_date": "2020-11-24T21:44:27.590820Z"
+           }
+          ],
+          "i10_index": 8,
+          "last_name": "Joyce",
+          "first_name": "Patrick",
+          "university": null,
+          "description": "Med student interested in neuroscience and its clinical applications",
+          "is_verified": true,
+          "author_score": 3,
+          "country_code": null,
+          "created_date": "2019-11-19T20:10:16.840995Z",
+          "openalex_ids": [
+           "https://openalex.org/A5051784742",
+           "https://openalex.org/A5092177346",
+           "https://openalex.org/A5066208241"
+          ],
+          "updated_date": "2025-08-01T19:12:18.661017Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2019/11/19/blob",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": null,
+          "merged_with_author": null,
+          "two_year_mean_citedness": 0.9090909090909091,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 823.719,
+          "usd": 0,
+          "rsc_usd_snapshot": 100.4468783722716
+         }
+        },
+        {
+         "id": 73794,
+         "last_name": "Rust",
+         "first_name": "Ruslan",
+         "contributions": [
+          {
+           "date": "2026-05-19T17:26:18.856Z",
+           "amount": 411.86,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 4945925,
+          "user": 73794,
+          "claimed": true,
+          "h_index": 25,
+          "twitter": "https://x.com/rust_ruslan",
+          "facebook": null,
+          "headline": "Assistant Professor in Neuroscience and Physiology at University of Southern California",
+          "linkedin": "https://www.linkedin.com/in/ruslan-rust/",
+          "orcid_id": "https://orcid.org/0000-0003-3376-3453",
+          "education": [
+           {
+            "id": 1667,
+            "city": "",
+            "name": "ETHZ - ETH Zurich",
+            "year": {
+             "label": "2019",
+             "value": "2019"
+            },
+            "major": "Neuroscience",
+            "state": "",
+            "degree": {
+             "label": "Doctor of Philosophy",
+             "value": "PhD"
+            },
+            "country": "Switzerland",
+            "summary": "Neuroscience PhD '19, ETHZ - ETH Zurich",
+            "is_public": true,
+            "created_date": "2020-11-24T21:44:27.595024Z",
+            "updated_date": "2020-11-24T21:44:27.595026Z"
+           }
+          ],
+          "i10_index": 45,
+          "last_name": "Rust",
+          "first_name": "Ruslan",
+          "university": null,
+          "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer’s disease.",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2024-10-17T17:22:24.986612Z",
+          "openalex_ids": [
+           "https://openalex.org/A5002943149"
+          ],
+          "updated_date": "2026-07-02T19:50:47.999762Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/10/17/blob_UbuEj4i",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.com/citations?user=-Mc-aPAAAAAJ&hl=en&oi=ao",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 5.961538461538462,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 411.86,
+          "usd": 0,
+          "rsc_usd_snapshot": 50.000032499928004
+         }
+        },
+        {
+         "id": 76360,
+         "last_name": "L",
+         "first_name": "Y",
+         "contributions": [
+          {
+           "date": "2026-05-19T17:49:28.473Z",
+           "amount": 41.186,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 5570124,
+          "user": 76360,
+          "claimed": true,
+          "h_index": 26,
+          "twitter": "https://x.com/HaoYin20",
+          "facebook": null,
+          "headline": "Cardiovascular biologists",
+          "linkedin": "https://www.linkedin.com/in/hao-yin-a032a770",
+          "orcid_id": "https://orcid.org/0000-0002-0018-3228",
+          "education": [
+           {
+            "id": 8180,
+            "name": "University of Calgary",
+            "year": {
+             "label": "2010",
+             "value": "2010"
+            },
+            "major": "Biochemistry and Molecular Biology",
+            "degree": {
+             "label": "Doctor of Philosophy",
+             "value": "PhD"
+            },
+            "summary": "Biochemistry and Molecular Biology PhD '10, University of Calgary",
+            "is_public": true
+           }
+          ],
+          "i10_index": 45,
+          "last_name": "Yin",
+          "first_name": "Hao",
+          "university": null,
+          "description": "",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2024-11-05T19:59:34.941672Z",
+          "openalex_ids": [
+           "https://openalex.org/A5069103834"
+          ],
+          "updated_date": "2026-07-02T19:50:47.950998Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/01/13/blob_CLfn3XG",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.ca/citations?hl=en&user=IbrDx00AAAAJ",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 7.392857142857143,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 41.186,
+          "usd": 0,
+          "rsc_usd_snapshot": 5.0000032499928
+         }
+        }
+       ],
+       "total": 4
+      },
+      "amount_raised": {
+       "rsc": 2205.731,
+       "usd": 182.7863821152798
+      },
+      "goal_currency": "USD"
+     },
+     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/183857/39e2ab73-842e-484e-b7f5-26a36ea34c70/screenshot-2026-05-19-at-10.png",
+     "purchases": [],
+     "subcategory": {
+      "id": 198,
+      "name": "Epidemiology",
+      "slug": "epidemiology"
+     },
+     "created_date": "2026-05-19T16:52:56.713837Z",
+     "renderable_text": "System Dynamics and Configurational Analysis of UHC Policy Effects on HIV-Related Health Outcomes in Southeast Asia\n\nPI: Jason Hung, C2F Postdoctoral Fellow (Chulalongkorn), Pulse Research Fellow (Internet Society), Fellow (CORDA Democracy)\nCo-I: Adrian S...",
+     "unified_document_id": 9240748
+    },
+    "paper": null,
+    "author": {
+     "id": 8336024,
+     "user": {
+      "id": 183857,
+      "last_name": "Hung",
+      "first_name": "Jason",
+      "is_verified": true
+     },
+     "headline": "Applied Social & Health Data Scientist (Primary)",
+     "last_name": "Hung",
+     "first_name": "Jason",
+     "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob"
+    },
+    "review": null,
+    "bounties": [],
+    "category": null,
+    "parent_id": null,
+    "purchases": [],
+    "thread_id": 80028,
+    "subcategory": {
+     "id": 198,
+     "name": "Epidemiology",
+     "slug": "epidemiology"
+    },
+    "comment_type": "AUTHOR_UPDATE",
+    "document_type": "PREREGISTRATION",
+    "parent_comment": null,
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"My apologies for the belated response due to other commitments academically and professionally. I appreciate \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" (and of course, the AI reviewer, too) for reviewing my proposal. I learned that \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" posted this review before I had a chance to update the proposal, so his review was based on an outdated version of my submission. Following his peer review posting, I have made multiple rounds of proposal revisions, including adding Associate Professor Adrian Smith (Nuffield Department of Population Health, University of Oxford) as a Co-Investigator.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1) Adrian has been supporting my funding applications on global health since mid-2025. We have also co-authored multiple empirical research papers on health data science and policy, and are currently co-designing a health data engineering project mapping global health funding cuts under Trump administration and their impacts on low- and middle-income countries globally.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Adrian has had broad research expertise as a senior academic, including in HIV epidemiology in the Global South. His expertise would allow the provision of advice and feedback at each milestone of this project.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2) I also would like to take this opportunity to clarify that, in the methodological design, the fixed-effects coefficients are calibration targets for the 2013-19 training window. The independent test is the 2020-25 window, which the model never sees during calibration. I will pre-register the failure conditions, borrowing from existing literature to fix the plausibility bounds for each structural parameter before calibration. We will count a calibration as failed if the model can only reproduce the empirical targets by taking parameters beyond those pre-registered bounds, or if it only fits the training window (2013-19) but not the 2020-25 window. Results will clearly and transparently be disclosed in the deliverables.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"3) I accept the recommendation to move the QCA from country-level (N=8) to country-year level, which would increase the case count above 8. I also would like to take this opportunity to highlight that all the system prompts, coding scripts, version identifiers, raw model outputs and any necessary human verification decisions (from both Adrian and myself) will be deposited as a protocol in the public repository. Both Adrian and I always support open science principles. For this project, our practice would facilitate transparency and reproducibility/replicability.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"4) Regarding the comment that my index lacks a stated construction method, I am more than happy to provide the supplementary details for this submission, if requested at this stage, in which case I would share the full, reproducible specification, including query terms, aggregation window and normalisation. \"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"5) In addition, upon considering the peer review comments, I will add a formal integration protocol with decision rules specifying how network outputs inform SD structure, how country-level QCA configurations are read against the annual SD dynamics, etc. \"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"6) The AI reviewer also mentioned that, \\\"the PI compensation of 0.12 FTE over six months is 3,600 USD, which means that the salary rate is 50,000 USD/year, but it is not mentioned.\\\" I appreciate the AI reviewer converting the 0.12 FTE rate to a full-time annual rate. This calculation is correct, and 50,000 USD ≈ 37,000 GBP.  ~37,000 GBP annually aligns with my salary grade 7 under the UK system. This is because, since finishing my PhD, my salary rates were calculated between ~41,000 GBP and ~52,200 GBP in my early-career PI funding applications. As the ~41,000–52,200 GBP range includes pension and National Insurance contributions, the actual take-home salary rate I should receive is similar to the AI reviewer's calculation of 50,000 USD/year (~37,000 GBP/year).\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I have tried to keep my comment above as concise as possible. In case there are other (yet minor) concerns raised by \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" and the AI reviewer that I have yet to respond to in this post, please note that I have seen those comments and would take them into account when developing this research project with Adrian, if funded.\"},{\"type\":\"hardBreak\"},{\"type\":\"hardBreak\"},{\"type\":\"text\",\"text\":\"Thanks again for taking time to review and comment on my proposal.\"}]}]}",
+    "comment_content_type": "TIPTAP"
+   },
+   "created_date": "2026-07-14T15:45:00.292439Z",
+   "action_date": "2026-07-14T15:44:59.781184Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 8336024,
+    "first_name": "Jason",
+    "last_name": "Hung",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/11/20/blob",
+    "headline": "Applied Social & Health Data Scientist (Primary)",
+    "user": {
+     "id": 183857,
+     "first_name": "Jason",
+     "last_name": "Hung",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "votes": 2,
+    "replies": 0,
+    "adjusted_score": 2
+   },
+   "hot_score_v2": 0,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 2
+  },
+  {
+   "id": 4678381,
+   "content_type": "RHCOMMENTMODEL",
+   "content_object": {
+    "id": 88971,
+    "hub": {
+     "id": 220,
+     "name": "Medicine",
+     "slug": "medicine"
+    },
+    "post": {
+     "id": null,
+     "slug": "",
+     "type": "",
+     "title": "",
+     "created_date": null,
+     "unified_document_id": 9321942
+    },
+    "paper": {
+     "id": 11338690,
+     "doi": "10.64898/2026.07.07.26357373",
+     "hub": {
+      "id": 220,
+      "name": "Medicine",
+      "slug": "medicine"
+     },
+     "slug": "learning-the-shared-structure-of-human-health-across-diseases-modalities-and-time",
+     "title": "Learning the shared structure of human health across diseases, modalities, and time",
+     "authors": [],
+     "journal": null,
+     "reviews": [],
+     "abstract": "Human disease risk emerges from the shared influences of genetics, environment, lifestyle, and concurrent diseases over time, resulting in recurring patterns of susceptibility across conditions. However, most risk prediction models treat diseases as independent outcomes or rely on limited input variables, restricting their ability to capture these shared patterns. Here we present RisQ, a framework that learns a unified representation of human health across diseases, modalities, and time. This representation is queried with natural language to estimate disease risk for arbitrary diseases and prediction horizons. Generalization to unseen disease groups and prediction horizons indicates that information is shared across diseases and time, revealing a common structure of disease risk that is learnable. Trained and validated in 488,170 participants from the UK Biobank and evaluated without retraining in 257,538 participants from the independent All of Us cohort, RisQ leverages this shared structure to outperform disease-specific models, multi-disease frameworks, and tabular foundation models in risk prediction. We show that jointly modeling increasing numbers of diseases, input modalities, and prediction horizons improves performance, indicating that scaling these axes increases information transfer and enriches the learned structure. We then show this structure is multi-scale: it captures demographic determinants of disease susceptibility, while also organizing individuals into reproducible cross-disease risk clusters within demographically restricted subgroups. Genetic analyses further support the biological grounding of the structure by linking gene-level loss of function to cross-disease risk profiles. This surfaces known relationships of HBB, SLC22A12, CASR, and LDLR, while also highlighting less characterized associations. Together, these results indicate that human disease risk exhibits a shared structure that can be learned from multimodal data to improve risk prediction, stratify individuals by cross-disease susceptibility, and support the discovery of relationships across diseases.",
+     "bounties": [
+      {
+       "id": 7579,
+       "hub": {
+        "id": 220,
+        "name": "Medicine",
+        "slug": "medicine"
+       },
+       "amount": "1840.0000000000",
+       "status": "OPEN",
+       "category": {
+        "id": 220,
+        "name": "Medicine",
+        "slug": "medicine"
+       },
+       "bounty_type": "REVIEW",
+       "subcategory": {
+        "id": 5621,
+        "name": "Health Informatics",
+        "slug": "health-informatics"
+       },
+       "contributors": [],
+       "contributions": [
+        {
+         "id": 7579,
+         "amount": 1840,
+         "author": {
+          "id": 973869,
+          "user": {
+           "id": 39602,
+           "last_name": "Account",
+           "first_name": "Main",
+           "is_verified": true
+          },
+          "headline": "",
+          "last_name": "Foundation",
+          "first_name": "ResearchHub",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+         }
+        }
+       ],
+       "document_type": "PAPER",
+       "expiration_date": "2026-07-28T20:45:02.382741Z"
+      }
+     ],
+     "category": {
+      "id": 220,
+      "name": "Medicine",
+      "slug": "medicine"
+     },
+     "purchases": [],
+     "work_type": null,
+     "raw_authors": [
+      {
+       "raw_name": "Hager, P.",
+       "full_name": "Hager, P.",
+       "last_name": "Hager",
+       "first_name": "P.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Roth, B.",
+       "full_name": "Roth, B.",
+       "last_name": "Roth",
+       "first_name": "B.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Buehler, N.",
+       "full_name": "Buehler, N.",
+       "last_name": "Buehler",
+       "first_name": "N.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Lu, D.",
+       "full_name": "Lu, D.",
+       "last_name": "Lu",
+       "first_name": "D.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Burks, J. H.",
+       "full_name": "Burks, J. H.",
+       "last_name": "Burks",
+       "first_name": "J.",
+       "middle_name": "H."
+      },
+      {
+       "raw_name": "Shilova, L.",
+       "full_name": "Shilova, L.",
+       "last_name": "Shilova",
+       "first_name": "L.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Kfuri-Rubens, R.",
+       "full_name": "Kfuri-Rubens, R.",
+       "last_name": "Kfuri-Rubens",
+       "first_name": "R.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Roellin, E.",
+       "full_name": "Roellin, E.",
+       "last_name": "Roellin",
+       "first_name": "E.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Pan, J.",
+       "full_name": "Pan, J.",
+       "last_name": "Pan",
+       "first_name": "J.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Di Folco, M.",
+       "full_name": "Di Folco, M.",
+       "last_name": "Di Folco",
+       "first_name": "M.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Chan, E.",
+       "full_name": "Chan, E.",
+       "last_name": "Chan",
+       "first_name": "E.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Schnabel, J. A.",
+       "full_name": "Schnabel, J. A.",
+       "last_name": "Schnabel",
+       "first_name": "J.",
+       "middle_name": "A."
+      },
+      {
+       "raw_name": "Adams, L.",
+       "full_name": "Adams, L.",
+       "last_name": "Adams",
+       "first_name": "L.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Rueckert, D.",
+       "full_name": "Rueckert, D.",
+       "last_name": "Rueckert",
+       "first_name": "D.",
+       "middle_name": ""
+      },
+      {
+       "raw_name": "Theis, F. J.",
+       "full_name": "Theis, F. J.",
+       "last_name": "Theis",
+       "first_name": "F.",
+       "middle_name": "J."
+      },
+      {
+       "raw_name": "Casale, F. P.",
+       "full_name": "Casale, F. P.",
+       "last_name": "Casale",
+       "first_name": "F.",
+       "middle_name": "P."
+      }
+     ],
+     "subcategory": {
+      "id": 5621,
+      "name": "Health Informatics",
+      "slug": "health-informatics"
+     },
+     "created_date": "2026-07-11T01:00:04.081492Z",
+     "primary_image": "https://storage.prod.researchhub.com/uploads/posts/users/37211/2b8471bb-6e8d-4f9b-a317-b84016cced3c/networkpower.png",
+     "unified_document_id": 9321942,
+     "primary_image_thumbnail": null
+    },
+    "author": {
+     "id": 973869,
+     "user": {
+      "id": 39602,
+      "last_name": "Account",
+      "first_name": "Main",
+      "is_verified": true
+     },
+     "headline": "",
+     "last_name": "Foundation",
+     "first_name": "ResearchHub",
+     "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+    },
+    "review": null,
+    "bounties": [
+     {
+      "id": 7579,
+      "hub": {
+       "id": 220,
+       "name": "Medicine",
+       "slug": "medicine"
+      },
+      "amount": "1840.0000000000",
+      "status": "OPEN",
+      "category": {
+       "id": 220,
+       "name": "Medicine",
+       "slug": "medicine"
+      },
+      "bounty_type": "REVIEW",
+      "subcategory": {
+       "id": 5621,
+       "name": "Health Informatics",
+       "slug": "health-informatics"
+      },
+      "contributors": [],
+      "contributions": [
+       {
+        "id": 7579,
+        "amount": 1840,
+        "author": {
+         "id": 973869,
+         "user": {
+          "id": 39602,
+          "last_name": "Account",
+          "first_name": "Main",
+          "is_verified": true
+         },
+         "headline": "",
+         "last_name": "Foundation",
+         "first_name": "ResearchHub",
+         "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+        }
+       }
+      ],
+      "document_type": "PAPER",
+      "expiration_date": "2026-07-28T20:45:02.382741Z"
+     }
+    ],
+    "category": {
+     "id": 220,
+     "name": "Medicine",
+     "slug": "medicine"
+    },
+    "parent_id": null,
+    "purchases": [],
+    "thread_id": 80032,
+    "subcategory": {
+     "id": 5621,
+     "name": "Health Informatics",
+     "slug": "health-informatics"
+    },
+    "comment_type": "GENERIC_COMMENT",
+    "document_type": "PAPER",
+    "parent_comment": null,
+    "comment_content_json": {
+     "ops": [
+      {
+       "insert": "ResearchHub Foundation is assigning an incentive of "
+      },
+      {
+       "insert": "$150 in ResearchCoin (RSC)",
+       "attributes": {
+        "bold": true
+       }
+      },
+      {
+       "insert": " for a high-quality, rigorous, and constructive peer review of this manuscript. If your expertise aligns well with this research, please consider posting your review.\n\n"
+      },
+      {
+       "insert": "Requirements:",
+       "attributes": {
+        "bold": true
+       }
+      },
+      {
+       "insert": "\nVerify identity and complete profile (including ORCID auth) on ResearchHub."
+      },
+      {
+       "insert": "\n",
+       "attributes": {
+        "list": "ordered"
+       }
+      },
+      {
+       "insert": "Submit your review within 14 days of the date this bounty was initiated."
+      },
+      {
+       "insert": "\n",
+       "attributes": {
+        "list": "ordered"
+       }
+      },
+      {
+       "insert": "Describe the relevance of your domain expertise to the manuscript."
+      },
+      {
+       "insert": "\n",
+       "attributes": {
+        "list": "ordered"
+       }
+      },
+      {
+       "insert": "Disclose AI use. Please refer to our "
+      },
+      {
+       "insert": "AI Policy",
+       "attributes": {
+        "link": "https://drive.google.com/file/d/1KihDvQze5rzi8xwleWfMNsdPbc6EF0t_/view"
+       }
+      },
+      {
+       "insert": " for additional details."
+      },
+      {
+       "insert": "\n",
+       "attributes": {
+        "list": "ordered"
+       }
+      },
+      {
+       "insert": "Disclose conflicts of interest."
+      },
+      {
+       "insert": "\n",
+       "attributes": {
+        "list": "ordered"
+       }
+      },
+      {
+       "insert": "Use the rating system in the \"Peer Reviews\" tab for all 5 criteria: overall assessment, introduction, methods, results, and discussion. Please read our "
+      },
+      {
+       "insert": "Peer Review Guide",
+       "attributes": {
+        "link": "https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-program-guidelines"
+       }
+      },
+      {
+       "insert": " with details about the process and examples of awarded reviews. Please avoid using other review formats."
+      },
+      {
+       "insert": "\n",
+       "attributes": {
+        "list": "ordered"
+       }
+      },
+      {
+       "insert": "\nEditors will review and award up to 2 high-quality peer reviews within 1 week following the 14 day submission window. All decisions are final. For questions, please contact "
+      },
+      {
+       "insert": "editorial@researchhub.foundation",
+       "attributes": {
+        "link": "mailto:editorial@researchhub.foundation"
+       }
+      },
+      {
+       "insert": ".\n"
+      }
+     ]
+    },
+    "comment_content_type": "QUILL_EDITOR"
+   },
+   "created_date": "2026-07-14T20:45:02.655850Z",
+   "action_date": "2026-07-14T20:45:01.546609Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 973869,
+    "first_name": "ResearchHub",
+    "last_name": "Foundation",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow",
+    "headline": "",
+    "user": {
+     "id": 39602,
+     "first_name": "Main",
+     "last_name": "Account",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "votes": 0,
+    "replies": 0,
+    "adjusted_score": 0
+   },
+   "hot_score_v2": 0,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 0
+  },
+  {
+   "id": 4678309,
+   "content_type": "RHCOMMENTMODEL",
+   "content_object": {
+    "id": 88962,
+    "hub": {
+     "id": 11040,
+     "name": "Neurodevelopmental Disorder",
+     "slug": "neurodevelopmental-disorder"
+    },
+    "post": {
+     "id": 32587,
+     "hub": {
+      "id": 11040,
+      "name": "Neurodevelopmental Disorder",
+      "slug": "neurodevelopmental-disorder"
+     },
+     "slug": "discovering-multi-omics-biomarkers-for-adhd-in-a-nigerian-children-cohort-through-integrated-genome-wide-genotyping-dna-methylation-and-multi-omics-factor-analysis-mofa2",
+     "type": "PREREGISTRATION",
+     "grant": null,
+     "title": "Discovering Multi-Omics Biomarkers for ADHD in a Nigerian Children Cohort Through Integrated Genome-Wide Genotyping, DNA Methylation and Multi-Omics Factor Analysis (MOFA2)",
+     "reviews": [
+      {
+       "id": 18564,
+       "score": 4,
+       "author": {
+        "id": 8623156,
+        "user": {
+         "id": 197732,
+         "last_name": "Review",
+         "first_name": "AI",
+         "is_verified": true
+        },
+        "headline": "",
+        "last_name": "Review",
+        "first_name": "AI",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/02/blob_Yfubd6a"
+       },
+       "is_assessed": true
+      },
+      {
+       "id": 18632,
+       "score": 3,
+       "author": {
+        "id": 8113848,
+        "user": {
+         "id": 181967,
+         "last_name": "negi",
+         "first_name": "swati",
+         "is_verified": true
+        },
+        "headline": "Doctoral Student in Epigenetics lab, DBG, IISc",
+        "last_name": "Negi",
+        "first_name": "Swati",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/09/18/blob_9NfB7Eu"
+       },
+       "is_assessed": false
+      }
+     ],
+     "bounties": [
+      {
+       "id": 7570,
+       "hub": {
+        "id": 11040,
+        "name": "Neurodevelopmental Disorder",
+        "slug": "neurodevelopmental-disorder"
+       },
+       "amount": "1852.0000000000",
+       "status": "OPEN",
+       "category": null,
+       "bounty_type": "REVIEW",
+       "subcategory": null,
+       "contributors": [],
+       "contributions": [
+        {
+         "id": 7570,
+         "amount": 1852,
+         "author": {
+          "id": 973869,
+          "user": {
+           "id": 39602,
+           "last_name": "Account",
+           "first_name": "Main",
+           "is_verified": true
+          },
+          "headline": "",
+          "last_name": "Foundation",
+          "first_name": "ResearchHub",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/05/28/blob_aBYdPow"
+         }
+        }
+       ],
+       "document_type": "PREREGISTRATION",
+       "expiration_date": "2026-07-27T04:46:39.710000Z"
+      }
+     ],
+     "category": null,
+     "fundraise": {
+      "id": 962,
+      "status": "OPEN",
+      "end_date": "2026-10-08T03:09:16.508000Z",
+      "created_by": {
+       "id": 180931,
+       "last_name": "Akpabio",
+       "first_name": "Cephas",
+       "author_profile": {
+        "id": 7964248,
+        "user": 180931,
+        "claimed": true,
+        "h_index": 0,
+        "twitter": "",
+        "facebook": null,
+        "headline": "PhD student at University of Ibadan",
+        "linkedin": "https://www.linkedin.com/in/cephas-akpabio-1b978a157",
+        "orcid_id": "https://orcid.org/0009-0009-9843-8273",
+        "education": [
+         {
+          "id": 8822,
+          "name": "University of Uyo",
+          "year": {
+           "label": "2018",
+           "value": "2018"
+          },
+          "major": "Zoology",
+          "degree": {
+           "label": "Bachelor of Science",
+           "value": "BS"
+          },
+          "summary": "Zoology BS '18, University of Uyo",
+          "is_public": false,
+          "university": {
+           "id": 8822,
+           "city": "",
+           "name": "University of Uyo",
+           "state": "",
+           "country": "Nigeria",
+           "updated_date": "2020-11-24T21:44:27.629310Z"
+          }
+         },
+         {
+          "id": 8350,
+          "name": "University of Ibadan",
+          "year": {
+           "label": "2023",
+           "value": "2023"
+          },
+          "major": "Zoology [Cell Biology and Genetics]",
+          "degree": {
+           "label": "Master of Science",
+           "value": "MS"
+          },
+          "summary": "Zoology [Cell Biology and Genetics] MS '23, University of Ibadan",
+          "is_public": false,
+          "university": {
+           "id": 8350,
+           "city": "",
+           "name": "University of Ibadan",
+           "state": "",
+           "country": "Nigeria",
+           "updated_date": "2020-11-24T21:44:27.627051Z"
+          }
+         }
+        ],
+        "i10_index": 0,
+        "last_name": "Akpabio",
+        "first_name": "Cephas",
+        "university": null,
+        "description": "I am Cephas Akpabio, a PhD student in the Department of Zoology, with research focused on the genetic and epigenetic factors contributing to ADHD in Nigerian children. When not actively engaged, I love watching movies and playing volleyball.",
+        "is_verified": true,
+        "author_score": 0,
+        "country_code": null,
+        "created_date": "2025-08-15T12:43:51.275442Z",
+        "openalex_ids": [],
+        "updated_date": "2026-01-27T09:20:35.780455Z",
+        "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/09/13/blob_2eq9Ldf",
+        "created_source": "RESEARCHHUB",
+        "google_scholar": "https://scholar.google.com/citations?hl=en&user=kEP_9v8AAAAJ",
+        "merged_with_author": null,
+        "two_year_mean_citedness": 0,
+        "last_full_fetch_from_openalex": null
+       }
+      },
+      "start_date": "2026-07-10T03:09:16.804755Z",
+      "goal_amount": {
+       "rsc": 122979.65850285307,
+       "usd": 10000
+      },
+      "contributors": {
+       "top": [
+        {
+         "id": 58685,
+         "last_name": "Haase",
+         "first_name": "Jacob",
+         "contributions": [
+          {
+           "date": "2026-07-14T20:13:02.349Z",
+           "amount": 1229.797,
+           "currency": "RSC"
+          }
+         ],
+         "author_profile": {
+          "id": 991840,
+          "user": 58685,
+          "claimed": true,
+          "h_index": 9,
+          "twitter": "https://twitter.com/Jacob_sci",
+          "facebook": null,
+          "headline": "Oncology | CRISPR | Diagnostics & Biomarker",
+          "linkedin": "https://www.linkedin.com/in/jacob-haase-16a3b9136",
+          "orcid_id": "https://orcid.org/0000-0003-0960-6546",
+          "education": [
+           {
+            "id": 4169,
+            "name": "Martin-Luther Universität Halle-Wittenberg",
+            "year": {
+             "label": "2020",
+             "value": "2020"
+            },
+            "major": "Biology",
+            "degree": {
+             "label": "Doctor of Philosophy",
+             "value": "PhD"
+            },
+            "summary": "Biology PhD '20, Martin-Luther Universität Halle-Wittenberg",
+            "is_public": true
+           }
+          ],
+          "i10_index": 8,
+          "last_name": "Haase",
+          "first_name": "Jacob",
+          "university": null,
+          "description": "I am a former researcher (now industry) in the field of oncology with intensive experience in reviewing for scientific journals.\nPreviously: Harvard Medical School and Dana-Farber Cancer Institute\nNow: Quantic School of Business and Technology",
+          "is_verified": true,
+          "author_score": 0,
+          "country_code": null,
+          "created_date": "2024-03-30T17:20:53.452784Z",
+          "openalex_ids": [
+           "https://openalex.org/A5089886818"
+          ],
+          "updated_date": "2025-08-23T19:44:05.390233Z",
+          "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/03/30/blob_y5Utg3U",
+          "created_source": "RESEARCHHUB",
+          "google_scholar": "https://scholar.google.com/citations?user=3JZKcdcAAAAJ&hl=en",
+          "merged_with_author": null,
+          "two_year_mean_citedness": 0.09210526315789473,
+          "last_full_fetch_from_openalex": null
+         },
+         "total_contribution": {
+          "rsc": 1229.797,
+          "usd": 0,
+          "rsc_usd_snapshot": 100.0000337430982
+         }
+        }
+       ],
+       "total": 1
+      },
+      "amount_raised": {
+       "rsc": 1229.797,
+       "usd": 100.0000337430982
+      },
+      "goal_currency": "USD"
+     },
+     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/180931/15ac64f5-0674-45fe-80a3-9e88c24f3952/adhd.jpg",
+     "purchases": [],
+     "subcategory": null,
+     "created_date": "2026-07-10T03:09:16.738743Z",
+     "renderable_text": "Discovering Multi-Omics Biomarkers for ADHD in a Nigerian Children Cohort Through Integrated Genome-Wide Genotyping, DNA Methylation and Multi-Omics Factor Analysis (MOFA2)\n\n1. Abstract\n\nAttention-deficit/hyperactivity disorder (ADHD) is one of the most c...",
+     "unified_document_id": 9321838
+    },
+    "paper": null,
+    "author": {
+     "id": 8113848,
+     "user": {
+      "id": 181967,
+      "last_name": "negi",
+      "first_name": "swati",
+      "is_verified": true
+     },
+     "headline": "Doctoral Student in Epigenetics lab, DBG, IISc",
+     "last_name": "Negi",
+     "first_name": "Swati",
+     "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/09/18/blob_9NfB7Eu"
+    },
+    "review": {
+     "id": 18632,
+     "score": 3,
+     "object_id": 88962,
+     "created_by": 181967,
+     "is_removed": false,
+     "content_type": 118,
+     "unified_document": 9321838
+    },
+    "bounties": [],
+    "category": null,
+    "parent_id": null,
+    "purchases": [],
+    "thread_id": 80024,
+    "subcategory": null,
+    "comment_type": "REVIEW",
+    "document_type": "PREREGISTRATION",
+    "parent_comment": null,
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Credentials:  \"},{\"type\":\"text\",\"text\":\"Final year PhD student working on identifying aging-specific DNA methylation(DNAm) based biomarkers in the population. I have worked thoroughly in DNA methylation and I am currently working in the BHARAT Study (Biomarkers of Healthy Aging, Resilience, Adversity, and Transitions), which is a pioneering pan-India research initiative launched by the Indian Institute of Science (IISc) in Bengaluru to understand the biological processes of aging specifically within the Indian population.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Overall impact score: 3.5/5\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Introduction(3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The introduction is very articulate, but it does not give much significance or emphasis to the project's major goal. It explains the novelty of the study, but here I believe the relevance of the study is lacking, and it has to be extrapolated that biomarkers identified from this study will be used in what manner. Biological significance regarding EWAS studies especially in respect to neurological disorders especially like ADHD needs to be highlighted more.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Hypothesis (3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Two hypotheses proposed in this project align with the overall goal, but, again, they are more focused on the technical avenue, and the biological relevance is a missing puzzle piece. MOFA2 is an excellent unsupervised statistical framework for identifying factors associated with methylation and SNPs, but one might also get similar hits in DMRs and meQTL analyses. I want to understand here what will be used for the final biomarker prediction and why? These points need to be worked on.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Methods(3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I really like the idea of evaluating multi-omics based ADHD biomarkers in Africans, especially the Nigerian population, as I believe that Caucasian data, is overrepresented in multi-omics cohort-based studies, and it is now high time to explore African and Asian cohorts. A cohort of 40 participants will not provide sufficient statistical power to yield meaningful results, especially if the goal is to develop multi-omics-based biomarkers even as a pilot study. One needs a discovery or experimental cohort from which to identify these multi-omics biomarkers, and a validation cohort to validate them. I will not propose thousands of samples, as I do understand the limitations associated with cohort-based studies, but n=200(controls and test samples should be 100 each) will be a good enough number to have some confidence in the identified biomarkers.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"More points could be added to the inclusion and exclusion criteria. Parents with genetic disorders can lead to some abrupt methylation changes in offspring. Authors should elaborate more on which diseases fall under the inclusion/exclusion criteria; it currently sounds ambiguous.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Materials and Procedure (3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The Methylation Screening array (MSA), which has 270K probes for methylation profiling, is a good choice for array-based methylation profiling. However, it is not clearly stated in\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\" the Materials and procedures \"},{\"type\":\"text\",\"text\":\"whether DNA will be isolated from whole blood or PBMCs, which is important. Additionally, one should clarify whether the samples will be stored for future retrospective analysis, such as transcriptome or proteome analysis.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"italic\"}],\"text\":\"\\\"Genome-wide DNA methylation profiling will be performed using the Illumina Methylation Screening Array\\\":\"},{\"type\":\"text\",\"text\":\" I believe this line is incorrect, as I do not think MSA is a genome-wide array; it has 270k probes spanning various CpG sites, which were selected through a decade of research. These basically contain pre-selected markers associated with development, aging, and disease.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Planned analysis(3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The SNP/genotype data handling pipeline looks good, but the authors could perform basic QC in the GenomeStudio Genotype module to simplify QC and preprocessing.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Also, based on my experience,, the sesame R package is a better tool for DNA methylation analysis of MSA data than minfi and ChAMP. Authors can refer to this paper for the standard MSA pipeline, \"},{\"type\":\"text\",\"marks\":[{\"type\":\"italic\"}],\"text\":\"Goldberg DC et al. 2025, Scalable screening of ternary-code DNA methylation dynamics associated with human traits, Cell Genomics.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Pipeline or analysis details for the meQTL analysis are missing from the planned analysis. It would be helpful if authors could elaborate further on it in the proposal.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Additionally, there might be sex specific DNA methylation differences that can be checked in the context of ADHD here. I think it will be good to explore that.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Authors should provide clarification that why they consider MOFA2 for biomarker discovery rather than cis meQTLS? What is the advantage of using MOFA2 over MatrixEQTL for biomarker discovery?\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Pilot Data(2/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Again, the same complaint as in the introduction: it would be better if this section were elaborated further. I am still unclear what the authors are trying to explain here, or maybe the subheading looks like a mismatch. This section needs clarification on whether the data is publicly available or will be restricted.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Additional points\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Ethics and data management statement looks good.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The budget for the proposed project meets the criteria. However, it would be better if the cost of consumables, e.g., DNA isolation kits and Qubit assays, as well as anything else required, were included.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"More references can be added in the proposal.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"AI disclosure is needed\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" Overall, the project is a good initiative that could benefit from better planning and a more detailed explanation of the methodology and analysis. All the best to all the authors for this endeavour.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"AI disclosure: No AI is used for writing review, only Grammarly is used for correcting grammatical errors.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"}]}",
+    "comment_content_type": "TIPTAP"
+   },
+   "created_date": "2026-07-14T13:52:41.189967Z",
+   "action_date": "2026-07-14T13:52:40.402287Z",
+   "action": "PUBLISH",
+   "author": {
+    "id": 8113848,
+    "first_name": "Swati",
+    "last_name": "Negi",
+    "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2025/09/18/blob_9NfB7Eu",
+    "headline": "Doctoral Student in Epigenetics lab, DBG, IISc",
+    "user": {
+     "id": 181967,
+     "first_name": "swati",
+     "last_name": "negi",
+     "is_verified": true
+    }
+   },
+   "metrics": {
+    "votes": 1,
+    "replies": 0,
+    "adjusted_score": 1
+   },
+   "hot_score_v2": 60,
+   "hot_score_breakdown": null,
+   "external_metadata": null,
+   "recommendation_id": null,
+   "pdf_copyright_allows_display": true,
+   "adjusted_score": 1
+  }
+ ]
+}

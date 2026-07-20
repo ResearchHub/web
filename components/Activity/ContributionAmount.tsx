@@ -25,5 +25,9 @@ export const ContributionAmount: FC<ContributionAmountProps> = ({ contribution, 
     shorten: true,
   });
 
-  return <span className={cn('text-xs font-medium font-mono', className)}>+{formatted}</span>;
+  return (
+    <span className={cn('font-mono text-sm font-medium text-green-600', className)}>
+      +{formatted}
+    </span>
+  );
 };

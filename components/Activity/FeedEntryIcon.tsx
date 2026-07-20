@@ -3,8 +3,8 @@ import { Bell, Coins, MessageCircle, type LucideIcon } from 'lucide-react';
 import type { FeedEntryIconName } from './lib/feedEntryAdapters';
 
 const ICONS: Record<Exclude<FeedEntryIconName, null>, LucideIcon> = {
-  coins: Coins,
   bell: Bell,
+  coins: Coins,
   message: MessageCircle,
 };
 

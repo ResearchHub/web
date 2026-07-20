@@ -124,7 +124,7 @@ export interface FeedBountyContent extends BaseFeedContent {
   };
 }
 
-export interface FeedCommentContent extends BaseFeedContent {
+export interface FeedCommentContent extends Omit<BaseFeedContent, 'bounties'> {
   contentType: 'COMMENT';
   updatedDate?: string;
   comment: {
@@ -142,6 +142,7 @@ export interface FeedCommentContent extends BaseFeedContent {
     };
   };
   hasBounties?: boolean;
+  bounties?: Bounty[];
   isRemoved?: boolean;
   relatedDocumentId?: number | string;
   relatedDocumentContentType?: ContentType;
@@ -733,8 +734,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Transform the comment to get score and other properties
         const transformedComment = transformComment(commentData);
 
-        const hasBounties =
-          Array.isArray(content_object.bounties) && content_object.bounties.length > 0;
+        const commentBounties = Array.isArray(content_object.bounties)
+          ? content_object.bounties.map((bounty: any) =>
+              transformBounty(bounty, { ignoreBaseAmount: true })
+            )
+          : [];
+        const hasBounties = commentBounties.length > 0;
 
         // Create a FeedCommentContent object
         const commentContent: FeedCommentContent = {
@@ -746,6 +751,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdBy: transformAuthorProfile(author || content_object.author),
           isRemoved: content_object.is_removed,
           hasBounties,
+          bounties: commentBounties,
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
@@ -960,6 +966,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           textPreview: '',
           slug: content_object.proposal_slug || '',
           title: stripHtml(content_object.proposal_title || ''),
+          previewImage: content_object.image_url || undefined,
           authors: [transformAuthorProfile(author)],
           topics: content_object.hub
             ? [

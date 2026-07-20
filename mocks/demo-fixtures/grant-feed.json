@@ -1,0 +1,183 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 32331,
+      "content_type": "RESEARCHHUBPOST",
+      "content_object": {
+        "id": 32331,
+        "slug": "neurodevelopmental-and-neuropsychiatric-conditions",
+        "title": "Neurodevelopmental and neuropsychiatric conditions",
+        "type": "GRANT",
+        "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/39602/66a8e43e-d340-4c15-81db-7759c060271b/screenshot-2026-06-09-at-9.png",
+        "unified_document_id": 9280651,
+        "grant": {
+          "id": 316,
+          "status": "OPEN",
+          "amount": { "usd": 10000.0, "rsc": 121740.0 },
+          "organization": "ResearchHub Foundation",
+          "short_title": "Neurodevelopmental & neuropsychiatric conditions",
+          "is_expired": false,
+          "is_active": true,
+          "application_count": 9,
+          "applications": [
+            {
+              "applicant": {
+                "id": 7876376,
+                "first_name": "James",
+                "last_name": "Marsh",
+                "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2026/07/03/blob_outhuJU",
+                "headline": "Lead Researcher at Mental Wealth Academy"
+              },
+              "preregistration_post_id": 32335,
+              "fundraise": {
+                "id": 879,
+                "title": "Community Intelligence Network (CIN)",
+                "goal_amount": { "usd": 5000.0, "rsc": 60870.0 },
+                "nonprofit": null,
+                "reviews": []
+              }
+            },
+            {
+              "applicant": {
+                "id": 990025,
+                "first_name": "Martina",
+                "last_name": "Rossi",
+                "profile_image": "https://storage.prod.researchhub.com/uploads/author_profile_images/2024/07/02/blob_M6cfKAR",
+                "headline": "PhD Medical Writer | Cell Biology & Gene Therapy"
+              },
+              "preregistration_post_id": 32342,
+              "fundraise": {
+                "id": 883,
+                "title": "Precision phenotyping of an autism model (fmr1)",
+                "goal_amount": { "usd": 10000.0, "rsc": 121740.0 },
+                "nonprofit": null,
+                "reviews": []
+              }
+            }
+          ]
+        },
+        "bounties": [],
+        "reviews": []
+      },
+      "action_date": "2026-06-09T14:00:00.000000Z",
+      "action": "PUBLISH",
+      "author": {
+        "id": 39602,
+        "first_name": "ResearchHub",
+        "last_name": "Foundation",
+        "profile_image": null,
+        "headline": "ResearchHub Foundation",
+        "user": {
+          "id": 39602,
+          "first_name": "ResearchHub",
+          "last_name": "Foundation",
+          "is_verified": true
+        }
+      },
+      "metrics": { "votes": 5, "replies": 0, "adjusted_score": 5 },
+      "hot_score_v2": 100,
+      "hot_score_breakdown": null,
+      "external_metadata": null,
+      "recommendation_id": null,
+      "pdf_copyright_allows_display": true,
+      "adjusted_score": 5
+    },
+    {
+      "id": 88104,
+      "content_type": "RESEARCHHUBPOST",
+      "content_object": {
+        "id": 88104,
+        "slug": "pancreatic-cancer-biomarkers",
+        "title": "Pancreatic cancer biomarkers",
+        "type": "GRANT",
+        "image_url": null,
+        "unified_document_id": 9900004,
+        "grant": {
+          "id": 88401,
+          "status": "OPEN",
+          "amount": { "usd": 250000.0, "rsc": 3043500.0 },
+          "organization": "Sloan Foundation",
+          "short_title": "Pancreatic cancer biomarkers",
+          "is_expired": false,
+          "is_active": true,
+          "application_count": 14,
+          "applications": []
+        },
+        "bounties": [],
+        "reviews": []
+      },
+      "action_date": "2026-07-01T10:00:00.000000Z",
+      "action": "PUBLISH",
+      "author": {
+        "id": 9800004,
+        "first_name": "Sloan",
+        "last_name": "Foundation",
+        "profile_image": null,
+        "headline": "Sloan Foundation — scientific philanthropy",
+        "user": {
+          "id": 9800004,
+          "first_name": "Sloan",
+          "last_name": "Foundation",
+          "is_verified": true
+        }
+      },
+      "metrics": { "votes": 3, "replies": 0, "adjusted_score": 3 },
+      "hot_score_v2": 90,
+      "hot_score_breakdown": null,
+      "external_metadata": null,
+      "recommendation_id": null,
+      "pdf_copyright_allows_display": true,
+      "adjusted_score": 3
+    },
+    {
+      "id": 32330,
+      "content_type": "RESEARCHHUBPOST",
+      "content_object": {
+        "id": 32330,
+        "slug": "non-invasive-tools-to-profile-gene-expression",
+        "title": "Non-invasive tools to profile gene expression",
+        "type": "GRANT",
+        "image_url": null,
+        "unified_document_id": 9280650,
+        "grant": {
+          "id": 315,
+          "status": "OPEN",
+          "amount": { "usd": 10000.0, "rsc": 121740.0 },
+          "organization": "ResearchHub Foundation",
+          "short_title": "Non-invasive gene expression profiling",
+          "is_expired": false,
+          "is_active": true,
+          "application_count": 1,
+          "applications": []
+        },
+        "bounties": [],
+        "reviews": []
+      },
+      "action_date": "2026-06-08T10:00:00.000000Z",
+      "action": "PUBLISH",
+      "author": {
+        "id": 39602,
+        "first_name": "ResearchHub",
+        "last_name": "Foundation",
+        "profile_image": null,
+        "headline": "ResearchHub Foundation",
+        "user": {
+          "id": 39602,
+          "first_name": "ResearchHub",
+          "last_name": "Foundation",
+          "is_verified": true
+        }
+      },
+      "metrics": { "votes": 2, "replies": 0, "adjusted_score": 2 },
+      "hot_score_v2": 70,
+      "hot_score_breakdown": null,
+      "external_metadata": null,
+      "recommendation_id": null,
+      "pdf_copyright_allows_display": true,
+      "adjusted_score": 2
+    }
+  ]
+}

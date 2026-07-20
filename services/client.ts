@@ -2,6 +2,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { getSession } from 'next-auth/react';
 import { ApiError } from './types';
+import { getDemoResponse } from '@/mocks/demoInterceptor';
+
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 export class ApiClient {
   private static readonly baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -129,6 +132,10 @@ export class ApiClient {
   }
 
   private static async fetchJson<T>(path: string, headers: Record<string, string>): Promise<T> {
+    if (DEMO_MODE) {
+      const demo = getDemoResponse(path);
+      if (demo !== undefined) return demo as T;
+    }
     try {
       const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
       const response = await fetch(url, this.getFetchOptions('GET', headers));
