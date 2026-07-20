@@ -99,27 +99,30 @@ export function ExpertResultCard({
               {name || '—'}
             </h3>
             {sources.length > 0
-              ? sources.map((src, i) => (
-                  <Tooltip
-                    key={`${src.url}-${i}`}
-                    content={src.text}
-                    position="top"
-                    width="w-72"
-                    className="text-left"
-                    wrapperClassName="inline-flex shrink-0 items-center"
-                  >
-                    <a
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
-                      aria-label={src.text}
-                      title={src.text}
+              ? sources.map((src, i) => {
+                  const label = src.text?.trim() || 'Source';
+                  return (
+                    <Tooltip
+                      key={`${src.url}-${i}`}
+                      content={label}
+                      position="top"
+                      width="w-72"
+                      className="text-left"
+                      wrapperClassName="inline-flex shrink-0 items-center"
                     >
-                      <ExpertSourceLinkIcon url={src.url} text={src.text} />
-                    </a>
-                  </Tooltip>
-                ))
+                      <a
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                        aria-label={label}
+                        title={label}
+                      >
+                        <ExpertSourceLinkIcon url={src.url} text={src.text} />
+                      </a>
+                    </Tooltip>
+                  );
+                })
               : null}
           </div>
           {title ? (

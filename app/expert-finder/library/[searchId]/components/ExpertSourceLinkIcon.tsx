@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle, faLinkedin, faOrcid, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { ExternalLink, GraduationCap } from 'lucide-react';
 import type { ExpertSourceLink } from '@/types/expertFinder';
+import { ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
 
 export type ExpertSourceIconType =
   | 'orcid'
@@ -16,29 +17,25 @@ export type ExpertSourceIconType =
 const ICON_CLASS = 'h-4 w-4 shrink-0';
 
 export function getExpertSourceIconType(url: string, text?: string): ExpertSourceIconType {
-  const combined = `${url} ${text ?? ''}`.toLowerCase();
+  const normalized = ensureAbsoluteHttpUrl(url) || url;
+  const combined = `${normalized} ${text ?? ''}`.toLowerCase();
 
   let hostname = '';
   try {
-    hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    hostname = new URL(normalized).hostname.toLowerCase().replace(/^www\./, '');
   } catch {
-    return 'generic';
+    // Fall through to text / heuristic checks below.
   }
 
   if (hostname.includes('orcid.org') || combined.includes('orcid')) {
     return 'orcid';
   }
 
-  if (hostname.includes('linkedin.com') || combined.includes('linkedin')) {
+  if (isLinkedInUrl(normalized, text)) {
     return 'linkedin';
   }
 
-  if (
-    hostname === 'x.com' ||
-    hostname === 'twitter.com' ||
-    hostname.endsWith('.x.com') ||
-    hostname.endsWith('.twitter.com')
-  ) {
+  if (isXUrl(normalized, text)) {
     return 'x';
   }
 

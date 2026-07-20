@@ -4,7 +4,7 @@ import { createTransformer } from './transformer';
 import type { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 
 export interface CreatedByInfo {
@@ -130,21 +130,44 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function defaultSourceLabel(url: string, text: string): string {
+  if (text) return text;
+  if (isLinkedInUrl(url)) return 'LinkedIn';
+  if (isXUrl(url)) return 'X';
+  try {
+    return new URL(url).hostname.replace(/^www\./, '') || 'Source';
+  } catch {
+    return 'Source';
+  }
+}
+
 function transformExpertSource(raw: string | Record<string, unknown>): ExpertSourceLink | null {
   if (typeof raw === 'string') {
-    const url = raw.trim();
-    if (!url) return null;
-    try {
-      const host = new URL(url).hostname.replace(/^www\./, '');
-      return { url, text: host || 'Source' };
-    } catch {
-      return { url, text: 'Source' };
-    }
+    const normalized = ensureAbsoluteHttpUrl(raw);
+    if (!normalized) return null;
+    return { url: normalized, text: defaultSourceLabel(normalized, '') };
   }
-  const url = String(raw?.url ?? '').trim();
-  if (!url) return null;
-  const text = String(raw?.text ?? '').trim() || 'Source';
-  return { url, text };
+
+  const obj = raw as Record<string, unknown>;
+  const rawUrl = String(obj.url ?? obj.href ?? obj.link ?? obj.profile_url ?? '').trim();
+  const normalized = ensureAbsoluteHttpUrl(rawUrl);
+  if (!normalized) return null;
+
+  const typeHint = String(obj.type ?? obj.network ?? obj.platform ?? '')
+    .trim()
+    .toLowerCase();
+  const rawText = String(obj.text ?? obj.title ?? obj.label ?? obj.name ?? '').trim();
+  let text = rawText;
+  if (!text && (typeHint === 'linkedin' || typeHint.includes('linkedin'))) {
+    text = 'LinkedIn';
+  } else if (
+    !text &&
+    (typeHint === 'x' || typeHint === 'twitter' || typeHint.includes('twitter'))
+  ) {
+    text = 'X';
+  }
+
+  return { url: normalized, text: defaultSourceLabel(normalized, text) };
 }
 
 function parseExpertId(raw: any): number | null {

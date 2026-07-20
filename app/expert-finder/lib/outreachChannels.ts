@@ -1,4 +1,5 @@
 import type { ExpertSourceLink } from '@/types/expertFinder';
+import { ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
 
 export type OutreachSocialNetwork = 'linkedin' | 'x';
 
@@ -9,14 +10,6 @@ export function buildMailtoHref(params: { to: string; subject: string }): string
   return `mailto:${to}${query}`;
 }
 
-function hostnameFromUrl(url: string): string {
-  try {
-    return new URL(url).hostname.toLowerCase().replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-}
-
 export function getSourceUrlByNetwork(
   sources: ExpertSourceLink[] | null | undefined,
   network: OutreachSocialNetwork
@@ -24,26 +17,13 @@ export function getSourceUrlByNetwork(
   if (!sources?.length) return null;
 
   for (const source of sources) {
-    const url = source.url?.trim();
+    const url = ensureAbsoluteHttpUrl(source.url ?? '') || source.url?.trim();
     if (!url) continue;
-    const hostname = hostnameFromUrl(url);
-    const combined = `${url} ${source.text ?? ''}`.toLowerCase();
 
-    if (network === 'linkedin') {
-      if (hostname.includes('linkedin.com') || combined.includes('linkedin')) {
-        return url;
-      }
-      continue;
+    if (network === 'linkedin' && isLinkedInUrl(url, source.text)) {
+      return url;
     }
-
-    if (
-      hostname === 'x.com' ||
-      hostname === 'twitter.com' ||
-      hostname.endsWith('.x.com') ||
-      hostname.endsWith('.twitter.com') ||
-      combined.includes('twitter.com/') ||
-      combined.includes('x.com/')
-    ) {
+    if (network === 'x' && isXUrl(url, source.text)) {
       return url;
     }
   }

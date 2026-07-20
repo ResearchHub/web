@@ -79,7 +79,7 @@ export interface DetectedUrl {
 export function classifyUrl(url: string): DetectedUrl | null {
   let u: URL;
   try {
-    u = new URL(url);
+    u = new URL(ensureAbsoluteHttpUrl(url) || url);
   } catch {
     return null;
   }
@@ -105,11 +105,18 @@ export function classifyUrl(url: string): DetectedUrl | null {
     if (m) return { kind: 'tiktok', url, videoId: m[1] };
     return { kind: 'tiktok', url };
   }
-  if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com') {
+  if (
+    host === 'x.com' ||
+    host === 'twitter.com' ||
+    host === 't.co' ||
+    host === 'mobile.twitter.com' ||
+    host.endsWith('.x.com') ||
+    host.endsWith('.twitter.com')
+  ) {
     const m = u.pathname.match(/\/status\/(\d+)/);
     return { kind: 'x', url, tweetId: m ? m[1] : undefined };
   }
-  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+  if (host === 'linkedin.com' || host.endsWith('.linkedin.com') || host === 'lnkd.in') {
     // LinkedIn carries the URN type in two places:
     //   1. Explicit URN form `urn:li:<type>:<id>` (used in /feed/update/ paths).
     //   2. Share-URL slug `…/posts/<slug>-<type>-<id>-<XYZA>?…` where <type>
@@ -163,15 +170,48 @@ function hostnameWithoutWww(hostname: string): string {
 
 /**
  * Adds https:// when the string has no scheme so URL() accepts pastes like
- * `www.researchhub.com/paper/123` or `researchhub.com/paper/123`.
+ * `www.researchhub.com/paper/123`, `linkedin.com/in/…`, or protocol-relative
+ * `//example.com/path`.
  */
-function normalizeUrlInputForParsing(input: string): string {
+export function ensureAbsoluteHttpUrl(input: string): string {
   const t = input.trim();
   if (!t) return t;
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(t)) {
     return t;
   }
+  if (t.startsWith('//')) {
+    return `https:${t}`;
+  }
   return `https://${t}`;
+}
+
+/**
+ * True when `url` (and optional label `text`) points at a LinkedIn profile/page.
+ * Prefer hostname classification; `text` covers labeled sources without a clean host.
+ */
+export function isLinkedInUrl(url: string, text?: string): boolean {
+  const normalized = ensureAbsoluteHttpUrl(url);
+  if (classifyUrl(normalized)?.kind === 'linkedin') return true;
+  const combined = `${normalized} ${text ?? ''}`.toLowerCase();
+  return combined.includes('linkedin') || combined.includes('lnkd.in');
+}
+
+/**
+ * True when `url` (and optional label `text`) points at an X / Twitter profile.
+ */
+export function isXUrl(url: string, text?: string): boolean {
+  const normalized = ensureAbsoluteHttpUrl(url);
+  if (classifyUrl(normalized)?.kind === 'x') return true;
+  const combined = `${normalized} ${text ?? ''}`.toLowerCase();
+  const label = (text ?? '').trim().toLowerCase();
+  return (
+    combined.includes('twitter.com') ||
+    combined.includes('x.com/') ||
+    /\btwitter\b/.test(combined) ||
+    label === 'x' ||
+    label === 'x/twitter' ||
+    label === 'twitter/x'
+  );
 }
 
 function urlMatchesConfiguredSite(userUrl: URL, siteUrlString: string): boolean {
@@ -199,7 +239,7 @@ export function validateResearchHubUrl(
     return { success: false, error: 'URL is required' };
   }
 
-  const toParse = normalizeUrlInputForParsing(trimmedUrl);
+  const toParse = ensureAbsoluteHttpUrl(trimmedUrl);
 
   let parsed: URL;
   try {
