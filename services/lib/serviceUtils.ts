@@ -18,16 +18,39 @@ export const roundRscAmount = (amount: number): number => {
   return Math.round(amount * 1000) / 1000;
 };
 
+const apiErrorMessageFields = ['error', 'detail', 'message', 'msg', 'non_field_errors'] as const;
+
+function extractFirstMessage(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim()) return value;
+
+  if (Array.isArray(value)) {
+    return (
+      value.find((item): item is string => typeof item === 'string' && Boolean(item.trim())) ?? null
+    );
+  }
+
+  return null;
+}
+
+function extractMessageFromApiErrorBody(errors: unknown): string | null {
+  if (!errors || typeof errors !== 'object' || Array.isArray(errors)) return null;
+
+  const fields = errors as Record<string, unknown>;
+  for (const field of apiErrorMessageFields) {
+    const message = extractFirstMessage(fields[field]);
+    if (message) return message;
+  }
+
+  return null;
+}
+
 export function extractApiErrorMessage(error: unknown, defaultMessage: string): string {
   if (error instanceof ApiError) {
-    const errors = error.errors as Record<string, unknown> | undefined;
-    const fields = ['error', 'detail', 'message', 'msg', 'non_field_errors'];
+    const bodyMessage = extractMessageFromApiErrorBody(error.errors);
+    if (bodyMessage) return bodyMessage;
 
-    for (const field of fields) {
-      const value = errors?.[field];
-      if (typeof value === 'string' && value) return value;
-      if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
-    }
+    const directMessage = extractFirstMessage((error as ApiError & { error?: unknown }).error);
+    if (directMessage) return directMessage;
 
     if (error.message) return error.message;
   }

@@ -162,6 +162,18 @@ const NOTIFICATION_TYPE_MAP = {
     title: 'Funding opportunity declined',
   },
 
+  // RFP owner notifications
+  GRANT_APPLICATION_SUBMITTED: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'New proposal submitted',
+  },
+  PROPOSAL_PEER_REVIEW: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'Peer review on proposal',
+  },
+
   // Content moderation notifications (papers, posts, proposals)
   CONTENT_APPROVED: {
     icon: 'verify2',
@@ -179,6 +191,13 @@ const NOTIFICATION_TYPE_MAP = {
     icon: 'fundYourRsc2',
     useAvatar: false,
     title: 'Earn yield on RSC',
+  },
+
+  // Funding credits reminder
+  FUNDING_CREDITS_REMINDER: {
+    icon: 'fundYourRsc2',
+    useAvatar: false,
+    title: 'You earned funding credits!',
   },
 } satisfies Record<string, NotificationTypeInfo>;
 
@@ -243,6 +262,10 @@ function notificationMessageIncludesAmount(message: string): boolean {
 }
 
 export function getRSCAmountForBadge(notification: Notification, message: string): number | null {
+  if (notification.type === 'FUNDING_CREDITS_REMINDER') {
+    return null;
+  }
+
   const amount = getRSCAmountFromNotification(notification);
   if (!amount || notificationMessageIncludesAmount(message)) {
     return null;
@@ -281,6 +304,10 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   if (notification.type === 'RSC_YIELD_OPT_IN') {
     return '/researchcoin';
+  }
+
+  if (notification.type === 'FUNDING_CREDITS_REMINDER') {
+    return '/fund/proposals';
   }
 
   if (notification.type === 'GRANT_APPROVED' && notification.work) {
@@ -473,6 +500,13 @@ export function formatNotificationMessage(
     case 'GRANT_DECLINED':
       return `Your funding opportunity has been declined.`;
 
+    // RFP owner notifications
+    case 'GRANT_APPLICATION_SUBMITTED':
+      return `${userName} submitted a new proposal to your funding opportunity: "${truncatedTitle}"`;
+
+    case 'PROPOSAL_PEER_REVIEW':
+      return `${userName} peer reviewed a proposal linked to your funding opportunity`;
+
     // Content moderation notifications (papers, posts, proposals)
     case 'CONTENT_APPROVED':
       return `Your ${getWorkTypeLabel(work?.contentType)} "${truncatedTitle}" has been approved.`;
@@ -482,6 +516,15 @@ export function formatNotificationMessage(
 
     case 'RSC_YIELD_OPT_IN':
       return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';
+
+    case 'FUNDING_CREDITS_REMINDER': {
+      const raw = notification.extra?.amount ?? '0';
+      const formattedAmount =
+        showUSD && exchangeRate > 0
+          ? formatUsdValue(raw, exchangeRate).replace(/\s*USD$/, '')
+          : `${formatRSC({ amount: parseFloat(raw) || 0, round: true })} RSC`;
+      return `You have ${formattedAmount} of accrued funding credits. Use them to fund science.`;
+    }
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
