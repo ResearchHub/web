@@ -7,6 +7,26 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import Icon from '@/components/ui/icons/Icon';
 
+export const NOTEBOOK_WORK_TYPES = [
+  {
+    value: 'grant',
+    label: 'Funding Opportunity',
+    description: 'Offer funding for research applications.',
+  },
+  {
+    value: 'preregistration',
+    label: 'Proposal',
+    description: 'Create a research proposal and optionally raise funding.',
+  },
+  {
+    value: 'discussion',
+    label: 'Preprint',
+    description: 'Share research findings or a manuscript.',
+  },
+] as const;
+
+type NotebookWorkType = (typeof NOTEBOOK_WORK_TYPES)[number]['value'];
+
 const SectionHeading = ({ children }: { children: React.ReactNode }) => (
   <h3 className="px-4 pb-1 pt-1 text-xs font-medium uppercase tracking-wider text-gray-400">
     {children}
@@ -41,35 +61,39 @@ export const NotebookPrimaryNavigation = ({
   const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
 
   const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const createActions: Record<NotebookWorkType, { icon: React.ReactNode; onClick: () => void }> = {
+    grant: {
+      icon: <Icon name="fund" size={18} color="#6b7280" />,
+      onClick: onNewFundingOpportunity,
+    },
+    preregistration: {
+      icon: <FundingIcon size={18} color="#6b7280" />,
+      onClick: onNewProposal,
+    },
+    discussion: {
+      icon: <Icon name="submit1" size={18} color="#6b7280" />,
+      onClick: onNewPreprint,
+    },
+  };
 
   return (
     <div className="flex flex-col py-1.5 text-sm">
       {/* Create */}
       <SectionHeading>Create</SectionHeading>
-      <button
-        type="button"
-        onClick={onNewFundingOpportunity}
-        className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
-      >
-        <Icon name="fund" size={18} color="#6b7280" />
-        <span className="font-medium">New funding opportunity</span>
-      </button>
-      <button
-        type="button"
-        onClick={onNewProposal}
-        className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
-      >
-        <FundingIcon size={18} color="#6b7280" />
-        <span className="font-medium">New proposal</span>
-      </button>
-      <button
-        type="button"
-        onClick={onNewPreprint}
-        className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
-      >
-        <Icon name="submit1" size={18} color="#6b7280" />
-        <span className="font-medium">New preprint</span>
-      </button>
+      {NOTEBOOK_WORK_TYPES.map((workType) => {
+        const action = createActions[workType.value];
+        return (
+          <button
+            key={workType.value}
+            type="button"
+            onClick={action.onClick}
+            className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
+          >
+            {action.icon}
+            <span className="font-medium">New {workType.label.toLowerCase()}</span>
+          </button>
+        );
+      })}
 
       <div className="my-1.5 border-t border-gray-200" />
 

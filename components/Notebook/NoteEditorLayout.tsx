@@ -171,7 +171,7 @@ export function NoteEditorLayout() {
         }
       >
         {/* Work type + draft status pinned to the document's top-left corner. */}
-        <div className="mb-5 flex items-center gap-2 lg:-ml-12 lg:-mt-3">
+        <div className="mb-5 flex items-center gap-2 pt-2 lg:!pt-0 pl-4 lg:!pl-0 lg:-ml-12 lg:-mt-3">
           {workTypeLabel && (
             <span className="text-sm font-medium text-gray-700">{workTypeLabel}</span>
           )}
