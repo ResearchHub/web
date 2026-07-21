@@ -27,8 +27,6 @@ export default function HomePage() {
   return (
     <PageLayout rightSidebar={<HomeRightSidebar />}>
       <div className="max-w-[600px] mx-auto">
-        <h1 className="text-xl font-semibold text-gray-900 mb-4">Research Funding Activity</h1>
-
         <div>
           {entries.map((entry) => (
             <ActivityCardFull

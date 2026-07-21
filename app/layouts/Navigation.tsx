@@ -25,7 +25,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'preprint';
 
 interface NavigationItem {
   label: string;
@@ -71,6 +71,10 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   notebook: {
     light: 'labNotebook2',
     solid: 'notebookBold',
+  },
+  preprint: {
+    light: 'preprint',
+    solid: 'preprint',
   },
 };
 
@@ -136,6 +140,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       newFeatureName: ENDOWMENT_NAV_FEATURE,
       description: 'Earn Funding Credits on your RSC deposits',
     },
+    {
+      label: 'Preprints',
+      href: '/preprints',
+      iconKey: 'preprint',
+      isUnimplemented: true,
+      description: 'Browse recently published preprints',
+    },
   ];
 
   const getButtonStyles = (path: string, currentPath: string) => {
@@ -171,6 +182,10 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     if (path === '/endowment') {
       return currentPath.startsWith('/endowment');
+    }
+
+    if (path === '/preprints') {
+      return currentPath.startsWith('/preprints');
     }
 
     // Default case - exact match

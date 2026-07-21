@@ -29,7 +29,7 @@
     "bounties": [],
     "reviews": []
    },
-   "action_date": "2026-07-15T18:00:00.000000Z",
+   "action_date": "2026-07-21T01:02:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 39602,
@@ -79,8 +79,8 @@
     "unified_document_id": 9321838,
     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/192192/2ba646f0-4346-432c-b7c8-4584a7a53b2f/cleanshot-2026-04-25-at-10.png"
    },
-   "created_date": "2026-07-14T20:13:02.521017Z",
-   "action_date": "2026-07-14T20:13:02.349946Z",
+   "created_date": "2026-07-21T00:29:00.200000Z",
+   "action_date": "2026-07-21T00:29:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 991840,
@@ -139,8 +139,8 @@
     "unified_document_id": 9162971,
     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/202146/a9fe702f-b1b0-45d8-8270-db239bb70b3c/brightn_header.jpg"
    },
-   "created_date": "2026-07-14T19:10:26.922801Z",
-   "action_date": "2026-07-14T19:10:26.696626Z",
+   "created_date": "2026-07-20T23:44:00.200000Z",
+   "action_date": "2026-07-20T23:44:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 932947,
@@ -199,8 +199,8 @@
     "unified_document_id": 9162971,
     "image_url": "https://storage.prod.researchhub.com/uploads/posts/users/202410/c5218a88-a44d-41b0-877f-98c8a17536cc/nucelocapsid.png"
    },
-   "created_date": "2026-07-14T16:39:49.037812Z",
-   "action_date": "2026-07-14T16:39:48.848321Z",
+   "created_date": "2026-07-20T22:14:00.200000Z",
+   "action_date": "2026-07-20T22:14:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 11,
@@ -344,9 +344,9 @@
          "first_name": "i",
          "is_verified": true
         },
-        "headline": "İlker GÜNDOĞ",
-        "last_name": "Gündoğ",
-        "first_name": "İlker",
+        "headline": "\u0130lker G\u00dcNDO\u011e",
+        "last_name": "G\u00fcndo\u011f",
+        "first_name": "\u0130lker",
         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
        },
        "is_assessed": false
@@ -524,9 +524,9 @@
       "first_name": "i",
       "is_verified": true
      },
-     "headline": "İlker GÜNDOĞ",
-     "last_name": "Gündoğ",
-     "first_name": "İlker",
+     "headline": "\u0130lker G\u00dcNDO\u011e",
+     "last_name": "G\u00fcndo\u011f",
+     "first_name": "\u0130lker",
      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
     },
     "review": {
@@ -547,18 +547,18 @@
     "comment_type": "REVIEW",
     "document_type": "PREREGISTRATION",
     "parent_comment": null,
-    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"When I read the PHOENIX-Expr proposal, the first thing that caught my attention was its aim to read metabolic and neurovascular gene expression status by profiling extracellular RNA (exRNA) from completely non-invasive samples such as saliva and urine. Obtaining this kind of information without the need for blood draws or biopsies is a really attractive idea, especially considering its applicability in primary care settings. The fact that it's designed as a nine-month, $10,000 pilot study shows that its scope is kept realistic and measurable; aiming for a \\\"proof of concept\\\" level of validation rather than making overly ambitious clinical claims with a budget of this scale is a logical approach. The emphasis on \\\"Rigorous Pilot Design\\\" and \\\"Open Science\\\" in the evaluation notes is positive; the methodological rigor and the open sharing of data are a good stance against reproducibility issues in this field. However, I think the \\\"Limited Novelty\\\" designation is also not unfair — the relationship between saliva and urine exRNA and metabolic diseases, and even neurodegenerative processes, is an area that has been increasingly studied in recent years;  The added value here seems to focus less on discovering a new biomarker and more on transferring existing methods to a community health/primary care setting and testing their practical applicability. This isn't actually a deficiency, but rather stems from the translational nature of the study's aim. What I'm most curious about is how to standardize the logistics of sample collection, storage, and processing in a community primary care setting—because the stability of saliva/urine RNA is a significant variable in non-laboratory conditions. If this protocol is clear, it could significantly contribute to the reliability of the results. Overall, despite its modest budget, I see it as a well-framed, realistic, and literature-aligned pilot study proposal; its real test lies in demonstrating how transferable the collected data is to clinical decision-making processes.\"}]}]}",
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"When I read the PHOENIX-Expr proposal, the first thing that caught my attention was its aim to read metabolic and neurovascular gene expression status by profiling extracellular RNA (exRNA) from completely non-invasive samples such as saliva and urine. Obtaining this kind of information without the need for blood draws or biopsies is a really attractive idea, especially considering its applicability in primary care settings. The fact that it's designed as a nine-month, $10,000 pilot study shows that its scope is kept realistic and measurable; aiming for a \\\"proof of concept\\\" level of validation rather than making overly ambitious clinical claims with a budget of this scale is a logical approach. The emphasis on \\\"Rigorous Pilot Design\\\" and \\\"Open Science\\\" in the evaluation notes is positive; the methodological rigor and the open sharing of data are a good stance against reproducibility issues in this field. However, I think the \\\"Limited Novelty\\\" designation is also not unfair \u2014 the relationship between saliva and urine exRNA and metabolic diseases, and even neurodegenerative processes, is an area that has been increasingly studied in recent years;  The added value here seems to focus less on discovering a new biomarker and more on transferring existing methods to a community health/primary care setting and testing their practical applicability. This isn't actually a deficiency, but rather stems from the translational nature of the study's aim. What I'm most curious about is how to standardize the logistics of sample collection, storage, and processing in a community primary care setting\u2014because the stability of saliva/urine RNA is a significant variable in non-laboratory conditions. If this protocol is clear, it could significantly contribute to the reliability of the results. Overall, despite its modest budget, I see it as a well-framed, realistic, and literature-aligned pilot study proposal; its real test lies in demonstrating how transferable the collected data is to clinical decision-making processes.\"}]}]}",
     "comment_content_type": "TIPTAP"
    },
-   "created_date": "2026-07-14T16:27:30.136670Z",
-   "action_date": "2026-07-14T16:27:29.177788Z",
+   "created_date": "2026-07-20T20:14:00.200000Z",
+   "action_date": "2026-07-20T20:14:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 983927,
-    "first_name": "İlker",
-    "last_name": "Gündoğ",
+    "first_name": "\u0130lker",
+    "last_name": "G\u00fcndo\u011f",
     "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c",
-    "headline": "İlker GÜNDOĞ",
+    "headline": "\u0130lker G\u00dcNDO\u011e",
     "user": {
      "id": 50496,
      "first_name": "i",
@@ -791,9 +791,9 @@
          "first_name": "i",
          "is_verified": true
         },
-        "headline": "İlker GÜNDOĞ",
-        "last_name": "Gündoğ",
-        "first_name": "İlker",
+        "headline": "\u0130lker G\u00dcNDO\u011e",
+        "last_name": "G\u00fcndo\u011f",
+        "first_name": "\u0130lker",
         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
        },
        "is_assessed": false
@@ -896,12 +896,12 @@
         "user": {
          "id": 201835,
          "last_name": "",
-         "first_name": ": Sítrino-Santagracia.",
+         "first_name": ": S\u00edtrino-Santagracia.",
          "is_verified": false
         },
         "headline": null,
         "last_name": "",
-        "first_name": ": Sítrino-Santagracia.",
+        "first_name": ": S\u00edtrino-Santagracia.",
         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJtaxQ2VYWSVkVFSwwUqC9cpfaCPqVqlYJ2HHA7CWYP51RpTBFM=s96-c"
        },
        "is_assessed": false
@@ -1378,7 +1378,7 @@
           "last_name": "Rust",
           "first_name": "Ruslan",
           "university": null,
-          "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer’s disease.",
+          "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer\u2019s disease.",
           "is_verified": true,
           "author_score": 0,
           "country_code": null,
@@ -1721,9 +1721,9 @@
           "first_name": "i",
           "is_verified": true
          },
-         "headline": "İlker GÜNDOĞ",
-         "last_name": "Gündoğ",
-         "first_name": "İlker",
+         "headline": "\u0130lker G\u00dcNDO\u011e",
+         "last_name": "G\u00fcndo\u011f",
+         "first_name": "\u0130lker",
          "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
         },
         "is_assessed": false
@@ -1826,12 +1826,12 @@
          "user": {
           "id": 201835,
           "last_name": "",
-          "first_name": ": Sítrino-Santagracia.",
+          "first_name": ": S\u00edtrino-Santagracia.",
           "is_verified": false
          },
          "headline": null,
          "last_name": "",
-         "first_name": ": Sítrino-Santagracia.",
+         "first_name": ": S\u00edtrino-Santagracia.",
          "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJtaxQ2VYWSVkVFSwwUqC9cpfaCPqVqlYJ2HHA7CWYP51RpTBFM=s96-c"
         },
         "is_assessed": false
@@ -2308,7 +2308,7 @@
            "last_name": "Rust",
            "first_name": "Ruslan",
            "university": null,
-           "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer’s disease.",
+           "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer\u2019s disease.",
            "is_verified": true,
            "author_score": 0,
            "country_code": null,
@@ -2470,8 +2470,8 @@
     "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Hi \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" I appreciate your review on this proposal submission. You made numerous valuable points that I have taken into account, and I just responded to the AI reviewer and you on the Updates tab. \"}]}]}",
     "comment_content_type": "TIPTAP"
    },
-   "created_date": "2026-07-14T15:53:39.310059Z",
-   "action_date": "2026-07-14T15:53:37.959949Z",
+   "created_date": "2026-07-20T17:14:00.200000Z",
+   "action_date": "2026-07-20T17:14:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 8336024,
@@ -2711,9 +2711,9 @@
          "first_name": "i",
          "is_verified": true
         },
-        "headline": "İlker GÜNDOĞ",
-        "last_name": "Gündoğ",
-        "first_name": "İlker",
+        "headline": "\u0130lker G\u00dcNDO\u011e",
+        "last_name": "G\u00fcndo\u011f",
+        "first_name": "\u0130lker",
         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLjUn-z7PPVwzBS9dUk35ojpQERlNHrnE5RPXvWr3mtVj4=s96-c"
        },
        "is_assessed": false
@@ -2816,12 +2816,12 @@
         "user": {
          "id": 201835,
          "last_name": "",
-         "first_name": ": Sítrino-Santagracia.",
+         "first_name": ": S\u00edtrino-Santagracia.",
          "is_verified": false
         },
         "headline": null,
         "last_name": "",
-        "first_name": ": Sítrino-Santagracia.",
+        "first_name": ": S\u00edtrino-Santagracia.",
         "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJtaxQ2VYWSVkVFSwwUqC9cpfaCPqVqlYJ2HHA7CWYP51RpTBFM=s96-c"
        },
        "is_assessed": false
@@ -3298,7 +3298,7 @@
           "last_name": "Rust",
           "first_name": "Ruslan",
           "university": null,
-          "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer’s disease.",
+          "description": "Assistant Professor at USC, specializing in the blood-brain barrier, advanced cell therapies, and genetic engineering for stroke and Alzheimer\u2019s disease.",
           "is_verified": true,
           "author_score": 0,
           "country_code": null,
@@ -3432,11 +3432,11 @@
     "comment_type": "AUTHOR_UPDATE",
     "document_type": "PREREGISTRATION",
     "parent_comment": null,
-    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"My apologies for the belated response due to other commitments academically and professionally. I appreciate \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" (and of course, the AI reviewer, too) for reviewing my proposal. I learned that \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" posted this review before I had a chance to update the proposal, so his review was based on an outdated version of my submission. Following his peer review posting, I have made multiple rounds of proposal revisions, including adding Associate Professor Adrian Smith (Nuffield Department of Population Health, University of Oxford) as a Co-Investigator.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1) Adrian has been supporting my funding applications on global health since mid-2025. We have also co-authored multiple empirical research papers on health data science and policy, and are currently co-designing a health data engineering project mapping global health funding cuts under Trump administration and their impacts on low- and middle-income countries globally.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Adrian has had broad research expertise as a senior academic, including in HIV epidemiology in the Global South. His expertise would allow the provision of advice and feedback at each milestone of this project.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2) I also would like to take this opportunity to clarify that, in the methodological design, the fixed-effects coefficients are calibration targets for the 2013-19 training window. The independent test is the 2020-25 window, which the model never sees during calibration. I will pre-register the failure conditions, borrowing from existing literature to fix the plausibility bounds for each structural parameter before calibration. We will count a calibration as failed if the model can only reproduce the empirical targets by taking parameters beyond those pre-registered bounds, or if it only fits the training window (2013-19) but not the 2020-25 window. Results will clearly and transparently be disclosed in the deliverables.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"3) I accept the recommendation to move the QCA from country-level (N=8) to country-year level, which would increase the case count above 8. I also would like to take this opportunity to highlight that all the system prompts, coding scripts, version identifiers, raw model outputs and any necessary human verification decisions (from both Adrian and myself) will be deposited as a protocol in the public repository. Both Adrian and I always support open science principles. For this project, our practice would facilitate transparency and reproducibility/replicability.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"4) Regarding the comment that my index lacks a stated construction method, I am more than happy to provide the supplementary details for this submission, if requested at this stage, in which case I would share the full, reproducible specification, including query terms, aggregation window and normalisation. \"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"5) In addition, upon considering the peer review comments, I will add a formal integration protocol with decision rules specifying how network outputs inform SD structure, how country-level QCA configurations are read against the annual SD dynamics, etc. \"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"6) The AI reviewer also mentioned that, \\\"the PI compensation of 0.12 FTE over six months is 3,600 USD, which means that the salary rate is 50,000 USD/year, but it is not mentioned.\\\" I appreciate the AI reviewer converting the 0.12 FTE rate to a full-time annual rate. This calculation is correct, and 50,000 USD ≈ 37,000 GBP.  ~37,000 GBP annually aligns with my salary grade 7 under the UK system. This is because, since finishing my PhD, my salary rates were calculated between ~41,000 GBP and ~52,200 GBP in my early-career PI funding applications. As the ~41,000–52,200 GBP range includes pension and National Insurance contributions, the actual take-home salary rate I should receive is similar to the AI reviewer's calculation of 50,000 USD/year (~37,000 GBP/year).\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I have tried to keep my comment above as concise as possible. In case there are other (yet minor) concerns raised by \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" and the AI reviewer that I have yet to respond to in this post, please note that I have seen those comments and would take them into account when developing this research project with Adrian, if funded.\"},{\"type\":\"hardBreak\"},{\"type\":\"hardBreak\"},{\"type\":\"text\",\"text\":\"Thanks again for taking time to review and comment on my proposal.\"}]}]}",
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"My apologies for the belated response due to other commitments academically and professionally. I appreciate \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" (and of course, the AI reviewer, too) for reviewing my proposal. I learned that \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" posted this review before I had a chance to update the proposal, so his review was based on an outdated version of my submission. Following his peer review posting, I have made multiple rounds of proposal revisions, including adding Associate Professor Adrian Smith (Nuffield Department of Population Health, University of Oxford) as a Co-Investigator.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"1) Adrian has been supporting my funding applications on global health since mid-2025. We have also co-authored multiple empirical research papers on health data science and policy, and are currently co-designing a health data engineering project mapping global health funding cuts under Trump administration and their impacts on low- and middle-income countries globally.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Adrian has had broad research expertise as a senior academic, including in HIV epidemiology in the Global South. His expertise would allow the provision of advice and feedback at each milestone of this project.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"2) I also would like to take this opportunity to clarify that, in the methodological design, the fixed-effects coefficients are calibration targets for the 2013-19 training window. The independent test is the 2020-25 window, which the model never sees during calibration. I will pre-register the failure conditions, borrowing from existing literature to fix the plausibility bounds for each structural parameter before calibration. We will count a calibration as failed if the model can only reproduce the empirical targets by taking parameters beyond those pre-registered bounds, or if it only fits the training window (2013-19) but not the 2020-25 window. Results will clearly and transparently be disclosed in the deliverables.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"3) I accept the recommendation to move the QCA from country-level (N=8) to country-year level, which would increase the case count above 8. I also would like to take this opportunity to highlight that all the system prompts, coding scripts, version identifiers, raw model outputs and any necessary human verification decisions (from both Adrian and myself) will be deposited as a protocol in the public repository. Both Adrian and I always support open science principles. For this project, our practice would facilitate transparency and reproducibility/replicability.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"4) Regarding the comment that my index lacks a stated construction method, I am more than happy to provide the supplementary details for this submission, if requested at this stage, in which case I would share the full, reproducible specification, including query terms, aggregation window and normalisation. \"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"5) In addition, upon considering the peer review comments, I will add a formal integration protocol with decision rules specifying how network outputs inform SD structure, how country-level QCA configurations are read against the annual SD dynamics, etc. \"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"6) The AI reviewer also mentioned that, \\\"the PI compensation of 0.12 FTE over six months is 3,600 USD, which means that the salary rate is 50,000 USD/year, but it is not mentioned.\\\" I appreciate the AI reviewer converting the 0.12 FTE rate to a full-time annual rate. This calculation is correct, and 50,000 USD \u2248 37,000 GBP.  ~37,000 GBP annually aligns with my salary grade 7 under the UK system. This is because, since finishing my PhD, my salary rates were calculated between ~41,000 GBP and ~52,200 GBP in my early-career PI funding applications. As the ~41,000\u201352,200 GBP range includes pension and National Insurance contributions, the actual take-home salary rate I should receive is similar to the AI reviewer's calculation of 50,000 USD/year (~37,000 GBP/year).\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I have tried to keep my comment above as concise as possible. In case there are other (yet minor) concerns raised by \"},{\"type\":\"mention\",\"attrs\":{\"id\":\"8587524\",\"label\":\"Hafiz Syed Zaigham Ali Shah\",\"mentionSuggestionChar\":\"@\",\"entityType\":\"user\",\"displayName\":\"Hafiz Syed Zaigham Ali Shah\",\"userId\":\"191875\",\"authorProfileId\":\"8587524\",\"doi\":null}},{\"type\":\"text\",\"text\":\" and the AI reviewer that I have yet to respond to in this post, please note that I have seen those comments and would take them into account when developing this research project with Adrian, if funded.\"},{\"type\":\"hardBreak\"},{\"type\":\"hardBreak\"},{\"type\":\"text\",\"text\":\"Thanks again for taking time to review and comment on my proposal.\"}]}]}",
     "comment_content_type": "TIPTAP"
    },
-   "created_date": "2026-07-14T15:45:00.292439Z",
-   "action_date": "2026-07-14T15:44:59.781184Z",
+   "created_date": "2026-07-20T13:14:00.200000Z",
+   "action_date": "2026-07-20T13:14:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 8336024,
@@ -3854,8 +3854,8 @@
     },
     "comment_content_type": "QUILL_EDITOR"
    },
-   "created_date": "2026-07-14T20:45:02.655850Z",
-   "action_date": "2026-07-14T20:45:01.546609Z",
+   "created_date": "2026-07-20T07:14:00.200000Z",
+   "action_date": "2026-07-20T07:14:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 973869,
@@ -4095,7 +4095,7 @@
           "education": [
            {
             "id": 4169,
-            "name": "Martin-Luther Universität Halle-Wittenberg",
+            "name": "Martin-Luther Universit\u00e4t Halle-Wittenberg",
             "year": {
              "label": "2020",
              "value": "2020"
@@ -4105,7 +4105,7 @@
              "label": "Doctor of Philosophy",
              "value": "PhD"
             },
-            "summary": "Biology PhD '20, Martin-Luther Universität Halle-Wittenberg",
+            "summary": "Biology PhD '20, Martin-Luther Universit\u00e4t Halle-Wittenberg",
             "is_public": true
            }
           ],
@@ -4183,11 +4183,11 @@
     "comment_type": "REVIEW",
     "document_type": "PREREGISTRATION",
     "parent_comment": null,
-    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Credentials:  \"},{\"type\":\"text\",\"text\":\"Final year PhD student working on identifying aging-specific DNA methylation(DNAm) based biomarkers in the population. I have worked thoroughly in DNA methylation and I am currently working in the BHARAT Study (Biomarkers of Healthy Aging, Resilience, Adversity, and Transitions), which is a pioneering pan-India research initiative launched by the Indian Institute of Science (IISc) in Bengaluru to understand the biological processes of aging specifically within the Indian population.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Overall impact score: 3.5/5\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Introduction(3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The introduction is very articulate, but it does not give much significance or emphasis to the project's major goal. It explains the novelty of the study, but here I believe the relevance of the study is lacking, and it has to be extrapolated that biomarkers identified from this study will be used in what manner. Biological significance regarding EWAS studies especially in respect to neurological disorders especially like ADHD needs to be highlighted more.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Hypothesis (3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Two hypotheses proposed in this project align with the overall goal, but, again, they are more focused on the technical avenue, and the biological relevance is a missing puzzle piece. MOFA2 is an excellent unsupervised statistical framework for identifying factors associated with methylation and SNPs, but one might also get similar hits in DMRs and meQTL analyses. I want to understand here what will be used for the final biomarker prediction and why? These points need to be worked on.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Methods(3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I really like the idea of evaluating multi-omics based ADHD biomarkers in Africans, especially the Nigerian population, as I believe that Caucasian data, is overrepresented in multi-omics cohort-based studies, and it is now high time to explore African and Asian cohorts. A cohort of 40 participants will not provide sufficient statistical power to yield meaningful results, especially if the goal is to develop multi-omics-based biomarkers even as a pilot study. One needs a discovery or experimental cohort from which to identify these multi-omics biomarkers, and a validation cohort to validate them. I will not propose thousands of samples, as I do understand the limitations associated with cohort-based studies, but n=200(controls and test samples should be 100 each) will be a good enough number to have some confidence in the identified biomarkers.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"More points could be added to the inclusion and exclusion criteria. Parents with genetic disorders can lead to some abrupt methylation changes in offspring. Authors should elaborate more on which diseases fall under the inclusion/exclusion criteria; it currently sounds ambiguous.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Materials and Procedure (3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The Methylation Screening array (MSA), which has 270K probes for methylation profiling, is a good choice for array-based methylation profiling. However, it is not clearly stated in\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\" the Materials and procedures \"},{\"type\":\"text\",\"text\":\"whether DNA will be isolated from whole blood or PBMCs, which is important. Additionally, one should clarify whether the samples will be stored for future retrospective analysis, such as transcriptome or proteome analysis.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"italic\"}],\"text\":\"\\\"Genome-wide DNA methylation profiling will be performed using the Illumina Methylation Screening Array\\\":\"},{\"type\":\"text\",\"text\":\" I believe this line is incorrect, as I do not think MSA is a genome-wide array; it has 270k probes spanning various CpG sites, which were selected through a decade of research. These basically contain pre-selected markers associated with development, aging, and disease.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Planned analysis(3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The SNP/genotype data handling pipeline looks good, but the authors could perform basic QC in the GenomeStudio Genotype module to simplify QC and preprocessing.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Also, based on my experience,, the sesame R package is a better tool for DNA methylation analysis of MSA data than minfi and ChAMP. Authors can refer to this paper for the standard MSA pipeline, \"},{\"type\":\"text\",\"marks\":[{\"type\":\"italic\"}],\"text\":\"Goldberg DC et al. 2025, Scalable screening of ternary-code DNA methylation dynamics associated with human traits, Cell Genomics.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Pipeline or analysis details for the meQTL analysis are missing from the planned analysis. It would be helpful if authors could elaborate further on it in the proposal.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Additionally, there might be sex specific DNA methylation differences that can be checked in the context of ADHD here. I think it will be good to explore that.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Authors should provide clarification that why they consider MOFA2 for biomarker discovery rather than cis meQTLS? What is the advantage of using MOFA2 over MatrixEQTL for biomarker discovery?\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Pilot Data(2/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Again, the same complaint as in the introduction: it would be better if this section were elaborated further. I am still unclear what the authors are trying to explain here, or maybe the subheading looks like a mismatch. This section needs clarification on whether the data is publicly available or will be restricted.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" \"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Additional points\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Ethics and data management statement looks good.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The budget for the proposed project meets the criteria. However, it would be better if the cost of consumables, e.g., DNA isolation kits and Qubit assays, as well as anything else required, were included.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"More references can be added in the proposal.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"AI disclosure is needed\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\" Overall, the project is a good initiative that could benefit from better planning and a more detailed explanation of the methodology and analysis. All the best to all the authors for this endeavour.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"AI disclosure: No AI is used for writing review, only Grammarly is used for correcting grammatical errors.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"}]}",
+    "comment_content_json": "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Credentials:\u00a0\u00a0\"},{\"type\":\"text\",\"text\":\"Final year PhD student working on identifying aging-specific DNA methylation(DNAm) based biomarkers in the population. I have worked thoroughly in DNA methylation and I am currently working in the BHARAT Study (Biomarkers of Healthy Aging, Resilience, Adversity, and Transitions), which is a pioneering pan-India research initiative launched by the Indian Institute of Science (IISc) in Bengaluru to understand the biological processes of aging specifically within the Indian population.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Overall impact score: 3.5/5\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Introduction(3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The introduction is very articulate, but it does not give much significance or emphasis to the project's major goal.\u00a0It explains the novelty of the study, but here I believe the\u00a0relevance of the study\u00a0is lacking, and\u00a0it has to be\u00a0extrapolated\u00a0that biomarkers identified\u00a0from\u00a0this study will be used in what manner. Biological significance regarding EWAS studies especially in respect to neurological disorders especially like ADHD needs to be highlighted more.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Hypothesis (3/5)\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Two hypotheses proposed in this project align with the overall goal, but, again, they are more focused on the technical avenue, and the biological relevance is\u00a0a\u00a0missing puzzle piece. MOFA2 is an excellent unsupervised statistical framework for identifying factors associated with methylation and SNPs, but one might also get similar hits in DMRs and meQTL analyses. I want to understand here what will be used for the final biomarker prediction and why? These points need to be worked on.\"}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"\u00a0\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Methods(3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"I really like the idea of evaluating multi-omics based ADHD biomarkers in Africans, especially the Nigerian population, as I believe that Caucasian data, is overrepresented in multi-omics cohort-based studies, and it is now high time to explore African and Asian cohorts. A cohort of 40 participants will not provide sufficient statistical power to yield meaningful results, especially if the goal is to develop multi-omics-based biomarkers even as a pilot study. One needs a discovery or experimental cohort from which to identify these multi-omics biomarkers, and a validation cohort to validate them. I will not propose thousands of samples, as I do understand the limitations associated with cohort-based studies, but n=200(controls and test samples should be 100 each) will be a good enough number to have some confidence in the identified biomarkers.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"More points could be added to the inclusion and exclusion criteria. Parents with genetic disorders can lead to some abrupt methylation changes in offspring. Authors should elaborate more on which diseases fall under the inclusion/exclusion criteria; it currently sounds ambiguous.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"\u00a0\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Materials and Procedure (3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The Methylation Screening array (MSA), which has 270K probes for methylation profiling, is a good choice for array-based methylation profiling. However, it is not clearly stated in\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"\u00a0the Materials and procedures\u00a0\"},{\"type\":\"text\",\"text\":\"whether DNA will be isolated from whole blood or PBMCs, which is important. Additionally, one should clarify whether the samples will be stored for future retrospective analysis, such as transcriptome or proteome analysis.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"marks\":[{\"type\":\"italic\"}],\"text\":\"\\\"Genome-wide DNA methylation profiling will be performed using the Illumina Methylation Screening Array\\\":\"},{\"type\":\"text\",\"text\":\"\u00a0I believe this line is incorrect, as I do not think MSA is a genome-wide array; it has 270k probes spanning various CpG sites, which were selected through a decade of research. These basically contain pre-selected markers associated with development, aging, and disease.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"\u00a0\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Planned analysis(3/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The SNP/genotype data handling pipeline looks good, but the authors could perform basic QC in the GenomeStudio Genotype module to simplify QC and preprocessing.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Also, based on my experience,, the sesame R package is a better tool for DNA methylation analysis of MSA data than minfi and ChAMP. Authors can refer to this paper for the standard MSA pipeline,\u00a0\"},{\"type\":\"text\",\"marks\":[{\"type\":\"italic\"}],\"text\":\"Goldberg DC et al. 2025, Scalable screening of ternary-code DNA methylation dynamics associated with human traits, Cell Genomics.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Pipeline or analysis details for the meQTL analysis are missing from the planned analysis. It would be helpful if authors could elaborate further on it in the proposal.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Additionally, there might be sex specific DNA methylation differences that can be checked in the context of ADHD here. I think it will be good to explore that.\"}]},{\"type\":\"paragraph\"}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Authors should provide clarification that why they consider MOFA2 for biomarker discovery rather than cis meQTLS? What is the advantage of using MOFA2 over MatrixEQTL for biomarker discovery?\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"\u00a0\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Pilot Data(2/5)\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Again, the\u00a0same complaint as in the\u00a0introduction: it would be better if this section were elaborated further. I am still unclear what the authors are trying to explain here, or maybe the subheading looks like a mismatch. This section needs clarification on whether the data is publicly available or will be restricted.\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"\u00a0\"},{\"type\":\"text\",\"marks\":[{\"type\":\"bold\"}],\"text\":\"Additional points\"}]},{\"type\":\"bulletList\",\"content\":[{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Ethics and data management statement looks good.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The budget for the proposed project meets the criteria. However, it would be better if the cost of consumables, e.g., DNA isolation kits and Qubit assays, as well as anything else required, were included.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"More references can be added in the proposal.\"}]}]},{\"type\":\"listItem\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"AI disclosure is needed\"}]}]}]},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"\u00a0Overall, the project is a good initiative that could benefit from better planning and a more detailed explanation of the methodology and analysis. All the best to all the authors for this endeavour.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"AI disclosure: No AI is used for writing review, only Grammarly is used for correcting grammatical errors.\"}]},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"},{\"type\":\"paragraph\"}]}",
     "comment_content_type": "TIPTAP"
    },
-   "created_date": "2026-07-14T13:52:41.189967Z",
-   "action_date": "2026-07-14T13:52:40.402287Z",
+   "created_date": "2026-07-20T03:14:00.200000Z",
+   "action_date": "2026-07-20T03:14:00.000000Z",
    "action": "PUBLISH",
    "author": {
     "id": 8113848,
