@@ -82,10 +82,18 @@ export function NoteEditorLayout() {
   const [activeTab, setActiveTab] = useState<NotebookTab>(() =>
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
+  const previousNoteId = useRef(activeNoteId);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
 
   const isNewlyCreatedNote = NEW_NOTE_PARAMS.some((param) => searchParams?.has(param));
+
+  useEffect(() => {
+    if (previousNoteId.current !== activeNoteId) {
+      setActiveTab('document');
+      previousNoteId.current = activeNoteId;
+    }
+  }, [activeNoteId]);
 
   // Surface the "Notebook" notes dropdown in the shared TopBar's left area.
   useEffect(() => {
