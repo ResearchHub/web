@@ -4,6 +4,19 @@ import { transformAuthorProfile } from './authorProfile';
 import { ID } from './root';
 import { Hub } from './hub';
 
+export interface UserBalances {
+  rsc: number;
+  /** Locked RSC; the sum of rscPromotional and rscFundingCredits. */
+  rscLocked: number;
+  /** Subset of rscLocked that earns yield (not withdrawable). */
+  rscPromotional: number;
+  /** Subset of rscLocked that does not earn yield. */
+  rscFundingCredits: number;
+  /** rsc + rscLocked. */
+  totalRsc: number;
+  totalUsdCents: number;
+}
+
 export interface User {
   id: number;
   email: string;
@@ -14,6 +27,9 @@ export interface User {
   authorProfile?: AuthorProfile;
   balance: number;
   lockedBalance: number;
+  promotionalBalance?: number;
+  fundingCredits?: number;
+  balances?: UserBalances;
   // Total RSC balance (available + locked) for funding
   totalRsc?: number;
   hasCompletedOnboarding?: boolean;
@@ -68,6 +84,23 @@ const baseTransformUser = (raw: any): User => {
     raw.author_profile.editor_of = raw.editor_of;
   }
 
+  // Prefer the consolidated `balances` object; fall back to the legacy
+  // top-level fields for responses that don't include it yet.
+  const balances: UserBalances | undefined = raw.balances
+    ? {
+        rsc: raw.balances.rsc ?? 0,
+        rscLocked: raw.balances.rsc_locked ?? 0,
+        rscPromotional: raw.balances.rsc_promotional ?? 0,
+        // Locked = promotional + funding credits, so derive the credits
+        // portion when a response predates the dedicated field.
+        rscFundingCredits:
+          raw.balances.rsc_funding_credits ??
+          Math.max(0, (raw.balances.rsc_locked ?? 0) - (raw.balances.rsc_promotional ?? 0)),
+        totalRsc: raw.balances.total_rsc ?? 0,
+        totalUsdCents: raw.balances.total_usd_cents ?? 0,
+      }
+    : undefined;
+
   return {
     id: raw.id || 0,
     email: raw.email || '',
@@ -76,9 +109,16 @@ const baseTransformUser = (raw: any): User => {
     fullName: (raw.first_name || '') + (raw.last_name ? ' ' + raw.last_name : '') || 'Unknown User',
     isVerified: raw.is_verified || false,
     authorProfile: undefined,
-    balance: raw.balance || 0,
-    lockedBalance: raw.locked_balance || 0,
-    totalRsc: (raw.balance || 0) + (raw.locked_balance || 0),
+    balance: balances?.rsc ?? raw.balance ?? 0,
+    lockedBalance: balances?.rscLocked ?? raw.locked_balance ?? 0,
+    promotionalBalance: balances?.rscPromotional ?? raw.promotional_balance ?? 0,
+    // Locked = promotional + funding credits, so derive the credits portion
+    // from the legacy top-level fields when `balances` is absent.
+    fundingCredits:
+      balances?.rscFundingCredits ??
+      Math.max(0, (raw.locked_balance || 0) - (raw.promotional_balance || 0)),
+    balances,
+    totalRsc: balances?.totalRsc ?? (raw.balance || 0) + (raw.locked_balance || 0),
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,

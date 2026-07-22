@@ -3,18 +3,68 @@ import { cn } from '@/utils/styles';
 import DocumentSkeleton from '@/components/skeletons/DocumentSkeleton';
 
 const TAB_WIDTHS = ['w-16', 'w-24', 'w-28', 'w-32', 'w-24'];
+const DESKTOP_CHARS_PER_LINE = 75;
+const MOBILE_CHARS_PER_LINE = 30;
 
-export function WorkHeaderSkeleton({ tabCount = 4 }: { tabCount?: number }) {
+function titleLineCount(length: number, charsPerLine: number): number {
+  return Math.max(1, Math.ceil(length / charsPerLine));
+}
+
+function TitleSkeletonLines({
+  lineCount,
+  lineHeightClass,
+}: {
+  lineCount: number;
+  lineHeightClass: string;
+}) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: lineCount }, (_, i) => (
+        <div
+          key={i}
+          className={cn(
+            'rounded-md bg-gray-200',
+            lineHeightClass,
+            i === lineCount - 1 && lineCount > 1 ? 'w-2/3' : 'w-full'
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface WorkHeaderSkeletonProps {
+  tabCount?: number;
+  /** When set, title skeleton row count is derived from slug length. */
+  titleSlug?: string;
+}
+
+export function WorkHeaderSkeleton({ tabCount = 4, titleSlug }: WorkHeaderSkeletonProps) {
   const tabs = TAB_WIDTHS.slice(0, tabCount);
+  const slug = titleSlug ? decodeURIComponent(titleSlug) : '';
+  const desktopRows = titleLineCount(slug.length, DESKTOP_CHARS_PER_LINE);
+  const mobileRows = titleLineCount(slug.length, MOBILE_CHARS_PER_LINE);
 
   return (
     <div className="w-full bg-gray-50/80 border-b border-gray-200 animate-pulse">
       <div className="max-w-[1180px] mx-auto px-4 tablet:!px-8 pt-6">
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <div className="space-y-2">
-            <div className="h-7 sm:h-9 w-2/3 rounded-md bg-gray-200" />
-          </div>
+          {slug ? (
+            <>
+              <div className="sm:hidden">
+                <TitleSkeletonLines lineCount={mobileRows} lineHeightClass="h-7" />
+              </div>
+              <div className="hidden sm:block">
+                <TitleSkeletonLines lineCount={desktopRows} lineHeightClass="h-9" />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <div className="h-7 sm:h-9 w-full rounded-md bg-gray-200" />
+              <div className="h-7 sm:h-9 w-2/3 rounded-md bg-gray-200" />
+            </div>
+          )}
 
           {/* Subtitle: authors + date */}
           <div className="mt-2.5 space-y-2">
