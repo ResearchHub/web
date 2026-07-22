@@ -8,7 +8,7 @@ import { useRegisteredReportWorkflow } from '@/contexts/RegisteredReportWorkflow
 
 interface RegisteredReportRouteTrackerProps {
   tracker: RegisteredReportTrackerStep[];
-  reportId: number;
+  reportId: number | null;
   currentStage: RegisteredReportStage;
 }
 
@@ -24,6 +24,8 @@ export function RegisteredReportRouteTracker({
       {tracker.map((step, stepIndex) => {
         const href = buildRegisteredReportTrackerHref(step, reportId);
         const isCurrent = step.stage === currentStage;
+        const handleClick =
+          reportId === null ? undefined : () => cacheTracker({ reportId, tracker });
 
         return (
           <div key={step.stage} className="flex items-center gap-1.5">
@@ -31,7 +33,7 @@ export function RegisteredReportRouteTracker({
             {href && !isCurrent ? (
               <Link
                 href={href}
-                onClick={() => cacheTracker({ reportId, tracker })}
+                onClick={handleClick}
                 className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
               >
                 {step.label}

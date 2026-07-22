@@ -9,7 +9,7 @@ import {
   type JournalSortOption,
 } from '@/components/Journal/JournalV2SortAndFilters';
 
-export function JournalNewPageContent() {
+export function RegisteredReportsFeed() {
   const [journalSort, setJournalSort] = useState<JournalSortOption>('best');
 
   const {
@@ -33,7 +33,7 @@ export function JournalNewPageContent() {
       loadMore={loadMore}
       filters={<JournalV2SortAndFilters sortBy={journalSort} onSortChange={setJournalSort} />}
       ordering={journalSort}
-      activeTab="journal-new"
+      activeTab="journal"
       restoredScrollPosition={restoredScrollPosition}
       page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
@@ -42,7 +42,7 @@ export function JournalNewPageContent() {
       showFundraiseHeaders={false}
       noEntriesElement={
         <div className="py-12 text-center">
-          <p className="text-gray-400 text-sm">No journal entries yet</p>
+          <p className="text-sm text-gray-400">No registered reports yet</p>
         </div>
       }
       renderEntry={({

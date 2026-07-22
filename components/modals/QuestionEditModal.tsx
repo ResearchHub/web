@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/form/Input';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
+import { HubsSelector, Hub } from '@/components/Topic/HubsSelector';
 import { Work } from '@/types/work';
 import { PostService } from '@/services/post.service';
 import { toast } from 'react-hot-toast';

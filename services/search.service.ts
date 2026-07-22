@@ -13,13 +13,22 @@ import {
   mapUserSuggestionToAuthorSuggestion,
 } from '@/types/search';
 import { transformTopic } from '@/types/topic';
-import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 import { stripHtml } from '@/utils/stringUtils';
 
 // Constants for search result snippet extension
 const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
+
+export interface Institution {
+  id: string | number;
+  name: string;
+  location?: string;
+  hIndex?: number;
+  worksCount?: number;
+  imageUrl?: string;
+  imageThumbnailUrl?: string;
+}
 
 export interface InstitutionResponse {
   id: number;

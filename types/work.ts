@@ -66,7 +66,6 @@ export type DocumentVersion = {
   message: string;
   publicationStatus: string;
   isVersionOfRecord: boolean;
-  isResearchHubJournal: boolean;
 };
 
 export interface FormatType {
@@ -128,6 +127,10 @@ export interface Work {
    * Currently we take **only the first** `grants[0]` row’s review.
    */
   aiPeerReview?: ProposalReview | null;
+  /**
+   * The published Registered Report created from this preregistration, when available.
+   */
+  registeredReportId?: number | null;
   enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
   moderationStatus?: ModerationStatus;
@@ -204,7 +207,6 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
   message: raw.message || '',
   publicationStatus: raw.publication_status || '',
   isVersionOfRecord: raw.is_version_of_record || false,
-  isResearchHubJournal: !!raw.publication_status,
 }));
 
 /** Pulls the first sentence out of a review body, regardless of how it's shaped. */
@@ -256,6 +258,20 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
   const apr = proposal.ai_peer_review;
 
   return apr ? transformProposalReview(apr) : null;
+}
+
+function pickPreregistrationRegisteredReportId(raw: any): number | null {
+  const candidates = [
+    raw.registered_report_id,
+    raw.proposal?.registered_report_id,
+    raw.fundraise?.registered_report_id,
+    raw.grants?.[0]?.proposal?.registered_report_id,
+  ];
+  const registeredReportId = candidates.find(
+    (candidate) => typeof candidate === 'number' && Number.isInteger(candidate) && candidate > 0
+  );
+
+  return registeredReportId ?? null;
 }
 
 function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
@@ -398,6 +414,9 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     license: undefined,
     pdfCopyrightAllowsDisplay: true,
     ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
+    ...(isPreregistration
+      ? { registeredReportId: pickPreregistrationRegisteredReportId(raw) }
+      : {}),
     ...(isPreregistration ? { linkedGrant: transformAndPickLinkedGrant(raw) } : {}),
     isPublic: raw.unified_document?.is_public ?? true,
   };

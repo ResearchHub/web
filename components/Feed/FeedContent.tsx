@@ -7,7 +7,6 @@ import { FeedItemSkeleton, FeedSkeletonVariant } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { FeedTab, FundingTab } from '@/hooks/useFeed';
-import { TabType } from '@/components/Journal/JournalTabs';
 import { FeedEntryItem, Highlight } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
@@ -29,7 +28,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode;
   banner?: ReactNode;
-  activeTab?: FeedTab | FundingTab | TabType | string;
+  activeTab?: FeedTab | FundingTab | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;

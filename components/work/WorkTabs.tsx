@@ -66,10 +66,7 @@ export const WorkTabs = ({
     !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
   const hasActiveBounties = activeBounties.length > 0;
-
-  const hasResearchHubJournalVersions = useMemo(() => {
-    return (work.versions || []).some((version) => version.isResearchHubJournal);
-  }, [work.versions]);
+  const hasVersions = (work.versions?.length ?? 0) > 0;
 
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
@@ -77,7 +74,7 @@ export const WorkTabs = ({
     if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
-    if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
+    if (path.includes('/history')) return 'history';
     return 'paper';
   };
 
@@ -89,7 +86,7 @@ export const WorkTabs = ({
       setActiveTab(tabFromPath);
       onTabChange(tabFromPath);
     }
-  }, [pathname, onTabChange, hasResearchHubJournalVersions]);
+  }, [pathname, onTabChange]);
 
   const handleTabChange = (tab: TabType) => {
     if (tab === activeTab) return;
@@ -268,7 +265,7 @@ export const WorkTabs = ({
   ];
 
   const tabs = useMemo(() => {
-    if (hasResearchHubJournalVersions) {
+    if (hasVersions) {
       return [
         ...baseTabs,
         {
@@ -292,7 +289,7 @@ export const WorkTabs = ({
       ];
     }
     return baseTabs;
-  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
+  }, [baseTabs, hasVersions, activeTab, work.versions?.length]);
 
   return (
     <Tabs

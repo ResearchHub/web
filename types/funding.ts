@@ -229,6 +229,7 @@ export interface Fundraise {
   postTitle?: string;
   postSlug?: string;
   postImage?: string | null;
+  registeredReportId?: number;
   reviewMetrics?: ReviewMetrics;
 }
 
@@ -272,6 +273,12 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
     postTitle: raw.post_title || undefined,
     postSlug: raw.post_slug || undefined,
     postImage: raw.post_image || null,
+    registeredReportId:
+      typeof raw.registered_report_id === 'number' &&
+      Number.isInteger(raw.registered_report_id) &&
+      raw.registered_report_id > 0
+        ? raw.registered_report_id
+        : undefined,
     reviewMetrics:
       raw.review_metrics?.avg != null
         ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }

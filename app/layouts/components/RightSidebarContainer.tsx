@@ -2,7 +2,6 @@
 
 import { ReactNode, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
-import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -14,20 +13,10 @@ function getSidebarInstanceKey(pathname: string, rightSidebar: boolean | ReactNo
     return `custom:${pathname}`;
   }
 
-  if (pathname.startsWith('/paper/create')) {
-    return 'rhj-create';
-  }
-
   return 'default';
 }
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
-  const pathname = usePathname();
-
-  if (pathname.startsWith('/paper/create')) {
-    return <RHJRightSidebar showBanner={false} />;
-  }
-
   if (typeof rightSidebar === 'boolean') {
     return <RightSidebar />;
   }

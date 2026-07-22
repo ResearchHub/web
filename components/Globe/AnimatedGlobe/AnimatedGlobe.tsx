@@ -476,7 +476,7 @@ function runArcSlots(slots: ArcSlot[], t: number, cb: ArcCallback) {
 }
 
 /* Real scientists ResearchHub has funded/published, drawn from the Journal
-   editorial board roster (see components/Journal/lib/journalConstants.ts and
+   editorial board roster (see the Journal team data in the application and
    public/people). Their photo lands on a city as funding arrives, captioned
    with their name and affiliation. Photos are roughly square head-and-shoulders
    shots, so clipping to a circle crops them cleanly. */

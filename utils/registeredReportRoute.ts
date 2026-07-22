@@ -7,19 +7,25 @@ import type {
 
 export type NextSearchParams = Record<string, string | string[] | undefined>;
 
+export function isValidRegisteredReportId(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
 export function parseRegisteredReportId(value: string | null | undefined): number | null {
   const reportId = Number(value);
-  return Number.isInteger(reportId) && reportId > 0 ? reportId : null;
+  return isValidRegisteredReportId(reportId) ? reportId : null;
 }
 
 export function buildRegisteredReportTrackerHref(
   step: RegisteredReportTrackerStep,
-  reportId: number
+  reportId: number | null
 ): string | null {
-  if (!step.exists || !step.postId) return null;
+  if (!step.exists || !isValidRegisteredReportId(step.postId)) return null;
 
   const href = buildRegisteredReportStepHref(step.stage, step.postId, step.title);
-  return step.stage === 'registered_report' ? href : `${href}?rr=${reportId}`;
+  return step.stage === 'registered_report' || !isValidRegisteredReportId(reportId)
+    ? href
+    : `${href}?rr=${reportId}`;
 }
 
 export function buildRegisteredReportStepHref(

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { DeclineModal } from '@/components/Moderators/DeclineModal';
 import { FeedItemGrantWithApplicants } from '@/components/Feed/items/FeedItemGrantWithApplicants';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
-import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
 import {
   PendingModerationService,
   PENDING_MODULE_CONFIG,
@@ -72,8 +71,6 @@ function renderFeedItem(module: PendingModule, entry: FeedEntry, footer: ReactNo
   switch (module) {
     case 'funding_opportunities':
       return renderPendingGrantItem(entry, footer);
-    case 'journal_entries':
-      return <FeedItemPaper {...commonProps} />;
     case 'proposals':
     case 'posts':
     default:
