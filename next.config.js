@@ -171,15 +171,6 @@ const nextConfig = {
         fs: false,
         path: false,
       };
-
-      // Handle PDF.js worker
-      config.module.rules.push({
-        test: /pdf\.worker\.(min\.)?js/,
-        type: 'asset/resource',
-        generator: {
-          filename: 'static/[hash][ext][query]',
-        },
-      });
     }
 
     return config;
