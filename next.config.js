@@ -141,11 +141,6 @@ const nextConfig = {
   //   removeConsole: process.env.VERCEL_ENV === 'production',
   // },
   turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-      },
-    },
     resolveAlias: {
       '@': __dirname,
     },
