@@ -109,17 +109,9 @@ function CandidateList({
                   disabled={isCreating}
                   className="gap-1"
                 >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Creating draftâ€¦
-                    </>
-                  ) : (
-                    <>
-                      Create Registered Report
-                      <ArrowRight size={14} />
-                    </>
-                  )}
+                  {isCreating && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Create Registered Report
+                  <ArrowRight size={14} />
                 </Button>
               </div>
             }
