@@ -79,7 +79,7 @@ export function WorkHeaderProposal({
       variant="outlined"
       size="sm"
       onClick={() => setIsMakePublicModalOpen(true)}
-      className="h-7 shrink-0 gap-1.5 border-amber-300 bg-amber-50 px-2.5 text-amber-800 hover:bg-amber-100"
+      className="h-7 shrink-0 gap-1.5 border-gray-300 bg-gray-100 px-2.5 text-gray-700 hover:bg-gray-200"
     >
       <Globe2 className="h-3.5 w-3.5" />
       Make public
