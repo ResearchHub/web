@@ -187,16 +187,108 @@ export const CommentItem = ({
     }
   };
 
-  // Render the comment content based on whether it's being edited
+  const isBountyComment =
+    comment.commentType === 'BOUNTY' ||
+    (Array.isArray(comment.bounties) && comment.bounties.length > 0);
+  const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
+  const openCommentEditor = () => setEditingCommentId(comment.id);
+  const openReplyEditor = () => setReplyingToCommentId(comment.id);
+  const closeReplyEditor = () => setReplyingToCommentId(null);
+  const refreshComments = () => {
+    forceRefresh();
+    onCommentUpdate?.(comment);
+  };
+  const handleBountyAward = (bountyId: number) => {
+    setSelectedBountyId(bountyId);
+    setShowAwardModal(true);
+  };
+
+  const renderReplyEditor = (isBountyReply: boolean) => (
+    <div className="mt-4 border-t pt-4 px-4 pb-4">
+      <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+      <CommentEditor
+        onSubmit={handleReply}
+        onCancel={closeReplyEditor}
+        placeholder="Write your reply..."
+        autoFocus={true}
+        isBountyReply={isBountyReply}
+      />
+    </div>
+  );
+
+  const renderBountyContent = () => {
+    try {
+      const feedEntry = transformBountyCommentToFeedItem(comment, contentType, work);
+
+      return (
+        <div className="space-y-4">
+          <FeedItemBountyComment
+            entry={feedEntry}
+            showSolutions={true}
+            showRelatedWork={false}
+            href={undefined}
+            hideActions={readOnly || comment.isRemoved}
+            showTooltips={showTooltips}
+            isAuthor={isAuthor}
+            showCreatorActions={!readOnly && isAuthor}
+            canAwardBounty={!readOnly && canAwardBounty}
+            showContributeButton={false}
+            onAward={readOnly ? undefined : handleBountyAward}
+            onEdit={readOnly ? undefined : openCommentEditor}
+            onReply={readOnly ? undefined : openReplyEditor}
+            onContributeSuccess={refreshComments}
+            actionLabels={{
+              comment: 'Reply',
+            }}
+            onViewSolution={(event) => {
+              setSelectedSolution({
+                solutionId: event.solutionId,
+                authorName: event.authorName,
+                awardedAmount: event.awardedAmount,
+              });
+            }}
+          />
+
+          {isReplying && !readOnly && renderReplyEditor(true)}
+        </div>
+      );
+    } catch (error) {
+      console.error('Error transforming bounty comment to feed item:', error);
+
+      return (
+        <div className="p-4 border border-red-200 rounded-md bg-red-50 text-red-700">
+          <p>There was an error displaying this bounty. Please refresh the page and try again.</p>
+        </div>
+      );
+    }
+  };
+
+  const renderRegularContent = () => {
+    const feedEntry = transformCommentToFeedItem(comment, contentType, work);
+
+    return (
+      <div className="space-y-4">
+        <FeedItemComment
+          entry={feedEntry}
+          onReply={readOnly ? undefined : openReplyEditor}
+          onEdit={readOnly ? undefined : openCommentEditor}
+          onDelete={readOnly ? undefined : handleDelete}
+          showCreatorActions={!readOnly && isAuthor}
+          showTooltips={showTooltips}
+          showRelatedWork={false}
+          hideActions={readOnly || !includeReplies || comment.isRemoved}
+          actionLabels={{
+            comment: 'Reply',
+          }}
+          workContentType={workContentType}
+        />
+
+        {isReplying && !readOnly && renderReplyEditor(false)}
+      </div>
+    );
+  };
+
   const renderContent = () => {
-    // Check if this is a bounty comment
-    const isBountyComment =
-      comment.commentType === 'BOUNTY' ||
-      (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
-
-    const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
-
-    // If we're editing and the comment is not a legacy comment(QUILL_EDITOR), show the editor
     if (isEditing && !isLegacyComment && !readOnly) {
       return (
         <CommentEditor
@@ -212,118 +304,10 @@ export const CommentItem = ({
     }
 
     if (isBountyComment && comment.bounties) {
-      try {
-        const feedEntry = transformBountyCommentToFeedItem(comment, contentType, work);
-
-        const customHref = undefined; // Setting to undefined to prevent navigation
-
-        return (
-          <div className="space-y-4">
-            <FeedItemBountyComment
-              entry={feedEntry}
-              showSolutions={true}
-              showRelatedWork={false}
-              href={customHref}
-              hideActions={readOnly || comment.isRemoved}
-              showTooltips={showTooltips}
-              isAuthor={isAuthor}
-              showCreatorActions={!readOnly && isAuthor}
-              canAwardBounty={!readOnly && canAwardBounty}
-              showContributeButton={false}
-              onAward={
-                readOnly
-                  ? undefined
-                  : (bountyId) => {
-                      setSelectedBountyId(bountyId);
-                      setShowAwardModal(true);
-                    }
-              }
-              onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
-              onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
-              onContributeSuccess={() => {
-                // After successful contribution, refresh the comments
-                forceRefresh();
-
-                // Also call the parent's onCommentUpdate if provided
-                if (onCommentUpdate) {
-                  onCommentUpdate(comment);
-                }
-              }}
-              actionLabels={{
-                comment: 'Reply',
-              }}
-              onViewSolution={(event) => {
-                setSelectedSolution({
-                  solutionId: event.solutionId,
-                  authorName: event.authorName,
-                  awardedAmount: event.awardedAmount,
-                });
-              }}
-            />
-
-            {/* If we're replying, show the reply editor */}
-            {isReplying && !readOnly && (
-              <div className="mt-4 border-t pt-4 px-4 pb-4">
-                <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-                <CommentEditor
-                  onSubmit={handleReply}
-                  onCancel={() => setReplyingToCommentId(null)}
-                  placeholder="Write your reply..."
-                  autoFocus={true}
-                  isBountyReply={true}
-                />
-              </div>
-            )}
-          </div>
-        );
-      } catch (error) {
-        console.error('Error transforming bounty comment to feed item:', error);
-
-        // Fallback to a simple error message
-        return (
-          <div className="p-4 border border-red-200 rounded-md bg-red-50 text-red-700">
-            <p>There was an error displaying this bounty. Please refresh the page and try again.</p>
-          </div>
-        );
-      }
+      return renderBountyContent();
     }
 
-    // For regular comments, use FeedItemComment
-    // Transform the comment to a feed entry
-    const feedEntry = transformCommentToFeedItem(comment, contentType, work);
-
-    return (
-      <div className="space-y-4">
-        <FeedItemComment
-          entry={feedEntry}
-          onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
-          onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
-          onDelete={readOnly ? undefined : () => handleDelete()}
-          showCreatorActions={!readOnly && isAuthor}
-          showTooltips={showTooltips}
-          showRelatedWork={false}
-          hideActions={readOnly || !includeReplies || comment.isRemoved}
-          actionLabels={{
-            comment: 'Reply',
-          }}
-          workContentType={workContentType}
-        />
-
-        {/* If we're replying, show the reply editor */}
-        {isReplying && !readOnly && (
-          <div className="mt-4 border-t pt-4 px-4 pb-4">
-            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-            <CommentEditor
-              onSubmit={handleReply}
-              onCancel={() => setReplyingToCommentId(null)}
-              placeholder="Write your reply..."
-              autoFocus={true}
-              isBountyReply={false}
-            />
-          </div>
-        )}
-      </div>
-    );
+    return renderRegularContent();
   };
 
   return (

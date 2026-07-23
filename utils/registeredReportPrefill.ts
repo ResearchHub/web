@@ -6,8 +6,12 @@ const isRecord = (value: unknown): value is JsonRecord =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export function normalizeRegisteredReportProposalId(value: unknown): number | null {
-  const normalized =
-    typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
+  let normalized = Number.NaN;
+  if (typeof value === 'number') {
+    normalized = value;
+  } else if (typeof value === 'string') {
+    normalized = Number(value);
+  }
 
   return Number.isSafeInteger(normalized) && normalized > 0 ? normalized : null;
 }

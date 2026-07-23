@@ -32,7 +32,7 @@ export interface RegisteredReportProposalDetails {
 }
 
 export type RegisteredReportWork = Work & {
-  fullJson?: unknown | null;
+  fullJson?: unknown;
   formattedHtml?: string | null;
   fullSrc?: string | null;
   fullMarkdown?: string | null;
@@ -253,7 +253,7 @@ function transformRegisteredReportWork(
         raw.full_markdown ?? raw.formatted_html ?? raw.full_src ?? raw.renderable_text ?? '',
       metrics,
       unified_document: {
-        ...(raw.unified_document ?? {}),
+        ...raw.unified_document,
         id: raw.unified_document?.id ?? raw.unified_document_id,
         document_type: raw.unified_document?.document_type ?? raw.document_type,
         is_public: raw.unified_document?.is_public ?? true,

@@ -13,7 +13,10 @@ interface RegisteredReportSidebarProps {
   reportDoi?: string;
 }
 
-export function RegisteredReportSidebar({ proposal, reportDoi }: RegisteredReportSidebarProps) {
+export function RegisteredReportSidebar({
+  proposal,
+  reportDoi,
+}: Readonly<RegisteredReportSidebarProps>) {
   if (!proposal) {
     return (
       <div className="space-y-12">
@@ -43,7 +46,9 @@ function RestrictedProposalSection() {
   );
 }
 
-function ProposalReviewsSection({ reviews }: { reviews: RegisteredReportProposalReview[] }) {
+function ProposalReviewsSection({
+  reviews,
+}: Readonly<{ reviews: RegisteredReportProposalReview[] }>) {
   return (
     <section>
       <SidebarHeader title="Peer Reviews" className="mb-3" />
@@ -60,7 +65,7 @@ function ProposalReviewsSection({ reviews }: { reviews: RegisteredReportProposal
   );
 }
 
-function ProposalReview({ review }: { review: RegisteredReportProposalReview }) {
+function ProposalReview({ review }: Readonly<{ review: RegisteredReportProposalReview }>) {
   const reviewerName = review.reviewer?.fullName || 'Anonymous reviewer';
 
   return (

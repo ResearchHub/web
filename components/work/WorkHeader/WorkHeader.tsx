@@ -242,12 +242,13 @@ export function WorkHeader({
     />
   );
 
-  const resolvedTabs =
-    tabsOverride !== undefined
-      ? tabsOverride
-      : tabsWrapper
-        ? tabsWrapper(defaultTabs)
-        : defaultTabs;
+  let resolvedTabs: ReactNode = defaultTabs;
+  if (tabsWrapper) {
+    resolvedTabs = tabsWrapper(defaultTabs);
+  }
+  if (tabsOverride !== undefined) {
+    resolvedTabs = tabsOverride;
+  }
 
   return (
     <>

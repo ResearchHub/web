@@ -16,7 +16,7 @@ export function RegisteredReportTabs({
   slug,
   hasSourceProposal,
   reviewCount,
-}: RegisteredReportTabsProps) {
+}: Readonly<RegisteredReportTabsProps>) {
   const pathname = usePathname();
   const reportHref = `/report/${reportId}/${slug}`;
   const activeTab = pathname.endsWith('/reviews') ? 'reviews' : 'report';

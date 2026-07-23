@@ -14,7 +14,7 @@ interface Props {
   }>;
 }
 
-export default async function RegisteredReportPage({ params }: Props) {
+export default async function RegisteredReportPage({ params }: Readonly<Props>) {
   const resolvedParams = await params;
   const payload = await getRegisteredReportWorkOrNotFound(resolvedParams.id);
   const [metadata, content] = await Promise.all([

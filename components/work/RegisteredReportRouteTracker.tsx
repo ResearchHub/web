@@ -16,7 +16,7 @@ export function RegisteredReportRouteTracker({
   tracker,
   reportId,
   currentStage,
-}: RegisteredReportRouteTrackerProps) {
+}: Readonly<RegisteredReportRouteTrackerProps>) {
   const { cacheTracker } = useRegisteredReportWorkflow();
 
   return (

@@ -12,6 +12,69 @@ interface CommentEmptyStateProps {
   readOnly?: boolean;
 }
 
+interface EmptyStateCopy {
+  message: string;
+  description: string;
+}
+
+function getEmptyStateCopy(
+  commentType: CommentType,
+  readOnly: boolean,
+  postType?: Work['postType']
+): EmptyStateCopy {
+  if (commentType === 'REVIEW') {
+    return readOnly
+      ? {
+          message: 'No peer reviews available.',
+          description: 'The source proposal has not received any peer reviews.',
+        }
+      : {
+          message: 'No reviews yet.',
+          description: 'Be the first to review this paper.',
+        };
+  }
+
+  if (commentType === 'BOUNTY') {
+    return {
+      message: 'No bounties yet.',
+      description: 'Bounties help attract experts to solve problems or contribute to research.',
+    };
+  }
+
+  if (commentType === 'AUTHOR_UPDATE') {
+    return {
+      message: 'No updates from the authors',
+      description: 'Authors will be providing regular monthly updates',
+    };
+  }
+
+  return postType === 'QUESTION'
+    ? {
+        message: 'No answers yet. Submit the first one!',
+        description: 'Help the community by providing an answer.',
+      }
+    : {
+        message: 'No comments yet. Start the conversation!',
+        description: 'Your contribution could help open science.',
+      };
+}
+
+function EmptyStateIcon({ commentType }: Pick<CommentEmptyStateProps, 'commentType'>) {
+  if (commentType === 'BOUNTY') {
+    return <Coins className="h-6 w-6 text-gray-400" />;
+  }
+
+  if (commentType === 'REVIEW') {
+    return <Star className="h-6 w-6 text-gray-400" />;
+  }
+
+  if (commentType === 'AUTHOR_UPDATE') {
+    return <Bell className="h-6 w-6 text-gray-400" />;
+  }
+
+  return <MessageSquare className="h-6 w-6 text-gray-400" />;
+}
+
 export const CommentEmptyState = ({
   commentType,
   onCreateBounty,
@@ -20,47 +83,13 @@ export const CommentEmptyState = ({
   readOnly = false,
 }: CommentEmptyStateProps) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-
-  const message =
-    commentType === 'REVIEW'
-      ? readOnly
-        ? 'No peer reviews available.'
-        : 'No reviews yet.'
-      : commentType === 'BOUNTY'
-        ? 'No bounties yet.'
-        : commentType === 'AUTHOR_UPDATE'
-          ? 'No updates from the authors'
-          : work?.postType === 'QUESTION'
-            ? 'No answers yet. Submit the first one!'
-            : 'No comments yet. Start the conversation!';
-
-  const description =
-    commentType === 'REVIEW'
-      ? readOnly
-        ? 'The source proposal has not received any peer reviews.'
-        : 'Be the first to review this paper.'
-      : commentType === 'BOUNTY'
-        ? 'Bounties help attract experts to solve problems or contribute to research.'
-        : commentType === 'AUTHOR_UPDATE'
-          ? 'Authors will be providing regular monthly updates'
-          : work?.postType === 'QUESTION'
-            ? 'Help the community by providing an answer.'
-            : 'Your contribution could help open science.';
-
-  const icon =
-    commentType === 'BOUNTY' ? (
-      <Coins className="h-6 w-6 text-gray-400" />
-    ) : commentType === 'REVIEW' ? (
-      <Star className="h-6 w-6 text-gray-400" />
-    ) : commentType === 'AUTHOR_UPDATE' ? (
-      <Bell className="h-6 w-6 text-gray-400" />
-    ) : (
-      <MessageSquare className="h-6 w-6 text-gray-400" />
-    );
+  const { message, description } = getEmptyStateCopy(commentType, readOnly, work?.postType);
 
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="mb-4 rounded-full bg-gray-100 p-3">{icon}</div>
+      <div className="mb-4 rounded-full bg-gray-100 p-3">
+        <EmptyStateIcon commentType={commentType} />
+      </div>
       <h3 className="mb-2 text-lg font-medium text-gray-900">{message}</h3>
       <p className="text-sm text-gray-500">{description}</p>
 

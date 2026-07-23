@@ -69,6 +69,139 @@ function AccessError({ message }: Readonly<{ message: string }>) {
   );
 }
 
+interface CandidateListProps {
+  entries: FeedEntry[];
+  creatingProposalId: number | null;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  isDraftOpening: boolean;
+  onCreateDraft: (proposalId: number) => Promise<void>;
+  onLoadMore: () => Promise<void>;
+}
+
+function CandidateList({
+  entries,
+  creatingProposalId,
+  hasMore,
+  isLoadingMore,
+  isDraftOpening,
+  onCreateDraft,
+  onLoadMore,
+}: Readonly<CandidateListProps>) {
+  return (
+    <div className="mx-auto max-w-4xl space-y-4">
+      {entries.map((entry) => {
+        const proposalId = getProposalId(entry);
+        const isCreating = creatingProposalId === proposalId;
+
+        return (
+          <FeedItemPost
+            key={entry.id}
+            entry={entry}
+            showActions={false}
+            showHeader={false}
+            footer={
+              <div className="flex items-center justify-end border-t border-gray-100 bg-gray-50 px-3 py-1.5">
+                <Button
+                  variant="dark"
+                  size="sm"
+                  onClick={() => onCreateDraft(proposalId)}
+                  disabled={isCreating}
+                  className="gap-1"
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Creating draftâ€¦
+                    </>
+                  ) : (
+                    <>
+                      Create Registered Report
+                      <ArrowRight size={14} />
+                    </>
+                  )}
+                </Button>
+              </div>
+            }
+          />
+        );
+      })}
+
+      {hasMore && (
+        <div className="flex justify-center pt-2">
+          <Button
+            variant="outlined"
+            onClick={onLoadMore}
+            disabled={isLoadingMore || isDraftOpening}
+          >
+            {isLoadingMore ? 'Loadingâ€¦' : 'Load more'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface CandidatesContentProps extends CandidateListProps {
+  isLoading: boolean;
+  loadError: string | null;
+  onRetry: () => Promise<void>;
+}
+
+function CandidatesContent({
+  isLoading,
+  loadError,
+  onRetry,
+  ...candidateListProps
+}: Readonly<CandidatesContentProps>) {
+  if (isLoading) {
+    return <LoadingCandidates />;
+  }
+
+  if (loadError) {
+    return (
+      <div className="py-12 text-center">
+        <AlertCircle className="mx-auto mb-4 h-10 w-10 text-red-500" />
+        <h2 className="text-lg font-semibold text-gray-900">Unable to load eligible proposals</h2>
+        <p className="mt-2 text-sm text-gray-600">{loadError}</p>
+        <Button className="mt-5" onClick={onRetry}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  if (candidateListProps.entries.length === 0) {
+    return <EmptyCandidates />;
+  }
+
+  return <CandidateList {...candidateListProps} />;
+}
+
+interface JournalTabContentProps extends CandidatesContentProps {
+  activeTab: JournalTab;
+}
+
+function JournalTabContent({
+  activeTab,
+  ...candidateContentProps
+}: Readonly<JournalTabContentProps>) {
+  if (activeTab === 'registered-reports') {
+    return (
+      <div className="py-12 text-center">
+        <h2 className="text-lg font-medium text-gray-900">Registered Reports</h2>
+        <p className="mt-2 text-gray-600">Published Registered Reports will appear here soon.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 pt-6">
+      <CandidatesContent {...candidateContentProps} />
+    </div>
+  );
+}
+
 export function JournalContent() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<JournalTab>('eligible-proposals');
@@ -231,82 +364,19 @@ export function JournalContent() {
         <Tabs tabs={journalTabs} activeTab={activeTab} onTabChange={changeTab} variant="primary" />
       </div>
 
-      {activeTab === 'registered-reports' ? (
-        <div className="py-12 text-center">
-          <h2 className="text-lg font-medium text-gray-900">Registered Reports</h2>
-          <p className="mt-2 text-gray-600">Published Registered Reports will appear here soon.</p>
-        </div>
-      ) : (
-        <div className="flex-1 pt-6">
-          {isLoading ? (
-            <LoadingCandidates />
-          ) : loadError ? (
-            <div className="py-12 text-center">
-              <AlertCircle className="mx-auto mb-4 h-10 w-10 text-red-500" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                Unable to load eligible proposals
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">{loadError}</p>
-              <Button className="mt-5" onClick={refreshCandidates}>
-                Try again
-              </Button>
-            </div>
-          ) : entries.length === 0 ? (
-            <EmptyCandidates />
-          ) : (
-            <div className="mx-auto max-w-4xl space-y-4">
-              {entries.map((entry) => {
-                const proposalId = getProposalId(entry);
-                const isCreating = creatingProposalId === proposalId;
-
-                return (
-                  <FeedItemPost
-                    key={entry.id}
-                    entry={entry}
-                    showActions={false}
-                    showHeader={false}
-                    footer={
-                      <div className="flex items-center justify-end border-t border-gray-100 bg-gray-50 px-3 py-1.5">
-                        <Button
-                          variant="dark"
-                          size="sm"
-                          onClick={() => createDraft(proposalId)}
-                          disabled={isCreating}
-                          className="gap-1"
-                        >
-                          {isCreating ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              Creating draft…
-                            </>
-                          ) : (
-                            <>
-                              Create Registered Report
-                              <ArrowRight size={14} />
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    }
-                  />
-                );
-              })}
-
-              {hasMore && (
-                <div className="flex justify-center pt-2">
-                  <Button
-                    variant="outlined"
-                    onClick={loadMoreCandidates}
-                    disabled={isLoadingMore || draftToOpen !== null}
-                  >
-                    {isLoadingMore ? 'Loading…' : 'Load more'}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <JournalTabContent
+        activeTab={activeTab}
+        entries={entries}
+        creatingProposalId={creatingProposalId}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        isDraftOpening={draftToOpen !== null}
+        onCreateDraft={createDraft}
+        onLoadMore={loadMoreCandidates}
+        isLoading={isLoading}
+        loadError={loadError}
+        onRetry={refreshCandidates}
+      />
     </div>
   );
 }

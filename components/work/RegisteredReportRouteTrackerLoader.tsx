@@ -26,7 +26,7 @@ interface RegisteredReportRouteTrackerLoaderProps {
 export function RegisteredReportRouteTrackerLoader({
   currentStage,
   currentPostId,
-}: RegisteredReportRouteTrackerLoaderProps) {
+}: Readonly<RegisteredReportRouteTrackerLoaderProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getCachedTracker, cacheTracker } = useRegisteredReportWorkflow();

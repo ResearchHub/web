@@ -9,7 +9,44 @@ interface GrantDetailsInlineProps {
   imageUrl?: string;
 }
 
-export function GrantDetailsInline({ content, contentJson, imageUrl }: GrantDetailsInlineProps) {
+function GrantDetailsContent({
+  content,
+  contentJson,
+}: Readonly<Pick<GrantDetailsInlineProps, 'content' | 'contentJson'>>) {
+  if (contentJson) {
+    return (
+      <div className="post-content max-w-[860px]">
+        <PostBlockEditor
+          contentJson={contentJson}
+          className="!border-0 !shadow-none !rounded-none !p-0 !mb-0"
+        />
+      </div>
+    );
+  }
+
+  if (content) {
+    return (
+      <div className="post-content max-w-[860px]">
+        <PostBlockEditor
+          content={content}
+          className="!border-0 !shadow-none !rounded-none !p-0 !mb-0"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-gray-500 py-12 text-center">
+      No details available for this funding opportunity.
+    </p>
+  );
+}
+
+export function GrantDetailsInline({
+  content,
+  contentJson,
+  imageUrl,
+}: Readonly<GrantDetailsInlineProps>) {
   return (
     <div className="py-6">
       {imageUrl && (
@@ -18,25 +55,7 @@ export function GrantDetailsInline({ content, contentJson, imageUrl }: GrantDeta
         </div>
       )}
 
-      {contentJson ? (
-        <div className="post-content max-w-[860px]">
-          <PostBlockEditor
-            contentJson={contentJson}
-            className="!border-0 !shadow-none !rounded-none !p-0 !mb-0"
-          />
-        </div>
-      ) : content ? (
-        <div className="post-content max-w-[860px]">
-          <PostBlockEditor
-            content={content}
-            className="!border-0 !shadow-none !rounded-none !p-0 !mb-0"
-          />
-        </div>
-      ) : (
-        <p className="text-gray-500 py-12 text-center">
-          No details available for this funding opportunity.
-        </p>
-      )}
+      <GrantDetailsContent content={content} contentJson={contentJson} />
     </div>
   );
 }

@@ -26,7 +26,7 @@ export function RegisteredReportGrantHeader({
   isPending,
   organization,
   applicationVisibility,
-}: RegisteredReportGrantHeaderProps) {
+}: Readonly<RegisteredReportGrantHeaderProps>) {
   return (
     <WorkHeaderGrant
       work={work}
@@ -52,7 +52,7 @@ export function RegisteredReportProposalHeader({
   work,
   metadata,
   updatesCount,
-}: RegisteredReportProposalHeaderProps) {
+}: Readonly<RegisteredReportProposalHeaderProps>) {
   return (
     <WorkHeaderProposal
       work={work}

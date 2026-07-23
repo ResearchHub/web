@@ -11,7 +11,7 @@ interface Props {
 export default async function ReportWithoutSlugPage({ params }: Props) {
   const { id } = await params;
 
-  if (!id.match(/^\d+$/)) {
+  if (!/^\d+$/.exec(id)) {
     notFound();
   }
 

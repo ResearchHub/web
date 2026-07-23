@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function RegisteredReportLayout({ params, children }: Props) {
+export default async function RegisteredReportLayout({ params, children }: Readonly<Props>) {
   const { id, slug } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
   const metadata = await getRegisteredReportMetadata(payload.work, payload.proposal);

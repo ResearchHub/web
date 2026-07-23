@@ -51,7 +51,10 @@ export function AboutTheJournal() {
   );
 }
 
-export function RHJRightSidebar({ showBanner = true, showAbout = true }: RHJRightSidebarProps) {
+export function RHJRightSidebar({
+  showBanner = true,
+  showAbout = true,
+}: Readonly<RHJRightSidebarProps>) {
   const displayEditors = editors.filter((editor) => editor.authorId !== null);
 
   return (

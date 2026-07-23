@@ -66,7 +66,7 @@ export class RegisteredReportModerationService {
         `${this.CANDIDATES_PATH}?${params.toString()}`
       );
       if (!Array.isArray(response.results)) {
-        throw new Error('The eligible proposals response was invalid.');
+        throw new TypeError('The eligible proposals response was invalid.');
       }
 
       const entries = response.results.flatMap((entry) => {

@@ -6,24 +6,49 @@ interface RegisteredReportDocumentProps {
   content?: string;
 }
 
-export function RegisteredReportDocument({ work, content }: RegisteredReportDocumentProps) {
+function RegisteredReportContent({
+  work,
+  contentJson,
+  formattedContent,
+}: Readonly<{
+  work: RegisteredReportWork;
+  contentJson?: string;
+  formattedContent: string;
+}>) {
+  if (contentJson) {
+    return <PostBlockEditor contentJson={contentJson} editable={false} />;
+  }
+
+  if (formattedContent) {
+    return <PostBlockEditor content={formattedContent} editable={false} />;
+  }
+
+  if (work.abstract) {
+    return (
+      <article className="prose mb-6 max-w-none rounded-lg border bg-white p-6 shadow-sm">
+        <p>{work.abstract}</p>
+      </article>
+    );
+  }
+
+  return <p className="text-gray-500">No content available</p>;
+}
+
+export function RegisteredReportDocument({
+  work,
+  content,
+}: Readonly<RegisteredReportDocumentProps>) {
   const contentJson = serializeTipTapJson(work.fullJson);
   const formattedContent =
     content || work.formattedHtml || work.fullSrc || work.fullMarkdown || work.previewContent || '';
 
   return (
     <div className="mt-6">
-      {contentJson ? (
-        <PostBlockEditor contentJson={contentJson} editable={false} />
-      ) : formattedContent ? (
-        <PostBlockEditor content={formattedContent} editable={false} />
-      ) : work.abstract ? (
-        <article className="prose mb-6 max-w-none rounded-lg border bg-white p-6 shadow-sm">
-          <p>{work.abstract}</p>
-        </article>
-      ) : (
-        <p className="text-gray-500">No content available</p>
-      )}
+      <RegisteredReportContent
+        work={work}
+        contentJson={contentJson}
+        formattedContent={formattedContent}
+      />
     </div>
   );
 }

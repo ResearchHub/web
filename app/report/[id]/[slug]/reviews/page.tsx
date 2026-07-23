@@ -17,7 +17,7 @@ interface Props {
   }>;
 }
 
-export default async function RegisteredReportReviewsPage({ params }: Props) {
+export default async function RegisteredReportReviewsPage({ params }: Readonly<Props>) {
   const { id } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
   const proposalStep = payload.tracker.find((step) => step.stage === 'proposal');

@@ -16,7 +16,7 @@ interface RegisteredReportProposalReviewsProps {
 export function RegisteredReportProposalReviews({
   proposal,
   metadata,
-}: RegisteredReportProposalReviewsProps) {
+}: Readonly<RegisteredReportProposalReviewsProps>) {
   return (
     <div className="mt-6 space-y-6">
       <Alert variant="info">

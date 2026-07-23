@@ -12,7 +12,9 @@ const RegisteredReportWorkflowContext = createContext<RegisteredReportWorkflowCo
   null
 );
 
-export function RegisteredReportWorkflowProvider({ children }: { children: React.ReactNode }) {
+export function RegisteredReportWorkflowProvider({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const cachedTrackerRef = useRef<RegisteredReportTrackerPayload | null>(null);
 
   const getCachedTracker = useCallback((reportId: number) => {

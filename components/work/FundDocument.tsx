@@ -26,13 +26,42 @@ interface FundDocumentProps {
   authorPosts?: Comment[];
 }
 
+function FundDocumentContent({
+  contentJson,
+  previewContent,
+  content,
+}: Readonly<{
+  contentJson?: string;
+  previewContent?: string;
+  content?: string;
+}>) {
+  if (contentJson) {
+    return <PostBlockEditor contentJson={contentJson} />;
+  }
+
+  if (previewContent) {
+    return <PostBlockEditor content={previewContent} />;
+  }
+
+  if (content) {
+    return (
+      <div
+        className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  }
+
+  return <p className="text-gray-500">No content available</p>;
+}
+
 export const FundDocument = ({
   work,
   metadata,
   content,
   contentJson,
   authorPosts = [],
-}: FundDocumentProps) => {
+}: Readonly<FundDocumentProps>) => {
   const { activeTab } = useWorkTab();
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
@@ -194,18 +223,11 @@ export const FundDocument = ({
                   documentAuthors={work.authors}
                 />
               ))}
-            {contentJson ? (
-              <PostBlockEditor contentJson={contentJson} />
-            ) : work.previewContent ? (
-              <PostBlockEditor content={work.previewContent} />
-            ) : content ? (
-              <div
-                className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            ) : (
-              <p className="text-gray-500">No content available</p>
-            )}
+            <FundDocumentContent
+              contentJson={contentJson}
+              previewContent={work.previewContent}
+              content={content}
+            />
           </div>
         );
       case 'updates':
