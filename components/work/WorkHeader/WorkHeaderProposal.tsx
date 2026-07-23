@@ -46,6 +46,7 @@ export function WorkHeaderProposal({
   const canMakePublic =
     displayedWork.contentType === 'preregistration' &&
     displayedWork.isPublic === false &&
+    displayedWork.linkedGrant?.applicationVisibility !== 'PRIVATE' &&
     (isOwner || !!user?.isModerator || !!user?.authorProfile?.isHubEditor);
 
   const handleContributeSuccess = () => {

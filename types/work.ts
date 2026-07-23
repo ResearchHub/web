@@ -10,6 +10,7 @@ import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
+import type { GrantApplicationVisibility } from './grant';
 
 export interface PeerReview {
   id: number;
@@ -144,6 +145,7 @@ export interface LinkedGrant {
   fundingAmount: number;
   currency: string;
   status: string;
+  applicationVisibility: GrantApplicationVisibility;
   imageUrl: string | null;
   applicantCount: number;
 }
@@ -272,6 +274,7 @@ function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
     fundingAmount: Number(g.amount) || 0,
     currency: g.currency ?? 'USD',
     status: g.status ?? '',
+    applicationVisibility: (g.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
     imageUrl: g.image_url ?? null,
     applicantCount: g.applicant_count ?? 0,
   };
