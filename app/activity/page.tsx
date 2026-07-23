@@ -8,7 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { PillTabs } from '@/components/ui/PillTabs';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeletonList } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
 import { ActivityScope } from '@/services/activity.service';
 import { GrantService } from '@/services/grant.service';
@@ -101,12 +101,13 @@ export default function ActivityPage() {
       <div className="max-w-3xl mx-auto">
         {tabsElement}
 
-        <div className="mt-4">
+        <div className="mt-4 divide-y divide-gray-200">
           {entries.map((entry) => (
             <ActivityCardFull key={entry.id} entry={entry} />
           ))}
 
-          {(isLoading || isLoadingMore) && <ActivityCardSkeletonList />}
+          {(isLoading || isLoadingMore) &&
+            [...Array(6)].map((_, i) => <ActivityCardSkeleton key={i} />)}
 
           {!isLoading && !isLoadingMore && entries.length === 0 && (
             <div className="py-12 text-center">

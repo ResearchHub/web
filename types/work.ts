@@ -130,6 +130,7 @@ export interface Work {
   aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
+  grantSummary?: WorkGrantSummary;
   moderationStatus?: ModerationStatus;
   isPublic?: boolean;
 }
@@ -145,6 +146,15 @@ export interface LinkedGrant {
   status: string;
   imageUrl: string | null;
   applicantCount: number;
+}
+
+/** Slim grant metadata attached to activity feed related_work */
+export interface WorkGrantSummary {
+  status: string;
+  organization: string;
+  amount: { usd: number; rsc: number | null };
+  numApplicants: number;
+  endDate?: string;
 }
 
 export interface FundingRequest extends Work {
