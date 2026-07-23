@@ -59,7 +59,7 @@ function getEmptyStateCopy(
       };
 }
 
-function EmptyStateIcon({ commentType }: Pick<CommentEmptyStateProps, 'commentType'>) {
+function EmptyStateIcon({ commentType }: Readonly<Pick<CommentEmptyStateProps, 'commentType'>>) {
   if (commentType === 'BOUNTY') {
     return <Coins className="h-6 w-6 text-gray-400" />;
   }

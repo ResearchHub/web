@@ -78,7 +78,7 @@ type RawProposalTopic = {
   id?: number;
   name?: string | null;
   slug?: string | null;
-  namespace?: Topic['namespace'];
+  namespace: Topic['namespace'];
 };
 
 type RawProposal = {
