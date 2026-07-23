@@ -43,6 +43,7 @@ interface WorkHeaderProps {
   className?: string;
   eyebrow?: ReactNode;
   subtitle?: ReactNode;
+  privateProposalAction?: ReactNode;
   tabs?: ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
@@ -64,6 +65,7 @@ export function WorkHeader({
   className,
   eyebrow: eyebrowOverride,
   subtitle: subtitleOverride,
+  privateProposalAction,
   tabs: tabsOverride,
   primaryAction,
   hideVoteWidget = false,
@@ -168,7 +170,12 @@ export function WorkHeader({
     subtitleOverride !== undefined ? (
       subtitleOverride
     ) : (
-      <WorkHeaderSubtitle work={work} metadata={metadata} reviewsUrl={reviewsTabUrl} />
+      <WorkHeaderSubtitle
+        work={work}
+        metadata={metadata}
+        reviewsUrl={reviewsTabUrl}
+        privateProposalAction={privateProposalAction}
+      />
     );
 
   const btnClass =

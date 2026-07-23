@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { Lock, Star } from 'lucide-react';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -14,9 +15,15 @@ interface WorkHeaderSubtitleProps {
   work: Work;
   metadata?: WorkMetadata;
   reviewsUrl?: string;
+  privateProposalAction?: ReactNode;
 }
 
-export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSubtitleProps) {
+export function WorkHeaderSubtitle({
+  work,
+  metadata,
+  reviewsUrl,
+  privateProposalAction,
+}: WorkHeaderSubtitleProps) {
   const authors = work.authors.map((a) => ({
     name: a.authorProfile.fullName,
     verified: a.authorProfile.user?.isVerified,
@@ -62,7 +69,7 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
   return (
     <div className="flex flex-col gap-2">
       {isPrivate && (
-        <div className="inline-flex items-center gap-1.5 text-sm text-amber-700">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 text-sm text-amber-700">
           <Lock className="h-3.5 w-3.5 shrink-0" />
           <span>
             Proposal submitted privately to{' '}
@@ -74,6 +81,7 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
               linkedGrantTitle
             )}
           </span>
+          {privateProposalAction}
         </div>
       )}
       {authors.length > 0 && (

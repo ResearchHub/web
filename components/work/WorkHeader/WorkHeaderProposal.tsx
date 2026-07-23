@@ -74,27 +74,30 @@ export function WorkHeaderProposal({
     }
   };
 
-  const primaryAction = canMakePublic ? (
+  const makePublicAction = canMakePublic ? (
     <Button
-      variant="default"
-      size="lg"
+      variant="outlined"
+      size="sm"
       onClick={() => setIsMakePublicModalOpen(true)}
-      className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+      className="h-7 shrink-0 gap-1.5 border-amber-300 bg-amber-50 px-2.5 text-amber-800 hover:bg-amber-100"
     >
-      <Globe2 className="h-4 w-4 sm:h-5 sm:w-5" />
-      Make proposal public
-    </Button>
-  ) : isActive && fundraise ? (
-    <Button
-      variant="default"
-      size="lg"
-      onClick={() => setIsFundModalOpen(true)}
-      className="hidden tablet:flex gap-2"
-    >
-      <Icon name="giveRSC" size={20} color="white" />
-      Fund Proposal
+      <Globe2 className="h-3.5 w-3.5" />
+      Make public
     </Button>
   ) : undefined;
+
+  const primaryAction =
+    isActive && fundraise ? (
+      <Button
+        variant="default"
+        size="lg"
+        onClick={() => setIsFundModalOpen(true)}
+        className="hidden tablet:flex gap-2"
+      >
+        <Icon name="giveRSC" size={20} color="white" />
+        Fund Proposal
+      </Button>
+    ) : undefined;
 
   const isClosed = fundraise ? getEffectiveStatus(fundraise) === 'CLOSED' : false;
 
@@ -113,6 +116,7 @@ export function WorkHeaderProposal({
         updatesCount={updatesCount}
         className={className}
         primaryAction={primaryAction}
+        privateProposalAction={makePublicAction}
         eyebrow={closedEyebrow}
       />
 
