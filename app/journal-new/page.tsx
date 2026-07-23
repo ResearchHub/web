@@ -1,4 +1,4 @@
-import 'cal-sans';
+import 'cal-sans/index.css';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { cn } from '@/utils/styles';
