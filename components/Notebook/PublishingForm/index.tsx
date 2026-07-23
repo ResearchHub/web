@@ -486,7 +486,7 @@ export function PublishingForm({
       formData.articleType === 'grant' ||
       formData.articleType === 'registered_report';
     const coverImage = needsImage ? formData.coverImage : null;
-    if (!coverImage?.file) return coverImage?.url ?? null;
+    if (!coverImage?.file) return null;
 
     try {
       const result = await uploadAsset(coverImage.file, 'post');
