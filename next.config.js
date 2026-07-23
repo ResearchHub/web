@@ -149,7 +149,7 @@ const nextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Preserve existing alias configuration
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -157,16 +157,6 @@ const nextConfig = {
       // Alias React Native modules to prevent build warnings
       '@react-native-async-storage/async-storage': false,
     };
-
-    if (!isServer) {
-      // Add fallbacks for client-side
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        canvas: false,
-        fs: false,
-        path: false,
-      };
-    }
 
     return config;
   },
