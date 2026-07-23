@@ -54,7 +54,7 @@ function transformCandidate(entry: RawApiFeedEntry): FeedEntry {
 
 export class RegisteredReportModerationService {
   private static readonly CANDIDATES_PATH = '/api/moderator_feed/registered_report_candidates/';
-  private static readonly CREATE_DRAFT_PATH = '/api/moderator_feed/create_registered_report_draft/';
+  private static readonly CREATE_DRAFT_PATH = '/api/note/create_registered_report_draft/';
 
   static async fetchCandidates(page = 1, pageSize = 30): Promise<RegisteredReportCandidates> {
     try {
