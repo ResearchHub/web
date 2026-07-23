@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import './globals.css';
-import 'cal-sans';
+import 'cal-sans/index.css';
 import 'katex/dist/katex.min.css';
 
 import '@fontsource/inter/100.css';
