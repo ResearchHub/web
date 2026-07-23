@@ -6,6 +6,7 @@ import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/icons';
+import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
@@ -75,16 +76,11 @@ export function WorkHeaderProposal({
     }
   };
 
-  const makePublicAction = canMakePublic ? (
-    <Button
-      variant="outlined"
-      size="sm"
-      onClick={() => setIsMakePublicModalOpen(true)}
-      className="h-7 shrink-0 gap-1.5 border-gray-300 bg-gray-100 px-2.5 text-gray-700 hover:bg-gray-200"
-    >
-      <Globe2 className="h-3.5 w-3.5" />
+  const makePublicMenuItem = canMakePublic ? (
+    <BaseMenuItem onSelect={() => setIsMakePublicModalOpen(true)}>
+      <Globe2 className="h-4 w-4 mr-2" />
       Make public
-    </Button>
+    </BaseMenuItem>
   ) : undefined;
 
   const primaryAction =
@@ -117,7 +113,7 @@ export function WorkHeaderProposal({
         updatesCount={updatesCount}
         className={className}
         primaryAction={primaryAction}
-        privateProposalAction={makePublicAction}
+        additionalMenuItems={makePublicMenuItem}
         eyebrow={closedEyebrow}
       />
 

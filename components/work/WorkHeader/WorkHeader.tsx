@@ -43,7 +43,7 @@ interface WorkHeaderProps {
   className?: string;
   eyebrow?: ReactNode;
   subtitle?: ReactNode;
-  privateProposalAction?: ReactNode;
+  additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
@@ -65,7 +65,7 @@ export function WorkHeader({
   className,
   eyebrow: eyebrowOverride,
   subtitle: subtitleOverride,
-  privateProposalAction,
+  additionalMenuItems,
   tabs: tabsOverride,
   primaryAction,
   hideVoteWidget = false,
@@ -170,12 +170,7 @@ export function WorkHeader({
     subtitleOverride !== undefined ? (
       subtitleOverride
     ) : (
-      <WorkHeaderSubtitle
-        work={work}
-        metadata={metadata}
-        reviewsUrl={reviewsTabUrl}
-        privateProposalAction={privateProposalAction}
-      />
+      <WorkHeaderSubtitle work={work} metadata={metadata} reviewsUrl={reviewsTabUrl} />
     );
 
   const btnClass =
@@ -224,6 +219,7 @@ export function WorkHeader({
             Share
           </BaseMenuItem>
         </div>
+        {additionalMenuItems}
         {menuItems}
       </BaseMenu>
     </div>
