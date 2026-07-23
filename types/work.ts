@@ -97,6 +97,7 @@ export interface Work {
   title: string;
   slug: string;
   createdDate: string;
+  createdByUserId?: number;
   updatedDate?: string;
   publishedDate?: string;
   authors: Authorship[];
@@ -306,6 +307,10 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     title: stripHtml(raw.title || raw.paper_title || ''),
     slug: raw.slug,
     createdDate: raw.created_date,
+    createdByUserId:
+      typeof raw.created_by === 'number'
+        ? raw.created_by
+        : (raw.created_by?.user?.id ?? raw.created_by?.id),
     updatedDate: raw.updated_date || undefined,
     publishedDate: raw.paper_publish_date,
     authors: processedAuthors,
@@ -364,7 +369,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
       views: raw.metrics?.views || raw.views_count || 0,
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
-    postType: raw.type || raw.unified_document?.document_type,
+    postType: raw.document_type || raw.type || raw.unified_document?.document_type,
     fundraise: raw.fundraise,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
     previewContent: raw.full_markdown || '',
@@ -379,7 +384,9 @@ export const transformWork = createTransformer<any, Work>((raw) => {
 
 export const transformPost = createTransformer<any, Work>((raw) => {
   const isPreregistration =
-    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION';
+    raw.document_type === 'PREREGISTRATION' ||
+    raw.unified_document?.document_type === 'PREREGISTRATION' ||
+    raw.type === 'PREREGISTRATION';
 
   const base = transformWork(raw);
 
@@ -387,7 +394,9 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     ...base,
     contentType: isPreregistration
       ? 'preregistration'
-      : raw.unified_document?.document_type === 'GRANT' || raw.type === 'GRANT'
+      : raw.document_type === 'GRANT' ||
+          raw.unified_document?.document_type === 'GRANT' ||
+          raw.type === 'GRANT'
         ? 'funding_request'
         : 'post',
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
