@@ -1,11 +1,10 @@
-import { PaperService } from '@/services/paper.service';
-import { MetadataService } from '@/services/metadata.service';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
+import { getPaper, getDocumentMetadata } from '../data';
 
 interface Props {
   params: Promise<{
@@ -20,7 +19,7 @@ async function getWork(id: string) {
   }
 
   try {
-    return await PaperService.get(id);
+    return await getPaper(id);
   } catch (error) {
     notFound();
   }
@@ -38,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WorkReviewsPage({ params }: Props) {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await getDocumentMetadata(work.unifiedDocumentId);
 
   if (!work) {
     notFound();
