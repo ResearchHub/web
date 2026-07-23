@@ -77,18 +77,9 @@ function ProposalReview({ review }: Readonly<{ review: RegisteredReportProposalR
           {review.score.toFixed(1)}
         </span>
       </div>
-      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
-        <span
-          className={
-            review.isAssessed
-              ? 'rounded-full bg-green-50 px-2 py-0.5 font-medium text-green-700'
-              : 'rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-600'
-          }
-        >
-          {review.isAssessed ? 'Assessed' : 'Unassessed'}
-        </span>
-        {review.createdDate && <span>{formatReviewDate(review.createdDate)}</span>}
-      </div>
+      {review.createdDate && (
+        <div className="mt-1 text-xs text-gray-500">{formatReviewDate(review.createdDate)}</div>
+      )}
     </div>
   );
 }
