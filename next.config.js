@@ -149,17 +149,6 @@ const nextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
   },
-  webpack: (config) => {
-    // Preserve existing alias configuration
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-      // Alias React Native modules to prevent build warnings
-      '@react-native-async-storage/async-storage': false,
-    };
-
-    return config;
-  },
 };
 
 module.exports = nextConfig;
