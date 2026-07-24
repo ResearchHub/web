@@ -18,7 +18,6 @@ interface ShareConfig {
   description: (docTitle: string) => React.ReactNode;
   socialText: (docTitle: string) => string;
   IconComponent: React.ElementType;
-  showSharing?: boolean;
 }
 
 export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
@@ -69,6 +68,7 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
         if (url.includes('/paper/')) return 'Paper';
         if (url.includes('/proposal/')) return 'Proposal';
         if (url.includes('/grant/')) return 'Funding Opportunity';
+        if (url.includes('/report/')) return 'Registered Report';
         return '';
       };
       const type = getShareType(url);
@@ -233,41 +233,37 @@ export default function ShareModal({
                   )}
                 </div>
 
-                {config.showSharing !== false && (
-                  <>
-                    <div className="mt-6">
-                      <div className="mt-1 flex rounded-md shadow-sm">
-                        <input
-                          type="text"
-                          name="share-url"
-                          id="share-url"
-                          className="focus:ring-blue-500 focus:border-blue-500 flex-1 rounded-none rounded-l-md text-sm border border-gray-300 bg-gray-50 p-2"
-                          value={url}
-                          readOnly
-                        />
-                        <button
-                          onClick={handleCopy}
-                          className="relative -ml-px inline-flex items-center space-x-2 px-4 py-2 rounded-r-md border border-gray-300 bg-rhBlue-500 text-white text-sm font-medium hover:bg-rhBlue-600 focus:outline-none focus:ring-1 focus:ring-rhBlue-500 focus:border-rhBlue-500"
-                        >
-                          <Copy size={16} />
-                          <span>Copy</span>
-                          {copied && (
-                            <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-xs px-2 py-1 rounded">
-                              Copied!
-                            </span>
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                <div className="mt-6">
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      name="share-url"
+                      id="share-url"
+                      className="focus:ring-blue-500 focus:border-blue-500 flex-1 rounded-none rounded-l-md text-sm border border-gray-300 bg-gray-50 p-2"
+                      value={url}
+                      readOnly
+                    />
+                    <button
+                      onClick={handleCopy}
+                      className="relative -ml-px inline-flex items-center space-x-2 px-4 py-2 rounded-r-md border border-gray-300 bg-rhBlue-500 text-white text-sm font-medium hover:bg-rhBlue-600 focus:outline-none focus:ring-1 focus:ring-rhBlue-500 focus:border-rhBlue-500"
+                    >
+                      <Copy size={16} />
+                      <span>Copy</span>
+                      {copied && (
+                        <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-xs px-2 py-1 rounded">
+                          Copied!
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-                    <div className="mt-6">
-                      <p className="text-sm font-medium text-gray-700 text-center">
-                        Or share directly on:
-                      </p>
-                      <SocialShareButtons action={action} docTitle={docTitle} url={url} />
-                    </div>
-                  </>
-                )}
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-gray-700 text-center">
+                    Or share directly on:
+                  </p>
+                  <SocialShareButtons action={action} docTitle={docTitle} url={url} />
+                </div>
               </Dialog.Panel>
             </Transition.Child>
           </div>

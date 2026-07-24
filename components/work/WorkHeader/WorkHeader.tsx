@@ -46,7 +46,6 @@ interface WorkHeaderProps {
   subtitle?: ReactNode;
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
-  tabsWrapper?: (tabs: ReactNode) => ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
   reviewsTabUrl?: string;
@@ -71,7 +70,6 @@ export function WorkHeader({
   subtitle: subtitleOverride,
   additionalMenuItems,
   tabs: tabsOverride,
-  tabsWrapper,
   primaryAction,
   hideVoteWidget = false,
   reviewsTabUrl: reviewsTabUrlOverride,
@@ -245,13 +243,7 @@ export function WorkHeader({
     />
   );
 
-  let resolvedTabs: ReactNode = defaultTabs;
-  if (tabsWrapper) {
-    resolvedTabs = tabsWrapper(defaultTabs);
-  }
-  if (tabsOverride !== undefined) {
-    resolvedTabs = tabsOverride;
-  }
+  const resolvedTabs = tabsOverride ?? defaultTabs;
 
   return (
     <>

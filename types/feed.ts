@@ -484,12 +484,12 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
   return undefined;
 }
 
-const asRecord = (value: unknown): Record<string, any> | undefined =>
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
   value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, any>)
+    ? (value as Record<string, unknown>)
     : undefined;
 
-const firstRecord = (...values: unknown[]): Record<string, any> | undefined => {
+const firstRecord = (...values: unknown[]): Record<string, unknown> | undefined => {
   for (const value of values) {
     if (Array.isArray(value)) {
       const record = value.map((item) => asRecord(item)).find(Boolean);

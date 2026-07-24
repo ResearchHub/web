@@ -40,10 +40,6 @@ export function buildRegisteredReportStepHref(
   return slug ? `/report/${postId}/${slug}` : `/report/${postId}`;
 }
 
-export function getSingleQueryValue(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export function createUrlSearchParams(searchParams?: NextSearchParams): URLSearchParams {
   const params = new URLSearchParams();
 

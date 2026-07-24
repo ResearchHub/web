@@ -1,18 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { PostService } from '@/services/post.service';
-import {
-  createRegisteredReportTrackerPayload,
-  type RegisteredReportStage,
-  type RegisteredReportTrackerPayload,
+import type {
+  RegisteredReportStage,
+  RegisteredReportTrackerPayload,
 } from '@/types/registeredReport';
 import {
   doesRegisteredReportPayloadMatchRoute,
   parseRegisteredReportId,
 } from '@/utils/registeredReportRoute';
-import { useRegisteredReportWorkflow } from '@/contexts/RegisteredReportWorkflowContext';
 import {
   RegisteredReportRouteTracker,
   RegisteredReportRouteTrackerSkeleton,
@@ -27,36 +25,30 @@ export function RegisteredReportRouteTrackerLoader({
   currentStage,
   currentPostId,
 }: Readonly<RegisteredReportRouteTrackerLoaderProps>) {
+  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { getCachedTracker, cacheTracker } = useRegisteredReportWorkflow();
   const reportIdParam = searchParams.get('rr');
   const requestedReportId = parseRegisteredReportId(reportIdParam);
-  const cachedTracker = requestedReportId ? getCachedTracker(requestedReportId) : null;
-  const cachedRouteTracker =
-    cachedTracker &&
-    doesRegisteredReportPayloadMatchRoute({
-      payload: cachedTracker,
-      currentStage,
-      currentPostId,
-    })
-      ? cachedTracker
-      : null;
-  const [clientTracker, setClientTracker] = useState<RegisteredReportTrackerPayload | null>(null);
-  const reportTracker =
-    cachedRouteTracker ?? (clientTracker?.reportId === requestedReportId ? clientTracker : null);
+  const [loadedTracker, setLoadedTracker] = useState<RegisteredReportTrackerPayload | null>(null);
+  const reportTracker = loadedTracker?.reportId === requestedReportId ? loadedTracker : null;
 
   useEffect(() => {
-    if (cachedRouteTracker) return;
+    const clearReportId = () => {
+      setLoadedTracker(null);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('rr');
+      router.replace(params.size > 0 ? `${pathname}?${params.toString()}` : pathname);
+    };
 
     if (!reportIdParam) {
-      setClientTracker(null);
+      setLoadedTracker(null);
       return;
     }
 
     const reportId = parseRegisteredReportId(reportIdParam);
     if (!reportId) {
-      router.replace('/404');
+      clearReportId();
       return;
     }
 
@@ -66,30 +58,22 @@ export function RegisteredReportRouteTrackerLoader({
       .then((payload) => {
         if (!isActive) return;
 
-        const matchesRoute = doesRegisteredReportPayloadMatchRoute({
-          payload,
-          currentStage,
-          currentPostId,
-        });
-        if (!matchesRoute) {
-          router.replace('/404');
+        if (!doesRegisteredReportPayloadMatchRoute({ payload, currentStage, currentPostId })) {
+          clearReportId();
           return;
         }
 
-        const tracker = createRegisteredReportTrackerPayload(payload);
-        setClientTracker(tracker);
-        cacheTracker(tracker);
+        const tracker = { reportId: payload.work.id, tracker: payload.tracker };
+        setLoadedTracker(tracker);
       })
       .catch(() => {
-        if (isActive) {
-          router.replace('/404');
-        }
+        if (isActive) clearReportId();
       });
 
     return () => {
       isActive = false;
     };
-  }, [cacheTracker, cachedRouteTracker, currentPostId, currentStage, reportIdParam, router]);
+  }, [currentPostId, currentStage, pathname, reportIdParam, router, searchParams]);
 
   if (reportTracker) {
     return (

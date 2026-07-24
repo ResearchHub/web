@@ -12,24 +12,29 @@ const addIssue = (ctx: z.RefinementCtx, path: string, message: string) => {
 const parseBudget = (budget?: string): number =>
   Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
 
-const requireCoverImage = (data: any, ctx: z.RefinementCtx, workType: string) => {
+type ValidationFormData = Pick<
+  PublishingFormData,
+  'budget' | 'coverImage' | 'organization' | 'shortDescription'
+>;
+
+const requireCoverImage = (data: ValidationFormData, ctx: z.RefinementCtx, workType: string) => {
   if (!data.coverImage?.file && !data.coverImage?.url) {
     addIssue(ctx, 'coverImage', `Cover image is required for ${workType}`);
   }
 };
 
-const validatePreregistration = (data: any, ctx: z.RefinementCtx) => {
+const validatePreregistration = (data: ValidationFormData, ctx: z.RefinementCtx) => {
   if (parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding goal must be greater than 0');
   }
   requireCoverImage(data, ctx, 'a proposal');
 };
 
-const validateRegisteredReport = (data: any, ctx: z.RefinementCtx) => {
+const validateRegisteredReport = (data: ValidationFormData, ctx: z.RefinementCtx) => {
   requireCoverImage(data, ctx, 'a registered report');
 };
 
-const validateGrant = (data: any, ctx: z.RefinementCtx) => {
+const validateGrant = (data: ValidationFormData, ctx: z.RefinementCtx) => {
   if (!data.shortDescription || data.shortDescription.trim().length === 0) {
     addIssue(ctx, 'shortDescription', 'Short description is required for grants');
   }

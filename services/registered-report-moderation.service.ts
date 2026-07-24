@@ -10,18 +10,6 @@ interface RegisteredReportCandidateResponse {
 
 interface RegisteredReportDraftResponse {
   id: number;
-  proposal_id: number;
-  registered_report_prefill?: {
-    author_ids?: number[];
-    hub_ids?: number[];
-  };
-}
-
-export interface RegisteredReportDraft {
-  noteId: number;
-  proposalId: number;
-  authorIds: number[];
-  hubIds: number[];
 }
 
 export interface RegisteredReportCandidates {
@@ -70,14 +58,7 @@ export class RegisteredReportModerationService {
         throw new TypeError('The eligible proposals response was invalid.');
       }
 
-      const entries = response.results.flatMap((entry) => {
-        try {
-          return [transformCandidate(entry)];
-        } catch (error) {
-          console.error('Failed to transform Registered Report candidate:', error, entry);
-          return [];
-        }
-      });
+      const entries = response.results.map(transformCandidate);
 
       return {
         entries,
@@ -88,7 +69,7 @@ export class RegisteredReportModerationService {
     }
   }
 
-  static async createDraft(proposalId: number): Promise<RegisteredReportDraft> {
+  static async createDraft(proposalId: number): Promise<number> {
     if (!Number.isInteger(proposalId) || proposalId <= 0) {
       throw new RegisteredReportModerationError('A valid proposal is required to create a draft.');
     }
@@ -98,7 +79,11 @@ export class RegisteredReportModerationService {
         proposal_id: proposalId,
       });
 
-      return this.transformDraft(response);
+      if (!Number.isInteger(response.id) || response.id <= 0) {
+        throw new Error('The Registered Report draft response was invalid.');
+      }
+
+      return response.id;
     } catch (error) {
       throw this.createError(error, 'Failed to create the Registered Report draft.');
     }
@@ -121,23 +106,5 @@ export class RegisteredReportModerationService {
       extractApiErrorMessage(error, fallbackMessage),
       status
     );
-  }
-
-  private static transformDraft(response: RegisteredReportDraftResponse): RegisteredReportDraft {
-    if (
-      !Number.isInteger(response.id) ||
-      response.id <= 0 ||
-      !Number.isInteger(response.proposal_id) ||
-      response.proposal_id <= 0
-    ) {
-      throw new Error('The Registered Report draft response was invalid.');
-    }
-
-    return {
-      noteId: response.id,
-      proposalId: response.proposal_id,
-      authorIds: response.registered_report_prefill?.author_ids ?? [],
-      hubIds: response.registered_report_prefill?.hub_ids ?? [],
-    };
   }
 }

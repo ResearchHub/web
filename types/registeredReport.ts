@@ -39,16 +39,14 @@ export type RegisteredReportWork = Work & {
 };
 
 export interface RegisteredReportWorkResponse {
-  id: number;
   work: RegisteredReportWork;
   proposal: RegisteredReportProposalDetails | null;
   tracker: RegisteredReportTrackerStep[];
 }
 
-export interface RegisteredReportTrackerPayload {
+export type RegisteredReportTrackerPayload = Pick<RegisteredReportWorkResponse, 'tracker'> & {
   reportId: number;
-  tracker: RegisteredReportTrackerStep[];
-}
+};
 
 type RawTrackerStep = {
   stage?: string;
@@ -103,8 +101,7 @@ type RawRegisteredReportWork = {
   [key: string]: unknown;
 };
 
-type RawRegisteredReportWorkResponse = {
-  id: number;
+export type RawRegisteredReportWorkResponse = {
   work: RawRegisteredReportWork;
   content_object?: {
     doi?: string | null;
@@ -212,15 +209,6 @@ export function getAverageProposalPeerReviewScore(
   return reviews.reduce((total, review) => total + review.score, 0) / reviews.length;
 }
 
-export function createRegisteredReportTrackerPayload(
-  payload: RegisteredReportWorkResponse
-): RegisteredReportTrackerPayload {
-  return {
-    reportId: payload.work.id,
-    tracker: payload.tracker,
-  };
-}
-
 function transformPeerReview(review: RegisteredReportProposalReview): PeerReview | null {
   if (!review.reviewer) return null;
 
@@ -284,7 +272,6 @@ export function transformRegisteredReportWorkResponse(
   const doi = work.doi ?? raw.content_object?.doi ?? undefined;
 
   return {
-    id: raw.id,
     work: {
       ...work,
       doi,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -22,44 +22,13 @@ interface FundDocumentProps {
   work: Work;
   metadata: WorkMetadata;
   content?: string;
-  contentJson?: string;
   authorPosts?: Comment[];
-}
-
-function FundDocumentContent({
-  contentJson,
-  previewContent,
-  content,
-}: Readonly<{
-  contentJson?: string;
-  previewContent?: string;
-  content?: string;
-}>) {
-  if (contentJson) {
-    return <PostBlockEditor contentJson={contentJson} />;
-  }
-
-  if (previewContent) {
-    return <PostBlockEditor content={previewContent} />;
-  }
-
-  if (content) {
-    return (
-      <div
-        className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
-    );
-  }
-
-  return <p className="text-gray-500">No content available</p>;
 }
 
 export const FundDocument = ({
   work,
   metadata,
   content,
-  contentJson,
   authorPosts = [],
 }: Readonly<FundDocumentProps>) => {
   const { activeTab } = useWorkTab();
@@ -89,12 +58,10 @@ export const FundDocument = ({
   const videoCtaDismissKey = `proposal-video-cta-dismissed:${work.id}`;
 
   // Check if current user is an author of the work
-  const isCurrentUserAuthor = useMemo(() => {
-    if (!user?.id) return false;
-    return work.authors.some(
-      (authorship) => authorship.authorProfile.id === user?.authorProfile?.id
-    );
-  }, [user?.id, work.authors]);
+  const isCurrentUserAuthor = Boolean(
+    user?.id &&
+    work.authors.some((authorship) => authorship.authorProfile.id === user.authorProfile?.id)
+  );
 
   useEffect(() => {
     try {
@@ -160,8 +127,7 @@ export const FundDocument = ({
     setIsProposalVideoModalOpen(true);
   };
 
-  // Render tab content based on activeTab
-  const renderTabContent = useMemo(() => {
+  const renderTabContent = () => {
     switch (activeTab) {
       case 'paper':
         return (
@@ -223,11 +189,16 @@ export const FundDocument = ({
                   documentAuthors={work.authors}
                 />
               ))}
-            <FundDocumentContent
-              contentJson={contentJson}
-              previewContent={work.previewContent}
-              content={content}
-            />
+            {work.previewContent ? (
+              <PostBlockEditor content={work.previewContent} />
+            ) : content ? (
+              <div
+                className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+            ) : (
+              <p className="text-gray-500">No content available</p>
+            )}
           </div>
         );
       case 'updates':
@@ -310,22 +281,11 @@ export const FundDocument = ({
       default:
         return null;
     }
-  }, [
-    activeTab,
-    work,
-    metadata,
-    content,
-    contentJson,
-    storageKey,
-    isCurrentUserAuthor,
-    authorPosts,
-    isVideoCtaDismissed,
-    isAuthorPostsExpEnabled,
-  ]);
+  };
 
   return (
     <div>
-      {renderTabContent}
+      {renderTabContent()}
       <NewlyCreatedProposalModal
         isOpen={isProposalVideoModalOpen}
         onClose={handleCloseProposalVideoModal}

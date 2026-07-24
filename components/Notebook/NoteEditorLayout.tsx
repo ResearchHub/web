@@ -137,9 +137,7 @@ export function NoteEditorLayout() {
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
-  const registeredReportProposalId = normalizeRegisteredReportProposalId(
-    note?.proposalId ?? note?.registeredReportPrefill?.proposalId
-  );
+  const registeredReportProposalId = normalizeRegisteredReportProposalId(note?.proposalId);
 
   const [, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,

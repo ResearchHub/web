@@ -3,7 +3,7 @@
 import { FileText, Star, MessageCircle, History, Bell, MessageCircleQuestion } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePathname } from 'next/navigation';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
@@ -34,7 +34,6 @@ interface WorkTabsProps {
   contentType?: 'paper' | 'post' | 'fund';
   onTabChange: (tab: TabType) => void;
   updatesCount?: number;
-  disableUrlUpdates?: boolean;
 }
 
 export const WorkTabs = ({
@@ -43,7 +42,6 @@ export const WorkTabs = ({
   contentType = 'paper',
   onTabChange,
   updatesCount = 0,
-  disableUrlUpdates = false,
 }: WorkTabsProps) => {
   const pathname = usePathname();
   const { user } = useUser();
@@ -53,13 +51,11 @@ export const WorkTabs = ({
 
   const reviewCount = work.peerReviews?.length ?? 0;
 
-  const activeBounties = useMemo(
-    () => getActiveBounties(metadata.bounties || []),
-    [metadata.bounties]
-  );
-  const { amount: totalBountyAmount } = useMemo(
-    () => getTotalBountyDisplayAmount(activeBounties, exchangeRate, showUSD),
-    [activeBounties, exchangeRate, showUSD]
+  const activeBounties = getActiveBounties(metadata.bounties || []);
+  const { amount: totalBountyAmount } = getTotalBountyDisplayAmount(
+    activeBounties,
+    exchangeRate,
+    showUSD
   );
 
   const canDisplayBountyAmount =
@@ -67,9 +63,9 @@ export const WorkTabs = ({
 
   const hasActiveBounties = activeBounties.length > 0;
 
-  const hasResearchHubJournalVersions = useMemo(() => {
-    return (work.versions || []).some((version) => version.isResearchHubJournal);
-  }, [work.versions]);
+  const hasResearchHubJournalVersions = (work.versions || []).some(
+    (version) => version.isResearchHubJournal
+  );
 
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
@@ -107,7 +103,7 @@ export const WorkTabs = ({
       console.warn('Failed to track document tab click analytics:', error);
     }
 
-    if (!disableUrlUpdates && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       const baseUrl =
         contentType === 'paper'
           ? `/paper/${work.id}/${work.slug}`
@@ -267,9 +263,8 @@ export const WorkTabs = ({
     },
   ];
 
-  const tabs = useMemo(() => {
-    if (hasResearchHubJournalVersions) {
-      return [
+  const tabs = hasResearchHubJournalVersions
+    ? [
         ...baseTabs,
         {
           id: 'history',
@@ -289,10 +284,8 @@ export const WorkTabs = ({
             </div>
           ),
         },
-      ];
-    }
-    return baseTabs;
-  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
+      ]
+    : baseTabs;
 
   return (
     <Tabs

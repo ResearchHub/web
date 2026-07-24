@@ -1,16 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFeed } from '@/hooks/useFeed';
 import { JournalV2FeedEntryItem } from '@/components/Journal/JournalV2FeedEntryItem';
-import {
-  JournalV2SortAndFilters,
-  type JournalSortOption,
-} from '@/components/Journal/JournalV2SortAndFilters';
+
+type JournalSortOption = 'best' | 'newest' | 'peer_review_score';
+
+const JOURNAL_SORT_OPTIONS = [
+  { label: 'Best', value: 'best' },
+  { label: 'Newest', value: 'newest' },
+  { label: 'Review score', value: 'peer_review_score' },
+] as const;
+
+function getJournalSort(value: string | null): JournalSortOption {
+  return value === 'newest' || value === 'peer_review_score' ? value : 'best';
+}
 
 export function JournalNewPageContent() {
-  const [journalSort, setJournalSort] = useState<JournalSortOption>('best');
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const journalSort = getJournalSort(searchParams.get('sort'));
+
+  const changeJournalSort = (sort: JournalSortOption) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (sort === 'best') {
+      params.delete('sort');
+    } else {
+      params.set('sort', sort);
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   const {
     entries,
@@ -20,7 +43,7 @@ export function JournalNewPageContent() {
     restoredScrollPosition,
     page,
     lastClickedEntryId,
-  } = useFeed('all', {
+  } = useFeed('journal-new', {
     endpoint: 'journal_v2_feed',
     ordering: journalSort,
   });
@@ -31,7 +54,22 @@ export function JournalNewPageContent() {
       isLoading={isLoading}
       hasMore={hasMore}
       loadMore={loadMore}
-      filters={<JournalV2SortAndFilters sortBy={journalSort} onSortChange={setJournalSort} />}
+      filters={
+        <div className="mb-2 mt-2 flex items-center justify-end sm:mt-4">
+          <select
+            aria-label="Sort journal entries"
+            value={journalSort}
+            onChange={(event) => changeJournalSort(getJournalSort(event.target.value))}
+            className="cursor-pointer bg-transparent pr-1 text-xs font-medium text-gray-700 outline-none transition-colors hover:text-gray-900 sm:text-sm"
+          >
+            {JOURNAL_SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      }
       ordering={journalSort}
       activeTab="journal-new"
       restoredScrollPosition={restoredScrollPosition}

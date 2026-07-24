@@ -1,8 +1,9 @@
 import { ApiClient } from './client';
 import { Work, transformPost } from '@/types/work';
 import {
-  RegisteredReportWorkResponse,
   transformRegisteredReportWorkResponse,
+  type RawRegisteredReportWorkResponse,
+  type RegisteredReportWorkResponse,
 } from '@/types/registeredReport';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
 
@@ -58,7 +59,9 @@ export class PostService {
   }
 
   static async getRegisteredReportWork(id: string | number): Promise<RegisteredReportWorkResponse> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/registered_report_work/`);
+    const response = await ApiClient.get<RawRegisteredReportWorkResponse>(
+      `${this.BASE_PATH}/${id}/registered_report_work/`
+    );
     return transformRegisteredReportWorkResponse(response);
   }
 

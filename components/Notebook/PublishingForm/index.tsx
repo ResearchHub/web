@@ -1,4 +1,9 @@
-import { useForm, FormProvider } from 'react-hook-form';
+import {
+  FormProvider,
+  useForm,
+  type UseFormGetValues,
+  type UseFormSetValue,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
@@ -200,25 +205,24 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
 };
 
 const populateFromDraftNote = (
-  note: any,
-  getValues: (name?: any) => any,
-  setValue: (name: any, value: any) => void
+  note: NoteWithContent,
+  getValues: UseFormGetValues<PublishingFormData>,
+  setValue: UseFormSetValue<PublishingFormData>
 ) => {
   const prefill = note.registeredReportPrefill;
-  const image = prefill?.image || prefill?.previewImg || note.image;
-  const topics = prefill?.topics ?? note.topics;
+  const topics = note.topics ?? [];
   const topicIds = prefill?.topicIds ?? [];
-  const authors = prefill?.authors ?? note.authors;
+  const authors = note.authors ?? [];
   const authorIds = prefill?.authorIds ?? [];
 
-  if (image && !getValues('coverImage')) {
-    setValue('coverImage', { file: null, url: image });
+  if (note.image && !getValues('coverImage')) {
+    setValue('coverImage', { file: null, url: note.image });
   }
 
-  if (topics?.length > 0 && getValues('topics').length === 0) {
+  if (topics.length > 0 && getValues('topics').length === 0) {
     setValue(
       'topics',
-      topics.map((topic: any) => ({ value: topic.id.toString(), label: topic.name }))
+      topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
     );
   } else if (topicIds.length > 0 && getValues('topics').length === 0) {
     setValue(
@@ -227,10 +231,10 @@ const populateFromDraftNote = (
     );
   }
 
-  if (authors?.length > 0 && getValues('authors').length === 0) {
+  if (authors.length > 0 && getValues('authors').length === 0) {
     setValue(
       'authors',
-      authors.map((author: any) => ({
+      authors.map((author) => ({
         value: author.authorId.toString(),
         label: author.name,
       }))
@@ -316,10 +320,6 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
 
 const getPublishingErrorMessage = (error: unknown, articleType: string): string => {
   if (error instanceof ApiError) {
-    if (articleType === 'registered_report' && error.status === 502) {
-      return 'DOI registration failed. Please retry publishing.';
-    }
-
     if (articleType === 'registered_report' && (error.status === 401 || error.status === 403)) {
       return 'Only moderators can publish Registered Reports.';
     }
@@ -573,9 +573,8 @@ export function PublishingForm({
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
       const proposalId =
-        normalizeRegisteredReportProposalId(
-          note?.proposalId ?? note?.registeredReportPrefill?.proposalId
-        ) ?? getRegisteredReportProposalIdFromDocument(json);
+        normalizeRegisteredReportProposalId(note?.proposalId) ??
+        getRegisteredReportProposalIdFromDocument(json);
 
       if (formData.articleType === 'registered_report' && !proposalId) {
         toast.error('This Registered Report draft is missing its proposal link.');
@@ -612,8 +611,8 @@ export function PublishingForm({
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
           previewImg:
-            formData.articleType === 'registered_report'
-              ? (note?.registeredReportPrefill?.previewImg ?? null)
+            formData.articleType === 'registered_report' && !formData.coverImage?.file
+              ? (formData.coverImage?.url ?? note?.image ?? null)
               : undefined,
           editorType: formData.articleType === 'registered_report' ? 'CK_EDITOR' : undefined,
           organization: formData.organization,

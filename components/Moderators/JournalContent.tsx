@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
@@ -10,9 +10,8 @@ import { NoteService } from '@/services/note.service';
 import {
   RegisteredReportModerationError,
   RegisteredReportModerationService,
-  type RegisteredReportDraft,
 } from '@/services/registered-report-moderation.service';
-import type { FeedEntry, FeedPostContent } from '@/types/feed';
+import type { FeedEntry } from '@/types/feed';
 import { useRouter } from 'next/navigation';
 
 type JournalTab = 'eligible-proposals' | 'registered-reports';
@@ -22,8 +21,19 @@ const journalTabs = [
   { id: 'registered-reports', label: 'Registered Reports' },
 ];
 
-function getProposalId(entry: FeedEntry): number {
-  return (entry.content as FeedPostContent).id;
+function getProposalId(entry: FeedEntry): number | null {
+  return entry.content.contentType === 'PREREGISTRATION' ? entry.content.id : null;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function isModeratorAccessError(error: unknown): error is RegisteredReportModerationError {
+  return (
+    error instanceof RegisteredReportModerationError &&
+    (error.status === 401 || error.status === 403)
+  );
 }
 
 function LoadingCandidates() {
@@ -74,7 +84,6 @@ interface CandidateListProps {
   creatingProposalId: number | null;
   hasMore: boolean;
   isLoadingMore: boolean;
-  isDraftOpening: boolean;
   onCreateDraft: (proposalId: number) => Promise<void>;
   onLoadMore: () => Promise<void>;
 }
@@ -84,14 +93,17 @@ function CandidateList({
   creatingProposalId,
   hasMore,
   isLoadingMore,
-  isDraftOpening,
   onCreateDraft,
   onLoadMore,
 }: Readonly<CandidateListProps>) {
+  const isDraftOperationInProgress = creatingProposalId !== null;
+
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       {entries.map((entry) => {
         const proposalId = getProposalId(entry);
+        if (!proposalId) return null;
+
         const isCreating = creatingProposalId === proposalId;
 
         return (
@@ -106,7 +118,7 @@ function CandidateList({
                   variant="dark"
                   size="sm"
                   onClick={() => onCreateDraft(proposalId)}
-                  disabled={isCreating}
+                  disabled={isDraftOperationInProgress}
                   className="gap-1"
                 >
                   {isCreating && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
@@ -124,9 +136,9 @@ function CandidateList({
           <Button
             variant="outlined"
             onClick={onLoadMore}
-            disabled={isLoadingMore || isDraftOpening}
+            disabled={isLoadingMore || isDraftOperationInProgress}
           >
-            {isLoadingMore ? 'Loadingâ€¦' : 'Load more'}
+            {isLoadingMore ? 'Loading...' : 'Load more'}
           </Button>
         </div>
       )}
@@ -202,13 +214,15 @@ export function JournalContent() {
   const [nextPage, setNextPage] = useState(2);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [creatingProposalId, setCreatingProposalId] = useState<number | null>(null);
-  const [draftToOpen, setDraftToOpen] = useState<RegisteredReportDraft | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [accessError, setAccessError] = useState<string | null>(null);
+  const candidateRequestIdRef = useRef(0);
+  const isCreatingDraftRef = useRef(false);
 
   const loadCandidates = useCallback(async (page: number, replaceEntries: boolean) => {
+    const requestId = ++candidateRequestIdRef.current;
+
     if (replaceEntries) {
       setIsLoading(true);
     } else {
@@ -218,29 +232,31 @@ export function JournalContent() {
 
     try {
       const response = await RegisteredReportModerationService.fetchCandidates(page);
+      if (requestId !== candidateRequestIdRef.current) return;
+
       setEntries((currentEntries) =>
         replaceEntries ? response.entries : [...currentEntries, ...response.entries]
       );
       setHasMore(response.hasMore);
       setNextPage(page + 1);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to load eligible proposals. Please try again.';
+      if (requestId !== candidateRequestIdRef.current) return;
 
-      if (
-        error instanceof RegisteredReportModerationError &&
-        (error.status === 401 || error.status === 403)
-      ) {
+      const message = getErrorMessage(
+        error,
+        'Failed to load eligible proposals. Please try again.'
+      );
+
+      if (isModeratorAccessError(error)) {
         setAccessError(message);
       } else {
         setLoadError(message);
       }
     } finally {
+      if (requestId !== candidateRequestIdRef.current) return;
+
       setIsLoading(false);
       setIsLoadingMore(false);
-      setIsRefreshing(false);
     }
   }, []);
 
@@ -248,65 +264,36 @@ export function JournalContent() {
     loadCandidates(1, true);
   }, [loadCandidates]);
 
-  useEffect(() => {
-    if (!draftToOpen) return;
-
-    let isCurrent = true;
-
-    const openDraft = async () => {
-      try {
-        const note = await NoteService.getNote(draftToOpen.noteId.toString());
-        if (!note.organization?.slug) {
-          throw new Error('The draft was created, but its notebook location was unavailable.');
-        }
-        if (isCurrent) {
-          router.replace(`/notebook/${note.organization.slug}/${note.id}`);
-        }
-      } catch (error) {
-        if (!isCurrent) return;
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : 'The draft was created, but it could not be opened.'
-        );
-        setDraftToOpen(null);
-      }
-    };
-
-    openDraft();
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [draftToOpen, router]);
-
-  const refreshCandidates = async () => {
-    setIsRefreshing(true);
-    await loadCandidates(1, true);
-  };
+  const refreshCandidates = () => loadCandidates(1, true);
 
   const loadMoreCandidates = async () => {
-    if (!hasMore || isLoadingMore) return;
+    if (!hasMore || isLoading || isLoadingMore || creatingProposalId !== null) {
+      return;
+    }
+
     await loadCandidates(nextPage, false);
   };
 
   const createDraft = async (proposalId: number) => {
+    if (isCreatingDraftRef.current) return;
+
+    isCreatingDraftRef.current = true;
     setCreatingProposalId(proposalId);
 
     try {
-      const draft = await RegisteredReportModerationService.createDraft(proposalId);
+      const noteId = await RegisteredReportModerationService.createDraft(proposalId);
       setEntries((currentEntries) =>
         currentEntries.filter((entry) => getProposalId(entry) !== proposalId)
       );
-      setDraftToOpen(draft);
+      const note = await NoteService.getNote(noteId.toString());
+      if (!note.organization?.slug) {
+        throw new Error('The draft was created, but its notebook location was unavailable.');
+      }
+      router.replace(`/notebook/${note.organization.slug}/${note.id}`);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to create the Registered Report draft.';
+      const message = getErrorMessage(error, 'Failed to create the Registered Report draft.');
 
-      if (
-        error instanceof RegisteredReportModerationError &&
-        (error.status === 401 || error.status === 403)
-      ) {
+      if (isModeratorAccessError(error)) {
         setAccessError(message);
       } else {
         toast.error(message);
@@ -315,13 +302,16 @@ export function JournalContent() {
       if (error instanceof RegisteredReportModerationError && error.status === 400) {
         await refreshCandidates();
       }
-    } finally {
+
+      isCreatingDraftRef.current = false;
       setCreatingProposalId(null);
     }
   };
 
   const changeTab = (tabId: string) => {
-    setActiveTab(tabId as JournalTab);
+    if (tabId === 'eligible-proposals' || tabId === 'registered-reports') {
+      setActiveTab(tabId);
+    }
   };
 
   if (accessError) {
@@ -344,10 +334,10 @@ export function JournalContent() {
               variant="outlined"
               size="sm"
               onClick={refreshCandidates}
-              disabled={isRefreshing || isLoading}
+              disabled={isLoading || isLoadingMore || creatingProposalId !== null}
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span className="hidden tablet:!block">Refresh</span>
             </Button>
           )}
@@ -362,7 +352,6 @@ export function JournalContent() {
         creatingProposalId={creatingProposalId}
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
-        isDraftOpening={draftToOpen !== null}
         onCreateDraft={createDraft}
         onLoadMore={loadMoreCandidates}
         isLoading={isLoading}

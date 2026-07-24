@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useCallback } from 'react';
+import { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronDown, Coins, FileInput, Landmark, Star } from 'lucide-react';
@@ -58,28 +58,22 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
     },
   });
 
-  const getImpressions = useCallback(() => {
-    if (!unifiedDocumentId) return undefined;
-    const visibleItems = getVisibleItems(unifiedDocumentId);
-    return visibleItems.length > 0 ? visibleItems : undefined;
-  }, [unifiedDocumentId, getVisibleItems]);
+  const visibleItems = unifiedDocumentId ? getVisibleItems(unifiedDocumentId) : [];
 
   const { handleFeedItemClick } = useFeedItemAnalyticsTracking({
     entry,
     feedPosition: index + 1,
     feedOrdering,
-    impression: getImpressions(),
+    impression: visibleItems.length > 0 ? visibleItems : undefined,
   });
 
   if (!viewModel) {
     return null;
   }
 
-  const entryIdKey = `JOURNAL:${entry.id}`;
-
   const handleCardClick = () => {
     handleFeedItemClick();
-    updateLastClickedEntryId(entryIdKey);
+    updateLastClickedEntryId(`JOURNAL:${entry.id}`);
   };
 
   const reviewSummary = viewModel.reviewSummary;

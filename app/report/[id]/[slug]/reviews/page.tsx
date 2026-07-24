@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { MetadataService } from '@/services/metadata.service';
 import { PostService } from '@/services/post.service';
+import { ApiError } from '@/services/types';
 import { RegisteredReportProposalReviews } from '@/components/work/RegisteredReportProposalReviews';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
@@ -17,6 +18,18 @@ interface Props {
   }>;
 }
 
+async function getSourceProposalOrNotFound(postId: number) {
+  try {
+    return await PostService.get(postId.toString());
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+
+    throw error;
+  }
+}
+
 export default async function RegisteredReportReviewsPage({ params }: Readonly<Props>) {
   const { id } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
@@ -28,7 +41,7 @@ export default async function RegisteredReportReviewsPage({ params }: Readonly<P
 
   const [reportMetadata, proposal] = await Promise.all([
     getRegisteredReportMetadata(payload.work, payload.proposal),
-    PostService.get(proposalStep.postId.toString()).catch(() => notFound()),
+    getSourceProposalOrNotFound(proposalStep.postId),
   ]);
   const proposalMetadata = proposal.unifiedDocumentId
     ? await MetadataService.get(proposal.unifiedDocumentId.toString()).catch(() => null)

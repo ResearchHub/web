@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import type { RegisteredReportStage, RegisteredReportTrackerStep } from '@/types/registeredReport';
 import { buildRegisteredReportTrackerHref } from '@/utils/registeredReportRoute';
-import { useRegisteredReportWorkflow } from '@/contexts/RegisteredReportWorkflowContext';
 
 interface RegisteredReportRouteTrackerProps {
   tracker: RegisteredReportTrackerStep[];
@@ -17,8 +16,6 @@ export function RegisteredReportRouteTracker({
   reportId,
   currentStage,
 }: Readonly<RegisteredReportRouteTrackerProps>) {
-  const { cacheTracker } = useRegisteredReportWorkflow();
-
   return (
     <nav aria-label="Research journey" className="flex flex-wrap items-center gap-1.5 text-sm">
       {tracker.map((step, stepIndex) => {
@@ -31,7 +28,6 @@ export function RegisteredReportRouteTracker({
             {href && !isCurrent ? (
               <Link
                 href={href}
-                onClick={() => cacheTracker({ reportId, tracker })}
                 className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
               >
                 {step.label}

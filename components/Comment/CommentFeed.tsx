@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, memo, useMemo } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
 import { CommentItem } from './CommentItem';
@@ -113,7 +113,6 @@ function CommentFeed({
   );
 }
 
-// Remove memo wrapper but keep useCallback optimizations
 function CommentFeedContent({
   className,
   editorProps = {},
@@ -154,12 +153,10 @@ function CommentFeedContent({
   const storageKey = useStorageKey(baseStorageKey);
 
   // Check if current user is an author
-  const isCurrentUserAuthor = useMemo(() => {
-    if (!user?.id || !workAuthors) return false;
-    return workAuthors.some(
-      (authorship) => authorship.authorProfile.id === user?.authorProfile?.id
-    );
-  }, [user?.id, user?.authorProfile?.id, workAuthors]);
+  const isCurrentUserAuthor = Boolean(
+    user?.id &&
+    workAuthors?.some((authorship) => authorship.authorProfile.id === user.authorProfile?.id)
+  );
 
   const handleSubmit = useCallback(
     async ({ content, rating: overallRating }: { content: CommentContent; rating?: number }) => {

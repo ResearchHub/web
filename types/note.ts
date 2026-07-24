@@ -16,13 +16,8 @@ export type Author = {
 };
 
 export interface RegisteredReportPrefill {
-  authors?: Author[];
   authorIds?: number[];
-  topics?: Topic[];
   topicIds?: number[];
-  image?: string | null;
-  previewImg?: string | null;
-  proposalId?: number | null;
 }
 
 export type Contact = {
@@ -148,14 +143,18 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   image: raw.image_url,
 }));
 
-const transformTopicsFromSources = (...sources: any[]): Topic[] | undefined => {
-  const topicSource = sources.find((source) => Array.isArray(source));
-  return topicSource?.map((topic: any) => transformTopic(topic));
+const findFirstPopulatedArray = (sources: unknown[]): unknown[] | undefined =>
+  sources.find((source): source is unknown[] => Array.isArray(source) && source.length > 0) ??
+  sources.find((source): source is unknown[] => Array.isArray(source));
+
+const transformTopicsFromSources = (...sources: unknown[]): Topic[] | undefined => {
+  const topicSource = findFirstPopulatedArray(sources);
+  return topicSource?.map((topic) => transformTopic(topic));
 };
 
-const transformAuthorsFromSources = (...sources: any[]): Author[] | undefined => {
-  const authorSource = sources.find((source) => Array.isArray(source));
-  return authorSource?.map((author: any) => transformAuthor(author));
+const transformAuthorsFromSources = (...sources: unknown[]): Author[] | undefined => {
+  const authorSource = findFirstPopulatedArray(sources);
+  return authorSource?.map((author) => transformAuthor(author));
 };
 
 const getTopicIds = (raw: any): number[] | undefined => {
@@ -186,13 +185,8 @@ const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | n
   if (!raw) return null;
 
   return {
-    authors: transformAuthorsFromSources(raw.authors),
     authorIds: Array.isArray(raw.author_ids) ? raw.author_ids : undefined,
-    topics: transformTopicsFromSources(raw.hubs, raw.topics),
     topicIds: getTopicIds(raw),
-    image: raw.image ?? null,
-    previewImg: raw.preview_img ?? null,
-    proposalId: raw.proposal_id ?? null,
   };
 };
 

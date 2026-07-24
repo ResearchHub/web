@@ -10,7 +10,8 @@ import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer'
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
-import { RegisteredReportGrantHeader } from '@/components/work/RegisteredReportHeaderAdapters';
+import { WorkHeaderGrant } from '@/components/work/WorkHeader';
+import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 
 interface Props {
   params: Promise<{
@@ -70,7 +71,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
       <PageLayout
         fundraiseGrantId={grantId ? Number(grantId) : undefined}
         topBanner={
-          <RegisteredReportGrantHeader
+          <WorkHeaderGrant
             work={work}
             metadata={metadata}
             amountUsd={grant?.amount?.usd}
@@ -79,6 +80,9 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             isPending={isPending}
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
+            preTitle={
+              <RegisteredReportRouteTrackerLoader currentStage="grant" currentPostId={work.id} />
+            }
           />
         }
         rightSidebar={

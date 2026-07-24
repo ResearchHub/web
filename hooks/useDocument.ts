@@ -40,7 +40,7 @@ export interface PreregistrationPostParams {
   contacts?: number[];
   applicationVisibility?: 'OPTIONAL' | 'PRIVATE' | 'PUBLIC';
 
-  // Preregistration specific (create-only — server marks it read-only on update)
+  // Preregistration specific (create-only; server marks it read-only on update)
   isPublic?: boolean;
 
   // RFP attachment
@@ -63,11 +63,12 @@ type UpsertPostFn = (
   postId?: ID
 ) => Promise<UpsertPostResult>;
 type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
+type PostPayload = Record<string, unknown>;
 
 const parseCurrencyAmount = (value: string): number =>
   Number.parseFloat(value.replace(/[^0-9.]/g, ''));
 
-const buildBasePayload = (postParams: PreregistrationPostParams) => ({
+const buildBasePayload = (postParams: PreregistrationPostParams): PostPayload => ({
   document_type: postParams.articleType,
   title: postParams.title,
   renderable_text: postParams.renderableText,
@@ -81,7 +82,7 @@ const buildBasePayload = (postParams: PreregistrationPostParams) => ({
   ...(postParams.editorType ? { editor_type: postParams.editorType } : {}),
 });
 
-const addPreregistrationPayload = (payload: any, postParams: PreregistrationPostParams) => {
+const addPreregistrationPayload = (payload: PostPayload, postParams: PreregistrationPostParams) => {
   payload.reward_funders = postParams.rewardFunders;
   payload.nft_supply = postParams.nftSupply;
   payload.fundraise_goal_currency = 'USD';
@@ -98,7 +99,7 @@ const addPreregistrationPayload = (payload: any, postParams: PreregistrationPost
   }
 };
 
-const addGrantPayload = (payload: any, postParams: PreregistrationPostParams) => {
+const addGrantPayload = (payload: PostPayload, postParams: PreregistrationPostParams) => {
   payload.grant_amount = parseCurrencyAmount(postParams.budget);
   payload.grant_currency = 'USD';
   payload.grant_organization = postParams.organization;
@@ -112,7 +113,7 @@ const addGrantPayload = (payload: any, postParams: PreregistrationPostParams) =>
 };
 
 const buildPostPayload = (postParams: PreregistrationPostParams, postId?: ID) => {
-  const payload: any = buildBasePayload(postParams);
+  const payload = buildBasePayload(postParams);
 
   if (postParams.articleType === 'REGISTERED_REPORT') {
     const proposalId = normalizeRegisteredReportProposalId(postParams.proposalId);

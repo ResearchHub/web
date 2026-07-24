@@ -18,7 +18,6 @@ export interface JournalV2StageLink {
 
 export interface JournalV2ReviewSummary {
   average: number;
-  count: number;
   reviews: Review[];
 }
 
@@ -40,7 +39,7 @@ function readScore(value: unknown): number | undefined {
 }
 
 function readLinkedWorkId(work?: JournalV2LinkedWork): number | undefined {
-  return work?.postId ?? work?.id ?? undefined;
+  return work?.postId ?? work?.id;
 }
 
 function buildHrefFromLinkedWork(
@@ -57,15 +56,8 @@ function buildHrefFromLinkedWork(
   });
 }
 
-function buildReportHref(id: string | number, slug?: string): string {
+function buildReportHref(id: number, slug?: string): string {
   return slug ? `/report/${id}/${slug}` : `/report/${id}`;
-}
-
-function buildReportHrefFromLinkedWork(work: JournalV2LinkedWork | undefined): string | undefined {
-  const id = readLinkedWorkId(work);
-  if (!id) return undefined;
-
-  return buildReportHref(id, work?.slug);
 }
 
 function isPaperContent(content: FeedEntry['content']): content is FeedPaperContent {
@@ -150,8 +142,9 @@ function buildRegisteredReportHref(
     return primaryHref;
   }
 
-  const registeredReportHref = buildReportHrefFromLinkedWork(journalV2?.registeredReport);
-  if (registeredReportHref) return registeredReportHref;
+  const registeredReport = journalV2?.registeredReport;
+  const registeredReportId = readLinkedWorkId(registeredReport);
+  if (registeredReportId) return buildReportHref(registeredReportId, registeredReport?.slug);
 
   const registeredReportPostId = journalV2?.registeredReportPostId;
   if (!registeredReportPostId) return undefined;
@@ -192,21 +185,17 @@ function buildReviewFromTransformed(review: Review): Review | undefined {
   };
 }
 
-function collectReviews(content: JournalFeedContent): Review[] {
-  return Array.isArray(content.reviews)
+function calculateReviewSummary(content: JournalFeedContent): JournalV2ReviewSummary | undefined {
+  const reviews = Array.isArray(content.reviews)
     ? content.reviews
-        .map((review) => buildReviewFromTransformed(review))
-        .filter((review): review is Review => !!review)
+        .map(buildReviewFromTransformed)
+        .filter((review): review is Review => review !== undefined)
     : [];
-}
-
-function calculateReviewSummary(reviews: Review[]): JournalV2ReviewSummary | undefined {
   if (reviews.length === 0) return undefined;
 
   const average = reviews.reduce((sum, review) => sum + review.score, 0) / reviews.length;
   return {
     average: Math.round(average * 10) / 10,
-    count: reviews.length,
     reviews,
   };
 }
@@ -233,7 +222,7 @@ export function buildJournalV2FeedItemViewModel(
     href: primaryHref,
     imageUrl,
     currentStageLabel: resolveCurrentStageLabel(content, journalV2),
-    reviewSummary: calculateReviewSummary(collectReviews(content)),
+    reviewSummary: calculateReviewSummary(content),
     trackerSteps: [
       {
         stage: 'funding_opportunity',
