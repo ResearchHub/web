@@ -72,6 +72,11 @@ export class PostService {
     return transformPost(rawResponse);
   }
 
+  static async makePublic(id: string | number): Promise<Work> {
+    const rawResponse = await ApiClient.post<any>(`${this.BASE_PATH}/${id}/make_public/`);
+    return transformPost(rawResponse);
+  }
+
   static async getProposalsByUser(userId: number): Promise<ProposalForModal[]> {
     const response = await ApiClient.get<ProposalListResponse>(
       `${this.BASE_PATH}/?created_by=${userId}&document_type=PREREGISTRATION`

@@ -44,6 +44,7 @@ interface WorkHeaderProps {
   eyebrow?: ReactNode;
   preTitle?: ReactNode;
   subtitle?: ReactNode;
+  additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
   tabsWrapper?: (tabs: ReactNode) => ReactNode;
   primaryAction?: ReactNode;
@@ -68,6 +69,7 @@ export function WorkHeader({
   eyebrow: eyebrowOverride,
   preTitle,
   subtitle: subtitleOverride,
+  additionalMenuItems,
   tabs: tabsOverride,
   tabsWrapper,
   primaryAction,
@@ -227,6 +229,7 @@ export function WorkHeader({
             Share
           </BaseMenuItem>
         </div>
+        {additionalMenuItems}
         {menuItems}
       </BaseMenu>
     </div>
