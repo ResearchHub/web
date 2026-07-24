@@ -15,26 +15,29 @@ export async function GET(request: NextRequest) {
   const currentPostId = normalizeRegisteredReportId(searchParams.get('postId'));
   const currentStage = searchParams.get('stage');
 
-  if (!reportId || !currentPostId || !isRegisteredReportStage(currentStage)) {
+  if (!currentPostId || !isRegisteredReportStage(currentStage)) {
     return NextResponse.json({ error: 'Invalid tracker request.' }, { status: 400 });
   }
 
   try {
-    const payload = await PostService.getRegisteredReportWork(reportId);
+    const payload = await PostService.getRegisteredReportWork(reportId ?? currentPostId);
     const tracker = getAccessibleRegisteredReportTracker(payload);
-    const matchesRoute =
-      payload.work.id === reportId &&
-      tracker.some(
-        (step) => step.stage === currentStage && step.exists && step.postId === currentPostId
-      ) &&
-      tracker.some(
-        (step) => step.stage === 'registered_report' && step.exists && step.postId === reportId
-      );
-    if (!matchesRoute) {
+    const registeredReportId = tracker.find(
+      (step) => step.stage === 'registered_report' && step.exists
+    )?.postId;
+    const matchesRoute = tracker.some(
+      (step) => step.stage === currentStage && step.exists && step.postId === currentPostId
+    );
+    if (
+      !registeredReportId ||
+      payload.work.id !== registeredReportId ||
+      (reportId !== null && reportId !== registeredReportId) ||
+      !matchesRoute
+    ) {
       return NextResponse.json({ error: 'Registered Report tracker not found.' }, { status: 404 });
     }
 
-    return NextResponse.json({ reportId: payload.work.id, tracker });
+    return NextResponse.json({ reportId: registeredReportId, tracker });
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
 

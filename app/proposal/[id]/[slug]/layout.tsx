@@ -73,7 +73,11 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
             metadata={metadata}
             updatesCount={authorPosts.length}
             preTitle={
-              <RegisteredReportRouteTrackerLoader currentStage="proposal" currentPostId={work.id} />
+              <RegisteredReportRouteTrackerLoader
+                currentStage="proposal"
+                currentPostId={work.id}
+                loadForCompletedProposal={work.fundraise?.status === 'COMPLETED'}
+              />
             }
           />
         }

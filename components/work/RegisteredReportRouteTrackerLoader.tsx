@@ -15,6 +15,7 @@ import {
 interface RegisteredReportRouteTrackerLoaderProps {
   currentStage: RegisteredReportStage;
   currentPostId: number;
+  loadForCompletedProposal?: boolean;
 }
 
 interface LoadedTracker extends RegisteredReportTrackerPayload {
@@ -22,15 +23,15 @@ interface LoadedTracker extends RegisteredReportTrackerPayload {
 }
 
 async function fetchRegisteredReportTracker(
-  reportId: number,
+  reportId: number | null,
   currentStage: RegisteredReportStage,
   currentPostId: number
 ): Promise<RegisteredReportTrackerPayload | null> {
   const params = new URLSearchParams({
-    rr: reportId.toString(),
     stage: currentStage,
     postId: currentPostId.toString(),
   });
+  if (reportId) params.set('rr', reportId.toString());
   const response = await fetch(`/api/registered-report-tracker?${params}`, {
     cache: 'no-store',
   });
@@ -45,14 +46,16 @@ async function fetchRegisteredReportTracker(
 export function RegisteredReportRouteTrackerLoader({
   currentStage,
   currentPostId,
+  loadForCompletedProposal = false,
 }: Readonly<RegisteredReportRouteTrackerLoaderProps>) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const reportIdParam = searchParams.get('rr');
   const requestedReportId = normalizeRegisteredReportId(reportIdParam);
-  const routeKey = requestedReportId
-    ? `${requestedReportId}:${currentStage}:${currentPostId}`
+  const shouldLoadTracker = Boolean(requestedReportId || loadForCompletedProposal);
+  const routeKey = shouldLoadTracker
+    ? `${requestedReportId ?? 'current'}:${currentStage}:${currentPostId}`
     : null;
   const [loadedTracker, setLoadedTracker] = useState<LoadedTracker | null>(null);
   const [failedRouteKey, setFailedRouteKey] = useState<string | null>(null);
@@ -61,19 +64,21 @@ export function RegisteredReportRouteTrackerLoader({
   useEffect(() => {
     const clearReportId = () => {
       setLoadedTracker(null);
+      if (!reportIdParam) return;
+
       const params = new URLSearchParams(searchParams.toString());
       params.delete('rr');
       router.replace(params.size > 0 ? `${pathname}?${params.toString()}` : pathname);
     };
 
-    if (!reportIdParam) {
-      setLoadedTracker(null);
-      setFailedRouteKey(null);
+    if (reportIdParam && !requestedReportId) {
+      clearReportId();
       return;
     }
 
-    if (!requestedReportId || !routeKey) {
-      clearReportId();
+    if (!routeKey) {
+      setLoadedTracker(null);
+      setFailedRouteKey(null);
       return;
     }
 
@@ -99,6 +104,7 @@ export function RegisteredReportRouteTrackerLoader({
   }, [
     currentPostId,
     currentStage,
+    loadForCompletedProposal,
     pathname,
     reportIdParam,
     requestedReportId,
@@ -117,7 +123,5 @@ export function RegisteredReportRouteTrackerLoader({
     );
   }
 
-  return requestedReportId && failedRouteKey !== routeKey ? (
-    <RegisteredReportRouteTrackerSkeleton />
-  ) : null;
+  return routeKey && failedRouteKey !== routeKey ? <RegisteredReportRouteTrackerSkeleton /> : null;
 }

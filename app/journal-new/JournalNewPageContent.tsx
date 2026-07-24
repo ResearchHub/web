@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFeed } from '@/hooks/useFeed';
 import { JournalV2FeedEntryItem } from '@/components/Journal/JournalV2FeedEntryItem';
+import { RadioSortDropdown } from '@/components/ui/RadioSortDropdown';
 
 type JournalSortOption = 'best' | 'newest' | 'peer_review_score';
 
@@ -56,18 +57,12 @@ export function JournalNewPageContent() {
       loadMore={loadMore}
       filters={
         <div className="mb-2 mt-2 flex items-center justify-end sm:mt-4">
-          <select
-            aria-label="Sort journal entries"
+          <RadioSortDropdown
+            ariaLabel="Sort journal entries"
+            options={JOURNAL_SORT_OPTIONS}
             value={journalSort}
-            onChange={(event) => changeJournalSort(getJournalSort(event.target.value))}
-            className="cursor-pointer bg-transparent pr-1 text-xs font-medium text-gray-700 outline-none transition-colors hover:text-gray-900 sm:text-sm"
-          >
-            {JOURNAL_SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={changeJournalSort}
+          />
         </div>
       }
       ordering={journalSort}
