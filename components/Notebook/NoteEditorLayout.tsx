@@ -82,10 +82,18 @@ export function NoteEditorLayout() {
   const [activeTab, setActiveTab] = useState<NotebookTab>(() =>
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
+  const previousNoteId = useRef(activeNoteId);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
 
   const isNewlyCreatedNote = NEW_NOTE_PARAMS.some((param) => searchParams?.has(param));
+
+  useEffect(() => {
+    if (previousNoteId.current !== activeNoteId) {
+      setActiveTab('document');
+      previousNoteId.current = activeNoteId;
+    }
+  }, [activeNoteId]);
 
   // Surface the "Notebook" notes dropdown in the shared TopBar's left area.
   useEffect(() => {
@@ -171,7 +179,7 @@ export function NoteEditorLayout() {
         }
       >
         {/* Work type + draft status pinned to the document's top-left corner. */}
-        <div className="mb-5 flex items-center gap-2 lg:-ml-12 lg:-mt-3">
+        <div className="mb-5 flex items-center gap-2 pt-2 lg:!pt-0 pl-4 lg:!pl-0 lg:-ml-12 lg:-mt-3">
           {workTypeLabel && (
             <span className="text-sm font-medium text-gray-700">{workTypeLabel}</span>
           )}

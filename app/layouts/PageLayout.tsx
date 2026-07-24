@@ -49,7 +49,6 @@ function PageLayoutInner({
   const {
     scrollContainerRef,
     isLeftSidebarOpen,
-    isCompact,
     showOverlay,
     overlayVisible,
     toggleLeftSidebar,
@@ -79,11 +78,14 @@ function PageLayoutInner({
 
         <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
-        <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
+        <LeftSidebarContainer isOpen={isLeftSidebarOpen} />
 
         {/* Scrollable content area.
+            Mobile: top padding clears the fixed top bar (needed so content
+            can scroll under the hide-on-scroll bar).
+            Tablet+: top margin instead, so the scrollport starts below the bar.
             When the EndowmentPromoBanner is visible above the TopBar on mobile
-            we add ~56px to the existing top padding to clear the extra strip.
+            we add extra top padding to clear the banner + topbar stack.
             The banner itself is hidden at >= 768px (tablet:!hidden) so the
             offset is reset by the inner media query below.
             Bottom padding on mobile clears the fixed MobileBottomNav. */}
@@ -92,7 +94,8 @@ function PageLayoutInner({
           className={cn(
             'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
             'page-layout-with-mobile-bottom-nav',
-            isCompact ? 'pt-12' : 'pt-16',
+            'pt-[var(--top-bar-height)] mt-0',
+            'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
             isPromoBannerVisible && 'page-layout-with-promo-banner'
           )}
         >
@@ -119,7 +122,6 @@ function PageLayoutInner({
             {rightSidebar && (
               <RightSidebarContainer
                 rightSidebar={rightSidebar}
-                isCompact={isCompact}
                 contentClassName={sidebarContentClassName}
               />
             )}

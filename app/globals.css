@@ -6,6 +6,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Desktop/tablet title row. Mobile override below. */
+  --top-bar-height: 4rem;
+}
+
+/* Mobile title row matches the existing 70px bar (logo 44px / avatar 40px). */
+@media (max-width: 767px) {
+  :root {
+    --top-bar-height: 4.375rem;
+  }
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -58,6 +67,29 @@ body {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
+
+  /* Scrollbar visible only while the element is hovered */
+  .scrollbar-on-hover {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-on-hover:hover {
+    scrollbar-color: rgb(209 213 219) transparent; /* gray-300 */
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(209 213 219); /* gray-300 */
+  }
 }
 
 @keyframes fade-in {
@@ -96,7 +128,7 @@ body {
 
 /* Search result highlighting */
 mark {
-  background-color: #FEF9C3;
+  background-color: #fef9c3;
   color: inherit;
   padding: 0.125rem 0;
   border-radius: 0.125rem;
@@ -106,12 +138,10 @@ mark {
 /* When the EndowmentPromoBanner is rendered above the TopBar (mobile only),
    the scroll content container needs extra top padding to clear the banner +
    topbar stack. The banner is hidden at >= 768px (tablet:!hidden), so the
-   override only applies below that breakpoint. 56px is the banner height
-   (icon row + stacked title/sub at the chosen typography); combined with
-   the existing 64px topbar padding it lands at 120px. */
+   override only applies below that breakpoint. 56px is the banner height. */
 @media (max-width: 767px) {
   .page-layout-with-promo-banner {
-    padding-top: 120px !important;
+    padding-top: calc(56px + var(--top-bar-height)) !important;
   }
 
   /* Reserve space for fixed MobileBottomNav (h-16 + safe-area inset). */

@@ -110,43 +110,37 @@ export const ResearchCoinRightSidebar = () => {
     <div className="w-full">
       <div className="pb-4">
         {/* Use ResearchCoin Section */}
-        <div className="px-6 mb-4 mt-3">
-          <SidebarHeader title="Use ResearchCoin" />
-          <div className="pl-1 ml-1">
-            {useItems.map((item) => (
-              <SidebarRow key={item.title} {...item} />
-            ))}
-          </div>
+        <SidebarHeader title="Use ResearchCoin" />
+        <div className="pl-1 ml-1 mb-4">
+          {useItems.map((item) => (
+            <SidebarRow key={item.title} {...item} />
+          ))}
         </div>
 
         {/* Earn ResearchCoin Section */}
-        <div className="px-6 mb-4">
-          <SidebarHeader title="Earn ResearchCoin" />
-          <div className="pl-1 ml-1">
-            {earnItems.map((item) => (
-              <SidebarRow key={item.title} {...item} />
-            ))}
-          </div>
+        <SidebarHeader title="Earn ResearchCoin" />
+        <div className="pl-1 ml-1 mb-4">
+          {earnItems.map((item) => (
+            <SidebarRow key={item.title} {...item} />
+          ))}
         </div>
 
         {/* Resources Section */}
-        <div className="px-6 mb-4">
-          <SidebarHeader title="Resources" />
-          <div className="space-y-2 pl-1 ml-1">
-            <a
-              href="https://docs.researchhub.com/researchcoin/what-is-researchcoin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50 -mx-3"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="font-medium">Learn about ResearchCoin</span>
-              </div>
-              <div className="ml-4">
-                <ExternalLink size={14} className="text-gray-400" />
-              </div>
-            </a>
-          </div>
+        <SidebarHeader title="Resources" />
+        <div className="space-y-2 pl-1 ml-1 mb-4">
+          <a
+            href="https://docs.researchhub.com/researchcoin/what-is-researchcoin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50 -mx-3"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="font-medium">Learn about ResearchCoin</span>
+            </div>
+            <div className="ml-4">
+              <ExternalLink size={14} className="text-gray-400" />
+            </div>
+          </a>
         </div>
       </div>
     </div>
