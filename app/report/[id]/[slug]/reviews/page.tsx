@@ -40,11 +40,14 @@ export default async function RegisteredReportReviewsPage({ params }: Readonly<P
   }
 
   const [reportMetadata, proposal] = await Promise.all([
-    getRegisteredReportMetadata(payload.work, payload.proposal),
+    getRegisteredReportMetadata(payload.work),
     getSourceProposalOrNotFound(proposalStep.postId),
   ]);
   const proposalMetadata = proposal.unifiedDocumentId
-    ? await MetadataService.get(proposal.unifiedDocumentId.toString()).catch(() => null)
+    ? await MetadataService.get(proposal.unifiedDocumentId.toString()).catch((error) => {
+        if (error instanceof ApiError && error.status === 404) return null;
+        throw error;
+      })
     : null;
 
   return (

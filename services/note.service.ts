@@ -3,11 +3,13 @@ import { transformNote, transformNoteContent, transformNoteWithContent } from '@
 import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
+import { extractApiErrorMessage } from './lib/serviceUtils';
 
 export class NoteError extends Error {
   constructor(
     message: string,
-    public readonly code?: string
+    public readonly code?: string,
+    public readonly status?: number
   ) {
     super(message);
     this.name = 'NoteError';
@@ -74,9 +76,11 @@ export class NoteService {
       const response = await ApiClient.get<any>(`${this.BASE_PATH}/note/${noteId}/`);
       return transformNoteWithContent(response);
     } catch (error) {
-      const { data = {} } = error instanceof ApiError ? JSON.parse(error.message) : {};
-      const errorMsg = data?.detail || 'Failed to fetch note content';
-      throw new NoteError(errorMsg);
+      throw new NoteError(
+        extractApiErrorMessage(error, 'Failed to fetch note content'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
+      );
     }
   }
 

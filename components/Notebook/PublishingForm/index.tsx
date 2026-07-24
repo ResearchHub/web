@@ -56,8 +56,9 @@ import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import {
   getRegisteredReportProposalIdFromDocument,
   mergeRegisteredReportPrefill,
-  normalizeRegisteredReportProposalId,
+  normalizeRegisteredReportId,
 } from '@/utils/registeredReportPrefill';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { isRegisteredReportNote, type NoteWithContent } from '@/types/note';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -204,46 +205,41 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
   }
 };
 
-const populateFromDraftNote = (
+const populateRegisteredReportFields = (
   note: NoteWithContent,
   getValues: UseFormGetValues<PublishingFormData>,
   setValue: UseFormSetValue<PublishingFormData>
 ) => {
-  const prefill = note.registeredReportPrefill;
   const topics = note.topics ?? [];
-  const topicIds = prefill?.topicIds ?? [];
   const authors = note.authors ?? [];
-  const authorIds = prefill?.authorIds ?? [];
+  const topicOptions =
+    topics.length > 0
+      ? topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
+      : (note.registeredReportPrefill?.topicIds ?? []).map((id) => ({
+          value: id.toString(),
+          label: `Topic ${id}`,
+        }));
+  const authorOptions =
+    authors.length > 0
+      ? authors.map((author) => ({
+          value: author.authorId.toString(),
+          label: author.name,
+        }))
+      : (note.registeredReportPrefill?.authorIds ?? []).map((id) => ({
+          value: id.toString(),
+          label: `Author ${id}`,
+        }));
 
   if (note.image && !getValues('coverImage')) {
     setValue('coverImage', { file: null, url: note.image });
   }
 
-  if (topics.length > 0 && getValues('topics').length === 0) {
-    setValue(
-      'topics',
-      topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
-    );
-  } else if (topicIds.length > 0 && getValues('topics').length === 0) {
-    setValue(
-      'topics',
-      topicIds.map((id: number) => ({ value: id.toString(), label: `Topic ${id}` }))
-    );
+  if (topicOptions.length > 0 && getValues('topics').length === 0) {
+    setValue('topics', topicOptions);
   }
 
-  if (authors.length > 0 && getValues('authors').length === 0) {
-    setValue(
-      'authors',
-      authors.map((author) => ({
-        value: author.authorId.toString(),
-        label: author.name,
-      }))
-    );
-  } else if (authorIds.length > 0 && getValues('authors').length === 0) {
-    setValue(
-      'authors',
-      authorIds.map((id: number) => ({ value: id.toString(), label: `Author ${id}` }))
-    );
+  if (authorOptions.length > 0 && getValues('authors').length === 0) {
+    setValue('authors', authorOptions);
   }
 };
 
@@ -267,9 +263,10 @@ const autoAddCurrentUser = (
   setValue: (name: any, value: any) => void,
   currentUser: any
 ) => {
-  if (!currentUser) return;
+  const articleType = getValues('articleType');
+  if (!currentUser || articleType === 'registered_report') return;
 
-  const isGrant = getValues('articleType') === 'grant';
+  const isGrant = articleType === 'grant';
   const field = isGrant ? 'contacts' : 'authors';
 
   if (getValues(field).length === 0) {
@@ -314,7 +311,7 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
   if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
   if (articleType === 'grant')
     return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
-  if (articleType === 'registered_report') return `/report/${responseId}/${slug}`;
+  if (articleType === 'registered_report') return buildRegisteredReportUrl(responseId, slug);
   return `/post/${responseId}/${slug}`;
 };
 
@@ -356,6 +353,7 @@ export function PublishingForm({
     if (!note) return;
 
     methods.reset(FORM_DEFAULTS);
+    const isRegisteredReport = isRegisteredReportNote(note);
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
@@ -364,17 +362,23 @@ export function PublishingForm({
       if (storedData) {
         restoreFromStorage(storedData, methods.setValue);
       }
-      populateFromDraftNote(note, methods.getValues, methods.setValue);
 
-      const articleType = isRegisteredReportNote(note)
-        ? 'registered_report'
-        : (storedData?.articleType ??
-          getArticleTypeFromNote(note) ??
-          resolveArticleType(searchParams, defaultArticleType)?.type);
+      if (isRegisteredReport) {
+        populateRegisteredReportFields(note, methods.getValues, methods.setValue);
+      }
+
+      const articleType =
+        storedData?.articleType ??
+        getArticleTypeFromNote(note) ??
+        resolveArticleType(searchParams, defaultArticleType)?.type;
 
       if (articleType) {
         methods.setValue('articleType', articleType);
       }
+    }
+
+    if (isRegisteredReport) {
+      methods.setValue('articleType', 'registered_report');
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
@@ -531,7 +535,7 @@ export function PublishingForm({
   };
 
   const handleConfirmPublish = async (editedTitle: string) => {
-    if (readOnly) return;
+    if (readOnly || !note) return;
 
     try {
       setDocumentTitle(editor, editedTitle);
@@ -573,7 +577,7 @@ export function PublishingForm({
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
       const proposalId =
-        normalizeRegisteredReportProposalId(note?.proposalId) ??
+        normalizeRegisteredReportId(note.proposalId) ??
         getRegisteredReportProposalIdFromDocument(json);
 
       if (formData.articleType === 'registered_report' && !proposalId) {
@@ -582,10 +586,11 @@ export function PublishingForm({
         return;
       }
 
-      const fullJson =
+      const fullJson = JSON.stringify(
         formData.articleType === 'registered_report'
           ? mergeRegisteredReportPrefill(json, proposalId)
-          : json;
+          : json
+      );
 
       const response = await upsertPost(
         {
@@ -593,7 +598,7 @@ export function PublishingForm({
           rewardFunders: formData.rewardFunders,
           nftSupply: formData.nftSupply || '1000',
           title: editedTitle,
-          noteId: note?.id.toString(),
+          noteId: note.id,
           proposalId,
           renderableText: text || '',
           fullJson,

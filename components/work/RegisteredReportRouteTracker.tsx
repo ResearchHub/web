@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import type { RegisteredReportStage, RegisteredReportTrackerStep } from '@/types/registeredReport';

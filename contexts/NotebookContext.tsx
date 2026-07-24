@@ -203,6 +203,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
       );
 
       setCurrentNote((previousNote) => {
+        if (previousNote?.id.toString() !== activeNoteId) return previousNote;
+
         const updatedNote = previousNote ? { ...previousNote, title: newTitle } : null;
         currentNoteRef.current = updatedNote;
         return updatedNote;
@@ -248,7 +250,15 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   useEffect(() => {
     if (activeNoteId) {
       loadNote(activeNoteId);
+      return;
     }
+
+    loadRequestIdRef.current += 1;
+    lastLoadedNoteIdRef.current = null;
+    currentNoteRef.current = null;
+    setCurrentNote(null);
+    setNoteError(null);
+    setIsLoadingNote(false);
   }, [activeNoteId, loadNote]);
 
   // Calculate overall loading state ignoring isLoadingNote

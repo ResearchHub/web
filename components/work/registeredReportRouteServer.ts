@@ -4,16 +4,15 @@ import { MetadataService, type WorkMetadata } from '@/services/metadata.service'
 import { PostService } from '@/services/post.service';
 import { ApiError } from '@/services/types';
 import {
-  getAverageProposalPeerReviewScore,
-  type RegisteredReportProposalDetails,
   type RegisteredReportWork,
   type RegisteredReportWorkResponse,
 } from '@/types/registeredReport';
+import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
 
 export const getRegisteredReportWorkOrNotFound = cache(
   async (id: string | number): Promise<RegisteredReportWorkResponse> => {
-    const normalizedId = Number(id);
-    if (!Number.isInteger(normalizedId) || normalizedId <= 0) {
+    const normalizedId = normalizeRegisteredReportId(id);
+    if (!normalizedId) {
       notFound();
     }
 
@@ -29,17 +28,12 @@ export const getRegisteredReportWorkOrNotFound = cache(
   }
 );
 
-const getMetadataByDocumentId = cache(async (documentId: number): Promise<WorkMetadata | null> => {
-  try {
-    return await MetadataService.get(documentId.toString());
-  } catch {
-    return null;
-  }
-});
+const getMetadataByDocumentId = cache((documentId: number) =>
+  MetadataService.get(documentId.toString())
+);
 
 export async function getRegisteredReportMetadata(
-  work: RegisteredReportWork,
-  proposal: RegisteredReportProposalDetails | null = null
+  work: RegisteredReportWork
 ): Promise<WorkMetadata> {
   const documentId = work.unifiedDocumentId;
   const fallbackMetadata: WorkMetadata = {
@@ -59,20 +53,14 @@ export async function getRegisteredReportMetadata(
     activeBounties: 0,
     closedBounties: 0,
   };
-  const metadata = !documentId
-    ? fallbackMetadata
-    : ((await getMetadataByDocumentId(documentId)) ?? fallbackMetadata);
-  const proposalReviewScore = getAverageProposalPeerReviewScore(proposal);
+  if (!documentId) return fallbackMetadata;
 
-  if (proposalReviewScore === undefined) return metadata;
-
-  return {
-    ...metadata,
-    metrics: {
-      ...metadata.metrics,
-      reviewScore: proposalReviewScore,
-    },
-  };
+  try {
+    return await getMetadataByDocumentId(documentId);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return fallbackMetadata;
+    throw error;
+  }
 }
 
 export async function getRegisteredReportContent(
@@ -83,7 +71,8 @@ export async function getRegisteredReportContent(
 
   try {
     return await PostService.getContent(work.contentUrl);
-  } catch {
+  } catch (error) {
+    console.error('Failed to fetch Registered Report content:', error);
     return undefined;
   }
 }

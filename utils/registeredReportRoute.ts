@@ -7,11 +7,6 @@ import type {
 
 export type NextSearchParams = Record<string, string | string[] | undefined>;
 
-export function parseRegisteredReportId(value: string | null | undefined): number | null {
-  const reportId = Number(value);
-  return Number.isInteger(reportId) && reportId > 0 ? reportId : null;
-}
-
 export function buildRegisteredReportTrackerHref(
   step: RegisteredReportTrackerStep,
   reportId: number
@@ -22,7 +17,11 @@ export function buildRegisteredReportTrackerHref(
   return step.stage === 'registered_report' ? href : `${href}?rr=${reportId}`;
 }
 
-export function buildRegisteredReportStepHref(
+export function buildRegisteredReportUrl(reportId: string | number, slug?: string | null): string {
+  return slug ? `/report/${reportId}/${slug}` : `/report/${reportId}`;
+}
+
+function buildRegisteredReportStepHref(
   stage: RegisteredReportStage,
   postId: number,
   title?: string | null
@@ -37,7 +36,7 @@ export function buildRegisteredReportStepHref(
     return buildWorkUrl({ id: postId, slug, contentType: 'preregistration' });
   }
 
-  return slug ? `/report/${postId}/${slug}` : `/report/${postId}`;
+  return buildRegisteredReportUrl(postId, slug);
 }
 
 export function createUrlSearchParams(searchParams?: NextSearchParams): URLSearchParams {
@@ -54,27 +53,21 @@ export function createUrlSearchParams(searchParams?: NextSearchParams): URLSearc
   return params;
 }
 
-export function doesRegisteredReportPayloadMatchRoute({
-  payload,
-  currentStage,
-  currentPostId,
-}: {
-  payload: Pick<RegisteredReportWorkResponse, 'tracker'>;
-  currentStage: RegisteredReportStage;
-  currentPostId: number | string;
-}): boolean {
-  const postId = Number(currentPostId);
-  if (!Number.isInteger(postId) || postId <= 0) return false;
-
-  const currentStep = payload.tracker.find((step) => step.stage === currentStage);
-  return currentStep?.exists === true && currentStep.postId === postId;
-}
-
 export function hasRegisteredReportSourceProposal(
   payload: Pick<RegisteredReportWorkResponse, 'proposal' | 'tracker'>
 ): boolean {
   return Boolean(
     payload.proposal &&
     payload.tracker.some((step) => step.stage === 'proposal' && step.exists && step.postId)
+  );
+}
+
+export function getAccessibleRegisteredReportTracker(
+  payload: Pick<RegisteredReportWorkResponse, 'proposal' | 'tracker'>
+): RegisteredReportTrackerStep[] {
+  if (payload.proposal) return payload.tracker;
+
+  return payload.tracker.map((step) =>
+    step.stage === 'proposal' ? { ...step, exists: false, postId: null, title: null } : step
   );
 }

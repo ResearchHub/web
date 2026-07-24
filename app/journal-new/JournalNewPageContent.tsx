@@ -75,9 +75,6 @@ export function JournalNewPageContent() {
       restoredScrollPosition={restoredScrollPosition}
       page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
-      showGrantHeaders={false}
-      showPostHeaders={false}
-      showFundraiseHeaders={false}
       noEntriesElement={
         <div className="py-12 text-center">
           <p className="text-gray-400 text-sm">No journal entries yet</p>

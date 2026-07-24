@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
 import { appendQueryString, generateSlug, buildWorkUrl } from '@/utils/url';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -67,9 +68,9 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
  * @param id The post ID
  * @param slug The post slug
  */
-export function handleRegisteredReportRedirect(work: Work, id: string, slug: string) {
+function handleRegisteredReportRedirect(work: Work, id: string, slug: string) {
   if (work.postType === 'REGISTERED_REPORT') {
-    redirect(`/report/${id}/${slug}`);
+    redirect(buildRegisteredReportUrl(id, slug));
   }
 }
 

@@ -1,11 +1,5 @@
-import {
-  FeedEntry,
-  FeedPaperContent,
-  FeedPostContent,
-  JournalV2FeedMetadata,
-  JournalV2LinkedWork,
-  Review,
-} from '@/types/feed';
+import { FeedEntry, FeedPostContent, JournalPostIds, Review } from '@/types/feed';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { buildWorkUrl } from '@/utils/url';
 
 export type JournalV2Stage = 'funding_opportunity' | 'proposal' | 'registered_report';
@@ -30,166 +24,67 @@ export interface JournalV2FeedItemViewModel {
   trackerSteps: JournalV2StageLink[];
 }
 
-type JournalFeedContent = FeedPostContent | FeedPaperContent;
-
-function readScore(value: unknown): number | undefined {
-  if (value === null || value === undefined || value === '') return undefined;
-  const score = Number(value);
-  return Number.isFinite(score) ? score : undefined;
-}
-
-function readLinkedWorkId(work?: JournalV2LinkedWork): number | undefined {
-  return work?.postId ?? work?.id;
-}
-
-function buildHrefFromLinkedWork(
-  work: JournalV2LinkedWork | undefined,
-  contentType: 'funding_request' | 'paper' | 'post' | 'preregistration'
-): string | undefined {
-  const id = readLinkedWorkId(work);
-  if (!id) return undefined;
-
-  return buildWorkUrl({
-    id,
-    slug: work?.slug,
-    contentType,
-  });
-}
-
-function buildReportHref(id: number, slug?: string): string {
-  return slug ? `/report/${id}/${slug}` : `/report/${id}`;
-}
-
-function isPaperContent(content: FeedEntry['content']): content is FeedPaperContent {
-  return content.contentType === 'PAPER';
-}
-
-function isPostContent(content: FeedEntry['content']): content is FeedPostContent {
-  return content.contentType === 'POST' || content.contentType === 'PREREGISTRATION';
-}
-
-function isRegisteredReportContent(
-  content: JournalFeedContent,
-  journalV2?: JournalV2FeedMetadata
-): boolean {
+function isJournalContent(content: FeedEntry['content']): content is FeedPostContent {
   return (
-    (isPostContent(content) && content.postType === 'REGISTERED_REPORT') ||
-    journalV2?.documentType === 'REGISTERED_REPORT' ||
-    journalV2?.journalState === 'registered_report'
+    content.contentType === 'PREREGISTRATION' ||
+    (content.contentType === 'POST' && content.postType === 'REGISTERED_REPORT')
   );
 }
 
-function buildPrimaryHref(content: JournalFeedContent, journalV2?: JournalV2FeedMetadata): string {
-  if (isPaperContent(content)) {
-    return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'paper' });
-  }
-
-  if (isRegisteredReportContent(content, journalV2)) {
-    return buildReportHref(content.id, content.slug);
-  }
-
-  if (content.contentType === 'PREREGISTRATION' || content.postType === 'PREREGISTRATION') {
-    return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'preregistration' });
-  }
-
-  return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'post' });
+function isRegisteredReport(content: FeedPostContent): boolean {
+  return content.postType === 'REGISTERED_REPORT';
 }
 
-function buildFundingOpportunityHref(journalV2?: JournalV2FeedMetadata): string | undefined {
-  if (journalV2?.postIds) {
-    const grantPostId = journalV2.postIds.grantPostId;
-    if (!grantPostId) return undefined;
-
-    return buildWorkUrl({
-      id: grantPostId,
-      slug: journalV2.fundingOpportunity?.slug,
-      contentType: 'funding_request',
-    });
+function buildPrimaryHref(content: FeedPostContent): string {
+  if (isRegisteredReport(content)) {
+    return buildRegisteredReportUrl(content.id, content.slug);
   }
 
-  return buildHrefFromLinkedWork(journalV2?.fundingOpportunity, 'funding_request');
+  return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'preregistration' });
+}
+
+function buildFundingOpportunityHref(postIds?: JournalPostIds): string | undefined {
+  if (!postIds?.grantPostId) return undefined;
+
+  return buildWorkUrl({
+    id: postIds.grantPostId,
+    contentType: 'funding_request',
+  });
 }
 
 function buildProposalHref(
-  journalV2: JournalV2FeedMetadata | undefined,
-  content: JournalFeedContent,
+  content: FeedPostContent,
+  postIds: JournalPostIds | undefined,
   primaryHref: string
 ): string | undefined {
-  if (journalV2?.postIds) {
-    const proposalPostId = journalV2.postIds.proposalPostId;
-    if (!proposalPostId) return undefined;
+  if (!isRegisteredReport(content)) return primaryHref;
+  if (!postIds?.proposalPostId) return undefined;
 
-    return buildWorkUrl({
-      id: proposalPostId,
-      slug: journalV2.proposal?.slug,
-      contentType: 'preregistration',
-    });
-  }
-
-  if (isPostContent(content) && content.contentType === 'PREREGISTRATION') {
-    return primaryHref;
-  }
-
-  return buildHrefFromLinkedWork(journalV2?.proposal, 'preregistration');
+  return buildWorkUrl({
+    id: postIds.proposalPostId,
+    contentType: 'preregistration',
+  });
 }
 
 function buildRegisteredReportHref(
-  content: JournalFeedContent,
-  journalV2: JournalV2FeedMetadata | undefined,
+  content: FeedPostContent,
   primaryHref: string
 ): string | undefined {
-  if (isRegisteredReportContent(content, journalV2)) {
-    return primaryHref;
-  }
-
-  const registeredReport = journalV2?.registeredReport;
-  const registeredReportId = readLinkedWorkId(registeredReport);
-  if (registeredReportId) return buildReportHref(registeredReportId, registeredReport?.slug);
-
-  const registeredReportPostId = journalV2?.registeredReportPostId;
-  if (!registeredReportPostId) return undefined;
-
-  return buildReportHref(registeredReportPostId, journalV2?.registeredReport?.slug);
+  return isRegisteredReport(content) ? primaryHref : undefined;
 }
 
-function resolveCurrentStageLabel(
-  content: JournalFeedContent,
-  journalV2?: JournalV2FeedMetadata
-): string {
-  if (
-    isPaperContent(content) ||
-    journalV2?.journalState === 'preprint' ||
-    journalV2?.journalState === 'result'
-  ) {
-    return 'Preprint';
-  }
-
-  if (isRegisteredReportContent(content, journalV2)) {
-    return 'Registered Report';
-  }
-
-  return 'Funded Proposal';
+function buildCurrentStageLabel(content: FeedPostContent): string {
+  return isRegisteredReport(content) ? 'Registered Report' : 'Funded Proposal';
 }
 
-function normalizeScoreToFive(score: number): number {
-  return score > 5 ? score / 2 : score;
-}
-
-function buildReviewFromTransformed(review: Review): Review | undefined {
-  const score = readScore(review.score);
-  if (score === undefined) return undefined;
-
-  return {
-    ...review,
-    score: normalizeScoreToFive(score),
-  };
-}
-
-function calculateReviewSummary(content: JournalFeedContent): JournalV2ReviewSummary | undefined {
+function calculateReviewSummary(content: FeedPostContent): JournalV2ReviewSummary | undefined {
   const reviews = Array.isArray(content.reviews)
     ? content.reviews
-        .map(buildReviewFromTransformed)
-        .filter((review): review is Review => review !== undefined)
+        .filter((review) => review.isAssessed && Number.isFinite(review.score))
+        .map((review) => ({
+          ...review,
+          score: review.score > 5 ? review.score / 2 : review.score,
+        }))
     : [];
   if (reviews.length === 0) return undefined;
 
@@ -204,24 +99,19 @@ export function buildJournalV2FeedItemViewModel(
   entry: FeedEntry
 ): JournalV2FeedItemViewModel | undefined {
   const content = entry.content;
-  if (!isPostContent(content) && !isPaperContent(content)) {
-    return undefined;
-  }
+  if (!isJournalContent(content)) return undefined;
 
-  const { journalV2 } = entry;
-  const primaryHref = buildPrimaryHref(content, journalV2);
-  const fundingOpportunityHref = buildFundingOpportunityHref(journalV2);
-  const proposalHref = buildProposalHref(journalV2, content, primaryHref);
-  const registeredReportHref = buildRegisteredReportHref(content, journalV2, primaryHref);
-  const imageUrl = isPaperContent(content)
-    ? content.previewImage || content.previewThumbnail || undefined
-    : content.previewImage || content.fundraise?.postImage || undefined;
+  const primaryHref = buildPrimaryHref(content);
+  const fundingOpportunityHref = buildFundingOpportunityHref(entry.journalPostIds);
+  const proposalHref = buildProposalHref(content, entry.journalPostIds, primaryHref);
+  const registeredReportHref = buildRegisteredReportHref(content, primaryHref);
+  const imageUrl = content.previewImage || content.fundraise?.postImage || undefined;
 
   return {
     title: content.title,
     href: primaryHref,
     imageUrl,
-    currentStageLabel: resolveCurrentStageLabel(content, journalV2),
+    currentStageLabel: buildCurrentStageLabel(content),
     reviewSummary: calculateReviewSummary(content),
     trackerSteps: [
       {

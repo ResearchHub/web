@@ -18,7 +18,7 @@ export default async function RegisteredReportPage({ params }: Readonly<Props>) 
   const resolvedParams = await params;
   const payload = await getRegisteredReportWorkOrNotFound(resolvedParams.id);
   const [metadata, content] = await Promise.all([
-    getRegisteredReportMetadata(payload.work, payload.proposal),
+    getRegisteredReportMetadata(payload.work),
     getRegisteredReportContent(payload.work),
   ]);
 

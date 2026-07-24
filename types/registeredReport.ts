@@ -1,5 +1,11 @@
-import { transformPost, type PeerReview, type Work } from './work';
-import type { Topic } from './topic';
+import {
+  transformPeerReview as transformWorkPeerReview,
+  transformPost,
+  type PeerReview,
+  type Work,
+} from './work';
+import { transformTopic, type Topic } from './topic';
+import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
 
 export type RegisteredReportStage = 'grant' | 'proposal' | 'registered_report';
 
@@ -11,23 +17,8 @@ export interface RegisteredReportTrackerStep {
   title: string | null;
 }
 
-export interface RegisteredReportReviewer {
-  id: number;
-  fullName: string;
-  profileImage: string | null;
-  isVerified: boolean;
-}
-
-export interface RegisteredReportProposalReview {
-  id: number;
-  score: number;
-  isAssessed: boolean;
-  reviewer: RegisteredReportReviewer | null;
-  createdDate: string | null;
-}
-
 export interface RegisteredReportProposalDetails {
-  peerReviews: RegisteredReportProposalReview[];
+  peerReviews: PeerReview[];
   topics: Topic[];
 }
 
@@ -62,6 +53,7 @@ type RawProposalUser = {
   full_name?: string | null;
   profile_image?: string | null;
   is_verified?: boolean;
+  author_profile?: RawProposalUser | null;
 };
 
 type RawProposalReview = {
@@ -138,51 +130,60 @@ const TRACKER_STEPS: RegisteredReportTrackerStep[] = [
 function transformTrackerStep(raw: RawTrackerStep): RegisteredReportTrackerStep | null {
   const defaultStep = TRACKER_STEPS.find((step) => step.stage === raw.stage);
   if (!defaultStep) return null;
+  const postId = normalizeRegisteredReportId(raw.post_id);
+  const exists = raw.exists === true && postId !== null;
 
   return {
     ...defaultStep,
-    exists: Boolean(raw.exists),
-    postId: raw.post_id ?? null,
-    title: raw.title ?? null,
+    exists,
+    postId: exists ? postId : null,
+    title: exists && typeof raw.title === 'string' ? raw.title : null,
   };
 }
 
-function transformReviewer(user?: RawProposalUser | null): RegisteredReportReviewer | null {
-  if (!user || typeof user.id !== 'number' || !Number.isInteger(user.id)) return null;
+function transformProposalReview(raw: RawProposalReview): PeerReview | null {
+  const reviewId = normalizeRegisteredReportId(raw.id);
+  if (
+    raw.is_assessed !== true ||
+    typeof raw.score !== 'number' ||
+    !Number.isFinite(raw.score) ||
+    !raw.created_date ||
+    Number.isNaN(Date.parse(raw.created_date))
+  ) {
+    return null;
+  }
 
-  const name = user.full_name ?? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim();
-  if (!name) return null;
+  const reviewer = raw.created_by;
+  const profile: RawProposalUser = reviewer?.author_profile ?? reviewer ?? {};
+  const profileId = normalizeRegisteredReportId(profile.id) ?? 0;
+  const reviewerId = normalizeRegisteredReportId(reviewer?.id) ?? profileId;
+  if (!reviewId) return null;
 
-  return {
-    id: user.id,
-    fullName: name,
-    profileImage: user.profile_image ?? null,
-    isVerified: Boolean(user.is_verified),
-  };
-}
-
-function transformProposalReview(raw: RawProposalReview): RegisteredReportProposalReview | null {
-  if (typeof raw.id !== 'number' || !Number.isInteger(raw.id)) return null;
-  if (typeof raw.score !== 'number' || !Number.isFinite(raw.score)) return null;
-
-  return {
-    id: raw.id,
-    score: raw.score,
-    isAssessed: Boolean(raw.is_assessed),
-    reviewer: transformReviewer(raw.created_by),
-    createdDate: raw.created_date ?? null,
-  };
+  const displayName =
+    profile.full_name?.trim() ||
+    `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() ||
+    'Anonymous reviewer';
+  const [firstName = 'Anonymous reviewer', ...lastName] = displayName.split(/\s+/);
+  return transformWorkPeerReview({
+    ...raw,
+    id: reviewId,
+    created_by: {
+      id: reviewerId,
+      author_profile: {
+        ...profile,
+        id: profileId,
+        first_name: firstName,
+        last_name: lastName.join(' '),
+      },
+    },
+  });
 }
 
 function transformProposalTopic(raw: RawProposalTopic): Topic | null {
-  if (typeof raw.id !== 'number' || !Number.isInteger(raw.id) || !raw.slug) return null;
+  const id = normalizeRegisteredReportId(raw.id);
+  if (!id || !raw.slug) return null;
 
-  return {
-    id: raw.id,
-    name: raw.name ?? raw.slug,
-    slug: raw.slug,
-    namespace: raw.namespace,
-  };
+  return transformTopic({ ...raw, id, name: raw.name || raw.slug });
 }
 
 function transformProposalDetails(
@@ -193,39 +194,10 @@ function transformProposalDetails(
   return {
     peerReviews: (raw.peer_reviews ?? [])
       .map(transformProposalReview)
-      .filter((review): review is RegisteredReportProposalReview => review !== null),
+      .filter((review): review is PeerReview => review !== null),
     topics: (raw.hubs ?? [])
       .map(transformProposalTopic)
       .filter((topic): topic is Topic => topic !== null),
-  };
-}
-
-export function getAverageProposalPeerReviewScore(
-  proposal: RegisteredReportProposalDetails | null
-): number | undefined {
-  const reviews = proposal?.peerReviews ?? [];
-  if (reviews.length === 0) return undefined;
-
-  return reviews.reduce((total, review) => total + review.score, 0) / reviews.length;
-}
-
-function transformPeerReview(review: RegisteredReportProposalReview): PeerReview | null {
-  if (!review.reviewer) return null;
-
-  return {
-    id: review.id,
-    score: review.score,
-    isAssessed: review.isAssessed,
-    createdDate: review.createdDate ?? '',
-    createdBy: {
-      id: review.reviewer.id,
-      authorProfile: {
-        id: review.reviewer.id,
-        fullName: review.reviewer.fullName,
-        profileImage: review.reviewer.profileImage ?? '',
-        isVerified: review.reviewer.isVerified,
-      },
-    },
   };
 }
 
@@ -264,10 +236,6 @@ export function transformRegisteredReportWorkResponse(
       .map((step) => [step.stage, step])
   );
   const proposal = transformProposalDetails(raw.content_object?.proposal);
-  const reviewScore = getAverageProposalPeerReviewScore(proposal);
-  const peerReviews = (proposal?.peerReviews ?? [])
-    .map(transformPeerReview)
-    .filter((review): review is PeerReview => review !== null);
   const work = transformRegisteredReportWork(raw.work, raw.metrics);
   const doi = work.doi ?? raw.content_object?.doi ?? undefined;
 
@@ -275,10 +243,7 @@ export function transformRegisteredReportWorkResponse(
     work: {
       ...work,
       doi,
-      peerReviews,
-      ...(reviewScore === undefined || !work.metrics
-        ? {}
-        : { metrics: { ...work.metrics, reviewScore } }),
+      peerReviews: proposal?.peerReviews ?? [],
     },
     proposal,
     tracker: TRACKER_STEPS.map((step) => apiSteps.get(step.stage) ?? step),

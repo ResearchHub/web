@@ -6,7 +6,11 @@ import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSideb
 import { RegisteredReportRouteTracker } from '@/components/work/RegisteredReportRouteTracker';
 import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
-import { hasRegisteredReportSourceProposal } from '@/utils/registeredReportRoute';
+import {
+  buildRegisteredReportUrl,
+  getAccessibleRegisteredReportTracker,
+  hasRegisteredReportSourceProposal,
+} from '@/utils/registeredReportRoute';
 import {
   getRegisteredReportMetadata,
   getRegisteredReportWorkOrNotFound,
@@ -31,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildArticleMetadata({
       title: work.title,
       description: previewText || 'View this registered report on ResearchHub.',
-      url: `/report/${id}/${slug}`,
+      url: buildRegisteredReportUrl(work.id, slug),
       image: work.image,
       publishedTime: work.publishedDate || work.createdDate,
       modifiedTime: work.updatedDate,
@@ -47,10 +51,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function RegisteredReportLayout({ params, children }: Readonly<Props>) {
   const { id, slug } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
-  const metadata = await getRegisteredReportMetadata(payload.work, payload.proposal);
+  const metadata = await getRegisteredReportMetadata(payload.work);
   const hasSourceProposal = hasRegisteredReportSourceProposal(payload);
+  const tracker = getAccessibleRegisteredReportTracker(payload);
   const reviewsTabUrl = hasSourceProposal
-    ? `/report/${payload.work.id}/${slug}/reviews`
+    ? `${buildRegisteredReportUrl(payload.work.id, slug)}/reviews`
     : undefined;
 
   return (
@@ -64,7 +69,7 @@ export default async function RegisteredReportLayout({ params, children }: Reado
             reviewsTabUrl={reviewsTabUrl}
             preTitle={
               <RegisteredReportRouteTracker
-                tracker={payload.tracker}
+                tracker={tracker}
                 reportId={payload.work.id}
                 currentStage="registered_report"
               />
@@ -80,7 +85,11 @@ export default async function RegisteredReportLayout({ params, children }: Reado
           />
         }
         rightSidebar={
-          <RegisteredReportSidebar proposal={payload.proposal} reportDoi={payload.work.doi} />
+          <RegisteredReportSidebar
+            proposal={payload.proposal}
+            reportDoi={payload.work.doi}
+            reviewsUrl={reviewsTabUrl}
+          />
         }
       >
         {children}

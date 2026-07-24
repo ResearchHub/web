@@ -11,8 +11,7 @@ export function RegisteredReportDocument({
   content,
 }: Readonly<RegisteredReportDocumentProps>) {
   const contentJson = serializeTipTapJson(work.fullJson);
-  const formattedContent =
-    content || work.formattedHtml || work.fullSrc || work.fullMarkdown || work.previewContent || '';
+  const formattedContent = content || work.previewContent || '';
   const renderContent = () => {
     if (contentJson) return <PostBlockEditor contentJson={contentJson} editable={false} />;
     if (formattedContent) return <PostBlockEditor content={formattedContent} editable={false} />;

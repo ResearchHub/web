@@ -1,6 +1,7 @@
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { generateSlug } from '@/utils/url';
 import { getRegisteredReportWorkOrNotFound } from '@/components/work/registeredReportRouteServer';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
 interface Props {
   params: Promise<{
@@ -10,12 +11,7 @@ interface Props {
 
 export default async function ReportWithoutSlugPage({ params }: Props) {
   const { id } = await params;
-
-  if (!/^\d+$/.exec(id)) {
-    notFound();
-  }
-
   const payload = await getRegisteredReportWorkOrNotFound(id);
-  const path = `/report/${id}/${payload.work.slug || generateSlug(payload.work.title)}`;
-  redirect(path);
+  const slug = payload.work.slug || generateSlug(payload.work.title) || 'registered-report';
+  redirect(buildRegisteredReportUrl(payload.work.id, slug));
 }

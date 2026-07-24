@@ -3,6 +3,7 @@
 import { FileInput, Star } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
 interface RegisteredReportTabsProps {
   reportId: number;
@@ -18,7 +19,7 @@ export function RegisteredReportTabs({
   reviewCount,
 }: Readonly<RegisteredReportTabsProps>) {
   const pathname = usePathname();
-  const reportHref = `/report/${reportId}/${slug}`;
+  const reportHref = buildRegisteredReportUrl(reportId, slug);
   const activeTab = pathname.endsWith('/reviews') ? 'reviews' : 'report';
 
   const tabs = [

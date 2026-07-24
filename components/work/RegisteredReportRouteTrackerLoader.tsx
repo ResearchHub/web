@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { PostService } from '@/services/post.service';
 import type {
   RegisteredReportStage,
   RegisteredReportTrackerPayload,
 } from '@/types/registeredReport';
-import {
-  doesRegisteredReportPayloadMatchRoute,
-  parseRegisteredReportId,
-} from '@/utils/registeredReportRoute';
+import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
 import {
   RegisteredReportRouteTracker,
   RegisteredReportRouteTrackerSkeleton,
@@ -21,6 +17,31 @@ interface RegisteredReportRouteTrackerLoaderProps {
   currentPostId: number;
 }
 
+interface LoadedTracker extends RegisteredReportTrackerPayload {
+  routeKey: string;
+}
+
+async function fetchRegisteredReportTracker(
+  reportId: number,
+  currentStage: RegisteredReportStage,
+  currentPostId: number
+): Promise<RegisteredReportTrackerPayload | null> {
+  const params = new URLSearchParams({
+    rr: reportId.toString(),
+    stage: currentStage,
+    postId: currentPostId.toString(),
+  });
+  const response = await fetch(`/api/registered-report-tracker?${params}`, {
+    cache: 'no-store',
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(`Failed to load the Registered Report tracker (${response.status}).`);
+  }
+
+  return response.json();
+}
+
 export function RegisteredReportRouteTrackerLoader({
   currentStage,
   currentPostId,
@@ -29,9 +50,13 @@ export function RegisteredReportRouteTrackerLoader({
   const router = useRouter();
   const searchParams = useSearchParams();
   const reportIdParam = searchParams.get('rr');
-  const requestedReportId = parseRegisteredReportId(reportIdParam);
-  const [loadedTracker, setLoadedTracker] = useState<RegisteredReportTrackerPayload | null>(null);
-  const reportTracker = loadedTracker?.reportId === requestedReportId ? loadedTracker : null;
+  const requestedReportId = normalizeRegisteredReportId(reportIdParam);
+  const routeKey = requestedReportId
+    ? `${requestedReportId}:${currentStage}:${currentPostId}`
+    : null;
+  const [loadedTracker, setLoadedTracker] = useState<LoadedTracker | null>(null);
+  const [failedRouteKey, setFailedRouteKey] = useState<string | null>(null);
+  const reportTracker = loadedTracker?.routeKey === routeKey ? loadedTracker : null;
 
   useEffect(() => {
     const clearReportId = () => {
@@ -43,37 +68,44 @@ export function RegisteredReportRouteTrackerLoader({
 
     if (!reportIdParam) {
       setLoadedTracker(null);
+      setFailedRouteKey(null);
       return;
     }
 
-    const reportId = parseRegisteredReportId(reportIdParam);
-    if (!reportId) {
+    if (!requestedReportId || !routeKey) {
       clearReportId();
       return;
     }
 
     let isActive = true;
+    setFailedRouteKey(null);
 
-    PostService.getRegisteredReportWork(reportId)
-      .then((payload) => {
+    fetchRegisteredReportTracker(requestedReportId, currentStage, currentPostId)
+      .then((tracker) => {
         if (!isActive) return;
-
-        if (!doesRegisteredReportPayloadMatchRoute({ payload, currentStage, currentPostId })) {
+        if (!tracker) {
           clearReportId();
           return;
         }
-
-        const tracker = { reportId: payload.work.id, tracker: payload.tracker };
-        setLoadedTracker(tracker);
+        setLoadedTracker({ ...tracker, routeKey });
       })
       .catch(() => {
-        if (isActive) clearReportId();
+        if (isActive) setFailedRouteKey(routeKey);
       });
 
     return () => {
       isActive = false;
     };
-  }, [currentPostId, currentStage, pathname, reportIdParam, router, searchParams]);
+  }, [
+    currentPostId,
+    currentStage,
+    pathname,
+    reportIdParam,
+    requestedReportId,
+    routeKey,
+    router,
+    searchParams,
+  ]);
 
   if (reportTracker) {
     return (
@@ -85,5 +117,7 @@ export function RegisteredReportRouteTrackerLoader({
     );
   }
 
-  return requestedReportId ? <RegisteredReportRouteTrackerSkeleton /> : null;
+  return requestedReportId && failedRouteKey !== routeKey ? (
+    <RegisteredReportRouteTrackerSkeleton />
+  ) : null;
 }

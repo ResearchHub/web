@@ -1,7 +1,9 @@
 import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { isRegisteredReportNote } from '@/types/note';
 import { buildWorkUrl } from '@/utils/url';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { cn } from '@/utils/styles';
 
 function StatusDot({ className }: Readonly<{ className?: string }>) {
@@ -11,7 +13,6 @@ function StatusDot({ className }: Readonly<{ className?: string }>) {
 export function PublishedStatusSection() {
   const { currentNote: note, isLoading } = useNotebookContext();
   const articleType = note?.post?.contentType;
-  const documentType = note?.post?.documentType;
   const slug = note?.post?.slug;
   const workId = note?.post?.id;
 
@@ -26,8 +27,8 @@ export function PublishedStatusSection() {
   }
 
   const getWorkPath = () => {
-    if (documentType === 'REGISTERED_REPORT') {
-      return `/report/${workId}/${slug}`;
+    if (isRegisteredReportNote(note) && workId) {
+      return buildRegisteredReportUrl(workId, slug);
     }
 
     const contentType =

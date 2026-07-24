@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { PostService } from '@/services/post.service';
+import { PostService, type ArticleTypeApi } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { ID } from '@/types/root';
 import { TransformedWork } from '@/types/work';
@@ -10,9 +10,8 @@ import {
   UpdatePaperMetadataPayload,
   UpdatePaperAbstractPayload,
 } from '@/services/paper.service';
-import { normalizeRegisteredReportProposalId } from '@/utils/registeredReportPrefill';
 
-export interface PreregistrationPostParams {
+interface UpsertPostParams {
   // Funding related
   budget: string;
   rewardFunders: boolean;
@@ -20,12 +19,12 @@ export interface PreregistrationPostParams {
   topics: string[];
 
   // Document related
-  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
+  articleType: ArticleTypeApi;
   title: string;
-  noteId: ID;
-  proposalId: ID | null;
+  noteId: number;
+  proposalId: number | null;
   renderableText: string;
-  fullJson: unknown;
+  fullJson: string;
   fullSrc: string;
   assignDOI?: boolean;
   authors: number[];
@@ -53,22 +52,19 @@ interface UsePostState {
   error: string | null;
 }
 
-export interface UpsertPostResult extends TransformedWork {
+interface UpsertPostResult extends TransformedWork {
   rawResponse?: any;
   fundraiseId?: ID;
 }
 
-type UpsertPostFn = (
-  postParams: PreregistrationPostParams,
-  postId?: ID
-) => Promise<UpsertPostResult>;
+type UpsertPostFn = (postParams: UpsertPostParams, postId?: ID) => Promise<UpsertPostResult>;
 type UseUpsertPostReturn = [UsePostState, UpsertPostFn];
 type PostPayload = Record<string, unknown>;
 
 const parseCurrencyAmount = (value: string): number =>
   Number.parseFloat(value.replace(/[^0-9.]/g, ''));
 
-const buildBasePayload = (postParams: PreregistrationPostParams): PostPayload => ({
+const buildBasePayload = (postParams: UpsertPostParams): PostPayload => ({
   document_type: postParams.articleType,
   title: postParams.title,
   renderable_text: postParams.renderableText,
@@ -82,7 +78,7 @@ const buildBasePayload = (postParams: PreregistrationPostParams): PostPayload =>
   ...(postParams.editorType ? { editor_type: postParams.editorType } : {}),
 });
 
-const addPreregistrationPayload = (payload: PostPayload, postParams: PreregistrationPostParams) => {
+const addPreregistrationPayload = (payload: PostPayload, postParams: UpsertPostParams) => {
   payload.reward_funders = postParams.rewardFunders;
   payload.nft_supply = postParams.nftSupply;
   payload.fundraise_goal_currency = 'USD';
@@ -99,7 +95,7 @@ const addPreregistrationPayload = (payload: PostPayload, postParams: Preregistra
   }
 };
 
-const addGrantPayload = (payload: PostPayload, postParams: PreregistrationPostParams) => {
+const addGrantPayload = (payload: PostPayload, postParams: UpsertPostParams) => {
   payload.grant_amount = parseCurrencyAmount(postParams.budget);
   payload.grant_currency = 'USD';
   payload.grant_organization = postParams.organization;
@@ -112,15 +108,14 @@ const addGrantPayload = (payload: PostPayload, postParams: PreregistrationPostPa
   }
 };
 
-const buildPostPayload = (postParams: PreregistrationPostParams, postId?: ID) => {
+const buildPostPayload = (postParams: UpsertPostParams, postId?: ID) => {
   const payload = buildBasePayload(postParams);
 
   if (postParams.articleType === 'REGISTERED_REPORT') {
-    const proposalId = normalizeRegisteredReportProposalId(postParams.proposalId);
-    if (!proposalId) {
+    if (!postParams.proposalId) {
       throw new Error('Registered Report publication requires a valid source proposal ID.');
     }
-    payload.proposal_id = proposalId;
+    payload.proposal_id = postParams.proposalId;
   } else {
     payload.assign_doi = postParams.assignDOI ?? false;
   }
@@ -144,7 +139,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const upsertPost = async (
-    postParams: PreregistrationPostParams,
+    postParams: UpsertPostParams,
     postId?: ID
   ): Promise<UpsertPostResult> => {
     setIsLoading(true);
@@ -173,7 +168,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         errorData?.message ||
         errorData?.detail ||
         errorData?.error ||
-        'An error occurred while saving the proposal post';
+        'An error occurred while saving the post';
       setError(errorMsg);
       throw err;
     } finally {
