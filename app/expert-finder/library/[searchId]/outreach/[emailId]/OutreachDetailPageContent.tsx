@@ -10,6 +10,8 @@ import {
   Save,
   ChevronLeft,
   ChevronRight,
+  Copy,
+  ExternalLink,
   MoreVertical,
   Octagon,
 } from 'lucide-react';
@@ -385,6 +387,42 @@ export function OutreachDetailPageContent({
           </div>
         </div>
       </div>
+
+      {email.proposalInviteUrl ? (
+        <Alert variant="info" className="py-3 px-4">
+          <p>Proposal invitation</p>
+          <p className="font-normal mt-1">
+            This email includes an invite link that gives the expert editor access to the proposal
+            note.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 font-normal">
+            <a
+              href={email.proposalInviteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-w-0 items-center gap-1 font-medium underline-offset-2 hover:underline"
+            >
+              <span className="truncate max-w-[320px] sm:!max-w-[480px]">
+                {email.proposalInviteUrl}
+              </span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            </a>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded border border-blue-300 bg-white px-2 py-0.5 text-xs font-medium text-blue-800 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(email.proposalInviteUrl ?? '')
+                  .then(() => toast.success('Invite link copied'))
+                  .catch(() => toast.error('Failed to copy link'));
+              }}
+            >
+              <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Copy link
+            </button>
+          </div>
+        </Alert>
+      ) : null}
 
       <BaseSection>
         <div>

@@ -43,6 +43,7 @@ interface WorkHeaderProps {
   className?: string;
   eyebrow?: ReactNode;
   subtitle?: ReactNode;
+  additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
@@ -64,6 +65,7 @@ export function WorkHeader({
   className,
   eyebrow: eyebrowOverride,
   subtitle: subtitleOverride,
+  additionalMenuItems,
   tabs: tabsOverride,
   primaryAction,
   hideVoteWidget = false,
@@ -217,6 +219,7 @@ export function WorkHeader({
             Share
           </BaseMenuItem>
         </div>
+        {additionalMenuItems}
         {menuItems}
       </BaseMenu>
     </div>

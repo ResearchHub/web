@@ -10,6 +10,8 @@ import {
   transformGeneratedEmail,
   transformSavedTemplate,
   transformInvitedExperts,
+  transformProposalDraft,
+  type ProposalDraft,
   type InvitedExperts,
   type ExpertResult,
   type ExpertSearchCreated,
@@ -116,7 +118,11 @@ export type EmailTemplateKind =
   | 'peer-review'
   | 'publication'
   | 'rfp-outreach'
+  | 'proposal-draft-outreach'
   | 'custom';
+
+/** Purpose that links a completed proposal draft and embeds a note invite link. */
+export const PROPOSAL_DRAFT_OUTREACH_TEMPLATE: EmailTemplateKind = 'proposal-draft-outreach';
 
 // ── Generated emails API ───────────────────────────────────────────────────
 
@@ -138,6 +144,8 @@ export interface GenerateEmailPayload {
   expert_email: string;
   template?: string | null;
   template_id?: number | null;
+  /** Requires template 'proposal-draft-outreach'; the draft must be completed. */
+  proposal_draft_id?: number | null;
 }
 
 export interface CreateDraftEmailPayload {
@@ -324,6 +332,51 @@ export class ExpertFinderService {
       `${this.BASE_PATH}/documents/${unifiedDocumentId}/invited/`
     );
     return transformInvitedExperts(raw);
+  }
+
+  // ── Proposal drafts ──────────────────────────────────────────────────────
+
+  /**
+   * Kick off an AI proposal draft for one expert in a search.
+   * POST /api/research_ai/expert-finder/proposal-drafts/
+   */
+  static async createProposalDraft(searchExpertId: number): Promise<ProposalDraft> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/proposal-drafts/`,
+      { search_expert_id: searchExpertId }
+    );
+    return transformProposalDraft(raw);
+  }
+
+  /**
+   * Fetch the current state of a proposal draft (used for polling).
+   * GET /api/research_ai/expert-finder/proposal-drafts/:draftId/
+   */
+  static async getProposalDraft(draftId: number | string): Promise<ProposalDraft> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/proposal-drafts/${draftId}/`
+    );
+    return transformProposalDraft(raw);
+  }
+
+  /**
+   * Start a proposal draft, attaching to the already-running one if the API
+   * answers 409 with the active draft's id.
+   */
+  static async startProposalDraft(searchExpertId: number): Promise<ProposalDraft> {
+    try {
+      return await this.createProposalDraft(searchExpertId);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        const existingId = Number(
+          (err.errors as Record<string, unknown> | undefined)?.proposal_draft_id
+        );
+        if (Number.isInteger(existingId) && existingId >= 1) {
+          return this.getProposalDraft(existingId);
+        }
+      }
+      throw err;
+    }
   }
 
   // ── Generated emails ─────────────────────────────────────────────────────

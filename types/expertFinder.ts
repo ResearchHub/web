@@ -40,6 +40,73 @@ export interface ExpertEmailedOnOtherDocument {
   searchId: number;
 }
 
+// ── Proposal drafts ──────────────────────────────────
+
+/** ProposalDraft.status (wire values are uppercase). */
+export type ProposalDraftStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+/** ProposalDraft.step — ordered pipeline steps of a draft run. */
+export const PROPOSAL_DRAFT_STEPS = [
+  { value: 'QUEUED', label: 'Queued' },
+  { value: 'BUILDING_PROFILE', label: 'Building expert profile' },
+  { value: 'DRAFTING', label: 'Drafting proposal' },
+  { value: 'JUDGING', label: 'Evaluating draft' },
+  { value: 'REVISING', label: 'Revising draft' },
+  { value: 'VERIFYING', label: 'Verifying' },
+  { value: 'WRITING_NOTE', label: 'Writing note' },
+  { value: 'DONE', label: 'Done' },
+] as const;
+
+export type ProposalDraftStep = (typeof PROPOSAL_DRAFT_STEPS)[number]['value'];
+
+/** AI-generated proposal draft job for one expert in a search. */
+export interface ProposalDraft {
+  id: number;
+  searchExpertId: number;
+  /** Resulting notebook note id; null until the run writes the note. */
+  noteId: number | null;
+  status: ProposalDraftStatus;
+  step: ProposalDraftStep;
+  roundsUsed: number;
+  errorMessage: string;
+  createdDate: string;
+  completedAt: string | null;
+}
+
+export function isProposalDraftActive(draft: ProposalDraft | null | undefined): boolean {
+  return draft != null && (draft.status === 'PENDING' || draft.status === 'PROCESSING');
+}
+
+export function isProposalDraftComplete(draft: ProposalDraft | null | undefined): boolean {
+  return draft?.status === 'COMPLETED' && draft.noteId != null;
+}
+
+/** 1-based position of the draft's current step, for progress display. */
+export function proposalDraftStepProgress(draft: ProposalDraft): {
+  label: string;
+  position: number;
+  total: number;
+} {
+  const index = PROPOSAL_DRAFT_STEPS.findIndex((s) => s.value === draft.step);
+  return {
+    label: index >= 0 ? PROPOSAL_DRAFT_STEPS[index].label : 'Processing',
+    position: index >= 0 ? index + 1 : 1,
+    total: PROPOSAL_DRAFT_STEPS.length,
+  };
+}
+
+export const transformProposalDraft = createTransformer<any, ProposalDraft>((raw) => ({
+  id: raw.id ?? 0,
+  searchExpertId: raw.search_expert ?? 0,
+  noteId: raw.note ?? null,
+  status: raw.status ?? 'PENDING',
+  step: raw.step ?? 'QUEUED',
+  roundsUsed: raw.rounds_used ?? 0,
+  errorMessage: raw.error_message ?? '',
+  createdDate: raw.created_date ?? '',
+  completedAt: raw.completed_at ?? null,
+}));
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   expertId: number | null;
@@ -59,6 +126,10 @@ export interface ExpertResult {
   emailedOnOtherDocuments: ExpertEmailedOnOtherDocument[];
   notes?: string;
   sources?: ExpertSourceLink[] | null;
+  /** SearchExpert row id — used to start proposal drafts. Null if missing from the payload. */
+  searchExpertId: number | null;
+  /** Latest proposal draft for this expert in this search, if any. */
+  proposalDraft: ProposalDraft | null;
 }
 
 export interface ReportUrls {
@@ -168,6 +239,12 @@ function transformExpertSource(raw: string | Record<string, unknown>): ExpertSou
   }
 
   return { url: normalized, text: defaultSourceLabel(normalized, text) };
+}
+
+function parseSearchExpertId(raw: unknown): number | null {
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
 function parseExpertId(raw: any): number | null {
@@ -281,6 +358,8 @@ export function transformExpertResult(raw: any): ExpertResult {
     emailedOnOtherDocuments: transformEmailedOnOtherDocuments(raw.emailed_on_other_documents),
     notes: raw.notes ?? raw.recommendation_notes,
     sources: sources?.length ? sources : null,
+    searchExpertId: parseSearchExpertId(raw.search_expert_id),
+    proposalDraft: raw.proposal_draft ? transformProposalDraft(raw.proposal_draft) : null,
   };
 }
 
@@ -411,6 +490,10 @@ export interface GeneratedEmail {
   channel: OutreachChannel | '';
   /** Expert profile links for outreach CTAs (LinkedIn, X, etc.). */
   sources: ExpertSourceLink[] | null;
+  /** ProposalDraft id this email links to, when generated as a proposal invitation. */
+  proposalDraftId: number | null;
+  /** Invite URL granting the expert editor access to the proposal note, when present. */
+  proposalInviteUrl: string | null;
   bouncedAt: string | null;
   openedAt: string | null;
   openCount: number;
@@ -457,6 +540,11 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
     updatedAt: raw.updated_at ?? '',
     createdBy: transformCreatedBy(raw.created_by),
     listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
+    proposalDraftId: raw.proposal_draft ?? null,
+    proposalInviteUrl:
+      raw.proposal_invite_url != null && String(raw.proposal_invite_url).trim() !== ''
+        ? String(raw.proposal_invite_url).trim()
+        : null,
   };
 });
 
