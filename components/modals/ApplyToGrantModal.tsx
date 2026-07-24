@@ -11,7 +11,6 @@ import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
 import { NoteService } from '@/services/note.service';
 import { setPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { useUser } from '@/contexts/UserContext';
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import type { GrantApplicationVisibility } from '@/types/grant';
@@ -63,7 +62,6 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   const [draftNewSelected, setDraftNewSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
-  const { selectedOrg } = useOrganizationContext();
   const router = useRouter();
 
   const selectedDraftNote = draftNotes.find((n) => n.id.toString() === selectedDraftNoteId);
@@ -121,17 +119,17 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         fetchDraftNotes();
       }
     }
-  }, [isOpen, user?.id, selectedOrg?.slug]);
+  }, [isOpen, user?.id]);
 
   const fetchDraftNotes = async () => {
-    if (!user?.id || !selectedOrg?.slug) {
+    if (!user?.id) {
       setDraftNotes([]);
       return;
     }
 
     setLoading(true);
     try {
-      const response = await NoteService.getOrganizationNotes(selectedOrg.slug, {
+      const response = await NoteService.getAccessibleNotes({
         status: 'DRAFT',
         documentType: 'PREREGISTRATION',
       });
