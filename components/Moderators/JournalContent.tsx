@@ -40,6 +40,18 @@ function isModeratorAccessError(error: unknown): boolean {
   );
 }
 
+function buildDraftFailureMessage(error: unknown, draftNoteId?: number): string {
+  if (isModeratorAccessError(error)) {
+    return getErrorMessage(error, 'Moderator access is required for this workflow.');
+  }
+
+  if (draftNoteId) {
+    return 'The draft was created, but could not be opened. Please try again.';
+  }
+
+  return getErrorMessage(error, 'Failed to create the Registered Report draft.');
+}
+
 function LoadingCandidates() {
   return (
     <div className="space-y-4">
@@ -129,14 +141,12 @@ function CandidateList({
             showActions={false}
             showHeader={false}
             footer={
-              <div
-                className="flex items-center justify-end border-t border-gray-100 bg-gray-50 px-3 py-1.5"
-                onKeyDown={(event) => event.stopPropagation()}
-              >
+              <div className="flex items-center justify-end border-t border-gray-100 bg-gray-50 px-3 py-1.5">
                 <Button
                   variant="dark"
                   size="sm"
                   onClick={() => onOpenOrCreateDraft(proposalId)}
+                  onKeyDown={(event) => event.stopPropagation()}
                   disabled={draftOperation?.isProcessing === true}
                   className="gap-1"
                 >
@@ -303,6 +313,59 @@ export function JournalContent() {
     await loadCandidates(nextPage, false);
   };
 
+  const findOrCreateDraftNote = async (proposalId: number, noteId?: number) => {
+    if (noteId) return noteId;
+
+    const createdNoteId = await RegisteredReportModerationService.createDraft(proposalId);
+    if (!isMountedRef.current) return undefined;
+
+    setDraftOperation({ proposalId, noteId: createdNoteId, isProcessing: true });
+    return createdNoteId;
+  };
+
+  const openDraftNote = async (proposalId: number, noteId: number) => {
+    const note = await NoteService.getNote(noteId.toString());
+    if (!isMountedRef.current) return;
+
+    if (
+      normalizeRegisteredReportId(note.id) !== noteId ||
+      normalizeRegisteredReportId(note.proposalId) !== proposalId ||
+      !note.organization?.slug
+    ) {
+      throw new Error('The Registered Report draft response did not match the created note.');
+    }
+
+    const organization =
+      organizations.find(({ id }) => id === note.organization.id) ?? note.organization;
+    setSelectedOrg(organization);
+    setEntries((currentEntries) =>
+      currentEntries.filter((entry) => getProposal(entry)?.id !== proposalId)
+    );
+    router.replace(`/notebook/${organization.slug}/${noteId}`);
+  };
+
+  const handleDraftFailure = async (error: unknown, proposalId: number, draftNoteId?: number) => {
+    if (!isMountedRef.current) return;
+
+    const accessDenied = isModeratorAccessError(error);
+    const message = buildDraftFailureMessage(error, draftNoteId);
+
+    if (accessDenied) {
+      setAccessError(message);
+    } else {
+      toast.error(message);
+    }
+
+    if (!draftNoteId && !accessDenied) {
+      await refreshCandidates();
+    }
+
+    isDraftOperationRef.current = false;
+    setDraftOperation(
+      draftNoteId ? { proposalId, noteId: draftNoteId, isProcessing: false } : null
+    );
+  };
+
   const openOrCreateDraft = async (proposalId: number) => {
     if (isDraftOperationRef.current) return;
 
@@ -317,56 +380,12 @@ export function JournalContent() {
     setDraftOperation({ proposalId, noteId: draftNoteId, isProcessing: true });
 
     try {
-      if (!draftNoteId) {
-        const createdNoteId = await RegisteredReportModerationService.createDraft(proposalId);
-        if (!isMountedRef.current) return;
+      draftNoteId = await findOrCreateDraftNote(proposalId, draftNoteId);
+      if (!draftNoteId) return;
 
-        draftNoteId = createdNoteId;
-        setDraftOperation({ proposalId, noteId: createdNoteId, isProcessing: true });
-      }
-
-      const note = await NoteService.getNote(draftNoteId.toString());
-      if (!isMountedRef.current) return;
-
-      if (
-        normalizeRegisteredReportId(note.id) !== draftNoteId ||
-        normalizeRegisteredReportId(note.proposalId) !== proposalId ||
-        !note.organization?.slug
-      ) {
-        throw new Error('The Registered Report draft response did not match the created note.');
-      }
-
-      const organization =
-        organizations.find(({ id }) => id === note.organization.id) ?? note.organization;
-      setSelectedOrg(organization);
-      setEntries((currentEntries) =>
-        currentEntries.filter((entry) => getProposal(entry)?.id !== proposalId)
-      );
-      router.replace(`/notebook/${organization.slug}/${draftNoteId}`);
+      await openDraftNote(proposalId, draftNoteId);
     } catch (error) {
-      if (!isMountedRef.current) return;
-
-      const accessDenied = isModeratorAccessError(error);
-      const message = accessDenied
-        ? getErrorMessage(error, 'Moderator access is required for this workflow.')
-        : draftNoteId
-          ? 'The draft was created, but could not be opened. Please try again.'
-          : getErrorMessage(error, 'Failed to create the Registered Report draft.');
-
-      if (accessDenied) {
-        setAccessError(message);
-      } else {
-        toast.error(message);
-      }
-
-      if (!draftNoteId && !accessDenied) {
-        await refreshCandidates();
-      }
-
-      isDraftOperationRef.current = false;
-      setDraftOperation(
-        draftNoteId ? { proposalId, noteId: draftNoteId, isProcessing: false } : null
-      );
+      await handleDraftFailure(error, proposalId, draftNoteId);
     }
   };
 

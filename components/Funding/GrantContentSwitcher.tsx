@@ -7,9 +7,9 @@ import { GrantDetailsInline } from '@/components/Funding/GrantDetailsInline';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
 
 interface GrantContentSwitcherProps {
-  children: ReactNode;
-  content?: string;
-  imageUrl?: string;
+  readonly children: ReactNode;
+  readonly content?: string;
+  readonly imageUrl?: string;
 }
 
 export function GrantContentSwitcher({ children, content, imageUrl }: GrantContentSwitcherProps) {
