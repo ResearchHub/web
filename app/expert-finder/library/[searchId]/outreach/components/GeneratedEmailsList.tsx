@@ -27,10 +27,10 @@ import { isGeneratedEmailDraftLike } from '@/app/expert-finder/lib/generatedEmai
 
 const DEFAULT_EMPTY_MESSAGE = (
   <>
-    <p className="text-gray-600 mb-2">No generated messages yet</p>
+    <p className="text-gray-600 mb-2">No outreach yet</p>
     <p className="text-sm text-gray-500">
-      Generate outreach messages from a search result (Library → open a search → select experts →
-      Generate emails).
+      Generate outreach from a search result (Library → open a search → select experts → Generate
+      outreach).
     </p>
   </>
 );
@@ -207,7 +207,7 @@ export function GeneratedEmailsList({
     <>
       <div className="mb-4 space-y-2">
         <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-          Generated messages ({pagination.total})
+          Generated outreach ({pagination.total})
         </h2>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">

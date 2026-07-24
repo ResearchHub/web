@@ -11,6 +11,7 @@ import {
 } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
+import { getOutreachChannelLabel } from '@/app/expert-finder/lib/outreachChannels';
 
 const SUBJECT_TRUNCATE_LENGTH = 50;
 
@@ -40,6 +41,7 @@ export function OutreachMobileCard({
   const templateLabel = getTemplateDisplayLabel(email.template);
   const templateDescription = getTemplateDescription(email.template);
   const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
+  const channelLabel = email.status === 'sent' ? getOutreachChannelLabel(email.channel) : null;
   const createdByName = email.createdBy?.author?.fullName;
 
   const selectTrailing =
@@ -68,6 +70,11 @@ export function OutreachMobileCard({
         <Badge variant={statusPresentation.variant} size="sm">
           {statusPresentation.label}
         </Badge>
+        {channelLabel ? (
+          <Badge variant="default" size="sm">
+            via {channelLabel}
+          </Badge>
+        ) : null}
         {templateDescription ? (
           <Tooltip content={templateDescription} width="w-72" position="top">
             <span className="text-xs text-gray-500 truncate max-w-[140px] cursor-help underline decoration-dotted decoration-gray-400 underline-offset-1">

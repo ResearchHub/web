@@ -382,6 +382,19 @@ function transformGeneratedEmailListNavigation(raw: any): GeneratedEmailListNavi
   return { total, position, previousId, nextId };
 }
 
+export type OutreachChannel = 'email' | 'linkedin' | 'x' | 'other';
+
+export const OUTREACH_CHANNEL_VALUES = ['email', 'linkedin', 'x', 'other'] as const;
+
+export function parseOutreachChannel(raw: unknown): OutreachChannel | '' {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  return (OUTREACH_CHANNEL_VALUES as readonly string[]).includes(value)
+    ? (value as OutreachChannel)
+    : '';
+}
+
 export interface GeneratedEmail {
   id: number;
   expertSearch: number | null;
@@ -395,6 +408,7 @@ export interface GeneratedEmail {
   template: string | null;
   status: string;
   notes: string;
+  channel: OutreachChannel | '';
   /** Expert profile links for outreach CTAs (LinkedIn, X, etc.). */
   sources: ExpertSourceLink[] | null;
   bouncedAt: string | null;
@@ -434,6 +448,7 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
     template: raw.template ?? '',
     status: raw.status ?? 'draft',
     notes: raw.notes ?? '',
+    channel: parseOutreachChannel(raw.channel),
     sources: sources?.length ? sources : null,
     bouncedAt: raw.bounced_at ?? null,
     openedAt: raw.opened_at ?? null,

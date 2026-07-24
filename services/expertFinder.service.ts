@@ -18,6 +18,7 @@ import {
   type ExpertSearchListResponse,
   type GeneratedEmail,
   type GeneratedEmailListResponse,
+  type OutreachChannel,
   type SavedTemplate,
   type SavedTemplateListResponse,
 } from '@/types/expertFinder';
@@ -151,6 +152,7 @@ export interface CreateDraftEmailPayload {
   template?: string;
   status?: GeneratedEmailStatus;
   notes?: string;
+  channel?: OutreachChannel | '';
 }
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;

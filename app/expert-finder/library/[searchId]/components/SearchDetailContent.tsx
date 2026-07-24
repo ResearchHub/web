@@ -198,7 +198,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               },
               {
                 id: TAB_OUTREACH,
-                label: 'Messaging',
+                label: 'Outreach',
                 href: outreachTabHref,
               },
             ]}
@@ -214,8 +214,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                 getDetailHref={(e) => `/expert-finder/library/${searchId}/outreach/${e.id}`}
                 emptyMessage={
                   <p className="text-gray-600">
-                    No generated emails for this search yet. Use the Expert results tab to select
-                    experts and generate emails.
+                    No outreach for this search yet. Use the Expert results tab to select experts
+                    and generate outreach.
                   </p>
                 }
               />
@@ -266,7 +266,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       disabled={selectedIndices.size === 0}
                     >
                       <Mail className="h-4 w-4" aria-hidden />
-                      Generate emails
+                      Generate outreach
                     </Button>
                     <SearchActionsMenu
                       reportPdfUrl={searchDetail.reportPdfUrl}

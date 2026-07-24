@@ -43,9 +43,9 @@ export function OutreachChannelActions({
     if (emailBody.trim()) {
       const ok = await copyOutreachBodyToClipboard(emailBody);
       if (ok) {
-        toast.success('Message body copied');
+        toast.success('Outreach body copied');
       } else {
-        toast.error('Could not copy message body');
+        toast.error('Could not copy outreach body');
       }
     }
     next();
@@ -65,9 +65,9 @@ export function OutreachChannelActions({
       if (emailBody.trim()) {
         const ok = await copyOutreachBodyToClipboard(emailBody);
         if (ok) {
-          toast.success('Message body copied');
+          toast.success('Outreach body copied');
         } else {
-          toast.error('Could not copy message body');
+          toast.error('Could not copy outreach body');
         }
       }
       if (win) {

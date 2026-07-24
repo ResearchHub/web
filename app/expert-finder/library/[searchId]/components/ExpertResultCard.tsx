@@ -106,7 +106,6 @@ export function ExpertResultCard({
                       key={`${src.url}-${i}`}
                       content={label}
                       position="top"
-                      width="w-72"
                       className="text-left"
                       wrapperClassName="inline-flex shrink-0 items-center"
                     >
@@ -222,7 +221,7 @@ export function ExpertResultCard({
 
         {emailedForCurrentDocument ? (
           <Alert variant="warning" className="py-2.5 px-3">
-            Emailed for this RFP
+            Outreach sent for this RFP
             {emailedForCurrentDocument.searchId > 0 &&
             String(emailedForCurrentDocument.searchId) !== searchId ? (
               <>
@@ -247,8 +246,8 @@ export function ExpertResultCard({
             <div className="space-y-1">
               <p>
                 {emailedOnOtherDocuments.length === 1
-                  ? 'Emailed on another document'
-                  : 'Emailed on other documents'}
+                  ? 'Outreach on another document'
+                  : 'Outreach on other documents'}
               </p>
               <ul className="space-y-1 font-normal">
                 {emailedOnOtherDocuments.map((entry) => {
@@ -298,7 +297,7 @@ export function ExpertResultCard({
             onClick={() => onGenerateEmail(expert)}
           >
             <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Generate email
+            Generate outreach
           </Button>
         )}
         {email && !onGenerateEmail && (

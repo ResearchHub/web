@@ -6,10 +6,17 @@ import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
+import { getOutreachChannelLabel } from '@/app/expert-finder/lib/outreachChannels';
 
 function statusCell(email: GeneratedEmail) {
   const { label, variant } = getGeneratedEmailStatusPresentation(email.status, email.openCount);
-  return <Badge variant={variant}>{label}</Badge>;
+  const channelLabel = email.status === 'sent' ? getOutreachChannelLabel(email.channel) : null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Badge variant={variant}>{label}</Badge>
+      {channelLabel ? <Badge variant="default">via {channelLabel}</Badge> : null}
+    </div>
+  );
 }
 
 const SUBJECT_TRUNCATE_LENGTH = 50;

@@ -120,7 +120,7 @@ export function GenerateEmailProgressModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={isComplete ? 'Emails Generated' : 'Generating Emails'}
+      title={isComplete ? 'Outreach Generated' : 'Generating Outreach'}
       size="lg"
       showCloseButton={true}
     >
@@ -128,10 +128,10 @@ export function GenerateEmailProgressModal({
         <>
           <p className="text-sm text-gray-600 mb-4">
             {successCount > 0 && errorCount === 0
-              ? `All ${successCount} email${successCount === 1 ? '' : 's'} generated successfully.`
+              ? `All ${successCount} draft${successCount === 1 ? '' : 's'} generated successfully.`
               : successCount > 0 && errorCount > 0
-                ? `${successCount} email${successCount === 1 ? '' : 's'} generated. ${errorCount} failed.`
-                : `Generation finished. ${errorCount} email${errorCount === 1 ? '' : 's'} failed.`}
+                ? `${successCount} draft${successCount === 1 ? '' : 's'} generated. ${errorCount} failed.`
+                : `Generation finished. ${errorCount} draft${errorCount === 1 ? '' : 's'} failed.`}
           </p>
 
           <ul className="space-y-2 max-h-48 overflow-y-auto mb-4">
@@ -163,7 +163,7 @@ export function GenerateEmailProgressModal({
                 className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 onClick={onClose}
               >
-                Go to Messaging
+                Go to Outreach
               </Link>
             )}
           </div>
@@ -171,7 +171,7 @@ export function GenerateEmailProgressModal({
       ) : (
         <>
           <p className="text-sm text-gray-600 mb-4">
-            Please wait while emails are being generated. Do not close this window.
+            Please wait while outreach drafts are being generated. Do not close this window.
           </p>
 
           <div className="mb-4">
@@ -213,7 +213,7 @@ export function GenerateEmailProgressModal({
           </ul>
 
           <p className="text-xs text-gray-500 mt-4">
-            Generating personalized emails... This may take a few minutes.
+            Generating personalized outreach... This may take a few minutes.
           </p>
         </>
       )}

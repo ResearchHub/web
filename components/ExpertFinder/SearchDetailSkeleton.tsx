@@ -10,7 +10,7 @@ import { useScreenSize } from '@/hooks/useScreenSize';
 import { cn } from '@/utils/styles';
 
 /** Keep in sync with OutreachTable columns (skeleton-only; avoid importing the table module). */
-const MESSAGING_SKELETON_COLUMNS: SortableColumn[] = [
+const OUTREACH_SKELETON_COLUMNS: SortableColumn[] = [
   { key: 'subject', label: 'Subject', sortable: false },
   { key: 'expertName', label: 'Expert', sortable: false },
   { key: 'status', label: 'Status', sortable: false },
@@ -116,7 +116,7 @@ function ExpertResultsTabSkeleton() {
   );
 }
 
-function MessagingTabSkeleton() {
+function OutreachTabSkeleton() {
   const { mdAndUp } = useScreenSize();
   return (
     <section>
@@ -130,7 +130,7 @@ function MessagingTabSkeleton() {
       <div className="p-4">
         {mdAndUp ? (
           <TableSkeleton
-            columns={MESSAGING_SKELETON_COLUMNS}
+            columns={OUTREACH_SKELETON_COLUMNS}
             rowCount={EXPERT_FINDER_LIST_PAGE_SIZE}
           />
         ) : (
@@ -142,7 +142,7 @@ function MessagingTabSkeleton() {
 }
 
 export interface SearchDetailSkeletonProps {
-  /** Which tab content to skeleton — matches `?tab=` so Messaging does not flash Expert results. */
+  /** Which tab content to skeleton — matches `?tab=` so Outreach does not flash Expert results. */
   activeTab?: typeof TAB_EXPERT_RESULTS | typeof TAB_OUTREACH;
 }
 
@@ -162,6 +162,6 @@ export const SearchDetailSkeleton: FC<SearchDetailSkeletonProps> = ({
 
     <SkeletonTabs activeTab={activeTab} />
 
-    {activeTab === TAB_OUTREACH ? <MessagingTabSkeleton /> : <ExpertResultsTabSkeleton />}
+    {activeTab === TAB_OUTREACH ? <OutreachTabSkeleton /> : <ExpertResultsTabSkeleton />}
   </div>
 );
