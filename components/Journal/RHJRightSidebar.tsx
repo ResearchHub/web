@@ -53,7 +53,7 @@ export function AboutTheJournal() {
 
 export function RHJRightSidebar({
   showBanner = true,
-  showAbout = true,
+  showAbout = false,
 }: Readonly<RHJRightSidebarProps>) {
   const displayEditors = editors.filter((editor) => editor.authorId !== null);
 
