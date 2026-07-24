@@ -331,9 +331,8 @@ function CommentFeedContent({
       )}
 
       <div className="comment-list-container">
-        {loading ? (
-          <CommentLoader count={3} commentType={commentType} />
-        ) : shouldShowEmptyState ? (
+        {loading && <CommentLoader count={3} commentType={commentType} />}
+        {!loading && shouldShowEmptyState && (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
@@ -341,7 +340,8 @@ function CommentFeedContent({
             work={work}
             readOnly={readOnly}
           />
-        ) : (
+        )}
+        {!loading && !shouldShowEmptyState && (
           <>
             <CommentList
               commentType={commentType}
