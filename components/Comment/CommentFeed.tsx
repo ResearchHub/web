@@ -37,6 +37,7 @@ interface CommentFeedProps {
   work?: Work;
   workAuthors?: Work['authors'];
   belowEditor?: React.ReactNode;
+  onlyAssessedReviews?: boolean;
 }
 
 function CommentFeed({
@@ -53,6 +54,7 @@ function CommentFeed({
   work,
   workAuthors,
   belowEditor,
+  onlyAssessedReviews,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -100,6 +102,7 @@ function CommentFeed({
           work={work}
           workAuthors={workAuthors}
           belowEditor={belowEditor}
+          onlyAssessedReviews={onlyAssessedReviews}
         />
       </div>
       {!readOnly && canCreateBounty && (
@@ -128,6 +131,7 @@ function CommentFeedContent({
   work,
   workAuthors,
   belowEditor,
+  onlyAssessedReviews,
 }: Omit<CommentFeedProps, 'documentId'> & {
   onCreateBounty: () => void;
   canCreateBounty?: boolean;
@@ -143,6 +147,10 @@ function CommentFeedContent({
   }, [commentType, debug]);
 
   const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
+  const displayedComments = onlyAssessedReviews
+    ? filteredComments.filter((comment) => comment.isAssessed)
+    : filteredComments;
+  const hasMoreComments = filteredComments.length < count;
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -324,7 +332,7 @@ function CommentFeedContent({
       <div className="comment-list-container">
         {loading ? (
           <CommentLoader count={3} commentType={commentType} />
-        ) : filteredComments.length === 0 ? (
+        ) : displayedComments.length === 0 && !hasMoreComments ? (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
@@ -336,13 +344,13 @@ function CommentFeedContent({
           <>
             <CommentList
               commentType={commentType}
-              comments={filteredComments}
+              comments={displayedComments}
               isRootList={true}
               contentType={contentType}
               readOnly={readOnly}
             />
 
-            {filteredComments.length < count && (
+            {hasMoreComments && (
               <div className="flex justify-center mt-4">
                 <Button
                   variant="outlined"

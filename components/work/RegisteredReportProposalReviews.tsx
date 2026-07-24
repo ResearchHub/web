@@ -32,6 +32,7 @@ export function RegisteredReportProposalReviews({
         belowEditor={<ReviewStatusBanner bounties={metadata?.bounties ?? []} />}
         work={proposal}
         readOnly
+        onlyAssessedReviews
       />
     </div>
   );

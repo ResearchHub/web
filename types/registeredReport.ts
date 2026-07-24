@@ -144,6 +144,7 @@ function transformTrackerStep(raw: RawTrackerStep): RegisteredReportTrackerStep 
 function transformProposalReview(raw: RawProposalReview): PeerReview | null {
   const reviewId = normalizeRegisteredReportId(raw.id);
   if (
+    raw.is_assessed !== true ||
     typeof raw.score !== 'number' ||
     !Number.isFinite(raw.score) ||
     !raw.created_date ||
