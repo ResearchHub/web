@@ -151,6 +151,7 @@ function CommentFeedContent({
     ? filteredComments.filter((comment) => comment.isAssessed)
     : filteredComments;
   const hasMoreComments = filteredComments.length < count;
+  const shouldShowEmptyState = displayedComments.length === 0 && !hasMoreComments;
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -332,7 +333,7 @@ function CommentFeedContent({
       <div className="comment-list-container">
         {loading ? (
           <CommentLoader count={3} commentType={commentType} />
-        ) : displayedComments.length === 0 && !hasMoreComments ? (
+        ) : shouldShowEmptyState ? (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
