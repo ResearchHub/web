@@ -4,7 +4,7 @@ import { createTransformer } from './transformer';
 import type { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 
 export interface CreatedByInfo {
@@ -201,21 +201,44 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function defaultSourceLabel(url: string, text: string): string {
+  if (text) return text;
+  if (isLinkedInUrl(url)) return 'LinkedIn';
+  if (isXUrl(url)) return 'X';
+  try {
+    return new URL(url).hostname.replace(/^www\./, '') || 'Source';
+  } catch {
+    return 'Source';
+  }
+}
+
 function transformExpertSource(raw: string | Record<string, unknown>): ExpertSourceLink | null {
   if (typeof raw === 'string') {
-    const url = raw.trim();
-    if (!url) return null;
-    try {
-      const host = new URL(url).hostname.replace(/^www\./, '');
-      return { url, text: host || 'Source' };
-    } catch {
-      return { url, text: 'Source' };
-    }
+    const normalized = ensureAbsoluteHttpUrl(raw);
+    if (!normalized) return null;
+    return { url: normalized, text: defaultSourceLabel(normalized, '') };
   }
-  const url = String(raw?.url ?? '').trim();
-  if (!url) return null;
-  const text = String(raw?.text ?? '').trim() || 'Source';
-  return { url, text };
+
+  const obj = raw as Record<string, unknown>;
+  const rawUrl = String(obj.url ?? obj.href ?? obj.link ?? obj.profile_url ?? '').trim();
+  const normalized = ensureAbsoluteHttpUrl(rawUrl);
+  if (!normalized) return null;
+
+  const typeHint = String(obj.type ?? obj.network ?? obj.platform ?? '')
+    .trim()
+    .toLowerCase();
+  const rawText = String(obj.text ?? obj.title ?? obj.label ?? obj.name ?? '').trim();
+  let text = rawText;
+  if (!text && (typeHint === 'linkedin' || typeHint.includes('linkedin'))) {
+    text = 'LinkedIn';
+  } else if (
+    !text &&
+    (typeHint === 'x' || typeHint === 'twitter' || typeHint.includes('twitter'))
+  ) {
+    text = 'X';
+  }
+
+  return { url: normalized, text: defaultSourceLabel(normalized, text) };
 }
 
 function parseSearchExpertId(raw: unknown): number | null {
@@ -438,6 +461,19 @@ function transformGeneratedEmailListNavigation(raw: any): GeneratedEmailListNavi
   return { total, position, previousId, nextId };
 }
 
+export type OutreachChannel = 'email' | 'linkedin' | 'x' | 'other';
+
+export const OUTREACH_CHANNEL_VALUES = ['email', 'linkedin', 'x', 'other'] as const;
+
+export function parseOutreachChannel(raw: unknown): OutreachChannel | '' {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  return (OUTREACH_CHANNEL_VALUES as readonly string[]).includes(value)
+    ? (value as OutreachChannel)
+    : '';
+}
+
 export interface GeneratedEmail {
   id: number;
   expertSearch: number | null;
@@ -451,6 +487,9 @@ export interface GeneratedEmail {
   template: string | null;
   status: string;
   notes: string;
+  channel: OutreachChannel | '';
+  /** Expert profile links for outreach CTAs (LinkedIn, X, etc.). */
+  sources: ExpertSourceLink[] | null;
   /** ProposalDraft id this email links to, when generated as a proposal invitation. */
   proposalDraftId: number | null;
   /** Invite URL granting the expert editor access to the proposal note, when present. */
@@ -471,32 +510,43 @@ export interface GeneratedEmailListResponse {
   offset: number;
 }
 
-export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => ({
-  id: raw.id ?? 0,
-  expertSearch: raw.expert_search ?? null,
-  expertName: raw.expert_name ?? '',
-  expertTitle: raw.expert_title ?? '',
-  expertAffiliation: raw.expert_affiliation ?? '',
-  expertEmail: raw.expert_email ?? '',
-  expertise: raw.expertise ?? '',
-  emailSubject: raw.email_subject ?? '',
-  emailBody: raw.email_body ?? '',
-  template: raw.template ?? '',
-  status: raw.status ?? 'draft',
-  notes: raw.notes ?? '',
-  proposalDraftId: raw.proposal_draft ?? null,
-  proposalInviteUrl:
-    raw.proposal_invite_url != null && String(raw.proposal_invite_url).trim() !== ''
-      ? String(raw.proposal_invite_url).trim()
-      : null,
-  bouncedAt: raw.bounced_at ?? null,
-  openedAt: raw.opened_at ?? null,
-  openCount: raw.open_count ?? 0,
-  createdAt: raw.created_at ?? '',
-  updatedAt: raw.updated_at ?? '',
-  createdBy: transformCreatedBy(raw.created_by),
-  listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
-}));
+export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => {
+  const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
+  const sources = sourcesRaw
+    ? sourcesRaw
+        .map((item: string | Record<string, unknown>) => transformExpertSource(item))
+        .filter((s: ExpertSourceLink | null): s is ExpertSourceLink => s != null)
+    : null;
+
+  return {
+    id: raw.id ?? 0,
+    expertSearch: raw.expert_search ?? null,
+    expertName: raw.expert_name ?? '',
+    expertTitle: raw.expert_title ?? '',
+    expertAffiliation: raw.expert_affiliation ?? '',
+    expertEmail: raw.expert_email ?? '',
+    expertise: raw.expertise ?? '',
+    emailSubject: raw.email_subject ?? '',
+    emailBody: raw.email_body ?? '',
+    template: raw.template ?? '',
+    status: raw.status ?? 'draft',
+    notes: raw.notes ?? '',
+    channel: parseOutreachChannel(raw.channel),
+    sources: sources?.length ? sources : null,
+    bouncedAt: raw.bounced_at ?? null,
+    openedAt: raw.opened_at ?? null,
+    openCount: raw.open_count ?? 0,
+    createdAt: raw.created_at ?? '',
+    updatedAt: raw.updated_at ?? '',
+    createdBy: transformCreatedBy(raw.created_by),
+    listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
+    proposalDraftId: raw.proposal_draft ?? null,
+    proposalInviteUrl:
+      raw.proposal_invite_url != null && String(raw.proposal_invite_url).trim() !== ''
+        ? String(raw.proposal_invite_url).trim()
+        : null,
+  };
+});
 
 // ── Document invited experts (app-level, camelCase) ───────────────────────────
 

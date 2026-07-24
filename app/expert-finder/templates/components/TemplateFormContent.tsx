@@ -176,7 +176,7 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
         />
 
         <BaseSection>
-          <h3 className="text-lg font-semibold text-gray-900">Email Subject</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Subject</h3>
           <p className="text-sm text-gray-500">
             Write the subject line and insert placeholders if needed (e.g.{' '}
             <code className="text-xs">{'{{user.*}}'}</code>,{' '}
@@ -194,9 +194,9 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
         </BaseSection>
 
         <BaseSection>
-          <h3 className="text-lg font-semibold text-gray-900">Email Body</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Body</h3>
           <p className="text-sm text-gray-500">
-            Write the email body and insert placeholders where personalized values should appear.
+            Write the outreach body and insert placeholders where personalized values should appear.
           </p>
           <TemplateVariableEditor
             value={form.emailBody}

@@ -6,10 +6,17 @@ import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
+import { getOutreachChannelLabel } from '@/app/expert-finder/lib/outreachChannels';
 
 function statusCell(email: GeneratedEmail) {
   const { label, variant } = getGeneratedEmailStatusPresentation(email.status, email.openCount);
-  return <Badge variant={variant}>{label}</Badge>;
+  const channelLabel = email.status === 'sent' ? getOutreachChannelLabel(email.channel) : null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Badge variant={variant}>{label}</Badge>
+      {channelLabel ? <Badge variant="default">via {channelLabel}</Badge> : null}
+    </div>
+  );
 }
 
 const SUBJECT_TRUNCATE_LENGTH = 50;
@@ -20,13 +27,15 @@ function truncate(s: string, max: number): string {
   return t.length <= max ? t : `${t.slice(0, max)}…`;
 }
 
-const BASE_COLUMNS: SortableColumn[] = [
+const OUTREACH_TABLE_COLUMNS: SortableColumn[] = [
   { key: 'subject', label: 'Subject', sortable: false },
   { key: 'expertName', label: 'Expert', sortable: false },
   { key: 'status', label: 'Status', sortable: false },
   { key: 'createdBy', label: 'Created By', sortable: false },
   { key: 'createdAt', label: 'Created Date', sortable: false },
 ];
+
+export { OUTREACH_TABLE_COLUMNS };
 
 interface OutreachTableProps {
   emails: GeneratedEmail[];
@@ -78,16 +87,15 @@ export function OutreachTable({
                 type="checkbox"
                 checked={pageIds.length > 0 ? allSelected : false}
                 onChange={handleSelectAll}
-                onClick={(e) => e.stopPropagation()}
                 className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                aria-label="Select all on page"
+                aria-label="Select all on this page"
               />
             ),
             sortable: false,
           },
-          ...BASE_COLUMNS,
+          ...OUTREACH_TABLE_COLUMNS,
         ]
-      : BASE_COLUMNS;
+      : OUTREACH_TABLE_COLUMNS;
 
   const data = emails.map((email) => {
     const subjectText = truncate(email.emailSubject, SUBJECT_TRUNCATE_LENGTH);
@@ -135,8 +143,3 @@ export function OutreachTable({
     />
   );
 }
-
-export const OUTREACH_TABLE_COLUMNS = [
-  { key: 'select', label: '', sortable: false },
-  ...BASE_COLUMNS,
-];

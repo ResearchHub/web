@@ -1,30 +1,42 @@
 'use client';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGoogle, faLinkedin, faOrcid } from '@fortawesome/free-brands-svg-icons';
+import { faGoogle, faLinkedin, faOrcid, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { ExternalLink, GraduationCap } from 'lucide-react';
 import type { ExpertSourceLink } from '@/types/expertFinder';
+import { ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
 
-export type ExpertSourceIconType = 'orcid' | 'edu' | 'linkedin' | 'google-scholar' | 'generic';
+export type ExpertSourceIconType =
+  | 'orcid'
+  | 'edu'
+  | 'linkedin'
+  | 'x'
+  | 'google-scholar'
+  | 'generic';
 
 const ICON_CLASS = 'h-4 w-4 shrink-0';
 
 export function getExpertSourceIconType(url: string, text?: string): ExpertSourceIconType {
-  const combined = `${url} ${text ?? ''}`.toLowerCase();
+  const normalized = ensureAbsoluteHttpUrl(url) || url;
+  const combined = `${normalized} ${text ?? ''}`.toLowerCase();
 
   let hostname = '';
   try {
-    hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    hostname = new URL(normalized).hostname.toLowerCase().replace(/^www\./, '');
   } catch {
-    return 'generic';
+    // Fall through to text / heuristic checks below.
   }
 
   if (hostname.includes('orcid.org') || combined.includes('orcid')) {
     return 'orcid';
   }
 
-  if (hostname.includes('linkedin.com') || combined.includes('linkedin')) {
+  if (isLinkedInUrl(normalized, text)) {
     return 'linkedin';
+  }
+
+  if (isXUrl(normalized, text)) {
+    return 'x';
   }
 
   if (hostname.includes('scholar.google') || combined.includes('google scholar')) {
@@ -51,6 +63,10 @@ export function ExpertSourceLinkIcon({ url, text }: Pick<ExpertSourceLink, 'url'
     case 'linkedin':
       return (
         <FontAwesomeIcon icon={faLinkedin} className={`${ICON_CLASS} text-[#0077B5]`} aria-hidden />
+      );
+    case 'x':
+      return (
+        <FontAwesomeIcon icon={faXTwitter} className={`${ICON_CLASS} text-gray-900`} aria-hidden />
       );
     case 'google-scholar':
       return (

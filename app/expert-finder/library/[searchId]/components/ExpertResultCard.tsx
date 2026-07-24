@@ -251,27 +251,29 @@ export function ExpertResultCard({
               {name || '—'}
             </h3>
             {sources.length > 0
-              ? sources.map((src, i) => (
-                  <Tooltip
-                    key={`${src.url}-${i}`}
-                    content={src.text}
-                    position="top"
-                    width="w-72"
-                    className="text-left"
-                    wrapperClassName="inline-flex shrink-0 items-center"
-                  >
-                    <a
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
-                      aria-label={src.text}
-                      title={src.text}
+              ? sources.map((src, i) => {
+                  const label = src.text?.trim() || 'Source';
+                  return (
+                    <Tooltip
+                      key={`${src.url}-${i}`}
+                      content={label}
+                      position="top"
+                      className="text-left"
+                      wrapperClassName="inline-flex shrink-0 items-center"
                     >
-                      <ExpertSourceLinkIcon url={src.url} text={src.text} />
-                    </a>
-                  </Tooltip>
-                ))
+                      <a
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                        aria-label={label}
+                        title={label}
+                      >
+                        <ExpertSourceLinkIcon url={src.url} text={src.text} />
+                      </a>
+                    </Tooltip>
+                  );
+                })
               : null}
           </div>
           {title ? (
@@ -371,7 +373,7 @@ export function ExpertResultCard({
 
         {emailedForCurrentDocument ? (
           <Alert variant="warning" className="py-2.5 px-3">
-            Emailed for this RFP
+            Outreach sent for this RFP
             {emailedForCurrentDocument.searchId > 0 &&
             String(emailedForCurrentDocument.searchId) !== searchId ? (
               <>
@@ -396,8 +398,8 @@ export function ExpertResultCard({
             <div className="space-y-1">
               <p>
                 {emailedOnOtherDocuments.length === 1
-                  ? 'Emailed on another document'
-                  : 'Emailed on other documents'}
+                  ? 'Outreach on another document'
+                  : 'Outreach on other documents'}
               </p>
               <ul className="space-y-1 font-normal">
                 {emailedOnOtherDocuments.map((entry) => {
@@ -457,7 +459,7 @@ export function ExpertResultCard({
             onClick={() => onGenerateEmail(expert)}
           >
             <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Generate email
+            Generate outreach
           </Button>
         )}
         {email && !onGenerateEmail && (
