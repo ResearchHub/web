@@ -42,11 +42,13 @@ interface WorkHeaderProps {
   updatesCount?: number;
   className?: string;
   eyebrow?: ReactNode;
+  preTitle?: ReactNode;
   subtitle?: ReactNode;
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
+  reviewsTabUrl?: string;
   grantModalProps?: {
     isApplyToGrantModalOpen: boolean;
     onCloseApplyToGrantModal: () => void;
@@ -64,11 +66,13 @@ export function WorkHeader({
   updatesCount,
   className,
   eyebrow: eyebrowOverride,
+  preTitle,
   subtitle: subtitleOverride,
   additionalMenuItems,
   tabs: tabsOverride,
   primaryAction,
   hideVoteWidget = false,
+  reviewsTabUrl: reviewsTabUrlOverride,
   grantModalProps,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -130,12 +134,16 @@ export function WorkHeader({
     tab: 'bounties',
   });
 
-  const reviewsTabUrl = buildWorkUrl({
-    id: work.id,
-    contentType: work.contentType,
-    slug: work.slug,
-    tab: 'reviews',
-  });
+  const defaultReviewsTabUrl =
+    work.postType === 'REGISTERED_REPORT'
+      ? undefined
+      : buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType,
+          slug: work.slug,
+          tab: 'reviews',
+        });
+  const reviewsTabUrl = reviewsTabUrlOverride ?? defaultReviewsTabUrl;
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
@@ -235,13 +243,14 @@ export function WorkHeader({
     />
   );
 
-  const resolvedTabs = tabsOverride !== undefined ? tabsOverride : defaultTabs;
+  const resolvedTabs = tabsOverride ?? defaultTabs;
 
   return (
     <>
       <HeroHeader
         title={work.title}
         eyebrow={resolvedEyebrow}
+        preTitle={preTitle}
         subtitle={resolvedSubtitle}
         actions={actionBar}
         cta={primaryAction}

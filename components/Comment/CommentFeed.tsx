@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, memo, useMemo } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
 import { CommentItem } from './CommentItem';
@@ -31,6 +31,7 @@ interface CommentFeedProps {
   editorProps?: Partial<CommentEditorProps>;
   renderCommentActions?: boolean;
   hideEditor?: boolean;
+  readOnly?: boolean;
   debug?: boolean;
   unifiedDocumentId: number | null;
   work?: Work;
@@ -46,6 +47,7 @@ function CommentFeed({
   editorProps = {},
   renderCommentActions = true,
   hideEditor = false,
+  readOnly = false,
   debug = false,
   unifiedDocumentId,
   work,
@@ -88,6 +90,7 @@ function CommentFeed({
           editorProps={editorProps}
           renderCommentActions={renderCommentActions}
           hideEditor={hideEditor}
+          readOnly={readOnly}
           commentType={commentType}
           contentType={contentType}
           debug={debug}
@@ -99,7 +102,7 @@ function CommentFeed({
           belowEditor={belowEditor}
         />
       </div>
-      {canCreateBounty && (
+      {!readOnly && canCreateBounty && (
         <CreateBountyModal
           isOpen={isBountyModalOpen}
           onClose={handleCloseBountyModal}
@@ -110,12 +113,12 @@ function CommentFeed({
   );
 }
 
-// Remove memo wrapper but keep useCallback optimizations
 function CommentFeedContent({
   className,
   editorProps = {},
   renderCommentActions = true,
   hideEditor = false,
+  readOnly = false,
   commentType,
   contentType,
   debug = false,
@@ -150,12 +153,10 @@ function CommentFeedContent({
   const storageKey = useStorageKey(baseStorageKey);
 
   // Check if current user is an author
-  const isCurrentUserAuthor = useMemo(() => {
-    if (!user?.id || !workAuthors) return false;
-    return workAuthors.some(
-      (authorship) => authorship.authorProfile.id === user?.authorProfile?.id
-    );
-  }, [user?.id, user?.authorProfile?.id, workAuthors]);
+  const isCurrentUserAuthor = Boolean(
+    user?.id &&
+    workAuthors?.some((authorship) => authorship.authorProfile.id === user.authorProfile?.id)
+  );
 
   const handleSubmit = useCallback(
     async ({ content, rating: overallRating }: { content: CommentContent; rating?: number }) => {
@@ -218,6 +219,17 @@ function CommentFeedContent({
     onCreateBounty();
   }, [onCreateBounty]);
 
+  const shouldHideEditor = hideEditor || readOnly;
+  const reviewControls =
+    commentType === 'BOUNTY' ? null : (
+      <>
+        <div className="mt-12 mb-2">
+          <CommentSortAndFilters commentType={commentType} commentCount={count} />
+        </div>
+        <div className="h-px bg-gray-200 my-4" />
+      </>
+    );
+
   // AuthenticatedCommentEditor component
   const AuthenticatedCommentEditor = useCallback(
     ({ onSubmit, commentType, ...props }: CommentEditorProps) => {
@@ -268,7 +280,7 @@ function CommentFeedContent({
 
   return (
     <div className={cn('space-y-6', className)}>
-      {!hideEditor && (
+      {!shouldHideEditor && (
         <div className="mt-4 mb-6">
           <AuthenticatedCommentEditor
             onSubmit={handleSubmit}
@@ -278,12 +290,14 @@ function CommentFeedContent({
             {...editorProps}
           />
           {belowEditor && <div className="mt-6">{belowEditor}</div>}
-          <div className="mt-12 mb-2">
-            {commentType !== 'BOUNTY' && (
-              <CommentSortAndFilters commentType={commentType} commentCount={count} />
-            )}
-          </div>
-          <div className="h-px bg-gray-200 my-4"></div>
+          {reviewControls}
+        </div>
+      )}
+
+      {readOnly && commentType !== 'BOUNTY' && (
+        <div className="mt-4 mb-6">
+          {belowEditor && <div className="mb-6">{belowEditor}</div>}
+          {reviewControls}
         </div>
       )}
 
@@ -291,7 +305,7 @@ function CommentFeedContent({
         <>
           <div className="flex justify-between items-center mb-4">
             <CommentSortAndFilters commentType={commentType} commentCount={count} />
-            {canCreateBounty && (
+            {!readOnly && canCreateBounty && (
               <Button
                 onClick={() => executeAuthenticatedAction(handleCreateBounty)}
                 variant="outlined"
@@ -316,6 +330,7 @@ function CommentFeedContent({
             onCreateBounty={handleCreateBounty}
             canCreateBounty={canCreateBounty}
             work={work}
+            readOnly={readOnly}
           />
         ) : (
           <>
@@ -324,6 +339,7 @@ function CommentFeedContent({
               comments={filteredComments}
               isRootList={true}
               contentType={contentType}
+              readOnly={readOnly}
             />
 
             {filteredComments.length < count && (

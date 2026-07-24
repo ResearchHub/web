@@ -4,7 +4,7 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 import { useFeedStateRestoration } from './useFeedStateRestoration';
 
-export type FeedTab = 'following' | 'latest' | 'popular' | 'for-you';
+export type FeedTab = 'following' | 'latest' | 'popular' | 'for-you' | 'journal-new';
 export type FundingTab = 'all' | 'open' | 'closed';
 export type FeedSource = 'all' | 'researchhub';
 
@@ -12,7 +12,7 @@ interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
   source?: FeedSource;
-  endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+  endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'journal_v2_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   grantId?: number;
   createdBy?: number;

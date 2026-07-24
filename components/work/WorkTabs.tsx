@@ -3,7 +3,7 @@
 import { FileText, Star, MessageCircle, History, Bell, MessageCircleQuestion } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePathname } from 'next/navigation';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
@@ -51,13 +51,11 @@ export const WorkTabs = ({
 
   const reviewCount = work.peerReviews?.length ?? 0;
 
-  const activeBounties = useMemo(
-    () => getActiveBounties(metadata.bounties || []),
-    [metadata.bounties]
-  );
-  const { amount: totalBountyAmount } = useMemo(
-    () => getTotalBountyDisplayAmount(activeBounties, exchangeRate, showUSD),
-    [activeBounties, exchangeRate, showUSD]
+  const activeBounties = getActiveBounties(metadata.bounties || []);
+  const { amount: totalBountyAmount } = getTotalBountyDisplayAmount(
+    activeBounties,
+    exchangeRate,
+    showUSD
   );
 
   const canDisplayBountyAmount =
@@ -65,9 +63,9 @@ export const WorkTabs = ({
 
   const hasActiveBounties = activeBounties.length > 0;
 
-  const hasResearchHubJournalVersions = useMemo(() => {
-    return (work.versions || []).some((version) => version.isResearchHubJournal);
-  }, [work.versions]);
+  const hasResearchHubJournalVersions = (work.versions || []).some(
+    (version) => version.isResearchHubJournal
+  );
 
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
@@ -123,7 +121,9 @@ export const WorkTabs = ({
         bounties: `${baseUrl}/bounties`,
         history: `${baseUrl}/history`,
       };
-      const newUrl = tabUrlMap[tab] || baseUrl;
+      const baseNewUrl = tabUrlMap[tab] || baseUrl;
+      const rr = new URLSearchParams(window.location.search).get('rr');
+      const newUrl = rr ? `${baseNewUrl}?rr=${encodeURIComponent(rr)}` : baseNewUrl;
 
       window.history.replaceState(null, '', newUrl);
     }
@@ -263,9 +263,8 @@ export const WorkTabs = ({
     },
   ];
 
-  const tabs = useMemo(() => {
-    if (hasResearchHubJournalVersions) {
-      return [
+  const tabs = hasResearchHubJournalVersions
+    ? [
         ...baseTabs,
         {
           id: 'history',
@@ -285,10 +284,8 @@ export const WorkTabs = ({
             </div>
           ),
         },
-      ];
-    }
-    return baseTabs;
-  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
+      ]
+    : baseTabs;
 
   return (
     <Tabs

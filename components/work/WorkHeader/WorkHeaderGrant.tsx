@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { type ReactNode, useCallback, useState } from 'react';
 import { ArrowUpFromLine, Lock } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -23,6 +23,7 @@ interface WorkHeaderGrantProps {
   organization?: string;
   applicationVisibility?: GrantApplicationVisibility;
   className?: string;
+  preTitle?: ReactNode;
 }
 
 export function WorkHeaderGrant({
@@ -35,6 +36,7 @@ export function WorkHeaderGrant({
   organization,
   applicationVisibility,
   className,
+  preTitle,
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity } = useGrantTab();
@@ -133,6 +135,7 @@ export function WorkHeaderGrant({
       metadata={metadata}
       className={className}
       eyebrow={eyebrow}
+      preTitle={preTitle}
       subtitle={subtitle}
       tabs={tabs}
       primaryAction={primaryAction}

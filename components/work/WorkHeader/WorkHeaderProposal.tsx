@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Globe2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -23,6 +23,7 @@ interface WorkHeaderProposalProps {
   metadata: WorkMetadata;
   updatesCount?: number;
   className?: string;
+  preTitle?: ReactNode;
 }
 
 export function WorkHeaderProposal({
@@ -30,6 +31,7 @@ export function WorkHeaderProposal({
   metadata,
   updatesCount,
   className,
+  preTitle,
 }: WorkHeaderProposalProps) {
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [isMakePublicModalOpen, setIsMakePublicModalOpen] = useState(false);
@@ -115,6 +117,7 @@ export function WorkHeaderProposal({
         primaryAction={primaryAction}
         additionalMenuItems={makePublicMenuItem}
         eyebrow={closedEyebrow}
+        preTitle={preTitle}
       />
 
       {fundraise && isActive && (

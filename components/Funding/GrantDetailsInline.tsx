@@ -8,7 +8,7 @@ interface GrantDetailsInlineProps {
   imageUrl?: string;
 }
 
-export function GrantDetailsInline({ content, imageUrl }: GrantDetailsInlineProps) {
+export function GrantDetailsInline({ content, imageUrl }: Readonly<GrantDetailsInlineProps>) {
   return (
     <div className="py-6">
       {imageUrl && (
@@ -25,7 +25,9 @@ export function GrantDetailsInline({ content, imageUrl }: GrantDetailsInlineProp
           />
         </div>
       ) : (
-        <p className="text-gray-500 py-12 text-center">No details available for this grant.</p>
+        <p className="text-gray-500 py-12 text-center">
+          No details available for this funding opportunity.
+        </p>
       )}
     </div>
   );

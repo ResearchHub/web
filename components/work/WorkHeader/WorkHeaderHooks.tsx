@@ -106,7 +106,9 @@ export function useWorkPermissions(work: Work) {
 
   const isModerator = !!user?.isModerator;
   const isHubEditor = !!user?.authorProfile?.isHubEditor;
+  const isRegisteredReport = work.postType === 'REGISTERED_REPORT';
   const isAuthor =
+    !isRegisteredReport &&
     user?.authorProfile != null &&
     work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
   const isGrantContact =
@@ -117,6 +119,8 @@ export function useWorkPermissions(work: Work) {
     );
 
   const canEdit = (() => {
+    if (isRegisteredReport) return false;
+
     switch (work.contentType) {
       case 'paper':
         return isModerator || isHubEditor;

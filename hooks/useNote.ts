@@ -5,6 +5,7 @@ import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
 import { debounce, DebouncedFunc } from 'lodash';
 import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
+import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 
 export interface UseNoteOptions {
   sendImmediately?: boolean;
@@ -276,84 +277,112 @@ interface UseUpdateNoteState {
 interface UpdateNoteOptions {
   onTitleUpdate?: (newTitle: string) => void;
   debounceMs?: number;
+  registeredReportProposalId?: number | null;
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
 type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn];
 
+interface PendingNoteUpdate {
+  editor: Editor;
+  noteId: ID;
+  registeredReportProposalId?: number | null;
+  onTitleUpdate?: (newTitle: string) => void;
+}
+
 export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const titleRef = useRef<string>('');
+  const savedTitlesRef = useRef(new Map<string, string>());
+  const saveQueuesRef = useRef(new Map<string, Promise<void>>());
 
-  const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor, noteId: ID) => Promise<void>>>(
-    debounce(async (editor: Editor, noteId: ID) => {
-      if (!editor || !noteId) {
-        console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
+  const debouncedUpdate = useRef<DebouncedFunc<(update: PendingNoteUpdate) => Promise<void>>>(
+    debounce(async (update: PendingNoteUpdate) => {
+      if (!update.noteId) {
+        console.error('Note ID is undefined in debouncedUpdate');
         return;
       }
 
-      const json = editor.getJSON();
-      const html = editor.getHTML();
-      const newTitle = getDocumentTitleFromEditor(editor) || '';
-
-      setIsLoading(true);
-      setError(null);
+      const noteKey = update.noteId.toString();
+      let queuedUpdate: Promise<void> | null = null;
 
       try {
-        const promises: Promise<any>[] = [];
-
-        // Only update title if it changed
-        if (newTitle !== titleRef.current) {
-          titleRef.current = newTitle;
-          promises.push(
-            NoteService.updateNoteTitle({
-              noteId,
-              title: newTitle,
-            }).then(() => {
-              options.onTitleUpdate?.(newTitle);
-            })
-          );
-        }
-
-        // Always update content
-        promises.push(
-          NoteService.updateNoteContent({
-            note: noteId,
-            full_src: html || '',
-            plain_text: editor.getText() || '',
-            full_json: JSON.stringify(json),
-          })
+        const title = getDocumentTitleFromEditor(update.editor) || '';
+        const fullJson = JSON.stringify(
+          mergeRegisteredReportPrefill(update.editor.getJSON(), update.registeredReportProposalId)
         );
+        const fullSrc = update.editor.getHTML() || '';
+        const plainText = update.editor.getText() || '';
+        const previousUpdate = saveQueuesRef.current.get(noteKey) ?? Promise.resolve();
 
-        await Promise.all(promises);
+        setIsLoading(true);
+        queuedUpdate = previousUpdate
+          .catch(() => undefined)
+          .then(async () => {
+            setError(null);
+            const promises: Promise<unknown>[] = [];
+
+            if (title !== (savedTitlesRef.current.get(noteKey) ?? '')) {
+              promises.push(
+                NoteService.updateNoteTitle({
+                  noteId: update.noteId,
+                  title,
+                }).then(() => {
+                  savedTitlesRef.current.set(noteKey, title);
+                  update.onTitleUpdate?.(title);
+                })
+              );
+            }
+
+            promises.push(
+              NoteService.updateNoteContent({
+                note: update.noteId,
+                full_src: fullSrc,
+                plain_text: plainText,
+                full_json: fullJson,
+              })
+            );
+
+            const results = await Promise.allSettled(promises);
+            const failure = results.find((result) => result.status === 'rejected');
+            if (failure?.status === 'rejected') throw failure.reason;
+          });
+        saveQueuesRef.current.set(noteKey, queuedUpdate);
+        await queuedUpdate;
       } catch (err) {
         const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
         const error = new Error(errorMsg);
         setError(error);
         console.error('Error updating note:', error);
       } finally {
-        setIsLoading(false);
+        if (queuedUpdate) {
+          if (saveQueuesRef.current.get(noteKey) === queuedUpdate) {
+            saveQueuesRef.current.delete(noteKey);
+          }
+          setIsLoading(saveQueuesRef.current.size > 0);
+        }
       }
     }, options.debounceMs ?? 2000)
   );
 
   const updateNote = useCallback(
     (editor: Editor) => {
-      if (!editor) {
-        console.error('Editor is undefined in updateNote');
-        return;
-      }
-      debouncedUpdate.current(editor, noteId);
+      debouncedUpdate.current({
+        editor,
+        noteId,
+        registeredReportProposalId: options.registeredReportProposalId,
+        onTitleUpdate: options.onTitleUpdate,
+      });
+    },
+    [noteId, options.onTitleUpdate, options.registeredReportProposalId]
+  );
+
+  useEffect(
+    () => () => {
+      void debouncedUpdate.current.flush();
     },
     [noteId]
   );
-
-  useEffect(() => {
-    return () => {
-      debouncedUpdate.current.cancel();
-    };
-  }, []);
 
   return [{ isLoading, error }, updateNote];
 };

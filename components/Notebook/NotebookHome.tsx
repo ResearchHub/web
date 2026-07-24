@@ -73,7 +73,7 @@ export function NotebookHome() {
     },
   ];
 
-  const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const hasNotes = Boolean(notes?.length);
 
   return (
     <NotePaperWrapper canvas={false} className="pb-12 pr-6 lg:!pr-16">

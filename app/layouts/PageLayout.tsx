@@ -29,6 +29,8 @@ interface PageLayoutProps {
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
+  /** Content rendered above the gray right-sidebar panel. */
+  rightSidebarAbove?: ReactNode;
   fundraiseGrantId?: number;
   /**
    * Drop the 860px main-content cap and let content fill the page container
@@ -44,6 +46,7 @@ function PageLayoutInner({
   className,
   sidebarContentClassName,
   topBanner,
+  rightSidebarAbove,
   wideContent = false,
 }: PageLayoutProps) {
   const {
@@ -121,6 +124,7 @@ function PageLayoutInner({
                 rightSidebar={rightSidebar}
                 isCompact={isCompact}
                 contentClassName={sidebarContentClassName}
+                aboveSidebar={rightSidebarAbove}
               />
             )}
           </div>

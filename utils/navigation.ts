@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
-import { generateSlug, buildWorkUrl } from '@/utils/url';
+import { appendQueryString, generateSlug, buildWorkUrl } from '@/utils/url';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -62,6 +63,18 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
+ * Handles redirection for registered report posts
+ * @param work The work object to check for registered report type
+ * @param id The post ID
+ * @param slug The post slug
+ */
+function handleRegisteredReportRedirect(work: Work, id: string, slug: string) {
+  if (work.postType === 'REGISTERED_REPORT') {
+    redirect(buildRegisteredReportUrl(id, slug));
+  }
+}
+
+/**
  * Handles all post-related redirects (fundraise and question)
  * @param work The work object to check for redirects
  * @param id The post ID
@@ -71,6 +84,9 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 export function handlePostRedirect(work: Work, id: string, slug: string, tab?: string) {
   // Check for question redirect first
   handleQuestionRedirect(work, id, slug, tab);
+
+  // Registered reports have their own work page surface
+  handleRegisteredReportRedirect(work, id, slug);
 
   // Then check for fundraise redirect
   handleFundraiseRedirect(work, id, slug);
@@ -85,7 +101,12 @@ export function handlePostRedirect(work: Work, id: string, slug: string, tab?: s
  * @param id The post ID
  * @param currentPath The current path (e.g., 'post', 'question', 'fund', 'paper', 'grant')
  */
-export function handleMissingSlugRedirect(work: Work, id: string, currentPath: string = 'post') {
+export function handleMissingSlugRedirect(
+  work: Work,
+  id: string,
+  currentPath: string = 'post',
+  searchParams?: URLSearchParams
+) {
   // Use existing slug if available, otherwise try to generate from title
   let slug = work.slug;
 
@@ -99,7 +120,7 @@ export function handleMissingSlugRedirect(work: Work, id: string, currentPath: s
   }
 
   // Construct the redirect URL
-  const redirectPath = `/${currentPath}/${id}/${slug}`;
+  const redirectPath = appendQueryString(`/${currentPath}/${id}/${slug}`, searchParams);
   redirect(redirectPath);
 }
 

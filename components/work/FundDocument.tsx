@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -25,7 +25,12 @@ interface FundDocumentProps {
   authorPosts?: Comment[];
 }
 
-export const FundDocument = ({ work, metadata, content, authorPosts = [] }: FundDocumentProps) => {
+export const FundDocument = ({
+  work,
+  metadata,
+  content,
+  authorPosts = [],
+}: Readonly<FundDocumentProps>) => {
   const { activeTab } = useWorkTab();
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
@@ -53,12 +58,10 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
   const videoCtaDismissKey = `proposal-video-cta-dismissed:${work.id}`;
 
   // Check if current user is an author of the work
-  const isCurrentUserAuthor = useMemo(() => {
-    if (!user?.id) return false;
-    return work.authors.some(
-      (authorship) => authorship.authorProfile.id === user?.authorProfile?.id
-    );
-  }, [user?.id, work.authors]);
+  const isCurrentUserAuthor = Boolean(
+    user?.id &&
+    work.authors.some((authorship) => authorship.authorProfile.id === user.authorProfile?.id)
+  );
 
   useEffect(() => {
     try {
@@ -124,8 +127,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     setIsProposalVideoModalOpen(true);
   };
 
-  // Render tab content based on activeTab
-  const renderTabContent = useMemo(() => {
+  const renderTabContent = () => {
     switch (activeTab) {
       case 'paper':
         return (
@@ -279,21 +281,11 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
       default:
         return null;
     }
-  }, [
-    activeTab,
-    work,
-    metadata,
-    content,
-    storageKey,
-    isCurrentUserAuthor,
-    authorPosts,
-    isVideoCtaDismissed,
-    isAuthorPostsExpEnabled,
-  ]);
+  };
 
   return (
     <div>
-      {renderTabContent}
+      {renderTabContent()}
       <NewlyCreatedProposalModal
         isOpen={isProposalVideoModalOpen}
         onClose={handleCloseProposalVideoModal}
