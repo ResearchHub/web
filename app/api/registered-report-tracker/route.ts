@@ -9,29 +9,36 @@ function isRegisteredReportStage(value: string | null): value is RegisteredRepor
   return value === 'grant' || value === 'proposal' || value === 'registered_report';
 }
 
-export async function GET(request: NextRequest) {
+async function getRegisteredReportTracker(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const reportId = normalizeRegisteredReportId(searchParams.get('rr'));
+  const reportIdFromPayload = normalizeRegisteredReportId(searchParams.get('registered_report_id'));
+  const reportIdFromRoute = normalizeRegisteredReportId(searchParams.get('rr'));
+  const registeredReportId = reportIdFromPayload ?? reportIdFromRoute;
   const currentPostId = normalizeRegisteredReportId(searchParams.get('postId'));
   const currentStage = searchParams.get('stage');
 
-  if (!currentPostId || !isRegisteredReportStage(currentStage)) {
+  if (
+    !registeredReportId ||
+    !currentPostId ||
+    !isRegisteredReportStage(currentStage) ||
+    (reportIdFromPayload && reportIdFromRoute && reportIdFromPayload !== reportIdFromRoute)
+  ) {
     return NextResponse.json({ error: 'Invalid tracker request.' }, { status: 400 });
   }
 
   try {
-    const payload = await PostService.getRegisteredReportWork(reportId ?? currentPostId);
+    const payload = await PostService.getRegisteredReportWork(registeredReportId);
     const tracker = getAccessibleRegisteredReportTracker(payload);
-    const registeredReportId = tracker.find(
+    const trackerReportId = tracker.find(
       (step) => step.stage === 'registered_report' && step.exists
     )?.postId;
     const matchesRoute = tracker.some(
       (step) => step.stage === currentStage && step.exists && step.postId === currentPostId
     );
     if (
-      !registeredReportId ||
+      !trackerReportId ||
       payload.work.id !== registeredReportId ||
-      (reportId !== null && reportId !== registeredReportId) ||
+      trackerReportId !== registeredReportId ||
       !matchesRoute
     ) {
       return NextResponse.json({ error: 'Registered Report tracker not found.' }, { status: 404 });
@@ -48,3 +55,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export { getRegisteredReportTracker as GET };

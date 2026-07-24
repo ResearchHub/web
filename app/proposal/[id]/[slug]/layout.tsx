@@ -76,7 +76,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
               <RegisteredReportRouteTrackerLoader
                 currentStage="proposal"
                 currentPostId={work.id}
-                loadForCompletedProposal={work.fundraise?.status === 'COMPLETED'}
+                registeredReportId={work.registeredReportId}
               />
             }
           />

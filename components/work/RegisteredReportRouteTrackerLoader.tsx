@@ -15,15 +15,18 @@ import {
 interface RegisteredReportRouteTrackerLoaderProps {
   currentStage: RegisteredReportStage;
   currentPostId: number;
-  loadForCompletedProposal?: boolean;
+  registeredReportId?: number | null;
 }
 
 interface LoadedTracker extends RegisteredReportTrackerPayload {
   routeKey: string;
 }
 
+type RegisteredReportIdParameter = 'registered_report_id' | 'rr';
+
 async function fetchRegisteredReportTracker(
-  reportId: number | null,
+  registeredReportId: number,
+  registeredReportIdParameter: RegisteredReportIdParameter,
   currentStage: RegisteredReportStage,
   currentPostId: number
 ): Promise<RegisteredReportTrackerPayload | null> {
@@ -31,7 +34,7 @@ async function fetchRegisteredReportTracker(
     stage: currentStage,
     postId: currentPostId.toString(),
   });
-  if (reportId) params.set('rr', reportId.toString());
+  params.set(registeredReportIdParameter, registeredReportId.toString());
   const response = await fetch(`/api/registered-report-tracker?${params}`, {
     cache: 'no-store',
   });
@@ -46,17 +49,15 @@ async function fetchRegisteredReportTracker(
 export function RegisteredReportRouteTrackerLoader({
   currentStage,
   currentPostId,
-  loadForCompletedProposal = false,
+  registeredReportId,
 }: Readonly<RegisteredReportRouteTrackerLoaderProps>) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const reportIdParam = searchParams.get('rr');
   const requestedReportId = normalizeRegisteredReportId(reportIdParam);
-  const shouldLoadTracker = Boolean(requestedReportId || loadForCompletedProposal);
-  const routeKey = shouldLoadTracker
-    ? `${requestedReportId ?? 'current'}:${currentStage}:${currentPostId}`
-    : null;
+  const selectedReportId = requestedReportId ?? registeredReportId ?? null;
+  const routeKey = selectedReportId ? `${selectedReportId}:${currentStage}:${currentPostId}` : null;
   const [loadedTracker, setLoadedTracker] = useState<LoadedTracker | null>(null);
   const [failedRouteKey, setFailedRouteKey] = useState<string | null>(null);
   const reportTracker = loadedTracker?.routeKey === routeKey ? loadedTracker : null;
@@ -76,7 +77,7 @@ export function RegisteredReportRouteTrackerLoader({
       return;
     }
 
-    if (!routeKey) {
+    if (!selectedReportId || !routeKey) {
       setLoadedTracker(null);
       setFailedRouteKey(null);
       return;
@@ -85,11 +86,17 @@ export function RegisteredReportRouteTrackerLoader({
     let isActive = true;
     setFailedRouteKey(null);
 
-    fetchRegisteredReportTracker(requestedReportId, currentStage, currentPostId)
+    fetchRegisteredReportTracker(
+      selectedReportId,
+      requestedReportId ? 'rr' : 'registered_report_id',
+      currentStage,
+      currentPostId
+    )
       .then((tracker) => {
         if (!isActive) return;
         if (!tracker) {
           clearReportId();
+          setFailedRouteKey(routeKey);
           return;
         }
         setLoadedTracker({ ...tracker, routeKey });
@@ -104,13 +111,13 @@ export function RegisteredReportRouteTrackerLoader({
   }, [
     currentPostId,
     currentStage,
-    loadForCompletedProposal,
     pathname,
     reportIdParam,
     requestedReportId,
     routeKey,
     router,
     searchParams,
+    selectedReportId,
   ]);
 
   if (reportTracker) {
