@@ -149,6 +149,10 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
       ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
       : searchDetail.expertResults.length;
 
+  // Proposal drafts / proposal invitations only apply to searches linked to a
+  // grant (funding round) document.
+  const isGrantLinked = searchDetail.work?.contentType === 'funding_request';
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
       <Breadcrumbs
@@ -283,6 +287,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     onGenerateEmail={(expert) => openGenerateForExperts([expert])}
                     searchId={searchId}
                     onSuccess={refetch}
+                    proposalDraftsEnabled={isGrantLinked}
                   />
                 ))}
               </div>
@@ -313,6 +318,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         onClose={() => setShowGenerateModal(false)}
         experts={generateExperts}
         onConfirm={handleGenerateConfirm}
+        isGrantLinked={isGrantLinked}
       />
       <GenerateEmailProgressModal
         isOpen={showProgressModal}

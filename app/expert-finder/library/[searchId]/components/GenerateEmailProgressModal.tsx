@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { Check, Loader2, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Progress } from '@/components/ui/Progress';
-import { ExpertFinderService } from '@/services/expertFinder.service';
+import {
+  ExpertFinderService,
+  PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+} from '@/services/expertFinder.service';
 import type { ExpertResult } from '@/types/expertFinder';
 import type { GenerateEmailConfirmPayload } from './GenerateEmailModal';
 
@@ -71,10 +74,14 @@ export function GenerateEmailProgressModal({
 
         try {
           if (generation.mode === 'ai') {
+            const isProposalInvitation = generation.template === PROPOSAL_DRAFT_OUTREACH_TEMPLATE;
             await ExpertFinderService.generateEmail({
               expert_search_id: Number(searchId),
               expert_email: expert.email?.trim() ?? '',
               template: generation.template,
+              ...(isProposalInvitation
+                ? { proposal_draft_id: expert.proposalDraft?.id ?? null }
+                : {}),
             });
           } else {
             await ExpertFinderService.generateEmail({

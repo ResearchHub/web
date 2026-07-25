@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useTransition } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Loader2, LockKeyhole, PencilLine } from 'lucide-react';
+import { Check, Loader2, LockKeyhole } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 import { PageLayout } from '@/app/layouts/PageLayout';
@@ -92,11 +92,13 @@ export default function JoinNotePage() {
       <PageLayout rightSidebar={false} wideContent>
         <div className="mx-auto w-full max-w-4xl px-2 pb-10 pt-4 sm:px-4">
           <div className="mb-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="mb-1 text-sm font-medium text-primary-600">Note invitation</p>
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 text-sm font-medium text-primary-600">
+                Invitation to claim proposal
+              </p>
               <h1 className="truncate text-xl font-semibold text-gray-900">{note.title}</h1>
               <p className="mt-1 text-sm text-gray-600">
-                You can read this note now. Accept the invitation to edit it in your notebook.
+                Accept the invite to claim and edit this proposal
               </p>
             </div>
 
@@ -104,7 +106,7 @@ export default function JoinNotePage() {
               <Button
                 onClick={handleAcceptInvite}
                 disabled={isAccepting || isPending}
-                className="w-full gap-2 sm:w-auto"
+                className="w-full shrink-0 whitespace-nowrap gap-2 sm:w-auto"
               >
                 {isAccepting || isPending ? (
                   <>
@@ -113,14 +115,17 @@ export default function JoinNotePage() {
                   </>
                 ) : (
                   <>
-                    <PencilLine className="h-4 w-4" />
+                    <Check className="h-4 w-4" />
                     Accept Invite
                   </>
                 )}
               </Button>
             ) : (
-              <Button onClick={handleAuthThenAccept} className="w-full gap-2 sm:w-auto">
-                <PencilLine className="h-4 w-4" />
+              <Button
+                onClick={handleAuthThenAccept}
+                className="w-full shrink-0 whitespace-nowrap gap-2 sm:w-auto"
+              >
+                <Check className="h-4 w-4" />
                 Sign in or Create Account
               </Button>
             )}

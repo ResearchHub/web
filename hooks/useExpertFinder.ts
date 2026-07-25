@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import {
   ExpertFinderService,
@@ -19,8 +19,10 @@ import type {
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
+  ProposalDraft,
   SavedTemplate,
 } from '@/types/expertFinder';
+import { isProposalDraftActive } from '@/types/expertFinder';
 import type { Work } from '@/types/work';
 
 // ── useExpertSearchDetail ────────────────────────────────────────────────────
@@ -70,6 +72,94 @@ export function useExpertSearchDetail(
   }, [searchId, fetch]);
 
   return [{ searchDetail, isLoading, error }, fetch];
+}
+
+// ── useProposalDraft ─────────────────────────────────────────────────────────
+
+const PROPOSAL_DRAFT_POLL_INTERVAL_MS = 5000;
+
+interface UseProposalDraftState {
+  draft: ProposalDraft | null;
+  isStarting: boolean;
+  startError: string | null;
+}
+
+type StartProposalDraftFn = (searchExpertId: number) => Promise<ProposalDraft | null>;
+type UseProposalDraftReturn = [UseProposalDraftState, StartProposalDraftFn];
+
+/**
+ * Manages one expert's proposal draft: start (attaching to an in-flight run on
+ * 409) and poll until the draft completes or fails.
+ *
+ * @param initialDraft – latest draft embedded in the search detail payload
+ * @param onSettled – called once when polling observes a terminal status
+ */
+export function useProposalDraft(
+  initialDraft: ProposalDraft | null,
+  onSettled?: (draft: ProposalDraft) => void
+): UseProposalDraftReturn {
+  const [draft, setDraft] = useState<ProposalDraft | null>(initialDraft);
+  const [isStarting, setIsStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+
+  const onSettledRef = useRef(onSettled);
+  useEffect(() => {
+    onSettledRef.current = onSettled;
+  }, [onSettled]);
+
+  // Reconcile with server data after a search refetch: adopt a newer draft, or
+  // a terminal update of the one we're tracking. Never regress to older data.
+  useEffect(() => {
+    if (!initialDraft) return;
+    setDraft((prev) => {
+      if (prev == null || initialDraft.id > prev.id) return initialDraft;
+      if (initialDraft.id === prev.id && isProposalDraftActive(prev)) return initialDraft;
+      return prev;
+    });
+  }, [initialDraft]);
+
+  const draftId = draft?.id ?? null;
+  const shouldPoll = isProposalDraftActive(draft);
+
+  useEffect(() => {
+    if (draftId == null || !shouldPoll) return;
+
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const next = await ExpertFinderService.getProposalDraft(draftId);
+        if (cancelled) return;
+        setDraft(next);
+        if (!isProposalDraftActive(next)) onSettledRef.current?.(next);
+      } catch {
+        // Transient poll failure — keep the interval running and retry.
+      }
+    };
+
+    const interval = setInterval(poll, PROPOSAL_DRAFT_POLL_INTERVAL_MS);
+    void poll();
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [draftId, shouldPoll]);
+
+  const start = useCallback(async (searchExpertId: number): Promise<ProposalDraft | null> => {
+    setIsStarting(true);
+    setStartError(null);
+    try {
+      const started = await ExpertFinderService.startProposalDraft(searchExpertId);
+      setDraft(started);
+      return started;
+    } catch (err: unknown) {
+      setStartError(extractApiErrorMessage(err, 'Failed to start proposal draft'));
+      return null;
+    } finally {
+      setIsStarting(false);
+    }
+  }, []);
+
+  return [{ draft, isStarting, startError }, start];
 }
 
 // ── useExpertSearches ─────────────────────────────────────────────────────────

@@ -8,7 +8,11 @@ import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
-import type { EmailTemplateKind } from '@/services/expertFinder.service';
+import { isProposalDraftComplete } from '@/types/expertFinder';
+import {
+  PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+  type EmailTemplateKind,
+} from '@/services/expertFinder.service';
 
 export type GenerateEmailConfirmPayload =
   | { mode: 'ai'; template: string }
@@ -19,6 +23,8 @@ interface GenerateEmailModalProps {
   onClose: () => void;
   experts: ExpertResult[];
   onConfirm: (payload: GenerateEmailConfirmPayload) => void;
+  /** Whether the search is linked to a grant/funding round (enables proposal invitations). */
+  isGrantLinked?: boolean;
 }
 
 export interface EmailTemplateOption {
@@ -28,6 +34,11 @@ export interface EmailTemplateOption {
 }
 
 export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
+  {
+    value: PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+    label: 'Proposal Invitation',
+    description: 'Invite them to review and edit an AI-drafted proposal for this funding round',
+  },
   {
     value: 'rfp-outreach',
     label: 'Call for Proposals',
@@ -133,11 +144,26 @@ export function GenerateEmailModal({
   onClose,
   experts,
   onConfirm,
+  isGrantLinked = false,
 }: GenerateEmailModalProps) {
-  const [creationMode, setCreationMode] = useState<CreationMode>('template');
-  const [purpose, setPurpose] = useState<EmailTemplateKind>(
-    EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration'
+  // Proposal invitations are offered only on grant-linked searches, and are
+  // selectable only when every selected expert has a completed proposal draft.
+  const proposalOptionVisible = isGrantLinked;
+  const proposalSelectable =
+    proposalOptionVisible &&
+    experts.length > 0 &&
+    experts.every((expert) => isProposalDraftComplete(expert.proposalDraft));
+
+  const visibleOptions = EMAIL_TEMPLATE_OPTIONS.filter(
+    (option) => option.value !== PROPOSAL_DRAFT_OUTREACH_TEMPLATE || proposalOptionVisible
   );
+  const defaultPurpose: EmailTemplateKind = proposalSelectable
+    ? PROPOSAL_DRAFT_OUTREACH_TEMPLATE
+    : (visibleOptions.find((option) => option.value !== PROPOSAL_DRAFT_OUTREACH_TEMPLATE)?.value ??
+      'collaboration');
+
+  const [creationMode, setCreationMode] = useState<CreationMode>('template');
+  const [purpose, setPurpose] = useState<EmailTemplateKind>(defaultPurpose);
   const [customUseCase, setCustomUseCase] = useState('');
   const [savedTemplateId, setSavedTemplateId] = useState<number | null>(null);
   const [purposeDropdownOpen, setPurposeDropdownOpen] = useState(false);
@@ -146,11 +172,13 @@ export function GenerateEmailModal({
 
   useEffect(() => {
     if (isOpen) {
-      setCreationMode('template');
-      setPurpose(EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration');
+      setCreationMode(proposalSelectable ? 'ai' : 'template');
+      setPurpose(defaultPurpose);
       setCustomUseCase('');
       setSavedTemplateId(null);
     }
+    // Only reset when the modal opens; eligibility is fixed for the session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const count = experts.length;
@@ -161,7 +189,7 @@ export function GenerateEmailModal({
   const canSubmit = creationMode === 'ai' ? canSubmitAi : canSubmitFixed;
 
   const selectedPurpose =
-    EMAIL_TEMPLATE_OPTIONS.find((option) => option.value === purpose) ?? EMAIL_TEMPLATE_OPTIONS[0];
+    visibleOptions.find((option) => option.value === purpose) ?? visibleOptions[0];
 
   const handleSubmit = () => {
     if (creationMode === 'ai') {
@@ -239,21 +267,34 @@ export function GenerateEmailModal({
               onOpenChange={setPurposeDropdownOpen}
               className="max-h-72 overflow-y-auto"
             >
-              {EMAIL_TEMPLATE_OPTIONS.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  onClick={() => setPurpose(option.value)}
-                  className={cn(
-                    'items-start text-left',
-                    purpose === option.value && 'bg-gray-100 font-medium'
-                  )}
-                >
-                  <div className="w-full text-left">
-                    <div className="text-sm text-gray-900">{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.description}</div>
-                  </div>
-                </DropdownItem>
-              ))}
+              {visibleOptions.map((option) => {
+                const isProposalOption = option.value === PROPOSAL_DRAFT_OUTREACH_TEMPLATE;
+                const optionDisabled = isProposalOption && !proposalSelectable;
+                return (
+                  <DropdownItem
+                    key={option.value}
+                    onClick={() => {
+                      if (!optionDisabled) setPurpose(option.value);
+                    }}
+                    disabled={optionDisabled}
+                    className={cn(
+                      'items-start text-left',
+                      purpose === option.value && 'bg-gray-100 font-medium',
+                      optionDisabled && 'cursor-not-allowed opacity-60'
+                    )}
+                  >
+                    <div className="w-full text-left">
+                      <div className="text-sm text-gray-900">{option.label}</div>
+                      <div className="text-xs text-gray-500">{option.description}</div>
+                      {optionDisabled ? (
+                        <div className="mt-0.5 text-xs text-amber-700">
+                          Every selected expert needs a completed proposal draft
+                        </div>
+                      ) : null}
+                    </div>
+                  </DropdownItem>
+                );
+              })}
             </Dropdown>
 
             {isCustom && (
