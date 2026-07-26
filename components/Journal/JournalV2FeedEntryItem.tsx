@@ -22,6 +22,8 @@ interface JournalV2FeedEntryItemProps {
   entry: FeedEntry;
   index: number;
   feedOrdering?: string;
+  isViewMenuOpen: boolean;
+  onViewMenuOpenChange: (isOpen: boolean) => void;
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
@@ -37,6 +39,8 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
   entry,
   index,
   feedOrdering,
+  isViewMenuOpen,
+  onViewMenuOpenChange,
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
@@ -172,6 +176,8 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
                   }
                   align="end"
                   className="min-w-[12rem]"
+                  open={isViewMenuOpen}
+                  onOpenChange={onViewMenuOpenChange}
                 >
                   {availableTrackerSteps.map((step) => {
                     const StepIcon = STAGE_ICONS[step.stage];
