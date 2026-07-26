@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
 import { generateSlug, buildWorkUrl } from '@/utils/url';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -71,6 +72,10 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 export function handlePostRedirect(work: Work, id: string, slug: string, tab?: string) {
   // Check for question redirect first
   handleQuestionRedirect(work, id, slug, tab);
+
+  if (work.postType === 'REGISTERED_REPORT') {
+    redirect(buildRegisteredReportUrl(id, slug));
+  }
 
   // Then check for fundraise redirect
   handleFundraiseRedirect(work, id, slug);

@@ -24,7 +24,11 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
     authorUrl: a.authorProfile.user ? `/author/${a.authorProfile.id}` : undefined,
   }));
 
-  const reviewScore = metadata?.metrics?.reviewScore;
+  const metadataReviewScore = metadata?.metrics?.reviewScore;
+  const reviewScore =
+    metadataReviewScore && metadataReviewScore > 0
+      ? metadataReviewScore
+      : work.metrics?.reviewScore;
   const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
   const reviews: Review[] = (work.peerReviews ?? []).map((pr) => ({
