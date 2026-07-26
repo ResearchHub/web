@@ -336,14 +336,6 @@ export function OutreachDetailPageContent({
                   : `Opened ${email.openCount} times, first on ${formatExactTime(email.openedAt)}`}
               </span>
             )}
-            {isDraftLike && (
-              <OutreachChannelActions
-                expertEmail={email.expertEmail}
-                emailSubject={displaySubject}
-                emailBody={editBody}
-                sources={email.sources}
-              />
-            )}
             {showOutreachMoreMenu && (
               <BaseMenu
                 align="end"
@@ -382,6 +374,12 @@ export function OutreachDetailPageContent({
                   <Octagon className="h-4 w-4 mr-2 shrink-0" aria-hidden />
                   <span>Mark as closed</span>
                 </BaseMenuItem>
+                {isDraftLike && (
+                  <BaseMenuItem disabled={isDeleting} onSelect={() => setShowDeleteConfirm(true)}>
+                    <Trash2 className="h-4 w-4 mr-2 shrink-0 text-red-600" aria-hidden />
+                    <span>Delete</span>
+                  </BaseMenuItem>
+                )}
               </BaseMenu>
             )}
           </div>
@@ -494,16 +492,12 @@ export function OutreachDetailPageContent({
 
       {isDraftLike && (
         <div className="flex justify-end pt-2">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="gap-2"
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4" aria-hidden />
-            Delete
-          </Button>
+          <OutreachChannelActions
+            expertEmail={email.expertEmail}
+            emailSubject={displaySubject}
+            emailBody={editBody}
+            sources={email.sources}
+          />
         </div>
       )}
 
