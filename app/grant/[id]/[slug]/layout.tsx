@@ -11,6 +11,7 @@ import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSke
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
+import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 
 interface Props {
   params: Promise<{
@@ -79,6 +80,9 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             isPending={isPending}
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
+            preTitle={
+              <RegisteredReportRouteTrackerLoader currentStage="grant" currentPostId={work.id} />
+            }
           />
         }
         rightSidebar={

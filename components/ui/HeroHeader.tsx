@@ -5,6 +5,7 @@ import { cn } from '@/utils/styles';
 interface HeroHeaderProps {
   title?: React.ReactNode;
   eyebrow?: React.ReactNode;
+  preTitle?: React.ReactNode;
   subtitle?: React.ReactNode;
   cta?: React.ReactNode;
   actions?: React.ReactNode;
@@ -22,6 +23,7 @@ interface HeroHeaderProps {
 export function HeroHeader({
   title,
   eyebrow,
+  preTitle,
   subtitle,
   cta,
   actions,
@@ -30,7 +32,7 @@ export function HeroHeader({
   className,
   alignTop = false,
 }: HeroHeaderProps) {
-  const hasHeader = title || eyebrow || subtitle || actions || cta;
+  const hasHeader = title || eyebrow || preTitle || subtitle || actions || cta;
 
   return (
     <div className={cn('w-full bg-gray-50/80', !tabBar && 'border-b border-gray-200', className)}>
@@ -50,6 +52,7 @@ export function HeroHeader({
             >
               <div className="flex-1 min-w-0">
                 {eyebrow && <div className="mb-2.5">{eyebrow}</div>}
+                {preTitle && <div className="mb-2">{preTitle}</div>}
                 {title && (
                   <h1
                     className={cn(

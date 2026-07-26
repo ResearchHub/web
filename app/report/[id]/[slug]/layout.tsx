@@ -3,10 +3,12 @@ import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSidebar';
+import { RegisteredReportRouteTracker } from '@/components/work/RegisteredReportRouteTracker';
 import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
 import {
   buildRegisteredReportUrl,
+  getAccessibleRegisteredReportTracker,
   hasRegisteredReportSourceProposal,
 } from '@/utils/registeredReportRoute';
 import {
@@ -46,6 +48,7 @@ export default async function RegisteredReportLayout({ params, children }: Reado
   const payload = await getRegisteredReportWorkOrNotFound(id);
   const metadata = await getRegisteredReportMetadata(payload.work);
   const hasSourceProposal = hasRegisteredReportSourceProposal(payload);
+  const tracker = getAccessibleRegisteredReportTracker(payload);
   const reviewsTabUrl = hasSourceProposal
     ? `${buildRegisteredReportUrl(payload.work.id, slug)}/reviews`
     : undefined;
@@ -59,6 +62,13 @@ export default async function RegisteredReportLayout({ params, children }: Reado
             metadata={metadata}
             contentType="post"
             reviewsTabUrl={reviewsTabUrl}
+            preTitle={
+              <RegisteredReportRouteTracker
+                tracker={tracker}
+                reportId={payload.work.id}
+                currentStage="registered_report"
+              />
+            }
             tabs={
               <RegisteredReportTabs
                 reportId={payload.work.id}
