@@ -74,7 +74,13 @@ export class NoteService {
 
     try {
       const response = await ApiClient.get<any>(`${this.BASE_PATH}/note/${noteId}/`);
-      return transformNoteWithContent(response);
+      const note = transformNoteWithContent(response);
+
+      if (note.documentType === 'REGISTERED_REPORT') {
+        console.log('[Registered Report] note response', response);
+      }
+
+      return note;
     } catch (error) {
       throw new NoteError(
         extractApiErrorMessage(error, 'Failed to fetch note content'),
