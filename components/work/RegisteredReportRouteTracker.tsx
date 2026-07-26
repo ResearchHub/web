@@ -5,7 +5,7 @@ import { buildRegisteredReportTrackerHref } from '@/utils/registeredReportRoute'
 
 interface RegisteredReportRouteTrackerProps {
   tracker: RegisteredReportTrackerStep[];
-  reportId: number;
+  reportId?: number;
   currentStage: RegisteredReportStage;
 }
 

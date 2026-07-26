@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type {
   RegisteredReportStage,
   RegisteredReportTrackerPayload,
+  RegisteredReportTrackerStep,
 } from '@/types/registeredReport';
 import { appendQueryString } from '@/utils/url';
 import { normalizeRegisteredReportId } from '@/utils/registeredReportRoute';
@@ -17,6 +18,7 @@ interface RegisteredReportRouteTrackerLoaderProps {
   currentStage: RegisteredReportStage;
   currentPostId: number;
   registeredReportId?: number | null;
+  trackerWithoutReport?: RegisteredReportTrackerStep[];
 }
 
 interface LoadedTracker extends RegisteredReportTrackerPayload {
@@ -50,6 +52,7 @@ export function RegisteredReportRouteTrackerLoader({
   currentStage,
   currentPostId,
   registeredReportId,
+  trackerWithoutReport,
 }: Readonly<RegisteredReportRouteTrackerLoaderProps>) {
   const pathname = usePathname();
   const router = useRouter();
@@ -132,6 +135,12 @@ export function RegisteredReportRouteTrackerLoader({
         reportId={reportTracker.reportId}
         currentStage={currentStage}
       />
+    );
+  }
+
+  if (!routeKey && trackerWithoutReport) {
+    return (
+      <RegisteredReportRouteTracker tracker={trackerWithoutReport} currentStage={currentStage} />
     );
   }
 

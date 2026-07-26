@@ -10,6 +10,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
+import type { RegisteredReportTrackerStep } from '@/types/registeredReport';
 
 interface Props {
   params: Promise<{
@@ -63,6 +64,32 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
       contentType: work.contentType,
     }),
   ]);
+  const trackerWithoutReport: RegisteredReportTrackerStep[] | undefined =
+    work.fundraise?.status === 'COMPLETED' && !work.registeredReportId
+      ? [
+          {
+            stage: 'grant',
+            label: 'Funding Opportunity',
+            exists: Boolean(work.linkedGrant?.postId),
+            postId: work.linkedGrant?.postId ?? null,
+            title: work.linkedGrant?.title ?? work.linkedGrant?.shortTitle ?? null,
+          },
+          {
+            stage: 'proposal',
+            label: 'Proposal',
+            exists: true,
+            postId: work.id,
+            title: work.title,
+          },
+          {
+            stage: 'registered_report',
+            label: 'Registered Report',
+            exists: false,
+            postId: null,
+            title: null,
+          },
+        ]
+      : undefined;
 
   return (
     <WorkTabProvider>
@@ -77,6 +104,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
                 currentStage="proposal"
                 currentPostId={work.id}
                 registeredReportId={work.registeredReportId}
+                trackerWithoutReport={trackerWithoutReport}
               />
             }
           />

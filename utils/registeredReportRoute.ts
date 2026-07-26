@@ -23,12 +23,12 @@ export function buildRegisteredReportUrl(reportId: string | number, slug?: strin
 
 export function buildRegisteredReportTrackerHref(
   step: RegisteredReportTrackerStep,
-  reportId: number
+  reportId?: number
 ): string | null {
   if (!step.exists || !step.postId) return null;
 
   const href = buildRegisteredReportStepHref(step.stage, step.postId, step.title);
-  return step.stage === 'registered_report' ? href : `${href}?rr=${reportId}`;
+  return step.stage === 'registered_report' || !reportId ? href : `${href}?rr=${reportId}`;
 }
 
 function buildRegisteredReportStepHref(
