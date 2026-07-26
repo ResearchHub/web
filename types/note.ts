@@ -84,22 +84,11 @@ export interface NoteApiItem {
 
 export type TransformedNote = Note & BaseTransformed;
 
-export const transformAuthor = createTransformer<any, Author>((raw: any) => {
-  const authorProfile = raw.author_profile ?? raw.profile ?? raw;
-  const firstName = authorProfile.first_name ?? authorProfile.firstName ?? '';
-  const lastName = authorProfile.last_name ?? authorProfile.lastName ?? '';
-  const name =
-    authorProfile.full_name ??
-    authorProfile.fullName ??
-    authorProfile.name ??
-    `${firstName} ${lastName}`.trim();
-
-  return {
-    authorId: authorProfile.id ?? raw.author_profile_id ?? raw.authorProfileId ?? raw.id,
-    userId: raw.user ?? raw.user_id ?? raw.userId ?? 0,
-    name: name || 'Unknown',
-  };
-});
+export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
+  authorId: raw.id,
+  userId: raw.user,
+  name: `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown',
+}));
 
 export const transformContact = createTransformer<any, Contact>((raw) => ({
   id: raw.id,
@@ -162,21 +151,6 @@ const getPositiveIds = (value: unknown): number[] | undefined => {
 const getTopicIds = (raw: any): number[] | undefined =>
   getPositiveIds(raw.hub_ids) ?? getPositiveIds(raw.topic_ids);
 
-const getNoteImage = (raw: any): string | null =>
-  [
-    raw.registered_report_prefill?.preview_img,
-    raw.registered_report_prefill?.image,
-    raw.image_url,
-    raw.primary_image,
-    raw.preview_img,
-    raw.preview_image,
-    raw.cover_image,
-    raw.image?.url,
-    raw.image,
-  ]
-    .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
-    ?.trim() ?? null;
-
 const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | null => {
   if (!raw) return null;
 
@@ -218,7 +192,7 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     documentType,
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-    image: getNoteImage(raw),
+    image: raw.registered_report_prefill?.preview_img ?? null,
     topics: transformTopicsFromSources(
       raw.registered_report_prefill?.topics,
       raw.registered_report_prefill?.hubs,
