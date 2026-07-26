@@ -13,21 +13,24 @@ export function buildRegisteredReportUrl(reportId: string | number, slug?: strin
 
 export function buildRegisteredReportTrackerHref(
   step: RegisteredReportTrackerStep,
-  reportId?: number
+  reportId?: number,
+  slug?: string | null
 ): string | null {
   if (!step.exists || !step.postId) return null;
 
-  const href = buildRegisteredReportStepHref(step.stage, step.postId, step.title);
+  const href = buildRegisteredReportStepHref(
+    step.stage,
+    step.postId,
+    slug || (step.title ? generateSlug(step.title) : undefined)
+  );
   return step.stage === 'registered_report' || !reportId ? href : `${href}?rr=${reportId}`;
 }
 
 function buildRegisteredReportStepHref(
   stage: RegisteredReportStage,
   postId: number,
-  title?: string | null
+  slug?: string
 ): string {
-  const slug = title ? generateSlug(title) : undefined;
-
   if (stage === 'grant') {
     return buildWorkUrl({ id: postId, slug, contentType: 'funding_request' });
   }

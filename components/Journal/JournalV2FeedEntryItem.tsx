@@ -3,7 +3,9 @@
 import { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronDown, Coins, FileInput, Landmark, Star } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -11,7 +13,9 @@ import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { PostService } from '@/services/post.service';
 import { getUnifiedDocumentId } from '@/types/analytics';
+import { buildRegisteredReportTrackerHref } from '@/utils/registeredReportRoute';
 import {
   buildJournalV2FeedItemViewModel,
   JournalV2Stage,
@@ -30,7 +34,7 @@ interface JournalV2FeedEntryItemProps {
 }
 
 const STAGE_ICONS: Record<JournalV2Stage, typeof Landmark> = {
-  funding_opportunity: Landmark,
+  grant: Landmark,
   proposal: Coins,
   registered_report: FileInput,
 };
@@ -45,6 +49,7 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
   unregisterVisibleItem,
   getVisibleItems,
 }) => {
+  const router = useRouter();
   const { updateLastClickedEntryId } = useNavigation();
   const unifiedDocumentId = getUnifiedDocumentId(entry);
   const viewModel = buildJournalV2FeedItemViewModel(entry);
@@ -77,10 +82,43 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
     updateLastClickedEntryId(`JOURNAL:${entry.id}`);
   };
 
+  const handleTrackerStepClick = async (step: JournalV2StageLink & { postId: number }) => {
+    handleCardClick();
+
+    if (step.href) {
+      router.push(step.href);
+      return;
+    }
+
+    try {
+      const work = await PostService.get(step.postId.toString());
+      const href = buildRegisteredReportTrackerHref(
+        {
+          stage: step.stage,
+          label: step.label,
+          exists: true,
+          postId: work.id,
+          title: work.title,
+        },
+        viewModel.registeredReportId,
+        work.slug
+      );
+
+      if (!href) {
+        toast.error(`Unable to open ${step.label.toLowerCase()}. Please try again.`);
+        return;
+      }
+
+      router.push(href);
+    } catch {
+      toast.error(`Unable to open ${step.label.toLowerCase()}. Please try again.`);
+    }
+  };
+
   const reviewSummary = viewModel.reviewSummary;
   const proposalHref = viewModel.trackerSteps.find((step) => step.stage === 'proposal')?.href;
   const availableTrackerSteps = viewModel.trackerSteps.filter(
-    (step): step is JournalV2StageLink & { href: string } => Boolean(step.href)
+    (step): step is JournalV2StageLink & { postId: number } => step.postId != null
   );
 
   return (
@@ -183,15 +221,13 @@ export const JournalV2FeedEntryItem: FC<JournalV2FeedEntryItemProps> = ({
                     const StepIcon = STAGE_ICONS[step.stage];
 
                     return (
-                      <BaseMenuItem key={step.stage} asChild>
-                        <Link
-                          href={step.href}
-                          onClick={handleCardClick}
-                          className="flex items-center gap-2 px-2 py-1.5"
-                        >
-                          <StepIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
-                          {step.label}
-                        </Link>
+                      <BaseMenuItem
+                        key={step.stage}
+                        onSelect={() => void handleTrackerStepClick(step)}
+                        className="flex items-center gap-2 px-2 py-1.5"
+                      >
+                        <StepIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                        {step.label}
                       </BaseMenuItem>
                     );
                   })}

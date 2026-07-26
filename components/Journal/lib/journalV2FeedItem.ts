@@ -1,12 +1,14 @@
-import { FeedEntry, FeedPostContent, JournalPostIds, Review } from '@/types/feed';
+import { FeedEntry, FeedPostContent, Review } from '@/types/feed';
+import type { RegisteredReportStage, RegisteredReportTrackerStep } from '@/types/registeredReport';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, generateSlug } from '@/utils/url';
 
-export type JournalV2Stage = 'funding_opportunity' | 'proposal' | 'registered_report';
+export type JournalV2Stage = RegisteredReportStage;
 
 export interface JournalV2StageLink {
   stage: JournalV2Stage;
-  label: string;
+  label: RegisteredReportTrackerStep['label'];
+  postId?: number;
   href?: string;
 }
 
@@ -20,6 +22,7 @@ export interface JournalV2FeedItemViewModel {
   href: string;
   imageUrl?: string;
   currentStageLabel: string;
+  registeredReportId?: number;
   reviewSummary?: JournalV2ReviewSummary;
   trackerSteps: JournalV2StageLink[];
 }
@@ -36,41 +39,13 @@ function isRegisteredReport(content: FeedPostContent): boolean {
 }
 
 function buildPrimaryHref(content: FeedPostContent): string {
+  const slug = content.slug || generateSlug(content.title);
+
   if (isRegisteredReport(content)) {
-    return buildRegisteredReportUrl(content.id, content.slug);
+    return buildRegisteredReportUrl(content.id, slug);
   }
 
-  return buildWorkUrl({ id: content.id, slug: content.slug, contentType: 'preregistration' });
-}
-
-function buildFundingOpportunityHref(postIds?: JournalPostIds): string | undefined {
-  if (!postIds?.grantPostId) return undefined;
-
-  return buildWorkUrl({
-    id: postIds.grantPostId,
-    contentType: 'funding_request',
-  });
-}
-
-function buildProposalHref(
-  content: FeedPostContent,
-  postIds: JournalPostIds | undefined,
-  primaryHref: string
-): string | undefined {
-  if (!isRegisteredReport(content)) return primaryHref;
-  if (!postIds?.proposalPostId) return undefined;
-
-  return buildWorkUrl({
-    id: postIds.proposalPostId,
-    contentType: 'preregistration',
-  });
-}
-
-function buildRegisteredReportHref(
-  content: FeedPostContent,
-  primaryHref: string
-): string | undefined {
-  return isRegisteredReport(content) ? primaryHref : undefined;
+  return buildWorkUrl({ id: content.id, slug, contentType: 'preregistration' });
 }
 
 function buildCurrentStageLabel(content: FeedPostContent): string {
@@ -102,9 +77,11 @@ export function buildJournalV2FeedItemViewModel(
   if (!isJournalContent(content)) return undefined;
 
   const primaryHref = buildPrimaryHref(content);
-  const fundingOpportunityHref = buildFundingOpportunityHref(entry.journalPostIds);
-  const proposalHref = buildProposalHref(content, entry.journalPostIds, primaryHref);
-  const registeredReportHref = buildRegisteredReportHref(content, primaryHref);
+  const isReport = isRegisteredReport(content);
+  const fundingOpportunityPostId = entry.journalPostIds?.grantPostId ?? undefined;
+  const proposalPostId = isReport
+    ? (entry.journalPostIds?.proposalPostId ?? undefined)
+    : content.id;
   const imageUrl = content.previewImage || content.fundraise?.postImage || undefined;
 
   return {
@@ -112,22 +89,25 @@ export function buildJournalV2FeedItemViewModel(
     href: primaryHref,
     imageUrl,
     currentStageLabel: buildCurrentStageLabel(content),
+    registeredReportId: isReport ? content.id : undefined,
     reviewSummary: calculateReviewSummary(content),
     trackerSteps: [
       {
-        stage: 'funding_opportunity',
+        stage: 'grant',
         label: 'Funding Opportunity',
-        href: fundingOpportunityHref,
+        postId: fundingOpportunityPostId,
       },
       {
         stage: 'proposal',
         label: 'Proposal',
-        href: proposalHref,
+        postId: proposalPostId,
+        href: isReport ? undefined : primaryHref,
       },
       {
         stage: 'registered_report',
         label: 'Registered Report',
-        href: registeredReportHref,
+        postId: isReport ? content.id : undefined,
+        href: isReport ? primaryHref : undefined,
       },
     ],
   };
