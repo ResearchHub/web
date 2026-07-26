@@ -40,6 +40,11 @@ export const URL_REGEX = /https?:\/\/[^\s<>"'`)]+/gi;
  */
 export const trimUrlTrailingPunctuation = (url: string): string => url.replace(/[.,;:!?)\]]+$/, '');
 
+export function appendQueryString(path: string, searchParams?: URLSearchParams): string {
+  const query = searchParams?.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 /**
  * Removes all HTTP/HTTPS URLs from a text blob. Whitespace left behind is not
  * collapsed; the caller can normalize as needed.

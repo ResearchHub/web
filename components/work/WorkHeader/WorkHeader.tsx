@@ -42,9 +42,11 @@ interface WorkHeaderProps {
   updatesCount?: number;
   className?: string;
   eyebrow?: ReactNode;
+  preTitle?: ReactNode;
   subtitle?: ReactNode;
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
+  reviewsTabUrl?: string;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
   grantModalProps?: {
@@ -64,9 +66,11 @@ export function WorkHeader({
   updatesCount,
   className,
   eyebrow: eyebrowOverride,
+  preTitle,
   subtitle: subtitleOverride,
   additionalMenuItems,
   tabs: tabsOverride,
+  reviewsTabUrl: reviewsTabUrlOverride,
   primaryAction,
   hideVoteWidget = false,
   grantModalProps,
@@ -130,12 +134,16 @@ export function WorkHeader({
     tab: 'bounties',
   });
 
-  const reviewsTabUrl = buildWorkUrl({
-    id: work.id,
-    contentType: work.contentType,
-    slug: work.slug,
-    tab: 'reviews',
-  });
+  const reviewsTabUrl =
+    reviewsTabUrlOverride ??
+    (work.postType === 'REGISTERED_REPORT'
+      ? undefined
+      : buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType,
+          slug: work.slug,
+          tab: 'reviews',
+        }));
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
@@ -242,6 +250,7 @@ export function WorkHeader({
       <HeroHeader
         title={work.title}
         eyebrow={resolvedEyebrow}
+        preTitle={preTitle}
         subtitle={resolvedSubtitle}
         actions={actionBar}
         cta={primaryAction}

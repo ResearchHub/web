@@ -24,6 +24,7 @@ import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
+import { isPublishedRegisteredReportNote, isRegisteredReportNote } from '@/types/note';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
 // first time someone lands in the editor on a freshly-created note.
@@ -37,8 +38,13 @@ const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
   documentType?: string | null,
-  contentType?: string | null
+  contentType?: string | null,
+  isRegisteredReport?: boolean
 ): string | undefined {
+  if (isRegisteredReport) {
+    return 'Registered Report';
+  }
+
   switch (documentType) {
     case 'GRANT':
       return 'Funding Opportunity';
@@ -129,10 +135,18 @@ export function NoteEditorLayout() {
 
   const [, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
+    registeredReportProposalId: note?.proposalId,
   });
 
   const showTabs = Boolean(note) && !isLegacyNote;
-  const workTypeLabel = getWorkTypeLabel(note?.documentType, note?.post?.contentType);
+  const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
+  const isEditorReadOnly =
+    isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
+  const workTypeLabel = getWorkTypeLabel(
+    note?.documentType,
+    note?.post?.contentType,
+    isRegisteredReportNote(note)
+  );
 
   const renderEditor = () => {
     // No note is targeted (notebook home) — render the landing view directly so
@@ -189,8 +203,8 @@ export function NoteEditorLayout() {
           content={note.content}
           contentJson={note.contentJson}
           isLoading={false}
-          onUpdate={isLegacyNote ? undefined : updateNote}
-          editable={!(isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner))}
+          onUpdate={isEditorReadOnly ? undefined : updateNote}
+          editable={!isEditorReadOnly}
           setEditor={setEditor}
         />
       </NotePaperWrapper>
@@ -202,20 +216,27 @@ export function NoteEditorLayout() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       {showTabs && (
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <NotebookTabs active={activeTab} onChange={setActiveTab} />
-          <div className="flex items-center gap-2">
-            {activeTab === 'document' && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setActiveTab('details')}
-                className="gap-1.5"
-              >
-                Add details
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
+        <div className="mb-4">
+          {isPublishedRegisteredReport && (
+            <div className="mx-auto mb-2 w-fit rounded-md bg-yellow-100 px-3 py-1.5 text-sm font-medium text-yellow-700">
+              This Registered Report has been published and can no longer be edited.
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <NotebookTabs active={activeTab} onChange={setActiveTab} />
+            <div className="flex items-center gap-2">
+              {activeTab === 'document' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setActiveTab('details')}
+                  className="gap-1.5"
+                >
+                  {isPublishedRegisteredReport ? 'View details' : 'Add details'}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -223,7 +244,7 @@ export function NoteEditorLayout() {
       <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
       {showTabs && (
         <div className={cn(activeTab !== 'details' && 'hidden')}>
-          <PublishingForm />
+          <PublishingForm readOnly={isPublishedRegisteredReport} />
         </div>
       )}
 

@@ -121,6 +121,7 @@ export interface Work {
   previewContent?: string;
   contentUrl?: string;
   unifiedDocumentId?: number | null;
+  registeredReportId?: number | null;
   postType?: string;
   fundraise?: any;
   tips?: Tip[];
@@ -372,6 +373,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
       views: raw.metrics?.views || raw.views_count || 0,
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
+    registeredReportId: raw.registered_report_id ?? null,
     postType: raw.document_type || raw.type || raw.unified_document?.document_type,
     fundraise: raw.fundraise,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,

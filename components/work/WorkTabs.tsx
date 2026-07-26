@@ -124,8 +124,13 @@ export const WorkTabs = ({
         history: `${baseUrl}/history`,
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
+      const reportId = new URLSearchParams(window.location.search).get('rr');
 
-      window.history.replaceState(null, '', newUrl);
+      window.history.replaceState(
+        null,
+        '',
+        reportId ? `${newUrl}?rr=${encodeURIComponent(reportId)}` : newUrl
+      );
     }
   };
 
