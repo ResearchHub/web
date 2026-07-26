@@ -22,7 +22,7 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) 
   }
 
   return (
-    <div className="space-y-0.5 lg:max-h-[300px] max-h-none overflow-y-auto pr-1">
+    <div className="space-y-1 tablet:!space-y-0.5 lg:max-h-[300px] max-h-none overflow-y-auto pr-1">
       {sortedNotes.map((note) => (
         <NoteListItem
           key={note.id}

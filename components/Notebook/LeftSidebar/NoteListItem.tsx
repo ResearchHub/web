@@ -88,7 +88,7 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
       size="icon"
       className={cn(
         'h-auto w-auto p-1 rounded-md transition-opacity bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700',
-        isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+        isMenuOpen ? 'opacity-100' : 'opacity-100 tablet:opacity-0 tablet:group-hover:opacity-100'
       )}
       onClick={(e) => e.stopPropagation()}
       disabled={isProcessing || disabled}
@@ -101,22 +101,22 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
     <div ref={itemRef} className={`group relative ${isProcessing || disabled ? 'opacity-50' : ''}`}>
       <Button
         variant="ghost"
-        className={`w-full justify-start px-2.5 py-1.5 h-8 text-sm font-normal text-gray-700 group
+        className={`w-full justify-start pl-2.5 pr-10 py-1.5 h-10 tablet:!h-8 text-sm font-normal text-gray-700 group
           ${isSelected ? 'bg-gray-100 hover:bg-gray-100' : 'hover:bg-gray-50'}`}
         onClick={handleClick}
         disabled={isProcessing || disabled}
         title={note.title}
       >
         {isProcessing ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />
+          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-gray-400" />
         ) : (
           <File
-            className={`h-3.5 w-3.5 ${
+            className={`h-3.5 w-3.5 shrink-0 ${
               isSelected ? 'text-indigo-500' : 'text-gray-400 group-hover:text-indigo-500'
             } transition-colors`}
           />
         )}
-        <span className="ml-2 truncate">{note.title}</span>
+        <span className="ml-2 min-w-0 flex-1 truncate text-left">{note.title}</span>
       </Button>
 
       <div className="absolute right-2 top-1/2 -translate-y-1/2">

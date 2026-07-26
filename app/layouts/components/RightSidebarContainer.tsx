@@ -37,7 +37,6 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
-  isCompact: boolean;
   contentClassName?: string;
   /** Renders above the gray sidebar panel (e.g. About card). */
   aboveSidebar?: ReactNode;
@@ -45,12 +44,10 @@ interface RightSidebarContainerProps {
 
 export function RightSidebarContainer({
   rightSidebar,
-  isCompact,
   contentClassName,
   aboveSidebar,
 }: RightSidebarContainerProps) {
   const pathname = usePathname();
-  const sidebarHeight = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   const sidebarKey = getSidebarInstanceKey(pathname, rightSidebar);
   const sidebarFallback = <RightSidebarSkeleton />;
@@ -59,24 +56,26 @@ export function RightSidebarContainer({
     <>
       <div
         className={cn(
-          'sticky top-10 mt-10 z-30',
+          'sticky top-0 mt-10 z-30',
+          'h-[calc(100vh-var(--top-bar-height))]',
           'lg:!flex !hidden right-sidebar:!flex',
-          'w-80 flex-shrink-0 flex-col gap-3',
-          sidebarHeight
+          'w-80 flex-shrink-0 flex-col gap-3'
         )}
       >
         {aboveSidebar}
 
         <aside
           className={cn(
-            'min-h-0 flex-1 overflow-y-auto bg-gray-50/80 rounded-xl',
+            'min-h-0 flex-1 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
             !aboveSidebar && 'h-full'
           )}
         >
-          <div className={cn('p-4 h-full', contentClassName)}>
-            <Suspense fallback={sidebarFallback}>
-              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-            </Suspense>
+          <div className={cn('h-full', contentClassName)}>
+            <div className="p-4">
+              <Suspense fallback={sidebarFallback}>
+                <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+              </Suspense>
+            </div>
           </div>
         </aside>
       </div>

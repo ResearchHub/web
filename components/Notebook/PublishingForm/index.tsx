@@ -60,6 +60,7 @@ import {
 } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import { NOTEBOOK_WORK_TYPES } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
@@ -707,42 +708,78 @@ export function PublishingForm({
               readOnly && 'pointer-events-none opacity-60'
             )}
           >
-            {(articleType === 'preregistration' ||
-              articleType === 'grant' ||
-              articleType === 'registered_report') && <WorkImageSection />}
-            {articleType === 'grant' && (
+            {!articleType ? (
+              <div className="px-4 py-5 lg:px-6">
+                <h3 className="text-sm font-semibold text-gray-900">Select work type</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Choose how you want to publish this note.
+                </p>
+                <div className="mt-4 space-y-2">
+                  {NOTEBOOK_WORK_TYPES.map((option) => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outlined"
+                      onClick={() =>
+                        methods.setValue('articleType', option.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
+                      className="h-auto w-full justify-start border-gray-200 px-4 py-3 text-left hover:border-primary-300 hover:bg-primary-50 focus-visible:ring-primary-500"
+                    >
+                      <span>
+                        <span className="block text-sm font-medium text-gray-900">
+                          {option.label}
+                        </span>
+                        <span className="mt-0.5 block text-xs font-normal text-gray-500">
+                          {option.description}
+                        </span>
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
               <>
-                <GrantDescriptionSection />
-                <GrantOrganizationSection />
+                {(articleType === 'preregistration' ||
+                  articleType === 'grant' ||
+                  articleType === 'registered_report') && <WorkImageSection />}
+                {articleType === 'grant' && (
+                  <>
+                    <GrantDescriptionSection />
+                    <GrantOrganizationSection />
+                  </>
+                )}
+                {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
+                <TopicsSection />
+                {note.post?.doi && (
+                  <div className="py-3 px-6 space-y-6">
+                    <DOISection doi={note.post.doi} />
+                  </div>
+                )}
+                {articleType === 'grant' && <GrantFundingAmountSection />}
+                {articleType === 'grant' && <GrantApplicationVisibilitySection />}
+                {articleType === 'preregistration' && <FundingSection note={note} />}
+                {articleType === 'preregistration' && !methods.watch('workId') && (
+                  <div className="py-3 px-6">
+                    <EndDateSection />
+                  </div>
+                )}
+                {articleType === 'preregistration' && !methods.watch('workId') && (
+                  <PreregistrationPrivacySection />
+                )}
+                {FEATURE_FLAG_RESEARCH_COIN &&
+                  articleType !== 'preregistration' &&
+                  articleType !== 'grant' && (
+                    <ResearchCoinSection
+                      bountyAmount={bountyAmount ?? null}
+                      onBountyClick={onBountyClick ?? (() => {})}
+                    />
+                  )}
+                {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
               </>
             )}
-            {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
-            <TopicsSection />
-            {note.post?.doi && (
-              <div className="py-3 px-6 space-y-6">
-                <DOISection doi={note.post.doi} />
-              </div>
-            )}
-            {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && <GrantApplicationVisibilitySection />}
-            {articleType === 'preregistration' && <FundingSection note={note} />}
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <div className="py-3 px-6">
-                <EndDateSection />
-              </div>
-            )}
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacySection />
-            )}
-            {FEATURE_FLAG_RESEARCH_COIN &&
-              articleType !== 'preregistration' &&
-              articleType !== 'grant' && (
-                <ResearchCoinSection
-                  bountyAmount={bountyAmount ?? null}
-                  onBountyClick={onBountyClick ?? (() => {})}
-                />
-              )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
           </fieldset>
         </div>
 
@@ -767,6 +804,7 @@ export function PublishingForm({
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={
+                !articleType ||
                 readOnly ||
                 isPublishing ||
                 isDeclined ||

@@ -17,18 +17,16 @@ function SkeletonRow({ isFirst }: { isFirst?: boolean }) {
 export function ActivitySidebarSkeleton() {
   return (
     <div className="h-full">
-      <div className="px-4 pb-6">
-        <div className="mb-6">
-          <div className="flex items-center mb-2">
-            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-          </div>
+      <div className="mb-6">
+        <div className="flex items-center mb-2">
+          <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
         </div>
+      </div>
 
-        <div className="divide-y divide-gray-200">
-          {Array.from({ length: 10 }, (_, i) => (
-            <SkeletonRow key={i} isFirst={i === 0} />
-          ))}
-        </div>
+      <div className="divide-y divide-gray-200">
+        {Array.from({ length: 10 }, (_, i) => (
+          <SkeletonRow key={i} isFirst={i === 0} />
+        ))}
       </div>
     </div>
   );
