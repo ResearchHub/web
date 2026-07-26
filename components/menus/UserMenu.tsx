@@ -227,7 +227,7 @@ export default function UserMenu({
             <div className="px-6 py-2 hover:bg-gray-50">
               <div className="flex items-center">
                 <Search className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">Expert Finder</span>
+                <span className="text-sm text-gray-700">Expert Finder</span>
               </div>
             </div>
           </Link>
@@ -436,7 +436,7 @@ export default function UserMenu({
               <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
                 <div className="w-full px-4 py-2 hover:bg-gray-50">
                   <div className="flex items-center">
-                    <Search className="h-4 w-4 mr-3 text-gray-500" />
+                    <Search className="h-5 w-5 mr-3 text-gray-500" />
                     <span className="text-sm text-gray-700">Expert Finder</span>
                   </div>
                 </div>
