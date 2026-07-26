@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, memo, useMemo } from 'react';
+import { useCallback, useState, useEffect, memo, useMemo, useRef } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
 import { CommentItem } from './CommentItem';
@@ -147,13 +147,17 @@ function CommentFeedContent({
     }
   }, [commentType, debug]);
 
-  const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
+  const { filteredComments, count, loading, error, createComment, loadMore } = useCommentsContext();
+  const [isLoadingAssessedReviews, setIsLoadingAssessedReviews] = useState(false);
+  const isLoadingAssessedReviewsRef = useRef(false);
   const displayedComments = onlyAssessedReviews
     ? filteredComments.filter((comment) => comment.isAssessed)
     : filteredComments;
   const hasMoreComments = filteredComments.length < count;
   const shouldShowEmptyState =
     displayedComments.length === 0 && (!onlyAssessedReviews || !hasMoreComments);
+  const shouldLoadAssessedReviews =
+    onlyAssessedReviews && !error && displayedComments.length === 0 && hasMoreComments;
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -226,6 +230,24 @@ function CommentFeedContent({
       console.error('Error loading more comments:', error);
     }
   }, [loadMore]);
+
+  useEffect(() => {
+    if (
+      !shouldLoadAssessedReviews ||
+      loading ||
+      isLoadingAssessedReviews ||
+      isLoadingAssessedReviewsRef.current
+    ) {
+      return;
+    }
+
+    isLoadingAssessedReviewsRef.current = true;
+    setIsLoadingAssessedReviews(true);
+    void handleLoadMore().finally(() => {
+      isLoadingAssessedReviewsRef.current = false;
+      setIsLoadingAssessedReviews(false);
+    });
+  }, [handleLoadMore, isLoadingAssessedReviews, loading, shouldLoadAssessedReviews]);
 
   // Handle bounty creation
   const handleCreateBounty = useCallback(() => {
@@ -324,7 +346,7 @@ function CommentFeedContent({
       )}
 
       <div className="comment-list-container">
-        {loading ? (
+        {loading || shouldLoadAssessedReviews ? (
           <CommentLoader count={3} commentType={commentType} />
         ) : shouldShowEmptyState ? (
           <CommentEmptyState

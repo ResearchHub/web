@@ -24,14 +24,19 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
     authorUrl: a.authorProfile.user ? `/author/${a.authorProfile.id}` : undefined,
   }));
 
+  const peerReviews = work.peerReviews ?? [];
   const metadataReviewScore = metadata?.metrics?.reviewScore;
   const reviewScore =
-    metadataReviewScore && metadataReviewScore > 0
-      ? metadataReviewScore
-      : work.metrics?.reviewScore;
+    work.postType === 'REGISTERED_REPORT'
+      ? peerReviews.length > 0
+        ? peerReviews.reduce((total, review) => total + review.score, 0) / peerReviews.length
+        : undefined
+      : metadataReviewScore && metadataReviewScore > 0
+        ? metadataReviewScore
+        : work.metrics?.reviewScore;
   const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
-  const reviews: Review[] = (work.peerReviews ?? []).map((pr) => ({
+  const reviews: Review[] = peerReviews.map((pr) => ({
     id: pr.id,
     score: pr.score,
     author: {
