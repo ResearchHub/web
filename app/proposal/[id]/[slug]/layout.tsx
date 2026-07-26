@@ -65,7 +65,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
     }),
   ]);
   const trackerWithoutReport: RegisteredReportTrackerStep[] | undefined =
-    work.fundraise?.status === 'COMPLETED' && !work.registeredReportId
+    metadata.fundraising?.status === 'COMPLETED' && !work.registeredReportId
       ? [
           {
             stage: 'grant',
