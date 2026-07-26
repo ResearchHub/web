@@ -1,21 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
 import { Tabs } from '@/components/ui/Tabs';
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { NoteError, NoteService } from '@/services/note.service';
 import {
-  RegisteredReportModerationError,
-  RegisteredReportModerationService,
-} from '@/services/registered-report-moderation.service';
+  type DraftOperation,
+  useRegisteredReportModeration,
+} from '@/hooks/useRegisteredReportModeration';
 import type { FeedEntry, FeedPostContent } from '@/types/feed';
-import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
 import { buildWorkUrl } from '@/utils/url';
 
 type JournalTab = 'eligible-proposals' | 'registered-reports';
@@ -28,29 +23,6 @@ const journalTabs = [
 function getProposal(entry: FeedEntry): FeedPostContent | null {
   const proposal = entry.content;
   return proposal.contentType === 'PREREGISTRATION' ? proposal : null;
-}
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
-
-function isModeratorAccessError(error: unknown): boolean {
-  return (
-    (error instanceof RegisteredReportModerationError || error instanceof NoteError) &&
-    (error.status === 401 || error.status === 403)
-  );
-}
-
-function buildDraftFailureMessage(error: unknown, noteId?: number): string {
-  if (isModeratorAccessError(error)) {
-    return getErrorMessage(error, 'Moderator access is required for this workflow.');
-  }
-
-  if (noteId) {
-    return 'The draft was created, but could not be opened. Please try again.';
-  }
-
-  return getErrorMessage(error, 'Failed to create the Registered Report draft.');
 }
 
 function LoadingCandidates() {
@@ -89,12 +61,6 @@ function AccessError({ message }: Readonly<{ message: string }>) {
       </div>
     </div>
   );
-}
-
-interface DraftOperation {
-  proposalId: number;
-  noteId?: number;
-  isProcessing: boolean;
 }
 
 interface CandidateListProps {
@@ -232,157 +198,22 @@ function JournalTabContent({
 }
 
 export function JournalContent() {
-  const router = useRouter();
-  const { organizations, setSelectedOrg } = useOrganizationContext();
   const [activeTab, setActiveTab] = useState<JournalTab>('eligible-proposals');
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [draftOperation, setDraftOperation] = useState<DraftOperation | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [nextPage, setNextPage] = useState(2);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [accessError, setAccessError] = useState<string | null>(null);
-  const candidateRequestIdRef = useRef(0);
-  const isDraftOperationRef = useRef(false);
-  const isMountedRef = useRef(true);
-
-  const loadCandidates = useCallback(async (page: number, replaceEntries: boolean) => {
-    const requestId = ++candidateRequestIdRef.current;
-
-    if (replaceEntries) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-    setLoadError(null);
-
-    try {
-      const response = await RegisteredReportModerationService.fetchCandidates(page);
-      if (requestId !== candidateRequestIdRef.current) return;
-
-      setEntries((currentEntries) =>
-        replaceEntries ? response.entries : [...currentEntries, ...response.entries]
-      );
-      setHasMore(response.hasMore);
-      setNextPage(page + 1);
-    } catch (error) {
-      if (requestId !== candidateRequestIdRef.current) return;
-
-      const message = getErrorMessage(
-        error,
-        'Failed to load eligible proposals. Please try again.'
-      );
-
-      if (isModeratorAccessError(error)) {
-        setAccessError(message);
-      } else if (replaceEntries) {
-        setLoadError(message);
-      } else {
-        toast.error(message);
-      }
-    } finally {
-      if (requestId !== candidateRequestIdRef.current) return;
-
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    void loadCandidates(1, true);
-
-    return () => {
-      isMountedRef.current = false;
-      candidateRequestIdRef.current += 1;
-    };
-  }, [loadCandidates]);
-
-  const refreshCandidates = () => loadCandidates(1, true);
-
-  const loadMoreCandidates = async () => {
-    if (!hasMore || isLoading || isLoadingMore || draftOperation?.isProcessing) return;
-
-    await loadCandidates(nextPage, false);
-  };
-
-  const getOrCreateDraftNoteId = async (proposalId: number, noteId?: number) => {
-    if (noteId) return noteId;
-
-    const createdNoteId = await RegisteredReportModerationService.createDraft(proposalId);
-    return isMountedRef.current ? createdNoteId : undefined;
-  };
-
-  const openDraftNote = async (proposalId: number, noteId: number) => {
-    const note = await NoteService.getNote(noteId.toString());
-    if (!isMountedRef.current) return;
-
-    if (
-      normalizeRegisteredReportId(note.id) !== noteId ||
-      normalizeRegisteredReportId(note.proposalId) !== proposalId ||
-      !note.organization?.slug
-    ) {
-      throw new Error('The Registered Report draft response did not match the created note.');
-    }
-
-    const organization =
-      organizations.find(({ id }) => id === note.organization.id) ?? note.organization;
-    setSelectedOrg(organization);
-    setEntries((currentEntries) =>
-      currentEntries.filter((entry) => getProposal(entry)?.id !== proposalId)
-    );
-    router.replace(`/notebook/${organization.slug}/${noteId}`);
-  };
-
-  const handleDraftFailure = async (error: unknown, proposalId: number, noteId?: number) => {
-    if (!isMountedRef.current) return;
-
-    const accessDenied = isModeratorAccessError(error);
-    const message = buildDraftFailureMessage(error, noteId);
-
-    if (accessDenied) {
-      setAccessError(message);
-    } else {
-      toast.error(message);
-    }
-
-    if (!noteId && !accessDenied) {
-      await refreshCandidates();
-      if (!isMountedRef.current) return;
-    }
-
-    isDraftOperationRef.current = false;
-    setDraftOperation(noteId ? { proposalId, noteId, isProcessing: false } : null);
-  };
-
-  const openOrCreateDraft = async (proposalId: number) => {
-    if (isDraftOperationRef.current) return;
-
-    isDraftOperationRef.current = true;
-    const previousDraft = draftOperation;
-    let noteId = previousDraft?.proposalId === proposalId ? previousDraft.noteId : undefined;
-
-    if (previousDraft?.noteId && previousDraft.proposalId !== proposalId) {
-      setEntries((currentEntries) =>
-        currentEntries.filter((entry) => getProposal(entry)?.id !== previousDraft.proposalId)
-      );
-    }
-
-    setDraftOperation({ proposalId, noteId, isProcessing: true });
-
-    try {
-      noteId = await getOrCreateDraftNoteId(proposalId, noteId);
-      if (!noteId) return;
-
-      await openDraftNote(proposalId, noteId);
-    } catch (error) {
-      await handleDraftFailure(error, proposalId, noteId);
-    }
-  };
+  const {
+    entries,
+    draftOperation,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    loadError,
+    accessError,
+    refreshCandidates,
+    loadMoreCandidates,
+    openOrCreateDraft,
+  } = useRegisteredReportModeration();
 
   const changeTab = (tabId: string) => {
-    if (isDraftOperationRef.current) return;
+    if (draftOperation?.isProcessing) return;
 
     if (tabId === 'eligible-proposals' || tabId === 'registered-reports') {
       setActiveTab(tabId);

@@ -1,8 +1,8 @@
 import { ApiClient } from '@/services/client';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ApiError } from '@/services/types';
-import { type FeedEntry, type RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
-import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
+import { type FeedEntry, type RawApiFeedEntry } from '@/types/feed';
+import { transformRegisteredReportCandidate } from '@/types/moderation';
 
 interface RegisteredReportCandidateResponse {
   next: string | null;
@@ -10,7 +10,7 @@ interface RegisteredReportCandidateResponse {
 }
 
 interface RegisteredReportDraftResponse {
-  id: unknown;
+  id: number;
 }
 
 interface RegisteredReportCandidates {
@@ -25,34 +25,6 @@ export class RegisteredReportModerationError extends Error {
   ) {
     super(message);
     this.name = 'RegisteredReportModerationError';
-  }
-}
-
-function transformCandidate(entry: RawApiFeedEntry): FeedEntry | null {
-  try {
-    const timestamp =
-      entry.action_date || entry.created_date || entry.content_object?.created_date || '';
-    const candidate = transformFeedEntry({
-      ...entry,
-      action: entry.action || 'PUBLISH',
-      action_date: timestamp,
-      created_date: entry.created_date || timestamp,
-      recommendation_id: entry.recommendation_id ?? null,
-    });
-    const proposalId = normalizeRegisteredReportId(candidate.content.id);
-
-    if (candidate.content.contentType !== 'PREREGISTRATION' || !proposalId) {
-      console.warn('Skipping invalid Registered Report candidate:', entry.id);
-      return null;
-    }
-
-    return {
-      ...candidate,
-      content: { ...candidate.content, id: proposalId },
-    };
-  } catch (error) {
-    console.warn('Skipping invalid Registered Report candidate:', error);
-    return null;
   }
 }
 
@@ -76,7 +48,7 @@ export class RegisteredReportModerationService {
       }
 
       const entries = response.results
-        .map(transformCandidate)
+        .map(transformRegisteredReportCandidate)
         .filter((entry): entry is FeedEntry => entry !== null);
 
       if (response.results.length > 0 && entries.length === 0) {
@@ -93,22 +65,11 @@ export class RegisteredReportModerationService {
   }
 
   static async createDraft(proposalId: number): Promise<number> {
-    const normalizedProposalId = normalizeRegisteredReportId(proposalId);
-    if (!normalizedProposalId) {
-      throw new RegisteredReportModerationError('A valid proposal is required to create a draft.');
-    }
-
     try {
       const response = await ApiClient.post<RegisteredReportDraftResponse>(this.CREATE_DRAFT_PATH, {
-        proposal_id: normalizedProposalId,
+        proposal_id: proposalId,
       });
-      const noteId = normalizeRegisteredReportId(response?.id);
-
-      if (!noteId) {
-        throw new TypeError('The Registered Report draft response was invalid.');
-      }
-
-      return noteId;
+      return response.id;
     } catch (error) {
       throw this.createError(error, 'Failed to create the Registered Report draft.');
     }
