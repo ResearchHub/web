@@ -5,7 +5,6 @@ import {
   type Work,
 } from './work';
 import { transformTopic, type Topic } from './topic';
-import { normalizeRegisteredReportId } from '@/utils/registeredReportRoute';
 
 export type RegisteredReportStage = 'grant' | 'proposal' | 'registered_report';
 
@@ -57,7 +56,7 @@ type RawProposalUser = {
 };
 
 type RawProposalReview = {
-  id?: number;
+  id: number;
   score?: number | null;
   is_assessed?: boolean;
   created_by?: RawProposalUser | null;
@@ -65,7 +64,7 @@ type RawProposalReview = {
 };
 
 type RawProposalTopic = {
-  id?: number;
+  id: number;
   name?: string | null;
   slug?: string | null;
   namespace?: Topic['namespace'];
@@ -131,7 +130,7 @@ function transformTrackerStep(raw: RawTrackerStep): RegisteredReportTrackerStep 
   const defaultStep = TRACKER_STEPS.find((step) => step.stage === raw.stage);
   if (!defaultStep) return null;
 
-  const postId = normalizeRegisteredReportId(raw.post_id);
+  const postId = raw.post_id ?? null;
   const exists = raw.exists === true && postId !== null;
   return {
     ...defaultStep,
@@ -142,9 +141,7 @@ function transformTrackerStep(raw: RawTrackerStep): RegisteredReportTrackerStep 
 }
 
 function transformProposalReview(raw: RawProposalReview): PeerReview | null {
-  const reviewId = normalizeRegisteredReportId(raw.id);
   if (
-    !reviewId ||
     raw.is_assessed !== true ||
     typeof raw.score !== 'number' ||
     !Number.isFinite(raw.score) ||
@@ -156,8 +153,8 @@ function transformProposalReview(raw: RawProposalReview): PeerReview | null {
 
   const reviewer = raw.created_by;
   const profile = reviewer?.author_profile ?? reviewer ?? {};
-  const profileId = normalizeRegisteredReportId(profile.id) ?? 0;
-  const reviewerId = normalizeRegisteredReportId(reviewer?.id) ?? profileId;
+  const profileId = profile.id ?? 0;
+  const reviewerId = reviewer?.id ?? profileId;
   const displayName =
     profile.full_name?.trim() ||
     `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() ||
@@ -166,7 +163,6 @@ function transformProposalReview(raw: RawProposalReview): PeerReview | null {
 
   return transformWorkPeerReview({
     ...raw,
-    id: reviewId,
     created_by: {
       id: reviewerId,
       author_profile: {
@@ -180,10 +176,9 @@ function transformProposalReview(raw: RawProposalReview): PeerReview | null {
 }
 
 function transformProposalTopic(raw: RawProposalTopic): Topic | null {
-  const id = normalizeRegisteredReportId(raw.id);
-  if (!id || !raw.slug) return null;
+  if (!raw.slug) return null;
 
-  return transformTopic({ ...raw, id, name: raw.name || raw.slug });
+  return transformTopic({ ...raw, id: raw.id, name: raw.name || raw.slug });
 }
 
 function transformProposalDetails(

@@ -1,14 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import type {
-  RegisteredReportStage,
-  RegisteredReportTrackerPayload,
-  RegisteredReportTrackerStep,
-} from '@/types/registeredReport';
+import type { RegisteredReportStage, RegisteredReportTrackerStep } from '@/types/registeredReport';
+import { useRegisteredReportTracker } from '@/hooks/useRegisteredReportTracker';
 import { appendQueryString } from '@/utils/url';
-import { normalizeRegisteredReportId } from '@/utils/registeredReportRoute';
 import {
   RegisteredReportRouteTracker,
   RegisteredReportRouteTrackerSkeleton,
@@ -19,33 +15,6 @@ interface RegisteredReportRouteTrackerLoaderProps {
   currentPostId: number;
   registeredReportId?: number | null;
   trackerWithoutReport?: RegisteredReportTrackerStep[];
-}
-
-interface LoadedTracker extends RegisteredReportTrackerPayload {
-  routeKey: string;
-}
-
-async function fetchRegisteredReportTracker(
-  registeredReportId: number,
-  reportIdParameter: 'registered_report_id' | 'rr',
-  currentStage: RegisteredReportStage,
-  currentPostId: number
-): Promise<RegisteredReportTrackerPayload | null> {
-  const params = new URLSearchParams({
-    stage: currentStage,
-    postId: currentPostId.toString(),
-  });
-  params.set(reportIdParameter, registeredReportId.toString());
-
-  const response = await fetch(`/api/registered-report-tracker?${params}`, {
-    cache: 'no-store',
-  });
-  if (response.status === 404) return null;
-  if (!response.ok) {
-    throw new Error(`Failed to load the Registered Report tracker (${response.status}).`);
-  }
-
-  return response.json();
 }
 
 export function RegisteredReportRouteTrackerLoader({
@@ -59,74 +28,24 @@ export function RegisteredReportRouteTrackerLoader({
   const searchParams = useSearchParams();
   const hasRouteReportId = searchParams.has('rr');
   const routeReportIdParam = searchParams.get('rr');
-  const reportIdFromRoute = normalizeRegisteredReportId(routeReportIdParam);
+  const reportIdFromRoute = routeReportIdParam ? Number(routeReportIdParam) : null;
   const hasMalformedRouteReportId = hasRouteReportId && !reportIdFromRoute;
   const selectedReportId = hasMalformedRouteReportId
     ? null
     : (reportIdFromRoute ?? registeredReportId ?? null);
-  const routeKey = selectedReportId ? `${selectedReportId}:${currentStage}:${currentPostId}` : null;
-  const [loadedTracker, setLoadedTracker] = useState<LoadedTracker | null>(null);
-  const [failedRouteKey, setFailedRouteKey] = useState<string | null>(null);
-  const reportTracker = loadedTracker?.routeKey === routeKey ? loadedTracker : null;
+  const {
+    tracker: reportTracker,
+    isLoading,
+    isNotFound,
+  } = useRegisteredReportTracker(selectedReportId, currentStage, currentPostId);
 
   useEffect(() => {
-    const clearRouteReportId = () => {
-      setLoadedTracker(null);
-      if (!hasRouteReportId) return;
+    if (!hasRouteReportId || (!hasMalformedRouteReportId && !isNotFound)) return;
 
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('rr');
-      router.replace(appendQueryString(pathname, params));
-    };
-
-    if (hasMalformedRouteReportId) {
-      clearRouteReportId();
-      return;
-    }
-
-    if (!selectedReportId || !routeKey) {
-      setLoadedTracker(null);
-      setFailedRouteKey(null);
-      return;
-    }
-
-    let isActive = true;
-    setFailedRouteKey(null);
-
-    fetchRegisteredReportTracker(
-      selectedReportId,
-      reportIdFromRoute ? 'rr' : 'registered_report_id',
-      currentStage,
-      currentPostId
-    )
-      .then((tracker) => {
-        if (!isActive) return;
-        if (!tracker) {
-          clearRouteReportId();
-          setFailedRouteKey(routeKey);
-          return;
-        }
-        setLoadedTracker({ ...tracker, routeKey });
-      })
-      .catch(() => {
-        if (isActive) setFailedRouteKey(routeKey);
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [
-    currentPostId,
-    currentStage,
-    hasMalformedRouteReportId,
-    hasRouteReportId,
-    pathname,
-    reportIdFromRoute,
-    routeKey,
-    router,
-    searchParams,
-    selectedReportId,
-  ]);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('rr');
+    router.replace(appendQueryString(pathname, params));
+  }, [hasMalformedRouteReportId, hasRouteReportId, isNotFound, pathname, router, searchParams]);
 
   if (reportTracker) {
     return (
@@ -138,11 +57,11 @@ export function RegisteredReportRouteTrackerLoader({
     );
   }
 
-  if (!routeKey && trackerWithoutReport) {
+  if (!selectedReportId && trackerWithoutReport) {
     return (
       <RegisteredReportRouteTracker tracker={trackerWithoutReport} currentStage={currentStage} />
     );
   }
 
-  return routeKey && failedRouteKey !== routeKey ? <RegisteredReportRouteTrackerSkeleton /> : null;
+  return isLoading ? <RegisteredReportRouteTrackerSkeleton /> : null;
 }
