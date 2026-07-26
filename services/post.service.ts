@@ -36,12 +36,13 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
   };
 };
 
-export type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT';
+export type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT' | 'REGISTERED_REPORT';
 
 export const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
   preregistration: 'PREREGISTRATION',
   grant: 'GRANT',
   discussion: 'DISCUSSION',
+  registered_report: 'REGISTERED_REPORT',
 };
 
 export class PostService {
