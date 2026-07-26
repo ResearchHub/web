@@ -42,6 +42,7 @@ interface WorkHeaderProps {
   updatesCount?: number;
   className?: string;
   eyebrow?: ReactNode;
+  preTitle?: ReactNode;
   subtitle?: ReactNode;
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
@@ -65,6 +66,7 @@ export function WorkHeader({
   updatesCount,
   className,
   eyebrow: eyebrowOverride,
+  preTitle,
   subtitle: subtitleOverride,
   additionalMenuItems,
   tabs: tabsOverride,
@@ -248,6 +250,7 @@ export function WorkHeader({
       <HeroHeader
         title={work.title}
         eyebrow={resolvedEyebrow}
+        preTitle={preTitle}
         subtitle={resolvedSubtitle}
         actions={actionBar}
         cta={primaryAction}

@@ -11,6 +11,7 @@ import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
 import type { GrantApplicationVisibility } from './grant';
+import { normalizeRegisteredReportId } from '@/utils/registeredReportRoute';
 
 export interface PeerReview {
   id: number;
@@ -121,6 +122,7 @@ export interface Work {
   previewContent?: string;
   contentUrl?: string;
   unifiedDocumentId?: number | null;
+  registeredReportId?: number | null;
   postType?: string;
   fundraise?: any;
   tips?: Tip[];
@@ -372,6 +374,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
       views: raw.metrics?.views || raw.views_count || 0,
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
+    registeredReportId: normalizeRegisteredReportId(raw.registered_report_id),
     postType: raw.document_type || raw.type || raw.unified_document?.document_type,
     fundraise: raw.fundraise,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,

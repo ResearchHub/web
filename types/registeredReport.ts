@@ -35,6 +35,10 @@ export interface RegisteredReportWorkResponse {
   tracker: RegisteredReportTrackerStep[];
 }
 
+export type RegisteredReportTrackerPayload = Pick<RegisteredReportWorkResponse, 'tracker'> & {
+  reportId: number;
+};
+
 type RawTrackerStep = {
   stage?: string;
   exists?: boolean;

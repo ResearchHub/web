@@ -9,6 +9,7 @@ import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
+import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 
 interface Props {
   params: Promise<{
@@ -67,7 +68,18 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
     <WorkTabProvider>
       <PageLayout
         topBanner={
-          <WorkHeaderProposal work={work} metadata={metadata} updatesCount={authorPosts.length} />
+          <WorkHeaderProposal
+            work={work}
+            metadata={metadata}
+            updatesCount={authorPosts.length}
+            preTitle={
+              <RegisteredReportRouteTrackerLoader
+                currentStage="proposal"
+                currentPostId={work.id}
+                registeredReportId={work.registeredReportId}
+              />
+            }
+          />
         }
         rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
       >
