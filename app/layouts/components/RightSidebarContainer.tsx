@@ -38,11 +38,13 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
   contentClassName?: string;
+  aboveSidebar?: ReactNode;
 }
 
 export function RightSidebarContainer({
   rightSidebar,
   contentClassName,
+  aboveSidebar,
 }: RightSidebarContainerProps) {
   const pathname = usePathname();
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
@@ -51,22 +53,31 @@ export function RightSidebarContainer({
 
   return (
     <>
-      <aside
+      <div
         className={cn(
-          'sticky top-0 overflow-y-auto mt-10 scrollbar-on-hover',
+          'sticky top-0 mt-10 z-30',
           'h-[calc(100vh-var(--top-bar-height))]',
-          'lg:!block !hidden right-sidebar:!block',
-          'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30'
+          'lg:!flex !hidden right-sidebar:!flex',
+          'w-80 flex-shrink-0 flex-col gap-3'
         )}
       >
-        <div className={cn('h-full', contentClassName)}>
-          <div className="p-4">
-            <Suspense fallback={sidebarFallback}>
-              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-            </Suspense>
+        {aboveSidebar}
+
+        <aside
+          className={cn(
+            'min-h-0 flex-1 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
+            !aboveSidebar && 'h-full'
+          )}
+        >
+          <div className={cn('h-full', contentClassName)}>
+            <div className="p-4">
+              <Suspense fallback={sidebarFallback}>
+                <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+              </Suspense>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </div>
 
       <div className="lg:hidden">
         <SwipeableDrawer
@@ -74,9 +85,12 @@ export function RightSidebarContainer({
           onClose={() => setMobileSidebarOpen(false)}
           height="85vh"
         >
-          <Suspense fallback={sidebarFallback}>
-            <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-          </Suspense>
+          <div className="space-y-3">
+            {aboveSidebar}
+            <Suspense fallback={sidebarFallback}>
+              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+            </Suspense>
+          </div>
         </SwipeableDrawer>
       </div>
     </>

@@ -29,6 +29,7 @@ interface PageLayoutProps {
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
+  rightSidebarAbove?: ReactNode;
   fundraiseGrantId?: number;
   /**
    * Drop the 860px main-content cap and let content fill the page container
@@ -44,6 +45,7 @@ function PageLayoutInner({
   className,
   sidebarContentClassName,
   topBanner,
+  rightSidebarAbove,
   wideContent = false,
 }: PageLayoutProps) {
   const {
@@ -123,6 +125,7 @@ function PageLayoutInner({
               <RightSidebarContainer
                 rightSidebar={rightSidebar}
                 contentClassName={sidebarContentClassName}
+                aboveSidebar={rightSidebarAbove}
               />
             )}
           </div>
