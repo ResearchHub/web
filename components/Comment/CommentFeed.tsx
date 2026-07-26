@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect, memo, useMemo } from 'react';
+import { useCallback, useState, useEffect, memo, useMemo, useRef } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
 import { CommentItem } from './CommentItem';
@@ -36,6 +36,8 @@ interface CommentFeedProps {
   work?: Work;
   workAuthors?: Work['authors'];
   belowEditor?: React.ReactNode;
+  readOnly?: boolean;
+  onlyAssessedReviews?: boolean;
 }
 
 function CommentFeed({
@@ -51,6 +53,8 @@ function CommentFeed({
   work,
   workAuthors,
   belowEditor,
+  readOnly = false,
+  onlyAssessedReviews = false,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -97,9 +101,11 @@ function CommentFeed({
           work={work}
           workAuthors={workAuthors}
           belowEditor={belowEditor}
+          readOnly={readOnly}
+          onlyAssessedReviews={onlyAssessedReviews}
         />
       </div>
-      {canCreateBounty && (
+      {!readOnly && canCreateBounty && (
         <CreateBountyModal
           isOpen={isBountyModalOpen}
           onClose={handleCloseBountyModal}
@@ -125,6 +131,8 @@ function CommentFeedContent({
   work,
   workAuthors,
   belowEditor,
+  readOnly = false,
+  onlyAssessedReviews = false,
 }: Omit<CommentFeedProps, 'documentId'> & {
   onCreateBounty: () => void;
   canCreateBounty?: boolean;
@@ -139,7 +147,17 @@ function CommentFeedContent({
     }
   }, [commentType, debug]);
 
-  const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
+  const { filteredComments, count, loading, error, createComment, loadMore } = useCommentsContext();
+  const [isLoadingAssessedReviews, setIsLoadingAssessedReviews] = useState(false);
+  const isLoadingAssessedReviewsRef = useRef(false);
+  const displayedComments = onlyAssessedReviews
+    ? filteredComments.filter((comment) => comment.isAssessed)
+    : filteredComments;
+  const hasMoreComments = filteredComments.length < count;
+  const shouldShowEmptyState =
+    displayedComments.length === 0 && (!onlyAssessedReviews || !hasMoreComments);
+  const shouldLoadAssessedReviews =
+    onlyAssessedReviews && !error && displayedComments.length === 0 && hasMoreComments;
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -213,6 +231,24 @@ function CommentFeedContent({
     }
   }, [loadMore]);
 
+  useEffect(() => {
+    if (
+      !shouldLoadAssessedReviews ||
+      loading ||
+      isLoadingAssessedReviews ||
+      isLoadingAssessedReviewsRef.current
+    ) {
+      return;
+    }
+
+    isLoadingAssessedReviewsRef.current = true;
+    setIsLoadingAssessedReviews(true);
+    void handleLoadMore().finally(() => {
+      isLoadingAssessedReviewsRef.current = false;
+      setIsLoadingAssessedReviews(false);
+    });
+  }, [handleLoadMore, isLoadingAssessedReviews, loading, shouldLoadAssessedReviews]);
+
   // Handle bounty creation
   const handleCreateBounty = useCallback(() => {
     onCreateBounty();
@@ -270,13 +306,15 @@ function CommentFeedContent({
     <div className={cn('space-y-6', className)}>
       {!hideEditor && (
         <div className="mt-4 mb-6">
-          <AuthenticatedCommentEditor
-            onSubmit={handleSubmit}
-            placeholder="Add a comment..."
-            commentType={commentType}
-            storageKey={storageKey}
-            {...editorProps}
-          />
+          {!readOnly && (
+            <AuthenticatedCommentEditor
+              onSubmit={handleSubmit}
+              placeholder="Add a comment..."
+              commentType={commentType}
+              storageKey={storageKey}
+              {...editorProps}
+            />
+          )}
           {belowEditor && <div className="mt-6">{belowEditor}</div>}
           <div className="mt-12 mb-2">
             {commentType !== 'BOUNTY' && (
@@ -291,7 +329,7 @@ function CommentFeedContent({
         <>
           <div className="flex justify-between items-center mb-4">
             <CommentSortAndFilters commentType={commentType} commentCount={count} />
-            {canCreateBounty && (
+            {!readOnly && canCreateBounty && (
               <Button
                 onClick={() => executeAuthenticatedAction(handleCreateBounty)}
                 variant="outlined"
@@ -308,25 +346,27 @@ function CommentFeedContent({
       )}
 
       <div className="comment-list-container">
-        {loading ? (
+        {loading || shouldLoadAssessedReviews ? (
           <CommentLoader count={3} commentType={commentType} />
-        ) : filteredComments.length === 0 ? (
+        ) : shouldShowEmptyState ? (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
             canCreateBounty={canCreateBounty}
             work={work}
+            readOnly={readOnly}
           />
         ) : (
           <>
             <CommentList
               commentType={commentType}
-              comments={filteredComments}
+              comments={displayedComments}
               isRootList={true}
               contentType={contentType}
+              readOnly={readOnly}
             />
 
-            {filteredComments.length < count && (
+            {hasMoreComments && (
               <div className="flex justify-center mt-4">
                 <Button
                   variant="outlined"

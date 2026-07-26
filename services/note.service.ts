@@ -50,7 +50,7 @@ export interface UpdateNoteTitleParams {
 
 export interface GetOrganizationNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
-  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
+  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION' | 'REGISTERED_REPORT';
 }
 
 export interface NoteInvitePreview {

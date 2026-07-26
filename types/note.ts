@@ -7,6 +7,7 @@ import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
 import { Grant, transformGrant } from './grant';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Author = {
@@ -14,6 +15,11 @@ export type Author = {
   userId: number;
   name: string;
 };
+
+export interface RegisteredReportPrefill {
+  authorIds?: number[];
+  topicIds?: number[];
+}
 
 export type Contact = {
   id: number;
@@ -25,6 +31,7 @@ export type Post = {
   id: number;
   slug: string;
   contentType: ContentType;
+  documentType?: string | null;
   moderationStatus?: ModerationStatus;
   fundraise?: Fundraise;
   grant?: Grant;
@@ -46,6 +53,10 @@ export interface Note {
   post: Post | null;
   documentType: string | null;
   proposalId?: number | null;
+  image?: string | null;
+  topics?: Topic[];
+  authors?: Author[];
+  registeredReportPrefill?: RegisteredReportPrefill | null;
 }
 
 export interface NoteWithContent extends Note {
@@ -84,15 +95,21 @@ export const transformContact = createTransformer<any, Contact>((raw) => ({
   authorProfile: raw.author_profile ? transformAuthorProfile(raw.author_profile) : undefined,
 }));
 
+const getDocumentType = (raw: any): string | null =>
+  [raw.document_type, raw.unified_document?.document_type, raw.type]
+    .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    ?.trim() ?? null;
+
 export const transformPost = createTransformer<any, Post>((raw) => ({
   id: raw.id,
   slug: raw.slug,
   contentType:
-    raw.document_type?.toLowerCase() === 'preregistration'
+    getDocumentType(raw)?.toLowerCase() === 'preregistration'
       ? 'preregistration'
-      : raw.document_type?.toLowerCase() === 'grant'
+      : getDocumentType(raw)?.toLowerCase() === 'grant'
         ? 'funding_request'
         : 'post',
+  documentType: getDocumentType(raw),
   moderationStatus: raw.status as ModerationStatus | undefined,
   fundraise: raw.unified_document?.fundraise
     ? transformFundraise(raw.unified_document.fundraise)
@@ -109,18 +126,74 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   image: raw.image_url,
 }));
 
-export const transformNote = createTransformer<any, Note>((raw) => ({
-  id: raw.id,
-  access: raw.access,
-  organization: transformOrganization(raw.organization),
-  createdDate: raw.created_date,
-  updatedDate: raw.updated_date,
-  title: raw.title,
-  isRemoved: raw.unifiedDocument?.isRemoved || false,
-  post: raw.post ? transformPost(raw.post) : null,
-  documentType: raw.document_type ?? null,
-  proposalId: raw.proposal_id ?? raw.registered_report_prefill?.proposal_id ?? null,
-}));
+const findFirstPopulatedArray = (sources: unknown[]): unknown[] | undefined =>
+  sources.find((source): source is unknown[] => Array.isArray(source) && source.length > 0) ??
+  sources.find((source): source is unknown[] => Array.isArray(source));
+
+const transformTopicsFromSources = (...sources: unknown[]): Topic[] | undefined => {
+  const topicSource = findFirstPopulatedArray(sources);
+  return topicSource?.map((topic) => transformTopic(topic));
+};
+
+const transformAuthorsFromSources = (...sources: unknown[]): Author[] | undefined => {
+  const authorSource = findFirstPopulatedArray(sources);
+  return authorSource?.map((author) => transformAuthor(author));
+};
+
+const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | null => {
+  if (!raw) return null;
+
+  const authorIds = raw.author_ids as number[] | undefined;
+  const topicIds = (raw.hub_ids ?? raw.topic_ids) as number[] | undefined;
+  return authorIds || topicIds ? { authorIds, topicIds } : null;
+};
+
+const isRegisteredReportDocumentType = (documentType?: string | null): boolean =>
+  documentType?.trim().toUpperCase() === 'REGISTERED_REPORT';
+
+const serializeNoteJson = (value: unknown): string | undefined => {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return undefined;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
+};
+
+export const transformNote = createTransformer<any, Note>((raw) => {
+  const documentType = getDocumentType(raw);
+  const post = raw.post ? transformPost(raw.post) : null;
+  const proposalId = raw.proposal_id ?? raw.registered_report_prefill?.proposal_id ?? null;
+
+  return {
+    id: raw.id,
+    access: raw.access,
+    organization: transformOrganization(raw.organization),
+    createdDate: raw.created_date,
+    updatedDate: raw.updated_date,
+    title: raw.title,
+    isRemoved: raw.unifiedDocument?.isRemoved || false,
+    post,
+    documentType,
+    proposalId,
+    registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
+    image: raw.registered_report_prefill?.preview_img ?? null,
+    topics: transformTopicsFromSources(
+      raw.registered_report_prefill?.topics,
+      raw.registered_report_prefill?.hubs,
+      raw.hubs,
+      raw.topics,
+      raw.unified_document?.hubs
+    ),
+    authors: transformAuthorsFromSources(
+      raw.registered_report_prefill?.authors,
+      raw.authors,
+      raw.author_profiles
+    ),
+  };
+});
 
 export const transformNoteWithContent = createTransformer<any, NoteWithContent>((raw) => ({
   ...transformNote(raw),
@@ -128,7 +201,7 @@ export const transformNoteWithContent = createTransformer<any, NoteWithContent>(
   versionId: raw.latest_version?.id || 0,
   versionDate: raw.latest_version?.created_date || raw.created_date,
   plainText: raw.latest_version?.plain_text || '',
-  contentJson: raw.latest_version?.json,
+  contentJson: serializeNoteJson(raw.latest_version?.json),
 }));
 
 export interface NoteContent {
@@ -144,5 +217,16 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
   note: raw.note,
   plain_text: raw.plain_text,
   src: raw.src,
-  json: raw.json,
+  json: serializeNoteJson(raw.json) ?? '',
 }));
+
+export const isRegisteredReportNote = (
+  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
+): boolean =>
+  isRegisteredReportDocumentType(note?.documentType) ||
+  isRegisteredReportDocumentType(note?.post?.documentType) ||
+  note?.proposalId != null;
+
+export const isPublishedRegisteredReportNote = (
+  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
+): boolean => Boolean(note?.post?.id) && isRegisteredReportNote(note);
