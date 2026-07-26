@@ -7,7 +7,8 @@ import { Editor } from '@tiptap/react';
 import { cn } from '@/utils/styles';
 
 interface PostBlockEditorProps {
-  content: string;
+  content?: string;
+  contentJson?: string;
   editable?: boolean;
   onEditorReady?: (editor: Editor | null) => void;
   className?: string;
@@ -19,6 +20,7 @@ interface PostBlockEditorProps {
  */
 export const PostBlockEditor = ({
   content,
+  contentJson,
   editable = false,
   onEditorReady,
   className,
@@ -45,7 +47,12 @@ export const PostBlockEditor = ({
 
   return (
     <div className={cn('post-content bg-white rounded-lg shadow-sm border p-6 mb-6', className)}>
-      <BlockEditorClientWrapper content={content} editable={editable} setEditor={onEditorReady} />
+      <BlockEditorClientWrapper
+        content={content}
+        contentJson={contentJson}
+        editable={editable}
+        setEditor={onEditorReady}
+      />
     </div>
   );
 };

@@ -48,11 +48,7 @@ import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { ApiError } from '@/services/types';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
-import {
-  getRegisteredReportProposalIdFromDocument,
-  mergeRegisteredReportPrefill,
-  normalizeRegisteredReportId,
-} from '@/utils/registeredReportPrefill';
+import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { isRegisteredReportNote, type NoteWithContent } from '@/types/note';
 import { NOTEBOOK_WORK_TYPES } from '@/components/Notebook/NotebookPrimaryNavigation';
@@ -545,11 +541,9 @@ export function PublishingForm({
 
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
-      const proposalId =
-        normalizeRegisteredReportId(note.proposalId) ??
-        getRegisteredReportProposalIdFromDocument(json);
+      const proposalId = note.proposalId;
 
-      if (formData.articleType === 'registered_report' && !proposalId) {
+      if (formData.articleType === 'registered_report' && proposalId == null) {
         toast.error('This Registered Report draft is missing its proposal link.');
         return;
       }

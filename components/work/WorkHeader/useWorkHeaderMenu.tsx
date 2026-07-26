@@ -226,15 +226,18 @@ export function useWorkHeaderMenuItems({
           <span>Upload New Version</span>
         </BaseMenuItem>
       )}
-      {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-        <BaseMenuItem
-          disabled={isPublishing}
-          onSelect={() => executeAuthenticatedAction(handlePublish)}
-        >
-          <Icon name="rhJournal1" size={16} className="mr-2" />
-          <span>Publish to Journal</span>
-        </BaseMenuItem>
-      )}
+      {work.postType !== 'REGISTERED_REPORT' &&
+        !isPublished &&
+        isModerator &&
+        work.contentType !== 'preregistration' && (
+          <BaseMenuItem
+            disabled={isPublishing}
+            onSelect={() => executeAuthenticatedAction(handlePublish)}
+          >
+            <Icon name="rhJournal1" size={16} className="mr-2" />
+            <span>Publish to Journal</span>
+          </BaseMenuItem>
+        )}
       {canInviteExperts && (
         <BaseMenuItem
           onSelect={() =>

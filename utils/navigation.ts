@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
 import { generateSlug, buildWorkUrl } from '@/utils/url';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -50,6 +51,18 @@ export function handleQuestionRedirect(work: Work, id: string, slug: string, tab
 }
 
 /**
+ * Handles redirection for registered reports
+ * @param work The work object to check for registered report type
+ * @param id The post ID
+ * @param slug The post slug
+ */
+export function handleRegisteredReportRedirect(work: Work, id: string, slug: string) {
+  if (work.postType === 'REGISTERED_REPORT') {
+    redirect(buildRegisteredReportUrl(id, slug));
+  }
+}
+
+/**
  * Handles redirection for grant posts
  * @param work The work object to check for grant type
  * @param id The post ID
@@ -62,7 +75,7 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
- * Handles all post-related redirects (fundraise and question)
+ * Handles all post-related redirects
  * @param work The work object to check for redirects
  * @param id The post ID
  * @param slug The post slug
@@ -71,6 +84,8 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
 export function handlePostRedirect(work: Work, id: string, slug: string, tab?: string) {
   // Check for question redirect first
   handleQuestionRedirect(work, id, slug, tab);
+
+  handleRegisteredReportRedirect(work, id, slug);
 
   // Then check for fundraise redirect
   handleFundraiseRedirect(work, id, slug);
