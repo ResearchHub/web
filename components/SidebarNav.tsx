@@ -38,65 +38,63 @@ export const SidebarNav: FC<SidebarNavProps> = ({ items }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 p-4">
-        <nav className="space-y-2">
-          {items.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-            const Icon = item.icon;
+      <nav className="space-y-2">
+        {items.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          const Icon = item.icon;
 
-            if (item.disabled) {
-              return (
-                <div
-                  key={item.name}
-                  className="group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg opacity-50 cursor-not-allowed"
-                >
-                  <div className="flex items-center space-x-3">
-                    <Icon className="h-5 w-5 flex-shrink-0 text-gray-400" />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-gray-500 truncate">{item.name}</div>
-                        <NavBadgeCount badgeCount={item.badgeCount} />
-                      </div>
-                      <div className="text-xs text-gray-400">{item.description}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
+          if (item.disabled) {
             return (
-              <Link
+              <div
                 key={item.name}
-                href={item.href}
-                className={cn(
-                  'group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                )}
+                className="group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg opacity-50 cursor-not-allowed"
               >
                 <div className="flex items-center space-x-3">
-                  <Icon
-                    className={cn(
-                      'h-5 w-5 flex-shrink-0',
-                      isActive ? 'text-primary-600' : 'text-gray-500 group-hover:text-gray-700'
-                    )}
-                  />
+                  <Icon className="h-5 w-5 flex-shrink-0 text-gray-400" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="font-medium truncate">{item.name}</div>
+                      <div className="font-medium text-gray-500 truncate">{item.name}</div>
                       <NavBadgeCount badgeCount={item.badgeCount} />
                     </div>
-                    <div className="text-xs text-gray-500 group-hover:text-gray-600">
-                      {item.description}
-                    </div>
+                    <div className="text-xs text-gray-400">{item.description}</div>
                   </div>
                 </div>
-              </Link>
+              </div>
             );
-          })}
-        </nav>
-      </div>
+          }
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                'group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg transition-colors',
+                isActive
+                  ? 'bg-primary-50 text-primary-700 border border-primary-200'
+                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+              )}
+            >
+              <div className="flex items-center space-x-3">
+                <Icon
+                  className={cn(
+                    'h-5 w-5 flex-shrink-0',
+                    isActive ? 'text-primary-600' : 'text-gray-500 group-hover:text-gray-700'
+                  )}
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium truncate">{item.name}</div>
+                    <NavBadgeCount badgeCount={item.badgeCount} />
+                  </div>
+                  <div className="text-xs text-gray-500 group-hover:text-gray-600">
+                    {item.description}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 };

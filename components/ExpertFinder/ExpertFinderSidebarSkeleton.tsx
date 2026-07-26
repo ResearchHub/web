@@ -26,13 +26,11 @@ function SidebarNavItemSkeleton({ active }: { active?: boolean }) {
 
 export const ExpertFinderSidebarSkeleton: FC = () => (
   <div className="h-full flex flex-col">
-    <div className="flex-1 p-4">
-      <nav className="space-y-2">
-        {Array.from({ length: NAV_ITEM_COUNT }, (_, i) => (
-          <SidebarNavItemSkeleton key={i} active={i === 0} />
-        ))}
-      </nav>
-    </div>
+    <nav className="space-y-2">
+      {Array.from({ length: NAV_ITEM_COUNT }, (_, i) => (
+        <SidebarNavItemSkeleton key={i} active={i === 0} />
+      ))}
+    </nav>
   </div>
 );
 
