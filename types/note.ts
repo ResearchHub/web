@@ -7,7 +7,6 @@ import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
 import { Grant, transformGrant } from './grant';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
-import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
 
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
@@ -141,21 +140,11 @@ const transformAuthorsFromSources = (...sources: unknown[]): Author[] | undefine
   return authorSource?.map((author) => transformAuthor(author));
 };
 
-const getPositiveIds = (value: unknown): number[] | undefined => {
-  if (!Array.isArray(value)) return undefined;
-
-  const ids = value.map(normalizeRegisteredReportId).filter((id): id is number => id !== null);
-  return ids.length > 0 ? ids : undefined;
-};
-
-const getTopicIds = (raw: any): number[] | undefined =>
-  getPositiveIds(raw.hub_ids) ?? getPositiveIds(raw.topic_ids);
-
 const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | null => {
   if (!raw) return null;
 
-  const authorIds = getPositiveIds(raw.author_ids);
-  const topicIds = getTopicIds(raw);
+  const authorIds = raw.author_ids as number[] | undefined;
+  const topicIds = (raw.hub_ids ?? raw.topic_ids) as number[] | undefined;
   return authorIds || topicIds ? { authorIds, topicIds } : null;
 };
 
@@ -176,9 +165,7 @@ const serializeNoteJson = (value: unknown): string | undefined => {
 export const transformNote = createTransformer<any, Note>((raw) => {
   const documentType = getDocumentType(raw);
   const post = raw.post ? transformPost(raw.post) : null;
-  const proposalId =
-    normalizeRegisteredReportId(raw.proposal_id) ??
-    normalizeRegisteredReportId(raw.registered_report_prefill?.proposal_id);
+  const proposalId = raw.proposal_id ?? raw.registered_report_prefill?.proposal_id ?? null;
 
   return {
     id: raw.id,
@@ -238,7 +225,7 @@ export const isRegisteredReportNote = (
 ): boolean =>
   isRegisteredReportDocumentType(note?.documentType) ||
   isRegisteredReportDocumentType(note?.post?.documentType) ||
-  normalizeRegisteredReportId(note?.proposalId) !== null;
+  note?.proposalId != null;
 
 export const isPublishedRegisteredReportNote = (
   note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null

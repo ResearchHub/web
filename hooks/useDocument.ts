@@ -102,7 +102,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.editor_type = postParams.editorType;
       }
       if (postParams.articleType === 'REGISTERED_REPORT') {
-        if (!postParams.proposalId) {
+        if (postParams.proposalId == null) {
           throw new Error('Registered Report publication requires a valid source proposal ID.');
         }
         payload.proposal_id = postParams.proposalId;
