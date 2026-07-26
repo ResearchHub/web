@@ -5,6 +5,7 @@ import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
 import { debounce, DebouncedFunc } from 'lodash';
 import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
+import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 
 export interface UseNoteOptions {
   sendImmediately?: boolean;
@@ -276,6 +277,7 @@ interface UseUpdateNoteState {
 interface UpdateNoteOptions {
   onTitleUpdate?: (newTitle: string) => void;
   debounceMs?: number;
+  registeredReportProposalId?: number | null;
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
@@ -286,14 +288,18 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
 
-  const debouncedUpdate = useRef<DebouncedFunc<(editor: Editor, noteId: ID) => Promise<void>>>(
-    debounce(async (editor: Editor, noteId: ID) => {
+  const debouncedUpdate = useRef<
+    DebouncedFunc<
+      (editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => Promise<void>
+    >
+  >(
+    debounce(async (editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
       if (!editor || !noteId) {
         console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
         return;
       }
 
-      const json = editor.getJSON();
+      const json = mergeRegisteredReportPrefill(editor.getJSON(), registeredReportProposalId);
       const html = editor.getHTML();
       const newTitle = getDocumentTitleFromEditor(editor) || '';
 
@@ -344,9 +350,9 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         console.error('Editor is undefined in updateNote');
         return;
       }
-      debouncedUpdate.current(editor, noteId);
+      debouncedUpdate.current(editor, noteId, options.registeredReportProposalId);
     },
-    [noteId]
+    [noteId, options.registeredReportProposalId]
   );
 
   useEffect(() => {

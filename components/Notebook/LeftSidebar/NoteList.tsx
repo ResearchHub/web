@@ -14,7 +14,9 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) 
   const [isPending, startTransition] = useTransition();
 
   const filteredAndSortedNotes = notes
-    .filter((note) => note.access === 'WORKSPACE' || note.access === 'SHARED')
+    .filter(
+      (note) => note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE'
+    )
     .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 
   if (isLoading || notes.length === 0) {

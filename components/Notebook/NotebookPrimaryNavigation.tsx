@@ -60,7 +60,9 @@ export const NotebookPrimaryNavigation = ({
 
   const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
 
-  const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const hasNotes = notes?.some(
+    (note) => note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE'
+  );
   const createActions: Record<NotebookWorkType, { icon: React.ReactNode; onClick: () => void }> = {
     grant: {
       icon: <Icon name="fund" size={18} color="#6b7280" />,
