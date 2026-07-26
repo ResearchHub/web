@@ -7,17 +7,13 @@ import {
   type RegisteredReportWork,
   type RegisteredReportWorkResponse,
 } from '@/types/registeredReport';
-import { normalizeRegisteredReportId } from '@/utils/registeredReportRoute';
 
 export const getRegisteredReportWorkOrNotFound = cache(
   async (id: string | number): Promise<RegisteredReportWorkResponse> => {
-    const normalizedId = normalizeRegisteredReportId(id);
-    if (!normalizedId) {
-      notFound();
-    }
+    const reportId = Number(id);
 
     try {
-      return await PostService.getRegisteredReportWork(normalizedId);
+      return await PostService.getRegisteredReportWork(reportId);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
         notFound();
