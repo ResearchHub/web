@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Flag, UserRoundPen, Users, DollarSign, FileCheck } from 'lucide-react';
+import { Flag, UserRoundPen, Users, DollarSign, FileCheck, BookOpen } from 'lucide-react';
 import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/SidebarNav';
 import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 
@@ -25,6 +25,12 @@ const navigationItems: SidebarNavItem[] = [
     href: PENDING_MODERATION_HREF,
     icon: FileCheck,
     description: 'Review pending submissions',
+  },
+  {
+    name: 'Journal',
+    href: '/moderators/journal',
+    icon: BookOpen,
+    description: 'Create Registered Reports',
   },
   {
     name: 'Editors',
