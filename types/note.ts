@@ -7,6 +7,7 @@ import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
 import { Grant, transformGrant } from './grant';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+import { normalizeRegisteredReportId } from '@/utils/registeredReportPrefill';
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
 
 export type Author = {
@@ -45,6 +46,7 @@ export interface Note {
   isRemoved: boolean;
   post: Post | null;
   documentType: string | null;
+  proposalId?: number | null;
 }
 
 export interface NoteWithContent extends Note {
@@ -118,6 +120,9 @@ export const transformNote = createTransformer<any, Note>((raw) => ({
   isRemoved: raw.unifiedDocument?.isRemoved || false,
   post: raw.post ? transformPost(raw.post) : null,
   documentType: raw.document_type ?? null,
+  proposalId:
+    normalizeRegisteredReportId(raw.proposal_id) ??
+    normalizeRegisteredReportId(raw.registered_report_prefill?.proposal_id),
 }));
 
 export const transformNoteWithContent = createTransformer<any, NoteWithContent>((raw) => ({
