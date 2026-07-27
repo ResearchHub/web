@@ -62,10 +62,7 @@ export function useWorkHeaderMenuItems({
 
   const grant = work.note?.post?.grant;
   const canCloseGrant =
-    isModerator &&
-    work.contentType === 'funding_request' &&
-    grant?.status === 'OPEN' &&
-    !!grant?.id;
+    canEdit && work.contentType === 'funding_request' && grant?.status === 'OPEN' && !!grant?.id;
   const canInviteExperts =
     work.contentType === 'funding_request' && grant?.status === 'OPEN' && !!grant?.id && canEdit;
 
