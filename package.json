@@ -6,9 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "lint:work-pages": "eslint \"app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx\" --rulesdir eslint-rules --rule 'work-document-tracking: error'",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:work-pages": "eslint \"app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx\"",
     "format": "prettier --write --ignore-path .gitignore \"./**/*.{js,jsx,ts,tsx,json,css}\"",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
@@ -132,6 +132,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/pro-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -149,9 +150,9 @@
     "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
     "autoprefixer": "^10.4.20",
-    "eslint": "^8",
+    "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.9",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.1",
     "null-loader": "^4.0.1",
@@ -164,7 +165,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write --ignore-path .gitignore",
-      "eslint --fix --ignore-pattern 'public/*'"
+      "eslint --fix --no-warn-ignored"
     ],
     "**/*.{ts,tsx}": "bash -c 'npm run type-check'"
   }
