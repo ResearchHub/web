@@ -11,6 +11,7 @@ import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
+import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
@@ -35,9 +36,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { totalCount: pendingModerationCount } = usePendingCounts();
   const { showAuthModal } = useAuthModalContext();
 
-  const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
-  const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
-  const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
+  const { tabs, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
+  const {
+    tabs: fundTabs,
+    highlightedTab: fundHighlightedTab,
+    handleTabChange: handleFundTabChange,
+    isFundPage,
+  } = useFundTabs();
+  const { contentTabsHidden } = useFeedTabsVisibility();
+  const showTopBarFeedTabs = isFeedPage && contentTabsHidden;
+  const showTopBarFundTabs = isFundPage && contentTabsHidden;
+  const showTopBarTabs = showTopBarFeedTabs || showTopBarFundTabs;
 
   // A page (e.g. the notebook) can inject a custom control here in place of the
   // default breadcrumb.
@@ -76,7 +85,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     <>
       <div className="bg-white border-b border-gray-200">
         {/* Title row */}
-        <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
+        <div className="flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
           {/* Left side */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
             <Link href="/" className="block tablet:!hidden mr-2">
@@ -99,13 +108,23 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </>
             )}
 
-            {/* Inline feed tabs — desktop only, shown to the right of the title */}
+            {/* Inline content tabs — desktop only, shown once page tabs scroll away */}
             {showTopBarFeedTabs && (
-              <div className="hidden tablet:!flex items-center ml-4 h-full mt-6">
+              <div className="hidden tablet:!flex items-center ml-4">
                 <FeedTabs
                   activeTab={highlightedTab}
                   tabs={tabs}
                   onTabChange={handleTabChange}
+                  isCompact={false}
+                />
+              </div>
+            )}
+            {showTopBarFundTabs && (
+              <div className="hidden tablet:!flex items-center ml-4">
+                <FeedTabs
+                  activeTab={fundHighlightedTab}
+                  tabs={fundTabs}
+                  onTabChange={handleFundTabChange}
                   isCompact={false}
                 />
               </div>
@@ -143,21 +162,31 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </div>
 
         {/* Feed tabs — mobile only, stacked below title when content tabs scroll out of view */}
-        {isFeedPage && (
+        {(isFeedPage || isFundPage) && (
           <div
             className="tablet:!hidden overflow-hidden transition-all duration-300 ease-in-out border-b px-4 -mt-2 pb-1"
             style={{
-              maxHeight: showTopBarFeedTabs ? '62px' : '0px',
-              opacity: showTopBarFeedTabs ? 1 : 0,
-              borderBottomColor: showTopBarFeedTabs ? undefined : 'transparent',
+              maxHeight: showTopBarTabs ? '62px' : '0px',
+              opacity: showTopBarTabs ? 1 : 0,
+              borderBottomColor: showTopBarTabs ? undefined : 'transparent',
             }}
           >
-            <FeedTabs
-              activeTab={highlightedTab}
-              tabs={tabs}
-              onTabChange={handleTabChange}
-              isCompact={false}
-            />
+            {isFeedPage && (
+              <FeedTabs
+                activeTab={highlightedTab}
+                tabs={tabs}
+                onTabChange={handleTabChange}
+                isCompact={false}
+              />
+            )}
+            {isFundPage && (
+              <FeedTabs
+                activeTab={fundHighlightedTab}
+                tabs={fundTabs}
+                onTabChange={handleFundTabChange}
+                isCompact={false}
+              />
+            )}
           </div>
         )}
       </div>

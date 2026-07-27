@@ -19,15 +19,18 @@ export interface PreregistrationPostParams {
   topics: string[];
 
   // Document related
-  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT';
+  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
   title: string;
   noteId: ID;
+  proposalId?: number | null;
   renderableText: string;
   fullJSON: string;
   fullSrc: string;
   assignDOI?: boolean;
   authors: number[];
   image: string | null;
+  previewImg?: string | null;
+  editorType?: 'CK_EDITOR';
 
   // Grant specific
   applicationDeadline?: Date | null;
@@ -81,13 +84,28 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         full_src: postParams.fullSrc,
         full_json: postParams.fullJSON,
         note_id: postParams.noteId,
-        assign_doi: postParams.assignDOI ?? false,
+        assign_doi:
+          postParams.articleType === 'REGISTERED_REPORT'
+            ? undefined
+            : (postParams.assignDOI ?? false),
         hubs: postParams.topics,
         authors: postParams.authors,
       };
 
       if (postParams.image) {
         payload.image = postParams.image;
+      }
+      if (postParams.previewImg) {
+        payload.preview_img = postParams.previewImg;
+      }
+      if (postParams.editorType) {
+        payload.editor_type = postParams.editorType;
+      }
+      if (postParams.articleType === 'REGISTERED_REPORT') {
+        if (postParams.proposalId == null) {
+          throw new Error('Registered Report publication requires a valid source proposal ID.');
+        }
+        payload.proposal_id = postParams.proposalId;
       }
 
       if (postId) {
@@ -142,7 +160,8 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         errorData?.msg ||
         errorData?.message ||
         errorData?.detail ||
-        'An error occurred while saving the proposal post';
+        errorData?.error ||
+        'An error occurred while saving the post';
       setError(errorMsg);
       throw err;
     } finally {

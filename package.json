@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build --turbopack",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "lint:work-pages": "find app -path '*/\\[id\\]/\\[slug\\]/page.tsx' -o -path '*/\\[id\\]/\\[slug\\]/*/page.tsx' | xargs npx eslint --rulesdir eslint-rules --rule 'work-document-tracking: error'",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:work-pages": "eslint \"app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx\"",
     "format": "prettier --write --ignore-path .gitignore \"./**/*.{js,jsx,ts,tsx,json,css}\"",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
@@ -34,7 +34,6 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@stripe/react-stripe-js": "^5.5.0",
     "@stripe/stripe-js": "^8.6.4",
-    "@svgr/webpack": "^8.1.0",
     "@tippyjs/react": "^4.2.6",
     "@tiptap-pro/extension-ai": "^2.16.0",
     "@tiptap-pro/extension-details": "^2.16.0",
@@ -110,7 +109,6 @@
     "nanoid": "^5.0.9",
     "next": "^15.5.10",
     "next-auth": "^4.24.11",
-    "next-pwa": "^5.6.0",
     "ogl": "^1.0.11",
     "pdfjs-dist": "^4.10.38",
     "persona-react": "6.3.1",
@@ -134,6 +132,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/pro-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -148,12 +147,12 @@
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-dom": "^19",
     "@types/uuid": "^9.0.8",
-    "@typescript-eslint/eslint-plugin": "^8.20.0",
-    "@typescript-eslint/parser": "^8.20.0",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
     "autoprefixer": "^10.4.20",
-    "eslint": "^8",
+    "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.9",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.1",
     "null-loader": "^4.0.1",
@@ -161,12 +160,12 @@
     "prettier": "^3.4.2",
     "raw-loader": "^4.0.2",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write --ignore-path .gitignore",
-      "eslint --fix --ignore-pattern 'public/*'"
+      "eslint --fix --no-warn-ignored"
     ],
     "**/*.{ts,tsx}": "bash -c 'npm run type-check'"
   }

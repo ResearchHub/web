@@ -71,8 +71,8 @@ export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
   },
   {
     value: 'custom',
-    label: 'Custom Message',
-    description: 'Write your own purpose or use case for the email',
+    label: 'Custom Outreach',
+    description: 'Write your own purpose or use case for the outreach',
   },
 ];
 
@@ -205,7 +205,7 @@ export function GenerateEmailModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Generate Outreach Emails"
+      title="Generate Outreach"
       size="xl"
       footer={
         <div className="flex items-center justify-end gap-2">
@@ -213,7 +213,7 @@ export function GenerateEmailModal({
             Cancel
           </Button>
           <Button variant="default" size="sm" onClick={handleSubmit} disabled={!canSubmit}>
-            {count === 1 ? 'Generate 1 Email' : `Generate ${count} Emails`}
+            {count === 1 ? 'Generate 1 draft' : `Generate ${count} drafts`}
           </Button>
         </div>
       }
@@ -221,14 +221,14 @@ export function GenerateEmailModal({
       <div className="space-y-5">
         <div>
           <p className="text-sm font-semibold text-gray-900 mb-3">
-            How would you like to create this email?
+            How would you like to create this outreach?
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <CreationModeCard
               selected={creationMode === 'template'}
               icon={<FileText className="h-5 w-5" aria-hidden />}
               title="Use a template"
-              description="Reuse one of your saved email templates"
+              description="Reuse one of your saved outreach templates"
               onClick={() => setCreationMode('template')}
             />
             <CreationModeCard
@@ -244,7 +244,7 @@ export function GenerateEmailModal({
         {creationMode === 'ai' ? (
           <>
             <Dropdown
-              label="Email purpose"
+              label="Outreach purpose"
               trigger={
                 <button
                   type="button"
@@ -303,7 +303,8 @@ export function GenerateEmailModal({
                   Custom use case <span className="text-red-600">*</span>
                 </label>
                 <p className="text-xs text-gray-500 mb-2">
-                  Describe the purpose for the email. This is sent to the AI as the template prompt.
+                  Describe the purpose for the outreach. This is sent to the AI as the template
+                  prompt.
                 </p>
                 <textarea
                   className="w-full min-h-[100px] rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
@@ -318,7 +319,7 @@ export function GenerateEmailModal({
           </>
         ) : (
           <Dropdown
-            label="Choose email template"
+            label="Choose outreach template"
             trigger={
               <button
                 type="button"
@@ -328,9 +329,9 @@ export function GenerateEmailModal({
                 )}
               >
                 {savedTemplateId == null
-                  ? 'Choose email template…'
+                  ? 'Choose outreach template…'
                   : (templates.find((t) => t.id === savedTemplateId)?.name ??
-                    'Choose email template…')}
+                    'Choose outreach template…')}
                 <ChevronDown
                   className={cn(
                     'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',

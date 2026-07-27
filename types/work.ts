@@ -10,6 +10,7 @@ import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
+import type { GrantApplicationVisibility } from './grant';
 
 export interface PeerReview {
   id: number;
@@ -97,6 +98,7 @@ export interface Work {
   title: string;
   slug: string;
   createdDate: string;
+  createdByUserId?: number;
   updatedDate?: string;
   publishedDate?: string;
   authors: Authorship[];
@@ -119,6 +121,7 @@ export interface Work {
   previewContent?: string;
   contentUrl?: string;
   unifiedDocumentId?: number | null;
+  registeredReportId?: number | null;
   postType?: string;
   fundraise?: any;
   tips?: Tip[];
@@ -144,6 +147,7 @@ export interface LinkedGrant {
   fundingAmount: number;
   currency: string;
   status: string;
+  applicationVisibility: GrantApplicationVisibility;
   imageUrl: string | null;
   applicantCount: number;
 }
@@ -281,6 +285,7 @@ function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
     fundingAmount: Number(g.amount) || 0,
     currency: g.currency ?? 'USD',
     status: g.status ?? '',
+    applicationVisibility: (g.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
     imageUrl: g.image_url ?? null,
     applicantCount: g.applicant_count ?? 0,
   };
@@ -316,6 +321,10 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     title: stripHtml(raw.title || raw.paper_title || ''),
     slug: raw.slug,
     createdDate: raw.created_date,
+    createdByUserId:
+      typeof raw.created_by === 'number'
+        ? raw.created_by
+        : (raw.created_by?.user?.id ?? raw.created_by?.id),
     updatedDate: raw.updated_date || undefined,
     publishedDate: raw.paper_publish_date,
     authors: processedAuthors,
@@ -374,7 +383,8 @@ export const transformWork = createTransformer<any, Work>((raw) => {
       views: raw.metrics?.views || raw.views_count || 0,
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
-    postType: raw.type || raw.unified_document?.document_type,
+    registeredReportId: raw.registered_report_id ?? null,
+    postType: raw.document_type || raw.type || raw.unified_document?.document_type,
     fundraise: raw.fundraise,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
     previewContent: raw.full_markdown || '',
@@ -389,7 +399,9 @@ export const transformWork = createTransformer<any, Work>((raw) => {
 
 export const transformPost = createTransformer<any, Work>((raw) => {
   const isPreregistration =
-    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION';
+    raw.document_type === 'PREREGISTRATION' ||
+    raw.unified_document?.document_type === 'PREREGISTRATION' ||
+    raw.type === 'PREREGISTRATION';
 
   const base = transformWork(raw);
 
@@ -397,7 +409,9 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     ...base,
     contentType: isPreregistration
       ? 'preregistration'
-      : raw.unified_document?.document_type === 'GRANT' || raw.type === 'GRANT'
+      : raw.document_type === 'GRANT' ||
+          raw.unified_document?.document_type === 'GRANT' ||
+          raw.type === 'GRANT'
         ? 'funding_request'
         : 'post',
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,

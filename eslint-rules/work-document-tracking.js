@@ -1,75 +1,81 @@
+const TRACKER_MODULE = '@/components/WorkDocumentTracker';
+const TRACKER_EXPORT = 'WorkDocumentTracker';
+const REQUIRED_PROPS = ['work', 'metadata', 'tab'];
+
 module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Enforce WorkDocumentTracker in work document pages',
+      description: 'Require WorkDocumentTracker on work document pages',
       category: 'Best Practices',
       recommended: true,
     },
     fixable: null,
     schema: [],
     messages: {
-      missingWorkDocumentTracker:
-        'Work document pages must include <WorkDocumentTracker work={work} metadata={metadata} tab="..." /> component. Add it after <SearchHistoryTracker> in the Suspense block.',
+      missingImport: `Work document pages must import { ${TRACKER_EXPORT} } from '${TRACKER_MODULE}'.`,
+      missingUsage: `Work document pages must render <${TRACKER_EXPORT} work={...} metadata={...} tab="..." />.`,
+      missingProps: `${TRACKER_EXPORT} is missing required {{props}} {{propLabel}}.`,
     },
   },
   create(context) {
-    const filename = context.getFilename();
-
-    // Check if this is a work document page
-    const isWorkPage = /app\/(paper|post|fund|question|grant)\/\[id\]\/\[slug\]/.test(filename);
-
-    if (!isWorkPage) {
-      return {};
-    }
-
-    let hasWorkDocumentTracker = false;
-    let hasSearchHistoryTracker = false;
-    let suspenseNode = null;
+    const trackerLocalNames = new Set();
+    const trackerUsages = [];
 
     return {
-      // Check for WorkDocumentTracker import
       ImportDeclaration(node) {
-        if (node.source.value === '@/components/WorkDocumentTracker') {
-          hasWorkDocumentTracker = true;
+        if (node.source.value !== TRACKER_MODULE) {
+          return;
         }
-      },
 
-      // Check for SearchHistoryTracker import
-      ImportDeclaration(node) {
-        if (node.source.value === '@/components/work/SearchHistoryTracker') {
-          hasSearchHistoryTracker = true;
-        }
-      },
-
-      // Find Suspense component
-      JSXElement(node) {
-        if (node.openingElement.name.name === 'Suspense') {
-          suspenseNode = node;
-
-          // Check if WorkDocumentTracker is present in Suspense children with correct props
-          const hasTrackerInSuspense = node.children.some(
-            (child) =>
-              child.type === 'JSXElement' &&
-              child.openingElement.name.name === 'WorkDocumentTracker' &&
-              child.openingElement.attributes.some(
-                (attr) => attr.name && attr.name.name === 'metadata'
-              )
-          );
-
-          if (hasTrackerInSuspense) {
-            hasWorkDocumentTracker = true;
+        for (const specifier of node.specifiers) {
+          if (specifier.type === 'ImportSpecifier' && specifier.imported.name === TRACKER_EXPORT) {
+            trackerLocalNames.add(specifier.local.name);
           }
         }
       },
 
-      // Report error at the end of file processing
-      'Program:exit'() {
-        if (!hasWorkDocumentTracker) {
+      JSXOpeningElement(node) {
+        if (node.name.type === 'JSXIdentifier' && trackerLocalNames.has(node.name.name)) {
+          trackerUsages.push(node);
+        }
+      },
+
+      'Program:exit'(node) {
+        if (trackerLocalNames.size === 0) {
           context.report({
-            node: suspenseNode || context.getSourceCode().ast,
-            messageId: 'missingWorkDocumentTracker',
+            node,
+            messageId: 'missingImport',
           });
+          return;
+        }
+
+        if (trackerUsages.length === 0) {
+          context.report({
+            node,
+            messageId: 'missingUsage',
+          });
+          return;
+        }
+
+        for (const usage of trackerUsages) {
+          const presentProps = new Set(
+            usage.attributes
+              .filter((attribute) => attribute.type === 'JSXAttribute')
+              .map((attribute) => attribute.name.name)
+          );
+          const missingProps = REQUIRED_PROPS.filter((prop) => !presentProps.has(prop));
+
+          if (missingProps.length > 0) {
+            context.report({
+              node: usage,
+              messageId: 'missingProps',
+              data: {
+                props: missingProps.join(', '),
+                propLabel: missingProps.length === 1 ? 'prop' : 'props',
+              },
+            });
+          }
         }
       },
     };

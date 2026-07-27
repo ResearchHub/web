@@ -141,11 +141,6 @@ const nextConfig = {
   //   removeConsole: process.env.VERCEL_ENV === 'production',
   // },
   turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-      },
-    },
     resolveAlias: {
       '@': __dirname,
     },
@@ -153,36 +148,6 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
     scrollRestoration: true,
-  },
-  webpack: (config, { isServer }) => {
-    // Preserve existing alias configuration
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-      // Alias React Native modules to prevent build warnings
-      '@react-native-async-storage/async-storage': false,
-    };
-
-    if (!isServer) {
-      // Add fallbacks for client-side
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        canvas: false,
-        fs: false,
-        path: false,
-      };
-
-      // Handle PDF.js worker
-      config.module.rules.push({
-        test: /pdf\.worker\.(min\.)?js/,
-        type: 'asset/resource',
-        generator: {
-          filename: 'static/[hash][ext][query]',
-        },
-      });
-    }
-
-    return config;
   },
 };
 

@@ -36,7 +36,7 @@ const validateGrant = (data: any, ctx: z.RefinementCtx) => {
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
-    articleType: z.enum(['discussion', 'preregistration', 'grant'] as const, {
+    articleType: z.enum(['discussion', 'preregistration', 'grant', 'registered_report'] as const, {
       required_error: 'Please select a work type',
       invalid_type_error: 'Please select a valid work type',
     }),
@@ -84,6 +84,11 @@ export const publishingFormSchema = z
 
     if (data.articleType === 'preregistration') {
       validatePreregistration(data, ctx);
+    }
+    if (data.articleType === 'registered_report') {
+      if (!data.coverImage?.file && !data.coverImage?.url) {
+        addIssue(ctx, 'coverImage', 'Cover image is required for a registered report');
+      }
     }
     if (data.articleType === 'grant') {
       validateGrant(data, ctx);

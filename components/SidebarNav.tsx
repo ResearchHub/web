@@ -38,7 +38,7 @@ export const SidebarNav: FC<SidebarNavProps> = ({ items }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 p-4">
+      <div className="flex-1">
         <nav className="space-y-2">
           {items.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');

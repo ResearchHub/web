@@ -43,7 +43,7 @@ const defaultSortOptions: SortOptionItem[] = [
   { label: 'Latest', value: 'latest' },
 ];
 
-function FeedSortDropdown({
+export function FeedSortDropdown({
   value,
   onChange,
   options,
