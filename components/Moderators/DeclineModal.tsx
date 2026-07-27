@@ -17,6 +17,10 @@ interface DeclineModalProps {
   isSubmitting?: boolean;
   /** Singular noun for the content being declined (e.g. "RFP", "Proposal"). */
   itemLabel?: string;
+  title?: string;
+  reasonPrompt?: string;
+  confirmText?: string;
+  submittingText?: string;
 }
 
 export const DeclineModal: FC<DeclineModalProps> = ({
@@ -25,6 +29,10 @@ export const DeclineModal: FC<DeclineModalProps> = ({
   onConfirm,
   isSubmitting = false,
   itemLabel = 'submission',
+  title,
+  reasonPrompt,
+  confirmText = 'Decline',
+  submittingText = 'Declining...',
 }) => {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
   const [reasonText, setReasonText] = useState('');
@@ -51,7 +59,7 @@ export const DeclineModal: FC<DeclineModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={handleClose}
-      title={`Decline ${itemLabel}`}
+      title={title ?? `Decline ${itemLabel}`}
       maxWidth="max-w-md"
       footer={
         <div className="flex items-center justify-end gap-3">
@@ -65,19 +73,19 @@ export const DeclineModal: FC<DeclineModalProps> = ({
             disabled={!selectedReason || isSubmitting}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
-            {isSubmitting ? 'Declining...' : 'Decline'}
+            {isSubmitting ? submittingText : confirmText}
           </Button>
         </div>
       }
     >
       <div className="space-y-4">
         <p className="text-xs text-gray-600">
-          I am declining this {itemLabel.toLowerCase()} because of:
+          {reasonPrompt ?? `I am declining this ${itemLabel.toLowerCase()} because of:`}
         </p>
 
         <FlagRadioGroup
           options={flagOptions}
-          value={selectedReason || ''}
+          value={selectedReason ?? ''}
           onChange={(value) => setSelectedReason(value as FlagReasonKey)}
           className="space-y-1.5"
         />
