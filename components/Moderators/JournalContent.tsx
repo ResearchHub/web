@@ -137,20 +137,14 @@ function CandidateList({
       })}
 
       {hasMore && (
-        <div ref={loadMoreRef} className="flex h-10 items-center justify-center gap-2 pt-2">
-          {isLoadingMore ? (
+        <div ref={loadMoreRef} className="flex h-10 items-center justify-center pt-2">
+          {isLoadingMore && (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden="true" />
               <span className="ml-2 text-sm text-gray-500">Loading more</span>
             </>
-          ) : loadMoreError ? (
-            <>
-              <span className="text-sm text-red-600">{loadMoreError}</span>
-              <Button size="sm" variant="outlined" onClick={onLoadMore}>
-                Try again
-              </Button>
-            </>
-          ) : null}
+          )}
+          {loadMoreError && <span className="text-sm text-red-600">{loadMoreError}</span>}
         </div>
       )}
     </div>
