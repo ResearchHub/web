@@ -152,7 +152,7 @@ export function LibraryPageContent() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <Breadcrumbs items={[{ label: 'Library' }]} className="mb-2" />
-          <p className="text-sm text-gray-600">View your expert search history.</p>
+          <p className="text-sm text-gray-600">View expert search history.</p>
         </div>
         {searches.length > 0 && (
           <Link href="/expert-finder/library/new">
