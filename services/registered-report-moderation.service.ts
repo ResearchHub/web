@@ -13,9 +13,9 @@ interface RegisteredReportDraftResponse {
   id: number;
 }
 
-interface RegisteredReportCandidates {
+export interface RegisteredReportCandidates {
   entries: FeedEntry[];
-  hasMore: boolean;
+  next: string | null;
 }
 
 export class RegisteredReportModerationError extends Error {
@@ -33,15 +33,17 @@ export class RegisteredReportModerationService {
   private static readonly CREATE_DRAFT_PATH =
     '/api/researchhubpost/create_registered_report_draft/';
 
-  static async fetchCandidates(page = 1, pageSize = 30): Promise<RegisteredReportCandidates> {
+  static async fetchCandidates(
+    nextUrl?: string,
+    pageSize = 30
+  ): Promise<RegisteredReportCandidates> {
     try {
       const params = new URLSearchParams({
-        page: page.toString(),
+        page: '1',
         page_size: pageSize.toString(),
       });
-      const response = await ApiClient.get<RegisteredReportCandidateResponse>(
-        `${this.CANDIDATES_PATH}?${params.toString()}`
-      );
+      const url = nextUrl ?? `${this.CANDIDATES_PATH}?${params.toString()}`;
+      const response = await ApiClient.get<RegisteredReportCandidateResponse>(url);
 
       if (!response || !Array.isArray(response.results)) {
         throw new TypeError('The eligible proposals response was invalid.');
@@ -57,7 +59,7 @@ export class RegisteredReportModerationService {
 
       return {
         entries,
-        hasMore: Boolean(response.next),
+        next: response.next || null,
       };
     } catch (error) {
       throw this.createError(error, 'Failed to load eligible proposals.');

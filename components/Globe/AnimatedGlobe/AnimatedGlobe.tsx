@@ -493,7 +493,6 @@ const SCIENTISTS: Scientist[] = [
     affiliation: 'Mississippi State University',
   },
   { src: '/people/scott.jpeg', name: 'Scott Nelson, PhD', affiliation: 'Iowa State University' },
-  { src: '/people/qingyu.jpeg', name: 'Qingyu Luo, MD, PhD', affiliation: 'Harvard University' },
   { src: '/people/maulik.jpeg', name: 'Maulik Dhandha, MD', affiliation: 'Saint Louis University' },
   {
     src: '/people/emilio.jpeg',

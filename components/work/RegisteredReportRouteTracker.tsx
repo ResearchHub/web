@@ -14,9 +14,11 @@ export function RegisteredReportRouteTracker({
   reportId,
   currentStage,
 }: Readonly<RegisteredReportRouteTrackerProps>) {
+  const visibleSteps = tracker.filter((step) => step.stage !== 'grant' || step.exists);
+
   return (
     <nav aria-label="Research journey" className="flex flex-wrap items-center gap-1.5 text-sm">
-      {tracker.map((step, index) => {
+      {visibleSteps.map((step, index) => {
         const href = buildRegisteredReportTrackerHref(step, reportId);
         const isCurrent = step.stage === currentStage;
 

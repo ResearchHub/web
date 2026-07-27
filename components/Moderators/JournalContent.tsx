@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
+import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/Button';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
@@ -68,6 +69,7 @@ interface CandidateListProps {
   draftOperation: DraftOperation | null;
   hasMore: boolean;
   isLoadingMore: boolean;
+  loadMoreError: string | null;
   onOpenOrCreateDraft: (proposalId: number) => Promise<void>;
   onLoadMore: () => Promise<void>;
 }
@@ -77,9 +79,21 @@ function CandidateList({
   draftOperation,
   hasMore,
   isLoadingMore,
+  loadMoreError,
   onOpenOrCreateDraft,
   onLoadMore,
 }: Readonly<CandidateListProps>) {
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '200px',
+  });
+
+  useEffect(() => {
+    if (inView && hasMore && !loadMoreError && !isLoadingMore && !draftOperation?.isProcessing) {
+      onLoadMore();
+    }
+  }, [draftOperation?.isProcessing, hasMore, inView, isLoadingMore, loadMoreError, onLoadMore]);
+
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       {entries.map((entry) => {
@@ -123,14 +137,14 @@ function CandidateList({
       })}
 
       {hasMore && (
-        <div className="flex justify-center pt-2">
-          <Button
-            variant="outlined"
-            onClick={onLoadMore}
-            disabled={isLoadingMore || draftOperation?.isProcessing === true}
-          >
-            {isLoadingMore ? 'Loading...' : 'Load more'}
-          </Button>
+        <div ref={loadMoreRef} className="flex h-10 items-center justify-center pt-2">
+          {isLoadingMore && (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden="true" />
+              <span className="ml-2 text-sm text-gray-500">Loading more</span>
+            </>
+          )}
+          {loadMoreError && <span className="text-sm text-red-600">{loadMoreError}</span>}
         </div>
       )}
     </div>
@@ -206,6 +220,7 @@ export function JournalContent() {
     isLoading,
     isLoadingMore,
     loadError,
+    loadMoreError,
     accessError,
     refreshCandidates,
     loadMoreCandidates,
@@ -264,6 +279,7 @@ export function JournalContent() {
         draftOperation={draftOperation}
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
+        loadMoreError={loadMoreError}
         onOpenOrCreateDraft={openOrCreateDraft}
         onLoadMore={loadMoreCandidates}
         isLoading={isLoading}

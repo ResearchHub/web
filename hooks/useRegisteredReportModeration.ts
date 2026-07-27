@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { NoteError, NoteService } from '@/services/note.service';
 import {
+  type RegisteredReportCandidates,
   RegisteredReportModerationError,
   RegisteredReportModerationService,
 } from '@/services/registered-report-moderation.service';
@@ -24,6 +25,7 @@ interface UseRegisteredReportModerationResult {
   isLoading: boolean;
   isLoadingMore: boolean;
   loadError: string | null;
+  loadMoreError: string | null;
   accessError: string | null;
   refreshCandidates: () => Promise<void>;
   loadMoreCandidates: () => Promise<void>;
@@ -58,28 +60,31 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
   const { organizations, setSelectedOrg } = useOrganizationContext();
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [draftOperation, setDraftOperation] = useState<DraftOperation | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [nextPage, setNextPage] = useState(2);
+  const [currentResponse, setCurrentResponse] = useState<RegisteredReportCandidates | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [accessError, setAccessError] = useState<string | null>(null);
 
-  const loadCandidates = useCallback(async (page: number, replaceEntries: boolean) => {
+  const loadCandidates = useCallback(async (nextUrl: string | null, replaceEntries: boolean) => {
     if (replaceEntries) {
       setIsLoading(true);
+      setCurrentResponse(null);
     } else {
       setIsLoadingMore(true);
     }
     setLoadError(null);
+    setLoadMoreError(null);
 
     try {
-      const response = await RegisteredReportModerationService.fetchCandidates(page);
+      const response = await RegisteredReportModerationService.fetchCandidates(
+        nextUrl ?? undefined
+      );
       setEntries((currentEntries) =>
         replaceEntries ? response.entries : [...currentEntries, ...response.entries]
       );
-      setHasMore(response.hasMore);
-      setNextPage(page + 1);
+      setCurrentResponse(response);
     } catch (error) {
       const message = getErrorMessage(
         error,
@@ -91,7 +96,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
       } else if (replaceEntries) {
         setLoadError(message);
       } else {
-        toast.error(message);
+        setLoadMoreError(message);
       }
     } finally {
       setIsLoading(false);
@@ -99,17 +104,18 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
     }
   }, []);
 
-  const refreshCandidates = useCallback(() => loadCandidates(1, true), [loadCandidates]);
+  const refreshCandidates = useCallback(() => loadCandidates(null, true), [loadCandidates]);
 
   useEffect(() => {
     void refreshCandidates();
   }, [refreshCandidates]);
 
   const loadMoreCandidates = useCallback(async () => {
-    if (!hasMore || isLoading || isLoadingMore || draftOperation?.isProcessing) return;
+    if (!currentResponse?.next || isLoading || isLoadingMore || draftOperation?.isProcessing)
+      return;
 
-    await loadCandidates(nextPage, false);
-  }, [draftOperation?.isProcessing, hasMore, isLoading, isLoadingMore, loadCandidates, nextPage]);
+    await loadCandidates(currentResponse.next, false);
+  }, [currentResponse, draftOperation?.isProcessing, isLoading, isLoadingMore, loadCandidates]);
 
   const openOrCreateDraft = useCallback(
     async (proposalId: number) => {
@@ -164,10 +170,11 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
   return {
     entries,
     draftOperation,
-    hasMore,
+    hasMore: Boolean(currentResponse?.next),
     isLoading,
     isLoadingMore,
     loadError,
+    loadMoreError,
     accessError,
     refreshCandidates,
     loadMoreCandidates,

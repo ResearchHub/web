@@ -215,8 +215,8 @@ const populateRegisteredReportFields = (
           label: `Author ${id}`,
         }));
 
-  if (note.image && !getValues('coverImage')) {
-    setValue('coverImage', { file: null, url: note.image });
+  if (note.previewImage && !getValues('coverImage')) {
+    setValue('coverImage', { file: null, url: note.previewImage });
   }
 
   if (topicOptions.length > 0 && getValues('topics').length === 0) {
@@ -579,7 +579,7 @@ export function PublishingForm({
           image: imagePath,
           previewImg:
             formData.articleType === 'registered_report' && !formData.coverImage?.file
-              ? (formData.coverImage?.url ?? note.image ?? null)
+              ? (formData.coverImage?.url ?? note.previewImage ?? null)
               : undefined,
           editorType: formData.articleType === 'registered_report' ? 'CK_EDITOR' : undefined,
           organization: formData.organization,
