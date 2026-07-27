@@ -35,6 +35,7 @@ export interface User {
   hasCompletedOnboarding?: boolean;
   createdDate?: string;
   moderator: boolean;
+  isEditor?: boolean;
   editorOfHubs?: Hub[];
   isModerator?: boolean;
   isFunder?: boolean;
@@ -64,6 +65,7 @@ const baseTransformUser = (raw: any): User => {
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
+      isEditor: false,
       isModerator: false,
       isFunder: false,
       authProvider: undefined,
@@ -122,6 +124,7 @@ const baseTransformUser = (raw: any): User => {
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
+    isEditor: Boolean(raw.is_editor || raw.isEditor || raw.author_profile?.is_hub_editor),
     editorOfHubs: editorOfHubs,
     isModerator: raw.moderator || false,
     isFunder: raw.is_funder || false,
@@ -153,6 +156,7 @@ export const transformUser = (raw: any): TransformedUser => {
       totalRsc: 0,
       hasCompletedOnboarding: false,
       moderator: false,
+      isEditor: false,
       raw: null,
       isModerator: false,
       isFunder: false,

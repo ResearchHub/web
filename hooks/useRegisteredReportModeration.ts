@@ -36,7 +36,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-function isModeratorAccessError(error: unknown): boolean {
+function isRegisteredReportAccessError(error: unknown): boolean {
   return (
     (error instanceof RegisteredReportModerationError || error instanceof NoteError) &&
     (error.status === 401 || error.status === 403)
@@ -44,8 +44,8 @@ function isModeratorAccessError(error: unknown): boolean {
 }
 
 function getDraftFailureMessage(error: unknown, noteId?: number): string {
-  if (isModeratorAccessError(error)) {
-    return getErrorMessage(error, 'Moderator access is required for this workflow.');
+  if (isRegisteredReportAccessError(error)) {
+    return getErrorMessage(error, 'Editor or moderator access is required for this workflow.');
   }
 
   if (noteId) {
@@ -91,7 +91,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
         'Failed to load eligible proposals. Please try again.'
       );
 
-      if (isModeratorAccessError(error)) {
+      if (isRegisteredReportAccessError(error)) {
         setAccessError(message);
       } else if (replaceEntries) {
         setLoadError(message);
@@ -148,7 +148,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
         );
         router.replace(`/notebook/${organization.slug}/${noteId}`);
       } catch (error) {
-        const accessDenied = isModeratorAccessError(error);
+        const accessDenied = isRegisteredReportAccessError(error);
         const message = getDraftFailureMessage(error, noteId);
 
         if (accessDenied) {

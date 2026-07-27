@@ -21,14 +21,17 @@ export default function ModerationClientLayout({ children }: ModerationClientLay
   const pathname = usePathname();
   const isFullWidthTablePage =
     pathname === '/moderators/referral' || pathname === '/moderators/editors';
-
   const isModerator = !!user?.isModerator;
+  const isJournalRoute = pathname === '/moderators/journal';
+  const canAccessJournal = Boolean(user?.isModerator || user?.isEditor);
+  const canAccessRoute = isModerator || (isJournalRoute && canAccessJournal);
+  const isJournalOnly = !isModerator && isJournalRoute;
 
   useEffect(() => {
-    if (!isLoading && !isModerator) {
+    if (!isLoading && !canAccessRoute) {
       router.push('/popular');
     }
-  }, [isLoading, isModerator, router]);
+  }, [isLoading, canAccessRoute, router]);
 
   if (isLoading) {
     return (
@@ -38,14 +41,14 @@ export default function ModerationClientLayout({ children }: ModerationClientLay
     );
   }
 
-  if (!isModerator) {
+  if (!canAccessRoute) {
     return null;
   }
 
   return (
     <LayoutWithRightSidebar
-      rightSidebar={<ModerationSidebar />}
-      mobileMenu={<ModerationMenu />}
+      rightSidebar={<ModerationSidebar journalOnly={isJournalOnly} />}
+      mobileMenu={<ModerationMenu journalOnly={isJournalOnly} />}
       className={isFullWidthTablePage ? FULL_WIDTH_CLASS : undefined}
     >
       {children}

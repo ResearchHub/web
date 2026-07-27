@@ -396,7 +396,8 @@ export function PublishingForm({
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
   const canPublishRegisteredReport =
-    articleType !== 'registered_report' || currentUser?.isModerator === true;
+    articleType !== 'registered_report' ||
+    Boolean(currentUser?.isModerator || currentUser?.isEditor);
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
@@ -410,7 +411,7 @@ export function PublishingForm({
     if (readOnly) return;
 
     if (!canPublishRegisteredReport) {
-      toast.error('Only moderators can publish Registered Reports.');
+      toast.error('Only editors and moderators can publish Registered Reports.');
       return;
     }
 
@@ -770,7 +771,7 @@ export function PublishingForm({
             )}
             {articleType === 'registered_report' && !canPublishRegisteredReport && (
               <p className="text-sm text-red-600">
-                Only moderators can publish Registered Reports.
+                Only editors and moderators can publish Registered Reports.
               </p>
             )}
             <Button

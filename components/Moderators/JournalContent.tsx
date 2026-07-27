@@ -57,7 +57,7 @@ function AccessError({ message }: Readonly<{ message: string }>) {
     <div className="flex min-h-72 items-center justify-center">
       <div className="max-w-md text-center">
         <AlertCircle className="mx-auto mb-4 h-10 w-10 text-red-500" />
-        <h2 className="text-lg font-semibold text-gray-900">Moderator access required</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Editor or moderator access required</h2>
         <p className="mt-2 text-sm text-gray-600">{message}</p>
       </div>
     </div>
@@ -245,9 +245,7 @@ export function JournalContent() {
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Journal</h1>
-            <p className="mt-1 text-sm text-gray-600">
-              Create and manage moderator-owned Registered Reports.
-            </p>
+            <p className="mt-1 text-sm text-gray-600">Create and manage Registered Reports.</p>
           </div>
 
           {activeTab === 'eligible-proposals' && (

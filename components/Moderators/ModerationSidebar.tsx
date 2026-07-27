@@ -46,23 +46,30 @@ const navigationItems: SidebarNavItem[] = [
   },
 ];
 
-const getNavigationItems = (pendingCount: number) =>
-  navigationItems.map((item) =>
+const getNavigationItems = (pendingCount: number, journalOnly = false) =>
+  (journalOnly
+    ? navigationItems.filter((item) => item.href === '/moderators/journal')
+    : navigationItems
+  ).map((item) =>
     item.href === PENDING_MODERATION_HREF ? { ...item, badgeCount: pendingCount } : item
   );
 
-export const ModerationSidebar: FC = () => {
+interface ModerationNavigationProps {
+  journalOnly?: boolean;
+}
+
+export const ModerationSidebar: FC<ModerationNavigationProps> = ({ journalOnly = false }) => {
   const { totalCount } = usePendingCounts();
 
-  return <SidebarNav items={getNavigationItems(totalCount)} />;
+  return <SidebarNav items={getNavigationItems(totalCount, journalOnly)} />;
 };
 
-export const ModerationMenu: FC = () => {
+export const ModerationMenu: FC<ModerationNavigationProps> = ({ journalOnly = false }) => {
   const { totalCount } = usePendingCounts();
 
   return (
     <SidebarNavMenu
-      items={getNavigationItems(totalCount)}
+      items={getNavigationItems(totalCount, journalOnly)}
       menuTitle="Choose moderation area"
       triggerFallbackLabel="Moderation"
     />
