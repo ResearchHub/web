@@ -6,9 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "lint:work-pages": "eslint \"app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx\" --rulesdir eslint-rules --rule 'work-document-tracking: error'",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:work-pages": "eslint \"app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx\"",
     "format": "prettier --write --ignore-path .gitignore \"./**/*.{js,jsx,ts,tsx,json,css}\"",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
@@ -165,7 +165,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write --ignore-path .gitignore",
-      "eslint --fix --ignore-pattern 'public/*'"
+      "eslint --fix --no-warn-ignored"
     ],
     "**/*.{ts,tsx}": "bash -c 'npm run type-check'"
   }
