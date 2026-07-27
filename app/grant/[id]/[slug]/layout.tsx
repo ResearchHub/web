@@ -81,7 +81,11 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
             preTitle={
-              <RegisteredReportRouteTrackerLoader currentStage="grant" currentPostId={work.id} />
+              <RegisteredReportRouteTrackerLoader
+                currentStage="grant"
+                currentPostId={work.id}
+                registeredReportId={work.registeredReportId}
+              />
             }
           />
         }
