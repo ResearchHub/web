@@ -69,6 +69,7 @@ interface CandidateListProps {
   draftOperation: DraftOperation | null;
   hasMore: boolean;
   isLoadingMore: boolean;
+  loadMoreError: string | null;
   onOpenOrCreateDraft: (proposalId: number) => Promise<void>;
   onLoadMore: () => Promise<void>;
 }
@@ -78,6 +79,7 @@ function CandidateList({
   draftOperation,
   hasMore,
   isLoadingMore,
+  loadMoreError,
   onOpenOrCreateDraft,
   onLoadMore,
 }: Readonly<CandidateListProps>) {
@@ -87,10 +89,10 @@ function CandidateList({
   });
 
   useEffect(() => {
-    if (inView && hasMore && !isLoadingMore && !draftOperation?.isProcessing) {
-      void onLoadMore();
+    if (inView && hasMore && !loadMoreError && !isLoadingMore && !draftOperation?.isProcessing) {
+      onLoadMore();
     }
-  }, [draftOperation?.isProcessing, hasMore, inView, isLoadingMore, onLoadMore]);
+  }, [draftOperation?.isProcessing, hasMore, inView, isLoadingMore, loadMoreError, onLoadMore]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -135,13 +137,20 @@ function CandidateList({
       })}
 
       {hasMore && (
-        <div ref={loadMoreRef} className="flex h-10 items-center justify-center pt-2">
-          {isLoadingMore && (
+        <div ref={loadMoreRef} className="flex h-10 items-center justify-center gap-2 pt-2">
+          {isLoadingMore ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden="true" />
               <span className="ml-2 text-sm text-gray-500">Loading more</span>
             </>
-          )}
+          ) : loadMoreError ? (
+            <>
+              <span className="text-sm text-red-600">{loadMoreError}</span>
+              <Button size="sm" variant="outlined" onClick={onLoadMore}>
+                Try again
+              </Button>
+            </>
+          ) : null}
         </div>
       )}
     </div>
@@ -217,6 +226,7 @@ export function JournalContent() {
     isLoading,
     isLoadingMore,
     loadError,
+    loadMoreError,
     accessError,
     refreshCandidates,
     loadMoreCandidates,
@@ -275,6 +285,7 @@ export function JournalContent() {
         draftOperation={draftOperation}
         hasMore={hasMore}
         isLoadingMore={isLoadingMore}
+        loadMoreError={loadMoreError}
         onOpenOrCreateDraft={openOrCreateDraft}
         onLoadMore={loadMoreCandidates}
         isLoading={isLoading}

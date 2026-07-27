@@ -25,6 +25,7 @@ interface UseRegisteredReportModerationResult {
   isLoading: boolean;
   isLoadingMore: boolean;
   loadError: string | null;
+  loadMoreError: string | null;
   accessError: string | null;
   refreshCandidates: () => Promise<void>;
   loadMoreCandidates: () => Promise<void>;
@@ -63,6 +64,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [accessError, setAccessError] = useState<string | null>(null);
 
   const loadCandidates = useCallback(async (nextUrl: string | null, replaceEntries: boolean) => {
@@ -73,6 +75,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
       setIsLoadingMore(true);
     }
     setLoadError(null);
+    setLoadMoreError(null);
 
     try {
       const response = await RegisteredReportModerationService.fetchCandidates(
@@ -93,7 +96,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
       } else if (replaceEntries) {
         setLoadError(message);
       } else {
-        toast.error(message);
+        setLoadMoreError(message);
       }
     } finally {
       setIsLoading(false);
@@ -171,6 +174,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
     isLoading,
     isLoadingMore,
     loadError,
+    loadMoreError,
     accessError,
     refreshCandidates,
     loadMoreCandidates,

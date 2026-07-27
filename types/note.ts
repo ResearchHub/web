@@ -180,8 +180,11 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     documentType,
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-    image: raw.registered_report_prefill?.image ?? null,
-    previewImage: raw.registered_report_prefill?.preview_img ?? null,
+    image: raw.registered_report_prefill?.image || raw.registered_report_prefill?.image_url || null,
+    previewImage:
+      raw.registered_report_prefill?.preview_img ||
+      raw.registered_report_prefill?.image_url ||
+      null,
     topics: transformTopicsFromSources(
       raw.registered_report_prefill?.topics,
       raw.registered_report_prefill?.hubs,
