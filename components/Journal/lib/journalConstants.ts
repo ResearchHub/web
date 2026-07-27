@@ -55,17 +55,4 @@ export const editors: Editor[] = [
       scholar: 'https://scholar.google.com/citations?user=MGmYWIYAAAAJ&hl=en',
     },
   },
-  {
-    name: 'Qingyu Luo, MD, PhD',
-    role: 'Associate Editor',
-    bio: '',
-    affiliation: 'Harvard University',
-    image: '/people/qingyu.jpeg',
-    authorId: '6487201',
-    socialLinks: {
-      email: 'qingyu.editor@researchhub.foundation',
-      linkedin: 'https://www.linkedin.com/in/qingyu-luo-md-phd/',
-      scholar: 'https://scholar.google.com/citations?pli=1&authuser=1&user=rmULKhYAAAAJ',
-    },
-  },
 ];
