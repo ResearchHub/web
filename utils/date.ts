@@ -19,6 +19,26 @@ export function formatTimeAgo(timestamp: string, withoutSuffix?: boolean): strin
 }
 
 /**
+ * Compact relative time for tight layouts (e.g. "2d", "5h", "3w").
+ */
+export function formatTimeAgoShort(timestamp: string): string {
+  const now = dayjs();
+  const time = dayjs(timestamp);
+  const minutes = now.diff(time, 'minute');
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes}m`;
+  const hours = now.diff(time, 'hour');
+  if (hours < 24) return `${hours}h`;
+  const days = now.diff(time, 'day');
+  if (days < 7) return `${days}d`;
+  const weeks = now.diff(time, 'week');
+  if (weeks < 5) return `${weeks}w`;
+  const months = now.diff(time, 'month');
+  if (months < 12) return `${months}mo`;
+  return `${now.diff(time, 'year')}y`;
+}
+
+/**
  * Checks if a timestamp is within the last 24 hours
  * @param timestamp ISO timestamp string
  * @returns boolean

@@ -300,6 +300,8 @@ export interface FeedEntry {
   hotScoreBreakdown?: HotScoreBreakdown;
   /** Author's moderation risk score; only present on the pending-moderation feed. */
   riskScore?: number | null;
+  /** True when the viewer has a stake in this entry (their RFP, or a proposal they funded). */
+  isViewerStake?: boolean;
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
@@ -326,6 +328,8 @@ export interface RawApiFeedEntry {
   created_date: string;
   action: string;
   action_date: string;
+  /** True when the viewer has a stake in this entry (their RFP, or a proposal they funded). */
+  is_viewer_stake?: boolean;
   is_nonprofit?: boolean;
   nonprofit?: {
     id: number;
@@ -721,6 +725,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           user_vote: feedEntry.user_vote || null,
           unified_document_id: getUnifiedDocumentId(content_object),
           bounty_amount: content_object.bounty_amount,
+          awarded_bounty_amount: content_object.awarded_bounty_amount,
+          bounty_creator_id: content_object.bounty_creator_id,
+          is_assessed: content_object.is_assessed,
         };
 
         // Check if the comment is associated with a paper or post for related work
@@ -1041,6 +1048,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     contentType,
     hotScoreV2: hot_score_v2,
     riskScore: feedEntry.risk_score,
+    isViewerStake: feedEntry.is_viewer_stake ?? false,
     hotScoreBreakdown: hot_score_breakdown,
     externalMetrics: external_metadata?.metrics
       ? {
@@ -1068,8 +1076,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           ? 'NEUTRAL'
           : undefined,
     tips: [], // Default empty tips
-    awardedBountyAmount: (content as any)?.awardedBountyAmount,
-    isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
+    awardedBountyAmount:
+      content_object?.awarded_bounty_amount ?? (content as any)?.awardedBountyAmount,
+    isAwardedForFoundationBounty:
+      FOUNDATION_USER_ID != null &&
+      content_object?.bounty_creator_id != null &&
+      Number(content_object.bounty_creator_id) === FOUNDATION_USER_ID,
     isAssessed:
       (content as any)?.isAssessed ??
       (content as any)?.review?.is_assessed ??

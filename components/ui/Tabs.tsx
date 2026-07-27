@@ -11,10 +11,15 @@ interface Tab {
   highlight?: boolean;
   separator?: boolean;
   icon?: LucideIcon;
+  /** An emoji rendered in place of a lucide icon (Airbnb-style). */
+  emoji?: string;
   iconClassName?: string;
   activeClassName?: string;
   onClick?: (e: React.MouseEvent) => void;
 }
+
+/** 'sm' trims the label, icon and row height a step below the default. */
+export type TabSize = 'sm' | 'md';
 
 interface TabsProps {
   tabs: Tab[];
@@ -22,7 +27,10 @@ interface TabsProps {
   onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   className?: string;
   variant?: 'primary' | 'pill';
+  size?: TabSize;
   disabled?: boolean;
+  /** Center the tab items within the bar instead of left-aligning them. */
+  centered?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -30,8 +38,9 @@ const TabItem: React.FC<{
   isActive: boolean;
   disabled: boolean;
   variant: 'primary' | 'pill';
+  size: TabSize;
   onTabChange: (id: string, e: React.MouseEvent) => void;
-}> = ({ tab, isActive, disabled, variant, onTabChange }) => {
+}> = ({ tab, isActive, disabled, variant, size, onTabChange }) => {
   const handleClick = (e: React.MouseEvent) => {
     if (disabled) {
       e.preventDefault();
@@ -43,17 +52,37 @@ const TabItem: React.FC<{
     }
   };
 
+  const isSmall = size === 'sm';
+  const isPill = variant === 'pill';
+  const iconClass = isPill
+    ? isSmall
+      ? 'w-3.5 h-3.5'
+      : 'w-4 h-4'
+    : isSmall
+      ? 'w-[18px] h-[18px]'
+      : 'w-5 h-5';
+  const emojiClass = isPill
+    ? isSmall
+      ? 'text-[16px]'
+      : 'text-[18px]'
+    : isSmall
+      ? 'text-[22px]'
+      : 'text-[26px]';
+
   const styles = cn(
-    'text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
-    variant === 'pill'
+    'font-semibold flex items-center whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
+    isSmall ? 'gap-1.5' : 'gap-2',
+    isPill
       ? [
-          'px-4 py-2 rounded-full',
+          'px-4 rounded-full',
+          isSmall ? 'text-[13px] py-1.5' : 'text-sm py-2',
           isActive
             ? 'border border-gray-300 bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700',
         ]
       : [
-          'border-b-2 py-3 h-full',
+          'border-b-4 h-full',
+          isSmall ? 'text-[15px] py-3' : 'text-base py-3.5',
           isActive
             ? tab.activeClassName || 'text-primary-600 border-b-primary-600'
             : 'text-gray-800 border-transparent hover:text-gray-700 hover:border-gray-200',
@@ -63,7 +92,16 @@ const TabItem: React.FC<{
 
   const content = (
     <>
-      {tab.icon && <tab.icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
+      {tab.emoji ? (
+        <span
+          className={cn('leading-none flex-shrink-0', emojiClass, tab.iconClassName)}
+          aria-hidden="true"
+        >
+          {tab.emoji}
+        </span>
+      ) : (
+        tab.icon && <tab.icon className={cn('flex-shrink-0', iconClass, tab.iconClassName)} />
+      )}
       <span className="truncate">{tab.label}</span>
     </>
   );
@@ -95,7 +133,9 @@ export const Tabs: React.FC<TabsProps> = ({
   onTabChange,
   className,
   variant = 'primary',
+  size = 'md',
   disabled = false,
+  centered = false,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -128,7 +168,7 @@ export const Tabs: React.FC<TabsProps> = ({
   const gradient = isPrimary ? 'white' : '#f3f4f6';
 
   return (
-    <div className={cn('w-full relative', isPrimary && 'border-b border-gray-200', className)}>
+    <div className={cn('w-full relative', className)}>
       <div
         className={cn(
           'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
@@ -149,7 +189,8 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'gap-2' : 'space-x-8 -mb-px'
+          centered && 'justify-center',
+          variant === 'pill' ? 'gap-2' : cn('-mb-px', size === 'sm' ? 'space-x-6' : 'space-x-8')
         )}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
@@ -168,6 +209,7 @@ export const Tabs: React.FC<TabsProps> = ({
               isActive={activeTab === tab.id}
               disabled={disabled}
               variant={variant}
+              size={size}
               onTabChange={onTabChange}
             />
           </React.Fragment>

@@ -9,6 +9,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Logo } from '@/components/ui/Logo';
+import { cn } from '@/lib/utils';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
@@ -18,14 +19,36 @@ import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
 import { TopBarBackButton } from './topbar/TopBarBackButton';
-import { TopBarBreadcrumb } from './topbar/TopBarBreadcrumb';
 import { TopBarUserControls } from './topbar/TopBarUserControls';
 
 interface TopBarProps {
   onMenuClick: () => void;
+  /** Blend into the page banner: gray background, no bottom border. */
+  blendWithBanner?: boolean;
+  /** Node rendered at the leading edge of the bar, in place of the breadcrumb. */
+  leftSlot?: React.ReactNode;
+  /** Node rendered centered in the bar (e.g. page tabs, Airbnb-style). */
+  centerSlot?: React.ReactNode;
+  /** Node rendered at the leading edge of the right-side controls (e.g. an
+   *  app/product launcher next to search). Desktop only. */
+  rightSlot?: React.ReactNode;
+  /** Minimal mobile chrome: only the logo and the centered title (centerSlot)
+   *  are shown on mobile — search, notifications, and avatar are hidden. */
+  minimalMobile?: boolean;
+  /** Show the logo on desktop. Only for pages without a left sidebar, which
+   *  otherwise carries it. */
+  showDesktopLogo?: boolean;
 }
 
-export function TopBar({ onMenuClick }: TopBarProps) {
+export function TopBar({
+  onMenuClick,
+  blendWithBanner = false,
+  leftSlot: leftSlotProp,
+  centerSlot,
+  rightSlot,
+  minimalMobile = false,
+  showDesktopLogo = false,
+}: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -40,9 +63,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
 
   // A page (e.g. the notebook) can inject a custom control here in place of the
-  // default breadcrumb.
+  // default breadcrumb, either as a prop or from anywhere in its tree.
   const topBarSlot = useTopBarSlot();
-  const leftSlot = topBarSlot?.leftSlot;
+  const leftSlot = leftSlotProp ?? topBarSlot?.leftSlot;
 
   const pageInfo = getPageInfo(pathname);
   const showBackButton = pageInfo && !isRootNavigationPage(pathname);
@@ -74,29 +97,42 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className="bg-white border-b border-gray-200">
+      <div className={blendWithBanner ? 'bg-gray-50/80' : 'bg-white border-b border-gray-200'}>
+        {/* Minimal mobile header: just the centered title. Height matches the
+            page layout's 64px top padding so the banner background below runs
+            into it with no white gap. */}
+        {minimalMobile && (
+          <div className="flex tablet:!hidden h-16 flex-col items-center justify-center">
+            {centerSlot}
+          </div>
+        )}
+
         {/* Title row */}
-        <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
+        <div
+          className={cn(
+            'relative items-center justify-between pl-3 pr-4 lg:pr-8',
+            minimalMobile ? 'hidden tablet:!flex' : 'flex'
+          )}
+          style={{ height: '70px' }}
+        >
           {/* Left side */}
-          <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
+          <div className="flex items-center min-w-0 flex-1 mr-4 h-full ml-4">
             <Link href="/" className="block tablet:!hidden mr-2">
               <div className="rounded-full bg-gray-100 flex items-center justify-center w-11 h-11">
                 <Logo noText size={36} className="mt-[-2px]" />
               </div>
             </Link>
 
+            {showDesktopLogo && (
+              <Link href="/" className="hidden tablet:!block mr-4 flex-shrink-0">
+                <Logo size={36} />
+              </Link>
+            )}
+
             {leftSlot ? (
               <div className="flex min-w-0 items-center">{leftSlot}</div>
             ) : (
-              <>
-                {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
-
-                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
-
-                {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
-
-                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
-              </>
+              <>{showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}</>
             )}
 
             {/* Inline feed tabs — desktop only, shown to the right of the title */}
@@ -112,6 +148,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             )}
           </div>
 
+          {centerSlot && (
+            <div className="absolute left-1/2 -translate-x-1/2 hidden tablet:!flex items-center h-full">
+              {centerSlot}
+            </div>
+          )}
+
           {/* Right side */}
           <div className="flex items-center space-x-2 h-full">
             <TopBarUserControls
@@ -119,6 +161,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               isLoading={isLoading}
               unreadCount={unreadCount}
               pendingModerationCount={pendingModerationCount}
+              beforeAvatar={rightSlot}
               avatarSize={32}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
@@ -127,18 +170,20 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               variant="desktop"
             />
 
-            <TopBarUserControls
-              user={user}
-              isLoading={isLoading}
-              unreadCount={unreadCount}
-              pendingModerationCount={pendingModerationCount}
-              avatarSize={40}
-              profilePercent={profilePercent()}
-              onViewProfile={handleViewProfile}
-              onAuth={() => showAuthModal()}
-              onSearchOpen={openSearch}
-              variant="mobile"
-            />
+            {!minimalMobile && (
+              <TopBarUserControls
+                user={user}
+                isLoading={isLoading}
+                unreadCount={unreadCount}
+                pendingModerationCount={pendingModerationCount}
+                avatarSize={40}
+                profilePercent={profilePercent()}
+                onViewProfile={handleViewProfile}
+                onAuth={() => showAuthModal()}
+                onSearchOpen={openSearch}
+                variant="mobile"
+              />
+            )}
           </div>
         </div>
 

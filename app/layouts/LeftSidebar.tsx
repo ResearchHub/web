@@ -9,6 +9,7 @@ import { PublishMenu } from './PublishMenu';
 import { Logo } from '@/components/ui/Logo';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
+import { YouSection } from './YouSection';
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
@@ -68,6 +69,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
             onUnimplementedFeature={handleUnimplementedFeature}
             forceMinimize={forceMinimize}
           />
+
+          <YouSection forceMinimize={forceMinimize} />
         </div>
       </div>
 

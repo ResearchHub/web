@@ -2,8 +2,8 @@ import { buildWorkUrl } from '@/utils/url';
 import { findLatestFoundationBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import { getRemainingDays } from '@/utils/date';
+import { FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
 import type {
-  AssociatedGrant,
   FeedBountyContent,
   FeedCommentContent,
   FeedContentType,
@@ -51,6 +51,7 @@ export function getActionLabel(entry: FeedEntry): string {
     if (commentContent.hasBounties) return 'opened a bounty';
     const commentType = commentContent.comment?.commentType;
     if (commentType === 'REVIEW') {
+      if (getReviewEarning(entry)) return 'earned';
       const score = commentContent.review?.score ?? commentContent.comment.reviewScore;
       return score != null ? 'peer reviewed and scored' : 'peer reviewed';
     }
@@ -60,7 +61,7 @@ export function getActionLabel(entry: FeedEntry): string {
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
     return 'funded proposal for';
   }
-  if (entry.contentType === 'GRANT') return 'opened a funding opportunity for';
+  if (entry.contentType === 'GRANT') return 'opened an RFP for';
   return DOC_ACTION_LABELS[entry.contentType] ?? 'contributed';
 }
 
@@ -156,7 +157,28 @@ export function getReviewScore(entry: FeedEntry): number | undefined {
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
+  // When the top line is an earning, keep the score on the document card only.
+  if (getReviewEarning(entry)) return undefined;
   return commentContent.review?.score ?? commentContent.comment.reviewScore;
+}
+
+/**
+ * Bounty payout shown on the author line for awarded peer reviews.
+ * Foundation awards display as the flat $150 USD rate.
+ */
+export function getReviewEarning(entry: FeedEntry): FeedContribution | undefined {
+  if (entry.contentType !== 'COMMENT') return undefined;
+  const commentContent = entry.content as FeedCommentContent;
+  if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
+
+  const awarded = entry.awardedBountyAmount;
+  if (awarded == null || awarded <= 0) return undefined;
+
+  if (entry.isAwardedForFoundationBounty) {
+    return { amount: FOUNDATION_BOUNTY_FLAT_USD, currency: 'USD' };
+  }
+
+  return { amount: awarded, currency: 'RSC' };
 }
 
 export interface FeedContribution {
@@ -472,43 +494,6 @@ export function getReviewOpportunity(entry: FeedEntry): ReviewOpportunity | null
     previewImage: getPreviewImage(entry),
     timestamp: entry.timestamp,
     documentInfo: getDocumentInfo(entry),
-  };
-}
-
-export interface QuotedGrantCard {
-  title: string;
-  organization: string;
-  imageSrc?: string;
-  href?: string;
-  numApplicants: number;
-  /** Formatted amount string, e.g. "$10,000". */
-  amountLabel: string;
-}
-
-/** Returns the first associated grant as a quoted card when the entry is a proposal. */
-export function getQuotedGrant(entry: FeedEntry): QuotedGrantCard | null {
-  const grants = entry.associatedGrants;
-  if (!grants || grants.length === 0) return null;
-  if (entry.contentType !== 'PREREGISTRATION' && entry.contentType !== 'PURCHASE') return null;
-
-  const g: AssociatedGrant = grants[0];
-  const amountNum = parseFloat(g.amount);
-  const amountLabel =
-    g.currency === 'USD'
-      ? `$${Math.round(amountNum).toLocaleString()}`
-      : `${Math.round(amountNum).toLocaleString()} RSC`;
-
-  const href = g.postId
-    ? buildWorkUrl({ id: g.postId, contentType: 'funding_request' })
-    : undefined;
-
-  return {
-    title: g.shortTitle,
-    organization: g.organization,
-    imageSrc: g.image ?? undefined,
-    href,
-    numApplicants: g.numApplicants,
-    amountLabel,
   };
 }
 

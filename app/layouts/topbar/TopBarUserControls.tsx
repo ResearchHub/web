@@ -21,6 +21,8 @@ interface TopBarUserControlsProps {
   onAuth: () => void;
   onSearchOpen: () => void;
   variant: 'mobile' | 'desktop';
+  /** Node rendered immediately before the avatar/auth buttons (desktop only). */
+  beforeAvatar?: React.ReactNode;
 }
 
 const AvatarSkeleton = ({ variant }: { variant: 'mobile' | 'desktop' }) => (
@@ -49,6 +51,7 @@ export const TopBarUserControls = ({
   onAuth,
   onSearchOpen,
   variant,
+  beforeAvatar,
 }: TopBarUserControlsProps) => {
   const isMobile = variant === 'mobile';
   const rscDelta = user?.balanceHistory ?? 0;
@@ -149,6 +152,8 @@ export const TopBarUserControls = ({
               </Link>
             </>
           )}
+
+          {beforeAvatar && <div className="flex items-center h-full">{beforeAvatar}</div>}
 
           {user ? (
             <UserMenu

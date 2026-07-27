@@ -61,7 +61,7 @@ export const PeerReviewOpportunityCard: FC<PeerReviewOpportunityCardProps> = ({
   opportunity,
   showThumbnail = false,
 }) => {
-  const { title, href, previewImage, timestamp, documentInfo, metaLabel } = opportunity;
+  const { title, href, previewImage, timestamp, documentInfo } = opportunity;
   const router = useRouter();
   const isProposal = documentInfo?.typeLabel === 'Proposal';
 
@@ -90,7 +90,7 @@ export const PeerReviewOpportunityCard: FC<PeerReviewOpportunityCardProps> = ({
           className="text-sm"
         />
 
-        <div className="mt-2">
+        <div className="mt-5 -ml-[42px] tablet:!ml-0">
           <DocumentPreviewCard
             title={title}
             href={href}
@@ -99,7 +99,6 @@ export const PeerReviewOpportunityCard: FC<PeerReviewOpportunityCardProps> = ({
             authors={isProposal ? [] : documentInfo?.authors}
             institution={documentInfo?.institution}
             score={documentInfo?.reviewScore}
-            meta={metaLabel}
             action={
               href ? (
                 <Button

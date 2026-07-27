@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Star, ArrowRight, CornerDownRight } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -20,16 +20,14 @@ import {
   getDocumentInfo,
   getEntryMeta,
   getFundraiseAmounts,
-  getFundraiseMetaLabel,
   getGrantAmount,
-  getGrantMetaLabel,
   getPreviewImage,
-  getQuotedGrant,
+  getReviewEarning,
   getReviewOpportunity,
   getReviewScore,
   getTextPreview,
 } from './lib/feedEntryAdapters';
-import { formatTimeAgo } from '@/utils/date';
+import { formatTimeAgo, formatTimeAgoShort } from '@/utils/date';
 import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardFullProps {
@@ -68,12 +66,12 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
   const actionLabel = getActionLabel(entry);
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
+  const reviewEarning = getReviewEarning(entry);
   const grantAmount = getGrantAmount(entry);
   const contribution = getContribution(entry);
   const commentPreview = getCommentPreview(entry);
   const documentInfo = getDocumentInfo(entry);
   const textPreview = getTextPreview(entry);
-  const quotedGrant = getQuotedGrant(entry);
   const isReviewOfProposal = !!commentPreview?.isReview && documentInfo.typeLabel === 'Proposal';
 
   const showCommentPreview = !hideBodyText && commentPreview;
@@ -97,14 +95,6 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
     }
     return undefined;
   })();
-
-  // Contextual line beside the footer CTA.
-  const cardMeta =
-    documentInfo.typeLabel === 'Opportunity'
-      ? getGrantMetaLabel(entry)
-      : fundraise
-        ? getFundraiseMetaLabel(entry)
-        : null;
 
   return (
     <div className="py-4 border-b border-gray-100 last:border-b-0">
@@ -130,6 +120,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
             <span className="text-gray-500">{actionLabel}</span>
             {grantAmount && <GrantFundingAmount amount={grantAmount} />}
             {contribution && <ContributionAmount contribution={contribution} />}
+            {reviewEarning && <ContributionAmount contribution={reviewEarning} showSign={false} />}
             {reviewScore != null && (
               <span className="inline-flex items-center gap-1 text-sm text-gray-600">
                 <Star size={13} className="fill-amber-400 text-amber-400" />
@@ -137,10 +128,15 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
               </span>
             )}
             <FeedEntryIcon
-              name={grantAmount || contribution || reviewScore != null ? null : actionIcon}
+              name={
+                grantAmount || contribution || reviewEarning || reviewScore != null
+                  ? null
+                  : actionIcon
+              }
             />
-            <span className="ml-auto pl-2 text-xs text-gray-400">
-              {formatTimeAgo(entry.timestamp)}
+            <span className="ml-auto whitespace-nowrap pl-2 text-xs text-gray-400">
+              <span className="tablet:!hidden">{formatTimeAgoShort(entry.timestamp)}</span>
+              <span className="hidden tablet:!inline">{formatTimeAgo(entry.timestamp)}</span>
             </span>
           </div>
 
@@ -162,8 +158,9 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
             <p className="mt-2 text-sm text-gray-600 line-clamp-2">{textPreview}</p>
           )}
 
-          {/* Main document card */}
-          <div className="mt-2">
+          {/* Main document card — full-bleed on mobile (pulled out of the
+              avatar-rail indent), indented under the action text on tablet+. */}
+          <div className="mt-5 -ml-[42px] tablet:!ml-0">
             <DocumentPreviewCard
               title={title}
               href={href}
@@ -173,7 +170,8 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
               institution={documentInfo.institution}
               score={documentInfo.reviewScore}
               stats={mainStats}
-              meta={cardMeta}
+              voteCount={entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0}
+              userVote={entry.userVote}
               progress={
                 fundraise && fundraise.goalUsd > 0
                   ? fundraise.raisedUsd / fundraise.goalUsd
@@ -196,58 +194,6 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Quoted parent: indented one rail so the org avatar sits under the
-          proposal card's left edge. A corner-arrow icon in the caption marks
-          it as referenced context. */}
-      {quotedGrant && (
-        <div className="mt-4 flex gap-2.5">
-          <div className="w-8 flex-shrink-0" />
-
-          <div className="flex min-w-0 flex-1 gap-2.5">
-            {/* Reply arrow: left edge aligned with the proposal card's left
-                edge, vertically centered on the org avatar. */}
-            <div className="flex h-7 flex-shrink-0 items-center">
-              <CornerDownRight size={16} className="text-gray-400" aria-hidden />
-            </div>
-
-            <div className="flex w-8 flex-shrink-0 flex-col items-center">
-              {quotedGrant.imageSrc ? (
-                <Avatar
-                  src={quotedGrant.imageSrc}
-                  alt={quotedGrant.organization}
-                  size={28}
-                  disableTooltip
-                />
-              ) : (
-                <div className="mt-1 h-3 w-3 rounded-full border-2 border-gray-300 bg-white" />
-              )}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="pt-0.5 text-sm leading-tight text-gray-500">
-                Applying to{' '}
-                <span className="font-medium text-gray-900">{quotedGrant.organization}</span>
-                's funding opportunity
-              </div>
-
-              <div className="mt-2.5">
-                <DocumentPreviewCard
-                  title={quotedGrant.title}
-                  href={quotedGrant.href}
-                  imageSrc={quotedGrant.imageSrc}
-                  organization={quotedGrant.organization}
-                  size="compact"
-                  stats={[
-                    { label: 'Proposals', value: String(quotedGrant.numApplicants) },
-                    { label: 'Funding', value: quotedGrant.amountLabel, accent: true },
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

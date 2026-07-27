@@ -1,14 +1,17 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
   isCompact: boolean;
+  /** Rendered in place of the app navigation when a page supplies its own. */
+  content?: ReactNode;
 }
 
-export function LeftSidebarContainer({ isOpen, isCompact }: LeftSidebarContainerProps) {
+export function LeftSidebarContainer({ isOpen, isCompact, content }: LeftSidebarContainerProps) {
   const topOffset = isCompact ? 'top-[48px]' : 'top-[64px]';
   const heightOffset = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
 
@@ -30,7 +33,7 @@ export function LeftSidebarContainer({ isOpen, isCompact }: LeftSidebarContainer
         isOpen ? '!translate-x-0' : '!-translate-x-full'
       )}
     >
-      <LeftSidebar />
+      {content ?? <LeftSidebar />}
     </div>
   );
 }

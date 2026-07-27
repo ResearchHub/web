@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { ActivityVoteActions } from './ActivityVoteActions';
 import type { FeedDocumentAuthor } from './lib/feedEntryAdapters';
+import type { UserVoteType } from '@/types/reaction';
 
 interface DocumentPreviewCardProps {
   title: string;
@@ -22,9 +24,7 @@ interface DocumentPreviewCardProps {
   score?: number | null;
   /** Document-type badge / eyebrow label pinned to the frosted bar. */
   badge?: string | null;
-  /** Small line under the title/authors (e.g. "closes in 6 days"). */
-  meta?: ReactNode;
-  /** Action rendered inside the frosted bar (e.g. a Review button). */
+  /** Action rendered on the right of the gray footer strip (e.g. Fund / Review). */
   action?: ReactNode;
   /** Extra stats shown on the right side of the frosted bar (label + value pairs). */
   stats?: Array<{ label: string; value: string; accent?: boolean }>;
@@ -34,8 +34,14 @@ interface DocumentPreviewCardProps {
   organization?: string | null;
   /** Height of the card image area. Defaults to 'normal'. */
   size?: 'normal' | 'compact';
-  /** Nested content rendered inside the card frame, below the image (e.g. a quoted parent card). */
+  /** Nested content rendered inside the card frame, below the image. */
   footer?: ReactNode;
+  /** Show upvote/downvote in the gray footer (defaults to true). */
+  showVotes?: boolean;
+  /** Initial vote count for the demo vote control. */
+  voteCount?: number;
+  /** Initial user vote for the demo vote control. */
+  userVote?: UserVoteType;
   className?: string;
 }
 
@@ -55,17 +61,20 @@ export const DocumentPreviewCard: FC<DocumentPreviewCardProps> = ({
   institution,
   score,
   badge,
-  meta,
   action,
   stats,
   progress,
   organization,
   size = 'normal',
   footer,
+  showVotes = true,
+  voteCount = 0,
+  userVote,
   className,
 }) => {
   const hasImage = !!imageSrc || showPlaceholder;
   const imageHeight = size === 'compact' ? 'h-[110px]' : 'h-[190px] sm:h-[180px]';
+  const showFooter = showVotes || !!action;
 
   const eyebrow = organization || badge || null;
 
@@ -81,7 +90,7 @@ export const DocumentPreviewCard: FC<DocumentPreviewCardProps> = ({
     <div
       className={cn(
         'group relative overflow-hidden bg-gray-900',
-        action
+        showFooter
           ? 'rounded-tl-[10px] rounded-tr-[10px] rounded-bl-none rounded-br-none'
           : 'rounded-[10px]',
         imageHeight
@@ -188,7 +197,7 @@ export const DocumentPreviewCard: FC<DocumentPreviewCardProps> = ({
     <div
       className={cn(
         'rounded-[14px] border border-gray-200',
-        action ? 'bg-gray-100' : 'bg-transparent',
+        showFooter ? 'bg-white' : 'bg-transparent',
         className
       )}
     >
@@ -202,18 +211,17 @@ export const DocumentPreviewCard: FC<DocumentPreviewCardProps> = ({
         imageBlock
       )}
 
-      {/* Footer action strip inside the card frame, below the image. Meta sits
-          on the left for balance; the CTA is anchored right. */}
-      {action && (
+      {/* Footer: vote / save / share on the left, optional CTA on the right. */}
+      {showFooter && (
         <div className="flex items-center justify-between gap-3 px-3 py-2">
           <div className="min-w-0 flex-1">
-            {meta && <span className="block truncate text-[12px] text-gray-500">{meta}</span>}
+            {showVotes && <ActivityVoteActions voteCount={voteCount} userVote={userVote} />}
           </div>
-          <div className="flex-shrink-0">{action}</div>
+          {action && <div className="flex-shrink-0">{action}</div>}
         </div>
       )}
 
-      {footer && <div className={cn('px-2 pb-2', action ? 'pt-0' : 'pt-2')}>{footer}</div>}
+      {footer && <div className={cn('px-2 pb-2', showFooter ? 'pt-0' : 'pt-2')}>{footer}</div>}
     </div>
   );
 };

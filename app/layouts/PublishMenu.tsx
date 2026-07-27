@@ -23,6 +23,11 @@ import { useState } from 'react';
 interface PublishMenuProps {
   children?: React.ReactNode;
   forceMinimize?: boolean;
+  /** Custom trigger element rendered in place of the default "Publish" button.
+   *  On desktop it anchors the dropdown; on mobile it opens the drawer. */
+  trigger?: React.ReactNode;
+  /** Dropdown alignment relative to a custom trigger (desktop). */
+  menuAlign?: 'start' | 'center' | 'end';
 }
 
 const PUBLISH_MENU_SECTIONS = [
@@ -83,7 +88,12 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
   );
 };
 
-export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimize = false }) => {
+export const PublishMenu: React.FC<PublishMenuProps> = ({
+  children,
+  forceMinimize = false,
+  trigger,
+  menuAlign = 'start',
+}) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -250,8 +260,12 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             tabIndex={0}
             aria-label="Open publish menu"
           >
-            {standardTrigger}
-            {compactTrigger}
+            {trigger ?? (
+              <>
+                {standardTrigger}
+                {compactTrigger}
+              </>
+            )}
           </div>
           <SwipeableDrawer
             isOpen={isMobileDrawerOpen}
@@ -265,12 +279,11 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       )}
 
       {/* Desktop view with BaseMenu */}
-      {!smAndDown && (
-        <>
-          {/* Standard Menu */}
+      {!smAndDown &&
+        (trigger ? (
           <BaseMenu
-            trigger={standardTrigger}
-            align="start"
+            trigger={trigger}
+            align={menuAlign}
             sideOffset={8}
             className="w-[320px] p-1 rounded-xl"
             withOverlay={false}
@@ -278,20 +291,33 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
           >
             {menuContent}
           </BaseMenu>
+        ) : (
+          <>
+            {/* Standard Menu */}
+            <BaseMenu
+              trigger={standardTrigger}
+              align="start"
+              sideOffset={8}
+              className="w-[320px] p-1 rounded-xl"
+              withOverlay={false}
+              animate
+            >
+              {menuContent}
+            </BaseMenu>
 
-          {/* Compact Menu - same content, different trigger */}
-          <BaseMenu
-            trigger={compactTrigger}
-            align="start"
-            sideOffset={8}
-            className="w-[320px] p-1 rounded-xl"
-            withOverlay={false}
-            animate
-          >
-            {menuContent}
-          </BaseMenu>
-        </>
-      )}
+            {/* Compact Menu - same content, different trigger */}
+            <BaseMenu
+              trigger={compactTrigger}
+              align="start"
+              sideOffset={8}
+              className="w-[320px] p-1 rounded-xl"
+              withOverlay={false}
+              animate
+            >
+              {menuContent}
+            </BaseMenu>
+          </>
+        ))}
 
       <OpenFundingOpportunityModal
         isOpen={isFundingOpportunityModalOpen}

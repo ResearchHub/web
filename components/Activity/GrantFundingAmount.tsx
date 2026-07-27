@@ -22,7 +22,12 @@ export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, classN
   });
 
   return (
-    <span className={cn('font-mono text-sm font-medium text-green-600', className)}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded bg-green-100 px-1.5 py-0.5 font-mono text-[13px] font-semibold leading-tight text-green-800',
+        className
+      )}
+    >
       {formatted}
     </span>
   );

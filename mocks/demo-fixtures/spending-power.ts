@@ -13,6 +13,10 @@ export const DEMO_SPENDING_POWER = {
   creditsRsc: 50000,
   /** Total spending power in USD */
   totalUsd: 1250,
+  /** Lifetime amount contributed to research (proposals + RFPs), in USD */
+  fundedToDateUsd: 4200,
+  /** Lifetime amount contributed to research, in RSC */
+  fundedToDateRsc: 210000,
   /** Displayed APY yield (mocked — no live backend value) */
   apyPercent: 8.2,
 } as const;

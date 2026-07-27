@@ -10,25 +10,36 @@ import {
 import {
   faHouse as faHouseLight,
   faBookmark as faBookmarkLight,
-  faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { Sprout } from 'lucide-react';
+import { Plus, Sprout } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { useUser } from '@/contexts/UserContext';
+import { formatBadgeCount } from '@/utils/number';
+import {
+  OpenFundingOpportunityModal,
+  type FundingOpportunityCreationMethod,
+} from '@/components/Funding/OpenFundingOpportunityModal';
+import {
+  OpenProposalModal,
+  type ProposalCreationMethod,
+} from '@/components/Funding/OpenProposalModal';
 
 interface NavItem {
   label: string;
   href?: string;
   iconKey?: string;
   isMore?: boolean;
+  isCreate?: boolean;
   requiresAuth?: boolean;
   isDynamicHome?: boolean;
 }
@@ -66,6 +77,9 @@ const isPathActive = (path: string, currentPath: string): boolean => {
 
 export const MobileBottomNav: React.FC = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isFundingModalOpen, setIsFundingModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const lastScrollY = useRef(0);
   const router = useRouter();
@@ -74,16 +88,41 @@ export const MobileBottomNav: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
   const { user } = useUser();
+  const { unreadCount } = useNotifications();
 
   // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
   const homeHref = user ? '/for-you' : '/popular';
 
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
-    { label: 'Earn', href: '/earn', iconKey: 'earn' },
-    { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
-    { label: 'More', isMore: true, iconKey: 'more' },
+    { label: 'Alerts', href: '/notifications', iconKey: 'notifications', requiresAuth: true },
+    { label: 'Create', isCreate: true, iconKey: 'create' },
+  ];
+
+  const createItems = [
+    {
+      id: 'rfp',
+      title: 'RFP',
+      description: 'Fund research',
+      icon: <Icon name="fund" size={18} color="#0d4ac4" />,
+      onSelect: () => executeAuthenticatedAction(() => setIsFundingModalOpen(true)),
+    },
+    {
+      id: 'proposal',
+      title: 'Proposal',
+      description: 'Raise money for your research',
+      icon: <FundingIcon size={18} color="#0d4ac4" />,
+      onSelect: () => executeAuthenticatedAction(() => setIsProposalModalOpen(true)),
+    },
+    {
+      id: 'peer-review',
+      title: 'Peer review',
+      badge: '$150',
+      description: 'Review research and earn RSC',
+      icon: <Icon name="earn1" size={18} color="#0d4ac4" />,
+      onSelect: () => executeAuthenticatedAction(() => router.push('/earn')),
+    },
   ];
 
   // Track scroll direction using the scroll container from context
@@ -110,6 +149,10 @@ export const MobileBottomNav: React.FC = () => {
   const handleNavClick = (item: NavItem) => {
     if (item.isMore) {
       setIsMoreOpen(true);
+      return;
+    }
+    if (item.isCreate) {
+      setIsCreateOpen(true);
       return;
     }
 
@@ -167,8 +210,19 @@ export const MobileBottomNav: React.FC = () => {
             color={iconColor}
           />
         );
-      case 'more':
-        return <FontAwesomeIcon icon={faBars} fontSize={iconSize} color={iconColor} />;
+      case 'notifications':
+        return (
+          <div className="relative">
+            <Icon name="notification" size={iconSize} color={iconColor} />
+            {unreadCount > 0 && (
+              <div className="absolute -top-1 -right-1.5 rounded-full bg-primary-600 text-white flex items-center justify-center h-4 min-w-4 px-0.5">
+                <span className="font-medium text-[9px]">{formatBadgeCount(unreadCount)}</span>
+              </div>
+            )}
+          </div>
+        );
+      case 'create':
+        return <Plus size={iconSize} color={iconColor} />;
       case 'endowment':
         return <Sprout size={iconSize} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />;
       case 'journal':
@@ -219,9 +273,11 @@ export const MobileBottomNav: React.FC = () => {
           {mainNavItems.map((item) => {
             const isActive = item.isMore
               ? isMoreActive || isMoreOpen
-              : item.href
-                ? isPathActive(item.href, pathname)
-                : false;
+              : item.isCreate
+                ? isCreateOpen
+                : item.href
+                  ? isPathActive(item.href, pathname)
+                  : false;
 
             return (
               <button
@@ -244,6 +300,68 @@ export const MobileBottomNav: React.FC = () => {
           })}
         </div>
       </nav>
+
+      {/* Create Drawer */}
+      <SwipeableDrawer
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        height="auto"
+        showCloseButton={true}
+      >
+        <div className="pb-6">
+          <div className="px-4 pb-4 border-b border-gray-200 mb-2">
+            <h2 className="text-lg font-semibold text-gray-900">Create new</h2>
+            <p className="mt-0.5 text-xs text-gray-500">Contribute to open science</p>
+          </div>
+
+          <div className="px-2">
+            {createItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setIsCreateOpen(false);
+                  item.onSelect();
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-gray-50"
+              >
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-50 ring-1 ring-inset ring-black/5">
+                  {item.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{item.title}</span>
+                    {item.badge && (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-1.5 py-0.5 text-[11px] font-semibold text-green-700">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-xs text-gray-500">{item.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </SwipeableDrawer>
+
+      <OpenFundingOpportunityModal
+        isOpen={isFundingModalOpen}
+        onClose={() => setIsFundingModalOpen(false)}
+        onConfirm={(method: FundingOpportunityCreationMethod) => {
+          setIsFundingModalOpen(false);
+          router.push(`/notebook?newGrant=true&grantSource=${method}`);
+        }}
+      />
+
+      <OpenProposalModal
+        isOpen={isProposalModalOpen}
+        onClose={() => setIsProposalModalOpen(false)}
+        onConfirm={(method: ProposalCreationMethod) => {
+          setIsProposalModalOpen(false);
+          router.push(`/notebook?newFunding=true&proposalSource=${method}`);
+        }}
+      />
 
       {/* More Menu Drawer */}
       <SwipeableDrawer
