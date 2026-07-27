@@ -54,6 +54,7 @@ export interface Note {
   documentType: string | null;
   proposalId?: number | null;
   image?: string | null;
+  previewImage?: string | null;
   topics?: Topic[];
   authors?: Author[];
   registeredReportPrefill?: RegisteredReportPrefill | null;
@@ -180,6 +181,7 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
     image: raw.registered_report_prefill?.image ?? null,
+    previewImage: raw.registered_report_prefill?.preview_img ?? null,
     topics: transformTopicsFromSources(
       raw.registered_report_prefill?.topics,
       raw.registered_report_prefill?.hubs,
