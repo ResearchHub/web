@@ -108,7 +108,7 @@
     "lucide-react": "^0.461.0",
     "nanoid": "^5.0.9",
     "next": "^15.5.10",
-    "next-auth": "^4.24.15",
+    "next-auth": "^4.24.11",
     "ogl": "^1.0.11",
     "pdfjs-dist": "^4.10.38",
     "persona-react": "6.3.1",
