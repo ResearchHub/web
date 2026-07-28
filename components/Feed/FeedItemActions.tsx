@@ -29,17 +29,12 @@ import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
-import { Bounty } from '@/types/bounty';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
-import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { Topic } from '@/types/topic';
-import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
-import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { Tip } from '@/types/tip';
 import { formatCurrency } from '@/utils/currency';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
@@ -164,7 +159,6 @@ interface FeedItemActionsProps {
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
   href?: string; // URL to use for navigation
   reviews?: Review[]; // New property for reviews
-  bounties?: Bounty[]; // Updated to use imported Bounty type
   awardedBountyAmount?: number; // Add awarded bounty amount
   tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
@@ -203,7 +197,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   rightSideActionButton,
   href,
   reviews = [],
-  bounties = [],
   awardedBountyAmount,
   tips = [],
   relatedDocumentTopics,
@@ -224,7 +217,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   );
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-  const isTouchDevice = useIsTouchDevice();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
@@ -335,15 +327,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  const handleBountyClick = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    if (href) {
-      navigateToTab('bounties');
-    }
-  };
-
   const handleCloseAddToListModal = () => {
     setIsAddToListModalOpen(false);
   };
@@ -413,25 +396,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  // Check if we have open bounties
-  const openBounties = bounties ? bounties.filter((b) => b.status === 'OPEN') : [];
-  const hasOpenBounties = openBounties.length > 0;
-
-  // Calculate total bounty amount for open bounties (handles Foundation bounties with flat $150 USD)
-  const { amount: totalBountyAmount } = getTotalBountyDisplayAmount(
-    openBounties,
-    exchangeRate,
-    showUSD
-  );
-
   // Use media queries to determine screen size
   const isMobile = useMediaQuery('(max-width: 480px)');
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
 
   // Add separator if needed before Report
   const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
-
-  const showInlineBounties = hasOpenBounties;
 
   // Calculate total awarded amount (tips + bounty awards)
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -591,73 +561,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   <span>Tip</span>
                 )}
               </div>
-            ))}
-          {showInlineBounties &&
-            (showTooltips ? (
-              <Tooltip
-                content={
-                  <BountyTooltip
-                    totalAmount={totalBountyAmount}
-                    href={href}
-                    showUSD={showUSD}
-                    skipConversion={showUSD}
-                  />
-                }
-                position="top"
-                width="w-[320px]"
-              >
-                <ActionButton
-                  hideIcon={true}
-                  tooltip=""
-                  label="Bounties"
-                  className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
-                  count={
-                    <CurrencyBadge
-                      amount={totalBountyAmount}
-                      variant="text"
-                      size="xs"
-                      className="!text-xs px-0"
-                      textColor="inherit"
-                      iconColor="inherit"
-                      iconSize={18}
-                      currency={showUSD ? 'USD' : 'RSC'}
-                      shorten={true}
-                      showExchangeRate={false}
-                      showIcon={true}
-                      showText={false}
-                      skipConversion={showUSD}
-                    />
-                  }
-                  showTooltip={false}
-                  onClick={!isTouchDevice ? handleBountyClick : undefined}
-                />
-              </Tooltip>
-            ) : (
-              <ActionButton
-                hideIcon={true}
-                tooltip="Bounties"
-                label="Bounties"
-                className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
-                count={
-                  <CurrencyBadge
-                    amount={totalBountyAmount}
-                    variant="text"
-                    size="xs"
-                    className="!text-xs"
-                    textColor="inherit"
-                    iconColor="inherit"
-                    iconSize={18}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    shorten={true}
-                    showExchangeRate={false}
-                    showIcon={true}
-                    showText={false}
-                    skipConversion={showUSD}
-                  />
-                }
-                showTooltip={false}
-                onClick={handleBountyClick}
-              />
             ))}
           {onExpand && (
             <ActionButton

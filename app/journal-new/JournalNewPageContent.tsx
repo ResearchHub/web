@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedSortDropdown } from '@/components/Feed/FeedTabs';
@@ -24,7 +23,6 @@ export function JournalNewPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const journalSort = getJournalSort(searchParams.get('sort'));
-  const [openViewMenuEntryId, setOpenViewMenuEntryId] = useState<string | null>(null);
 
   const changeJournalSort = (sort: JournalSortOption) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -36,12 +34,6 @@ export function JournalNewPageContent() {
 
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  };
-
-  const changeOpenViewMenu = (entryId: string, isOpen: boolean) => {
-    setOpenViewMenuEntryId((openEntryId) =>
-      isOpen ? entryId : openEntryId === entryId ? null : openEntryId
-    );
   };
 
   const {
@@ -94,8 +86,6 @@ export function JournalNewPageContent() {
           entry={entry}
           index={index}
           feedOrdering={ordering}
-          isViewMenuOpen={openViewMenuEntryId === entry.id}
-          onViewMenuOpenChange={(isOpen) => changeOpenViewMenu(entry.id, isOpen)}
           registerVisibleItem={registerVisibleItem}
           unregisterVisibleItem={unregisterVisibleItem}
           getVisibleItems={getVisibleItems}
