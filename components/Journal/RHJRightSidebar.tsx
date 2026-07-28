@@ -1,7 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ExternalLink, Feather, Users } from 'lucide-react';
+import Link from 'next/link';
+import { ExternalLink, Feather, Library, Users } from 'lucide-react';
 import { editors } from './lib/journalConstants';
 import { EditorCard } from './about/EditorCard';
 import { JournalCollapsibleSection } from './JournalCollapsibleSection';
@@ -19,14 +20,22 @@ interface JournalSectionProps {
 
 const QUICK_LINKS = [
   {
+    href: '/journal-pioneers',
+    text: 'The Pioneers',
+    icon: Library,
+    external: false,
+  },
+  {
     href: 'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj/author-guidelines',
     text: 'Author Guidelines',
     icon: Feather,
+    external: true,
   },
   {
     href: 'https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form',
     text: 'Apply to be a Reviewer',
     icon: Users,
+    external: true,
   },
 ];
 
@@ -154,22 +163,32 @@ export function JournalResources({ className }: JournalSectionProps) {
         <div className="space-y-2">
           {QUICK_LINKS.map((link) => {
             const IconComponent = link.icon;
-            return (
+            const linkClassName =
+              'flex items-center justify-between text-sm text-primary-600 transition-colors hover:text-primary-700';
+            const label = (
+              <div className="flex items-center gap-2">
+                <IconComponent size={16} className="text-primary-600" />
+                <span>{link.text}</span>
+              </div>
+            );
+
+            return link.external ? (
               <a
                 key={link.href}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between text-sm text-primary-600 transition-colors hover:text-primary-700"
+                className={linkClassName}
               >
-                <div className="flex items-center gap-2">
-                  <IconComponent size={16} className="text-primary-600" />
-                  <span>{link.text}</span>
-                </div>
+                {label}
                 <div className="ml-4">
                   <ExternalLink size={14} className="text-gray-400" />
                 </div>
               </a>
+            ) : (
+              <Link key={link.href} href={link.href} className={linkClassName}>
+                {label}
+              </Link>
             );
           })}
         </div>

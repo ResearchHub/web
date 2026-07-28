@@ -17,7 +17,7 @@ function getJournalSort(value: string | null): JournalSortOption {
   return value === 'peer_review_score' ? value : 'newest';
 }
 
-export function JournalNewPageContent() {
+export function JournalPageContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,7 +43,7 @@ export function JournalNewPageContent() {
     restoredScrollPosition,
     page,
     lastClickedEntryId,
-  } = useFeed('journal-new', {
+  } = useFeed('journal', {
     endpoint: 'journal_v2_feed',
     ordering: journalSort,
   });
@@ -65,7 +65,7 @@ export function JournalNewPageContent() {
       }
       ordering={journalSort}
       skeletonVariant="registeredReport"
-      activeTab="journal-new"
+      activeTab="journal"
       restoredScrollPosition={restoredScrollPosition}
       page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
