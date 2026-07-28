@@ -1,7 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { BookOpen, ExternalLink, Feather, Info, Users } from 'lucide-react';
+import Link from 'next/link';
+import { ExternalLink, Feather, Library, Users } from 'lucide-react';
 import { editors } from './lib/journalConstants';
 import { EditorCard } from './about/EditorCard';
 import { JournalCollapsibleSection } from './JournalCollapsibleSection';
@@ -19,14 +20,22 @@ interface JournalSectionProps {
 
 const QUICK_LINKS = [
   {
+    href: '/journal-pioneers',
+    text: 'The Pioneers',
+    icon: Library,
+    external: false,
+  },
+  {
     href: 'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj/author-guidelines',
     text: 'Author Guidelines',
     icon: Feather,
+    external: true,
   },
   {
     href: 'https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form',
     text: 'Apply to be a Reviewer',
     icon: Users,
+    external: true,
   },
 ];
 
@@ -90,21 +99,14 @@ export function AboutTheJournalContent() {
   );
 }
 
-function SectionHeading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
-      <span className="flex-shrink-0 text-gray-400" aria-hidden="true">
-        {icon}
-      </span>
-      {children}
-    </h3>
-  );
+function SectionHeading({ children }: { children: ReactNode }) {
+  return <h3 className="text-sm font-semibold text-gray-800">{children}</h3>;
 }
 
 export function AboutTheJournal({ className }: JournalSectionProps) {
   return (
     <div className={cn('space-y-2', className)}>
-      <SectionHeading icon={<Info size={16} />}>About the journal</SectionHeading>
+      <SectionHeading>About the journal</SectionHeading>
       <AboutTheJournalContent />
     </div>
   );
@@ -123,7 +125,7 @@ function EditorList() {
 export function EditorialBoardSection({ className }: JournalSectionProps) {
   return (
     <div className={cn('space-y-2', className)}>
-      <SectionHeading icon={<Users size={16} />}>Editorial Board</SectionHeading>
+      <SectionHeading>Editorial Board</SectionHeading>
       <EditorList />
     </div>
   );
@@ -157,26 +159,36 @@ export function JournalResources({ className }: JournalSectionProps) {
   return (
     <div className={cn('space-y-3', className)}>
       <div className="space-y-2">
-        <SectionHeading icon={<BookOpen size={16} />}>Resources</SectionHeading>
+        <SectionHeading>Resources</SectionHeading>
         <div className="space-y-2">
           {QUICK_LINKS.map((link) => {
             const IconComponent = link.icon;
-            return (
+            const linkClassName =
+              'flex items-center justify-between text-sm text-primary-600 transition-colors hover:text-primary-700';
+            const label = (
+              <div className="flex items-center gap-2">
+                <IconComponent size={16} className="text-primary-600" />
+                <span>{link.text}</span>
+              </div>
+            );
+
+            return link.external ? (
               <a
                 key={link.href}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between text-sm text-primary-600 transition-colors hover:text-primary-700"
+                className={linkClassName}
               >
-                <div className="flex items-center gap-2">
-                  <IconComponent size={16} className="text-primary-600" />
-                  <span>{link.text}</span>
-                </div>
+                {label}
                 <div className="ml-4">
                   <ExternalLink size={14} className="text-gray-400" />
                 </div>
               </a>
+            ) : (
+              <Link key={link.href} href={link.href} className={linkClassName}>
+                {label}
+              </Link>
             );
           })}
         </div>
