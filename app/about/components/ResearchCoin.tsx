@@ -9,6 +9,7 @@ import { MonoLabel } from './MonoLabel';
 import { Icon } from '@/components/ui/icons/Icon';
 import { colors } from '@/app/styles/colors';
 import { useUser } from '@/contexts/UserContext';
+import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 
 interface ResearchCoinUseCase {
   number: string;
@@ -139,8 +140,8 @@ export const ResearchCoin = () => {
   const { user } = useUser();
 
   const isAuthenticated = status === 'authenticated';
-  const totalRsc = (user?.balance ?? 0) + (user?.lockedBalance ?? 0);
-  const showEndowmentDepositPrompt = isAuthenticated && !!user && totalRsc <= 0;
+  const yieldEligibleRsc = getAvailableAndPromotionalRscBalance(user);
+  const showEndowmentDepositPrompt = isAuthenticated && !!user && yieldEligibleRsc <= 0;
 
   return (
     <section

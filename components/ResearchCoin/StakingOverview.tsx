@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/Switch';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
 import { stripUsdSuffix } from './lib/display';
+import { getAvailableAndPromotionalRscBalance } from './lib/promotionalBalance';
 
 const EMPTY = '—';
 
@@ -34,10 +35,8 @@ export function StakingOverview() {
   }, []);
 
   const isOptedIn = user?.isStakingOptedIn ?? false;
-  // The endowment yields on the user's available RSC balance. If they hold
-  // none, the endowment effectively cannot earn, so we surface a dedicated
-  // empty state instead of a row of dashes.
-  const hasNoRsc = !!user && (user.balance ?? 0) <= 0;
+  // Available and promotional RSC both earn yield; funding credits do not.
+  const hasNoRsc = !!user && getAvailableAndPromotionalRscBalance(user) <= 0;
 
   const handleStakingToggle = async (checked: boolean) => {
     if (!user || isUpdatingStaking) return;
