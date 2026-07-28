@@ -1,6 +1,7 @@
 import 'cal-sans/index.css';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
@@ -136,6 +137,28 @@ const JournalTimeline = () => (
   </div>
 );
 
+/**
+ * The right sidebar is hidden below `lg`, and this page has no trigger for the
+ * layout's mobile sidebar drawer, so mobile users get the same details in a
+ * collapsed disclosure that keeps the reports themselves above the fold.
+ */
+const JournalDetailsDisclosure = () => (
+  <details className="group mt-4 rounded-xl bg-gray-50 px-4 py-3 lg:!hidden">
+    <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-gray-800">
+      About the journal
+      <ChevronDown
+        size={16}
+        className="text-gray-400 transition-transform group-open:rotate-180"
+        aria-hidden="true"
+      />
+    </summary>
+    <div className="mt-4 space-y-8">
+      <AboutTheJournal showHeading={false} />
+      <RHJRightSidebar showBanner={false} />
+    </div>
+  </details>
+);
+
 const JournalHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
     <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-16 tablet:!px-8 sm:py-20">
@@ -176,6 +199,7 @@ export default function JournalNewPage() {
         </div>
       }
     >
+      <JournalDetailsDisclosure />
       <JournalNewPageContent />
     </PageLayout>
   );

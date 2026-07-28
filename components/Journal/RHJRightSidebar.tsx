@@ -35,10 +35,10 @@ const JOURNAL_FACTS = [
   { label: 'APC', value: '$0 (Free)' },
 ] as const;
 
-export function AboutTheJournal() {
+export function AboutTheJournal({ showHeading = true }: { showHeading?: boolean }) {
   return (
     <div className="space-y-2">
-      <h3 className="text-lg font-semibold text-gray-800">About the journal</h3>
+      {showHeading && <h3 className="text-lg font-semibold text-gray-800">About the journal</h3>}
       <p className="text-sm leading-relaxed text-gray-600">
         A multidisciplinary open-access, registered reports journal exclusively for studies funded
         on ResearchHub. These reports are accompanied with open-access, unblinded, and paid peer
