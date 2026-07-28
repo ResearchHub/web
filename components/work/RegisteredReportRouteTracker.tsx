@@ -21,6 +21,15 @@ export function RegisteredReportRouteTracker({
       {visibleSteps.map((step, index) => {
         const href = buildRegisteredReportTrackerHref(step, reportId);
         const isCurrent = step.stage === currentStage;
+        const label =
+          step.stage === 'grant' ? (
+            <>
+              <span className="tablet:hidden">Funding</span>
+              <span className="hidden tablet:inline">{step.label}</span>
+            </>
+          ) : (
+            step.label
+          );
 
         return (
           <div key={step.stage} className="flex items-center gap-1.5">
@@ -30,14 +39,14 @@ export function RegisteredReportRouteTracker({
                 href={href}
                 className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
               >
-                {step.label}
+                {label}
               </Link>
             ) : (
               <span
                 className={isCurrent ? 'font-semibold text-gray-900' : 'text-gray-400'}
                 aria-current={isCurrent ? 'page' : undefined}
               >
-                {step.label}
+                {label}
               </span>
             )}
           </div>
