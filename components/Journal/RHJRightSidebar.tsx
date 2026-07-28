@@ -22,12 +22,17 @@ const quickLinks = [
   },
 ];
 
+const JOURNAL_DOCS_URL =
+  'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj';
+
 const JOURNAL_FACTS = [
-  { label: 'ISSN', value: '2837-5085' },
-  { label: 'License', value: 'CC BY 4.0' },
-  { label: 'APC', value: '$300' },
-  { label: 'Peer review', value: 'Open · signed' },
-  { label: 'Indexing', value: 'DOI via Crossref' },
+  {
+    label: 'License',
+    value: 'CC-BY 4.0',
+    href: 'https://creativecommons.org/licenses/by/4.0/',
+  },
+  { label: 'Peer Review', value: 'Open access, unblinded, paid' },
+  { label: 'APC', value: '$0 (Free)' },
 ] as const;
 
 export function AboutTheJournal() {
@@ -35,17 +40,41 @@ export function AboutTheJournal() {
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <h3 className="text-base font-semibold text-gray-900">About the journal</h3>
       <p className="mt-2 text-sm leading-relaxed text-gray-600">
-        A multidisciplinary open-access journal for studies funded on ResearchHub. Every article
-        ships with its funding history, data, and signed reviews.
+        A multidisciplinary open-access, registered reports journal exclusively for studies funded
+        on ResearchHub. These reports are accompanied with open-access, unblinded, and paid peer
+        reviews to maximize broad engagement. Additionally, authors are incentivized to share
+        optional monthly updates, to keep funders and readers informed of experimental progress.
       </p>
       <dl className="mt-4 divide-y divide-gray-100 border-t border-gray-100">
         {JOURNAL_FACTS.map((fact) => (
           <div key={fact.label} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-            <dt className="text-gray-500">{fact.label}</dt>
-            <dd className="text-right font-medium text-gray-900">{fact.value}</dd>
+            <dt className="flex-shrink-0 text-gray-500">{fact.label}</dt>
+            <dd className="text-right font-medium text-gray-900">
+              {'href' in fact && fact.href ? (
+                <a
+                  href={fact.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                >
+                  {fact.value}
+                </a>
+              ) : (
+                fact.value
+              )}
+            </dd>
           </div>
         ))}
       </dl>
+      <a
+        href={JOURNAL_DOCS_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary-600 transition-colors hover:text-primary-700"
+      >
+        Learn more in the docs
+        <ExternalLink size={14} className="text-gray-400" />
+      </a>
     </div>
   );
 }
