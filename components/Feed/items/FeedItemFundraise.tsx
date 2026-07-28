@@ -9,6 +9,7 @@ import {
   MetadataSection,
   PrimaryActionSection,
 } from '@/components/Feed/BaseFeedItem';
+import { FeedItemEyebrow } from '@/components/Feed/FeedItemEyebrow';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
@@ -154,6 +155,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             />
           </div>
         )}
+
+        <FeedItemEyebrow label={hasFundraise ? 'Proposal' : 'Post'} publishedAt={entry.timestamp} />
 
         <TitleSection
           title={post.title}

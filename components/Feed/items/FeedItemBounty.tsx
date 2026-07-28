@@ -258,7 +258,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         showActions={showActions}
         showHeader={false}
         showBountyInfo={false}
-        hideBountyActions={true}
         onFeedItemClick={onFeedItemClick}
         hideReportButton={false}
         badges={

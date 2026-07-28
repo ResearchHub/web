@@ -1,10 +1,19 @@
 import 'cal-sans/index.css';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { Landmark } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { AboutTheJournal, RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
+import { Icon } from '@/components/ui/icons/Icon';
+import {
+  AboutTheJournal,
+  AboutTheJournalContent,
+  CollapsibleEditorialBoardSection,
+  JournalResources,
+  RHJRightSidebar,
+} from '@/components/Journal/RHJRightSidebar';
+import { JournalCollapsibleSection } from '@/components/Journal/JournalCollapsibleSection';
 import { JournalNewPageContent } from './JournalNewPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
@@ -26,15 +35,6 @@ const PIPELINE_STEPS = [
     href: null,
   },
 ] as const;
-
-const JournalFlaskMark = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 578 578" fill="currentColor" className={className} aria-hidden="true">
-    <path d="M228.759 376.474L277.96 298.011V223.649H300.041V298.004L349.242 376.466H228.761V376.474H228.759ZM407.567 428.608L321.763 291.754V223.649H332.631C338.633 223.649 343.499 218.783 343.499 212.781C343.499 206.78 338.633 201.914 332.631 201.914H293.63H289.382H245.354C239.352 201.914 234.486 206.78 234.486 212.781C234.486 218.783 239.352 223.649 245.354 223.649H256.222V291.754L170.418 428.608C164.761 437.148 165.691 448.769 173.217 456.295C177.478 460.555 183.046 462.699 188.634 462.737H389.356C394.937 462.699 400.511 460.555 404.773 456.295C412.294 448.769 413.231 437.148 407.567 428.608Z" />
-    <path d="M288.993 110.638C296.809 110.638 303.146 104.301 303.146 96.4848C303.146 88.6682 296.809 82.3315 288.993 82.3315C281.176 82.3315 274.839 88.6682 274.839 96.4848C274.839 104.301 281.176 110.638 288.993 110.638Z" />
-    <path d="M235.998 171.879C247.214 171.879 256.306 162.787 256.306 151.571C256.306 140.356 247.214 131.263 235.998 131.263C224.783 131.263 215.691 140.356 215.691 151.571C215.691 162.787 224.783 171.879 235.998 171.879Z" />
-    <path d="M362.086 154.823C363.883 143.752 356.365 133.321 345.294 131.524C334.223 129.727 323.792 137.245 321.995 148.316C320.198 159.387 327.716 169.819 338.787 171.615C349.858 173.412 360.29 165.894 362.086 154.823Z" />
-  </svg>
-);
 
 const JournalIssueCards = () => (
   <div className="relative aspect-[3/4] w-[11.7rem] flex-shrink-0 sm:w-[13.5rem]">
@@ -70,7 +70,7 @@ const JournalIssueCards = () => (
       </div>
 
       <div className="relative flex flex-1 items-center justify-center">
-        <JournalFlaskMark className="h-20 w-20 text-white drop-shadow-lg" />
+        <Icon name="rhJournal2" size={80} color="white" className="drop-shadow-lg" />
       </div>
 
       <div className="relative">
@@ -144,6 +144,28 @@ const JournalTimeline = () => (
   </div>
 );
 
+const MOBILE_SECTION_CLASS = 'rounded-xl border-t-0 bg-gray-50 px-4 py-3';
+
+/**
+ * The right sidebar is hidden below `lg`, and this page has no trigger for the
+ * layout's mobile sidebar drawer, so mobile users get the same details here.
+ * Both sections start collapsed to keep the reports themselves above the fold.
+ */
+const MobileJournalDetails = () => (
+  <div className="my-4 space-y-2 lg:!hidden">
+    <JournalCollapsibleSection
+      title="Journal details"
+      icon={<Landmark size={16} />}
+      className={MOBILE_SECTION_CLASS}
+    >
+      <AboutTheJournalContent />
+      <JournalResources className="mt-4 border-t border-gray-200 pt-3" />
+    </JournalCollapsibleSection>
+
+    <CollapsibleEditorialBoardSection className={MOBILE_SECTION_CLASS} />
+  </div>
+);
+
 const JournalHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
     <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-16 tablet:!px-8 sm:py-20">
@@ -177,9 +199,14 @@ export default function JournalNewPage() {
   return (
     <PageLayout
       topBanner={<JournalHero />}
-      rightSidebarAbove={<AboutTheJournal />}
-      rightSidebar={<RHJRightSidebar showBanner={false} />}
+      rightSidebar={
+        <div className="space-y-3">
+          <AboutTheJournal />
+          <RHJRightSidebar showBanner={false} />
+        </div>
+      }
     >
+      <MobileJournalDetails />
       <JournalNewPageContent />
     </PageLayout>
   );
