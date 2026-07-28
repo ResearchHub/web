@@ -18,3 +18,11 @@ export function shouldShowPromoWallet(user: User | null | undefined): boolean {
 export function getPromotionalBalance(user: User | null | undefined): number {
   return user?.promotionalBalance ?? 0;
 }
+
+/**
+ * ResearchCoin principal available for funding and eligible to earn yield.
+ * Funding credits are intentionally excluded.
+ */
+export function getAvailableAndPromotionalRscBalance(user: User | null | undefined): number {
+  return (user?.balance ?? 0) + getPromotionalBalance(user);
+}

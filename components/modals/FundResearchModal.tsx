@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import { BalanceInfo } from './BalanceInfo';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -237,7 +238,7 @@ export function FundResearchModal({
   fundraiseId,
 }: FundResearchModalProps) {
   const { user } = useUser();
-  const userBalance = user?.balance || 0;
+  const userBalance = getAvailableAndPromotionalRscBalance(user);
   const [step, setStep] = useState<Step>('amount');
   const [inputAmount, setInputAmount] = useState(0);
   const [currency, setCurrency] = useState<Currency>('RSC');
@@ -407,7 +408,11 @@ export function FundResearchModal({
         )}
 
         <div className="mt-6">
-          <BalanceInfo amount={rscAmount} showWarning={insufficientBalance} />
+          <BalanceInfo
+            amount={rscAmount}
+            showWarning={insufficientBalance}
+            includePromotionalBalance
+          />
         </div>
 
         {contributionError && (
