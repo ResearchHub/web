@@ -44,7 +44,7 @@ const JOURNAL_FACTS = [
     value: 'CC-BY 4.0',
     href: 'https://creativecommons.org/licenses/by/4.0/',
   },
-  { label: 'Peer Review', value: 'Open access, unblinded, paid' },
+  { label: 'Peer Review', value: 'Open access, paid' },
   { label: 'APC', value: '$0 (Free)' },
 ] as const;
 
@@ -90,19 +90,6 @@ export function AboutTheJournalContent() {
   );
 }
 
-export function AboutTheJournal({ className }: JournalSectionProps) {
-  return (
-    <JournalCollapsibleSection
-      title="About the journal"
-      icon={<Info size={16} />}
-      defaultOpen
-      className={cn('border-t-0 pt-0', className)}
-    >
-      <AboutTheJournalContent />
-    </JournalCollapsibleSection>
-  );
-}
-
 function SectionHeading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
     <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -111,6 +98,15 @@ function SectionHeading({ icon, children }: { icon: ReactNode; children: ReactNo
       </span>
       {children}
     </h3>
+  );
+}
+
+export function AboutTheJournal({ className }: JournalSectionProps) {
+  return (
+    <div className={cn('space-y-2', className)}>
+      <SectionHeading icon={<Info size={16} />}>About the journal</SectionHeading>
+      <AboutTheJournalContent />
+    </div>
   );
 }
 
