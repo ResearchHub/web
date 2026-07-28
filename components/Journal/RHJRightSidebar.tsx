@@ -37,17 +37,25 @@ const JOURNAL_FACTS = [
 
 export function AboutTheJournal() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <h3 className="text-base font-semibold text-gray-900">About the journal</h3>
-      <p className="mt-2 text-sm leading-relaxed text-gray-600">
+    <div className="space-y-2">
+      <h3 className="text-lg font-semibold text-gray-800">About the journal</h3>
+      <p className="text-sm leading-relaxed text-gray-600">
         A multidisciplinary open-access, registered reports journal exclusively for studies funded
         on ResearchHub. These reports are accompanied with open-access, unblinded, and paid peer
         reviews to maximize broad engagement. Additionally, authors are incentivized to share
-        optional monthly updates, to keep funders and readers informed of experimental progress.
+        optional monthly updates, to keep funders and readers informed of experimental progress.{' '}
+        <a
+          href={JOURNAL_DOCS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="whitespace-nowrap text-primary-600 transition-colors hover:text-primary-700 hover:underline"
+        >
+          Learn more
+        </a>
       </p>
-      <dl className="mt-4 divide-y divide-gray-100 border-t border-gray-100">
+      <dl className="divide-y divide-gray-200 border-y border-gray-200">
         {JOURNAL_FACTS.map((fact) => (
-          <div key={fact.label} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+          <div key={fact.label} className="flex items-baseline justify-between gap-3 py-2 text-sm">
             <dt className="flex-shrink-0 text-gray-500">{fact.label}</dt>
             <dd className="text-right font-medium text-gray-900">
               {'href' in fact && fact.href ? (
@@ -66,22 +74,11 @@ export function AboutTheJournal() {
           </div>
         ))}
       </dl>
-      <a
-        href={JOURNAL_DOCS_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary-600 transition-colors hover:text-primary-700"
-      >
-        Learn more in the docs
-        <ExternalLink size={14} className="text-gray-400" />
-      </a>
     </div>
   );
 }
 
 export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
-  const displayEditors = editors.filter((editor) => editor.authorId !== null);
-
   return (
     <div className="space-y-4">
       {/* Submit Button and Key Features Banner */}
@@ -103,7 +100,7 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-gray-800">Editorial Board</h3>
         <div className="space-y-3">
-          {displayEditors.map((editor) => (
+          {editors.map((editor) => (
             <EditorCard key={editor.name} editor={editor} />
           ))}
         </div>
