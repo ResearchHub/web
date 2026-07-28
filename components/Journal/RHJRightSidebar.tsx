@@ -197,7 +197,7 @@ export function JournalResources({ className }: JournalSectionProps) {
       <div className="space-y-1 border-t border-gray-200 pt-3 text-xs text-gray-500">
         <div>ResearchHub Journal is published by ResearchHub.</div>
         <div>Address: ResearchHub, 548 Market Street PMB 26680, San Francisco, CA 94104, USA</div>
-        <div>ISSN: 2837-5085</div>
+        <div>ISSN: 3070-3395</div>
       </div>
     </div>
   );
