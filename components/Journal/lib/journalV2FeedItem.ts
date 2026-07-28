@@ -14,7 +14,6 @@ export interface JournalV2FeedItemViewModel {
   title: string;
   href: string;
   imageUrl?: string;
-  currentStageLabel: string;
   /** Proposal page URL; the peer reviews shown on the card belong to the funded proposal. */
   proposalHref?: string;
   reviewSummary?: JournalV2ReviewSummary;
@@ -39,10 +38,6 @@ function buildPrimaryHref(content: FeedPostContent): string {
   }
 
   return buildWorkUrl({ id: content.id, slug, contentType: 'preregistration' });
-}
-
-function buildCurrentStageLabel(content: FeedPostContent): string {
-  return isRegisteredReport(content) ? 'Registered Report' : 'Funded Proposal';
 }
 
 /**
@@ -97,7 +92,6 @@ export function buildJournalV2FeedItemViewModel(
     title: content.title,
     href: buildPrimaryHref(content),
     imageUrl: content.previewImage || content.fundraise?.postImage || undefined,
-    currentStageLabel: buildCurrentStageLabel(content),
     proposalHref: buildProposalHref(entry, content),
     reviewSummary: calculateReviewSummary(content),
   };

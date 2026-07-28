@@ -230,6 +230,8 @@ export interface Fundraise {
   postSlug?: string;
   postImage?: string | null;
   reviewMetrics?: ReviewMetrics;
+  /** Institution receiving the funds when the fundraise is routed through a nonprofit. */
+  nonprofit?: { id: number; name: string };
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
@@ -276,5 +278,6 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
       raw.review_metrics?.avg != null
         ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
         : undefined,
+    nonprofit: raw.nonprofit ? { id: raw.nonprofit.id, name: raw.nonprofit.name } : undefined,
   };
 });

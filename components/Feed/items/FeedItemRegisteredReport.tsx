@@ -1,55 +1,41 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { FeedEntry, FeedPostContent } from '@/types/feed';
 import {
   BaseFeedItem,
   ImageSection,
   MetadataSection,
-  PrimaryActionSection,
   TitleSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemEyebrow } from '@/components/Feed/FeedItemEyebrow';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { buttonVariants } from '@/components/ui/Button';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { buildJournalV2FeedItemViewModel } from '@/components/Journal/lib/journalV2FeedItem';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { formatCurrency } from '@/utils/currency';
-import { cn } from '@/utils/styles';
+import { formatTimestamp } from '@/utils/date';
 
 interface FeedItemRegisteredReportProps {
   entry: FeedEntry;
   href?: string;
   showTooltips?: boolean;
-  showActions?: boolean;
   maxLength?: number;
   showBountyInfo?: boolean;
   onFeedItemClick?: () => void;
 }
 
-const StatLabel: FC<{ children: ReactNode }> = ({ children }) => (
-  <span className="text-xs text-gray-500 uppercase tracking-wide">{children}</span>
-);
-
 export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
   entry,
   href,
   showTooltips = true,
-  showActions = true,
   maxLength,
   showBountyInfo,
   onFeedItemClick,
 }) => {
-  const { showUSD } = useCurrencyPreference();
-  const { exchangeRate } = useExchangeRate();
-
   const viewModel = buildJournalV2FeedItemViewModel(entry);
   if (!viewModel) return null;
 
@@ -59,23 +45,13 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
   const primaryAuthor = post.authors?.[0];
   const coAuthors = (post.authors ?? []).slice(1);
   const reviewSummary = viewModel.reviewSummary;
-  const fundraise = post.fundraise;
-
-  const amountFunded = fundraise
-    ? formatCurrency({
-        amount: Math.round(showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc),
-        showUSD,
-        exchangeRate,
-        skipConversion: true,
-        shorten: true,
-      })
-    : undefined;
+  const affiliation = post.fundraise?.nonprofit?.name ?? post.institution;
 
   return (
     <BaseFeedItem
       entry={entry}
       href={reportUrl}
-      showActions={showActions}
+      showActions={false}
       showTooltips={showTooltips}
       showHeader={false}
       maxLength={maxLength}
@@ -106,7 +82,7 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
         </div>
       )}
 
-      <FeedItemEyebrow label={viewModel.currentStageLabel} publishedAt={entry.timestamp} />
+      <FeedItemEyebrow label="Registered Report" />
 
       <TitleSection
         title={post.title}
@@ -115,105 +91,91 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
         className="text-md md:!text-md"
       />
 
-      <MetadataSection className="mb-0 py-2">
-        {primaryAuthor ? (
-          <div className="flex items-center gap-2.5">
+      <MetadataSection className="mt-2 mb-1">
+        <div
+          className="flex items-center gap-2.5 cursor-default"
+          onMouseDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {primaryAuthor && (
             <AuthorTooltip authorId={primaryAuthor.id !== 0 ? primaryAuthor.id : undefined}>
               <Avatar
                 src={primaryAuthor.profileImage || undefined}
                 alt={primaryAuthor.fullName}
-                size="sm"
+                size={affiliation ? 'md' : 'sm'}
                 disableTooltip
               />
             </AuthorTooltip>
-            <div className="flex min-w-0 flex-col">
-              <div className="flex items-center gap-2">
-                <Link
-                  href={primaryAuthor.profileUrl || '#'}
-                  className="truncate text-sm font-medium text-gray-900 hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {primaryAuthor.fullName}
-                </Link>
-                {coAuthors.length > 0 && (
-                  <AvatarStack
-                    items={coAuthors.map((author) => ({
-                      src: author.profileImage || '',
-                      alt: author.fullName,
-                      tooltip: author.fullName,
-                      authorId: author.id || undefined,
-                    }))}
-                    size="xxs"
-                    maxItems={3}
-                    spacing={-6}
-                    showLabel={false}
-                    showExtraCount
-                    totalItemsCount={coAuthors.length}
-                    extraCountLabel="Authors"
-                  />
-                )}
-              </div>
-              {post.institution && (
-                <span className="truncate text-xs text-gray-500">{post.institution}</span>
-              )}
-            </div>
-          </div>
-        ) : (
-          post.institution && <span className="text-sm text-gray-500">{post.institution}</span>
-        )}
-      </MetadataSection>
+          )}
 
-      <PrimaryActionSection>
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <div className="flex min-w-0 items-start gap-6">
-            <div className="flex flex-col whitespace-nowrap leading-tight">
-              <StatLabel>Peer Review</StatLabel>
-              {reviewSummary ? (
-                <Tooltip
-                  content={
-                    <PeerReviewTooltip
-                      reviews={reviewSummary.reviews}
-                      averageScore={reviewSummary.average}
-                      href={viewModel.proposalHref ?? reportUrl}
+          <div className="flex min-w-0 flex-col">
+            <div className="flex items-center flex-wrap gap-y-1 text-base">
+              {primaryAuthor && (
+                <span className="flex min-w-0 items-center gap-2">
+                  <Link
+                    href={primaryAuthor.profileUrl || '#'}
+                    className="truncate text-sm font-medium text-gray-900 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {primaryAuthor.fullName}
+                  </Link>
+                  {coAuthors.length > 0 && (
+                    <AvatarStack
+                      items={coAuthors.map((author) => ({
+                        src: author.profileImage || '',
+                        alt: author.fullName,
+                        tooltip: author.fullName,
+                        authorId: author.id || undefined,
+                      }))}
+                      size="xxs"
+                      maxItems={3}
+                      spacing={-6}
+                      showLabel={false}
+                      showExtraCount
+                      totalItemsCount={coAuthors.length}
+                      extraCountLabel="Authors"
                     />
-                  }
-                  position="top"
-                  width="w-[320px]"
-                >
-                  <span className="inline-flex cursor-help items-baseline gap-1 text-xl font-semibold text-gray-900">
-                    <Star size={18} className="self-center fill-amber-400 text-amber-400" />
-                    {reviewSummary.average.toFixed(1)}
-                    <span className="text-sm font-normal text-gray-400">/5</span>
+                  )}
+                </span>
+              )}
+              {entry.timestamp && (
+                <>
+                  {primaryAuthor && <span className="mx-2 text-gray-500">•</span>}
+                  <span className="text-gray-600 whitespace-nowrap text-sm">
+                    {formatTimestamp(entry.timestamp, false)}
                   </span>
-                </Tooltip>
-              ) : (
-                <span className="text-xl font-semibold text-gray-400">—</span>
+                </>
+              )}
+              {reviewSummary && (
+                <>
+                  {(primaryAuthor || entry.timestamp) && (
+                    <span className="mx-2 text-gray-500">•</span>
+                  )}
+                  <Tooltip
+                    content={
+                      <PeerReviewTooltip
+                        reviews={reviewSummary.reviews}
+                        averageScore={reviewSummary.average}
+                        href={viewModel.proposalHref ?? reportUrl}
+                      />
+                    }
+                    position="top"
+                    width="w-[320px]"
+                  >
+                    <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
+                      <Star size={13} className="fill-amber-400 text-amber-400" />
+                      {reviewSummary.average.toFixed(1)}
+                    </span>
+                  </Tooltip>
+                </>
               )}
             </div>
 
-            {amountFunded && (
-              <div className="flex flex-col whitespace-nowrap leading-tight">
-                <StatLabel>Funded</StatLabel>
-                <span className="font-mono text-xl font-semibold text-gray-900">
-                  {amountFunded}
-                </span>
-              </div>
-            )}
+            {affiliation && <span className="truncate text-sm text-gray-500">{affiliation}</span>}
           </div>
-
-          <Link
-            href={reportUrl}
-            onClick={onFeedItemClick}
-            className={cn(
-              buttonVariants({ variant: 'dark', size: 'sm' }),
-              'flex-shrink-0 gap-1 no-underline'
-            )}
-          >
-            Read report
-            <ArrowRight size={14} />
-          </Link>
         </div>
-      </PrimaryActionSection>
+      </MetadataSection>
     </BaseFeedItem>
   );
 };
