@@ -102,33 +102,23 @@ export default function JoinNotePage() {
               </p>
             </div>
 
-            {status === 'authenticated' ? (
-              <Button
-                onClick={handleAcceptInvite}
-                disabled={isAccepting || isPending}
-                className="w-full shrink-0 whitespace-nowrap gap-2 sm:w-auto"
-              >
-                {isAccepting || isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Opening...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Accept Invite
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleAuthThenAccept}
-                className="w-full shrink-0 whitespace-nowrap gap-2 sm:w-auto"
-              >
-                <Check className="h-4 w-4" />
-                Sign in or Create Account
-              </Button>
-            )}
+            <Button
+              onClick={handleAuthThenAccept}
+              disabled={isAccepting || isPending}
+              className="w-full shrink-0 whitespace-nowrap gap-2 sm:w-auto"
+            >
+              {isAccepting || isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Opening...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  Accept Invite
+                </>
+              )}
+            </Button>
           </div>
 
           <NotePaperWrapper canvas={false} className="min-h-[70vh] p-6 pl-6 lg:!p-12">
