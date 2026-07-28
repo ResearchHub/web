@@ -76,7 +76,7 @@ const JournalIssueCards = () => (
       <div className="relative">
         <p className="text-2xl font-bold leading-tight tracking-tight">ResearchHub</p>
         <p className="text-2xl font-bold leading-tight tracking-tight">Journal</p>
-        <p className="mt-2 text-[11px] font-medium tracking-wider text-white/60">ISSN 2837-5085</p>
+        <p className="mt-2 text-[11px] font-medium tracking-wider text-white/60">ISSN 3070-3395</p>
       </div>
     </div>
   </div>
