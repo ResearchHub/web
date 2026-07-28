@@ -24,11 +24,14 @@ export function getOutreachChannelLabel(
   return OUTREACH_CHANNEL_LABELS[channel] ?? null;
 }
 
-export function buildMailtoHref(params: { to: string; subject: string }): string {
+/** Open Gmail compose (browser) with to/subject; body is copied separately for rich paste. */
+export function buildGmailComposeHref(params: { to: string; subject: string }): string {
+  const search = new URLSearchParams({ view: 'cm', fs: '1' });
   const to = params.to.trim();
   const subject = params.subject.trim();
-  const query = subject ? `?subject=${encodeURIComponent(subject)}` : '';
-  return `mailto:${to}${query}`;
+  if (to) search.set('to', to);
+  if (subject) search.set('su', subject);
+  return `https://mail.google.com/mail/?${search.toString()}`;
 }
 
 export function getSourceUrlByNetwork(
