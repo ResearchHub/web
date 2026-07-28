@@ -1,12 +1,19 @@
 import 'cal-sans/index.css';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { ChevronDown } from 'lucide-react';
+import { Landmark } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { Icon } from '@/components/ui/icons/Icon';
-import { AboutTheJournal, RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
+import {
+  AboutTheJournal,
+  AboutTheJournalContent,
+  CollapsibleEditorialBoardSection,
+  JournalResources,
+  RHJRightSidebar,
+} from '@/components/Journal/RHJRightSidebar';
+import { JournalCollapsibleSection } from '@/components/Journal/JournalCollapsibleSection';
 import { JournalNewPageContent } from './JournalNewPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
@@ -137,26 +144,26 @@ const JournalTimeline = () => (
   </div>
 );
 
+const MOBILE_SECTION_CLASS = 'rounded-xl border-t-0 bg-gray-50 px-4 py-3';
+
 /**
  * The right sidebar is hidden below `lg`, and this page has no trigger for the
- * layout's mobile sidebar drawer, so mobile users get the same details in a
- * collapsed disclosure that keeps the reports themselves above the fold.
+ * layout's mobile sidebar drawer, so mobile users get the same details here.
+ * Both sections start collapsed to keep the reports themselves above the fold.
  */
-const JournalDetailsDisclosure = () => (
-  <details className="group mt-4 rounded-xl bg-gray-50 px-4 py-3 lg:!hidden">
-    <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-gray-800">
-      About the journal
-      <ChevronDown
-        size={16}
-        className="text-gray-400 transition-transform group-open:rotate-180"
-        aria-hidden="true"
-      />
-    </summary>
-    <div className="mt-4 space-y-8">
-      <AboutTheJournal showHeading={false} />
-      <RHJRightSidebar showBanner={false} />
-    </div>
-  </details>
+const MobileJournalDetails = () => (
+  <div className="my-4 space-y-2 lg:!hidden">
+    <JournalCollapsibleSection
+      title="Journal details"
+      icon={<Landmark size={16} />}
+      className={MOBILE_SECTION_CLASS}
+    >
+      <AboutTheJournalContent />
+      <JournalResources className="mt-4 border-t border-gray-200 pt-3" />
+    </JournalCollapsibleSection>
+
+    <CollapsibleEditorialBoardSection className={MOBILE_SECTION_CLASS} />
+  </div>
 );
 
 const JournalHero = () => (
@@ -193,13 +200,13 @@ export default function JournalNewPage() {
     <PageLayout
       topBanner={<JournalHero />}
       rightSidebar={
-        <div className="space-y-8">
+        <div className="space-y-3">
           <AboutTheJournal />
           <RHJRightSidebar showBanner={false} />
         </div>
       }
     >
-      <JournalDetailsDisclosure />
+      <MobileJournalDetails />
       <JournalNewPageContent />
     </PageLayout>
   );

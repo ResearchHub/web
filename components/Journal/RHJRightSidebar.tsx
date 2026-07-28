@@ -1,15 +1,23 @@
 'use client';
 
-import { Feather, Users, ExternalLink } from 'lucide-react';
+import { ReactNode } from 'react';
+import { BookOpen, ExternalLink, Feather, Info, Users } from 'lucide-react';
 import { editors } from './lib/journalConstants';
 import { EditorCard } from './about/EditorCard';
+import { JournalCollapsibleSection } from './JournalCollapsibleSection';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
+import { cn } from '@/utils/styles';
 
 interface RHJRightSidebarProps {
   showBanner?: boolean;
 }
 
-const quickLinks = [
+interface JournalSectionProps {
+  className?: string;
+}
+
+const QUICK_LINKS = [
   {
     href: 'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj/author-guidelines',
     text: 'Author Guidelines',
@@ -25,6 +33,11 @@ const quickLinks = [
 const JOURNAL_DOCS_URL =
   'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj';
 
+const EDITOR_AVATARS = editors.map((editor) => ({
+  src: typeof editor.image === 'string' ? editor.image : '',
+  alt: editor.name,
+}));
+
 const JOURNAL_FACTS = [
   {
     label: 'License',
@@ -35,10 +48,9 @@ const JOURNAL_FACTS = [
   { label: 'APC', value: '$0 (Free)' },
 ] as const;
 
-export function AboutTheJournal({ showHeading = true }: { showHeading?: boolean }) {
+export function AboutTheJournalContent() {
   return (
-    <div className="space-y-2">
-      {showHeading && <h3 className="text-lg font-semibold text-gray-800">About the journal</h3>}
+    <>
       <p className="text-sm leading-relaxed text-gray-600">
         A multidisciplinary open-access, registered reports journal exclusively for studies funded
         on ResearchHub. These reports are accompanied with open-access, unblinded, and paid peer
@@ -53,7 +65,7 @@ export function AboutTheJournal({ showHeading = true }: { showHeading?: boolean 
           Learn more
         </a>
       </p>
-      <dl className="divide-y divide-gray-200 border-y border-gray-200">
+      <dl className="mt-2 divide-y divide-gray-200 border-t border-gray-200">
         {JOURNAL_FACTS.map((fact) => (
           <div key={fact.label} className="flex items-baseline justify-between gap-3 py-2 text-sm">
             <dt className="flex-shrink-0 text-gray-500">{fact.label}</dt>
@@ -74,51 +86,92 @@ export function AboutTheJournal({ showHeading = true }: { showHeading?: boolean 
           </div>
         ))}
       </dl>
+    </>
+  );
+}
+
+export function AboutTheJournal({ className }: JournalSectionProps) {
+  return (
+    <JournalCollapsibleSection
+      title="About the journal"
+      icon={<Info size={16} />}
+      defaultOpen
+      className={cn('border-t-0 pt-0', className)}
+    >
+      <AboutTheJournalContent />
+    </JournalCollapsibleSection>
+  );
+}
+
+function SectionHeading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+      <span className="flex-shrink-0 text-gray-400" aria-hidden="true">
+        {icon}
+      </span>
+      {children}
+    </h3>
+  );
+}
+
+function EditorList() {
+  return (
+    <div className="space-y-3">
+      {editors.map((editor) => (
+        <EditorCard key={editor.name} editor={editor} />
+      ))}
     </div>
   );
 }
 
-export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
+export function EditorialBoardSection({ className }: JournalSectionProps) {
   return (
-    <div className="space-y-4">
-      {/* Submit Button and Key Features Banner */}
-      {showBanner && (
-        <RightSidebarBanner
-          title="Publish Faster."
-          description="Where fast publishing meets open science."
-          bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}
-          buttonText="Submit Your Manuscript"
-          buttonLink="/paper/create"
-          iconName="rhJournal2"
-          iconColor="#2563eb"
-          iconSize={20}
-          variant="blue"
+    <div className={cn('space-y-2', className)}>
+      <SectionHeading icon={<Users size={16} />}>Editorial Board</SectionHeading>
+      <EditorList />
+    </div>
+  );
+}
+
+/** Compact variant for mobile, where the avatar stack previews the editors while collapsed. */
+export function CollapsibleEditorialBoardSection({ className }: JournalSectionProps) {
+  return (
+    <JournalCollapsibleSection
+      title="Editorial Board"
+      icon={<Users size={16} />}
+      collapsedPreview={
+        <AvatarStack
+          items={EDITOR_AVATARS}
+          size="xs"
+          maxItems={4}
+          showExtraCount
+          showLabel={false}
+          disableTooltip
+          ringColorClass="ring-gray-50"
         />
-      )}
+      }
+      className={className}
+    >
+      <EditorList />
+    </JournalCollapsibleSection>
+  );
+}
 
-      {/* Editorial Board Section */}
+export function JournalResources({ className }: JournalSectionProps) {
+  return (
+    <div className={cn('space-y-3', className)}>
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-800">Editorial Board</h3>
-        <div className="space-y-3">
-          {editors.map((editor) => (
-            <EditorCard key={editor.name} editor={editor} />
-          ))}
-        </div>
-      </div>
-
-      {/* Resources */}
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-800">Resources</h3>
+        <SectionHeading icon={<BookOpen size={16} />}>Resources</SectionHeading>
         <div className="space-y-2">
-          {quickLinks.map((link, index) => {
+          {QUICK_LINKS.map((link) => {
             const IconComponent = link.icon;
             return (
               <a
-                key={index}
+                key={link.href}
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+                className="flex items-center justify-between text-sm text-primary-600 transition-colors hover:text-primary-700"
               >
                 <div className="flex items-center gap-2">
                   <IconComponent size={16} className="text-primary-600" />
@@ -133,14 +186,35 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
         </div>
       </div>
 
-      {/* Journal Information Footnote */}
-      <div className="pt-4 mt-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500 space-y-1">
-          <div>ResearchHub Journal is published by ResearchHub.</div>
-          <div>Address: ResearchHub, 548 Market Street PMB 26680, San Francisco, CA 94104, USA</div>
-          <div>ISSN: 2837-5085</div>
-        </div>
+      <div className="space-y-1 border-t border-gray-200 pt-3 text-xs text-gray-500">
+        <div>ResearchHub Journal is published by ResearchHub.</div>
+        <div>Address: ResearchHub, 548 Market Street PMB 26680, San Francisco, CA 94104, USA</div>
+        <div>ISSN: 2837-5085</div>
       </div>
+    </div>
+  );
+}
+
+export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
+  return (
+    <div className="space-y-3">
+      {showBanner && (
+        <RightSidebarBanner
+          title="Publish Faster."
+          description="Where fast publishing meets open science."
+          bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}
+          buttonText="Submit Your Manuscript"
+          buttonLink="/paper/create"
+          iconName="rhJournal2"
+          iconColor="#2563eb"
+          iconSize={20}
+          variant="blue"
+        />
+      )}
+
+      <EditorialBoardSection className="pt-3" />
+
+      <JournalResources className="border-t border-gray-200 pt-3" />
     </div>
   );
 }

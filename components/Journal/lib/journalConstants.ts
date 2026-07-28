@@ -30,19 +30,6 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Xavier Pereira-Hernández, PhD',
-    role: 'Editor',
-    bio: '',
-    affiliation: 'Washington State University',
-    image: '/people/xavier.jpeg',
-    authorId: null,
-    socialLinks: {
-      email: 'xavier.editor@researchhub.foundation',
-      linkedin: 'https://www.linkedin.com/in/xiph/',
-      scholar: 'https://scholar.google.com/citations?user=cACsV1UAAAAJ&hl=en',
-    },
-  },
-  {
     name: 'Attila Karsi, PhD',
     role: 'Senior Editor',
     bio: 'Dr. Attila Karsi earned his MSc and PhD degrees from Auburn University and is a tenured professor in the College of Veterinary Medicine at Mississippi State University. His research focuses on bacterial pathogenesis, host-pathogen interactions, and vaccine development. He has published over 100 peer-reviewed articles in esteemed journals, including Nucleic Acids Research, Journal of Bacteriology, Frontiers in Microbiology, and PLOS One.',
@@ -53,6 +40,19 @@ export const editors: Editor[] = [
       email: 'attila.editor@researchhub.foundation',
       linkedin: 'https://www.linkedin.com/in/attilakarsi/',
       scholar: 'https://scholar.google.com/citations?user=kkhhBZgAAAAJ&hl=en',
+    },
+  },
+  {
+    name: 'Xavier Pereira-Hernández, PhD',
+    role: 'Editor',
+    bio: '',
+    affiliation: 'Washington State University',
+    image: '/people/xavier.jpeg',
+    authorId: null,
+    socialLinks: {
+      email: 'xavier.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/xiph/',
+      scholar: 'https://scholar.google.com/citations?user=cACsV1UAAAAJ&hl=en',
     },
   },
   {
