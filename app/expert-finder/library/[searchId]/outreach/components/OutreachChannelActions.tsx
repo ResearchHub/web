@@ -4,10 +4,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { Mail } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import type { ExpertSourceLink } from '@/types/expertFinder';
 import {
-  buildMailtoHref,
+  buildGmailComposeHref,
   copyOutreachBodyToClipboard,
   getSourceUrlByNetwork,
 } from '@/app/expert-finder/lib/outreachChannels';
@@ -21,13 +22,6 @@ export interface OutreachChannelActionsProps {
   className?: string;
 }
 
-const channelButtonClass = (enabled: boolean) =>
-  cn(
-    'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-    enabled ? 'hover:bg-gray-50' : 'cursor-not-allowed opacity-50'
-  );
-
 export function OutreachChannelActions({
   expertEmail,
   emailSubject,
@@ -39,27 +33,7 @@ export function OutreachChannelActions({
   const linkedinUrl = getSourceUrlByNetwork(sources, 'linkedin');
   const xUrl = getSourceUrlByNetwork(sources, 'x');
 
-  const copyBodyThen = async (next: () => void) => {
-    if (emailBody.trim()) {
-      const ok = await copyOutreachBodyToClipboard(emailBody);
-      if (ok) {
-        toast.success('Outreach body copied');
-      } else {
-        toast.error('Could not copy outreach body');
-      }
-    }
-    next();
-  };
-
-  const handleEmail = () => {
-    if (!email) return;
-    void copyBodyThen(() => {
-      window.location.href = buildMailtoHref({ to: email, subject: emailSubject });
-    });
-  };
-
-  const openProfile = (url: string) => {
-    // Open blank tab synchronously so the click stays a valid user gesture after await.
+  const handleSendClick = (url: string) => {
     const win = window.open('about:blank', '_blank');
     void (async () => {
       if (emailBody.trim()) {
@@ -80,40 +54,47 @@ export function OutreachChannelActions({
   };
 
   return (
-    <div className={cn('inline-flex items-center gap-2', className)} role="group" aria-label="Send">
-      <span className="text-sm font-medium text-gray-700">Send:</span>
-      <button
+    <div className={cn('flex flex-wrap items-center justify-end gap-2', className)} role="group">
+      <Button
         type="button"
-        className={channelButtonClass(Boolean(xUrl))}
+        variant="outlined"
+        size="sm"
+        className="gap-2"
         disabled={!xUrl}
-        aria-label="Send via X"
         title={xUrl ? 'Copy body and open X profile' : 'No X profile available'}
-        onClick={() => xUrl && openProfile(xUrl)}
+        onClick={() => xUrl && handleSendClick(xUrl)}
       >
-        <FontAwesomeIcon icon={faXTwitter} className="h-4 w-4 text-gray-900" aria-hidden />
-      </button>
-      <button
+        <FontAwesomeIcon icon={faXTwitter} className="h-3.5 w-3.5 text-gray-900" aria-hidden />
+        Send via X
+      </Button>
+      <Button
         type="button"
-        className={channelButtonClass(Boolean(linkedinUrl))}
+        variant="outlined"
+        size="sm"
+        className="gap-2"
         disabled={!linkedinUrl}
-        aria-label="Send via LinkedIn"
         title={
           linkedinUrl ? 'Copy body and open LinkedIn profile' : 'No LinkedIn profile available'
         }
-        onClick={() => linkedinUrl && openProfile(linkedinUrl)}
+        onClick={() => linkedinUrl && handleSendClick(linkedinUrl)}
       >
-        <FontAwesomeIcon icon={faLinkedin} className="h-4 w-4 text-[#0077B5]" aria-hidden />
-      </button>
-      <button
+        <FontAwesomeIcon icon={faLinkedin} className="h-3.5 w-3.5 text-[#0077B5]" aria-hidden />
+        Send via LinkedIn
+      </Button>
+      <Button
         type="button"
-        className={channelButtonClass(Boolean(email))}
+        variant="outlined"
+        size="sm"
+        className="gap-2"
         disabled={!email}
-        aria-label="Send via Email"
-        title={email ? 'Copy body and open email' : 'No email available'}
-        onClick={handleEmail}
+        title={email ? 'Copy body and open Gmail' : 'No email available'}
+        onClick={() =>
+          email && handleSendClick(buildGmailComposeHref({ to: email, subject: emailSubject }))
+        }
       >
-        <Mail className="h-4 w-4 text-gray-600" aria-hidden />
-      </button>
+        <Mail className="h-3.5 w-3.5 text-gray-600" aria-hidden />
+        Send via Email
+      </Button>
     </div>
   );
 }
