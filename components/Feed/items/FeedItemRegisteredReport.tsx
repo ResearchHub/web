@@ -23,6 +23,7 @@ interface FeedItemRegisteredReportProps {
   entry: FeedEntry;
   href?: string;
   showTooltips?: boolean;
+  showActions?: boolean;
   maxLength?: number;
   showBountyInfo?: boolean;
   onFeedItemClick?: () => void;
@@ -32,6 +33,7 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
   entry,
   href,
   showTooltips = true,
+  showActions = true,
   maxLength,
   showBountyInfo,
   onFeedItemClick,
@@ -51,7 +53,7 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
     <BaseFeedItem
       entry={entry}
       href={reportUrl}
-      showActions={false}
+      showActions={showActions}
       showTooltips={showTooltips}
       showHeader={false}
       maxLength={maxLength}
