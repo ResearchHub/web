@@ -1,7 +1,15 @@
 import { FC } from 'react';
-import { SkeletonCardShell, SkeletonImageLeftColumn, SkeletonMobileImageBleed } from './shared';
+import {
+  SkeletonCardShell,
+  SkeletonFeedItemActionsFooter,
+  SkeletonImageLeftColumn,
+  SkeletonMobileImageBleed,
+} from './shared';
 
-/** Mirrors `FeedItemRegisteredReport`: left image, eyebrow, title, then avatar + two metadata lines. */
+/**
+ * Mirrors `FeedItemRegisteredReport`: left image, eyebrow, title, avatar + two
+ * metadata lines, then the shared actions row.
+ */
 export const RegisteredReportSkeleton: FC = () => (
   <SkeletonCardShell>
     <div className="md:!flex md:!flex-row">
@@ -27,5 +35,6 @@ export const RegisteredReportSkeleton: FC = () => (
         </div>
       </div>
     </div>
+    <SkeletonFeedItemActionsFooter />
   </SkeletonCardShell>
 );
