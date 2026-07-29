@@ -60,7 +60,7 @@ export const SCOPE_PATTERNS: ScopePatternInfo[] = [
  * restyles a single piece of chrome, so any combination of them is valid and
  * they are toggled rather than selected.
  */
-export type HomeVariation = 'sidebarPost' | 'underlineTabs' | 'noRightSidebar';
+export type HomeVariation = 'sidebarPost' | 'underlineTabs' | 'noRightSidebar' | 'flatNav';
 
 export interface HomeVariationInfo {
   id: HomeVariation;
@@ -85,6 +85,12 @@ export const HOME_VARIATIONS: HomeVariationInfo[] = [
     label: 'No right sidebar',
     blurb: 'Drop the wallet column and centre the feed on the page. One column, nothing beside it.',
   },
+  {
+    id: 'flatNav',
+    label: 'Flat left nav',
+    blurb:
+      'One unsectioned list of six larger links: no "You" heading, no divider, and the rarely-used destinations dropped.',
+  },
 ];
 
 export type HomeVariationState = Record<HomeVariation, boolean>;
@@ -93,6 +99,7 @@ const NO_VARIATIONS: HomeVariationState = {
   sidebarPost: false,
   underlineTabs: false,
   noRightSidebar: false,
+  flatNav: false,
 };
 
 const STORAGE_KEY = 'rh:home-scope-pattern';

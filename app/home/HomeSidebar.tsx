@@ -30,6 +30,8 @@ interface HomeSidebarProps {
   fundingCount: number;
   /** Carry the create action here instead of the top bar (see HOME_VARIATIONS). */
   showPostButton?: boolean;
+  /** Collapse the two sections into one larger unsectioned list (see HOME_VARIATIONS). */
+  flat?: boolean;
 }
 
 /**
@@ -43,9 +45,71 @@ export function HomeSidebar({
   onSelect,
   fundingCount,
   showPostButton = false,
+  flat = false,
 }: HomeSidebarProps) {
   const { user } = useUser();
   const profileHref = user?.authorProfile?.id ? `/author/${user.authorProfile.id}` : '/';
+
+  const rows: Record<NavRowId, NavRowProps> = {
+    home: {
+      label: 'Home',
+      isActive: activeItem === 'home',
+      onClick: () => onSelect('home'),
+      renderIcon: (color, isActive, iconSize) => (
+        <FontAwesomeIcon
+          icon={isActive ? faHouseSolid : faHouseLight}
+          fontSize={iconSize - 4}
+          color={color}
+        />
+      ),
+    },
+    funding: {
+      label: 'Your Funding',
+      isActive: activeItem === 'funding',
+      onClick: () => onSelect('funding'),
+      icons: ['fund', 'solidHand'],
+      hasUpdates: fundingCount > 0,
+    },
+    notebook: {
+      label: 'Notebook',
+      href: '/notebook',
+      icons: ['labNotebook2', 'notebookBold'],
+    },
+    earn: { label: 'Earn', href: '/earn', icons: ['earn1', 'solidEarn'] },
+    journal: { label: 'Journal', href: '/journal', icons: ['rhJournal1', 'rhJournal2'] },
+    endowment: {
+      label: 'Endowment',
+      href: '/endowment',
+      renderIcon: (color, isActive, iconSize) => (
+        <Sprout size={iconSize - 2} color={color} strokeWidth={isActive ? 2.25 : 2} />
+      ),
+    },
+    lists: {
+      label: 'Lists',
+      href: '/lists',
+      renderIcon: (color, isActive, iconSize) => (
+        <FontAwesomeIcon
+          icon={isActive ? faBookmarkSolid : faBookmarkLight}
+          fontSize={iconSize - 4}
+          color={color}
+        />
+      ),
+    },
+    profile: {
+      label: 'Profile',
+      href: profileHref,
+      renderIcon: (color, isActive, iconSize) => (
+        <FontAwesomeIcon
+          icon={isActive ? faUserSolid : faUserLight}
+          fontSize={iconSize - 4}
+          color={color}
+        />
+      ),
+    },
+  };
+
+  const rowSize = flat ? 'lg' : 'md';
+  const renderRow = (id: NavRowId) => <NavRow key={id} {...rows[id]} size={rowSize} />;
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -72,71 +136,28 @@ export function HomeSidebar({
           showPostButton ? 'pt-6' : 'pt-4'
         )}
       >
-        <div className="space-y-0.5">
-          <NavRow
-            label="Home"
-            isActive={activeItem === 'home'}
-            onClick={() => onSelect('home')}
-            renderIcon={(color, isActive) => (
-              <FontAwesomeIcon
-                icon={isActive ? faHouseSolid : faHouseLight}
-                fontSize={18}
-                color={color}
-              />
-            )}
-          />
-          <NavRow label="Journal" href="/journal" icons={['rhJournal1', 'rhJournal2']} />
-          <NavRow label="Earn" href="/earn" icons={['earn1', 'solidEarn']} />
-          <NavRow
-            label="Endowment"
-            href="/endowment"
-            renderIcon={(color, isActive) => (
-              <Sprout size={20} color={color} strokeWidth={isActive ? 2.25 : 2} />
-            )}
-          />
-        </div>
+        {flat ? (
+          <div className={NAV_ROW_SIZES[rowSize].gap}>{FLAT_NAV_ORDER.map(renderRow)}</div>
+        ) : (
+          <>
+            <div className="space-y-0.5">
+              {(['home', 'journal', 'earn', 'endowment'] as const).map(renderRow)}
+            </div>
 
-        <div className="my-3 border-t border-gray-200" />
+            <div className="my-3 border-t border-gray-200" />
 
-        <Link
-          href={profileHref}
-          className="flex w-full items-center rounded-lg px-3 py-1.5 text-[15px] font-semibold text-gray-900 hover:bg-gray-50 tablet:max-sidebar-compact:!hidden"
-        >
-          You
-        </Link>
+            <Link
+              href={profileHref}
+              className="flex w-full items-center rounded-lg px-3 py-1.5 text-[15px] font-semibold text-gray-900 hover:bg-gray-50 tablet:max-sidebar-compact:!hidden"
+            >
+              You
+            </Link>
 
-        <div className="mt-0.5 space-y-0.5">
-          <NavRow
-            label="Your Funding"
-            isActive={activeItem === 'funding'}
-            onClick={() => onSelect('funding')}
-            icons={['fund', 'solidHand']}
-            hasUpdates={fundingCount > 0}
-          />
-          <NavRow label="Notebook" href="/notebook" icons={['labNotebook2', 'notebookBold']} />
-          <NavRow
-            label="Lists"
-            href="/lists"
-            renderIcon={(color, isActive) => (
-              <FontAwesomeIcon
-                icon={isActive ? faBookmarkSolid : faBookmarkLight}
-                fontSize={18}
-                color={color}
-              />
-            )}
-          />
-          <NavRow
-            label="Profile"
-            href={profileHref}
-            renderIcon={(color, isActive) => (
-              <FontAwesomeIcon
-                icon={isActive ? faUserSolid : faUserLight}
-                fontSize={18}
-                color={color}
-              />
-            )}
-          />
-        </div>
+            <div className="mt-0.5 space-y-0.5">
+              {(['funding', 'notebook', 'lists', 'profile'] as const).map(renderRow)}
+            </div>
+          </>
+        )}
       </nav>
 
       <div className="tablet:max-sidebar-compact:!hidden">
@@ -145,6 +166,24 @@ export function HomeSidebar({
     </div>
   );
 }
+
+type NavRowId =
+  | 'home'
+  | 'funding'
+  | 'notebook'
+  | 'earn'
+  | 'journal'
+  | 'endowment'
+  | 'lists'
+  | 'profile';
+
+/** The flat variation keeps only the six destinations people actually return to. */
+const FLAT_NAV_ORDER = ['home', 'funding', 'notebook', 'earn', 'journal', 'endowment'] as const;
+
+const NAV_ROW_SIZES = {
+  md: { icon: 22, text: 'text-[14px]', padding: 'py-2', gutter: 'mr-3', gap: 'space-y-0.5' },
+  lg: { icon: 26, text: 'text-[15px]', padding: 'py-2.5', gutter: 'mr-3.5', gap: 'space-y-2' },
+} as const;
 
 interface NavRowProps {
   label: string;
@@ -155,9 +194,10 @@ interface NavRowProps {
   /** Light and solid variants of the shared icon, in that order. */
   icons?: [IconName, IconName];
   /** Escape hatch for icons that don't come from the shared set. */
-  renderIcon?: (color: string, isActive: boolean) => React.ReactNode;
+  renderIcon?: (color: string, isActive: boolean, iconSize: number) => React.ReactNode;
   /** Unread marker: a dot, not a count — the number isn't the point here. */
   hasUpdates?: boolean;
+  size?: keyof typeof NAV_ROW_SIZES;
 }
 
 function NavRow({
@@ -168,20 +208,28 @@ function NavRow({
   icons,
   renderIcon,
   hasUpdates,
+  size = 'md',
 }: NavRowProps) {
   const iconColor = isActive ? '#3971ff' : '#404040';
+  const scale = NAV_ROW_SIZES[size];
 
   const content = (
     <>
-      <span className="mr-3 flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center tablet:max-sidebar-compact:!mr-0">
+      <span
+        className={cn(
+          'flex flex-shrink-0 items-center justify-center tablet:max-sidebar-compact:!mr-0',
+          scale.gutter
+        )}
+        style={{ height: scale.icon, width: scale.icon }}
+      >
         {renderIcon ? (
-          renderIcon(iconColor, isActive)
+          renderIcon(iconColor, isActive, scale.icon)
         ) : icons ? (
-          <Icon name={isActive ? icons[1] : icons[0]} size={22} color={iconColor} />
+          <Icon name={isActive ? icons[1] : icons[0]} size={scale.icon} color={iconColor} />
         ) : null}
       </span>
       <span className="flex w-full min-w-0 items-center gap-2 tablet:max-sidebar-compact:!hidden">
-        <span className={cn('truncate text-[14px]', isActive ? 'font-semibold' : 'font-medium')}>
+        <span className={cn('truncate', scale.text, isActive ? 'font-semibold' : 'font-medium')}>
           {label}
         </span>
         {hasUpdates && (
@@ -195,7 +243,8 @@ function NavRow({
   );
 
   const className = cn(
-    'flex w-full items-center rounded-lg px-3 py-2 transition-colors',
+    'flex w-full items-center rounded-lg px-3 transition-colors',
+    scale.padding,
     'tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2',
     isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
   );

@@ -89,7 +89,7 @@ export function RecentlyVisitedCard({ pages, clear, className }: RecentlyVisited
   return (
     <aside className={cn('w-[250px]', className)}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
           Recently visited
         </p>
         <button

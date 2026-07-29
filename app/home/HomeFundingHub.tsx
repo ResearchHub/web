@@ -202,7 +202,16 @@ export function HomeFundingHub() {
   );
 
   const tabBar = variations.underlineTabs ? (
-    <div className="min-w-0 flex-1 border-b border-gray-200">
+    // Shared Tabs has no knob for tab size or track spacing below "sm", so the
+    // demo's slimmer, airier take is applied from the outside. Contained here
+    // rather than added to the shared component for one prototype.
+    <div
+      className={cn(
+        'min-w-0 flex-1 border-b border-gray-200',
+        '[&_button]:!text-[14px] [&_button_svg]:!h-4 [&_button_svg]:!w-4',
+        '[&_button~button]:!ml-9'
+      )}
+    >
       <Tabs
         tabs={hubViews}
         activeTab={view}
@@ -283,6 +292,7 @@ export function HomeFundingHub() {
           onSelect={(item) => setScope(item === 'funding' ? 'mine' : 'all')}
           fundingCount={mineCount}
           showPostButton={variations.sidebarPost}
+          flat={variations.flatNav}
         />
       }
       rightSidebar={sidebarContent}
