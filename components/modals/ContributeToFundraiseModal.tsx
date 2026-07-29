@@ -26,6 +26,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
+import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 
 import AuthContent from '@/components/Auth/AuthContent';
 interface ContributeToFundraiseModalProps {
@@ -106,10 +107,10 @@ function ContributeToFundraiseModalInner({
     stripeContextRef.current = context;
   }, []);
 
-  // Spendable RSC (available balance, excluding locked/earned credits)
-  const rscBalance = user?.balance ?? 0;
-  // Earned funding credits (locked RSC) — offered as its own payment method
-  const lockedBalance = user?.lockedBalance ?? 0;
+  // ResearchCoin available for funding includes withdrawable and promotional RSC.
+  const rscBalance = getAvailableAndPromotionalRscBalance(user);
+  // Funding credits are a separate payment pool from promotional RSC.
+  const fundingCreditsBalance = user?.fundingCredits ?? 0;
 
   // Calculate conversions
   const rscToUsd = (rsc: number) => (exchangeRate ? rsc * exchangeRate : 0);
@@ -211,9 +212,8 @@ function ContributeToFundraiseModalInner({
       setError(null);
 
       if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
-        // RSC-based contribution. Locked funding credits are consumed when the
-        // user picks the Funding Credits option; otherwise the backend draws
-        // from spendable balance only.
+        // The backend draws from funding credits only when that payment method
+        // is selected. Otherwise it draws from available and promotional RSC.
         await FundraiseService.contributeToFundraise(
           fundraise.id,
           amountInRsc,
@@ -457,7 +457,7 @@ function ContributeToFundraiseModalInner({
             amountInUsd={amountUsd}
             amountDisplay={getAmountDisplay()}
             rscBalance={rscBalance}
-            lockedBalance={lockedBalance}
+            fundingCreditsBalance={fundingCreditsBalance}
             fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}

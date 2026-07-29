@@ -62,6 +62,56 @@ const nextConfig = {
       destination: '/privacy',
       permanent: true,
     },
+    // Migrated ResearchHub Journal registered reports (paper → report)
+    {
+      source:
+        '/paper/11152100/effects-of-psilocybin-and-related-compounds-on-cerebroprotection-during-ischemic-stroke-stage-1-registered-report',
+      destination:
+        '/report/32656/effects-of-psilocybin-and-related-compounds-on-cerebroprotection-during-ischemic-stroke-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11187443/enhancing-engineered-cell-therapies-for-cns-conditions-final-stage-1-registered-report',
+      destination:
+        '/report/32654/enhancing-engineered-cell-therapies-for-cns-conditions-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11191504/sleep-fragmentation-in-neuronal-a42-expressing-drosophila-replication-study-stage-1-registered-report',
+      destination:
+        '/report/32653/sleep-fragmentation-in-neuronal-a42-expressing-drosophila-replication-study-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11181913/sirt6-deficiency-in-microvascular-mural-cells-as-a-driver-of-paracrine-senescence-and-impaired-regeneration-in-ischemic-limbs-stage-1-registered-report',
+      destination:
+        '/report/32651/sirt6-deficiency-in-microvascular-mural-cells-as-a-driver-of-paracrine-senescence-and-impaired-regeneration-in-ischemic-limbs-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11152101/de-novo-protein-binder-design-for-advanced-glycation-end-products-a-computational-approach-to-targeting-age-related-glycative-damage-stage-1-registered-report',
+      destination:
+        '/report/32652/de-novo-protein-binder-design-for-advanced-glycation-end-products-a-computational-approach-to-targeting-age-related-glycative-damage-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11186571/neurosc-leveraging-pretrained-single-cell-models-for-brain-cell-classification-stage-1-registered-report',
+      destination:
+        '/report/32655/neurosc-leveraging-pretrained-single-cell-models-for-brain-cell-classification-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11257106/identifying-the-point-of-no-return-integrating-single-cell-transcriptomics-and-proteomics-to-map-irreversible-fibroblast-commitment-in-idiopathic-pulmonary-fibrosis-stage-1-registered-report',
+      destination:
+        '/report/32650/identifying-the-point-of-no-return-integrating-single-cell-transcriptomics-and-proteomics-to-map-irreversible-fibroblast-commitment-in-idiopathic-pulmonary-fibrosis-stage-1-registered-report',
+      permanent: true,
+    },
   ],
   headers: async () => [
     {

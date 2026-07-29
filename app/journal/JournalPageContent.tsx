@@ -1,34 +1,31 @@
 'use client';
 
-import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedSortDropdown } from '@/components/Feed/FeedTabs';
 import { useFeed } from '@/hooks/useFeed';
 import { JournalV2FeedEntryItem } from '@/components/Journal/JournalV2FeedEntryItem';
 
-type JournalSortOption = 'best' | 'newest' | 'peer_review_score';
+type JournalSortOption = 'newest' | 'peer_review_score';
 
 const JOURNAL_SORT_OPTIONS = [
-  { label: 'Best', value: 'best' },
   { label: 'Newest', value: 'newest' },
   { label: 'Review score', value: 'peer_review_score' },
 ];
 
 function getJournalSort(value: string | null): JournalSortOption {
-  return value === 'newest' || value === 'peer_review_score' ? value : 'best';
+  return value === 'peer_review_score' ? value : 'newest';
 }
 
-export function JournalNewPageContent() {
+export function JournalPageContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const journalSort = getJournalSort(searchParams.get('sort'));
-  const [openViewMenuEntryId, setOpenViewMenuEntryId] = useState<string | null>(null);
 
   const changeJournalSort = (sort: JournalSortOption) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (sort === 'best') {
+    if (sort === 'newest') {
       params.delete('sort');
     } else {
       params.set('sort', sort);
@@ -36,12 +33,6 @@ export function JournalNewPageContent() {
 
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  };
-
-  const changeOpenViewMenu = (entryId: string, isOpen: boolean) => {
-    setOpenViewMenuEntryId((openEntryId) =>
-      isOpen ? entryId : openEntryId === entryId ? null : openEntryId
-    );
   };
 
   const {
@@ -52,7 +43,7 @@ export function JournalNewPageContent() {
     restoredScrollPosition,
     page,
     lastClickedEntryId,
-  } = useFeed('journal-new', {
+  } = useFeed('journal', {
     endpoint: 'journal_v2_feed',
     ordering: journalSort,
   });
@@ -73,7 +64,8 @@ export function JournalNewPageContent() {
         </div>
       }
       ordering={journalSort}
-      activeTab="journal-new"
+      skeletonVariant="registeredReport"
+      activeTab="journal"
       restoredScrollPosition={restoredScrollPosition}
       page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
@@ -94,8 +86,6 @@ export function JournalNewPageContent() {
           entry={entry}
           index={index}
           feedOrdering={ordering}
-          isViewMenuOpen={openViewMenuEntryId === entry.id}
-          onViewMenuOpenChange={(isOpen) => changeOpenViewMenu(entry.id, isOpen)}
           registerVisibleItem={registerVisibleItem}
           unregisterVisibleItem={unregisterVisibleItem}
           getVisibleItems={getVisibleItems}
