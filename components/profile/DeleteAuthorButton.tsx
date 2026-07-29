@@ -13,7 +13,7 @@ interface DeleteAuthorButtonProps {
   authorName: string;
 }
 
-export function DeleteAuthorButton({ authorId, authorName }: DeleteAuthorButtonProps) {
+export function DeleteAuthorButton({ authorId, authorName }: Readonly<DeleteAuthorButtonProps>) {
   const router = useRouter();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [{ isLoading }, deleteAuthor] = useDeleteAuthor();
