@@ -13,7 +13,7 @@ interface EmailUnsubscribeFormProps {
   code: string;
 }
 
-export function EmailUnsubscribeForm({ code }: EmailUnsubscribeFormProps) {
+export function EmailUnsubscribeForm({ code }: Readonly<EmailUnsubscribeFormProps>) {
   const [submissionState, setSubmissionState] = useState<SubmissionState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const hasCode = code.length > 0;
@@ -76,11 +76,11 @@ export function EmailUnsubscribeForm({ code }: EmailUnsubscribeFormProps) {
             {isSuccess ? "You're unsubscribed" : 'Unsubscribe from ResearchHub emails?'}
           </h1>
 
-          <p className="mt-3 text-sm leading-6 text-gray-600">
-            {isSuccess
-              ? "You won't receive notification emails from ResearchHub. Essential account emails, such as password resets, may still arrive."
-              : "You'll stop receiving notification emails at this address. Essential account emails, such as password resets, will still arrive."}
-          </p>
+          {isSuccess && (
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              You won't receive notification emails from ResearchHub.
+            </p>
+          )}
 
           {!hasCode && (
             <div

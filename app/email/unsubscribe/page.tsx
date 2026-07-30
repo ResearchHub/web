@@ -16,7 +16,9 @@ interface EmailUnsubscribePageProps {
   }>;
 }
 
-export default async function EmailUnsubscribePage({ searchParams }: EmailUnsubscribePageProps) {
+export default async function EmailUnsubscribePage({
+  searchParams,
+}: Readonly<EmailUnsubscribePageProps>) {
   const { code } = await searchParams;
   const unsubscribeCode = typeof code === 'string' ? code : '';
 
