@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { CircleCheck, LoaderCircle, MailX, TriangleAlert } from 'lucide-react';
+import { CircleCheck, LoaderCircle, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -60,17 +60,11 @@ export function EmailUnsubscribeForm({ code }: Readonly<EmailUnsubscribeFormProp
         </Link>
 
         <div className="text-center" aria-live="polite">
-          <div
-            className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full ${
-              isSuccess ? 'bg-green-50 text-green-600' : 'bg-primary-50 text-primary-600'
-            }`}
-          >
-            {isSuccess ? (
+          {isSuccess && (
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-green-600">
               <CircleCheck className="h-7 w-7" aria-hidden="true" />
-            ) : (
-              <MailX className="h-7 w-7" aria-hidden="true" />
-            )}
-          </div>
+            </div>
+          )}
 
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
             {isSuccess ? "You're unsubscribed" : 'Unsubscribe from ResearchHub emails?'}
