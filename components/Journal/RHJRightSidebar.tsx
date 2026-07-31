@@ -7,12 +7,7 @@ import { editors } from './lib/journalConstants';
 import { EditorCard } from './about/EditorCard';
 import { JournalCollapsibleSection } from './JournalCollapsibleSection';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 import { cn } from '@/utils/styles';
-
-interface RHJRightSidebarProps {
-  showBanner?: boolean;
-}
 
 interface JournalSectionProps {
   className?: string;
@@ -203,23 +198,9 @@ export function JournalResources({ className }: JournalSectionProps) {
   );
 }
 
-export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
+export function RHJRightSidebar() {
   return (
     <div className="space-y-3">
-      {showBanner && (
-        <RightSidebarBanner
-          title="Publish Faster."
-          description="Where fast publishing meets open science."
-          bulletPoints={['14 days to peer review', 'Immediate preprints', 'Open access by default']}
-          buttonText="Submit Your Manuscript"
-          buttonLink="/paper/create"
-          iconName="rhJournal2"
-          iconColor="#2563eb"
-          iconSize={20}
-          variant="blue"
-        />
-      )}
-
       <EditorialBoardSection className="pt-3" />
 
       <JournalResources className="border-t border-gray-200 pt-3" />

@@ -198,20 +198,6 @@ export default function SignupPromoModal({ onClose }: SignupModalProps) {
                   </p>
                 </div>
               </div>
-              <div
-                className="flex items-start"
-                style={{ ...benefitItemStyle, animationDelay: '1.0s' }}
-              >
-                <div className="w-10 h-10 sm:!w-12 sm:!h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200">
-                  <Icon name="rhJournal2" size={20} className="sm:!w-7 sm:!h-7" color="black" />
-                </div>
-                <div className="ml-3 sm:!ml-4 flex-1">
-                  <h3 className="font-semibold text-gray-800 text-sm sm:!text-base">Publish</h3>
-                  <p className="text-gray-600 text-xs sm:!text-sm mt-1">
-                    Publish your work in the RH Journal to reach a global audience.
-                  </p>
-                </div>
-              </div>
             </div>
 
             <div

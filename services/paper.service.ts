@@ -49,10 +49,6 @@ interface CreatePaperResponse {
   status?: ModerationStatus;
 }
 
-interface CheckoutSessionResponse {
-  url: string;
-}
-
 export interface UpdatePaperMetadataPayload {
   title?: string;
   doi?: string;
@@ -67,7 +63,6 @@ export interface UpdatePaperAbstractPayload {
 
 export class PaperService {
   private static readonly BASE_PATH = '/api/paper';
-  private static readonly PAYMENT_PATH = '/api/payment';
 
   // TODO: Remove this
   static async createByOpenAlexId(openalexId: string) {
@@ -156,35 +151,6 @@ export class PaperService {
       `${this.BASE_PATH}/create_researchhub_paper/`,
       apiPayload
     );
-  }
-
-  /**
-   * Create a checkout session for journal submission payment
-   */
-  static async payForJournalSubmission(
-    paperId: number,
-    successUrl: string,
-    failureUrl: string
-  ): Promise<CheckoutSessionResponse> {
-    return ApiClient.post<CheckoutSessionResponse>(`${this.PAYMENT_PATH}/checkout-session/`, {
-      success_url: successUrl,
-      failure_url: failureUrl,
-      paper: paperId,
-      purpose: 'APC',
-    });
-  }
-
-  /**
-   * Publish a preprint paper to the ResearchHub Journal. Once published, the paper
-   * becomes the version of record and its latest version will have the
-   *  `publicationStatus` set to `PUBLISHED` as well as `isVersionOfRecord = true`.
-   *
-   * @param paperId - The id of the paper to publish
-   */
-  static async publishPaper(paperId: number) {
-    return ApiClient.post(`${this.BASE_PATH}/publish_to_researchhub_journal/`, {
-      previous_paper_id: paperId,
-    });
   }
 
   /**

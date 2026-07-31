@@ -89,13 +89,6 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/paper/create'),
-    getInfo: () => ({
-      title: 'Submit your paper',
-      icon: <Icon name="submit2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/earn'),
     getInfo: () => ({
       title: 'Earn',
