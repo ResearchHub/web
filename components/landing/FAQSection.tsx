@@ -83,9 +83,9 @@ const faqs: FAQItem[] = [
     category: 'research',
   },
   {
-    question: 'How does this compare to traditional journal publishing?',
+    question: 'How does ResearchHub Journal compare to traditional journals?',
     answer:
-      'ResearchHub offers faster publication (days vs months), transparent peer review, lower fees ($150-300 vs $3000+ APCs), and researcher compensation. You still get DOIs, indexing, and academic recognition, but with better economics, transparency, and speed. Many researchers use us alongside traditional journals, especially for timely or interdisciplinary work.',
+      'ResearchHub Journal publishes funded studies as registered reports, pairing each report with open, compensated peer review. This model evaluates a study before results are known and keeps its funding, progress, and published findings connected in one place.',
     category: 'research',
   },
   {

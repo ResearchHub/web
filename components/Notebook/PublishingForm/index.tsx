@@ -7,7 +7,6 @@ import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
 import { ContactsSection } from './components/ContactsSection';
 import { TopicsSection } from './components/TopicsSection';
-import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
@@ -55,7 +54,6 @@ import { NOTEBOOK_WORK_TYPES } from '@/components/Notebook/NotebookPrimaryNaviga
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
-const FEATURE_FLAG_JOURNAL = false;
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
@@ -74,15 +72,11 @@ const getButtonText = ({
   isLoadingUpsert,
   isRedirecting,
   isLinkingNonprofit,
-  articleType,
-  isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
   isRedirecting: boolean;
   isLinkingNonprofit: boolean;
-  articleType: string;
-  isJournalEnabled: boolean;
   hasWorkId: boolean;
 }) => {
   switch (true) {
@@ -94,8 +88,6 @@ const getButtonText = ({
       return 'Redirecting...';
     case hasWorkId:
       return 'Publish';
-    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
-      return 'Pay & Publish';
     default:
       return 'Publish';
   }
@@ -107,7 +99,6 @@ const FORM_DEFAULTS = {
   topics: [],
   rewardFunders: false,
   nftSupply: '1000',
-  isJournalEnabled: false,
   budget: '',
   coverImage: null,
   selectedNonprofit: null,
@@ -385,7 +376,6 @@ export function PublishingForm({
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
-  const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
@@ -751,7 +741,6 @@ export function PublishingForm({
                       onBountyClick={onBountyClick ?? (() => {})}
                     />
                   )}
-                {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
               </>
             )}
           </fieldset>
@@ -761,12 +750,6 @@ export function PublishingForm({
           <div className="mx-auto w-full max-w-2xl space-y-3">
             {articleType === 'preregistration' && !methods.watch('workId') && (
               <PreregistrationPrivacyLockedAlert />
-            )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Payment due:</span>
-                <span className="font-medium text-gray-900">$1,000 USD</span>
-              </div>
             )}
             {articleType === 'registered_report' && !canPublishRegisteredReport && (
               <p className="text-sm text-red-600">
@@ -792,8 +775,6 @@ export function PublishingForm({
                     isLoadingUpsert: isLoadingUpsert || isUploadingImage,
                     isRedirecting,
                     isLinkingNonprofit,
-                    articleType,
-                    isJournalEnabled: isJournalEnabled ?? false,
                     hasWorkId: Boolean(methods.watch('workId')),
                   })}
             </Button>

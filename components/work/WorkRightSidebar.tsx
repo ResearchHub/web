@@ -3,7 +3,6 @@
 import { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
-import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
