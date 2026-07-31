@@ -6,6 +6,7 @@ import { RegisteredReportSidebar } from '@/components/work/RegisteredReportSideb
 import { RegisteredReportRouteTracker } from '@/components/work/RegisteredReportRouteTracker';
 import { RegisteredReportTabs } from '@/components/work/RegisteredReportTabs';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader';
+import { CommentService } from '@/services/comment.service';
 import {
   buildRegisteredReportUrl,
   getAccessibleRegisteredReportTracker,
@@ -46,8 +47,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function RegisteredReportLayout({ params, children }: Readonly<Props>) {
   const { id, slug } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
-  const metadata = await getRegisteredReportMetadata(payload.work);
   const hasSourceProposal = hasRegisteredReportSourceProposal(payload);
+  const sourceProposalPostId = payload.tracker.find((step) => step.stage === 'proposal')?.postId;
+  const [metadata, authorUpdates] = await Promise.all([
+    getRegisteredReportMetadata(payload.work),
+    hasSourceProposal && sourceProposalPostId
+      ? CommentService.fetchAuthorPosts({
+          documentId: sourceProposalPostId,
+          contentType: 'preregistration',
+        })
+      : [],
+  ]);
   const tracker = getAccessibleRegisteredReportTracker(payload);
   const reviewsTabUrl = hasSourceProposal
     ? `${buildRegisteredReportUrl(payload.work.id, slug)}/reviews`
@@ -75,6 +85,7 @@ export default async function RegisteredReportLayout({ params, children }: Reado
                 slug={slug}
                 hasSourceProposal={hasSourceProposal}
                 reviewCount={payload.proposal?.peerReviews.length ?? 0}
+                updateCount={authorUpdates.length}
               />
             }
           />

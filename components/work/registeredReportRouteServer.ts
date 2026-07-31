@@ -7,6 +7,7 @@ import {
   type RegisteredReportWork,
   type RegisteredReportWorkResponse,
 } from '@/types/registeredReport';
+import { hasRegisteredReportSourceProposal } from '@/utils/registeredReportRoute';
 
 export const getRegisteredReportWorkOrNotFound = cache(
   async (id: string | number): Promise<RegisteredReportWorkResponse> => {
@@ -23,6 +24,28 @@ export const getRegisteredReportWorkOrNotFound = cache(
     }
   }
 );
+
+const getSourceProposalByPostIdOrNotFound = cache(async (postId: number) => {
+  try {
+    return await PostService.get(postId.toString());
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+
+    throw error;
+  }
+});
+
+export function getRegisteredReportSourceProposalOrNotFound(payload: RegisteredReportWorkResponse) {
+  const proposalStep = payload.tracker.find((step) => step.stage === 'proposal');
+
+  if (!hasRegisteredReportSourceProposal(payload) || !proposalStep?.postId) {
+    notFound();
+  }
+
+  return getSourceProposalByPostIdOrNotFound(proposalStep.postId);
+}
 
 const getMetadataByDocumentId = cache((documentId: number) =>
   MetadataService.get(documentId.toString())

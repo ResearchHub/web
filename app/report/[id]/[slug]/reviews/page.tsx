@@ -1,13 +1,11 @@
-import { notFound } from 'next/navigation';
 import { MetadataService } from '@/services/metadata.service';
-import { PostService } from '@/services/post.service';
 import { ApiError } from '@/services/types';
 import { RegisteredReportProposalReviews } from '@/components/work/RegisteredReportProposalReviews';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
-import { hasRegisteredReportSourceProposal } from '@/utils/registeredReportRoute';
 import {
   getRegisteredReportMetadata,
+  getRegisteredReportSourceProposalOrNotFound,
   getRegisteredReportWorkOrNotFound,
 } from '@/components/work/registeredReportRouteServer';
 
@@ -18,29 +16,13 @@ interface Props {
   }>;
 }
 
-async function getSourceProposalOrNotFound(postId: number) {
-  try {
-    return await PostService.get(postId.toString());
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      notFound();
-    }
-
-    throw error;
-  }
-}
-
 export default async function RegisteredReportReviewsPage({ params }: Readonly<Props>) {
   const { id } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
-  const proposalStep = payload.tracker.find((step) => step.stage === 'proposal');
-
-  if (!hasRegisteredReportSourceProposal(payload) || !proposalStep?.postId) {
-    notFound();
-  }
-
-  const proposal = await getSourceProposalOrNotFound(proposalStep.postId);
-  const reportMetadata = await getRegisteredReportMetadata(payload.work);
+  const [proposal, reportMetadata] = await Promise.all([
+    getRegisteredReportSourceProposalOrNotFound(payload),
+    getRegisteredReportMetadata(payload.work),
+  ]);
   const proposalMetadata = proposal.unifiedDocumentId
     ? await MetadataService.get(proposal.unifiedDocumentId.toString()).catch((error) => {
         if (error instanceof ApiError && error.status === 404) return null;
