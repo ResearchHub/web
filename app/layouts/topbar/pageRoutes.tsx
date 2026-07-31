@@ -28,6 +28,7 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/earn',
   '/fund',
   '/fund/proposals',
+  '/fund/activity',
   '/journal',
   '/notebook',
   '/browse',

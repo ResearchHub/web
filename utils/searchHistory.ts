@@ -26,3 +26,7 @@ export const saveSearchHistory = (items: SearchSuggestion[]) => {
     console.error('Error saving to localStorage:', error);
   }
 };
+
+export const clearSearchHistory = () => {
+  saveSearchHistory([]);
+};

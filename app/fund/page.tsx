@@ -1,17 +1,15 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { FundGrantsPageContent } from './FundGrantsPageContent';
 import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
 import { FundingHeroPanel } from '@/components/Funding/FundingHeroPanel';
 import { OpenFundingOpportunityCTA } from './OpenFundingOpportunityCTA';
+import { FundSidebar } from '@/components/Funding/FundSidebar';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Funding Opportunities',
+  title: 'Request for Proposals',
   description: 'Apply for funding opportunities via proposals.',
   url: '/fund',
 });
@@ -21,7 +19,7 @@ export default async function FundPage() {
     <PageLayout
       topBanner={
         <HeroHeader
-          title="Funding Opportunities"
+          title="Request for Proposals"
           subtitle={
             <p className="text-sm sm:text-base text-gray-500">
               Apply for funding opportunities via proposals.
@@ -33,11 +31,7 @@ export default async function FundPage() {
           <MarketplaceCards selected="grants" />
         </HeroHeader>
       }
-      rightSidebar={
-        <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer />
-        </Suspense>
-      }
+      rightSidebar={<FundSidebar />}
     >
       <section className="sr-only">
         <p>

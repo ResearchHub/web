@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowUpFromLine } from 'lucide-react';
@@ -6,13 +5,12 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
 import { FundingHeroPanel } from '@/components/Funding/FundingHeroPanel';
+import { FundSidebar } from '@/components/Funding/FundSidebar';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Proposals',
@@ -54,11 +52,7 @@ export default async function FundProposalsPage() {
           <MarketplaceCards selected="proposals" />
         </HeroHeader>
       }
-      rightSidebar={
-        <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer />
-        </Suspense>
-      }
+      rightSidebar={<FundSidebar />}
     >
       <div>
         <ProposalSortAndFilters />

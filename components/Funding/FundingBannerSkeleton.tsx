@@ -36,6 +36,10 @@ export function FundingBannerSkeleton({ showTabs = false }: FundingBannerSkeleto
                 <div className="h-5 w-5 rounded-full bg-gray-200/40 flex-shrink-0" />
                 <div className="h-4 w-20 bg-gray-200/40 rounded" />
               </div>
+              <div className="flex items-center gap-1.5 pb-3">
+                <div className="h-5 w-5 rounded-full bg-gray-200/40 flex-shrink-0" />
+                <div className="h-4 w-16 bg-gray-200/40 rounded" />
+              </div>
             </div>
           </div>
         )}

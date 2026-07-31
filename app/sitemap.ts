@@ -71,6 +71,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${SITE_URL}/latest`, changeFrequency: 'hourly', priority: 0.8 },
   { url: `${SITE_URL}/fund`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/fund/proposals`, changeFrequency: 'daily', priority: 0.7 },
+  { url: `${SITE_URL}/fund/activity`, changeFrequency: 'hourly', priority: 0.7 },
   { url: `${SITE_URL}/earn`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/grants`, changeFrequency: 'daily', priority: 0.7 },
   { url: `${SITE_URL}/journal`, changeFrequency: 'daily', priority: 0.7 },

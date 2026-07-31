@@ -2,16 +2,31 @@
 
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { FileText, Waves, type LucideIcon, type LucideProps } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn } from '@fortawesome/free-solid-svg-icons';
 
-export type FundTab = 'grants' | 'proposals';
+/** Sized via Tabs' className to match Lucide stroke icons in the pills. */
+function BullhornIcon({ className }: LucideProps) {
+  return <FontAwesomeIcon icon={faBullhorn} className={className} />;
+}
+
+export type FundTab = 'grants' | 'proposals' | 'activity';
 
 export const FUND_TABS = [
   {
+    id: 'activity' as const,
+    label: 'Activity',
+    href: '/fund/activity',
+    icon: Waves,
+    iconClassName: 'w-5 h-5',
+    activeClassName: 'text-indigo-600 border-b-indigo-600',
+  },
+  {
     id: 'grants' as const,
-    label: 'Funding Opportunities',
+    label: 'Request for Proposals',
     href: '/fund',
-    icon: ArrowDownCircle,
+    icon: BullhornIcon as LucideIcon,
     iconClassName: 'w-5 h-5',
     activeClassName: 'text-emerald-600 border-b-emerald-600',
   },
@@ -19,7 +34,7 @@ export const FUND_TABS = [
     id: 'proposals' as const,
     label: 'Proposals',
     href: '/fund/proposals',
-    icon: ArrowUpCircle,
+    icon: FileText,
     iconClassName: 'w-5 h-5',
     activeClassName: 'text-primary-600 border-b-primary-600',
   },
@@ -29,10 +44,12 @@ export function useFundTabs() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isFundPage = pathname === '/fund' || pathname === '/fund/proposals';
+  const isFundPage =
+    pathname === '/fund' || pathname === '/fund/proposals' || pathname === '/fund/activity';
 
   const activeTab = useMemo((): FundTab => {
     if (pathname === '/fund/proposals') return 'proposals';
+    if (pathname === '/fund/activity') return 'activity';
     return 'grants';
   }, [pathname]);
 
