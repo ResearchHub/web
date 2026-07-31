@@ -1,110 +1,147 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { Button } from '@/components/ui/Button';
+import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useShareModalContext } from '@/contexts/ShareContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
-import { ActivityWorkPanel } from './ActivityWorkPanel';
-import { ActivityFundraiseSlot } from './slots/ActivityFundraiseSlot';
-import { ActivityBountySlot } from './slots/ActivityBountySlot';
-import { ActivityGrantSlot } from './slots/ActivityGrantSlot';
-import { ActivityCommentSlot } from './slots/ActivityCommentSlot';
-import { getCommentPreview, getReviewScore } from './lib/feedEntryAdapters';
-import {
-  getActivityWorkContext,
-  resolveActivityBodySlot,
-  shouldShowActivityComment,
-  type ActivityBodySlot,
-} from './lib/activityWorkContext';
-import type { FeedCommentContent, FeedEntry } from '@/types/feed';
+import { WorkCardActions } from './WorkCardActions';
+import { WorkPreviewCard } from './WorkPreviewCard';
+import { getActivityHeaderMessage, getCommentPreview } from './lib/feedEntryAdapters';
+import { getActivityWorkContext, getWorkCardPresentation } from './lib/activityWorkContext';
+import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardFullProps {
   entry: FeedEntry;
 }
 
-function ActivityBodySlot({
-  slot,
-  work,
-  reviewScore,
-  commentPreview,
-}: {
-  slot: ActivityBodySlot;
-  work: ReturnType<typeof getActivityWorkContext>;
-  reviewScore?: number;
-  commentPreview: ReturnType<typeof getCommentPreview>;
-}) {
-  if (!work) return null;
-
-  switch (slot) {
-    case 'fundraise':
-      return <ActivityFundraiseSlot work={work} reviewScore={reviewScore} />;
-    case 'bounty':
-      return (
-        <ActivityBountySlot
-          work={work}
-          bountyDetails={
-            commentPreview
-              ? { content: commentPreview.content, format: commentPreview.format }
-              : undefined
-          }
-        />
-      );
-    case 'grant':
-      return <ActivityGrantSlot work={work} />;
-    default:
-      return null;
-  }
-}
-
 export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   const work = getActivityWorkContext(entry);
+  const router = useRouter();
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+  const { showShareModal } = useShareModalContext();
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
   if (!work) return null;
 
+  const message = getActivityHeaderMessage(entry);
   const commentPreview = getCommentPreview(entry);
-  const reviewScore =
-    getReviewScore(entry) ?? entry.metrics?.reviewScore ?? work.fundraise?.reviewMetrics?.avg;
-
-  const slot = resolveActivityBodySlot(entry.activityContext, work, {
+  const presentation = getWorkCardPresentation(entry, work, {
+    showUSD,
+    exchangeRate,
     isReview: commentPreview?.isReview,
   });
-  const effectiveSlot: ActivityBodySlot =
-    slot === 'fundraise' && !work.fundraise
-      ? 'default'
-      : slot === 'grant' && !work.grant
-        ? 'default'
-        : slot === 'bounty' && !work.bounty
-          ? 'default'
-          : slot;
 
-  const commentEntry =
-    entry.contentType === 'COMMENT' ? (entry.content as FeedCommentContent) : undefined;
+  const showComment = presentation.showComment && !!commentPreview;
+  const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
+  const isReviewOfProposal = !!commentPreview?.isReview && work.documentType === 'preregistration';
 
-  const showCommentSlot = shouldShowActivityComment(effectiveSlot, commentPreview);
+  const handleFundClick = () => {
+    setIsContributeModalOpen(true);
+  };
 
-  const fundraiseSlotReviewScore =
-    effectiveSlot === 'fundraise' && showCommentSlot ? undefined : reviewScore;
+  const handleContributeSuccess = () => {
+    setIsContributeModalOpen(false);
+    showShareModal({
+      url: window.location.href,
+      docTitle: work.title,
+      action: 'USER_FUNDED_PROPOSAL',
+    });
+    router.refresh();
+  };
+
+  const action = (() => {
+    const cta = presentation.cta;
+    if (!cta) return undefined;
+
+    return (
+      <Button
+        variant="dark"
+        size="sm"
+        onClick={cta.kind === 'fund-modal' ? handleFundClick : () => router.push(cta.href)}
+        className="rounded-md gap-1"
+      >
+        {cta.label}
+        <ArrowRight size={14} aria-hidden />
+      </Button>
+    );
+  })();
 
   return (
-    <article className="py-5">
-      <ActivityCardHeader entry={entry} />
-      <ActivityWorkPanel work={work}>
-        <ActivityBodySlot
-          slot={effectiveSlot}
-          work={work}
-          reviewScore={fundraiseSlotReviewScore}
-          commentPreview={commentPreview}
+    <article className="py-4 border-b border-gray-100 last:border-b-0">
+      <div className="flex gap-2.5">
+        <div className="flex w-8 flex-shrink-0 flex-col items-center">
+          <div className="pt-0.5">
+            <AuthorTooltip authorId={message.actor.id} placement="bottom">
+              <Avatar
+                src={message.actor.profileImage}
+                alt={message.actor.fullName || 'User'}
+                size={32}
+                authorId={message.actor.id}
+                disableTooltip
+              />
+            </AuthorTooltip>
+          </div>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <ActivityCardHeader entry={entry} />
+
+          {showComment && commentPreview && (
+            <div className="mt-2">
+              <CommentReadOnly
+                content={commentPreview.content}
+                contentFormat={commentPreview.format}
+                maxLength={250}
+                showReadMoreButton
+                showLinkPreviews={false}
+                className="text-sm"
+              />
+            </div>
+          )}
+
+          <div className="mt-5 -ml-[42px] tablet:!ml-0">
+            <WorkPreviewCard
+              title={work.title}
+              href={work.href}
+              imageSrc={work.imageUrl}
+              showPlaceholder
+              authors={isReviewOfProposal ? [] : presentation.authors}
+              organization={presentation.organization}
+              institution={presentation.institution}
+              score={presentation.score}
+              stats={presentation.stats}
+              progress={presentation.progress}
+              actions={
+                <WorkCardActions
+                  work={work}
+                  voteCount={voteCount}
+                  userVote={entry.userVote}
+                  cta={action}
+                />
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {work.fundraise && (
+        <ContributeToFundraiseModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={handleContributeSuccess}
+          fundraise={work.fundraise}
+          proposalTitle={work.title}
         />
-        {showCommentSlot && commentPreview && (
-          <ActivityCommentSlot
-            commentPreview={commentPreview}
-            isReview={commentPreview.isReview}
-            reviewScore={getReviewScore(entry) ?? entry.metrics?.reviewScore}
-            workTitle={work.title}
-            workHref={work.href}
-            createdDate={commentEntry?.createdDate}
-            updatedDate={commentEntry?.updatedDate}
-          />
-        )}
-      </ActivityWorkPanel>
+      )}
     </article>
   );
 };

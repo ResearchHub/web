@@ -101,7 +101,7 @@ export default function ActivityPage() {
       <div className="max-w-3xl mx-auto">
         {tabsElement}
 
-        <div className="mt-4 divide-y divide-gray-200">
+        <div className="mt-4">
           {entries.map((entry) => (
             <ActivityCardFull key={entry.id} entry={entry} />
           ))}

@@ -34,7 +34,7 @@ export function GrantContentSwitcher({ children, content, imageUrl }: GrantConte
         <GrantDetailsInline content={content} imageUrl={imageUrl} />
       </div>
       <div className={activeTab !== 'activity' ? 'hidden' : undefined}>
-        <div className="divide-y divide-gray-200">
+        <div>
           {entries.map((entry) => (
             <ActivityCardFull key={entry.id} entry={entry} />
           ))}

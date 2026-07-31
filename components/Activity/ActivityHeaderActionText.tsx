@@ -35,7 +35,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
               {target.author.fullName || 'Unknown'}
             </Link>
           </AuthorTooltip>
-          {target.suffix && <span className="font-medium text-gray-900">{target.suffix}</span>}
+          {target.suffix && <span className="text-gray-500">{target.suffix}</span>}
         </>
       )}
     </span>

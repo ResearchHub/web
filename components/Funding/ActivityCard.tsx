@@ -2,29 +2,33 @@
 
 import { FC } from 'react';
 import Link from 'next/link';
-import { Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { ActivityHeaderActionText } from '@/components/Activity/ActivityHeaderActionText';
-import { formatTimeAgo } from '@/utils/date';
-import { Tooltip } from '@/components/ui/Tooltip';
-import type { FeedEntry } from '@/types/feed';
+import { BountyAmount } from '@/components/Activity/BountyAmount';
+import { ContributionAmount } from '@/components/Activity/ContributionAmount';
+import { FeedEntryIcon } from '@/components/Activity/FeedEntryIcon';
+import { GrantFundingAmount } from '@/components/Activity/GrantFundingAmount';
+import { ReviewScoreStars } from '@/components/Activity/ReviewScoreStars';
 import {
   getActionIcon,
   getActivityHeaderMessage,
   getContribution,
   getEntryMeta,
   getGrantAmount,
+  getReviewEarning,
   getReviewScore,
 } from '@/components/Activity/lib/feedEntryAdapters';
-import { ContributionAmount } from '@/components/Activity/ContributionAmount';
-import { FeedEntryIcon } from '@/components/Activity/FeedEntryIcon';
-import { GrantFundingAmount } from '@/components/Activity/GrantFundingAmount';
+import { getActivityBounty } from '@/components/Activity/lib/activityWorkContext';
+import { formatTimeAgo } from '@/utils/date';
+import { Tooltip } from '@/components/ui/Tooltip';
+import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardProps {
   entry: FeedEntry;
 }
 
+/** Compact activity row used in the funding sidebar. */
 export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const { title, href } = getEntryMeta(entry);
 
@@ -33,8 +37,14 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const message = getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
+  const reviewEarning = getReviewEarning(entry);
   const grantAmount = getGrantAmount(entry);
   const contribution = getContribution(entry);
+  const bounty = entry.activityContext === 'bounty_opened' ? getActivityBounty(entry) : undefined;
+
+  const hasAmount = Boolean(
+    grantAmount || contribution || reviewEarning || bounty || reviewScore != null
+  );
 
   const titleEl = href ? (
     <Link href={href} className="text-primary-600 hover:text-primary-800">
@@ -58,19 +68,47 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
             />
           </AuthorTooltip>
         </div>
-        <span className="text-sm leading-tight mb-1">
+        <span className="mb-1 text-sm leading-6">
           <ActivityHeaderActionText message={message} />
-          <FeedEntryIcon name={actionIcon} />
-          {reviewScore != null && (
-            <span className="inline-flex items-center gap-1 ml-1.5 text-xs text-gray-600 align-middle">
-              <Star size={13} className="fill-amber-400 text-amber-400" />
-              {reviewScore.toFixed(1)}
-            </span>
+          {grantAmount && (
+            <>
+              {' '}
+              <GrantFundingAmount amount={grantAmount} className="align-middle" />
+            </>
           )}
-          {grantAmount && <GrantFundingAmount amount={grantAmount} className="ml-1.5" />}
           {contribution && (
-            <ContributionAmount contribution={contribution} className="ml-1.5 text-green-700" />
+            <>
+              {' '}
+              <ContributionAmount
+                contribution={contribution}
+                showSign={!message.isEarning}
+                className="align-middle"
+              />
+            </>
           )}
+          {reviewEarning && (
+            <>
+              {' '}
+              <ContributionAmount
+                contribution={reviewEarning}
+                showSign={false}
+                className="align-middle"
+              />
+            </>
+          )}
+          {bounty && (
+            <>
+              {' '}
+              <BountyAmount bounty={bounty} className="align-middle" />
+            </>
+          )}
+          {reviewScore != null && reviewScore > 0 && (
+            <>
+              {' '}
+              <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
+            </>
+          )}
+          <FeedEntryIcon name={hasAmount ? null : actionIcon} />
         </span>
         <span className="text-sm leading-tight line-clamp-2">{titleEl}</span>
       </div>
