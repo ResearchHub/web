@@ -58,7 +58,6 @@ export const publishingFormSchema = z
       })
       .nullable()
       .optional(),
-    isJournalEnabled: z.boolean().optional(),
     selectedNonprofit: z.any().nullable().optional(),
     selectedGrant: z.any().nullable().optional(),
     departmentLabName: z.string().optional(),

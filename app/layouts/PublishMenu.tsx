@@ -34,27 +34,14 @@ const PUBLISH_MENU_SECTIONS = [
         title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={18} color="#374151" />,
-        action: 'function',
         handler: 'handleOpenGrant',
-        requiresAuth: true,
       },
       {
         id: 'request-funding',
         title: 'Proposal',
         description: 'Raise money for your research',
         icon: <FundingIcon size={18} color="#374151" />,
-        action: 'function',
         handler: 'handleFundResearch',
-        requiresAuth: true,
-      },
-      {
-        id: 'submit-paper',
-        title: 'Preprint',
-        description: 'Publish your research as a preprint',
-        icon: <Icon name="submit1" size={18} color="#374151" />,
-        action: 'navigate',
-        path: '/notebook?newResearch=true',
-        requiresAuth: true,
       },
     ],
   },
@@ -115,24 +102,16 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   };
 
   const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {
-    if (item.requiresAuth) {
-      executeAuthenticatedAction(() => {
-        if (item.action === 'navigate') {
-          router.push(item.path);
-        } else if (item.action === 'function') {
-          switch (item.handler) {
-            case 'handleFundResearch':
-              handleFundResearch();
-              break;
-            case 'handleOpenGrant':
-              handleOpenGrant();
-              break;
-          }
-        }
-      });
-    } else if (item.action === 'navigate') {
-      router.push(item.path);
-    }
+    executeAuthenticatedAction(() => {
+      switch (item.handler) {
+        case 'handleFundResearch':
+          handleFundResearch();
+          break;
+        case 'handleOpenGrant':
+          handleOpenGrant();
+          break;
+      }
+    });
 
     // Close mobile drawer after action
     if (smAndDown) {
