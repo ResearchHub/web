@@ -1,7 +1,8 @@
 'use client';
 
 import { Bell, FileInput, Star } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 
@@ -21,12 +22,20 @@ export function RegisteredReportTabs({
   updateCount,
 }: Readonly<RegisteredReportTabsProps>) {
   const pathname = usePathname();
+  const router = useRouter();
   const reportHref = buildRegisteredReportUrl(reportId, slug);
   const activeTab = pathname.endsWith('/updates')
     ? 'updates'
     : pathname.endsWith('/reviews')
       ? 'reviews'
       : 'report';
+
+  useEffect(() => {
+    if (!hasSourceProposal) return;
+
+    router.prefetch(`${reportHref}/updates`);
+    router.prefetch(`${reportHref}/reviews`);
+  }, [hasSourceProposal, reportHref, router]);
 
   const tabs = [
     {

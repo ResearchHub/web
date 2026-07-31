@@ -38,13 +38,21 @@ const getSourceProposalByPostIdOrNotFound = cache(async (postId: number) => {
 });
 
 export function getRegisteredReportSourceProposalOrNotFound(payload: RegisteredReportWorkResponse) {
+  return getSourceProposalByPostIdOrNotFound(
+    getRegisteredReportSourceProposalPostIdOrNotFound(payload)
+  );
+}
+
+export function getRegisteredReportSourceProposalPostIdOrNotFound(
+  payload: RegisteredReportWorkResponse
+): number {
   const proposalStep = payload.tracker.find((step) => step.stage === 'proposal');
 
   if (!hasRegisteredReportSourceProposal(payload) || !proposalStep?.postId) {
     notFound();
   }
 
-  return getSourceProposalByPostIdOrNotFound(proposalStep.postId);
+  return proposalStep.postId;
 }
 
 const getMetadataByDocumentId = cache((documentId: number) =>

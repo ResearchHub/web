@@ -2,15 +2,14 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { Alert } from '@/components/ui/Alert';
 import type { WorkMetadata } from '@/services/metadata.service';
-import type { Work } from '@/types/work';
 
 interface RegisteredReportProposalReviewsProps {
-  proposal: Work;
+  sourceProposalId: number;
   metadata: WorkMetadata | null;
 }
 
 export function RegisteredReportProposalReviews({
-  proposal,
+  sourceProposalId,
   metadata,
 }: Readonly<RegisteredReportProposalReviewsProps>) {
   return (
@@ -20,13 +19,11 @@ export function RegisteredReportProposalReviews({
         Report, and may have been addressed in the current version.
       </Alert>
       <CommentFeed
-        documentId={proposal.id}
-        unifiedDocumentId={proposal.unifiedDocumentId || null}
-        contentType={proposal.contentType}
+        documentId={sourceProposalId}
+        unifiedDocumentId={null}
+        contentType="preregistration"
         commentType="REVIEW"
-        workAuthors={proposal.authors}
         belowEditor={<ReviewStatusBanner bounties={metadata?.bounties ?? []} />}
-        work={proposal}
         readOnly
         onlyAssessedReviews
       />

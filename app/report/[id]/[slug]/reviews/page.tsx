@@ -32,7 +32,7 @@ export default async function RegisteredReportReviewsPage({ params }: Readonly<P
 
   return (
     <>
-      <RegisteredReportProposalReviews proposal={proposal} metadata={proposalMetadata} />
+      <RegisteredReportProposalReviews sourceProposalId={proposal.id} metadata={proposalMetadata} />
       <SearchHistoryTracker work={payload.work} />
       <WorkDocumentTracker work={payload.work} metadata={reportMetadata} tab="reviews" />
     </>

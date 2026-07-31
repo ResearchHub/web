@@ -2,7 +2,7 @@ import { RegisteredReportProposalUpdates } from '@/components/work/RegisteredRep
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import {
   getRegisteredReportMetadata,
-  getRegisteredReportSourceProposalOrNotFound,
+  getRegisteredReportSourceProposalPostIdOrNotFound,
   getRegisteredReportWorkOrNotFound,
 } from '@/components/work/registeredReportRouteServer';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
@@ -17,14 +17,12 @@ interface Props {
 export default async function RegisteredReportUpdatesPage({ params }: Readonly<Props>) {
   const { id } = await params;
   const payload = await getRegisteredReportWorkOrNotFound(id);
-  const [proposal, reportMetadata] = await Promise.all([
-    getRegisteredReportSourceProposalOrNotFound(payload),
-    getRegisteredReportMetadata(payload.work),
-  ]);
+  const sourceProposalId = getRegisteredReportSourceProposalPostIdOrNotFound(payload);
+  const reportMetadata = await getRegisteredReportMetadata(payload.work);
 
   return (
     <>
-      <RegisteredReportProposalUpdates proposal={proposal} />
+      <RegisteredReportProposalUpdates sourceProposalId={sourceProposalId} />
       <SearchHistoryTracker work={payload.work} />
       <WorkDocumentTracker work={payload.work} metadata={reportMetadata} tab="updates" />
     </>
