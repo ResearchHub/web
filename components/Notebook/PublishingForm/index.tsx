@@ -397,11 +397,6 @@ export function PublishingForm({
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
   const canPublishRegisteredReport =
     articleType !== 'registered_report' || currentUser?.isModerator === true;
-  const isPublicValue = watch('isPublic');
-  const selectedGrantValue = watch('selectedGrant');
-  const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
-  const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
-
   useEffect(() => {
     clearErrors();
   }, [articleType, clearErrors]);
@@ -782,7 +777,6 @@ export function PublishingForm({
                 readOnly ||
                 isPublishing ||
                 isDeclined ||
-                showPrivateWarning ||
                 !canPublishRegisteredReport
               }
             >

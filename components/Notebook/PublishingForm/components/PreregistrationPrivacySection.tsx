@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Lock, AlertTriangle } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { SectionHeader } from './SectionHeader';
 
@@ -20,16 +20,6 @@ function useIsLockedPrivate() {
   const { watch } = useFormContext();
   const selectedGrant = watch('selectedGrant');
   return selectedGrant?.applicationVisibility === 'PRIVATE';
-}
-
-export function useShowPrivateWarning() {
-  const { watch } = useFormContext();
-  const isPublic = watch('isPublic');
-  const selectedGrant = watch('selectedGrant');
-  const isLockedPrivate = useIsLockedPrivate();
-  if (isLockedPrivate) return false;
-  const value = isPublic === false ? 'private' : 'public';
-  return value === 'private' && !selectedGrant;
 }
 
 export function PreregistrationPrivacyLockedAlert() {
@@ -54,7 +44,6 @@ export function PreregistrationPrivacySection() {
   const { watch, setValue } = useFormContext();
   const isPublic = watch('isPublic');
   const isLockedPrivate = useIsLockedPrivate();
-  const showPrivateWarning = useShowPrivateWarning();
 
   if (isLockedPrivate) {
     return null;
@@ -72,14 +61,6 @@ export function PreregistrationPrivacySection() {
           onChange={(next) => setValue('isPublic', next === 'public', { shouldValidate: true })}
           size="sm"
         />
-        {showPrivateWarning && (
-          <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5">
-            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-            <p className="text-xs text-amber-800">
-              In order to submit a private proposal, you must select a funding opportunity.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
