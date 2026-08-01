@@ -6,8 +6,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import Icon from '@/components/ui/icons/Icon';
-import { useUser } from '@/contexts/UserContext';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import {
   OpenFundingOpportunityModal,
@@ -27,15 +25,14 @@ interface PublishMenuProps {
 
 const PUBLISH_MENU_SECTIONS = [
   {
-    title: 'Publish on ResearchHub',
+    title: 'Post on ResearchHub',
     items: [
       {
         id: 'give-funding',
         title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={18} color="#374151" />,
-        action: 'function',
-        handler: 'handleOpenGrant',
+        handler: 'handleOpenGrant' as const,
         requiresAuth: true,
       },
       {
@@ -43,17 +40,7 @@ const PUBLISH_MENU_SECTIONS = [
         title: 'Proposal',
         description: 'Raise money for your research',
         icon: <FundingIcon size={18} color="#374151" />,
-        action: 'function',
-        handler: 'handleFundResearch',
-        requiresAuth: true,
-      },
-      {
-        id: 'submit-paper',
-        title: 'Preprint',
-        description: 'Publish your research as a preprint',
-        icon: <Icon name="submit1" size={18} color="#374151" />,
-        action: 'navigate',
-        path: '/notebook?newResearch=true',
+        handler: 'handleFundResearch' as const,
         requiresAuth: true,
       },
     ],
@@ -86,7 +73,6 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimize = false }) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { user } = useUser();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
@@ -110,28 +96,18 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     router.push(`/notebook?newGrant=true&grantSource=${method}`);
   };
 
-  const handleViewProfile = () => {
-    navigateToAuthorProfile(user?.id, false);
-  };
-
   const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {
     if (item.requiresAuth) {
       executeAuthenticatedAction(() => {
-        if (item.action === 'navigate') {
-          router.push(item.path);
-        } else if (item.action === 'function') {
-          switch (item.handler) {
-            case 'handleFundResearch':
-              handleFundResearch();
-              break;
-            case 'handleOpenGrant':
-              handleOpenGrant();
-              break;
-          }
+        switch (item.handler) {
+          case 'handleFundResearch':
+            handleFundResearch();
+            break;
+          case 'handleOpenGrant':
+            handleOpenGrant();
+            break;
         }
       });
-    } else if (item.action === 'navigate') {
-      router.push(item.path);
     }
 
     // Close mobile drawer after action
@@ -154,7 +130,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       }}
     >
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>Publish</span>
+      <span>Post</span>
     </button>
   );
 
@@ -248,7 +224,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             }}
             role="button"
             tabIndex={0}
-            aria-label="Open publish menu"
+            aria-label="Open post menu"
           >
             {standardTrigger}
             {compactTrigger}
