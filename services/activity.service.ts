@@ -1,5 +1,10 @@
 import { ApiClient } from './client';
-import { FeedEntry, FeedApiResponse, transformFeedEntry, RawApiFeedEntry } from '@/types/feed';
+import {
+  FeedEntry,
+  ActivityFeedApiResponse,
+  transformFeedEntry,
+  RawApiFeedEntry,
+} from '@/types/feed';
 
 export type ActivityDocumentType = 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 
@@ -17,7 +22,7 @@ export interface GetActivityParams {
 
 export class ActivityService {
   private static readonly BASE_PATH = '/api/activity_feed';
-  private static readonly DEFAULT_PAGE_SIZE = 25;
+  private static readonly DEFAULT_PAGE_SIZE = 20;
 
   static async getActivity(params?: GetActivityParams): Promise<{
     entries: FeedEntry[];
@@ -37,7 +42,7 @@ export class ActivityService {
     const qs = queryParams.toString();
     const url = `${this.BASE_PATH}/${qs ? `?${qs}` : ''}`;
     try {
-      const response = await ApiClient.get<FeedApiResponse>(url);
+      const response = await ApiClient.get<ActivityFeedApiResponse>(url);
 
       const entries = response.results
         .map((entry: RawApiFeedEntry) => {
@@ -49,7 +54,7 @@ export class ActivityService {
         })
         .filter((e): e is FeedEntry => e !== null);
 
-      return { entries, hasMore: !!response.next, count: response.count ?? entries.length };
+      return { entries, hasMore: !!response.next, count: entries.length };
     } catch (error) {
       console.error('Error fetching activity feed:', error);
       return { entries: [], hasMore: false, count: 0 };

@@ -56,9 +56,12 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
         scope,
         grantId,
       });
-      setEntries((prev) => [...prev, ...result.entries]);
+      setEntries((prev) => {
+        const next = [...prev, ...result.entries];
+        setCount(next.length);
+        return next;
+      });
       setHasMore(result.hasMore);
-      setCount(result.count);
       pageRef.current = nextPage;
     } catch (error) {
       console.error('Error loading more activity:', error);
