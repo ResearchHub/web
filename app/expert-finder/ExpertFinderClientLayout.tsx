@@ -29,7 +29,7 @@ export default function ExpertFinderClientLayout({ children }: ExpertFinderClien
 
   useEffect(() => {
     if (!isLoading && !canAccessExpertFinder) {
-      router.push('/popular');
+      router.push('/');
     }
   }, [isLoading, canAccessExpertFinder, router]);
 

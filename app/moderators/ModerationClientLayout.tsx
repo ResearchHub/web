@@ -26,7 +26,7 @@ export default function ModerationClientLayout({ children }: ModerationClientLay
 
   useEffect(() => {
     if (!isLoading && !isModerator) {
-      router.push('/popular');
+      router.push('/');
     }
   }, [isLoading, isModerator, router]);
 

@@ -66,9 +66,7 @@ async function buildSlugSitemap(
 }
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
-  { url: SITE_URL, changeFrequency: 'daily', priority: 1 },
-  { url: `${SITE_URL}/popular`, changeFrequency: 'hourly', priority: 0.9 },
-  { url: `${SITE_URL}/latest`, changeFrequency: 'hourly', priority: 0.8 },
+  { url: SITE_URL, changeFrequency: 'hourly', priority: 1 },
   { url: `${SITE_URL}/fund`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/fund/proposals`, changeFrequency: 'daily', priority: 0.7 },
   { url: `${SITE_URL}/earn`, changeFrequency: 'daily', priority: 0.8 },
