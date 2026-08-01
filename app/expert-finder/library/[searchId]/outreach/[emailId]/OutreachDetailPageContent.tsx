@@ -44,6 +44,7 @@ import { toast } from 'react-hot-toast';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import {
   getOutreachChannelLabels,
+  OUTREACH_CHANNEL_LABELS,
   OUTREACH_CHANNEL_OPTIONS,
 } from '@/app/expert-finder/lib/outreachChannels';
 import type { OutreachChannel } from '@/types/expertFinder';
@@ -52,6 +53,14 @@ import { OutreachChannelActions } from '@/app/expert-finder/library/[searchId]/o
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
+}
+
+function withChannel(
+  existing: OutreachChannel[] | undefined,
+  channel: OutreachChannel
+): OutreachChannel[] {
+  const channels = existing ?? [];
+  return channels.includes(channel) ? [...channels] : [...channels, channel];
 }
 
 export interface OutreachDetailPageContentProps {
@@ -72,6 +81,8 @@ export function OutreachDetailPageContent({
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showMarkSentConfirm, setShowMarkSentConfirm] = useState(false);
   const [markSentChannels, setMarkSentChannels] = useState<OutreachChannel[]>([]);
+  const [showChannelConfirm, setShowChannelConfirm] = useState(false);
+  const [confirmChannel, setConfirmChannel] = useState<OutreachChannel | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -120,12 +131,18 @@ export function OutreachDetailPageContent({
     isDraftLike &&
     (editSubject !== (email.emailSubject ?? '') || editBody !== (email.emailBody ?? ''));
 
-  const openMarkSentConfirm = (preselected?: OutreachChannel) => {
-    const existing = email?.channels ?? [];
-    setMarkSentChannels(
-      preselected && !existing.includes(preselected) ? [...existing, preselected] : [...existing]
-    );
+  const openMarkSentConfirm = () => {
+    setMarkSentChannels([...(email?.channels ?? [])]);
     setShowMarkSentConfirm(true);
+  };
+
+  const openChannelConfirm = (channel: OutreachChannel) => {
+    setConfirmChannel(channel);
+    setShowChannelConfirm(true);
+  };
+
+  const closeChannelConfirm = () => {
+    setShowChannelConfirm(false);
   };
 
   const toggleMarkSentChannel = (channel: OutreachChannel, checked: boolean) => {
@@ -152,24 +169,47 @@ export function OutreachDetailPageContent({
     }
   };
 
-  const handleMarkSentSubmit = async () => {
+  const saveChannels = async (channels: OutreachChannel[], successMessage: string) => {
     if (!emailId) return;
-    if (markSentChannels.length === 0) {
-      setActionError('Select at least one channel.');
-      return;
-    }
     setActionError(null);
     try {
       await updateEmail(emailId, {
         status: 'sent',
-        channels: markSentChannels,
+        channels,
       });
-      setShowMarkSentConfirm(false);
-      setMarkSentChannels([]);
       refetch();
-      toast.success(email?.status === 'sent' ? 'Channels updated.' : 'Marked as sent.');
+      toast.success(successMessage);
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to update');
+      throw e;
+    }
+  };
+
+  const handleMarkSentSubmit = async () => {
+    if (markSentChannels.length === 0) {
+      setActionError('Select at least one channel.');
+      return;
+    }
+    try {
+      await saveChannels(
+        markSentChannels,
+        email?.status === 'sent' ? 'Channels updated.' : 'Marked as sent.'
+      );
+      setShowMarkSentConfirm(false);
+      setMarkSentChannels([]);
+    } catch {
+      // Error already surfaced via actionError
+    }
+  };
+
+  const handleChannelConfirmSubmit = async () => {
+    if (!confirmChannel) return;
+    const label = OUTREACH_CHANNEL_LABELS[confirmChannel];
+    try {
+      await saveChannels(withChannel(email?.channels, confirmChannel), `Marked ${label} as sent.`);
+      closeChannelConfirm();
+    } catch {
+      // Error already surfaced via actionError
     }
   };
 
@@ -502,7 +542,7 @@ export function OutreachDetailPageContent({
             emailSubject={displaySubject}
             emailBody={isDraftLike ? editBody : (email.emailBody ?? '')}
             sources={email.sources}
-            onChannelOpened={openMarkSentConfirm}
+            onChannelOpened={openChannelConfirm}
           />
         </div>
       )}
@@ -518,6 +558,26 @@ export function OutreachDetailPageContent({
         isConfirming={isDeleting}
         blockDismissWhileConfirming={false}
         onConfirm={handleDelete}
+      />
+
+      <ConfirmationModal
+        isOpen={showChannelConfirm}
+        onClose={closeChannelConfirm}
+        title={
+          confirmChannel
+            ? `Mark ${OUTREACH_CHANNEL_LABELS[confirmChannel]} as sent?`
+            : 'Mark as sent?'
+        }
+        description={
+          confirmChannel
+            ? `Confirm you completed this outreach via ${OUTREACH_CHANNEL_LABELS[confirmChannel]}.`
+            : undefined
+        }
+        confirmLabel="Mark as sent"
+        confirmClassName="gap-2 bg-amber-500 text-white hover:bg-amber-600"
+        confirmIcon={<Mail className="h-4 w-4" aria-hidden />}
+        isConfirming={isUpdating}
+        onConfirm={() => void handleChannelConfirmSubmit()}
       />
 
       <ConfirmationModal
