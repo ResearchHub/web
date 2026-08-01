@@ -1,38 +1,16 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { HeroHeader } from '@/components/ui/HeroHeader';
-import { FundGrantsPageContent } from './FundGrantsPageContent';
-import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
-import { FundingHeroPanel } from '@/components/Funding/FundingHeroPanel';
-import { OpenFundingOpportunityCTA } from './OpenFundingOpportunityCTA';
-import { FundSidebar } from '@/components/Funding/FundSidebar';
+import { FundGrantsPageContent } from '@/app/fund/FundGrantsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Request for Proposals',
+  title: 'Fund',
   description: 'Apply for funding opportunities via proposals.',
   url: '/fund',
 });
 
-export default async function FundPage() {
+export default function FundPage() {
   return (
-    <PageLayout
-      topBanner={
-        <HeroHeader
-          title="Request for Proposals"
-          subtitle={
-            <p className="text-sm sm:text-base text-gray-500">
-              Apply for funding opportunities via proposals.
-            </p>
-          }
-          cta={<FundingHeroPanel primaryCta={<OpenFundingOpportunityCTA />} />}
-          alignTop
-        >
-          <MarketplaceCards selected="grants" />
-        </HeroHeader>
-      }
-      rightSidebar={<FundSidebar />}
-    >
+    <>
       <section className="sr-only">
         <p>
           ResearchHub provides direct funding pathways for scientific research. Browse open funding
@@ -69,6 +47,6 @@ export default async function FundPage() {
         </p>
       </section>
       <FundGrantsPageContent />
-    </PageLayout>
+    </>
   );
 }

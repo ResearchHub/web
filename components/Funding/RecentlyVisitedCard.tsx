@@ -73,7 +73,7 @@ export function useRecentlyVisited(): RecentlyVisited {
 
   const clear = useCallback(() => setIsCleared(true), []);
 
-  return { pages: isLoading || isCleared ? [] : pages, clear };
+  return { pages: isCleared || (isLoading && pages.length === 0) ? [] : pages, clear };
 }
 
 interface RecentlyVisitedCardProps extends RecentlyVisited {

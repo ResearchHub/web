@@ -22,7 +22,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { useUser } from '@/contexts/UserContext';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 interface NavItem {
   label: string;
@@ -43,11 +43,12 @@ const moreNavItems: NavItem[] = [
 
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string): boolean => {
-  if (path === '/for-you' || path === '/popular') {
-    return ['/popular', '/for-you', '/latest', '/following', '/'].includes(currentPath);
+  // Activity, Fund and Proposals are tabs of the same homepage hub.
+  if (path === '/') {
+    return isHomeTabPath(currentPath);
   }
   if (path === '/fund') {
-    return currentPath.startsWith('/fund');
+    return currentPath.startsWith('/fund/') && !isHomeTabPath(currentPath);
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -73,13 +74,9 @@ export const MobileBottomNav: React.FC = () => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
-  const { user } = useUser();
-
-  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
-  const homeHref = user ? '/for-you' : '/popular';
 
   const mainNavItems: NavItem[] = [
-    { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
+    { label: 'Home', href: '/', iconKey: 'home', isDynamicHome: true },
     { label: 'Earn', href: '/earn', iconKey: 'earn' },
     { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },

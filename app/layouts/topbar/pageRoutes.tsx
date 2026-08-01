@@ -12,6 +12,7 @@ import { Icon } from '@/components/ui/icons';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
 
 export interface PageInfo {
   title: string;
@@ -19,16 +20,8 @@ export interface PageInfo {
 }
 
 export const ROOT_NAVIGATION_PATHS = new Set([
-  '/',
-  '/following',
-  '/latest',
-  '/popular',
-  '/for-you',
-  '/feed',
+  ...HOME_TAB_PATHS,
   '/earn',
-  '/fund',
-  '/fund/proposals',
-  '/fund/activity',
   '/journal',
   '/notebook',
   '/browse',
@@ -48,7 +41,7 @@ interface RouteRule {
 
 const ROUTE_RULES: RouteRule[] = [
   {
-    match: (p) => ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(p),
+    match: (p) => isHomeTabPath(p),
     getInfo: () => ({
       title: 'Home',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
@@ -153,7 +146,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/fund' || p.startsWith('/fund/') || p.startsWith('/grant/'),
+    match: (p) => p.startsWith('/fund/') || p.startsWith('/grant/'),
     getInfo: () => ({
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,

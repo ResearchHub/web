@@ -12,7 +12,7 @@ import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { Sprout } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
-import { useUser } from '@/contexts/UserContext';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 const ENDOWMENT_NAV_FEATURE = 'endowment_nav_new_badge';
 // Stop showing the "New" badge on the Endowment nav item after this date,
@@ -81,7 +81,6 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
-  const { user } = useUser();
 
   // Dismissable "New" badge for the Endowment nav item. Lifted to the parent
   // so the click handler in NavLink can call dismissFeature() without each
@@ -99,13 +98,10 @@ export const Navigation: React.FC<NavigationProps> = ({
     [router]
   );
 
-  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
-  const homeHref = user ? '/for-you' : '/popular';
-
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: homeHref,
+      href: '/',
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
@@ -152,13 +148,13 @@ export const Navigation: React.FC<NavigationProps> = ({
   };
 
   const isPathActive = (path: string) => {
-    // Special case for home page
-    if (path === '/for-you' || path === '/popular') {
-      return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
+    // Activity, Fund and Proposals are tabs of the same homepage hub.
+    if (path === '/') {
+      return isHomeTabPath(currentPath);
     }
 
     if (path === '/fund') {
-      return currentPath.startsWith('/fund');
+      return currentPath.startsWith('/fund/') && !isHomeTabPath(currentPath);
     }
 
     if (path === '/earn') {

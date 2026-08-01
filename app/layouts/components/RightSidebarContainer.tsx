@@ -11,7 +11,7 @@ import { RightSidebar } from '../RightSidebar';
 
 function getSidebarInstanceKey(pathname: string, rightSidebar: boolean | ReactNode): string {
   if (typeof rightSidebar !== 'boolean') {
-    return `custom:${pathname}`;
+    return 'custom';
   }
 
   if (pathname.startsWith('/paper/create')) {

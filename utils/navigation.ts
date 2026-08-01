@@ -124,27 +124,15 @@ export function handleMissingSlugRedirect(
 }
 
 /**
- * Handles redirection to trending page if user is authorized
- * @param isUserLoggedIn Whether the user is logged in
- * @param searchParams Optional search parameters to preserve in the redirect
+ * Redirects into the homepage Activity hub.
+ * Preserves search parameters when provided.
  */
-export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
-  if (isUserLoggedIn) {
-    let redirectUrl = '/for-you';
+export function handleTrendingRedirect(_isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
+  let redirectUrl = '/';
 
-    // Preserve search parameters if provided
-    if (searchParams && searchParams.toString()) {
-      redirectUrl += `?${searchParams.toString()}`;
-    }
-
-    redirect(redirectUrl);
-  } else {
-    let popularUrl = '/popular';
-
-    if (searchParams && searchParams.toString()) {
-      popularUrl += `?${searchParams.toString()}`;
-    }
-
-    redirect(popularUrl);
+  if (searchParams && searchParams.toString()) {
+    redirectUrl += `?${searchParams.toString()}`;
   }
+
+  redirect(redirectUrl);
 }
