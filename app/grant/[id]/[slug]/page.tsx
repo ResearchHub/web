@@ -41,12 +41,7 @@ export default async function GrantSlugPage({ params }: Props) {
   const grantId = grant?.id ?? undefined;
 
   return (
-    <GrantContentSwitcher
-      content={work.previewContent}
-      imageUrl={work.image}
-      hasDescription={!!grant?.description}
-      grantId={grantId}
-    >
+    <GrantContentSwitcher content={work.previewContent} imageUrl={work.image}>
       {grant?.description && <ProposalSortAndFilters />}
       <ProposalFeed />
     </GrantContentSwitcher>

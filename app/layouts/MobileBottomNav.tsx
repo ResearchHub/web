@@ -13,7 +13,7 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { Sprout } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
@@ -22,7 +22,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { useUser } from '@/contexts/UserContext';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 interface NavItem {
   label: string;
@@ -43,11 +43,12 @@ const moreNavItems: NavItem[] = [
 
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string): boolean => {
-  if (path === '/for-you' || path === '/popular') {
-    return ['/popular', '/for-you', '/latest', '/following', '/'].includes(currentPath);
+  // Activity, Fund and Proposals are tabs of the same homepage hub.
+  if (path === '/') {
+    return isHomeTabPath(currentPath);
   }
-  if (path === '/fund') {
-    return currentPath.startsWith('/fund');
+  if (path === '/fund/dashboard') {
+    return currentPath === '/fund/dashboard' || currentPath.startsWith('/fund/dashboard/');
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -73,15 +74,11 @@ export const MobileBottomNav: React.FC = () => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
-  const { user } = useUser();
-
-  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
-  const homeHref = user ? '/for-you' : '/popular';
 
   const mainNavItems: NavItem[] = [
-    { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
-    { label: 'Earn', href: '/earn', iconKey: 'earn' },
-    { label: 'Fund', href: '/fund', iconKey: 'fund' },
+    { label: 'Home', href: '/', iconKey: 'home', isDynamicHome: true },
+    { label: 'Peer Review', href: '/earn', iconKey: 'peer-review' },
+    { label: 'Your Funding', href: '/fund/dashboard', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
@@ -140,6 +137,15 @@ export const MobileBottomNav: React.FC = () => {
             icon={isActive ? faHouseSolid : faHouseLight}
             fontSize={iconSize}
             color={iconColor}
+          />
+        );
+      case 'peer-review':
+        return (
+          <Star
+            size={iconSize}
+            color={iconColor}
+            strokeWidth={isActive ? 2.25 : 2}
+            fill={isActive ? iconColor : 'none'}
           />
         );
       case 'earn':

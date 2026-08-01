@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
-import { cn } from '@/utils/styles';
+import { AmountBadge } from './AmountBadge';
 import type { FeedGrantAmount } from './lib/feedEntryAdapters';
 
 interface GrantFundingAmountProps {
@@ -21,5 +21,5 @@ export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, classN
     shorten: true,
   });
 
-  return <span className={cn('text-xs font-medium text-gray-900', className)}>{formatted}</span>;
+  return <AmountBadge className={className}>{formatted}</AmountBadge>;
 };

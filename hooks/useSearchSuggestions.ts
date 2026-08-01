@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { SearchService } from '@/services/search.service';
 import { SearchSuggestion } from '@/types/search';
-import { getSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
+import {
+  getSearchHistory,
+  clearSearchHistory as clearStoredSearchHistory,
+} from '@/utils/searchHistory';
 import { EntityType } from '@/types/search';
 
 interface UseSearchSuggestionsConfig {
@@ -154,7 +157,7 @@ export function useSearchSuggestions({
   // Clear all search history
   const clearSearchHistory = () => {
     if (!includeLocalSuggestions) return;
-    localStorage.removeItem(SEARCH_HISTORY_KEY);
+    clearStoredSearchHistory();
     setLocalSuggestions([]);
   };
 
