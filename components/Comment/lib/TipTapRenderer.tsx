@@ -15,6 +15,7 @@ interface TipTapRendererProps {
   renderSectionHeader?: (props: SectionHeaderProps) => ReactNode;
   truncate?: boolean;
   maxLength?: number;
+  showLinkPreviews?: boolean;
 }
 
 /**
@@ -67,6 +68,25 @@ export const renderTextWithMarks = (text: string, marks: any[]): ReactNode => {
   return result;
 };
 
+function demoteRichLinks(node: any): any {
+  if (!node || typeof node !== 'object') return node;
+
+  if (node.type === 'richLink' && node.attrs?.url) {
+    const url = String(node.attrs.url);
+    return {
+      type: 'text',
+      text: url,
+      marks: [{ type: 'link', attrs: { href: url, target: '_blank' } }],
+    };
+  }
+
+  if (Array.isArray(node.content)) {
+    return { ...node, content: node.content.map(demoteRichLinks) };
+  }
+
+  return node;
+}
+
 /**
  * Helper function to extract plain text from TipTap JSON
  */
@@ -107,6 +127,7 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   renderSectionHeader,
   truncate = false,
   maxLength = 300,
+  showLinkPreviews = true,
 }) => {
   if (debug) {
     console.log('||TipTapRenderer props received:', {
@@ -146,7 +167,11 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   // whose anchor text equals the href become `richLink` nodes so they
   // render with the same inline preview + hover surface as freshly pasted
   // links. Idempotent — already-converted docs pass through unchanged.
-  documentContent = normalizeRichLinks(documentContent);
+  // Skip when link previews are disabled (e.g. activity feed) and demote
+  // any existing richLink atoms back to plain anchors.
+  documentContent = showLinkPreviews
+    ? normalizeRichLinks(documentContent)
+    : demoteRichLinks(documentContent);
 
   // If truncation is enabled, extract the full text to check length
   let shouldTruncate = false;

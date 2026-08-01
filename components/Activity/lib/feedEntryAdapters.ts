@@ -1,8 +1,10 @@
 import { buildWorkUrl } from '@/utils/url';
+import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 import type {
   FeedCommentContent,
   FeedContentType,
   FeedEntry,
+  FeedFundingActivityContent,
   FeedGrantContent,
   FeedPaperContent,
   FeedPostContent,
@@ -15,13 +17,13 @@ import type { ContentType } from '@/types/work';
 const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
   GENERIC_COMMENT: 'commented on',
   REVIEW: 'peer reviewed',
-  AUTHOR_UPDATE: 'posted an update on',
+  AUTHOR_UPDATE: 'posted an update',
   ANSWER: 'answered on',
   BOUNTY: 'contributed to',
 };
 
 const DOC_ACTION_LABELS: Partial<Record<FeedContentType, string>> = {
-  GRANT: 'opened funding',
+  GRANT: 'opened an RFP for',
   PREREGISTRATION: 'submitted proposal',
   POST: 'posted discussion',
   PAPER: 'published preprint',
@@ -34,17 +36,106 @@ const FEED_TO_CONTENT_TYPE: Partial<Record<FeedContentType, ContentType>> = {
   PAPER: 'paper',
 };
 
-export function getActionLabel(entry: FeedEntry): string {
+export interface ActivityHeaderTarget {
+  author: AuthorProfile;
+  suffix?: string;
+}
+
+export interface ActivityHeaderMessage {
+  actor: AuthorProfile;
+  verb: string;
+  target?: ActivityHeaderTarget;
+  /** Payout rather than contribution — the amount renders without a "+". */
+  isEarning?: boolean;
+}
+
+/**
+ * True when the profile belongs to the ResearchHub Foundation account.
+ *
+ * Feed payloads are inconsistent about which id they expose for an actor, so we
+ * prefer the explicit user fields and only fall back to `id` when the profile
+ * carries no user reference at all (funder objects are serialized that way).
+ */
+function isFoundationProfile(profile?: AuthorProfile): boolean {
+  if (!profile) return false;
+  if (profile.userId != null) return isFoundationUser(profile.userId);
+  if (profile.user?.id != null) return isFoundationUser(profile.user.id);
+  return isFoundationUser(profile.id);
+}
+
+function getFundingActivityMessage(content: FeedFundingActivityContent): ActivityHeaderMessage {
+  const actor = content.createdBy;
+  const recipient = content.recipient;
+
+  // Bounty payouts and Foundation tips read as the recipient earning — the
+  // person who received the money is the interesting subject.
+  if (recipient && (content.sourceType === 'BOUNTY_PAYOUT' || isFoundationProfile(actor))) {
+    return { actor: recipient, verb: 'earned', isEarning: true };
+  }
+
+  if (content.sourceType === 'BOUNTY_PAYOUT') {
+    return { actor, verb: 'awarded bounty', isEarning: true };
+  }
+
+  if (!recipient) {
+    return { actor, verb: 'tipped review' };
+  }
+  return {
+    actor,
+    verb: 'tipped',
+    target: {
+      author: recipient,
+      suffix: ' on peer review',
+    },
+  };
+}
+
+function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
+  const actor = entry.content.createdBy;
+
   if (entry.contentType === 'COMMENT') {
     const commentContent = entry.content as FeedCommentContent;
-    if (commentContent.hasBounties) return 'opened a bounty';
-    return COMMENT_ACTION_LABELS[commentContent.comment?.commentType] ?? 'commented on';
+    const bounty = commentContent.bounties?.[0];
+    if (bounty) {
+      const isReviewBounty = bounty.bountyType === 'REVIEW';
+      return {
+        actor,
+        verb: isReviewBounty ? 'opened a peer review bounty for' : 'opened a bounty for',
+      };
+    }
+
+    const commentType = commentContent.comment?.commentType;
+    if (commentType === 'REVIEW') {
+      if (getReviewEarning(entry)) return { actor, verb: 'earned', isEarning: true };
+      const score = commentContent.review?.score ?? commentContent.comment.reviewScore;
+      return { actor, verb: score ? 'peer reviewed and scored' : 'peer reviewed' };
+    }
+
+    return {
+      actor,
+      verb: COMMENT_ACTION_LABELS[commentType] ?? 'commented on',
+    };
   }
-  if (entry.contentType === 'BOUNTY') return 'contributed to';
+
+  if (entry.contentType === 'BOUNTY') {
+    return { actor, verb: 'contributed to' };
+  }
+
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return 'Funded Proposal';
+    return { actor, verb: 'funded proposal' };
   }
-  return DOC_ACTION_LABELS[entry.contentType] ?? 'contributed';
+
+  return {
+    actor,
+    verb: DOC_ACTION_LABELS[entry.contentType] ?? 'contributed to',
+  };
+}
+
+export function getActivityHeaderMessage(entry: FeedEntry): ActivityHeaderMessage {
+  if (entry.contentType === 'FUNDINGACTIVITY') {
+    return getFundingActivityMessage(entry.content as FeedFundingActivityContent);
+  }
+  return getDefaultActivityMessage(entry);
 }
 
 export interface FeedEntryMeta {
@@ -60,12 +151,45 @@ function resolveCommentWorkTab(
   comment: FeedCommentContent | null
 ): CommentWorkTab {
   if (comment?.comment?.commentType === 'REVIEW') return 'reviews';
-  if (entry.contentType === 'BOUNTY' || comment?.hasBounties) return 'bounties';
+  if (entry.contentType === 'BOUNTY' || (comment?.bounties?.length ?? 0) > 0) return 'bounties';
   if (entry.contentType === 'COMMENT') return 'conversation';
   return undefined;
 }
 
+function resolveRelatedWorkTab(entry: FeedEntry): CommentWorkTab {
+  if (entry.contentType === 'FUNDINGACTIVITY') {
+    const funding = entry.content as FeedFundingActivityContent;
+    return funding.sourceType === 'BOUNTY_PAYOUT' ? 'bounties' : 'reviews';
+  }
+  if (entry.contentType === 'COMMENT') {
+    return resolveCommentWorkTab(entry, entry.content as FeedCommentContent);
+  }
+  if (entry.contentType === 'BOUNTY') return 'bounties';
+  return undefined;
+}
+
+function getRelatedWorkMeta(entry: FeedEntry): FeedEntryMeta | null {
+  const related = entry.relatedWork;
+  if (!related?.title) return null;
+
+  const tab = resolveRelatedWorkTab(entry);
+
+  return {
+    title: related.title,
+    author: entry.content.createdBy,
+    href: buildWorkUrl({
+      id: related.id,
+      slug: related.slug,
+      contentType: related.contentType,
+      tab,
+    }),
+  };
+}
+
 export function getEntryMeta(entry: FeedEntry): FeedEntryMeta {
+  const relatedMeta = getRelatedWorkMeta(entry);
+  if (relatedMeta) return relatedMeta;
+
   const content = entry.content;
   const author = content.createdBy;
 
@@ -117,17 +241,30 @@ export function getEntryMeta(entry: FeedEntry): FeedEntryMeta {
   };
 }
 
-export type FeedEntryIconName = 'coins' | 'bell' | 'message' | null;
+export type FeedEntryIconName = 'coins' | 'fund' | 'earn' | 'proposal' | 'bell' | 'message' | null;
 
 export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
+  if (entry.contentType === 'GRANT' || entry.activityContext === 'grant_opened') {
+    return 'fund';
+  }
+  if (entry.activityContext === 'bounty_opened') {
+    return 'earn';
+  }
+  if (entry.activityContext === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION') {
+    return null;
+  }
+  if (
+    entry.contentType === 'USDFUNDRAISECONTRIBUTION' ||
+    entry.contentType === 'PURCHASE' ||
+    entry.contentType === 'FUNDINGACTIVITY'
+  ) {
     return 'coins';
   }
   if (entry.contentType === 'BOUNTY') return 'coins';
   if (entry.contentType !== 'COMMENT') return null;
 
   const commentContent = entry.content as FeedCommentContent;
-  if (commentContent.hasBounties) return 'coins';
+  if ((commentContent.bounties?.length ?? 0) > 0) return 'coins';
 
   const commentType = commentContent.comment?.commentType;
   if (commentType === 'AUTHOR_UPDATE') return 'bell';
@@ -136,10 +273,25 @@ export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
 }
 
 export function getReviewScore(entry: FeedEntry): number | undefined {
+  if (entry.contentType === 'FUNDINGACTIVITY') return undefined;
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
+  // When the header leads with an earning, the score stays on the document card.
+  if (getReviewEarning(entry)) return undefined;
   return commentContent.review?.score ?? commentContent.comment.reviewScore;
+}
+
+/** Bounty payout shown on the header line for awarded peer reviews. */
+export function getReviewEarning(entry: FeedEntry): FeedContribution | undefined {
+  if (entry.contentType !== 'COMMENT') return undefined;
+  const commentContent = entry.content as FeedCommentContent;
+  if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
+
+  const awarded = entry.awardedBountyAmount;
+  if (awarded == null || awarded <= 0) return undefined;
+
+  return { amount: awarded, currency: 'RSC' };
 }
 
 export interface FeedContribution {
@@ -148,6 +300,13 @@ export interface FeedContribution {
 }
 
 export function getContribution(entry: FeedEntry): FeedContribution | undefined {
+  if (entry.contentType === 'FUNDINGACTIVITY') {
+    const funding = entry.content as FeedFundingActivityContent;
+    if (funding.totalUsdCents > 0) {
+      return { amount: funding.totalUsd, currency: 'USD' };
+    }
+    return { amount: funding.totalAmount, currency: 'RSC' };
+  }
   if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION' && entry.contentType !== 'PURCHASE') {
     return undefined;
   }
@@ -199,6 +358,7 @@ export interface FeedCommentPreview {
 }
 
 export function getCommentPreview(entry: FeedEntry): FeedCommentPreview | null {
+  if (entry.contentType === 'FUNDINGACTIVITY') return null;
   if (entry.contentType !== 'COMMENT') return null;
   const { comment } = entry.content as FeedCommentContent;
   if (!comment?.content) return null;
