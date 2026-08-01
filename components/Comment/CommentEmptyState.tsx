@@ -29,7 +29,9 @@ export const CommentEmptyState = ({
       : commentType === 'BOUNTY'
         ? 'No bounties yet.'
         : commentType === 'AUTHOR_UPDATE'
-          ? 'No updates from the authors'
+          ? readOnly
+            ? 'No author updates available.'
+            : 'No updates from the authors'
           : work?.postType === 'QUESTION'
             ? 'No answers yet. Submit the first one!'
             : 'No comments yet. Start the conversation!';
@@ -42,7 +44,9 @@ export const CommentEmptyState = ({
       : commentType === 'BOUNTY'
         ? 'Bounties help attract experts to solve problems or contribute to research.'
         : commentType === 'AUTHOR_UPDATE'
-          ? 'Authors will be providing regular monthly updates'
+          ? readOnly
+            ? 'The source proposal has no author updates.'
+            : 'Authors will be providing regular monthly updates'
           : work?.postType === 'QUESTION'
             ? 'Help the community by providing an answer.'
             : 'Your contribution could help open science.';
