@@ -13,7 +13,7 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { Sprout } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
@@ -47,8 +47,8 @@ const isPathActive = (path: string, currentPath: string): boolean => {
   if (path === '/') {
     return isHomeTabPath(currentPath);
   }
-  if (path === '/fund') {
-    return currentPath.startsWith('/fund/') && !isHomeTabPath(currentPath);
+  if (path === '/fund/dashboard') {
+    return currentPath === '/fund/dashboard' || currentPath.startsWith('/fund/dashboard/');
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -77,8 +77,8 @@ export const MobileBottomNav: React.FC = () => {
 
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: '/', iconKey: 'home', isDynamicHome: true },
-    { label: 'Earn', href: '/earn', iconKey: 'earn' },
-    { label: 'Fund', href: '/fund', iconKey: 'fund' },
+    { label: 'Peer Review', href: '/earn', iconKey: 'peer-review' },
+    { label: 'Your Funding', href: '/fund/dashboard', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
@@ -137,6 +137,15 @@ export const MobileBottomNav: React.FC = () => {
             icon={isActive ? faHouseSolid : faHouseLight}
             fontSize={iconSize}
             color={iconColor}
+          />
+        );
+      case 'peer-review':
+        return (
+          <Star
+            size={iconSize}
+            color={iconColor}
+            strokeWidth={isActive ? 2.25 : 2}
+            fill={isActive ? iconColor : 'none'}
           />
         );
       case 'earn':

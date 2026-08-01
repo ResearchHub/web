@@ -67,19 +67,14 @@ function getFundingActivityMessage(content: FeedFundingActivityContent): Activit
   const actor = content.createdBy;
   const recipient = content.recipient;
 
-  // Foundation tips and bounty awards read as the recipient earning, not the
-  // Foundation paying — the reviewer is the interesting subject.
-  if (isFoundationProfile(actor) && recipient) {
+  // Bounty payouts and Foundation tips read as the recipient earning — the
+  // person who received the money is the interesting subject.
+  if (recipient && (content.sourceType === 'BOUNTY_PAYOUT' || isFoundationProfile(actor))) {
     return { actor: recipient, verb: 'earned', isEarning: true };
   }
 
   if (content.sourceType === 'BOUNTY_PAYOUT') {
-    return {
-      actor,
-      verb: recipient ? 'awarded bounty to' : 'awarded bounty',
-      target: recipient ? { author: recipient } : undefined,
-      isEarning: true,
-    };
+    return { actor, verb: 'awarded bounty', isEarning: true };
   }
 
   if (!recipient) {

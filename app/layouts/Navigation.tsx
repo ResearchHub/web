@@ -9,7 +9,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sprout } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
@@ -36,6 +36,7 @@ interface NavigationItem {
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
   isLucideSprout?: boolean;
+  isLucideStar?: boolean;
   /** Show a "New" badge next to the label. Pair with `newFeatureName` so the
    *  badge is dismissed once the user clicks the item. */
   isNew?: boolean;
@@ -107,15 +108,15 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
-      label: 'Fund',
-      href: '/fund',
+      label: 'Your Funding',
+      href: '/fund/dashboard',
       iconKey: 'fund',
-      description: 'Browse grants and fundraising opportunities',
+      description: 'Track the impact of the research you fund',
     },
     {
-      label: 'Earn',
+      label: 'Peer Review',
       href: '/earn',
-      iconKey: 'earn',
+      isLucideStar: true,
       description: 'Earn RSC for completing peer reviews',
     },
     {
@@ -153,8 +154,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       return isHomeTabPath(currentPath);
     }
 
-    if (path === '/fund') {
-      return currentPath.startsWith('/fund/') && !isHomeTabPath(currentPath);
+    if (path === '/fund/dashboard') {
+      return currentPath === '/fund/dashboard' || currentPath.startsWith('/fund/dashboard/');
     }
 
     if (path === '/earn') {
@@ -239,6 +240,13 @@ export const Navigation: React.FC<NavigationProps> = ({
             />
           ) : item.isLucideSprout ? (
             <Sprout size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
+          ) : item.isLucideStar ? (
+            <Star
+              size={22}
+              color={iconColor}
+              strokeWidth={isActive ? 2.25 : 2}
+              fill={isActive ? iconColor : 'none'}
+            />
           ) : item.iconKey ? (
             <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           ) : (
