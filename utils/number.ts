@@ -81,6 +81,22 @@ export function formatBadgeCount(count: number): string {
 }
 
 /**
+ * Coerce a string/number id-like value to a finite number, or undefined.
+ *
+ * @example
+ * toOptionalNumber('42') // 42
+ * toOptionalNumber(7) // 7
+ * toOptionalNumber('') // undefined
+ * toOptionalNumber(null) // undefined
+ * toOptionalNumber('abc') // undefined
+ */
+export function toOptionalNumber(value: string | number | null | undefined): number | undefined {
+  if (value == null || value === '') return undefined;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+/**
  * Returns the number of decimal places in a number
  * @example
  * getDecimalPlaces(100) // 0

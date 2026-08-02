@@ -17,26 +17,25 @@ interface FundingPowerCardProps {
 
 /**
  * Wallet card for the Activity sidebar. Leads with total funding power,
- * visualizes the split between RSC and fund-only credits, and surfaces quick
- * actions to deposit, earn, or fund research.
+ * visualizes the split between RSC and fund-only credits
  */
 export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
   const { user, isLoading: isUserLoading } = useUser();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isRateLoading } = useExchangeRate();
 
-  // Wait for auth + (when showing USD) a usable rate so we don't flash the
-  // empty CTA or an RSC figure that then swaps to dollars.
-  const isReady = !isUserLoading && (!showUSD || (!isRateLoading && exchangeRate > 0));
+  const isReady = !isUserLoading && (!showUSD || !isRateLoading);
 
   if (!isReady) {
     return <FundingPowerCardSkeleton className={className} />;
   }
 
+  const canShowUSD = showUSD && exchangeRate > 0;
+
   const fmt = (rscAmount: number) =>
     formatCurrency({
-      amount: showUSD ? rscAmount * exchangeRate : rscAmount,
-      showUSD,
+      amount: canShowUSD ? rscAmount * exchangeRate : rscAmount,
+      showUSD: canShowUSD,
       exchangeRate,
       shorten: true,
       skipConversion: true,
