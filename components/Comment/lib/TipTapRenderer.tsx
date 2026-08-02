@@ -167,8 +167,7 @@ const TipTapRenderer: React.FC<TipTapRendererProps> = ({
   // whose anchor text equals the href become `richLink` nodes so they
   // render with the same inline preview + hover surface as freshly pasted
   // links. Idempotent — already-converted docs pass through unchanged.
-  // Skip when link previews are disabled (e.g. activity feed) and demote
-  // any existing richLink atoms back to plain anchors.
+  // Skip when link previews are disabled.
   documentContent = showLinkPreviews
     ? normalizeRichLinks(documentContent)
     : demoteRichLinks(documentContent);
