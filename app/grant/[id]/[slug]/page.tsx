@@ -38,7 +38,6 @@ export default async function GrantSlugPage({ params }: Props) {
   const work = await getGrant(id);
 
   const grant = work.note?.post?.grant;
-  const grantId = grant?.id ?? undefined;
 
   return (
     <GrantContentSwitcher content={work.previewContent} imageUrl={work.image}>

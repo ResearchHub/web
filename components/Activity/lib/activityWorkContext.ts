@@ -152,6 +152,128 @@ function formatAmount(
   });
 }
 
+function resolveReviewScore(entry: FeedEntry, work: ActivityWorkContext): number | null {
+  const entryScore = entry.metrics?.reviewScore;
+  if (entryScore && entryScore > 0) return entryScore;
+
+  const fundraiseAvg = work.fundraise?.reviewMetrics?.avg;
+  if (fundraiseAvg && fundraiseAvg > 0) return fundraiseAvg;
+
+  return null;
+}
+
+function buildBasePresentation(
+  entry: FeedEntry,
+  work: ActivityWorkContext,
+  slot: ActivityBodySlot
+): WorkCardPresentation {
+  return {
+    authors: toCardAuthors(work.authors),
+    organization: resolveOrganization(entry, work),
+    institution: entry.nonprofit?.name ?? null,
+    score: resolveReviewScore(entry, work),
+    // Caller ANDs with commentPreview presence; here we only gate by slot.
+    showComment: slot !== 'bounty' && slot !== 'grant',
+  };
+}
+
+function presentFundraise(
+  base: WorkCardPresentation,
+  fundraise: NonNullable<ActivityWorkContext['fundraise']>,
+  showUSD: boolean,
+  exchangeRate: number
+): WorkCardPresentation {
+  const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
+  const goalUsd = fundraise.goalAmount.usd;
+  const raisedUsd = fundraise.amountRaised.usd;
+
+  return {
+    ...base,
+    stats: [
+      {
+        label: 'Raising',
+        value: formatAmount(goalAmount, showUSD, exchangeRate, true),
+        accent: true,
+      },
+    ],
+    progress: goalUsd > 0 ? raisedUsd / goalUsd : undefined,
+    cta: isFundraiseActive(fundraise) ? { kind: 'fund-modal', label: 'Fund' } : undefined,
+  };
+}
+
+function isGrantActive(grant: NonNullable<ActivityWorkContext['grant']>): boolean {
+  if (grant.status !== 'OPEN') return false;
+  return grant.endDate ? isDeadlineInFuture(grant.endDate) : true;
+}
+
+function presentGrant(
+  base: WorkCardPresentation,
+  work: ActivityWorkContext,
+  grant: NonNullable<ActivityWorkContext['grant']>,
+  showUSD: boolean,
+  exchangeRate: number
+): WorkCardPresentation {
+  const budgetAmount = showUSD ? grant.amount.usd : (grant.amount.rsc ?? 0);
+  const hasBudget = grant.amount.usd > 0 || (grant.amount.rsc ?? 0) > 0;
+  const stats: WorkCardStat[] = [];
+
+  if (hasBudget) {
+    stats.push({
+      label: 'Available',
+      value: formatAmount(budgetAmount, showUSD, exchangeRate, showUSD),
+      accent: true,
+    });
+  }
+  stats.push({
+    label: 'Proposals',
+    value: String(grant.numApplicants),
+  });
+
+  return {
+    ...base,
+    stats,
+    cta: isGrantActive(grant) ? { kind: 'link', label: 'Apply', href: work.href } : undefined,
+  };
+}
+
+function isBountyActive(bounty: Bounty): boolean {
+  if (bounty.status === 'OPEN') {
+    return bounty.expirationDate ? isDeadlineInFuture(bounty.expirationDate) : true;
+  }
+  return bounty.status === 'ASSESSMENT' || isOpenBounty(bounty);
+}
+
+function presentBounty(
+  base: WorkCardPresentation,
+  work: ActivityWorkContext,
+  bounty: Bounty,
+  showUSD: boolean,
+  exchangeRate: number
+): WorkCardPresentation {
+  const { amount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
+  const isReviewBounty = bounty.bountyType === 'REVIEW';
+  const href = `${buildWorkUrl({
+    id: work.id,
+    slug: work.slug,
+    contentType: work.documentType,
+    tab: 'bounties',
+  })}?focus=true`;
+
+  return {
+    ...base,
+    stats: [
+      {
+        label: isReviewBounty ? 'Peer Review' : 'Bounty',
+        value: formatAmount(amount, showUSD, exchangeRate, true),
+        accent: true,
+      },
+    ],
+    cta: isBountyActive(bounty)
+      ? { kind: 'link', label: isReviewBounty ? 'Review' : 'Solve', href }
+      : undefined,
+  };
+}
+
 export function getWorkCardPresentation(
   entry: FeedEntry,
   work: ActivityWorkContext,
@@ -159,101 +281,16 @@ export function getWorkCardPresentation(
 ): WorkCardPresentation {
   const { showUSD, exchangeRate, isReview } = options;
   const slot = resolveActivityBodySlot(entry.activityContext, work, { isReview });
-
-  // Prefer real document score; omit when absent (no mocks).
-  const score =
-    entry.metrics?.reviewScore && entry.metrics.reviewScore > 0
-      ? entry.metrics.reviewScore
-      : work.fundraise?.reviewMetrics?.avg && work.fundraise.reviewMetrics.avg > 0
-        ? work.fundraise.reviewMetrics.avg
-        : null;
-
-  const authors = toCardAuthors(work.authors);
-  const institution = entry.nonprofit?.name ?? null;
-  const base: WorkCardPresentation = {
-    authors,
-    organization: resolveOrganization(entry, work),
-    institution,
-    score,
-    // Caller ANDs with commentPreview presence; here we only gate by slot.
-    showComment: slot !== 'bounty' && slot !== 'grant',
-  };
+  const base = buildBasePresentation(entry, work, slot);
 
   if (slot === 'fundraise' && work.fundraise) {
-    const fundraise = work.fundraise;
-    const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
-    const goalUsd = fundraise.goalAmount.usd;
-    const raisedUsd = fundraise.amountRaised.usd;
-
-    return {
-      ...base,
-      stats: [
-        {
-          label: 'Raising',
-          value: formatAmount(goalAmount, showUSD, exchangeRate, true),
-          accent: true,
-        },
-      ],
-      progress: goalUsd > 0 ? raisedUsd / goalUsd : undefined,
-      cta: isFundraiseActive(fundraise) ? { kind: 'fund-modal', label: 'Fund' } : undefined,
-    };
+    return presentFundraise(base, work.fundraise, showUSD, exchangeRate);
   }
-
   if (slot === 'grant' && work.grant) {
-    const grant = work.grant;
-    const isActive =
-      grant.status === 'OPEN' && (grant.endDate ? isDeadlineInFuture(grant.endDate) : true);
-    const budgetAmount = showUSD ? grant.amount.usd : (grant.amount.rsc ?? 0);
-    const hasBudget = grant.amount.usd > 0 || (grant.amount.rsc ?? 0) > 0;
-    const stats: WorkCardStat[] = [];
-
-    if (hasBudget) {
-      stats.push({
-        label: 'Available',
-        value: formatAmount(budgetAmount, showUSD, exchangeRate, showUSD),
-        accent: true,
-      });
-    }
-    stats.push({
-      label: 'Proposals',
-      value: String(grant.numApplicants),
-    });
-
-    return {
-      ...base,
-      stats: stats.length ? stats : undefined,
-      cta: isActive ? { kind: 'link', label: 'Apply', href: work.href } : undefined,
-    };
+    return presentGrant(base, work, work.grant, showUSD, exchangeRate);
   }
-
   if (slot === 'bounty' && work.bounty) {
-    const bounty = work.bounty;
-    const { amount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
-    const isReviewBounty = bounty.bountyType === 'REVIEW';
-    const href = `${buildWorkUrl({
-      id: work.id,
-      slug: work.slug,
-      contentType: work.documentType,
-      tab: 'bounties',
-    })}?focus=true`;
-    const active =
-      bounty.status === 'OPEN'
-        ? bounty.expirationDate
-          ? isDeadlineInFuture(bounty.expirationDate)
-          : true
-        : bounty.status === 'ASSESSMENT' || isOpenBounty(bounty);
-
-    return {
-      ...base,
-      stats: [
-        {
-          label: isReviewBounty ? 'Peer Review' : 'Bounty',
-          value: formatAmount(amount, showUSD, exchangeRate, true),
-          accent: true,
-        },
-      ],
-      cta: active ? { kind: 'link', label: isReviewBounty ? 'Review' : 'Solve', href } : undefined,
-    };
+    return presentBounty(base, work, work.bounty, showUSD, exchangeRate);
   }
 
   return base;

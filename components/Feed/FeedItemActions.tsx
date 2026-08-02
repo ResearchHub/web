@@ -169,10 +169,6 @@ interface FeedItemActionsProps {
   isExpanded?: boolean;
   className?: string;
   variant?: 'default' | 'inline';
-  /**
-   * When true, render share + save next to the vote control (left) so the
-   * trailing side can hold only `rightSideActionButton` (e.g. Fund / Review).
-   */
   leadingUtilityActions?: boolean;
 }
 
