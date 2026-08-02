@@ -7,14 +7,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
-/** Sized via PillTabs' className to match Lucide stroke icons in the pills. */
 function BullhornIcon({ className }: LucideProps) {
   return <FontAwesomeIcon icon={faBullhorn} className={className} />;
 }
 
 export type FundTab = 'activity' | 'fund' | 'proposals';
 
-/** Routes that make up the homepage hub — all of them highlight "Home" in the nav. */
 export const HOME_TAB_PATHS = ['/', '/fund', '/fund/proposals'];
 
 export const isHomeTabPath = (pathname: string) => HOME_TAB_PATHS.includes(pathname);
@@ -43,7 +41,7 @@ export const FUND_TABS = [
   },
 ];
 
-/** Homepage hub: Activity / Fund / Proposals (shared shell + FundSidebar). */
+/** Homepage tabs: Activity / Fund / Proposals. */
 export function useFundTabs() {
   const pathname = usePathname();
   const router = useRouter();
