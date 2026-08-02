@@ -4,15 +4,14 @@ import { FC, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { Button } from '@/components/ui/Button';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
-import { WorkCardActions } from './WorkCardActions';
 import { WorkPreviewCard } from './WorkPreviewCard';
 import { getActivityHeaderMessage, getCommentPreview } from './lib/feedEntryAdapters';
 import { getActivityWorkContext, getWorkCardPresentation } from './lib/activityWorkContext';
@@ -43,6 +42,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   const showComment = presentation.showComment && !!commentPreview;
   const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
   const isReviewOfProposal = !!commentPreview?.isReview && work.documentType === 'preregistration';
+  const feedContentType = work.documentType === 'paper' ? 'PAPER' : 'POST';
 
   const handleFundClick = () => {
     setIsContributeModalOpen(true);
@@ -80,15 +80,12 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
       <div className="flex gap-2.5">
         <div className="flex w-8 flex-shrink-0 flex-col items-center">
           <div className="pt-0.5">
-            <AuthorTooltip authorId={message.actor.id} placement="bottom">
-              <Avatar
-                src={message.actor.profileImage}
-                alt={message.actor.fullName || 'User'}
-                size={32}
-                authorId={message.actor.id}
-                disableTooltip
-              />
-            </AuthorTooltip>
+            <Avatar
+              src={message.actor.profileImage}
+              alt={message.actor.fullName || 'User'}
+              size={32}
+              authorId={message.actor.id}
+            />
           </div>
         </div>
 
@@ -121,11 +118,21 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
               stats={presentation.stats}
               progress={presentation.progress}
               actions={
-                <WorkCardActions
-                  work={work}
-                  voteCount={voteCount}
+                <FeedItemActions
+                  metrics={{ votes: voteCount, adjustedScore: voteCount }}
+                  feedContentType={feedContentType}
+                  votableEntityId={work.id}
+                  relatedDocumentId={work.id.toString()}
+                  relatedDocumentContentType={work.documentType}
+                  relatedDocumentUnifiedDocumentId={work.unifiedDocumentId?.toString()}
                   userVote={entry.userVote}
-                  cta={action}
+                  href={work.href}
+                  hideCommentButton
+                  hideReportButton
+                  variant="inline"
+                  leadingUtilityActions
+                  rightSideActionButton={action}
+                  className="gap-1"
                 />
               }
             />

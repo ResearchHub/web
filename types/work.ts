@@ -152,7 +152,6 @@ export interface LinkedGrant {
   applicantCount: number;
 }
 
-/** Slim grant metadata attached to activity feed related_work */
 export interface WorkGrantSummary {
   status: string;
   organization: string;

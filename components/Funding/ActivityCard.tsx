@@ -3,7 +3,6 @@
 import { FC } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { ActivityHeaderActionText } from '@/components/Activity/ActivityHeaderActionText';
 import { BountyAmount } from '@/components/Activity/BountyAmount';
 import { ContributionAmount } from '@/components/Activity/ContributionAmount';
@@ -58,15 +57,12 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
     <div className="py-3 first:pt-0 last:pb-0">
       <div className="grid grid-cols-[auto_1fr] gap-x-2.5 items-start">
         <div className="row-span-2 pt-0.5">
-          <AuthorTooltip authorId={message.actor.id} placement="bottom">
-            <Avatar
-              src={message.actor.profileImage}
-              alt={message.actor.fullName || 'User'}
-              size={32}
-              authorId={message.actor.id}
-              disableTooltip
-            />
-          </AuthorTooltip>
+          <Avatar
+            src={message.actor.profileImage}
+            alt={message.actor.fullName || 'User'}
+            size={32}
+            authorId={message.actor.id}
+          />
         </div>
         <span className="mb-1 text-sm leading-6">
           <ActivityHeaderActionText message={message} />

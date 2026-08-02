@@ -45,16 +45,11 @@ export interface ActivityHeaderMessage {
   actor: AuthorProfile;
   verb: string;
   target?: ActivityHeaderTarget;
-  /** Payout rather than contribution — the amount renders without a "+". */
   isEarning?: boolean;
 }
 
 /**
  * True when the profile belongs to the ResearchHub Foundation account.
- *
- * Feed payloads are inconsistent about which id they expose for an actor, so we
- * prefer the explicit user fields and only fall back to `id` when the profile
- * carries no user reference at all (funder objects are serialized that way).
  */
 function isFoundationProfile(profile?: AuthorProfile): boolean {
   if (!profile) return false;
@@ -67,8 +62,6 @@ function getFundingActivityMessage(content: FeedFundingActivityContent): Activit
   const actor = content.createdBy;
   const recipient = content.recipient;
 
-  // Bounty payouts and Foundation tips read as the recipient earning — the
-  // person who received the money is the interesting subject.
   if (recipient && (content.sourceType === 'BOUNTY_PAYOUT' || isFoundationProfile(actor))) {
     return { actor: recipient, verb: 'earned', isEarning: true };
   }
@@ -277,7 +270,6 @@ export function getReviewScore(entry: FeedEntry): number | undefined {
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
-  // When the header leads with an earning, the score stays on the document card.
   if (getReviewEarning(entry)) return undefined;
   return commentContent.review?.score ?? commentContent.comment.reviewScore;
 }
