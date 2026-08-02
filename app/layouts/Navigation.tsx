@@ -9,10 +9,10 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sprout } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
-import { useUser } from '@/contexts/UserContext';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 const ENDOWMENT_NAV_FEATURE = 'endowment_nav_new_badge';
 // Stop showing the "New" badge on the Endowment nav item after this date,
@@ -36,6 +36,7 @@ interface NavigationItem {
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
   isLucideSprout?: boolean;
+  isLucideStar?: boolean;
   /** Show a "New" badge next to the label. Pair with `newFeatureName` so the
    *  badge is dismissed once the user clicks the item. */
   isNew?: boolean;
@@ -81,7 +82,6 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
-  const { user } = useUser();
 
   // Dismissable "New" badge for the Endowment nav item. Lifted to the parent
   // so the click handler in NavLink can call dismissFeature() without each
@@ -99,27 +99,25 @@ export const Navigation: React.FC<NavigationProps> = ({
     [router]
   );
 
-  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
-  const homeHref = user ? '/for-you' : '/popular';
-
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: homeHref,
+      href: '/',
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
     },
     {
-      label: 'Fund',
-      href: '/fund',
+      label: 'Your Funding',
+      href: '/fund/dashboard',
       iconKey: 'fund',
-      description: 'Browse grants and fundraising opportunities',
+      requiresAuth: true,
+      description: 'Track the impact of the research you fund',
     },
     {
-      label: 'Earn',
+      label: 'Peer Review',
       href: '/earn',
-      iconKey: 'earn',
+      isLucideStar: true,
       description: 'Earn RSC for completing peer reviews',
     },
     {
@@ -152,13 +150,12 @@ export const Navigation: React.FC<NavigationProps> = ({
   };
 
   const isPathActive = (path: string) => {
-    // Special case for home page
-    if (path === '/for-you' || path === '/popular') {
-      return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
+    if (path === '/') {
+      return isHomeTabPath(currentPath);
     }
 
-    if (path === '/fund') {
-      return currentPath.startsWith('/fund');
+    if (path === '/fund/dashboard') {
+      return currentPath === '/fund/dashboard' || currentPath.startsWith('/fund/dashboard/');
     }
 
     if (path === '/earn') {
@@ -243,6 +240,13 @@ export const Navigation: React.FC<NavigationProps> = ({
             />
           ) : item.isLucideSprout ? (
             <Sprout size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
+          ) : item.isLucideStar ? (
+            <Star
+              size={22}
+              color={iconColor}
+              strokeWidth={isActive ? 2.25 : 2}
+              fill={isActive ? iconColor : 'none'}
+            />
           ) : item.iconKey ? (
             <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           ) : (
