@@ -1,7 +1,5 @@
 import type { ActivityContext, RawApiFeedEntry } from '@/types/feed';
 
-const REVIEW_COMMENT_TYPES = new Set(['PEER_REVIEW', 'REVIEW']);
-
 export function deriveActivityContext(feedEntry: RawApiFeedEntry): ActivityContext | undefined {
   const contentType = feedEntry.content_type?.toUpperCase();
   const obj = feedEntry.content_object;
@@ -10,7 +8,7 @@ export function deriveActivityContext(feedEntry: RawApiFeedEntry): ActivityConte
   switch (contentType) {
     case 'RHCOMMENTMODEL': {
       const commentType = obj.comment_type as string | undefined;
-      if (commentType && REVIEW_COMMENT_TYPES.has(commentType)) {
+      if (commentType === 'PEER_REVIEW') {
         return 'peer_review_published';
       }
       if (Array.isArray(obj.bounties) && obj.bounties.length > 0) {

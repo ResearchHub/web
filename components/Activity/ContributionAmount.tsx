@@ -10,7 +10,6 @@ import { resolveDisplayedContribution, type FeedContribution } from './lib/feedE
 interface ContributionAmountProps {
   contribution: FeedContribution;
   className?: string;
-  /** Prefix with "+" (default). Set false for earnings like "earned $150". */
   showSign?: boolean;
 }
 
