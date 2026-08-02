@@ -15,8 +15,6 @@ export default function robots(): MetadataRoute.Robots {
         '/dashboard/',
         '/notifications/',
         '/activity/',
-        '/for-you/',
-        '/following/',
         '/notebook/',
         '/moderators/',
         '/expert-finder/',
