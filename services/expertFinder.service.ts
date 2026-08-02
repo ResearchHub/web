@@ -160,7 +160,7 @@ export interface CreateDraftEmailPayload {
   template?: string;
   status?: GeneratedEmailStatus;
   notes?: string;
-  channel?: OutreachChannel | '';
+  channels?: OutreachChannel[];
 }
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
