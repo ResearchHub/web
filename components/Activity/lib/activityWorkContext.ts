@@ -3,18 +3,20 @@ import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import { getBountyDisplayAmount, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture } from '@/utils/date';
-import type { ContentType } from '@/types/work';
+import { toOptionalNumber } from '@/utils/number';
 import type {
   ActivityContext,
   FeedBountyContent,
   FeedCommentContent,
   FeedEntry,
   FeedGrantContent,
+  FeedPaperContent,
+  FeedPostContent,
 } from '@/types/feed';
 import type { Bounty } from '@/types/bounty';
 import type { Fundraise } from '@/types/funding';
 import type { AuthorProfile } from '@/types/authorProfile';
-import type { WorkGrantSummary } from '@/types/work';
+import type { ContentType, Work, WorkGrantSummary } from '@/types/work';
 
 type ActivityBodySlot = 'fundraise' | 'bounty' | 'grant' | 'default';
 
@@ -257,24 +259,124 @@ export function getWorkCardPresentation(
   return base;
 }
 
-export function getActivityWorkContext(entry: FeedEntry): ActivityWorkContext | null {
-  const related = entry.relatedWork;
-  if (!related?.title) return null;
+function grantSummaryFromFeedGrant(content: FeedGrantContent): WorkGrantSummary | undefined {
+  const grant = content.grant;
+  if (!grant) return undefined;
+  return {
+    status: grant.status,
+    organization: grant.organization,
+    amount: { usd: grant.amount.usd, rsc: grant.amount.rsc ?? null },
+    numApplicants: grant.applicants?.length ?? 0,
+    endDate: grant.endDate,
+  };
+}
 
+/**
+ * Build work context from a top-level document payload when `related_work` is
+ * absent (PAPER / POST / GRANT / proposal / contribution events).
+ */
+function getWorkContextFromContent(entry: FeedEntry): ActivityWorkContext | null {
+  const tab = resolveTabFromContext(entry.activityContext);
+  const bounty = getActivityBounty(entry);
+
+  if (entry.contentType === 'PAPER') {
+    const paper = entry.content as FeedPaperContent;
+    if (!paper.title) return null;
+    const documentType: ContentType = 'paper';
+    return {
+      id: paper.id,
+      slug: paper.slug,
+      title: paper.title,
+      href: buildWorkUrl({
+        id: paper.id,
+        slug: paper.slug,
+        contentType: documentType,
+        tab,
+      }),
+      imageUrl: paper.previewImage || paper.previewThumbnail,
+      documentType,
+      unifiedDocumentId: toOptionalNumber(paper.unifiedDocumentId),
+      bounty,
+      authors: paper.authors,
+      tab,
+    };
+  }
+
+  if (entry.contentType === 'GRANT') {
+    const grantContent = entry.content as FeedGrantContent;
+    if (!grantContent.title) return null;
+    const documentType: ContentType = 'funding_request';
+    return {
+      id: grantContent.id,
+      slug: grantContent.slug,
+      title: grantContent.title,
+      href: buildWorkUrl({
+        id: grantContent.id,
+        slug: grantContent.slug,
+        contentType: documentType,
+        tab,
+      }),
+      imageUrl: grantContent.previewImage,
+      documentType,
+      unifiedDocumentId: toOptionalNumber(grantContent.unifiedDocumentId),
+      grant: grantSummaryFromFeedGrant(grantContent),
+      bounty,
+      authors: grantContent.authors,
+      tab,
+    };
+  }
+
+  if (
+    entry.contentType === 'POST' ||
+    entry.contentType === 'PREREGISTRATION' ||
+    entry.contentType === 'PURCHASE' ||
+    entry.contentType === 'USDFUNDRAISECONTRIBUTION'
+  ) {
+    const post = entry.content as FeedPostContent;
+    if (!post.title) return null;
+    const documentType: ContentType =
+      entry.contentType === 'PREREGISTRATION' ||
+      entry.contentType === 'PURCHASE' ||
+      entry.contentType === 'USDFUNDRAISECONTRIBUTION' ||
+      post.contentType === 'PREREGISTRATION'
+        ? 'preregistration'
+        : 'post';
+    return {
+      id: post.id,
+      slug: post.slug,
+      title: post.title,
+      href: buildWorkUrl({
+        id: post.id,
+        slug: post.slug || undefined,
+        contentType: documentType,
+        tab,
+      }),
+      imageUrl: post.previewImage,
+      documentType,
+      unifiedDocumentId: toOptionalNumber(post.unifiedDocumentId),
+      fundraise: post.fundraise,
+      bounty,
+      authors: post.authors,
+      tab,
+    };
+  }
+
+  return null;
+}
+
+function workContextFromRelatedWork(entry: FeedEntry, related: Work): ActivityWorkContext {
   const tab = resolveTabFromContext(entry.activityContext);
   const documentType = related.contentType;
-  const href = buildWorkUrl({
-    id: related.id,
-    slug: related.slug,
-    contentType: documentType,
-    tab,
-  });
-
   return {
     id: related.id,
     slug: related.slug,
     title: related.title,
-    href,
+    href: buildWorkUrl({
+      id: related.id,
+      slug: related.slug,
+      contentType: documentType,
+      tab,
+    }),
     imageUrl: related.image,
     documentType,
     unifiedDocumentId: related.unifiedDocumentId,
@@ -284,4 +386,13 @@ export function getActivityWorkContext(entry: FeedEntry): ActivityWorkContext | 
     authors: related.authors?.map((authorship) => authorship.authorProfile),
     tab,
   };
+}
+
+export function getActivityWorkContext(entry: FeedEntry): ActivityWorkContext | null {
+  const related = entry.relatedWork;
+  if (related?.title) {
+    return workContextFromRelatedWork(entry, related);
+  }
+
+  return getWorkContextFromContent(entry);
 }
