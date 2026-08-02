@@ -111,6 +111,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'Your Funding',
       href: '/fund/dashboard',
       iconKey: 'fund',
+      requiresAuth: true,
       description: 'Track the impact of the research you fund',
     },
     {
@@ -149,7 +150,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   };
 
   const isPathActive = (path: string) => {
-    // Activity, Fund and Proposals are tabs of the same homepage hub.
     if (path === '/') {
       return isHomeTabPath(currentPath);
     }

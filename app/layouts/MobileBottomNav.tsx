@@ -43,7 +43,6 @@ const moreNavItems: NavItem[] = [
 
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string): boolean => {
-  // Activity, Fund and Proposals are tabs of the same homepage hub.
   if (path === '/') {
     return isHomeTabPath(currentPath);
   }
@@ -78,7 +77,7 @@ export const MobileBottomNav: React.FC = () => {
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: '/', iconKey: 'home', isDynamicHome: true },
     { label: 'Peer Review', href: '/earn', iconKey: 'peer-review' },
-    { label: 'Your Funding', href: '/fund/dashboard', iconKey: 'fund' },
+    { label: 'Your Funding', href: '/fund/dashboard', iconKey: 'fund', requiresAuth: true },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
