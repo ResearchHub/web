@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * Proxy for RFC 8058 one-click unsubscribe.
+ *
+ * Email providers (Gmail, Apple Mail, etc.) POST directly to the
+ * `List-Unsubscribe` URL when a user clicks the unsubscribe button in their
+ * inbox. This route forwards that POST (including the `?code=…` query) to the
+ * backend.
+ *
+ * Human-initiated unsubscribes go through the browser page at
+ * `/email/unsubscribe` instead.
+ */
 const BACKEND_UNSUBSCRIBE_PATH = '/api/email/unsubscribe/';
 
 export const dynamic = 'force-dynamic';
