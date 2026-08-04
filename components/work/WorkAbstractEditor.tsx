@@ -112,7 +112,7 @@ export function WorkAbstractEditor({
   // Update editor content when initialContent changes
   useEffect(() => {
     if (editor && initialContent !== editor.getHTML()) {
-      editor.commands.setContent(initialContent);
+      editor.commands.setContent(initialContent, { emitUpdate: false });
     }
   }, [editor, initialContent]);
 

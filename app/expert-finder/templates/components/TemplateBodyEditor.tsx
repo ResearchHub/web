@@ -246,6 +246,10 @@ export function TemplateVariableEditor({
       }
     },
     immediatelyRender: false,
+    // The toolbar below reads editor.isActive() during render; v3 no longer
+    // re-renders on every transaction by default, which would leave the
+    // active-button highlights stale on selection changes.
+    shouldRerenderOnTransaction: true,
   });
 
   useEffect(() => {

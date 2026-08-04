@@ -194,6 +194,10 @@ export const useCommentEditor = ({
       setIsFocused(false);
     },
     immediatelyRender: false,
+    // The comment toolbar reads editor.isActive() during render; v3 no longer
+    // re-renders on every transaction by default, which would leave the
+    // active-button highlights stale on selection changes.
+    shouldRerenderOnTransaction: true,
   });
 
   // Set initial content if provided or load from localStorage
@@ -209,7 +213,7 @@ export const useCommentEditor = ({
         // a previous draft (before the rich-link extension existed) get
         // upgraded into richLink nodes when the draft is restored.
         if (debug) console.log('Loading content from localStorage:', loadedContent);
-        editor.commands.setContent(normalizeRichLinks(loadedContent));
+        editor.commands.setContent(normalizeRichLinks(loadedContent), { emitUpdate: false });
       } else if (initialContent) {
         // If format is HTML, set the content directly. TipTap's HTML parser
         // will route any `a[data-type="rich-link"]` tags through the
@@ -218,7 +222,7 @@ export const useCommentEditor = ({
         // visually upgraded by the read-only renderer's normalize pass.
         if (format === 'html' && typeof initialContent === 'string') {
           if (debug) console.log('Setting HTML content directly:', initialContent);
-          editor.commands.setContent(initialContent);
+          editor.commands.setContent(initialContent, { emitUpdate: false });
         } else {
           // Parse the initial content to ensure it's in the correct format,
           // then upgrade URL-only text/links into richLink nodes so editing
@@ -228,7 +232,7 @@ export const useCommentEditor = ({
           if (debug)
             console.log('Setting initial content:', initialContent, 'Normalized:', normalized);
 
-          editor.commands.setContent(normalized);
+          editor.commands.setContent(normalized, { emitUpdate: false });
         }
       }
     }

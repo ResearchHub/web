@@ -106,7 +106,9 @@ export const useEditorHandlers = ({
       // Only clear the editor if submission was successful
       if (result !== false) {
         clearDraft();
-        editor.commands.clearContent();
+        // false = don't emit update — otherwise onUpdate's saveDraft would
+        // re-write an empty draft right after clearDraft() removed it.
+        editor.commands.clearContent(false);
         if (isReview) {
           setRating(0);
           setSectionRatings({});

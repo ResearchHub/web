@@ -278,7 +278,7 @@ export const CommentEditor = ({
 
   const confirmDiscard = useCallback(() => {
     if (editor) {
-      editor.commands.clearContent();
+      editor.commands.clearContent(false);
     }
     clearDraft();
     setRating(0);
