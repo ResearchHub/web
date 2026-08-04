@@ -182,22 +182,10 @@ export const GROUPS: Group[] = [
           editor.chain().focus().setImageUpload().run();
         },
       },
-      {
-        name: 'columns',
-        label: 'Columns',
-        iconName: 'Columns2',
-        description: 'Add two column content',
-        aliases: ['cols'],
-        shouldBeHidden: (editor) => editor.isActive('columns'),
-        action: (editor) => {
-          editor
-            .chain()
-            .focus()
-            .setColumns()
-            .focus(editor.state.selection.head - 1)
-            .run();
-        },
-      },
+      // The 'columns' entry was removed: the notebook document schema
+      // ('heading block+') does not allow the columns node group, so
+      // setColumns() was a silent no-op. Restore it if the schema ever
+      // admits columns again.
       {
         name: 'horizontalRule',
         label: 'Horizontal Rule',
