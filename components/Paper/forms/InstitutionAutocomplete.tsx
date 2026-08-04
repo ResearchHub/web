@@ -5,17 +5,7 @@ import { AutocompleteSelect, SelectOption } from '@/components/ui/form/Autocompl
 import { Building } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { SearchService } from '@/services/search.service';
-import Image from 'next/image';
-
-export interface Institution {
-  id: string | number;
-  name: string;
-  location?: string;
-  hIndex?: number;
-  worksCount?: number;
-  imageUrl?: string;
-  imageThumbnailUrl?: string;
-}
+import type { Institution } from '@/types/institution';
 
 interface InstitutionAutocompleteProps {
   value: Institution | null;

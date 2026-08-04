@@ -21,7 +21,6 @@ export default function robots(): MetadataRoute.Robots {
         '/moderators/',
         '/expert-finder/',
         '/settings',
-        '/paper/submit',
         '/_next/',
         '/sw.js',
       ],
