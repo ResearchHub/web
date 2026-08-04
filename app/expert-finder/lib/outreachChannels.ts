@@ -8,7 +8,6 @@ export const OUTREACH_CHANNEL_LABELS: Record<OutreachChannel, string> = {
   email: 'Email',
   linkedin: 'LinkedIn',
   x: 'X',
-  other: 'Other',
 };
 
 export const OUTREACH_CHANNEL_OPTIONS: { value: OutreachChannel; label: string }[] =
@@ -17,11 +16,8 @@ export const OUTREACH_CHANNEL_OPTIONS: { value: OutreachChannel; label: string }
     label: OUTREACH_CHANNEL_LABELS[value],
   }));
 
-export function getOutreachChannelLabel(
-  channel: OutreachChannel | '' | null | undefined
-): string | null {
-  if (!channel) return null;
-  return OUTREACH_CHANNEL_LABELS[channel] ?? null;
+export function getOutreachChannelLabels(channels: OutreachChannel[] | null | undefined): string[] {
+  return (channels ?? []).map((channel) => OUTREACH_CHANNEL_LABELS[channel]);
 }
 
 /** Open Gmail compose (browser) with to/subject; body is copied separately for rich paste. */

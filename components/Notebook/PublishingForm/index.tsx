@@ -361,6 +361,7 @@ export function PublishingForm({
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
+  const workId = watch('workId');
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
@@ -369,7 +370,7 @@ export function PublishingForm({
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
-  const isPreprint = articleType === 'discussion';
+  const isNewPreprint = articleType === 'discussion' && !workId;
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
   const canPublishRegisteredReport =
     articleType !== 'registered_report' || currentUser?.isModerator === true;
@@ -385,7 +386,7 @@ export function PublishingForm({
   const handlePublishClick = async () => {
     if (readOnly) return;
 
-    if (isPreprint) {
+    if (isNewPreprint) {
       toast.error('Preprints can no longer be created in the notebook.');
       return;
     }
@@ -419,6 +420,7 @@ export function PublishingForm({
 
     if (
       articleType !== 'preregistration' &&
+      articleType !== 'discussion' &&
       articleType !== 'grant' &&
       articleType !== 'registered_report'
     ) {
@@ -490,7 +492,7 @@ export function PublishingForm({
   const handleConfirmPublish = async (editedTitle: string) => {
     if (readOnly || !note) return;
 
-    if (articleType === 'discussion') {
+    if (isNewPreprint) {
       toast.error('Preprints can no longer be created in the notebook.');
       return;
     }
@@ -720,14 +722,12 @@ export function PublishingForm({
                 {articleType === 'grant' && <GrantFundingAmountSection />}
                 {articleType === 'grant' && <GrantApplicationVisibilitySection />}
                 {articleType === 'preregistration' && <FundingSection note={note} />}
-                {articleType === 'preregistration' && !methods.watch('workId') && (
+                {articleType === 'preregistration' && !workId && (
                   <div className="py-3 px-6">
                     <EndDateSection />
                   </div>
                 )}
-                {articleType === 'preregistration' && !methods.watch('workId') && (
-                  <PreregistrationPrivacySection />
-                )}
+                {articleType === 'preregistration' && !workId && <PreregistrationPrivacySection />}
                 {FEATURE_FLAG_RESEARCH_COIN &&
                   articleType !== 'preregistration' &&
                   articleType !== 'grant' && (
@@ -743,9 +743,7 @@ export function PublishingForm({
 
         <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
           <div className="mx-auto w-full max-w-2xl space-y-3">
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacyLockedAlert />
-            )}
+            {articleType === 'preregistration' && !workId && <PreregistrationPrivacyLockedAlert />}
             {articleType === 'registered_report' && !canPublishRegisteredReport && (
               <p className="text-sm text-red-600">
                 Only moderators can publish Registered Reports.
@@ -758,7 +756,7 @@ export function PublishingForm({
               disabled={
                 !articleType ||
                 readOnly ||
-                isPreprint ||
+                isNewPreprint ||
                 isPublishing ||
                 isDeclined ||
                 showPrivateWarning ||
@@ -771,7 +769,7 @@ export function PublishingForm({
                     isLoadingUpsert: isLoadingUpsert || isUploadingImage,
                     isRedirecting,
                     isLinkingNonprofit,
-                    hasWorkId: Boolean(methods.watch('workId')),
+                    hasWorkId: Boolean(workId),
                   })}
             </Button>
           </div>
@@ -795,7 +793,7 @@ export function PublishingForm({
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
           isPublishing={isPublishing}
-          isUpdate={Boolean(methods.watch('workId'))}
+          isUpdate={Boolean(workId)}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           zIndex={100}
