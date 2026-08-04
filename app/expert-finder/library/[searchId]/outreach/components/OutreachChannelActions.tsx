@@ -6,7 +6,7 @@ import { Mail } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
-import type { ExpertSourceLink } from '@/types/expertFinder';
+import type { ExpertSourceLink, OutreachChannel } from '@/types/expertFinder';
 import {
   buildGmailComposeHref,
   copyOutreachBodyToClipboard,
@@ -19,6 +19,7 @@ export interface OutreachChannelActionsProps {
   /** HTML message body; copied to clipboard before opening a channel. */
   emailBody?: string;
   sources?: ExpertSourceLink[] | null;
+  onChannelOpened?: (channel: OutreachChannel) => void;
   className?: string;
 }
 
@@ -27,13 +28,14 @@ export function OutreachChannelActions({
   emailSubject,
   emailBody = '',
   sources,
+  onChannelOpened,
   className,
 }: OutreachChannelActionsProps) {
   const email = expertEmail.trim();
   const linkedinUrl = getSourceUrlByNetwork(sources, 'linkedin');
   const xUrl = getSourceUrlByNetwork(sources, 'x');
 
-  const handleSendClick = (url: string) => {
+  const handleSendClick = (channel: OutreachChannel, url: string) => {
     const win = window.open('about:blank', '_blank');
     void (async () => {
       if (emailBody.trim()) {
@@ -50,6 +52,7 @@ export function OutreachChannelActions({
       } else {
         window.open(url, '_blank', 'noopener,noreferrer');
       }
+      onChannelOpened?.(channel);
     })();
   };
 
@@ -62,7 +65,7 @@ export function OutreachChannelActions({
         className="gap-2"
         disabled={!xUrl}
         title={xUrl ? 'Copy body and open X profile' : 'No X profile available'}
-        onClick={() => xUrl && handleSendClick(xUrl)}
+        onClick={() => xUrl && handleSendClick('x', xUrl)}
       >
         <FontAwesomeIcon icon={faXTwitter} className="h-3.5 w-3.5 text-gray-900" aria-hidden />
         Send via X
@@ -76,7 +79,7 @@ export function OutreachChannelActions({
         title={
           linkedinUrl ? 'Copy body and open LinkedIn profile' : 'No LinkedIn profile available'
         }
-        onClick={() => linkedinUrl && handleSendClick(linkedinUrl)}
+        onClick={() => linkedinUrl && handleSendClick('linkedin', linkedinUrl)}
       >
         <FontAwesomeIcon icon={faLinkedin} className="h-3.5 w-3.5 text-[#0077B5]" aria-hidden />
         Send via LinkedIn
@@ -89,7 +92,8 @@ export function OutreachChannelActions({
         disabled={!email}
         title={email ? 'Copy body and open Gmail' : 'No email available'}
         onClick={() =>
-          email && handleSendClick(buildGmailComposeHref({ to: email, subject: emailSubject }))
+          email &&
+          handleSendClick('email', buildGmailComposeHref({ to: email, subject: emailSubject }))
         }
       >
         <Mail className="h-3.5 w-3.5 text-gray-600" aria-hidden />

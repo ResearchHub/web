@@ -12,7 +12,6 @@ import {
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemEyebrow } from '@/components/Feed/FeedItemEyebrow';
 import { Avatar } from '@/components/ui/Avatar';
-import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -45,7 +44,6 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
   const reportUrl = href ?? viewModel.href;
   const imageUrl = viewModel.imageUrl;
   const primaryAuthor = post.authors?.[0];
-  const coAuthors = (post.authors ?? []).slice(1);
   const reviewSummary = viewModel.reviewSummary;
   const affiliation = post.fundraise?.nonprofit?.name ?? post.institution;
 
@@ -114,32 +112,13 @@ export const FeedItemRegisteredReport: FC<FeedItemRegisteredReportProps> = ({
           <div className="flex min-w-0 flex-col">
             <div className="flex items-center flex-wrap gap-y-1 text-base">
               {primaryAuthor && (
-                <span className="flex min-w-0 items-center gap-2">
-                  <Link
-                    href={primaryAuthor.profileUrl || '#'}
-                    className="truncate text-sm font-medium text-gray-900 hover:underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {primaryAuthor.fullName}
-                  </Link>
-                  {coAuthors.length > 0 && (
-                    <AvatarStack
-                      items={coAuthors.map((author) => ({
-                        src: author.profileImage || '',
-                        alt: author.fullName,
-                        tooltip: author.fullName,
-                        authorId: author.id || undefined,
-                      }))}
-                      size="xxs"
-                      maxItems={3}
-                      spacing={-6}
-                      showLabel={false}
-                      showExtraCount
-                      totalItemsCount={coAuthors.length}
-                      extraCountLabel="Authors"
-                    />
-                  )}
-                </span>
+                <Link
+                  href={primaryAuthor.profileUrl || '#'}
+                  className="min-w-0 truncate text-sm font-medium text-gray-900 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {primaryAuthor.fullName}
+                </Link>
               )}
               {entry.timestamp && (
                 <>
