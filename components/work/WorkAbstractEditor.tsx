@@ -49,6 +49,12 @@ export function WorkAbstractEditor({
           },
         },
         codeBlock: false,
+        // Added to StarterKit in v3 — disabled because this editor registers
+        // its own Underline and Link, and a trailing paragraph would change
+        // the persisted abstract JSON.
+        link: false,
+        underline: false,
+        trailingNode: false,
       }),
       Underline,
       Link.configure({

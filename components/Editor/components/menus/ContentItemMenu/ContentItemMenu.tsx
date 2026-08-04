@@ -1,6 +1,6 @@
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
-import DragHandle from '@tiptap-pro/extension-drag-handle-react';
+import DragHandle from '@tiptap/extension-drag-handle-react';
 import { Editor } from '@tiptap/react';
 
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -47,15 +47,7 @@ export const ContentItemMenu = ({ editor }: ContentItemMenuProps) => {
   }, [editor, menuOpen]);
 
   return (
-    <DragHandle
-      pluginKey="ContentItemMenu"
-      editor={editor}
-      onNodeChange={data.handleNodeChange}
-      tippyOptions={{
-        offset: [-2, 16],
-        zIndex: 99,
-      }}
-    >
+    <DragHandle pluginKey="ContentItemMenu" editor={editor} onNodeChange={data.handleNodeChange}>
       <div className="flex items-center gap-0.5">
         <Toolbar.Button onClick={actions.handleAdd}>
           <Icon name="Plus" />

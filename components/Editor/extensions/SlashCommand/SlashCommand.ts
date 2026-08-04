@@ -9,6 +9,14 @@ import { MenuList } from './MenuList';
 
 const extensionName = 'slashCommand';
 
+declare module '@tiptap/core' {
+  interface Storage {
+    slashCommand: {
+      rect: Pick<DOMRect, 'width' | 'height' | 'left' | 'top' | 'right' | 'bottom'>;
+    };
+  }
+}
+
 let popup: any;
 
 export const SlashCommand = Extension.create({

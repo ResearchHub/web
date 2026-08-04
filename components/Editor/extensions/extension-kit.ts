@@ -82,8 +82,13 @@ export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKit
     heading: false,
     horizontalRule: false,
     blockquote: false,
-    history: false,
+    undoRedo: false,
     codeBlock: false,
+    // Added to StarterKit in v3 — disabled because the kit provides its own
+    // customized versions of these extensions.
+    link: false,
+    underline: false,
+    trailingNode: false,
   }),
   Details.configure({
     persist: true,

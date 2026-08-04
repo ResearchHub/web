@@ -3,7 +3,8 @@ import { useEditor } from '@tiptap/react';
 import type { AnyExtension, Editor } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
 import { TextAlign } from '@tiptap/extension-text-align';
-import { History } from '@tiptap/extension-history';
+import { UndoRedo } from '@tiptap/extensions';
+import { migrateMathStrings } from '@tiptap/extension-mathematics';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { Ai } from '@/components/Editor/extensions/Ai';
@@ -64,7 +65,7 @@ export const useBlockEditor = ({
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
-        History.configure({
+        UndoRedo.configure({
           depth: 100,
         }),
         aiToken
@@ -97,6 +98,12 @@ export const useBlockEditor = ({
             type: 'doc',
             content: [],
           },
+      onCreate: ({ editor }) => {
+        // Documents written under tiptap v2 store math as plain `$...$`
+        // strings, which v3's node-based Mathematics extension no longer
+        // renders. Convert them to inlineMath/blockMath nodes on load.
+        migrateMathStrings(editor);
+      },
       onUpdate: ({ editor }) => {
         onUpdate?.(editor);
       },

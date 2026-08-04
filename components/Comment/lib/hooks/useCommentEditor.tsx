@@ -112,6 +112,12 @@ export const useCommentEditor = ({
           },
         },
         codeBlock: false,
+        // Added to StarterKit in v3 — disabled because this editor registers
+        // its own Underline and Link (via CommentLink), and a trailing
+        // paragraph would change the persisted comment JSON.
+        link: false,
+        underline: false,
+        trailingNode: false,
       }),
       Underline,
       // Listed before Link so its paste handler intercepts standalone URLs

@@ -194,6 +194,12 @@ export function TemplateVariableEditor({
         listItem: valueAsHtml ? {} : false,
         orderedList: false,
         strike: valueAsHtml ? {} : false,
+        // Added to StarterKit in v3 — this minimal editor registers its own
+        // Underline/Link when rendering HTML, and a trailing paragraph would
+        // break the plain-text/single-line use cases.
+        link: false,
+        underline: false,
+        trailingNode: false,
       }),
       ...(valueAsHtml
         ? [
@@ -254,7 +260,7 @@ export function TemplateVariableEditor({
         : editor.getText({ blockSeparator: '\n' });
 
     if (currentValue !== value) {
-      editor.commands.setContent(normalizeEditorValue(value, valueAsHtml), false);
+      editor.commands.setContent(normalizeEditorValue(value, valueAsHtml), { emitUpdate: false });
     }
   }, [editor, value, valueAsHtml]);
 

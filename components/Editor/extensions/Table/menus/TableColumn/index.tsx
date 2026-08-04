@@ -1,4 +1,4 @@
-import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
 import React, { useCallback } from 'react';
 import * as PopoverMenu from '@/components/Editor/components/ui/PopoverMenu';
 
@@ -7,7 +7,14 @@ import { isColumnGripSelected } from './utils';
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { MenuProps, ShouldShowProps } from '@/components/Editor/components/menus/types';
 
-export const TableColumnMenu = React.memo(({ editor, appendTo }: MenuProps): React.JSX.Element => {
+// Must be referentially stable: BubbleMenu dispatches an editor transaction
+// whenever `options` changes identity, so an inline literal would loop.
+const BUBBLE_MENU_OPTIONS = {
+  offset: 15,
+  flip: false,
+} as const;
+
+export const TableColumnMenu = React.memo(({ editor }: MenuProps): React.JSX.Element => {
   const shouldShow = useCallback(
     ({ view, state, from }: ShouldShowProps) => {
       if (!state) {
@@ -36,15 +43,7 @@ export const TableColumnMenu = React.memo(({ editor, appendTo }: MenuProps): Rea
       editor={editor}
       pluginKey="tableColumnMenu"
       updateDelay={0}
-      tippyOptions={{
-        appendTo: () => {
-          return appendTo?.current;
-        },
-        offset: [0, 15],
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-      }}
+      options={BUBBLE_MENU_OPTIONS}
       shouldShow={shouldShow}
     >
       <Toolbar.Wrapper isVertical>

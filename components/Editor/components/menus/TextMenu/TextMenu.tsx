@@ -2,7 +2,8 @@ import { Icon } from '@/components/Editor/components/ui/Icon';
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 import { useTextmenuCommands } from './hooks/useTextmenuCommands';
 import { useTextmenuStates } from './hooks/useTextmenuStates';
-import { BubbleMenu, Editor } from '@tiptap/react';
+import { Editor } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
 import { memo } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Surface } from '@/components/Editor/components/ui/Surface';
@@ -22,6 +23,15 @@ const MemoFontFamilyPicker = memo(FontFamilyPicker);
 const MemoFontSizePicker = memo(FontSizePicker);
 const MemoContentTypePicker = memo(ContentTypePicker);
 
+// Must be referentially stable: BubbleMenu dispatches an editor transaction
+// whenever `options` changes identity, so an inline literal would loop.
+const BUBBLE_MENU_OPTIONS = {
+  placement: 'top-start',
+  strategy: 'fixed',
+  flip: false,
+  shift: { padding: 8 },
+} as const;
+
 export type TextMenuProps = {
   editor: Editor;
 };
@@ -33,27 +43,8 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
 
   return (
     <BubbleMenu
-      tippyOptions={{
-        popperOptions: {
-          placement: 'top-start',
-          modifiers: [
-            {
-              name: 'preventOverflow',
-              options: {
-                boundary: 'viewport',
-                padding: 8,
-              },
-            },
-            {
-              name: 'flip',
-              enabled: false,
-            },
-          ],
-          strategy: 'fixed',
-        },
-        maxWidth: 'calc(100vw - 16px)',
-        interactive: true,
-      }}
+      options={BUBBLE_MENU_OPTIONS}
+      style={{ maxWidth: 'calc(100vw - 16px)' }}
       editor={editor}
       pluginKey="textMenu"
       shouldShow={states.shouldShow}

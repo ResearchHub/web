@@ -1,24 +1,22 @@
-import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react';
+import { useEditorState } from '@tiptap/react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
 import React, { useCallback, useRef } from 'react';
-import { Instance, sticky } from 'tippy.js';
 import { v4 as uuid } from 'uuid';
 
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { ImageBlockWidth } from './ImageBlockWidth';
 import { MenuProps } from '@/components/Editor/components/menus/types';
-import { getRenderContainer } from '@/components/Editor/lib/utils';
 
-export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
+// Must be referentially stable: BubbleMenu dispatches an editor transaction
+// whenever `options` changes identity, so an inline literal would loop.
+const BUBBLE_MENU_OPTIONS = {
+  offset: 8,
+  flip: false,
+} as const;
+
+export const ImageBlockMenu = ({ editor }: MenuProps): React.JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);
-  const tippyInstance = useRef<Instance | null>(null);
-
-  const getReferenceClientRect = useCallback(() => {
-    const renderContainer = getRenderContainer(editor, 'node-imageBlock');
-    const rect = renderContainer?.getBoundingClientRect() || new DOMRect(-1000, -1000, 0, 0);
-
-    return rect;
-  }, [editor]);
 
   const shouldShow = useCallback(() => {
     const isActive = editor.isActive('imageBlock');
@@ -62,21 +60,7 @@ export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Eleme
       pluginKey={`imageBlockMenu-${uuid()}`}
       shouldShow={shouldShow}
       updateDelay={0}
-      tippyOptions={{
-        offset: [0, 8],
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-        getReferenceClientRect,
-        onCreate: (instance: Instance) => {
-          tippyInstance.current = instance;
-        },
-        appendTo: () => {
-          return appendTo?.current;
-        },
-        plugins: [sticky],
-        sticky: 'popper',
-      }}
+      options={BUBBLE_MENU_OPTIONS}
     >
       <Toolbar.Wrapper shouldShowContent={shouldShow()} ref={menuRef}>
         <Toolbar.Button tooltip="Align image left" active={isImageLeft} onClick={onAlignImageLeft}>

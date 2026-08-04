@@ -1,11 +1,12 @@
-import React, { useCallback, useState } from 'react';
-import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useEditorState } from '@tiptap/react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
 
 import { MenuProps } from '../types';
 import { LinkPreviewPanel } from '@/components/Editor/components/panels/LinkPreviewPanel';
 import { LinkEditorPanel } from '@/components/Editor/components/panels';
 
-export const LinkMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
+export const LinkMenu = ({ editor }: MenuProps): React.JSX.Element => {
   const [showEdit, setShowEdit] = useState(false);
   const { link, target } = useEditorState({
     editor,
@@ -43,23 +44,25 @@ export const LinkMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => 
     return null;
   }, [editor]);
 
+  // Must be referentially stable: BubbleMenu dispatches an editor transaction
+  // whenever `options` changes identity, so an inline literal would loop.
+  const menuOptions = useMemo(
+    () => ({
+      flip: false,
+      onHide: () => {
+        setShowEdit(false);
+      },
+    }),
+    []
+  );
+
   return (
     <BaseBubbleMenu
       editor={editor}
       pluginKey="linkMenu"
       shouldShow={shouldShow}
       updateDelay={0}
-      tippyOptions={{
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-        appendTo: () => {
-          return appendTo?.current;
-        },
-        onHidden: () => {
-          setShowEdit(false);
-        },
-      }}
+      options={menuOptions}
     >
       {showEdit ? (
         <LinkEditorPanel
