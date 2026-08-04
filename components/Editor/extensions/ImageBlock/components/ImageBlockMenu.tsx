@@ -7,6 +7,7 @@ import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { ImageBlockWidth } from './ImageBlockWidth';
 import { MenuProps } from '@/components/Editor/components/menus/types';
+import { getRenderContainer } from '@/components/Editor/lib/utils/getRenderContainer';
 
 // Must be referentially stable: BubbleMenu dispatches an editor transaction
 // whenever `options` changes identity, so an inline literal would loop.
@@ -15,13 +16,24 @@ const BUBBLE_MENU_OPTIONS = {
   flip: false,
 } as const;
 
-export const ImageBlockMenu = ({ editor }: MenuProps): React.JSX.Element => {
+export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const shouldShow = useCallback(() => {
     const isActive = editor.isActive('imageBlock');
 
     return isActive;
+  }, [editor]);
+
+  // Must be referentially stable, like `options`: BubbleMenu dispatches an
+  // editor transaction whenever these props change identity.
+  const appendToElement = useCallback(() => appendTo?.current, [appendTo]);
+
+  // Anchor the menu to the image block container rather than the selection.
+  const getReferencedVirtualElement = useCallback(() => {
+    const renderContainer = getRenderContainer(editor, 'node-imageBlock');
+    if (!renderContainer) return null;
+    return { getBoundingClientRect: () => renderContainer.getBoundingClientRect() };
   }, [editor]);
 
   const onAlignImageLeft = useCallback(() => {
@@ -61,6 +73,8 @@ export const ImageBlockMenu = ({ editor }: MenuProps): React.JSX.Element => {
       shouldShow={shouldShow}
       updateDelay={0}
       options={BUBBLE_MENU_OPTIONS}
+      appendTo={appendToElement}
+      getReferencedVirtualElement={getReferencedVirtualElement}
     >
       <Toolbar.Wrapper shouldShowContent={shouldShow()} ref={menuRef}>
         <Toolbar.Button tooltip="Align image left" active={isImageLeft} onClick={onAlignImageLeft}>

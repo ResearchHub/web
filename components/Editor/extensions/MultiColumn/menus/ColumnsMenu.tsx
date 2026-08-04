@@ -7,6 +7,7 @@ import { MenuProps } from '@/components/Editor/components/menus/types';
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 import { ColumnLayout } from '../Columns';
 import { Icon } from '@/components/Editor/components/ui/Icon';
+import { getRenderContainer } from '@/components/Editor/lib/utils/getRenderContainer';
 
 // Must be referentially stable: BubbleMenu dispatches an editor transaction
 // whenever `options` changes identity, so an inline literal would loop.
@@ -15,10 +16,22 @@ const BUBBLE_MENU_OPTIONS = {
   flip: false,
 } as const;
 
-export const ColumnsMenu = ({ editor }: MenuProps) => {
+export const ColumnsMenu = ({ editor, appendTo }: MenuProps) => {
   const shouldShow = useCallback(() => {
     const isColumns = editor.isActive('columns');
     return isColumns;
+  }, [editor]);
+
+  // Must be referentially stable, like `options`: BubbleMenu dispatches an
+  // editor transaction whenever these props change identity.
+  const appendToElement = useCallback(() => appendTo?.current, [appendTo]);
+
+  // Anchor the menu to the columns container instead of the text selection,
+  // so it stays pinned to the block while editing inside a column.
+  const getReferencedVirtualElement = useCallback(() => {
+    const renderContainer = getRenderContainer(editor, 'columns');
+    if (!renderContainer) return null;
+    return { getBoundingClientRect: () => renderContainer.getBoundingClientRect() };
   }, [editor]);
 
   const onColumnLeft = useCallback(() => {
@@ -50,6 +63,8 @@ export const ColumnsMenu = ({ editor }: MenuProps) => {
       shouldShow={shouldShow}
       updateDelay={0}
       options={BUBBLE_MENU_OPTIONS}
+      appendTo={appendToElement}
+      getReferencedVirtualElement={getReferencedVirtualElement}
     >
       <Toolbar.Wrapper>
         <Toolbar.Button tooltip="Sidebar left" active={isColumnLeft} onClick={onColumnLeft}>

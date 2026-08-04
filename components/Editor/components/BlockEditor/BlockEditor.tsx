@@ -1,3 +1,4 @@
+import { migrateMathStrings } from '@tiptap/extension-mathematics';
 import { Editor, EditorContent } from '@tiptap/react';
 import React, { useEffect, useRef } from 'react';
 import { NotebookSkeleton } from '@/components/skeletons/NotebookSkeleton';
@@ -45,6 +46,10 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
       } else {
         editor.commands.setContent(content || '', { emitUpdate: false });
       }
+      // The synced props may hold v2-era content with plain $...$ math
+      // strings, and onCreate's migration only covered the initial content —
+      // re-run it so a sync can't reintroduce unmigrated math.
+      migrateMathStrings(editor);
     }
   }, [editor, content, contentJson]);
 

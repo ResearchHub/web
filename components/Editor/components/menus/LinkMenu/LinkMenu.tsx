@@ -6,8 +6,11 @@ import { MenuProps } from '../types';
 import { LinkPreviewPanel } from '@/components/Editor/components/panels/LinkPreviewPanel';
 import { LinkEditorPanel } from '@/components/Editor/components/panels';
 
-export const LinkMenu = ({ editor }: MenuProps): React.JSX.Element => {
+export const LinkMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const [showEdit, setShowEdit] = useState(false);
+  // Must be referentially stable, like `options` below: BubbleMenu dispatches
+  // an editor transaction whenever `appendTo` changes identity.
+  const appendToElement = useCallback(() => appendTo?.current, [appendTo]);
   const { link, target } = useEditorState({
     editor,
     selector: (ctx) => {
@@ -63,6 +66,7 @@ export const LinkMenu = ({ editor }: MenuProps): React.JSX.Element => {
       shouldShow={shouldShow}
       updateDelay={0}
       options={menuOptions}
+      appendTo={appendToElement}
     >
       {showEdit ? (
         <LinkEditorPanel

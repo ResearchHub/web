@@ -15,7 +15,11 @@ const BUBBLE_MENU_OPTIONS = {
   flip: false,
 } as const;
 
-export const TableRowMenu = React.memo(({ editor }: MenuProps): React.JSX.Element => {
+export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): React.JSX.Element => {
+  // Must be referentially stable, like `options`: BubbleMenu dispatches an
+  // editor transaction whenever `appendTo` changes identity.
+  const appendToElement = useCallback(() => appendTo?.current, [appendTo]);
+
   const shouldShow = useCallback(
     ({ view, state, from }: ShouldShowProps) => {
       if (!state || !from) {
@@ -46,6 +50,7 @@ export const TableRowMenu = React.memo(({ editor }: MenuProps): React.JSX.Elemen
       updateDelay={0}
       options={BUBBLE_MENU_OPTIONS}
       shouldShow={shouldShow}
+      appendTo={appendToElement}
     >
       <Toolbar.Wrapper isVertical>
         <PopoverMenu.Item
