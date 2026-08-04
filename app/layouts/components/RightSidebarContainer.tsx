@@ -17,8 +17,6 @@ function getSidebarInstanceKey(pathname: string, rightSidebar: boolean | ReactNo
 }
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
-  const pathname = usePathname();
-
   if (typeof rightSidebar === 'boolean') {
     return <RightSidebar />;
   }
