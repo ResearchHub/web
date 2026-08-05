@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "bootstrapped_at": "2026-08-05T00:53:00Z",
+  "discovery_branch": "codepress/craiglu/run-codepress-bootstrap-dev-server-for-c41a6e83",
+  "frontends": [
+    {
+      "label": "web",
+      "working_dir": "",
+      "dockerfile_path": ".codepress/dev-server/Dockerfile.web",
+      "dev_command": "npm exec -- next dev --turbopack",
+      "prebuild_command": "",
+      "prebuild_inputs": [],
+      "framework": "next",
+      "package_manager": "npm",
+      "install_command": "npm install",
+      "dependency_manifests": ["package-lock.json"],
+      "dev_port": 3000,
+      "system_packages": ["procps"],
+      "size": "large"
+    }
+  ]
+}
