@@ -26,5 +26,8 @@ EXPOSE 3000
 # Keep the root workspace bin directory available after runtime hydration.
 ENV PATH="/app/node_modules/.bin:${PATH}"
 
+# Do not run the customer dev process as root.
+USER node
+
 # Next.js dev mode; it reads HOSTNAME and PORT from the runtime environment.
 CMD ["npm", "run", "dev"]
