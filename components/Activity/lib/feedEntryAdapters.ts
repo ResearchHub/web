@@ -115,7 +115,7 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return { actor, verb: 'funded proposal' };
+    return { actor, verb: 'funded proposal for' };
   }
 
   return {
