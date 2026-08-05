@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   NotebookChatService,
   NOTEBOOK_CHAT_MESSAGE_MAX_LENGTH,
@@ -8,6 +8,7 @@ import {
 import { ApiError } from '@/services/types/api';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import {
+  editedNoteVersionId,
   isNotebookChatExecutionActive,
   type NotebookChatConversation,
   type NotebookChatExecution,
@@ -31,6 +32,14 @@ export interface UseNotebookChatState {
   isAssistantWorking: boolean;
   /** Terminal error of the latest turn, when it produced no reply. */
   turnError: string | null;
+  /**
+   * Newest turn. While `isAssistantWorking` this is the running one, so its
+   * activity is the live progress; when it failed, the activity is the only
+   * account of how far it got.
+   */
+  latestExecution: NotebookChatExecution | null;
+  /** Executions by id, for joining an assistant message to its activity. */
+  executionsById: Map<number, NotebookChatExecution>;
 }
 
 export interface UseNotebookChatActions {
@@ -39,6 +48,12 @@ export interface UseNotebookChatActions {
 }
 
 type UseNotebookChatReturn = [UseNotebookChatState, UseNotebookChatActions];
+
+/** What a finished turn changed, for callers deciding whether to react. */
+export interface NotebookChatTurnSummary {
+  /** Version the turn saved to the note, or null if it wrote nothing. */
+  editedNoteVersionId: number | null;
+}
 
 function latestExecution(
   conversation: NotebookChatConversation | null
@@ -51,12 +66,13 @@ function latestExecution(
 /**
  * State for one note's assistant chat: loads the conversation, submits
  * messages, and polls while an agent turn is running. `onTurnSettled` fires
- * once each time a running turn is observed reaching a terminal state — the
- * agent may have edited the note, so callers use it to refresh note content.
+ * once each time a running turn is observed reaching a terminal state, and
+ * reports the note version the turn saved so callers can refresh only when
+ * the agent actually wrote something.
  */
 export function useNotebookChat(
   noteId: string | null,
-  options?: { enabled?: boolean; onTurnSettled?: () => void }
+  options?: { enabled?: boolean; onTurnSettled?: (summary: NotebookChatTurnSummary) => void }
 ): UseNotebookChatReturn {
   const enabled = options?.enabled ?? true;
 
@@ -79,12 +95,12 @@ export function useNotebookChat(
 
   const applyConversation = useCallback((next: NotebookChatConversation) => {
     setConversation(next);
-    const active = (() => {
-      const execution = latestExecution(next);
-      return execution != null && isNotebookChatExecutionActive(execution);
-    })();
+    const execution = latestExecution(next);
+    const active = execution != null && isNotebookChatExecutionActive(execution);
     if (wasActiveRef.current && !active) {
-      onTurnSettledRef.current?.();
+      onTurnSettledRef.current?.({
+        editedNoteVersionId: execution ? editedNoteVersionId(execution) : null,
+      });
     }
     wasActiveRef.current = active;
   }, []);
@@ -122,10 +138,10 @@ export function useNotebookChat(
   }, [noteId, enabled, applyConversation]);
 
   // Poll while the latest turn is active.
-  const activeExecution = latestExecution(conversation);
+  const latestTurn = latestExecution(conversation);
   const shouldPoll =
-    enabled && noteId != null && activeExecution != null
-      ? isNotebookChatExecutionActive(activeExecution)
+    enabled && noteId != null && latestTurn != null
+      ? isNotebookChatExecutionActive(latestTurn)
       : false;
 
   useEffect(() => {
@@ -188,8 +204,13 @@ export function useNotebookChat(
   const clearSendError = useCallback(() => setSendError(null), []);
 
   const isAssistantWorking = isSending || shouldPoll;
-  const turnError =
-    !isAssistantWorking && activeExecution?.error ? activeExecution.error.message : null;
+  const turnError = !isAssistantWorking && latestTurn?.error ? latestTurn.error.message : null;
+
+  const executions = conversation?.executions;
+  const executionsById = useMemo(
+    () => new Map((executions ?? []).map((execution) => [execution.id, execution])),
+    [executions]
+  );
 
   return [
     {
@@ -201,6 +222,8 @@ export function useNotebookChat(
       pendingMessage,
       isAssistantWorking,
       turnError,
+      latestExecution: latestTurn,
+      executionsById,
     },
     { sendMessage, clearSendError },
   ];

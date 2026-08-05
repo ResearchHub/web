@@ -22,7 +22,7 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
-import { useNotebookChat } from '@/hooks/useNotebookChat';
+import { useNotebookChat, type NotebookChatTurnSummary } from '@/hooks/useNotebookChat';
 import { useNotebookAssistantFlag } from '@/hooks/useNotebookAssistantFlag';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
@@ -163,9 +163,25 @@ export function NoteEditorLayout() {
   }, []);
   const closeChat = useCallback(() => setIsChatOpen(false), []);
 
+  // Read at settle time rather than captured, so the callback identity stays
+  // stable while the open note's version moves under it.
+  const noteVersionIdRef = useRef(note?.versionId);
+  noteVersionIdRef.current = note?.versionId;
+
+  const handleTurnSettled = useCallback(
+    ({ editedNoteVersionId }: NotebookChatTurnSummary) => {
+      // The turn saved nothing, or saved the version already on screen — a
+      // refetch would only remount the editor and cost the user their cursor.
+      if (editedNoteVersionId === null) return;
+      if (noteVersionIdRef.current === editedNoteVersionId) return;
+      void refreshCurrentNote();
+    },
+    [refreshCurrentNote]
+  );
+
   const [chatState, chatActions] = useNotebookChat(activeNoteId, {
     enabled: canUseAssistant && chatActivated,
-    onTurnSettled: refreshCurrentNote,
+    onTurnSettled: handleTurnSettled,
   });
 
   const showTabs = Boolean(note) && !isLegacyNote;
