@@ -23,6 +23,7 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useNotebookChat } from '@/hooks/useNotebookChat';
+import { useNotebookAssistantFlag } from '@/hooks/useNotebookAssistantFlag';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
@@ -144,11 +145,14 @@ export function NoteEditorLayout() {
   });
 
   // The notebook assistant chat. Mirrors the backend's rollout gate (hub
-  // editors and moderators). The hook lives here rather than in the panel so
-  // a running turn keeps polling — and the note refreshes with the agent's
-  // edits — even while the panel is closed.
+  // editors and moderators), narrowed further by an opt-in flag so the
+  // feature stays hidden from that group while it is being trialled. The hook
+  // lives here rather than in the panel so a running turn keeps polling — and
+  // the note refreshes with the agent's edits — even while the panel is closed.
   const { user } = useUser();
-  const canUseAssistant = !!user?.isModerator || !!user?.authorProfile?.isHubEditor;
+  const isAssistantFlagEnabled = useNotebookAssistantFlag();
+  const canUseAssistant =
+    isAssistantFlagEnabled && (!!user?.isModerator || !!user?.authorProfile?.isHubEditor);
   const [isChatOpen, setIsChatOpen] = useState(false);
   // Sticky: once the chat has been opened, keep its state (and any running
   // turn's polling) alive across open/close toggles.
