@@ -1,18 +1,58 @@
 import { Editor, Extension } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
-import Suggestion, { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion';
+import Suggestion, {
+  SuggestionProps,
+  SuggestionKeyDownProps,
+  exitSuggestion,
+} from '@tiptap/suggestion';
 import { PluginKey } from '@tiptap/pm/state';
-import tippy from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 
 import { GROUPS } from './groups';
 import { MenuList } from './MenuList';
+import { setDragHandleSuppressed } from '@/components/Editor/lib/utils/dragHandle';
 
 const extensionName = 'slashCommand';
 
+// Held at module scope so `exitSuggestion` can address this plugin. The key is
+// shared across editors, which is fine: each editor gets its own plugin
+// instance and its own state under that key.
+const slashCommandPluginKey = new PluginKey(extensionName);
+
+/** Gap kept between the menu and the bottom of the viewport, in px. */
+const VIEWPORT_MARGIN = 40;
+
+/**
+ * Structural stand-in for `DOMRect`, whose constructor does not exist while
+ * extensions are instantiated on the server.
+ */
+type MenuRect = Omit<DOMRect, 'toJSON'> & { toJSON: () => unknown };
+
+const createEmptyRect = (): MenuRect => ({
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  left: 0,
+  top: 0,
+  right: 0,
+  bottom: 0,
+  toJSON: () => ({}),
+});
+
 export interface SlashCommandStorage {
-  rect:
-    | DOMRect
-    | { width: number; height: number; left: number; top: number; right: number; bottom: number };
+  /** Last known caret rect, used as a fallback while the suggestion has none. */
+  rect: DOMRect | MenuRect;
+  /**
+   * Set by the drag handle's "+" button, which opens this menu by typing a `/`
+   * into the document on the user's behalf. It marks that slash as ours to undo
+   * if the menu is dismissed without picking a command, so an abandoned click
+   * doesn't leave a stray `/` behind. A slash the user typed themselves has no
+   * marker and is always left alone.
+   */
+  pendingAutoInsert: { createdParagraph: boolean } | null;
+  /** Owned per editor so remounting the editor cannot leak orphan popups. */
+  popup: TippyInstance | null;
 }
 
 // v3 types `editor.storage` against a declared interface rather than an index
@@ -23,7 +63,23 @@ declare module '@tiptap/core' {
   }
 }
 
-let popup: any;
+/**
+ * Anchors the menu to the caret, nudged upwards when it would otherwise open
+ * past the bottom of the viewport. Falls back to the last known caret rect
+ * while the suggestion reports none of its own.
+ */
+const createReferenceRectGetter = (props: SuggestionProps, getMenuHeight: () => number) => () => {
+  const rect = props.clientRect?.();
+
+  if (!rect) {
+    return props.editor.storage[extensionName].rect;
+  }
+
+  const overflow = rect.top + getMenuHeight() + VIEWPORT_MARGIN - window.innerHeight;
+  const y = overflow > 0 ? rect.y - overflow : rect.y;
+
+  return new DOMRect(rect.x, y, rect.width, rect.height);
+};
 
 export const SlashCommand = Extension.create({
   name: extensionName,
@@ -31,23 +87,29 @@ export const SlashCommand = Extension.create({
   priority: 200,
 
   onCreate() {
-    popup = tippy('body', {
-      interactive: true,
-      trigger: 'manual',
-      placement: 'bottom-start',
-      theme: 'slash-command',
-      maxWidth: '16rem',
-      offset: [16, 8],
-      popperOptions: {
-        strategy: 'fixed',
-        modifiers: [
-          {
-            name: 'flip',
-            enabled: false,
-          },
-        ],
-      },
-    });
+    this.storage.popup =
+      tippy('body', {
+        interactive: true,
+        trigger: 'manual',
+        placement: 'bottom-start',
+        theme: 'slash-command',
+        maxWidth: '16rem',
+        offset: [16, 8],
+        popperOptions: {
+          strategy: 'fixed',
+          modifiers: [
+            {
+              name: 'flip',
+              enabled: false,
+            },
+          ],
+        },
+      })[0] ?? null;
+  },
+
+  onDestroy() {
+    this.storage.popup?.destroy();
+    this.storage.popup = null;
   },
 
   addProseMirrorPlugins() {
@@ -57,7 +119,7 @@ export const SlashCommand = Extension.create({
         char: '/',
         allowSpaces: true,
         startOfLine: true,
-        pluginKey: new PluginKey(extensionName),
+        pluginKey: slashCommandPluginKey,
         allow: ({ state, range }) => {
           const $from = state.doc.resolve(range.from);
           const isRootDepth = $from.depth === 1;
@@ -78,6 +140,10 @@ export const SlashCommand = Extension.create({
           );
         },
         command: ({ editor, props }: { editor: Editor; props: any }) => {
+          // A command was chosen, so the inserted `/` has served its purpose and
+          // is consumed by the range deletion below rather than rolled back.
+          editor.storage[extensionName].pendingAutoInsert = null;
+
           const { view, state } = editor;
           const { $head, $from } = view.state.selection;
 
@@ -94,50 +160,76 @@ export const SlashCommand = Extension.create({
           view.focus();
         },
         items: ({ query }: { query: string }) => {
-          const withFilteredCommands = GROUPS.map((group) => ({
+          const queryNormalized = query.toLowerCase().trim();
+
+          return GROUPS.map((group) => ({
             ...group,
             commands: group.commands
               .filter((item) => {
+                if (item.shouldBeHidden?.(this.editor)) return false;
+
                 const labelNormalized = item.label.toLowerCase().trim();
-                const queryNormalized = query.toLowerCase().trim();
+                const aliases = item.aliases?.map((alias) => alias.toLowerCase().trim());
 
-                if (item.aliases) {
-                  const aliases = item.aliases.map((alias) => alias.toLowerCase().trim());
-
-                  return (
-                    labelNormalized.includes(queryNormalized) || aliases.includes(queryNormalized)
-                  );
-                }
-
-                return labelNormalized.includes(queryNormalized);
+                return aliases
+                  ? labelNormalized.includes(queryNormalized) || aliases.includes(queryNormalized)
+                  : labelNormalized.includes(queryNormalized);
               })
-              .filter((command) =>
-                command.shouldBeHidden ? !command.shouldBeHidden(this.editor) : true
-              ),
-          }));
-
-          const withoutEmptyGroups = withFilteredCommands.filter((group) => {
-            if (group.commands.length > 0) {
-              return true;
-            }
-
-            return false;
-          });
-
-          const withEnabledSettings = withoutEmptyGroups.map((group) => ({
-            ...group,
-            commands: group.commands.map((command) => ({
-              ...command,
-              isEnabled: true,
-            })),
-          }));
-
-          return withEnabledSettings;
+              .map((command) => ({ ...command, isEnabled: true })),
+          })).filter((group) => group.commands.length > 0);
         },
         render: () => {
-          let component: any;
-
+          let component: ReactRenderer | null = null;
+          let getReferenceClientRect: (() => DOMRect | MenuRect) | null = null;
+          let scrollContainer: HTMLElement | null = null;
           let scrollHandler: (() => void) | null = null;
+          let dismissOnOutsideClick: ((event: MouseEvent) => void) | null = null;
+
+          // The handlers below are method shorthands with their own `this`, so
+          // the editor is captured here in the arrow-function scope instead.
+          const editor = this.editor;
+          const getPopup = () => editor.storage[extensionName].popup;
+
+          const stopWatchingOutsideClicks = () => {
+            if (!dismissOnOutsideClick) return;
+            document.removeEventListener('mousedown', dismissOnOutsideClick, true);
+            dismissOnOutsideClick = null;
+          };
+
+          // Clicking outside the editor hides the popup via tippy but never
+          // reaches ProseMirror, so the suggestion would stay active with no
+          // menu on screen, leaving the drag handle locked and the inserted `/`
+          // behind. Close the session explicitly instead.
+          const watchOutsideClicks = () => {
+            stopWatchingOutsideClicks();
+
+            dismissOnOutsideClick = (event: MouseEvent) => {
+              if (editor.isDestroyed) {
+                stopWatchingOutsideClicks();
+                return;
+              }
+
+              const target = event.target as Node | null;
+              if (!target) return;
+
+              // The menu handles its own clicks, and clicks inside the editor
+              // already end the session by moving the selection.
+              if (getPopup()?.popper.contains(target) || editor.view.dom.contains(target)) {
+                return;
+              }
+
+              exitSuggestion(editor.view, slashCommandPluginKey);
+            };
+
+            document.addEventListener('mousedown', dismissOnOutsideClick, true);
+          };
+
+          const stopTrackingScroll = () => {
+            if (!scrollHandler) return;
+            scrollContainer?.removeEventListener('scroll', scrollHandler);
+            scrollHandler = null;
+            scrollContainer = null;
+          };
 
           return {
             onStart: (props: SuggestionProps) => {
@@ -146,121 +238,107 @@ export const SlashCommand = Extension.create({
                 editor: props.editor,
               });
 
-              const { view } = props.editor;
+              getReferenceClientRect = createReferenceRectGetter(
+                props,
+                () => (component?.element as HTMLElement | undefined)?.offsetHeight ?? 0
+              );
 
-              const editorNode = view.dom as HTMLElement;
+              // Reads the latest getter on each scroll, so `onUpdate` can swap
+              // it in without re-registering a listener.
+              scrollContainer = props.editor.view.dom.parentElement;
+              scrollHandler = () => getPopup()?.setProps({ getReferenceClientRect });
+              scrollContainer?.addEventListener('scroll', scrollHandler);
 
-              const getReferenceClientRect = () => {
-                if (!props.clientRect) {
-                  return props.editor.storage[extensionName].rect;
-                }
-
-                const rect = props.clientRect();
-
-                if (!rect) {
-                  return props.editor.storage[extensionName].rect;
-                }
-
-                let yPos = rect.y;
-
-                if (rect.top + component.element.offsetHeight + 40 > window.innerHeight) {
-                  const diff = rect.top + component.element.offsetHeight - window.innerHeight + 40;
-                  yPos = rect.y - diff;
-                }
-
-                return new DOMRect(rect.x, yPos, rect.width, rect.height);
-              };
-
-              scrollHandler = () => {
-                popup?.[0].setProps({
-                  getReferenceClientRect,
-                });
-              };
-
-              view.dom.parentElement?.addEventListener('scroll', scrollHandler);
-
-              popup?.[0].setProps({
+              getPopup()?.setProps({
                 getReferenceClientRect,
                 appendTo: () => document.body,
                 content: component.element,
               });
+              getPopup()?.show();
 
-              popup?.[0].show();
+              // Deferred: ProseMirror forbids dispatching while it is updating
+              // plugin views, which is the context this runs in.
+              queueMicrotask(() => setDragHandleSuppressed(props.editor, true, { hide: true }));
+
+              watchOutsideClicks();
             },
 
             onUpdate(props: SuggestionProps) {
-              component.updateProps(props);
+              component?.updateProps(props);
 
-              const { view } = props.editor;
-
-              const editorNode = view.dom as HTMLElement;
-
-              const getReferenceClientRect = () => {
-                if (!props.clientRect) {
-                  return props.editor.storage[extensionName].rect;
-                }
-
-                const rect = props.clientRect();
-
-                if (!rect) {
-                  return props.editor.storage[extensionName].rect;
-                }
-
-                let yPos = rect.y;
-
-                if (rect.top + component.element.offsetHeight + 40 > window.innerHeight) {
-                  const diff = rect.top + component.element.offsetHeight - window.innerHeight + 40;
-                  yPos = rect.y - diff;
-                }
-
-                return new DOMRect(rect.x, yPos, rect.width, rect.height);
-              };
-
-              let scrollHandler = () => {
-                popup?.[0].setProps({
-                  getReferenceClientRect,
-                });
-              };
-
-              view.dom.parentElement?.addEventListener('scroll', scrollHandler);
+              getReferenceClientRect = createReferenceRectGetter(
+                props,
+                () => (component?.element as HTMLElement | undefined)?.offsetHeight ?? 0
+              );
 
               // eslint-disable-next-line no-param-reassign
               props.editor.storage[extensionName].rect = props.clientRect
                 ? getReferenceClientRect()
-                : {
-                    width: 0,
-                    height: 0,
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                  };
-              popup?.[0].setProps({
-                getReferenceClientRect,
-              });
+                : createEmptyRect();
+
+              getPopup()?.setProps({ getReferenceClientRect });
             },
 
             onKeyDown(props: SuggestionKeyDownProps) {
+              const popup = getPopup();
+
               if (props.event.key === 'Escape') {
-                popup?.[0].hide();
+                popup?.hide();
+                // Escape only hides the popup; the suggestion stays active, so
+                // release the handle here or it stays locked with no menu up.
+                queueMicrotask(() => setDragHandleSuppressed(editor, false));
 
                 return true;
               }
 
-              if (!popup?.[0].state.isShown) {
-                popup?.[0].show();
+              if (!popup?.state.isShown) {
+                popup?.show();
               }
 
-              return component.ref?.onKeyDown(props);
+              const menu = component?.ref as
+                | { onKeyDown?: (p: SuggestionKeyDownProps) => boolean }
+                | undefined;
+
+              return menu?.onKeyDown?.(props) ?? false;
             },
 
             onExit(props) {
-              popup?.[0].hide();
-              if (scrollHandler) {
-                const { view } = props.editor;
-                view.dom.parentElement?.removeEventListener('scroll', scrollHandler);
-              }
-              component.destroy();
+              getPopup()?.hide();
+              stopWatchingOutsideClicks();
+              stopTrackingScroll();
+              component?.destroy();
+              component = null;
+              getReferenceClientRect = null;
+
+              // Dismissed without choosing a command. If the "+" button opened
+              // this menu, roll the document back to how it looked before the
+              // click instead of leaving the inserted `/` behind.
+              const { range } = props;
+              const autoInsert = props.editor.storage[extensionName].pendingAutoInsert;
+              props.editor.storage[extensionName].pendingAutoInsert = null;
+
+              // ProseMirror forbids dispatching while it is updating plugin
+              // views, which is where this runs, so apply on the next tick.
+              queueMicrotask(() => {
+                if (props.editor.isDestroyed) return;
+
+                setDragHandleSuppressed(props.editor, false);
+
+                if (!autoInsert) return;
+
+                const { doc } = props.editor.state;
+                if (range.from > doc.content.size) return;
+
+                const $from = doc.resolve(range.from);
+                // The "+" adds a whole paragraph unless it reused an empty one,
+                // so remove the paragraph in that case to avoid a blank line.
+                const target =
+                  autoInsert.createdParagraph && $from.depth > 0
+                    ? { from: $from.before($from.depth), to: $from.after($from.depth) }
+                    : { from: range.from, to: Math.min(range.to, doc.content.size) };
+
+                props.editor.chain().deleteRange(target).run();
+              });
             },
           };
         },
@@ -268,16 +346,11 @@ export const SlashCommand = Extension.create({
     ];
   },
 
-  addStorage() {
+  addStorage(): SlashCommandStorage {
     return {
-      rect: {
-        width: 0,
-        height: 0,
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-      },
+      rect: createEmptyRect(),
+      pendingAutoInsert: null,
+      popup: null,
     };
   },
 });
