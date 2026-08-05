@@ -3,6 +3,7 @@ import { NodeSelection } from '@tiptap/pm/state';
 import { Editor } from '@tiptap/react';
 import { useCallback } from 'react';
 import { Command } from '@/components/Editor/extensions/SlashCommand/types';
+import { DRAG_HANDLE_HIDE_META } from '@/components/Editor/lib/utils/dragHandle';
 
 const useContentItemActions = (
   editor: Editor,
@@ -29,13 +30,13 @@ const useContentItemActions = (
 
     editor
       .chain()
-      .setMeta('hideDragHandle', true)
+      .setMeta(DRAG_HANDLE_HIDE_META, true)
       .insertContentAt(currentNodePos + (currentNode?.nodeSize || 0), selectedNode.toJSON())
       .run();
   }, [editor, currentNodePos, currentNode?.nodeSize]);
 
   const copyNodeToClipboard = useCallback(() => {
-    editor.chain().setMeta('hideDragHandle', true).setNodeSelection(currentNodePos).run();
+    editor.chain().setMeta(DRAG_HANDLE_HIDE_META, true).setNodeSelection(currentNodePos).run();
 
     document.execCommand('copy');
   }, [editor, currentNodePos]);
@@ -43,7 +44,7 @@ const useContentItemActions = (
   const deleteNode = useCallback(() => {
     editor
       .chain()
-      .setMeta('hideDragHandle', true)
+      .setMeta(DRAG_HANDLE_HIDE_META, true)
       .setNodeSelection(currentNodePos)
       .deleteSelection()
       .run();
@@ -57,8 +58,17 @@ const useContentItemActions = (
         currentNode?.type.name === 'paragraph' && currentNode?.content?.size === 0;
       const focusPos = currentNodeIsEmptyParagraph ? currentNodePos + 2 : insertPos + 2;
 
+      // Lets the slash menu undo this insertion if it is dismissed without a
+      // command being picked, so an abandoned click leaves no stray `/`.
+      editor.storage.slashCommand.pendingAutoInsert = {
+        createdParagraph: !currentNodeIsEmptyParagraph,
+      };
+
       editor
         .chain()
+        // Hide the handle so the "+" cannot be clicked a second time while the
+        // menu it just opened is still up.
+        .setMeta(DRAG_HANDLE_HIDE_META, true)
         .command(({ dispatch, tr, state }) => {
           if (dispatch) {
             if (currentNodeIsEmptyParagraph) {
@@ -85,14 +95,14 @@ const useContentItemActions = (
       if (currentNodePos === -1) return;
 
       if (command.convertAction) {
-        editor.chain().setMeta('hideDragHandle', true).setNodeSelection(currentNodePos).run();
+        editor.chain().setMeta(DRAG_HANDLE_HIDE_META, true).setNodeSelection(currentNodePos).run();
         command.convertAction(editor);
         return;
       }
 
       editor
         .chain()
-        .setMeta('hideDragHandle', true)
+        .setMeta(DRAG_HANDLE_HIDE_META, true)
         .setNodeSelection(currentNodePos)
         .deleteSelection()
         .run();
