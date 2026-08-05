@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+.next
+.turbo
+dist
+build
+out
+coverage
+*.log
+.env
+.env.*
+!.env.example
+__pycache__
+*.pyc
