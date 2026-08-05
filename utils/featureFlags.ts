@@ -4,6 +4,7 @@
 
 export enum FeatureFlag {
   LegacyNoteBanner = 'legacyNoteBanner',
+  NotebookChatAssistant = 'notebookChatAssistant',
 }
 
 function getLocalStorageFlag(key: FeatureFlag): boolean | undefined {
@@ -12,6 +13,21 @@ function getLocalStorageFlag(key: FeatureFlag): boolean | undefined {
   if (value === 'true') return true;
   if (value === 'false') return false;
   return undefined;
+}
+
+/**
+ * Persist a flag override for this browser, or clear it with `null`.
+ *
+ * Lets a URL parameter switch a flag on for one tester without a deploy; the
+ * override survives navigation, which a query string alone would not.
+ */
+export function setFeatureOverride(key: FeatureFlag, value: boolean | null): void {
+  if (typeof window === 'undefined') return;
+  if (value === null) {
+    window.localStorage.removeItem(`ff:${key}`);
+    return;
+  }
+  window.localStorage.setItem(`ff:${key}`, String(value));
 }
 
 /**
@@ -73,6 +89,10 @@ export function isProduction(): boolean {
  */
 export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
   [FeatureFlag.LegacyNoteBanner]: () => true,
+  // Off until a tester opts in with ?assistant=1, so the notebook assistant
+  // stays invisible to editors and moderators during the trial.
+  [FeatureFlag.NotebookChatAssistant]: () =>
+    getLocalStorageFlag(FeatureFlag.NotebookChatAssistant) ?? false,
 };
 
 /**
