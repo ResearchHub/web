@@ -10,6 +10,7 @@ RUN apt-get update \
 RUN corepack enable
 
 WORKDIR /app
+RUN chown node:node /app
 
 # HMR and bind settings are supplied or overridden by the Live Dev Server runtime.
 ENV HOSTNAME=0.0.0.0 \
@@ -22,6 +23,9 @@ EXPOSE 3000
 
 # Runtime hydration provides this checkout's dependencies.
 ENV PATH="/app/node_modules/.bin:${PATH}"
+
+# Keep the dev server and its runtime-created files unprivileged.
+USER node
 
 # Next.js reads HOSTNAME and PORT directly; the CODEPRESS_* values keep the
 # runtime contract available without baking preview-specific host details.
