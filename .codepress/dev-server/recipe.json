@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "bootstrapped_at": "2026-08-05T00:20:33Z",
+  "bootstrapped_at": "2026-08-05T00:28:52Z",
   "discovery_branch": "codepress/yattias/you-are-bootstrapping-the-live-dev-e6d7d5d9",
+  "staging_backend_url": "https://backend.staging.researchhub.com",
   "frontends": [
     {
       "label": "web",
