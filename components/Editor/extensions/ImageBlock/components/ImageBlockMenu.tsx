@@ -1,6 +1,6 @@
-import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react';
-import React, { useCallback, useRef } from 'react';
-import { Instance, sticky } from 'tippy.js';
+import { useEditorState } from '@tiptap/react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
@@ -11,7 +11,6 @@ import { getRenderContainer } from '@/components/Editor/lib/utils';
 
 export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);
-  const tippyInstance = useRef<Instance | null>(null);
 
   const getReferenceClientRect = useCallback(() => {
     const renderContainer = getRenderContainer(editor, 'node-imageBlock');
@@ -25,6 +24,15 @@ export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Eleme
 
     return isActive;
   }, [editor]);
+
+  // Stable identities required: BubbleMenu dispatches a transaction whenever
+  // these props change, which would re-render this menu and loop.
+  const menuAppendTo = useCallback(() => appendTo?.current, [appendTo]);
+  const referencedVirtualElement = useCallback(
+    () => ({ getBoundingClientRect: getReferenceClientRect }),
+    [getReferenceClientRect]
+  );
+  const menuOptions = useMemo(() => ({ offset: 8, flip: false }), []);
 
   const onAlignImageLeft = useCallback(() => {
     editor.chain().focus(undefined, { scrollIntoView: false }).setImageBlockAlign('left').run();
@@ -62,21 +70,9 @@ export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Eleme
       pluginKey={`imageBlockMenu-${uuid()}`}
       shouldShow={shouldShow}
       updateDelay={0}
-      tippyOptions={{
-        offset: [0, 8],
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-        getReferenceClientRect,
-        onCreate: (instance: Instance) => {
-          tippyInstance.current = instance;
-        },
-        appendTo: () => {
-          return appendTo?.current;
-        },
-        plugins: [sticky],
-        sticky: 'popper',
-      }}
+      appendTo={menuAppendTo}
+      getReferencedVirtualElement={referencedVirtualElement}
+      options={menuOptions}
     >
       <Toolbar.Wrapper shouldShowContent={shouldShow()} ref={menuRef}>
         <Toolbar.Button tooltip="Align image left" active={isImageLeft} onClick={onAlignImageLeft}>

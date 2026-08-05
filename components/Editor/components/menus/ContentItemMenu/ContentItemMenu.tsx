@@ -1,7 +1,8 @@
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
-import DragHandle from '@tiptap-pro/extension-drag-handle-react';
+import DragHandle from '@tiptap/extension-drag-handle-react';
 import { Editor } from '@tiptap/react';
+import { offset } from '@floating-ui/dom';
 
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Surface } from '@/components/Editor/components/ui/Surface';
@@ -51,9 +52,11 @@ export const ContentItemMenu = ({ editor }: ContentItemMenuProps) => {
       pluginKey="ContentItemMenu"
       editor={editor}
       onNodeChange={data.handleNodeChange}
-      tippyOptions={{
-        offset: [-2, 16],
-        zIndex: 99,
+      className="z-[99]"
+      computePositionConfig={{
+        placement: 'left-start',
+        // Mirrors the v2 tippy offset of [skidding: -2, distance: 16].
+        middleware: [offset({ mainAxis: 16, crossAxis: -2 })],
       }}
     >
       <div className="flex items-center gap-0.5">

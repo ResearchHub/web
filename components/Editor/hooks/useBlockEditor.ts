@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useEditor } from '@tiptap/react';
 import type { AnyExtension, Editor } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
-import { TextAlign } from '@tiptap/extension-text-align';
-import { History } from '@tiptap/extension-history';
+import { UndoRedo } from '@tiptap/extensions';
+import { migrateMathStrings } from '@tiptap/extension-mathematics';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { Ai } from '@/components/Editor/extensions/Ai';
@@ -61,10 +61,7 @@ export const useBlockEditor = ({
             },
           },
         }),
-        TextAlign.configure({
-          types: ['heading', 'paragraph'],
-        }),
-        History.configure({
+        UndoRedo.configure({
           depth: 100,
         }),
         aiToken
@@ -97,6 +94,14 @@ export const useBlockEditor = ({
             type: 'doc',
             content: [],
           },
+      onCreate: ({ editor }) => {
+        // Tiptap v3 represents math as inlineMath/blockMath nodes instead of
+        // the `$...$` text strings v2 decorated, so documents saved by v2 need
+        // converting on open or they render as literal `$...$`. Read-only
+        // mounts convert too (for display); they never pass an onUpdate, so
+        // nothing is written back until someone opens the note editably.
+        migrateMathStrings(editor);
+      },
       onUpdate: ({ editor }) => {
         onUpdate?.(editor);
       },
