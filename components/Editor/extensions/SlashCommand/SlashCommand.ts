@@ -9,6 +9,20 @@ import { MenuList } from './MenuList';
 
 const extensionName = 'slashCommand';
 
+export interface SlashCommandStorage {
+  rect:
+    | DOMRect
+    | { width: number; height: number; left: number; top: number; right: number; bottom: number };
+}
+
+// v3 types `editor.storage` against a declared interface rather than an index
+// signature, so the extension has to register its own storage key.
+declare module '@tiptap/core' {
+  interface Storage {
+    slashCommand: SlashCommandStorage;
+  }
+}
+
 let popup: any;
 
 export const SlashCommand = Extension.create({

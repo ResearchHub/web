@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from 'react';
-import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useEditorState } from '@tiptap/react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
 
 import { MenuProps } from '../types';
 import { LinkPreviewPanel } from '@/components/Editor/components/panels/LinkPreviewPanel';
@@ -43,23 +44,27 @@ export const LinkMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => 
     return null;
   }, [editor]);
 
+  // Stable identities required: BubbleMenu dispatches a transaction whenever
+  // these props change, which would re-render this menu and loop.
+  const menuAppendTo = useCallback(() => appendTo?.current, [appendTo]);
+  const menuOptions = useMemo(
+    () => ({
+      flip: false,
+      onHide: () => {
+        setShowEdit(false);
+      },
+    }),
+    []
+  );
+
   return (
     <BaseBubbleMenu
       editor={editor}
       pluginKey="linkMenu"
       shouldShow={shouldShow}
       updateDelay={0}
-      tippyOptions={{
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-        appendTo: () => {
-          return appendTo?.current;
-        },
-        onHidden: () => {
-          setShowEdit(false);
-        },
-      }}
+      appendTo={menuAppendTo}
+      options={menuOptions}
     >
       {showEdit ? (
         <LinkEditorPanel
