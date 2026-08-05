@@ -22,4 +22,7 @@ EXPOSE 3000
 # The runtime provides dependencies on the bind-mounted checkout.
 ENV PATH="/app/node_modules/.bin:${PATH}"
 
+# Run the customer dev server without root privileges.
+USER node
+
 CMD ["npm", "run", "dev"]
