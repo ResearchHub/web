@@ -24,5 +24,6 @@ EXPOSE 3000
 # Keep local package binaries available after runtime dependency hydration.
 ENV PATH="/app/node_modules/.bin:${PATH}"
 
-# Next.js reads HOSTNAME and PORT directly; its HMR websocket uses the page origin.
-CMD ["npm", "exec", "--", "next", "dev", "--turbopack"]
+# Run the repository's existing dev script; it resolves the locally installed Next.js binary.
+USER node
+CMD ["npm", "run", "dev"]

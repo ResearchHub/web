@@ -7,7 +7,7 @@
       "label": "web",
       "working_dir": "",
       "dockerfile_path": ".codepress/dev-server/Dockerfile.web",
-      "dev_command": "npm exec -- next dev --turbopack",
+      "dev_command": "npm run dev",
       "prebuild_command": "",
       "prebuild_inputs": [],
       "framework": "next",
