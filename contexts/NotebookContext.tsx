@@ -37,6 +37,7 @@ interface NotebookContextType {
   isLoadingNote: boolean;
   noteError: Error | null;
   loadNote: (noteId: string) => Promise<void>;
+  refreshCurrentNote: () => Promise<void>;
   updateNoteTitle: (newTitle: string) => void;
 
   // Editor state
@@ -183,6 +184,28 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
   }, []);
 
+  // Silent refetch of the note that is already open, bypassing loadNote's
+  // same-id cache. Used after the notebook assistant finishes a turn, whose
+  // edits land server-side as a new content version.
+  const refreshCurrentNote = useCallback(async () => {
+    const noteId = lastLoadedNoteIdRef.current;
+    if (!noteId) return;
+    try {
+      const note = await NoteService.getNote(noteId);
+      // Drop the response if the user switched notes while it was in flight.
+      if (lastLoadedNoteIdRef.current !== noteId) return;
+      setCurrentNote((prev) => {
+        // Hold the previous object when the document is unchanged: the editor
+        // remounts on new content, and remounting for a no-op refresh would
+        // throw away the user's cursor and undo history for nothing.
+        if (prev && prev.contentJson === note.contentJson) return prev;
+        return note;
+      });
+    } catch {
+      // A failed refresh keeps showing the content we already have.
+    }
+  }, []);
+
   const updateNoteTitle = useCallback(
     (newTitle: string) => {
       if (!activeNoteId) return;
@@ -263,6 +286,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     isLoadingNote,
     noteError,
     loadNote,
+    refreshCurrentNote,
     updateNoteTitle,
     editor,
     setEditor,
