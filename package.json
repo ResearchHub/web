@@ -11,7 +11,6 @@
     "lint:work-pages": "eslint \"app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx\"",
     "format": "prettier --write --ignore-path .gitignore \"./**/*.{js,jsx,ts,tsx,json,css}\"",
     "type-check": "tsc --noEmit",
-    "tiptap:roundtrip": "tsx scripts/tiptap-roundtrip.ts",
     "type-check:watch": "tsc --noEmit --watch",
     "prepare": "husky"
   },
@@ -159,7 +158,6 @@
     "prettier": "^3.4.2",
     "raw-loader": "^4.0.2",
     "tailwindcss": "^3.4.15",
-    "tsx": "4.20.6",
     "typescript": "^6.0.3"
   },
   "lint-staged": {
