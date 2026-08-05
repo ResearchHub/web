@@ -16,12 +16,12 @@
     "NEXT_PUBLIC_VERCEL_ENV": "preview"
   },
   "input_checksums": {
-    "dockerfile": "41d5c619cc51884d52302b5f75fdd7ef94d026dc",
+    "dockerfile": "6cc776d7944d9c29f892dfb8ccb11131b1466541",
     "dependency_manifest": "e3e31bdfa75caf09cf4786ef8a528f88d4ddbb30"
   },
   "system_packages": [],
   "known_fixes": [
-    "Container validation was blocked because the private @tiptap-pro package registry returned HTTP 403 without credentials; the Dockerfile now accepts an ephemeral BuildKit npmrc secret or NPM_TOKEN build argument."
+    "Container validation was blocked because the private @tiptap-pro package registry returned HTTP 403 without credentials; the Dockerfile now accepts an ephemeral BuildKit npmrc secret, uses npm ci --ignore-scripts, copies only declared app paths, and runs as node."
   ],
   "discovery_notes": "ResearchHub web is a Next.js 15 App Router frontend using npm and package-lock.json. It serves on port 3000 with npm run dev and reads its backend from NEXT_PUBLIC_API_URL when supplied; no local database or cache service is declared. The first Docker validation could not install private @tiptap-pro dependencies because no registry credentials were available."
 }

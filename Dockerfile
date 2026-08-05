@@ -12,10 +12,26 @@ RUN --mount=type=secret,id=npmrc,target=/run/secrets/npmrc,required=false \
     if [ -s /run/secrets/npmrc ]; then cp /run/secrets/npmrc /root/.npmrc; \
     elif [ -n "${NPM_TOKEN:-}" ]; then printf '%s\n' "//registry.tiptap.dev/:_authToken=${NPM_TOKEN}" > /root/.npmrc; \
     fi; \
-    npm ci; \
+    npm ci --ignore-scripts; \
     rm -f /root/.npmrc
 
-COPY . .
+COPY app ./app
+COPY components ./components
+COPY config ./config
+COPY constants ./constants
+COPY contexts ./contexts
+COPY hooks ./hooks
+COPY lib ./lib
+COPY public ./public
+COPY services ./services
+COPY store ./store
+COPY types ./types
+COPY utils ./utils
+COPY eslint-rules ./eslint-rules
+COPY next.config.js middleware.ts tsconfig.json tailwind.config.ts postcss.config.mjs eslint.config.mjs ./
+
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]
