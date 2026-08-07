@@ -19,7 +19,7 @@ interface ResearchCoinSnapshotProps {
   className?: string;
   /**
    * When true the entire card becomes a button that opens the funding links
-   * dropdown (My ResearchCoin / funder dashboard) and surfaces a hover
+   * dropdown (My ResearchCoin / My Funding) and surfaces a hover
    * affordance. When false the card is a static read-out (e.g. in the profile
    * menu).
    */

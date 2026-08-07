@@ -29,7 +29,7 @@ interface FundingLinksMenuProps {
 
 /**
  * Disclosure menu for the funding hero/snapshot. Keeps the secondary
- * destinations (My ResearchCoin and the funder dashboard) tucked behind a click
+ * destinations (My ResearchCoin and My Funding) tucked behind a click
  * so the surrounding card stays focused on the figures, then reveals them on
  * demand.
  */
@@ -53,9 +53,9 @@ export const FundingLinksMenu: FC<FundingLinksMenuProps> = ({
     </BaseMenuItem>
     <DropdownMenu.Separator className="-mx-1 my-1 h-px bg-gray-100" />
     <BaseMenuItem asChild className={ITEM_CLASS}>
-      <Link href="/fund/dashboard">
+      <Link href="/my-funding">
         <Icon name="fund" size={20} color={ICON_COLOR} />
-        Funder dashboard
+        My Funding
         <ChevronRight size={16} className={ARROW_CLASS} />
       </Link>
     </BaseMenuItem>
