@@ -48,14 +48,19 @@ export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
 }) => {
   const showFooter = !!actions;
 
-  const authorLine =
-    organization ||
-    (authors.length > 0
+  const authorNames =
+    authors.length > 0
       ? authors
           .slice(0, 2)
           .map((a) => a.name)
           .join(', ') + (authors.length > 2 ? ` +${authors.length - 2}` : '')
-      : institution || null);
+      : null;
+
+  const authorLine =
+    organization ||
+    (authorNames && institution
+      ? `${authorNames} · ${institution}`
+      : authorNames || institution || null);
 
   const imageBlock = (
     <div
@@ -168,7 +173,7 @@ export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
       )}
 
       {showFooter && (
-        <div className="flex h-[46px] w-full items-center px-2">
+        <div className="flex items-center justify-between gap-3 px-3 py-2">
           <div className="w-full min-w-0">{actions}</div>
         </div>
       )}

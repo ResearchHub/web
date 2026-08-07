@@ -129,10 +129,9 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
                   href={work.href}
                   hideCommentButton
                   hideReportButton
-                  variant="inline"
+                  variant="compact"
                   leadingUtilityActions
                   rightSideActionButton={action}
-                  className="gap-1"
                 />
               }
             />

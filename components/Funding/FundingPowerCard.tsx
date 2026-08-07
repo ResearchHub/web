@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { RSC_COLORS } from '@/components/ui/icons/ResearchCoinIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { DepositModal } from '@/components/modals/ResearchCoin/DepositModal';
 import { formatCurrency } from '@/utils/currency';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -20,6 +22,7 @@ interface FundingPowerCardProps {
  * visualizes the split between RSC and fund-only credits
  */
 export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const { user, isLoading: isUserLoading } = useUser();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isRateLoading } = useExchangeRate();
@@ -49,6 +52,8 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
   const rscWidth = total > 0 ? (balanceRaw / total) * 100 : 0;
   const creditsWidth = total > 0 ? (creditsRaw / total) * 100 : 0;
 
+  const openDepositModal = () => setIsDepositModalOpen(true);
+
   return (
     <aside className={cn('w-[250px]', className)}>
       <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
@@ -65,13 +70,14 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
           {isEmpty ? '—' : fmt(total)}
         </span>
         {!isEmpty && (
-          <Link
-            href="/researchcoin?action=deposit"
+          <button
+            type="button"
+            onClick={openDepositModal}
             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] font-semibold text-gray-800 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50"
           >
             <Plus size={14} className="shrink-0" />
             Deposit
-          </Link>
+          </button>
         )}
       </div>
 
@@ -127,7 +133,7 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
 
       {isEmpty && (
         <div className="mt-2.5 flex gap-2">
-          <PrimaryCta href="/researchcoin?action=deposit">Deposit RSC</PrimaryCta>
+          <PrimaryCta onClick={openDepositModal}>Deposit RSC</PrimaryCta>
           <SecondaryCta href="/earn">Earn credits</SecondaryCta>
         </div>
       )}
@@ -150,6 +156,8 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
           />
         </div>
       )}
+
+      <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
     </aside>
   );
 };
@@ -195,25 +203,32 @@ const SourceRow = ({ label, tooltip, dotColor, value, valueClassName }: SourceRo
   </Tooltip>
 );
 
-interface CtaProps {
-  href: string;
+interface PrimaryCtaProps {
+  onClick: () => void;
   children: React.ReactNode;
   className?: string;
 }
 
-const PrimaryCta = ({ href, children, className }: CtaProps) => (
-  <Link
-    href={href}
+const PrimaryCta = ({ onClick, children, className }: PrimaryCtaProps) => (
+  <button
+    type="button"
+    onClick={onClick}
     className={cn(
       'inline-flex flex-1 items-center justify-center rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-primary-700',
       className
     )}
   >
     {children}
-  </Link>
+  </button>
 );
 
-const SecondaryCta = ({ href, children, className }: CtaProps) => (
+interface SecondaryCtaProps {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+const SecondaryCta = ({ href, children, className }: SecondaryCtaProps) => (
   <Link
     href={href}
     className={cn(
