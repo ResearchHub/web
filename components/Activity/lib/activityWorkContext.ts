@@ -393,7 +393,10 @@ function getWorkContextFromContent(entry: FeedEntry): ActivityWorkContext | null
       unifiedDocumentId: toOptionalNumber(post.unifiedDocumentId),
       fundraise: post.fundraise,
       bounty,
-      authors: post.authors,
+      authors:
+        entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION'
+          ? undefined
+          : post.authors,
       tab,
     };
   }
@@ -411,6 +414,10 @@ function resolveWorkAuthors(
   relatedAuthors?: AuthorProfile[]
 ): AuthorProfile[] | undefined {
   if (relatedAuthors?.length) return relatedAuthors;
+
+  if (entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION') {
+    return undefined;
+  }
 
   const content = entry.content as { authors?: AuthorProfile[] } | undefined;
   if (Array.isArray(content?.authors) && content.authors.length > 0) {
