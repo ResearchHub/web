@@ -67,7 +67,7 @@ const NavigationContext = createContext<NavigationContextType>({
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isBackNavigation, setIsBackNavigation] = useState(false);
-  const isTrackingRef = useRef(false);
+  const activeFeedTrackerCountRef = useRef(0);
   const minScrollPositionRef = useRef<number>(MIN_SCROLL_POSITION_TO_STORE);
   const lastClickedEntryIdRef = useRef<string | null>(null);
 
@@ -115,7 +115,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   };
 
   const startTrackingFeed = (minScrollPosition?: number) => {
-    isTrackingRef.current = true;
+    activeFeedTrackerCountRef.current += 1;
     if (minScrollPosition !== undefined) {
       minScrollPositionRef.current = minScrollPosition;
     } else {
@@ -124,7 +124,10 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   };
 
   const stopTrackingFeed = () => {
-    isTrackingRef.current = false;
+    activeFeedTrackerCountRef.current = Math.max(0, activeFeedTrackerCountRef.current - 1);
+    if (activeFeedTrackerCountRef.current === 0) {
+      lastClickedEntryIdRef.current = null;
+    }
   };
 
   const saveFeedState = (feedData: StoredFeedState) => {
@@ -137,7 +140,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
       }
 
-      if (!isTrackingRef.current) {
+      if (activeFeedTrackerCountRef.current === 0) {
         return;
       }
 
@@ -210,9 +213,6 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       };
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
-
-      // Clear the ref after saving it to the feed entry
-      lastClickedEntryIdRef.current = null;
     } catch (error) {
       // Silently fail - storage errors shouldn't break the app
     }
