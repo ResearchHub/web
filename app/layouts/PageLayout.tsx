@@ -103,7 +103,7 @@ function PageLayoutInner({
         >
           {topBanner && <div className="w-full">{topBanner}</div>}
 
-          <div className="flex mx-auto w-full max-w-[1180px]">
+          <div className="flex mx-auto w-full max-w-[1012px]">
             <main
               className={cn(
                 'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',

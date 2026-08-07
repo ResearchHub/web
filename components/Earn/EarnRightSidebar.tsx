@@ -24,8 +24,8 @@ const useItems: SidebarItem[] = [
     href: '/fund/proposals',
   },
   {
-    title: 'Open Funding Opportunity',
-    description: 'Fund specific research you care about.',
+    title: 'Open Request for Proposal',
+    description: 'Fund research',
     icon: <FundingIcon size={16} color="#4b5563" />,
     href: '/fund',
   },

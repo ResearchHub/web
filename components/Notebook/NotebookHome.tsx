@@ -52,8 +52,8 @@ export function NotebookHome() {
   const createOptions: CreateOption[] = [
     {
       id: 'funding-opportunity',
-      title: 'Funding Opportunity',
-      description: 'Fund specific research you care about',
+      title: 'RFP',
+      description: 'Fund research',
       icon: <Icon name="fund" size={24} color="#2563eb" />,
       onClick: () => setIsFundingOpportunityModalOpen(true),
     },

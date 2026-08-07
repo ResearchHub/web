@@ -12,6 +12,7 @@ import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
+import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 
 interface Props {
   params: Promise<{
@@ -96,6 +97,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
         }
       >
         {children}
+        <SearchHistoryTracker work={work} />
       </PageLayout>
     </GrantTabProvider>
   );

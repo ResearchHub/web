@@ -43,7 +43,7 @@ const ROUTE_RULES: RouteRule[] = [
   {
     match: (p) => isHomeTabPath(p),
     getInfo: () => ({
-      title: 'Home',
+      title: 'Fund Scientific Research',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     }),
   },

@@ -46,6 +46,7 @@ export interface ActivityHeaderMessage {
   verb: string;
   target?: ActivityHeaderTarget;
   isEarning?: boolean;
+  suffix?: string;
 }
 
 /**
@@ -63,7 +64,12 @@ function getFundingActivityMessage(content: FeedFundingActivityContent): Activit
   const recipient = content.recipient;
 
   if (recipient && (content.sourceType === 'BOUNTY_PAYOUT' || isFoundationProfile(actor))) {
-    return { actor: recipient, verb: 'earned', isEarning: true };
+    return {
+      actor: recipient,
+      verb: 'earned',
+      isEarning: true,
+      suffix: ' for their peer review',
+    };
   }
 
   if (content.sourceType === 'BOUNTY_PAYOUT') {
@@ -99,7 +105,14 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
 
     const commentType = commentContent.comment?.commentType;
     if (commentType === 'REVIEW') {
-      if (getReviewEarning(entry)) return { actor, verb: 'earned', isEarning: true };
+      if (getReviewEarning(entry)) {
+        return {
+          actor,
+          verb: 'earned',
+          isEarning: true,
+          suffix: ' for their peer review',
+        };
+      }
       const score = commentContent.review?.score ?? commentContent.comment.reviewScore;
       return { actor, verb: score ? 'peer reviewed and scored' : 'peer reviewed' };
     }
@@ -115,7 +128,7 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return { actor, verb: 'funded proposal' };
+    return { actor, verb: 'funded proposal for' };
   }
 
   return {
@@ -350,7 +363,16 @@ export interface FeedCommentPreview {
 }
 
 export function getCommentPreview(entry: FeedEntry): FeedCommentPreview | null {
-  if (entry.contentType === 'FUNDINGACTIVITY') return null;
+  if (entry.contentType === 'FUNDINGACTIVITY') {
+    const peerReview = (entry.content as FeedFundingActivityContent).peerReview;
+    if (!peerReview?.content) return null;
+    return {
+      content: peerReview.content,
+      format: peerReview.contentFormat,
+      isReview: peerReview.isReview,
+    };
+  }
+
   if (entry.contentType !== 'COMMENT') return null;
   const { comment } = entry.content as FeedCommentContent;
   if (!comment?.content) return null;

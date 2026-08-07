@@ -393,7 +393,10 @@ function getWorkContextFromContent(entry: FeedEntry): ActivityWorkContext | null
       unifiedDocumentId: toOptionalNumber(post.unifiedDocumentId),
       fundraise: post.fundraise,
       bounty,
-      authors: post.authors,
+      authors:
+        entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION'
+          ? undefined
+          : post.authors,
       tab,
     };
   }
@@ -401,9 +404,34 @@ function getWorkContextFromContent(entry: FeedEntry): ActivityWorkContext | null
   return null;
 }
 
+/**
+ * Prefer related-work authors when present; otherwise use the entry content's
+ * authors (activity `related_work` often ships without an authors list while
+ * `content_object.authors` is populated for proposal submissions).
+ */
+function resolveWorkAuthors(
+  entry: FeedEntry,
+  relatedAuthors?: AuthorProfile[]
+): AuthorProfile[] | undefined {
+  if (relatedAuthors?.length) return relatedAuthors;
+
+  if (entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION') {
+    return undefined;
+  }
+
+  const content = entry.content as { authors?: AuthorProfile[] } | undefined;
+  if (Array.isArray(content?.authors) && content.authors.length > 0) {
+    return content.authors;
+  }
+
+  return relatedAuthors;
+}
+
 function workContextFromRelatedWork(entry: FeedEntry, related: Work): ActivityWorkContext {
   const tab = resolveTabFromContext(entry.activityContext);
   const documentType = related.contentType;
+  const relatedAuthors = related.authors?.map((authorship) => authorship.authorProfile);
+
   return {
     id: related.id,
     slug: related.slug,
@@ -420,7 +448,7 @@ function workContextFromRelatedWork(entry: FeedEntry, related: Work): ActivityWo
     fundraise: related.fundraise,
     grant: related.grantSummary,
     bounty: getActivityBounty(entry),
-    authors: related.authors?.map((authorship) => authorship.authorProfile),
+    authors: resolveWorkAuthors(entry, relatedAuthors),
     tab,
   };
 }

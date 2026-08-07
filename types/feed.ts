@@ -13,6 +13,7 @@ import {
 import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
+import type { CommentContent } from '@/components/Comment/lib/types';
 import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
@@ -57,6 +58,51 @@ function transformFundingActivityFunder(funder: unknown): AuthorProfile | undefi
   } catch {
     return undefined;
   }
+}
+
+function transformFundingActivityPeerReview(
+  raw: unknown
+): FeedFundingActivityPeerReview | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+
+  const peerReview = raw as {
+    id?: number;
+    comment_content_json?: unknown;
+    comment_content_type?: string;
+    comment_type?: string;
+    created_date?: string;
+    author?: unknown;
+  };
+
+  if (peerReview.id == null) return undefined;
+
+  const rawCommentType = peerReview.comment_type;
+  const isReview =
+    rawCommentType === 'PEER_REVIEW' ||
+    rawCommentType === 'COMMUNITY_REVIEW' ||
+    rawCommentType === 'REVIEW';
+
+  let author: AuthorProfile | undefined;
+  if (peerReview.author && typeof peerReview.author === 'object') {
+    try {
+      author = transformAuthorProfile(peerReview.author as Record<string, unknown>);
+    } catch {
+      author = undefined;
+    }
+  }
+
+  const contentFormat: ContentFormat =
+    peerReview.comment_content_type === 'TIPTAP' ? 'TIPTAP' : 'QUILL_EDITOR';
+
+  return {
+    id: peerReview.id,
+    content: (peerReview.comment_content_json ?? null) as CommentContent | null,
+    contentFormat,
+    commentType: rawCommentType ?? 'PEER_REVIEW',
+    isReview,
+    createdDate: peerReview.created_date,
+    author,
+  };
 }
 
 // Recursive helper function to transform nested parent comments
@@ -237,6 +283,16 @@ export interface FeedGrantContent extends BaseFeedContent {
 
 export type FundingActivitySourceType = 'BOUNTY_PAYOUT' | 'TIP_REVIEW';
 
+export interface FeedFundingActivityPeerReview {
+  id: number;
+  content: CommentContent | null;
+  contentFormat: ContentFormat;
+  commentType: string;
+  isReview: boolean;
+  createdDate?: string;
+  author?: AuthorProfile;
+}
+
 export interface FeedFundingActivityContent extends BaseFeedContent {
   contentType: 'FUNDINGACTIVITY';
   sourceType: FundingActivitySourceType;
@@ -245,6 +301,8 @@ export interface FeedFundingActivityContent extends BaseFeedContent {
   totalUsd: number;
   activityDate?: string;
   recipient?: AuthorProfile;
+  /** Linked peer-review comment when the payout/tip resolves to one. */
+  peerReview?: FeedFundingActivityPeerReview;
 }
 
 // Update the Content union type to include the base interface
@@ -1167,6 +1225,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             (content_object.total_usd_cents ? content_object.total_usd_cents / 100 : 0),
           activityDate: content_object.activity_date,
           recipient: transformFundingActivityRecipient(content_object.recipients),
+          peerReview: transformFundingActivityPeerReview(content_object.peer_review),
         };
         content = fundingActivityContent;
       } catch (error) {

@@ -19,7 +19,7 @@ export const BountyAmount: FC<BountyAmountProps> = ({ bounty, className }) => {
   const { amount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
 
   return (
-    <AmountBadge tone="orange" className={className}>
+    <AmountBadge className={className}>
       {formatCurrency({
         amount: Math.round(amount),
         showUSD,

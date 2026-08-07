@@ -2,7 +2,6 @@
 
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
@@ -13,6 +12,7 @@ import { Sprout, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
+import { cn } from '@/utils/styles';
 
 const ENDOWMENT_NAV_FEATURE = 'endowment_nav_new_badge';
 // Stop showing the "New" badge on the Endowment nav item after this date,
@@ -80,9 +80,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   onUnimplementedFeature,
   forceMinimize = false,
 }) => {
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const router = useRouter();
-
   // Dismissable "New" badge for the Endowment nav item. Lifted to the parent
   // so the click handler in NavLink can call dismissFeature() without each
   // NavLink unconditionally calling the hook.
@@ -91,13 +88,6 @@ export const Navigation: React.FC<NavigationProps> = ({
     dismissFeature: dismissEndowmentBadge,
     dismissStatus: endowmentBadgeStatus,
   } = useDismissableFeature(ENDOWMENT_NAV_FEATURE);
-
-  const handleNavigate = useCallback(
-    (href: string) => {
-      router.push(href);
-    },
-    [router]
-  );
 
   const navigationItems: NavigationItem[] = [
     {
@@ -113,6 +103,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       iconKey: 'fund',
       requiresAuth: true,
       description: 'Track the impact of the research you fund',
+    },
+    {
+      label: 'Notebook',
+      href: '/notebook',
+      iconKey: 'notebook',
+      requiresAuth: true,
+      description: 'Access your research notebook',
     },
     {
       label: 'Peer Review',
@@ -136,17 +133,18 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
   ];
 
-  const getButtonStyles = (path: string, currentPath: string) => {
+  const getButtonStyles = (path: string) => {
     const isActive = isPathActive(path);
 
-    // Use either responsive or force minimized classes
-    const responsiveClasses = forceMinimize
-      ? '!px-2 !justify-center'
-      : 'tablet:max-sidebar-compact:!px-2 tablet:max-sidebar-compact:!justify-center';
-
-    return isActive
-      ? `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-primary-600 ${responsiveClasses} bg-primary-50 rounded-lg group`
-      : `flex items-center w-full px-5 py-3.5 text-[15px] font-medium text-gray-700 ${responsiveClasses} hover:bg-gray-50 rounded-lg group`;
+    return cn(
+      'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] transition-colors',
+      forceMinimize
+        ? '!justify-center !px-2'
+        : 'tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2',
+      isActive
+        ? 'bg-primary-50 font-semibold text-primary-600'
+        : 'font-medium text-gray-700 hover:bg-gray-50'
+    );
   };
 
   const isPathActive = (path: string) => {
@@ -185,7 +183,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   }> = ({ item, currentPath, onUnimplementedFeature, showNewBadge, onDismissNew }) => {
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
-    const buttonStyles = getButtonStyles(item.href, currentPath);
+    const buttonStyles = getButtonStyles(item.href);
     const isActive = isPathActive(item.href);
 
     // Set icon colors based on active state
@@ -220,26 +218,32 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Determine if the current item is the Home item using FontAwesome
     const isHomeIcon = item.isFontAwesome && item.iconKey === 'home';
 
-    // Conditionally apply minimized classes
-    const iconContainerClass = forceMinimize
-      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center flex-shrink-0'
-      : 'h-[26px] w-[26px] mr-4 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
+    const iconContainerClass = cn(
+      'flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center',
+      forceMinimize ? 'mr-0' : 'mr-3.5 tablet:max-sidebar-compact:!mr-0'
+    );
 
     const textContainerClass = forceMinimize
-      ? 'flex items-center justify-between w-full min-w-0 !hidden'
-      : 'w-full min-w-0 tablet:max-sidebar-compact:!hidden';
+      ? 'hidden'
+      : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
 
     return (
-      <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
+      <Link
+        href={item.href}
+        onClick={handleClick}
+        className={buttonStyles}
+        aria-current={isActive ? 'page' : undefined}
+        scroll={false}
+      >
         <div className={iconContainerClass}>
           {isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
-              fontSize={20}
+              fontSize={22}
               color={iconColor}
             />
           ) : item.isLucideSprout ? (
-            <Sprout size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
+            <Sprout size={24} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           ) : item.isLucideStar ? (
             <Star
               size={22}
@@ -254,7 +258,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="inline-flex items-center gap-2 truncate text-[16px] font-semibold">
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">
             {item.label}
             {showNewBadge && (
               <Badge
@@ -272,29 +276,37 @@ export const Navigation: React.FC<NavigationProps> = ({
   };
 
   return (
-    <div className="space-y-1.5">
-      {navigationItems.map((item) => {
-        const isBeforeEndowmentCutoff = Date.now() < ENDOWMENT_NEW_BADGE_CUTOFF.getTime();
-        const isEndowmentNewBadge =
-          item.newFeatureName === ENDOWMENT_NAV_FEATURE &&
-          item.isNew === true &&
-          isBeforeEndowmentCutoff &&
-          endowmentBadgeStatus === 'checked' &&
-          !isEndowmentBadgeDismissed;
+    <nav
+      aria-label="Primary navigation"
+      className={cn(
+        'flex-1 overflow-y-auto px-3 pt-6',
+        forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'
+      )}
+    >
+      <div className="space-y-2">
+        {navigationItems.map((item) => {
+          const isBeforeEndowmentCutoff = Date.now() < ENDOWMENT_NEW_BADGE_CUTOFF.getTime();
+          const isEndowmentNewBadge =
+            item.newFeatureName === ENDOWMENT_NAV_FEATURE &&
+            item.isNew === true &&
+            isBeforeEndowmentCutoff &&
+            endowmentBadgeStatus === 'checked' &&
+            !isEndowmentBadgeDismissed;
 
-        return (
-          <NavLink
-            key={item.href}
-            item={item}
-            currentPath={currentPath}
-            onUnimplementedFeature={onUnimplementedFeature}
-            showNewBadge={isEndowmentNewBadge}
-            onDismissNew={
-              item.newFeatureName === ENDOWMENT_NAV_FEATURE ? dismissEndowmentBadge : undefined
-            }
-          />
-        );
-      })}
-    </div>
+          return (
+            <NavLink
+              key={item.href}
+              item={item}
+              currentPath={currentPath}
+              onUnimplementedFeature={onUnimplementedFeature}
+              showNewBadge={isEndowmentNewBadge}
+              onDismissNew={
+                item.newFeatureName === ENDOWMENT_NAV_FEATURE ? dismissEndowmentBadge : undefined
+              }
+            />
+          );
+        })}
+      </div>
+    </nav>
   );
 };

@@ -79,6 +79,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
             <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
           </>
         )}
+        {message.suffix && <span className="text-gray-500">{message.suffix}</span>}
         <FeedEntryIcon name={hasAmount ? null : actionIcon} />
       </div>
 

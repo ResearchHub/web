@@ -17,9 +17,9 @@ import {
 } from '@/components/Funding/OpenProposalModal';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
+import { cn } from '@/utils/styles';
 
 interface PublishMenuProps {
-  children?: React.ReactNode;
   forceMinimize?: boolean;
 }
 
@@ -29,9 +29,9 @@ const PUBLISH_MENU_SECTIONS = [
     items: [
       {
         id: 'give-funding',
-        title: 'Funding Opportunity',
-        description: 'Fund specific research you care about',
-        icon: <Icon name="fund" size={18} color="#374151" />,
+        title: 'RFP',
+        description: 'Fund research',
+        icon: <Icon name="fund" size={18} color="#0d4ac4" />,
         handler: 'handleOpenGrant' as const,
         requiresAuth: true,
       },
@@ -39,7 +39,7 @@ const PUBLISH_MENU_SECTIONS = [
         id: 'request-funding',
         title: 'Proposal',
         description: 'Raise money for your research',
-        icon: <FundingIcon size={18} color="#374151" />,
+        icon: <FundingIcon size={18} color="#0d4ac4" />,
         handler: 'handleFundResearch' as const,
         requiresAuth: true,
       },
@@ -55,26 +55,25 @@ interface MenuItemContentProps {
 
 const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, description }) => {
   return (
-    <div className="relative flex w-full items-center gap-3 pr-6">
-      <div className="flex-shrink-0">
-        <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center ring-1 ring-gray-200/70 transition-colors duration-150 group-hover:bg-white group-hover:ring-gray-300">
-          {icon}
-        </div>
+    <div className="flex w-full items-center gap-3">
+      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-50 ring-1 ring-inset ring-black/5">
+        {icon}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold tracking-[0.01em] text-gray-900">{title}</div>
-        <div className="text-xs text-gray-600">{description}</div>
+      <div className="min-w-0 flex-1 text-left">
+        <div className="text-sm font-semibold text-gray-900">{title}</div>
+        <div className="mt-0.5 text-xs text-gray-500">{description}</div>
       </div>
-      <ChevronRight className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-900 transition-opacity duration-200 opacity-0 group-hover:opacity-100" />
+      <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100" />
     </div>
   );
 };
 
-export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimize = false }) => {
+export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false }) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
 
@@ -116,71 +115,72 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     }
   };
 
-  // Regular trigger for standard mode
-  const standardTrigger = (
+  const isMenuOpen = smAndDown ? isMobileDrawerOpen : isDesktopMenuOpen;
+  const trigger = (
     <button
-      className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+      type="button"
+      className={cn(
+        'flex items-center gap-2.5 rounded-lg bg-gray-100 px-5 py-3.5 text-[15px] font-medium text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40',
+        forceMinimize
+          ? 'justify-center !px-3'
+          : 'tablet:max-sidebar-compact:justify-center tablet:max-sidebar-compact:!px-3'
+      )}
       onClick={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-
         if (smAndDown) {
+          e.preventDefault();
           setIsMobileDrawerOpen(true);
         }
       }}
+      aria-label="Open post menu"
     >
-      <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>Post</span>
-    </button>
-  );
-
-  // Compact trigger for minimized sidebar
-  const compactTrigger = (
-    <button
-      className={`${forceMinimize ? '' : 'hidden'} tablet:max-sidebar-compact:!flex items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto`}
-      onClick={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-
-        if (smAndDown) {
-          setIsMobileDrawerOpen(true);
-        }
-      }}
-    >
-      <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
+      <Plus
+        className={cn(
+          'h-[22px] w-[22px] stroke-[1.5] transition-transform duration-200',
+          isMenuOpen && 'rotate-45'
+        )}
+      />
+      <span className={cn(forceMinimize ? 'hidden' : 'tablet:max-sidebar-compact:hidden')}>
+        Post
+      </span>
     </button>
   );
 
   const menuContent = (
-    <div className="space-y-3">
-      {PUBLISH_MENU_SECTIONS.map((section) => (
-        <div key={section.title}>
-          <div className="space-y-1">
-            {section.items.map((item) => (
-              <BaseMenuItem
-                key={item.id}
-                onClick={() => handleMenuItemClick(item)}
-                className="group w-full cursor-pointer px-2 py-2 rounded-lg transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100"
-              >
-                <MenuItemContent
-                  icon={item.icon}
-                  title={item.title}
-                  description={item.description}
-                />
-              </BaseMenuItem>
-            ))}
+    <>
+      <p className="px-3 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+        Create new
+      </p>
+      <div className="space-y-3 p-0.5">
+        {PUBLISH_MENU_SECTIONS.map((section) => (
+          <div key={section.title}>
+            <div>
+              {section.items.map((item) => (
+                <BaseMenuItem
+                  key={item.id}
+                  onClick={() => handleMenuItemClick(item)}
+                  className="group w-full cursor-pointer rounded-lg px-2.5 py-2 transition-colors duration-150 hover:bg-gray-50 focus:bg-gray-50"
+                >
+                  <MenuItemContent
+                    icon={item.icon}
+                    title={item.title}
+                    description={item.description}
+                  />
+                </BaseMenuItem>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   );
 
   // Mobile drawer content
   const mobileDrawerContent = (
     <div className="space-y-4">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Create new</p>
       {PUBLISH_MENU_SECTIONS.map((section) => (
         <div key={section.title}>
-          <div className="space-y-2">
+          <div>
             {section.items.map((item) => (
               <div
                 key={item.id}
@@ -214,21 +214,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       {/* Mobile view with SwipeableDrawer */}
       {smAndDown && (
         <>
-          <div
-            onClick={() => setIsMobileDrawerOpen(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setIsMobileDrawerOpen(true);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Open post menu"
-          >
-            {standardTrigger}
-            {compactTrigger}
-          </div>
+          {trigger}
           <SwipeableDrawer
             isOpen={isMobileDrawerOpen}
             onClose={() => setIsMobileDrawerOpen(false)}
@@ -242,31 +228,17 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
 
       {/* Desktop view with BaseMenu */}
       {!smAndDown && (
-        <>
-          {/* Standard Menu */}
-          <BaseMenu
-            trigger={standardTrigger}
-            align="start"
-            sideOffset={8}
-            className="w-[320px] p-1 rounded-xl"
-            withOverlay={false}
-            animate
-          >
-            {menuContent}
-          </BaseMenu>
-
-          {/* Compact Menu - same content, different trigger */}
-          <BaseMenu
-            trigger={compactTrigger}
-            align="start"
-            sideOffset={8}
-            className="w-[320px] p-1 rounded-xl"
-            withOverlay={false}
-            animate
-          >
-            {menuContent}
-          </BaseMenu>
-        </>
+        <BaseMenu
+          trigger={trigger}
+          align="start"
+          sideOffset={8}
+          className="w-[min(19rem,calc(100vw-3rem))] rounded-xl border-0 p-1 shadow-lg ring-1 ring-black/5"
+          withOverlay={false}
+          animate
+          onOpenChange={setIsDesktopMenuOpen}
+        >
+          {menuContent}
+        </BaseMenu>
       )}
 
       <OpenFundingOpportunityModal

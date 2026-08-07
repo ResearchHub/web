@@ -19,19 +19,23 @@ export const HOME_TAB_PATHS = ['/', '/fund', '/fund/proposals'];
 
 export const isHomeTabPath = (pathname: string) => HOME_TAB_PATHS.includes(pathname);
 
+const HOME_TAB_ACTIVE_CLASS_NAME = 'border-b-primary-600 text-primary-600 !border-b-4';
+
 export const FUND_TABS = [
   {
     id: 'activity' as const,
     label: 'Activity',
     href: '/',
     icon: Waves,
+    activeClassName: HOME_TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
   {
     id: 'fund' as const,
-    label: 'Fund',
+    label: 'Request for Proposals',
     href: '/fund',
     icon: BullhornIcon as LucideIcon,
+    activeClassName: HOME_TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
   {
@@ -39,11 +43,12 @@ export const FUND_TABS = [
     label: 'Proposals',
     href: '/fund/proposals',
     icon: FileText,
+    activeClassName: HOME_TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
 ];
 
-/** Homepage hub: Activity / Fund / Proposals (shared shell + FundSidebar). */
+/** Homepage hub: Activity / Request for Proposals / Proposals (shared shell + FundSidebar). */
 export function useFundTabs() {
   const pathname = usePathname();
   const router = useRouter();
