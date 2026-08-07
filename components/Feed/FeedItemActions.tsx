@@ -169,6 +169,7 @@ interface FeedItemActionsProps {
   isExpanded?: boolean;
   className?: string;
   variant?: 'default' | 'inline';
+  leadingUtilityActions?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -207,6 +208,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   isExpanded = false,
   className,
   variant = 'default',
+  leadingUtilityActions = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -407,6 +409,58 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
   const totalAwarded = tipAmount + (awardedBountyAmount || 0);
 
+  const canSave =
+    !!relatedDocumentUnifiedDocumentId &&
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    feedContentType !== 'APPLICATION' &&
+    showPeerReviews;
+
+  const showShare = leadingUtilityActions || variant !== 'inline';
+  const showMoreMenu =
+    !!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
+    menuItems.length > 0 ||
+    !hideReportButton;
+
+  const shareButton = showShare ? (
+    <Button
+      variant="ghost"
+      size="sm"
+      tooltip={showTooltips ? 'Copy link' : undefined}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onClick={handleCopyDocumentUrl}
+      className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+    >
+      <Share className="h-[18px] w-[18px]" />
+    </Button>
+  ) : null;
+
+  const saveButton = canSave ? (
+    <Button
+      variant="ghost"
+      size="sm"
+      tooltip={showTooltips ? 'Save' : undefined}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onClick={handleAddToList}
+      disabled={isTogglingDefaultList}
+      className={cn(
+        'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
+        isDocumentInList
+          ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
+          : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+      )}
+    >
+      <FontAwesomeIcon
+        icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+        className="h-[18px] w-[18px]"
+      />
+    </Button>
+  ) : null;
+
   return (
     <>
       <div
@@ -575,101 +629,74 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             />
           )}
           {children}
+          {leadingUtilityActions && (
+            <>
+              {saveButton}
+              {shareButton}
+            </>
+          )}
         </div>
 
         <div className="flex flex-shrink-0 items-center justify-end gap-1">
           {rightSideActionButton}
-          <BaseMenu
-            trigger={
-              <Button
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                variant="ghost"
-                size="sm"
-                className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
-              >
-                <MoreHorizontal className="h-[18px] w-[18px]" />
-              </Button>
-            }
-            align="end"
-            open={isMenuOpen}
-            onOpenChange={setIsMenuOpen}
-          >
-            {listDetailContext && relatedDocumentUnifiedDocumentId && (
-              <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
-                <Trash2 className="w-4 h-4" />
-                <span>Remove from list</span>
-              </BaseMenuItem>
-            )}
-
-            {menuItems.map((item, index) => (
-              <BaseMenuItem
-                key={`menu-item-${index}`}
-                onClick={(e) => {
-                  setIsMenuOpen(false);
-                  item.onClick(e);
-                }}
-                className={cn('flex items-center gap-2', item.className)}
-              >
-                {item.icon && <item.icon className="w-4 h-4" />}
-                <span>{item.label}</span>
-              </BaseMenuItem>
-            ))}
-
-            {showSeparator && <div className="h-px my-1 bg-gray-200" />}
-
-            {!hideReportButton && (
-              <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
-                <Flag className="w-4 h-4" />
-                <span>{actionLabels?.report || 'Report'}</span>
-              </BaseMenuItem>
-            )}
-          </BaseMenu>
-          {variant !== 'inline' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              tooltip={showTooltips ? 'Copy link' : undefined}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-              }}
-              onClick={handleCopyDocumentUrl}
-              className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+          {showMoreMenu && (
+            <BaseMenu
+              trigger={
+                <Button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
+                >
+                  <MoreHorizontal className="h-[18px] w-[18px]" />
+                </Button>
+              }
+              align="end"
+              open={isMenuOpen}
+              onOpenChange={setIsMenuOpen}
             >
-              <Share className="h-[18px] w-[18px]" />
-            </Button>
+              {listDetailContext && relatedDocumentUnifiedDocumentId && (
+                <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  <span>Remove from list</span>
+                </BaseMenuItem>
+              )}
+
+              {menuItems.map((item, index) => (
+                <BaseMenuItem
+                  key={`menu-item-${index}`}
+                  onClick={(e) => {
+                    setIsMenuOpen(false);
+                    item.onClick(e);
+                  }}
+                  className={cn('flex items-center gap-2', item.className)}
+                >
+                  {item.icon && <item.icon className="w-4 h-4" />}
+                  <span>{item.label}</span>
+                </BaseMenuItem>
+              ))}
+
+              {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+
+              {!hideReportButton && (
+                <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+                  <Flag className="w-4 h-4" />
+                  <span>{actionLabels?.report || 'Report'}</span>
+                </BaseMenuItem>
+              )}
+            </BaseMenu>
           )}
-          {relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews && (
-              <Button
-                variant="ghost"
-                size="sm"
-                tooltip={showTooltips ? 'Save' : undefined}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-                onClick={handleAddToList}
-                disabled={isTogglingDefaultList}
-                className={cn(
-                  'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
-                  isDocumentInList
-                    ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
-                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
-                )}
-              >
-                <FontAwesomeIcon
-                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-                  className="h-[18px] w-[18px]"
-                />
-              </Button>
-            )}
+          {!leadingUtilityActions && (
+            <>
+              {shareButton}
+              {saveButton}
+            </>
+          )}
         </div>
       </div>
 

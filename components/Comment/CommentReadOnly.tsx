@@ -25,6 +25,7 @@ interface CommentReadOnlyProps {
   maxLength?: number;
   initiallyExpanded?: boolean;
   showReadMoreButton?: boolean;
+  showLinkPreviews?: boolean;
   createdDate?: string | Date;
   updatedDate?: string | Date;
   className?: string;
@@ -68,6 +69,7 @@ export const CommentReadOnly = ({
   maxLength = 1000,
   initiallyExpanded = false,
   showReadMoreButton = true,
+  showLinkPreviews = true,
   createdDate,
   updatedDate,
   className,
@@ -79,7 +81,8 @@ export const CommentReadOnly = ({
   // Embeds derived from the comment doc — surfaced as a carousel below the
   // body so a single saved comment can show multiple link previews without
   // breaking the prose flow. Only meaningful for TipTap content.
-  const carouselEmbeds = contentFormat === 'TIPTAP' ? extractDocEmbeds(parsedContent) : [];
+  const carouselEmbeds =
+    showLinkPreviews && contentFormat === 'TIPTAP' ? extractDocEmbeds(parsedContent) : [];
 
   const textContent =
     contentFormat === 'TIPTAP'
@@ -147,6 +150,7 @@ export const CommentReadOnly = ({
             truncate={shouldTruncate && !isExpanded}
             maxLength={maxLength}
             debug={debugEnabled}
+            showLinkPreviews={showLinkPreviews}
           />,
         ];
       } catch (error) {

@@ -4,15 +4,20 @@ import { FC } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
-import { cn } from '@/utils/styles';
+import { AmountBadge } from './AmountBadge';
 import { resolveDisplayedContribution, type FeedContribution } from './lib/feedEntryAdapters';
 
 interface ContributionAmountProps {
   contribution: FeedContribution;
   className?: string;
+  showSign?: boolean;
 }
 
-export const ContributionAmount: FC<ContributionAmountProps> = ({ contribution, className }) => {
+export const ContributionAmount: FC<ContributionAmountProps> = ({
+  contribution,
+  className,
+  showSign = true,
+}) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { amount, inUSD } = resolveDisplayedContribution(contribution, showUSD, exchangeRate);
@@ -25,5 +30,5 @@ export const ContributionAmount: FC<ContributionAmountProps> = ({ contribution, 
     shorten: true,
   });
 
-  return <span className={cn('text-xs font-medium font-mono', className)}>+{formatted}</span>;
+  return <AmountBadge className={className}>{showSign ? `+${formatted}` : formatted}</AmountBadge>;
 };

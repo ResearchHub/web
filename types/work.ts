@@ -133,6 +133,7 @@ export interface Work {
   aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
+  grantSummary?: WorkGrantSummary;
   moderationStatus?: ModerationStatus;
   isPublic?: boolean;
 }
@@ -149,6 +150,14 @@ export interface LinkedGrant {
   applicationVisibility: GrantApplicationVisibility;
   imageUrl: string | null;
   applicantCount: number;
+}
+
+export interface WorkGrantSummary {
+  status: string;
+  organization: string;
+  amount: { usd: number; rsc: number | null };
+  numApplicants: number;
+  endDate?: string;
 }
 
 export interface FundingRequest extends Work {

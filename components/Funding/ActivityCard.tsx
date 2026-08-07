@@ -2,37 +2,48 @@
 
 import { FC } from 'react';
 import Link from 'next/link';
-import { Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { formatTimeAgo } from '@/utils/date';
-import type { FeedEntry } from '@/types/feed';
-import {
-  getActionIcon,
-  getActionLabel,
-  getContribution,
-  getEntryMeta,
-  getGrantAmount,
-  getReviewScore,
-} from '@/components/Activity/lib/feedEntryAdapters';
+import { ActivityHeaderActionText } from '@/components/Activity/ActivityHeaderActionText';
+import { BountyAmount } from '@/components/Activity/BountyAmount';
 import { ContributionAmount } from '@/components/Activity/ContributionAmount';
 import { FeedEntryIcon } from '@/components/Activity/FeedEntryIcon';
 import { GrantFundingAmount } from '@/components/Activity/GrantFundingAmount';
+import { ReviewScoreStars } from '@/components/Activity/ReviewScoreStars';
+import {
+  getActionIcon,
+  getActivityHeaderMessage,
+  getContribution,
+  getEntryMeta,
+  getGrantAmount,
+  getReviewEarning,
+  getReviewScore,
+} from '@/components/Activity/lib/feedEntryAdapters';
+import { getActivityBounty } from '@/components/Activity/lib/activityWorkContext';
+import { formatTimeAgo } from '@/utils/date';
+import { Tooltip } from '@/components/ui/Tooltip';
+import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardProps {
   entry: FeedEntry;
 }
 
+/** Compact activity row used in the funding sidebar. */
 export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
-  const { title, author, href } = getEntryMeta(entry);
+  const { title, href } = getEntryMeta(entry);
 
   if (!title) return null;
 
-  const actionLabel = getActionLabel(entry);
+  const message = getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
+  const reviewEarning = getReviewEarning(entry);
   const grantAmount = getGrantAmount(entry);
   const contribution = getContribution(entry);
+  const bounty = entry.activityContext === 'bounty_opened' ? getActivityBounty(entry) : undefined;
+
+  const hasAmount = Boolean(
+    grantAmount || contribution || reviewEarning || bounty || reviewScore != null
+  );
 
   const titleEl = href ? (
     <Link href={href} className="text-primary-600 hover:text-primary-800">
@@ -45,51 +56,63 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   return (
     <div className="py-3 first:pt-0 last:pb-0">
       <div className="grid grid-cols-[auto_1fr] gap-x-2.5 items-start">
-        <div className="row-span-3 pt-0.5">
-          <AuthorTooltip authorId={author?.id} placement="bottom">
-            <Avatar
-              src={author?.profileImage}
-              alt={author?.fullName || 'User'}
-              size={32}
-              authorId={author?.id}
-              disableTooltip
-            />
-          </AuthorTooltip>
+        <div className="row-span-2 pt-0.5">
+          <Avatar
+            src={message.actor.profileImage}
+            alt={message.actor.fullName || 'User'}
+            size={32}
+            authorId={message.actor.id}
+          />
         </div>
-        {author?.id ? (
-          <AuthorTooltip authorId={author.id} placement="bottom">
-            <Link
-              href={`/author/${author.id}`}
-              prefetch={false}
-              className="text-sm font-medium text-gray-900 leading-tight truncate hover:text-blue-600"
-            >
-              {author.fullName || 'Unknown'}
-            </Link>
-          </AuthorTooltip>
-        ) : (
-          <span className="text-sm font-medium text-gray-900 leading-tight truncate">
-            {author?.fullName || 'Unknown'}
-          </span>
-        )}
-        <span className="text-sm leading-tight mb-1">
-          <span className="text-gray-500">{actionLabel}</span>
-          <FeedEntryIcon name={actionIcon} />
-          {reviewScore != null && (
-            <span className="inline-flex items-center gap-1 ml-1.5 text-xs text-gray-600 align-middle">
-              <Star size={13} className="fill-amber-400 text-amber-400" />
-              {reviewScore.toFixed(1)}
-            </span>
+        <span className="mb-1 text-sm leading-6">
+          <ActivityHeaderActionText message={message} />
+          {grantAmount && (
+            <>
+              {' '}
+              <GrantFundingAmount amount={grantAmount} className="align-middle" />
+            </>
           )}
-          {grantAmount && <GrantFundingAmount amount={grantAmount} className="ml-1.5" />}
           {contribution && (
-            <ContributionAmount contribution={contribution} className="ml-1.5 text-green-700" />
+            <>
+              {' '}
+              <ContributionAmount
+                contribution={contribution}
+                showSign={!message.isEarning}
+                className="align-middle"
+              />
+            </>
           )}
+          {reviewEarning && (
+            <>
+              {' '}
+              <ContributionAmount
+                contribution={reviewEarning}
+                showSign={false}
+                className="align-middle"
+              />
+            </>
+          )}
+          {bounty && (
+            <>
+              {' '}
+              <BountyAmount bounty={bounty} className="align-middle" />
+            </>
+          )}
+          {reviewScore != null && reviewScore > 0 && (
+            <>
+              {' '}
+              <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
+            </>
+          )}
+          <FeedEntryIcon name={hasAmount ? null : actionIcon} />
         </span>
         <span className="text-sm leading-tight line-clamp-2">{titleEl}</span>
       </div>
-      <span className="block text-xs text-gray-400 mt-1 ml-[42px]">
-        {formatTimeAgo(entry.timestamp)}
-      </span>
+      <Tooltip content={new Date(entry.timestamp).toLocaleString()}>
+        <span className="block text-xs text-gray-400 mt-1 ml-[42px] cursor-default w-fit">
+          {formatTimeAgo(entry.timestamp)}
+        </span>
+      </Tooltip>
     </div>
   );
 };
