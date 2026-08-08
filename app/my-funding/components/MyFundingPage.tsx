@@ -121,7 +121,8 @@ export function MyFundingPage() {
   const searchParams = useSearchParams();
   const { user, isLoading: isLoadingUser } = useUser();
   const activeTab = resolveMyFundingTab(searchParams.get('tab'));
-  const hasStaleFunderId = activeTab === 'received' && searchParams.has('funder_id');
+  const shouldStripFunderId =
+    searchParams.has('funder_id') && (activeTab === 'received' || !user?.isModerator);
 
   useEffect(() => {
     if (isLoadingUser) return;
@@ -131,14 +132,14 @@ export function MyFundingPage() {
       return;
     }
 
-    if (!hasStaleFunderId) return;
+    if (!shouldStripFunderId) return;
 
     const params = new URLSearchParams(searchParams.toString());
     params.delete('funder_id');
     router.replace(`/my-funding?${params.toString()}`, { scroll: false });
-  }, [hasStaleFunderId, isLoadingUser, router, searchParams, user]);
+  }, [isLoadingUser, router, searchParams, shouldStripFunderId, user]);
 
-  if (isLoadingUser || !user || hasStaleFunderId) return null;
+  if (isLoadingUser || !user || shouldStripFunderId) return null;
 
   const tabBar = (
     <Tabs
