@@ -68,7 +68,7 @@ function FundingDirectionCards() {
   );
 }
 
-function MyFundingHero({ tabBar }: { tabBar: ReactNode }) {
+function MyFundingHero({ tabBar }: Readonly<{ tabBar: ReactNode }>) {
   return (
     <div className="relative overflow-hidden border-b border-gray-200 bg-gray-50">
       <div
