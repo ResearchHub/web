@@ -19,7 +19,7 @@ interface FundsReceivedTabProps {
   authorId?: number;
 }
 
-function EmptyState({ children }: { children: ReactNode }) {
+function EmptyState({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-6 py-10 text-center">
       {children}
@@ -27,7 +27,7 @@ function EmptyState({ children }: { children: ReactNode }) {
   );
 }
 
-function MyProposals({ userId }: { userId: number }) {
+function MyProposals({ userId }: Readonly<{ userId: number }>) {
   const {
     entries,
     isLoading,
@@ -77,7 +77,7 @@ function MyProposals({ userId }: { userId: number }) {
   );
 }
 
-function PeerReviewFeed({ authorId }: { authorId: number }) {
+function PeerReviewFeed({ authorId }: Readonly<{ authorId: number }>) {
   const {
     contributions,
     isLoading,
@@ -143,7 +143,7 @@ function PeerReviewFeed({ authorId }: { authorId: number }) {
   );
 }
 
-function PeerReviews({ authorId }: { authorId?: number }) {
+function PeerReviews({ authorId }: Readonly<{ authorId?: number }>) {
   const hasAuthorId = authorId !== undefined && authorId > 0;
 
   return (
@@ -164,7 +164,7 @@ function PeerReviews({ authorId }: { authorId?: number }) {
   );
 }
 
-export function FundsReceivedTab({ userId, authorId }: FundsReceivedTabProps) {
+export function FundsReceivedTab({ userId, authorId }: Readonly<FundsReceivedTabProps>) {
   const router = useRouter();
 
   const browsePeerReviewBounties = () => {
