@@ -41,7 +41,7 @@ interface FeedEntryItemProps {
   /**
    * Which grant card to render for GRANT entries. `comprehensive` adds the
    * deployment progress bar, community match and key insights, and is used on
-   * the funder dashboard. Defaults to the simpler public-facing card.
+   * the Funds given tab. Defaults to the simpler public-facing card.
    */
   grantCardVariant?: 'default' | 'comprehensive';
   feedOrdering?: string;

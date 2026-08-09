@@ -88,7 +88,7 @@ export function GiveDashboard() {
             <span className="give-dash-accent">all the way to the result.</span>
           </h2>
           <p className="give-dash-lead">
-            Your funder dashboard brings every opportunity you support into one place.
+            My Funding brings every opportunity you support into one place.
           </p>
 
           <ul className="give-dash-features">
@@ -105,7 +105,7 @@ export function GiveDashboard() {
         </div>
 
         <div className="give-dash-mockwrap">
-          <div className="give-dash-mock" role="img" aria-label="Funder dashboard preview">
+          <div className="give-dash-mock" role="img" aria-label="My Funding preview">
             <div className="give-dash-mock-head">
               <div className="give-dash-mock-title">Welcome back, Jennifer.</div>
             </div>

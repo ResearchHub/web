@@ -176,11 +176,11 @@ export default function UserMenu({
           </div>
         </div>
 
-        <Link href="/fund/dashboard" className="block" onClick={() => setMenuOpenState(false)}>
+        <Link href="/my-funding" className="block" onClick={() => setMenuOpenState(false)}>
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
-              <span className="text-sm text-gray-700">Your Funding</span>
+              <span className="text-sm text-gray-700">My Funding</span>
             </div>
           </div>
         </Link>
@@ -393,11 +393,11 @@ export default function UserMenu({
               </div>
             </BaseMenuItem>
 
-            <Link href="/fund/dashboard" className="block" onClick={() => setMenuOpenState(false)}>
+            <Link href="/my-funding" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
                   <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
-                  <span className="text-sm text-gray-700">Your Funding</span>
+                  <span className="text-sm text-gray-700">My Funding</span>
                 </div>
               </div>
             </Link>

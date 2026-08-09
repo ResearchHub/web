@@ -5,7 +5,7 @@ import {
   SkeletonProposalSectionHeader,
 } from './shared';
 
-/** Mirrors `FeedItemGrantComprehensive` on `/fund/dashboard`. */
+/** Mirrors `FeedItemGrantComprehensive` on the Funds given tab. */
 export const GrantComprehensiveSkeleton: FC = () => (
   <SkeletonGrantCardShell>
     <div className="relative h-[260px] sm:h-[220px] bg-gray-300">
