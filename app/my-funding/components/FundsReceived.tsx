@@ -14,7 +14,7 @@ import { transformContributionToFeedEntry } from '@/types/contribution';
 import type { FeedEntry } from '@/types/feed';
 import { cn } from '@/utils/styles';
 
-interface FundsReceivedTabProps {
+interface FundsReceivedProps {
   userId: number;
   authorId?: number;
 }
@@ -164,7 +164,7 @@ function PeerReviews({ authorId }: Readonly<{ authorId?: number }>) {
   );
 }
 
-export function FundsReceivedTab({ userId, authorId }: Readonly<FundsReceivedTabProps>) {
+export function FundsReceived({ userId, authorId }: Readonly<FundsReceivedProps>) {
   const router = useRouter();
 
   const browsePeerReviewBounties = () => {

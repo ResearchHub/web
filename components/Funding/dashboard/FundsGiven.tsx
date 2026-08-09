@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -10,39 +10,30 @@ import { FundedProposalsSection } from '@/components/Funding/dashboard/FundedPro
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
-import { useUser } from '@/contexts/UserContext';
 import { FunderOverview } from '@/types/funder';
 import {
   SearchableUserSingleSelect,
   UserOption,
 } from '@/components/ui/form/SearchableUserSingleSelect';
 
-function parseFunderIdParam(raw: string | null): number | undefined {
-  if (!raw) return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
+function parseFunderIdParam(funderIdParam: string | null): number | undefined {
+  if (!funderIdParam) return undefined;
+  const funderId = Number(funderIdParam);
+  return Number.isFinite(funderId) && funderId > 0 ? funderId : undefined;
 }
 
-interface FunderDashboardPageProps {
-  embedded?: boolean;
+interface FundsGivenProps {
+  userId: number;
+  isModerator: boolean;
 }
 
-export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = false }) => {
+export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isLoading: isLoadingUser } = useUser();
-  const userId = user?.id;
 
-  useEffect(() => {
-    if (!isLoadingUser && !user) {
-      router.replace('/');
-    }
-  }, [isLoadingUser, user, router]);
-
-  const funderIdOverride = user?.isModerator
-    ? parseFunderIdParam(searchParams.get('funder_id'))
-    : undefined;
-  const funderId = funderIdOverride ?? userId;
+  const funderId = isModerator
+    ? (parseFunderIdParam(searchParams.get('funder_id')) ?? userId)
+    : userId;
 
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
 
@@ -67,13 +58,7 @@ export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = f
     () => ({
       endpoint: 'grant_feed' as const,
       contentType: 'GRANT',
-      // The override `funderId` is resolved at the call site and passed in
-      // as `created_by` so we don't have to duplicate the override logic in
-      // the lower-level services.
       createdBy: funderId,
-      // Defer the initial fetch until funderId is known so we don't fire a
-      // first request without `created_by` and a second with it.
-      enabled: funderId != null,
     }),
     [funderId]
   );
@@ -86,7 +71,6 @@ export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = f
   } = useFeed('all', grantFeedOptions);
 
   useEffect(() => {
-    if (isLoadingUser || !user) return;
     let cancelled = false;
     setIsLoadingOverview(true);
     FunderService.getFundingOverview(funderId)
@@ -102,15 +86,11 @@ export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = f
     return () => {
       cancelled = true;
     };
-  }, [funderId, isLoadingUser, user]);
-
-  if (isLoadingUser || !user) return null;
-
-  const firstName = user.firstName?.trim();
+  }, [funderId]);
 
   return (
-    <div className={embedded ? undefined : 'px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full'}>
-      {user.isModerator && (
+    <>
+      {isModerator && (
         <div className="mb-5 max-w-xs">
           <label className="text-xs font-medium text-gray-500 mb-1 block">
             View as user (moderator only)
@@ -123,22 +103,13 @@ export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = f
         </div>
       )}
 
-      {!embedded && (
-        <div className="mb-5">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
-        </div>
-      )}
-
       {isLoadingOverview ? (
         <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
       ) : overview ? (
         <FunderHero overview={overview} />
       ) : null}
 
-      {funderId && <FunderAuthorPostsSection funderId={funderId} className="mt-6" />}
+      <FunderAuthorPostsSection funderId={funderId} className="mt-6" />
 
       <div className="mt-6">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
@@ -194,6 +165,6 @@ export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = f
       {overview && (
         <FundedProposalsSection proposals={overview.supportedProposals} className="mt-8" />
       )}
-    </div>
+    </>
   );
-};
+}

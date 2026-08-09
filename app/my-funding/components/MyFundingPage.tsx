@@ -4,11 +4,11 @@ import { useEffect, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FunderDashboardPage } from '@/components/Funding/dashboard/FunderDashboardPage';
+import { FundsGiven } from '@/components/Funding/dashboard/FundsGiven';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 import { useUser } from '@/contexts/UserContext';
-import { FundsReceivedTab } from './FundsReceivedTab';
+import { FundsReceived } from './FundsReceived';
 
 type MyFundingTab = 'given' | 'received';
 
@@ -121,8 +121,9 @@ export function MyFundingPage() {
   const searchParams = useSearchParams();
   const { user, isLoading: isLoadingUser } = useUser();
   const activeTab = resolveMyFundingTab(searchParams.get('tab'));
+  const isModerator = !!user?.isModerator;
   const hasModeratorOverrideOnReceivedTab =
-    activeTab === 'received' && user?.isModerator === true && searchParams.has('funder_id');
+    activeTab === 'received' && isModerator && searchParams.has('funder_id');
 
   useEffect(() => {
     if (isLoadingUser) return;
@@ -153,9 +154,9 @@ export function MyFundingPage() {
   return (
     <PageLayout rightSidebar={false} wideContent topBanner={<MyFundingHero tabBar={tabBar} />}>
       {activeTab === 'given' ? (
-        <FunderDashboardPage embedded />
+        <FundsGiven userId={user.id} isModerator={isModerator} />
       ) : (
-        <FundsReceivedTab userId={user.id} authorId={user.authorProfile?.id} />
+        <FundsReceived userId={user.id} authorId={user.authorProfile?.id} />
       )}
     </PageLayout>
   );
