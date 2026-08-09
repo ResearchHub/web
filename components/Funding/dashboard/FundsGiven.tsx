@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -88,13 +88,20 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
     };
   }, [funderId]);
 
+  let overviewContent: ReactNode = null;
+  if (isLoadingOverview) {
+    overviewContent = (
+      <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+    );
+  } else if (overview) {
+    overviewContent = <FunderHero overview={overview} />;
+  }
+
   return (
     <>
       {isModerator && (
         <div className="mb-5 max-w-xs">
-          <label className="text-xs font-medium text-gray-500 mb-1 block">
-            View as user (moderator only)
-          </label>
+          <p className="mb-1 text-xs font-medium text-gray-500">View as user (moderator only)</p>
           <SearchableUserSingleSelect
             value={selectedUser}
             onChange={handleUserSelect}
@@ -103,11 +110,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
         </div>
       )}
 
-      {isLoadingOverview ? (
-        <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
-      ) : overview ? (
-        <FunderHero overview={overview} />
-      ) : null}
+      {overviewContent}
 
       <FunderAuthorPostsSection funderId={funderId} className="mt-6" />
 
