@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
 import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
-import { useActivityFeed } from '@/hooks/useActivityFeed';
+import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
@@ -19,10 +19,15 @@ export function FundActivityPageContent() {
     hasMore,
     page,
     loadMore,
+    activate,
     restoredScrollPosition,
     lastClickedEntryId,
     restorationTab,
-  } = useActivityFeed({});
+  } = useActivityFeeds();
+
+  useEffect(() => {
+    activate();
+  }, [activate]);
 
   const feedKey = useMemo(() => {
     const queryParams: Record<string, string> = {};
