@@ -39,7 +39,9 @@ export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = f
     }
   }, [isLoadingUser, user, router]);
 
-  const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
+  const funderIdOverride = user?.isModerator
+    ? parseFunderIdParam(searchParams.get('funder_id'))
+    : undefined;
   const funderId = funderIdOverride ?? userId;
 
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
