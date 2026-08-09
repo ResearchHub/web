@@ -122,7 +122,7 @@ export function MyFundingPage() {
   const { user, isLoading: isLoadingUser } = useUser();
   const activeTab = resolveMyFundingTab(searchParams.get('tab'));
   const shouldStripFunderId =
-    searchParams.has('funder_id') && (activeTab === 'received' || !user?.isModerator);
+    activeTab === 'received' && user?.isModerator === true && searchParams.has('funder_id');
 
   useEffect(() => {
     if (isLoadingUser) return;
