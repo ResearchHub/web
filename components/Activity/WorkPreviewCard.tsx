@@ -1,66 +1,63 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { Children, FC, isValidElement, ReactElement, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import type { WorkCardAuthor, WorkCardStat } from './lib/activityWorkContext';
+import type { ActivityWork } from './lib/activityWorkContext';
+
+type WorkPreviewShell = Pick<ActivityWork, 'title' | 'href' | 'imageUrl'>;
+
+interface SlotProps {
+  children?: ReactNode;
+}
+
+function WorkPreviewCardMetadata({ children }: SlotProps) {
+  return <>{children}</>;
+}
+
+function WorkPreviewCardActions({ children }: SlotProps) {
+  return <>{children}</>;
+}
+
+function findSlot(children: ReactNode, slot: FC<SlotProps>): ReactElement<SlotProps> | undefined {
+  return Children.toArray(children).find(
+    (child): child is ReactElement<SlotProps> => isValidElement(child) && child.type === slot
+  );
+}
 
 interface WorkPreviewCardProps {
-  title: string;
-  href?: string;
-  imageSrc?: string;
+  work: WorkPreviewShell;
+  children?: ReactNode;
   /** Render a gradient placeholder when no image is available. */
   showPlaceholder?: boolean;
-  authors?: WorkCardAuthor[];
-  /** Funding organization; takes precedence over authors on the meta line. */
-  organization?: string | null;
-  institution?: string | null;
-  /** Average peer-review score shown next to the authors. */
-  score?: number | null;
-  /** Extra stats on the right of the frosted bar (label + value). */
-  stats?: WorkCardStat[];
-  /** Fundraise progress in the 0–1 range. */
-  progress?: number;
-  /** Full footer row (typically vote/save/share + CTA). */
-  actions?: ReactNode;
+  /** Fired when the user navigates via the work link (not footer actions). */
+  onNavigate?: () => void;
   className?: string;
 }
 
 /**
  * Full-bleed frosted-image card for activity feed rows.
  * Image fills the card; metadata sits in a translucent bar at the bottom.
+ *
+ * Compose with slots:
+ * ```tsx
+ * <WorkPreviewCard work={work}>
+ *   <WorkPreviewCard.Metadata>...</WorkPreviewCard.Metadata>
+ *   <WorkPreviewCard.Actions>...</WorkPreviewCard.Actions>
+ * </WorkPreviewCard>
+ * ```
  */
-export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
-  title,
-  href,
-  imageSrc,
+function WorkPreviewCardRoot({
+  work,
+  children,
   showPlaceholder = true,
-  authors = [],
-  organization,
-  institution,
-  score,
-  stats,
-  progress,
-  actions,
+  onNavigate,
   className,
-}) => {
+}: WorkPreviewCardProps) {
+  const metadata = findSlot(children, WorkPreviewCardMetadata)?.props.children;
+  const actions = findSlot(children, WorkPreviewCardActions)?.props.children;
   const showFooter = !!actions;
-
-  const authorNames =
-    authors.length > 0
-      ? authors
-          .slice(0, 2)
-          .map((a) => a.name)
-          .join(', ') + (authors.length > 2 ? ` +${authors.length - 2}` : '')
-      : null;
-
-  const authorLine =
-    organization ||
-    (authorNames && institution
-      ? `${authorNames} · ${institution}`
-      : authorNames || institution || null);
 
   const imageBlock = (
     <div
@@ -71,10 +68,10 @@ export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
           : 'rounded-[10px]'
       )}
     >
-      {imageSrc ? (
+      {work.imageUrl ? (
         <Image
-          src={imageSrc}
-          alt={title}
+          src={work.imageUrl}
+          alt={work.title}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 640px) 100vw, 600px"
@@ -102,54 +99,9 @@ export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
           background: 'rgba(0,0,0,0.52)',
         }}
       >
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="font-extrabold text-white tracking-tight line-clamp-2 leading-snug text-[14.5px]">
-              {title}
-            </div>
-            {authorLine && (
-              <div className="mt-0.5 truncate text-[11px] text-white/55">{authorLine}</div>
-            )}
-          </div>
-
-          {(score != null || stats?.length) && (
-            <div className="flex flex-shrink-0 items-center gap-4">
-              {score != null && (
-                <div className="text-right">
-                  <div className="text-[9px] uppercase tracking-wider font-semibold text-white/50 whitespace-nowrap">
-                    Rating
-                  </div>
-                  <div className="flex items-center justify-end gap-1 font-extrabold font-mono text-sm leading-tight text-white/80">
-                    <Star size={11} className="fill-amber-400 text-amber-400" />
-                    {score.toFixed(1)}
-                  </div>
-                </div>
-              )}
-              {stats?.map((s) => (
-                <div key={s.label} className="text-right">
-                  <div className="text-[9px] uppercase tracking-wider font-semibold text-white/50 whitespace-nowrap">
-                    {s.label}
-                  </div>
-                  <div
-                    className={cn(
-                      'font-extrabold font-mono text-sm leading-tight',
-                      s.accent ? 'text-emerald-300' : 'text-white/80'
-                    )}
-                  >
-                    {s.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {progress != null && (
-          <div className="mt-1.5 h-[3px] overflow-hidden rounded-full bg-white/15">
-            <div
-              className="h-full rounded-full bg-emerald-400"
-              style={{ width: `${Math.max(10, Math.min(100, progress * 100))}%` }}
-            />
+        {metadata ?? (
+          <div className="font-extrabold text-white tracking-tight line-clamp-2 leading-snug text-[14.5px]">
+            {work.title}
           </div>
         )}
       </div>
@@ -164,8 +116,14 @@ export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
         className
       )}
     >
-      {href ? (
-        <Link href={href} className="block">
+      {work.href ? (
+        <Link
+          href={work.href}
+          className="block"
+          onClick={() => {
+            onNavigate?.();
+          }}
+        >
           {imageBlock}
         </Link>
       ) : (
@@ -179,4 +137,9 @@ export const WorkPreviewCard: FC<WorkPreviewCardProps> = ({
       )}
     </div>
   );
-};
+}
+
+export const WorkPreviewCard = Object.assign(WorkPreviewCardRoot, {
+  Metadata: WorkPreviewCardMetadata,
+  Actions: WorkPreviewCardActions,
+});

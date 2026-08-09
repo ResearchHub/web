@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { LayoutList, Star, Coins, Reply } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
@@ -10,6 +10,8 @@ import { PillTabs } from '@/components/ui/PillTabs';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
 import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
+import { getFeedKey } from '@/contexts/NavigationContext';
 import { ActivityScope } from '@/services/activity.service';
 import { GrantService } from '@/services/grant.service';
 
@@ -31,6 +33,7 @@ function isValidTab(value: string | null): value is ActivityTab {
 
 export default function ActivityPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const tabParam = searchParams.get('tab');
@@ -50,9 +53,40 @@ export default function ActivityPage() {
     });
   }, [grantIdParam]);
 
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useActivityFeed({
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    page,
+    loadMore,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
+  } = useActivityFeed({
     scope,
     grantId: grantIdParam || undefined,
+  });
+
+  const feedKey = useMemo(() => {
+    const queryParams: Record<string, string> = {};
+    for (const [key, value] of searchParams) {
+      queryParams[key] = value;
+    }
+    return getFeedKey({
+      pathname,
+      tab: restorationTab,
+      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+    });
+  }, [pathname, restorationTab, searchParams]);
+
+  useFeedScrollTracking({
+    feedKey,
+    entries,
+    hasMore,
+    page,
+    restoredScrollPosition,
+    lastClickedEntryId: lastClickedEntryId ?? undefined,
   });
 
   const { ref: sentinelRef } = useInView({

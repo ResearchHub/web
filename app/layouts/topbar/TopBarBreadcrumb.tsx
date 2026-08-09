@@ -17,7 +17,7 @@ export const TopBarBreadcrumb = ({
 
   const containerClass = isMobile
     ? 'flex min-w-0 flex-1 items-center overflow-hidden tablet:!hidden'
-    : cn('hidden tablet:!flex items-center min-w-0', truncateTitle && 'max-w-[min(240px,36%)]');
+    : 'hidden tablet:!flex items-center min-w-0';
 
   const titleClass = isMobile
     ? 'block min-w-0 truncate text-lg font-semibold leading-tight text-gray-900'

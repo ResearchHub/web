@@ -1,20 +1,17 @@
 'use client';
 
-import { FC, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
+import { FC } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import { FeedItemActions } from '@/components/Feed/FeedItemActions';
-import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { useShareModalContext } from '@/contexts/ShareContext';
+import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
+import { ActivityWorkActions } from './ActivityWorkActions';
+import { ActivityWorkMetadata } from './ActivityWorkMetadata';
 import { WorkPreviewCard } from './WorkPreviewCard';
 import { getActivityHeaderMessage, getCommentPreview } from './lib/feedEntryAdapters';
-import { getActivityWorkContext, getWorkCardPresentation } from './lib/activityWorkContext';
+import { getActivityWork, getWorkCardPresentation } from './lib/activityWorkContext';
 import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardFullProps {
@@ -22,61 +19,29 @@ interface ActivityCardFullProps {
 }
 
 export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
-  const work = getActivityWorkContext(entry);
-  const router = useRouter();
+  const work = getActivityWork(entry);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const { showShareModal } = useShareModalContext();
-  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+  const { updateLastClickedEntryId } = useNavigation();
 
   if (!work) return null;
 
+  const entryId = String(entry.id);
   const message = getActivityHeaderMessage(entry);
   const commentPreview = getCommentPreview(entry);
-  const presentation = getWorkCardPresentation(entry, work, {
+  const { showComment: allowComment } = getWorkCardPresentation(entry, work, {
     showUSD,
     exchangeRate,
     isReview: commentPreview?.isReview,
   });
+  const showComment = allowComment && !!commentPreview;
 
-  const showComment = presentation.showComment && !!commentPreview;
-  const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
-  const isReviewOfProposal = !!commentPreview?.isReview && work.documentType === 'preregistration';
-  const feedContentType = work.documentType === 'paper' ? 'PAPER' : 'POST';
-
-  const handleFundClick = () => {
-    setIsContributeModalOpen(true);
+  const markEntryClicked = () => {
+    updateLastClickedEntryId(entryId);
   };
-
-  const handleContributeSuccess = () => {
-    setIsContributeModalOpen(false);
-    showShareModal({
-      url: window.location.href,
-      docTitle: work.title,
-      action: 'USER_FUNDED_PROPOSAL',
-    });
-    router.refresh();
-  };
-
-  const action = (() => {
-    const cta = presentation.cta;
-    if (!cta) return undefined;
-
-    return (
-      <Button
-        variant="dark"
-        size="sm"
-        onClick={cta.kind === 'fund-modal' ? handleFundClick : () => router.push(cta.href)}
-        className="rounded-md gap-1"
-      >
-        {cta.label}
-        <ArrowRight size={14} aria-hidden />
-      </Button>
-    );
-  })();
 
   return (
-    <article className="py-4 border-b border-gray-100 last:border-b-0">
+    <article className="py-4 border-b border-gray-100 last:border-b-0" data-entry-id={entryId}>
       <div className="flex gap-2.5">
         <div className="flex w-8 flex-shrink-0 flex-col items-center">
           <div className="pt-0.5">
@@ -106,48 +71,17 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
           )}
 
           <div className="mt-5 -ml-[42px] tablet:!ml-0">
-            <WorkPreviewCard
-              title={work.title}
-              href={work.href}
-              imageSrc={work.imageUrl}
-              showPlaceholder
-              authors={isReviewOfProposal ? [] : presentation.authors}
-              organization={presentation.organization}
-              institution={presentation.institution}
-              score={presentation.score}
-              stats={presentation.stats}
-              progress={presentation.progress}
-              actions={
-                <FeedItemActions
-                  metrics={{ votes: voteCount, adjustedScore: voteCount }}
-                  feedContentType={feedContentType}
-                  votableEntityId={work.id}
-                  relatedDocumentId={work.id.toString()}
-                  relatedDocumentContentType={work.documentType}
-                  relatedDocumentUnifiedDocumentId={work.unifiedDocumentId?.toString()}
-                  userVote={entry.userVote}
-                  href={work.href}
-                  hideCommentButton
-                  hideReportButton
-                  variant="compact"
-                  leadingUtilityActions
-                  rightSideActionButton={action}
-                />
-              }
-            />
+            <WorkPreviewCard work={work} onNavigate={markEntryClicked} showPlaceholder>
+              <WorkPreviewCard.Metadata>
+                <ActivityWorkMetadata entry={entry} work={work} />
+              </WorkPreviewCard.Metadata>
+              <WorkPreviewCard.Actions>
+                <ActivityWorkActions entry={entry} work={work} onNavigate={markEntryClicked} />
+              </WorkPreviewCard.Actions>
+            </WorkPreviewCard>
           </div>
         </div>
       </div>
-
-      {work.fundraise && (
-        <ContributeToFundraiseModal
-          isOpen={isContributeModalOpen}
-          onClose={() => setIsContributeModalOpen(false)}
-          onContributeSuccess={handleContributeSuccess}
-          fundraise={work.fundraise}
-          proposalTitle={work.title}
-        />
-      )}
     </article>
   );
 };

@@ -16,11 +16,16 @@ export const ActivityCardSkeleton: FC = () => (
 
         <div className="mt-5 -ml-[42px] tablet:!ml-0 rounded-[14px] border border-gray-200 overflow-hidden">
           <div className="h-[190px] sm:h-[180px] bg-gray-200" />
-          <div className="flex h-[46px] items-center justify-between gap-2 px-2 bg-white">
-            <div className="flex items-center gap-1">
-              <div className="h-8 w-[5.5rem] rounded-full bg-gray-200" />
-              <div className="h-8 w-8 rounded-full bg-gray-200" />
-              <div className="h-8 w-8 rounded-full bg-gray-200" />
+          {/* Matches compact FeedItemActions: flat vote/save/share + CTA */}
+          <div className="flex items-center justify-between gap-3 px-3 py-2 bg-white">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-gray-200" />
+                <div className="h-3 w-4 rounded bg-gray-200" />
+                <div className="h-4 w-4 rounded bg-gray-200" />
+              </div>
+              <div className="h-3.5 w-3.5 rounded bg-gray-200" />
+              <div className="h-4 w-4 rounded bg-gray-200" />
             </div>
             <div className="h-8 w-[72px] bg-gray-200 rounded-md shrink-0" />
           </div>

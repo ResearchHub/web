@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
+import { Tabs } from '@/components/ui/Tabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
@@ -127,10 +128,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             )}
             {showTopBarFundTabs && (
               <div className="hidden tablet:!flex min-w-0 flex-shrink-0 items-center ml-4">
-                <FeedTabs
-                  activeTab={fundHighlightedTab}
+                <Tabs
                   tabs={fundTabs}
+                  activeTab={fundHighlightedTab}
                   onTabChange={handleFundTabChange}
+                  variant="primary"
+                  className="!border-b-0"
                 />
               </div>
             )}
@@ -185,10 +188,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               />
             )}
             {showTopBarFundTabs && (
-              <FeedTabs
-                activeTab={fundHighlightedTab}
+              <Tabs
                 tabs={fundTabs}
+                activeTab={fundHighlightedTab}
                 onTabChange={handleFundTabChange}
+                variant="primary"
+                className="!border-b-0"
               />
             )}
           </div>

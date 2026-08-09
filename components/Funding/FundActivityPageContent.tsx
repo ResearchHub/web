@@ -1,12 +1,49 @@
 'use client';
 
+import { useMemo } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
 import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
+import { getFeedKey } from '@/contexts/NavigationContext';
 
 export function FundActivityPageContent() {
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useActivityFeed({});
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    page,
+    loadMore,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
+  } = useActivityFeed({});
+
+  const feedKey = useMemo(() => {
+    const queryParams: Record<string, string> = {};
+    for (const [key, value] of searchParams) {
+      queryParams[key] = value;
+    }
+    return getFeedKey({
+      pathname,
+      tab: restorationTab,
+      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+    });
+  }, [pathname, restorationTab, searchParams]);
+
+  useFeedScrollTracking({
+    feedKey,
+    entries,
+    hasMore,
+    page,
+    restoredScrollPosition,
+    lastClickedEntryId: lastClickedEntryId ?? undefined,
+  });
 
   const { ref: sentinelRef } = useInView({
     threshold: 0,
