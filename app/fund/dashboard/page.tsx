@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FunderDashboardPage } from './components/FunderDashboardPage';
+import { FunderDashboardPage } from '@/components/Funding/dashboard/FunderDashboardPage';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = buildOpenGraphMetadata({

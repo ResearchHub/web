@@ -23,7 +23,11 @@ function parseFunderIdParam(raw: string | null): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
-export const FunderDashboardPage: FC = () => {
+interface FunderDashboardPageProps {
+  embedded?: boolean;
+}
+
+export const FunderDashboardPage: FC<FunderDashboardPageProps> = ({ embedded = false }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: isLoadingUser } = useUser();
@@ -35,7 +39,9 @@ export const FunderDashboardPage: FC = () => {
     }
   }, [isLoadingUser, user, router]);
 
-  const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
+  const funderIdOverride = user?.isModerator
+    ? parseFunderIdParam(searchParams.get('funder_id'))
+    : undefined;
   const funderId = funderIdOverride ?? userId;
 
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
@@ -103,7 +109,7 @@ export const FunderDashboardPage: FC = () => {
   const firstName = user.firstName?.trim();
 
   return (
-    <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
+    <div className={embedded ? undefined : 'px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full'}>
       {user.isModerator && (
         <div className="mb-5 max-w-xs">
           <label className="text-xs font-medium text-gray-500 mb-1 block">
@@ -117,12 +123,14 @@ export const FunderDashboardPage: FC = () => {
         </div>
       )}
 
-      <div className="mb-5">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-          {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
-      </div>
+      {!embedded && (
+        <div className="mb-5">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+            {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
+        </div>
+      )}
 
       {isLoadingOverview ? (
         <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
