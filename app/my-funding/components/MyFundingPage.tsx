@@ -152,7 +152,11 @@ export function MyFundingPage() {
 
   return (
     <PageLayout rightSidebar={false} wideContent topBanner={<MyFundingHero tabBar={tabBar} />}>
-      {activeTab === 'given' ? <FunderDashboardPage embedded /> : <FundsReceivedTab />}
+      {activeTab === 'given' ? (
+        <FunderDashboardPage embedded />
+      ) : (
+        <FundsReceivedTab userId={user.id} authorId={user.authorProfile?.id} />
+      )}
     </PageLayout>
   );
 }
