@@ -8,18 +8,10 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sprout, Star } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
-import { isHomeTabPath } from '@/hooks/useFundTabs';
+import { Star } from 'lucide-react';
+import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
 import { cn } from '@/utils/styles';
 
-const ENDOWMENT_NAV_FEATURE = 'endowment_nav_new_badge';
-// Stop showing the "New" badge on the Endowment nav item after this date,
-// regardless of dismissal state. Using UTC to avoid timezone drift.
-const ENDOWMENT_NEW_BADGE_CUTOFF = new Date(Date.UTC(2026, 7, 1));
-
-// Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
   light: IconName;
   solid: IconName;
@@ -35,14 +27,8 @@ interface NavigationItem {
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
-  isLucideSprout?: boolean;
   isLucideStar?: boolean;
-  /** Show a "New" badge next to the label. Pair with `newFeatureName` so the
-   *  badge is dismissed once the user clicks the item. */
-  isNew?: boolean;
-  /** Feature key passed to `useDismissableFeature` so the badge persists its
-   *  dismissed state per-user. */
-  newFeatureName?: string;
+  isHome?: boolean;
 }
 
 interface NavigationProps {
@@ -51,7 +37,6 @@ interface NavigationProps {
   forceMinimize?: boolean;
 }
 
-// Map navigation icons to their light and solid variants
 const navIconMap: Record<NavIconKey, NavIcon> = {
   home: {
     light: 'home1',
@@ -80,26 +65,20 @@ export const Navigation: React.FC<NavigationProps> = ({
   onUnimplementedFeature,
   forceMinimize = false,
 }) => {
-  // Dismissable "New" badge for the Endowment nav item. Lifted to the parent
-  // so the click handler in NavLink can call dismissFeature() without each
-  // NavLink unconditionally calling the hook.
-  const {
-    isDismissed: isEndowmentBadgeDismissed,
-    dismissFeature: dismissEndowmentBadge,
-    dismissStatus: endowmentBadgeStatus,
-  } = useDismissableFeature(ENDOWMENT_NAV_FEATURE);
+  const homeHref = useHomeHref();
 
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: '/',
+      href: homeHref,
       iconKey: 'home',
       isFontAwesome: true,
+      isHome: true,
       description: 'Navigate to the home page',
     },
     {
       label: 'Your Funding',
-      href: '/fund/dashboard',
+      href: '/my-funding',
       iconKey: 'fund',
       requiresAuth: true,
       description: 'Track the impact of the research you fund',
@@ -123,18 +102,10 @@ export const Navigation: React.FC<NavigationProps> = ({
       iconKey: 'journal',
       description: 'Read and publish research papers',
     },
-    {
-      label: 'Endowment',
-      href: '/endowment',
-      isLucideSprout: true,
-      isNew: true,
-      newFeatureName: ENDOWMENT_NAV_FEATURE,
-      description: 'Earn Funding Credits on your RSC deposits',
-    },
   ];
 
-  const getButtonStyles = (path: string) => {
-    const isActive = isPathActive(path);
+  const getButtonStyles = (path: string, isHome?: boolean) => {
+    const isActive = isPathActive(path, isHome);
 
     return cn(
       'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] transition-colors',
@@ -147,13 +118,17 @@ export const Navigation: React.FC<NavigationProps> = ({
     );
   };
 
-  const isPathActive = (path: string) => {
-    if (path === '/') {
-      return isHomeTabPath(currentPath);
+  const isPathActive = (path: string, isHome?: boolean) => {
+    if (isHome) {
+      return isClassicHomeFeedPath(currentPath) || currentPath === '/';
     }
 
-    if (path === '/fund/dashboard') {
-      return currentPath === '/fund/dashboard' || currentPath.startsWith('/fund/dashboard/');
+    if (path === '/my-funding') {
+      return (
+        currentPath === '/my-funding' ||
+        currentPath === '/fund/dashboard' ||
+        currentPath.startsWith('/fund/dashboard/')
+      );
     }
 
     if (path === '/earn') {
@@ -164,32 +139,20 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath.startsWith('/notebook');
     }
 
-    if (path === '/endowment') {
-      return currentPath.startsWith('/endowment');
-    }
-
-    // Default case - exact match
     return path === currentPath;
   };
 
   const NavLink: React.FC<{
     item: NavigationItem;
-    currentPath: string;
     onUnimplementedFeature: (featureName: string) => void;
-    /** When true, render the "New" badge next to the label. */
-    showNewBadge?: boolean;
-    /** Fired alongside navigation to mark the new-badge feature as seen. */
-    onDismissNew?: () => void;
-  }> = ({ item, currentPath, onUnimplementedFeature, showNewBadge, onDismissNew }) => {
+  }> = ({ item, onUnimplementedFeature }) => {
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
-    const buttonStyles = getButtonStyles(item.href);
-    const isActive = isPathActive(item.href);
+    const buttonStyles = getButtonStyles(item.href, item.isHome);
+    const isActive = isPathActive(item.href, item.isHome);
 
-    // Set icon colors based on active state
-    const iconColor = isActive ? '#3971ff' : '#404040'; // Primary-500 for active, gray-600 for inactive
+    const iconColor = isActive ? '#3971ff' : '#404040';
 
-    // Get the appropriate icon based on active state
     const getIconName = (): IconName | undefined => {
       if (!item.iconKey) return undefined;
 
@@ -204,10 +167,6 @@ export const Navigation: React.FC<NavigationProps> = ({
         return;
       }
 
-      if (onDismissNew) {
-        onDismissNew();
-      }
-
       if (item.requiresAuth) {
         e.preventDefault();
         executeAuthenticatedAction(() => router.push(item.href));
@@ -215,7 +174,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       }
     };
 
-    // Determine if the current item is the Home item using FontAwesome
     const isHomeIcon = item.isFontAwesome && item.iconKey === 'home';
 
     const iconContainerClass = cn(
@@ -242,8 +200,6 @@ export const Navigation: React.FC<NavigationProps> = ({
               fontSize={22}
               color={iconColor}
             />
-          ) : item.isLucideSprout ? (
-            <Sprout size={24} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           ) : item.isLucideStar ? (
             <Star
               size={22}
@@ -258,18 +214,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">
-            {item.label}
-            {showNewBadge && (
-              <Badge
-                variant="success"
-                size="xs"
-                className="!rounded-md !bg-primary-500 !text-white !border-primary-600 uppercase tracking-wider font-bold"
-              >
-                New
-              </Badge>
-            )}
-          </span>
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
         </div>
       </Link>
     );
@@ -284,28 +229,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       )}
     >
       <div className="space-y-2">
-        {navigationItems.map((item) => {
-          const isBeforeEndowmentCutoff = Date.now() < ENDOWMENT_NEW_BADGE_CUTOFF.getTime();
-          const isEndowmentNewBadge =
-            item.newFeatureName === ENDOWMENT_NAV_FEATURE &&
-            item.isNew === true &&
-            isBeforeEndowmentCutoff &&
-            endowmentBadgeStatus === 'checked' &&
-            !isEndowmentBadgeDismissed;
-
-          return (
-            <NavLink
-              key={item.href}
-              item={item}
-              currentPath={currentPath}
-              onUnimplementedFeature={onUnimplementedFeature}
-              showNewBadge={isEndowmentNewBadge}
-              onDismissNew={
-                item.newFeatureName === ENDOWMENT_NAV_FEATURE ? dismissEndowmentBadge : undefined
-              }
-            />
-          );
-        })}
+        {navigationItems.map((item) => (
+          <NavLink
+            key={item.label}
+            item={item}
+            onUnimplementedFeature={onUnimplementedFeature}
+          />
+        ))}
       </div>
     </nav>
   );

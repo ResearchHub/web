@@ -1,18 +1,6 @@
-import { Metadata } from 'next';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { FunderDashboardPage } from './components/FunderDashboardPage';
-import { buildOpenGraphMetadata } from '@/lib/metadata';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Funder Dashboard',
-  description: 'Track the impact of the research you fund.',
-  url: '/fund/dashboard',
-});
-
+/** Back-compat: dashboard moved to `/my-funding`. */
 export default function FunderDashboardRoute() {
-  return (
-    <PageLayout rightSidebar={false} wideContent>
-      <FunderDashboardPage />
-    </PageLayout>
-  );
+  redirect('/my-funding');
 }

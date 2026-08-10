@@ -53,7 +53,7 @@ export const FundingLinksMenu: FC<FundingLinksMenuProps> = ({
     </BaseMenuItem>
     <DropdownMenu.Separator className="-mx-1 my-1 h-px bg-gray-100" />
     <BaseMenuItem asChild className={ITEM_CLASS}>
-      <Link href="/fund/dashboard">
+      <Link href="/my-funding">
         <Icon name="fund" size={20} color={ICON_COLOR} />
         Funder dashboard
         <ChevronRight size={16} className={ARROW_CLASS} />

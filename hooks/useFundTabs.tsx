@@ -14,51 +14,57 @@ function BullhornIcon({ className }: LucideProps) {
 
 export type FundTab = 'activity' | 'fund' | 'proposals';
 
-/** Routes that make up the homepage hub — all of them highlight "Home" in the nav. */
-export const HOME_TAB_PATHS = ['/', '/fund', '/fund/proposals'];
+/** Feed v2 hub routes (Activity / RFPs / Proposals). */
+export const FEED_V2_TAB_PATHS = ['/feed-v2', '/feed-v2/fund', '/feed-v2/fund/proposals'];
 
-export const isHomeTabPath = (pathname: string) => HOME_TAB_PATHS.includes(pathname);
+/** @deprecated Use FEED_V2_TAB_PATHS / isFeedV2TabPath */
+export const HOME_TAB_PATHS = FEED_V2_TAB_PATHS;
 
-const HOME_TAB_ACTIVE_CLASS_NAME = 'border-b-primary-600 text-primary-600 !border-b-4';
+export const isFeedV2TabPath = (pathname: string) => FEED_V2_TAB_PATHS.includes(pathname);
+
+/** @deprecated Use isFeedV2TabPath */
+export const isHomeTabPath = isFeedV2TabPath;
+
+const TAB_ACTIVE_CLASS_NAME = 'border-b-primary-600 text-primary-600 !border-b-4';
 
 export const FUND_TABS = [
   {
     id: 'activity' as const,
     label: 'Activity',
-    href: '/',
+    href: '/feed-v2',
     icon: Waves,
-    activeClassName: HOME_TAB_ACTIVE_CLASS_NAME,
+    activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
   {
     id: 'fund' as const,
     label: 'Request for Proposals',
-    href: '/fund',
+    href: '/feed-v2/fund',
     icon: BullhornIcon as LucideIcon,
-    activeClassName: HOME_TAB_ACTIVE_CLASS_NAME,
+    activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
   {
     id: 'proposals' as const,
     label: 'Proposals',
-    href: '/fund/proposals',
+    href: '/feed-v2/fund/proposals',
     icon: FileText,
-    activeClassName: HOME_TAB_ACTIVE_CLASS_NAME,
+    activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
 ];
 
-/** Homepage hub: Activity / Request for Proposals / Proposals (shared shell + FundSidebar). */
+/** Feed v2 hub: Activity / Request for Proposals / Proposals. */
 export function useFundTabs() {
   const pathname = usePathname();
   const router = useRouter();
   const scrollContainerRef = useScrollContainer();
 
-  const isFundPage = isHomeTabPath(pathname);
+  const isFundPage = isFeedV2TabPath(pathname);
 
   const activeTab = useMemo((): FundTab => {
-    if (pathname === '/fund/proposals') return 'proposals';
-    if (pathname === '/fund') return 'fund';
+    if (pathname === '/feed-v2/fund/proposals') return 'proposals';
+    if (pathname === '/feed-v2/fund') return 'fund';
     return 'activity';
   }, [pathname]);
 

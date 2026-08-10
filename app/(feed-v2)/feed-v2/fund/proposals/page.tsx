@@ -6,10 +6,10 @@ import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilt
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Proposals',
   description: 'Propose research, get reviewed, receive funding.',
-  url: '/fund/proposals',
+  url: '/feed-v2/fund/proposals',
 });
 
-export default function FundProposalsPage() {
+export default function FeedV2ProposalsPage() {
   return (
     <div>
       <ProposalSortAndFilters />

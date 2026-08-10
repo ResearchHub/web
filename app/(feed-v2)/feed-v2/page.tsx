@@ -5,9 +5,9 @@ import { FundActivityPageContent } from '@/components/Funding/FundActivityPageCo
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Activity',
   description: 'Recent activity across funding opportunities and proposals.',
-  url: '/',
+  url: '/feed-v2',
 });
 
-export default function HomeActivityPage() {
+export default function FeedV2ActivityPage() {
   return <FundActivityPageContent />;
 }

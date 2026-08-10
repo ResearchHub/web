@@ -1,24 +1,38 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { useFeed } from '@/hooks/useFeed';
 import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
-import { useGrantFeed } from '@/contexts/GrantFeedContext';
+import type { GrantSortOption } from '@/components/Funding/lib/grantSortConfig';
 
+/** Classic /fund grants list (local useFeed — remounts with the page). */
 export function FundGrantsPageContent() {
-  const { entries, isLoading, hasMore, loadMore, sortBy, setSortBy, activate } = useGrantFeed();
+  const [grantSort, setGrantSort] = useState<GrantSortOption>('newest');
 
-  useEffect(() => {
-    activate();
-  }, [activate]);
+  const grantFeedOptions = useMemo(
+    () => ({
+      endpoint: 'grant_feed' as const,
+      contentType: 'GRANT',
+      ordering: grantSort,
+    }),
+    [grantSort]
+  );
+
+  const {
+    entries: grantEntries,
+    isLoading: isGrantFeedLoading,
+    hasMore: hasMoreGrants,
+    loadMore: loadMoreGrants,
+  } = useFeed('all', grantFeedOptions);
 
   return (
     <FeedContent
-      entries={entries}
-      isLoading={isLoading}
-      hasMore={hasMore}
-      loadMore={loadMore}
-      filters={<GrantSortAndFilters sortBy={sortBy} onSortChange={setSortBy} />}
+      entries={grantEntries}
+      isLoading={isGrantFeedLoading}
+      hasMore={hasMoreGrants}
+      loadMore={loadMoreGrants}
+      filters={<GrantSortAndFilters sortBy={grantSort} onSortChange={setGrantSort} />}
       skeletonVariant="grant"
       showGrantHeaders={false}
       showPostHeaders={false}

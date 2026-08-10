@@ -124,15 +124,26 @@ export function handleMissingSlugRedirect(
 }
 
 /**
- * Redirects into the homepage Activity hub.
+ * Handles redirection to the classic research feed.
+ * Logged in → /for-you, logged out → /popular.
  * Preserves search parameters when provided.
  */
-export function handleTrendingRedirect(_isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
-  let redirectUrl = '/';
+export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
+  if (isUserLoggedIn) {
+    let redirectUrl = '/for-you';
 
-  if (searchParams && searchParams.toString()) {
-    redirectUrl += `?${searchParams.toString()}`;
+    if (searchParams && searchParams.toString()) {
+      redirectUrl += `?${searchParams.toString()}`;
+    }
+
+    redirect(redirectUrl);
+  } else {
+    let popularUrl = '/popular';
+
+    if (searchParams && searchParams.toString()) {
+      popularUrl += `?${searchParams.toString()}`;
+    }
+
+    redirect(popularUrl);
   }
-
-  redirect(redirectUrl);
 }

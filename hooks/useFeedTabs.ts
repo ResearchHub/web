@@ -18,9 +18,8 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
   const isTopicPage = pathname.startsWith('/topic/');
   const isJournalPage = pathname.startsWith('/journal');
-  // Legacy research-feed routes (redirected to `/` for homepage hub).
-  // `/` is now the Activity hub tab — not a research feed.
-  const isHomeFeedPage = ['/following', '/latest', '/popular', '/for-you', '/feed'].includes(
+  // Classic research-feed routes (also `/` redirects here).
+  const isHomeFeedPage = ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(
     pathname
   );
 
