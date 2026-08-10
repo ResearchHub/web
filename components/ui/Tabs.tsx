@@ -112,18 +112,7 @@ export const Tabs: React.FC<TabsProps> = ({
   useEffect(() => {
     checkScrollability();
     const timeout = setTimeout(checkScrollability, 100);
-
-    // Re-measure when the container itself resizes (e.g. the page layout
-    // settles after mount), otherwise a transient overflow leaves the scroll
-    // arrows showing on a tab bar that fits.
-    const container = scrollContainerRef.current;
-    const observer = new ResizeObserver(checkScrollability);
-    if (container) observer.observe(container);
-
-    return () => {
-      clearTimeout(timeout);
-      observer.disconnect();
-    };
+    return () => clearTimeout(timeout);
   }, [tabs, checkScrollability]);
 
   const scroll = (direction: 'left' | 'right') => {
