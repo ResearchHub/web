@@ -2,10 +2,7 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { EARN_BOUNTIES_ANCHOR } from '@/components/Earn/EarnDashboard';
 import { EarnEarningsSummary } from '@/components/Earn/EarnEarningsSummary';
-import { EarnOpportunities } from '@/components/Earn/EarnOpportunities';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { buttonVariants } from '@/components/ui/Button';
 import { useContributions } from '@/hooks/useContributions';
@@ -165,17 +162,10 @@ function PeerReviews({ authorId }: Readonly<{ authorId?: number }>) {
 }
 
 export function FundsReceived({ userId, authorId }: Readonly<FundsReceivedProps>) {
-  const router = useRouter();
-
-  const browsePeerReviewBounties = () => {
-    router.push(`/earn#${EARN_BOUNTIES_ANCHOR}`);
-  };
-
   return (
     <div className="mb-6 space-y-8">
       <EarnEarningsSummary />
       <MyProposals userId={userId} />
-      <EarnOpportunities onBrowse={browsePeerReviewBounties} />
       <PeerReviews authorId={authorId} />
     </div>
   );

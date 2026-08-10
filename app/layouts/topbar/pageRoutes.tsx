@@ -145,6 +145,13 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
+    match: (p) => p === '/my-funding',
+    getInfo: () => ({
+      title: 'My Funding',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    }),
+  },
+  {
     match: (p) => p === '/fund' || p.startsWith('/fund/') || p.startsWith('/grant/'),
     getInfo: () => ({
       title: 'Fund',
