@@ -84,6 +84,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Track the impact of the research you fund',
     },
     {
+      label: 'Fund',
+      href: '/fund',
+      iconKey: 'fund',
+      description: 'Browse grants and fundraising opportunities',
+    },
+    {
       label: 'Notebook',
       href: '/notebook',
       iconKey: 'notebook',
@@ -128,6 +134,14 @@ export const Navigation: React.FC<NavigationProps> = ({
         currentPath === '/my-funding' ||
         currentPath === '/fund/dashboard' ||
         currentPath.startsWith('/fund/dashboard/')
+      );
+    }
+
+    if (path === '/fund') {
+      return (
+        currentPath === '/fund' ||
+        currentPath.startsWith('/fund/proposals') ||
+        (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
       );
     }
 
