@@ -6,15 +6,19 @@ import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
-import { getOutreachChannelLabel } from '@/app/expert-finder/lib/outreachChannels';
+import { getOutreachChannelLabels } from '@/app/expert-finder/lib/outreachChannels';
 
 function statusCell(email: GeneratedEmail) {
   const { label, variant } = getGeneratedEmailStatusPresentation(email.status, email.openCount);
-  const channelLabel = email.status === 'sent' ? getOutreachChannelLabel(email.channel) : null;
+  const channelLabels = email.status === 'sent' ? getOutreachChannelLabels(email.channels) : [];
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <Badge variant={variant}>{label}</Badge>
-      {channelLabel ? <Badge variant="default">via {channelLabel}</Badge> : null}
+      {channelLabels.map((channelLabel) => (
+        <Badge key={channelLabel} variant="default">
+          via {channelLabel}
+        </Badge>
+      ))}
     </div>
   );
 }

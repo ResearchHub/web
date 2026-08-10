@@ -179,6 +179,7 @@ const nextConfig = {
       },
     ],
     formats: ['image/webp', 'image/avif'],
+    qualities: [75, 95],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
   modularizeImports: {
@@ -196,7 +197,6 @@ const nextConfig = {
     },
   },
   experimental: {
-    optimizeCss: true,
     scrollRestoration: true,
   },
 };

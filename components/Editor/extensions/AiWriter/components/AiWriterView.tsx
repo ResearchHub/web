@@ -69,6 +69,7 @@ export const AiWriterView = ({ editor, node, getPos, deleteNode }: NodeViewProps
 
   const insert = useCallback(() => {
     const from = getPos();
+    if (from === undefined) return;
     const to = from + node.nodeSize;
     editor.chain().focus().aiAccept({ insertAt: { from, to }, append: false }).run();
   }, [editor, getPos, node.nodeSize]);

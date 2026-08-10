@@ -2,8 +2,7 @@
 
 import { Editor, JSONContent } from '@tiptap/core';
 import type { AnyExtension } from '@tiptap/core';
-import { TextAlign } from '@tiptap/extension-text-align';
-import { History } from '@tiptap/extension-history';
+import { UndoRedo } from '@tiptap/extensions';
 import { Import } from '@tiptap-pro/extension-import';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
@@ -140,8 +139,7 @@ export const importDocumentToTiptap = async (
   //      coercion explicitly below by prepending a title heading if needed.
   const extensions: AnyExtension[] = [
     ...ExtensionKit({}),
-    TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    History.configure({ depth: 100 }),
+    UndoRedo.configure({ depth: 100 }),
     Import.configure({
       appId,
       token,
