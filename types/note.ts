@@ -225,30 +225,28 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
   json: serializeNoteJson(raw.json) ?? '',
 }));
 
-export const isRegisteredReportNote = (
-  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
-): boolean =>
+type ClassifiableNoteKey = 'documentType' | 'post' | 'proposalId';
+type ClassifiableNote = Pick<Note, ClassifiableNoteKey>;
+
+export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
   isRegisteredReportDocumentType(note?.documentType) ||
   isRegisteredReportDocumentType(note?.post?.documentType) ||
   note?.proposalId != null;
 
-export const isPublishedRegisteredReportNote = (
-  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
-): boolean => Boolean(note?.post?.id) && isRegisteredReportNote(note);
+export const isPublishedRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
+  Boolean(note?.post?.id) && isRegisteredReportNote(note);
 
 /** ChangeLog entries reuse the legacy preprint post and document types. */
-export const isChangelogNote = (
-  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
-): boolean => {
+export const isChangelogNote = (note?: ClassifiableNote | null): boolean => {
   const noteDocumentType = note?.documentType?.trim().toUpperCase();
   const postDocumentType = note?.post?.documentType?.trim().toUpperCase();
+  const hasLegacyPostShape =
+    (!noteDocumentType || noteDocumentType === 'NOTE' || noteDocumentType === 'POST') &&
+    (!postDocumentType || postDocumentType === 'POST') &&
+    (note?.post?.contentType === 'post' || note?.post?.contentType === 'discussion');
 
   return (
     !isRegisteredReportNote(note) &&
-    (noteDocumentType === 'DISCUSSION' ||
-      postDocumentType === 'DISCUSSION' ||
-      (!noteDocumentType &&
-        !postDocumentType &&
-        (note?.post?.contentType === 'post' || note?.post?.contentType === 'discussion')))
+    (noteDocumentType === 'DISCUSSION' || postDocumentType === 'DISCUSSION' || hasLegacyPostShape)
   );
 };
