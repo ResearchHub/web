@@ -13,25 +13,17 @@ import {
   mapUserSuggestionToAuthorSuggestion,
 } from '@/types/search';
 import { transformTopic } from '@/types/topic';
-import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
+import {
+  transformInstitutions,
+  type Institution,
+  type InstitutionSuggestionsResponse,
+} from '@/types/institution';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 import { stripHtml } from '@/utils/stringUtils';
 
 // Constants for search result snippet extension
 const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
-
-export interface InstitutionResponse {
-  id: number;
-  display_name: string;
-  city?: string;
-  region?: string;
-  country_code?: string;
-  h_index?: number;
-  works_count?: number;
-  image_url?: string;
-  image_thumbnail_url?: string;
-}
 
 export interface FullSearchParams {
   query: string;
@@ -48,37 +40,6 @@ export interface FullSearchResponse {
   aggregations: any;
   hasMore: boolean;
 }
-
-export const transformInstitution = (response: any): Institution => {
-  return {
-    id: response.id,
-    name: response.display_name,
-    location: [response.city, response.region, response.country_code].filter(Boolean).join(', '),
-    hIndex: response.h_index,
-    worksCount: response.works_count,
-    imageUrl: response.image_url,
-    imageThumbnailUrl: response.image_thumbnail_url,
-  };
-};
-
-export const transformInstitutions = (response: any): Institution[] => {
-  const institutions: Institution[] = [];
-
-  if (
-    response.suggestion_phrases__completion &&
-    response.suggestion_phrases__completion.length > 0
-  ) {
-    const suggestions = response.suggestion_phrases__completion[0].options || [];
-
-    suggestions.forEach((suggestion: any) => {
-      if (suggestion._source) {
-        institutions.push(transformInstitution(suggestion._source));
-      }
-    });
-  }
-
-  return institutions;
-};
 
 export class SearchService {
   private static readonly BASE_PATH = '/api';
@@ -498,7 +459,7 @@ export class SearchService {
   }
 
   static async suggestInstitutions(query: string): Promise<Institution[]> {
-    const response = await ApiClient.get<any>(
+    const response = await ApiClient.get<InstitutionSuggestionsResponse>(
       `${this.INSTITUTIONS_SUGGEST_PATH}/?suggestion_phrases__completion=${encodeURIComponent(query)}`
     );
 

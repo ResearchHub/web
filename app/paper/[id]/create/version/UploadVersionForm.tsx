@@ -11,8 +11,8 @@ import { FileUpload } from '@/components/ui/form/FileUpload';
 import {
   AuthorsAndAffiliations,
   SelectedAuthor,
-} from '@/app/paper/create/components/AuthorsAndAffiliations';
-import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
+} from '@/components/Paper/forms/AuthorsAndAffiliations';
+import { HubsSelector, Hub } from '@/components/Paper/forms/HubsSelector';
 import { FileText, FileUp, Users, Tags, ArrowLeft, Info, MessageCircle } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService } from '@/services/paper.service';
