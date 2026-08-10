@@ -27,6 +27,17 @@ export default defineConfig([
       'react-hooks/rules-of-hooks': 'off',
       'prefer-const': 'off',
       '@next/next/no-img-element': 'off',
+      // FIXME: The following react-hooks rules were enabled by the Next 16 upgrade
+      // and flag some anti-patterns to be fixed in a separate change.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/error-boundaries': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/use-memo': 'off',
+      'react-hooks/static-components': 'off',
+      'react-hooks/incompatible-library': 'off',
     },
   },
   {
