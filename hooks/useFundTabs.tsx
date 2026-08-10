@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
-/** Sized via PillTabs' className to match Lucide stroke icons in the pills. */
 function BullhornIcon({ className }: LucideProps) {
   return <FontAwesomeIcon icon={faBullhorn} className={className} />;
 }
@@ -17,13 +16,7 @@ export type FundTab = 'activity' | 'fund' | 'proposals';
 /** Feed v2 hub routes (Activity / RFPs / Proposals). */
 export const FEED_V2_TAB_PATHS = ['/feed-v2', '/feed-v2/fund', '/feed-v2/fund/proposals'];
 
-/** @deprecated Use FEED_V2_TAB_PATHS / isFeedV2TabPath */
-export const HOME_TAB_PATHS = FEED_V2_TAB_PATHS;
-
 export const isFeedV2TabPath = (pathname: string) => FEED_V2_TAB_PATHS.includes(pathname);
-
-/** @deprecated Use isFeedV2TabPath */
-export const isHomeTabPath = isFeedV2TabPath;
 
 const TAB_ACTIVE_CLASS_NAME = 'border-b-primary-600 text-primary-600 !border-b-4';
 
@@ -54,7 +47,6 @@ export const FUND_TABS = [
   },
 ];
 
-/** Feed v2 hub: Activity / Request for Proposals / Proposals. */
 export function useFundTabs() {
   const pathname = usePathname();
   const router = useRouter();

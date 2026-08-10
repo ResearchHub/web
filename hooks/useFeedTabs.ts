@@ -18,14 +18,18 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
   const isTopicPage = pathname.startsWith('/topic/');
   const isJournalPage = pathname.startsWith('/journal');
-  // Classic research-feed routes (also `/` redirects here).
-  const isHomeFeedPage = ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(
-    pathname
-  );
+  const isPersonalizedFeedPage = [
+    '/',
+    '/following',
+    '/latest',
+    '/popular',
+    '/for-you',
+    '/feed',
+  ].includes(pathname);
 
   const isFeedPage = useMemo(
-    () => isHomeFeedPage || isTopicPage || isJournalPage,
-    [isHomeFeedPage, isTopicPage, isJournalPage]
+    () => isPersonalizedFeedPage || isTopicPage || isJournalPage,
+    [isPersonalizedFeedPage, isTopicPage, isJournalPage]
   );
 
   const topicSlug = isTopicPage ? pathname.split('/')[2] : null;
