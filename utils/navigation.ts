@@ -125,7 +125,6 @@ export function handleMissingSlugRedirect(
 
 /**
  * Handles redirection to the classic research feed.
- * Logged in → /for-you, logged out → /popular.
  * Preserves search parameters when provided.
  */
 export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {

@@ -5,7 +5,6 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import { useGrantFeed } from '@/contexts/GrantFeedContext';
 
-/** Grant (RFP) list for feed-v2 — uses GrantFeedProvider (no refetch on tab switch). */
 export function FeedV2GrantsPageContent() {
   const { entries, isLoading, hasMore, loadMore, sortBy, setSortBy, activate } = useGrantFeed();
 

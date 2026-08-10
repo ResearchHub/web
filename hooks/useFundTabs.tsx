@@ -13,7 +13,6 @@ function BullhornIcon({ className }: LucideProps) {
 
 export type FundTab = 'activity' | 'fund' | 'proposals';
 
-/** Feed v2 hub routes (Activity / RFPs / Proposals). */
 export const FEED_V2_TAB_PATHS = ['/feed-v2', '/feed-v2/fund', '/feed-v2/fund/proposals'];
 
 export const isFeedV2TabPath = (pathname: string) => FEED_V2_TAB_PATHS.includes(pathname);
