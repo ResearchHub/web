@@ -1,3 +1,4 @@
+import { CHANGELOG_NOTEBOOK_ROLLOUT_AT, CHANGELOG_POST_IDS } from '@/constants/changelog';
 import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
@@ -227,6 +228,10 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
 
 type ClassifiableNoteKey = 'documentType' | 'post' | 'proposalId';
 type ClassifiableNote = Pick<Note, ClassifiableNoteKey>;
+type ClassifiableChangelogNote = ClassifiableNote & Pick<Note, 'createdDate'>;
+
+const CHANGELOG_POST_ID_SET: ReadonlySet<string> = new Set(CHANGELOG_POST_IDS);
+const CHANGELOG_ROLLOUT_TIMESTAMP = Date.parse(CHANGELOG_NOTEBOOK_ROLLOUT_AT);
 
 export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
   isRegisteredReportDocumentType(note?.documentType) ||
@@ -236,17 +241,18 @@ export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean 
 export const isPublishedRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
   Boolean(note?.post?.id) && isRegisteredReportNote(note);
 
-/** ChangeLog entries reuse the legacy preprint post and document types. */
-export const isChangelogNote = (note?: ClassifiableNote | null): boolean => {
-  const noteDocumentType = note?.documentType?.trim().toUpperCase();
-  const postDocumentType = note?.post?.documentType?.trim().toUpperCase();
-  const hasLegacyPostShape =
-    (!noteDocumentType || noteDocumentType === 'NOTE' || noteDocumentType === 'POST') &&
-    (!postDocumentType || postDocumentType === 'POST') &&
-    (note?.post?.contentType === 'post' || note?.post?.contentType === 'discussion');
+/** Uses exact legacy IDs because ordinary preprints also used DISCUSSION before rollout. */
+export const isChangelogNote = (note?: ClassifiableChangelogNote | null): boolean => {
+  if (!note || isRegisteredReportNote(note)) return false;
+
+  const postId = note.post?.id;
+  if (postId != null && CHANGELOG_POST_ID_SET.has(String(postId))) return true;
+
+  const wasCreatedOnOrAfterRollout = Date.parse(note.createdDate) >= CHANGELOG_ROLLOUT_TIMESTAMP;
+  if (!wasCreatedOnOrAfterRollout) return false;
 
   return (
-    !isRegisteredReportNote(note) &&
-    (noteDocumentType === 'DISCUSSION' || postDocumentType === 'DISCUSSION' || hasLegacyPostShape)
+    note.documentType?.trim().toUpperCase() === 'DISCUSSION' ||
+    note.post?.documentType?.trim().toUpperCase() === 'DISCUSSION'
   );
 };

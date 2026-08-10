@@ -55,9 +55,12 @@ function getWorkTypeLabel(
       return 'Funding Opportunity';
     case 'PREREGISTRATION':
       return 'Proposal';
+    case 'DISCUSSION':
+      return 'Preprint';
   }
   if (contentType === 'funding_request') return 'Funding Opportunity';
   if (contentType === 'preregistration') return 'Proposal';
+  if (contentType) return 'Preprint';
   return undefined;
 }
 
