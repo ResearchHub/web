@@ -1,5 +1,5 @@
 import { mergeAttributes } from '@tiptap/core';
-import TiptapLink from '@tiptap/extension-link';
+import TiptapLink, { type LinkOptions } from '@tiptap/extension-link';
 import { Plugin } from '@tiptap/pm/state';
 import { EditorView } from '@tiptap/pm/view';
 
@@ -8,13 +8,17 @@ export const Link = TiptapLink.extend({
 
   addOptions() {
     return {
-      ...this.parent?.(),
+      // Cast because `parent` is optional at the type level; at runtime it is
+      // always present when extending, and v3 requires every LinkOption.
+      ...(this.parent?.() as LinkOptions),
       HTMLAttributes: {
         class: 'link',
         rel: 'noopener noreferrer nofollow',
         target: '_blank',
       },
-      validate: (url: string) => {
+      // v3 renamed `validate` to `shouldAutoLink`; same semantics (gate which
+      // detected URLs get auto-linked).
+      shouldAutoLink: (url: string) => {
         try {
           new URL(url);
           return true;
@@ -24,7 +28,6 @@ export const Link = TiptapLink.extend({
       },
       autolink: true,
       protocols: ['http', 'https', 'mailto', 'tel'],
-      addProtocol: true,
     };
   },
 

@@ -71,7 +71,7 @@ export function JournalPageContent() {
       lastClickedEntryId={lastClickedEntryId ?? undefined}
       noEntriesElement={
         <div className="py-12 text-center">
-          <p className="text-gray-400 text-sm">No journal entries yet</p>
+          <p className="text-gray-400 text-sm">No Registered Reports yet</p>
         </div>
       }
       renderEntry={({

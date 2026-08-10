@@ -50,10 +50,10 @@ const whyRSCFeatures: WhyRSCFeature[] = [
     title: 'Features',
     subtitle: 'Power up your research',
     description:
-      'Spend RSC on bounties for expert help, affordable publishing, research funding, and premium tools that supercharge your work.',
+      'Spend RSC on bounties for expert help, peer review, research funding, and premium tools that supercharge your work.',
     benefits: [
       'Expert consultation bounties',
-      'Affordable paper publishing',
+      'Peer-review bounties',
       'Project funding access',
       'Advanced research tools',
     ],

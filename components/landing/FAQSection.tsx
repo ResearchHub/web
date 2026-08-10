@@ -13,7 +13,7 @@ const faqs: FAQItem[] = [
   {
     question: 'What exactly is ResearchHub and how does it work?',
     answer:
-      'ResearchHub is a platform where researchers can publish papers, get peer reviews, and earn rewards - while funders can directly support scientific research they care about. Think of it as a scientific marketplace: researchers submit their work, qualified peers review it for compensation, and funders can sponsor specific research areas or projects. Everything happens transparently with faster timelines than traditional publishing.',
+      'ResearchHub is a platform where researchers share their work, receive paid peer reviews, and raise funding while funders directly support scientific research they care about. Funded proposals can progress into open-access Registered Reports, creating a transparent path from planned research to publication.',
     category: 'general',
   },
   {
@@ -73,7 +73,7 @@ const faqs: FAQItem[] = [
   {
     question: 'How do you prevent low-quality submissions and reviews?',
     answer:
-      'We use multiple quality controls: editorial pre-screening, reviewer reputation systems, community validation, and economic stakes. Authors must meet academic standards, and frivolous submissions result in penalties. Reviewers are scored on their feedback quality, and consistently poor reviewers lose access to paid opportunities. Our acceptance rates are comparable to traditional journals.',
+      'We use editorial screening, expert peer review, reviewer reputation systems, and community validation. Journal publication is limited to eligible funded proposals that progress through the Registered Report workflow. Reviewers are scored on feedback quality, and consistently poor reviewers lose access to paid opportunities.',
     category: 'research',
   },
   {
@@ -85,13 +85,13 @@ const faqs: FAQItem[] = [
   {
     question: 'How does this compare to traditional journal publishing?',
     answer:
-      'ResearchHub offers faster publication (days vs months), transparent peer review, lower fees ($150-300 vs $3000+ APCs), and researcher compensation. You still get DOIs, indexing, and academic recognition, but with better economics, transparency, and speed. Many researchers use us alongside traditional journals, especially for timely or interdisciplinary work.',
+      'ResearchHub connects funded proposals to open-access Registered Reports with transparent, paid peer review and no journal APC. The workflow makes the study plan, reviews, funding, progress, and final report visible together instead of treating publication as a separate manuscript-submission process.',
     category: 'research',
   },
   {
     question: 'Is this sustainable long-term, or will payments disappear?',
     answer:
-      "Our model is designed for sustainability through multiple revenue streams: publication fees, premium features, and network transaction fees. As the platform grows, network effects create value that supports continued payments. We're not dependent on venture funding for operational rewards - the economic model is self-sustaining as usage increases.",
+      "Our model is designed for sustainability through multiple revenue streams, including platform services, partnerships, and network transaction fees. As the platform grows, network effects create value that supports continued payments. We're not dependent on a standalone journal-submission fee.",
     category: 'general',
   },
   {

@@ -30,8 +30,6 @@ import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
-import { Icon } from '@/components/ui/icons/Icon';
-import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
 import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -62,7 +60,6 @@ export const WorkPrimaryActions = ({
   className,
 }: WorkPrimaryActionsProps) => {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
     null
   );
@@ -209,31 +206,6 @@ export const WorkPrimaryActions = ({
     toast.success(`Successfully tipped ${amount} RSC`);
     setIsTipModalOpen(false);
   };
-
-  const latestVersion = work.versions?.find((v) => v.isLatest);
-  const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
-
-  const handlePublish = useCallback(async () => {
-    if (isPublished) return;
-
-    setIsPublishing(true);
-    try {
-      await PaperService.publishPaper(work.id);
-      toast.success('Paper published to ResearchHub Journal');
-
-      if (typeof router.refresh === 'function') {
-        router.refresh();
-      } else if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
-    } catch (error: any) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to publish paper. Please try again.'
-      );
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [work.id, isPublished, router]);
 
   const isGrantContact =
     user?.authorProfile != null &&
@@ -483,15 +455,6 @@ export const WorkPrimaryActions = ({
               <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 <span>Upload New Version</span>
-              </BaseMenuItem>
-            )}
-            {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-              <BaseMenuItem
-                disabled={isPublishing}
-                onSelect={() => executeAuthenticatedAction(handlePublish)}
-              >
-                <Icon name="rhJournal1" size={16} className="mr-2" />
-                <span>Publish to Journal</span>
               </BaseMenuItem>
             )}
             {isModerator && work.contentType === 'preregistration' && metadata.fundraising?.id && (

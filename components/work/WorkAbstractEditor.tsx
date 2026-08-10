@@ -49,6 +49,13 @@ export function WorkAbstractEditor({
           },
         },
         codeBlock: false,
+        // Bundled into StarterKit as of v3. Link/Underline are registered
+        // separately below; trailingNode and listKeymap were not part of this
+        // editor's v2 behavior.
+        link: false,
+        underline: false,
+        trailingNode: false,
+        listKeymap: false,
       }),
       Underline,
       Link.configure({
@@ -101,12 +108,15 @@ export function WorkAbstractEditor({
       onContentChange?.(plainText, html);
     },
     immediatelyRender: false,
+    // v3 no longer rerenders on every transaction. The toolbar reads
+    // editor.isActive(...) during render, so it needs the v2 behavior.
+    shouldRerenderOnTransaction: true,
   });
 
   // Update editor content when initialContent changes
   useEffect(() => {
     if (editor && initialContent !== editor.getHTML()) {
-      editor.commands.setContent(initialContent);
+      editor.commands.setContent(initialContent, { emitUpdate: false });
     }
   }, [editor, initialContent]);
 
