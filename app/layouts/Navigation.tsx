@@ -77,13 +77,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
-      label: 'Your Funding',
-      href: '/my-funding',
-      iconKey: 'fund',
-      requiresAuth: true,
-      description: 'Track the impact of the research you fund',
-    },
-    {
       label: 'Fund',
       href: '/fund',
       iconKey: 'fund',
@@ -127,14 +120,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   const isPathActive = (path: string, isHome?: boolean) => {
     if (isHome) {
       return isClassicHomeFeedPath(currentPath) || currentPath === '/';
-    }
-
-    if (path === '/my-funding') {
-      return (
-        currentPath === '/my-funding' ||
-        currentPath === '/fund/dashboard' ||
-        currentPath.startsWith('/fund/dashboard/')
-      );
     }
 
     if (path === '/fund') {
