@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FunderDashboardPage } from '@/components/Funding/dashboard/FunderDashboardPage';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
+import { FunderDashboardContent } from './FunderDashboardContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Funder Dashboard',
@@ -11,8 +11,8 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default function FunderDashboardRoute() {
   return (
-    <PageLayout rightSidebar={false} wideContent>
-      <FunderDashboardPage />
+    <PageLayout rightSidebar={false} wideContent className="px-4 py-6 tablet:px-8">
+      <FunderDashboardContent />
     </PageLayout>
   );
 }
