@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { SearchService } from '@/services/search.service';
 import { FeedEntry } from '@/types/feed';
 import {

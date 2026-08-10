@@ -1,6 +1,6 @@
-import { BubbleMenu as BaseBubbleMenu, useEditorState } from '@tiptap/react';
-import { useCallback } from 'react';
-import { sticky } from 'tippy.js';
+import { useEditorState } from '@tiptap/react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
+import { useCallback, useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { MenuProps } from '@/components/Editor/components/menus/types';
@@ -21,6 +21,15 @@ export const ColumnsMenu = ({ editor, appendTo }: MenuProps) => {
     const isColumns = editor.isActive('columns');
     return isColumns;
   }, [editor]);
+
+  // Stable identities required: BubbleMenu dispatches a transaction whenever
+  // these props change, which would re-render this menu and loop.
+  const menuAppendTo = useCallback(() => appendTo?.current, [appendTo]);
+  const referencedVirtualElement = useCallback(
+    () => ({ getBoundingClientRect: getReferenceClientRect }),
+    [getReferenceClientRect]
+  );
+  const menuOptions = useMemo(() => ({ offset: 8, flip: false }), []);
 
   const onColumnLeft = useCallback(() => {
     editor.chain().focus().setLayout(ColumnLayout.SidebarLeft).run();
@@ -50,16 +59,9 @@ export const ColumnsMenu = ({ editor, appendTo }: MenuProps) => {
       pluginKey={`columnsMenu-${uuid()}`}
       shouldShow={shouldShow}
       updateDelay={0}
-      tippyOptions={{
-        offset: [0, 8],
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-        getReferenceClientRect,
-        appendTo: () => appendTo?.current,
-        plugins: [sticky],
-        sticky: 'popper',
-      }}
+      appendTo={menuAppendTo}
+      getReferencedVirtualElement={referencedVirtualElement}
+      options={menuOptions}
     >
       <Toolbar.Wrapper>
         <Toolbar.Button tooltip="Sidebar left" active={isColumnLeft} onClick={onColumnLeft}>

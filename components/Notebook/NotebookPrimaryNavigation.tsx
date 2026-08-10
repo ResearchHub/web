@@ -18,11 +18,6 @@ export const NOTEBOOK_WORK_TYPES = [
     label: 'Proposal',
     description: 'Create a research proposal and optionally raise funding.',
   },
-  {
-    value: 'discussion',
-    label: 'Preprint',
-    description: 'Share research findings or a manuscript.',
-  },
 ] as const;
 
 type NotebookWorkType = (typeof NOTEBOOK_WORK_TYPES)[number]['value'];
@@ -36,7 +31,6 @@ const SectionHeading = ({ children }: { children: React.ReactNode }) => (
 interface NotebookPrimaryNavigationProps {
   onNewFundingOpportunity: () => void;
   onNewProposal: () => void;
-  onNewPreprint: () => void;
   onInvitePeople: () => void;
 }
 
@@ -52,7 +46,6 @@ interface NotebookPrimaryNavigationProps {
 export const NotebookPrimaryNavigation = ({
   onNewFundingOpportunity,
   onNewProposal,
-  onNewPreprint,
   onInvitePeople,
 }: NotebookPrimaryNavigationProps) => {
   const { selectedOrg } = useOrganizationContext();
@@ -71,10 +64,6 @@ export const NotebookPrimaryNavigation = ({
     preregistration: {
       icon: <FundingIcon size={18} color="#6b7280" />,
       onClick: onNewProposal,
-    },
-    discussion: {
-      icon: <Icon name="submit1" size={18} color="#6b7280" />,
-      onClick: onNewPreprint,
     },
   };
 

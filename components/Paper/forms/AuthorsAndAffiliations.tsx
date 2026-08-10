@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Users, ChevronUp, ChevronDown, Trash2, Mail, Plus, X } from 'lucide-react';
+import { Users, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Alert } from '@/components/ui/Alert';

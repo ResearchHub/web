@@ -33,6 +33,10 @@ export const emojiSuggestion = {
           editor: props.editor,
         });
 
+        if (!props.clientRect) {
+          return;
+        }
+
         popup = tippy('body', {
           getReferenceClientRect: props.clientRect as () => DOMRect,
           appendTo: () => document.body,
@@ -47,14 +51,18 @@ export const emojiSuggestion = {
       onUpdate(props: SuggestionProps<any>) {
         component.updateProps(props);
 
-        popup[0].setProps({
+        if (!props.clientRect) {
+          return;
+        }
+
+        popup?.[0]?.setProps({
           getReferenceClientRect: props.clientRect as () => DOMRect,
         });
       },
 
       onKeyDown(props: SuggestionKeyDownProps) {
         if (props.event.key === 'Escape') {
-          popup[0].hide();
+          popup?.[0]?.hide();
           component.destroy();
 
           return true;
@@ -64,7 +72,7 @@ export const emojiSuggestion = {
       },
 
       onExit() {
-        popup[0].destroy();
+        popup?.[0]?.destroy();
         component.destroy();
       },
     };

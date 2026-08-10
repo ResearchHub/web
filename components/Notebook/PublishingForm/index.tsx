@@ -7,7 +7,6 @@ import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
 import { ContactsSection } from './components/ContactsSection';
 import { TopicsSection } from './components/TopicsSection';
-import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
@@ -55,7 +54,6 @@ import { NOTEBOOK_WORK_TYPES } from '@/components/Notebook/NotebookPrimaryNaviga
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
-const FEATURE_FLAG_JOURNAL = false;
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
@@ -66,7 +64,6 @@ const PUBLISH_LABEL: Record<string, string> = {
 interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
-  defaultArticleType?: string;
   readOnly?: boolean;
 }
 
@@ -74,15 +71,11 @@ const getButtonText = ({
   isLoadingUpsert,
   isRedirecting,
   isLinkingNonprofit,
-  articleType,
-  isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
   isRedirecting: boolean;
   isLinkingNonprofit: boolean;
-  articleType: string;
-  isJournalEnabled: boolean;
   hasWorkId: boolean;
 }) => {
   switch (true) {
@@ -94,8 +87,6 @@ const getButtonText = ({
       return 'Redirecting...';
     case hasWorkId:
       return 'Publish';
-    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
-      return 'Pay & Publish';
     default:
       return 'Publish';
   }
@@ -107,7 +98,6 @@ const FORM_DEFAULTS = {
   topics: [],
   rewardFunders: false,
   nftSupply: '1000',
-  isJournalEnabled: false,
   budget: '',
   coverImage: null,
   selectedNonprofit: null,
@@ -267,28 +257,15 @@ const autoAddCurrentUser = (
   }
 };
 
-interface ArticleTypeResult {
-  type: PublishingFormData['articleType'];
-  source: 'searchParam' | 'template' | 'default';
-}
-
 const resolveArticleType = (
-  params: { get(key: string): string | null } | null,
-  defaultArticleType?: string
-): ArticleTypeResult | null => {
-  if (params?.get('newFunding') === 'true')
-    return { type: 'preregistration', source: 'searchParam' };
-  if (params?.get('newResearch') === 'true') return { type: 'discussion', source: 'searchParam' };
-  if (params?.get('newGrant') === 'true') return { type: 'grant', source: 'searchParam' };
+  params: { get(key: string): string | null } | null
+): PublishingFormData['articleType'] | null => {
+  if (params?.get('newFunding') === 'true') return 'preregistration';
+  if (params?.get('newGrant') === 'true') return 'grant';
 
   const template = params?.get('template');
-  if (template === 'preregistration') return { type: 'preregistration', source: 'template' };
-  if (template === 'grant') return { type: 'grant', source: 'template' };
-  if (template) return { type: 'discussion', source: 'template' };
-
-  if (defaultArticleType) {
-    return { type: defaultArticleType as PublishingFormData['articleType'], source: 'default' };
-  }
+  if (template === 'preregistration') return 'preregistration';
+  if (template === 'grant') return 'grant';
   return null;
 };
 
@@ -303,7 +280,6 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
 export function PublishingForm({
   bountyAmount,
   onBountyClick,
-  defaultArticleType,
   readOnly = false,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
@@ -343,7 +319,7 @@ export function PublishingForm({
       const articleType =
         storedData?.articleType ??
         (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
-        resolveArticleType(searchParams, defaultArticleType)?.type;
+        resolveArticleType(searchParams);
 
       if (articleType) {
         methods.setValue('articleType', articleType);
@@ -385,7 +361,7 @@ export function PublishingForm({
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
-  const isJournalEnabled = watch('isJournalEnabled');
+  const workId = watch('workId');
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
@@ -394,6 +370,7 @@ export function PublishingForm({
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
+  const isNewPreprint = articleType === 'discussion' && !workId;
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
   const canPublishRegisteredReport =
     articleType !== 'registered_report' || currentUser?.isModerator === true;
@@ -408,6 +385,11 @@ export function PublishingForm({
 
   const handlePublishClick = async () => {
     if (readOnly) return;
+
+    if (isNewPreprint) {
+      toast.error('Preprints can no longer be created in the notebook.');
+      return;
+    }
 
     if (!canPublishRegisteredReport) {
       toast.error('Only moderators can publish Registered Reports.');
@@ -509,6 +491,11 @@ export function PublishingForm({
 
   const handleConfirmPublish = async (editedTitle: string) => {
     if (readOnly || !note) return;
+
+    if (isNewPreprint) {
+      toast.error('Preprints can no longer be created in the notebook.');
+      return;
+    }
 
     try {
       setDocumentTitle(editor, editedTitle);
@@ -735,14 +722,12 @@ export function PublishingForm({
                 {articleType === 'grant' && <GrantFundingAmountSection />}
                 {articleType === 'grant' && <GrantApplicationVisibilitySection />}
                 {articleType === 'preregistration' && <FundingSection note={note} />}
-                {articleType === 'preregistration' && !methods.watch('workId') && (
+                {articleType === 'preregistration' && !workId && (
                   <div className="py-3 px-6">
                     <EndDateSection />
                   </div>
                 )}
-                {articleType === 'preregistration' && !methods.watch('workId') && (
-                  <PreregistrationPrivacySection />
-                )}
+                {articleType === 'preregistration' && !workId && <PreregistrationPrivacySection />}
                 {FEATURE_FLAG_RESEARCH_COIN &&
                   articleType !== 'preregistration' &&
                   articleType !== 'grant' && (
@@ -751,7 +736,6 @@ export function PublishingForm({
                       onBountyClick={onBountyClick ?? (() => {})}
                     />
                   )}
-                {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
               </>
             )}
           </fieldset>
@@ -759,15 +743,7 @@ export function PublishingForm({
 
         <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
           <div className="mx-auto w-full max-w-2xl space-y-3">
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacyLockedAlert />
-            )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Payment due:</span>
-                <span className="font-medium text-gray-900">$1,000 USD</span>
-              </div>
-            )}
+            {articleType === 'preregistration' && !workId && <PreregistrationPrivacyLockedAlert />}
             {articleType === 'registered_report' && !canPublishRegisteredReport && (
               <p className="text-sm text-red-600">
                 Only moderators can publish Registered Reports.
@@ -780,6 +756,7 @@ export function PublishingForm({
               disabled={
                 !articleType ||
                 readOnly ||
+                isNewPreprint ||
                 isPublishing ||
                 isDeclined ||
                 showPrivateWarning ||
@@ -792,9 +769,7 @@ export function PublishingForm({
                     isLoadingUpsert: isLoadingUpsert || isUploadingImage,
                     isRedirecting,
                     isLinkingNonprofit,
-                    articleType,
-                    isJournalEnabled: isJournalEnabled ?? false,
-                    hasWorkId: Boolean(methods.watch('workId')),
+                    hasWorkId: Boolean(workId),
                   })}
             </Button>
           </div>
@@ -818,7 +793,7 @@ export function PublishingForm({
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
           isPublishing={isPublishing}
-          isUpdate={Boolean(methods.watch('workId'))}
+          isUpdate={Boolean(workId)}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           zIndex={100}

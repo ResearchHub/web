@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
-import { colors } from '@/app/styles/colors';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface Feature {
   id: string;
@@ -69,31 +67,11 @@ const features: Feature[] = [
     iconName: 'earn1',
     gradient: 'from-[#3971FF] to-[#4A7FFF]',
   },
-  {
-    id: 'publish',
-    title: 'Publish',
-    subtitle: 'Champion open science',
-    description:
-      'Publish in the ResearchHub Journal with transparent peer review, low fees, and a commitment to open access.',
-    benefits: [
-      'Only $300 APC fee',
-      'Open peer review process',
-      'Immediate preprint option',
-      'Reviewers paid $150 in RSC',
-    ],
-    primaryAction: {
-      text: 'Submit paper',
-      description: 'Publish your research with open access',
-    },
-    iconName: 'rhJournal2',
-    gradient: 'from-[#3971FF] to-[#4A7FFF]',
-  },
 ];
 
 export function FeaturesSection() {
   const [activeFeature, setActiveFeature] = useState(0);
   const router = useRouter();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleGiveResearchFunding = () => {
     router.push('/fund');
@@ -107,19 +85,12 @@ export function FeaturesSection() {
     router.push('/earn');
   };
 
-  const handleSubmitPaper = () => {
-    router.push('/paper/create/pdf');
-  };
-
   const getClickHandler = (featureId: string, isPrimary: boolean) => {
     if (featureId === 'fund') {
       return isPrimary ? handleGiveResearchFunding : handleRequestFunding;
     }
     if (featureId === 'earn') {
       return handleStartReviewing;
-    }
-    if (featureId === 'publish') {
-      return handleSubmitPaper;
     }
     return () => {};
   };
