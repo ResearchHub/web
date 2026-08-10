@@ -1,14 +1,8 @@
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { FlatCompat } from '@eslint/eslintrc';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import prettier from 'eslint-config-prettier/flat';
 import workDocumentTracking from './eslint-rules/work-document-tracking.js';
-
-const currentDirectory = dirname(fileURLToPath(import.meta.url));
-const compat = new FlatCompat({
-  baseDirectory: currentDirectory,
-});
 
 const researchHubPlugin = {
   rules: {
@@ -17,7 +11,8 @@ const researchHubPlugin = {
 };
 
 export default defineConfig([
-  ...compat.extends('next/core-web-vitals', 'plugin:@typescript-eslint/recommended'),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
   {
     linterOptions: {
       reportUnusedDisableDirectives: false,
