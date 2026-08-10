@@ -1,5 +1,3 @@
-import { DeltaOperation } from 'quill';
-
 interface UserMention {
   userId: string | null;
   firstName: string | null;
