@@ -32,16 +32,14 @@ const PUBLISH_MENU_SECTIONS = [
         title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={18} color="#374151" />,
-        handler: 'handleOpenGrant' as const,
-        requiresAuth: true,
+        handler: 'handleOpenGrant',
       },
       {
         id: 'request-funding',
         title: 'Proposal',
         description: 'Raise money for your research',
         icon: <FundingIcon size={18} color="#374151" />,
-        handler: 'handleFundResearch' as const,
-        requiresAuth: true,
+        handler: 'handleFundResearch',
       },
     ],
   },
@@ -97,18 +95,16 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   };
 
   const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {
-    if (item.requiresAuth) {
-      executeAuthenticatedAction(() => {
-        switch (item.handler) {
-          case 'handleFundResearch':
-            handleFundResearch();
-            break;
-          case 'handleOpenGrant':
-            handleOpenGrant();
-            break;
-        }
-      });
-    }
+    executeAuthenticatedAction(() => {
+      switch (item.handler) {
+        case 'handleFundResearch':
+          handleFundResearch();
+          break;
+        case 'handleOpenGrant':
+          handleOpenGrant();
+          break;
+      }
+    });
 
     // Close mobile drawer after action
     if (smAndDown) {

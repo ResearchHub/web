@@ -36,11 +36,6 @@ export function LandingPageFooter() {
 
   const journalLinks = [
     {
-      label: 'Submit to journal',
-      href: '/paper/create/pdf',
-      requiresAuth: true,
-    },
-    {
       label: 'Get paid to peer review',
       href: '/earn',
     },
@@ -151,27 +146,16 @@ export function LandingPageFooter() {
             <ul className="space-y-3">
               {journalLinks.map((link) => (
                 <li key={link.label}>
-                  {link.requiresAuth ? (
-                    <button
-                      onClick={() => handleAuthenticatedLink(link.href)}
-                      className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
-                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
-                    >
-                      {link.label}
-                    </button>
-                  ) : (
-                    <a
-                      href={link.href}
-                      target={link.href.startsWith('http') ? '_blank' : undefined}
-                      rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      className="text-gray-600 hover:opacity-80 transition-colors duration-200"
-                      onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
-                    >
-                      {link.label}
-                    </a>
-                  )}
+                  <a
+                    href={link.href}
+                    target={link.href.startsWith('http') ? '_blank' : undefined}
+                    rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    className="text-gray-600 hover:opacity-80 transition-colors duration-200"
+                    onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
+                  >
+                    {link.label}
+                  </a>
                 </li>
               ))}
             </ul>

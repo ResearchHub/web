@@ -13,7 +13,7 @@ import { MentionList } from './MentionList';
 import tippy, { Instance, Props } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import './mention.css';
-import { DOMOutputSpec } from 'prosemirror-model';
+import { DOMOutputSpec } from '@tiptap/pm/model';
 import { MentionItem, MentionListRef } from './types';
 import { buildWorkUrl } from '@/utils/url';
 import { buildAuthorUrl } from '@/utils/url';

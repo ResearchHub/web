@@ -3,7 +3,7 @@ import { NoteService, NoteError, type NoteInvitePreview } from '@/services/note.
 import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
-import { debounce, DebouncedFunc } from 'lodash';
+import { debounce, DebouncedFunc } from 'lodash-es';
 import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 
