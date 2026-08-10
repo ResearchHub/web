@@ -5,7 +5,6 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
-import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 import {
   getDocumentTitle,
@@ -31,7 +30,6 @@ export default function OrganizationPage() {
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
 
   const isNewFunding = searchParams.get('newFunding') === 'true';
-  const isNewResearch = searchParams.get('newResearch') === 'true';
   const isNewGrant = searchParams.get('newGrant') === 'true';
   const grantSource = searchParams.get('grantSource');
   const proposalSource = searchParams.get('proposalSource');
@@ -44,7 +42,7 @@ export default function OrganizationPage() {
       queryValue,
       documentType,
     }: {
-      template: typeof proposalTemplate | typeof initialContent | typeof grantTemplate;
+      template: typeof proposalTemplate | typeof grantTemplate;
       queryParam?: string;
       queryValue?: string;
       documentType?: string;
@@ -78,14 +76,7 @@ export default function OrganizationPage() {
   useEffect(() => {
     if (!selectedOrg) return;
 
-    if (isNewResearch) {
-      createNoteWithContent(selectedOrg.slug, {
-        template: getInitialContent('research'),
-        queryParam: 'newResearch',
-        queryValue: 'true',
-        documentType: 'DISCUSSION',
-      });
-    } else if (isNewFunding) {
+    if (isNewFunding) {
       // "Upload a document" is handled inline in OpenProposalModal; here we
       // only create from template/blank.
       if (proposalSource === 'blank') {
@@ -106,7 +97,7 @@ export default function OrganizationPage() {
         documentType: 'GRANT',
       });
     }
-  }, [selectedOrg, isNewResearch, isNewFunding, isNewGrant, grantSource, proposalSource]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedOrg, isNewFunding, isNewGrant, grantSource, proposalSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStartFromTemplate = async () => {
     if (!selectedOrg) return;

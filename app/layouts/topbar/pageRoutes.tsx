@@ -83,13 +83,6 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/paper/create'),
-    getInfo: () => ({
-      title: 'Submit your paper',
-      icon: <Icon name="submit2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/earn'),
     getInfo: () => ({
       title: 'Earn',
@@ -146,7 +139,14 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/fund/') || p.startsWith('/grant/'),
+    match: (p) => p === '/my-funding',
+    getInfo: () => ({
+      title: 'My Funding',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p === '/fund' || p.startsWith('/fund/') || p.startsWith('/grant/'),
     getInfo: () => ({
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,

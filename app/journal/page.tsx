@@ -202,7 +202,7 @@ export default function JournalNewPage() {
       rightSidebar={
         <div className="space-y-3">
           <AboutTheJournal />
-          <RHJRightSidebar showBanner={false} />
+          <RHJRightSidebar />
         </div>
       }
     >
