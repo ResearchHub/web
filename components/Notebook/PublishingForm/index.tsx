@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -50,12 +50,17 @@ import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { isRegisteredReportNote, type NoteWithContent } from '@/types/note';
-import { NOTEBOOK_WORK_TYPES } from '@/components/Notebook/NotebookPrimaryNavigation';
+import {
+  getAvailableNotebookWorkTypes,
+  NOTEBOOK_WORK_TYPES,
+} from '@/components/Notebook/NotebookPrimaryNavigation';
+import { NoteService } from '@/services/note.service';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
 
 const PUBLISH_LABEL: Record<string, string> = {
+  discussion: 'ChangeLog',
   preregistration: 'Proposal',
   grant: 'Funding Opportunity',
   registered_report: 'Registered Report',
@@ -261,6 +266,7 @@ const resolveArticleType = (
   params: { get(key: string): string | null } | null
 ): PublishingFormData['articleType'] | null => {
   if (params?.get('newFunding') === 'true') return 'preregistration';
+  if (params?.get('newResearch') === 'true') return 'discussion';
   if (params?.get('newGrant') === 'true') return 'grant';
 
   const template = params?.get('template');
@@ -282,13 +288,14 @@ export function PublishingForm({
   onBountyClick,
   readOnly = false,
 }: Readonly<PublishingFormProps>) {
-  const { currentNote: note, editor } = useNotebookContext();
+  const { currentNote: note, editor, updateNoteDocumentType } = useNotebookContext();
   const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
   const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
+  const [isUpdatingWorkType, setIsUpdatingWorkType] = useState(false);
 
   const methods = useForm<PublishingFormData>({
     defaultValues: FORM_DEFAULTS,
@@ -297,6 +304,8 @@ export function PublishingForm({
   });
 
   const noteId = note?.id;
+  const currentNoteIdRef = useRef(noteId);
+  currentNoteIdRef.current = noteId;
 
   useEffect(() => {
     if (!note) return;
@@ -370,10 +379,10 @@ export function PublishingForm({
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
-  const isNewPreprint = articleType === 'discussion' && !workId;
+  const isModerator = !!currentUser?.isModerator;
+  const canPublishChangelog = articleType !== 'discussion' || isModerator;
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
-  const canPublishRegisteredReport =
-    articleType !== 'registered_report' || currentUser?.isModerator === true;
+  const canPublishRegisteredReport = articleType !== 'registered_report' || isModerator;
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
@@ -383,13 +392,41 @@ export function PublishingForm({
     clearErrors();
   }, [articleType, clearErrors]);
 
+  const handleWorkTypeSelect = async (option: (typeof NOTEBOOK_WORK_TYPES)[number]) => {
+    if (isUpdatingWorkType) return;
+
+    if (option.value === 'discussion') {
+      if (!note || !isModerator) return;
+      const selectedNoteId = note.id;
+
+      setIsUpdatingWorkType(true);
+      try {
+        await NoteService.updateNote({
+          noteId: selectedNoteId,
+          document_type: ARTICLE_TYPE_API_MAP.discussion,
+        });
+        updateNoteDocumentType(selectedNoteId, ARTICLE_TYPE_API_MAP.discussion);
+      } catch (error) {
+        console.error('Failed to set ChangeLog work type:', error);
+        if (currentNoteIdRef.current === selectedNoteId) {
+          toast.error('Failed to set the ChangeLog work type. Please try again.');
+        }
+        return;
+      } finally {
+        setIsUpdatingWorkType(false);
+      }
+
+      if (currentNoteIdRef.current !== selectedNoteId) return;
+    }
+
+    methods.setValue('articleType', option.value, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
   const handlePublishClick = async () => {
     if (readOnly) return;
-
-    if (isNewPreprint) {
-      toast.error('Preprints can no longer be created in the notebook.');
-      return;
-    }
 
     if (!canPublishRegisteredReport) {
       toast.error('Only moderators can publish Registered Reports.');
@@ -492,8 +529,8 @@ export function PublishingForm({
   const handleConfirmPublish = async (editedTitle: string) => {
     if (readOnly || !note) return;
 
-    if (isNewPreprint) {
-      toast.error('Preprints can no longer be created in the notebook.');
+    if (!canPublishChangelog) {
+      toast.error('Only moderators can publish ChangeLog entries.');
       return;
     }
 
@@ -676,17 +713,13 @@ export function PublishingForm({
                   Choose how you want to publish this note.
                 </p>
                 <div className="mt-4 space-y-2">
-                  {NOTEBOOK_WORK_TYPES.map((option) => (
+                  {getAvailableNotebookWorkTypes(isModerator).map((option) => (
                     <Button
                       key={option.value}
                       type="button"
                       variant="outlined"
-                      onClick={() =>
-                        methods.setValue('articleType', option.value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })
-                      }
+                      disabled={isUpdatingWorkType}
+                      onClick={() => handleWorkTypeSelect(option)}
                       className="h-auto w-full justify-start border-gray-200 px-4 py-3 text-left hover:border-primary-300 hover:bg-primary-50 focus-visible:ring-primary-500"
                     >
                       <span>
@@ -749,6 +782,11 @@ export function PublishingForm({
                 Only moderators can publish Registered Reports.
               </p>
             )}
+            {!canPublishChangelog && (
+              <p className="text-sm text-red-600">
+                Only moderators can access and publish ChangeLog entries.
+              </p>
+            )}
             <Button
               variant="default"
               onClick={handlePublishClick}
@@ -756,7 +794,7 @@ export function PublishingForm({
               disabled={
                 !articleType ||
                 readOnly ||
-                isNewPreprint ||
+                !canPublishChangelog ||
                 isPublishing ||
                 isDeclined ||
                 showPrivateWarning ||
@@ -791,11 +829,15 @@ export function PublishingForm({
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
-          title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
+          title={
+            getDocumentTitleFromEditor(editor) ||
+            (articleType === 'discussion' ? 'Untitled ChangeLog' : 'Untitled Research')
+          }
           isPublishing={isPublishing}
           isUpdate={Boolean(workId)}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
+          documentLabel={articleType === 'discussion' ? 'ChangeLog entry' : undefined}
           zIndex={100}
         />
       )}

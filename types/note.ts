@@ -235,3 +235,20 @@ export const isRegisteredReportNote = (
 export const isPublishedRegisteredReportNote = (
   note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
 ): boolean => Boolean(note?.post?.id) && isRegisteredReportNote(note);
+
+/** ChangeLog entries reuse the legacy preprint post and document types. */
+export const isChangelogNote = (
+  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
+): boolean => {
+  const noteDocumentType = note?.documentType?.trim().toUpperCase();
+  const postDocumentType = note?.post?.documentType?.trim().toUpperCase();
+
+  return (
+    !isRegisteredReportNote(note) &&
+    (noteDocumentType === 'DISCUSSION' ||
+      postDocumentType === 'DISCUSSION' ||
+      (!noteDocumentType &&
+        !postDocumentType &&
+        (note?.post?.contentType === 'post' || note?.post?.contentType === 'discussion')))
+  );
+};

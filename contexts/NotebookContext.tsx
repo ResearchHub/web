@@ -38,6 +38,7 @@ interface NotebookContextType {
   noteError: Error | null;
   loadNote: (noteId: string) => Promise<void>;
   updateNoteTitle: (newTitle: string) => void;
+  updateNoteDocumentType: (noteId: Note['id'], documentType: Note['documentType']) => void;
 
   // Editor state
   editor: Editor | null;
@@ -205,6 +206,16 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     [activeNoteId, currentNote]
   );
 
+  const updateNoteDocumentType = useCallback(
+    (noteId: Note['id'], documentType: Note['documentType']) => {
+      setNotes((prevNotes) =>
+        prevNotes.map((note) => (note.id === noteId ? { ...note, documentType } : note))
+      );
+      setCurrentNote((note) => (note?.id === noteId ? { ...note, documentType } : note));
+    },
+    []
+  );
+
   const refreshAll = useCallback(async () => {
     if (!selectedOrg?.slug || !selectedOrg?.id) return;
 
@@ -264,6 +275,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     noteError,
     loadNote,
     updateNoteTitle,
+    updateNoteDocumentType,
     editor,
     setEditor,
     isLoading,
