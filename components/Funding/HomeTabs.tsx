@@ -4,9 +4,6 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
 
-/**
- * Homepage hub tabs (Activity / Request for Proposals / Proposals).
- */
 export function HomeTabs() {
   const { tabs, highlightedTab, handleTabChange } = useFundTabs();
   const tabsSentinelRef = useContentTabsVisibilitySentinel(true);
