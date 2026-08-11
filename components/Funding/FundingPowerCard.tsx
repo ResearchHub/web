@@ -7,6 +7,7 @@ import { RSC_COLORS } from '@/components/ui/icons/ResearchCoinIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { DepositModal } from '@/components/modals/ResearchCoin/DepositModal';
 import { formatCurrency } from '@/utils/currency';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useUser } from '@/contexts/UserContext';
@@ -24,6 +25,7 @@ interface FundingPowerCardProps {
 export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const { user, isLoading: isUserLoading } = useUser();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isRateLoading } = useExchangeRate();
 
@@ -52,7 +54,8 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
   const rscWidth = total > 0 ? (balanceRaw / total) * 100 : 0;
   const creditsWidth = total > 0 ? (creditsRaw / total) * 100 : 0;
 
-  const openDepositModal = () => setIsDepositModalOpen(true);
+  const openDepositModal = () =>
+    executeAuthenticatedAction(() => setIsDepositModalOpen(true));
 
   return (
     <aside className={cn('w-[250px]', className)}>
@@ -157,7 +160,9 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
         </div>
       )}
 
-      <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
+      {user && (
+        <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
+      )}
     </aside>
   );
 };

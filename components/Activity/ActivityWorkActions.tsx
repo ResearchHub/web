@@ -11,13 +11,20 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { getCommentPreview } from './lib/feedEntryAdapters';
 import { getWorkCardPresentation, type ActivityWork } from './lib/activityWorkContext';
-import type { FeedEntry } from '@/types/feed';
+import type { FeedContentType, FeedEntry } from '@/types/feed';
 
 interface ActivityWorkActionsProps {
   entry: FeedEntry;
   work: ActivityWork;
   /** Called when a link CTA navigates away (e.g. scroll-restore click tracking). */
   onNavigate?: () => void;
+}
+
+function getFeedContentTypeForWork(work: ActivityWork): FeedContentType {
+  if (work.documentType === 'paper') return 'PAPER';
+  if (work.documentType === 'preregistration') return 'PREREGISTRATION';
+  if (work.documentType === 'funding_request') return 'GRANT';
+  return 'POST';
 }
 
 /**
@@ -38,7 +45,7 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({ entry, work,
   });
 
   const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
-  const feedContentType = work.documentType === 'paper' ? 'PAPER' : 'POST';
+  const feedContentType = getFeedContentTypeForWork(work);
   const cta = presentation.cta;
 
   const handleContributeSuccess = () => {

@@ -35,6 +35,7 @@ interface NavItem {
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
+  { label: 'Your Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
   { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
@@ -45,6 +46,13 @@ const moreNavItems: NavItem[] = [
 const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
   if (isHome) {
     return isClassicHomeFeedPath(currentPath) || currentPath === '/';
+  }
+  if (path === '/fund') {
+    return (
+      currentPath === '/fund' ||
+      currentPath.startsWith('/fund/proposals') ||
+      (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
+    );
   }
   if (path === '/my-funding') {
     return (
@@ -83,7 +91,7 @@ export const MobileBottomNav: React.FC = () => {
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
     { label: 'Peer Review', href: '/earn', iconKey: 'peer-review' },
-    { label: 'Your Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
+    { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
