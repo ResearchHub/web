@@ -17,6 +17,12 @@ interface ChatComposerProps {
   readonly onStop: () => void;
   /** A turn is running: send is disabled and the action button becomes Stop. */
   readonly busy: boolean;
+  /**
+   * Something cancellable exists server-side. Busy without this (message POST
+   * still in flight, chat being created) keeps the disabled send button —
+   * offering Stop then would no-op and the turn would start anyway.
+   */
+  readonly canStop: boolean;
   /** Hard-disable everything (chat unavailable). */
   readonly disabled: boolean;
   readonly notice: ComposerNotice | null;
@@ -35,6 +41,7 @@ export function ChatComposer({
   onSend,
   onStop,
   busy,
+  canStop,
   disabled,
   notice,
   placeholder = 'Ask the assistant…',
@@ -90,7 +97,7 @@ export function ChatComposer({
           aria-label="Message the assistant"
           className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed"
         />
-        {busy ? (
+        {busy && canStop ? (
           <button
             type="button"
             onClick={onStop}

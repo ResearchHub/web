@@ -8,7 +8,11 @@ import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
 import { NoteService } from '@/services/note.service';
-import { MAX_CHAT_TITLE_LENGTH, type NotebookChat } from '@/types/notebookChat';
+import {
+  isActiveExecutionStatus,
+  MAX_CHAT_TITLE_LENGTH,
+  type NotebookChat,
+} from '@/types/notebookChat';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
 import { ChatTranscript } from './ChatTranscript';
@@ -24,6 +28,8 @@ function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice
       return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
     case 'not_found':
       return { tone: 'error', text: 'This chat is no longer available.' };
+    case 'unauthorized':
+      return { tone: 'error', text: 'You no longer have access to the assistant.' };
     default:
       return { tone: 'error', text: 'Something went wrong — your message wasn’t sent.' };
   }
@@ -35,6 +41,13 @@ interface AgentChatPanelProps {
   readonly onClose: () => void;
   /** The server denied access (gate changed / signed out) — hide the entry point. */
   readonly onUnavailable: () => void;
+  /**
+   * The assistant produced a note version that conflicts with unsaved local
+   * edits and the banner is asking the user to choose. While true the host
+   * must suspend its autosave, or the debounced local save would bury the
+   * assistant's version before the user has chosen.
+   */
+  readonly onEditConflictChange?: (active: boolean) => void;
 }
 
 /**
@@ -43,7 +56,13 @@ interface AgentChatPanelProps {
  * selection and drafts survive closing the panel; all network activity is
  * gated on `open`.
  */
-export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentChatPanelProps) {
+export function AgentChatPanel({
+  noteId,
+  open,
+  onClose,
+  onUnavailable,
+  onEditConflictChange,
+}: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
 
   const list = useNotebookChatList(noteId, open);
@@ -51,12 +70,22 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
   const [initialChat, setInitialChat] = useState<NotebookChat | null>(null);
   const autoSelectedRef = useRef(false);
 
+  // A turn keeps running server-side when the panel closes mid-flight; hold
+  // the hook open until it settles so a background edit_note still refreshes
+  // the editor (or arms the reload banner) instead of going dark until reopen.
+  const [keepAlive, setKeepAlive] = useState(false);
+
   const chatState = useNotebookChat({
     noteId,
     chatId: selectedChatId,
-    enabled: open,
+    enabled: open || keepAlive,
     initialChat,
   });
+
+  const turnLive = chatState.isBusy || chatState.isFinishing;
+  useEffect(() => {
+    setKeepAlive(turnLive);
+  }, [turnLive]);
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
@@ -134,10 +163,26 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
   }, [open, latestStatus, chatTitle, refreshList]);
 
   // ---- sending ----
+  // Live mirror of the panel's target. Async continuations compare against it
+  // and discard results that raced a chat or note switch instead of applying
+  // them to the newly selected chat — the hook guards its own state the same
+  // way, but the returned outcomes surface here.
+  const targetRef = useRef<{ noteId: string; chatId: number | null }>({
+    noteId,
+    chatId: selectedChatId,
+  });
+  targetRef.current = { noteId, chatId: selectedChatId };
+  const isCurrentTarget = useCallback(
+    (target: { noteId: string; chatId: number | null }) =>
+      targetRef.current.noteId === target.noteId && targetRef.current.chatId === target.chatId,
+    []
+  );
+
   const handleSend = useCallback(async () => {
     const text = draft.trim();
     if (!text) return;
     setNotice(null);
+    const target = targetRef.current;
 
     if (selectedChatId == null) {
       // Default flow: create untitled, send the first message; the refetch
@@ -145,6 +190,9 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
       setCreatingChat(true);
       const created = await list.createChat();
       setCreatingChat(false);
+      // Switched note or picked an existing chat meanwhile — abandon the
+      // creation instead of yanking the selection to a stale chat.
+      if (!isCurrentTarget(target)) return;
       if (!created) {
         setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
         return;
@@ -158,26 +206,36 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
 
     const outcome = await chatState.send(text);
     if (outcome.ok) {
-      updateDraft('');
-    } else {
+      if (isCurrentTarget(target)) {
+        updateDraft('');
+      } else {
+        // Sent fine, but the user moved on — just retire the sent draft.
+        draftsRef.current.delete(String(target.chatId));
+      }
+    } else if (isCurrentTarget(target)) {
       // Keep the draft on any failure.
       setNotice(noticeFromOutcome(outcome));
     }
-  }, [draft, selectedChatId, list, chatState, updateDraft]);
+  }, [draft, selectedChatId, list, chatState, updateDraft, isCurrentTarget]);
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chatState.send;
   useEffect(() => {
     if (queuedMessage == null || selectedChatId == null || chatState.access !== 'ok') return;
     const text = queuedMessage;
+    const target = targetRef.current;
     setQueuedMessage(null);
     sendToChat(text).then((outcome) => {
-      if (!outcome.ok) {
+      if (outcome.ok) return;
+      if (isCurrentTarget(target)) {
         setNotice(noticeFromOutcome(outcome));
         updateDraft(text);
+      } else {
+        // Failed after a switch — keep the unsent text under its own chat.
+        draftsRef.current.set(String(target.chatId), text);
       }
     });
-  }, [queuedMessage, selectedChatId, chatState.access, sendToChat, updateDraft]);
+  }, [queuedMessage, selectedChatId, chatState.access, sendToChat, updateDraft, isCurrentTarget]);
 
   // ---- rename ----
   const [renaming, setRenaming] = useState(false);
@@ -193,8 +251,11 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
     setRenaming(false);
     const title = renameValue.trim();
     if (!title || title === (chatState.chat?.title ?? '')) return;
+    const target = targetRef.current;
     const renamed = await chatState.rename(title);
-    if (renamed) refreshList();
+    // A rename that raced a switch must not fire its note-bound refresh — the
+    // stale fetch would outrank and replace the current note's listing.
+    if (renamed && isCurrentTarget(target)) refreshList();
   };
 
   // ---- note refresh when the agent edits the note ----
@@ -240,6 +301,11 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
     setNoteReloadFailed(false);
     try {
       const note = await NoteService.getNote(noteId);
+      // Navigated away mid-fetch: this content and version belong to the
+      // previous note and must not touch the current note's tracking (a
+      // cleared dirty flag here would let a later agent edit silently
+      // overwrite unsaved local work).
+      if (targetRef.current.noteId !== noteId) return;
       if (editor && !editor.isDestroyed) {
         let content: string | object = note.content ?? '';
         if (note.contentJson) {
@@ -275,6 +341,33 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
     }
   }, [agentNoteVersionId, reloadNoteContent]);
 
+  // While the banner is asking, the host suspends its autosave (see
+  // onEditConflictChange). Gated on `open`: a banner the user can't see must
+  // never silently hold saves — with the panel closed the local document
+  // keeps winning, as before.
+  const onEditConflictChangeRef = useRef(onEditConflictChange);
+  onEditConflictChangeRef.current = onEditConflictChange;
+  const editConflictActive = open && needsNoteReload;
+  useEffect(() => {
+    onEditConflictChangeRef.current?.(editConflictActive);
+  }, [editConflictActive]);
+  useEffect(() => {
+    return () => onEditConflictChangeRef.current?.(false);
+  }, []);
+
+  const keepLocalVersion = () => {
+    // Explicit user-wins: acknowledge the assistant's version so this banner
+    // doesn't re-arm for it, and let autosave resume with the local document.
+    // The assistant's version remains in the note's history.
+    const held = heldVersionRef.current;
+    if (agentNoteVersionId != null) {
+      heldVersionRef.current =
+        held == null ? agentNoteVersionId : Math.max(held, agentNoteVersionId);
+    }
+    setNeedsNoteReload(false);
+    setNoteReloadFailed(false);
+  };
+
   // ---- transcript auto-scroll ----
   const scrollRef = useRef<HTMLDivElement>(null);
   const nearBottomRef = useRef(true);
@@ -299,6 +392,12 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
   // ---- derived composer state ----
   const composerBusy =
     chatState.isBusy || chatState.isFinishing || creatingChat || queuedMessage != null;
+  // Stop is only offered once something cancellable exists server-side. While
+  // the message POST is still in flight or the chat is being created, cancel
+  // would no-op and the turn would start anyway.
+  const turnActive =
+    chatState.latestExecution != null && isActiveExecutionStatus(chatState.latestExecution.status);
+  const canStop = turnActive || chatState.pendingSend?.executionId != null;
   const composerDisabled =
     selectedChatId == null ? list.access !== 'ok' : chatState.access !== 'ok';
 
@@ -350,6 +449,9 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
     <aside
       aria-label="Research assistant"
       aria-hidden={!open}
+      // Off-screen means out of the tab order too — pointer-events alone
+      // still leaves the hidden controls keyboard-focusable.
+      inert={!open}
       className={cn(
         'fixed bottom-0 right-0 top-[var(--top-bar-height)] z-40 flex w-full flex-col border-l border-gray-200 bg-white shadow-xl transition-transform duration-200 sm:w-[400px]',
         open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
@@ -441,21 +543,25 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
       </div>
 
       {(needsNoteReload || noteReloadFailed) && (
-        <div className="mx-3 mb-2 flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+        <div className="mx-3 mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
           <p className="text-xs text-amber-800">
             {noteReloadFailed
               ? 'Couldn’t refresh the note. Try again.'
-              : 'The assistant updated this note.'}
+              : 'The assistant updated this note. Reload to use its version, or keep yours.'}
           </p>
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={reloadNoteContent}
-            disabled={isReloadingNote}
-            className="shrink-0"
-          >
-            {isReloadingNote ? <Loader size="sm" /> : 'Reload'}
-          </Button>
+          <div className="mt-1.5 flex items-center gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={reloadNoteContent}
+              disabled={isReloadingNote}
+            >
+              {isReloadingNote ? <Loader size="sm" /> : 'Reload'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={keepLocalVersion} disabled={isReloadingNote}>
+              Keep mine
+            </Button>
+          </div>
         </div>
       )}
 
@@ -465,6 +571,7 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
         onSend={handleSend}
         onStop={chatState.cancel}
         busy={composerBusy}
+        canStop={canStop}
         disabled={composerDisabled}
         notice={notice}
       />

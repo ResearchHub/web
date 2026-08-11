@@ -287,7 +287,7 @@ interface UpdateNoteOptions {
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
-type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn];
+type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn, () => void];
 
 export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
@@ -361,13 +361,20 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     [noteId, options.registeredReportProposalId]
   );
 
+  // Drops a save that is waiting out the debounce without saving it. The edits
+  // stay in the editor; callers use this to hold a save that would conflict
+  // with a newer server-side version.
+  const cancelPendingUpdate = useCallback(() => {
+    debouncedUpdate.current.cancel();
+  }, []);
+
   useEffect(() => {
     return () => {
       debouncedUpdate.current.cancel();
     };
   }, []);
 
-  return [{ isLoading, error }, updateNote];
+  return [{ isLoading, error }, updateNote, cancelPendingUpdate];
 };
 
 interface UseMakeNotePrivateState {

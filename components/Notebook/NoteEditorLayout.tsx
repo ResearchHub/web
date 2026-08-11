@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import type { Editor } from '@tiptap/core';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
@@ -160,10 +161,50 @@ export function NoteEditorLayout() {
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
-  const [, updateNote] = useUpdateNote(note?.id, {
+  const [, updateNote, cancelPendingNoteUpdate] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
     registeredReportProposalId: note?.proposalId,
   });
+
+  // ---- agent edit × autosave ----
+  // While the chat panel's conflict banner is up (the assistant produced a
+  // newer note version but the local editor holds unsaved edits), autosave
+  // holds: a debounced save firing then would bury the assistant's version
+  // before the user chooses. Refs, not state — the editor captures its
+  // onUpdate handler once at creation.
+  const agentConflictRef = useRef(false);
+  const suppressedSaveRef = useRef(false);
+
+  useEffect(() => {
+    agentConflictRef.current = false;
+    suppressedSaveRef.current = false;
+  }, [note?.id]);
+
+  const handleAgentEditConflict = useCallback(
+    (active: boolean) => {
+      if (agentConflictRef.current === active) return;
+      agentConflictRef.current = active;
+      if (active) {
+        cancelPendingNoteUpdate();
+      } else if (suppressedSaveRef.current) {
+        // Edits accumulated while saving was held — persist them now.
+        suppressedSaveRef.current = false;
+        if (editor && !editor.isDestroyed) updateNote(editor);
+      }
+    },
+    [cancelPendingNoteUpdate, updateNote, editor]
+  );
+
+  const handleEditorUpdate = useCallback(
+    (editorInstance: Editor) => {
+      if (agentConflictRef.current) {
+        suppressedSaveRef.current = true;
+        return;
+      }
+      updateNote(editorInstance);
+    },
+    [updateNote]
+  );
 
   const isChangelog = isChangelogNote(note);
   const isChangelogAccessDenied = isChangelog && !user?.isModerator;
@@ -230,7 +271,7 @@ export function NoteEditorLayout() {
           content={note.content}
           contentJson={note.contentJson}
           isLoading={false}
-          onUpdate={isEditorReadOnly ? undefined : updateNote}
+          onUpdate={isEditorReadOnly ? undefined : handleEditorUpdate}
           editable={!isEditorReadOnly}
           setEditor={setEditor}
         />
@@ -294,6 +335,7 @@ export function NoteEditorLayout() {
             open={isAgentChatOpen}
             onClose={() => setIsAgentChatOpen(false)}
             onUnavailable={handleAgentChatUnavailable}
+            onEditConflictChange={handleAgentEditConflict}
           />
         </>
       )}
