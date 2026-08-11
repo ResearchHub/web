@@ -1,5 +1,6 @@
 'use client';
 
+import { config as fontAwesomeConfig } from '@fortawesome/fontawesome-svg-core';
 import { ReactNode } from 'react';
 import { Session } from 'next-auth';
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
@@ -25,6 +26,10 @@ import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
+
+// The Font Awesome CSS is bundled via the root layout's stylesheet import.
+// Stop the library from injecting a duplicate <style> tag at hydration.
+fontAwesomeConfig.autoAddCss = false;
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
