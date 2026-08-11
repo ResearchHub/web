@@ -89,8 +89,8 @@ const MARKDOWN_STYLES = cn(
 );
 
 interface MarkdownMessageProps {
-  content: string;
-  className?: string;
+  readonly content: string;
+  readonly className?: string;
 }
 
 /** Renders assistant Markdown (sanitized) for chat bubbles. */

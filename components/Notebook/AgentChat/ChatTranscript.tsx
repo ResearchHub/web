@@ -12,6 +12,76 @@ type TranscriptEntry =
   | { key: string; kind: 'assistant'; message: ChatMessage }
   | { key: string; kind: 'pending-user'; text: string };
 
+/** Shared working state threaded through the transcript-building helpers. */
+interface TranscriptBuild {
+  entries: TranscriptEntry[];
+  renderedMessages: Set<number>;
+  renderedExecutions: Set<number>;
+  answerByExecution: Map<number, ChatMessage>;
+  executionsByTrigger: Map<number, ChatExecution[]>;
+  executions: ChatExecution[];
+}
+
+/** First assistant answer per execution; retries keep the earliest. */
+function indexAnswersByExecution(messages: ChatMessage[]): Map<number, ChatMessage> {
+  const byExecution = new Map<number, ChatMessage>();
+  for (const message of messages) {
+    if (
+      message.role === 'assistant' &&
+      message.execution_id != null &&
+      !byExecution.has(message.execution_id)
+    ) {
+      byExecution.set(message.execution_id, message);
+    }
+  }
+  return byExecution;
+}
+
+function indexExecutionsByTrigger(executions: ChatExecution[]): Map<number, ChatExecution[]> {
+  const byTrigger = new Map<number, ChatExecution[]>();
+  for (const execution of executions) {
+    if (execution.trigger_message_id != null) {
+      const bucket = byTrigger.get(execution.trigger_message_id) ?? [];
+      bucket.push(execution);
+      byTrigger.set(execution.trigger_message_id, bucket);
+    }
+  }
+  return byTrigger;
+}
+
+/**
+ * A user bubble, then — retries can attach several executions to one user
+ * message — each triggered execution's progress block in order, followed by
+ * its answer when one exists.
+ */
+function pushUserEntries(build: TranscriptBuild, message: ChatMessage): void {
+  build.entries.push({ key: `m-${message.id}`, kind: 'user', message });
+  for (const execution of build.executionsByTrigger.get(message.id) ?? []) {
+    build.renderedExecutions.add(execution.id);
+    const answer = build.answerByExecution.get(execution.id) ?? null;
+    if (answer) build.renderedMessages.add(answer.id);
+    build.entries.push({ key: `e-${execution.id}`, kind: 'execution', execution, answer });
+  }
+}
+
+/**
+ * An assistant message whose turn's trigger message isn't in the transcript
+ * still shows the progress block alongside its answer; otherwise it renders as
+ * a plain bubble.
+ */
+function pushAssistantEntry(build: TranscriptBuild, message: ChatMessage): void {
+  const execution =
+    message.execution_id != null
+      ? build.executions.find((candidate) => candidate.id === message.execution_id)
+      : undefined;
+  if (execution && !build.renderedExecutions.has(execution.id)) {
+    build.renderedExecutions.add(execution.id);
+    build.entries.push({ key: `e-${execution.id}`, kind: 'execution', execution, answer: message });
+  } else {
+    build.entries.push({ key: `m-${message.id}`, kind: 'assistant', message });
+  }
+}
+
 /**
  * Order the transcript from the data rather than assumed pairings: chats can
  * hold messages with no executions, executions whose trigger message is
@@ -20,79 +90,43 @@ type TranscriptEntry =
  */
 function buildTranscript(chat: NotebookChat, pendingSend: PendingSend | null): TranscriptEntry[] {
   const messages = [...chat.messages].sort((a, b) => a.sequence - b.sequence);
-  const executions = chat.executions; // ordered oldest → newest by the API
-
-  const answerByExecution = new Map<number, ChatMessage>();
-  for (const message of messages) {
-    if (
-      message.role === 'assistant' &&
-      message.execution_id != null &&
-      !answerByExecution.has(message.execution_id)
-    ) {
-      answerByExecution.set(message.execution_id, message);
-    }
-  }
-
-  const executionsByTrigger = new Map<number, ChatExecution[]>();
-  for (const execution of executions) {
-    if (execution.trigger_message_id != null) {
-      const bucket = executionsByTrigger.get(execution.trigger_message_id) ?? [];
-      bucket.push(execution);
-      executionsByTrigger.set(execution.trigger_message_id, bucket);
-    }
-  }
-
-  const renderedMessages = new Set<number>();
-  const renderedExecutions = new Set<number>();
-  const entries: TranscriptEntry[] = [];
+  const build: TranscriptBuild = {
+    entries: [],
+    renderedMessages: new Set<number>(),
+    renderedExecutions: new Set<number>(),
+    answerByExecution: indexAnswersByExecution(messages),
+    executionsByTrigger: indexExecutionsByTrigger(chat.executions),
+    executions: chat.executions, // ordered oldest → newest by the API
+  };
 
   for (const message of messages) {
-    if (renderedMessages.has(message.id)) continue;
-    renderedMessages.add(message.id);
-
+    if (build.renderedMessages.has(message.id)) continue;
+    build.renderedMessages.add(message.id);
     if (message.role === 'user') {
-      entries.push({ key: `m-${message.id}`, kind: 'user', message });
-      // Retries can attach several executions to one user message; render each
-      // progress block in order, followed by its answer when one exists.
-      for (const execution of executionsByTrigger.get(message.id) ?? []) {
-        renderedExecutions.add(execution.id);
-        const answer = answerByExecution.get(execution.id) ?? null;
-        if (answer) renderedMessages.add(answer.id);
-        entries.push({ key: `e-${execution.id}`, kind: 'execution', execution, answer });
-      }
+      pushUserEntries(build, message);
     } else {
-      const execution =
-        message.execution_id != null
-          ? executions.find((candidate) => candidate.id === message.execution_id)
-          : undefined;
-      if (execution && !renderedExecutions.has(execution.id)) {
-        // The turn's trigger message isn't in the transcript — still show the
-        // progress block alongside its answer.
-        renderedExecutions.add(execution.id);
-        entries.push({ key: `e-${execution.id}`, kind: 'execution', execution, answer: message });
-      } else {
-        entries.push({ key: `m-${message.id}`, kind: 'assistant', message });
-      }
+      pushAssistantEntry(build, message);
     }
   }
 
-  for (const execution of executions) {
-    if (!renderedExecutions.has(execution.id)) {
-      entries.push({ key: `e-${execution.id}`, kind: 'execution', execution, answer: null });
+  // Executions whose trigger message never made it into `messages`.
+  for (const execution of chat.executions) {
+    if (!build.renderedExecutions.has(execution.id)) {
+      build.entries.push({ key: `e-${execution.id}`, kind: 'execution', execution, answer: null });
     }
   }
 
   // Optimistic echo of a just-sent message until its execution shows up in a
   // refetch (the hook retires it at that point).
-  if (
-    pendingSend &&
-    (pendingSend.executionId == null ||
-      !executions.some((execution) => execution.id === pendingSend.executionId))
-  ) {
-    entries.push({ key: 'pending-user', kind: 'pending-user', text: pendingSend.text });
+  const pendingExecutionId = pendingSend?.executionId ?? null;
+  const echoRetired =
+    pendingExecutionId != null &&
+    chat.executions.some((execution) => execution.id === pendingExecutionId);
+  if (pendingSend && !echoRetired) {
+    build.entries.push({ key: 'pending-user', kind: 'pending-user', text: pendingSend.text });
   }
 
-  return entries;
+  return build.entries;
 }
 
 function UserBubble({ text }: { readonly text: string }) {

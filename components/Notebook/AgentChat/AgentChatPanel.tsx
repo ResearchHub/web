@@ -61,16 +61,17 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
   const draftKey = selectedChatId == null ? 'new' : String(selectedChatId);
-  const [draft, setDraftState] = useState('');
+  const [draft, setDraft] = useState('');
   const [notice, setNotice] = useState<ComposerNotice | null>(null);
   /** First message for a chat we just created, sent once the chat is live. */
   const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
 
-  const setDraft = useCallback(
+  /** Draft writes go through here so the per-chat map stays in sync. */
+  const updateDraft = useCallback(
     (value: string) => {
       draftsRef.current.set(draftKey, value);
-      setDraftState(value);
+      setDraft(value);
     },
     [draftKey]
   );
@@ -79,7 +80,7 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
   useEffect(() => {
     if (prevDraftKeyRef.current === draftKey) return;
     prevDraftKeyRef.current = draftKey;
-    setDraftState(draftsRef.current.get(draftKey) ?? '');
+    setDraft(draftsRef.current.get(draftKey) ?? '');
     setNotice(null);
   }, [draftKey]);
 
@@ -91,7 +92,7 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
     setQueuedMessage(null);
     autoSelectedRef.current = false;
     draftsRef.current.clear();
-    setDraftState('');
+    setDraft('');
   }, [noteId]);
 
   // ---- server-side access gate ----
@@ -157,12 +158,12 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
 
     const outcome = await chatState.send(text);
     if (outcome.ok) {
-      setDraft('');
+      updateDraft('');
     } else {
       // Keep the draft on any failure.
       setNotice(noticeFromOutcome(outcome));
     }
-  }, [draft, selectedChatId, list, chatState, setDraft]);
+  }, [draft, selectedChatId, list, chatState, updateDraft]);
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chatState.send;
@@ -173,10 +174,10 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
     sendToChat(text).then((outcome) => {
       if (!outcome.ok) {
         setNotice(noticeFromOutcome(outcome));
-        setDraft(text);
+        updateDraft(text);
       }
     });
-  }, [queuedMessage, selectedChatId, chatState.access, sendToChat, setDraft]);
+  }, [queuedMessage, selectedChatId, chatState.access, sendToChat, updateDraft]);
 
   // ---- rename ----
   const [renaming, setRenaming] = useState(false);
@@ -460,7 +461,7 @@ export function AgentChatPanel({ noteId, open, onClose, onUnavailable }: AgentCh
 
       <ChatComposer
         value={draft}
-        onChange={setDraft}
+        onChange={updateDraft}
         onSend={handleSend}
         onStop={chatState.cancel}
         busy={composerBusy}
