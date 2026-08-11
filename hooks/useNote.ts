@@ -287,12 +287,15 @@ interface UpdateNoteOptions {
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
-type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn, () => void];
+type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn, () => boolean];
 
 export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
+  // True while a scheduled save is waiting out the debounce — tells cancel
+  // callers whether they just dropped real edits or canceled nothing.
+  const pendingSaveRef = useRef(false);
 
   const debouncedUpdate = useRef<
     DebouncedFunc<
@@ -300,6 +303,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     >
   >(
     debounce(async (editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
+      pendingSaveRef.current = false;
       if (!editor || !noteId) {
         console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
         return;
@@ -356,6 +360,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         console.error('Editor is undefined in updateNote');
         return;
       }
+      pendingSaveRef.current = true;
       debouncedUpdate.current(editor, noteId, options.registeredReportProposalId);
     },
     [noteId, options.registeredReportProposalId]
@@ -363,9 +368,13 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
 
   // Drops a save that is waiting out the debounce without saving it. The edits
   // stay in the editor; callers use this to hold a save that would conflict
-  // with a newer server-side version.
+  // with a newer server-side version. Returns whether a save was actually
+  // pending, so callers know the drop needs to be reconciled later.
   const cancelPendingUpdate = useCallback(() => {
+    const wasPending = pendingSaveRef.current;
+    pendingSaveRef.current = false;
     debouncedUpdate.current.cancel();
+    return wasPending;
   }, []);
 
   useEffect(() => {
