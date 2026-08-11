@@ -8,14 +8,15 @@ import {
   type ChatActivityItem,
   type ChatExecution,
 } from '@/types/notebookChat';
-import { ActivityFeed, SourceChips, collectSources } from './ActivityFeed';
+import { ActivityFeed, SourceChips, collectSources, humanizeLabel } from './ActivityFeed';
 
 /** "Searched the web ×2 · Read the note" — tool labels in first-appearance order. */
 function summarizeActivity(items: ChatActivityItem[]): string | null {
   const counts = new Map<string, number>();
   for (const item of items) {
     if (item.type === 'tool_call') {
-      counts.set(item.label, (counts.get(item.label) ?? 0) + 1);
+      const label = humanizeLabel(item.label);
+      counts.set(label, (counts.get(label) ?? 0) + 1);
     }
   }
   if (counts.size === 0) {
@@ -41,8 +42,8 @@ export function LiveStatusLine({ label }: { readonly label: string }) {
         {[0, 1, 2].map((dot) => (
           <span
             key={dot}
-            className="h-1.5 w-1.5 rounded-full bg-primary-500 animate-pulse-dot"
-            style={{ animationDelay: `${dot * 260}ms` }}
+            className="h-1.5 w-1.5 rounded-full bg-primary-500 animate-thinking-dot"
+            style={{ animationDelay: `${dot * 150}ms` }}
           />
         ))}
       </span>
@@ -87,12 +88,6 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
   return (
     <div className="rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-2">
-      {execution.attempt > 1 && (
-        <p className="pb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
-          Retry attempt {execution.attempt}
-        </p>
-      )}
-
       {!live && summary && (
         <button
           type="button"

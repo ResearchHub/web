@@ -10,6 +10,7 @@ import {
   FileText,
   Globe,
   SquarePen,
+  SquareTerminal,
   User,
   Users,
   Wrench,
@@ -38,7 +39,18 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   get_author: User,
   get_author_works: BookOpen,
   get_work_fulltext: FileSearch,
+  code_execution: SquareTerminal,
 };
+
+/**
+ * The backend labels tools it knows; for new ones it can fall back to copy
+ * that embeds the machine name ("Used code_execution"). Soften any
+ * identifier-looking token to plain words so raw snake_case never reaches the
+ * feed, whatever tools the backend grows next.
+ */
+export function humanizeLabel(label: string): string {
+  return label.replace(/[a-z0-9]+(?:_[a-z0-9]+)+/g, (token) => token.replace(/_/g, ' '));
+}
 
 function hostnameOf(url: string): string {
   try {
@@ -92,10 +104,14 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
         <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
           <CallStatusIcon status={call.status} />
         </span>
-        <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+        {/* items-center, not items-baseline: the label span is an inline-flex
+            whose first child is an SVG, so its "baseline" is the icon's bottom
+            edge — baseline-aligning the detail against that pushes it a few
+            pixels below the label text. */}
+        <span className="flex min-w-0 flex-wrap items-center gap-x-1.5">
           <span className="inline-flex items-center gap-1 font-medium text-gray-700">
             <ToolIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-            {call.label}
+            {humanizeLabel(call.label)}
           </span>
           {call.detail && (
             <span className="min-w-0 truncate text-gray-500" title={call.detail}>
