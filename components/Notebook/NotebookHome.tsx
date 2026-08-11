@@ -74,7 +74,7 @@ export function NotebookHome() {
             title: 'ChangeLog',
             description: 'Publish a ResearchHub product update',
             icon: <Icon name="submit1" size={24} color="#2563eb" />,
-            onClick: () => router.push('/notebook?newResearch=true'),
+            onClick: () => router.push('/notebook?newChangelog=true'),
           },
         ]
       : []),

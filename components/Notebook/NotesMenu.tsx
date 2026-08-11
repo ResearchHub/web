@@ -93,7 +93,7 @@ export function NotesMenu() {
 
   const handleNewChangelog = () => {
     setIsOpen(false);
-    router.push('/notebook?newResearch=true');
+    router.push('/notebook?newChangelog=true');
   };
 
   const handleInvitePeople = () => {

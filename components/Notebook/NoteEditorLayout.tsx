@@ -38,7 +38,7 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Query params the note-creation flows append when redirecting to the editor.
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
-const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
+const NEW_NOTE_PARAMS = ['newChangelog', 'newGrant', 'newFunding', 'template'];
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(

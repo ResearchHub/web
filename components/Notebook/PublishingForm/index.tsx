@@ -54,6 +54,7 @@ import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPri
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
+const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
@@ -263,7 +264,7 @@ const resolveArticleType = (
   params: { get(key: string): string | null } | null
 ): PublishingFormData['articleType'] | null => {
   if (params?.get('newFunding') === 'true') return 'preregistration';
-  if (params?.get('newResearch') === 'true') return 'discussion';
+  if (params?.get('newChangelog') === 'true') return 'discussion';
   if (params?.get('newGrant') === 'true') return 'grant';
 
   const template = params?.get('template');
@@ -503,7 +504,7 @@ export function PublishingForm({
     }
 
     if (!canPublishChangelog) {
-      toast.error('Only moderators can publish ChangeLog entries.');
+      toast.error(CHANGELOG_PUBLISH_ERROR_MESSAGE);
       return;
     }
 
@@ -762,9 +763,7 @@ export function PublishingForm({
               </p>
             )}
             {!canPublishChangelog && (
-              <p className="text-sm text-red-600">
-                Only moderators can access and publish ChangeLog entries.
-              </p>
+              <p className="text-sm text-red-600">{CHANGELOG_PUBLISH_ERROR_MESSAGE}</p>
             )}
             <Button
               variant="default"

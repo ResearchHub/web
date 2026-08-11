@@ -34,7 +34,7 @@ export default function OrganizationPage() {
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
 
   const isNewFunding = searchParams.get('newFunding') === 'true';
-  const isNewChangelog = searchParams.get('newResearch') === 'true';
+  const isNewChangelog = searchParams.get('newChangelog') === 'true';
   const isNewGrant = searchParams.get('newGrant') === 'true';
   const grantSource = searchParams.get('grantSource');
   const proposalSource = searchParams.get('proposalSource');
@@ -89,7 +89,7 @@ export default function OrganizationPage() {
 
       createNoteWithContent(selectedOrg.slug, {
         template: initialContent,
-        queryParam: 'newResearch',
+        queryParam: 'newChangelog',
         queryValue: 'true',
         documentType: 'DISCUSSION',
       });
