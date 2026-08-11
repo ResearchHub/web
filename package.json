@@ -133,7 +133,6 @@
     "@types/react": "^19.2.18",
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-dom": "^19.2.4",
-    "@types/uuid": "^9.0.8",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.0",
