@@ -35,6 +35,19 @@ function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice
   }
 }
 
+/** Highest note version produced by a succeeded edit_note in one chat. */
+function maxAgentNoteVersion(chat: NotebookChat | null): number | null {
+  let max: number | null = null;
+  for (const execution of chat?.executions ?? []) {
+    for (const item of execution.activity ?? []) {
+      if (item.type === 'tool_call' && item.note_version_id != null) {
+        max = max == null ? item.note_version_id : Math.max(max, item.note_version_id);
+      }
+    }
+  }
+  return max;
+}
+
 interface AgentChatPanelProps {
   readonly noteId: string;
   readonly open: boolean;
@@ -48,6 +61,13 @@ interface AgentChatPanelProps {
    * assistant's version before the user has chosen.
    */
   readonly onEditConflictChange?: (active: boolean) => void;
+  /**
+   * The user chose their local version over the assistant's. The assistant's
+   * version is the server's newest, so the host should persist the local
+   * document once autosave resumes — without a re-save the choice would only
+   * live in this editor instance and vanish on the next load.
+   */
+  readonly onKeepLocalVersion?: () => void;
 }
 
 /**
@@ -62,6 +82,7 @@ export function AgentChatPanel({
   onClose,
   onUnavailable,
   onEditConflictChange,
+  onKeepLocalVersion,
 }: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
 
@@ -86,6 +107,49 @@ export function AgentChatPanel({
   useEffect(() => {
     setKeepAlive(turnLive);
   }, [turnLive]);
+
+  // Switching away from a chat mid-turn must not stop monitoring it either:
+  // its edit_note completion still has to refresh the editor or arm the
+  // reload banner. One background slot suffices for the realistic case —
+  // watch the busy chat we just left, release it once its turn settles (or
+  // it becomes the selection again, where the main hook takes over).
+  const [watchedChatId, setWatchedChatId] = useState<number | null>(null);
+  const watchedChat = useNotebookChat({
+    noteId,
+    chatId: watchedChatId,
+    enabled: watchedChatId != null,
+  });
+
+  useEffect(() => {
+    if (watchedChatId == null) return;
+    if (watchedChatId === selectedChatId) {
+      setWatchedChatId(null);
+      return;
+    }
+    if (watchedChat.access === 'loading') return;
+    // Settled, gone, or unreadable — nothing left to watch for.
+    if (watchedChat.access !== 'ok' || (!watchedChat.isBusy && !watchedChat.isFinishing)) {
+      setWatchedChatId(null);
+    }
+  }, [
+    watchedChatId,
+    selectedChatId,
+    watchedChat.access,
+    watchedChat.isBusy,
+    watchedChat.isFinishing,
+  ]);
+
+  /** Every chat switch routes through here so a live turn keeps a watcher. */
+  const switchChat = useCallback(
+    (nextChatId: number | null) => {
+      if (selectedChatId != null && selectedChatId !== nextChatId && turnLive) {
+        setWatchedChatId(selectedChatId);
+      }
+      setSelectedChatId(nextChatId);
+      setInitialChat(null);
+    },
+    [selectedChatId, turnLive]
+  );
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
@@ -116,6 +180,7 @@ export function AgentChatPanel({
   // ---- reset everything when the note changes ----
   useEffect(() => {
     setSelectedChatId(null);
+    setWatchedChatId(null);
     setInitialChat(null);
     setNotice(null);
     setQueuedMessage(null);
@@ -283,51 +348,59 @@ export function AgentChatPanel({
     };
   }, [editor]);
 
-  // Highest note version produced by a succeeded edit_note across this chat.
+  // Highest note version produced by a succeeded edit_note across the
+  // selected chat and the background-watched one.
   const agentNoteVersionId = useMemo(() => {
-    let max: number | null = null;
-    for (const execution of chatState.chat?.executions ?? []) {
-      for (const item of execution.activity ?? []) {
-        if (item.type === 'tool_call' && item.note_version_id != null) {
-          max = max == null ? item.note_version_id : Math.max(max, item.note_version_id);
-        }
-      }
-    }
-    return max;
-  }, [chatState.chat]);
+    const selected = maxAgentNoteVersion(chatState.chat);
+    const watched = maxAgentNoteVersion(watchedChat.chat);
+    if (selected == null) return watched;
+    if (watched == null) return selected;
+    return Math.max(selected, watched);
+  }, [chatState.chat, watchedChat.chat]);
 
-  const reloadNoteContent = useCallback(async () => {
-    setIsReloadingNote(true);
-    setNoteReloadFailed(false);
-    try {
-      const note = await NoteService.getNote(noteId);
-      // Navigated away mid-fetch: this content and version belong to the
-      // previous note and must not touch the current note's tracking (a
-      // cleared dirty flag here would let a later agent edit silently
-      // overwrite unsaved local work).
-      if (targetRef.current.noteId !== noteId) return;
-      if (editor && !editor.isDestroyed) {
-        let content: string | object = note.content ?? '';
-        if (note.contentJson) {
-          try {
-            content = JSON.parse(note.contentJson);
-          } catch {
-            // Malformed JSON — fall back to the HTML source.
-          }
+  const reloadNoteContent = useCallback(
+    async (source: 'auto' | 'manual' = 'manual') => {
+      setIsReloadingNote(true);
+      setNoteReloadFailed(false);
+      try {
+        const note = await NoteService.getNote(noteId);
+        // Navigated away mid-fetch: this content and version belong to the
+        // previous note and must not touch the current note's tracking (a
+        // cleared dirty flag here would let a later agent edit silently
+        // overwrite unsaved local work).
+        if (targetRef.current.noteId !== noteId) return;
+        // An auto refresh only starts while the editor is clean, but the user
+        // may have typed during the fetch — applying the response now would
+        // silently discard those keystrokes, so ask via the banner instead.
+        // Manual reloads are the user answering that banner: always apply.
+        if (source === 'auto' && editorDirtyRef.current) {
+          setNeedsNoteReload(true);
+          return;
         }
-        // emitUpdate=false: applying the agent's version isn't a user edit and
-        // must not trigger the notebook autosave.
-        editor.commands.setContent(content, { emitUpdate: false });
+        if (editor && !editor.isDestroyed) {
+          let content: string | object = note.content ?? '';
+          if (note.contentJson) {
+            try {
+              content = JSON.parse(note.contentJson);
+            } catch {
+              // Malformed JSON — fall back to the HTML source.
+            }
+          }
+          // emitUpdate=false: applying the agent's version isn't a user edit
+          // and must not trigger the notebook autosave.
+          editor.commands.setContent(content, { emitUpdate: false });
+        }
+        heldVersionRef.current = note.versionId ?? heldVersionRef.current;
+        editorDirtyRef.current = false;
+        setNeedsNoteReload(false);
+      } catch {
+        setNoteReloadFailed(true);
+      } finally {
+        setIsReloadingNote(false);
       }
-      heldVersionRef.current = note.versionId ?? heldVersionRef.current;
-      editorDirtyRef.current = false;
-      setNeedsNoteReload(false);
-    } catch {
-      setNoteReloadFailed(true);
-    } finally {
-      setIsReloadingNote(false);
-    }
-  }, [noteId, editor]);
+    },
+    [noteId, editor]
+  );
 
   useEffect(() => {
     const held = heldVersionRef.current;
@@ -337,7 +410,7 @@ export function AgentChatPanel({
       // A silent reload would clobber local unsaved edits — ask instead.
       setNeedsNoteReload(true);
     } else {
-      reloadNoteContent();
+      reloadNoteContent('auto');
     }
   }, [agentNoteVersionId, reloadNoteContent]);
 
@@ -357,8 +430,11 @@ export function AgentChatPanel({
 
   const keepLocalVersion = () => {
     // Explicit user-wins: acknowledge the assistant's version so this banner
-    // doesn't re-arm for it, and let autosave resume with the local document.
-    // The assistant's version remains in the note's history.
+    // doesn't re-arm for it, and have the host persist the local document —
+    // the assistant's version is the server's newest, so without a re-save
+    // the user's choice would vanish on the next load. The assistant's
+    // version remains in the note's history.
+    onKeepLocalVersion?.();
     const held = heldVersionRef.current;
     if (agentNoteVersionId != null) {
       heldVersionRef.current =
@@ -417,14 +493,7 @@ export function AgentChatPanel({
         return (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
             <p className="text-sm text-gray-600">This chat is no longer available.</p>
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={() => {
-                setSelectedChatId(null);
-                setInitialChat(null);
-              }}
-            >
+            <Button variant="outlined" size="sm" onClick={() => switchChat(null)}>
               Start a new chat
             </Button>
           </div>
@@ -491,14 +560,8 @@ export function AgentChatPanel({
             chats={list.chats}
             activeChatId={selectedChatId}
             activeTitle={chatTitle}
-            onSelect={(chatId) => {
-              setSelectedChatId(chatId);
-              setInitialChat(null);
-            }}
-            onNewChat={() => {
-              setSelectedChatId(null);
-              setInitialChat(null);
-            }}
+            onSelect={switchChat}
+            onNewChat={() => switchChat(null)}
             onOpen={() => refreshList()}
           />
         )}
@@ -516,10 +579,7 @@ export function AgentChatPanel({
           )}
           <button
             type="button"
-            onClick={() => {
-              setSelectedChatId(null);
-              setInitialChat(null);
-            }}
+            onClick={() => switchChat(null)}
             title="New chat"
             className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
@@ -553,7 +613,7 @@ export function AgentChatPanel({
             <Button
               variant="outlined"
               size="sm"
-              onClick={reloadNoteContent}
+              onClick={() => reloadNoteContent()}
               disabled={isReloadingNote}
             >
               {isReloadingNote ? <Loader size="sm" /> : 'Reload'}

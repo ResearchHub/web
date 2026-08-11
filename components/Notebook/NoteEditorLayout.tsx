@@ -100,13 +100,20 @@ export function NoteEditorLayout() {
   // ---- AI assistant chat (gated to hub editors and moderators) ----
   const [isAgentChatOpen, setIsAgentChatOpen] = useState(false);
   // Flipped when the server denies access (the gate can change server-side);
-  // hides the entry point for the rest of the session.
+  // hides the entry point while this note is open.
   const [agentChatUnavailable, setAgentChatUnavailable] = useState(false);
 
   const handleAgentChatUnavailable = useCallback(() => {
     setAgentChatUnavailable(true);
     setIsAgentChatOpen(false);
   }, []);
+
+  // The server's denial is note/hub-scoped and this layout survives note
+  // navigation — re-arm the entry point on the next note so a denial in one
+  // hub doesn't permanently hide the assistant in hubs the user does edit.
+  useEffect(() => {
+    setAgentChatUnavailable(false);
+  }, [activeNoteId]);
 
   const isHubEditorOrModerator = Boolean(user?.moderator) || (user?.editorOfHubs?.length ?? 0) > 0;
   const showAgentChat =
@@ -185,7 +192,9 @@ export function NoteEditorLayout() {
       if (agentConflictRef.current === active) return;
       agentConflictRef.current = active;
       if (active) {
-        cancelPendingNoteUpdate();
+        // A canceled pending save holds real edits — mark it suppressed so
+        // resolving the conflict reschedules it instead of dropping it.
+        if (cancelPendingNoteUpdate()) suppressedSaveRef.current = true;
       } else if (suppressedSaveRef.current) {
         // Edits accumulated while saving was held — persist them now.
         suppressedSaveRef.current = false;
@@ -194,6 +203,13 @@ export function NoteEditorLayout() {
     },
     [cancelPendingNoteUpdate, updateNote, editor]
   );
+
+  // "Keep mine" chosen: the assistant's version is the server's newest, so
+  // persist the local document once the hold lifts — otherwise the choice
+  // would only live in this editor instance and vanish on the next load.
+  const handleKeepLocalVersion = useCallback(() => {
+    if (agentConflictRef.current) suppressedSaveRef.current = true;
+  }, []);
 
   const handleEditorUpdate = useCallback(
     (editorInstance: Editor) => {
@@ -336,6 +352,7 @@ export function NoteEditorLayout() {
             onClose={() => setIsAgentChatOpen(false)}
             onUnavailable={handleAgentChatUnavailable}
             onEditConflictChange={handleAgentEditConflict}
+            onKeepLocalVersion={handleKeepLocalVersion}
           />
         </>
       )}
