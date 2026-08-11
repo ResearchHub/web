@@ -1,11 +1,17 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useUser } from '@/contexts/UserContext';
+import { useSession } from 'next-auth/react';
 
 export function useHomeHref() {
-  const { user } = useUser();
-  return useMemo(() => (user ? '/for-you' : '/popular'), [user]);
+  const { status } = useSession();
+
+  return useMemo(() => {
+    if (status === 'authenticated') return '/for-you';
+    if (status === 'unauthenticated') return '/popular';
+
+    return '/';
+  }, [status]);
 }
 
 export function isClassicHomeFeedPath(pathname: string): boolean {

@@ -68,15 +68,25 @@ export const renderTextWithMarks = (text: string, marks: any[]): ReactNode => {
   return result;
 };
 
+function demoteUrlToLinkedText(url: string) {
+  return {
+    type: 'text',
+    text: url,
+    marks: [{ type: 'link', attrs: { href: url, target: '_blank' } }],
+  };
+}
+
 function demoteRichLinks(node: any): any {
   if (!node || typeof node !== 'object') return node;
 
   if (node.type === 'richLink' && node.attrs?.url) {
-    const url = String(node.attrs.url);
+    return demoteUrlToLinkedText(String(node.attrs.url));
+  }
+
+  if (node.type === 'embed' && node.attrs?.url) {
     return {
-      type: 'text',
-      text: url,
-      marks: [{ type: 'link', attrs: { href: url, target: '_blank' } }],
+      type: 'paragraph',
+      content: [demoteUrlToLinkedText(String(node.attrs.url))],
     };
   }
 

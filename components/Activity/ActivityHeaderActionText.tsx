@@ -10,6 +10,30 @@ interface ActivityHeaderActionTextProps {
   className?: string;
 }
 
+function AuthorName({
+  id,
+  profileUrl,
+  fullName,
+}: {
+  id?: number;
+  profileUrl: string;
+  fullName?: string | null;
+}) {
+  const name = <span className="font-medium text-gray-900">{fullName || 'Unknown'}</span>;
+
+  if (!id) {
+    return name;
+  }
+
+  return (
+    <AuthorTooltip authorId={id} placement="bottom">
+      <Link href={profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
+        {fullName || 'Unknown'}
+      </Link>
+    </AuthorTooltip>
+  );
+}
+
 export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   message,
   className,
@@ -18,23 +42,16 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
 
   return (
     <span className={className}>
-      <AuthorTooltip authorId={actor.id} placement="bottom">
-        <Link href={actor.profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
-          {actor.fullName || 'Unknown'}
-        </Link>
-      </AuthorTooltip>
+      <AuthorName id={actor.id} profileUrl={actor.profileUrl} fullName={actor.fullName} />
       <span className="text-gray-500"> {verb}</span>
       {target && (
         <>
           {' '}
-          <AuthorTooltip authorId={target.author.id} placement="bottom">
-            <Link
-              href={target.author.profileUrl}
-              className="font-medium text-gray-900 hover:text-primary-600"
-            >
-              {target.author.fullName || 'Unknown'}
-            </Link>
-          </AuthorTooltip>
+          <AuthorName
+            id={target.author.id}
+            profileUrl={target.author.profileUrl}
+            fullName={target.author.fullName}
+          />
           {target.suffix && <span className="text-gray-500">{target.suffix}</span>}
         </>
       )}

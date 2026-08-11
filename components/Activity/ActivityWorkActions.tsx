@@ -51,7 +51,7 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({ entry, work,
   const handleContributeSuccess = () => {
     setIsContributeModalOpen(false);
     showShareModal({
-      url: window.location.href,
+      url: work.href,
       docTitle: work.title,
       action: 'USER_FUNDED_PROPOSAL',
     });

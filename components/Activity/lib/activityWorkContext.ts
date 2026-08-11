@@ -213,14 +213,25 @@ function presentGrant(
   showUSD: boolean,
   exchangeRate: number
 ): WorkCardPresentation {
-  const budgetAmount = showUSD ? grant.amount.usd : (grant.amount.rsc ?? 0);
-  const hasBudget = grant.amount.usd > 0 || (grant.amount.rsc ?? 0) > 0;
   const stats: WorkCardStat[] = [];
+  let budgetAmount: number | null = null;
+  let skipConversion = showUSD;
 
-  if (hasBudget) {
+  if (showUSD) {
+    if (grant.amount.usd > 0) {
+      budgetAmount = grant.amount.usd;
+    }
+  } else if (grant.amount.rsc != null && grant.amount.rsc > 0) {
+    budgetAmount = grant.amount.rsc;
+  } else if (grant.amount.usd > 0 && exchangeRate > 0) {
+    budgetAmount = grant.amount.usd / exchangeRate;
+    skipConversion = true;
+  }
+
+  if (budgetAmount != null) {
     stats.push({
       label: 'Available',
-      value: formatAmount(budgetAmount, showUSD, exchangeRate, showUSD),
+      value: formatAmount(budgetAmount, showUSD, exchangeRate, skipConversion),
       accent: true,
     });
   }

@@ -54,7 +54,11 @@ export class ActivityService {
         })
         .filter((e): e is FeedEntry => e !== null);
 
-      return { entries, hasMore: !!response.next, count: entries.length };
+      return {
+        entries,
+        hasMore: !!response.next,
+        count: response.count ?? entries.length,
+      };
     } catch (error) {
       console.error('Error fetching activity feed:', error);
       return { entries: [], hasMore: false, count: 0 };

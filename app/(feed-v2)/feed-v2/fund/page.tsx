@@ -2,11 +2,14 @@ import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { FeedV2GrantsPageContent } from '@/components/Funding/FeedV2GrantsPageContent';
 
-export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Fund',
-  description: 'Apply for funding opportunities via proposals.',
-  url: '/feed-v2/fund',
-});
+export const metadata: Metadata = {
+  ...buildOpenGraphMetadata({
+    title: 'Fund',
+    description: 'Apply for funding opportunities via proposals.',
+    url: '/feed-v2/fund',
+  }),
+  robots: { index: false, follow: false },
+};
 
 export default function FeedV2FundPage() {
   return (

@@ -56,7 +56,7 @@ function isFoundationProfile(profile?: AuthorProfile): boolean {
   if (!profile) return false;
   if (profile.userId != null) return isFoundationUser(profile.userId);
   if (profile.user?.id != null) return isFoundationUser(profile.user.id);
-  return isFoundationUser(profile.id);
+  return false;
 }
 
 function getFundingActivityMessage(content: FeedFundingActivityContent): ActivityHeaderMessage {
