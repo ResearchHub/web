@@ -61,15 +61,15 @@ export function ChatComposer({
   return (
     <div className="border-t border-gray-100 bg-white px-3 pb-3 pt-2">
       {notice && (
-        <p
+        // <output> carries an implicit status role (polite live region).
+        <output
           className={cn(
-            'mb-1.5 text-xs',
+            'mb-1.5 block text-xs',
             notice.tone === 'warning' ? 'text-amber-600' : 'text-red-600'
           )}
-          role="status"
         >
           {notice.text}
-        </p>
+        </output>
       )}
       <div
         className={cn(

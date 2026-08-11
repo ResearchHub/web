@@ -26,6 +26,14 @@ function summarizeActivity(items: ChatActivityItem[]): string | null {
     .join(' · ');
 }
 
+/** Copy for the live status line while a turn runs or finishes up. */
+function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
+  if (finishing) return 'Finishing up';
+  const phaseLabel = execution.phase?.label;
+  if (phaseLabel != null) return phaseLabel;
+  return execution.status === 'PENDING' ? 'Waiting to start' : 'Working';
+}
+
 export function LiveStatusLine({ label }: { readonly label: string }) {
   return (
     <div className="flex items-center gap-2 pt-1 text-xs font-medium text-primary-600">
@@ -75,9 +83,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
     return null;
   }
 
-  const statusLabel = finishing
-    ? 'Finishing up'
-    : (execution.phase?.label ?? (execution.status === 'PENDING' ? 'Waiting to start' : 'Working'));
+  const statusLabel = liveStatusLabel(execution, finishing);
 
   return (
     <div className="rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-2">

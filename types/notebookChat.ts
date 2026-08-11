@@ -16,8 +16,12 @@ export type ExecutionStatus =
   | 'INTERRUPTED'
   | 'CANCELLED';
 
-/** A turn is live while queued or running; every other status is terminal. */
-export function isActiveExecutionStatus(status: ExecutionStatus | string): boolean {
+/**
+ * A turn is live while queued or running; every other status is terminal.
+ * Takes any string so unknown statuses from newer backends safely read as
+ * terminal.
+ */
+export function isActiveExecutionStatus(status: string): boolean {
   return status === 'PENDING' || status === 'RUNNING';
 }
 
@@ -53,10 +57,13 @@ export interface ChatToolCallActivity {
 
 export type ChatActivityItem = ChatNarrationActivity | ChatToolCallActivity;
 
-export type ExecutionPhaseState = 'queued' | 'using_tool' | 'responding' | 'thinking';
-
 export interface ExecutionPhase {
-  state: ExecutionPhaseState | string;
+  /**
+   * Coarse machine state — `queued` / `using_tool` / `responding` / `thinking`
+   * today, but the backend adds states without notice, so treat it as
+   * open-ended and never branch on it exhaustively.
+   */
+  state: string;
   /** Rendered verbatim as the live status line. */
   label: string;
   tool?: string | null;

@@ -27,6 +27,21 @@ export type SendOutcome =
   | { ok: true }
   | { ok: false; reason: 'busy' | 'invalid' | 'not_found' | 'error'; detail?: string };
 
+/** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
+function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
+  const detail = chatErrorDetail(err);
+  switch (chatErrorStatus(err)) {
+    case 409:
+      return { ok: false, reason: 'busy', detail };
+    case 400:
+      return { ok: false, reason: 'invalid', detail };
+    case 404:
+      return { ok: false, reason: 'not_found', detail };
+    default:
+      return { ok: false, reason: 'error', detail };
+  }
+}
+
 export interface PendingSend {
   text: string;
   /** Set once the POST 202s; cleared when the execution shows up in a refetch. */
@@ -160,11 +175,7 @@ export function useNotebookChat({
       setAccess('loading');
       return;
     }
-    if (
-      initialChat &&
-      initialChat.conversation_id === chatId &&
-      seededChatIdRef.current !== chatId
-    ) {
+    if (initialChat?.conversation_id === chatId && seededChatIdRef.current !== chatId) {
       seededChatIdRef.current = chatId;
       setChat(mergeLiveChat(null, initialChat));
       setAccess('ok');
@@ -252,22 +263,16 @@ export function useNotebookChat({
         }
         return { ok: true };
       } catch (err) {
+        const outcome = sendFailureOutcome(err);
         // The outcome is still reported either way, but a continuation for a
         // chat that is no longer selected must not mutate the current one.
-        const current = epoch === epochRef.current;
-        if (current) setPendingSend(null);
-        const status = chatErrorStatus(err);
-        if (status === 409) {
+        if (epoch === epochRef.current) {
+          setPendingSend(null);
           // Raced an active turn — refetch so the busy state renders truthfully.
-          if (current) fetchChat('live');
-          return { ok: false, reason: 'busy', detail: chatErrorDetail(err) };
+          if (outcome.reason === 'busy') fetchChat('live');
+          if (outcome.reason === 'not_found') setAccess('not_found');
         }
-        if (status === 400) return { ok: false, reason: 'invalid', detail: chatErrorDetail(err) };
-        if (status === 404) {
-          if (current) setAccess('not_found');
-          return { ok: false, reason: 'not_found', detail: chatErrorDetail(err) };
-        }
-        return { ok: false, reason: 'error', detail: chatErrorDetail(err) };
+        return outcome;
       }
     },
     [noteId, chatId, fetchChat]

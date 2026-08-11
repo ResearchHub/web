@@ -18,6 +18,7 @@ import {
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import type {
+  ActivityCallStatus,
   ChatActivityItem,
   ChatActivitySource,
   ChatToolCallActivity,
@@ -69,6 +70,19 @@ export function SourceChips({ sources }: { readonly sources: ChatActivitySource[
   );
 }
 
+function CallStatusIcon({ status }: { readonly status: ActivityCallStatus }) {
+  switch (status) {
+    case 'in_progress':
+      return <Loader size="sm" className="!h-3.5 !w-3.5 text-primary-500" />;
+    case 'succeeded':
+      return <Check className="h-3.5 w-3.5 text-green-600" aria-label="Succeeded" />;
+    case 'interrupted':
+      return <Ban className="h-3.5 w-3.5 text-gray-400" aria-label="Interrupted" />;
+    default:
+      return <X className="h-3.5 w-3.5 text-red-500" aria-label="Failed" />;
+  }
+}
+
 function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
   const ToolIcon = TOOL_ICONS[call.tool] ?? Wrench;
 
@@ -76,15 +90,7 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
     <div>
       <div className="flex items-start gap-2">
         <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-          {call.status === 'in_progress' ? (
-            <Loader size="sm" className="!h-3.5 !w-3.5 text-primary-500" />
-          ) : call.status === 'succeeded' ? (
-            <Check className="h-3.5 w-3.5 text-green-600" aria-label="Succeeded" />
-          ) : call.status === 'interrupted' ? (
-            <Ban className="h-3.5 w-3.5 text-gray-400" aria-label="Interrupted" />
-          ) : (
-            <X className="h-3.5 w-3.5 text-red-500" aria-label="Failed" />
-          )}
+          <CallStatusIcon status={call.status} />
         </span>
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
           <span className="inline-flex items-center gap-1 font-medium text-gray-700">
@@ -107,6 +113,17 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
   );
 }
 
+/** Unknown item types from newer backends render nothing (never crash the feed). */
+function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
+  if (item.type === 'narration') {
+    return <p className="whitespace-pre-wrap break-words pl-6 italic text-gray-500">{item.text}</p>;
+  }
+  if (item.type === 'tool_call') {
+    return <ToolCallRow call={item} />;
+  }
+  return null;
+}
+
 interface ActivityFeedProps {
   readonly items: ChatActivityItem[];
   readonly className?: string;
@@ -125,11 +142,7 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
         // Feed items are append-only and have no ids; index keys are stable here.
         // eslint-disable-next-line react/no-array-index-key
         <li key={index} className="text-xs">
-          {item.type === 'narration' ? (
-            <p className="whitespace-pre-wrap break-words pl-6 italic text-gray-500">{item.text}</p>
-          ) : item.type === 'tool_call' ? (
-            <ToolCallRow call={item} />
-          ) : null}
+          <ActivityItemBody item={item} />
         </li>
       ))}
     </ol>
