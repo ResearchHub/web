@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteService, NoteError, type NoteInvitePreview } from '@/services/note.service';
-import type { NoteWithContent, Note, NoteAccess, NoteContent } from '@/types/note';
+import {
+  isChangelogNote,
+  type NoteWithContent,
+  type Note,
+  type NoteAccess,
+  type NoteContent,
+} from '@/types/note';
 import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
 import { debounce, DebouncedFunc } from 'lodash-es';
@@ -463,6 +469,7 @@ export const useDuplicateNote = (): UseDuplicateNoteReturn => {
         title: `${originalNote.title} (Copy)`,
         grouping: originalNote.access,
         organization_slug: organizationSlug,
+        document_type: isChangelogNote(originalNote) ? 'DISCUSSION' : undefined,
       });
 
       // 3. Copy the content to the new note

@@ -18,13 +18,18 @@ import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
-import { isPublishedRegisteredReportNote, isRegisteredReportNote } from '@/types/note';
+import {
+  isChangelogNote,
+  isPublishedRegisteredReportNote,
+  isRegisteredReportNote,
+} from '@/types/note';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
 // first time someone lands in the editor on a freshly-created note.
@@ -33,7 +38,7 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Query params the note-creation flows append when redirecting to the editor.
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
-const NEW_NOTE_PARAMS = ['newGrant', 'newFunding', 'template'];
+const NEW_NOTE_PARAMS = ['newChangelog', 'newGrant', 'newFunding', 'template'];
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
@@ -71,6 +76,7 @@ export function NoteEditorLayout() {
   } = useNotebookContext();
 
   const { selectedOrg } = useOrganizationContext();
+  const { user, isLoading: isLoadingUser } = useUser();
   const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
@@ -138,15 +144,15 @@ export function NoteEditorLayout() {
     registeredReportProposalId: note?.proposalId,
   });
 
-  const showTabs = Boolean(note) && !isLegacyNote;
+  const isChangelog = isChangelogNote(note);
+  const isChangelogAccessDenied = isChangelog && !user?.isModerator;
+  const showTabs = Boolean(note) && !isLegacyNote && !isChangelogAccessDenied;
   const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
   const isEditorReadOnly =
     isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
-  const workTypeLabel = getWorkTypeLabel(
-    note?.documentType,
-    note?.post?.contentType,
-    isRegisteredReportNote(note)
-  );
+  const workTypeLabel = isChangelog
+    ? 'ChangeLog'
+    : getWorkTypeLabel(note?.documentType, note?.post?.contentType, isRegisteredReportNote(note));
 
   const renderEditor = () => {
     // No note is targeted (notebook home) — render the landing view directly so
@@ -155,11 +161,11 @@ export function NoteEditorLayout() {
       return <NotebookHome />;
     }
 
-    if (isLoadingNote || isLegacyNote === undefined) {
+    if ((isChangelog && isLoadingUser) || isLoadingNote || isLegacyNote === undefined) {
       return <NotePaperSkeleton />;
     }
 
-    if (noteError && activeNoteId) {
+    if ((noteError && activeNoteId) || isChangelogAccessDenied) {
       return (
         <NotePaperWrapper canvas={false}>
           <div className="flex flex-col items-center justify-center h-full p-8">

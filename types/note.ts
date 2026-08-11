@@ -1,3 +1,4 @@
+import { CHANGELOG_NOTEBOOK_ROLLOUT_AT, CHANGELOG_POST_IDS } from '@/constants/changelog';
 import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
@@ -225,13 +226,33 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
   json: serializeNoteJson(raw.json) ?? '',
 }));
 
-export const isRegisteredReportNote = (
-  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
-): boolean =>
+type ClassifiableNoteKey = 'documentType' | 'post' | 'proposalId';
+type ClassifiableNote = Pick<Note, ClassifiableNoteKey>;
+type ClassifiableChangelogNote = ClassifiableNote & Pick<Note, 'createdDate'>;
+
+const CHANGELOG_POST_ID_SET: ReadonlySet<string> = new Set(CHANGELOG_POST_IDS);
+const CHANGELOG_ROLLOUT_TIMESTAMP = Date.parse(CHANGELOG_NOTEBOOK_ROLLOUT_AT);
+
+export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
   isRegisteredReportDocumentType(note?.documentType) ||
   isRegisteredReportDocumentType(note?.post?.documentType) ||
   note?.proposalId != null;
 
-export const isPublishedRegisteredReportNote = (
-  note?: Pick<Note, 'documentType' | 'post' | 'proposalId'> | null
-): boolean => Boolean(note?.post?.id) && isRegisteredReportNote(note);
+export const isPublishedRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
+  Boolean(note?.post?.id) && isRegisteredReportNote(note);
+
+/** Uses exact legacy IDs because ordinary preprints also used DISCUSSION before rollout. */
+export const isChangelogNote = (note?: ClassifiableChangelogNote | null): boolean => {
+  if (!note || isRegisteredReportNote(note)) return false;
+
+  const postId = note.post?.id;
+  if (postId != null && CHANGELOG_POST_ID_SET.has(String(postId))) return true;
+
+  const wasCreatedOnOrAfterRollout = Date.parse(note.createdDate) >= CHANGELOG_ROLLOUT_TIMESTAMP;
+  if (!wasCreatedOnOrAfterRollout) return false;
+
+  return (
+    note.documentType?.trim().toUpperCase() === 'DISCUSSION' ||
+    note.post?.documentType?.trim().toUpperCase() === 'DISCUSSION'
+  );
+};

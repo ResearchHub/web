@@ -49,17 +49,20 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
-import { isRegisteredReportNote, type NoteWithContent } from '@/types/note';
-import { NOTEBOOK_WORK_TYPES } from '@/components/Notebook/NotebookPrimaryNavigation';
+import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
+const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
   grant: 'Funding Opportunity',
   registered_report: 'Registered Report',
 };
+
+const PUBLISHING_FORM_WORK_TYPES = getAvailableNotebookWorkTypes(false);
 
 interface PublishingFormProps {
   bountyAmount?: number | null;
@@ -261,6 +264,7 @@ const resolveArticleType = (
   params: { get(key: string): string | null } | null
 ): PublishingFormData['articleType'] | null => {
   if (params?.get('newFunding') === 'true') return 'preregistration';
+  if (params?.get('newChangelog') === 'true') return 'discussion';
   if (params?.get('newGrant') === 'true') return 'grant';
 
   const template = params?.get('template');
@@ -370,10 +374,12 @@ export function PublishingForm({
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
-  const isNewPreprint = articleType === 'discussion' && !workId;
+  const isModerator = !!currentUser?.isModerator;
+  const isChangelog = isChangelogNote(note);
+  const isNewPreprint = articleType === 'discussion' && !workId && !isChangelog;
+  const canPublishChangelog = !isChangelog || isModerator;
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
-  const canPublishRegisteredReport =
-    articleType !== 'registered_report' || currentUser?.isModerator === true;
+  const canPublishRegisteredReport = articleType !== 'registered_report' || isModerator;
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
@@ -497,6 +503,11 @@ export function PublishingForm({
       return;
     }
 
+    if (!canPublishChangelog) {
+      toast.error(CHANGELOG_PUBLISH_ERROR_MESSAGE);
+      return;
+    }
+
     try {
       setDocumentTitle(editor, editedTitle);
 
@@ -598,7 +609,9 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
-      const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
+      const publishLabel = isChangelog
+        ? 'ChangeLog'
+        : (PUBLISH_LABEL[formData.articleType] ?? 'Post');
       const isNewGrant = formData.articleType === 'grant' && !formData.workId;
       const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
 
@@ -676,7 +689,7 @@ export function PublishingForm({
                   Choose how you want to publish this note.
                 </p>
                 <div className="mt-4 space-y-2">
-                  {NOTEBOOK_WORK_TYPES.map((option) => (
+                  {PUBLISHING_FORM_WORK_TYPES.map((option) => (
                     <Button
                       key={option.value}
                       type="button"
@@ -749,6 +762,9 @@ export function PublishingForm({
                 Only moderators can publish Registered Reports.
               </p>
             )}
+            {!canPublishChangelog && (
+              <p className="text-sm text-red-600">{CHANGELOG_PUBLISH_ERROR_MESSAGE}</p>
+            )}
             <Button
               variant="default"
               onClick={handlePublishClick}
@@ -757,6 +773,7 @@ export function PublishingForm({
                 !articleType ||
                 readOnly ||
                 isNewPreprint ||
+                !canPublishChangelog ||
                 isPublishing ||
                 isDeclined ||
                 showPrivateWarning ||
@@ -791,11 +808,15 @@ export function PublishingForm({
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
-          title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
+          title={
+            getDocumentTitleFromEditor(editor) ||
+            (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research')
+          }
           isPublishing={isPublishing}
           isUpdate={Boolean(workId)}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
+          documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
           zIndex={100}
         />
       )}
