@@ -25,7 +25,11 @@ export type ChatAccess = 'loading' | 'ok' | 'not_found' | 'unauthorized' | 'erro
 
 export type SendOutcome =
   | { ok: true }
-  | { ok: false; reason: 'busy' | 'invalid' | 'not_found' | 'error'; detail?: string };
+  | {
+      ok: false;
+      reason: 'busy' | 'invalid' | 'not_found' | 'unauthorized' | 'error';
+      detail?: string;
+    };
 
 /** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
 function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
@@ -35,6 +39,9 @@ function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
       return { ok: false, reason: 'busy', detail };
     case 400:
       return { ok: false, reason: 'invalid', detail };
+    case 401:
+    case 403:
+      return { ok: false, reason: 'unauthorized', detail };
     case 404:
       return { ok: false, reason: 'not_found', detail };
     default:
@@ -220,7 +227,17 @@ export function useNotebookChat({
   useEffect(() => {
     if (!enabled || access !== 'ok') return;
     if (!isBusy && !isFinishing) return;
-    const timer = setInterval(() => fetchChat('live'), POLL_INTERVAL_MS);
+    // Skip ticks while a poll is still in flight: with responses slower than
+    // the interval, each new request would bump the fetch sequence and every
+    // response would arrive already stale — the UI would sit busy forever.
+    let inFlight = false;
+    const timer = setInterval(() => {
+      if (inFlight) return;
+      inFlight = true;
+      fetchChat('live').finally(() => {
+        inFlight = false;
+      });
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [enabled, access, isBusy, isFinishing, fetchChat]);
 
@@ -271,6 +288,13 @@ export function useNotebookChat({
           // Raced an active turn — refetch so the busy state renders truthfully.
           if (outcome.reason === 'busy') fetchChat('live');
           if (outcome.reason === 'not_found') setAccess('not_found');
+          // Session expired or permission revoked mid-chat: mirror what a
+          // failed GET does so the access gate reacts instead of the composer
+          // showing generic errors forever.
+          if (outcome.reason === 'unauthorized') {
+            setChat(null);
+            setAccess('unauthorized');
+          }
         }
         return outcome;
       }

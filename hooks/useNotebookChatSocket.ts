@@ -15,6 +15,12 @@ import type { ChatSocketEvent } from '@/types/notebookChat';
 const FATAL_CLOSE_CODES = new Set([4401, 4403, 4404]);
 
 const MAX_RECONNECT_DELAY_MS = 30_000;
+/**
+ * How long a connection must survive before the backoff counter resets.
+ * Resetting in `onopen` directly would turn accept-then-close flapping into a
+ * reconnect loop at the minimum delay that never backs off.
+ */
+const STABLE_CONNECTION_MS = 10_000;
 
 export type ChatSocketStatus = 'idle' | 'connecting' | 'open' | 'closed';
 
@@ -76,6 +82,7 @@ export function useNotebookChatSocket({
     let disposed = false;
     let ws: WebSocket | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let stableTimer: ReturnType<typeof setTimeout> | null = null;
     let attempts = 0;
     let hasOpenedBefore = false;
 
@@ -110,7 +117,9 @@ export function useNotebookChatSocket({
 
       ws.onopen = () => {
         if (disposed) return;
-        attempts = 0;
+        stableTimer = setTimeout(() => {
+          attempts = 0;
+        }, STABLE_CONNECTION_MS);
         setStatus('open');
         if (hasOpenedBefore) {
           onReconnectRef.current();
@@ -132,6 +141,10 @@ export function useNotebookChatSocket({
 
       ws.onclose = (event) => {
         ws = null;
+        if (stableTimer) {
+          clearTimeout(stableTimer);
+          stableTimer = null;
+        }
         if (disposed) return;
         setStatus('closed');
         if (FATAL_CLOSE_CODES.has(event.code)) {
@@ -149,6 +162,7 @@ export function useNotebookChatSocket({
     return () => {
       disposed = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (stableTimer) clearTimeout(stableTimer);
       if (ws) {
         // Detach handlers before closing so the unmount close doesn't schedule work.
         ws.onopen = null;
