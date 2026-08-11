@@ -121,7 +121,7 @@ type UseFetchAuthorInfoReturn = [UseAuthorInfoState, FetchAuthorInfoFn];
 
 export function useAuthorInfo(authorId: number | null): UseFetchAuthorInfoReturn {
   const [author, setAuthor] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(authorId));
   const [error, setError] = useState<string | null>(null);
 
   const fetchAuthorInfo = useCallback(async () => {
