@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
@@ -16,6 +16,7 @@ import { NotesMenu } from './NotesMenu';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
+import { AgentChatPanel } from './AgentChat/AgentChatPanel';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
@@ -94,6 +95,26 @@ export function NoteEditorLayout() {
   const [activeTab, setActiveTab] = useState<NotebookTab>(() =>
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
+
+  // ---- AI assistant chat (gated to hub editors and moderators) ----
+  const [isAgentChatOpen, setIsAgentChatOpen] = useState(false);
+  // Flipped when the server denies access (the gate can change server-side);
+  // hides the entry point for the rest of the session.
+  const [agentChatUnavailable, setAgentChatUnavailable] = useState(false);
+
+  const handleAgentChatUnavailable = useCallback(() => {
+    setAgentChatUnavailable(true);
+    setIsAgentChatOpen(false);
+  }, []);
+
+  const isHubEditorOrModerator = Boolean(user?.moderator) || (user?.editorOfHubs?.length ?? 0) > 0;
+  const showAgentChat =
+    isHubEditorOrModerator &&
+    !agentChatUnavailable &&
+    Boolean(activeNoteId) &&
+    Boolean(note) &&
+    !noteError &&
+    isLegacyNote === false;
   const previousNoteId = useRef(activeNoteId);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
@@ -255,6 +276,27 @@ export function NoteEditorLayout() {
       )}
 
       {isDesktop && <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />}
+
+      {showAgentChat && activeNoteId && (
+        <>
+          {!isAgentChatOpen && (
+            <button
+              type="button"
+              onClick={() => setIsAgentChatOpen(true)}
+              className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-primary-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-colors hover:bg-primary-600"
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              Assistant
+            </button>
+          )}
+          <AgentChatPanel
+            noteId={activeNoteId}
+            open={isAgentChatOpen}
+            onClose={() => setIsAgentChatOpen(false)}
+            onUnavailable={handleAgentChatUnavailable}
+          />
+        </>
+      )}
     </div>
   );
 }
