@@ -106,6 +106,16 @@ export function useNotebookChat({
   // Monotonic fetch sequence: any response that isn't the newest request for
   // the current chat is discarded, so slow responses can't clobber fresh data.
   const seqRef = useRef(0);
+  // Bumped by the reset effect whenever the target chat changes (or the panel
+  // closes). send/cancel/rename capture it before their request and skip state
+  // updates if it moved — a continuation bound to the previous chat must not
+  // touch the new chat's state or start refetches that outrace its first load.
+  const epochRef = useRef(0);
+  // Chat id whose `initialChat` seed has been consumed. The creation snapshot
+  // is only trustworthy at the moment of creation — any later reset pass
+  // (panel reopen, switch-back) must fetch, or the transcript would silently
+  // revert to the empty creation state with no poll/socket path to recover.
+  const seededChatIdRef = useRef<number | null>(null);
   // Mirror of `chat` for non-reactive reads inside fetchChat.
   const chatRef = useRef<NotebookChat | null>(null);
   chatRef.current = chat;
@@ -143,13 +153,19 @@ export function useNotebookChat({
   // Reset + initial load whenever the target chat changes or the panel opens.
   useEffect(() => {
     seqRef.current += 1; // invalidate any in-flight response for the old chat
+    epochRef.current += 1; // …and any pending send/cancel/rename continuation
     setPendingSend(null);
     if (!enabled || noteId == null || chatId == null) {
       setChat(null);
       setAccess('loading');
       return;
     }
-    if (initialChat && initialChat.conversation_id === chatId) {
+    if (
+      initialChat &&
+      initialChat.conversation_id === chatId &&
+      seededChatIdRef.current !== chatId
+    ) {
+      seededChatIdRef.current = chatId;
       setChat(mergeLiveChat(null, initialChat));
       setAccess('ok');
       return;
@@ -226,23 +242,29 @@ export function useNotebookChat({
   const send = useCallback(
     async (text: string): Promise<SendOutcome> => {
       if (noteId == null || chatId == null) return { ok: false, reason: 'error' };
+      const epoch = epochRef.current;
       setPendingSend({ text, executionId: null });
       try {
         const response = await NotebookChatService.sendMessage(noteId, chatId, text);
-        setPendingSend({ text, executionId: response.execution_id });
-        fetchChat('live');
+        if (epoch === epochRef.current) {
+          setPendingSend({ text, executionId: response.execution_id });
+          fetchChat('live');
+        }
         return { ok: true };
       } catch (err) {
-        setPendingSend(null);
+        // The outcome is still reported either way, but a continuation for a
+        // chat that is no longer selected must not mutate the current one.
+        const current = epoch === epochRef.current;
+        if (current) setPendingSend(null);
         const status = chatErrorStatus(err);
         if (status === 409) {
           // Raced an active turn — refetch so the busy state renders truthfully.
-          fetchChat('live');
+          if (current) fetchChat('live');
           return { ok: false, reason: 'busy', detail: chatErrorDetail(err) };
         }
         if (status === 400) return { ok: false, reason: 'invalid', detail: chatErrorDetail(err) };
         if (status === 404) {
-          setAccess('not_found');
+          if (current) setAccess('not_found');
           return { ok: false, reason: 'not_found', detail: chatErrorDetail(err) };
         }
         return { ok: false, reason: 'error', detail: chatErrorDetail(err) };
@@ -253,21 +275,25 @@ export function useNotebookChat({
 
   const cancel = useCallback(async () => {
     if (noteId == null || chatId == null) return;
+    const epoch = epochRef.current;
     try {
       // Idempotent by design — "nothing was running" resolves, not throws.
       await NotebookChatService.cancelTurn(noteId, chatId);
     } catch {
       // Fall through: the refetch below renders whatever actually happened.
     }
-    fetchChat('live');
+    if (epoch === epochRef.current) fetchChat('live');
   }, [noteId, chatId, fetchChat]);
 
   const rename = useCallback(
     async (title: string): Promise<boolean> => {
       if (noteId == null || chatId == null) return false;
+      const epoch = epochRef.current;
       try {
         const response = await NotebookChatService.renameChat(noteId, chatId, title);
-        setChat((prev) => (prev ? { ...prev, title: response.title } : prev));
+        if (epoch === epochRef.current) {
+          setChat((prev) => (prev ? { ...prev, title: response.title } : prev));
+        }
         return true;
       } catch {
         return false;
@@ -316,6 +342,9 @@ export function useNotebookChatList(
   const [chats, setChats] = useState<NotebookChatListItem[]>([]);
   const [access, setAccess] = useState<ChatListAccess>('loading');
   const seqRef = useRef(0);
+  // Same stale-continuation guard as the chat hook: a createChat bound to a
+  // previous note must not refresh (or hide) the current note's listing.
+  const epochRef = useRef(0);
 
   const refresh = useCallback(async () => {
     if (noteId == null) return;
@@ -338,6 +367,7 @@ export function useNotebookChatList(
 
   useEffect(() => {
     seqRef.current += 1;
+    epochRef.current += 1;
     setChats([]);
     setAccess('loading');
     if (enabled && noteId != null) {
@@ -348,13 +378,16 @@ export function useNotebookChatList(
   const createChat = useCallback(
     async (title?: string): Promise<NotebookChat | null> => {
       if (noteId == null) return null;
+      const epoch = epochRef.current;
       try {
         const chat = await NotebookChatService.createChat(noteId, title);
-        refresh();
+        if (epoch === epochRef.current) refresh();
         return chat;
       } catch (err) {
         const status = chatErrorStatus(err);
-        if (status === 401 || status === 403) setAccess('hidden');
+        if ((status === 401 || status === 403) && epoch === epochRef.current) {
+          setAccess('hidden');
+        }
         return null;
       }
     },
