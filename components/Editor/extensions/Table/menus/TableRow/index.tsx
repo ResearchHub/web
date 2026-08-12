@@ -1,5 +1,5 @@
-import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react';
-import React, { useCallback } from 'react';
+import { BubbleMenu as BaseBubbleMenu } from '@tiptap/react/menus';
+import React, { useCallback, useMemo } from 'react';
 import * as PopoverMenu from '@/components/Editor/components/ui/PopoverMenu';
 
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
@@ -31,21 +31,18 @@ export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): React.
     editor.chain().focus().deleteRow().run();
   }, [editor]);
 
+  // Stable identities required: BubbleMenu dispatches a transaction whenever
+  // these props change, which would re-render this menu and loop.
+  const menuAppendTo = useCallback(() => appendTo?.current, [appendTo]);
+  const menuOptions = useMemo(() => ({ placement: 'left' as const, offset: 15, flip: false }), []);
+
   return (
     <BaseBubbleMenu
       editor={editor}
       pluginKey="tableRowMenu"
       updateDelay={0}
-      tippyOptions={{
-        appendTo: () => {
-          return appendTo?.current;
-        },
-        placement: 'left',
-        offset: [0, 15],
-        popperOptions: {
-          modifiers: [{ name: 'flip', enabled: false }],
-        },
-      }}
+      appendTo={menuAppendTo}
+      options={menuOptions}
       shouldShow={shouldShow}
     >
       <Toolbar.Wrapper isVertical>

@@ -6,6 +6,7 @@ import { UserPlus } from 'lucide-react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import Icon from '@/components/ui/icons/Icon';
+import { useUser } from '@/contexts/UserContext';
 
 export const NOTEBOOK_WORK_TYPES = [
   {
@@ -20,10 +21,13 @@ export const NOTEBOOK_WORK_TYPES = [
   },
   {
     value: 'discussion',
-    label: 'Preprint',
-    description: 'Share research findings or a manuscript.',
+    label: 'ChangeLog',
+    description: 'Publish a ResearchHub product update.',
   },
 ] as const;
+
+export const getAvailableNotebookWorkTypes = (isModerator: boolean) =>
+  NOTEBOOK_WORK_TYPES.filter((workType) => workType.value !== 'discussion' || isModerator);
 
 type NotebookWorkType = (typeof NOTEBOOK_WORK_TYPES)[number]['value'];
 
@@ -36,7 +40,7 @@ const SectionHeading = ({ children }: { children: React.ReactNode }) => (
 interface NotebookPrimaryNavigationProps {
   onNewFundingOpportunity: () => void;
   onNewProposal: () => void;
-  onNewPreprint: () => void;
+  onNewChangelog: () => void;
   onInvitePeople: () => void;
 }
 
@@ -52,13 +56,15 @@ interface NotebookPrimaryNavigationProps {
 export const NotebookPrimaryNavigation = ({
   onNewFundingOpportunity,
   onNewProposal,
-  onNewPreprint,
+  onNewChangelog,
   onInvitePeople,
 }: NotebookPrimaryNavigationProps) => {
   const { selectedOrg } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes } = useNotebookContext();
+  const { user } = useUser();
 
   const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
+  const isModerator = !!user?.isModerator;
 
   const hasNotes = notes?.some(
     (note) => note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE'
@@ -74,15 +80,16 @@ export const NotebookPrimaryNavigation = ({
     },
     discussion: {
       icon: <Icon name="submit1" size={18} color="#6b7280" />,
-      onClick: onNewPreprint,
+      onClick: onNewChangelog,
     },
   };
+  const availableWorkTypes = getAvailableNotebookWorkTypes(isModerator);
 
   return (
     <div className="flex flex-col py-1.5 text-sm">
       {/* Create */}
       <SectionHeading>Create</SectionHeading>
-      {NOTEBOOK_WORK_TYPES.map((workType) => {
+      {availableWorkTypes.map((workType) => {
         const action = createActions[workType.value];
         return (
           <button
@@ -92,7 +99,9 @@ export const NotebookPrimaryNavigation = ({
             className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
           >
             {action.icon}
-            <span className="font-medium">New {workType.label.toLowerCase()}</span>
+            <span className="font-medium">
+              New {workType.value === 'discussion' ? workType.label : workType.label.toLowerCase()}
+            </span>
           </button>
         );
       })}

@@ -1,14 +1,13 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { PostService } from '@/services/post.service';
-import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
 import { buildArticleMetadata } from '@/lib/metadata';
+import { getShareToken } from '@/lib/shareToken/server';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
+import { getProposalMetadata, getProposalOrNotFound } from '@/components/work/proposalRouteServer';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 import type { RegisteredReportTrackerStep } from '@/types/registeredReport';
 
@@ -23,21 +22,25 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, slug } = await params;
   try {
-    const work = await PostService.get(id);
+    const [work, shareToken] = await Promise.all([getProposalOrNotFound(id), getShareToken()]);
     const previewText = stripHtml(work.previewContent || '').substring(0, 155);
     const description =
       work.abstract || previewText || 'View this research proposal on ResearchHub.';
-    return buildArticleMetadata({
-      title: work.title,
-      description,
-      url: `/proposal/${id}/${slug}`,
-      image: work.image,
-      publishedTime: work.publishedDate || work.createdDate,
-      modifiedTime: work.updatedDate,
-      authors: work.authors.map((a) => a.authorProfile.fullName),
-      section: work.topics[0]?.name,
-      tags: work.topics.map((t) => t.name),
-    });
+    return {
+      ...buildArticleMetadata({
+        title: work.title,
+        description,
+        url: `/proposal/${id}/${slug}`,
+        image: work.image,
+        publishedTime: work.publishedDate || work.createdDate,
+        modifiedTime: work.updatedDate,
+        authors: work.authors.map((a) => a.authorProfile.fullName),
+        section: work.topics[0]?.name,
+        tags: work.topics.map((t) => t.name),
+      }),
+      // Tokenized URL — private proposal, keep it out of search indexes.
+      ...(shareToken ? { robots: { index: false, follow: false } } : {}),
+    };
   } catch {
     return {};
   }
@@ -46,19 +49,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProposalSlugLayout({ params, children }: Props) {
   const { id } = await params;
 
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
-
-  let work;
-  try {
-    work = await PostService.get(id);
-  } catch {
-    notFound();
-  }
+  const work = await getProposalOrNotFound(id);
 
   const [metadata, authorPosts] = await Promise.all([
-    MetadataService.get(work.unifiedDocumentId?.toString() || ''),
+    getProposalMetadata(work.unifiedDocumentId?.toString() || ''),
     CommentService.fetchAuthorPosts({
       documentId: work.id,
       contentType: work.contentType,

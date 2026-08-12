@@ -82,8 +82,15 @@ export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKit
     heading: false,
     horizontalRule: false,
     blockquote: false,
-    history: false,
+    undoRedo: false,
     codeBlock: false,
+    // Bundled into StarterKit as of v3; this kit registers its own versions
+    // of each below, so disable the built-ins to avoid duplicate names.
+    link: false,
+    underline: false,
+    trailingNode: false,
+    // Not part of the v2 setup; left off to keep list behavior unchanged.
+    listKeymap: false,
   }),
   Details.configure({
     persist: true,
