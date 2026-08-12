@@ -19,7 +19,6 @@ import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
-import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
@@ -51,16 +50,14 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                               <CurrencyPreferenceProvider>
                                 <NotificationProvider>
                                   <OrganizationProvider>
-                                    <PreferencesProvider>
-                                      <UserListsProvider>
-                                        <LeaderboardProvider>
-                                          <DismissedFeaturesProvider>
-                                            <FollowProvider>{children}</FollowProvider>
-                                            <FeatureNotifications />
-                                          </DismissedFeaturesProvider>
-                                        </LeaderboardProvider>
-                                      </UserListsProvider>
-                                    </PreferencesProvider>
+                                    <UserListsProvider>
+                                      <LeaderboardProvider>
+                                        <DismissedFeaturesProvider>
+                                          <FollowProvider>{children}</FollowProvider>
+                                          <FeatureNotifications />
+                                        </DismissedFeaturesProvider>
+                                      </LeaderboardProvider>
+                                    </UserListsProvider>
                                   </OrganizationProvider>
                                 </NotificationProvider>
                               </CurrencyPreferenceProvider>

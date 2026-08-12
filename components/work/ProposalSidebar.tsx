@@ -1,5 +1,6 @@
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
+import { getShareToken } from '@/lib/shareToken/server';
 import { FundraiseSection } from './components/FundraiseSection';
 import { FundingOpportunitySection } from './components/FundingOpportunitySection';
 import { TopicsSection } from './components/TopicsSection';
@@ -15,7 +16,9 @@ interface ProposalSidebarProps {
   metadata: WorkMetadata;
 }
 
-export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
+export const ProposalSidebar = async ({ work, metadata }: ProposalSidebarProps) => {
+  const shareToken = await getShareToken();
+
   return (
     <div className="space-y-12">
       {work.aiPeerReview && <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />}
@@ -37,6 +40,7 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
             contentType: work.contentType,
             slug: work.slug,
             tab: 'reviews',
+            shareToken,
           })}
         />
       )}

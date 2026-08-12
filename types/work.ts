@@ -79,18 +79,6 @@ export interface FormatType {
   internalUrl?: string;
 }
 
-export interface Enrichment {
-  source: string;
-  citationCount?: number | null;
-  influentialCitationCount?: number | null;
-  altmetricScore?: number | null;
-  impactScore?: number | null;
-  journal?: string | null;
-  tldr?: string | null;
-  twitterMentions?: number | null;
-  newsMentions?: number | null;
-}
-
 export interface Work {
   id: number;
   type?: WorkType;
@@ -131,7 +119,6 @@ export interface Work {
    * Currently we take **only the first** `grants[0]` row’s review.
    */
   aiPeerReview?: ProposalReview | null;
-  enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
   grantSummary?: WorkGrantSummary;
   moderationStatus?: ModerationStatus;
@@ -391,7 +378,6 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     tips: tips,
     peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
     image: raw.image_url || raw.primary_image,
-    enrichments: raw.enrichments || [],
     moderationStatus: raw.status as ModerationStatus | undefined,
   };
 });
