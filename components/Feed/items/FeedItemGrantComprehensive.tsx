@@ -446,7 +446,7 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
 };
 
 /**
- * Comprehensive grant card used on the funder dashboard (`/fund/dashboard`).
+ * Comprehensive grant card used on the Funds given tab.
  * Surfaces the deployment progress bar, community match, funder contribution
  * and per-proposal key insights. The simpler public-facing variant lives in
  * `FeedItemGrantWithApplicants`.

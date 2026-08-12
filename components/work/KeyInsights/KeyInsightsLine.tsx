@@ -13,7 +13,7 @@ interface KeyInsightsLineProps {
 
 /**
  * Compact gradient callout — used inline below the author meta row when the
- * funder dashboard isn't wide enough for the side panel. The whole container
+ * Funds given layout has no room for the side panel. The whole container
  * is the click target (opens the modal). Items use grid auto-fit so they
  * sit side-by-side when there's room and stack vertically when narrow.
  */

@@ -11,7 +11,7 @@ interface KeyInsightsPanelProps {
   onOpenModal: (e: React.MouseEvent) => void;
 }
 
-/** Vertical panel — used in the funder dashboard's wide side column. */
+/** Vertical panel used in the wide Funds given layout. */
 export const KeyInsightsPanel: FC<KeyInsightsPanelProps> = ({ keyInsight, onOpenModal }) => {
   const items = useMemo(() => topInsightItems(keyInsight), [keyInsight]);
 
