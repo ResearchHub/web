@@ -91,6 +91,11 @@ export function NotesMenu() {
     setIsProposalModalOpen(true);
   };
 
+  const handleNewChangelog = () => {
+    setIsOpen(false);
+    router.push('/notebook?newChangelog=true');
+  };
+
   const handleInvitePeople = () => {
     setIsOpen(false);
     setIsSettingsModalOpen(true);
@@ -100,6 +105,7 @@ export function NotesMenu() {
     <NotebookPrimaryNavigation
       onNewFundingOpportunity={handleNewFundingOpportunity}
       onNewProposal={handleNewProposal}
+      onNewChangelog={handleNewChangelog}
       onInvitePeople={handleInvitePeople}
     />
   );

@@ -4,8 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Badge } from '@/components/ui/Badge';
-import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
-import { SOURCES } from '@/components/Feed/filters/constants';
+import { getSourceLogo, getPreprintDisplayName, isPreprintServer } from '@/utils/preprintUtil';
 import type { Journal } from '@/types/journal';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
@@ -18,10 +17,10 @@ export const JournalSection = ({ journal }: JournalSectionProps) => {
 
   const logo = getSourceLogo(journal.slug);
   const isRHJournal = logo === 'rhJournal2';
-  const isPreprintServer = SOURCES.some((s) => s.value === journal.slug.toLowerCase());
+  const isPreprint = isPreprintServer(journal.slug);
   const displayName = logo ? getPreprintDisplayName(journal.slug) : journal.name;
   const href = isRHJournal ? '/journal' : `/topic/${journal.slug}`;
-  const sectionTitle = isPreprintServer ? 'Preprint Server' : 'Journal';
+  const sectionTitle = isPreprint ? 'Preprint Server' : 'Journal';
 
   return (
     <section>
