@@ -319,17 +319,32 @@ export function AgentChatPanel({
   const latestAgentVersionRef = useRef<number | null>(null);
   const [agentVersionSignal, setAgentVersionSignal] = useState<number | null>(null);
 
-  const recordAgentVersion = useCallback((versionId: number) => {
-    const prev = latestAgentVersionRef.current;
-    if (prev != null && versionId <= prev) return;
-    latestAgentVersionRef.current = versionId;
-    setAgentVersionSignal(versionId);
+  // Newest version known to exist server-side, whoever wrote it. A pinned
+  // reload compares against this to tell whether the version it applied is
+  // still the server's newest — if not, the applied choice must be persisted
+  // or it would vanish on the next load (see reloadNoteContent).
+  const serverHeadRef = useRef<number | null>(null);
+
+  const recordServerHead = useCallback((versionId: number) => {
+    serverHeadRef.current = Math.max(serverHeadRef.current ?? 0, versionId);
   }, []);
+
+  const recordAgentVersion = useCallback(
+    (versionId: number) => {
+      recordServerHead(versionId);
+      const prev = latestAgentVersionRef.current;
+      if (prev != null && versionId <= prev) return;
+      latestAgentVersionRef.current = versionId;
+      setAgentVersionSignal(versionId);
+    },
+    [recordServerHead]
+  );
 
   // A new note's version stream starts clean — signals recorded for the
   // previous note must never compare against the new note's held version.
   useEffect(() => {
     latestAgentVersionRef.current = null;
+    serverHeadRef.current = null;
     setAgentVersionSignal(null);
   }, [noteId]);
 
@@ -393,6 +408,7 @@ export function AgentChatPanel({
           setNeedsNoteReload(true);
           return;
         }
+        if (nextVersionId != null) recordServerHead(nextVersionId);
         if (editor && !editor.isDestroyed) {
           let content: string | object = contentSrc ?? '';
           if (contentJson) {
@@ -408,6 +424,14 @@ export function AgentChatPanel({
         }
         heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
         editorDirtyRef.current = false;
+        // A pinned version older than the server head means the user's own
+        // autosaves buried the assistant's version while the banner waited.
+        // The editor now shows the chosen content, but applying it emitted no
+        // update — without a re-save the choice would silently vanish on the
+        // next load, so ask the host to persist once the hold lifts.
+        if (pinnedVersionId != null && (serverHeadRef.current ?? 0) > pinnedVersionId) {
+          onKeepLocalVersion?.();
+        }
         // An even newer agent version can land while this fetch runs — keep
         // the banner up for it instead of claiming the editor is in sync.
         const latestAgent = latestAgentVersionRef.current;
@@ -423,7 +447,7 @@ export function AgentChatPanel({
         setIsReloadingNote(false);
       }
     },
-    [noteId, editor]
+    [noteId, editor, recordServerHead, onKeepLocalVersion]
   );
 
   // After a socket drop, events were missed — the head version says whether
@@ -434,6 +458,7 @@ export function AgentChatPanel({
     try {
       const note = await NoteService.getNote(noteId);
       if (targetRef.current.noteId !== noteId) return;
+      if (note.versionId) recordServerHead(note.versionId);
       if (note.versionCreatedVia === 'agent' && note.versionId) {
         recordAgentVersion(note.versionId);
       }
@@ -441,7 +466,7 @@ export function AgentChatPanel({
       // Advisory probe — the chat activity fallback still covers the
       // selected chat, and any later event resyncs.
     }
-  }, [noteId, recordAgentVersion]);
+  }, [noteId, recordServerHead, recordAgentVersion]);
 
   // The per-note version channel: the backend pushes ids whenever any writer
   // commits a version, so agent edits surface no matter which chat (or tab)
@@ -454,6 +479,8 @@ export function AgentChatPanel({
     onEvent: (event) => {
       if (event.type !== NOTE_VERSION_CREATED) return;
       if (String(event.note_id) !== String(noteId)) return;
+      // Every event advances the known server head, whoever wrote it.
+      recordServerHead(event.version_id);
       if (event.created_via !== 'agent') return;
       recordAgentVersion(event.version_id);
     },
