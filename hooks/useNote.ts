@@ -287,66 +287,80 @@ interface UpdateNoteOptions {
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
-type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn];
+type SaveNoteNowFn = (editor: Editor) => Promise<boolean>;
+type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn, SaveNoteNowFn];
 
 export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
 
-  const debouncedUpdate = useRef<
-    DebouncedFunc<
-      (editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => Promise<void>
-    >
-  >(
-    debounce(async (editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
-      if (!editor || !noteId) {
-        console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
-        return;
-      }
+  const performSave = async (
+    editor: Editor,
+    noteId: ID,
+    registeredReportProposalId?: number | null
+  ): Promise<boolean> => {
+    if (!editor || !noteId) {
+      console.error('Editor or noteId is undefined in performSave', { editor, noteId });
+      return false;
+    }
 
-      const json = mergeRegisteredReportPrefill(editor.getJSON(), registeredReportProposalId);
-      const html = editor.getHTML();
-      const newTitle = getDocumentTitleFromEditor(editor) || '';
+    const json = mergeRegisteredReportPrefill(editor.getJSON(), registeredReportProposalId);
+    const html = editor.getHTML();
+    const newTitle = getDocumentTitleFromEditor(editor) || '';
 
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const promises: Promise<any>[] = [];
+    try {
+      const promises: Promise<any>[] = [];
 
-        // Only update title if it changed
-        if (newTitle !== titleRef.current) {
-          titleRef.current = newTitle;
-          promises.push(
-            NoteService.updateNoteTitle({
-              noteId,
-              title: newTitle,
-            }).then(() => {
-              options.onTitleUpdate?.(newTitle);
-            })
-          );
-        }
-
-        // Always update content
+      // Only update title if it changed
+      if (newTitle !== titleRef.current) {
+        titleRef.current = newTitle;
         promises.push(
-          NoteService.updateNoteContent({
-            note: noteId,
-            full_src: html || '',
-            plain_text: editor.getText() || '',
-            full_json: JSON.stringify(json),
+          NoteService.updateNoteTitle({
+            noteId,
+            title: newTitle,
+          }).then(() => {
+            options.onTitleUpdate?.(newTitle);
           })
         );
-
-        await Promise.all(promises);
-      } catch (err) {
-        const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
-        const error = new Error(errorMsg);
-        setError(error);
-        console.error('Error updating note:', error);
-      } finally {
-        setIsLoading(false);
       }
+
+      // Always update content
+      promises.push(
+        NoteService.updateNoteContent({
+          note: noteId,
+          full_src: html || '',
+          plain_text: editor.getText() || '',
+          full_json: JSON.stringify(json),
+        })
+      );
+
+      await Promise.all(promises);
+      return true;
+    } catch (err) {
+      const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
+      const error = new Error(errorMsg);
+      setError(error);
+      console.error('Error updating note:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // The debounce wrapper is created once — route through a ref so it always
+  // runs the current render's save (fresh options and callbacks).
+  const performSaveRef = useRef(performSave);
+  performSaveRef.current = performSave;
+
+  const debouncedUpdate = useRef<
+    DebouncedFunc<(editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => void>
+  >(
+    debounce((editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
+      void performSaveRef.current(editor, noteId, registeredReportProposalId);
     }, options.debounceMs ?? 2000)
   );
 
@@ -361,13 +375,27 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     [noteId, options.registeredReportProposalId]
   );
 
+  /**
+   * Persist immediately and report success — for moments where the save is
+   * itself the user's action (keeping their version over an assistant's) and
+   * a debounced fire-and-forget write would let the UI acknowledge a choice
+   * the server never heard about. Supersedes any scheduled autosave.
+   */
+  const saveNoteNow = useCallback(
+    (editor: Editor): Promise<boolean> => {
+      debouncedUpdate.current.cancel();
+      return performSaveRef.current(editor, noteId, options.registeredReportProposalId);
+    },
+    [noteId, options.registeredReportProposalId]
+  );
+
   useEffect(() => {
     return () => {
       debouncedUpdate.current.cancel();
     };
   }, []);
 
-  return [{ isLoading, error }, updateNote];
+  return [{ isLoading, error }, updateNote, saveNoteNow];
 };
 
 interface UseMakeNotePrivateState {
