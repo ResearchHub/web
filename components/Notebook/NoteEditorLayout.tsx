@@ -201,7 +201,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
-  const [, updateNote] = useUpdateNote(note?.id, {
+  const [, updateNote, saveNoteNow] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
     registeredReportProposalId: note?.proposalId,
   });
@@ -211,10 +211,13 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   // version, or a reload applied an assistant version that newer saves had
   // buried. Applying content programmatically emits no editor update, so
   // without this save the editor and the server would silently diverge and
-  // the choice would vanish on the next load.
-  const handlePersistEditorState = useCallback(() => {
-    if (editor && !editor.isDestroyed) updateNote(editor);
-  }, [editor, updateNote]);
+  // the choice would vanish on the next load. The save runs immediately (a
+  // debounced one could be cancelled by navigation before it fires) and the
+  // result tells the panel whether the choice actually became durable.
+  const handlePersistEditorState = useCallback(async () => {
+    if (!editor || editor.isDestroyed) return false;
+    return saveNoteNow(editor);
+  }, [editor, saveNoteNow]);
 
   const isChangelog = isChangelogNote(note);
   const isChangelogAccessDenied = isChangelog && !user?.isModerator;

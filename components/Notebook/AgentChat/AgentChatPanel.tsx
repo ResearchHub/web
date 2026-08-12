@@ -128,8 +128,10 @@ interface AgentChatPanelProps {
    * an assistant version that newer saves had buried. Applying content
    * programmatically emits no editor update, so without this save the choice
    * would only live in this editor instance and vanish on the next load.
+   * Persists immediately and resolves with whether the save reached the
+   * server — the panel acknowledges the choice only on success.
    */
-  readonly onPersistEditorState?: () => void;
+  readonly onPersistEditorState?: () => Promise<boolean>;
   /**
    * Docked (desktop) mode: the panel takes `width` and the host reserves the
    * same gutter, so it sits beside the document instead of over it. Undocked,
@@ -373,6 +375,10 @@ export function AgentChatPanel({
   const editorDirtyRef = useRef(false);
   const [needsNoteReload, setNeedsNoteReload] = useState(false);
   const [noteReloadFailed, setNoteReloadFailed] = useState(false);
+  // A choice-persisting save failed — the editor shows what the user picked,
+  // but the server's newest version is still someone else's.
+  const [persistFailed, setPersistFailed] = useState(false);
+  const [isPersisting, setIsPersisting] = useState(false);
   const [isReloadingNote, setIsReloadingNote] = useState(false);
   /**
    * Owner token of the running reload/review fetch. Callers take the lock by
@@ -448,6 +454,7 @@ export function AgentChatPanel({
     editorDirtyRef.current = false;
     setNeedsNoteReload(false);
     setNoteReloadFailed(false);
+    setPersistFailed(false);
   }, [currentNote?.id, currentNote?.versionId]);
 
   useEffect(() => {
@@ -471,6 +478,7 @@ export function AgentChatPanel({
       reloadLockRef.current = lock;
       setIsReloadingNote(true);
       setNoteReloadFailed(false);
+      setPersistFailed(false);
       try {
         // The banner promises the assistant's version, so a manual reload
         // fetches that exact version when it's known — fetching latest could
@@ -502,9 +510,12 @@ export function AgentChatPanel({
         // buried the assistant's version while the banner waited. The editor
         // now shows the chosen content, but applying it emitted no update —
         // without a re-save the choice would silently vanish on the next
-        // load, so have the host persist it now.
+        // load, so have the host persist it now and surface a failure ("Keep
+        // mine" re-persists the current document, so it doubles as retry).
         if (pinnedVersionId != null && (serverHeadRef.current ?? 0) > pinnedVersionId) {
-          onPersistEditorState?.();
+          const persisted = (await onPersistEditorState?.()) ?? true;
+          if (targetRef.current.noteId !== noteId) return;
+          if (!persisted) setPersistFailed(true);
         }
         // An even newer agent version can land while this fetch runs — keep
         // the banner up for it instead of claiming the editor is in sync.
@@ -542,6 +553,7 @@ export function AgentChatPanel({
     reloadLockRef.current = lock;
     setIsReloadingNote(true);
     setNoteReloadFailed(false);
+    setPersistFailed(false);
     try {
       const version = await NoteService.getNoteVersion(pinnedVersionId);
       // Same stale-note guard as reloadNoteContent.
@@ -557,17 +569,23 @@ export function AgentChatPanel({
       applyEditorContent(editor, parseVersionContent(version.json, version.src));
       heldVersionRef.current = pinnedVersionId;
       editorDirtyRef.current = false;
-      // Same buried-pin rule as reloadNoteContent: newer saves outrank the
-      // version just applied, so persist the choice or it vanishes on the
-      // next load.
-      if ((serverHeadRef.current ?? 0) > pinnedVersionId) {
-        onPersistEditorState?.();
-      }
       // Diff against the settled editor document (extensions may have
       // re-stamped node ids while applying), so positions match what the
-      // overlay decorates.
+      // overlay decorates. Installed before the persist below so keystrokes
+      // during that request are ordinary edits on a reviewed document, not
+      // content the diff would mistake for the assistant's.
       const { spans, changeCount } = computeNoteDiff(editor.schema, baseNode, editor.state.doc);
       installNoteDiffOverlay(editor, spans);
+      // Same buried-pin rule as reloadNoteContent: newer saves outrank the
+      // version just applied, so persist the choice or it vanishes on the
+      // next load. A failure surfaces once the review closes ("Keep mine"
+      // re-persists the current document, so it doubles as retry).
+      if ((serverHeadRef.current ?? 0) > pinnedVersionId) {
+        const persisted = (await onPersistEditorState?.()) ?? true;
+        if (targetRef.current.noteId !== noteId) return;
+        if (editor.isDestroyed) return;
+        if (!persisted) setPersistFailed(true);
+      }
       setReview({ versionId: pinnedVersionId, baseDoc, changeCount });
       const latestAgent = latestAgentVersionRef.current;
       setNeedsNoteReload(latestAgent != null && latestAgent > pinnedVersionId);
@@ -590,20 +608,40 @@ export function AgentChatPanel({
   }, [editor]);
 
   /** Put the pre-review document back and persist it, keep-mine semantics. */
-  const restoreMyVersion = useCallback(() => {
+  const restoreMyVersion = useCallback(async () => {
     if (!review) return;
+    const { versionId, baseDoc } = review;
     if (editor && !editor.isDestroyed) {
-      applyEditorContent(editor, review.baseDoc);
+      applyEditorContent(editor, baseDoc);
     }
     uninstallNoteDiffOverlay(editor);
-    editorDirtyRef.current = false;
-    // Applying content emits no update, so without this save the restored
-    // document would vanish on the next load (the assistant's version is the
-    // server's newest).
-    onPersistEditorState?.();
-    const held = heldVersionRef.current;
-    heldVersionRef.current = held == null ? review.versionId : Math.max(held, review.versionId);
+    // The review is visually over either way; what remains is making the
+    // restored document durable. Unsaved until then — a mid-save agent event
+    // must ask via the banner, not silently reload over the restored content.
     setReview(null);
+    editorDirtyRef.current = true;
+    setIsPersisting(true);
+    const noteAtCall = targetRef.current.noteId;
+    try {
+      // Applying content emits no update, so without this save the restored
+      // document would vanish on the next load (the assistant's version is
+      // the server's newest). Acknowledge the choice only once it's durable.
+      const persisted = (await onPersistEditorState?.()) ?? true;
+      if (targetRef.current.noteId !== noteAtCall) return;
+      if (persisted) {
+        editorDirtyRef.current = false;
+        const held = heldVersionRef.current;
+        heldVersionRef.current = held == null ? versionId : Math.max(held, versionId);
+        setPersistFailed(false);
+      } else {
+        // The editor shows the user's choice, but the server's newest is
+        // still the assistant's version — say so instead of claiming done.
+        setNeedsNoteReload(true);
+        setPersistFailed(true);
+      }
+    } finally {
+      setIsPersisting(false);
+    }
   }, [review, editor, onPersistEditorState]);
 
   // The accept/restore controls render on the note page, next to the content
@@ -683,20 +721,32 @@ export function AgentChatPanel({
     }
   }, [agentVersionSignal, currentNote, noteId, reloadNoteContent]);
 
-  const keepLocalVersion = () => {
-    // Explicit user-wins: acknowledge the assistant's version so this banner
-    // doesn't re-arm for it, and have the host persist the local document —
-    // the assistant's version may be the server's newest, so without a
-    // re-save the choice would vanish on the next load. The assistant's
+  const keepLocalVersion = async () => {
+    // Explicit user-wins: have the host persist the local document — the
+    // assistant's version may be the server's newest, so without a re-save
+    // the choice would vanish on the next load — and acknowledge the
+    // assistant's version only once that save succeeds. The assistant's
     // version remains in the note's history.
-    onPersistEditorState?.();
-    const held = heldVersionRef.current;
-    const latestAgent = latestAgentVersionRef.current;
-    if (latestAgent != null) {
-      heldVersionRef.current = held == null ? latestAgent : Math.max(held, latestAgent);
-    }
-    setNeedsNoteReload(false);
+    setIsPersisting(true);
     setNoteReloadFailed(false);
+    setPersistFailed(false);
+    const noteAtCall = targetRef.current.noteId;
+    try {
+      const persisted = (await onPersistEditorState?.()) ?? true;
+      if (targetRef.current.noteId !== noteAtCall) return;
+      if (!persisted) {
+        setPersistFailed(true);
+        return;
+      }
+      const held = heldVersionRef.current;
+      const latestAgent = latestAgentVersionRef.current;
+      if (latestAgent != null) {
+        heldVersionRef.current = held == null ? latestAgent : Math.max(held, latestAgent);
+      }
+      setNeedsNoteReload(false);
+    } finally {
+      setIsPersisting(false);
+    }
   };
 
   // ---- chat / sources tabs ----
@@ -923,12 +973,14 @@ export function AgentChatPanel({
         {activeTab === 'sources' ? <ChatSources sources={sources} /> : renderBody()}
       </div>
 
-      {(needsNoteReload || noteReloadFailed) && review == null && (
+      {(needsNoteReload || noteReloadFailed || persistFailed) && review == null && (
         <div className="mx-3 mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
           <p className="text-xs text-amber-800">
-            {noteReloadFailed
-              ? 'Couldn’t refresh the note. Try again.'
-              : 'The assistant updated this note. Review its changes, reload, or keep yours.'}
+            {persistFailed
+              ? 'Couldn’t save the note. Use “Keep mine” to try again.'
+              : noteReloadFailed
+                ? 'Couldn’t refresh the note. Try again.'
+                : 'The assistant updated this note. Review its changes, reload, or keep yours.'}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             {needsNoteReload && (
@@ -936,7 +988,7 @@ export function AgentChatPanel({
                 variant="outlined"
                 size="sm"
                 onClick={startDiffReview}
-                disabled={isReloadingNote}
+                disabled={isReloadingNote || isPersisting}
               >
                 {isReloadingNote ? <Loader size="sm" /> : 'Review changes'}
               </Button>
@@ -945,12 +997,17 @@ export function AgentChatPanel({
               variant={needsNoteReload ? 'ghost' : 'outlined'}
               size="sm"
               onClick={() => reloadNoteContent()}
-              disabled={isReloadingNote}
+              disabled={isReloadingNote || isPersisting}
             >
               {isReloadingNote && !needsNoteReload ? <Loader size="sm" /> : 'Reload'}
             </Button>
-            <Button variant="ghost" size="sm" onClick={keepLocalVersion} disabled={isReloadingNote}>
-              Keep mine
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={keepLocalVersion}
+              disabled={isReloadingNote || isPersisting}
+            >
+              {isPersisting ? <Loader size="sm" /> : 'Keep mine'}
             </Button>
           </div>
         </div>
