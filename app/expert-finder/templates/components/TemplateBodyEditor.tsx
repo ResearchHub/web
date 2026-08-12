@@ -194,6 +194,13 @@ export function TemplateVariableEditor({
         listItem: valueAsHtml ? {} : false,
         orderedList: false,
         strike: valueAsHtml ? {} : false,
+        // Bundled into StarterKit as of v3. Link/Underline are registered
+        // conditionally below; trailingNode and listKeymap were not part of
+        // this editor's v2 behavior.
+        link: false,
+        underline: false,
+        trailingNode: false,
+        listKeymap: false,
       }),
       ...(valueAsHtml
         ? [
@@ -240,6 +247,9 @@ export function TemplateVariableEditor({
       }
     },
     immediatelyRender: false,
+    // v3 no longer rerenders on every transaction. The toolbar reads
+    // editor.isActive(...) during render, so it needs the v2 behavior.
+    shouldRerenderOnTransaction: true,
   });
 
   useEffect(() => {
@@ -254,7 +264,7 @@ export function TemplateVariableEditor({
         : editor.getText({ blockSeparator: '\n' });
 
     if (currentValue !== value) {
-      editor.commands.setContent(normalizeEditorValue(value, valueAsHtml), false);
+      editor.commands.setContent(normalizeEditorValue(value, valueAsHtml), { emitUpdate: false });
     }
   }, [editor, value, valueAsHtml]);
 

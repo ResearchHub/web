@@ -58,8 +58,8 @@ export function LandingPageHero() {
 
                 {/* Hero Description */}
                 <p className="text-lg lg:!text-xl text-gray-600 leading-relaxed mb-8">
-                  We're building a new model for scientific research where publishing and peer
-                  review lead to funding.
+                  We're building a new model for scientific research where funding and peer review
+                  lead to publication.
                 </p>
 
                 {/* Primary CTA + Explore CTA */}

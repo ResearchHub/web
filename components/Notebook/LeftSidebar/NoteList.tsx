@@ -1,9 +1,10 @@
 'use client';
 
 import { NoteListItem } from '@/components/Notebook/LeftSidebar/NoteListItem';
-import { Note } from '@/types/note';
+import { isChangelogNote, type Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 import { useTransition } from 'react';
+import { useUser } from '@/contexts/UserContext';
 
 interface NoteListProps {
   notes: Note[];
@@ -12,10 +13,14 @@ interface NoteListProps {
 
 export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) => {
   const [isPending, startTransition] = useTransition();
+  const { user } = useUser();
+  const isModerator = !!user?.isModerator;
 
   const filteredAndSortedNotes = notes
     .filter(
-      (note) => note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE'
+      (note) =>
+        (note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE') &&
+        (isModerator || !isChangelogNote(note))
     )
     .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 

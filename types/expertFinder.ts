@@ -461,9 +461,9 @@ function transformGeneratedEmailListNavigation(raw: any): GeneratedEmailListNavi
   return { total, position, previousId, nextId };
 }
 
-export type OutreachChannel = 'email' | 'linkedin' | 'x' | 'other';
+export type OutreachChannel = 'email' | 'linkedin' | 'x';
 
-export const OUTREACH_CHANNEL_VALUES = ['email', 'linkedin', 'x', 'other'] as const;
+export const OUTREACH_CHANNEL_VALUES = ['email', 'linkedin', 'x'] as const;
 
 export function parseOutreachChannel(raw: unknown): OutreachChannel | '' {
   const value = String(raw ?? '')
@@ -472,6 +472,13 @@ export function parseOutreachChannel(raw: unknown): OutreachChannel | '' {
   return (OUTREACH_CHANNEL_VALUES as readonly string[]).includes(value)
     ? (value as OutreachChannel)
     : '';
+}
+
+export function parseOutreachChannels(raw: unknown): OutreachChannel[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => parseOutreachChannel(item))
+    .filter((channel): channel is OutreachChannel => Boolean(channel));
 }
 
 export interface GeneratedEmail {
@@ -487,7 +494,7 @@ export interface GeneratedEmail {
   template: string | null;
   status: string;
   notes: string;
-  channel: OutreachChannel | '';
+  channels: OutreachChannel[];
   /** Expert profile links for outreach CTAs (LinkedIn, X, etc.). */
   sources: ExpertSourceLink[] | null;
   /** ProposalDraft id this email links to, when generated as a proposal invitation. */
@@ -531,7 +538,7 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
     template: raw.template ?? '',
     status: raw.status ?? 'draft',
     notes: raw.notes ?? '',
-    channel: parseOutreachChannel(raw.channel),
+    channels: parseOutreachChannels(raw.channels),
     sources: sources?.length ? sources : null,
     bouncedAt: raw.bounced_at ?? null,
     openedAt: raw.opened_at ?? null,

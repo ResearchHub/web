@@ -8,7 +8,7 @@ import {
 } from '@headlessui/react';
 import { Check, ChevronDown, X, Loader2 } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 

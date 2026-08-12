@@ -26,7 +26,7 @@ export const getSourceLogo = (source: string): string | null => {
 
 // Check if a slug is a recognized preprint server
 export const isPreprintServer = (slug: string): boolean => {
-  return getSourceLogo(slug) !== null;
+  return ['arxiv', 'biorxiv', 'chemrxiv', 'medrxiv'].includes(slug.toLowerCase());
 };
 
 // Alias for getSourceLogo (for consistency with other naming conventions)

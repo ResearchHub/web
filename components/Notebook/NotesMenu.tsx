@@ -91,9 +91,9 @@ export function NotesMenu() {
     setIsProposalModalOpen(true);
   };
 
-  const handleNewPreprint = () => {
+  const handleNewChangelog = () => {
     setIsOpen(false);
-    router.push('/notebook?newResearch=true');
+    router.push('/notebook?newChangelog=true');
   };
 
   const handleInvitePeople = () => {
@@ -105,7 +105,7 @@ export function NotesMenu() {
     <NotebookPrimaryNavigation
       onNewFundingOpportunity={handleNewFundingOpportunity}
       onNewProposal={handleNewProposal}
-      onNewPreprint={handleNewPreprint}
+      onNewChangelog={handleNewChangelog}
       onInvitePeople={handleInvitePeople}
     />
   );

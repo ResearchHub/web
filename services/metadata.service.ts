@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { withShareToken } from '@/lib/shareToken/url';
 import { Topic, transformTopic } from '@/types/topic';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
@@ -53,9 +54,15 @@ function transformWorkMetadata(response: any): WorkMetadata {
 export class MetadataService {
   private static readonly BASE_PATH = '/api/researchhub_unified_document';
 
-  static async get(unifiedDocumentId: string): Promise<WorkMetadata> {
+  static async get(
+    unifiedDocumentId: string,
+    options?: { shareToken?: string | null }
+  ): Promise<WorkMetadata> {
     const response = await ApiClient.get<any>(
-      `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`
+      withShareToken(
+        `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`,
+        options?.shareToken
+      )
     );
     return transformWorkMetadata(response);
   }
