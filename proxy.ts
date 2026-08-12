@@ -12,8 +12,11 @@ const requireAuth = withAuth({
   },
 });
 
-// Moves `?st=` onto a header so the proposal layout can read it; layouts never
-// receive `searchParams`. Cleared when absent so the URL stays the only source.
+// Copies `?st=` onto a request header because layouts are never given
+// `searchParams` — only pages are. The proposal layout is what fetches the work
+// and calls `notFound()`, so it has to read the token from somewhere other than
+// the query string. Cleared when absent so the URL stays the only source of
+// truth and the header cannot be spoofed.
 function forwardShareToken(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   const shareToken = request.nextUrl.searchParams.get(SHARE_TOKEN_PARAM);
