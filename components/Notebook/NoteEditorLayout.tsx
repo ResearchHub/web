@@ -204,12 +204,19 @@ export function NoteEditorLayout() {
     [cancelPendingNoteUpdate, updateNote, editor]
   );
 
-  // "Keep mine" chosen: the assistant's version is the server's newest, so
-  // persist the local document once the hold lifts — otherwise the choice
-  // would only live in this editor instance and vanish on the next load.
+  // The panel asks for the editor's current document to be persisted: the
+  // user chose "Keep mine", or a reload applied an assistant version that
+  // newer saves had buried. Either way the server's newest version differs
+  // from what the editor now shows — without a re-save the choice would only
+  // live in this editor instance and vanish on the next load. While the
+  // conflict holds saves, defer to the resume path; otherwise save now.
   const handleKeepLocalVersion = useCallback(() => {
-    if (agentConflictRef.current) suppressedSaveRef.current = true;
-  }, []);
+    if (agentConflictRef.current) {
+      suppressedSaveRef.current = true;
+    } else if (editor && !editor.isDestroyed) {
+      updateNote(editor);
+    }
+  }, [editor, updateNote]);
 
   const handleEditorUpdate = useCallback(
     (editorInstance: Editor) => {
