@@ -61,13 +61,39 @@ export interface Note {
   registeredReportPrefill?: RegisteredReportPrefill | null;
 }
 
+/**
+ * Who committed a note version: the editor autosave endpoint, the notebook AI
+ * tools, or a programmatic writer (publish snapshots, imports). The backend
+ * may add sources; unknown strings should be treated like `'system'`. `null`
+ * on versions predating attribution.
+ */
+export type NoteVersionSource = 'editor' | 'agent' | 'system';
+
 export interface NoteWithContent extends Note {
   content?: string;
   contentJson?: string;
   versionId: number;
   versionDate: string;
   plainText: string;
+  versionCreatedVia: NoteVersionSource | string | null;
 }
+
+/**
+ * One `note_version_created` frame from `ws/notebook/notes/<id>/` — emitted
+ * whenever any writer commits a new content version. Ids and attribution
+ * only, never content: the consumer compares version ids and refetches.
+ */
+export interface NoteVersionEvent {
+  type: string;
+  note_id: number;
+  version_id: number;
+  parent_version_id: number | null;
+  created_by: number | null;
+  created_via: NoteVersionSource | string | null;
+  created_date: string;
+}
+
+export const NOTE_VERSION_CREATED = 'note_version_created';
 
 export interface NoteApiItem {
   id: number;
@@ -208,6 +234,7 @@ export const transformNoteWithContent = createTransformer<any, NoteWithContent>(
   versionDate: raw.latest_version?.created_date || raw.created_date,
   plainText: raw.latest_version?.plain_text || '',
   contentJson: serializeNoteJson(raw.latest_version?.json),
+  versionCreatedVia: raw.latest_version?.created_via ?? null,
 }));
 
 export interface NoteContent {
