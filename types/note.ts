@@ -75,7 +75,8 @@ export interface NoteWithContent extends Note {
   versionId: number;
   versionDate: string;
   plainText: string;
-  versionCreatedVia: NoteVersionSource | string | null;
+  /** Plain string on the wire — {@link NoteVersionSource} lists the known values. */
+  versionCreatedVia: string | null;
 }
 
 /**
@@ -89,7 +90,8 @@ export interface NoteVersionEvent {
   version_id: number;
   parent_version_id: number | null;
   created_by: number | null;
-  created_via: NoteVersionSource | string | null;
+  /** Plain string on the wire — {@link NoteVersionSource} lists the known values. */
+  created_via: string | null;
   created_date: string;
 }
 

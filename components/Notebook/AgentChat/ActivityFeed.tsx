@@ -49,7 +49,9 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
  * feed, whatever tools the backend grows next.
  */
 export function humanizeLabel(label: string): string {
-  return label.replace(/[a-z0-9]+(?:_[a-z0-9]+)+/g, (token) => token.replace(/_/g, ' '));
+  // Each underscore sandwiched between alphanumerics becomes a space; edge or
+  // doubled underscores stay, so only identifier-looking tokens are touched.
+  return label.replaceAll(/([a-z0-9])_(?=[a-z0-9])/g, '$1 ');
 }
 
 export function hostnameOf(url: string): string {

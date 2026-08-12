@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { Asterisk, Check, MessageSquarePlus, Pencil, X } from 'lucide-react';
+import type { Editor } from '@tiptap/core';
+import { Check, MessageSquarePlus, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
@@ -56,6 +57,49 @@ function maxAgentNoteVersion(chat: NotebookChat | null): number | null {
     }
   }
   return max;
+}
+
+/** Parse a version's JSON document, falling back to its HTML source. */
+function parseVersionContent(
+  contentJson: string | undefined,
+  contentSrc: string | undefined
+): string | object {
+  if (contentJson) {
+    try {
+      return JSON.parse(contentJson);
+    } catch {
+      // Malformed JSON — fall back to the HTML source.
+    }
+  }
+  return contentSrc ?? '';
+}
+
+/**
+ * Fetch the content a reload should apply: the pinned version when the banner
+ * promised a specific assistant version, otherwise the note's latest.
+ */
+async function fetchReloadContent(
+  noteId: string,
+  pinnedVersionId: number | null
+): Promise<{ content: string | object; versionId: number | null }> {
+  if (pinnedVersionId != null) {
+    const version = await NoteService.getNoteVersion(pinnedVersionId);
+    return { content: parseVersionContent(version.json, version.src), versionId: pinnedVersionId };
+  }
+  const note = await NoteService.getNote(noteId);
+  return {
+    content: parseVersionContent(note.contentJson, note.content),
+    versionId: note.versionId ?? null,
+  };
+}
+
+/**
+ * Applying a fetched version isn't a user edit — emitUpdate=false so it never
+ * triggers the notebook autosave.
+ */
+function applyEditorContent(editor: Editor | null, content: string | object): void {
+  if (!editor || editor.isDestroyed) return;
+  editor.commands.setContent(content, { emitUpdate: false });
 }
 
 interface AgentChatPanelProps {
@@ -374,20 +418,10 @@ export function AgentChatPanel({
         // return a newer local autosave that buried it, silently handing the
         // user their own content back.
         const pinnedVersionId = source === 'manual' ? latestAgentVersionRef.current : null;
-        let contentJson: string | undefined;
-        let contentSrc: string | undefined;
-        let nextVersionId: number | null;
-        if (pinnedVersionId != null) {
-          const version = await NoteService.getNoteVersion(pinnedVersionId);
-          contentJson = version.json;
-          contentSrc = version.src;
-          nextVersionId = pinnedVersionId;
-        } else {
-          const note = await NoteService.getNote(noteId);
-          contentJson = note.contentJson;
-          contentSrc = note.content;
-          nextVersionId = note.versionId ?? null;
-        }
+        const { content, versionId: nextVersionId } = await fetchReloadContent(
+          noteId,
+          pinnedVersionId
+        );
         // Navigated away mid-fetch: this content and version belong to the
         // previous note and must not touch the current note's tracking (a
         // cleared dirty flag here would let a later agent edit silently
@@ -402,19 +436,7 @@ export function AgentChatPanel({
           return;
         }
         if (nextVersionId != null) recordServerHead(nextVersionId);
-        if (editor && !editor.isDestroyed) {
-          let content: string | object = contentSrc ?? '';
-          if (contentJson) {
-            try {
-              content = JSON.parse(contentJson);
-            } catch {
-              // Malformed JSON — fall back to the HTML source.
-            }
-          }
-          // emitUpdate=false: applying the agent's version isn't a user edit
-          // and must not trigger the notebook autosave.
-          editor.commands.setContent(content, { emitUpdate: false });
-        }
+        applyEditorContent(editor, content);
         heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
         editorDirtyRef.current = false;
         // A pinned version older than the server head means newer saves
