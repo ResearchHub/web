@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ActivityFeedList } from '@/components/Activity/ActivityFeedList';
-import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
+import { useHomeActivityFeed } from '@/contexts/ActivityFeedContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
@@ -21,7 +21,7 @@ export function FundActivityPageContent() {
     restoredScrollPosition,
     lastClickedEntryId,
     restorationTab,
-  } = useActivityFeeds();
+  } = useHomeActivityFeed();
 
   useEffect(() => {
     activate();

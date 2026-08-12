@@ -10,9 +10,10 @@ export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 interface UseActivityFeedOptions {
   scope?: ActivityScope;
   grantId?: number | string;
+  enabled?: boolean;
 }
 
-export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {}) {
+export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityFeedOptions = {}) {
   const restorationTab = useMemo(() => {
     const parts = ['activity'];
     if (grantId != null) parts.push(`grant-${grantId}`);
@@ -63,12 +64,15 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
   }, [scope, grantId]);
 
   useEffect(() => {
+    if (enabled === false) {
+      return;
+    }
     if (skipNextFetchRef.current) {
       skipNextFetchRef.current = false;
       return;
     }
     fetchInitial();
-  }, [fetchInitial]);
+  }, [enabled, fetchInitial]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
