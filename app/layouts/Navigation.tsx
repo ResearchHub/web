@@ -9,7 +9,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { Star } from 'lucide-react';
-import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
+import { isNavPathActive } from '@/constants/navigation';
+import { useHomeHref } from '@/hooks/useHomeHref';
 import { cn } from '@/utils/styles';
 
 interface NavIcon {
@@ -103,6 +104,9 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
   ];
 
+  const isPathActive = (path: string, isHome?: boolean) =>
+    isNavPathActive({ path, currentPath, isHome });
+
   const getButtonStyles = (path: string, isHome?: boolean) => {
     const isActive = isPathActive(path, isHome);
 
@@ -115,30 +119,6 @@ export const Navigation: React.FC<NavigationProps> = ({
         ? 'bg-primary-50 font-semibold text-primary-600'
         : 'font-medium text-gray-700 hover:bg-gray-50'
     );
-  };
-
-  const isPathActive = (path: string, isHome?: boolean) => {
-    if (isHome) {
-      return isClassicHomeFeedPath(currentPath) || currentPath === '/';
-    }
-
-    if (path === '/fund') {
-      return (
-        currentPath === '/fund' ||
-        currentPath.startsWith('/fund/proposals') ||
-        (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
-      );
-    }
-
-    if (path === '/earn') {
-      return currentPath.startsWith('/earn') || currentPath === '/grants';
-    }
-
-    if (path === '/notebook') {
-      return currentPath.startsWith('/notebook');
-    }
-
-    return path === currentPath;
   };
 
   const NavLink: React.FC<{
@@ -229,11 +209,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     >
       <div className="space-y-2">
         {navigationItems.map((item) => (
-          <NavLink
-            key={item.label}
-            item={item}
-            onUnimplementedFeature={onUnimplementedFeature}
-          />
+          <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
         ))}
       </div>
     </nav>

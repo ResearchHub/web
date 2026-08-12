@@ -12,6 +12,7 @@ import { Icon } from '@/components/ui/icons';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { CLASSIC_FEED_PATHS, isClassicHomeFeedPath } from '@/constants/navigation';
 import { FEED_V2_TAB_PATHS, isFeedV2TabPath } from '@/hooks/useFundTabs';
 
 export interface PageInfo {
@@ -22,10 +23,7 @@ export interface PageInfo {
 export const ROOT_NAVIGATION_PATHS = new Set([
   ...FEED_V2_TAB_PATHS,
   '/',
-  '/popular',
-  '/for-you',
-  '/following',
-  '/latest',
+  ...CLASSIC_FEED_PATHS,
   '/earn',
   '/journal',
   '/notebook',
@@ -56,7 +54,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => ['/', '/popular', '/for-you', '/following', '/latest'].includes(p),
+    match: (p) => p === '/' || isClassicHomeFeedPath(p),
     getInfo: () => ({
       title: 'Home',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,

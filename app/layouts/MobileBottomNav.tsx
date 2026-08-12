@@ -22,7 +22,8 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
+import { isNavPathActive } from '@/constants/navigation';
+import { useHomeHref } from '@/hooks/useHomeHref';
 
 interface NavItem {
   label: string;
@@ -42,39 +43,8 @@ const moreNavItems: NavItem[] = [
   { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
 ];
 
-// Check if a path is active
-const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
-  if (isHome) {
-    return isClassicHomeFeedPath(currentPath) || currentPath === '/';
-  }
-  if (path === '/fund') {
-    return (
-      currentPath === '/fund' ||
-      currentPath.startsWith('/fund/proposals') ||
-      (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
-    );
-  }
-  if (path === '/my-funding') {
-    return (
-      currentPath === '/my-funding' ||
-      currentPath === '/fund/dashboard' ||
-      currentPath.startsWith('/fund/dashboard/')
-    );
-  }
-  if (path === '/notebook') {
-    return currentPath.startsWith('/notebook');
-  }
-  if (path === '/journal') {
-    return currentPath.startsWith('/journal');
-  }
-  if (path === '/endowment') {
-    return currentPath.startsWith('/endowment');
-  }
-  if (path === '/lists') {
-    return currentPath === '/lists' || currentPath.startsWith('/list/');
-  }
-  return path === currentPath;
-};
+const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean =>
+  isNavPathActive({ path, currentPath, isHome });
 
 export const MobileBottomNav: React.FC = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
