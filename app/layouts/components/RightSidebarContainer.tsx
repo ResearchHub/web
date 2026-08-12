@@ -44,8 +44,13 @@ export function RightSidebarContainer({
     <>
       <div
         className={cn(
-          'sticky top-0 mt-10 z-30',
-          'h-[calc(100vh-var(--top-bar-height))]',
+          'sticky z-30 mt-10',
+          // When a card sits above the gray rail, keep a gap under the top bar
+          // once sticky kicks in. Other pages keep top-0 so their sidebar
+          // position is unchanged.
+          aboveSidebar
+            ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
+            : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
           'lg:!flex !hidden right-sidebar:!flex',
           'w-80 flex-shrink-0 flex-col gap-3'
         )}
@@ -54,12 +59,16 @@ export function RightSidebarContainer({
 
         <aside
           className={cn(
-            'min-h-0 flex-1 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
-            !aboveSidebar && 'h-full'
+            'min-h-0 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
+            // With a card above it, the gray panel sizes to its content instead
+            // of filling the column — otherwise a short or empty sidebar leaves
+            // a tall empty rail hanging beneath that card. It still shrinks and
+            // scrolls when the content is taller than the space available.
+            aboveSidebar ? 'flex-initial' : 'flex-1 h-full'
           )}
         >
           <div className={cn('h-full', contentClassName)}>
-            <div className="p-4">
+            <div className="p-4 empty:hidden">
               <Suspense fallback={sidebarFallback}>
                 <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
               </Suspense>

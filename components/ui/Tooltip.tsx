@@ -2,11 +2,27 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/styles';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 
-interface TooltipProps {
+const tooltipContentVariants = cva(
+  'fixed z-[10000] px-4 py-3 text-sm rounded-md shadow-md border transition-opacity duration-150 break-words',
+  {
+    variants: {
+      theme: {
+        light: 'text-gray-800 bg-white border-gray-200 text-center',
+        dark: 'text-white bg-gray-900 border-gray-900 text-left',
+      },
+    },
+    defaultVariants: {
+      theme: 'light',
+    },
+  }
+);
+
+interface TooltipProps extends VariantProps<typeof tooltipContentVariants> {
   children: React.ReactNode;
   content: React.ReactNode;
   className?: string;
@@ -41,6 +57,7 @@ const TooltipContent = ({
   isVisible,
   position = 'bottom',
   width = 'w-38',
+  theme = 'light',
   onMouseEnter,
   onMouseLeave,
   onContentClick,
@@ -51,6 +68,7 @@ const TooltipContent = ({
   isVisible: boolean;
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string;
+  theme?: VariantProps<typeof tooltipContentVariants>['theme'];
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onContentClick?: () => void;
@@ -107,9 +125,8 @@ const TooltipContent = ({
     <div
       ref={tooltipRef}
       className={cn(
-        'fixed z-[10000] px-4 py-3 text-sm text-gray-800 bg-white rounded-md shadow-md border border-gray-200 text-center',
+        tooltipContentVariants({ theme }),
         width,
-        'transition-opacity duration-150 break-words',
         {
           'opacity-100': mounted,
           'opacity-0': !mounted,
@@ -146,6 +163,7 @@ export function Tooltip({
   hideDelay = 200,
   position = 'bottom',
   width = 'w-38',
+  theme = 'light',
   disableTouchClick = false,
   closeOnContentClick = false,
   wrapperAs = 'div',
@@ -254,6 +272,7 @@ export function Tooltip({
           isVisible={isVisible}
           position={position}
           width={width}
+          theme={theme}
           onMouseEnter={handleTooltipMouseEnter}
           onMouseLeave={handleTooltipMouseLeave}
           onContentClick={

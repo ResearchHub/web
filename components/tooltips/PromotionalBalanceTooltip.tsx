@@ -44,7 +44,7 @@ export function PromotionalBalanceTooltip({
       content={content}
       position={position}
       width="w-72"
-      className="bg-gray-900 text-white border-gray-900 text-left"
+      theme="dark"
       wrapperClassName={wrapperClassName}
     >
       {children}
