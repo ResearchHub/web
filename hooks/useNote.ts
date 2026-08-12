@@ -287,18 +287,12 @@ interface UpdateNoteOptions {
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
-type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn, () => boolean];
+type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn];
 
 export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
-  // A save is "pending" from the moment it's scheduled until its request
-  // settles, tracked in two phases: waiting out the debounce (cancelable) and
-  // request in flight (not cancelable, but callers still need to know edits
-  // are mid-save so resolving a conflict can re-persist the editor's state).
-  const scheduledSaveRef = useRef(false);
-  const saveInFlightRef = useRef(false);
 
   const debouncedUpdate = useRef<
     DebouncedFunc<
@@ -306,7 +300,6 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     >
   >(
     debounce(async (editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
-      scheduledSaveRef.current = false;
       if (!editor || !noteId) {
         console.error('Editor or noteId is undefined in debouncedUpdate', { editor, noteId });
         return;
@@ -316,7 +309,6 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
       const html = editor.getHTML();
       const newTitle = getDocumentTitleFromEditor(editor) || '';
 
-      saveInFlightRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -353,7 +345,6 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         setError(error);
         console.error('Error updating note:', error);
       } finally {
-        saveInFlightRef.current = false;
         setIsLoading(false);
       }
     }, options.debounceMs ?? 2000)
@@ -365,25 +356,10 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         console.error('Editor is undefined in updateNote');
         return;
       }
-      scheduledSaveRef.current = true;
       debouncedUpdate.current(editor, noteId, options.registeredReportProposalId);
     },
     [noteId, options.registeredReportProposalId]
   );
-
-  // Drops a save that is waiting out the debounce without saving it. The edits
-  // stay in the editor; callers use this to hold a save that would conflict
-  // with a newer server-side version. Returns whether a save was pending —
-  // scheduled or already in flight — so callers know to reconcile later. An
-  // in-flight request can't be recalled, but reporting it lets the caller
-  // re-persist the editor's state once the conflict resolves, so the final
-  // server version always matches what the user last saw.
-  const cancelPendingUpdate = useCallback(() => {
-    const wasPending = scheduledSaveRef.current || saveInFlightRef.current;
-    scheduledSaveRef.current = false;
-    debouncedUpdate.current.cancel();
-    return wasPending;
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -391,7 +367,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     };
   }, []);
 
-  return [{ isLoading, error }, updateNote, cancelPendingUpdate];
+  return [{ isLoading, error }, updateNote];
 };
 
 interface UseMakeNotePrivateState {
