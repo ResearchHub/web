@@ -379,6 +379,10 @@ export function AgentChatPanel({
   // but the server's newest version is still someone else's.
   const [persistFailed, setPersistFailed] = useState(false);
   const [isPersisting, setIsPersisting] = useState(false);
+  // Owner token of the running choice-persisting save, mirroring
+  // reloadLockRef: cleanup runs only while still owned, so a stale settle
+  // (previous note) can't re-enable the banner buttons under a newer save.
+  const persistLockRef = useRef<object | null>(null);
   const [isReloadingNote, setIsReloadingNote] = useState(false);
   /**
    * Owner token of the running reload/review fetch. Callers take the lock by
@@ -433,11 +437,14 @@ export function AgentChatPanel({
     latestAgentVersionRef.current = null;
     serverHeadRef.current = null;
     setAgentVersionSignal(null);
-    // Release the previous note's reload lock: its fetch must not block this
-    // note's first refresh (a blocked signal never re-fires), and once
-    // disowned its settle won't touch the spinner either.
+    // Release the previous note's reload and persist locks: its fetches must
+    // not block this note's first refresh (a blocked signal never re-fires)
+    // or keep its banner buttons disabled, and once disowned their settles
+    // won't touch the spinners either.
     reloadLockRef.current = null;
     setIsReloadingNote(false);
+    persistLockRef.current = null;
+    setIsPersisting(false);
   }, [noteId]);
 
   // The overlay lives on the editor instance; drop it (and the review) when
@@ -620,6 +627,8 @@ export function AgentChatPanel({
     // must ask via the banner, not silently reload over the restored content.
     setReview(null);
     editorDirtyRef.current = true;
+    const persistLock = {};
+    persistLockRef.current = persistLock;
     setIsPersisting(true);
     const noteAtCall = targetRef.current.noteId;
     try {
@@ -640,7 +649,11 @@ export function AgentChatPanel({
         setPersistFailed(true);
       }
     } finally {
-      setIsPersisting(false);
+      // Owner-only cleanup — see persistLockRef.
+      if (persistLockRef.current === persistLock) {
+        persistLockRef.current = null;
+        setIsPersisting(false);
+      }
     }
   }, [review, editor, onPersistEditorState]);
 
@@ -727,6 +740,8 @@ export function AgentChatPanel({
     // the choice would vanish on the next load — and acknowledge the
     // assistant's version only once that save succeeds. The assistant's
     // version remains in the note's history.
+    const persistLock = {};
+    persistLockRef.current = persistLock;
     setIsPersisting(true);
     setNoteReloadFailed(false);
     setPersistFailed(false);
@@ -745,7 +760,11 @@ export function AgentChatPanel({
       }
       setNeedsNoteReload(false);
     } finally {
-      setIsPersisting(false);
+      // Owner-only cleanup — see persistLockRef.
+      if (persistLockRef.current === persistLock) {
+        persistLockRef.current = null;
+        setIsPersisting(false);
+      }
     }
   };
 
