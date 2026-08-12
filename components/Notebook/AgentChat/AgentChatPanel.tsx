@@ -8,7 +8,9 @@ import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
+import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
 import { NoteService } from '@/services/note.service';
+import { NOTE_VERSION_CREATED } from '@/types/note';
 import {
   isActiveExecutionStatus,
   MAX_CHAT_TITLE_LENGTH,
@@ -115,65 +117,21 @@ export function AgentChatPanel({
   const [initialChat, setInitialChat] = useState<NotebookChat | null>(null);
   const autoSelectedRef = useRef(false);
 
-  // A turn keeps running server-side when the panel closes mid-flight; hold
-  // the hook open until it settles so a background edit_note still refreshes
-  // the editor (or arms the reload banner) instead of going dark until reopen.
-  const [keepAlive, setKeepAlive] = useState(false);
-
+  // Network activity is gated on `open`. No keep-alive is needed for turns
+  // that finish while the panel is closed or another chat is selected: the
+  // note version socket below reports agent edits from any chat, and
+  // reopening (or reselecting) refetches the transcript.
   const chatState = useNotebookChat({
     noteId,
     chatId: selectedChatId,
-    enabled: open || keepAlive,
+    enabled: open,
     initialChat,
   });
 
-  const turnLive = chatState.isBusy || chatState.isFinishing;
-  useEffect(() => {
-    setKeepAlive(turnLive);
-  }, [turnLive]);
-
-  // Switching away from a chat mid-turn must not stop monitoring it either:
-  // its edit_note completion still has to refresh the editor or arm the
-  // reload banner. One background slot suffices for the realistic case —
-  // watch the busy chat we just left, release it once its turn settles (or
-  // it becomes the selection again, where the main hook takes over).
-  const [watchedChatId, setWatchedChatId] = useState<number | null>(null);
-  const watchedChat = useNotebookChat({
-    noteId,
-    chatId: watchedChatId,
-    enabled: watchedChatId != null,
-  });
-
-  useEffect(() => {
-    if (watchedChatId == null) return;
-    if (watchedChatId === selectedChatId) {
-      setWatchedChatId(null);
-      return;
-    }
-    if (watchedChat.access === 'loading') return;
-    // Settled, gone, or unreadable — nothing left to watch for.
-    if (watchedChat.access !== 'ok' || (!watchedChat.isBusy && !watchedChat.isFinishing)) {
-      setWatchedChatId(null);
-    }
-  }, [
-    watchedChatId,
-    selectedChatId,
-    watchedChat.access,
-    watchedChat.isBusy,
-    watchedChat.isFinishing,
-  ]);
-
-  /** Every chat switch routes through here so a live turn keeps a watcher. */
-  const switchChat = useCallback(
-    (nextChatId: number | null) => {
-      if (selectedChatId != null && selectedChatId !== nextChatId && turnLive) {
-        setWatchedChatId(selectedChatId);
-      }
-      setSelectedChatId(nextChatId);
-      setInitialChat(null);
-    },
-    [selectedChatId, turnLive]
-  );
+  const switchChat = useCallback((nextChatId: number | null) => {
+    setSelectedChatId(nextChatId);
+    setInitialChat(null);
+  }, []);
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
@@ -204,10 +162,10 @@ export function AgentChatPanel({
   // ---- reset everything when the note changes ----
   useEffect(() => {
     setSelectedChatId(null);
-    setWatchedChatId(null);
     setInitialChat(null);
     setNotice(null);
     setQueuedMessage(null);
+    setCreatingChat(false);
     autoSelectedRef.current = false;
     draftsRef.current.clear();
     setDraft('');
@@ -353,6 +311,27 @@ export function AgentChatPanel({
   const [needsNoteReload, setNeedsNoteReload] = useState(false);
   const [noteReloadFailed, setNoteReloadFailed] = useState(false);
   const [isReloadingNote, setIsReloadingNote] = useState(false);
+  const reloadInFlightRef = useRef(false);
+
+  // Newest agent-authored note version heard from any source — the note
+  // version socket, the selected chat's activity, or the reconnect probe.
+  // The ref is what comparisons read; the state is what re-runs the effect.
+  const latestAgentVersionRef = useRef<number | null>(null);
+  const [agentVersionSignal, setAgentVersionSignal] = useState<number | null>(null);
+
+  const recordAgentVersion = useCallback((versionId: number) => {
+    const prev = latestAgentVersionRef.current;
+    if (prev != null && versionId <= prev) return;
+    latestAgentVersionRef.current = versionId;
+    setAgentVersionSignal(versionId);
+  }, []);
+
+  // A new note's version stream starts clean — signals recorded for the
+  // previous note must never compare against the new note's held version.
+  useEffect(() => {
+    latestAgentVersionRef.current = null;
+    setAgentVersionSignal(null);
+  }, [noteId]);
 
   useEffect(() => {
     heldVersionRef.current = currentNote?.versionId ?? null;
@@ -372,22 +351,35 @@ export function AgentChatPanel({
     };
   }, [editor]);
 
-  // Highest note version produced by a succeeded edit_note across the
-  // selected chat and the background-watched one.
-  const agentNoteVersionId = useMemo(() => {
-    const selected = maxAgentNoteVersion(chatState.chat);
-    const watched = maxAgentNoteVersion(watchedChat.chat);
-    if (selected == null) return watched;
-    if (watched == null) return selected;
-    return Math.max(selected, watched);
-  }, [chatState.chat, watchedChat.chat]);
-
   const reloadNoteContent = useCallback(
     async (source: 'auto' | 'manual' = 'manual') => {
+      // Concurrent auto refreshes would race each other's setContent, and the
+      // running one already ends by re-checking for a newer version. Manual
+      // clicks are serialized by the button's disabled state instead.
+      if (source === 'auto' && reloadInFlightRef.current) return;
+      reloadInFlightRef.current = true;
       setIsReloadingNote(true);
       setNoteReloadFailed(false);
       try {
-        const note = await NoteService.getNote(noteId);
+        // The banner promises the assistant's version, so a manual reload
+        // fetches that exact version when it's known — fetching latest could
+        // return a newer local autosave that buried it, silently handing the
+        // user their own content back.
+        const pinnedVersionId = source === 'manual' ? latestAgentVersionRef.current : null;
+        let contentJson: string | undefined;
+        let contentSrc: string | undefined;
+        let nextVersionId: number | null;
+        if (pinnedVersionId != null) {
+          const version = await NoteService.getNoteVersion(pinnedVersionId);
+          contentJson = version.json;
+          contentSrc = version.src;
+          nextVersionId = pinnedVersionId;
+        } else {
+          const note = await NoteService.getNote(noteId);
+          contentJson = note.contentJson;
+          contentSrc = note.content;
+          nextVersionId = note.versionId ?? null;
+        }
         // Navigated away mid-fetch: this content and version belong to the
         // previous note and must not touch the current note's tracking (a
         // cleared dirty flag here would let a later agent edit silently
@@ -402,10 +394,10 @@ export function AgentChatPanel({
           return;
         }
         if (editor && !editor.isDestroyed) {
-          let content: string | object = note.content ?? '';
-          if (note.contentJson) {
+          let content: string | object = contentSrc ?? '';
+          if (contentJson) {
             try {
-              content = JSON.parse(note.contentJson);
+              content = JSON.parse(contentJson);
             } catch {
               // Malformed JSON — fall back to the HTML source.
             }
@@ -414,29 +406,85 @@ export function AgentChatPanel({
           // and must not trigger the notebook autosave.
           editor.commands.setContent(content, { emitUpdate: false });
         }
-        heldVersionRef.current = note.versionId ?? heldVersionRef.current;
+        heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
         editorDirtyRef.current = false;
-        setNeedsNoteReload(false);
+        // An even newer agent version can land while this fetch runs — keep
+        // the banner up for it instead of claiming the editor is in sync.
+        const latestAgent = latestAgentVersionRef.current;
+        const held = heldVersionRef.current;
+        setNeedsNoteReload(latestAgent != null && held != null && latestAgent > held);
       } catch {
+        // Same stale-note guard as the success path: a failure from the
+        // previous note must not flash an error banner over the current one.
+        if (targetRef.current.noteId !== noteId) return;
         setNoteReloadFailed(true);
       } finally {
+        reloadInFlightRef.current = false;
         setIsReloadingNote(false);
       }
     },
     [noteId, editor]
   );
 
+  // After a socket drop, events were missed — the head version says whether
+  // the newest commit is agent-authored and newer than what the editor holds,
+  // the one catch-up case this flow owns. An editor-authored head is our own
+  // (or another tab's) save, where local-wins is the long-standing behavior.
+  const probeNoteHead = useCallback(async () => {
+    try {
+      const note = await NoteService.getNote(noteId);
+      if (targetRef.current.noteId !== noteId) return;
+      if (note.versionCreatedVia === 'agent' && note.versionId) {
+        recordAgentVersion(note.versionId);
+      }
+    } catch {
+      // Advisory probe — the chat activity fallback still covers the
+      // selected chat, and any later event resyncs.
+    }
+  }, [noteId, recordAgentVersion]);
+
+  // The per-note version channel: the backend pushes ids whenever any writer
+  // commits a version, so agent edits surface no matter which chat (or tab)
+  // produced them. Editor-authored events are this editor's own autosave
+  // echoes — or another tab's, unchanged semantics — and system writers have
+  // their own refresh flows; both are ignored here.
+  useNoteVersionSocket({
+    noteId,
+    enabled: true,
+    onEvent: (event) => {
+      if (event.type !== NOTE_VERSION_CREATED) return;
+      if (String(event.note_id) !== String(noteId)) return;
+      if (event.created_via !== 'agent') return;
+      recordAgentVersion(event.version_id);
+    },
+    onReconnect: probeNoteHead,
+  });
+
+  // Belt and braces alongside the socket: the selected chat's activity also
+  // carries note_version_id on succeeded edit_note calls (REST stays the
+  // source of truth; the socket is droppable by contract).
+  const chatAgentVersion = useMemo(() => maxAgentNoteVersion(chatState.chat), [chatState.chat]);
   useEffect(() => {
+    if (chatAgentVersion != null) recordAgentVersion(chatAgentVersion);
+  }, [chatAgentVersion, recordAgentVersion]);
+
+  // A newer agent-authored version exists than what the editor holds: refresh
+  // silently while the editor is clean, or ask via the banner when local
+  // unsaved edits would be clobbered.
+  useEffect(() => {
+    if (agentVersionSignal == null) return;
+    // The signal can outrun the note load during a note switch — held still
+    // belongs to the previous note until the current one lands.
+    if (currentNote == null || String(currentNote.id) !== String(noteId)) return;
     const held = heldVersionRef.current;
-    if (agentNoteVersionId == null || held == null) return;
-    if (agentNoteVersionId <= held) return;
+    if (held == null || agentVersionSignal <= held) return;
     if (editorDirtyRef.current) {
       // A silent reload would clobber local unsaved edits — ask instead.
       setNeedsNoteReload(true);
     } else {
       reloadNoteContent('auto');
     }
-  }, [agentNoteVersionId, reloadNoteContent]);
+  }, [agentVersionSignal, currentNote, noteId, reloadNoteContent]);
 
   // While the banner is asking, the host suspends its autosave (see
   // onEditConflictChange). Gated on `open`: a banner the user can't see must
@@ -460,9 +508,9 @@ export function AgentChatPanel({
     // version remains in the note's history.
     onKeepLocalVersion?.();
     const held = heldVersionRef.current;
-    if (agentNoteVersionId != null) {
-      heldVersionRef.current =
-        held == null ? agentNoteVersionId : Math.max(held, agentNoteVersionId);
+    const latestAgent = latestAgentVersionRef.current;
+    if (latestAgent != null) {
+      heldVersionRef.current = held == null ? latestAgent : Math.max(held, latestAgent);
     }
     setNeedsNoteReload(false);
     setNoteReloadFailed(false);

@@ -237,6 +237,29 @@ export class NoteService {
   }
 
   /**
+   * Fetches one specific content version of a note. Readable with the note's
+   * read permission, so it works even when newer autosaves exist — e.g. to
+   * load the assistant's exact version behind the conflict banner's Reload.
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async getNoteVersion(versionId: number): Promise<NoteContent> {
+    if (!versionId) {
+      throw new NoteError('Missing note version ID', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.get<any>(`${this.BASE_PATH}/note_content/${versionId}/`);
+      return transformNoteContent(response);
+    } catch (error) {
+      throw new NoteError(
+        extractApiErrorMessage(error, 'Failed to fetch note version'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
+      );
+    }
+  }
+
+  /**
    * Deletes a note by ID
    * @param noteId - The ID of the note to delete
    * @throws {NoteError} When the request fails or parameters are invalid
