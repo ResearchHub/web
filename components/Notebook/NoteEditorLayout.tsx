@@ -280,25 +280,6 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           )}
           <PublishedStatusSection />
         </div>
-        {agentReview && (
-          <div className="sticky top-[calc(var(--top-bar-height)+0.5rem)] z-20 mx-4 lg:!mx-0 mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-primary-200 bg-primary-50/95 px-3 py-2 shadow-sm backdrop-blur">
-            <p className="text-xs text-primary-800">
-              {agentReview.changeCount === 0
-                ? 'The assistant’s version matches yours — its edit may only have touched formatting.'
-                : `Reviewing the assistant’s ${
-                    agentReview.changeCount === 1 ? 'change' : `${agentReview.changeCount} changes`
-                  } — added text is highlighted, struck text was removed (click it to restore).`}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button variant="outlined" size="sm" onClick={agentReview.accept}>
-                Accept changes
-              </Button>
-              <Button variant="ghost" size="sm" onClick={agentReview.restoreMine}>
-                Restore my version
-              </Button>
-            </div>
-          </div>
-        )}
         <BlockEditor
           content={note.content}
           contentJson={note.contentJson}
@@ -361,6 +342,52 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
 
         {isDesktop && <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />}
       </div>
+
+      {/* Floating over the document, clear of the assistant panel when it's open. */}
+      {agentReview && (!showTabs || activeTab === 'document') && (
+        <div
+          className={cn(
+            'pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4',
+            // Clear of the assistant panel while it's open, and of the button
+            // that reopens it — which shares this corner — while it's closed.
+            isAgentChatOpen ? 'bottom-6 sm:!right-[400px]' : 'bottom-24 lg:!bottom-6'
+          )}
+        >
+          <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full border border-gray-200 bg-white/95 py-2 pl-4 pr-2 shadow-lg backdrop-blur">
+            <p className="text-xs text-gray-700">
+              {agentReview.changeCount === 0 ? (
+                'No text changes — the assistant may have only touched formatting.'
+              ) : (
+                <>
+                  <span className="font-medium">
+                    {agentReview.changeCount === 1
+                      ? '1 assistant change'
+                      : `${agentReview.changeCount} assistant changes`}
+                  </span>
+                  <span className="hidden sm:!inline"> — click struck text to restore it</span>
+                </>
+              )}
+            </p>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                size="sm"
+                className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-600"
+                onClick={agentReview.accept}
+              >
+                Accept
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="rounded-full"
+                onClick={agentReview.restoreMine}
+              >
+                Reject
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/*
        * Floats in the bottom-right corner, on the side the panel docks to.
