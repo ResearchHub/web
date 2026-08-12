@@ -5,6 +5,7 @@ import { ArrowDownToLine, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FundingPowerTooltip } from '@/components/tooltips/FundingPowerTooltip';
 import { DepositModal } from '@/components/modals/ResearchCoin/DepositModal';
+import { FundingMethodsModal } from './FundingMethodsModal';
 import { formatCurrency } from '@/utils/currency';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -32,6 +33,7 @@ const HIDDEN_AMOUNT_KEY = 'rh:funding-power-hidden';
  */
 export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isMethodsModalOpen, setIsMethodsModalOpen] = useState(false);
   const [isAmountHidden, setIsAmountHidden] = useState(false);
   const [privacyReady, setPrivacyReady] = useState(false);
   const { user, isLoading: isUserLoading } = useUser();
@@ -89,7 +91,7 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
 
   return (
     <aside className={cn(CARD_SURFACE, 'w-[250px]', className)}>
-      <p className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
+      <p className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
         <Zap className="h-4 w-4 shrink-0" />
         Funding power
       </p>
@@ -115,11 +117,25 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
         Deposit
       </Button>
 
-      <p className="mt-3 text-[13px] leading-snug text-gray-500">
-        Fund with <span className="font-semibold text-gray-800">USD</span>,{' '}
-        <span className="font-semibold text-gray-800">RSC</span>, or a{' '}
-        <span className="font-semibold text-gray-800">DAF</span>
-      </p>
+      <div className="mt-3 flex items-center justify-between gap-2 text-[13px] leading-snug">
+        <span className="text-gray-500">
+          Fund with <span className="font-semibold text-gray-800">USD</span>,{' '}
+          <span className="font-semibold text-gray-800">RSC</span>, or a{' '}
+          <span className="font-semibold text-gray-800">DAF</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setIsMethodsModalOpen(true)}
+          className="shrink-0 font-medium text-primary-600 hover:underline"
+        >
+          Learn more
+        </button>
+      </div>
+
+      <FundingMethodsModal
+        isOpen={isMethodsModalOpen}
+        onClose={() => setIsMethodsModalOpen(false)}
+      />
 
       {user && (
         <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
