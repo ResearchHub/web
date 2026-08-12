@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import Link from 'next/link';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import type { ActivityHeaderMessage } from './lib/feedEntryDisplay';
+import type { ActivityHeaderMessage } from '../lib/activityDisplay.utils';
 
 interface ActivityHeaderActionTextProps {
   message: ActivityHeaderMessage;

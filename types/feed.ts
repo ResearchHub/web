@@ -21,7 +21,6 @@ import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
 import { GrantStatus } from './grant';
-import { deriveActivityContext } from '@/components/Activity/lib/deriveActivityContext';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -382,7 +381,7 @@ export interface AssociatedGrant {
   numApplicants: number;
 }
 
-export type ActivityContext =
+export type ActivityAction =
   | 'tip_review'
   | 'bounty_payout'
   | 'fundraise_contribution'
@@ -392,6 +391,47 @@ export type ActivityContext =
   | 'comment_published'
   | 'grant_opened'
   | 'proposal_submitted';
+
+/**
+ * Narrows a raw entry's content type into the specific action it represents,
+ * which the activity feed uses to decide what to emphasize on a row.
+ */
+export function deriveActivityAction(feedEntry: RawApiFeedEntry): ActivityAction | undefined {
+  const contentType = feedEntry.content_type?.toUpperCase();
+  const obj = feedEntry.content_object;
+  if (!contentType || !obj) return undefined;
+
+  switch (contentType) {
+    case 'RHCOMMENTMODEL': {
+      const commentType = obj.comment_type as string | undefined;
+      if (commentType === 'PEER_REVIEW') {
+        return 'peer_review_published';
+      }
+      if (Array.isArray(obj.bounties) && obj.bounties.length > 0) {
+        return 'bounty_opened';
+      }
+      return 'comment_published';
+    }
+    case 'RESEARCHHUBPOST': {
+      if (obj.type === 'GRANT') return 'grant_opened';
+      if (obj.type === 'PREREGISTRATION') return 'proposal_submitted';
+      return undefined;
+    }
+    case 'PURCHASE':
+    case 'USDFUNDRAISECONTRIBUTION':
+      return 'fundraise_contribution';
+    case 'FUNDINGACTIVITY': {
+      const sourceType = obj.source_type as string | undefined;
+      if (sourceType === 'BOUNTY_PAYOUT') return 'bounty_payout';
+      if (sourceType === 'TIP_REVIEW') return 'tip_review';
+      return undefined;
+    }
+    case 'BOUNTY':
+      return 'bounty_contributed';
+    default:
+      return undefined;
+  }
+}
 
 export interface JournalPostIds {
   grantPostId: number | null;
@@ -420,7 +460,7 @@ export interface FeedEntry {
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
-  activityContext?: ActivityContext;
+  activityAction?: ActivityAction;
   journalPostIds?: JournalPostIds;
   searchMetadata?: {
     highlightedTitle?: string;
@@ -1352,7 +1392,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           baseWalletAddress: nonprofit.base_wallet_address,
         }
       : undefined,
-    activityContext: deriveActivityContext(feedEntry),
+    activityAction: deriveActivityAction(feedEntry),
   } as FeedEntry;
 };
 

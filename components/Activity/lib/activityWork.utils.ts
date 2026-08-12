@@ -5,7 +5,7 @@ import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture } from '@/utils/date';
 import { toOptionalNumber } from '@/utils/number';
 import type {
-  ActivityContext,
+  ActivityAction,
   FeedBountyContent,
   FeedCommentContent,
   FeedEntry,
@@ -73,8 +73,8 @@ export function getActivityBounty(entry: FeedEntry): Bounty | undefined {
   return undefined;
 }
 
-function resolveTabFromContext(activityContext?: ActivityContext): ActivityWork['tab'] {
-  switch (activityContext) {
+function resolveTabFromAction(activityAction?: ActivityAction): ActivityWork['tab'] {
+  switch (activityAction) {
     case 'tip_review':
     case 'peer_review_published':
       return 'reviews';
@@ -90,28 +90,28 @@ function resolveTabFromContext(activityContext?: ActivityContext): ActivityWork[
 }
 
 function resolveActivityBodySlot(
-  activityContext?: ActivityContext,
+  activityAction?: ActivityAction,
   work?: Pick<ActivityWork, 'fundraise' | 'grant' | 'bounty'>,
   options?: { isReview?: boolean }
 ): ActivityBodySlot {
-  if (activityContext === 'bounty_opened' || activityContext === 'bounty_contributed') {
+  if (activityAction === 'bounty_opened' || activityAction === 'bounty_contributed') {
     return work?.bounty ? 'bounty' : 'default';
   }
-  if (activityContext === 'grant_opened') {
+  if (activityAction === 'grant_opened') {
     return work?.grant ? 'grant' : 'default';
   }
   if (
-    activityContext === 'tip_review' ||
-    activityContext === 'bounty_payout' ||
-    activityContext === 'fundraise_contribution' ||
-    activityContext === 'proposal_submitted'
+    activityAction === 'tip_review' ||
+    activityAction === 'bounty_payout' ||
+    activityAction === 'fundraise_contribution' ||
+    activityAction === 'proposal_submitted'
   ) {
     return work?.fundraise ? 'fundraise' : 'default';
   }
-  if (activityContext === 'peer_review_published' || options?.isReview) {
+  if (activityAction === 'peer_review_published' || options?.isReview) {
     return work?.fundraise ? 'fundraise' : 'default';
   }
-  if (activityContext === 'comment_published' && work?.fundraise) {
+  if (activityAction === 'comment_published' && work?.fundraise) {
     return 'fundraise';
   }
   return 'default';
@@ -165,10 +165,15 @@ function resolveReviewScore(entry: FeedEntry, work: ActivityWork): number | null
 function buildBasePresentation(
   entry: FeedEntry,
   work: ActivityWork,
-  slot: ActivityBodySlot
+  slot: ActivityBodySlot,
+  options: { isReview?: boolean }
 ): WorkCardPresentation {
+  // A review of a proposal leads with the review itself, so the proposal's
+  // authors are dropped from the card.
+  const hideAuthors = !!options.isReview && work.documentType === 'preregistration';
+
   return {
-    authors: toCardAuthors(work.authors),
+    authors: hideAuthors ? [] : toCardAuthors(work.authors),
     organization: resolveOrganization(entry, work),
     institution: entry.nonprofit?.name ?? null,
     score: resolveReviewScore(entry, work),
@@ -291,8 +296,8 @@ export function getWorkCardPresentation(
   options: { showUSD: boolean; exchangeRate: number; isReview?: boolean }
 ): WorkCardPresentation {
   const { showUSD, exchangeRate, isReview } = options;
-  const slot = resolveActivityBodySlot(entry.activityContext, work, { isReview });
-  const base = buildBasePresentation(entry, work, slot);
+  const slot = resolveActivityBodySlot(entry.activityAction, work, { isReview });
+  const base = buildBasePresentation(entry, work, slot, { isReview });
 
   if (slot === 'fundraise' && work.fundraise) {
     return presentFundraise(base, work.fundraise, showUSD, exchangeRate);
@@ -324,7 +329,7 @@ function grantSummaryFromFeedGrant(content: FeedGrantContent): WorkGrantSummary 
  * absent (PAPER / POST / GRANT / proposal / contribution events).
  */
 function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
-  const tab = resolveTabFromContext(entry.activityContext);
+  const tab = resolveTabFromAction(entry.activityAction);
   const bounty = getActivityBounty(entry);
 
   if (entry.contentType === 'PAPER') {
@@ -439,7 +444,7 @@ function resolveWorkAuthors(
 }
 
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
-  const tab = resolveTabFromContext(entry.activityContext);
+  const tab = resolveTabFromAction(entry.activityAction);
   const documentType = related.contentType;
   const relatedAuthors = related.authors?.map((authorship) => authorship.authorProfile);
 

@@ -4,10 +4,10 @@ import { FC } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { AmountBadge } from './AmountBadge';
-import type { FeedGrantAmount } from './lib/feedEntryDisplay';
+import type { ActivityGrantAmount } from '../lib/activityDisplay.utils';
 
 interface GrantFundingAmountProps {
-  amount: FeedGrantAmount;
+  amount: ActivityGrantAmount;
   className?: string;
 }
 

@@ -3,8 +3,8 @@
 import { useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
-import { ActivityCardFull } from './ActivityCardFull';
-import { ActivityCardSkeleton } from './ActivityCardSkeleton';
+import { ActivityCard } from './cards/ActivityCard';
+import { ActivityCardSkeleton } from './cards/ActivityCardSkeleton';
 import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
@@ -63,7 +63,7 @@ export function ActivityPageContent() {
   return (
     <div>
       {entries.map((entry) => (
-        <ActivityCardFull key={entry.id} entry={entry} />
+        <ActivityCard key={entry.id} entry={entry} />
       ))}
 
       {(isLoading || isLoadingMore) &&

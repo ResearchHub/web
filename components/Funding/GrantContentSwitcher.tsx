@@ -5,8 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { useGrantTab } from '@/components/Funding/GrantPageContent';
 import { GrantDetailsInline } from '@/components/Funding/GrantDetailsInline';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityCard, ActivityCardSkeleton } from '@/components/Activity';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
@@ -72,7 +71,7 @@ export function GrantContentSwitcher({ children, content, imageUrl }: GrantConte
       <div className={activeTab !== 'activity' ? 'hidden' : undefined}>
         <div>
           {entries.map((entry) => (
-            <ActivityCardFull key={entry.id} entry={entry} />
+            <ActivityCard key={entry.id} entry={entry} />
           ))}
 
           {(isLoading || isLoadingMore) &&

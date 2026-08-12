@@ -7,8 +7,7 @@ import { LayoutList, Star, Coins, Reply } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { PillTabs } from '@/components/ui/PillTabs';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityCard, ActivityCardSkeleton } from '@/components/Activity';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
@@ -137,7 +136,7 @@ export default function ActivityPage() {
 
         <div className="mt-4">
           {entries.map((entry) => (
-            <ActivityCardFull key={entry.id} entry={entry} />
+            <ActivityCard key={entry.id} entry={entry} />
           ))}
 
           {(isLoading || isLoadingMore) &&

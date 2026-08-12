@@ -4,11 +4,11 @@ import { FC } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { ActivityHeaderActionText } from './ActivityHeaderActionText';
-import { BountyAmount } from './BountyAmount';
-import { ContributionAmount } from './ContributionAmount';
-import { FeedEntryIcon } from './FeedEntryIcon';
-import { GrantFundingAmount } from './GrantFundingAmount';
-import { ReviewScoreStars } from './ReviewScoreStars';
+import { ActivityActionIcon } from '../lib/ActivityActionIcon';
+import { BountyAmount } from '../amounts/BountyAmount';
+import { ContributionAmount } from '../amounts/ContributionAmount';
+import { GrantFundingAmount } from '../amounts/GrantFundingAmount';
+import { ReviewScoreStars } from '../amounts/ReviewScoreStars';
 import {
   getActionIcon,
   getActivityHeaderMessage,
@@ -17,8 +17,8 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
-} from './lib/feedEntryDisplay';
-import { getActivityBounty } from './lib/activityWorkContext';
+} from '../lib/activityDisplay.utils';
+import { getActivityBounty } from '../lib/activityWork.utils';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { FeedEntry } from '@/types/feed';
@@ -39,7 +39,7 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => 
   const reviewEarning = getReviewEarning(entry);
   const grantAmount = getGrantAmount(entry);
   const contribution = getContribution(entry);
-  const bounty = entry.activityContext === 'bounty_opened' ? getActivityBounty(entry) : undefined;
+  const bounty = entry.activityAction === 'bounty_opened' ? getActivityBounty(entry) : undefined;
 
   const hasAmount = Boolean(
     grantAmount || contribution || reviewEarning || bounty || reviewScore != null
@@ -104,7 +104,7 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => 
               <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
             </>
           )}
-          <FeedEntryIcon name={hasAmount ? null : actionIcon} />
+          <ActivityActionIcon name={hasAmount ? null : actionIcon} />
         </span>
         <span className="text-sm leading-tight line-clamp-2">{titleEl}</span>
       </div>

@@ -2,9 +2,9 @@
 
 import { FC, ReactNode } from 'react';
 import { Activity, Reply } from 'lucide-react';
-import { ActivityCardCompact } from './ActivityCardCompact';
+import { ActivityCardCompact } from '../cards/ActivityCardCompact';
 import type { FeedEntry } from '@/types/feed';
-import { SidebarHeader } from '../ui/SidebarHeader';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface ActivitySidebarProps {
   topSection?: ReactNode;

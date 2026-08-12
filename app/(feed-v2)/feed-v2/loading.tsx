@@ -1,4 +1,4 @@
-import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityCardSkeleton } from '@/components/Activity';
 
 export default function FeedV2Loading() {
   return (

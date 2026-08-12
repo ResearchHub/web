@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { ActivityPageContent } from '@/components/Activity/ActivityPageContent';
+import { ActivityPageContent } from '@/components/Activity';
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
