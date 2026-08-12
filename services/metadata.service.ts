@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { withShareToken } from '@/lib/shareToken/url';
 import { Topic, transformTopic } from '@/types/topic';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
@@ -53,9 +54,22 @@ function transformWorkMetadata(response: any): WorkMetadata {
 export class MetadataService {
   private static readonly BASE_PATH = '/api/researchhub_unified_document';
 
-  static async get(unifiedDocumentId: string): Promise<WorkMetadata> {
+  /**
+   * Fetches document metadata by unified document ID.
+   *
+   * @param options.shareToken - Grants access to a single private proposal.
+   * Only this endpoint and `PostService.get` honor it, so it is passed
+   * explicitly rather than attached to every request by `ApiClient`.
+   */
+  static async get(
+    unifiedDocumentId: string,
+    options?: { shareToken?: string | null }
+  ): Promise<WorkMetadata> {
     const response = await ApiClient.get<any>(
-      `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`
+      withShareToken(
+        `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`,
+        options?.shareToken
+      )
     );
     return transformWorkMetadata(response);
   }

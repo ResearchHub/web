@@ -20,6 +20,8 @@ import {
   getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useShareToken } from '@/hooks/useShareToken';
+import { stripShareToken } from '@/lib/shareToken/url';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
@@ -81,6 +83,7 @@ export function WorkHeader({
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
 
   const { showShareModal } = useShareModalContext();
+  const shareToken = useShareToken();
   const { isInList } = useIsInList(work.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: work.unifiedDocumentId,
@@ -132,6 +135,7 @@ export function WorkHeader({
     contentType: work.contentType,
     slug: work.slug,
     tab: 'bounties',
+    shareToken,
   });
 
   const reviewsTabUrl =
@@ -143,13 +147,16 @@ export function WorkHeader({
           contentType: work.contentType,
           slug: work.slug,
           tab: 'reviews',
+          shareToken,
         }));
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
   const shareAction = () =>
     showShareModal({
-      url: globalThis.location.href,
+      // Scrubbed: this URL is broadcast publicly, and a share token in it would
+      // hand anonymous access to a private proposal to every recipient.
+      url: stripShareToken(globalThis.location.href),
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,

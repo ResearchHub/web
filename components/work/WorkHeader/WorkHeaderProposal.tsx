@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
-import { Globe2 } from 'lucide-react';
+import { Globe2, Link2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
@@ -9,12 +9,15 @@ import { Icon } from '@/components/ui/icons';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { isFundraiseActive, getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
 import { PostService } from '@/services/post.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { stripShareToken } from '@/lib/shareToken/url';
+import { buildWorkUrl } from '@/utils/url';
 import toast from 'react-hot-toast';
 import { WorkHeader } from './WorkHeader';
 
@@ -36,6 +39,7 @@ export function WorkHeaderProposal({
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [isMakePublicModalOpen, setIsMakePublicModalOpen] = useState(false);
   const [isMakingPublic, setIsMakingPublic] = useState(false);
+  const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
   const [updatedWork, setUpdatedWork] = useState<Work | null>(null);
   const { showShareModal } = useShareModalContext();
   const { user } = useUser();
@@ -52,10 +56,25 @@ export function WorkHeaderProposal({
     displayedWork.linkedGrant?.applicationVisibility !== 'PRIVATE' &&
     (isOwner || !!user?.isModerator || !!user?.authorProfile?.isHubEditor);
 
+  // A public proposal's URL already works for everyone, and the backend refuses
+  // to mint for anything that has not cleared moderation, so neither case gets
+  // the option. Eligibility here is a superset check only — the backend is
+  // authoritative, and it also allows grant creators, who are not identifiable
+  // from `work` alone.
+  const hasClearedModeration =
+    displayedWork.moderationStatus !== 'PENDING' && displayedWork.moderationStatus !== 'DECLINED';
+  const canShareLink =
+    displayedWork.contentType === 'preregistration' &&
+    displayedWork.isPublic === false &&
+    displayedWork.unifiedDocumentId != null &&
+    hasClearedModeration &&
+    (isOwner || !!user?.isModerator || !!user?.authorProfile?.isHubEditor);
+
   const handleContributeSuccess = () => {
     setIsFundModalOpen(false);
     showShareModal({
-      url: globalThis.location.href,
+      // Scrubbed: a share token here would travel with every public share.
+      url: stripShareToken(globalThis.location.href),
       docTitle: displayedWork.title,
       action: 'USER_FUNDED_PROPOSAL',
     });
@@ -78,12 +97,23 @@ export function WorkHeaderProposal({
     }
   };
 
-  const makePublicMenuItem = canMakePublic ? (
-    <BaseMenuItem onSelect={() => setIsMakePublicModalOpen(true)}>
-      <Globe2 className="h-4 w-4 mr-2" />
-      Make public
-    </BaseMenuItem>
-  ) : undefined;
+  const additionalMenuItems =
+    canMakePublic || canShareLink ? (
+      <>
+        {canShareLink && (
+          <BaseMenuItem onSelect={() => setIsShareLinkModalOpen(true)}>
+            <Link2 className="h-4 w-4 mr-2" />
+            Share link
+          </BaseMenuItem>
+        )}
+        {canMakePublic && (
+          <BaseMenuItem onSelect={() => setIsMakePublicModalOpen(true)}>
+            <Globe2 className="h-4 w-4 mr-2" />
+            Make public
+          </BaseMenuItem>
+        )}
+      </>
+    ) : undefined;
 
   const primaryAction =
     isActive && fundraise ? (
@@ -115,7 +145,7 @@ export function WorkHeaderProposal({
         updatesCount={updatesCount}
         className={className}
         primaryAction={primaryAction}
-        additionalMenuItems={makePublicMenuItem}
+        additionalMenuItems={additionalMenuItems}
         eyebrow={closedEyebrow}
         preTitle={preTitle}
       />
@@ -128,6 +158,19 @@ export function WorkHeaderProposal({
           fundraise={fundraise}
           proposalTitle={displayedWork.title}
           work={displayedWork}
+        />
+      )}
+
+      {canShareLink && displayedWork.unifiedDocumentId != null && (
+        <ShareLinkModal
+          isOpen={isShareLinkModalOpen}
+          onClose={() => setIsShareLinkModalOpen(false)}
+          unifiedDocumentId={displayedWork.unifiedDocumentId}
+          proposalPath={buildWorkUrl({
+            id: displayedWork.id,
+            contentType: displayedWork.contentType,
+            slug: displayedWork.slug,
+          })}
         />
       )}
 

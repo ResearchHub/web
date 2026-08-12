@@ -1,3 +1,4 @@
+import { withShareToken } from '@/lib/shareToken/url';
 import type { ContentType } from '@/types/work';
 
 export const ALL_CONTENT_TYPES: readonly ContentType[] = [
@@ -326,12 +327,15 @@ export const buildWorkUrl = ({
   doi,
   slug,
   tab,
+  shareToken,
 }: {
   id?: string | number | null;
   contentType: ContentType;
   doi?: string | null;
   slug?: string;
   tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
+  /** Keeps a private proposal reachable for a visitor whose only credential is the token. */
+  shareToken?: string | null;
 }) => {
   let baseUrl = '';
 
@@ -379,7 +383,7 @@ export const buildWorkUrl = ({
     baseUrl += `/${tab}`;
   }
 
-  return baseUrl;
+  return withShareToken(baseUrl, shareToken);
 };
 
 /**
