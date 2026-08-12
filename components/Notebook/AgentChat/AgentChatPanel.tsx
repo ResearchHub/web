@@ -65,19 +65,13 @@ interface AgentChatPanelProps {
   /** The server denied access (gate changed / signed out) — hide the entry point. */
   readonly onUnavailable: () => void;
   /**
-   * The assistant produced a note version that conflicts with unsaved local
-   * edits and the banner is asking the user to choose. While true the host
-   * must suspend its autosave, or the debounced local save would bury the
-   * assistant's version before the user has chosen.
+   * The editor's current document must be persisted as a new server version:
+   * the user chose "Keep mine" over an assistant version, or a reload applied
+   * an assistant version that newer saves had buried. Applying content
+   * programmatically emits no editor update, so without this save the choice
+   * would only live in this editor instance and vanish on the next load.
    */
-  readonly onEditConflictChange?: (active: boolean) => void;
-  /**
-   * The user chose their local version over the assistant's. The assistant's
-   * version is the server's newest, so the host should persist the local
-   * document once autosave resumes — without a re-save the choice would only
-   * live in this editor instance and vanish on the next load.
-   */
-  readonly onKeepLocalVersion?: () => void;
+  readonly onPersistEditorState?: () => void;
   /**
    * Docked (desktop) mode: the panel takes `width` and the host reserves the
    * same gutter, so it sits beside the document instead of over it. Undocked,
@@ -102,8 +96,7 @@ export function AgentChatPanel({
   open,
   onClose,
   onUnavailable,
-  onEditConflictChange,
-  onKeepLocalVersion,
+  onPersistEditorState,
   docked,
   width,
   isResizing,
@@ -424,13 +417,13 @@ export function AgentChatPanel({
         }
         heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
         editorDirtyRef.current = false;
-        // A pinned version older than the server head means the user's own
-        // autosaves buried the assistant's version while the banner waited.
-        // The editor now shows the chosen content, but applying it emitted no
-        // update — without a re-save the choice would silently vanish on the
-        // next load, so ask the host to persist once the hold lifts.
+        // A pinned version older than the server head means newer saves
+        // buried the assistant's version while the banner waited. The editor
+        // now shows the chosen content, but applying it emitted no update —
+        // without a re-save the choice would silently vanish on the next
+        // load, so have the host persist it now.
         if (pinnedVersionId != null && (serverHeadRef.current ?? 0) > pinnedVersionId) {
-          onKeepLocalVersion?.();
+          onPersistEditorState?.();
         }
         // An even newer agent version can land while this fetch runs — keep
         // the banner up for it instead of claiming the editor is in sync.
@@ -447,7 +440,7 @@ export function AgentChatPanel({
         setIsReloadingNote(false);
       }
     },
-    [noteId, editor, recordServerHead, onKeepLocalVersion]
+    [noteId, editor, recordServerHead, onPersistEditorState]
   );
 
   // After a socket drop, events were missed — the head version says whether
@@ -513,27 +506,13 @@ export function AgentChatPanel({
     }
   }, [agentVersionSignal, currentNote, noteId, reloadNoteContent]);
 
-  // While the banner is asking, the host suspends its autosave (see
-  // onEditConflictChange). Gated on `open`: a banner the user can't see must
-  // never silently hold saves — with the panel closed the local document
-  // keeps winning, as before.
-  const onEditConflictChangeRef = useRef(onEditConflictChange);
-  onEditConflictChangeRef.current = onEditConflictChange;
-  const editConflictActive = open && needsNoteReload;
-  useEffect(() => {
-    onEditConflictChangeRef.current?.(editConflictActive);
-  }, [editConflictActive]);
-  useEffect(() => {
-    return () => onEditConflictChangeRef.current?.(false);
-  }, []);
-
   const keepLocalVersion = () => {
     // Explicit user-wins: acknowledge the assistant's version so this banner
     // doesn't re-arm for it, and have the host persist the local document —
-    // the assistant's version is the server's newest, so without a re-save
-    // the user's choice would vanish on the next load. The assistant's
+    // the assistant's version may be the server's newest, so without a
+    // re-save the choice would vanish on the next load. The assistant's
     // version remains in the note's history.
-    onKeepLocalVersion?.();
+    onPersistEditorState?.();
     const held = heldVersionRef.current;
     const latestAgent = latestAgentVersionRef.current;
     if (latestAgent != null) {

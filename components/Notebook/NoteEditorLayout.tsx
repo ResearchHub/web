@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import type { Editor } from '@tiptap/core';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
@@ -199,66 +198,20 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
-  const [, updateNote, cancelPendingNoteUpdate] = useUpdateNote(note?.id, {
+  const [, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
     registeredReportProposalId: note?.proposalId,
   });
 
-  // ---- agent edit × autosave ----
-  // While the chat panel's conflict banner is up (the assistant produced a
-  // newer note version but the local editor holds unsaved edits), autosave
-  // holds: a debounced save firing then would bury the assistant's version
-  // before the user chooses. Refs, not state — the editor captures its
-  // onUpdate handler once at creation.
-  const agentConflictRef = useRef(false);
-  const suppressedSaveRef = useRef(false);
-
-  useEffect(() => {
-    agentConflictRef.current = false;
-    suppressedSaveRef.current = false;
-  }, [note?.id]);
-
-  const handleAgentEditConflict = useCallback(
-    (active: boolean) => {
-      if (agentConflictRef.current === active) return;
-      agentConflictRef.current = active;
-      if (active) {
-        // A canceled pending save holds real edits — mark it suppressed so
-        // resolving the conflict reschedules it instead of dropping it.
-        if (cancelPendingNoteUpdate()) suppressedSaveRef.current = true;
-      } else if (suppressedSaveRef.current) {
-        // Edits accumulated while saving was held — persist them now.
-        suppressedSaveRef.current = false;
-        if (editor && !editor.isDestroyed) updateNote(editor);
-      }
-    },
-    [cancelPendingNoteUpdate, updateNote, editor]
-  );
-
-  // The panel asks for the editor's current document to be persisted: the
-  // user chose "Keep mine", or a reload applied an assistant version that
-  // newer saves had buried. Either way the server's newest version differs
-  // from what the editor now shows — without a re-save the choice would only
-  // live in this editor instance and vanish on the next load. While the
-  // conflict holds saves, defer to the resume path; otherwise save now.
-  const handleKeepLocalVersion = useCallback(() => {
-    if (agentConflictRef.current) {
-      suppressedSaveRef.current = true;
-    } else if (editor && !editor.isDestroyed) {
-      updateNote(editor);
-    }
+  // The panel asks for the editor's current document to be persisted as the
+  // newest server version: the user chose "Keep mine" over an assistant
+  // version, or a reload applied an assistant version that newer saves had
+  // buried. Applying content programmatically emits no editor update, so
+  // without this save the editor and the server would silently diverge and
+  // the choice would vanish on the next load.
+  const handlePersistEditorState = useCallback(() => {
+    if (editor && !editor.isDestroyed) updateNote(editor);
   }, [editor, updateNote]);
-
-  const handleEditorUpdate = useCallback(
-    (editorInstance: Editor) => {
-      if (agentConflictRef.current) {
-        suppressedSaveRef.current = true;
-        return;
-      }
-      updateNote(editorInstance);
-    },
-    [updateNote]
-  );
 
   const isChangelog = isChangelogNote(note);
   const isChangelogAccessDenied = isChangelog && !user?.isModerator;
@@ -328,7 +281,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           content={note.content}
           contentJson={note.contentJson}
           isLoading={false}
-          onUpdate={isEditorReadOnly ? undefined : handleEditorUpdate}
+          onUpdate={isEditorReadOnly ? undefined : updateNote}
           editable={!isEditorReadOnly}
           setEditor={setEditor}
         />
@@ -415,8 +368,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           open={isAgentChatOpen}
           onClose={() => setIsAgentChatOpen(false)}
           onUnavailable={handleAgentChatUnavailable}
-          onEditConflictChange={handleAgentEditConflict}
-          onKeepLocalVersion={handleKeepLocalVersion}
+          onPersistEditorState={handlePersistEditorState}
           docked={isAgentChatDocked}
           width={agentChatWidth}
           isResizing={isAgentChatResizing}
