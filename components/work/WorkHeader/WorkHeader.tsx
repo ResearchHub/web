@@ -154,8 +154,6 @@ export function WorkHeader({
 
   const shareAction = () =>
     showShareModal({
-      // Scrubbed: this URL is broadcast publicly, and a share token in it would
-      // hand anonymous access to a private proposal to every recipient.
       url: stripShareToken(globalThis.location.href),
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',

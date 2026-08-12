@@ -54,13 +54,6 @@ export const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
-  /**
-   * Fetches a post by ID.
-   *
-   * @param options.shareToken - Grants access to a single private proposal.
-   * Only this endpoint and `MetadataService.get` honor it, so it is passed
-   * explicitly rather than attached to every request by `ApiClient`.
-   */
   static async get(id: string, options?: { shareToken?: string | null }): Promise<Work> {
     const response = await ApiClient.get<any>(
       withShareToken(`${this.BASE_PATH}/${id}/`, options?.shareToken)

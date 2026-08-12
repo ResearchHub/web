@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         section: work.topics[0]?.name,
         tags: work.topics.map((t) => t.name),
       }),
-      // A tokenized URL points at a proposal that is private to everyone else.
+      // Tokenized URL — private proposal, keep it out of search indexes.
       ...(shareToken ? { robots: { index: false, follow: false } } : {}),
     };
   } catch {

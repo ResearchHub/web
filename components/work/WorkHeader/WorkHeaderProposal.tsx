@@ -56,11 +56,8 @@ export function WorkHeaderProposal({
     displayedWork.linkedGrant?.applicationVisibility !== 'PRIVATE' &&
     (isOwner || !!user?.isModerator || !!user?.authorProfile?.isHubEditor);
 
-  // A public proposal's URL already works for everyone, and the backend refuses
-  // to mint for anything that has not cleared moderation, so neither case gets
-  // the option. Eligibility here is a superset check only — the backend is
-  // authoritative, and it also allows grant creators, who are not identifiable
-  // from `work` alone.
+  // Superset of the backend's rule, which is authoritative and also allows grant
+  // creators — they aren't identifiable from `work`, so they don't see the option.
   const hasClearedModeration =
     displayedWork.moderationStatus !== 'PENDING' && displayedWork.moderationStatus !== 'DECLINED';
   const canShareLink =
@@ -73,7 +70,6 @@ export function WorkHeaderProposal({
   const handleContributeSuccess = () => {
     setIsFundModalOpen(false);
     showShareModal({
-      // Scrubbed: a share token here would travel with every public share.
       url: stripShareToken(globalThis.location.href),
       docTitle: displayedWork.title,
       action: 'USER_FUNDED_PROPOSAL',

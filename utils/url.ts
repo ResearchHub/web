@@ -334,7 +334,6 @@ export const buildWorkUrl = ({
   doi?: string | null;
   slug?: string;
   tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
-  /** Keeps a private proposal reachable for a visitor whose only credential is the token. */
   shareToken?: string | null;
 }) => {
   let baseUrl = '';

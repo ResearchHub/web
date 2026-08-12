@@ -24,13 +24,6 @@ interface ShareLinkModalProps {
 const formatExpiry = (date: Date) =>
   date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-/**
- * Turns anonymous access to a private proposal on and off.
- *
- * Reading the current state is deliberately a separate call from turning
- * sharing on: minting regenerates an expired token, so opening this modal must
- * never be what creates or rotates a link.
- */
 export function ShareLinkModal({
   isOpen,
   onClose,

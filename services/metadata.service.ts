@@ -54,13 +54,6 @@ function transformWorkMetadata(response: any): WorkMetadata {
 export class MetadataService {
   private static readonly BASE_PATH = '/api/researchhub_unified_document';
 
-  /**
-   * Fetches document metadata by unified document ID.
-   *
-   * @param options.shareToken - Grants access to a single private proposal.
-   * Only this endpoint and `PostService.get` honor it, so it is passed
-   * explicitly rather than attached to every request by `ApiClient`.
-   */
   static async get(
     unifiedDocumentId: string,
     options?: { shareToken?: string | null }

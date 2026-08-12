@@ -126,9 +126,6 @@ export const WorkTabs = ({
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
 
-      // Carry the params that grant or scope access to this document. Dropping
-      // the share token would leave a visitor who only holds one on a URL that
-      // 404s the moment they refresh.
       const currentParams = new URLSearchParams(window.location.search);
       const preserved = new URLSearchParams();
       for (const key of ['rr', SHARE_TOKEN_PARAM]) {

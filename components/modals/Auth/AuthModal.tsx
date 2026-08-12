@@ -40,9 +40,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialError }: 
           onSuccess={onSuccess}
           initialError={initialError}
           modalView={true}
-          // Google sign-in navigates away and back, and without this it returns
-          // to `/`. The full href keeps the query string, so a visitor signing
-          // in from a shared proposal lands back on it with their token intact.
+          // Return to the current URL after Google OAuth, preserving query params.
           callbackUrl={typeof window !== 'undefined' ? window.location.href : undefined}
         />
       </div>

@@ -12,20 +12,12 @@ const requireAuth = withAuth({
   },
 });
 
-/**
- * Lifts a proposal share token off the query string and onto a request header.
- *
- * Next.js layouts never receive `searchParams`, and the proposal layout is the
- * thing that decides whether the page 404s, so `?st=` has to reach it some
- * other way. See lib/shareToken/server.ts for the read side.
- */
+// Moves `?st=` onto a header so the proposal layout can read it; layouts never
+// receive `searchParams`. Cleared when absent so the URL stays the only source.
 function forwardShareToken(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   const shareToken = request.nextUrl.searchParams.get(SHARE_TOKEN_PARAM);
 
-  // Set or clear unconditionally so the URL stays the only source of truth. A
-  // spoofed header is not an escalation — the backend validates the token — but
-  // letting one through would make the value non-deterministic.
   if (shareToken) {
     requestHeaders.set(SHARE_TOKEN_HEADER, shareToken);
   } else {
@@ -39,12 +31,9 @@ const isProposalRoute = (pathname: string) =>
   pathname === '/proposal' || pathname.startsWith('/proposal/');
 
 export function proxy(request: NextRequest, event: NextFetchEvent) {
-  // Proposal pages are public and must never be auth-gated; they are matched
-  // only so the share token can be forwarded. Everything else in the matcher
-  // below is auth-gated, so adding another public route needs a branch here
-  // too. Note this runs ahead of `requireAuth` deliberately: withAuth decrypts
-  // the session cookie before consulting its `authorized` callback, so wrapping
-  // proposal traffic in it would cost a JWE decrypt on every anonymous view.
+  // Proposal pages are public and matched only to forward the share token. Every
+  // other route in the matcher is auth-gated, so a new public route needs a
+  // branch here too.
   if (isProposalRoute(request.nextUrl.pathname)) {
     return forwardShareToken(request);
   }

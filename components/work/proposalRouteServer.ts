@@ -14,11 +14,7 @@ function proposalUrl(id: string, slug: string, tab?: ProposalTab): string {
   return tab ? `/proposal/${id}/${slug}/${tab}` : `/proposal/${id}/${slug}`;
 }
 
-/**
- * Fetches a proposal, passing along a share token when the request carries one.
- *
- * Cached per request so the layout and the page it wraps share a single fetch.
- */
+// Cached so the layout and the page it wraps share a single fetch.
 export const getProposalOrNotFound = cache(async (id: string): Promise<Work> => {
   if (!id.match(/^\d+$/)) {
     notFound();
@@ -31,7 +27,6 @@ export const getProposalOrNotFound = cache(async (id: string): Promise<Work> => 
   }
 });
 
-/** Document metadata for a proposal, share-token aware and cached per request. */
 export const getProposalMetadata = cache(
   async (unifiedDocumentId: string): Promise<WorkMetadata> =>
     MetadataService.get(unifiedDocumentId, { shareToken: await getShareToken() })
@@ -48,14 +43,6 @@ export async function getProposalContent(work: Work): Promise<string | undefined
   }
 }
 
-/**
- * Page metadata for a proposal tab.
- *
- * A tokenized URL points at a proposal that is private to everyone else, so it
- * is withheld from search indexes — otherwise a crawler reaching a 30-day link
- * would turn it into permanent exposure. The canonical URL is built from the
- * route params and never carries the token.
- */
 export async function buildProposalMetadata({
   id,
   slug,
@@ -71,6 +58,7 @@ export async function buildProposalMetadata({
 
   return {
     ...getWorkMetadata({ work, url: proposalUrl(id, slug, tab), titleSuffix }),
+    // Tokenized URL — private proposal, keep it out of search indexes.
     ...(shareToken ? { robots: { index: false, follow: false } } : {}),
   };
 }
