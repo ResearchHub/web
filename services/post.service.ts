@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { withShareToken } from '@/lib/shareToken/url';
 import { Work, transformPost } from '@/types/work';
 import {
   transformRegisteredReportWorkResponse,
@@ -53,8 +54,10 @@ export const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
-  static async get(id: string): Promise<Work> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+  static async get(id: string, options?: { shareToken?: string | null }): Promise<Work> {
+    const response = await ApiClient.get<any>(
+      withShareToken(`${this.BASE_PATH}/${id}/`, options?.shareToken)
+    );
     return transformPost(response);
   }
 

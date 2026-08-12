@@ -16,6 +16,7 @@ interface ConfirmPublishModalProps {
   onTitleChange?: (title: string) => void;
   isUpdate?: boolean;
   variant?: ConfirmPublishVariant;
+  documentLabel?: string;
   zIndex?: number;
 }
 
@@ -62,6 +63,7 @@ export function ConfirmPublishModal({
   onTitleChange,
   isUpdate,
   variant = 'default',
+  documentLabel,
   zIndex = 100,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
@@ -71,7 +73,8 @@ export function ConfirmPublishModal({
   const isPublishEnabled = isTitleValid && hasAgreed;
 
   const guidelines = GUIDELINES[variant];
-  const documentLabel = variant === 'rfp' ? 'funding opportunity' : 'research proposal';
+  const resolvedDocumentLabel =
+    documentLabel ?? (variant === 'rfp' ? 'funding opportunity' : 'research proposal');
 
   useEffect(() => {
     setTitle(initialTitle);
@@ -116,7 +119,8 @@ export function ConfirmPublishModal({
                     {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to {isUpdate ? 'republish' : 'publish'} your {documentLabel}:
+                    You are about to {isUpdate ? 'republish' : 'publish'} your{' '}
+                    {resolvedDocumentLabel}:
                   </p>
                   <input
                     type="text"
