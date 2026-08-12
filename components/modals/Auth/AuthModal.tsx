@@ -40,6 +40,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialError }: 
           onSuccess={onSuccess}
           initialError={initialError}
           modalView={true}
+          // Return to the current URL after Google OAuth, preserving query params.
+          callbackUrl={typeof window !== 'undefined' ? window.location.href : undefined}
         />
       </div>
     </div>
