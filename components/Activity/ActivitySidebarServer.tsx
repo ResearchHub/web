@@ -1,21 +1,21 @@
 import { ReactNode } from 'react';
 import { ActivityService, ActivityScope } from '@/services/activity.service';
-import { FundingSidebar } from './FundingSidebar';
+import { ActivitySidebar } from './ActivitySidebar';
 import type { FeedEntry } from '@/types/feed';
 
-interface FundingSidebarServerProps {
+interface ActivitySidebarServerProps {
   topSection?: ReactNode;
   grantId?: number | string;
   grantTitle?: string;
   scope?: ActivityScope;
 }
 
-export async function FundingSidebarServer({
+export async function ActivitySidebarServer({
   topSection,
   grantId,
   grantTitle,
   scope = 'grants',
-}: FundingSidebarServerProps) {
+}: ActivitySidebarServerProps) {
   let entries: FeedEntry[] = [];
 
   try {
@@ -26,8 +26,8 @@ export async function FundingSidebarServer({
     });
     entries = result.entries;
   } catch (error) {
-    console.error('Error loading funding sidebar activity:', error);
+    console.error('Error loading activity sidebar entries:', error);
   }
 
-  return <FundingSidebar topSection={topSection} entries={entries} grantTitle={grantTitle} />;
+  return <ActivitySidebar topSection={topSection} entries={entries} grantTitle={grantTitle} />;
 }

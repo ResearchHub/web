@@ -10,7 +10,7 @@ import { ActivityCardHeader } from './ActivityCardHeader';
 import { ActivityWorkActions } from './ActivityWorkActions';
 import { ActivityWorkMetadata } from './ActivityWorkMetadata';
 import { WorkPreviewCard } from './WorkPreviewCard';
-import { getActivityHeaderMessage, getCommentPreview } from './lib/feedEntryAdapters';
+import { getActivityHeaderMessage, getCommentPreview } from './lib/feedEntryDisplay';
 import { getActivityWork, getWorkCardPresentation } from './lib/activityWorkContext';
 import type { FeedEntry } from '@/types/feed';
 

@@ -9,7 +9,7 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
-import { getCommentPreview } from './lib/feedEntryAdapters';
+import { getCommentPreview } from './lib/feedEntryDisplay';
 import { getWorkCardPresentation, type ActivityWork } from './lib/activityWorkContext';
 import type { FeedContentType, FeedEntry } from '@/types/feed';
 

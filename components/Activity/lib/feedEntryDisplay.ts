@@ -1,5 +1,6 @@
 import { buildWorkUrl } from '@/utils/url';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
+import type { CurrencyAmount } from '@/utils/currency';
 import type {
   FeedCommentContent,
   FeedContentType,
@@ -288,7 +289,7 @@ export function getReviewScore(entry: FeedEntry): number | undefined {
 }
 
 /** Bounty payout shown on the header line for awarded peer reviews. */
-export function getReviewEarning(entry: FeedEntry): FeedContribution | undefined {
+export function getReviewEarning(entry: FeedEntry): CurrencyAmount | undefined {
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
@@ -299,12 +300,7 @@ export function getReviewEarning(entry: FeedEntry): FeedContribution | undefined
   return { amount: awarded, currency: 'RSC' };
 }
 
-export interface FeedContribution {
-  amount: number;
-  currency: 'USD' | 'RSC';
-}
-
-export function getContribution(entry: FeedEntry): FeedContribution | undefined {
+export function getContribution(entry: FeedEntry): CurrencyAmount | undefined {
   if (entry.contentType === 'FUNDINGACTIVITY') {
     const funding = entry.content as FeedFundingActivityContent;
     if (funding.totalUsdCents > 0) {
@@ -319,29 +315,6 @@ export function getContribution(entry: FeedEntry): FeedContribution | undefined 
   const contribution = post.fundraiseContribution;
   if (contribution?.amount == null) return undefined;
   return { amount: contribution.amount, currency: contribution.currency };
-}
-
-export interface DisplayedAmount {
-  amount: number;
-  inUSD: boolean;
-}
-
-function toDisplayPrecision(amount: number): number {
-  return Math.round(amount * 100) / 100;
-}
-
-export function resolveDisplayedContribution(
-  contribution: FeedContribution,
-  showUSD: boolean,
-  exchangeRate: number
-): DisplayedAmount {
-  const sourceIsUSD = contribution.currency === 'USD';
-  const canConvert = exchangeRate > 0;
-  const inUSD = canConvert ? showUSD : sourceIsUSD;
-
-  if (sourceIsUSD === inUSD) return { amount: toDisplayPrecision(contribution.amount), inUSD };
-  if (sourceIsUSD) return { amount: toDisplayPrecision(contribution.amount / exchangeRate), inUSD };
-  return { amount: toDisplayPrecision(contribution.amount * exchangeRate), inUSD };
 }
 
 export interface FeedGrantAmount {

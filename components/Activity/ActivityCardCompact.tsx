@@ -3,12 +3,12 @@
 import { FC } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
-import { ActivityHeaderActionText } from '@/components/Activity/ActivityHeaderActionText';
-import { BountyAmount } from '@/components/Activity/BountyAmount';
-import { ContributionAmount } from '@/components/Activity/ContributionAmount';
-import { FeedEntryIcon } from '@/components/Activity/FeedEntryIcon';
-import { GrantFundingAmount } from '@/components/Activity/GrantFundingAmount';
-import { ReviewScoreStars } from '@/components/Activity/ReviewScoreStars';
+import { ActivityHeaderActionText } from './ActivityHeaderActionText';
+import { BountyAmount } from './BountyAmount';
+import { ContributionAmount } from './ContributionAmount';
+import { FeedEntryIcon } from './FeedEntryIcon';
+import { GrantFundingAmount } from './GrantFundingAmount';
+import { ReviewScoreStars } from './ReviewScoreStars';
 import {
   getActionIcon,
   getActivityHeaderMessage,
@@ -17,18 +17,18 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
-} from '@/components/Activity/lib/feedEntryAdapters';
-import { getActivityBounty } from '@/components/Activity/lib/activityWorkContext';
+} from './lib/feedEntryDisplay';
+import { getActivityBounty } from './lib/activityWorkContext';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { FeedEntry } from '@/types/feed';
 
-interface ActivityCardProps {
+interface ActivityCardCompactProps {
   entry: FeedEntry;
 }
 
-/** Compact activity row used in the funding sidebar. */
-export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
+/** Compact activity row used in the activity sidebar. */
+export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => {
   const { title, href } = getEntryMeta(entry);
 
   if (!title) return null;

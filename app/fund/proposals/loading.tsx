@@ -1,5 +1,5 @@
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
+import { ActivitySidebarSkeleton } from '@/components/Activity/ActivitySidebarSkeleton';
 import { FundingBannerSkeleton } from '@/components/Funding/FundingBannerSkeleton';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 

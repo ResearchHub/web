@@ -5,7 +5,7 @@ import { Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { getCommentPreview } from './lib/feedEntryAdapters';
+import { getCommentPreview } from './lib/feedEntryDisplay';
 import { getWorkCardPresentation, type ActivityWork } from './lib/activityWorkContext';
 import type { FeedEntry } from '@/types/feed';
 

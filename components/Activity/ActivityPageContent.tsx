@@ -3,13 +3,13 @@
 import { useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityCardFull } from './ActivityCardFull';
+import { ActivityCardSkeleton } from './ActivityCardSkeleton';
 import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
-export function FundActivityPageContent() {
+export function ActivityPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const {

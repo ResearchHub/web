@@ -5,7 +5,7 @@ import { Bell, MessageCircle, type LucideIcon } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon, RSC_COLORS } from '@/components/ui/icons/ResearchCoinIcon';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import type { FeedEntryIconName } from './lib/feedEntryAdapters';
+import type { FeedEntryIconName } from './lib/feedEntryDisplay';
 
 const ICONS: Record<
   Exclude<FeedEntryIconName, 'coins' | 'fund' | 'earn' | 'proposal' | null>,

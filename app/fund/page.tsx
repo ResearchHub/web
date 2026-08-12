@@ -2,8 +2,8 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
+import { ActivitySidebarServer } from '@/components/Activity/ActivitySidebarServer';
+import { ActivitySidebarSkeleton } from '@/components/Activity/ActivitySidebarSkeleton';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { FundGrantsPageContent } from './FundGrantsPageContent';
 import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
@@ -35,7 +35,7 @@ export default async function FundPage() {
       }
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer />
+          <ActivitySidebarServer />
         </Suspense>
       }
     >

@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { AmountBadge } from './AmountBadge';
-import type { FeedGrantAmount } from './lib/feedEntryAdapters';
+import type { FeedGrantAmount } from './lib/feedEntryDisplay';
 
 interface GrantFundingAmountProps {
   amount: FeedGrantAmount;

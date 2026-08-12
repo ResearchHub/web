@@ -14,7 +14,7 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
-} from './lib/feedEntryAdapters';
+} from './lib/feedEntryDisplay';
 import { getActivityBounty } from './lib/activityWorkContext';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';

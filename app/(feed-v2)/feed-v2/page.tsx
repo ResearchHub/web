@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { FundActivityPageContent } from '@/components/Funding/FundActivityPageContent';
+import { ActivityPageContent } from '@/components/Activity/ActivityPageContent';
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function FeedV2ActivityPage() {
-  return <FundActivityPageContent />;
+  return <ActivityPageContent />;
 }

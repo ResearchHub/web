@@ -47,7 +47,7 @@ export function RightSidebarContainer({
           'sticky top-0 mt-10 z-30',
           'h-[calc(100vh-var(--top-bar-height))]',
           'lg:!flex !hidden right-sidebar:!flex',
-          'w-72 flex-shrink-0 flex-col gap-3'
+          'w-80 flex-shrink-0 flex-col gap-3'
         )}
       >
         {aboveSidebar}
