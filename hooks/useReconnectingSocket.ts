@@ -31,7 +31,11 @@ interface UseReconnectingSocketOptions {
    * caller owns.
    */
   onMessage: (data: unknown) => void;
-  /** Socket re-opened after a drop — refetch immediately, events were missed. */
+  /**
+   * The socket opened after a gap it couldn't cover — a reopen after a drop,
+   * or a first connection that only succeeded on retry. Refetch immediately:
+   * events may have been missed.
+   */
   onReconnect: () => void;
 }
 
@@ -100,8 +104,12 @@ export function useReconnectingSocket({
       const token = await getAuthToken();
       if (disposed) return;
       if (!token) {
-        // No session to authenticate with; a later remount (login) retries.
+        // Usually session hydration or a transient getSession() failure —
+        // keep retrying on the backoff instead of staying dark until a
+        // remount. For a genuinely signed-out user the notebook itself is
+        // unreachable, so the capped retry idles harmlessly.
         setStatus('closed');
+        scheduleReconnect();
         return;
       }
 
@@ -115,14 +123,19 @@ export function useReconnectingSocket({
 
       ws.onopen = () => {
         if (disposed) return;
+        // A reopen after a drop missed events — and so did a first open that
+        // needed retries: the caller fetched its baseline before the
+        // subscription came up, and the failed-attempt window is just as
+        // blind. Only a clean first open needs no catch-up.
+        const missedEvents = hasOpenedBefore || attempts > 0;
+        hasOpenedBefore = true;
         stableTimer = setTimeout(() => {
           attempts = 0;
         }, STABLE_CONNECTION_MS);
         setStatus('open');
-        if (hasOpenedBefore) {
+        if (missedEvents) {
           onReconnectRef.current();
         }
-        hasOpenedBefore = true;
       };
 
       ws.onmessage = (event) => {

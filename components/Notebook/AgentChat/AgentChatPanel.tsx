@@ -198,6 +198,8 @@ export function AgentChatPanel({
   /** First message for a chat we just created, sent once the chat is live. */
   const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
+  /** Identity of the latest creation, so a stale settle can't clear its flag. */
+  const creationSeqRef = useRef(0);
 
   /** Draft writes go through here so the per-chat map stays in sync. */
   const updateDraft = useCallback(
@@ -291,9 +293,13 @@ export function AgentChatPanel({
     if (selectedChatId == null) {
       // Default flow: create untitled, send the first message; the refetch
       // after the turn brings the derived title.
+      const creationSeq = ++creationSeqRef.current;
       setCreatingChat(true);
       const created = await list.createChat();
-      setCreatingChat(false);
+      // A newer creation may own the flag by now (the user moved to another
+      // note and started a chat there) — a stale settle must not unblock its
+      // composer while that creation is still in flight.
+      if (creationSeqRef.current === creationSeq) setCreatingChat(false);
       // Switched note or picked an existing chat meanwhile — abandon the
       // creation instead of yanking the selection to a stale chat.
       if (!isCurrentTarget(target)) return;
@@ -368,7 +374,13 @@ export function AgentChatPanel({
   const [needsNoteReload, setNeedsNoteReload] = useState(false);
   const [noteReloadFailed, setNoteReloadFailed] = useState(false);
   const [isReloadingNote, setIsReloadingNote] = useState(false);
-  const reloadInFlightRef = useRef(false);
+  /**
+   * Owner token of the running reload/review fetch. Callers take the lock by
+   * storing a fresh object and clean up only while they still own it, so a
+   * stale settle (previous note, superseded request) can neither free a newer
+   * request's lock nor stop its spinner.
+   */
+  const reloadLockRef = useRef<object | null>(null);
 
   // Newest agent-authored note version heard from any source — the note
   // version socket, the selected chat's activity, or the reconnect probe.
@@ -415,6 +427,11 @@ export function AgentChatPanel({
     latestAgentVersionRef.current = null;
     serverHeadRef.current = null;
     setAgentVersionSignal(null);
+    // Release the previous note's reload lock: its fetch must not block this
+    // note's first refresh (a blocked signal never re-fires), and once
+    // disowned its settle won't touch the spinner either.
+    reloadLockRef.current = null;
+    setIsReloadingNote(false);
   }, [noteId]);
 
   // The overlay lives on the editor instance; drop it (and the review) when
@@ -449,8 +466,9 @@ export function AgentChatPanel({
       // Concurrent auto refreshes would race each other's setContent, and the
       // running one already ends by re-checking for a newer version. Manual
       // clicks are serialized by the button's disabled state instead.
-      if (source === 'auto' && reloadInFlightRef.current) return;
-      reloadInFlightRef.current = true;
+      if (source === 'auto' && reloadLockRef.current != null) return;
+      const lock = {};
+      reloadLockRef.current = lock;
       setIsReloadingNote(true);
       setNoteReloadFailed(false);
       try {
@@ -499,8 +517,11 @@ export function AgentChatPanel({
         if (targetRef.current.noteId !== noteId) return;
         setNoteReloadFailed(true);
       } finally {
-        reloadInFlightRef.current = false;
-        setIsReloadingNote(false);
+        // Owner-only cleanup — see reloadLockRef.
+        if (reloadLockRef.current === lock) {
+          reloadLockRef.current = null;
+          setIsReloadingNote(false);
+        }
       }
     },
     [noteId, editor, recordServerHead, onPersistEditorState]
@@ -516,16 +537,21 @@ export function AgentChatPanel({
   const startDiffReview = useCallback(async () => {
     const pinnedVersionId = latestAgentVersionRef.current;
     if (!editor || editor.isDestroyed || pinnedVersionId == null) return;
-    if (reloadInFlightRef.current) return;
-    reloadInFlightRef.current = true;
+    if (reloadLockRef.current != null) return;
+    const lock = {};
+    reloadLockRef.current = lock;
     setIsReloadingNote(true);
     setNoteReloadFailed(false);
     try {
-      const baseDoc = editor.getJSON();
       const version = await NoteService.getNoteVersion(pinnedVersionId);
       // Same stale-note guard as reloadNoteContent.
       if (targetRef.current.noteId !== noteId) return;
       if (editor.isDestroyed) return;
+      // The base snapshot is read after the fetch so keystrokes typed while
+      // it ran are part of the review: they show up in the diff and "Reject"
+      // brings them back. Captured before the await, they'd be lost the
+      // moment the assistant's version is applied.
+      const baseDoc = editor.getJSON();
       const baseNode = editor.schema.nodeFromJSON(baseDoc);
       recordServerHead(pinnedVersionId);
       applyEditorContent(editor, parseVersionContent(version.json, version.src));
@@ -549,8 +575,11 @@ export function AgentChatPanel({
       if (targetRef.current.noteId !== noteId) return;
       setNoteReloadFailed(true);
     } finally {
-      reloadInFlightRef.current = false;
-      setIsReloadingNote(false);
+      // Owner-only cleanup — see reloadLockRef.
+      if (reloadLockRef.current === lock) {
+        reloadLockRef.current = null;
+        setIsReloadingNote(false);
+      }
     }
   }, [editor, noteId, recordServerHead, onPersistEditorState]);
 
