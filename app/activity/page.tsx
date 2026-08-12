@@ -2,13 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useInView } from 'react-intersection-observer';
 import { LayoutList, Star, Coins, Reply } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { PillTabs } from '@/components/ui/PillTabs';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityFeedList } from '@/components/Activity/ActivityFeedList';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
@@ -89,16 +87,6 @@ export default function ActivityPage() {
     lastClickedEntryId: lastClickedEntryId ?? undefined,
   });
 
-  const { ref: sentinelRef } = useInView({
-    threshold: 0,
-    rootMargin: '200px',
-    onChange: (inView) => {
-      if (inView && hasMore && !isLoading && !isLoadingMore) {
-        loadMore();
-      }
-    },
-  });
-
   const handleTabChange = useCallback(
     (tabId: string) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -136,21 +124,14 @@ export default function ActivityPage() {
         {tabsElement}
 
         <div className="mt-4">
-          {entries.map((entry) => (
-            <ActivityCardFull key={entry.id} entry={entry} />
-          ))}
-
-          {(isLoading || isLoadingMore) &&
-            [...Array(6)].map((_, i) => <ActivityCardSkeleton key={i} />)}
-
-          {!isLoading && !isLoadingMore && entries.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-gray-500">No activity found</p>
-            </div>
-          )}
+          <ActivityFeedList
+            entries={entries}
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore}
+            loadMore={loadMore}
+          />
         </div>
-
-        {!isLoading && !isLoadingMore && hasMore && <div ref={sentinelRef} className="h-10" />}
       </div>
     </PageLayout>
   );
