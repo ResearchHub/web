@@ -9,6 +9,7 @@ import { HomeFeedsProvider } from '@/components/Funding/HomeFeedsProvider';
 export default function FeedV2Layout({ children }: { children: ReactNode }) {
   return (
     <PageLayout
+      contentWidth="narrow"
       rightSidebar={<FundSidebar />}
       rightSidebarAbove={<FundingPowerCard className="w-full" />}
     >

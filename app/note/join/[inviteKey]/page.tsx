@@ -61,7 +61,7 @@ export default function JoinNotePage() {
 
   if (status === 'loading' || isFetching) {
     return (
-      <PageLayout rightSidebar={false} wideContent>
+      <PageLayout rightSidebar={false}>
         <div className="flex min-h-[60vh] flex-col items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary-500" />
           <p className="mt-4 text-sm text-gray-600">Loading note invitation...</p>
@@ -89,7 +89,7 @@ export default function JoinNotePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PageLayout rightSidebar={false} wideContent>
+      <PageLayout rightSidebar={false}>
         <div className="mx-auto w-full max-w-4xl px-2 pb-10 pt-4 sm:px-4">
           <div className="mb-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 flex-1">
