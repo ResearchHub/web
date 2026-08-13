@@ -23,13 +23,24 @@ interface LiveSpan {
   readonly to: number;
 }
 
+/**
+ * One review's channel to its host, shared by reference between the plugin
+ * state and teardown. Closing it silences any count still waiting on a
+ * microtask — after that only the closing zero may speak — and
+ * `lastDelivered` records what the host actually heard (seeded with what
+ * begin() returned), which is what the closing zero must undo.
+ */
+interface OverlaySession {
+  readonly onChangeCountUpdate?: (count: number) => void;
+  lastDelivered: number;
+  closed: boolean;
+}
+
 interface OverlayState {
   readonly spans: readonly LiveSpan[];
   readonly changeCount: number;
   readonly decorations: DecorationSet;
-  // Kept in state so teardown can publish the closing zero (see
-  // teardownOverlay); the plugin's own apply only sees live edits.
-  readonly onChangeCountUpdate?: (count: number) => void;
+  readonly session: OverlaySession;
 }
 
 interface OverlayOptions {
@@ -45,6 +56,23 @@ const overlayKey = new PluginKey<OverlayState>('noteDiffOverlay');
 
 function countChanges(spans: readonly LiveSpan[]): number {
   return new Set(spans.map((span) => span.changeId)).size;
+}
+
+/**
+ * Deliver a live count on a microtask, never during a dispatch. A session
+ * closed before delivery stays quiet: the dispatch that moved the count was
+ * part of closing (or replacing) the review, and teardown owns the final
+ * word — publishing regardless would let a folded review's dying zero
+ * dismiss its replacement's controls.
+ */
+function publishCount(session: OverlaySession, count: number): void {
+  const callback = session.onChangeCountUpdate;
+  if (!callback) return;
+  queueMicrotask(() => {
+    if (session.closed) return;
+    session.lastDelivered = count;
+    callback(count);
+  });
 }
 
 function buildDecorations(doc: ProseMirrorNode, spans: readonly LiveSpan[]): DecorationSet {
@@ -91,6 +119,12 @@ function buildOverlayPlugin(
   initial: readonly LiveSpan[],
   options: OverlayOptions
 ): Plugin<OverlayState> {
+  const session: OverlaySession = {
+    onChangeCountUpdate: options.onChangeCountUpdate,
+    // What begin() reports synchronously — the host's starting knowledge.
+    lastDelivered: countChanges(initial),
+    closed: false,
+  };
   return new Plugin<OverlayState>({
     key: overlayKey,
     state: {
@@ -98,7 +132,7 @@ function buildOverlayPlugin(
         spans: initial,
         changeCount: countChanges(initial),
         decorations: buildDecorations(state.doc, initial),
-        onChangeCountUpdate: options.onChangeCountUpdate,
+        session,
       }),
       apply: (tr, previous) => {
         if (!tr.docChanged) return previous;
@@ -106,15 +140,14 @@ function buildOverlayPlugin(
           .map((span) => mapSpan(span, tr))
           .filter((span): span is LiveSpan => span != null);
         const changeCount = countChanges(spans);
-        if (changeCount !== previous.changeCount && options.onChangeCountUpdate) {
-          const callback = options.onChangeCountUpdate;
-          queueMicrotask(() => callback(changeCount));
+        if (changeCount !== previous.changeCount) {
+          publishCount(previous.session, changeCount);
         }
         return {
           spans,
           changeCount,
           decorations: buildDecorations(tr.doc, spans),
-          onChangeCountUpdate: previous.onChangeCountUpdate,
+          session: previous.session,
         };
       },
     },
@@ -242,21 +275,25 @@ export function beginNoteDiffReview(
 }
 
 /**
- * Unregister the overlay and tell the change-count listener the review is
- * over. Resolution alone can leave the live count untouched — accepting
- * keeps a pair's inserted span, rejecting keeps its removed one — so the
- * closing zero has to be published here; the plugin's apply never sees it.
- *
- * The zero stays quiet when a new overlay is already installed by the time
- * the microtask runs: the review was replaced (begin folding into a newer
- * version), not closed, and the caller already holds the replacement's
- * count — a late zero would wrongly dismiss the live review.
+ * Unregister the overlay and settle what the change-count listener is told.
+ * The session closes first, silencing any count still waiting on a
+ * microtask (see publishCount). The closing zero is then owed whenever the
+ * host last heard a nonzero count — judged from `lastDelivered`, not the
+ * document, because resolution alone can leave the live count untouched
+ * (accepting keeps a pair's inserted span, rejecting keeps its removed
+ * one). The zero itself stays quiet when a new overlay is already installed
+ * by the time its microtask runs: the review was replaced (begin folding
+ * into a newer version), not closed, and the caller already holds the
+ * replacement's count.
  */
 function teardownOverlay(editor: Editor): void {
   const state = overlayKey.getState(editor.state);
   editor.unregisterPlugin(overlayKey);
-  if (state && state.changeCount > 0 && state.onChangeCountUpdate) {
-    const callback = state.onChangeCountUpdate;
+  if (!state) return;
+  const { session } = state;
+  session.closed = true;
+  const callback = session.onChangeCountUpdate;
+  if (callback && session.lastDelivered > 0) {
     queueMicrotask(() => {
       if (overlayKey.getState(editor.state)) return;
       callback(0);
