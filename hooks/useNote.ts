@@ -9,8 +9,10 @@ import {
 } from '@/types/note';
 import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
+import { getHTMLFromFragment, getText, getTextSerializersFromSchema } from '@tiptap/core';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { debounce, DebouncedFunc } from 'lodash-es';
-import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
+import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 
 export interface UseNoteOptions {
@@ -284,6 +286,13 @@ interface UpdateNoteOptions {
   onTitleUpdate?: (newTitle: string) => void;
   debounceMs?: number;
   registeredReportProposalId?: number | null;
+  /**
+   * The document a save should persist, when it isn't the editor's current
+   * one — the notebook uses this to strip in-note review content (assistant
+   * diff ranges pending a decision) out of saves. Defaults to the editor's
+   * live document.
+   */
+  docToPersist?: (editor: Editor) => ProseMirrorNode;
 }
 
 type UpdateNoteFn = (editor: Editor) => void;
@@ -305,9 +314,16 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
       return false;
     }
 
-    const json = mergeRegisteredReportPrefill(editor.getJSON(), registeredReportProposalId);
-    const html = editor.getHTML();
-    const newTitle = getDocumentTitleFromEditor(editor) || '';
+    // Serialize from the persistable document, which may differ from the
+    // editor's live one (see UpdateNoteOptions.docToPersist).
+    const doc = options.docToPersist?.(editor) ?? editor.state.doc;
+    const json = mergeRegisteredReportPrefill(doc.toJSON(), registeredReportProposalId);
+    const html = getHTMLFromFragment(doc.content, editor.schema);
+    const plainText = getText(doc, {
+      blockSeparator: '\n\n',
+      textSerializers: getTextSerializersFromSchema(editor.schema),
+    });
+    const newTitle = getDocumentTitle(json) || '';
 
     setIsLoading(true);
     setError(null);
@@ -333,7 +349,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         NoteService.updateNoteContent({
           note: noteId,
           full_src: html || '',
-          plain_text: editor.getText() || '',
+          plain_text: plainText || '',
           full_json: JSON.stringify(json),
         })
       );

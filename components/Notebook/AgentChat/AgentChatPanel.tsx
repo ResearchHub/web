@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/core';
+import { DOMParser as ProseMirrorDOMParser, type Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { Check, MessageSquarePlus, Pencil, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
@@ -19,8 +20,11 @@ import {
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
 import { ChatTranscript } from './ChatTranscript';
-import { installNoteDiffOverlay, uninstallNoteDiffOverlay } from './noteDiffOverlay';
-import { computeNoteDiff } from './noteVersionDiff';
+import {
+  beginNoteDiffReview,
+  endNoteDiffReview,
+  resolveNoteDiffReview,
+} from '../NoteReview/noteDiffOverlay';
 
 function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice {
   switch (outcome.reason) {
@@ -96,16 +100,28 @@ function applyEditorContent(editor: Editor | null, content: string | object): vo
   editor.commands.setContent(content, { emitUpdate: false });
 }
 
+/** Parse fetched version content into a schema node for diffing; null when unparseable. */
+function parseIncomingNode(editor: Editor, content: string | object): ProseMirrorNode | null {
+  try {
+    if (typeof content === 'object') return editor.schema.nodeFromJSON(content);
+    const container = document.createElement('div');
+    container.innerHTML = content;
+    return ProseMirrorDOMParser.fromSchema(editor.schema).parse(container);
+  } catch {
+    return null;
+  }
+}
+
 /**
- * A running in-note review session, handed to the host so the accept/restore
+ * A running in-note review session, handed to the host so the accept/reject
  * controls can live on the note page rather than in the chat panel.
  */
 export interface NoteReviewHandle {
   readonly changeCount: number;
-  /** The reviewed document is the note now — just takes the overlay down. */
+  /** Keep the assistant's side: deletes the struck ranges, keeps the rest. */
   readonly accept: () => void;
-  /** Puts the pre-review document back and persists it. */
-  readonly restoreMine: () => void;
+  /** Keep the reader's side: deletes the inserted ranges and persists it. */
+  readonly reject: () => void;
 }
 
 interface AgentChatPanelProps {
@@ -348,8 +364,6 @@ export function AgentChatPanel({
 
   // ---- note refresh when the agent edits the note ----
   const heldVersionRef = useRef<number | null>(null);
-  const editorDirtyRef = useRef(false);
-  const [needsNoteReload, setNeedsNoteReload] = useState(false);
   const [noteReloadFailed, setNoteReloadFailed] = useState(false);
   // A choice-persisting save failed — the editor shows what the user picked,
   // but the server's newest version is still someone else's.
@@ -395,23 +409,32 @@ export function AgentChatPanel({
     [recordServerHead]
   );
 
-  // In-note review: the assistant's version becomes the editor document with
-  // a diff overlay painted over it. `baseDoc` is what the editor showed when
-  // the review began, kept for "Restore my version".
+  // In-note review: the editor document becomes the merge of both versions —
+  // the assistant's version with the overwritten content spliced back in as
+  // struck, still-editable text. Everything stays editable; Accept/Reject
+  // resolve positionally, so edits made during the review survive with the
+  // section they touched.
   const [review, setReview] = useState<{
     versionId: number;
-    baseDoc: object;
     changeCount: number;
   } | null>(null);
-  // Live mirror for effects that must not re-run on review changes.
-  const reviewActiveRef = useRef(false);
-  reviewActiveRef.current = review != null;
+  // Identity of the live review. Change-count callbacks arrive on microtasks
+  // and can outlive the review that scheduled them (an overlay folded into a
+  // newer one, or just resolved) — a bump makes every earlier callback stale.
+  const reviewEpochRef = useRef(0);
+  // Re-runs the auto-review effect once a fetch lock frees, so a version that
+  // arrived while another was being fetched still gets reviewed.
+  const [reviewNudge, setReviewNudge] = useState(0);
+  // A version whose review fetch failed — retried via the banner or a newer
+  // version, never auto-looped by the nudge.
+  const lastFailedReviewVersionRef = useRef<number | null>(null);
 
   // A new note's version stream starts clean — signals recorded for the
   // previous note must never compare against the new note's held version.
   useEffect(() => {
     latestAgentVersionRef.current = null;
     serverHeadRef.current = null;
+    lastFailedReviewVersionRef.current = null;
     setAgentVersionSignal(null);
     // Release the previous note's reload and persist locks: its fetches must
     // not block this note's first refresh (a blocked signal never re-fires)
@@ -423,110 +446,108 @@ export function AgentChatPanel({
     setIsPersisting(false);
   }, [noteId]);
 
-  // The overlay lives on the editor instance; drop it (and the review) when
-  // the note or editor goes away mid-review.
+  // The overlay lives on the editor instance, and mid-review the document
+  // holds merged content — fold it to the accept-projection (the same thing
+  // saves have been persisting) when the note or editor goes away mid-review.
   useEffect(() => {
     setReview(null);
     return () => {
-      uninstallNoteDiffOverlay(editor);
+      reviewEpochRef.current++;
+      resolveNoteDiffReview(editor, 'accept');
     };
   }, [editor, noteId]);
 
   useEffect(() => {
     heldVersionRef.current = currentNote?.versionId ?? null;
-    editorDirtyRef.current = false;
-    setNeedsNoteReload(false);
     setNoteReloadFailed(false);
     setPersistFailed(false);
   }, [currentNote?.id, currentNote?.versionId]);
 
-  useEffect(() => {
-    if (!editor) return;
-    const markDirty = () => {
-      editorDirtyRef.current = true;
-    };
-    editor.on('update', markDirty);
-    return () => {
-      editor.off('update', markDirty);
-    };
-  }, [editor]);
-
-  const reloadNoteContent = useCallback(
-    async (source: 'auto' | 'manual' = 'manual') => {
-      // Concurrent auto refreshes would race each other's setContent, and the
-      // running one already ends by re-checking for a newer version. Manual
-      // clicks are serialized by the button's disabled state instead.
-      if (source === 'auto' && reloadLockRef.current != null) return;
-      const lock = {};
-      reloadLockRef.current = lock;
-      setIsReloadingNote(true);
-      setNoteReloadFailed(false);
-      setPersistFailed(false);
-      try {
-        // The banner promises the assistant's version, so a manual reload
-        // fetches that exact version when it's known — fetching latest could
-        // return a newer local autosave that buried it, silently handing the
-        // user their own content back.
-        const pinnedVersionId = source === 'manual' ? latestAgentVersionRef.current : null;
-        const { content, versionId: nextVersionId } = await fetchReloadContent(
-          noteId,
-          pinnedVersionId
-        );
-        // Navigated away mid-fetch: this content and version belong to the
-        // previous note and must not touch the current note's tracking (a
-        // cleared dirty flag here would let a later agent edit silently
-        // overwrite unsaved local work).
+  /**
+   * Escape hatch for when building the in-note review fails: fetch the
+   * assistant's version and apply it verbatim, no overlay. Fetches the exact
+   * promised version when it's known — fetching latest could return a newer
+   * local autosave that buried it, silently handing the user their own
+   * content back.
+   */
+  const reloadNoteContent = useCallback(async () => {
+    if (reloadLockRef.current != null) return;
+    const lock = {};
+    reloadLockRef.current = lock;
+    setIsReloadingNote(true);
+    setNoteReloadFailed(false);
+    setPersistFailed(false);
+    try {
+      const pinnedVersionId = latestAgentVersionRef.current;
+      const { content, versionId: nextVersionId } = await fetchReloadContent(
+        noteId,
+        pinnedVersionId
+      );
+      // Navigated away mid-fetch: this content and version belong to the
+      // previous note and must not touch the current note's tracking.
+      if (targetRef.current.noteId !== noteId) return;
+      // A verbatim apply replaces the whole document; any half-merged review
+      // content goes with it, so the overlay must not outlive it.
+      reviewEpochRef.current++;
+      endNoteDiffReview(editor);
+      setReview(null);
+      if (nextVersionId != null) recordServerHead(nextVersionId);
+      applyEditorContent(editor, content);
+      heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
+      lastFailedReviewVersionRef.current = null;
+      // A pinned version older than the server head means newer saves buried
+      // the assistant's version. The editor now shows the chosen content,
+      // but applying it emitted no update — without a re-save the choice
+      // would silently vanish on the next load, so persist it now.
+      if (pinnedVersionId != null && (serverHeadRef.current ?? 0) > pinnedVersionId) {
+        const persisted = (await onPersistEditorState?.()) ?? true;
         if (targetRef.current.noteId !== noteId) return;
-        // An auto refresh only starts while the editor is clean, but the user
-        // may have typed during the fetch — applying the response now would
-        // silently discard those keystrokes, so ask via the banner instead.
-        // Manual reloads are the user answering that banner: always apply.
-        if (source === 'auto' && editorDirtyRef.current) {
-          setNeedsNoteReload(true);
-          return;
-        }
-        if (nextVersionId != null) recordServerHead(nextVersionId);
-        applyEditorContent(editor, content);
-        heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
-        editorDirtyRef.current = false;
-        // A pinned version older than the server head means newer saves
-        // buried the assistant's version while the banner waited. The editor
-        // now shows the chosen content, but applying it emitted no update —
-        // without a re-save the choice would silently vanish on the next
-        // load, so have the host persist it now and surface a failure ("Keep
-        // mine" re-persists the current document, so it doubles as retry).
-        if (pinnedVersionId != null && (serverHeadRef.current ?? 0) > pinnedVersionId) {
-          const persisted = (await onPersistEditorState?.()) ?? true;
-          if (targetRef.current.noteId !== noteId) return;
-          if (!persisted) setPersistFailed(true);
-        }
-        // An even newer agent version can land while this fetch runs — keep
-        // the banner up for it instead of claiming the editor is in sync.
-        const latestAgent = latestAgentVersionRef.current;
-        const held = heldVersionRef.current;
-        setNeedsNoteReload(latestAgent != null && held != null && latestAgent > held);
-      } catch {
-        // Same stale-note guard as the success path: a failure from the
-        // previous note must not flash an error banner over the current one.
-        if (targetRef.current.noteId !== noteId) return;
-        setNoteReloadFailed(true);
-      } finally {
-        // Owner-only cleanup — see reloadLockRef.
-        if (reloadLockRef.current === lock) {
-          reloadLockRef.current = null;
-          setIsReloadingNote(false);
-        }
+        if (!persisted) setPersistFailed(true);
       }
+    } catch {
+      // Same stale-note guard as the success path: a failure from the
+      // previous note must not flash an error banner over the current one.
+      if (targetRef.current.noteId !== noteId) return;
+      setNoteReloadFailed(true);
+    } finally {
+      // Owner-only cleanup — see reloadLockRef.
+      if (reloadLockRef.current === lock) {
+        reloadLockRef.current = null;
+        setIsReloadingNote(false);
+        // A newer agent version may have landed while this ran.
+        setReviewNudge((nudge) => nudge + 1);
+      }
+    }
+  }, [noteId, editor, recordServerHead, onPersistEditorState]);
+
+  /**
+   * A change-count report from the overlay: the user edited whole regions
+   * away (or a late microtask from a resolved review, which the epoch check
+   * drops). Zero left means the review resolved itself organically — the
+   * edits that did it were ordinary editor updates, already on their way to
+   * autosave.
+   */
+  const handleLiveChangeCount = useCallback(
+    (epoch: number, count: number) => {
+      if (reviewEpochRef.current !== epoch) return;
+      if (count <= 0) {
+        reviewEpochRef.current++;
+        endNoteDiffReview(editor);
+        setReview(null);
+        return;
+      }
+      setReview((prev) => (prev == null ? prev : { ...prev, changeCount: count }));
     },
-    [noteId, editor, recordServerHead, onPersistEditorState]
+    [editor]
   );
 
   /**
-   * The banner's "Review changes": apply the assistant's version as the real
-   * editor document (same pinned fetch as Reload), then paint what changed
-   * against what the editor was showing — including unsaved edits — as an
-   * overlay. From there the note is just a note: the user edits it, restores
-   * struck text by clicking it, and autosave persists plain content.
+   * Turn the newest agent version into an in-note review, immediately: the
+   * document becomes the assistant's version with whatever it overwrote —
+   * including unsaved local edits — spliced back in as struck, editable
+   * text. No banner, no interposed click; Accept/Reject (or just editing)
+   * resolve it. Runs whether the editor was clean or dirty, and folds an
+   * already-open review into the newer version.
    */
   const startDiffReview = useCallback(async () => {
     const pinnedVersionId = latestAgentVersionRef.current;
@@ -542,86 +563,87 @@ export function AgentChatPanel({
       // Same stale-note guard as reloadNoteContent.
       if (targetRef.current.noteId !== noteId) return;
       if (editor.isDestroyed) return;
-      // The base snapshot is read after the fetch so keystrokes typed while
-      // it ran are part of the review: they show up in the diff and "Reject"
-      // brings them back. Captured before the await, they'd be lost the
-      // moment the assistant's version is applied.
-      const baseDoc = editor.getJSON();
-      const baseNode = editor.schema.nodeFromJSON(baseDoc);
       recordServerHead(pinnedVersionId);
-      applyEditorContent(editor, parseVersionContent(version.json, version.src));
+      const content = parseVersionContent(version.json, version.src);
+      const incoming = parseIncomingNode(editor, content);
+      const epoch = ++reviewEpochRef.current;
+      let changeCount = 0;
+      if (incoming) {
+        changeCount = beginNoteDiffReview(editor, incoming, {
+          onChangeCountUpdate: (count) => handleLiveChangeCount(epoch, count),
+        });
+      } else {
+        // Unparseable version content — fall back to a verbatim apply.
+        applyEditorContent(editor, content);
+      }
       heldVersionRef.current = pinnedVersionId;
-      editorDirtyRef.current = false;
-      // Diff against the settled editor document (extensions may have
-      // re-stamped node ids while applying), so positions match what the
-      // overlay decorates. Installed before the persist below so keystrokes
-      // during that request are ordinary edits on a reviewed document, not
-      // content the diff would mistake for the assistant's.
-      const { spans, changeCount } = computeNoteDiff(editor.schema, baseNode, editor.state.doc);
-      installNoteDiffOverlay(editor, spans);
-      // Same buried-pin rule as reloadNoteContent: newer saves outrank the
-      // version just applied, so persist the choice or it vanishes on the
-      // next load. A failure surfaces once the review closes ("Keep mine"
-      // re-persists the current document, so it doubles as retry).
+      lastFailedReviewVersionRef.current = null;
+      setReview(changeCount > 0 ? { versionId: pinnedVersionId, changeCount } : null);
+      // Newer saves outrank the version just reviewed (an autosave buried
+      // it). Saves strip the struck ranges, so this persists the
+      // accept-projection — re-promoting the assistant's content to the
+      // server's newest without touching the open review.
       if ((serverHeadRef.current ?? 0) > pinnedVersionId) {
         const persisted = (await onPersistEditorState?.()) ?? true;
         if (targetRef.current.noteId !== noteId) return;
         if (editor.isDestroyed) return;
         if (!persisted) setPersistFailed(true);
       }
-      setReview({ versionId: pinnedVersionId, baseDoc, changeCount });
-      const latestAgent = latestAgentVersionRef.current;
-      setNeedsNoteReload(latestAgent != null && latestAgent > pinnedVersionId);
     } catch {
       if (targetRef.current.noteId !== noteId) return;
+      lastFailedReviewVersionRef.current = pinnedVersionId;
       setNoteReloadFailed(true);
     } finally {
       // Owner-only cleanup — see reloadLockRef.
       if (reloadLockRef.current === lock) {
         reloadLockRef.current = null;
         setIsReloadingNote(false);
+        // A newer agent version may have landed while this ran — nudge the
+        // auto-review effect now that the lock is free.
+        setReviewNudge((nudge) => nudge + 1);
       }
     }
-  }, [editor, noteId, recordServerHead, onPersistEditorState]);
+  }, [editor, noteId, recordServerHead, onPersistEditorState, handleLiveChangeCount]);
 
-  /** The reviewed document is the note now — just take the overlay down. */
+  /**
+   * Keep the assistant's side: delete the struck ranges, keep everything
+   * else — including anything typed during the review. The result is exactly
+   * what saves have been persisting all along, so no extra save is needed;
+   * edits made mid-review reached autosave as ordinary updates.
+   */
   const acceptReview = useCallback(() => {
-    uninstallNoteDiffOverlay(editor);
+    reviewEpochRef.current++;
+    resolveNoteDiffReview(editor, 'accept');
     setReview(null);
   }, [editor]);
 
-  /** Put the pre-review document back and persist it, keep-mine semantics. */
-  const restoreMyVersion = useCallback(async () => {
+  /**
+   * Keep the reader's side: delete the inserted ranges, keep everything else
+   * — struck content becomes plain again, and text typed inside it stays.
+   * The server's newest is the assistant's version, so persist immediately;
+   * the resolution itself emits no update and would otherwise never save.
+   */
+  const rejectReview = useCallback(async () => {
     if (!review) return;
-    const { versionId, baseDoc } = review;
-    if (editor && !editor.isDestroyed) {
-      applyEditorContent(editor, baseDoc);
-    }
-    uninstallNoteDiffOverlay(editor);
-    // The review is visually over either way; what remains is making the
-    // restored document durable. Unsaved until then — a mid-save agent event
-    // must ask via the banner, not silently reload over the restored content.
+    const { versionId } = review;
+    reviewEpochRef.current++;
+    const resolved = resolveNoteDiffReview(editor, 'reject');
     setReview(null);
-    editorDirtyRef.current = true;
+    if (!resolved) return;
     const persistLock = {};
     persistLockRef.current = persistLock;
     setIsPersisting(true);
     const noteAtCall = targetRef.current.noteId;
     try {
-      // Applying content emits no update, so without this save the restored
-      // document would vanish on the next load (the assistant's version is
-      // the server's newest). Acknowledge the choice only once it's durable.
       const persisted = (await onPersistEditorState?.()) ?? true;
       if (targetRef.current.noteId !== noteAtCall) return;
       if (persisted) {
-        editorDirtyRef.current = false;
         const held = heldVersionRef.current;
         heldVersionRef.current = held == null ? versionId : Math.max(held, versionId);
         setPersistFailed(false);
       } else {
         // The editor shows the user's choice, but the server's newest is
         // still the assistant's version — say so instead of claiming done.
-        setNeedsNoteReload(true);
         setPersistFailed(true);
       }
     } finally {
@@ -633,7 +655,7 @@ export function AgentChatPanel({
     }
   }, [review, editor, onPersistEditorState]);
 
-  // The accept/restore controls render on the note page, next to the content
+  // The accept/reject controls render on the note page, next to the content
   // they decide about — hand the host the current session, and null when it
   // ends or this panel unmounts.
   useEffect(() => {
@@ -641,10 +663,10 @@ export function AgentChatPanel({
     onReviewChange(
       review == null
         ? null
-        : { changeCount: review.changeCount, accept: acceptReview, restoreMine: restoreMyVersion }
+        : { changeCount: review.changeCount, accept: acceptReview, reject: rejectReview }
     );
     return () => onReviewChange(null);
-  }, [review, onReviewChange, acceptReview, restoreMyVersion]);
+  }, [review, onReviewChange, acceptReview, rejectReview]);
 
   // After a socket drop, events were missed — the head version says whether
   // the newest commit is agent-authored and newer than what the editor holds,
@@ -691,31 +713,29 @@ export function AgentChatPanel({
     if (chatAgentVersion != null) recordAgentVersion(chatAgentVersion);
   }, [chatAgentVersion, recordAgentVersion]);
 
-  // A newer agent-authored version exists than what the editor holds: refresh
-  // silently while the editor is clean, or ask via the banner when local
-  // unsaved edits would be clobbered.
+  // A newer agent-authored version exists than what the editor holds: start
+  // (or fold into) an in-note review immediately, clean or dirty — the diff
+  // itself is the ask. The nudge re-runs this once a fetch lock frees; a
+  // version that already failed to load waits for the banner's retry.
   useEffect(() => {
     if (agentVersionSignal == null) return;
     // The signal can outrun the note load during a note switch — held still
     // belongs to the previous note until the current one lands.
     if (currentNote == null || String(currentNote.id) !== String(noteId)) return;
+    if (reloadLockRef.current != null) return;
+    const latestAgent = latestAgentVersionRef.current;
     const held = heldVersionRef.current;
-    if (held == null || agentVersionSignal <= held) return;
-    if (editorDirtyRef.current || reviewActiveRef.current) {
-      // A silent reload would clobber local unsaved edits — or yank the
-      // document out from under an open review — so ask instead.
-      setNeedsNoteReload(true);
-    } else {
-      reloadNoteContent('auto');
-    }
-  }, [agentVersionSignal, currentNote, noteId, reloadNoteContent]);
+    if (latestAgent == null || held == null || latestAgent <= held) return;
+    const lastFailed = lastFailedReviewVersionRef.current;
+    if (lastFailed != null && latestAgent <= lastFailed) return;
+    startDiffReview();
+  }, [agentVersionSignal, reviewNudge, currentNote, noteId, startDiffReview]);
 
-  const keepLocalVersion = async () => {
-    // Explicit user-wins: have the host persist the local document — the
-    // assistant's version may be the server's newest, so without a re-save
-    // the choice would vanish on the next load — and acknowledge the
-    // assistant's version only once that save succeeds. The assistant's
-    // version remains in the note's history.
+  const persistCurrentDoc = async () => {
+    // A choice-persisting save failed and the banner offered a retry: the
+    // editor already shows what the user picked, so persisting it as the
+    // newest server version is all that's left. Acknowledge the assistant's
+    // version only once that save succeeds.
     const persistLock = {};
     persistLockRef.current = persistLock;
     setIsPersisting(true);
@@ -734,7 +754,6 @@ export function AgentChatPanel({
       if (latestAgent != null) {
         heldVersionRef.current = held == null ? latestAgent : Math.max(held, latestAgent);
       }
-      setNeedsNoteReload(false);
     } finally {
       // Owner-only cleanup — see persistLockRef.
       if (persistLockRef.current === persistLock) {
@@ -902,42 +921,41 @@ export function AgentChatPanel({
         {renderBody()}
       </div>
 
-      {(needsNoteReload || noteReloadFailed || persistFailed) && review == null && (
+      {(noteReloadFailed || persistFailed) && review == null && (
         <div className="mx-3 mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
           <p className="text-xs text-amber-800">
-            {persistFailed
-              ? 'Couldn’t save the note. Use “Keep mine” to try again.'
-              : noteReloadFailed
-                ? 'Couldn’t refresh the note. Try again.'
-                : 'The assistant updated this note. Review its changes, reload, or keep yours.'}
+            {persistFailed ? 'Couldn’t save the note.' : 'Couldn’t load the assistant’s update.'}
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            {needsNoteReload && (
+            {persistFailed ? (
               <Button
                 variant="outlined"
                 size="sm"
-                onClick={startDiffReview}
+                onClick={persistCurrentDoc}
                 disabled={isReloadingNote || isPersisting}
               >
-                {isReloadingNote ? <Loader size="sm" /> : 'Review changes'}
+                {isPersisting ? <Loader size="sm" /> : 'Try again'}
               </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={startDiffReview}
+                  disabled={isReloadingNote || isPersisting}
+                >
+                  {isReloadingNote ? <Loader size="sm" /> : 'Try again'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={reloadNoteContent}
+                  disabled={isReloadingNote || isPersisting}
+                >
+                  Reload without review
+                </Button>
+              </>
             )}
-            <Button
-              variant={needsNoteReload ? 'ghost' : 'outlined'}
-              size="sm"
-              onClick={() => reloadNoteContent()}
-              disabled={isReloadingNote || isPersisting}
-            >
-              {isReloadingNote && !needsNoteReload ? <Loader size="sm" /> : 'Reload'}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={keepLocalVersion}
-              disabled={isReloadingNote || isPersisting}
-            >
-              {isPersisting ? <Loader size="sm" /> : 'Keep mine'}
-            </Button>
           </div>
         </div>
       )}
