@@ -48,15 +48,63 @@ function alignmentDoc(schema: Schema, doc: ProseMirrorNode): ProseMirrorNode {
 }
 
 /**
+ * Move a position to the outer edge of its enclosing textblock (paragraph,
+ * heading, code block). Positions between blocks — parent is the doc or a
+ * wrapper like a list item — stay put.
+ */
+function blockStart(doc: ProseMirrorNode, pos: number): number {
+  const $pos = doc.resolve(pos);
+  return $pos.parent.isTextblock ? $pos.before($pos.depth) : pos;
+}
+
+function blockEnd(doc: ProseMirrorNode, pos: number): number {
+  const $pos = doc.resolve(pos);
+  return $pos.parent.isTextblock ? $pos.after($pos.depth) : pos;
+}
+
+/**
+ * Widen each changed region to whole blocks, merging regions whose widened
+ * ranges overlap (several edits inside one paragraph become one change).
+ * The widened prefix and suffix are identical text on both sides — outside
+ * a change the documents align — so every pair keeps the changeset
+ * invariant that [fromA, toA) was replaced by [fromB, toB). A side left
+ * sitting between blocks (a purely inserted or purely removed block) stays
+ * degenerate: there is nothing on that side to widen over.
+ */
+function expandChangesToBlocks(
+  docA: ProseMirrorNode,
+  docB: ProseMirrorNode,
+  changes: readonly NoteDiffChange[]
+): readonly NoteDiffChange[] {
+  const merged: Array<{ fromA: number; toA: number; fromB: number; toB: number }> = [];
+  for (const change of changes) {
+    const fromA = blockStart(docA, change.fromA);
+    const toA = blockEnd(docA, change.toA);
+    const fromB = blockStart(docB, change.fromB);
+    const toB = blockEnd(docB, change.toB);
+    const last = merged[merged.length - 1];
+    if (last && (fromA < last.toA || fromB < last.toB)) {
+      last.toA = Math.max(last.toA, toA);
+      last.toB = Math.max(last.toB, toB);
+    } else {
+      merged.push({ fromA, toA, fromB, toB });
+    }
+  }
+  return merged;
+}
+
+/**
  * Diff two documents that share a schema into replaced regions.
  *
  * The backend stores version snapshots, not editing steps, so steps are first
  * recreated (recreateTransform), condensed into replaced ranges
- * (prosemirror-changeset), then merged to word boundaries for presentation.
- * Alignment runs on id-stripped copies; since attrs never change a node's
- * size, the resulting positions are valid in the real documents. Changes are
- * ascending and non-overlapping. Formatting-only changes produce no regions:
- * the changeset tracks content, not marks.
+ * (prosemirror-changeset), then widened to whole blocks for review: a change
+ * anywhere inside a paragraph presents the entire old block against the
+ * entire new one, and edits meeting inside one block merge into a single
+ * region. Alignment runs on id-stripped copies; since attrs never change a
+ * node's size, the resulting positions are valid in the real documents.
+ * Changes are ascending and non-overlapping. Formatting-only changes produce
+ * no regions: the changeset tracks content, not marks.
  */
 export function computeNoteDiffChanges(
   schema: Schema,
@@ -70,5 +118,9 @@ export function computeNoteDiffChanges(
   const changeSet = ChangeSet.create(docA).addSteps(tr.doc, tr.mapping.maps, 0);
   const changes = simplifyChanges(changeSet.changes, docB);
 
-  return changes.map(({ fromA, toA, fromB, toB }) => ({ fromA, toA, fromB, toB }));
+  return expandChangesToBlocks(
+    docA,
+    docB,
+    changes.map(({ fromA, toA, fromB, toB }) => ({ fromA, toA, fromB, toB }))
+  );
 }
