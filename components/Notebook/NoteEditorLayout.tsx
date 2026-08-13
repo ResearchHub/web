@@ -17,6 +17,7 @@ import { PublishedStatusSection } from './PublishingForm/components/PublishedSta
 import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
 import { AgentChatPanel, type NoteReviewHandle } from './AgentChat/AgentChatPanel';
+import { noteDiffPersistableDoc } from './NoteReview/noteDiffOverlay';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
@@ -204,6 +205,10 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   const [, updateNote, saveNoteNow] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
     registeredReportProposalId: note?.proposalId,
+    // While an assistant review is open the editor holds a merged document;
+    // saves must persist it without the struck (pending-removal) ranges.
+    docToPersist: (editorInstance) =>
+      noteDiffPersistableDoc(editorInstance) ?? editorInstance.state.doc,
   });
 
   // The panel asks for the editor's current document to be persisted as the
@@ -358,18 +363,15 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
         >
           <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full border border-gray-200 bg-white/95 py-2 pl-4 pr-2 shadow-lg backdrop-blur">
             <p className="text-xs text-gray-700">
-              {agentReview.changeCount === 0 ? (
-                'No text changes — the assistant may have only touched formatting.'
-              ) : (
-                <>
-                  <span className="font-medium">
-                    {agentReview.changeCount === 1
-                      ? '1 assistant change'
-                      : `${agentReview.changeCount} assistant changes`}
-                  </span>
-                  <span className="hidden sm:!inline"> — click struck text to restore it</span>
-                </>
-              )}
+              <span className="font-medium">
+                {agentReview.changeCount === 1
+                  ? '1 assistant change'
+                  : `${agentReview.changeCount} assistant changes`}
+              </span>
+              <span className="hidden sm:!inline">
+                {' '}
+                — Accept keeps the assistant’s edits, Reject keeps yours
+              </span>
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <Button
@@ -383,7 +385,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
                 variant="destructive"
                 size="sm"
                 className="rounded-full"
-                onClick={agentReview.restoreMine}
+                onClick={agentReview.reject}
               >
                 Reject
               </Button>
