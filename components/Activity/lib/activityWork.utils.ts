@@ -188,9 +188,10 @@ function presentFundraise(
   showUSD: boolean,
   exchangeRate: number
 ): WorkCardPresentation {
-  const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
-  const goalUsd = fundraise.goalAmount.usd;
-  const raisedUsd = fundraise.amountRaised.usd;
+  const goalUsd = fundraise.goalAmount?.usd ?? 0;
+  const goalRsc = fundraise.goalAmount?.rsc ?? 0;
+  const raisedUsd = fundraise.amountRaised?.usd ?? 0;
+  const goalAmount = showUSD ? goalUsd : goalRsc;
 
   return {
     ...base,
