@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
@@ -18,6 +18,7 @@ import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
 import { AgentChatPanel, type NoteReviewHandle } from './AgentChat/AgentChatPanel';
 import { noteDiffPersistableDoc } from './NoteReview/noteDiffOverlay';
+import { NoteReviewControls } from './NoteReview/NoteReviewControls';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
@@ -361,33 +362,11 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
             isAgentChatOpen ? 'bottom-6 sm:!right-[400px]' : 'bottom-24 lg:!bottom-6'
           )}
         >
-          <div className="pointer-events-auto flex max-w-full items-center gap-2.5 rounded-full border border-gray-200 bg-white/95 py-1.5 pl-4 pr-1.5 shadow-lg backdrop-blur">
-            <p className="text-xs font-medium text-gray-700">
-              {agentReview.changeCount === 1
-                ? '1 assistant change'
-                : `${agentReview.changeCount} assistant changes`}
-            </p>
-            <div className="flex shrink-0 items-center gap-0.5">
-              <button
-                type="button"
-                onClick={agentReview.accept}
-                title="Accept the assistant’s changes"
-                className="rounded-md p-1 text-emerald-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
-              >
-                <Check className="h-5 w-5" aria-hidden="true" strokeWidth={2.5} />
-                <span className="sr-only">Accept the assistant’s changes</span>
-              </button>
-              <button
-                type="button"
-                onClick={agentReview.reject}
-                title="Reject the assistant’s changes"
-                className="rounded-md p-1 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
-              >
-                <X className="h-5 w-5" aria-hidden="true" strokeWidth={2.5} />
-                <span className="sr-only">Reject the assistant’s changes</span>
-              </button>
-            </div>
-          </div>
+          <NoteReviewControls
+            changeCount={agentReview.changeCount}
+            onAccept={agentReview.accept}
+            onReject={agentReview.reject}
+          />
         </div>
       )}
 
