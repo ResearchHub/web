@@ -38,7 +38,7 @@ const useCases: ResearchCoinUseCase[] = [
     title: 'Reward the work that moves research forward',
     body: 'Researchers use RSC bounties to reward peer review, replication, data, and useful discussion.',
     cta: 'Browse open bounties',
-    href: '/earn',
+    href: '/peer-review',
   },
   {
     number: '03',

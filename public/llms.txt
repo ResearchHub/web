@@ -27,7 +27,7 @@ Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topi
 
 ## Peer Review & Publishing
 
-- [Earn for Peer Reviews](https://researchhub.com/earn): Approved reviews of preprints and proposals earn $150 worth of RSC
+- [Earn for Peer Reviews](https://researchhub.com/peer-review): Approved reviews of preprints and proposals earn $150 worth of RSC
 - [ResearchHub Journal](https://researchhub.com/journal): Open access, peer-reviewed journal with review in as few as 14 days
 
 ## Community

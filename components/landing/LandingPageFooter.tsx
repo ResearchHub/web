@@ -15,7 +15,7 @@ export function LandingPageFooter() {
 
   const platformLinks = [
     { label: 'Home', href: '/popular' },
-    { label: 'Earn', href: '/earn' },
+    { label: 'Peer Review', href: '/peer-review' },
     { label: 'Fund', href: '/fund' },
     { label: 'RH journal', href: '/journal' },
     { label: 'Leaderboard', href: '/leaderboard' },
@@ -37,7 +37,7 @@ export function LandingPageFooter() {
   const journalLinks = [
     {
       label: 'Get paid to peer review',
-      href: '/earn',
+      href: '/peer-review',
     },
     {
       label: 'About the Journal',

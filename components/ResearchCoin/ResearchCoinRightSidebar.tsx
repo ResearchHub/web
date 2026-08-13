@@ -54,7 +54,7 @@ const earnItems: SidebarItem[] = [
     title: 'Complete Peer Reviews',
     description: 'Earn RSC by peer reviewing preprints or proposals on ResearchHub.',
     icon: <Star className="w-4 h-4 text-gray-600" />,
-    href: '/earn',
+    href: '/peer-review',
   },
   {
     title: 'Create endowment',

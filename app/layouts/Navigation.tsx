@@ -101,7 +101,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         ]),
     {
       label: 'Peer Review',
-      href: '/earn',
+      href: '/peer-review',
       isLucideStar: true,
       description: 'Earn RSC for completing peer reviews',
     },
@@ -157,8 +157,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       );
     }
 
-    if (path === '/earn') {
-      return currentPath.startsWith('/earn') || currentPath === '/grants';
+    if (path === '/peer-review') {
+      return currentPath.startsWith('/peer-review') || currentPath === '/grants';
     }
 
     if (path === '/my-funding') {

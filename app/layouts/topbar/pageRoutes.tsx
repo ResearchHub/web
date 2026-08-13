@@ -26,7 +26,7 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/for-you',
   '/following',
   '/latest',
-  '/earn',
+  '/peer-review',
   '/journal',
   '/notebook',
   '/browse',
@@ -112,9 +112,9 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/earn'),
+    match: (p) => p.startsWith('/peer-review'),
     getInfo: () => ({
-      title: 'Earn',
+      title: 'Peer Review',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     }),
   },
