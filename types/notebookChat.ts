@@ -38,6 +38,13 @@ export interface ChatNarrationActivity {
   at: string;
 }
 
+export interface ChatThinkingActivity {
+  type: 'thinking';
+  /** Readable reasoning from one assistant thinking block, ≤4000 chars. */
+  text: string;
+  at: string;
+}
+
 export interface ChatToolCallActivity {
   type: 'tool_call';
   /** Machine name (e.g. `web_search`). Only used to pick an icon — new tools appear without notice. */
@@ -55,7 +62,7 @@ export interface ChatToolCallActivity {
   sources?: ChatActivitySource[] | null;
 }
 
-export type ChatActivityItem = ChatNarrationActivity | ChatToolCallActivity;
+export type ChatActivityItem = ChatNarrationActivity | ChatThinkingActivity | ChatToolCallActivity;
 
 export interface ExecutionPhase {
   /**

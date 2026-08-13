@@ -1,11 +1,14 @@
 'use client';
 
-import type { ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
 import {
   Ban,
   BookOpen,
+  Brain,
   Building2,
   Check,
+  ChevronDown,
+  ChevronRight,
   FileSearch,
   FileText,
   Globe,
@@ -22,6 +25,7 @@ import type {
   ActivityCallStatus,
   ChatActivityItem,
   ChatActivitySource,
+  ChatThinkingActivity,
   ChatToolCallActivity,
 } from '@/types/notebookChat';
 
@@ -141,6 +145,48 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
   );
 }
 
+/**
+ * One thinking block, collapsed to a labeled row with a one-line preview.
+ * Reasoning arrives whole (never streamed) and runs up to 4000 chars per
+ * block, so rendering it inline like narration would drown the tool rows;
+ * the chevron-led button mirrors the settled-turn summary toggle.
+ */
+function ThinkingRow({ item }: { readonly item: ChatThinkingActivity }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        className="flex w-full items-start gap-2 text-left text-gray-500 transition-colors hover:text-gray-700"
+      >
+        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
+          {expanded ? (
+            <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          )}
+        </span>
+        <span className="flex min-w-0 items-center gap-x-1.5">
+          <span className="inline-flex items-center gap-1 font-medium">
+            <Brain className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+            Thinking
+          </span>
+          {/* nowrap collapses the block's newlines, so the preview is one line. */}
+          {!expanded && <span className="min-w-0 truncate text-gray-400">{item.text}</span>}
+        </span>
+      </button>
+      {expanded && (
+        <p className="mt-1 whitespace-pre-wrap break-words pl-6 italic text-gray-500">
+          {item.text}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /** Unknown item types from newer backends render nothing (never crash the feed). */
 function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
   if (item.type === 'narration') {
@@ -149,6 +195,9 @@ function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
         {item.text}
       </p>
     );
+  }
+  if (item.type === 'thinking') {
+    return <ThinkingRow item={item} />;
   }
   if (item.type === 'tool_call') {
     return <ToolCallRow call={item} />;
