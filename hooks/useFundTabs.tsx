@@ -2,13 +2,16 @@
 
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FileText, Waves, type LucideIcon, type LucideProps } from 'lucide-react';
+import { type LucideIcon, type LucideProps } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBullhorn } from '@fortawesome/free-solid-svg-icons';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faBullhorn, faFileSignature, faWavePulse } from '@fortawesome/pro-light-svg-icons';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
-function BullhornIcon({ className }: LucideProps) {
-  return <FontAwesomeIcon icon={faBullhorn} className={className} />;
+function faTabIcon(icon: IconDefinition) {
+  return function FaTabIcon({ className }: LucideProps) {
+    return <FontAwesomeIcon icon={icon} className={className} />;
+  } as LucideIcon;
 }
 
 export type FundTab = 'activity' | 'fund' | 'proposals';
@@ -19,12 +22,15 @@ export const isFeedV2TabPath = (pathname: string) => FEED_V2_TAB_PATHS.includes(
 
 const TAB_ACTIVE_CLASS_NAME = 'border-b-primary-600 text-primary-600 !border-b-4';
 
+const TAB_ICON_CLASS_NAME = 'w-[18px] h-[18px]';
+
 export const FUND_TABS = [
   {
     id: 'activity' as const,
     label: 'Activity',
     href: '/feed-v2',
-    icon: Waves,
+    icon: faTabIcon(faWavePulse),
+    iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
@@ -32,7 +38,8 @@ export const FUND_TABS = [
     id: 'fund' as const,
     label: 'Request for Proposals',
     href: '/feed-v2/fund',
-    icon: BullhornIcon as LucideIcon,
+    icon: faTabIcon(faBullhorn),
+    iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
@@ -40,7 +47,8 @@ export const FUND_TABS = [
     id: 'proposals' as const,
     label: 'Proposals',
     href: '/feed-v2/fund/proposals',
-    icon: FileText,
+    icon: faTabIcon(faFileSignature),
+    iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
