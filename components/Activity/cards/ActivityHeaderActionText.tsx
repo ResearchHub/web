@@ -2,6 +2,7 @@
 
 import { FC, ReactNode } from 'react';
 import Link from 'next/link';
+import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { cn } from '@/utils/styles';
 import type { ActivityHeaderMessage } from '../lib/activityDisplay.utils';
@@ -13,29 +14,42 @@ interface ActivityHeaderActionTextProps {
   stacked?: boolean;
   /** Extra content (e.g. amount badges) rendered after the action text. */
   trailing?: ReactNode;
+  /** Show AuthorBadge next to the actor when they authored the work. */
+  isAuthor?: boolean;
 }
 
 function AuthorName({
   id,
   profileUrl,
   fullName,
+  showAuthorBadge,
 }: {
   id?: number;
   profileUrl: string;
   fullName?: string | null;
+  showAuthorBadge?: boolean;
 }) {
   const name = <span className="font-medium text-gray-900">{fullName || 'Unknown'}</span>;
+  const badge = showAuthorBadge ? <AuthorBadge size="sm" className="ml-1 shrink-0" /> : null;
 
   if (!id) {
-    return name;
+    return (
+      <span className="inline-flex items-center align-middle">
+        {name}
+        {badge}
+      </span>
+    );
   }
 
   return (
-    <AuthorTooltip authorId={id} placement="bottom">
-      <Link href={profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
-        {fullName || 'Unknown'}
-      </Link>
-    </AuthorTooltip>
+    <span className="inline-flex items-center align-middle">
+      <AuthorTooltip authorId={id} placement="bottom">
+        <Link href={profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
+          {fullName || 'Unknown'}
+        </Link>
+      </AuthorTooltip>
+      {badge}
+    </span>
   );
 }
 
@@ -44,6 +58,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   className,
   stacked = false,
   trailing,
+  isAuthor = false,
 }) => {
   const { actor, verb, target } = message;
 
@@ -69,7 +84,12 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
     return (
       <span className={cn('block', className)}>
         <span className="block truncate">
-          <AuthorName id={actor.id} profileUrl={actor.profileUrl} fullName={actor.fullName} />
+          <AuthorName
+            id={actor.id}
+            profileUrl={actor.profileUrl}
+            fullName={actor.fullName}
+            showAuthorBadge={isAuthor}
+          />
         </span>
         <span className="block">{action}</span>
       </span>
@@ -78,7 +98,12 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
 
   return (
     <span className={className}>
-      <AuthorName id={actor.id} profileUrl={actor.profileUrl} fullName={actor.fullName} />
+      <AuthorName
+        id={actor.id}
+        profileUrl={actor.profileUrl}
+        fullName={actor.fullName}
+        showAuthorBadge={isAuthor}
+      />
       {action}
     </span>
   );

@@ -444,6 +444,16 @@ function resolveWorkAuthors(
   return relatedAuthors;
 }
 
+/** True when `authorId` matches an author on the work or content object. */
+export function isActivityWorkAuthor(entry: FeedEntry, authorId?: number | null): boolean {
+  if (!authorId) return false;
+
+  const relatedAuthors = entry.relatedWork?.authors?.map((authorship) => authorship.authorProfile);
+  const authors = resolveWorkAuthors(entry, relatedAuthors);
+
+  return authors?.some((author) => author.id === authorId) ?? false;
+}
+
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
   const tab = resolveTabFromAction(entry.activityAction);
   const documentType = related.contentType;
