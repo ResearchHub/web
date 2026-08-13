@@ -372,11 +372,28 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   const performSaveRef = useRef(performSave);
   performSaveRef.current = performSave;
 
+  // Saves reach the server strictly in the order they were requested.
+  // cancel() cannot recall an autosave whose request is already in flight,
+  // and an immediate save overtaking it would let the older payload commit
+  // last — re-persisting content the user's action just superseded.
+  const saveChainRef = useRef<Promise<unknown>>(Promise.resolve());
+
+  const queueSave = useCallback(
+    (editor: Editor, noteId: ID, registeredReportProposalId?: number | null): Promise<boolean> => {
+      const run = saveChainRef.current
+        .catch(() => undefined)
+        .then(() => performSaveRef.current(editor, noteId, registeredReportProposalId));
+      saveChainRef.current = run;
+      return run;
+    },
+    []
+  );
+
   const debouncedUpdate = useRef<
     DebouncedFunc<(editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => void>
   >(
     debounce((editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
-      void performSaveRef.current(editor, noteId, registeredReportProposalId);
+      void queueSave(editor, noteId, registeredReportProposalId);
     }, options.debounceMs ?? 2000)
   );
 
@@ -395,14 +412,15 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
    * Persist immediately and report success — for moments where the save is
    * itself the user's action (keeping their version over an assistant's) and
    * a debounced fire-and-forget write would let the UI acknowledge a choice
-   * the server never heard about. Supersedes any scheduled autosave.
+   * the server never heard about. Cancels any scheduled autosave and queues
+   * behind any in-flight one.
    */
   const saveNoteNow = useCallback(
     (editor: Editor): Promise<boolean> => {
       debouncedUpdate.current.cancel();
-      return performSaveRef.current(editor, noteId, options.registeredReportProposalId);
+      return queueSave(editor, noteId, options.registeredReportProposalId);
     },
-    [noteId, options.registeredReportProposalId]
+    [noteId, options.registeredReportProposalId, queueSave]
   );
 
   useEffect(() => {
