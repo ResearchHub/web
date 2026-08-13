@@ -27,6 +27,9 @@ interface OverlayState {
   readonly spans: readonly LiveSpan[];
   readonly changeCount: number;
   readonly decorations: DecorationSet;
+  // Kept in state so teardown can publish the closing zero (see
+  // teardownOverlay); the plugin's own apply only sees live edits.
+  readonly onChangeCountUpdate?: (count: number) => void;
 }
 
 interface OverlayOptions {
@@ -95,6 +98,7 @@ function buildOverlayPlugin(
         spans: initial,
         changeCount: countChanges(initial),
         decorations: buildDecorations(state.doc, initial),
+        onChangeCountUpdate: options.onChangeCountUpdate,
       }),
       apply: (tr, previous) => {
         if (!tr.docChanged) return previous;
@@ -106,7 +110,12 @@ function buildOverlayPlugin(
           const callback = options.onChangeCountUpdate;
           queueMicrotask(() => callback(changeCount));
         }
-        return { spans, changeCount, decorations: buildDecorations(tr.doc, spans) };
+        return {
+          spans,
+          changeCount,
+          decorations: buildDecorations(tr.doc, spans),
+          onChangeCountUpdate: previous.onChangeCountUpdate,
+        };
       },
     },
     props: {
@@ -233,6 +242,21 @@ export function beginNoteDiffReview(
 }
 
 /**
+ * Unregister the overlay and tell the change-count listener the review is
+ * over. Resolution alone can leave the live count untouched — accepting
+ * keeps a pair's inserted span, rejecting keeps its removed one — so the
+ * closing zero has to be published here; the plugin's apply never sees it.
+ */
+function teardownOverlay(editor: Editor): void {
+  const state = overlayKey.getState(editor.state);
+  editor.unregisterPlugin(overlayKey);
+  if (state && state.changeCount > 0 && state.onChangeCountUpdate) {
+    const callback = state.onChangeCountUpdate;
+    queueMicrotask(() => callback(0));
+  }
+}
+
+/**
  * Resolve an active review in place: Accept deletes the struck (removed)
  * ranges, Reject deletes the inserted ones. Everything else — including
  * whatever the user typed while reviewing — stays exactly where it is, and
@@ -257,14 +281,14 @@ export function resolveNoteDiffReview(
     }
     dispatchSilently(editor, tr);
   }
-  editor.unregisterPlugin(overlayKey);
+  teardownOverlay(editor);
   return true;
 }
 
 /** Take the overlay down without touching the document (unmount cleanup). */
 export function endNoteDiffReview(editor: Editor | null): void {
   if (!editor || editor.isDestroyed) return;
-  editor.unregisterPlugin(overlayKey);
+  teardownOverlay(editor);
 }
 
 /**
