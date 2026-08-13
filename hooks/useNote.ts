@@ -299,32 +299,43 @@ type UpdateNoteFn = (editor: Editor) => void;
 type SaveNoteNowFn = (editor: Editor) => Promise<boolean>;
 type UseUpdateNoteReturn = [UseUpdateNoteState, UpdateNoteFn, SaveNoteNowFn];
 
+/**
+ * A save serialized at the moment it was requested. Queued saves upload
+ * this frozen payload rather than re-reading the editor, whose document may
+ * have moved on (e.g. into a new review) by the time the chain gets there.
+ */
+interface NoteSavePayload {
+  readonly json: unknown;
+  readonly html: string;
+  readonly plainText: string;
+  readonly title: string;
+}
+
 export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseUpdateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const titleRef = useRef<string>('');
 
-  const performSave = async (
+  const buildSavePayload = (
     editor: Editor,
-    noteId: ID,
     registeredReportProposalId?: number | null
-  ): Promise<boolean> => {
-    if (!editor || !noteId) {
-      console.error('Editor or noteId is undefined in performSave', { editor, noteId });
-      return false;
-    }
-
+  ): NoteSavePayload => {
     // Serialize from the persistable document, which may differ from the
     // editor's live one (see UpdateNoteOptions.docToPersist).
     const doc = options.docToPersist?.(editor) ?? editor.state.doc;
     const json = mergeRegisteredReportPrefill(doc.toJSON(), registeredReportProposalId);
-    const html = getHTMLFromFragment(doc.content, editor.schema);
-    const plainText = getText(doc, {
-      blockSeparator: '\n\n',
-      textSerializers: getTextSerializersFromSchema(editor.schema),
-    });
-    const newTitle = getDocumentTitle(json) || '';
+    return {
+      json,
+      html: getHTMLFromFragment(doc.content, editor.schema),
+      plainText: getText(doc, {
+        blockSeparator: '\n\n',
+        textSerializers: getTextSerializersFromSchema(editor.schema),
+      }),
+      title: getDocumentTitle(json) || '',
+    };
+  };
 
+  const performSave = async (payload: NoteSavePayload, noteId: ID): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
@@ -332,14 +343,14 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
       const promises: Promise<any>[] = [];
 
       // Only update title if it changed
-      if (newTitle !== titleRef.current) {
-        titleRef.current = newTitle;
+      if (payload.title !== titleRef.current) {
+        titleRef.current = payload.title;
         promises.push(
           NoteService.updateNoteTitle({
             noteId,
-            title: newTitle,
+            title: payload.title,
           }).then(() => {
-            options.onTitleUpdate?.(newTitle);
+            options.onTitleUpdate?.(payload.title);
           })
         );
       }
@@ -348,9 +359,9 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
       promises.push(
         NoteService.updateNoteContent({
           note: noteId,
-          full_src: html || '',
-          plain_text: plainText || '',
-          full_json: JSON.stringify(json),
+          full_src: payload.html || '',
+          plain_text: payload.plainText || '',
+          full_json: JSON.stringify(payload.json),
         })
       );
 
@@ -367,8 +378,11 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     }
   };
 
-  // The debounce wrapper is created once — route through a ref so it always
-  // runs the current render's save (fresh options and callbacks).
+  // The once-created debounce and queue route through refs so they always
+  // run the current render's serialization and save (fresh options and
+  // callbacks).
+  const buildSavePayloadRef = useRef(buildSavePayload);
+  buildSavePayloadRef.current = buildSavePayload;
   const performSaveRef = useRef(performSave);
   performSaveRef.current = performSave;
 
@@ -380,9 +394,18 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
 
   const queueSave = useCallback(
     (editor: Editor, noteId: ID, registeredReportProposalId?: number | null): Promise<boolean> => {
+      if (!editor || !noteId) {
+        console.error('Editor or noteId is undefined in queueSave', { editor, noteId });
+        return Promise.resolve(false);
+      }
+      // The payload is captured now, when the save is requested. A queued
+      // save that serialized once its turn came could instead read a review
+      // installed meanwhile (see docToPersist) and persist the side the
+      // caller's action had just decided against.
+      const payload = buildSavePayloadRef.current(editor, registeredReportProposalId);
       const run = saveChainRef.current
         .catch(() => undefined)
-        .then(() => performSaveRef.current(editor, noteId, registeredReportProposalId));
+        .then(() => performSaveRef.current(payload, noteId));
       saveChainRef.current = run;
       return run;
     },
