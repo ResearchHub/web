@@ -1,0 +1,103 @@
+'use client';
+
+import { FC, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { FeedItemActions } from '@/components/Feed/FeedItemActions';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { useShareModalContext } from '@/contexts/ShareContext';
+import type { ActivityWork, WorkCardPresentation } from '../lib/activityWork.utils';
+import type { FeedContentType, FeedEntry } from '@/types/feed';
+
+interface ActivityWorkActionsProps {
+  entry: FeedEntry;
+  work: ActivityWork;
+  presentation: WorkCardPresentation;
+  /** Called when a link CTA navigates away (e.g. scroll-restore click tracking). */
+  onNavigate?: () => void;
+}
+
+function getFeedContentTypeForWork(work: ActivityWork): FeedContentType {
+  if (work.documentType === 'paper') return 'PAPER';
+  if (work.documentType === 'preregistration') return 'PREREGISTRATION';
+  if (work.documentType === 'funding_request') return 'GRANT';
+  return 'POST';
+}
+
+/**
+ * Footer actions for an activity work card (votes/share + CTA), including fund modal.
+ */
+export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
+  entry,
+  work,
+  presentation,
+  onNavigate,
+}) => {
+  const router = useRouter();
+  const { showShareModal } = useShareModalContext();
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+
+  const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
+  const feedContentType = getFeedContentTypeForWork(work);
+  const cta = presentation.cta;
+
+  const handleContributeSuccess = () => {
+    setIsContributeModalOpen(false);
+    showShareModal({
+      url: work.href,
+      docTitle: work.title,
+      action: 'USER_FUNDED_PROPOSAL',
+    });
+    router.refresh();
+  };
+
+  const rightSideActionButton = cta ? (
+    <Button
+      variant="dark"
+      size="sm"
+      onClick={
+        cta.kind === 'fund-modal'
+          ? () => setIsContributeModalOpen(true)
+          : () => {
+              onNavigate?.();
+              router.push(cta.href);
+            }
+      }
+      className="rounded-md gap-1"
+    >
+      {cta.label}
+      <ArrowRight size={14} aria-hidden />
+    </Button>
+  ) : undefined;
+
+  return (
+    <>
+      <FeedItemActions
+        metrics={{ votes: voteCount, adjustedScore: voteCount }}
+        feedContentType={feedContentType}
+        votableEntityId={work.id}
+        relatedDocumentId={work.id.toString()}
+        relatedDocumentContentType={work.documentType}
+        relatedDocumentUnifiedDocumentId={work.unifiedDocumentId?.toString()}
+        userVote={entry.userVote}
+        href={work.href}
+        hideCommentButton
+        hideReportButton
+        variant="compact"
+        leadingUtilityActions
+        rightSideActionButton={rightSideActionButton}
+      />
+
+      {work.fundraise && (
+        <ContributeToFundraiseModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={handleContributeSuccess}
+          fundraise={work.fundraise}
+          proposalTitle={work.title}
+        />
+      )}
+    </>
+  );
+};

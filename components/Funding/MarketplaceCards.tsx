@@ -1,11 +1,30 @@
 'use client';
 
+import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
 import { useUser } from '@/contexts/UserContext';
 import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
-import { FUND_TABS, type FundTab } from '@/hooks/useFundTabs';
 
-export type MarketplaceTab = FundTab;
+export type MarketplaceTab = 'grants' | 'proposals';
+
+const MARKETPLACE_TABS = [
+  {
+    id: 'grants' as const,
+    label: 'Funding Opportunities',
+    href: '/fund',
+    icon: ArrowDownCircle,
+    iconClassName: 'w-5 h-5',
+    activeClassName: 'text-emerald-600 border-b-emerald-600',
+  },
+  {
+    id: 'proposals' as const,
+    label: 'Proposals',
+    href: '/fund/proposals',
+    icon: ArrowUpCircle,
+    iconClassName: 'w-5 h-5',
+    activeClassName: 'text-primary-600 border-b-primary-600',
+  },
+];
 
 interface MarketplaceCardsProps {
   selected?: MarketplaceTab;
@@ -21,7 +40,7 @@ export function MarketplaceCards({ selected = 'grants' }: MarketplaceCardsProps)
   return (
     <div ref={tabsSentinelRef} className={snapshotVisible ? 'sm:-mt-10' : ''}>
       <Tabs
-        tabs={FUND_TABS}
+        tabs={MARKETPLACE_TABS}
         activeTab={selected}
         onTabChange={() => {}}
         variant="primary"

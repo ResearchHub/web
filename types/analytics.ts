@@ -29,6 +29,7 @@ interface RelatedWork {
 export type FeedSource =
   | 'home'
   | 'earn'
+  | 'peer-review'
   | 'fund'
   | 'journal'
   | 'topic'

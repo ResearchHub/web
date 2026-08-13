@@ -55,21 +55,17 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
         </Link>
       </div>
 
-      <div className={`px-4 mt-6 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}>
+      <div
+        className={`mt-6 px-3 ${forceMinimize ? '!flex !justify-center !px-2' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2'}`}
+      >
         <PublishMenu forceMinimize={forceMinimize} />
       </div>
 
-      <div className="flex-1 mt-2 overflow-y-auto">
-        <div
-          className={`px-4 py-4 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}
-        >
-          <Navigation
-            currentPath={pathname || ''}
-            onUnimplementedFeature={handleUnimplementedFeature}
-            forceMinimize={forceMinimize}
-          />
-        </div>
-      </div>
+      <Navigation
+        currentPath={pathname || ''}
+        onUnimplementedFeature={handleUnimplementedFeature}
+        forceMinimize={forceMinimize}
+      />
 
       <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
         <FooterLinks />

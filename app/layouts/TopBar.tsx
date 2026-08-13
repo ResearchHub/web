@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
+import { Tabs } from '@/components/ui/Tabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
@@ -46,7 +47,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { contentTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && contentTabsHidden;
   const showTopBarFundTabs = isFundPage && contentTabsHidden;
-  const showTopBarTabs = showTopBarFeedTabs || showTopBarFundTabs;
+  const showTopBarContentTabs = showTopBarFeedTabs || showTopBarFundTabs;
 
   // A page (e.g. the notebook) can inject a custom control here in place of the
   // default breadcrumb.
@@ -85,7 +86,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     <>
       <div className="bg-white border-b border-gray-200">
         {/* Title row */}
-        <div className="flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
+        <div className="relative flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
           {/* Left side */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
             <Link href="/" className="block tablet:!hidden mr-2">
@@ -104,13 +105,19 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
 
-                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
+                {pageInfo && (
+                  <TopBarBreadcrumb
+                    pageInfo={showTopBarFundTabs ? { ...pageInfo, title: 'Fund' } : pageInfo}
+                    variant="desktop"
+                    truncateTitle={showTopBarFeedTabs}
+                  />
+                )}
               </>
             )}
 
             {/* Inline content tabs — desktop only, shown once page tabs scroll away */}
             {showTopBarFeedTabs && (
-              <div className="hidden tablet:!flex items-center ml-4">
+              <div className="hidden tablet:!flex min-w-0 flex-shrink-0 items-center ml-4">
                 <FeedTabs
                   activeTab={highlightedTab}
                   tabs={tabs}
@@ -119,17 +126,25 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 />
               </div>
             )}
-            {showTopBarFundTabs && (
-              <div className="hidden tablet:!flex items-center ml-4">
-                <FeedTabs
-                  activeTab={fundHighlightedTab}
-                  tabs={fundTabs}
-                  onTabChange={handleFundTabChange}
-                  isCompact={false}
-                />
-              </div>
-            )}
           </div>
+
+          {/* Fund tabs sit on the top bar's bottom border, aligned to PageLayout's
+              content column so they don't jump horizontally when they stick. */}
+          {showTopBarFundTabs && (
+            <div className="pointer-events-none absolute inset-0 hidden tablet:!flex animate-in fade-in duration-200">
+              <div className="mx-auto flex h-full w-full max-w-[1012px] px-4 tablet:!px-8">
+                <div className="pointer-events-auto flex h-full min-w-0 flex-shrink-0">
+                  <Tabs
+                    tabs={fundTabs}
+                    activeTab={fundHighlightedTab}
+                    onTabChange={handleFundTabChange}
+                    variant="primary"
+                    className="!border-b-0 h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Right side */}
           <div className="flex items-center space-x-2 h-full">
@@ -161,17 +176,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         </div>
 
-        {/* Feed tabs — mobile only, stacked below title when content tabs scroll out of view */}
+        {/* Content tabs — mobile only, stacked below title when page tabs scroll out of view */}
         {(isFeedPage || isFundPage) && (
           <div
             className="tablet:!hidden overflow-hidden transition-all duration-300 ease-in-out border-b px-4 -mt-2 pb-1"
             style={{
-              maxHeight: showTopBarTabs ? '62px' : '0px',
-              opacity: showTopBarTabs ? 1 : 0,
-              borderBottomColor: showTopBarTabs ? undefined : 'transparent',
+              maxHeight: showTopBarContentTabs ? '62px' : '0px',
+              opacity: showTopBarContentTabs ? 1 : 0,
+              borderBottomColor: showTopBarContentTabs ? undefined : 'transparent',
             }}
           >
-            {isFeedPage && (
+            {showTopBarFeedTabs && (
               <FeedTabs
                 activeTab={highlightedTab}
                 tabs={tabs}
@@ -179,12 +194,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 isCompact={false}
               />
             )}
-            {isFundPage && (
-              <FeedTabs
-                activeTab={fundHighlightedTab}
+            {showTopBarFundTabs && (
+              <Tabs
                 tabs={fundTabs}
+                activeTab={fundHighlightedTab}
                 onTabChange={handleFundTabChange}
-                isCompact={false}
+                variant="primary"
+                className="!border-b-0"
               />
             )}
           </div>

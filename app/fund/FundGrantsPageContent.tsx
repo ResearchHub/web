@@ -6,6 +6,7 @@ import { useFeed } from '@/hooks/useFeed';
 import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import type { GrantSortOption } from '@/components/Funding/lib/grantSortConfig';
 
+/** Classic /fund grants list (local useFeed — remounts with the page). */
 export function FundGrantsPageContent() {
   const [grantSort, setGrantSort] = useState<GrantSortOption>('newest');
 

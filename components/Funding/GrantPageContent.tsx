@@ -15,7 +15,11 @@ interface GrantTabContextValue {
     isLoadingMore: boolean;
     hasMore: boolean;
     count: number;
+    page: number;
     loadMore: () => void;
+    restoredScrollPosition: number | null;
+    lastClickedEntryId: string | null;
+    restorationTab: string;
   };
 }
 
@@ -37,7 +41,18 @@ export function GrantTabProvider({
   grantId?: number | string;
 }) {
   const [activeTab, setActiveTab] = useState<GrantBannerTab>(defaultTab);
-  const { entries, isLoading, isLoadingMore, hasMore, count, loadMore } = useActivityFeed({
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    count,
+    page,
+    loadMore,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
+  } = useActivityFeed({
     scope: 'grants',
     grantId,
   });
@@ -47,7 +62,18 @@ export function GrantTabProvider({
       value={{
         activeTab,
         setActiveTab,
-        activity: { entries, isLoading, isLoadingMore, hasMore, count, loadMore },
+        activity: {
+          entries,
+          isLoading,
+          isLoadingMore,
+          hasMore,
+          count,
+          page,
+          loadMore,
+          restoredScrollPosition,
+          lastClickedEntryId,
+          restorationTab,
+        },
       }}
     >
       {children}

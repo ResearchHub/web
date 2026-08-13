@@ -11,10 +11,8 @@ interface SearchHistoryTrackerProps {
 
 export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
   useEffect(() => {
-    // Get existing history
-    const history = getSearchHistory();
+    const history = [...getSearchHistory()];
 
-    // Create new suggestion from work
     const newSuggestion: SearchSuggestion = {
       id: work.id,
       entityType: 'paper',
@@ -29,23 +27,17 @@ export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
       contentType: work.contentType,
     };
 
-    // Update or add the current suggestion
     const existingIndex = history.findIndex((item) => item.id === work.id);
-
     if (existingIndex !== -1) {
-      // Remove from current position
       history.splice(existingIndex, 1);
     }
 
-    // Add to the start of history
     history.unshift(newSuggestion);
 
-    // Keep only the most recent suggestions
     if (history.length > MAX_HISTORY_ITEMS) {
-      history.pop();
+      history.length = MAX_HISTORY_ITEMS;
     }
 
-    // Save updated history
     saveSearchHistory(history);
   }, [work]);
 

@@ -11,7 +11,7 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default function FunderDashboardRoute() {
   return (
-    <PageLayout rightSidebar={false} wideContent className="px-4 py-6 tablet:px-8">
+    <PageLayout rightSidebar={false}>
       <FunderDashboardContent />
     </PageLayout>
   );

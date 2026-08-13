@@ -29,11 +29,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "external_references",
-    "app/notebook/[room]/page.tsx",
-  ]
+  "exclude": ["node_modules", "external_references", "app/notebook/[room]/page.tsx"]
 }

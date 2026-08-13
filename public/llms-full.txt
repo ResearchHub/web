@@ -58,7 +58,7 @@ Reviewers build a public track record that strengthens their academic profile. P
 
 Guidelines: https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-guidelines
 
-More: https://researchhub.com/earn
+More: https://researchhub.com/peer-review
 
 ### Personalized Home Feed
 
@@ -126,7 +126,7 @@ By holding RSC in a ResearchHub account, holders automatically earn yield as Fun
 - [About](https://researchhub.com/about): Mission and values
 - [Funding](https://researchhub.com/fund): Research funding opportunities
 - [Endowment](https://researchhub.com/endowment): Earn Funding Credits by holding RSC
-- [Peer Review](https://researchhub.com/earn): Earn for peer reviews
+- [Peer Review](https://researchhub.com/peer-review): Earn for peer reviews
 - [For You](https://researchhub.com/for-you): Personalized preprint feed
 - [Journal](https://researchhub.com/journal): ResearchHub Journal
 - [Browse Hubs](https://researchhub.com/browse): Explore research by discipline

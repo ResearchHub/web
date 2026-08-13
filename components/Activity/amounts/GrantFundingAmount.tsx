@@ -3,15 +3,16 @@
 import { FC } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
-import { cn } from '@/utils/styles';
-import type { FeedGrantAmount } from './lib/feedEntryAdapters';
+import { AmountBadge } from './AmountBadge';
+import type { ActivityGrantAmount } from '../lib/activityDisplay.utils';
 
 interface GrantFundingAmountProps {
-  amount: FeedGrantAmount;
+  amount: ActivityGrantAmount;
   className?: string;
+  size?: 'sm' | 'md';
 }
 
-export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, className }) => {
+export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, className, size }) => {
   const { showUSD } = useCurrencyPreference();
   const formatted = formatCurrency({
     amount: showUSD ? amount.usd : amount.rsc,
@@ -21,5 +22,9 @@ export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, classN
     shorten: true,
   });
 
-  return <span className={cn('text-xs font-medium text-gray-900', className)}>{formatted}</span>;
+  return (
+    <AmountBadge className={className} size={size}>
+      {formatted}
+    </AmountBadge>
+  );
 };

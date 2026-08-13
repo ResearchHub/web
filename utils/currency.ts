@@ -1,4 +1,5 @@
 import { formatRSC } from './number';
+import type { Currency } from '@/types/root';
 
 export function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -42,4 +43,48 @@ export const formatCurrency = ({
   }
 
   return formatRSC({ amount, shorten });
+};
+
+export interface CurrencyAmount {
+  amount: number;
+  currency: Currency;
+}
+
+interface FormatCurrencyAmountOptions extends CurrencyAmount {
+  showUSD: boolean;
+  exchangeRate: number;
+  shorten?: boolean;
+}
+
+function toDisplayPrecision(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
+
+/**
+ * Formats an amount whose source currency is known, converting only when the
+ * preferred display currency differs. Without an exchange rate the amount stays
+ * in its source currency instead of being mislabeled.
+ */
+export const formatCurrencyAmount = ({
+  amount,
+  currency,
+  showUSD,
+  exchangeRate,
+  shorten = false,
+}: FormatCurrencyAmountOptions): string => {
+  const sourceIsUSD = currency === 'USD';
+  const inUSD = exchangeRate > 0 ? showUSD : sourceIsUSD;
+
+  let displayed = amount;
+  if (sourceIsUSD !== inUSD) {
+    displayed = sourceIsUSD ? amount / exchangeRate : amount * exchangeRate;
+  }
+
+  return formatCurrency({
+    amount: toDisplayPrecision(displayed),
+    showUSD: inUSD,
+    exchangeRate: 1,
+    skipConversion: true,
+    shorten,
+  });
 };

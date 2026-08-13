@@ -38,9 +38,14 @@ const nextConfig = {
       permanent: true,
     },
     {
-      source: '/earn/reviews',
-      destination: '/earn',
-      permanent: false,
+      source: '/earn',
+      destination: '/peer-review',
+      permanent: true,
+    },
+    {
+      source: '/earn/:path*',
+      destination: '/peer-review',
+      permanent: true,
     },
     {
       source: '/fund/:id(\\d+)',

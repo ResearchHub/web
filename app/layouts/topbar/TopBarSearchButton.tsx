@@ -33,7 +33,7 @@ function TopBarSearchButtonInner({
     <div className="relative">
       <button
         onClick={onClick}
-        className="flex items-center w-full md:!w-60 max-w-md mx-auto h-9 px-4 py-1.5 bg-gray-100/75 hover:bg-gray-200 rounded-full transition-colors text-left group"
+        className="flex items-center w-full md:!w-60 max-w-md mx-auto h-9 px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-left group"
       >
         <SearchIcon className="h-4 w-4 text-gray-600 mr-3 flex-shrink-0" />
         <span

@@ -6,8 +6,7 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
+import { ActivitySidebarServer, ActivitySidebarSkeleton } from '@/components/Activity';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
@@ -56,7 +55,7 @@ export default async function FundProposalsPage() {
       }
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer />
+          <ActivitySidebarServer />
         </Suspense>
       }
     >

@@ -168,7 +168,13 @@ interface FeedItemActionsProps {
   onExpand?: (e?: React.MouseEvent) => void;
   isExpanded?: boolean;
   className?: string;
-  variant?: 'default' | 'inline';
+  /**
+   * `default` — feed footer bar with pill vote control.
+   * `inline` — same pill chrome, no gray bar (e.g. comment rows).
+   * `compact` — flat vote/save/share icons matching activity preview cards.
+   */
+  variant?: 'default' | 'inline' | 'compact';
+  leadingUtilityActions?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -207,6 +213,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   isExpanded = false,
   className,
   variant = 'default',
+  leadingUtilityActions = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -407,51 +414,177 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
   const totalAwarded = tipAmount + (awardedBountyAmount || 0);
 
+  const canSave =
+    !!relatedDocumentUnifiedDocumentId &&
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    feedContentType !== 'APPLICATION' &&
+    showPeerReviews;
+
+  const showShare = leadingUtilityActions || (variant !== 'inline' && variant !== 'compact');
+  const showMoreMenu =
+    !!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
+    menuItems.length > 0 ||
+    !hideReportButton;
+  const isCompact = variant === 'compact';
+
+  const shareButton = showShare ? (
+    isCompact ? (
+      <button
+        type="button"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={handleCopyDocumentUrl}
+        className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800"
+        aria-label="Share"
+        title={showTooltips ? 'Copy link' : undefined}
+      >
+        <Share className="h-4 w-4" />
+      </button>
+    ) : (
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip={showTooltips ? 'Copy link' : undefined}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={handleCopyDocumentUrl}
+        className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+      >
+        <Share className="h-[18px] w-[18px]" />
+      </Button>
+    )
+  ) : null;
+
+  const saveButton = canSave ? (
+    isCompact ? (
+      <button
+        type="button"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={handleAddToList}
+        disabled={isTogglingDefaultList}
+        className={cn(
+          'flex h-6 w-6 items-center justify-center transition-colors',
+          isDocumentInList ? 'text-green-600' : 'text-gray-500 hover:text-gray-800',
+          isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
+        )}
+        aria-label={isDocumentInList ? 'Remove from list' : 'Save'}
+        title={showTooltips ? 'Save' : undefined}
+      >
+        <FontAwesomeIcon
+          icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+          className="h-3.5 w-3.5"
+        />
+      </button>
+    ) : (
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip={showTooltips ? 'Save' : undefined}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={handleAddToList}
+        disabled={isTogglingDefaultList}
+        className={cn(
+          'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
+          isDocumentInList
+            ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
+            : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+        )}
+      >
+        <FontAwesomeIcon
+          icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+          className="h-[18px] w-[18px]"
+        />
+      </Button>
+    )
+  ) : null;
+
   return (
     <>
       <div
         className={cn(
           'flex items-center justify-between gap-2',
-          variant === 'default' && 'bg-gray-50 px-3 py-1.5'
+          variant === 'default' && 'bg-gray-50 px-3 py-1.5',
+          isCompact && 'gap-3'
         )}
       >
-        <div className={cn('flex items-center flex-nowrap overflow-visible', className)}>
+        <div
+          className={cn(
+            'flex items-center flex-nowrap overflow-visible',
+            isCompact ? 'gap-4' : undefined,
+            className
+          )}
+        >
           <div
             className={cn(
-              'flex h-8 items-center rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80 transition-all',
-              isVoting ? 'opacity-50' : ''
+              'flex items-center transition-all',
+              isCompact
+                ? cn('gap-2', isVoting && 'opacity-50')
+                : cn(
+                    'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
+                    isVoting && 'opacity-50'
+                  )
             )}
           >
             <button
               onClick={(e) => handleVote(e, 'up')}
               disabled={isVoting}
               className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
-                localUserVote === 'UPVOTE'
-                  ? 'bg-green-50 text-green-600'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                'flex items-center justify-center transition-colors',
+                isCompact
+                  ? cn(
+                      'h-6 w-6',
+                      localUserVote === 'UPVOTE'
+                        ? 'text-green-600'
+                        : 'text-gray-500 hover:text-gray-800'
+                    )
+                  : cn(
+                      'h-7 w-7 rounded-full',
+                      localUserVote === 'UPVOTE'
+                        ? 'bg-green-50 text-green-600'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    ),
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className="h-[18px] w-[18px]" />
+              <ArrowUp className={isCompact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
             </button>
-            <span className="min-w-[1.75rem] px-1 text-center text-xs font-semibold text-gray-900">
+            <span
+              className={cn(
+                'text-center text-xs font-medium',
+                isCompact
+                  ? 'min-w-[1.1rem] text-gray-700'
+                  : 'min-w-[1.75rem] px-1 font-semibold text-gray-900'
+              )}
+            >
               {localVoteCount}
             </span>
             <button
               onClick={(e) => handleVote(e, 'down')}
               disabled={isVoting}
               className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
-                localUserVote === 'DOWNVOTE'
-                  ? 'bg-red-50 text-red-600'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                'flex items-center justify-center transition-colors',
+                isCompact
+                  ? cn(
+                      'h-6 w-6',
+                      localUserVote === 'DOWNVOTE'
+                        ? 'text-red-600'
+                        : 'text-gray-500 hover:text-gray-800'
+                    )
+                  : cn(
+                      'h-7 w-7 rounded-full',
+                      localUserVote === 'DOWNVOTE'
+                        ? 'bg-red-50 text-red-600'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    ),
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className="h-[18px] w-[18px]" />
+              <ArrowDown className={isCompact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
             </button>
           </div>
           {!hideCommentButton && (
@@ -575,101 +708,74 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             />
           )}
           {children}
+          {leadingUtilityActions && (
+            <>
+              {saveButton}
+              {shareButton}
+            </>
+          )}
         </div>
 
         <div className="flex flex-shrink-0 items-center justify-end gap-1">
           {rightSideActionButton}
-          <BaseMenu
-            trigger={
-              <Button
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                variant="ghost"
-                size="sm"
-                className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
-              >
-                <MoreHorizontal className="h-[18px] w-[18px]" />
-              </Button>
-            }
-            align="end"
-            open={isMenuOpen}
-            onOpenChange={setIsMenuOpen}
-          >
-            {listDetailContext && relatedDocumentUnifiedDocumentId && (
-              <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
-                <Trash2 className="w-4 h-4" />
-                <span>Remove from list</span>
-              </BaseMenuItem>
-            )}
-
-            {menuItems.map((item, index) => (
-              <BaseMenuItem
-                key={`menu-item-${index}`}
-                onClick={(e) => {
-                  setIsMenuOpen(false);
-                  item.onClick(e);
-                }}
-                className={cn('flex items-center gap-2', item.className)}
-              >
-                {item.icon && <item.icon className="w-4 h-4" />}
-                <span>{item.label}</span>
-              </BaseMenuItem>
-            ))}
-
-            {showSeparator && <div className="h-px my-1 bg-gray-200" />}
-
-            {!hideReportButton && (
-              <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
-                <Flag className="w-4 h-4" />
-                <span>{actionLabels?.report || 'Report'}</span>
-              </BaseMenuItem>
-            )}
-          </BaseMenu>
-          {variant !== 'inline' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              tooltip={showTooltips ? 'Copy link' : undefined}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-              }}
-              onClick={handleCopyDocumentUrl}
-              className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+          {showMoreMenu && (
+            <BaseMenu
+              trigger={
+                <Button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
+                >
+                  <MoreHorizontal className="h-[18px] w-[18px]" />
+                </Button>
+              }
+              align="end"
+              open={isMenuOpen}
+              onOpenChange={setIsMenuOpen}
             >
-              <Share className="h-[18px] w-[18px]" />
-            </Button>
+              {listDetailContext && relatedDocumentUnifiedDocumentId && (
+                <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  <span>Remove from list</span>
+                </BaseMenuItem>
+              )}
+
+              {menuItems.map((item, index) => (
+                <BaseMenuItem
+                  key={`menu-item-${index}`}
+                  onClick={(e) => {
+                    setIsMenuOpen(false);
+                    item.onClick(e);
+                  }}
+                  className={cn('flex items-center gap-2', item.className)}
+                >
+                  {item.icon && <item.icon className="w-4 h-4" />}
+                  <span>{item.label}</span>
+                </BaseMenuItem>
+              ))}
+
+              {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+
+              {!hideReportButton && (
+                <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+                  <Flag className="w-4 h-4" />
+                  <span>{actionLabels?.report || 'Report'}</span>
+                </BaseMenuItem>
+              )}
+            </BaseMenu>
           )}
-          {relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews && (
-              <Button
-                variant="ghost"
-                size="sm"
-                tooltip={showTooltips ? 'Save' : undefined}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-                onClick={handleAddToList}
-                disabled={isTogglingDefaultList}
-                className={cn(
-                  'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
-                  isDocumentInList
-                    ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
-                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
-                )}
-              >
-                <FontAwesomeIcon
-                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-                  className="h-[18px] w-[18px]"
-                />
-              </Button>
-            )}
+          {!leadingUtilityActions && (
+            <>
+              {shareButton}
+              {saveButton}
+            </>
+          )}
         </div>
       </div>
 

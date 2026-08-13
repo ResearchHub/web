@@ -82,7 +82,7 @@ export function FeaturesSection() {
   };
 
   const handleStartReviewing = () => {
-    router.push('/earn');
+    router.push('/peer-review');
   };
 
   const getClickHandler = (featureId: string, isPrimary: boolean) => {

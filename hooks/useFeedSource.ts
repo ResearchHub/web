@@ -7,14 +7,14 @@ import { FeedSource } from '@/types/analytics';
  * Custom hook that extracts feed source and tab information from the current URL.
  *
  * This hook analyzes the URL pathname and search parameters to determine:
- * 1. The feed source (home, earn, fund, journal, topic, author, search, list, or unknown)
+ * 1. The feed source (home, peer-review, fund, journal, topic, author, search, list, or unknown)
  * 2. The specific tab or section within that source
  *
  * Tab extraction follows this priority order:
  * 1. Query parameter 'tab' (e.g., ?tab=active)
  * 2. Third path segment for topic pages (e.g., /topic/ai/popular → tab: 'popular')
  * 3. Second path segment for list pages (e.g., /list/123 → tab: '123')
- * 4. Second path segment for other pages (e.g., /earn/grants)
+ * 4. Second path segment for other pages (e.g., /topic/ai/popular)
  * 5. For author pages: default to 'contributions' when no query param
  * 6. For home tabs, the source itself (e.g., /popular → tab: 'popular')
  * 7. For search pages: constant 'search' as tab
@@ -33,7 +33,7 @@ import { FeedSource } from '@/types/analytics';
  * - /following → source: 'home', tab: 'following'
  * - /latest → source: 'home', tab: 'latest'
  * - /for-you → source: 'home', tab: 'for-you'
- * - /earn → source: 'earn', tab: 'unknown'
+ * - /peer-review → source: 'peer-review', tab: 'unknown'
  * - /fund → source: 'fund', tab: 'unknown'
  * - /journal?tab=all → source: 'journal', tab: 'all'
  * - /topic/ai/popular → source: 'topic', tab: 'popular'
@@ -59,6 +59,7 @@ function isValidFeedSource(source: string): source is FeedSource {
   const validSources: FeedSource[] = [
     'home',
     'earn',
+    'peer-review',
     'fund',
     'journal',
     'topic',

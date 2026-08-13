@@ -1,15 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { LayoutList, Star, Coins, Reply } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { PillTabs } from '@/components/ui/PillTabs';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeletonList } from '@/components/Activity/ActivityCardSkeleton';
+import { ActivityCard, ActivityCardSkeleton } from '@/components/Activity';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
+import { getFeedKey } from '@/contexts/NavigationContext';
 import { ActivityScope } from '@/services/activity.service';
 import { GrantService } from '@/services/grant.service';
 
@@ -31,6 +32,7 @@ function isValidTab(value: string | null): value is ActivityTab {
 
 export default function ActivityPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const tabParam = searchParams.get('tab');
@@ -50,9 +52,40 @@ export default function ActivityPage() {
     });
   }, [grantIdParam]);
 
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useActivityFeed({
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    page,
+    loadMore,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
+  } = useActivityFeed({
     scope,
     grantId: grantIdParam || undefined,
+  });
+
+  const feedKey = useMemo(() => {
+    const queryParams: Record<string, string> = {};
+    for (const [key, value] of searchParams) {
+      queryParams[key] = value;
+    }
+    return getFeedKey({
+      pathname,
+      tab: restorationTab,
+      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+    });
+  }, [pathname, restorationTab, searchParams]);
+
+  useFeedScrollTracking({
+    feedKey,
+    entries,
+    hasMore,
+    page,
+    restoredScrollPosition,
+    lastClickedEntryId: lastClickedEntryId ?? undefined,
   });
 
   const { ref: sentinelRef } = useInView({
@@ -103,10 +136,11 @@ export default function ActivityPage() {
 
         <div className="mt-4">
           {entries.map((entry) => (
-            <ActivityCardFull key={entry.id} entry={entry} />
+            <ActivityCard key={entry.id} entry={entry} />
           ))}
 
-          {(isLoading || isLoadingMore) && <ActivityCardSkeletonList />}
+          {(isLoading || isLoadingMore) &&
+            [...Array(6)].map((_, i) => <ActivityCardSkeleton key={i} />)}
 
           {!isLoading && !isLoadingMore && entries.length === 0 && (
             <div className="py-12 text-center">
