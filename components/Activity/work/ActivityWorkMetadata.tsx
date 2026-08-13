@@ -38,7 +38,7 @@ export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, pres
             {work.title}
           </div>
           {authorLine && (
-            <div className="mt-0.5 truncate text-[11px] text-white/55">{authorLine}</div>
+            <div className="mt-0.5 truncate text-[11px] text-white/70">{authorLine}</div>
           )}
         </div>
 
