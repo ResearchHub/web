@@ -20,6 +20,8 @@ import {
   getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useShareToken } from '@/hooks/useShareToken';
+import { stripShareToken } from '@/lib/shareToken/url';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
@@ -42,9 +44,11 @@ interface WorkHeaderProps {
   updatesCount?: number;
   className?: string;
   eyebrow?: ReactNode;
+  preTitle?: ReactNode;
   subtitle?: ReactNode;
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
+  reviewsTabUrl?: string;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
   grantModalProps?: {
@@ -64,9 +68,11 @@ export function WorkHeader({
   updatesCount,
   className,
   eyebrow: eyebrowOverride,
+  preTitle,
   subtitle: subtitleOverride,
   additionalMenuItems,
   tabs: tabsOverride,
+  reviewsTabUrl: reviewsTabUrlOverride,
   primaryAction,
   hideVoteWidget = false,
   grantModalProps,
@@ -77,6 +83,7 @@ export function WorkHeader({
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
 
   const { showShareModal } = useShareModalContext();
+  const shareToken = useShareToken();
   const { isInList } = useIsInList(work.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: work.unifiedDocumentId,
@@ -128,20 +135,26 @@ export function WorkHeader({
     contentType: work.contentType,
     slug: work.slug,
     tab: 'bounties',
+    shareToken,
   });
 
-  const reviewsTabUrl = buildWorkUrl({
-    id: work.id,
-    contentType: work.contentType,
-    slug: work.slug,
-    tab: 'reviews',
-  });
+  const reviewsTabUrl =
+    reviewsTabUrlOverride ??
+    (work.postType === 'REGISTERED_REPORT'
+      ? undefined
+      : buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType,
+          slug: work.slug,
+          tab: 'reviews',
+          shareToken,
+        }));
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
   const shareAction = () =>
     showShareModal({
-      url: globalThis.location.href,
+      url: stripShareToken(globalThis.location.href),
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
@@ -242,6 +255,7 @@ export function WorkHeader({
       <HeroHeader
         title={work.title}
         eyebrow={resolvedEyebrow}
+        preTitle={preTitle}
         subtitle={resolvedSubtitle}
         actions={actionBar}
         cta={primaryAction}

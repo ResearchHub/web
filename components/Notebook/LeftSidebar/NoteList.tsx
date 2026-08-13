@@ -1,9 +1,10 @@
 'use client';
 
 import { NoteListItem } from '@/components/Notebook/LeftSidebar/NoteListItem';
-import { Note } from '@/types/note';
+import { isChangelogNote, type Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 import { useTransition } from 'react';
+import { useUser } from '@/contexts/UserContext';
 
 interface NoteListProps {
   notes: Note[];
@@ -12,9 +13,15 @@ interface NoteListProps {
 
 export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) => {
   const [isPending, startTransition] = useTransition();
+  const { user } = useUser();
+  const isModerator = !!user?.isModerator;
 
   const filteredAndSortedNotes = notes
-    .filter((note) => note.access === 'WORKSPACE' || note.access === 'SHARED')
+    .filter(
+      (note) =>
+        (note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE') &&
+        (isModerator || !isChangelogNote(note))
+    )
     .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 
   if (isLoading || notes.length === 0) {
@@ -30,7 +37,7 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) 
   }
 
   return (
-    <div className="space-y-0.5 lg:max-h-[300px] max-h-none overflow-y-auto pr-1">
+    <div className="space-y-1 tablet:!space-y-0.5 lg:max-h-[300px] max-h-none overflow-y-auto pr-1">
       {filteredAndSortedNotes.map((note) => (
         <NoteListItem
           key={note.id}

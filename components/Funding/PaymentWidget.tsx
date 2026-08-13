@@ -38,10 +38,10 @@ interface PaymentWidgetProps {
   amountInUsd: number;
   /** Amount display string (e.g., "$100.00") */
   amountDisplay: string;
-  /** User's spendable RSC balance */
+  /** User's RSC balance available for funding (available + promotional) */
   rscBalance: number;
-  /** User's locked RSC balance (earned funding credits) */
-  lockedBalance?: number;
+  /** User's funding credits balance (excludes promotional RSC) */
+  fundingCreditsBalance?: number;
   /** Called when user clicks "Preview Payment" (for payment methods with preview) */
   onPreviewTransaction: (paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>) => void;
   /** Called when user clicks "Login to Endaoment" */
@@ -76,7 +76,7 @@ export function PaymentWidget({
   amountInUsd,
   amountDisplay,
   rscBalance,
-  lockedBalance = 0,
+  fundingCreditsBalance = 0,
   onPreviewTransaction,
   onEndaomentLogin,
   isButtonDisabled = false,
@@ -153,7 +153,7 @@ export function PaymentWidget({
     {
       id: 'funding_credits',
       title: 'Funding Credits',
-      description: renderRscBalance(lockedBalance),
+      description: renderRscBalance(fundingCreditsBalance),
       icon: <ResearchCoinIcon size={18} variant="green" outlined />,
     },
     {
@@ -214,7 +214,7 @@ export function PaymentWidget({
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
     if (option.id === 'funding_credits') {
-      return lockedBalance > 0;
+      return fundingCreditsBalance > 0;
     }
     if (option.id === 'endaoment') {
       return hasNonprofit;

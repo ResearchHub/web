@@ -1,19 +1,16 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useRef } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { FeedItemSkeleton, FeedSkeletonVariant } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
-import { FeedTab, FundingTab } from '@/hooks/useFeed';
-import { TabType } from '@/components/Journal/JournalTabs';
 import { FeedEntryItem, Highlight } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
-import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
-import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
 
 interface InsertContentItem {
   index: number;
@@ -29,7 +26,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode;
   banner?: ReactNode;
-  activeTab?: FeedTab | FundingTab | TabType | string;
+  activeTab?: string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;
@@ -48,6 +45,14 @@ interface FeedContentProps {
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
+  renderEntry?: (props: {
+    entry: FeedEntry;
+    index: number;
+    ordering?: string;
+    registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
+    unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
+    getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  }) => ReactNode;
   /**
    * Drop the default `max-w-4xl` cap on the feed list so it fills its parent.
    * Use when the surrounding layout is already wider (e.g. sidebar-less pages).
@@ -84,14 +89,13 @@ export const FeedContent: FC<FeedContentProps> = ({
   shouldRenderBountyAsComment,
   showBountyInfo = false,
   abstractCollapsedByDefault,
+  renderEntry,
   wideContent = false,
   skeletonVariant,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { setContentTabsHidden } = useFeedTabsVisibility();
-  const scrollContainerRef = useScrollContainer();
-  const tabsSentinelRef = useRef<HTMLDivElement>(null);
+  const tabsSentinelRef = useContentTabsVisibilitySentinel(!!tabs);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -136,27 +140,6 @@ export const FeedContent: FC<FeedContentProps> = ({
     }
   }, [inView, hasMore, showLoadingSkeletons, loadMore]);
 
-  useEffect(() => {
-    const sentinel = tabsSentinelRef.current;
-    if (!sentinel || !tabs) return;
-
-    const root = scrollContainerRef?.current ?? null;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setContentTabsHidden(!entry.isIntersecting);
-      },
-      { root, threshold: 0 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [tabs, scrollContainerRef, setContentTabsHidden]);
-
-  useEffect(() => {
-    if (!tabs) return;
-    return () => setContentTabsHidden(false);
-  }, [tabs, setContentTabsHidden]);
-
   return (
     <>
       {header}
@@ -187,7 +170,16 @@ export const FeedContent: FC<FeedContentProps> = ({
                 }
               }
 
-              const feedItem = (
+              const feedItem = renderEntry ? (
+                renderEntry({
+                  entry,
+                  index,
+                  ordering,
+                  registerVisibleItem,
+                  unregisterVisibleItem,
+                  getVisibleItems,
+                })
+              ) : (
                 <FeedEntryItem
                   showPostHeaders={showPostHeaders}
                   showBountyInfo={showBountyInfo}

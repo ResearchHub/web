@@ -18,7 +18,7 @@ export interface Editor {
 export const editors: Editor[] = [
   {
     name: 'Ruslan Rust, PhD',
-    role: 'Senior Editor',
+    role: 'Chief Editor',
     bio: '',
     affiliation: 'University of Southern California',
     image: '/people/ruslan.jpeg',
@@ -43,6 +43,19 @@ export const editors: Editor[] = [
     },
   },
   {
+    name: 'Xavier Pereira-Hernández, PhD',
+    role: 'Editor',
+    bio: '',
+    affiliation: 'Washington State University',
+    image: '/people/xavier.jpeg',
+    authorId: null,
+    socialLinks: {
+      email: 'xavier.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/xiph/',
+      scholar: 'https://scholar.google.com/citations?user=cACsV1UAAAAJ&hl=en',
+    },
+  },
+  {
     name: 'Scott Nelson, PhD',
     role: 'Associate Editor',
     bio: '',
@@ -56,16 +69,29 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Qingyu Luo, MD, PhD',
-    role: 'Associate Editor',
+    name: 'Suramya Asthana, PhD',
+    role: 'Editor',
     bio: '',
-    affiliation: 'Harvard University',
-    image: '/people/qingyu.jpeg',
-    authorId: '6487201',
+    affiliation: 'Indian Institute of Science',
+    image: '/people/suramya.jpeg',
+    authorId: null,
     socialLinks: {
-      email: 'qingyu.editor@researchhub.foundation',
-      linkedin: 'https://www.linkedin.com/in/qingyu-luo-md-phd/',
-      scholar: 'https://scholar.google.com/citations?pli=1&authuser=1&user=rmULKhYAAAAJ',
+      email: 'suramya.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/suramyaa/',
+      scholar: 'https://scholar.google.com/citations?user=HWI44igAAAAJ&hl=en',
+    },
+  },
+  {
+    name: 'Tibor V. Varga, PhD',
+    role: 'Editor',
+    bio: '',
+    affiliation: 'University of Copenhagen',
+    image: '/people/tibor.jpeg',
+    authorId: null,
+    socialLinks: {
+      email: 'tibor.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/tiborvvarga/',
+      scholar: 'https://scholar.google.com/citations?user=vfCZQvAAAAAJ&hl=en',
     },
   },
 ];

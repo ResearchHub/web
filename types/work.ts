@@ -79,18 +79,6 @@ export interface FormatType {
   internalUrl?: string;
 }
 
-export interface Enrichment {
-  source: string;
-  citationCount?: number | null;
-  influentialCitationCount?: number | null;
-  altmetricScore?: number | null;
-  impactScore?: number | null;
-  journal?: string | null;
-  tldr?: string | null;
-  twitterMentions?: number | null;
-  newsMentions?: number | null;
-}
-
 export interface Work {
   id: number;
   type?: WorkType;
@@ -121,6 +109,7 @@ export interface Work {
   previewContent?: string;
   contentUrl?: string;
   unifiedDocumentId?: number | null;
+  registeredReportId?: number | null;
   postType?: string;
   fundraise?: any;
   tips?: Tip[];
@@ -130,7 +119,6 @@ export interface Work {
    * Currently we take **only the first** `grants[0]` row’s review.
    */
   aiPeerReview?: ProposalReview | null;
-  enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
   moderationStatus?: ModerationStatus;
   isPublic?: boolean;
@@ -372,6 +360,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
       views: raw.metrics?.views || raw.views_count || 0,
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
+    registeredReportId: raw.registered_report_id ?? null,
     postType: raw.document_type || raw.type || raw.unified_document?.document_type,
     fundraise: raw.fundraise,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
@@ -380,7 +369,6 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     tips: tips,
     peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
     image: raw.image_url || raw.primary_image,
-    enrichments: raw.enrichments || [],
     moderationStatus: raw.status as ModerationStatus | undefined,
   };
 });

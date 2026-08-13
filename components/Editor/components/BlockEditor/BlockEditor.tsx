@@ -39,16 +39,6 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   });
 
   useEffect(() => {
-    if (editor && (content || contentJson)) {
-      if (contentJson) {
-        editor.commands.setContent(JSON.parse(contentJson));
-      } else {
-        editor.commands.setContent(content || '');
-      }
-    }
-  }, [editor, content, contentJson]);
-
-  useEffect(() => {
     if (setEditor) {
       setEditor(editor);
     }

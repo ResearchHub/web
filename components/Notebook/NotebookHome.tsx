@@ -16,6 +16,7 @@ import {
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import Icon from '@/components/ui/icons/Icon';
 import { NotePaperWrapper } from './NotePaperWrapper';
+import { useUser } from '@/contexts/UserContext';
 
 interface CreateOption {
   id: string;
@@ -33,6 +34,8 @@ interface CreateOption {
 export function NotebookHome() {
   const router = useRouter();
   const { notes, isLoading: isLoadingNotes } = useNotebookContext();
+  const { user } = useUser();
+  const isModerator = !!user?.isModerator;
 
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
@@ -64,16 +67,22 @@ export function NotebookHome() {
       icon: <FundingIcon size={24} color="#2563eb" />,
       onClick: () => setIsProposalModalOpen(true),
     },
-    {
-      id: 'preprint',
-      title: 'Preprint',
-      description: 'Publish your research as a preprint',
-      icon: <Icon name="submit1" size={24} color="#2563eb" />,
-      onClick: () => router.push('/notebook?newResearch=true'),
-    },
+    ...(isModerator
+      ? [
+          {
+            id: 'changelog',
+            title: 'ChangeLog',
+            description: 'Publish a ResearchHub product update',
+            icon: <Icon name="submit1" size={24} color="#2563eb" />,
+            onClick: () => router.push('/notebook?newChangelog=true'),
+          },
+        ]
+      : []),
   ];
 
-  const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const hasNotes = notes?.some(
+    (note) => note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE'
+  );
 
   return (
     <NotePaperWrapper canvas={false} className="pb-12 pr-6 lg:!pr-16">
@@ -115,7 +124,7 @@ export function NotebookHome() {
             <NoteList notes={notes || []} isLoading={isLoadingNotes} />
           ) : (
             <div className="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400">
-              No files yet. Create a funding opportunity, proposal, or preprint to get started.
+              No files yet. Create a funding opportunity or proposal to get started.
             </div>
           )}
         </div>

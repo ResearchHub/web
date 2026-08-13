@@ -24,33 +24,31 @@ export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries, g
         </>
       )}
 
-      <div className="px-4 pb-6">
-        <div className="mb-6">
-          <SidebarHeader title="Recent Activity" />
-          {grantTitle && (
-            <div className="flex items-start gap-1.5 mt-1">
-              <Reply className="w-4 h-4 text-gray-400 rotate-180 flex-shrink-0" />
-              <span className="text-sm text-gray-500">{grantTitle}</span>
-            </div>
-          )}
-        </div>
-
-        {!hasEntries ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-              <Activity size={24} className="text-gray-400" />
-            </div>
-            <p className="text-sm text-gray-500">No recent activity</p>
-            <p className="text-xs text-gray-400 mt-1">See recent contributions and updates</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {entries.map((entry) => (
-              <ActivityCard key={entry.id} entry={entry} />
-            ))}
+      <div className="mb-6">
+        <SidebarHeader title="Recent Activity" />
+        {grantTitle && (
+          <div className="flex items-start gap-1.5 mt-1">
+            <Reply className="w-4 h-4 text-gray-400 rotate-180 flex-shrink-0" />
+            <span className="text-sm text-gray-500">{grantTitle}</span>
           </div>
         )}
       </div>
+
+      {!hasEntries ? (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <Activity size={24} className="text-gray-400" />
+          </div>
+          <p className="text-sm text-gray-500">No recent activity</p>
+          <p className="text-xs text-gray-400 mt-1">See recent contributions and updates</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-200">
+          {entries.map((entry) => (
+            <ActivityCard key={entry.id} entry={entry} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

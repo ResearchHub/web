@@ -79,6 +79,36 @@ export const useUpdateAuthorProfileData = (): UseUpdateAuthorProfileDataReturn =
   return [{ isLoading, error }, updateAuthorProfileData];
 };
 
+interface UseDeleteAuthorState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type DeleteAuthorFn = (authorId: number) => Promise<void>;
+
+type UseDeleteAuthorReturn = [UseDeleteAuthorState, DeleteAuthorFn];
+
+export const useDeleteAuthor = (): UseDeleteAuthorReturn => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const deleteAuthor = async (authorId: number): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await AuthorService.deleteAuthor(authorId);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete author');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ isLoading, error }, deleteAuthor];
+};
+
 interface UseAuthorInfoState {
   author: User | null;
   isLoading: boolean;
@@ -91,7 +121,7 @@ type UseFetchAuthorInfoReturn = [UseAuthorInfoState, FetchAuthorInfoFn];
 
 export function useAuthorInfo(authorId: number | null): UseFetchAuthorInfoReturn {
   const [author, setAuthor] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(authorId));
   const [error, setError] = useState<string | null>(null);
 
   const fetchAuthorInfo = useCallback(async () => {

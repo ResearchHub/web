@@ -5,13 +5,9 @@ import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
-  isCompact: boolean;
 }
 
-export function LeftSidebarContainer({ isOpen, isCompact }: LeftSidebarContainerProps) {
-  const topOffset = isCompact ? 'top-[48px]' : 'top-[64px]';
-  const heightOffset = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
-
+export function LeftSidebarContainer({ isOpen }: LeftSidebarContainerProps) {
   return (
     <div
       className={cn(
@@ -23,10 +19,8 @@ export function LeftSidebarContainer({ isOpen, isCompact }: LeftSidebarContainer
         'tablet:!transition-none tablet:!translate-x-0',
         'tablet:sidebar-compact:!w-[240px] tablet:max-sidebar-compact:!w-[70px]',
         'tablet:!block tablet:!w-[240px]',
-        // Mobile: fixed, slides in/out
-        'fixed duration-150 w-[240px]',
-        topOffset,
-        heightOffset,
+        // Mobile: fixed, slides in/out below the constant-height top bar
+        'fixed top-[var(--top-bar-height)] h-[calc(100vh-var(--top-bar-height))] duration-150 w-[240px]',
         isOpen ? '!translate-x-0' : '!-translate-x-full'
       )}
     >

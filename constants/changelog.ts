@@ -1,3 +1,6 @@
+/** Earliest timestamp at which this frontend can create ChangeLog notes. */
+export const CHANGELOG_NOTEBOOK_ROLLOUT_AT = '2026-08-10T20:56:32.000Z';
+
 /**
  * Source of truth for changelog post IDs. The first ID is treated as the
  * "latest" entry and is used to derive the storage key that drives the

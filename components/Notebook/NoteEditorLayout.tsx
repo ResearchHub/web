@@ -18,12 +18,18 @@ import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
+import {
+  isChangelogNote,
+  isPublishedRegisteredReportNote,
+  isRegisteredReportNote,
+} from '@/types/note';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
 // first time someone lands in the editor on a freshly-created note.
@@ -32,13 +38,18 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Query params the note-creation flows append when redirecting to the editor.
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
-const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
+const NEW_NOTE_PARAMS = ['newChangelog', 'newGrant', 'newFunding', 'template'];
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
   documentType?: string | null,
-  contentType?: string | null
+  contentType?: string | null,
+  isRegisteredReport?: boolean
 ): string | undefined {
+  if (isRegisteredReport) {
+    return 'Registered Report';
+  }
+
   switch (documentType) {
     case 'GRANT':
       return 'Funding Opportunity';
@@ -65,6 +76,7 @@ export function NoteEditorLayout() {
   } = useNotebookContext();
 
   const { selectedOrg } = useOrganizationContext();
+  const { user, isLoading: isLoadingUser } = useUser();
   const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
@@ -82,10 +94,18 @@ export function NoteEditorLayout() {
   const [activeTab, setActiveTab] = useState<NotebookTab>(() =>
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
+  const previousNoteId = useRef(activeNoteId);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
 
   const isNewlyCreatedNote = NEW_NOTE_PARAMS.some((param) => searchParams?.has(param));
+
+  useEffect(() => {
+    if (previousNoteId.current !== activeNoteId) {
+      setActiveTab('document');
+      previousNoteId.current = activeNoteId;
+    }
+  }, [activeNoteId]);
 
   // Surface the "Notebook" notes dropdown in the shared TopBar's left area.
   useEffect(() => {
@@ -121,10 +141,18 @@ export function NoteEditorLayout() {
 
   const [, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
+    registeredReportProposalId: note?.proposalId,
   });
 
-  const showTabs = Boolean(note) && !isLegacyNote;
-  const workTypeLabel = getWorkTypeLabel(note?.documentType, note?.post?.contentType);
+  const isChangelog = isChangelogNote(note);
+  const isChangelogAccessDenied = isChangelog && !user?.isModerator;
+  const showTabs = Boolean(note) && !isLegacyNote && !isChangelogAccessDenied;
+  const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
+  const isEditorReadOnly =
+    isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
+  const workTypeLabel = isChangelog
+    ? 'ChangeLog'
+    : getWorkTypeLabel(note?.documentType, note?.post?.contentType, isRegisteredReportNote(note));
 
   const renderEditor = () => {
     // No note is targeted (notebook home) — render the landing view directly so
@@ -133,11 +161,11 @@ export function NoteEditorLayout() {
       return <NotebookHome />;
     }
 
-    if (isLoadingNote || isLegacyNote === undefined) {
+    if ((isChangelog && isLoadingUser) || isLoadingNote || isLegacyNote === undefined) {
       return <NotePaperSkeleton />;
     }
 
-    if (noteError && activeNoteId) {
+    if ((noteError && activeNoteId) || isChangelogAccessDenied) {
       return (
         <NotePaperWrapper canvas={false}>
           <div className="flex flex-col items-center justify-center h-full p-8">
@@ -171,7 +199,7 @@ export function NoteEditorLayout() {
         }
       >
         {/* Work type + draft status pinned to the document's top-left corner. */}
-        <div className="mb-5 flex items-center gap-2 lg:-ml-12 lg:-mt-3">
+        <div className="mb-5 flex items-center gap-2 pt-2 lg:!pt-0 pl-4 lg:!pl-0 lg:-ml-12 lg:-mt-3">
           {workTypeLabel && (
             <span className="text-sm font-medium text-gray-700">{workTypeLabel}</span>
           )}
@@ -181,8 +209,8 @@ export function NoteEditorLayout() {
           content={note.content}
           contentJson={note.contentJson}
           isLoading={false}
-          onUpdate={isLegacyNote ? undefined : updateNote}
-          editable={!(isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner))}
+          onUpdate={isEditorReadOnly ? undefined : updateNote}
+          editable={!isEditorReadOnly}
           setEditor={setEditor}
         />
       </NotePaperWrapper>
@@ -194,20 +222,27 @@ export function NoteEditorLayout() {
   return (
     <div className="mx-auto w-full max-w-4xl">
       {showTabs && (
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <NotebookTabs active={activeTab} onChange={setActiveTab} />
-          <div className="flex items-center gap-2">
-            {activeTab === 'document' && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setActiveTab('details')}
-                className="gap-1.5"
-              >
-                Add details
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            )}
+        <div className="mb-4">
+          {isPublishedRegisteredReport && (
+            <div className="mx-auto mb-2 w-fit rounded-md bg-yellow-100 px-3 py-1.5 text-sm font-medium text-yellow-700">
+              This Registered Report has been published and can no longer be edited.
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <NotebookTabs active={activeTab} onChange={setActiveTab} />
+            <div className="flex items-center gap-2">
+              {activeTab === 'document' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setActiveTab('details')}
+                  className="gap-1.5"
+                >
+                  {isPublishedRegisteredReport ? 'View details' : 'Add details'}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -215,7 +250,7 @@ export function NoteEditorLayout() {
       <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
       {showTabs && (
         <div className={cn(activeTab !== 'details' && 'hidden')}>
-          <PublishingForm />
+          <PublishingForm readOnly={isPublishedRegisteredReport} />
         </div>
       )}
 

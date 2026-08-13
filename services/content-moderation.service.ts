@@ -5,7 +5,7 @@ import { GrantModerationService, type PendingWorksResponse } from './grant-moder
 
 export type { PendingWorksResponse };
 
-export type PendingModule = 'funding_opportunities' | 'proposals' | 'posts' | 'journal_entries';
+export type PendingModule = 'funding_opportunities' | 'proposals';
 
 /** Number of pending items per module, as shown on the tab badges. */
 export type PendingModuleCounts = Record<PendingModule, number>;
@@ -24,12 +24,7 @@ interface PendingModuleConfig {
   resourcePath?: string;
 }
 
-export const PENDING_MODULES: PendingModule[] = [
-  'funding_opportunities',
-  'proposals',
-  'posts',
-  'journal_entries',
-];
+export const PENDING_MODULES: PendingModule[] = ['funding_opportunities', 'proposals'];
 
 /** Module shown when none is specified in the URL (the first tab). */
 export const DEFAULT_PENDING_MODULE: PendingModule = PENDING_MODULES[0];
@@ -55,18 +50,6 @@ export const PENDING_MODULE_CONFIG: Record<PendingModule, PendingModuleConfig> =
     itemLabel: 'Proposal',
     feedContentType: 'PREREGISTRATION',
     resourcePath: '/api/researchhubpost',
-  },
-  posts: {
-    tabLabel: 'Posts',
-    itemLabel: 'Post',
-    feedContentType: 'POST',
-    resourcePath: '/api/researchhubpost',
-  },
-  journal_entries: {
-    tabLabel: 'Journal Entries',
-    itemLabel: 'Journal entry',
-    feedContentType: 'PAPER',
-    resourcePath: '/api/paper',
   },
 };
 

@@ -16,6 +16,7 @@ import { ProfileEditButton } from './ProfileEditButton';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileEducation } from './ProfileEducation';
 import { ProfileEditModal } from './ProfileEditModal';
+import { DeleteAuthorButton } from './DeleteAuthorButton';
 import { cn } from '@/utils/styles';
 
 const PROFILE_TAB_WIDTHS = ['w-20', 'w-16', 'w-16', 'w-24'] as const;
@@ -45,6 +46,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user: currentUser } = useUser();
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
+  const isModerator = !!currentUser?.isModerator;
   const isOrcidConnected = Boolean(author.isOrcidConnected);
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -107,15 +109,20 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
                   <p className="text-sm sm:text-base text-gray-500 mt-1">{author.headline}</p>
                 )}
               </div>
-              {isOwnProfile && (
-                <ProfileEditButton
-                  isOrcidConnected={isOrcidConnected}
-                  onEditClick={() => setIsEditModalOpen(true)}
-                  onSyncClick={syncAuthorship}
-                  isSyncing={isSyncing}
-                  className="hidden sm:!flex items-center gap-2"
-                />
-              )}
+              <div className="flex items-center gap-2">
+                {isOwnProfile && (
+                  <ProfileEditButton
+                    isOrcidConnected={isOrcidConnected}
+                    onEditClick={() => setIsEditModalOpen(true)}
+                    onSyncClick={syncAuthorship}
+                    isSyncing={isSyncing}
+                    className="hidden sm:!flex items-center gap-2"
+                  />
+                )}
+                {isModerator && (
+                  <DeleteAuthorButton authorId={author.id} authorName={author.fullName} />
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col gap-1">

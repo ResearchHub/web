@@ -95,10 +95,23 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     setNotesError(null);
 
     try {
-      const data = await NoteService.getOrganizationNotes(slug);
+      const [organizationNotes, registeredReports] = await Promise.all([
+        NoteService.getOrganizationNotes(slug),
+        NoteService.getOrganizationNotes(slug, {
+          documentType: 'REGISTERED_REPORT',
+        }),
+      ]);
+      const mergedNotes = Array.from(
+        new Map(
+          [...organizationNotes.results, ...registeredReports.results].map((note) => [
+            note.id,
+            note,
+          ])
+        ).values()
+      );
 
-      setNotes(data.results);
-      setTotalCount(data.count);
+      setNotes(mergedNotes);
+      setTotalCount(Math.max(organizationNotes.count, mergedNotes.length));
     } catch (err) {
       setNotesError(err instanceof Error ? err : new Error('Failed to load notes'));
       setNotes([]);

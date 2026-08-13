@@ -7,7 +7,6 @@ import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
 import { ContactsSection } from './components/ContactsSection';
 import { TopicsSection } from './components/TopicsSection';
-import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
@@ -46,36 +45,40 @@ import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { ApiError } from '@/services/types';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
+import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
+import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
-const FEATURE_FLAG_JOURNAL = false;
+const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
   grant: 'Funding Opportunity',
+  registered_report: 'Registered Report',
 };
+
+const PUBLISHING_FORM_WORK_TYPES = getAvailableNotebookWorkTypes(false);
 
 interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
-  defaultArticleType?: string;
+  readOnly?: boolean;
 }
 
 const getButtonText = ({
   isLoadingUpsert,
   isRedirecting,
   isLinkingNonprofit,
-  articleType,
-  isJournalEnabled,
   hasWorkId,
 }: {
   isLoadingUpsert: boolean;
   isRedirecting: boolean;
   isLinkingNonprofit: boolean;
-  articleType: string;
-  isJournalEnabled: boolean;
   hasWorkId: boolean;
 }) => {
   switch (true) {
@@ -87,8 +90,6 @@ const getButtonText = ({
       return 'Redirecting...';
     case hasWorkId:
       return 'Publish';
-    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
-      return 'Pay & Publish';
     default:
       return 'Publish';
   }
@@ -100,7 +101,6 @@ const FORM_DEFAULTS = {
   topics: [],
   rewardFunders: false,
   nftSupply: '1000',
-  isJournalEnabled: false,
   budget: '',
   coverImage: null,
   selectedNonprofit: null,
@@ -127,6 +127,7 @@ const mapDocumentTypeToArticleType = (
     DISCUSSION: 'discussion',
     GRANT: 'grant',
     PREREGISTRATION: 'preregistration',
+    REGISTERED_REPORT: 'registered_report',
   };
   return map[documentType] ?? null;
 };
@@ -153,7 +154,11 @@ const populateGrantFields = (grant: any, setValue: (name: any, value: any) => vo
 
 const populateFromPost = (post: any, setValue: (name: any, value: any) => void) => {
   setValue('workId', post.id.toString());
-  setValue('articleType', mapContentTypeToArticleType(post.contentType));
+  setValue(
+    'articleType',
+    (post.documentType && mapDocumentTypeToArticleType(post.documentType)) ??
+      mapContentTypeToArticleType(post.contentType)
+  );
 
   if (post.contentType === 'preregistration') {
     setValue('budget', post.fundraise?.goalAmount.usd.toString());
@@ -178,6 +183,44 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
   }
 };
 
+const populateRegisteredReportFields = (
+  note: NoteWithContent,
+  getValues: (name: any) => any,
+  setValue: (name: any, value: any) => void
+) => {
+  const topics = note.topics ?? [];
+  const authors = note.authors ?? [];
+  const topicOptions =
+    topics.length > 0
+      ? topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
+      : (note.registeredReportPrefill?.topicIds ?? []).map((id) => ({
+          value: id.toString(),
+          label: `Topic ${id}`,
+        }));
+  const authorOptions =
+    authors.length > 0
+      ? authors.map((author) => ({
+          value: author.authorId.toString(),
+          label: author.name,
+        }))
+      : (note.registeredReportPrefill?.authorIds ?? []).map((id) => ({
+          value: id.toString(),
+          label: `Author ${id}`,
+        }));
+
+  if (note.previewImage && !getValues('coverImage')) {
+    setValue('coverImage', { file: null, url: note.previewImage });
+  }
+
+  if (topicOptions.length > 0 && getValues('topics').length === 0) {
+    setValue('topics', topicOptions);
+  }
+
+  if (authorOptions.length > 0 && getValues('authors').length === 0) {
+    setValue('authors', authorOptions);
+  }
+};
+
 const restoreFromStorage = (
   data: Record<string, any>,
   setValue: (name: any, value: any) => void
@@ -198,9 +241,10 @@ const autoAddCurrentUser = (
   setValue: (name: any, value: any) => void,
   currentUser: any
 ) => {
-  if (!currentUser) return;
+  const articleType = getValues('articleType');
+  if (!currentUser || articleType === 'registered_report') return;
 
-  const isGrant = getValues('articleType') === 'grant';
+  const isGrant = articleType === 'grant';
   const field = isGrant ? 'contacts' : 'authors';
 
   if (getValues(field).length === 0) {
@@ -216,28 +260,16 @@ const autoAddCurrentUser = (
   }
 };
 
-interface ArticleTypeResult {
-  type: PublishingFormData['articleType'];
-  source: 'searchParam' | 'template' | 'default';
-}
-
 const resolveArticleType = (
-  params: { get(key: string): string | null } | null,
-  defaultArticleType?: string
-): ArticleTypeResult | null => {
-  if (params?.get('newFunding') === 'true')
-    return { type: 'preregistration', source: 'searchParam' };
-  if (params?.get('newResearch') === 'true') return { type: 'discussion', source: 'searchParam' };
-  if (params?.get('newGrant') === 'true') return { type: 'grant', source: 'searchParam' };
+  params: { get(key: string): string | null } | null
+): PublishingFormData['articleType'] | null => {
+  if (params?.get('newFunding') === 'true') return 'preregistration';
+  if (params?.get('newChangelog') === 'true') return 'discussion';
+  if (params?.get('newGrant') === 'true') return 'grant';
 
   const template = params?.get('template');
-  if (template === 'preregistration') return { type: 'preregistration', source: 'template' };
-  if (template === 'grant') return { type: 'grant', source: 'template' };
-  if (template) return { type: 'discussion', source: 'template' };
-
-  if (defaultArticleType) {
-    return { type: defaultArticleType as PublishingFormData['articleType'], source: 'default' };
-  }
+  if (template === 'preregistration') return 'preregistration';
+  if (template === 'grant') return 'grant';
   return null;
 };
 
@@ -245,13 +277,14 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
   if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
   if (articleType === 'grant')
     return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
+  if (articleType === 'registered_report') return buildRegisteredReportUrl(responseId, slug);
   return `/post/${responseId}/${slug}`;
 };
 
 export function PublishingForm({
   bountyAmount,
   onBountyClick,
-  defaultArticleType,
+  readOnly = false,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
   const { user: currentUser } = useUser();
@@ -273,6 +306,7 @@ export function PublishingForm({
     if (!note) return;
 
     methods.reset(FORM_DEFAULTS);
+    const isRegisteredReport = isRegisteredReportNote(note);
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
@@ -280,14 +314,24 @@ export function PublishingForm({
       const storedData = loadPublishingFormFromStorage(note.id.toString());
       if (storedData) {
         restoreFromStorage(storedData, methods.setValue);
-      } else {
-        const articleType =
-          (note.documentType && mapDocumentTypeToArticleType(note.documentType)) ??
-          resolveArticleType(searchParams, defaultArticleType)?.type;
-        if (articleType) {
-          methods.setValue('articleType', articleType);
-        }
       }
+
+      if (isRegisteredReport) {
+        populateRegisteredReportFields(note, methods.getValues, methods.setValue);
+      }
+
+      const articleType =
+        storedData?.articleType ??
+        (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
+        resolveArticleType(searchParams);
+
+      if (articleType) {
+        methods.setValue('articleType', articleType);
+      }
+    }
+
+    if (isRegisteredReport) {
+      methods.setValue('articleType', 'registered_report');
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
@@ -321,7 +365,7 @@ export function PublishingForm({
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
-  const isJournalEnabled = watch('isJournalEnabled');
+  const workId = watch('workId');
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
@@ -330,7 +374,12 @@ export function PublishingForm({
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
+  const isModerator = !!currentUser?.isModerator;
+  const isChangelog = isChangelogNote(note);
+  const isNewPreprint = articleType === 'discussion' && !workId && !isChangelog;
+  const canPublishChangelog = !isChangelog || isModerator;
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+  const canPublishRegisteredReport = articleType !== 'registered_report' || isModerator;
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
@@ -341,6 +390,18 @@ export function PublishingForm({
   }, [articleType, clearErrors]);
 
   const handlePublishClick = async () => {
+    if (readOnly) return;
+
+    if (isNewPreprint) {
+      toast.error('Preprints can no longer be created in the notebook.');
+      return;
+    }
+
+    if (!canPublishRegisteredReport) {
+      toast.error('Only moderators can publish Registered Reports.');
+      return;
+    }
+
     const result = await methods.trigger();
 
     if (!result) {
@@ -366,7 +427,8 @@ export function PublishingForm({
     if (
       articleType !== 'preregistration' &&
       articleType !== 'discussion' &&
-      articleType !== 'grant'
+      articleType !== 'grant' &&
+      articleType !== 'registered_report'
     ) {
       return;
     }
@@ -385,7 +447,9 @@ export function PublishingForm({
 
   const uploadCoverImage = async (formData: PublishingFormData): Promise<string | null | false> => {
     const needsImage =
-      formData.articleType === 'preregistration' || formData.articleType === 'grant';
+      formData.articleType === 'preregistration' ||
+      formData.articleType === 'grant' ||
+      formData.articleType === 'registered_report';
     const file = needsImage ? formData.coverImage?.file : null;
     if (!file) return null;
 
@@ -432,13 +496,35 @@ export function PublishingForm({
   };
 
   const handleConfirmPublish = async (editedTitle: string) => {
+    if (readOnly || !note) return;
+
+    if (isNewPreprint) {
+      toast.error('Preprints can no longer be created in the notebook.');
+      return;
+    }
+
+    if (!canPublishChangelog) {
+      toast.error(CHANGELOG_PUBLISH_ERROR_MESSAGE);
+      return;
+    }
+
     try {
       setDocumentTitle(editor, editedTitle);
 
       const text = editor?.getText();
-      const json = editor?.getJSON();
+      const json = editor?.getJSON() ?? { type: 'doc', content: [] };
       const html = editor?.getHTML();
       const formData = methods.getValues();
+
+      if (formData.articleType === 'registered_report' && editedTitle.trim().length < 20) {
+        toast.error('Registered Report titles must be at least 20 characters.');
+        return;
+      }
+
+      if (formData.articleType === 'registered_report' && (text?.trim().length ?? 0) < 50) {
+        toast.error('Registered Report content must be at least 50 characters.');
+        return;
+      }
 
       const imagePath = await uploadCoverImage(formData);
       if (imagePath === false) {
@@ -453,6 +539,18 @@ export function PublishingForm({
 
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
       const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
+      const proposalId = note.proposalId;
+
+      if (formData.articleType === 'registered_report' && proposalId == null) {
+        toast.error('This Registered Report draft is missing its proposal link.');
+        return;
+      }
+
+      const fullJSON = JSON.stringify(
+        formData.articleType === 'registered_report'
+          ? mergeRegisteredReportPrefill(json, proposalId)
+          : json
+      );
 
       const response = await upsertPost(
         {
@@ -460,9 +558,10 @@ export function PublishingForm({
           rewardFunders: formData.rewardFunders,
           nftSupply: formData.nftSupply || '1000',
           title: editedTitle,
-          noteId: note?.id.toString(),
+          noteId: note.id.toString(),
+          proposalId,
           renderableText: text || '',
-          fullJSON: JSON.stringify(json),
+          fullJSON,
           fullSrc: html || '',
           assignDOI: !formData.workId,
           topics: formData.topics.map((topic) => topic.value),
@@ -476,6 +575,11 @@ export function PublishingForm({
             .filter((id) => !Number.isNaN(id)),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
+          previewImg:
+            formData.articleType === 'registered_report' && !formData.coverImage?.file
+              ? (formData.coverImage?.url ?? note.previewImage ?? null)
+              : undefined,
+          editorType: formData.articleType === 'registered_report' ? 'CK_EDITOR' : undefined,
           organization: formData.organization,
           description: formData.shortDescription,
           applicationDeadline: (() => {
@@ -505,7 +609,9 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
-      const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
+      const publishLabel = isChangelog
+        ? 'ChangeLog'
+        : (PUBLISH_LABEL[formData.articleType] ?? 'Post');
       const isNewGrant = formData.articleType === 'grant' && !formData.workId;
       const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
 
@@ -526,9 +632,17 @@ export function PublishingForm({
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       const fallback = 'Error publishing. Please try again.';
-      if (error instanceof ApiError) {
+      if (
+        error instanceof ApiError &&
+        articleType === 'registered_report' &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        toast.error('Only moderators can publish Registered Reports.');
+      } else if (error instanceof ApiError) {
         const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
+        toast.error(
+          errorData?.msg || errorData?.message || extractApiErrorMessage(error, fallback)
+        );
       } else {
         toast.error(fallback);
       }
@@ -561,69 +675,119 @@ export function PublishingForm({
             isDeclined && 'pointer-events-none opacity-60'
           )}
         >
-          <div className="mx-auto w-full max-w-2xl pb-6">
-            {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
-            {articleType === 'grant' && (
+          <fieldset
+            disabled={readOnly}
+            className={cn(
+              'm-0 mx-auto w-full max-w-2xl min-w-0 border-0 p-0 pb-6',
+              readOnly && 'pointer-events-none opacity-60'
+            )}
+          >
+            {!articleType ? (
+              <div className="px-4 py-5 lg:px-6">
+                <h3 className="text-sm font-semibold text-gray-900">Select work type</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Choose how you want to publish this note.
+                </p>
+                <div className="mt-4 space-y-2">
+                  {PUBLISHING_FORM_WORK_TYPES.map((option) => (
+                    <Button
+                      key={option.value}
+                      type="button"
+                      variant="outlined"
+                      onClick={() =>
+                        methods.setValue('articleType', option.value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }
+                      className="h-auto w-full justify-start border-gray-200 px-4 py-3 text-left hover:border-primary-300 hover:bg-primary-50 focus-visible:ring-primary-500"
+                    >
+                      <span>
+                        <span className="block text-sm font-medium text-gray-900">
+                          {option.label}
+                        </span>
+                        <span className="mt-0.5 block text-xs font-normal text-gray-500">
+                          {option.description}
+                        </span>
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
               <>
-                <GrantDescriptionSection />
-                <GrantOrganizationSection />
+                {(articleType === 'preregistration' ||
+                  articleType === 'grant' ||
+                  articleType === 'registered_report') && <WorkImageSection />}
+                {articleType === 'grant' && (
+                  <>
+                    <GrantDescriptionSection />
+                    <GrantOrganizationSection />
+                  </>
+                )}
+                {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
+                <TopicsSection />
+                {note.post?.doi && (
+                  <div className="py-3 px-6 space-y-6">
+                    <DOISection doi={note.post.doi} />
+                  </div>
+                )}
+                {articleType === 'grant' && <GrantFundingAmountSection />}
+                {articleType === 'grant' && <GrantApplicationVisibilitySection />}
+                {articleType === 'preregistration' && <FundingSection note={note} />}
+                {articleType === 'preregistration' && !workId && (
+                  <div className="py-3 px-6">
+                    <EndDateSection />
+                  </div>
+                )}
+                {articleType === 'preregistration' && !workId && <PreregistrationPrivacySection />}
+                {FEATURE_FLAG_RESEARCH_COIN &&
+                  articleType !== 'preregistration' &&
+                  articleType !== 'grant' && (
+                    <ResearchCoinSection
+                      bountyAmount={bountyAmount ?? null}
+                      onBountyClick={onBountyClick ?? (() => {})}
+                    />
+                  )}
               </>
             )}
-            {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
-            <TopicsSection />
-            {note.post?.doi && (
-              <div className="py-3 px-6 space-y-6">
-                <DOISection doi={note.post.doi} />
-              </div>
-            )}
-            {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && <GrantApplicationVisibilitySection />}
-            {articleType === 'preregistration' && <FundingSection note={note} />}
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <div className="py-3 px-6">
-                <EndDateSection />
-              </div>
-            )}
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacySection />
-            )}
-            {FEATURE_FLAG_RESEARCH_COIN &&
-              articleType !== 'preregistration' &&
-              articleType !== 'grant' && (
-                <ResearchCoinSection
-                  bountyAmount={bountyAmount ?? null}
-                  onBountyClick={onBountyClick ?? (() => {})}
-                />
-              )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
-          </div>
+          </fieldset>
         </div>
 
         <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
           <div className="mx-auto w-full max-w-2xl space-y-3">
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacyLockedAlert />
+            {articleType === 'preregistration' && !workId && <PreregistrationPrivacyLockedAlert />}
+            {articleType === 'registered_report' && !canPublishRegisteredReport && (
+              <p className="text-sm text-red-600">
+                Only moderators can publish Registered Reports.
+              </p>
             )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Payment due:</span>
-                <span className="font-medium text-gray-900">$1,000 USD</span>
-              </div>
+            {!canPublishChangelog && (
+              <p className="text-sm text-red-600">{CHANGELOG_PUBLISH_ERROR_MESSAGE}</p>
             )}
             <Button
               variant="default"
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isPublishing || isDeclined || showPrivateWarning}
+              disabled={
+                !articleType ||
+                readOnly ||
+                isNewPreprint ||
+                !canPublishChangelog ||
+                isPublishing ||
+                isDeclined ||
+                showPrivateWarning ||
+                !canPublishRegisteredReport
+              }
             >
-              {getButtonText({
-                isLoadingUpsert: isLoadingUpsert || isUploadingImage,
-                isRedirecting,
-                isLinkingNonprofit,
-                articleType,
-                isJournalEnabled: isJournalEnabled ?? false,
-                hasWorkId: Boolean(methods.watch('workId')),
-              })}
+              {readOnly
+                ? 'Published'
+                : getButtonText({
+                    isLoadingUpsert: isLoadingUpsert || isUploadingImage,
+                    isRedirecting,
+                    isLinkingNonprofit,
+                    hasWorkId: Boolean(workId),
+                  })}
             </Button>
           </div>
         </div>
@@ -644,11 +808,15 @@ export function PublishingForm({
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
-          title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
+          title={
+            getDocumentTitleFromEditor(editor) ||
+            (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research')
+          }
           isPublishing={isPublishing}
-          isUpdate={Boolean(methods.watch('workId'))}
+          isUpdate={Boolean(workId)}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
+          documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
           zIndex={100}
         />
       )}

@@ -13,13 +13,11 @@ import {
   UserRoundPlus,
 } from 'lucide-react';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { Icon } from '@/components/ui/icons/Icon';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/hooks/useFundraise';
-import { PaperService } from '@/services/paper.service';
 import { GrantModerationService } from '@/services/grant-moderation.service';
 import { handleDownload } from '@/utils/download';
 import { FundraiseModalConfig } from './WorkHeaderModals';
@@ -52,7 +50,6 @@ export function useWorkHeaderMenuItems({
 
   const { user, selectedOrg, isModerator, isHubEditor, isAuthor, canEdit } = permissions;
 
-  const [isPublishing, setIsPublishing] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
     null
   );
@@ -84,8 +81,6 @@ export function useWorkHeaderMenuItems({
     }
   }, [grant?.id, router]);
 
-  const latestVersion = work.versions?.find((v) => v.isLatest);
-  const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
   const handleEdit = useCallback(() => {
@@ -105,22 +100,6 @@ export function useWorkHeaderMenuItems({
     isHubEditor,
     onOpenWorkEditModal,
   ]);
-
-  const handlePublish = useCallback(async () => {
-    if (isPublished) return;
-    setIsPublishing(true);
-    try {
-      await PaperService.publishPaper(work.id);
-      toast.success('Paper published to ResearchHub Journal');
-      router.refresh();
-    } catch (error: any) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to publish paper. Please try again.'
-      );
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [work.id, isPublished, router]);
 
   const handleAddVersion = useCallback(() => {
     if (!user) return;
@@ -224,15 +203,6 @@ export function useWorkHeaderMenuItems({
         <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
           <FileUp className="h-4 w-4 mr-2" />
           <span>Upload New Version</span>
-        </BaseMenuItem>
-      )}
-      {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-        <BaseMenuItem
-          disabled={isPublishing}
-          onSelect={() => executeAuthenticatedAction(handlePublish)}
-        >
-          <Icon name="rhJournal1" size={16} className="mr-2" />
-          <span>Publish to Journal</span>
         </BaseMenuItem>
       )}
       {canInviteExperts && (

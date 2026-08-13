@@ -28,7 +28,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Preprint Title',
+          text: 'ChangeLog Title',
         },
       ],
     },

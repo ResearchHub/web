@@ -2,7 +2,6 @@
 
 import { ReactNode, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
-import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -14,20 +13,10 @@ function getSidebarInstanceKey(pathname: string, rightSidebar: boolean | ReactNo
     return `custom:${pathname}`;
   }
 
-  if (pathname.startsWith('/paper/create')) {
-    return 'rhj-create';
-  }
-
   return 'default';
 }
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
-  const pathname = usePathname();
-
-  if (pathname.startsWith('/paper/create')) {
-    return <RHJRightSidebar showBanner={false} />;
-  }
-
   if (typeof rightSidebar === 'boolean') {
     return <RightSidebar />;
   }
@@ -37,37 +26,47 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
-  isCompact: boolean;
   contentClassName?: string;
+  aboveSidebar?: ReactNode;
 }
 
 export function RightSidebarContainer({
   rightSidebar,
-  isCompact,
   contentClassName,
+  aboveSidebar,
 }: RightSidebarContainerProps) {
   const pathname = usePathname();
-  const sidebarHeight = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   const sidebarKey = getSidebarInstanceKey(pathname, rightSidebar);
   const sidebarFallback = <RightSidebarSkeleton />;
 
   return (
     <>
-      <aside
+      <div
         className={cn(
-          'sticky top-10 overflow-y-auto mt-10',
-          'lg:!block !hidden right-sidebar:!block',
-          'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30',
-          sidebarHeight
+          'sticky top-0 mt-10 z-30',
+          'h-[calc(100vh-var(--top-bar-height))]',
+          'lg:!flex !hidden right-sidebar:!flex',
+          'w-80 flex-shrink-0 flex-col gap-3'
         )}
       >
-        <div className={cn('p-4 h-full', contentClassName)}>
-          <Suspense fallback={sidebarFallback}>
-            <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-          </Suspense>
-        </div>
-      </aside>
+        {aboveSidebar}
+
+        <aside
+          className={cn(
+            'min-h-0 flex-1 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
+            !aboveSidebar && 'h-full'
+          )}
+        >
+          <div className={cn('h-full', contentClassName)}>
+            <div className="p-4">
+              <Suspense fallback={sidebarFallback}>
+                <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+              </Suspense>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       <div className="lg:hidden">
         <SwipeableDrawer
@@ -75,9 +74,12 @@ export function RightSidebarContainer({
           onClose={() => setMobileSidebarOpen(false)}
           height="85vh"
         >
-          <Suspense fallback={sidebarFallback}>
-            <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-          </Suspense>
+          <div className="space-y-3">
+            {aboveSidebar}
+            <Suspense fallback={sidebarFallback}>
+              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+            </Suspense>
+          </div>
         </SwipeableDrawer>
       </div>
     </>

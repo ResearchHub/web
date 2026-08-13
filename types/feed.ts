@@ -280,6 +280,11 @@ export interface AssociatedGrant {
   numApplicants: number;
 }
 
+export interface JournalPostIds {
+  grantPostId: number | null;
+  proposalPostId: number | null;
+}
+
 export interface FeedEntry {
   id: string;
   recommendationId: string | null;
@@ -302,6 +307,7 @@ export interface FeedEntry {
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
+  journalPostIds?: JournalPostIds;
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -322,6 +328,10 @@ export interface RawApiFeedEntry {
   recommendation_id: string | null;
   content_type: string;
   content_object: any;
+  post_ids?: {
+    grant_post_id: number | null;
+    proposal_post_id: number | null;
+  };
   created_date: string;
   action: string;
   action_date: string;
@@ -931,12 +941,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               : [],
           };
 
-          // Add fundraise data if it's a PREREGISTRATION and has fundraise data
-          if (isPreregistration && content_object.fundraise) {
+          if (content_object.fundraise) {
             try {
               postEntry.fundraise = transformFundraise(content_object.fundraise);
             } catch (fundraiseError) {
-              console.error('Error transforming fundraise for proposal:', fundraiseError);
+              console.error('Error transforming fundraise for post:', fundraiseError);
             }
           }
 
@@ -1082,6 +1091,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       image: g.image ?? null,
       numApplicants: g.num_applicants ?? 0,
     })),
+    journalPostIds: feedEntry.post_ids
+      ? {
+          grantPostId: feedEntry.post_ids.grant_post_id,
+          proposalPostId: feedEntry.post_ids.proposal_post_id,
+        }
+      : undefined,
     nonprofit: nonprofit
       ? {
           id: nonprofit.id,

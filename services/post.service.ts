@@ -1,5 +1,11 @@
 import { ApiClient } from './client';
+import { withShareToken } from '@/lib/shareToken/url';
 import { Work, transformPost } from '@/types/work';
+import {
+  transformRegisteredReportWorkResponse,
+  type RawRegisteredReportWorkResponse,
+  type RegisteredReportWorkResponse,
+} from '@/types/registeredReport';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
 
 interface GetContentOptions {
@@ -36,20 +42,30 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
   };
 };
 
-export type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT';
+export type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT' | 'REGISTERED_REPORT';
 
 export const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
   preregistration: 'PREREGISTRATION',
   grant: 'GRANT',
   discussion: 'DISCUSSION',
+  registered_report: 'REGISTERED_REPORT',
 };
 
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
-  static async get(id: string): Promise<Work> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+  static async get(id: string, options?: { shareToken?: string | null }): Promise<Work> {
+    const response = await ApiClient.get<any>(
+      withShareToken(`${this.BASE_PATH}/${id}/`, options?.shareToken)
+    );
     return transformPost(response);
+  }
+
+  static async getRegisteredReportWork(id: string | number): Promise<RegisteredReportWorkResponse> {
+    const response = await ApiClient.get<RawRegisteredReportWorkResponse>(
+      `${this.BASE_PATH}/${id}/registered_report_work/`
+    );
+    return transformRegisteredReportWorkResponse(response);
   }
 
   static async getPublic(id: string): Promise<Work> {

@@ -10,6 +10,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/utils/styles';
+import { getAvailableAndPromotionalRscBalance } from './lib/promotionalBalance';
 
 /** Placeholder shown in place of figures for signed-out users. */
 const EMPTY = '—';
@@ -34,7 +35,7 @@ interface ResearchCoinSnapshotProps {
 
 /**
  * Compact read-out of the two pools of money a user can fund science with —
- * their spendable RSC balance and their funding credits. Shared between the
+ * their available + promotional RSC and their funding credits. Shared between the
  * funding hero (interactive, opens a links menu) and the profile dropdown
  * (static). Pulls figures from the user + exchange rate so it respects the
  * USD/RSC preference toggle.
@@ -58,9 +59,9 @@ export const ResearchCoinSnapshot: FC<ResearchCoinSnapshotProps> = ({
       skipConversion: true,
     });
 
-  const balanceRsc = user?.balance ?? 0;
+  const balanceRsc = getAvailableAndPromotionalRscBalance(user);
   const balanceUsd = exchangeRate ? balanceRsc * exchangeRate : 0;
-  const creditsRsc = user?.lockedBalance ?? 0;
+  const creditsRsc = user?.fundingCredits ?? 0;
   const creditsUsd = exchangeRate ? creditsRsc * exchangeRate : 0;
 
   const balanceDisplay = user ? fmt(balanceRsc, balanceUsd) : EMPTY;

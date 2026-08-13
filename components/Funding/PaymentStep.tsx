@@ -35,10 +35,10 @@ interface PaymentStepProps {
   amountInUsd: number;
   /** Amount display string */
   amountDisplay: string;
-  /** User's spendable RSC balance (excludes locked/funding credits) */
+  /** User's RSC balance available for funding (available + promotional) */
   rscBalance: number;
-  /** User's locked RSC balance (earned funding credits) */
-  lockedBalance?: number;
+  /** User's funding credits balance (excludes promotional RSC) */
+  fundingCreditsBalance?: number;
   /** Fundraise ID for payment request button */
   fundraiseId: ID;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
@@ -70,7 +70,7 @@ export function PaymentStep({
   amountInUsd,
   amountDisplay,
   rscBalance,
-  lockedBalance = 0,
+  fundingCreditsBalance = 0,
   fundraiseId,
   walletAvailability,
   hasNonprofit = false,
@@ -85,12 +85,12 @@ export function PaymentStep({
     () =>
       getDefaultPaymentMethod(
         rscBalance,
-        lockedBalance,
+        fundingCreditsBalance,
         amountInRsc,
         PLATFORM_FEE_PERCENTAGE_RSC,
         walletAvailability
       ),
-    [rscBalance, lockedBalance, amountInRsc, walletAvailability]
+    [rscBalance, fundingCreditsBalance, amountInRsc, walletAvailability]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
@@ -107,9 +107,9 @@ export function PaymentStep({
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
 
   // Balance check uses the balance that matches the selected method
-  // (spendable RSC for 'rsc', locked balance for 'funding_credits').
+  // (available + promotional RSC for 'rsc', funding credits otherwise).
   const balanceForSelectedMethod =
-    selectedMethod === 'funding_credits' ? lockedBalance : rscBalance;
+    selectedMethod === 'funding_credits' ? fundingCreditsBalance : rscBalance;
   const { insufficientBalance } = usePaymentCalculations({
     amountInRsc,
     rscBalance: balanceForSelectedMethod,
@@ -200,7 +200,7 @@ export function PaymentStep({
           amountInUsd={amountInUsd}
           amountDisplay={amountDisplay}
           rscBalance={rscBalance}
-          lockedBalance={lockedBalance}
+          fundingCreditsBalance={fundingCreditsBalance}
           onPreviewTransaction={handlePreviewTransaction}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}

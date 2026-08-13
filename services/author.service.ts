@@ -84,6 +84,14 @@ export class AuthorService {
   }
 
   /**
+   * Soft-delete an author profile. The API also deactivates any linked user.
+   */
+  static async deleteAuthor(authorId: number): Promise<void> {
+    await ApiClient.deleteNoContent(`${this.AUTHORS_PATH}/${authorId}/`);
+    delete this.authorCache[authorId];
+  }
+
+  /**
    * Get author information for the tooltip
    */
   static async getAuthorInfo(authorId: number): Promise<User> {

@@ -16,6 +16,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getActiveBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
+import { SHARE_TOKEN_PARAM } from '@/lib/shareToken/constants';
 import { colors } from '@/app/styles/colors';
 
 export type TabType =
@@ -125,7 +126,15 @@ export const WorkTabs = ({
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
 
-      window.history.replaceState(null, '', newUrl);
+      const currentParams = new URLSearchParams(window.location.search);
+      const preserved = new URLSearchParams();
+      for (const key of ['rr', SHARE_TOKEN_PARAM]) {
+        const value = currentParams.get(key);
+        if (value) preserved.set(key, value);
+      }
+
+      const query = preserved.toString();
+      window.history.replaceState(null, '', query ? `${newUrl}?${query}` : newUrl);
     }
   };
 

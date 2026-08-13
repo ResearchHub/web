@@ -16,6 +16,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { formatRSC, formatUsdValue, formatLiteralUsd } from '@/utils/number';
+import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 
 interface DisplayPair {
   primary: string;
@@ -116,7 +117,7 @@ export function EarnEarningsSummary() {
 
   // Endowment earning status (mirrors the wallet's opt-in behavior).
   const isOptedIn = user?.isStakingOptedIn ?? false;
-  const hasNoRsc = !!user && (user.balance ?? 0) <= 0;
+  const hasNoRsc = !!user && getAvailableAndPromotionalRscBalance(user) <= 0;
   const isEarning = !hasNoRsc && isOptedIn;
 
   const performStakingUpdate = async (checked: boolean) => {

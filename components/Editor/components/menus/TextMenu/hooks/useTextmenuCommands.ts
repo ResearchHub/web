@@ -48,12 +48,14 @@ export const useTextmenuCommands = (editor: Editor) => {
   );
 
   const onSetInlineMath = useCallback(() => {
+    // v3 represents math as an inlineMath node rather than a `$...$` string.
     editor
       .chain()
       .focus()
-      .insertContent(
-        '$\\text{Total Supply} = \\sum_{i=0}^{32} \\left( 210{,}000 \\times \\frac{50}{2^i} \\right)$'
-      )
+      .insertInlineMath({
+        latex:
+          '\\text{Total Supply} = \\sum_{i=0}^{32} \\left( 210{,}000 \\times \\frac{50}{2^i} \\right)',
+      })
       .run();
   }, [editor]);
 
