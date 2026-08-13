@@ -147,7 +147,7 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
 
 /**
  * One thinking block, collapsed to a labeled row with a one-line preview.
- * Reasoning arrives whole (never streamed) and runs up to 4000 chars per
+ * Readable reasoning can grow incrementally and runs up to 4000 chars per
  * block, so rendering it inline like narration would drown the tool rows;
  * the chevron-led button mirrors the settled-turn summary toggle.
  */
@@ -220,9 +220,13 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
   return (
     <ol className={cn('space-y-4', className)}>
       {items.map((item, index) => (
-        // Feed items are append-only and have no ids; index keys are stable here.
+        // Stream items carry stable ids; durable feed items are append-only,
+        // making their fallback index stable within the settled activity list.
         // eslint-disable-next-line react/no-array-index-key
-        <li key={index} className="text-sm leading-relaxed">
+        <li
+          key={'id' in item && typeof item.id === 'string' ? item.id : index}
+          className="text-sm leading-relaxed"
+        >
           <ActivityItemBody item={item} />
         </li>
       ))}

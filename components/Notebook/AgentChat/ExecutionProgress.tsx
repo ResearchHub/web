@@ -66,7 +66,13 @@ interface ExecutionProgressProps {
 export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
 
-  const activity = execution.activity ?? [];
+  // Durable activity is followed by the current provider iteration's
+  // transient preview. A lifecycle refetch replaces the preview with the
+  // newly durable rows/message once the complete turn is recorded.
+  const activity: ChatActivityItem[] = [
+    ...(execution.activity ?? []),
+    ...(execution.stream?.items ?? []),
+  ];
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.

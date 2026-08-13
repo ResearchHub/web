@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { WS_ROUTES } from '@/services/websocket';
-import type { ChatSocketEvent } from '@/types/notebookChat';
+import { isChatSocketEvent, type ChatSocketEvent } from '@/types/notebookChat';
 import { useReconnectingSocket, type SocketStatus } from './useReconnectingSocket';
 
 /**
@@ -21,15 +21,15 @@ interface UseNotebookChatSocketOptions {
   /** Connect only while the chat exists and is open on screen. */
   enabled: boolean;
   /**
-   * An event arrived. Events carry identifiers, never state — the only correct
-   * reaction to any kind is a (debounced) refetch, which the caller owns.
+   * An event arrived. Lifecycle events are refetch nudges; stream events carry
+   * sequenced append deltas. The caller owns both paths.
    */
   onEvent: (event: ChatSocketEvent) => void;
   /** Socket re-opened after a drop — refetch immediately, events were missed. */
   onReconnect: () => void;
 }
 
-/** One WebSocket per open chat, used purely as a refetch nudge. */
+/** One WebSocket per open chat for lifecycle nudges and transient output. */
 export function useNotebookChatSocket({
   noteId,
   chatId,
@@ -46,9 +46,11 @@ export function useNotebookChatSocket({
     url,
     enabled: enabled && url != null,
     fatalCloseCodes: FATAL_CLOSE_CODES,
-    // Frames on this channel are chat events by contract; unknown `type`
-    // values pass through and the consumer treats any event as a nudge.
-    onMessage: (data) => onEvent(data as ChatSocketEvent),
+    // Frames on this channel are chat events by contract. Runtime validation
+    // of stream fields happens in the caller; unknown kinds remain nudges.
+    onMessage: (data) => {
+      if (isChatSocketEvent(data)) onEvent(data);
+    },
     onReconnect,
   });
 }
