@@ -246,13 +246,21 @@ export function beginNoteDiffReview(
  * over. Resolution alone can leave the live count untouched — accepting
  * keeps a pair's inserted span, rejecting keeps its removed one — so the
  * closing zero has to be published here; the plugin's apply never sees it.
+ *
+ * The zero stays quiet when a new overlay is already installed by the time
+ * the microtask runs: the review was replaced (begin folding into a newer
+ * version), not closed, and the caller already holds the replacement's
+ * count — a late zero would wrongly dismiss the live review.
  */
 function teardownOverlay(editor: Editor): void {
   const state = overlayKey.getState(editor.state);
   editor.unregisterPlugin(overlayKey);
   if (state && state.changeCount > 0 && state.onChangeCountUpdate) {
     const callback = state.onChangeCountUpdate;
-    queueMicrotask(() => callback(0));
+    queueMicrotask(() => {
+      if (overlayKey.getState(editor.state)) return;
+      callback(0);
+    });
   }
 }
 
