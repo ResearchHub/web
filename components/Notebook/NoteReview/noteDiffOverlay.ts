@@ -198,8 +198,9 @@ function dispatchSilently(editor: Editor, tr: Transaction): void {
  * text; the selection is carried over so this can fire mid-keystroke.
  *
  * Returns the number of changed regions. Zero means nothing reviewable: the
- * incoming version differed at most in formatting (marks are invisible to
- * the changeset), which is applied verbatim — no overlay is installed.
+ * versions matched in content, formatting, and attrs alike, differing at
+ * most in volatile node ids, which are adopted verbatim — no overlay is
+ * installed.
  *
  * If a review is already active it is first folded back to the reader's
  * side (reject semantics), so the new diff is always mine-vs-latest rather
@@ -222,7 +223,7 @@ export function beginNoteDiffReview(
 
   if (changes.length === 0) {
     if (!older.eq(incoming)) {
-      // Verbatim apply (mark-only difference): the one remaining
+      // Verbatim apply (only volatile ids differ): the one remaining
       // whole-document replace, and it costs the undo stack — with no
       // changed regions there is nothing to localize the edit to.
       const tr = editor.state.tr;
