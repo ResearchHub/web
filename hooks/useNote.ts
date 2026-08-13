@@ -398,14 +398,15 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         console.error('Editor or noteId is undefined in queueSave', { editor, noteId });
         return Promise.resolve(false);
       }
-      // The payload is captured now, when the save is requested. A queued
-      // save that serialized once its turn came could instead read a review
-      // installed meanwhile (see docToPersist) and persist the side the
-      // caller's action had just decided against.
+      // Payload and save are both captured now, when the save is requested.
+      // A queued save that serialized once its turn came could instead read
+      // a review installed meanwhile (see docToPersist) and persist the side
+      // the caller's action had just decided against; resolving the save fn
+      // late would likewise report through whichever note's callbacks
+      // (onTitleUpdate) the still-mounted layout holds by then.
       const payload = buildSavePayloadRef.current(editor, registeredReportProposalId);
-      const run = saveChainRef.current
-        .catch(() => undefined)
-        .then(() => performSaveRef.current(payload, noteId));
+      const save = performSaveRef.current;
+      const run = saveChainRef.current.catch(() => undefined).then(() => save(payload, noteId));
       saveChainRef.current = run;
       return run;
     },
