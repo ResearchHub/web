@@ -80,8 +80,8 @@ export function ChatComposer({
       )}
       <div
         className={cn(
-          'flex items-end gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 transition-colors',
-          'focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-200',
+          'flex items-end gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all',
+          'focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500',
           disabled && 'opacity-60'
         )}
       >
@@ -95,7 +95,7 @@ export function ChatComposer({
           disabled={disabled}
           placeholder={placeholder}
           aria-label="Message the assistant"
-          className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed"
+          className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none disabled:cursor-not-allowed"
         />
         {busy && canStop ? (
           <button

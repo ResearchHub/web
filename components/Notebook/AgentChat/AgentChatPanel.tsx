@@ -931,14 +931,14 @@ export function AgentChatPanel({
               }}
               onBlur={commitRename}
               aria-label="Chat title"
-              className="min-w-0 flex-1 rounded-md border border-primary-300 px-1.5 py-0.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-primary-300"
+              className="min-w-0 flex-1 rounded-lg border border-gray-200 px-1.5 py-0.5 text-sm font-medium text-gray-800 transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
             <button
               type="button"
               onMouseDown={(event) => event.preventDefault()}
               onClick={commitRename}
               title="Save title"
-              className="rounded-md p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
             >
               <Check className="h-4 w-4" aria-hidden="true" />
               <span className="sr-only">Save title</span>

@@ -63,7 +63,7 @@ export function ChatPicker({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="animate-in absolute left-0 right-0 top-full z-10 mt-1 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
           <button
             type="button"
             onClick={() => {
