@@ -213,6 +213,10 @@ export function beginNoteDiffReview(
   resolveNoteDiffReview(editor, 'reject');
 
   const older = editor.state.doc;
+  // Both endpoints are carried so a live text selection survives arming,
+  // direction included; non-text selections degrade to the nearest text
+  // range (TextSelection.between).
+  const selectionAnchor = editor.state.selection.anchor;
   const selectionHead = editor.state.selection.head;
   const changes = computeNoteDiffChanges(editor.schema, older, incoming);
 
@@ -220,8 +224,9 @@ export function beginNoteDiffReview(
     if (!older.eq(incoming)) {
       const tr = editor.state.tr;
       tr.replaceWith(0, older.content.size, incoming.content);
-      const pos = Math.min(selectionHead, tr.doc.content.size);
-      tr.setSelection(TextSelection.near(tr.doc.resolve(pos)));
+      const anchor = Math.min(selectionAnchor, tr.doc.content.size);
+      const head = Math.min(selectionHead, tr.doc.content.size);
+      tr.setSelection(TextSelection.between(tr.doc.resolve(anchor), tr.doc.resolve(head)));
       dispatchSilently(editor, tr);
     }
     return 0;
@@ -264,9 +269,10 @@ export function beginNoteDiffReview(
     }
   }
 
-  const mapped = mapOlderPosToMerged(selectionHead, changes, removedSizes);
-  const pos = Math.max(0, Math.min(mapped, tr.doc.content.size));
-  tr.setSelection(TextSelection.near(tr.doc.resolve(pos)));
+  const clamp = (pos: number) => Math.max(0, Math.min(pos, tr.doc.content.size));
+  const anchor = clamp(mapOlderPosToMerged(selectionAnchor, changes, removedSizes));
+  const head = clamp(mapOlderPosToMerged(selectionHead, changes, removedSizes));
+  tr.setSelection(TextSelection.between(tr.doc.resolve(anchor), tr.doc.resolve(head)));
   dispatchSilently(editor, tr);
 
   editor.unregisterPlugin(overlayKey);
