@@ -8,6 +8,7 @@ import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
+import { FundingPowerProvider } from '@/contexts/FundingPowerContext';
 import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
@@ -143,7 +144,9 @@ export function PageLayout({ fundraiseGrantId, ...props }: PageLayoutProps) {
       <FundraiseProvider grantId={fundraiseGrantId}>
         <FeedTabsVisibilityProvider>
           <TopBarSlotProvider>
-            <PageLayoutInner {...props} />
+            <FundingPowerProvider>
+              <PageLayoutInner {...props} />
+            </FundingPowerProvider>
           </TopBarSlotProvider>
         </FeedTabsVisibilityProvider>
       </FundraiseProvider>

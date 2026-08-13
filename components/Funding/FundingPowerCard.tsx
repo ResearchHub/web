@@ -1,17 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ArrowDownToLine, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FundingPowerTooltip } from '@/components/tooltips/FundingPowerTooltip';
-import { DepositModal } from '@/components/modals/ResearchCoin/DepositModal';
 import { FundingMethodsModal } from './FundingMethodsModal';
-import { formatCurrency } from '@/utils/currency';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { useUser } from '@/contexts/UserContext';
-import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
+import { useFundingPowerControls } from '@/contexts/FundingPowerContext';
+import { useFundingPower } from '@/hooks/useFundingPower';
 import { cn } from '@/utils/styles';
 
 interface FundingPowerCardProps {
@@ -24,7 +19,6 @@ interface FundingPowerCardProps {
  * of gray text.
  */
 const CARD_SURFACE = 'rounded-lg border border-gray-200 bg-white p-4 shadow-sm';
-const HIDDEN_AMOUNT_KEY = 'rh:funding-power-hidden';
 
 /**
  * Wallet card for the Activity sidebar. Leads with total funding power and a
@@ -32,62 +26,14 @@ const HIDDEN_AMOUNT_KEY = 'rh:funding-power-hidden';
  * stay focused on how much is available and how it can be spent.
  */
 export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isMethodsModalOpen, setIsMethodsModalOpen] = useState(false);
-  const [isAmountHidden, setIsAmountHidden] = useState(false);
-  const [privacyReady, setPrivacyReady] = useState(false);
-  const { user, isLoading: isUserLoading } = useUser();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { showUSD } = useCurrencyPreference();
-  const { exchangeRate, isLoading: isRateLoading } = useExchangeRate();
-
-  const isReady = !isUserLoading && (!showUSD || !isRateLoading);
-
-  useEffect(() => {
-    try {
-      setIsAmountHidden(localStorage.getItem(HIDDEN_AMOUNT_KEY) === '1');
-    } catch {
-      // Private mode / blocked storage — stay visible.
-    }
-    setPrivacyReady(true);
-  }, []);
+  const { isAmountHidden, toggleAmountHidden, isPrivacyReady, openDeposit } =
+    useFundingPowerControls();
+  const { isReady, isEmpty, total, rscBalance, fundingCredits, format } = useFundingPower();
 
   if (!isReady) {
     return <FundingPowerCardSkeleton className={className} />;
   }
-
-  const canShowUSD = showUSD && exchangeRate > 0;
-
-  const fmt = (rscAmount: number) =>
-    formatCurrency({
-      amount: canShowUSD ? rscAmount * exchangeRate : rscAmount,
-      showUSD: canShowUSD,
-      exchangeRate,
-      shorten: true,
-      skipConversion: true,
-    });
-
-  const balanceRaw = getAvailableAndPromotionalRscBalance(user);
-  const creditsRaw = user?.fundingCredits ?? 0;
-  const total = balanceRaw + creditsRaw;
-  const isEmpty = !user || total === 0;
-
-  // Logged-out clicks fall through to the auth modal, which replays the action
-  // once the user is signed in.
-  const openDepositModal = () => executeAuthenticatedAction(() => setIsDepositModalOpen(true));
-
-  const toggleAmountHidden = () => {
-    setIsAmountHidden((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(HIDDEN_AMOUNT_KEY, next ? '1' : '0');
-      } catch {
-        // Same as the read path — a blocked store just means the choice
-        // lasts for this session.
-      }
-      return next;
-    });
-  };
 
   return (
     <aside className={cn(CARD_SURFACE, 'w-[250px]', className)}>
@@ -104,15 +50,18 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
           className={cn(
             'font-mono text-3xl font-bold leading-none tracking-tight',
             isEmpty ? 'text-gray-300' : 'text-gray-900',
-            !privacyReady && 'invisible'
+            !isPrivacyReady && 'invisible'
           )}
         >
-          {isEmpty ? '—' : isAmountHidden ? '••••' : fmt(total)}
+          {isEmpty ? '—' : isAmountHidden ? '••••' : format(total)}
         </button>
-        <FundingPowerTooltip rscBalance={fmt(balanceRaw)} fundingCredits={fmt(creditsRaw)} />
+        <FundingPowerTooltip
+          rscBalance={format(rscBalance)}
+          fundingCredits={format(fundingCredits)}
+        />
       </div>
 
-      <Button size="sm" onClick={openDepositModal} className="mt-3 w-full gap-1">
+      <Button size="sm" onClick={openDeposit} className="mt-3 w-full gap-1">
         <ArrowDownToLine size={14} className="shrink-0" />
         Deposit
       </Button>
@@ -136,10 +85,6 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
         isOpen={isMethodsModalOpen}
         onClose={() => setIsMethodsModalOpen(false)}
       />
-
-      {user && (
-        <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
-      )}
     </aside>
   );
 };
