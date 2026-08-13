@@ -8,7 +8,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Star } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
 import { cn } from '@/utils/styles';
 
@@ -28,6 +28,7 @@ interface NavigationItem {
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
   isLucideStar?: boolean;
+  isLucideSprout?: boolean;
   isHome?: boolean;
 }
 
@@ -66,6 +67,10 @@ export const Navigation: React.FC<NavigationProps> = ({
   forceMinimize = false,
 }) => {
   const homeHref = useHomeHref();
+  const isFeedV2Nav =
+    currentPath.startsWith('/feed-v2') ||
+    currentPath === '/my-funding' ||
+    currentPath.startsWith('/fund/dashboard');
 
   const navigationItems: NavigationItem[] = [
     {
@@ -76,19 +81,24 @@ export const Navigation: React.FC<NavigationProps> = ({
       isHome: true,
       description: 'Navigate to the home page',
     },
-    {
-      label: 'Fund',
-      href: '/fund',
-      iconKey: 'fund',
-      description: 'Browse grants and fundraising opportunities',
-    },
-    {
-      label: 'Notebook',
-      href: '/notebook',
-      iconKey: 'notebook',
-      requiresAuth: true,
-      description: 'Access your research notebook',
-    },
+    ...(isFeedV2Nav
+      ? [
+          {
+            label: 'My Funding',
+            href: '/my-funding',
+            iconKey: 'fund' as const,
+            requiresAuth: true,
+            description: 'View your funding activity',
+          },
+        ]
+      : [
+          {
+            label: 'Fund',
+            href: '/fund',
+            iconKey: 'fund' as const,
+            description: 'Browse grants and fundraising opportunities',
+          },
+        ]),
     {
       label: 'Peer Review',
       href: '/earn',
@@ -101,13 +111,26 @@ export const Navigation: React.FC<NavigationProps> = ({
       iconKey: 'journal',
       description: 'Read and publish research papers',
     },
+    {
+      label: 'Notebook',
+      href: '/notebook',
+      iconKey: 'notebook',
+      requiresAuth: true,
+      description: 'Access your research notebook',
+    },
+    {
+      label: 'Endowment',
+      href: '/endowment',
+      isLucideSprout: true,
+      description: 'Learn about the ResearchHub Endowment',
+    },
   ];
 
   const getButtonStyles = (path: string, isHome?: boolean) => {
     const isActive = isPathActive(path, isHome);
 
     return cn(
-      'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] transition-colors',
+      'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-medium transition-colors',
       forceMinimize
         ? '!justify-center !px-2'
         : 'tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2',
@@ -119,7 +142,11 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const isPathActive = (path: string, isHome?: boolean) => {
     if (isHome) {
-      return isClassicHomeFeedPath(currentPath) || currentPath === '/';
+      return (
+        isClassicHomeFeedPath(currentPath) ||
+        currentPath === '/' ||
+        currentPath.startsWith('/feed-v2')
+      );
     }
 
     if (path === '/fund') {
@@ -134,8 +161,20 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath.startsWith('/earn') || currentPath === '/grants';
     }
 
+    if (path === '/my-funding') {
+      return (
+        currentPath === '/my-funding' ||
+        currentPath === '/fund/dashboard' ||
+        currentPath.startsWith('/fund/dashboard/')
+      );
+    }
+
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
+    }
+
+    if (path === '/endowment') {
+      return currentPath.startsWith('/endowment');
     }
 
     return path === currentPath;
@@ -203,9 +242,11 @@ export const Navigation: React.FC<NavigationProps> = ({
             <Star
               size={22}
               color={iconColor}
-              strokeWidth={isActive ? 2.25 : 2}
+              strokeWidth={isActive ? 2 : 2}
               fill={isActive ? iconColor : 'none'}
             />
+          ) : item.isLucideSprout ? (
+            <Sprout size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           ) : item.iconKey ? (
             <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           ) : (
@@ -229,11 +270,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     >
       <div className="space-y-2">
         {navigationItems.map((item) => (
-          <NavLink
-            key={item.label}
-            item={item}
-            onUnimplementedFeature={onUnimplementedFeature}
-          />
+          <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
         ))}
       </div>
     </nav>
