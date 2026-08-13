@@ -198,11 +198,14 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
         )
       );
 
-      if (currentNote) {
-        setCurrentNote((prev) => (prev ? { ...prev, title: newTitle } : null));
-      }
+      // The save that reports a title can complete after the user moved to
+      // another note; `prev` is whatever note is current by then, so only
+      // the note this callback's render was titled for may be updated.
+      setCurrentNote((prev) =>
+        prev && prev.id.toString() === activeNoteId ? { ...prev, title: newTitle } : prev
+      );
     },
-    [activeNoteId, currentNote]
+    [activeNoteId]
   );
 
   const refreshAll = useCallback(async () => {
