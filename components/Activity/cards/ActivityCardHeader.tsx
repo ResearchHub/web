@@ -15,16 +15,18 @@ import {
   getReviewEarning,
   getReviewScore,
 } from '../lib/activityDisplay.utils';
-import { getActivityBounty } from '../lib/activityWork.utils';
-import { formatTimeAgo } from '@/utils/date';
+import { getActivityBounty, type ActivityWork } from '../lib/activityWork.utils';
+import { ActivityCardMenu } from './ActivityCardMenu';
+import { formatExactTime, formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardHeaderProps {
   entry: FeedEntry;
+  work: Pick<ActivityWork, 'id' | 'documentType'>;
 }
 
-export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
+export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, work }) => {
   const message = getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
@@ -83,14 +85,19 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
         <ActivityActionIcon name={hasAmount ? null : actionIcon} />
       </div>
 
-      <Tooltip
-        content={new Date(entry.timestamp).toLocaleString()}
-        wrapperClassName="flex-shrink-0"
-      >
-        <span className="text-xs leading-6 text-gray-400 cursor-default whitespace-nowrap">
-          {formatTimeAgo(entry.timestamp)}
-        </span>
-      </Tooltip>
+      <div className="flex flex-shrink-0 items-start gap-0.5">
+        <Tooltip
+          content={formatExactTime(entry.timestamp)}
+          wrapperClassName="flex-shrink-0"
+          className="px-2 py-1 text-xs whitespace-nowrap"
+          width="w-auto"
+        >
+          <span className="text-xs leading-6 text-gray-400 cursor-pointer whitespace-nowrap hover:underline underline-offset-2">
+            {formatTimeAgo(entry.timestamp)}
+          </span>
+        </Tooltip>
+        <ActivityCardMenu documentId={work.id} contentType={work.documentType} />
+      </div>
     </div>
   );
 };

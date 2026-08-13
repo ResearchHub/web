@@ -55,7 +55,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
         </div>
 
         <div className="min-w-0 flex-1">
-          <ActivityCardHeader entry={entry} />
+          <ActivityCardHeader entry={entry} work={work} />
 
           {showComment && commentPreview && (
             <div className="mt-2">
