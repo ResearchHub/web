@@ -283,7 +283,12 @@ interface UseUpdateNoteState {
 }
 
 interface UpdateNoteOptions {
-  onTitleUpdate?: (newTitle: string) => void;
+  /**
+   * Reports the note the title belongs to: a save can complete (or a pending
+   * autosave flush) after the user moved to another note, so consumers must
+   * scope their state updates to `noteId` rather than whatever is current.
+   */
+  onTitleUpdate?: (newTitle: string, noteId: ID) => void;
   debounceMs?: number;
   registeredReportProposalId?: number | null;
   /**
@@ -350,7 +355,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
             noteId,
             title: payload.title,
           }).then(() => {
-            options.onTitleUpdate?.(payload.title);
+            options.onTitleUpdate?.(payload.title, noteId);
           })
         );
       }
@@ -413,13 +418,27 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     []
   );
 
+  // The one debouncer serves whichever note the still-mounted layout shows,
+  // so a pending autosave may belong to a note the user already left. That
+  // write must not be discarded: scheduling or superseding only owns the
+  // same note's pending save — a foreign one is flushed first, persisting
+  // its edits in request order ahead of the new work.
+  const pendingSaveNoteIdRef = useRef<ID | null>(null);
+
   const debouncedUpdate = useRef<
     DebouncedFunc<(editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => void>
   >(
     debounce((editor: Editor, noteId: ID, registeredReportProposalId?: number | null) => {
+      pendingSaveNoteIdRef.current = null;
       void queueSave(editor, noteId, registeredReportProposalId);
     }, options.debounceMs ?? 2000)
   );
+
+  const flushForeignPendingSave = useCallback((noteId: ID) => {
+    if (pendingSaveNoteIdRef.current != null && pendingSaveNoteIdRef.current !== noteId) {
+      debouncedUpdate.current.flush();
+    }
+  }, []);
 
   const updateNote = useCallback(
     (editor: Editor) => {
@@ -427,29 +446,35 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
         console.error('Editor is undefined in updateNote');
         return;
       }
+      flushForeignPendingSave(noteId);
+      pendingSaveNoteIdRef.current = noteId;
       debouncedUpdate.current(editor, noteId, options.registeredReportProposalId);
     },
-    [noteId, options.registeredReportProposalId]
+    [noteId, options.registeredReportProposalId, flushForeignPendingSave]
   );
 
   /**
    * Persist immediately and report success — for moments where the save is
    * itself the user's action (keeping their version over an assistant's) and
    * a debounced fire-and-forget write would let the UI acknowledge a choice
-   * the server never heard about. Cancels any scheduled autosave and queues
-   * behind any in-flight one.
+   * the server never heard about. Cancels any autosave scheduled for this
+   * note (its own save supersedes it) and queues behind any in-flight one.
    */
   const saveNoteNow = useCallback(
     (editor: Editor): Promise<boolean> => {
+      flushForeignPendingSave(noteId);
       debouncedUpdate.current.cancel();
+      pendingSaveNoteIdRef.current = null;
       return queueSave(editor, noteId, options.registeredReportProposalId);
     },
-    [noteId, options.registeredReportProposalId, queueSave]
+    [noteId, options.registeredReportProposalId, queueSave, flushForeignPendingSave]
   );
 
   useEffect(() => {
     return () => {
-      debouncedUpdate.current.cancel();
+      // Unmounting with an autosave still scheduled: persist it rather than
+      // drop the user's last edits.
+      debouncedUpdate.current.flush();
     };
   }, []);
 
