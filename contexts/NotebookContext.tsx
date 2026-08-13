@@ -12,6 +12,7 @@ import {
 import { NoteService } from '@/services/note.service';
 import { OrganizationService } from '@/services/organization.service';
 import type { Note, NoteWithContent } from '@/types/note';
+import type { ID } from '@/types/root';
 import type { OrganizationUsers } from '@/types/organization';
 import { useOrganizationContext } from './OrganizationContext';
 import { Editor } from '@tiptap/core';
@@ -37,7 +38,7 @@ interface NotebookContextType {
   isLoadingNote: boolean;
   noteError: Error | null;
   loadNote: (noteId: string) => Promise<void>;
-  updateNoteTitle: (newTitle: string) => void;
+  updateNoteTitle: (newTitle: string, noteId: ID) => void;
 
   // Editor state
   editor: Editor | null;
@@ -183,27 +184,29 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
   }, []);
 
-  const updateNoteTitle = useCallback(
-    (newTitle: string) => {
-      if (!activeNoteId) return;
+  // The save that reports a title can complete — or a pending autosave can
+  // flush — after the user moved to another note, so the reported id is the
+  // only trustworthy scope: both the list row and the current note update
+  // only when they are the note that actually saved.
+  const updateNoteTitle = useCallback((newTitle: string, noteId: ID) => {
+    if (noteId == null) return;
+    const savedId = noteId.toString();
 
-      setNotes((prevNotes) =>
-        prevNotes.map((note) =>
-          note.id.toString() === activeNoteId
-            ? {
-                ...note,
-                title: newTitle,
-              }
-            : note
-        )
-      );
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id.toString() === savedId
+          ? {
+              ...note,
+              title: newTitle,
+            }
+          : note
+      )
+    );
 
-      if (currentNote) {
-        setCurrentNote((prev) => (prev ? { ...prev, title: newTitle } : null));
-      }
-    },
-    [activeNoteId, currentNote]
-  );
+    setCurrentNote((prev) =>
+      prev && prev.id.toString() === savedId ? { ...prev, title: newTitle } : prev
+    );
+  }, []);
 
   const refreshAll = useCallback(async () => {
     if (!selectedOrg?.slug || !selectedOrg?.id) return;

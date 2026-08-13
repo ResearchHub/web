@@ -86,7 +86,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     <>
       <div className="bg-white border-b border-gray-200">
         {/* Title row */}
-        <div className="flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
+        <div className="relative flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
           {/* Left side */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
             <Link href="/" className="block tablet:!hidden mr-2">
@@ -107,9 +107,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {pageInfo && (
                   <TopBarBreadcrumb
-                    pageInfo={pageInfo}
+                    pageInfo={showTopBarFundTabs ? { ...pageInfo, title: 'Fund' } : pageInfo}
                     variant="desktop"
-                    truncateTitle={showTopBarContentTabs}
+                    truncateTitle={showTopBarFeedTabs}
                   />
                 )}
               </>
@@ -126,18 +126,25 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 />
               </div>
             )}
-            {showTopBarFundTabs && (
-              <div className="hidden tablet:!flex min-w-0 flex-shrink-0 items-center ml-4">
-                <Tabs
-                  tabs={fundTabs}
-                  activeTab={fundHighlightedTab}
-                  onTabChange={handleFundTabChange}
-                  variant="primary"
-                  className="!border-b-0"
-                />
-              </div>
-            )}
           </div>
+
+          {/* Fund tabs sit on the top bar's bottom border, aligned to PageLayout's
+              content column so they don't jump horizontally when they stick. */}
+          {showTopBarFundTabs && (
+            <div className="pointer-events-none absolute inset-0 hidden tablet:!flex animate-in fade-in duration-200">
+              <div className="mx-auto flex h-full w-full max-w-[1012px] px-4 tablet:!px-8">
+                <div className="pointer-events-auto flex h-full min-w-0 flex-shrink-0">
+                  <Tabs
+                    tabs={fundTabs}
+                    activeTab={fundHighlightedTab}
+                    onTabChange={handleFundTabChange}
+                    variant="primary"
+                    className="!border-b-0 h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Right side */}
           <div className="flex items-center space-x-2 h-full">

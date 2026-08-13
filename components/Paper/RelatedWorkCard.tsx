@@ -183,10 +183,10 @@ export const RelatedWorkCard = ({
           .filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug))
           .slice(0, 2)
           .map((topic) => {
-            // Check if we have custom handlers or if we're on the earn page
+            // Check if we have custom handlers or if we're on the peer review page
             const hasCustomHandler = onTopicClick;
-            const isEarnPage = pathname === '/earn';
-            const shouldUseClickContext = isEarnPage && !hasCustomHandler;
+            const isPeerReviewPage = pathname === '/peer-review';
+            const shouldUseClickContext = isPeerReviewPage && !hasCustomHandler;
 
             return (
               <div
@@ -196,7 +196,7 @@ export const RelatedWorkCard = ({
                   if (onTopicClick) {
                     onTopicClick(topic);
                   } else if (shouldUseClickContext) {
-                    // On earn page without custom handlers, use ClickContext for filtering
+                    // On peer review page without custom handlers, use ClickContext for filtering
                     triggerEvent({ type: 'topic', payload: topic });
                   }
                   // Otherwise, let the HashtagBadge handle navigation

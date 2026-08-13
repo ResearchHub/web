@@ -1,9 +1,9 @@
 'use client';
 
 import { useInView } from 'react-intersection-observer';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
-import { ActivityCardSkeleton } from '@/components/Activity/ActivityCardSkeleton';
 import type { FeedEntry } from '@/types/feed';
+import { ActivityCardSkeleton } from './cards/ActivityCardSkeleton';
+import { ActivityCard } from './cards/ActivityCard';
 
 interface ActivityFeedListProps {
   entries: FeedEntry[];
@@ -37,7 +37,7 @@ export function ActivityFeedList({
   return (
     <div>
       {entries.map((entry) => (
-        <ActivityCardFull key={entry.id} entry={entry} />
+        <ActivityCard key={entry.id} entry={entry} />
       ))}
 
       {(isLoading || isLoadingMore) &&

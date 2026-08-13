@@ -3,33 +3,19 @@
 import { FC } from 'react';
 import { Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { getCommentPreview } from './lib/feedEntryAdapters';
-import { getWorkCardPresentation, type ActivityWork } from './lib/activityWorkContext';
-import type { FeedEntry } from '@/types/feed';
+import type { ActivityWork, WorkCardPresentation } from '../lib/activityWork.utils';
 
 interface ActivityWorkMetadataProps {
-  entry: FeedEntry;
   work: ActivityWork;
+  presentation: WorkCardPresentation;
 }
 
 /**
  * Frosted-bar content for an activity work card (title, authors/org, rating, stats, progress).
  */
-export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ entry, work }) => {
-  const { showUSD } = useCurrencyPreference();
-  const { exchangeRate } = useExchangeRate();
-  const commentPreview = getCommentPreview(entry);
-  const isReviewOfProposal = !!commentPreview?.isReview && work.documentType === 'preregistration';
+export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, presentation }) => {
+  const { authors, score, stats, progress } = presentation;
 
-  const presentation = getWorkCardPresentation(entry, work, {
-    showUSD,
-    exchangeRate,
-    isReview: commentPreview?.isReview,
-  });
-
-  const authors = isReviewOfProposal ? [] : presentation.authors;
   const authorNames =
     authors.length > 0
       ? authors
@@ -43,8 +29,6 @@ export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ entry, wor
     (authorNames && presentation.institution
       ? `${authorNames} · ${presentation.institution}`
       : authorNames || presentation.institution || null);
-
-  const { score, stats, progress } = presentation;
 
   return (
     <>

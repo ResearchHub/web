@@ -6,8 +6,7 @@ import { MetadataService } from '@/services/metadata.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
+import { ActivitySidebarServer, ActivitySidebarSkeleton } from '@/components/Activity';
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
@@ -92,7 +91,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
         }
         rightSidebar={
           <Suspense fallback={<ActivitySidebarSkeleton />}>
-            <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
+            <ActivitySidebarServer grantId={grantId} grantTitle={grantTitle} />
           </Suspense>
         }
       >

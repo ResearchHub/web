@@ -2,11 +2,11 @@
 
 import { FC } from 'react';
 import { ActivityHeaderActionText } from './ActivityHeaderActionText';
-import { BountyAmount } from './BountyAmount';
-import { ContributionAmount } from './ContributionAmount';
-import { FeedEntryIcon } from './FeedEntryIcon';
-import { GrantFundingAmount } from './GrantFundingAmount';
-import { ReviewScoreStars } from './ReviewScoreStars';
+import { ActivityActionIcon } from '../lib/ActivityActionIcon';
+import { BountyAmount } from '../amounts/BountyAmount';
+import { ContributionAmount } from '../amounts/ContributionAmount';
+import { GrantFundingAmount } from '../amounts/GrantFundingAmount';
+import { ReviewScoreStars } from '../amounts/ReviewScoreStars';
 import {
   getActionIcon,
   getActivityHeaderMessage,
@@ -14,8 +14,8 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
-} from './lib/feedEntryAdapters';
-import { getActivityBounty } from './lib/activityWorkContext';
+} from '../lib/activityDisplay.utils';
+import { getActivityBounty } from '../lib/activityWork.utils';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { FeedEntry } from '@/types/feed';
@@ -31,7 +31,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
   const reviewEarning = getReviewEarning(entry);
   const grantAmount = getGrantAmount(entry);
   const contribution = getContribution(entry);
-  const bounty = entry.activityContext === 'bounty_opened' ? getActivityBounty(entry) : undefined;
+  const bounty = entry.activityAction === 'bounty_opened' ? getActivityBounty(entry) : undefined;
 
   const hasAmount = Boolean(
     grantAmount || contribution || reviewEarning || bounty || reviewScore != null
@@ -80,7 +80,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
           </>
         )}
         {message.suffix && <span className="text-gray-500">{message.suffix}</span>}
-        <FeedEntryIcon name={hasAmount ? null : actionIcon} />
+        <ActivityActionIcon name={hasAmount ? null : actionIcon} />
       </div>
 
       <Tooltip

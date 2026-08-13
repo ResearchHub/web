@@ -7,7 +7,7 @@ import { useHomeActivityFeed } from '@/contexts/ActivityFeedContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
-export function FundActivityPageContent() {
+export function ActivityPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const {

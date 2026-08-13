@@ -1,5 +1,6 @@
 import { buildWorkUrl } from '@/utils/url';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
+import type { CurrencyAmount } from '@/utils/currency';
 import type {
   FeedCommentContent,
   FeedContentType,
@@ -144,7 +145,7 @@ export function getActivityHeaderMessage(entry: FeedEntry): ActivityHeaderMessag
   return getDefaultActivityMessage(entry);
 }
 
-export interface FeedEntryMeta {
+export interface ActivityEntryMeta {
   title?: string;
   author?: AuthorProfile;
   href?: string;
@@ -174,7 +175,7 @@ function resolveRelatedWorkTab(entry: FeedEntry): CommentWorkTab {
   return undefined;
 }
 
-function getRelatedWorkMeta(entry: FeedEntry): FeedEntryMeta | null {
+function getRelatedWorkMeta(entry: FeedEntry): ActivityEntryMeta | null {
   const related = entry.relatedWork;
   if (!related?.title) return null;
 
@@ -192,7 +193,7 @@ function getRelatedWorkMeta(entry: FeedEntry): FeedEntryMeta | null {
   };
 }
 
-export function getEntryMeta(entry: FeedEntry): FeedEntryMeta {
+export function getEntryMeta(entry: FeedEntry): ActivityEntryMeta {
   const relatedMeta = getRelatedWorkMeta(entry);
   if (relatedMeta) return relatedMeta;
 
@@ -247,16 +248,23 @@ export function getEntryMeta(entry: FeedEntry): FeedEntryMeta {
   };
 }
 
-export type FeedEntryIconName = 'coins' | 'fund' | 'earn' | 'proposal' | 'bell' | 'message' | null;
+export type ActivityActionIconName =
+  | 'coins'
+  | 'fund'
+  | 'earn'
+  | 'proposal'
+  | 'bell'
+  | 'message'
+  | null;
 
-export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
-  if (entry.contentType === 'GRANT' || entry.activityContext === 'grant_opened') {
+export function getActionIcon(entry: FeedEntry): ActivityActionIconName {
+  if (entry.contentType === 'GRANT' || entry.activityAction === 'grant_opened') {
     return 'fund';
   }
-  if (entry.activityContext === 'bounty_opened') {
+  if (entry.activityAction === 'bounty_opened') {
     return 'earn';
   }
-  if (entry.activityContext === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION') {
+  if (entry.activityAction === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION') {
     return null;
   }
   if (
@@ -288,7 +296,7 @@ export function getReviewScore(entry: FeedEntry): number | undefined {
 }
 
 /** Bounty payout shown on the header line for awarded peer reviews. */
-export function getReviewEarning(entry: FeedEntry): FeedContribution | undefined {
+export function getReviewEarning(entry: FeedEntry): CurrencyAmount | undefined {
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
@@ -299,12 +307,7 @@ export function getReviewEarning(entry: FeedEntry): FeedContribution | undefined
   return { amount: awarded, currency: 'RSC' };
 }
 
-export interface FeedContribution {
-  amount: number;
-  currency: 'USD' | 'RSC';
-}
-
-export function getContribution(entry: FeedEntry): FeedContribution | undefined {
+export function getContribution(entry: FeedEntry): CurrencyAmount | undefined {
   if (entry.contentType === 'FUNDINGACTIVITY') {
     const funding = entry.content as FeedFundingActivityContent;
     if (funding.totalUsdCents > 0) {
@@ -321,48 +324,25 @@ export function getContribution(entry: FeedEntry): FeedContribution | undefined 
   return { amount: contribution.amount, currency: contribution.currency };
 }
 
-export interface DisplayedAmount {
-  amount: number;
-  inUSD: boolean;
-}
-
-function toDisplayPrecision(amount: number): number {
-  return Math.round(amount * 100) / 100;
-}
-
-export function resolveDisplayedContribution(
-  contribution: FeedContribution,
-  showUSD: boolean,
-  exchangeRate: number
-): DisplayedAmount {
-  const sourceIsUSD = contribution.currency === 'USD';
-  const canConvert = exchangeRate > 0;
-  const inUSD = canConvert ? showUSD : sourceIsUSD;
-
-  if (sourceIsUSD === inUSD) return { amount: toDisplayPrecision(contribution.amount), inUSD };
-  if (sourceIsUSD) return { amount: toDisplayPrecision(contribution.amount / exchangeRate), inUSD };
-  return { amount: toDisplayPrecision(contribution.amount * exchangeRate), inUSD };
-}
-
-export interface FeedGrantAmount {
+export interface ActivityGrantAmount {
   usd: number;
   rsc: number;
 }
 
-export function getGrantAmount(entry: FeedEntry): FeedGrantAmount | undefined {
+export function getGrantAmount(entry: FeedEntry): ActivityGrantAmount | undefined {
   if (entry.contentType !== 'GRANT') return undefined;
   const grant = (entry.content as FeedGrantContent).grant;
   if (!grant?.amount) return undefined;
   return { usd: grant.amount.usd, rsc: grant.amount.rsc };
 }
 
-export interface FeedCommentPreview {
+export interface ActivityCommentPreview {
   content: CommentContent;
   format: ContentFormat;
   isReview: boolean;
 }
 
-export function getCommentPreview(entry: FeedEntry): FeedCommentPreview | null {
+export function getCommentPreview(entry: FeedEntry): ActivityCommentPreview | null {
   if (entry.contentType === 'FUNDINGACTIVITY') {
     const peerReview = (entry.content as FeedFundingActivityContent).peerReview;
     if (!peerReview?.content) return null;

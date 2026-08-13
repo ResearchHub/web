@@ -4,9 +4,12 @@ import { Children, FC, isValidElement, ReactElement, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
-import type { ActivityWork } from './lib/activityWorkContext';
 
-type WorkPreviewShell = Pick<ActivityWork, 'title' | 'href' | 'imageUrl'>;
+interface WorkPreviewShell {
+  title: string;
+  href: string;
+  imageUrl?: string;
+}
 
 interface SlotProps {
   children?: ReactNode;

@@ -5,21 +5,21 @@ import { Bell, MessageCircle, type LucideIcon } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon, RSC_COLORS } from '@/components/ui/icons/ResearchCoinIcon';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import type { FeedEntryIconName } from './lib/feedEntryAdapters';
+import type { ActivityActionIconName } from './activityDisplay.utils';
 
 const ICONS: Record<
-  Exclude<FeedEntryIconName, 'coins' | 'fund' | 'earn' | 'proposal' | null>,
+  Exclude<ActivityActionIconName, 'coins' | 'fund' | 'earn' | 'proposal' | null>,
   LucideIcon
 > = {
   bell: Bell,
   message: MessageCircle,
 };
 
-interface FeedEntryIconProps {
-  name: FeedEntryIconName;
+interface ActivityActionIconProps {
+  name: ActivityActionIconName;
 }
 
-export const FeedEntryIcon: FC<FeedEntryIconProps> = ({ name }) => {
+export const ActivityActionIcon: FC<ActivityActionIconProps> = ({ name }) => {
   const { showUSD } = useCurrencyPreference();
 
   if (!name) return null;

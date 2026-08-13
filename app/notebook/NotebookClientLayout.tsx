@@ -26,7 +26,7 @@ function NotebookContent({ children }: Readonly<{ children: ReactNode }>) {
   // canvas gray — no change needed to the shared PageLayout.
   return (
     <div className="bg-gray-50">
-      <PageLayout rightSidebar={false} wideContent>
+      <PageLayout rightSidebar={false}>
         <NoteEditorLayout />
         {children}
       </PageLayout>

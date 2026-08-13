@@ -3,16 +3,15 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
-import { EarnDashboard, EARN_BOUNTIES_ANCHOR } from '@/components/Earn/EarnDashboard';
 import { ReviewsPageContent } from './ReviewsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Earn ResearchCoin',
   description: 'Earn ResearchCoin by holding it for yield or peer-reviewing science.',
-  url: '/earn',
+  url: '/peer-review',
 });
 
-export default async function EarnPage() {
+export default async function PeerReviewPage() {
   return (
     <PageLayout rightSidebar={<EarnRightSidebar />}>
       <section className="sr-only">
@@ -52,18 +51,14 @@ export default async function EarnPage() {
           ways it can improve.
         </p>
       </section>
-      <EarnDashboard />
-
-      <div id={EARN_BOUNTIES_ANCHOR} className="scroll-mt-4 mt-6">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-          <RadiatingDot ring color="bg-emerald-500" />
-          Open peer-review bounties
-        </h2>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Pick a paper or proposal in your field and earn ResearchCoin for your review.
-        </p>
-        <ReviewsPageContent />
-      </div>
+      <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+        <RadiatingDot ring color="bg-emerald-500" />
+        Open peer-review bounties
+      </h2>
+      <p className="text-sm text-gray-500 mt-0.5">
+        Pick a paper or proposal in your field and earn ResearchCoin for your review.
+      </p>
+      <ReviewsPageContent />
     </PageLayout>
   );
 }

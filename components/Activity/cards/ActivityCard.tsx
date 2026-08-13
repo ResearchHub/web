@@ -7,18 +7,18 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
-import { ActivityWorkActions } from './ActivityWorkActions';
-import { ActivityWorkMetadata } from './ActivityWorkMetadata';
-import { WorkPreviewCard } from './WorkPreviewCard';
-import { getActivityHeaderMessage, getCommentPreview } from './lib/feedEntryAdapters';
-import { getActivityWork, getWorkCardPresentation } from './lib/activityWorkContext';
+import { ActivityWorkActions } from '../work/ActivityWorkActions';
+import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
+import { WorkPreviewCard } from '../work/WorkPreviewCard';
+import { getActivityHeaderMessage, getCommentPreview } from '../lib/activityDisplay.utils';
+import { getActivityWork, getWorkCardPresentation } from '../lib/activityWork.utils';
 import type { FeedEntry } from '@/types/feed';
 
-interface ActivityCardFullProps {
+interface ActivityCardProps {
   entry: FeedEntry;
 }
 
-export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
+export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const work = getActivityWork(entry);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -29,12 +29,12 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   const entryId = String(entry.id);
   const message = getActivityHeaderMessage(entry);
   const commentPreview = getCommentPreview(entry);
-  const { showComment: allowComment } = getWorkCardPresentation(entry, work, {
+  const presentation = getWorkCardPresentation(entry, work, {
     showUSD,
     exchangeRate,
     isReview: commentPreview?.isReview,
   });
-  const showComment = allowComment && !!commentPreview;
+  const showComment = presentation.showComment && !!commentPreview;
 
   const markEntryClicked = () => {
     updateLastClickedEntryId(entryId);
@@ -73,10 +73,15 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
           <div className="mt-5 -ml-[42px] tablet:!ml-0">
             <WorkPreviewCard work={work} onNavigate={markEntryClicked} showPlaceholder>
               <WorkPreviewCard.Metadata>
-                <ActivityWorkMetadata entry={entry} work={work} />
+                <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions entry={entry} work={work} onNavigate={markEntryClicked} />
+                <ActivityWorkActions
+                  entry={entry}
+                  work={work}
+                  presentation={presentation}
+                  onNavigate={markEntryClicked}
+                />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
           </div>

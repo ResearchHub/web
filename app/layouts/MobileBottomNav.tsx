@@ -60,7 +60,7 @@ export const MobileBottomNav: React.FC = () => {
 
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
-    { label: 'Peer Review', href: '/earn', iconKey: 'peer-review' },
+    { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
     { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
