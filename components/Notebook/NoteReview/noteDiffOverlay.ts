@@ -161,26 +161,26 @@ function buildOverlayPlugin(
 
 /**
  * Map a position in the pre-review document to the merged review document.
- * Neutral text shifts by the surrounding regions' size drift; a position
- * inside overwritten content lands inside its struck (removed) range.
+ * Neutral text shifts by the cumulative size drift of earlier regions; a
+ * position inside overwritten content lands inside its struck (removed)
+ * range.
  */
 function mapOlderPosToMerged(
   pos: number,
   changes: readonly NoteDiffChange[],
-  removedSizes: readonly number[]
+  removedSizes: readonly number[],
+  insertedSizes: readonly number[]
 ): number {
-  let drift = 0; // newer-doc position minus older-doc position, after processed regions
-  let removedBefore = 0; // merged-doc size of removed content spliced in before this point
+  let shift = 0; // merged-doc position minus older-doc position, after processed regions
   for (let i = 0; i < changes.length; i++) {
     const change = changes[i];
     if (pos < change.fromA) break;
     if (pos <= change.toA) {
-      return change.fromB + removedBefore + Math.min(pos - change.fromA, removedSizes[i]);
+      return change.fromA + shift + Math.min(pos - change.fromA, removedSizes[i]);
     }
-    drift = change.toB - change.toA;
-    removedBefore += removedSizes[i];
+    shift += removedSizes[i] + insertedSizes[i] - (change.toA - change.fromA);
   }
-  return pos + drift + removedBefore;
+  return pos + shift;
 }
 
 function dispatchSilently(editor: Editor, tr: Transaction): void {
@@ -222,6 +222,9 @@ export function beginNoteDiffReview(
 
   if (changes.length === 0) {
     if (!older.eq(incoming)) {
+      // Verbatim apply (mark-only difference): the one remaining
+      // whole-document replace, and it costs the undo stack — with no
+      // changed regions there is nothing to localize the edit to.
       const tr = editor.state.tr;
       tr.replaceWith(0, older.content.size, incoming.content);
       const anchor = Math.min(selectionAnchor, tr.doc.content.size);
@@ -232,46 +235,51 @@ export function beginNoteDiffReview(
     return 0;
   }
 
+  // The merged document is built with one local replace per changed region,
+  // never a whole-document swap: prosemirror-history maps its stored steps
+  // through this transaction even though the transaction itself is excluded
+  // from history, so keeping the edits local preserves the reader's undo
+  // stack everywhere outside the changed regions. Each region becomes the
+  // overwritten old content (struck) followed by the assistant's new
+  // content. Descending, so earlier positions stay valid; sizes are
+  // measured from the document because fitting a slice can resize it.
   const tr = editor.state.tr;
-  tr.replaceWith(0, older.content.size, incoming.content);
-
-  // Splice each overwritten slice back in at the position that replaced it,
-  // descending so earlier positions stay valid. Sizes are measured from the
-  // document because fitting an open slice can resize it.
   const removedSizes: number[] = new Array(changes.length).fill(0);
+  const insertedSizes: number[] = new Array(changes.length).fill(0);
   for (let i = changes.length - 1; i >= 0; i--) {
     const change = changes[i];
-    if (change.toA <= change.fromA) continue;
-    const slice = older.slice(change.fromA, change.toA);
-    const sizeBefore = tr.doc.content.size;
-    tr.replace(change.fromB, change.fromB, slice);
-    removedSizes[i] = tr.doc.content.size - sizeBefore;
+    let sizeBefore = tr.doc.content.size;
+    tr.replace(change.fromA, change.toA, incoming.slice(change.fromB, change.toB));
+    insertedSizes[i] = tr.doc.content.size - sizeBefore + (change.toA - change.fromA);
+    if (change.toA > change.fromA) {
+      sizeBefore = tr.doc.content.size;
+      tr.replace(change.fromA, change.fromA, older.slice(change.fromA, change.toA));
+      removedSizes[i] = tr.doc.content.size - sizeBefore;
+    }
   }
 
   const spans: LiveSpan[] = [];
-  let spliced = 0;
+  let shift = 0;
   for (let i = 0; i < changes.length; i++) {
     const change = changes[i];
-    const removedFrom = change.fromB + spliced;
-    spliced += removedSizes[i];
+    const start = change.fromA + shift;
     if (removedSizes[i] > 0) {
+      spans.push({ changeId: i, kind: 'removed', from: start, to: start + removedSizes[i] });
+    }
+    if (insertedSizes[i] > 0) {
       spans.push({
         changeId: i,
-        kind: 'removed',
-        from: removedFrom,
-        to: removedFrom + removedSizes[i],
+        kind: 'inserted',
+        from: start + removedSizes[i],
+        to: start + removedSizes[i] + insertedSizes[i],
       });
     }
-    const insertedFrom = change.fromB + spliced;
-    const insertedTo = change.toB + spliced;
-    if (insertedTo > insertedFrom) {
-      spans.push({ changeId: i, kind: 'inserted', from: insertedFrom, to: insertedTo });
-    }
+    shift += removedSizes[i] + insertedSizes[i] - (change.toA - change.fromA);
   }
 
   const clamp = (pos: number) => Math.max(0, Math.min(pos, tr.doc.content.size));
-  const anchor = clamp(mapOlderPosToMerged(selectionAnchor, changes, removedSizes));
-  const head = clamp(mapOlderPosToMerged(selectionHead, changes, removedSizes));
+  const anchor = clamp(mapOlderPosToMerged(selectionAnchor, changes, removedSizes, insertedSizes));
+  const head = clamp(mapOlderPosToMerged(selectionHead, changes, removedSizes, insertedSizes));
   tr.setSelection(TextSelection.between(tr.doc.resolve(anchor), tr.doc.resolve(head)));
   dispatchSilently(editor, tr);
 
