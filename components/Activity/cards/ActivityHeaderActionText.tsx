@@ -1,13 +1,18 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import Link from 'next/link';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { cn } from '@/utils/styles';
 import type { ActivityHeaderMessage } from '../lib/activityDisplay.utils';
 
 interface ActivityHeaderActionTextProps {
   message: ActivityHeaderMessage;
   className?: string;
+  /** Author on its own line; verb/target on the line below. */
+  stacked?: boolean;
+  /** Extra content (e.g. amount badges) rendered after the action text. */
+  trailing?: ReactNode;
 }
 
 function AuthorName({
@@ -37,13 +42,14 @@ function AuthorName({
 export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   message,
   className,
+  stacked = false,
+  trailing,
 }) => {
   const { actor, verb, target } = message;
 
-  return (
-    <span className={className}>
-      <AuthorName id={actor.id} profileUrl={actor.profileUrl} fullName={actor.fullName} />
-      <span className="text-gray-500"> {verb}</span>
+  const action = (
+    <>
+      <span className="text-gray-500">{stacked ? verb : ` ${verb}`}</span>
       {target && (
         <>
           {' '}
@@ -55,6 +61,25 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
           {target.suffix && <span className="text-gray-500">{target.suffix}</span>}
         </>
       )}
+      {trailing}
+    </>
+  );
+
+  if (stacked) {
+    return (
+      <span className={cn('block', className)}>
+        <span className="block truncate">
+          <AuthorName id={actor.id} profileUrl={actor.profileUrl} fullName={actor.fullName} />
+        </span>
+        <span className="block">{action}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className={className}>
+      <AuthorName id={actor.id} profileUrl={actor.profileUrl} fullName={actor.fullName} />
+      {action}
     </span>
   );
 };

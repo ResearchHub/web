@@ -10,16 +10,22 @@ interface ContributionAmountProps {
   contribution: CurrencyAmount;
   className?: string;
   showSign?: boolean;
+  size?: 'sm' | 'md';
 }
 
 export const ContributionAmount: FC<ContributionAmountProps> = ({
   contribution,
   className,
   showSign = true,
+  size,
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const formatted = formatCurrencyAmount({ ...contribution, showUSD, exchangeRate, shorten: true });
 
-  return <AmountBadge className={className}>{showSign ? `+${formatted}` : formatted}</AmountBadge>;
+  return (
+    <AmountBadge className={className} size={size}>
+      {showSign ? `+${formatted}` : formatted}
+    </AmountBadge>
+  );
 };

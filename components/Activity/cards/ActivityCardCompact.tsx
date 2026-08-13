@@ -53,10 +53,56 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => 
     <span className="text-gray-500">{title}</span>
   );
 
+  const trailing = (
+    <>
+      {grantAmount && (
+        <>
+          {' '}
+          <GrantFundingAmount amount={grantAmount} size="sm" className="align-middle" />
+        </>
+      )}
+      {contribution && (
+        <>
+          {' '}
+          <ContributionAmount
+            contribution={contribution}
+            showSign={!message.isEarning}
+            size="sm"
+            className="align-middle"
+          />
+        </>
+      )}
+      {reviewEarning && (
+        <>
+          {' '}
+          <ContributionAmount
+            contribution={reviewEarning}
+            showSign={false}
+            size="sm"
+            className="align-middle"
+          />
+        </>
+      )}
+      {bounty && (
+        <>
+          {' '}
+          <BountyAmount bounty={bounty} size="sm" className="align-middle" />
+        </>
+      )}
+      {reviewScore != null && reviewScore > 0 && (
+        <>
+          {' '}
+          <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
+        </>
+      )}
+      <ActivityActionIcon name={hasAmount ? null : actionIcon} />
+    </>
+  );
+
   return (
     <div className="py-3 first:pt-0 last:pb-0">
-      <div className="grid grid-cols-[auto_1fr] gap-x-2.5 items-start">
-        <div className="row-span-2 pt-0.5">
+      <div className="flex gap-2.5 items-start">
+        <div className="flex-shrink-0 pt-0.5">
           <Avatar
             src={message.actor.profileImage}
             alt={message.actor.fullName || 'User'}
@@ -64,55 +110,21 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => 
             authorId={message.actor.id}
           />
         </div>
-        <span className="mb-1 text-sm leading-6">
-          <ActivityHeaderActionText message={message} />
-          {grantAmount && (
-            <>
-              {' '}
-              <GrantFundingAmount amount={grantAmount} className="align-middle" />
-            </>
-          )}
-          {contribution && (
-            <>
-              {' '}
-              <ContributionAmount
-                contribution={contribution}
-                showSign={!message.isEarning}
-                className="align-middle"
-              />
-            </>
-          )}
-          {reviewEarning && (
-            <>
-              {' '}
-              <ContributionAmount
-                contribution={reviewEarning}
-                showSign={false}
-                className="align-middle"
-              />
-            </>
-          )}
-          {bounty && (
-            <>
-              {' '}
-              <BountyAmount bounty={bounty} className="align-middle" />
-            </>
-          )}
-          {reviewScore != null && reviewScore > 0 && (
-            <>
-              {' '}
-              <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
-            </>
-          )}
-          <ActivityActionIcon name={hasAmount ? null : actionIcon} />
-        </span>
-        <span className="text-sm leading-tight line-clamp-2">{titleEl}</span>
+        <div className="min-w-0 flex-1">
+          <ActivityHeaderActionText
+            message={message}
+            stacked
+            trailing={trailing}
+            className="text-sm leading-5"
+          />
+          <span className="mt-1 block text-sm leading-tight line-clamp-2">{titleEl}</span>
+          <Tooltip content={new Date(entry.timestamp).toLocaleString()}>
+            <span className="mt-1 block w-fit cursor-default text-xs text-gray-400">
+              {formatTimeAgo(entry.timestamp)}
+            </span>
+          </Tooltip>
+        </div>
       </div>
-      <Tooltip content={new Date(entry.timestamp).toLocaleString()}>
-        <span className="block text-xs text-gray-400 mt-1 ml-[42px] cursor-default w-fit">
-          {formatTimeAgo(entry.timestamp)}
-        </span>
-      </Tooltip>
     </div>
   );
 };

@@ -11,15 +11,16 @@ import type { Bounty } from '@/types/bounty';
 interface BountyAmountProps {
   bounty: Bounty;
   className?: string;
+  size?: 'sm' | 'md';
 }
 
-export const BountyAmount: FC<BountyAmountProps> = ({ bounty, className }) => {
+export const BountyAmount: FC<BountyAmountProps> = ({ bounty, className, size }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { amount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
 
   return (
-    <AmountBadge className={className}>
+    <AmountBadge className={className} size={size}>
       {formatCurrency({
         amount: Math.round(amount),
         showUSD,

@@ -9,9 +9,10 @@ import type { ActivityGrantAmount } from '../lib/activityDisplay.utils';
 interface GrantFundingAmountProps {
   amount: ActivityGrantAmount;
   className?: string;
+  size?: 'sm' | 'md';
 }
 
-export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, className }) => {
+export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, className, size }) => {
   const { showUSD } = useCurrencyPreference();
   const formatted = formatCurrency({
     amount: showUSD ? amount.usd : amount.rsc,
@@ -21,5 +22,9 @@ export const GrantFundingAmount: FC<GrantFundingAmountProps> = ({ amount, classN
     shorten: true,
   });
 
-  return <AmountBadge className={className}>{formatted}</AmountBadge>;
+  return (
+    <AmountBadge className={className} size={size}>
+      {formatted}
+    </AmountBadge>
+  );
 };
