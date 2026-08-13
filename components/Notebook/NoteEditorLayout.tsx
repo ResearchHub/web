@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Sparkles, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
@@ -361,34 +361,31 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
             isAgentChatOpen ? 'bottom-6 sm:!right-[400px]' : 'bottom-24 lg:!bottom-6'
           )}
         >
-          <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full border border-gray-200 bg-white/95 py-2 pl-4 pr-2 shadow-lg backdrop-blur">
-            <p className="text-xs text-gray-700">
-              <span className="font-medium">
-                {agentReview.changeCount === 1
-                  ? '1 assistant change'
-                  : `${agentReview.changeCount} assistant changes`}
-              </span>
-              <span className="hidden sm:!inline">
-                {' '}
-                — Accept keeps the assistant’s edits, Reject keeps yours
-              </span>
+          <div className="pointer-events-auto flex max-w-full items-center gap-2.5 rounded-full border border-gray-200 bg-white/95 py-1.5 pl-4 pr-1.5 shadow-lg backdrop-blur">
+            <p className="text-xs font-medium text-gray-700">
+              {agentReview.changeCount === 1
+                ? '1 assistant change'
+                : `${agentReview.changeCount} assistant changes`}
             </p>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button
-                size="sm"
-                className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-600"
+            <div className="flex shrink-0 items-center gap-0.5">
+              <button
+                type="button"
                 onClick={agentReview.accept}
+                title="Accept the assistant’s changes"
+                className="rounded-md p-1 text-emerald-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
               >
-                Accept
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="rounded-full"
+                <Check className="h-5 w-5" aria-hidden="true" strokeWidth={2.5} />
+                <span className="sr-only">Accept the assistant’s changes</span>
+              </button>
+              <button
+                type="button"
                 onClick={agentReview.reject}
+                title="Reject the assistant’s changes"
+                className="rounded-md p-1 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
               >
-                Reject
-              </Button>
+                <X className="h-5 w-5" aria-hidden="true" strokeWidth={2.5} />
+                <span className="sr-only">Reject the assistant’s changes</span>
+              </button>
             </div>
           </div>
         </div>
