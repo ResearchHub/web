@@ -3,6 +3,8 @@
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 
+export { isClassicHomeFeedPath } from '@/constants/navigation';
+
 export function useHomeHref() {
   const { status } = useSession();
 
@@ -12,8 +14,4 @@ export function useHomeHref() {
 
     return '/';
   }, [status]);
-}
-
-export function isClassicHomeFeedPath(pathname: string): boolean {
-  return ['/popular', '/for-you', '/following', '/latest'].includes(pathname);
 }

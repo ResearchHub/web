@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
+import { isClassicHomeFeedPath } from '@/constants/navigation';
 import { FeedTab } from './useFeed';
 import { Sparkles, Users, TrendingUp } from 'lucide-react';
 
@@ -17,14 +18,8 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
   const isTopicPage = pathname.startsWith('/topic/');
   const isJournalPage = pathname.startsWith('/journal');
-  const isPersonalizedFeedPage = [
-    '/',
-    '/following',
-    '/latest',
-    '/popular',
-    '/for-you',
-    '/feed',
-  ].includes(pathname);
+  const isPersonalizedFeedPage =
+    pathname === '/' || pathname === '/feed' || isClassicHomeFeedPath(pathname);
 
   const isFeedPage = useMemo(
     () => isPersonalizedFeedPage || isTopicPage || isJournalPage,
@@ -44,12 +39,13 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
       return 'popular';
     }
 
-    if (pathname === '/') return 'popular';
-    if (pathname === '/feed') return 'popular';
-    if (pathname === '/following') return 'following';
-    if (pathname === '/latest') return 'latest';
-    if (pathname === '/popular') return 'popular';
-    if (pathname === '/for-you') return 'for-you';
+    // `/` and `/feed` are aliases for the popular home tab
+    if (pathname === '/' || pathname === '/feed') return 'popular';
+
+    if (isClassicHomeFeedPath(pathname)) {
+      return pathname.slice(1) as FeedTab;
+    }
+
     return 'popular';
   }, [pathname, isTopicPage]);
 
