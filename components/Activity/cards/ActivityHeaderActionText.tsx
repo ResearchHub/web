@@ -34,7 +34,7 @@ function AuthorName({
 
   if (!id) {
     return (
-      <span className="inline-flex items-center align-middle">
+      <span className="inline-flex items-center">
         {name}
         {badge}
       </span>
@@ -42,7 +42,7 @@ function AuthorName({
   }
 
   return (
-    <span className="inline-flex items-center align-middle">
+    <span className="inline-flex items-center">
       <AuthorTooltip authorId={id} placement="bottom">
         <Link href={profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
           {fullName || 'Unknown'}
