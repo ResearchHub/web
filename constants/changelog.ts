@@ -8,6 +8,11 @@ export const CHANGELOG_NOTEBOOK_ROLLOUT_AT = '2026-08-10T20:56:32.000Z';
  * automatically invalidates the seen-flag for all users.
  */
 export const CHANGELOG_POST_IDS = [
+  '32728',
+  '32727',
+  '32729',
+  '32726',
+  '32725',
   '32502',
   '32356',
   '32355',

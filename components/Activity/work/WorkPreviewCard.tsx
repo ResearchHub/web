@@ -3,6 +3,7 @@
 import { Children, FC, isValidElement, ReactElement, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
 
 interface WorkPreviewShell {
@@ -34,6 +35,8 @@ interface WorkPreviewCardProps {
   children?: ReactNode;
   /** Render a gradient placeholder when no image is available. */
   showPlaceholder?: boolean;
+  /** Stand in for a missing image with the publisher's logo. */
+  brand?: 'researchhub';
   /** Fired when the user navigates via the work link (not footer actions). */
   onNavigate?: () => void;
   className?: string;
@@ -55,6 +58,7 @@ function WorkPreviewCardRoot({
   work,
   children,
   showPlaceholder = true,
+  brand,
   onNavigate,
   className,
 }: WorkPreviewCardProps) {
@@ -79,6 +83,17 @@ function WorkPreviewCardRoot({
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 640px) 100vw, 600px"
         />
+      ) : brand === 'researchhub' ? (
+        <div
+          className="absolute inset-0 flex items-center justify-center pb-10"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 40%, rgba(57,113,255,0.45) 0%, transparent 60%), ' +
+              'linear-gradient(135deg, #0b1530 0%, #12224a 55%, #16305f 100%)',
+          }}
+        >
+          <Logo variant="white" size={26} className="opacity-95" />
+        </div>
       ) : showPlaceholder ? (
         <div
           className="absolute inset-0"

@@ -71,7 +71,12 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
           )}
 
           <div className="mt-5 -ml-[42px] tablet:!ml-0">
-            <WorkPreviewCard work={work} onNavigate={markEntryClicked} showPlaceholder>
+            <WorkPreviewCard
+              work={work}
+              brand={presentation.brand}
+              onNavigate={markEntryClicked}
+              showPlaceholder
+            >
               <WorkPreviewCard.Metadata>
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>

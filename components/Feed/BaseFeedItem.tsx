@@ -243,7 +243,7 @@ export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, 
   return (
     <div
       className={cn(
-        'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-4 py-3.5 cursor-default',
+        'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-3 py-2.5 cursor-default',
         className
       )}
       onMouseDown={(e) => e.stopPropagation()}
@@ -388,7 +388,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Content area: image-left + main content side by side */}
         <div className={cn(cardImageLeft && 'md:!flex md:!flex-row')}>
           {cardImageLeft && (
-            <div className="hidden md:!block flex-shrink-0 w-[210px] p-4 pr-2">
+            <div className="hidden md:!block flex-shrink-0 w-[184px] p-4 pr-2">
               <div className="relative overflow-hidden rounded-xl w-full h-full">
                 {cardImageLeft}
               </div>

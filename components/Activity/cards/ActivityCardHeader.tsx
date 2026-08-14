@@ -15,7 +15,11 @@ import {
   getReviewEarning,
   getReviewScore,
 } from '../lib/activityDisplay.utils';
-import { getActivityBounty, type ActivityWork } from '../lib/activityWork.utils';
+import {
+  getActivityBounty,
+  isActivityWorkAuthor,
+  type ActivityWork,
+} from '../lib/activityWork.utils';
 import { ActivityCardMenu } from './ActivityCardMenu';
 import { formatExactTime, formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -42,7 +46,10 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, work })
   return (
     <div className="mb-2.5 flex items-start justify-between gap-2 pt-1 text-sm">
       <div className="min-w-0 flex-1 leading-6">
-        <ActivityHeaderActionText message={message} />
+        <ActivityHeaderActionText
+          message={message}
+          isAuthor={isActivityWorkAuthor(entry, message.actor.id)}
+        />
         {grantAmount && (
           <>
             {' '}

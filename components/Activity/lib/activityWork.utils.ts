@@ -39,6 +39,7 @@ export interface WorkCardAuthor {
   name: string;
   verified?: boolean;
   authorUrl?: string;
+  profileImage?: string;
 }
 
 export interface WorkCardStat {
@@ -53,6 +54,8 @@ export type WorkCardCta =
 
 export interface WorkCardPresentation {
   authors: WorkCardAuthor[];
+  /** Set when the work is published by ResearchHub itself, shown in place of authors. */
+  brand?: 'researchhub';
   /** Funding organization, shown in place of authors when present. */
   organization?: string | null;
   institution?: string | null;
@@ -125,6 +128,7 @@ function toCardAuthors(authors?: AuthorProfile[]): WorkCardAuthor[] {
       name: author.fullName,
       verified: author.user?.isVerified ?? author.isVerified,
       authorUrl: author.id === 0 ? undefined : author.profileUrl,
+      profileImage: author.profileImage,
     }));
 }
 
@@ -162,6 +166,11 @@ function resolveReviewScore(entry: FeedEntry, work: ActivityWork): number | null
   return null;
 }
 
+/** Discussions are product updates written by the ResearchHub team. */
+function isDiscussion(work: ActivityWork): boolean {
+  return work.documentType === 'post' || work.documentType === 'discussion';
+}
+
 function buildBasePresentation(
   entry: FeedEntry,
   work: ActivityWork,
@@ -174,6 +183,7 @@ function buildBasePresentation(
 
   return {
     authors: hideAuthors ? [] : toCardAuthors(work.authors),
+    brand: isDiscussion(work) ? 'researchhub' : undefined,
     organization: resolveOrganization(entry, work),
     institution: entry.nonprofit?.name ?? null,
     score: resolveReviewScore(entry, work),
@@ -442,6 +452,16 @@ function resolveWorkAuthors(
   }
 
   return relatedAuthors;
+}
+
+/** True when `authorId` matches an author on the work or content object. */
+export function isActivityWorkAuthor(entry: FeedEntry, authorId?: number | null): boolean {
+  if (!authorId) return false;
+
+  const relatedAuthors = entry.relatedWork?.authors?.map((authorship) => authorship.authorProfile);
+  const authors = resolveWorkAuthors(entry, relatedAuthors);
+
+  return authors?.some((author) => author.id === authorId) ?? false;
 }
 
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {

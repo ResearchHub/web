@@ -18,7 +18,7 @@ import {
   getReviewEarning,
   getReviewScore,
 } from '../lib/activityDisplay.utils';
-import { getActivityBounty } from '../lib/activityWork.utils';
+import { getActivityBounty, isActivityWorkAuthor } from '../lib/activityWork.utils';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { FeedEntry } from '@/types/feed';
@@ -116,6 +116,7 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => 
             stacked
             trailing={trailing}
             className="text-sm leading-5"
+            isAuthor={isActivityWorkAuthor(entry, message.actor.id)}
           />
           <span className="mt-1 block text-sm leading-tight line-clamp-2">{titleEl}</span>
           <Tooltip content={new Date(entry.timestamp).toLocaleString()}>

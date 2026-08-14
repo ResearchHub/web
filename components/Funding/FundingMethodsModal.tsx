@@ -6,6 +6,8 @@ import { CreditCard } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay } from '@fortawesome/free-brands-svg-icons';
 import { BaseModal } from '@/components/ui/BaseModal';
+import { Button } from '@/components/ui/Button';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
 
@@ -15,83 +17,87 @@ interface FundingMethodsModalProps {
 }
 
 interface FundingMethod {
+  /** Rendered bare in the left gutter. Color is the only anchor, so no chip or border. */
   icon: ReactNode;
-  /** Accessible name. Rendered visually only when `showLabel` is set. */
-  label: string;
-  subtitle?: string;
-  showLabel?: boolean;
+  title: string;
+  /** The reason someone would pick this over the others. */
+  tag: string;
+  description: string;
+  /** Brand marks, for rails that cover more than one wallet. */
+  marks?: ReactNode;
 }
 
 /**
- * Labelled methods lead so the wordmark-only wallet tiles read as a pair
- * underneath them instead of sitting at uneven heights beside them.
+ * Ordered by how little setup each one takes, so the first thing read is the
+ * one anybody can use today.
  */
 const METHODS: FundingMethod[] = [
   {
-    icon: <CreditCard className="h-6 w-6 text-gray-600" />,
-    label: 'Credit Card',
-    showLabel: true,
+    icon: <CreditCard className="h-5 w-5 text-primary-600" />,
+    title: 'Card or digital wallet',
+    tag: 'Fastest',
+    description: 'Fund in a few seconds. No account or deposit needed.',
+    marks: (
+      <div className="mt-2 flex items-center gap-3">
+        <FontAwesomeIcon icon={faApplePay} className="h-7 w-7 text-gray-700" />
+        <span className="sr-only">Apple Pay</span>
+        <FontAwesomeIcon icon={faGooglePay} className="h-7 w-7 text-gray-600" />
+        <span className="sr-only">Google Pay</span>
+        <span className="text-xs text-gray-400">supported</span>
+      </div>
+    ),
   },
   {
     icon: (
       <Image
         src="/logos/endaoment_color.svg"
         alt=""
-        width={24}
-        height={24}
+        width={20}
+        height={20}
         className="object-contain"
       />
     ),
-    label: 'DAF',
-    subtitle: 'via Endaoment',
-    showLabel: true,
+    title: 'Donor-advised fund',
+    tag: 'Tax-advantaged',
+    description: 'Fund using your DAF through our Endaoment integration.',
   },
   {
-    icon: <FontAwesomeIcon icon={faApplePay} className="h-10 w-10 text-gray-800" />,
-    label: 'Apple Pay',
-  },
-  {
-    icon: <FontAwesomeIcon icon={faGooglePay} className="h-10 w-10 text-gray-600" />,
-    label: 'Google Pay',
+    icon: <ResearchCoinIcon size={20} />,
+    title: 'ResearchCoin or Funding Credits',
+    tag: 'Lowest fee',
+    description: 'Spend the balance you already hold on ResearchHub.',
   },
 ];
 
 /**
- * Explains the checkout options available on a proposal page. Intentionally
- * leaves out balance-funded methods so the takeaway stays "you can pay for
- * research without setting anything up first".
+ * Explains the checkout options available on a proposal page. Read-only by
+ * design: the real picker lives in the funding flow, so the rows carry no
+ * borders, surfaces or hover states that would read as selectable.
  */
 export function FundingMethodsModal({ isOpen, onClose }: FundingMethodsModalProps) {
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title="Ways to fund research" size="sm">
-      <p className="text-sm leading-relaxed text-gray-600">
-        Fund any proposal directly from its page. No deposit needed.
-      </p>
-
-      {/* auto-rows-fr keeps the wordmark-only wallet row the same height as the
-          labelled row above it. */}
-      <div className="mt-5 grid auto-rows-fr grid-cols-2 gap-3">
+    <BaseModal isOpen={isOpen} onClose={onClose} title="Ways to fund research" size="md">
+      <ul className="mt-4 space-y-5">
         {METHODS.map((method) => (
-          <div
-            key={method.label}
-            className="flex flex-col items-center justify-center rounded-xl border border-gray-200 p-4 text-center"
-          >
-            <div className="flex h-10 items-center justify-center">{method.icon}</div>
-            {method.showLabel ? (
-              <>
-                <span className="mt-2 text-sm font-semibold text-gray-900">{method.label}</span>
-                {method.subtitle && (
-                  <span className="mt-0.5 text-xs text-gray-500">{method.subtitle}</span>
-                )}
-              </>
-            ) : (
-              <span className="sr-only">{method.label}</span>
-            )}
-          </div>
+          <li key={method.title} className="flex gap-3.5">
+            <span className="flex w-6 shrink-0 justify-center pt-0.5">{method.icon}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h3 className="text-sm font-semibold text-gray-900">{method.title}</h3>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                  {method.tag}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[13px] leading-relaxed text-gray-500">
+                {method.description}
+              </p>
+              {method.marks}
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      <p className="mt-5 text-xs leading-relaxed text-gray-500">
+      <p className="mt-6 text-xs leading-relaxed text-gray-500">
         Want to give another way, like a different DAF?{' '}
         <a
           href={TALK_TO_TEAM_URL}
@@ -103,6 +109,10 @@ export function FundingMethodsModal({ isOpen, onClose }: FundingMethodsModalProp
         </a>
         .
       </p>
+
+      <Button onClick={onClose} className="mt-5 w-full">
+        Got it
+      </Button>
     </BaseModal>
   );
 }
