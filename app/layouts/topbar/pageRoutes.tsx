@@ -12,6 +12,7 @@ import { Icon } from '@/components/ui/icons';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { FEED_V2_TAB_PATHS, isFeedV2TabPath } from '@/hooks/useFundTabs';
 
 export interface PageInfo {
   title: string;
@@ -19,15 +20,13 @@ export interface PageInfo {
 }
 
 export const ROOT_NAVIGATION_PATHS = new Set([
+  ...FEED_V2_TAB_PATHS,
   '/',
-  '/following',
-  '/latest',
   '/popular',
   '/for-you',
-  '/feed',
-  '/earn',
-  '/fund',
-  '/fund/proposals',
+  '/following',
+  '/latest',
+  '/peer-review',
   '/journal',
   '/notebook',
   '/browse',
@@ -35,6 +34,9 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/lists',
   '/settings',
   '/endowment',
+  '/fund',
+  '/fund/proposals',
+  '/my-funding',
 ]);
 
 export const isRootNavigationPage = (pathname: string): boolean =>
@@ -47,7 +49,14 @@ interface RouteRule {
 
 const ROUTE_RULES: RouteRule[] = [
   {
-    match: (p) => ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(p),
+    match: (p) => isFeedV2TabPath(p),
+    getInfo: () => ({
+      title: 'Fund Scientific Research',
+      icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
+    }),
+  },
+  {
+    match: (p) => ['/', '/popular', '/for-you', '/following', '/latest'].includes(p),
     getInfo: () => ({
       title: 'Home',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
@@ -58,6 +67,20 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Browse',
       icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
+    }),
+  },
+  {
+    match: (p) => p === '/fund' || p === '/fund/proposals',
+    getInfo: (p) => ({
+      title: p === '/fund/proposals' ? 'Proposals' : 'Funding Opportunities',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p === '/my-funding' || p.startsWith('/fund/dashboard'),
+    getInfo: () => ({
+      title: 'My Funding',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {
@@ -89,9 +112,9 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/earn'),
+    match: (p) => p.startsWith('/peer-review'),
     getInfo: () => ({
-      title: 'Earn',
+      title: 'Peer Review',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     }),
   },

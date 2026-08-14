@@ -24,8 +24,8 @@ const useItems: SidebarItem[] = [
     href: '/fund/proposals',
   },
   {
-    title: 'Open Funding Opportunity',
-    description: 'Fund specific research you care about.',
+    title: 'Open Request for Proposal',
+    description: 'Fund research',
     icon: <FundingIcon size={16} color="#4b5563" />,
     href: '/fund',
   },
@@ -54,7 +54,7 @@ const earnItems: SidebarItem[] = [
     title: 'Complete Peer Reviews',
     description: 'Earn RSC by peer reviewing preprints or proposals on ResearchHub.',
     icon: <Star className="w-4 h-4 text-gray-600" />,
-    href: '/earn',
+    href: '/peer-review',
   },
   {
     title: 'Create endowment',

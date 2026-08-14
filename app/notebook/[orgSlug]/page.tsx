@@ -15,10 +15,12 @@ import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { useUser } from '@/contexts/UserContext';
 
-// An empty document for the "Start blank" funding-opportunity path.
+// An empty document for the "Start blank" funding-opportunity path. The
+// notebook editor's schema is 'heading block+', so the document must open with
+// a heading (the title) followed by at least one block.
 const BLANK_DOCUMENT = {
   type: 'doc',
-  content: [{ type: 'paragraph' }],
+  content: [{ type: 'heading', attrs: { textAlign: 'left', level: 1 } }, { type: 'paragraph' }],
 } as typeof grantTemplate;
 
 export default function OrganizationPage() {

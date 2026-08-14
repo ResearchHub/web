@@ -17,10 +17,14 @@ interface SearchSuggestionsProps {
   suggestions?: SearchSuggestion[];
   hasLocalSuggestions?: boolean;
   clearSearchHistory?: () => void;
+  /** Cap on rendered rows. Defaults to 7 (search modal results). */
+  maxResults?: number;
+  /** When false, omit the Recent / Clear all header (caller owns chrome). */
+  showRecentHeader?: boolean;
 }
 
-// Maximum number of search results to display
-const MAX_RESULTS = 7;
+// Maximum number of search results to display by default
+const DEFAULT_MAX_RESULTS = 7;
 // Maximum length for titles before truncating
 const MAX_TITLE_LENGTH = 100;
 
@@ -40,6 +44,8 @@ export function SearchSuggestions({
   suggestions = [],
   hasLocalSuggestions = false,
   clearSearchHistory,
+  maxResults = DEFAULT_MAX_RESULTS,
+  showRecentHeader = true,
 }: SearchSuggestionsProps) {
   const [erroredSuggestions, setErroredSuggestions] = useState<Set<string>>(new Set());
 
@@ -275,7 +281,7 @@ export function SearchSuggestions({
         return false;
       }
     })
-    .slice(0, MAX_RESULTS); // Limit to maximum number of results
+    .slice(0, maxResults); // Limit to maximum number of results
 
   // Group suggestions by recent vs search results for inline mode
   const recentSuggestions = safeSuggestions.filter((s) => s.isRecent);
@@ -291,23 +297,25 @@ export function SearchSuggestions({
       {/* Local suggestions section */}
       {showSuggestionsOnFocus && !query && hasLocalSuggestions && (
         <div>
-          <div
-            className={cn(
-              'flex items-center justify-between px-4 py-3',
-              displayMode === 'dropdown' ? 'border-b' : ''
-            )}
-          >
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              Recent
-            </span>
-            <button
-              onClick={clearSearchHistory}
-              className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
+          {showRecentHeader && (
+            <div
+              className={cn(
+                'flex items-center justify-between px-4 py-3',
+                displayMode === 'dropdown' ? 'border-b' : ''
+              )}
             >
-              <X className="h-3 w-3" />
-              Clear all
-            </button>
-          </div>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                Recent
+              </span>
+              <button
+                onClick={clearSearchHistory}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
+              >
+                <X className="h-3 w-3" />
+                Clear all
+              </button>
+            </div>
+          )}
           <ul className={displayMode === 'inline' ? '' : 'divide-y divide-gray-100 py-2'}>
             {safeSuggestions.map(renderSuggestion)}
           </ul>

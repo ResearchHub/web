@@ -1,0 +1,110 @@
+'use client';
+
+import { FC } from 'react';
+import { Star } from 'lucide-react';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Logo } from '@/components/ui/Logo';
+import { cn } from '@/utils/styles';
+import type { ActivityWork, WorkCardPresentation } from '../lib/activityWork.utils';
+
+const MAX_VISIBLE_AUTHORS = 2;
+
+interface ActivityWorkMetadataProps {
+  work: ActivityWork;
+  presentation: WorkCardPresentation;
+}
+
+/**
+ * Frosted-bar content for an activity work card (title, avatars/org, rating, stats, progress).
+ */
+export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, presentation }) => {
+  const { authors, brand, institution, organization, score, stats, progress } = presentation;
+
+  // The frosted bar sits inside the card's link, so avatars stay non-interactive.
+  const avatarItems = authors.map((author) => ({
+    src: author.profileImage || '',
+    alt: author.name,
+  }));
+  const authorNames =
+    authors.length > 0
+      ? authors
+          .slice(0, MAX_VISIBLE_AUTHORS)
+          .map((a) => a.name)
+          .join(', ') +
+        (authors.length > MAX_VISIBLE_AUTHORS ? ` +${authors.length - MAX_VISIBLE_AUTHORS}` : '')
+      : null;
+  const showAvatars = !brand && !organization && avatarItems.length > 0;
+  const byline = brand ? 'ResearchHub' : organization || institution || authorNames;
+  // Imageless branded cards already show the logo across the card face.
+  const showBrandLogo = !!brand && !!work.imageUrl;
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="font-extrabold text-white tracking-tight line-clamp-2 leading-snug text-[14.5px]">
+            {work.title}
+          </div>
+          {(showAvatars || byline) && (
+            <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
+              {showBrandLogo && <Logo noText variant="white" size={13} className="flex-shrink-0" />}
+              {showAvatars && (
+                <AvatarStack
+                  items={avatarItems}
+                  size="xxs"
+                  maxItems={MAX_VISIBLE_AUTHORS}
+                  spacing={-6}
+                  ringColorClass="ring-black/30"
+                  disableTooltip
+                  showLabel={false}
+                  className="flex-shrink-0"
+                />
+              )}
+              {byline && <span className="truncate text-[11px] text-white/70">{byline}</span>}
+            </div>
+          )}
+        </div>
+
+        {(score != null || stats?.length) && (
+          <div className="flex flex-shrink-0 items-center gap-4">
+            {score != null && (
+              <div className="text-right">
+                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/50 whitespace-nowrap">
+                  Rating
+                </div>
+                <div className="flex items-center justify-end gap-1 font-extrabold font-mono text-sm leading-tight text-white/80">
+                  <Star size={11} className="fill-amber-400 text-amber-400" />
+                  {score.toFixed(1)}
+                </div>
+              </div>
+            )}
+            {stats?.map((s) => (
+              <div key={s.label} className="text-right">
+                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/50 whitespace-nowrap">
+                  {s.label}
+                </div>
+                <div
+                  className={cn(
+                    'font-extrabold font-mono text-sm leading-tight',
+                    s.accent ? 'text-emerald-300' : 'text-white/80'
+                  )}
+                >
+                  {s.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {progress != null && (
+        <div className="mt-1.5 h-[3px] overflow-hidden rounded-full bg-white/15">
+          <div
+            className="h-full rounded-full bg-emerald-400"
+            style={{ width: `${Math.max(10, Math.min(100, progress * 100))}%` }}
+          />
+        </div>
+      )}
+    </>
+  );
+};

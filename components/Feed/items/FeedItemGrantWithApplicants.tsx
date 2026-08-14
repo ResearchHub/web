@@ -60,23 +60,22 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
     <Link
       href={proposalHref}
       className={cn(
-        'grid grid-cols-[75px_1fr] items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        'grid grid-cols-[56px_1fr] sm:grid-cols-[72px_1fr] items-center gap-3 pr-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
       )}
     >
-      {/* Ask amount */}
-      <div className="text-center py-1 px-0.5  border-r border-gray-200">
+      {/* Ask amount — no left padding on the row, so the value sits equidistant
+          between the card edge and the divider */}
+      <div className="text-center py-1 border-r border-gray-200">
         <div className="text-sm font-extrabold font-mono tracking-tight text-gray-900">
           {formatCompact(askAmount, showUSD, exchangeRate)}
         </div>
-        <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">
-          requested
-        </div>
+        <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">ask</div>
       </div>
 
       {/* Title + author + org + score */}
       <div className="min-w-0">
-        <p className="text-[12.5px] font-bold text-gray-900 truncate leading-snug mb-0.5">
+        <p className="text-[12.5px] font-bold text-gray-900 line-clamp-2 sm:truncate leading-snug mb-0.5">
           {fundraise.title || profile.fullName}
         </p>
         <div className="flex items-center gap-1.5">
@@ -171,10 +170,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       )}
     >
       {/* Frosted header */}
-      <Link
-        href={href}
-        className="group block relative h-[200px] sm:h-[160px] overflow-hidden bg-gray-900"
-      >
+      <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-900">
         {content.previewImage ? (
           <Image
             src={content.previewImage}
@@ -207,7 +203,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 
         {/* Frosted metadata bar */}
         <div
-          className="absolute bottom-0 inset-x-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0 px-5 py-2.5 border-t border-white/[0.06]"
+          className="absolute bottom-0 inset-x-0 flex items-start justify-between gap-4 px-5 py-2.5 border-t border-white/[0.06]"
           style={{
             backdropFilter: 'blur(16px) saturate(1.4)',
             WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
@@ -215,37 +211,23 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
           }}
         >
           <div className="min-w-0">
-            <div className="text-[9px] font-semibold uppercase tracking-wider text-white/40 mb-0.5">
+            <div className="text-[9px] uppercase tracking-wider font-semibold text-white/80 truncate">
               {grant.organization || content.organization || 'ResearchHub Grant'}
             </div>
-            <div className="text-base font-extrabold text-white tracking-tight">
+            <div className="text-base font-extrabold text-white tracking-tight leading-snug line-clamp-2">
               {grant.shortTitle || content.title}
             </div>
           </div>
-          <div className="flex gap-5 flex-shrink-0">
-            {[
-              {
-                label: 'Available Funding',
-                value: formatCompact(budgetAmount, showUSD, exchangeRate),
-                accent: true,
-              },
-              { label: 'Proposals', value: String(allProposals.length), accent: false },
-              { label: 'Duration', value: 'Rolling', accent: false },
-            ].map((stat) => (
-              <div key={stat.label} className="sm:text-right">
-                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
-                  {stat.label}
-                </div>
-                <div
-                  className={cn(
-                    'font-extrabold font-mono',
-                    stat.accent ? 'text-base text-emerald-300' : 'text-base text-white/80'
-                  )}
-                >
-                  {stat.value}
-                </div>
-              </div>
-            ))}
+          <div className="flex-shrink-0 self-stretch flex flex-col text-right">
+            <div className="text-[9px] uppercase tracking-wider font-semibold text-white/70 whitespace-nowrap">
+              <span className="sm:hidden">Funding</span>
+              <span className="hidden sm:inline">Available Funding</span>
+            </div>
+            <div className="flex-1 flex items-center justify-end">
+              <span className="text-base font-extrabold font-mono text-emerald-300 leading-snug">
+                {formatCompact(budgetAmount, showUSD, exchangeRate)}
+              </span>
+            </div>
           </div>
         </div>
       </Link>

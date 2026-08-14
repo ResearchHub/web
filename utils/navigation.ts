@@ -124,15 +124,13 @@ export function handleMissingSlugRedirect(
 }
 
 /**
- * Handles redirection to trending page if user is authorized
- * @param isUserLoggedIn Whether the user is logged in
- * @param searchParams Optional search parameters to preserve in the redirect
+ * Handles redirection to the classic research feed.
+ * Preserves search parameters when provided.
  */
 export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
   if (isUserLoggedIn) {
     let redirectUrl = '/for-you';
 
-    // Preserve search parameters if provided
     if (searchParams && searchParams.toString()) {
       redirectUrl += `?${searchParams.toString()}`;
     }

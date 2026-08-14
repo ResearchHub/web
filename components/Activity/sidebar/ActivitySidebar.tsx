@@ -2,17 +2,17 @@
 
 import { FC, ReactNode } from 'react';
 import { Activity, Reply } from 'lucide-react';
-import { ActivityCard } from './ActivityCard';
+import { ActivityCardCompact } from '../cards/ActivityCardCompact';
 import type { FeedEntry } from '@/types/feed';
-import { SidebarHeader } from '../ui/SidebarHeader';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
-interface FundingSidebarProps {
+interface ActivitySidebarProps {
   topSection?: ReactNode;
   entries?: FeedEntry[];
   grantTitle?: string;
 }
 
-export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries, grantTitle }) => {
+export const ActivitySidebar: FC<ActivitySidebarProps> = ({ topSection, entries, grantTitle }) => {
   const hasEntries = entries && entries.length > 0;
 
   return (
@@ -45,7 +45,7 @@ export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries, g
       ) : (
         <div className="divide-y divide-gray-200">
           {entries.map((entry) => (
-            <ActivityCard key={entry.id} entry={entry} />
+            <ActivityCardCompact key={entry.id} entry={entry} />
           ))}
         </div>
       )}

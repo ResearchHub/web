@@ -129,17 +129,29 @@ export const SkeletonProposalSectionHeader: FC = () => (
   </div>
 );
 
-export const SkeletonProposalRows: FC<{ count?: number }> = ({ count = 3 }) => (
+interface SkeletonProposalRowsProps {
+  count?: number;
+  /** Matches cards whose ask column runs flush to the card edge. */
+  flushAskColumn?: boolean;
+}
+
+export const SkeletonProposalRows: FC<SkeletonProposalRowsProps> = ({
+  count = 3,
+  flushAskColumn = false,
+}) => (
   <div>
     {Array.from({ length: count }, (_, i) => (
       <div
         key={i}
         className={cn(
-          'grid grid-cols-[75px_1fr] items-center gap-3 px-5 py-2.5',
+          'grid items-center gap-3 pr-5 py-2.5',
+          flushAskColumn
+            ? 'grid-cols-[56px_1fr] sm:grid-cols-[72px_1fr]'
+            : 'grid-cols-[75px_1fr] pl-5',
           i < count - 1 && 'border-b border-gray-100'
         )}
       >
-        <div className="text-center py-1 px-0.5 border-r border-gray-200 space-y-1">
+        <div className="text-center py-1 border-r border-gray-200 space-y-1">
           <div className="h-4 w-12 bg-gray-200 rounded mx-auto" />
           <div className="h-2 w-14 bg-gray-200 rounded mx-auto" />
         </div>

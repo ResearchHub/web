@@ -8,6 +8,7 @@ import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
+import { FundingPowerProvider } from '@/contexts/FundingPowerContext';
 import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
@@ -32,11 +33,11 @@ interface PageLayoutProps {
   rightSidebarAbove?: ReactNode;
   fundraiseGrantId?: number;
   /**
-   * Drop the 860px main-content cap and let content fill the page container
-   * (~1180px). Useful when `rightSidebar` is false and the page wants the
-   * extra horizontal space.
+   * `default` centers the page in a 1180px container and lets the main column
+   * fill whatever the right sidebar doesn't use. `narrow` keeps the older
+   * 1012px container with an 860px cap on the main column (used by /feed-v2).
    */
-  wideContent?: boolean;
+  contentWidth?: 'default' | 'narrow';
 }
 
 function PageLayoutInner({
@@ -46,8 +47,10 @@ function PageLayoutInner({
   sidebarContentClassName,
   topBanner,
   rightSidebarAbove,
-  wideContent = false,
+  contentWidth = 'default',
 }: PageLayoutProps) {
+  const isNarrow = contentWidth === 'narrow';
+
   const {
     scrollContainerRef,
     isLeftSidebarOpen,
@@ -103,7 +106,9 @@ function PageLayoutInner({
         >
           {topBanner && <div className="w-full">{topBanner}</div>}
 
-          <div className="flex mx-auto w-full max-w-[1180px]">
+          <div
+            className={cn('flex mx-auto w-full', isNarrow ? 'max-w-[1012px]' : 'max-w-[1180px]')}
+          >
             <main
               className={cn(
                 'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',
@@ -111,11 +116,7 @@ function PageLayoutInner({
               )}
             >
               <div
-                className={cn(
-                  'w-full max-w-full',
-                  !wideContent && 'tablet:!max-w-[860px]',
-                  className
-                )}
+                className={cn('w-full max-w-full', isNarrow && 'tablet:!max-w-[860px]', className)}
               >
                 {children}
               </div>
@@ -143,7 +144,9 @@ export function PageLayout({ fundraiseGrantId, ...props }: PageLayoutProps) {
       <FundraiseProvider grantId={fundraiseGrantId}>
         <FeedTabsVisibilityProvider>
           <TopBarSlotProvider>
-            <PageLayoutInner {...props} />
+            <FundingPowerProvider>
+              <PageLayoutInner {...props} />
+            </FundingPowerProvider>
           </TopBarSlotProvider>
         </FeedTabsVisibilityProvider>
       </FundraiseProvider>

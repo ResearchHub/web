@@ -63,8 +63,10 @@ export const useFeedScrollTracking = ({
       if (scrollContainerRef?.current) {
         // First, try to scroll to the last clicked entry if available
         if (lastClickedEntryId) {
+          // Grouped rows stand in for several entries and list every member id in
+          // `data-entry-ids`, so match either the row itself or a member of it.
           const clickedElement = document.querySelector(
-            `[data-entry-id="${lastClickedEntryId}"]`
+            `[data-entry-id="${lastClickedEntryId}"], [data-entry-ids~="${lastClickedEntryId}"]`
           ) as HTMLElement;
 
           if (clickedElement) {

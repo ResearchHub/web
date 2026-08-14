@@ -6,8 +6,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import Icon from '@/components/ui/icons/Icon';
-import { useUser } from '@/contexts/UserContext';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import {
   OpenFundingOpportunityModal,
@@ -57,7 +55,7 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
   return (
     <div className="relative flex w-full items-center gap-3 pr-6">
       <div className="flex-shrink-0">
-        <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center ring-1 ring-gray-200/70 transition-colors duration-150 group-hover:bg-white group-hover:ring-gray-300">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 transition-colors duration-150 group-hover:bg-gray-50">
           {icon}
         </div>
       </div>
@@ -70,10 +68,9 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
   );
 };
 
-export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimize = false }) => {
+export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false }) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { user } = useUser();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
@@ -95,10 +92,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   const handleConfirmOpenGrant = (method: FundingOpportunityCreationMethod) => {
     setIsFundingOpportunityModalOpen(false);
     router.push(`/notebook?newGrant=true&grantSource=${method}`);
-  };
-
-  const handleViewProfile = () => {
-    navigateToAuthorProfile(user?.id, false);
   };
 
   const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {

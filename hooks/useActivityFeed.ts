@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { ActivityService, ActivityScope } from '@/services/activity.service';
+import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 
@@ -12,17 +13,38 @@ interface UseActivityFeedOptions {
 }
 
 export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {}) {
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const restorationTab = useMemo(() => {
+    const parts = ['activity'];
+    if (grantId != null) parts.push(`grant-${grantId}`);
+    if (scope) parts.push(scope);
+    return parts.join('-');
+  }, [grantId, scope]);
+
+  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
+    activeTab: restorationTab,
+  });
+
+  const hasRestoredEntries = restoredState !== null;
+  const initialEntries = restoredState?.entries ?? [];
+  const initialHasMore = restoredState?.hasMore ?? false;
+  const initialPage = restoredState?.page ?? 1;
+
+  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [count, setCount] = useState(0);
-  const pageRef = useRef(1);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [count, setCount] = useState(initialEntries.length);
+  const [page, setPage] = useState(initialPage);
+  const pageRef = useRef(initialPage);
+  // Skip the first fetch when we restored entries; subsequent fetchInitial
+  // identity changes (scope / grantId) still refetch.
+  const skipNextFetchRef = useRef(hasRestoredEntries && initialEntries.length > 0);
 
   const fetchInitial = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
     pageRef.current = 1;
+    setPage(1);
 
     try {
       const result = await ActivityService.getActivity({
@@ -41,6 +63,10 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
   }, [scope, grantId]);
 
   useEffect(() => {
+    if (skipNextFetchRef.current) {
+      skipNextFetchRef.current = false;
+      return;
+    }
     fetchInitial();
   }, [fetchInitial]);
 
@@ -56,10 +82,14 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
         scope,
         grantId,
       });
-      setEntries((prev) => [...prev, ...result.entries]);
+      setEntries((prev) => {
+        const next = [...prev, ...result.entries];
+        setCount(next.length);
+        return next;
+      });
       setHasMore(result.hasMore);
-      setCount(result.count);
       pageRef.current = nextPage;
+      setPage(nextPage);
     } catch (error) {
       console.error('Error loading more activity:', error);
     } finally {
@@ -73,6 +103,10 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
     isLoadingMore,
     hasMore,
     count,
+    page,
     loadMore,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
   };
 }

@@ -487,11 +487,6 @@ const SCIENTISTS: Scientist[] = [
     name: 'Ruslan Rust, PhD',
     affiliation: 'University of Southern California',
   },
-  {
-    src: '/people/attila.jpeg',
-    name: 'Attila Karsi, PhD',
-    affiliation: 'Mississippi State University',
-  },
   { src: '/people/scott.jpeg', name: 'Scott Nelson, PhD', affiliation: 'Iowa State University' },
   { src: '/people/maulik.jpeg', name: 'Maulik Dhandha, MD', affiliation: 'Saint Louis University' },
   {

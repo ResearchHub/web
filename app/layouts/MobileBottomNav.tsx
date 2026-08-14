@@ -13,7 +13,7 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { Sprout } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
@@ -22,7 +22,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { useUser } from '@/contexts/UserContext';
+import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
 
 interface NavItem {
   label: string;
@@ -35,6 +35,7 @@ interface NavItem {
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
+  { label: 'Your Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
   { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
@@ -42,12 +43,23 @@ const moreNavItems: NavItem[] = [
 ];
 
 // Check if a path is active
-const isPathActive = (path: string, currentPath: string): boolean => {
-  if (path === '/for-you' || path === '/popular') {
-    return ['/popular', '/for-you', '/latest', '/following', '/'].includes(currentPath);
+const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
+  if (isHome) {
+    return isClassicHomeFeedPath(currentPath) || currentPath === '/';
   }
   if (path === '/fund') {
-    return currentPath.startsWith('/fund');
+    return (
+      currentPath === '/fund' ||
+      currentPath.startsWith('/fund/proposals') ||
+      (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
+    );
+  }
+  if (path === '/my-funding') {
+    return (
+      currentPath === '/my-funding' ||
+      currentPath === '/fund/dashboard' ||
+      currentPath.startsWith('/fund/dashboard/')
+    );
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -73,14 +85,12 @@ export const MobileBottomNav: React.FC = () => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
-  const { user } = useUser();
 
-  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
-  const homeHref = user ? '/for-you' : '/popular';
+  const homeHref = useHomeHref();
 
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
-    { label: 'Earn', href: '/earn', iconKey: 'earn' },
+    { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
     { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
@@ -140,6 +150,15 @@ export const MobileBottomNav: React.FC = () => {
             icon={isActive ? faHouseSolid : faHouseLight}
             fontSize={iconSize}
             color={iconColor}
+          />
+        );
+      case 'peer-review':
+        return (
+          <Star
+            size={iconSize}
+            color={iconColor}
+            strokeWidth={isActive ? 2.25 : 2}
+            fill={isActive ? iconColor : 'none'}
           />
         );
       case 'earn':
@@ -220,7 +239,7 @@ export const MobileBottomNav: React.FC = () => {
             const isActive = item.isMore
               ? isMoreActive || isMoreOpen
               : item.href
-                ? isPathActive(item.href, pathname)
+                ? isPathActive(item.href, pathname, item.isDynamicHome)
                 : false;
 
             return (
