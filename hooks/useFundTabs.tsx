@@ -6,7 +6,14 @@ import { type LucideIcon, type LucideProps } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
-import { RadiatingDotTabIcon } from '@/components/ui/RadiatingDotTabIcon';
+import {
+  faBullhorn as faBullhornSolid,
+  faFileSignature as faFileSignatureSolid,
+} from '@fortawesome/pro-solid-svg-icons';
+import {
+  RadiatingDotTabIcon,
+  RadiatingDotTabIconActive,
+} from '@/components/ui/RadiatingDotTabIcon';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
 function faTabIcon(icon: IconDefinition) {
@@ -31,6 +38,7 @@ export const FUND_TABS = [
     label: 'Activity',
     href: '/feed-v2',
     icon: RadiatingDotTabIcon,
+    activeIcon: RadiatingDotTabIconActive,
     iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
@@ -45,6 +53,7 @@ export const FUND_TABS = [
     ),
     href: '/feed-v2/fund',
     icon: faTabIcon(faBullhorn),
+    activeIcon: faTabIcon(faBullhornSolid),
     iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
@@ -54,6 +63,7 @@ export const FUND_TABS = [
     label: 'Proposals',
     href: '/feed-v2/fund/proposals',
     icon: faTabIcon(faFileSignature),
+    activeIcon: faTabIcon(faFileSignatureSolid),
     iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
