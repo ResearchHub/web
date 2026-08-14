@@ -987,7 +987,7 @@ export function AgentChatPanel({
             }
           />
         )}
-        <div className="flex shrink-0 items-center border-l border-gray-200 pl-1.5">
+        <div className="flex shrink-0 items-center">
           <button
             type="button"
             onClick={() => switchChat(null)}
