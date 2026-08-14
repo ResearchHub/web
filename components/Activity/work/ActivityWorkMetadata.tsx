@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { Star } from 'lucide-react';
 import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
 import type { ActivityWork, WorkCardPresentation } from '../lib/activityWork.utils';
 
@@ -17,7 +18,7 @@ interface ActivityWorkMetadataProps {
  * Frosted-bar content for an activity work card (title, avatars/org, rating, stats, progress).
  */
 export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, presentation }) => {
-  const { authors, institution, organization, score, stats, progress } = presentation;
+  const { authors, brand, institution, organization, score, stats, progress } = presentation;
 
   // The frosted bar sits inside the card's link, so avatars stay non-interactive.
   const avatarItems = authors.map((author) => ({
@@ -32,8 +33,10 @@ export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, pres
           .join(', ') +
         (authors.length > MAX_VISIBLE_AUTHORS ? ` +${authors.length - MAX_VISIBLE_AUTHORS}` : '')
       : null;
-  const showAvatars = !organization && avatarItems.length > 0;
-  const byline = organization || institution || authorNames;
+  const showAvatars = !brand && !organization && avatarItems.length > 0;
+  const byline = brand ? 'ResearchHub' : organization || institution || authorNames;
+  // Imageless branded cards already show the logo across the card face.
+  const showBrandLogo = !!brand && !!work.imageUrl;
 
   return (
     <>
@@ -44,6 +47,7 @@ export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, pres
           </div>
           {(showAvatars || byline) && (
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
+              {showBrandLogo && <Logo noText variant="white" size={13} className="flex-shrink-0" />}
               {showAvatars && (
                 <AvatarStack
                   items={avatarItems}
