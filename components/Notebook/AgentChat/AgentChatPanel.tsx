@@ -613,7 +613,10 @@ export function AgentChatPanel({
         if (editor.isDestroyed) return;
         if (!persisted) setPersistFailed(true);
       }
-    } catch {
+    } catch (error) {
+      // The banner only says "couldn't load" — the cause (fetch, parse,
+      // schema) is visible nowhere but here.
+      console.error('Applying the assistant version failed', error);
       if (targetRef.current.noteId !== noteId) return;
       lastFailedReviewVersionRef.current = pinnedVersionId;
       setNoteReloadFailed(true);

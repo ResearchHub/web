@@ -192,15 +192,32 @@ function dispatchSilently(editor: Editor, tr: Transaction): void {
 }
 
 /**
+ * True when the document holds nothing a review could protect: no text
+ * anywhere and no non-text leaf content (an image alone is content, a stack
+ * of empty blocks is not).
+ */
+function docHasNoContent(doc: ProseMirrorNode): boolean {
+  if (doc.textContent.trim() !== '') return false;
+  let hasLeaf = false;
+  doc.descendants((node) => {
+    if (node.isLeaf && !node.isText) {
+      hasLeaf = true;
+    }
+    return !hasLeaf;
+  });
+  return !hasLeaf;
+}
+
+/**
  * Turn an incoming assistant version into an in-note review on the live
  * editor. The document becomes the assistant's version with every piece of
  * content it overwrote spliced back in as struck-through, still-editable
  * text; the selection is carried over so this can fire mid-keystroke.
  *
- * Returns the number of changed regions. Zero means nothing reviewable: the
- * versions matched in content, formatting, and attrs alike, differing at
- * most in volatile node ids, which are adopted verbatim — no overlay is
- * installed.
+ * Returns the number of changed regions. Zero means nothing reviewable —
+ * the versions matched in content, formatting, and attrs alike (differing
+ * at most in volatile node ids), or the note held no content of its own —
+ * and the incoming version is adopted verbatim with no overlay installed.
  *
  * If a review is already active it is first folded back to the reader's
  * side (reject semantics), so the new diff is always mine-vs-latest rather
@@ -219,13 +236,18 @@ export function beginNoteDiffReview(
   // range (TextSelection.between).
   const selectionAnchor = editor.state.selection.anchor;
   const selectionHead = editor.state.selection.head;
-  const changes = computeNoteDiffChanges(editor.schema, older, incoming);
+  // A review needs a base worth protecting. On a note the reader has put
+  // nothing into, weighing their side against the assistant's is ceremony
+  // over an empty page: adopt the incoming version outright instead.
+  const changes = docHasNoContent(older)
+    ? []
+    : computeNoteDiffChanges(editor.schema, older, incoming);
 
   if (changes.length === 0) {
     if (!older.eq(incoming)) {
-      // Verbatim apply (only volatile ids differ): the one remaining
-      // whole-document replace, and it costs the undo stack — with no
-      // changed regions there is nothing to localize the edit to.
+      // Verbatim apply: the one remaining whole-document replace, and it
+      // costs the undo stack — with no changed regions there is nothing to
+      // localize the edit to.
       const tr = editor.state.tr;
       tr.replaceWith(0, older.content.size, incoming.content);
       const anchor = Math.min(selectionAnchor, tr.doc.content.size);
