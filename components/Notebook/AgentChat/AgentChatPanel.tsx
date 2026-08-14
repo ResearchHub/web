@@ -21,6 +21,7 @@ import {
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { belowMobileTopBar } from '../mobileChromeOffsets';
+import { NoteReviewControls } from '../NoteReview/NoteReviewControls';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
 import { ChatSources, collectChatSources } from './ChatSources';
@@ -1020,6 +1021,22 @@ export function AgentChatPanel({
             onClick={() => setActiveTab('sources')}
             label="Sources"
             count={sources.length}
+          />
+        </div>
+      )}
+
+      {/* Undocked, this panel covers the note, so the controls floating over it
+          are behind the panel and cannot be reached — while any save meanwhile
+          persists the assistant's side. Carry them here instead, so the choice
+          stays available on the surface the reader is looking at. Docked, the
+          note is beside the panel and keeps the floating copy (see
+          NoteEditorLayout). */}
+      {review && !docked && (
+        <div className="flex justify-center border-b border-gray-100 px-3 py-2">
+          <NoteReviewControls
+            changeCount={review.changeCount}
+            onAccept={acceptReview}
+            onReject={rejectReview}
           />
         </div>
       )}

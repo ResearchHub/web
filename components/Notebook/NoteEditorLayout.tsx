@@ -151,6 +151,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   // document gives up the same gutter. Below xl there isn't enough room left
   // to keep the document readable, so the panel covers it as a sheet instead.
   const isAgentChatDocked = showAgentChat && isAgentChatOpen && xlAndUp === true;
+  const isUndockedChatOpen = showAgentChat && isAgentChatOpen && !isAgentChatDocked;
 
   useEffect(() => {
     onAgentChatDockedChange?.(isAgentChatDocked);
@@ -353,15 +354,19 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
         {isDesktop && <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />}
       </div>
 
-      {/* Floating over the document, clear of the assistant panel when it's open. */}
-      {agentReview && (!showTabs || activeTab === 'document') && (
+      {/* Floating over the document — but only while the document is visible.
+          Docked, the panel sits beside it and the controls shift by the panel's
+          width; undocked, the panel covers the document and carries its own
+          copy of these controls, so this one stands down. */}
+      {agentReview && (!showTabs || activeTab === 'document') && !isUndockedChatOpen && (
         <div
+          style={{ paddingRight: isAgentChatDocked ? agentChatWidth : undefined }}
           className={cn(
             'pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4',
-            // Clear of the assistant panel while it's open, and of the button
-            // that reopens it — which shares this corner — while it's closed.
+            // Clear of the button that reopens the panel, which shares this
+            // corner while the panel is closed.
             isAgentChatOpen
-              ? cn(ABOVE_MOBILE_NAV.bottom6, 'sm:!right-[400px]')
+              ? ABOVE_MOBILE_NAV.bottom6
               : cn(ABOVE_MOBILE_NAV.bottom24, 'lg:!bottom-6')
           )}
         >
@@ -383,7 +388,10 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           type="button"
           onClick={() => setIsAgentChatOpen(true)}
           aria-expanded={false}
-          className="group fixed bottom-20 right-6 z-40 flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-primary-500 via-primary-600 to-indigo-600 py-2.5 pl-3.5 pr-4 text-sm font-medium text-white shadow-lg shadow-primary-500/25 transition-shadow hover:shadow-xl hover:shadow-primary-500/35 tablet:bottom-6"
+          className={cn(
+            'group fixed right-6 z-40 flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-primary-500 via-primary-600 to-indigo-600 py-2.5 pl-3.5 pr-4 text-sm font-medium text-white shadow-lg shadow-primary-500/25 transition-shadow hover:shadow-xl hover:shadow-primary-500/35',
+            ABOVE_MOBILE_NAV.bottom6
+          )}
         >
           {/* Highlight band that sweeps across on hover. */}
           <span
