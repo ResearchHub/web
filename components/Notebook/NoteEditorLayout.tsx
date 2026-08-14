@@ -16,6 +16,7 @@ import { NotesMenu } from './NotesMenu';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
+import { ABOVE_MOBILE_NAV } from './aboveMobileNav';
 import { AgentChatPanel, type NoteReviewHandle } from './AgentChat/AgentChatPanel';
 import { noteDiffPersistableDoc } from './NoteReview/noteDiffOverlay';
 import { NoteReviewControls } from './NoteReview/NoteReviewControls';
@@ -359,7 +360,9 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
             'pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4',
             // Clear of the assistant panel while it's open, and of the button
             // that reopens it — which shares this corner — while it's closed.
-            isAgentChatOpen ? 'bottom-6 sm:!right-[400px]' : 'bottom-24 lg:!bottom-6'
+            isAgentChatOpen
+              ? cn(ABOVE_MOBILE_NAV.bottom6, 'sm:!right-[400px]')
+              : cn(ABOVE_MOBILE_NAV.bottom24, 'lg:!bottom-6')
           )}
         >
           <NoteReviewControls
