@@ -5,6 +5,8 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { ActivityCard } from './cards/ActivityCard';
 import { ActivityCardSkeleton } from './cards/ActivityCardSkeleton';
+import { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
+import { groupActivityRows } from './lib/activityGrouping.utils';
 import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
@@ -41,6 +43,9 @@ export function ActivityPageContent() {
     });
   }, [pathname, restorationTab, searchParams]);
 
+  const rows = useMemo(() => groupActivityRows(entries, { hasMore }), [entries, hasMore]);
+
+  // Tracking stays on the raw entries so the persisted state is grouping-agnostic.
   useFeedScrollTracking({
     feedKey,
     entries,
@@ -62,9 +67,13 @@ export function ActivityPageContent() {
 
   return (
     <div>
-      {entries.map((entry) => (
-        <ActivityCard key={entry.id} entry={entry} />
-      ))}
+      {rows.map((row) =>
+        row.kind === 'funding-group' ? (
+          <ActivityFundingGroupCard key={row.key} row={row} />
+        ) : (
+          <ActivityCard key={row.key} entry={row.entry} />
+        )
+      )}
 
       {(isLoading || isLoadingMore) &&
         [...Array(6)].map((_, i) => <ActivityCardSkeleton key={i} />)}
