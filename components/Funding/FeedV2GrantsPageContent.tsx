@@ -6,7 +6,19 @@ import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import { useGrantFeed } from '@/contexts/GrantFeedContext';
 
 export function FeedV2GrantsPageContent() {
-  const { entries, isLoading, hasMore, loadMore, sortBy, setSortBy, activate } = useGrantFeed();
+  const {
+    entries,
+    isLoading,
+    hasMore,
+    page,
+    loadMore,
+    sortBy,
+    setSortBy,
+    activate,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
+  } = useGrantFeed();
 
   useEffect(() => {
     activate();
@@ -23,6 +35,10 @@ export function FeedV2GrantsPageContent() {
       showGrantHeaders={false}
       showPostHeaders={false}
       showFundraiseHeaders={false}
+      activeTab={restorationTab}
+      restoredScrollPosition={restoredScrollPosition}
+      page={page}
+      lastClickedEntryId={lastClickedEntryId ?? undefined}
       noEntriesElement={
         <div className="py-12 text-center">
           <p className="text-gray-400 text-sm">No open awards right now</p>

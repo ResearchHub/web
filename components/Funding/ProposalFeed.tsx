@@ -10,7 +10,18 @@ interface ProposalFeedProps {
 }
 
 export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore, activate } = useFundraises();
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    page,
+    loadMore,
+    activate,
+    restoredScrollPosition,
+    lastClickedEntryId,
+    restorationTab,
+  } = useFundraises();
 
   useEffect(() => {
     activate();
@@ -28,6 +39,10 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
         showFundraiseHeaders={false}
         showGrantHeaders={false}
         showPostHeaders={false}
+        activeTab={restorationTab}
+        restoredScrollPosition={restoredScrollPosition}
+        page={page}
+        lastClickedEntryId={lastClickedEntryId ?? undefined}
         noEntriesElement={
           <div className="py-12 text-center">
             <p className="text-gray-500">No proposals submitted yet</p>
