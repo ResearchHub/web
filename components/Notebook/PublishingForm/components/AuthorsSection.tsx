@@ -18,6 +18,7 @@ export function AuthorsSection() {
       <SectionHeader icon={Users}>Authors</SectionHeader>
       <SearchableUserSelect
         value={authors}
+        sortable
         onChange={(newAuthors) => setValue('authors', newAuthors, { shouldValidate: true })}
         placeholder="Search for authors..."
         error={getFieldErrorMessage(errors.authors, 'Invalid authors')}
