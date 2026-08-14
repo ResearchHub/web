@@ -39,6 +39,7 @@ export interface WorkCardAuthor {
   name: string;
   verified?: boolean;
   authorUrl?: string;
+  profileImage?: string;
 }
 
 export interface WorkCardStat {
@@ -125,6 +126,7 @@ function toCardAuthors(authors?: AuthorProfile[]): WorkCardAuthor[] {
       name: author.fullName,
       verified: author.user?.isVerified ?? author.isVerified,
       authorUrl: author.id === 0 ? undefined : author.profileUrl,
+      profileImage: author.profileImage,
     }));
 }
 

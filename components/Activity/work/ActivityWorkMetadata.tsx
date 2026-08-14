@@ -2,8 +2,11 @@
 
 import { FC } from 'react';
 import { Star } from 'lucide-react';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { cn } from '@/utils/styles';
 import type { ActivityWork, WorkCardPresentation } from '../lib/activityWork.utils';
+
+const MAX_VISIBLE_AUTHORS = 2;
 
 interface ActivityWorkMetadataProps {
   work: ActivityWork;
@@ -11,24 +14,26 @@ interface ActivityWorkMetadataProps {
 }
 
 /**
- * Frosted-bar content for an activity work card (title, authors/org, rating, stats, progress).
+ * Frosted-bar content for an activity work card (title, avatars/org, rating, stats, progress).
  */
 export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, presentation }) => {
-  const { authors, score, stats, progress } = presentation;
+  const { authors, institution, organization, score, stats, progress } = presentation;
 
+  // The frosted bar sits inside the card's link, so avatars stay non-interactive.
+  const avatarItems = authors.map((author) => ({
+    src: author.profileImage || '',
+    alt: author.name,
+  }));
   const authorNames =
     authors.length > 0
       ? authors
-          .slice(0, 2)
+          .slice(0, MAX_VISIBLE_AUTHORS)
           .map((a) => a.name)
-          .join(', ') + (authors.length > 2 ? ` +${authors.length - 2}` : '')
+          .join(', ') +
+        (authors.length > MAX_VISIBLE_AUTHORS ? ` +${authors.length - MAX_VISIBLE_AUTHORS}` : '')
       : null;
-
-  const authorLine =
-    presentation.organization ||
-    (authorNames && presentation.institution
-      ? `${authorNames} · ${presentation.institution}`
-      : authorNames || presentation.institution || null);
+  const showAvatars = !organization && avatarItems.length > 0;
+  const byline = organization || institution || authorNames;
 
   return (
     <>
@@ -37,8 +42,22 @@ export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, pres
           <div className="font-extrabold text-white tracking-tight line-clamp-2 leading-snug text-[14.5px]">
             {work.title}
           </div>
-          {authorLine && (
-            <div className="mt-0.5 truncate text-[11px] text-white/70">{authorLine}</div>
+          {(showAvatars || byline) && (
+            <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
+              {showAvatars && (
+                <AvatarStack
+                  items={avatarItems}
+                  size="xxs"
+                  maxItems={MAX_VISIBLE_AUTHORS}
+                  spacing={-6}
+                  ringColorClass="ring-black/30"
+                  disableTooltip
+                  showLabel={false}
+                  className="flex-shrink-0"
+                />
+              )}
+              {byline && <span className="truncate text-[11px] text-white/70">{byline}</span>}
+            </div>
           )}
         </div>
 
