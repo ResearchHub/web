@@ -963,27 +963,31 @@ export function AgentChatPanel({
             </button>
           </div>
         ) : (
+          // Rename belongs to the title, not to the panel: seated inside the
+          // picker rather than out with the panel actions, so the row reads as
+          // two groups instead of a run of three unrelated icons.
           <ChatPicker
             chats={list.chats}
             activeChatId={selectedChatId}
             activeTitle={chatTitle}
             onSelect={switchChat}
-            onNewChat={() => switchChat(null)}
             onOpen={() => refreshList()}
+            titleAction={
+              selectedChatId != null ? (
+                <button
+                  type="button"
+                  onClick={startRename}
+                  title="Rename chat"
+                  className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">Rename chat</span>
+                </button>
+              ) : null
+            }
           />
         )}
-        <div className="flex shrink-0 items-center">
-          {selectedChatId != null && !renaming && (
-            <button
-              type="button"
-              onClick={startRename}
-              title="Rename chat"
-              className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            >
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-              <span className="sr-only">Rename chat</span>
-            </button>
-          )}
+        <div className="flex shrink-0 items-center border-l border-gray-200 pl-1.5">
           <button
             type="button"
             onClick={() => switchChat(null)}

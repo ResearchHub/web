@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { ChevronDown, MessageSquarePlus } from 'lucide-react';
+import { useRef, useState, type ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
@@ -14,22 +14,30 @@ interface ChatPickerProps {
   /** Live title of the open chat — fresher than the listing after renames/derives. */
   readonly activeTitle: string | null;
   readonly onSelect: (chatId: number) => void;
-  readonly onNewChat: () => void;
   /** Fired when the dropdown opens — refresh the listing projection. */
   readonly onOpen: () => void;
+  /**
+   * Control for the open chat's title, seated between the label and the
+   * chevron. A slot rather than a prop pair so the picker stays ignorant of
+   * what the action is — it only owns where it sits.
+   */
+  readonly titleAction?: ReactNode;
 }
 
 /**
  * Header dropdown for switching between the note's chats. Built on the cheap
  * listing projection: title, preview, activity spinner — never full chats.
+ *
+ * Switching is all it does. Starting a chat lives on the header button beside
+ * it, where it is one tap rather than two.
  */
 export function ChatPicker({
   chats,
   activeChatId,
   activeTitle,
   onSelect,
-  onNewChat,
   onOpen,
+  titleAction,
 }: ChatPickerProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,39 +52,44 @@ export function ChatPicker({
   };
 
   return (
-    <div ref={containerRef} className="relative min-w-0 flex-1">
+    // Claims the row so the header's panel actions stay pinned right, but
+    // nothing inside grows: label, title action and chevron sit together at the
+    // left and the slack collects after them. Only a title long enough to need
+    // the space takes it, truncating rather than shoving.
+    <div ref={containerRef} className="relative flex min-w-0 flex-1 items-center">
       <button
         type="button"
         onClick={toggle}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex w-full min-w-0 items-center gap-1 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-gray-100"
+        className="flex min-w-0 items-center rounded-md px-1.5 py-1 text-left transition-colors hover:bg-gray-100"
       >
         <span className="min-w-0 truncate text-sm font-medium text-gray-800">{currentLabel}</span>
-        <ChevronDown
-          className={cn(
-            'h-4 w-4 shrink-0 text-gray-400 transition-transform',
-            open && 'rotate-180'
-          )}
-          aria-hidden="true"
-        />
+      </button>
+
+      {titleAction}
+
+      {/* Opens the same menu as the label — split off only so the title action
+          can sit between them. Kept out of the tab order and the a11y tree:
+          the label button already announces and operates the menu, and a
+          second stop on the same control is noise. */}
+      <button
+        type="button"
+        onClick={toggle}
+        tabIndex={-1}
+        aria-hidden="true"
+        className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+      >
+        <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} />
       </button>
 
       {open && (
         <div className="animate-in absolute left-0 right-0 top-full z-10 mt-1 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              onNewChat();
-            }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-50"
-          >
-            <MessageSquarePlus className="h-4 w-4 shrink-0" aria-hidden="true" />
-            New chat
-          </button>
-
-          {chats.length > 0 && <div className="my-1 border-t border-gray-100" />}
+          {/* The listing is empty until the first chat is saved, and the menu
+              would otherwise open as a bare box. */}
+          {chats.length === 0 && (
+            <p className="px-3 py-2 text-sm text-gray-500">No chats on this note yet.</p>
+          )}
 
           {chats.map((chat) => (
             <button
