@@ -224,6 +224,25 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     );
   };
 
+  const renderFooterContent = () => {
+    if (isSavingSelection) return 'Saving...';
+    if (draftNewSelected) {
+      return (
+        <>
+          <PenLine size={16} className="mr-2" />
+          Start drafting
+        </>
+      );
+    }
+
+    return (
+      <>
+        Continue
+        <ArrowRight size={16} className="ml-2" />
+      </>
+    );
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -370,19 +389,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
               className="w-full"
               size="lg"
             >
-              {isSavingSelection ? (
-                'Saving...'
-              ) : draftNewSelected ? (
-                <>
-                  <PenLine size={16} className="mr-2" />
-                  Start drafting
-                </>
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight size={16} className="ml-2" />
-                </>
-              )}
+              {renderFooterContent()}
             </Button>
           </div>
         </div>

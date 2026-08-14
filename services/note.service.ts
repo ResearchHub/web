@@ -28,7 +28,7 @@ export interface CreateNoteParams {
   grouping: NoteAccess;
   organization_slug: string;
   document_type?: string;
-  selectedGrantId?: ID | null;
+  selectedGrantId: ID;
 }
 
 export interface UpdateNoteContentParams {
@@ -42,7 +42,7 @@ export interface UpdateNoteParams {
   noteId: ID;
   title?: string;
   document_type?: string;
-  selectedGrantId?: ID | null;
+  selectedGrantId: ID;
 }
 
 export interface UpdateNoteTitleParams {
@@ -278,7 +278,11 @@ export class NoteService {
   }
 
   static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    return this.updateNote({ noteId: params.noteId, title: params.title });
+    return this.updateNote({
+      noteId: params.noteId,
+      title: params.title,
+      selectedGrantId: undefined,
+    });
   }
 
   /**

@@ -156,7 +156,7 @@ interface CreateNoteInput {
   grouping: NoteAccess;
   organizationSlug: string;
   documentType?: string;
-  selectedGrantId?: ID | null;
+  selectedGrantId: ID;
 }
 
 interface UseCreateNoteState {
@@ -583,6 +583,7 @@ export const useDuplicateNote = (): UseDuplicateNoteReturn => {
         grouping: originalNote.access,
         organization_slug: organizationSlug,
         document_type: isChangelogNote(originalNote) ? 'DISCUSSION' : undefined,
+        selectedGrantId: undefined,
       });
 
       // 3. Copy the content to the new note

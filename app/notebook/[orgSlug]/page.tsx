@@ -15,6 +15,7 @@ import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { useUser } from '@/contexts/UserContext';
 import { getPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
+import type { ID } from '@/types/root';
 
 // An empty document for the "Start blank" funding-opportunity path. The
 // notebook editor's schema is 'heading block+', so the document must open with
@@ -55,7 +56,7 @@ export default function OrganizationPage() {
       queryParam?: string;
       queryValue?: string;
       documentType?: string;
-      selectedGrantId?: string;
+      selectedGrantId?: Exclude<ID, null | undefined>;
     }
   ) => {
     try {
@@ -133,7 +134,7 @@ export default function OrganizationPage() {
     proposalSource,
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleStartFromTemplate = async (selectedGrantId?: string) => {
+  const handleStartFromTemplate = async (selectedGrantId?: Exclude<ID, null | undefined>) => {
     if (!selectedOrg) return;
     await createNoteWithContent(selectedOrg.slug, {
       template: proposalTemplate,
