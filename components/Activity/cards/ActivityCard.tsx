@@ -7,6 +7,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
+import { ActivityTimestamp } from './ActivityTimestamp';
 import { ActivityWorkActions } from '../work/ActivityWorkActions';
 import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
@@ -92,6 +93,8 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
           </div>
         </div>
       </div>
+
+      <ActivityTimestamp timestamp={entry.timestamp} className="mt-3 ml-[42px]" />
     </article>
   );
 };
