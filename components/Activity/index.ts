@@ -3,6 +3,7 @@ export { ActivityCard } from './cards/ActivityCard';
 export { ActivityCardCompact } from './cards/ActivityCardCompact';
 export { ActivityCardHeader } from './cards/ActivityCardHeader';
 export { ActivityCardSkeleton } from './cards/ActivityCardSkeleton';
+export { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 
 // Feed
 export { ActivityPageContent } from './ActivityPageContent';
