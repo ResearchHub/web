@@ -92,7 +92,7 @@ const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }>
       {remaining > 0 && (
         <span className="text-gray-500">{` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}</span>
       )}
-      <span className="text-gray-500"> funded this proposal</span>
+      <span className="text-gray-500"> funded this proposal for</span>
     </>
   );
 };
