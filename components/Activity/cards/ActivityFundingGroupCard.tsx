@@ -4,6 +4,7 @@ import { FC } from 'react';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { ActivityCardMenu } from './ActivityCardMenu';
 import { ActivityTimestamp } from './ActivityTimestamp';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -142,6 +143,10 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
         <div className="min-w-0 flex-1 pt-1 text-sm leading-6">
           <FunderSummary funders={funders} contributionCount={contributionCount} />{' '}
           <ContributionAmount contribution={total} className="align-middle" />
+        </div>
+
+        <div className="flex flex-shrink-0 items-start gap-0.5 pt-1">
+          <ActivityCardMenu documentId={work.id} contentType={work.documentType} />
         </div>
       </div>
 
