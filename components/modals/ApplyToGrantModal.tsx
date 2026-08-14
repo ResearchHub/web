@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
+import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Plus, Files, PenLine, HelpCircle, Lock, ArrowRight, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -62,6 +63,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   const [selectedDraftNoteId, setSelectedDraftNoteId] = useState<string | null>(null);
   const [draftNewSelected, setDraftNewSelected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSavingSelection, setIsSavingSelection] = useState(false);
   const { user } = useUser();
   const { selectedOrg } = useOrganizationContext();
   const router = useRouter();
@@ -95,14 +97,25 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     router.push('/notebook?newFunding=true');
   };
 
-  const handleContinueWithDraft = () => {
+  const handleContinueWithDraft = async () => {
     if (!selectedDraftNote) return;
 
-    setPendingGrantForGrant();
-    onClose();
-    router.push(
-      `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
-    );
+    setIsSavingSelection(true);
+    try {
+      await NoteService.updateNote({
+        noteId: selectedDraftNote.id,
+        selectedGrantId: grantId,
+      });
+      setPendingGrantForGrant();
+      onClose();
+      router.push(
+        `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to select funding opportunity');
+    } finally {
+      setIsSavingSelection(false);
+    }
   };
 
   const handleFooterAction = () => {
@@ -110,7 +123,11 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       handleDraftNew();
       return;
     }
-    handleContinueWithDraft();
+    void handleContinueWithDraft();
+  };
+
+  const handleClose = () => {
+    if (!isSavingSelection) onClose();
   };
 
   useEffect(() => {
@@ -199,6 +216,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             value={noteId}
             checked={isSelected}
             onChange={() => handleSelectDraftNote(noteId)}
+            disabled={isSavingSelection}
             className="w-4 h-4 flex-shrink-0 text-blue-600 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -209,7 +227,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       showCloseButton={false}
       padding="p-0"
       className="md:!w-auto md:!h-auto md:!max-h-[88vh] md:!rounded-2xl md:!max-w-[760px] overflow-x-hidden"
@@ -220,7 +238,8 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
           {/* Mobile close button */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={isSavingSelection}
             className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
             aria-label="Close"
           >
@@ -260,7 +279,8 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-6 md:p-8">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
+            disabled={isSavingSelection}
             className="absolute top-4 right-4 z-10 hidden h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 md:inline-flex"
             aria-label="Close"
           >
@@ -281,7 +301,12 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             </Tooltip>
           </div>
 
-          <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 md:max-h-[360px]">
+          <div
+            className={cn(
+              'mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 md:max-h-[360px]',
+              isSavingSelection && 'pointer-events-none opacity-50'
+            )}
+          >
             <div
               onClick={handleSelectDraftNew}
               className={cn(
@@ -303,6 +328,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                   name="proposal-option"
                   checked={draftNewSelected}
                   onChange={handleSelectDraftNew}
+                  disabled={isSavingSelection}
                   className="w-4 h-4 flex-shrink-0 text-blue-600 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -340,11 +366,13 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             <Button
               variant={draftNewSelected ? 'dark' : 'default'}
               onClick={handleFooterAction}
-              disabled={!hasSelection}
+              disabled={!hasSelection || isSavingSelection}
               className="w-full"
               size="lg"
             >
-              {draftNewSelected ? (
+              {isSavingSelection ? (
+                'Saving...'
+              ) : draftNewSelected ? (
                 <>
                   <PenLine size={16} className="mr-2" />
                   Start drafting

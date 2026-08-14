@@ -156,6 +156,7 @@ interface CreateNoteInput {
   grouping: NoteAccess;
   organizationSlug: string;
   documentType?: string;
+  selectedGrantId?: ID | null;
 }
 
 interface UseCreateNoteState {
@@ -182,6 +183,7 @@ export const useCreateNote = (): UseCreateNoteReturn => {
         grouping: params.grouping,
         organization_slug: params.organizationSlug,
         document_type: params.documentType,
+        selectedGrantId: params.selectedGrantId,
       });
       setNote(response);
       return response;
