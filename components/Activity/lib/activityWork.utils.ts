@@ -464,6 +464,17 @@ export function isActivityWorkAuthor(entry: FeedEntry, authorId?: number | null)
   return authors?.some((author) => author.id === authorId) ?? false;
 }
 
+/**
+ * Whether the activity header should show the Author badge. Submitting a proposal
+ * already identifies the actor as the author, so the badge would be redundant.
+ */
+export function shouldShowAuthorBadge(entry: FeedEntry, authorId?: number | null): boolean {
+  if (entry.activityAction === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION') {
+    return false;
+  }
+  return isActivityWorkAuthor(entry, authorId);
+}
+
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
   const tab = resolveTabFromAction(entry.activityAction);
   const documentType = related.contentType;

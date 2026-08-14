@@ -14,10 +14,11 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
+  type ActivityHeaderMessage,
 } from '../lib/activityDisplay.utils';
 import {
   getActivityBounty,
-  isActivityWorkAuthor,
+  shouldShowAuthorBadge,
   type ActivityWork,
 } from '../lib/activityWork.utils';
 import { ActivityCardMenu } from './ActivityCardMenu';
@@ -28,10 +29,16 @@ import type { FeedEntry } from '@/types/feed';
 interface ActivityCardHeaderProps {
   entry: FeedEntry;
   work: Pick<ActivityWork, 'id' | 'documentType'>;
+  /** Replaces the derived message, for rows that speak for several entries at once. */
+  message?: ActivityHeaderMessage;
 }
 
-export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, work }) => {
-  const message = getActivityHeaderMessage(entry);
+export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({
+  entry,
+  work,
+  message: messageOverride,
+}) => {
+  const message = messageOverride ?? getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
   const reviewEarning = getReviewEarning(entry);
@@ -48,7 +55,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, work })
       <div className="min-w-0 flex-1 leading-6">
         <ActivityHeaderActionText
           message={message}
-          isAuthor={isActivityWorkAuthor(entry, message.actor.id)}
+          isAuthor={shouldShowAuthorBadge(entry, message.actor.id)}
         />
         {grantAmount && (
           <>

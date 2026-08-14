@@ -11,6 +11,7 @@ interface Tab {
   highlight?: boolean;
   separator?: boolean;
   icon?: LucideIcon;
+  activeIcon?: LucideIcon;
   iconClassName?: string;
   activeClassName?: string;
   onClick?: (e: React.MouseEvent) => void;
@@ -61,9 +62,11 @@ const TabItem: React.FC<{
     disabled && 'cursor-not-allowed pointer-events-none'
   );
 
+  const Icon = isActive && tab.activeIcon ? tab.activeIcon : tab.icon;
+
   const content = (
     <>
-      {tab.icon && <tab.icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
+      {Icon && <Icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
       <span className="truncate">{tab.label}</span>
     </>
   );

@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { ActivityCard } from './cards/ActivityCard';
 import { ActivityCardSkeleton } from './cards/ActivityCardSkeleton';
+import { ActivityCommentGroupCard } from './cards/ActivityCommentGroupCard';
 import { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 import { groupActivityRows } from './lib/activityGrouping.utils';
 import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
@@ -43,7 +44,7 @@ export function ActivityPageContent() {
     });
   }, [pathname, restorationTab, searchParams]);
 
-  const rows = useMemo(() => groupActivityRows(entries, { hasMore }), [entries, hasMore]);
+  const rows = useMemo(() => groupActivityRows(entries), [entries]);
 
   // Tracking stays on the raw entries so the persisted state is grouping-agnostic.
   useFeedScrollTracking({
@@ -67,13 +68,16 @@ export function ActivityPageContent() {
 
   return (
     <div>
-      {rows.map((row) =>
-        row.kind === 'funding-group' ? (
-          <ActivityFundingGroupCard key={row.key} row={row} />
-        ) : (
-          <ActivityCard key={row.key} entry={row.entry} />
-        )
-      )}
+      {rows.map((row) => {
+        switch (row.kind) {
+          case 'funding-group':
+            return <ActivityFundingGroupCard key={row.key} row={row} />;
+          case 'comment-group':
+            return <ActivityCommentGroupCard key={row.key} row={row} />;
+          default:
+            return <ActivityCard key={row.key} entry={row.entry} />;
+        }
+      })}
 
       {(isLoading || isLoadingMore) &&
         [...Array(6)].map((_, i) => <ActivityCardSkeleton key={i} />)}
