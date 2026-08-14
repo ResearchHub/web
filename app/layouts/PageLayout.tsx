@@ -15,8 +15,7 @@ import { TopBarContainer } from './components/TopBarContainer';
 import { MobileOverlay } from './components/MobileOverlay';
 import { LeftSidebarContainer } from './components/LeftSidebarContainer';
 import { RightSidebarContainer } from './components/RightSidebarContainer';
-
-const ENDOWMENT_PROMO_BANNER = 'endowment_promo_banner';
+import { ENDOWMENT_PROMO_BANNER_FEATURE } from './components/EndowmentPromoBanner';
 
 const MobileBottomNav = dynamic(
   () => import('./MobileBottomNav').then((mod) => mod.MobileBottomNav),
@@ -73,7 +72,7 @@ function PageLayoutInner({
   // on mobile while it's shown above the TopBar. The banner itself only renders
   // below the tablet breakpoint, so the extra padding is also mobile-only.
   const { isDismissed: isPromoDismissed, dismissStatus: promoDismissStatus } =
-    useDismissableFeature(ENDOWMENT_PROMO_BANNER);
+    useDismissableFeature(ENDOWMENT_PROMO_BANNER_FEATURE);
   const isPromoBannerVisible = promoDismissStatus === 'checked' && !isPromoDismissed;
 
   return (

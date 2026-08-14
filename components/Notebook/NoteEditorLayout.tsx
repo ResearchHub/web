@@ -16,7 +16,7 @@ import { NotesMenu } from './NotesMenu';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
-import { ABOVE_MOBILE_NAV } from './aboveMobileNav';
+import { ABOVE_MOBILE_NAV } from './mobileChromeOffsets';
 import { AgentChatPanel, type NoteReviewHandle } from './AgentChat/AgentChatPanel';
 import { noteDiffPersistableDoc } from './NoteReview/noteDiffOverlay';
 import { NoteReviewControls } from './NoteReview/NoteReviewControls';

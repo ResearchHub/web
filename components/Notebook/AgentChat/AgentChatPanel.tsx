@@ -18,6 +18,9 @@ import {
   MAX_CHAT_TITLE_LENGTH,
   type NotebookChat,
 } from '@/types/notebookChat';
+import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
+import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { belowMobileTopBar } from '../mobileChromeOffsets';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
 import { ChatSources, collectChatSources } from './ChatSources';
@@ -186,6 +189,13 @@ export function AgentChatPanel({
   onReviewChange,
 }: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
+
+  // Mirrors PageLayout: the promo banner sits above the TopBar on mobile, and
+  // this panel hangs from the bar's underside, so it has to know.
+  const { isDismissed: promoDismissed, dismissStatus: promoStatus } = useDismissableFeature(
+    ENDOWMENT_PROMO_BANNER_FEATURE
+  );
+  const promoBannerVisible = promoStatus === 'checked' && !promoDismissed;
 
   const list = useNotebookChatList(noteId, open);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
@@ -882,8 +892,12 @@ export function AgentChatPanel({
       className={cn(
         // Above the mobile bottom nav (z-[100]), which would otherwise cover
         // the composer while the sheet is open.
-        'fixed bottom-0 right-0 top-[var(--top-bar-height)] z-[110] flex flex-col border-l border-gray-200 bg-white',
+        'fixed bottom-0 right-0 z-[110] flex flex-col border-l border-gray-200 bg-white',
         'shadow-[-8px_0_28px_-16px_rgba(31,30,27,0.22)]',
+        // The header carries the only control that closes the panel, so the
+        // top edge has to clear the mobile top bar — and the promo banner
+        // above it — or the panel becomes a room with no door.
+        belowMobileTopBar(promoBannerVisible),
         !docked && 'w-full',
         // A transition during a drag lags the pointer.
         !isResizing && 'transition-transform duration-200 ease-out',
