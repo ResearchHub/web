@@ -198,11 +198,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
         {hasFundraise && fundraise && (
           <PrimaryActionSection>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-start gap-6 min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start gap-4 min-w-0">
                 <div className="flex flex-col leading-tight whitespace-nowrap">
-                  <span className="text-xs text-gray-500 uppercase tracking-wide">Requested</span>
-                  <span className="font-mono font-semibold text-primary-600 text-xl">
+                  <span className="text-[11px] text-gray-500 uppercase tracking-wide">
+                    Requested
+                  </span>
+                  <span className="font-mono font-semibold text-primary-600 text-lg">
                     {formatCurrency({
                       amount:
                         fundraise.status === 'COMPLETED'
@@ -222,12 +224,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
                 {contributors.length > 0 && (
                   <div className="hidden sm:flex flex-col leading-tight">
-                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                    <span className="text-[11px] text-gray-500 uppercase tracking-wide mb-1">
                       Backers
                     </span>
                     <AvatarStack
                       items={contributors}
-                      size="xs"
+                      size="xxs"
                       maxItems={3}
                       spacing={-6}
                       showLabel={false}
@@ -241,7 +243,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
                 {hasReviewScore && (
                   <div className="hidden sm:flex flex-col leading-tight whitespace-nowrap">
-                    <span className="text-xs text-gray-500 uppercase tracking-wide">
+                    <span className="text-[11px] text-gray-500 uppercase tracking-wide">
                       Peer Review
                     </span>
                     <Tooltip
@@ -255,8 +257,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                       position="top"
                       width="w-[320px]"
                     >
-                      <span className="inline-flex items-center gap-1 text-xl font-semibold text-gray-900 cursor-help">
-                        <Star size={18} className="fill-amber-400 text-amber-400" />
+                      <span className="inline-flex items-center gap-1 text-lg font-semibold text-gray-900 cursor-help">
+                        <Star size={15} className="fill-amber-400 text-amber-400" />
                         {reviewScore!.toFixed(1)}
                       </span>
                     </Tooltip>

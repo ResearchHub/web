@@ -13,13 +13,17 @@ function SortDropdown() {
   const selectedLabel = SORT_OPTIONS.find((o) => o.value === sortBy)?.label;
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: Event) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   return (
@@ -27,18 +31,25 @@ function SortDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className="inline-flex items-center gap-1.5 -mr-2 min-h-[44px] px-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer touch-manipulation"
       >
         <span className="font-medium text-gray-700">{selectedLabel}</span>
-        {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
+        <div
+          role="listbox"
+          className="absolute top-full right-0 mt-1.5 z-50 min-w-[200px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100"
+        >
           {SORT_OPTIONS.map((option) => (
             <label
               key={option.value}
-              className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+              role="option"
+              aria-selected={sortBy === option.value}
+              className="flex items-center gap-3 px-4 min-h-[44px] cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation"
               onClick={() => {
                 setSortBy(option.value);
                 setIsOpen(false);
@@ -75,7 +86,7 @@ export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({ classN
   }
 
   return (
-    <div className={cn('flex items-center justify-end mt-2 sm:mt-4 mb-2', className)}>
+    <div className={cn('flex items-center justify-end mt-1 sm:mt-3 -mb-1', className)}>
       <SortDropdown />
     </div>
   );

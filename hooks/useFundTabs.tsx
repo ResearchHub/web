@@ -36,7 +36,12 @@ export const FUND_TABS = [
   },
   {
     id: 'fund' as const,
-    label: 'Request for Proposals',
+    label: (
+      <>
+        <span className="tablet:hidden">RFPs</span>
+        <span className="hidden tablet:inline">Request for Proposals</span>
+      </>
+    ),
     href: '/feed-v2/fund',
     icon: faTabIcon(faBullhorn),
     iconClassName: TAB_ICON_CLASS_NAME,
