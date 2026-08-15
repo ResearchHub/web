@@ -37,6 +37,13 @@ interface PageLayoutProps {
    * 1012px container with an 860px cap on the main column (used by the home tabs).
    */
   contentWidth?: 'default' | 'narrow';
+  /**
+   * Drop the 1180px page-container cap too, so the row spans the scrollport.
+   * For pages that reserve a gutter of their own — the container's centring
+   * margins would otherwise stack on top of that gutter and strand a wide band
+   * of empty space beside the content.
+   */
+  wideRow?: boolean;
 }
 
 function PageLayoutInner({
@@ -47,6 +54,7 @@ function PageLayoutInner({
   topBanner,
   rightSidebarAbove,
   contentWidth = 'default',
+  wideRow = false,
 }: PageLayoutProps) {
   const isNarrow = contentWidth === 'narrow';
 
@@ -106,7 +114,10 @@ function PageLayoutInner({
           {topBanner && <div className="w-full">{topBanner}</div>}
 
           <div
-            className={cn('flex mx-auto w-full', isNarrow ? 'max-w-[1012px]' : 'max-w-[1180px]')}
+            className={cn(
+              'flex mx-auto w-full transition-[max-width] duration-200 ease-out',
+              wideRow ? 'max-w-none' : isNarrow ? 'max-w-[1012px]' : 'max-w-[1180px]'
+            )}
           >
             <main
               className={cn(

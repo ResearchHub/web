@@ -52,7 +52,7 @@ export function humanizeLabel(label: string): string {
   return label.replace(/[a-z0-9]+(?:_[a-z0-9]+)+/g, (token) => token.replace(/_/g, ' '));
 }
 
-function hostnameOf(url: string): string {
+export function hostnameOf(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {
@@ -60,25 +60,40 @@ function hostnameOf(url: string): string {
   }
 }
 
-/** Citation chips — always external links opening in a new tab. */
-export function SourceChips({ sources }: { readonly sources: ChatActivitySource[] }) {
+/**
+ * Citations — always external links opening in a new tab.
+ *
+ * Rendered as a plain list rather than bordered pills: several wrapped chips
+ * turn into a dense block that's hard to scan, and each one's border competes
+ * with the chrome-free feed around it. A standing underline carries the
+ * affordance without link colour, which would pull focus from the answer, and
+ * one source per line keeps long titles readable. The Sources tab is where the
+ * full detail (title + host) lives.
+ */
+function SourceLinks({ sources }: { readonly sources: ChatActivitySource[] }) {
   if (sources.length === 0) return null;
   return (
-    <div className="mt-1 flex flex-wrap gap-1">
+    <ul className="mt-2.5 space-y-2">
       {sources.map((source) => (
-        <a
-          key={source.url}
-          href={source.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={source.title ?? source.url}
-          className="inline-flex max-w-full items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] text-gray-600 transition-colors hover:border-primary-300 hover:text-primary-700"
-        >
-          <Globe className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
-          <span className="truncate">{source.title || hostnameOf(source.url)}</span>
-        </a>
+        <li key={source.url}>
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={source.title ?? source.url}
+            className="group inline-flex max-w-full items-center gap-1.5 text-xs text-gray-900"
+          >
+            <Globe
+              className="h-3 w-3 shrink-0 text-gray-400 transition-colors group-hover:text-gray-600"
+              aria-hidden="true"
+            />
+            <span className="truncate underline decoration-gray-300 underline-offset-[3px] transition-colors group-hover:decoration-gray-600">
+              {source.title || hostnameOf(source.url)}
+            </span>
+          </a>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -95,36 +110,31 @@ function CallStatusIcon({ status }: { readonly status: ActivityCallStatus }) {
   }
 }
 
+/**
+ * One tool call. The status icon sits in a fixed 16px gutter and everything
+ * else stacks in the column beside it: label, then the query on its own line
+ * (wrapped, not truncated — a clipped search string is unreadable), then any
+ * citations. Narration indents to the same column so the feed reads as one
+ * left-aligned list rather than a ragged mix.
+ */
 function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
   const ToolIcon = TOOL_ICONS[call.tool] ?? Wrench;
 
   return (
-    <div>
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-          <CallStatusIcon status={call.status} />
-        </span>
-        {/* items-center, not items-baseline: the label span is an inline-flex
-            whose first child is an SVG, so its "baseline" is the icon's bottom
-            edge — baseline-aligning the detail against that pushes it a few
-            pixels below the label text. */}
-        <span className="flex min-w-0 flex-wrap items-center gap-x-1.5">
-          <span className="inline-flex items-center gap-1 font-medium text-gray-700">
-            <ToolIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-            {humanizeLabel(call.label)}
-          </span>
-          {call.detail && (
-            <span className="min-w-0 truncate text-gray-500" title={call.detail}>
-              {call.detail}
-            </span>
-          )}
-        </span>
-      </div>
-      {call.sources && call.sources.length > 0 && (
-        <div className="pl-6">
-          <SourceChips sources={call.sources} />
+    <div className="flex items-start gap-2">
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
+        <CallStatusIcon status={call.status} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 font-medium text-gray-800">
+          <ToolIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+          <span className="min-w-0 truncate">{humanizeLabel(call.label)}</span>
         </div>
-      )}
+        {call.detail && (
+          <p className="mt-1.5 break-words leading-relaxed text-gray-500">{call.detail}</p>
+        )}
+        {call.sources && call.sources.length > 0 && <SourceLinks sources={call.sources} />}
+      </div>
     </div>
   );
 }
@@ -132,7 +142,11 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
 /** Unknown item types from newer backends render nothing (never crash the feed). */
 function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
   if (item.type === 'narration') {
-    return <p className="whitespace-pre-wrap break-words pl-6 italic text-gray-500">{item.text}</p>;
+    return (
+      <p className="whitespace-pre-wrap break-words pl-6 leading-relaxed text-gray-500">
+        {item.text}
+      </p>
+    );
   }
   if (item.type === 'tool_call') {
     return <ToolCallRow call={item} />;
@@ -153,11 +167,11 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
   if (items.length === 0) return null;
 
   return (
-    <ol className={cn('space-y-1.5', className)}>
+    <ol className={cn('space-y-4', className)}>
       {items.map((item, index) => (
         // Feed items are append-only and have no ids; index keys are stable here.
         // eslint-disable-next-line react/no-array-index-key
-        <li key={index} className="text-xs">
+        <li key={index} className="text-sm leading-relaxed">
           <ActivityItemBody item={item} />
         </li>
       ))}
@@ -165,7 +179,7 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
   );
 }
 
-/** Unique sources across a whole turn, for the collapsed summary state. */
+/** Unique sources across a whole turn, for the Sources tab. */
 export function collectSources(items: ChatActivityItem[]): ChatActivitySource[] {
   const byUrl = new Map<string, ChatActivitySource>();
   for (const item of items) {

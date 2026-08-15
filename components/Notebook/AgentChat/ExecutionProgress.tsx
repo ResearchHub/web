@@ -8,7 +8,7 @@ import {
   type ChatActivityItem,
   type ChatExecution,
 } from '@/types/notebookChat';
-import { ActivityFeed, SourceChips, collectSources, humanizeLabel } from './ActivityFeed';
+import { ActivityFeed, humanizeLabel } from './ActivityFeed';
 
 /** "Searched the web ×2 · Read the note" — tool labels in first-appearance order. */
 function summarizeActivity(items: ChatActivityItem[]): string | null {
@@ -37,7 +37,7 @@ function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
 
 export function LiveStatusLine({ label }: { readonly label: string }) {
   return (
-    <div className="flex items-center gap-2 pt-1 text-xs font-medium text-primary-600">
+    <div className="flex items-center gap-2 pt-1 text-sm font-medium text-primary-600">
       <span className="flex items-center gap-0.5" aria-hidden="true">
         {[0, 1, 2].map((dot) => (
           <span
@@ -58,9 +58,10 @@ interface ExecutionProgressProps {
 
 /**
  * The progress block for one turn: the streaming activity feed plus the live
- * phase line while the turn runs, collapsing to a compact expandable summary
- * once it settles. Failed turns render their user-safe `error.message`;
- * cancelled turns render a "Stopped" marker; both keep their partial feed.
+ * phase line while the turn runs, keeping the same feed once it settles so the
+ * turn doesn't reformat under the reader. The summary row can collapse it by
+ * hand. Failed turns render their user-safe `error.message`; cancelled turns
+ * render a "Stopped" marker; both keep their partial feed.
  */
 export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
@@ -71,13 +72,15 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // until publication so we never render "done" with no answer bubble.
   const finishing = execution.status === 'SUCCEEDED' && execution.assistant_message_pending;
   const live = active || finishing;
-  const expanded = userExpanded ?? live;
+  // Settling a turn used to collapse it, which swapped the feed for a flat list
+  // of aggregated links — the same sources in a different shape. Stay expanded
+  // so the turn reads the same before and after it finishes.
+  const expanded = userExpanded ?? true;
 
   const failed = execution.status === 'FAILED' || execution.status === 'INTERRUPTED';
   const cancelled = execution.status === 'CANCELLED';
 
   const summary = summarizeActivity(activity);
-  const aggregatedSources = collectSources(activity);
 
   // A clean, tool-less success has nothing worth a progress block.
   if (!live && !failed && !cancelled && activity.length === 0) {
@@ -86,14 +89,26 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
   const statusLabel = liveStatusLabel(execution, finishing);
 
+  const showsSummaryRow = !live && Boolean(summary);
+  const showsFeed = (live || expanded) && activity.length > 0;
+  // A failed turn with no tool activity has nothing above the error, so the
+  // usual separating margin would just be dead space.
+  const hasBodyAbove = showsSummaryRow || showsFeed;
+
   return (
-    <div className="rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-2">
-      {!live && summary && (
+    // Tool activity reads as quiet prose in the transcript, not a boxed
+    // sidebar — only a failed turn earns a surface of its own, so the error
+    // stands out against the otherwise chrome-free feed.
+    <div className={cn(failed && 'rounded-lg border border-red-200 bg-red-50 px-3 py-2.5')}>
+      {showsSummaryRow && (
         <button
           type="button"
           onClick={() => setUserExpanded(!expanded)}
           aria-expanded={expanded}
-          className="flex w-full items-center gap-1.5 text-left text-xs text-gray-500 transition-colors hover:text-gray-700"
+          className={cn(
+            'flex w-full items-center gap-1.5 text-left text-sm transition-colors',
+            failed ? 'text-red-700/80 hover:text-red-800' : 'text-gray-500 hover:text-gray-800'
+          )}
         >
           {expanded ? (
             <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -104,26 +119,29 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         </button>
       )}
 
-      {(live || expanded) && activity.length > 0 && (
-        <ActivityFeed items={activity} className={cn(!live && summary && 'mt-2')} />
-      )}
-
-      {/* Citations stay reachable without expanding the settled feed. */}
-      {!live && !expanded && aggregatedSources.length > 0 && (
-        <SourceChips sources={aggregatedSources} />
-      )}
+      {showsFeed && <ActivityFeed items={activity} className={cn(showsSummaryRow && 'mt-3')} />}
 
       {live && <LiveStatusLine label={statusLabel} />}
 
       {failed && (
-        <div className="mt-1.5 flex items-start gap-1.5 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-700">
+        <div
+          className={cn(
+            'flex items-start gap-2 text-sm leading-relaxed text-red-700',
+            hasBodyAbove && 'mt-2.5'
+          )}
+        >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{execution.error?.message ?? 'Something went wrong.'}</span>
         </div>
       )}
 
       {cancelled && (
-        <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+        <div
+          className={cn(
+            'flex items-center gap-2 text-sm font-medium text-gray-500',
+            hasBodyAbove && 'mt-2.5'
+          )}
+        >
           <Ban className="h-3.5 w-3.5" aria-hidden="true" />
           Stopped
         </div>

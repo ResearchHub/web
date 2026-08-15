@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Check, MessageSquarePlus, Pencil, Sparkles, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Asterisk, Check, MessageSquarePlus, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
+import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { NoteService } from '@/services/note.service';
 import {
   isActiveExecutionStatus,
@@ -15,7 +16,14 @@ import {
 } from '@/types/notebookChat';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
+import { ChatSources, collectChatSources } from './ChatSources';
 import { ChatTranscript } from './ChatTranscript';
+import { Logo } from '@/components/ui/Logo';
+
+type PanelTab = 'chat' | 'sources';
+
+/** Pixels per arrow key press while the resize divider has focus. */
+const RESIZE_KEY_STEP = 24;
 
 function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice {
   switch (outcome.reason) {
@@ -68,6 +76,17 @@ interface AgentChatPanelProps {
    * live in this editor instance and vanish on the next load.
    */
   readonly onKeepLocalVersion?: () => void;
+  /**
+   * Docked (desktop) mode: the panel takes `width` and the host reserves the
+   * same gutter, so it sits beside the document instead of over it. Undocked,
+   * it covers the viewport as a sheet.
+   */
+  readonly docked: boolean;
+  readonly width: number;
+  readonly isResizing: boolean;
+  readonly onResizeStart: () => void;
+  /** Keyboard resize from the divider; negative widens the panel. */
+  readonly onResizeNudge: (deltaX: number) => void;
 }
 
 /**
@@ -83,6 +102,11 @@ export function AgentChatPanel({
   onUnavailable,
   onEditConflictChange,
   onKeepLocalVersion,
+  docked,
+  width,
+  isResizing,
+  onResizeStart,
+  onResizeNudge,
 }: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
 
@@ -444,6 +468,15 @@ export function AgentChatPanel({
     setNoteReloadFailed(false);
   };
 
+  // ---- chat / sources tabs ----
+  const sources = useMemo(() => collectChatSources(chatState.chat), [chatState.chat]);
+  const [activeTab, setActiveTab] = useState<PanelTab>('chat');
+  // A new chat starts with no citations, so a lingering Sources tab would open
+  // on an empty list.
+  useEffect(() => {
+    setActiveTab('chat');
+  }, [selectedChatId, noteId]);
+
   // ---- transcript auto-scroll ----
   const scrollRef = useRef<HTMLDivElement>(null);
   const nearBottomRef = useRef(true);
@@ -460,10 +493,12 @@ export function AgentChatPanel({
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (el && nearBottomRef.current) {
+    // The sources list shares this scroller; pinning it to the bottom on every
+    // transcript update would yank the citation the user is reading.
+    if (el && nearBottomRef.current && activeTab === 'chat') {
       el.scrollTop = el.scrollHeight;
     }
-  }, [chatState.chat, chatState.pendingSend]);
+  }, [chatState.chat, chatState.pendingSend, activeTab]);
 
   // ---- derived composer state ----
   const composerBusy =
@@ -521,13 +556,48 @@ export function AgentChatPanel({
       // Off-screen means out of the tab order too — pointer-events alone
       // still leaves the hidden controls keyboard-focusable.
       inert={!open}
+      style={{ width: docked ? width : undefined }}
       className={cn(
-        'fixed bottom-0 right-0 top-[var(--top-bar-height)] z-40 flex w-full flex-col border-l border-gray-200 bg-white shadow-xl transition-transform duration-200 sm:w-[400px]',
+        // Above the mobile bottom nav (z-[100]), which would otherwise cover
+        // the composer while the sheet is open.
+        'fixed bottom-0 right-0 top-[var(--top-bar-height)] z-[110] flex flex-col border-l border-gray-200 bg-white',
+        'shadow-[-8px_0_28px_-16px_rgba(31,30,27,0.22)]',
+        !docked && 'w-full',
+        // A transition during a drag lags the pointer.
+        !isResizing && 'transition-transform duration-200 ease-out',
         open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
       )}
     >
+      {docked && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize assistant panel"
+          aria-valuenow={width}
+          aria-valuemin={MIN_AGENT_CHAT_WIDTH}
+          aria-valuemax={MAX_AGENT_CHAT_WIDTH}
+          tabIndex={0}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            onResizeStart();
+          }}
+          onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            onResizeNudge(event.key === 'ArrowLeft' ? -RESIZE_KEY_STEP : RESIZE_KEY_STEP);
+          }}
+          className="group absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize focus:outline-none"
+        >
+          <div
+            className={cn(
+              'mx-auto h-full w-0.5 transition-colors group-hover:bg-primary-300 group-focus:bg-primary-400',
+              isResizing ? 'bg-primary-400' : 'bg-transparent'
+            )}
+          />
+        </div>
+      )}
+
       <header className="flex items-center gap-1.5 border-b border-gray-100 px-3 py-2">
-        <Sparkles className="h-4 w-4 shrink-0 text-primary-500" aria-hidden="true" />
         {renaming ? (
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <input
@@ -571,9 +641,9 @@ export function AgentChatPanel({
               type="button"
               onClick={startRename}
               title="Rename chat"
-              className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
-              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+              <Pencil className="h-4 w-4" aria-hidden="true" />
               <span className="sr-only">Rename chat</span>
             </button>
           )}
@@ -581,7 +651,7 @@ export function AgentChatPanel({
             type="button"
             onClick={() => switchChat(null)}
             title="New chat"
-            className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">New chat</span>
@@ -590,7 +660,7 @@ export function AgentChatPanel({
             type="button"
             onClick={onClose}
             title="Close assistant"
-            className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Close assistant</span>
@@ -598,8 +668,28 @@ export function AgentChatPanel({
         </div>
       </header>
 
+      {sources.length > 0 && (
+        <div
+          role="tablist"
+          aria-label="Assistant views"
+          className="flex items-center gap-1 border-b border-gray-100 px-3 py-1.5"
+        >
+          <TabButton
+            active={activeTab === 'chat'}
+            onClick={() => setActiveTab('chat')}
+            label="Chat"
+          />
+          <TabButton
+            active={activeTab === 'sources'}
+            onClick={() => setActiveTab('sources')}
+            label="Sources"
+            count={sources.length}
+          />
+        </div>
+      )}
+
       <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-3 py-3">
-        {renderBody()}
+        {activeTab === 'sources' ? <ChatSources sources={sources} /> : renderBody()}
       </div>
 
       {(needsNoteReload || noteReloadFailed) && (
@@ -639,6 +729,43 @@ export function AgentChatPanel({
   );
 }
 
+function TabButton({
+  active,
+  onClick,
+  label,
+  count,
+}: {
+  readonly active: boolean;
+  readonly onClick: () => void;
+  readonly label: string;
+  readonly count?: number;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors',
+        active ? 'bg-gray-100 text-gray-800' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+      )}
+    >
+      {label}
+      {count != null && (
+        <span
+          className={cn(
+            'rounded-full px-1.5 text-[10px] font-semibold',
+            active ? 'bg-white text-gray-600' : 'bg-gray-100 text-gray-500'
+          )}
+        >
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 function CenteredLoader() {
   return (
     <div className="flex h-full items-center justify-center">
@@ -667,12 +794,14 @@ function ErrorState({
 function EmptyState() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50">
-        <Sparkles className="h-5 w-5 text-primary-500" aria-hidden="true" />
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50">
+        <Logo size={32} noText />
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-800">Research assistant</p>
-        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+        <p className="flex items-center justify-center gap-1.5 font-serif text-lg tracking-tight text-gray-800">
+          Research assistant
+        </p>
+        <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
           Ask questions about this note, search the web and scholarly literature, or have the
           assistant edit the draft for you.
         </p>

@@ -132,16 +132,22 @@ function buildTranscript(chat: NotebookChat, pendingSend: PendingSend | null): T
 function UserBubble({ text }: { readonly text: string }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-primary-500 px-3.5 py-2 text-sm text-white">
+      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-sm text-gray-800">
         {text}
       </div>
     </div>
   );
 }
 
+/**
+ * Deliberately unbubbled: the assistant's prose reads as the page's own
+ * content, which keeps long answers (the common case here) from sitting in a
+ * boxed column. Only the user's turns are chrome-wrapped, so the transcript
+ * still parses at a glance.
+ */
 function AssistantBubble({ content }: { readonly content: string }) {
   return (
-    <div className="max-w-[95%] rounded-2xl rounded-bl-md border border-gray-200 bg-white px-3.5 py-2.5 shadow-sm">
+    <div className="px-0.5">
       <MarkdownMessage content={content} />
     </div>
   );
@@ -156,7 +162,10 @@ export function ChatTranscript({ chat, pendingSend }: ChatTranscriptProps) {
   const entries = useMemo(() => buildTranscript(chat, pendingSend), [chat, pendingSend]);
 
   return (
-    <div className="space-y-3">
+    // Turns are separated by whitespace alone now that neither the assistant
+    // answer nor its tool activity carries a card, so the gap between them has
+    // to be larger than the gap within one turn.
+    <div className="space-y-5">
       {entries.map((entry) => {
         switch (entry.kind) {
           case 'user':
@@ -165,9 +174,7 @@ export function ChatTranscript({ chat, pendingSend }: ChatTranscriptProps) {
             return (
               <div key={entry.key} className="space-y-3">
                 <UserBubble text={entry.text} />
-                <div className="rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-2">
-                  <LiveStatusLine label="Waiting to start" />
-                </div>
+                <LiveStatusLine label="Waiting to start" />
               </div>
             );
           case 'execution':

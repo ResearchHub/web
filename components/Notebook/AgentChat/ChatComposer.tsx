@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, type KeyboardEvent } from 'react';
-import { Send, Square } from 'lucide-react';
+import { ArrowUp, Square } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@/types/notebookChat';
 
@@ -102,7 +102,7 @@ export function ChatComposer({
             type="button"
             onClick={onStop}
             title="Stop the assistant"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600"
           >
             <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
             <span className="sr-only">Stop</span>
@@ -114,13 +114,13 @@ export function ChatComposer({
             disabled={!canSend}
             title="Send message"
             className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors',
               canSend
                 ? 'bg-primary-500 text-white hover:bg-primary-600'
                 : 'cursor-not-allowed bg-gray-100 text-gray-400'
             )}
           >
-            <Send className="h-4 w-4" aria-hidden="true" />
+            <ArrowUp className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Send</span>
           </button>
         )}

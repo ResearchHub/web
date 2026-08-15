@@ -22,6 +22,7 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
+import { useAgentChatWidth } from '@/hooks/useAgentChatWidth';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
@@ -66,7 +67,17 @@ function getWorkTypeLabel(
   return undefined;
 }
 
-export function NoteEditorLayout() {
+interface NoteEditorLayoutProps {
+  /**
+   * Fires when the assistant docks or undocks. Docking is decided here — it
+   * depends on the viewport, the access gate and the note — but the page
+   * container above has to widen in step, or its centring margins strand a
+   * band of empty space beside the shrunken document.
+   */
+  readonly onAgentChatDockedChange?: (docked: boolean) => void;
+}
+
+export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutProps = {}) {
   const {
     currentNote: note,
     isLoadingNote,
@@ -79,7 +90,7 @@ export function NoteEditorLayout() {
 
   const { selectedOrg } = useOrganizationContext();
   const { user, isLoading: isLoadingUser } = useUser();
-  const { lgAndUp } = useScreenSize();
+  const { lgAndUp, xlAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
   const topBarSlot = useTopBarSlot();
@@ -115,6 +126,13 @@ export function NoteEditorLayout() {
     setAgentChatUnavailable(false);
   }, [activeNoteId]);
 
+  const {
+    width: agentChatWidth,
+    isResizing: isAgentChatResizing,
+    startResize: startAgentChatResize,
+    nudgeWidth: nudgeAgentChatWidth,
+  } = useAgentChatWidth();
+
   const isHubEditorOrModerator = Boolean(user?.moderator) || (user?.editorOfHubs?.length ?? 0) > 0;
   const showAgentChat =
     isHubEditorOrModerator &&
@@ -123,6 +141,19 @@ export function NoteEditorLayout() {
     Boolean(note) &&
     !noteError &&
     isLegacyNote === false;
+
+  // Docking splits the viewport: the panel takes its own column and the
+  // document gives up the same gutter. Below xl there isn't enough room left
+  // to keep the document readable, so the panel covers it as a sheet instead.
+  const isAgentChatDocked = showAgentChat && isAgentChatOpen && xlAndUp === true;
+
+  useEffect(() => {
+    onAgentChatDockedChange?.(isAgentChatDocked);
+  }, [isAgentChatDocked, onAgentChatDockedChange]);
+
+  // Unmounting with the panel open would otherwise leave the container wide.
+  useEffect(() => () => onAgentChatDockedChange?.(false), [onAgentChatDockedChange]);
+
   const previousNoteId = useRef(activeNoteId);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
@@ -267,7 +298,10 @@ export function NoteEditorLayout() {
       <NotePaperWrapper
         canvas={false}
         className={cn(
-          'p-0 lg:!p-8 lg:!pl-16',
+          // Matching side padding centres the text: the left gutter can't
+          // shrink below 64px (it hosts the editor's drag handle), so the
+          // right side rises to meet it rather than the reverse.
+          'p-0 lg:!p-8 lg:!px-16',
           isLegacyNote && 'opacity-70 blur-sm pointer-events-none select-none'
         )}
         showBanner={
@@ -298,63 +332,90 @@ export function NoteEditorLayout() {
   if (isDesktop === null) return null;
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
-      {showTabs && (
-        <div className="mb-4">
-          {isPublishedRegisteredReport && (
-            <div className="mx-auto mb-2 w-fit rounded-md bg-yellow-100 px-3 py-1.5 text-sm font-medium text-yellow-700">
-              This Registered Report has been published and can no longer be edited.
-            </div>
-          )}
-          <div className="flex items-center justify-between gap-2">
-            <NotebookTabs active={activeTab} onChange={setActiveTab} />
-            <div className="flex items-center gap-2">
-              {activeTab === 'document' && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setActiveTab('details')}
-                  className="gap-1.5"
-                >
-                  {isPublishedRegisteredReport ? 'View details' : 'Add details'}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              )}
+    <div
+      // The docked panel is fixed to the viewport's right edge; reserving the
+      // same width here is what turns an overlay into a split view. Animated
+      // inline rather than by class so the gutter and the panel's own slide
+      // stay in step, and so a drag isn't chased by a lagging transition.
+      style={{
+        paddingRight: isAgentChatDocked ? agentChatWidth : undefined,
+        transition: isAgentChatResizing ? undefined : 'padding-right 200ms ease-out',
+      }}
+      className="w-full"
+    >
+      <div className="mx-auto w-full max-w-4xl">
+        {showTabs && (
+          <div className="mb-4">
+            {isPublishedRegisteredReport && (
+              <div className="mx-auto mb-2 w-fit rounded-md bg-yellow-100 px-3 py-1.5 text-sm font-medium text-yellow-700">
+                This Registered Report has been published and can no longer be edited.
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-2">
+              <NotebookTabs active={activeTab} onChange={setActiveTab} />
+              <div className="flex items-center gap-2">
+                {activeTab === 'document' && (
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={() => setActiveTab('details')}
+                    className="gap-1.5"
+                  >
+                    {isPublishedRegisteredReport ? 'View details' : 'Add details'}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
-      {showTabs && (
-        <div className={cn(activeTab !== 'details' && 'hidden')}>
-          <PublishingForm readOnly={isPublishedRegisteredReport} />
-        </div>
-      )}
+        <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
+        {showTabs && (
+          <div className={cn(activeTab !== 'details' && 'hidden')}>
+            <PublishingForm readOnly={isPublishedRegisteredReport} />
+          </div>
+        )}
 
-      {isDesktop && <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />}
+        {isDesktop && <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />}
+      </div>
+
+      {/*
+       * Floats in the bottom-right corner, on the side the panel docks to.
+       * Below `tablet` it clears the 64px MobileBottomNav. It hides once open —
+       * the panel would cover it, and its close button is the way back.
+       */}
+      {showAgentChat && activeNoteId && !isAgentChatOpen && (
+        <button
+          type="button"
+          onClick={() => setIsAgentChatOpen(true)}
+          aria-expanded={false}
+          className="group fixed bottom-20 right-6 z-40 flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-primary-500 via-primary-600 to-indigo-600 py-2.5 pl-3.5 pr-4 text-sm font-medium text-white shadow-lg shadow-primary-500/25 transition-shadow hover:shadow-xl hover:shadow-primary-500/35 tablet:bottom-6"
+        >
+          {/* Highlight band that sweeps across on hover. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent motion-safe:group-hover:animate-shimmer"
+          />
+          <Sparkles className="relative h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="relative whitespace-nowrap">Research assistant</span>
+        </button>
+      )}
 
       {showAgentChat && activeNoteId && (
-        <>
-          {!isAgentChatOpen && (
-            <button
-              type="button"
-              onClick={() => setIsAgentChatOpen(true)}
-              className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full bg-primary-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-colors hover:bg-primary-600"
-            >
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              Assistant
-            </button>
-          )}
-          <AgentChatPanel
-            noteId={activeNoteId}
-            open={isAgentChatOpen}
-            onClose={() => setIsAgentChatOpen(false)}
-            onUnavailable={handleAgentChatUnavailable}
-            onEditConflictChange={handleAgentEditConflict}
-            onKeepLocalVersion={handleKeepLocalVersion}
-          />
-        </>
+        <AgentChatPanel
+          noteId={activeNoteId}
+          open={isAgentChatOpen}
+          onClose={() => setIsAgentChatOpen(false)}
+          onUnavailable={handleAgentChatUnavailable}
+          onEditConflictChange={handleAgentEditConflict}
+          onKeepLocalVersion={handleKeepLocalVersion}
+          docked={isAgentChatDocked}
+          width={agentChatWidth}
+          isResizing={isAgentChatResizing}
+          onResizeStart={startAgentChatResize}
+          onResizeNudge={nudgeAgentChatWidth}
+        />
       )}
     </div>
   );

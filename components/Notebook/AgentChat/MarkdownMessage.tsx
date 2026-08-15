@@ -67,13 +67,15 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
  */
 const MARKDOWN_STYLES = cn(
   'text-sm leading-relaxed text-gray-800 break-words',
-  '[&_p]:my-1.5 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
-  '[&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5',
-  '[&_ol]:my-1.5 [&_ol]:list-decimal [&_ol]:pl-5',
-  '[&_li]:my-0.5',
-  '[&_h1]:mb-1.5 [&_h1]:mt-3 [&_h1]:text-base [&_h1]:font-semibold',
-  '[&_h2]:mb-1.5 [&_h2]:mt-3 [&_h2]:text-base [&_h2]:font-semibold',
-  '[&_h3]:mb-1 [&_h3]:mt-2.5 [&_h3]:text-sm [&_h3]:font-semibold',
+  '[&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
+  '[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5',
+  '[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5',
+  '[&_li]:my-1',
+  // Headings run serif to match the assistant's voice elsewhere in the panel.
+  '[&_h1]:font-serif [&_h2]:font-serif [&_h3]:font-serif',
+  '[&_h1]:mb-1.5 [&_h1]:mt-3.5 [&_h1]:text-[17px] [&_h1]:font-medium [&_h1]:text-gray-900',
+  '[&_h2]:mb-1.5 [&_h2]:mt-3.5 [&_h2]:text-base [&_h2]:font-medium [&_h2]:text-gray-900',
+  '[&_h3]:mb-1 [&_h3]:mt-3 [&_h3]:text-[15px] [&_h3]:font-medium [&_h3]:text-gray-900',
   '[&_h4]:mb-1 [&_h4]:mt-2 [&_h4]:text-sm [&_h4]:font-semibold',
   '[&_h5]:mb-1 [&_h5]:mt-2 [&_h5]:text-sm [&_h5]:font-medium',
   '[&_h6]:mb-1 [&_h6]:mt-2 [&_h6]:text-sm [&_h6]:font-medium',
