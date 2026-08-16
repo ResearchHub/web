@@ -62,16 +62,31 @@ export const SkeletonDescriptionLines: FC = () => (
   </div>
 );
 
-/** Vote pill + comment button — matches default `FeedItemActions` row. */
-export const SkeletonFeedItemActionsFooter: FC = () => (
-  <div className="bg-gray-50 px-3 py-1.5 flex items-center justify-between gap-2">
-    <div className="flex items-center gap-2">
-      <div className="h-8 w-[5.5rem] rounded-full bg-gray-200 ring-1 ring-gray-200/80 flex-shrink-0" />
-      <div className="h-8 w-14 rounded-full bg-gray-200 flex-shrink-0" />
+/**
+ * Matches a `FeedItemActions` row: bare icons on cards, pill chrome on comment rows.
+ */
+export const SkeletonFeedItemActionsFooter: FC<{ pill?: boolean }> = ({ pill = false }) =>
+  pill ? (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        <div className="h-8 w-[5.5rem] rounded-full bg-gray-200 ring-1 ring-gray-200/80 flex-shrink-0" />
+        <div className="h-8 w-14 rounded-full bg-gray-200 flex-shrink-0" />
+      </div>
+      <div className="h-5 w-5 bg-gray-200 rounded flex-shrink-0" />
     </div>
-    <div className="h-5 w-5 bg-gray-200 rounded flex-shrink-0" />
-  </div>
-);
+  ) : (
+    <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-4 py-2.5">
+      <div className="flex items-center gap-4">
+        <div className="h-6 w-16 rounded bg-gray-200 flex-shrink-0" />
+        <div className="h-6 w-10 rounded bg-gray-200 flex-shrink-0" />
+      </div>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="h-6 w-6 rounded-full bg-gray-200" />
+        <div className="h-6 w-6 rounded-full bg-gray-200" />
+        <div className="h-6 w-6 rounded-full bg-gray-200" />
+      </div>
+    </div>
+  );
 
 export const SkeletonPrimaryActionPanel: FC<{ buttonWidth?: string }> = ({
   buttonWidth = 'w-24',

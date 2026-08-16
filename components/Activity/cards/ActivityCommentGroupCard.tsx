@@ -7,6 +7,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
+import { ActivityTimestamp } from './ActivityTimestamp';
 import { ActivityWorkActions } from '../work/ActivityWorkActions';
 import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
@@ -70,7 +71,7 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
         </div>
 
         <div className="min-w-0 flex-1">
-          <ActivityCardHeader entry={latestEntry} work={work} message={groupMessage} />
+          <ActivityCardHeader entry={latestEntry} message={groupMessage} />
 
           <div className="divide-y divide-gray-100">
             {comments.map(({ entryId, preview }) => (
@@ -98,14 +99,10 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions
-                  entry={latestEntry}
-                  work={work}
-                  presentation={presentation}
-                  onNavigate={markEntryClicked}
-                />
+                <ActivityWorkActions entry={latestEntry} work={work} />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
+            <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3" />
           </div>
         </div>
       </div>

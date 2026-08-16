@@ -4,7 +4,6 @@ import { FC } from 'react';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { ActivityCardMenu } from './ActivityCardMenu';
 import { ActivityTimestamp } from './ActivityTimestamp';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -144,10 +143,6 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
           <FunderSummary funders={funders} contributionCount={contributionCount} />{' '}
           <ContributionAmount contribution={total} className="align-middle" />
         </div>
-
-        <div className="flex flex-shrink-0 items-start gap-0.5 pt-1">
-          <ActivityCardMenu documentId={work.id} contentType={work.documentType} />
-        </div>
       </div>
 
       {/* Indent matches a single-actor card's 32px avatar plus the 10px flex gap. */}
@@ -162,17 +157,12 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
             <ActivityWorkMetadata work={work} presentation={presentation} />
           </WorkPreviewCard.Metadata>
           <WorkPreviewCard.Actions>
-            <ActivityWorkActions
-              entry={latestEntry}
-              work={work}
-              presentation={presentation}
-              onNavigate={markEntryClicked}
-            />
+            <ActivityWorkActions entry={latestEntry} work={work} />
           </WorkPreviewCard.Actions>
         </WorkPreviewCard>
       </div>
 
-      <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3 ml-[42px]" />
+      <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3 tablet:ml-[42px]" />
     </article>
   );
 };

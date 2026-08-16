@@ -7,6 +7,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
+import { ActivityTimestamp } from './ActivityTimestamp';
 import { ActivityWorkActions } from '../work/ActivityWorkActions';
 import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
@@ -55,7 +56,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
         </div>
 
         <div className="min-w-0 flex-1">
-          <ActivityCardHeader entry={entry} work={work} />
+          <ActivityCardHeader entry={entry} />
 
           {showComment && commentPreview && (
             <div className="mt-2">
@@ -81,14 +82,10 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions
-                  entry={entry}
-                  work={work}
-                  presentation={presentation}
-                  onNavigate={markEntryClicked}
-                />
+                <ActivityWorkActions entry={entry} work={work} />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
+            <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
           </div>
         </div>
       </div>
