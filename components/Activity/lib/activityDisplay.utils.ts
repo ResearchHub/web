@@ -138,6 +138,16 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   };
 }
 
+/** An author publishing their own proposal, rather than acting on someone else's work. */
+export function isProposalSubmission(entry: FeedEntry): boolean {
+  return entry.activityAction === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION';
+}
+
+/** An organization or author publishing their own RFP. */
+export function isGrantOpened(entry: FeedEntry): boolean {
+  return entry.activityAction === 'grant_opened' || entry.contentType === 'GRANT';
+}
+
 export function getActivityHeaderMessage(entry: FeedEntry): ActivityHeaderMessage {
   if (entry.contentType === 'FUNDINGACTIVITY') {
     return getFundingActivityMessage(entry.content as FeedFundingActivityContent);
@@ -258,13 +268,13 @@ export type ActivityActionIconName =
   | null;
 
 export function getActionIcon(entry: FeedEntry): ActivityActionIconName {
-  if (entry.contentType === 'GRANT' || entry.activityAction === 'grant_opened') {
+  if (isGrantOpened(entry)) {
     return 'fund';
   }
   if (entry.activityAction === 'bounty_opened') {
     return 'earn';
   }
-  if (entry.activityAction === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION') {
+  if (isProposalSubmission(entry)) {
     return null;
   }
   if (

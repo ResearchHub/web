@@ -14,6 +14,7 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
+  isProposalSubmission,
   type ActivityHeaderMessage,
 } from '../lib/activityDisplay.utils';
 import { getActivityBounty, shouldShowAuthorBadge } from '../lib/activityWork.utils';
@@ -40,6 +41,9 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({
   const hasAmount = Boolean(
     grantAmount || contribution || reviewEarning || bounty || reviewScore != null
   );
+  // Who the proposer is matters on their own submission; elsewhere the actor is
+  // acting on someone else's work and the headline is just noise.
+  const headline = isProposalSubmission(entry) ? message.actor.headline?.trim() : undefined;
 
   return (
     <div className="mb-2.5 min-w-0 pt-1 text-sm leading-6">
@@ -87,6 +91,9 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({
       )}
       {message.suffix && <span className="text-gray-500">{message.suffix}</span>}
       <ActivityActionIcon name={hasAmount ? null : actionIcon} />
+      {headline && (
+        <span className="block truncate text-xs leading-4 text-gray-500">{headline}</span>
+      )}
     </div>
   );
 };

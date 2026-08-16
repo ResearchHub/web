@@ -440,10 +440,10 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           </div>
         </div>
 
-        {/* Actions row — full width with divider */}
+        {/* Actions row — aligned with the card's content gutter */}
         {showActions && (
           <div
-            className="cursor-default"
+            className="cursor-default border-t border-gray-100 px-4 py-2.5"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
@@ -477,7 +477,6 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               hideReportButton={hideReportButton}
               menuItems={menuItems}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
-              className="gap-1"
             />
           </div>
         )}

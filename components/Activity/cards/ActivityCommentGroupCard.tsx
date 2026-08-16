@@ -99,19 +99,13 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions
-                  entry={latestEntry}
-                  work={work}
-                  presentation={presentation}
-                  onNavigate={markEntryClicked}
-                />
+                <ActivityWorkActions entry={latestEntry} work={work} />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
+            <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3" />
           </div>
         </div>
       </div>
-
-      <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3 ml-[42px]" />
     </article>
   );
 };
