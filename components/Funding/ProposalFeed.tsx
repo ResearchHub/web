@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { cn } from '@/utils/styles';
@@ -17,6 +17,8 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
     hasMore,
     page,
     loadMore,
+    sortBy,
+    statusFilter,
     activate,
     restoredScrollPosition,
     lastClickedEntryId,
@@ -26,6 +28,11 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
   useEffect(() => {
     activate();
   }, [activate]);
+
+  const persistedFilters = useMemo(
+    () => ({ sortBy, statusFilter }),
+    [sortBy, statusFilter]
+  );
 
   return (
     <div className={cn('', className)}>
@@ -43,6 +50,7 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
         restoredScrollPosition={restoredScrollPosition}
         page={page}
         lastClickedEntryId={lastClickedEntryId ?? undefined}
+        persistedFilters={persistedFilters}
         noEntriesElement={
           <div className="py-12 text-center">
             <p className="text-gray-500">No proposals submitted yet</p>

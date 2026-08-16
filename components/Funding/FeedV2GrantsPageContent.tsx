@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import { useGrantFeed } from '@/contexts/GrantFeedContext';
@@ -24,6 +24,8 @@ export function FeedV2GrantsPageContent() {
     activate();
   }, [activate]);
 
+  const persistedFilters = useMemo(() => ({ sortBy }), [sortBy]);
+
   return (
     <FeedContent
       entries={entries}
@@ -39,6 +41,7 @@ export function FeedV2GrantsPageContent() {
       restoredScrollPosition={restoredScrollPosition}
       page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
+      persistedFilters={persistedFilters}
       noEntriesElement={
         <div className="py-12 text-center">
           <p className="text-gray-400 text-sm">No open awards right now</p>

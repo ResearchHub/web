@@ -12,9 +12,11 @@ import {
 } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
-import type {
-  ProposalStatusFilter,
-  ProposalSortOption,
+import {
+  STATUS_OPTIONS,
+  SORT_OPTIONS,
+  type ProposalStatusFilter,
+  type ProposalSortOption,
 } from '@/components/Funding/lib/proposalSortAndFilterConfig';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
@@ -47,9 +49,25 @@ interface FundraiseContextValue {
 }
 
 const PAGE_SIZE = 20;
+const DEFAULT_STATUS: ProposalStatusFilter = 'all';
+const DEFAULT_SORT: ProposalSortOption = 'best';
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
 
 let _sidebarFundraisesCache: FeedEntry[] = [];
+
+function resolveRestoredStatus(value: string | undefined): ProposalStatusFilter {
+  if (STATUS_OPTIONS.some((option) => option.value === value)) {
+    return value as ProposalStatusFilter;
+  }
+  return DEFAULT_STATUS;
+}
+
+function resolveRestoredSort(value: string | undefined): ProposalSortOption {
+  if (SORT_OPTIONS.some((option) => option.value === value)) {
+    return value as ProposalSortOption;
+  }
+  return DEFAULT_SORT;
+}
 
 interface FundraiseProviderProps {
   children: ReactNode;
@@ -71,6 +89,8 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const initialEntries = restoredState?.entries ?? [];
   const initialHasMore = restoredState?.hasMore ?? false;
   const initialPage = restoredState?.page ?? 1;
+  const initialStatusFilter = resolveRestoredStatus(restoredState?.filters?.statusFilter);
+  const initialSortBy = resolveRestoredSort(restoredState?.filters?.sortBy);
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [totalCount, setTotalCount] = useState(initialEntries.length);
@@ -80,9 +100,9 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const [page, setPage] = useState(initialPage);
   const pageRef = useRef(initialPage);
 
-  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>(initialStatusFilter);
   const [taxDeductible, setTaxDeductible] = useState(false);
-  const [sortBy, setSortBy] = useState<ProposalSortOption>('best');
+  const [sortBy, setSortBy] = useState<ProposalSortOption>(initialSortBy);
 
   // Sidebar lazy-loaded data (ref-guarded, fetched at most once)
   const [sidebarFundraises, setSidebarFundraisesRaw] =

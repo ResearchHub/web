@@ -12,7 +12,10 @@ import {
 } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
-import type { GrantSortOption } from '@/components/Funding/lib/grantSortConfig';
+import {
+  GRANT_SORT_OPTIONS,
+  type GrantSortOption,
+} from '@/components/Funding/lib/grantSortConfig';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 interface GrantFeedContextValue {
@@ -33,6 +36,14 @@ const GrantFeedContext = createContext<GrantFeedContextValue | null>(null);
 
 const PAGE_SIZE = 20;
 const RESTORATION_TAB = 'grants';
+const DEFAULT_SORT: GrantSortOption = 'newest';
+
+function resolveRestoredSort(value: string | undefined): GrantSortOption {
+  if (GRANT_SORT_OPTIONS.some((option) => option.value === value)) {
+    return value as GrantSortOption;
+  }
+  return DEFAULT_SORT;
+}
 
 /**
  * Homepage grant (RFP) feed. Stays mounted across home tab switches so we only
@@ -48,6 +59,7 @@ export function GrantFeedProvider({ children }: { children: ReactNode }) {
   const initialEntries = restoredState?.entries ?? [];
   const initialHasMore = restoredState?.hasMore ?? false;
   const initialPage = restoredState?.page ?? 1;
+  const initialSortBy = resolveRestoredSort(restoredState?.filters?.sortBy);
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [isLoading, setIsLoading] = useState(!hasRestoredEntries);
@@ -55,7 +67,7 @@ export function GrantFeedProvider({ children }: { children: ReactNode }) {
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
   const pageRef = useRef(initialPage);
-  const [sortBy, setSortBy] = useState<GrantSortOption>('newest');
+  const [sortBy, setSortBy] = useState<GrantSortOption>(initialSortBy);
 
   const [activated, setActivated] = useState(hasRestoredEntries);
   const activate = useCallback(() => setActivated(true), []);
