@@ -1,24 +1,32 @@
 'use client';
 
-import { ReactNode, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { useGrantTab } from '@/components/Funding/GrantPageContent';
 import { GrantDetailsInline } from '@/components/Funding/GrantDetailsInline';
 import { ActivityCard, ActivityCardSkeleton } from '@/components/Activity';
+import { ProposalFeed } from '@/components/Funding/ProposalFeed';
+import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
+import { useFundraises } from '@/contexts/FundraiseContext';
 
 interface GrantContentSwitcherProps {
-  children: ReactNode;
   content?: string;
   imageUrl?: string;
+  showProposalFilters?: boolean;
 }
 
-export function GrantContentSwitcher({ children, content, imageUrl }: GrantContentSwitcherProps) {
+export function GrantContentSwitcher({
+  content,
+  imageUrl,
+  showProposalFilters = false,
+}: GrantContentSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { activeTab, activity } = useGrantTab();
+  const { activeTab, setActiveTab, activity } = useGrantTab();
+  const { restoredScrollPosition: proposalsRestoredScrollPosition } = useFundraises();
   const {
     entries,
     isLoading,
@@ -30,6 +38,17 @@ export function GrantContentSwitcher({ children, content, imageUrl }: GrantConte
     lastClickedEntryId,
     restorationTab,
   } = activity;
+
+  const isProposalsActive = activeTab === 'proposals';
+  const isActivityActive = activeTab === 'activity';
+
+  useEffect(() => {
+    if (proposalsRestoredScrollPosition != null) {
+      setActiveTab('proposals');
+    } else if (restoredScrollPosition != null) {
+      setActiveTab('activity');
+    }
+  }, [proposalsRestoredScrollPosition, restoredScrollPosition, setActiveTab]);
 
   const feedKey = useMemo(() => {
     const queryParams: Record<string, string> = {};
@@ -48,8 +67,8 @@ export function GrantContentSwitcher({ children, content, imageUrl }: GrantConte
     entries,
     hasMore,
     page,
-    restoredScrollPosition,
-    lastClickedEntryId: lastClickedEntryId ?? undefined,
+    restoredScrollPosition: isActivityActive ? restoredScrollPosition : null,
+    lastClickedEntryId: isActivityActive ? (lastClickedEntryId ?? undefined) : undefined,
   });
 
   const { ref: sentinelRef } = useInView({
@@ -64,11 +83,14 @@ export function GrantContentSwitcher({ children, content, imageUrl }: GrantConte
 
   return (
     <>
-      <div className={activeTab !== 'proposals' ? 'hidden' : undefined}>{children}</div>
+      <div className={!isProposalsActive ? 'hidden' : undefined}>
+        {showProposalFilters && <ProposalSortAndFilters />}
+        <ProposalFeed isActive={isProposalsActive} />
+      </div>
       <div className={activeTab !== 'details' ? 'hidden' : undefined}>
         <GrantDetailsInline content={content} imageUrl={imageUrl} />
       </div>
-      <div className={activeTab !== 'activity' ? 'hidden' : undefined}>
+      <div className={!isActivityActive ? 'hidden' : undefined}>
         <div>
           {entries.map((entry) => (
             <ActivityCard key={entry.id} entry={entry} />

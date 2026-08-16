@@ -7,9 +7,10 @@ import { cn } from '@/utils/styles';
 
 interface ProposalFeedProps {
   className?: string;
+  isActive?: boolean;
 }
 
-export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
+export const ProposalFeed: FC<ProposalFeedProps> = ({ className, isActive = true }) => {
   const {
     entries,
     isLoading,
@@ -29,10 +30,7 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
     activate();
   }, [activate]);
 
-  const persistedFilters = useMemo(
-    () => ({ sortBy, statusFilter }),
-    [sortBy, statusFilter]
-  );
+  const persistedFilters = useMemo(() => ({ sortBy, statusFilter }), [sortBy, statusFilter]);
 
   return (
     <div className={cn('', className)}>
@@ -47,9 +45,9 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
         showGrantHeaders={false}
         showPostHeaders={false}
         activeTab={restorationTab}
-        restoredScrollPosition={restoredScrollPosition}
+        restoredScrollPosition={isActive ? restoredScrollPosition : null}
         page={page}
-        lastClickedEntryId={lastClickedEntryId ?? undefined}
+        lastClickedEntryId={isActive ? (lastClickedEntryId ?? undefined) : undefined}
         persistedFilters={persistedFilters}
         noEntriesElement={
           <div className="py-12 text-center">
