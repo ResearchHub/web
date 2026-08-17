@@ -28,6 +28,7 @@ export interface CreateNoteParams {
   grouping: NoteAccess;
   organization_slug: string;
   document_type?: string;
+  selectedGrantId: ID;
 }
 
 export interface UpdateNoteContentParams {
@@ -41,6 +42,7 @@ export interface UpdateNoteParams {
   noteId: ID;
   title?: string;
   document_type?: string;
+  selectedGrantId: ID;
 }
 
 export interface UpdateNoteTitleParams {
@@ -192,13 +194,20 @@ export class NoteService {
       throw new NoteError('Missing organization slug', 'INVALID_PARAMS');
     }
 
+    const { selectedGrantId, ...fields } = params;
+    const payload = {
+      ...fields,
+      ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
+    };
+
     try {
-      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/`, params);
+      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/`, payload);
       return transformNote(response);
     } catch (error) {
       throw new NoteError(
-        'Failed to create note',
-        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+        extractApiErrorMessage(error, 'Failed to create note'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
       );
     }
   }
@@ -250,21 +259,30 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, ...fields } = params;
+    const { noteId, selectedGrantId, ...fields } = params;
+    const payload = {
+      ...fields,
+      ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
+    };
 
     try {
-      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${noteId}/`, fields);
+      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${noteId}/`, payload);
       return transformNoteWithContent(response);
     } catch (error) {
       throw new NoteError(
-        'Failed to update note',
-        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+        extractApiErrorMessage(error, 'Failed to update note'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
       );
     }
   }
 
   static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    return this.updateNote({ noteId: params.noteId, title: params.title });
+    return this.updateNote({
+      noteId: params.noteId,
+      title: params.title,
+      selectedGrantId: undefined,
+    });
   }
 
   /**

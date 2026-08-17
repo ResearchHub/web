@@ -93,6 +93,8 @@ interface ActionButtonProps {
   showLabel?: boolean;
   showTooltip?: boolean;
   hideIcon?: boolean;
+  /** Bare icon and count instead of the pill chrome. */
+  flat?: boolean;
 }
 
 // Export ActionButton so it can be used in other components
@@ -108,15 +110,24 @@ export const ActionButton: FC<ActionButtonProps> = ({
   showLabel = false,
   showTooltip = true,
   hideIcon = false,
+  flat = false,
 }) => (
   <Button
     variant="ghost"
     size="sm"
     className={cn(
-      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-all',
-      isActive
-        ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
-        : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm',
+      'flex items-center text-xs font-medium transition-all',
+      flat
+        ? cn(
+            'h-6 gap-1 !px-0 hover:bg-transparent',
+            isActive ? 'text-green-600' : 'text-gray-500 hover:text-gray-800'
+          )
+        : cn(
+            'h-8 gap-1.5 rounded-full px-3',
+            isActive
+              ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
+              : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+          ),
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -124,7 +135,12 @@ export const ActionButton: FC<ActionButtonProps> = ({
     disabled={isDisabled}
   >
     {!hideIcon && Icon && (
-      <Icon className={cn('h-[18px] w-[18px]', isActive ? 'text-green-600' : '')} />
+      <Icon
+        className={cn(
+          flat ? 'h-4 w-4' : 'h-[18px] w-[18px]',
+          isActive && !flat ? 'text-green-600' : ''
+        )}
+      />
     )}
     {showLabel ? <span>{label}</span> : count !== undefined ? <span>{count}</span> : null}
   </Button>
@@ -169,12 +185,10 @@ interface FeedItemActionsProps {
   isExpanded?: boolean;
   className?: string;
   /**
-   * `default` — feed footer bar with pill vote control.
-   * `inline` — same pill chrome, no gray bar (e.g. comment rows).
-   * `compact` — flat vote/save/share icons matching activity preview cards.
+   * `default` — flat icon row used by feed and activity cards.
+   * `inline` — pill chrome for comment rows.
    */
-  variant?: 'default' | 'inline' | 'compact';
-  leadingUtilityActions?: boolean;
+  variant?: 'default' | 'inline';
 }
 
 // Define interface for avatar items used in local state
@@ -213,7 +227,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   isExpanded = false,
   className,
   variant = 'default',
-  leadingUtilityActions = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -421,15 +434,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     feedContentType !== 'APPLICATION' &&
     showPeerReviews;
 
-  const showShare = leadingUtilityActions || (variant !== 'inline' && variant !== 'compact');
+  const showShare = variant !== 'inline';
   const showMoreMenu =
     !!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
     menuItems.length > 0 ||
     !hideReportButton;
-  const isCompact = variant === 'compact';
+  // Comment rows keep the pill chrome; cards use bare icons.
+  const isFlat = variant !== 'inline';
 
   const shareButton = showShare ? (
-    isCompact ? (
+    isFlat ? (
       <button
         type="button"
         onMouseDown={(e) => e.stopPropagation()}
@@ -456,8 +470,34 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     )
   ) : null;
 
+  const moreMenuTrigger = isFlat ? (
+    <button
+      type="button"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800"
+      aria-label="More options"
+    >
+      <MoreHorizontal className="h-4 w-4" />
+    </button>
+  ) : (
+    <Button
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      variant="ghost"
+      size="sm"
+      className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
+    >
+      <MoreHorizontal className="h-[18px] w-[18px]" />
+    </Button>
+  );
+
   const saveButton = canSave ? (
-    isCompact ? (
+    isFlat ? (
       <button
         type="button"
         onMouseDown={(e) => e.stopPropagation()}
@@ -503,24 +543,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   return (
     <>
-      <div
-        className={cn(
-          'flex items-center justify-between gap-2',
-          variant === 'default' && 'bg-gray-50 px-3 py-1.5',
-          isCompact && 'gap-3'
-        )}
-      >
+      <div className={cn('flex items-center justify-between', isFlat ? 'gap-3' : 'gap-2')}>
         <div
           className={cn(
             'flex items-center flex-nowrap overflow-visible',
-            isCompact ? 'gap-4' : undefined,
+            isFlat ? 'gap-4' : undefined,
             className
           )}
         >
           <div
             className={cn(
               'flex items-center transition-all',
-              isCompact
+              isFlat
                 ? cn('gap-2', isVoting && 'opacity-50')
                 : cn(
                     'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
@@ -533,7 +567,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               disabled={isVoting}
               className={cn(
                 'flex items-center justify-center transition-colors',
-                isCompact
+                isFlat
                   ? cn(
                       'h-6 w-6',
                       localUserVote === 'UPVOTE'
@@ -550,12 +584,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className={isCompact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
+              <ArrowUp className={isFlat ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
             </button>
             <span
               className={cn(
                 'text-center text-xs font-medium',
-                isCompact
+                isFlat
                   ? 'min-w-[1.1rem] text-gray-700'
                   : 'min-w-[1.75rem] px-1 font-semibold text-gray-900'
               )}
@@ -567,7 +601,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               disabled={isVoting}
               className={cn(
                 'flex items-center justify-center transition-colors',
-                isCompact
+                isFlat
                   ? cn(
                       'h-6 w-6',
                       localUserVote === 'DOWNVOTE'
@@ -584,7 +618,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className={isCompact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
+              <ArrowDown className={isFlat ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
             </button>
           </div>
           {!hideCommentButton && (
@@ -596,6 +630,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={handleComment}
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
+              flat={isFlat}
             />
           )}
           {(onTip || totalAwarded > 0) &&
@@ -705,36 +740,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 onExpand(e);
               }}
               showTooltip={showTooltips}
+              flat={isFlat}
             />
           )}
           {children}
-          {leadingUtilityActions && (
-            <>
-              {saveButton}
-              {shareButton}
-            </>
-          )}
         </div>
 
-        <div className="flex flex-shrink-0 items-center justify-end gap-1">
+        <div
+          className={cn('flex flex-shrink-0 items-center justify-end', isFlat ? 'gap-3' : 'gap-1')}
+        >
           {rightSideActionButton}
           {showMoreMenu && (
             <BaseMenu
-              trigger={
-                <Button
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
-                >
-                  <MoreHorizontal className="h-[18px] w-[18px]" />
-                </Button>
-              }
+              trigger={moreMenuTrigger}
               align="end"
               open={isMenuOpen}
               onOpenChange={setIsMenuOpen}
@@ -770,12 +788,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               )}
             </BaseMenu>
           )}
-          {!leadingUtilityActions && (
-            <>
-              {shareButton}
-              {saveButton}
-            </>
-          )}
+          {shareButton}
+          {saveButton}
         </div>
       </div>
 

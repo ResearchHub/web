@@ -14,18 +14,23 @@ import {
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
+  isProposalSubmission,
+  type ActivityHeaderMessage,
 } from '../lib/activityDisplay.utils';
-import { getActivityBounty, isActivityWorkAuthor } from '../lib/activityWork.utils';
-import { formatTimeAgo } from '@/utils/date';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { getActivityBounty, shouldShowAuthorBadge } from '../lib/activityWork.utils';
 import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardHeaderProps {
   entry: FeedEntry;
+  /** Replaces the derived message, for rows that speak for several entries at once. */
+  message?: ActivityHeaderMessage;
 }
 
-export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
-  const message = getActivityHeaderMessage(entry);
+export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({
+  entry,
+  message: messageOverride,
+}) => {
+  const message = messageOverride ?? getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
   const reviewEarning = getReviewEarning(entry);
@@ -36,64 +41,59 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry }) => {
   const hasAmount = Boolean(
     grantAmount || contribution || reviewEarning || bounty || reviewScore != null
   );
+  // Who the proposer is matters on their own submission; elsewhere the actor is
+  // acting on someone else's work and the headline is just noise.
+  const headline = isProposalSubmission(entry) ? message.actor.headline?.trim() : undefined;
 
   return (
-    <div className="mb-2.5 flex items-start justify-between gap-2 pt-1 text-sm">
-      <div className="min-w-0 flex-1 leading-6">
-        <ActivityHeaderActionText
-          message={message}
-          isAuthor={isActivityWorkAuthor(entry, message.actor.id)}
-        />
-        {grantAmount && (
-          <>
-            {' '}
-            <GrantFundingAmount amount={grantAmount} className="align-middle" />
-          </>
-        )}
-        {contribution && (
-          <>
-            {' '}
-            <ContributionAmount
-              contribution={contribution}
-              showSign={!message.isEarning}
-              className="align-middle"
-            />
-          </>
-        )}
-        {reviewEarning && (
-          <>
-            {' '}
-            <ContributionAmount
-              contribution={reviewEarning}
-              showSign={false}
-              className="align-middle"
-            />
-          </>
-        )}
-        {bounty && (
-          <>
-            {' '}
-            <BountyAmount bounty={bounty} className="align-middle" />
-          </>
-        )}
-        {reviewScore != null && reviewScore > 0 && (
-          <>
-            {' '}
-            <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
-          </>
-        )}
-        {message.suffix && <span className="text-gray-500">{message.suffix}</span>}
-        <ActivityActionIcon name={hasAmount ? null : actionIcon} />
-      </div>
-
-      <Tooltip
-        content={new Date(entry.timestamp).toLocaleString()}
-        wrapperClassName="flex-shrink-0"
-      >
-        <span className="text-xs leading-6 text-gray-400 cursor-default whitespace-nowrap">
-          {formatTimeAgo(entry.timestamp)}
-        </span>
-      </Tooltip>
+    <div className="mb-2.5 min-w-0 pt-1 text-sm leading-6">
+      <ActivityHeaderActionText
+        message={message}
+        isAuthor={shouldShowAuthorBadge(entry, message.actor.id)}
+      />
+      {grantAmount && (
+        <>
+          {' '}
+          <GrantFundingAmount amount={grantAmount} className="align-middle" />
+        </>
+      )}
+      {contribution && (
+        <>
+          {' '}
+          <ContributionAmount
+            contribution={contribution}
+            showSign={!message.isEarning}
+            className="align-middle"
+          />
+        </>
+      )}
+      {reviewEarning && (
+        <>
+          {' '}
+          <ContributionAmount
+            contribution={reviewEarning}
+            showSign={false}
+            className="align-middle"
+          />
+        </>
+      )}
+      {bounty && (
+        <>
+          {' '}
+          <BountyAmount bounty={bounty} className="align-middle" />
+        </>
+      )}
+      {reviewScore != null && reviewScore > 0 && (
+        <>
+          {' '}
+          <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
+        </>
+      )}
+      {message.suffix && <span className="text-gray-500">{message.suffix}</span>}
+      <ActivityActionIcon name={hasAmount ? null : actionIcon} />
+      {headline && (
+        <span className="block truncate text-xs leading-4 text-gray-500">{headline}</span>
+      )}
     </div>
   );
 };
