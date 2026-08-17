@@ -34,16 +34,10 @@ interface FundraiseContextValue {
 
   /** Call once from the consuming component to trigger the initial fetch. */
   activate: () => void;
-
-  sidebarFundraises: FeedEntry[];
-  isSidebarLoading: boolean;
-  fetchSidebarFundraises: () => Promise<void>;
 }
 
 const PAGE_SIZE = 20;
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
-
-let _sidebarFundraisesCache: FeedEntry[] = [];
 
 interface FundraiseProviderProps {
   children: ReactNode;
@@ -61,16 +55,6 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>('all');
   const [taxDeductible, setTaxDeductible] = useState(false);
   const [sortBy, setSortBy] = useState<ProposalSortOption>('best');
-
-  // Sidebar lazy-loaded data (ref-guarded, fetched at most once)
-  const [sidebarFundraises, setSidebarFundraisesRaw] =
-    useState<FeedEntry[]>(_sidebarFundraisesCache);
-  const [isSidebarLoading, setIsSidebarLoading] = useState(_sidebarFundraisesCache.length === 0);
-  const hasSidebarDataRef = useRef(_sidebarFundraisesCache.length > 0);
-  const setSidebarFundraises = useCallback((entries: FeedEntry[]) => {
-    _sidebarFundraisesCache = entries;
-    setSidebarFundraisesRaw(entries);
-  }, []);
 
   const feedParams = useMemo(() => {
     const isStatusCompleted = statusFilter === 'completed';
@@ -151,28 +135,6 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     }
   }, [isLoading, isLoadingMore, hasMore, page, grantId, feedParams]);
 
-  const fetchSidebarFundraises = useCallback(async () => {
-    if (hasSidebarDataRef.current) return;
-    hasSidebarDataRef.current = true;
-
-    setIsSidebarLoading(true);
-    try {
-      const result = await FeedService.getFeed({
-        page: 1,
-        pageSize: 5,
-        contentType: 'PREREGISTRATION',
-        endpoint: 'funding_feed',
-        fundraiseStatus: 'OPEN',
-        ordering: 'best',
-      });
-      setSidebarFundraises(result.entries);
-    } catch (error) {
-      console.error('Error fetching sidebar fundraises:', error);
-    } finally {
-      setIsSidebarLoading(false);
-    }
-  }, [setSidebarFundraises]);
-
   const value = useMemo<FundraiseContextValue>(
     () => ({
       entries,
@@ -188,9 +150,6 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       sortBy,
       setSortBy,
       activate,
-      sidebarFundraises,
-      isSidebarLoading,
-      fetchSidebarFundraises,
     }),
     [
       entries,
@@ -204,9 +163,6 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       taxDeductible,
       sortBy,
       activate,
-      sidebarFundraises,
-      isSidebarLoading,
-      fetchSidebarFundraises,
     ]
   );
 
