@@ -9,7 +9,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { Sprout, Star } from 'lucide-react';
-import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { cn } from '@/utils/styles';
 
@@ -67,12 +66,10 @@ export const Navigation: React.FC<NavigationProps> = ({
   onUnimplementedFeature,
   forceMinimize = false,
 }) => {
-  const homeHref = useHomeHref();
-
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: homeHref,
+      href: '/',
       iconKey: 'home',
       isFontAwesome: true,
       isHome: true,
@@ -128,7 +125,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const isPathActive = (path: string, isHome?: boolean) => {
     if (isHome) {
-      return isClassicHomeFeedPath(currentPath) || isHomeTabPath(currentPath);
+      return isHomeTabPath(currentPath);
     }
 
     if (path === '/peer-review') {

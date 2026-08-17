@@ -21,10 +21,6 @@ export interface PageInfo {
 
 export const ROOT_NAVIGATION_PATHS = new Set([
   ...HOME_TAB_PATHS,
-  '/popular',
-  '/for-you',
-  '/following',
-  '/latest',
   '/peer-review',
   '/journal',
   '/notebook',
@@ -49,13 +45,6 @@ const ROUTE_RULES: RouteRule[] = [
     match: (p) => isHomeTabPath(p),
     getInfo: () => ({
       title: 'Fund Scientific Research',
-      icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
-    }),
-  },
-  {
-    match: (p) => ['/popular', '/for-you', '/following', '/latest'].includes(p),
-    getInfo: () => ({
-      title: 'Home',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     }),
   },

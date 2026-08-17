@@ -9,9 +9,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Logo } from '@/components/ui/Logo';
-import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { Tabs } from '@/components/ui/Tabs';
-import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
@@ -37,7 +35,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { totalCount: pendingModerationCount } = usePendingCounts();
   const { showAuthModal } = useAuthModalContext();
 
-  const { tabs, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
   const {
     tabs: fundTabs,
     highlightedTab: fundHighlightedTab,
@@ -45,9 +42,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     isFundPage,
   } = useFundTabs();
   const { contentTabsHidden } = useFeedTabsVisibility();
-  const showTopBarFeedTabs = isFeedPage && contentTabsHidden;
   const showTopBarFundTabs = isFundPage && contentTabsHidden;
-  const showTopBarContentTabs = showTopBarFeedTabs || showTopBarFundTabs;
 
   // A page (e.g. the notebook) can inject a custom control here in place of the
   // default breadcrumb.
@@ -114,22 +109,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   <TopBarBreadcrumb
                     pageInfo={showTopBarFundTabs ? { ...pageInfo, title: 'Fund' } : pageInfo}
                     variant="desktop"
-                    truncateTitle={showTopBarFeedTabs}
                   />
                 )}
               </>
-            )}
-
-            {/* Inline content tabs — desktop only, shown once page tabs scroll away */}
-            {showTopBarFeedTabs && (
-              <div className="hidden tablet:!flex min-w-0 flex-shrink-0 items-center ml-4">
-                <FeedTabs
-                  activeTab={highlightedTab}
-                  tabs={tabs}
-                  onTabChange={handleTabChange}
-                  isCompact={false}
-                />
-              </div>
             )}
           </div>
 
@@ -182,23 +164,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </div>
 
         {/* Content tabs — mobile only, stacked below title when page tabs scroll out of view */}
-        {(isFeedPage || isFundPage) && (
+        {isFundPage && (
           <div
             className="tablet:!hidden overflow-hidden transition-all duration-300 ease-in-out border-b px-4 -mt-2 pb-1"
             style={{
-              maxHeight: showTopBarContentTabs ? '62px' : '0px',
-              opacity: showTopBarContentTabs ? 1 : 0,
-              borderBottomColor: showTopBarContentTabs ? undefined : 'transparent',
+              maxHeight: showTopBarFundTabs ? '62px' : '0px',
+              opacity: showTopBarFundTabs ? 1 : 0,
+              borderBottomColor: showTopBarFundTabs ? undefined : 'transparent',
             }}
           >
-            {showTopBarFeedTabs && (
-              <FeedTabs
-                activeTab={highlightedTab}
-                tabs={tabs}
-                onTabChange={handleTabChange}
-                isCompact={false}
-              />
-            )}
             {showTopBarFundTabs && (
               <Tabs
                 tabs={fundTabs}
