@@ -21,6 +21,7 @@ export function AuthorsSection() {
         sortable
         onChange={(newAuthors) => setValue('authors', newAuthors, { shouldValidate: true })}
         placeholder="Search for authors..."
+        helperText="Drag and drop authors to arrange them in the order they should appear."
         error={getFieldErrorMessage(errors.authors, 'Invalid authors')}
       />
     </div>
