@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { FeedV2GrantsPageContent } from '@/components/Funding/FeedV2GrantsPageContent';
+import { FundGrantsPageContent } from '@/components/Funding/FundGrantsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Funding Opportunities',
@@ -46,7 +46,7 @@ export default function FundPage() {
           subject to a gift fee as specified by the researcher's university.
         </p>
       </section>
-      <FeedV2GrantsPageContent />
+      <FundGrantsPageContent />
     </>
   );
 }

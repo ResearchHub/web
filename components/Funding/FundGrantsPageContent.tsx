@@ -5,7 +5,7 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import { useGrantFeed } from '@/contexts/GrantFeedContext';
 
-export function FeedV2GrantsPageContent() {
+export function FundGrantsPageContent() {
   const { entries, isLoading, hasMore, loadMore, sortBy, setSortBy, activate } = useGrantFeed();
 
   useEffect(() => {
