@@ -1,8 +1,7 @@
 import { buildWorkUrl } from '@/utils/url';
-import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
-import { getBountyDisplayAmount, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
+import { getBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
+import { isGrantOpened, isProposalSubmission } from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
-import { isDeadlineInFuture } from '@/utils/date';
 import { toOptionalNumber } from '@/utils/number';
 import type {
   ActivityAction,
@@ -39,6 +38,7 @@ export interface WorkCardAuthor {
   name: string;
   verified?: boolean;
   authorUrl?: string;
+  profileImage?: string;
 }
 
 export interface WorkCardStat {
@@ -47,19 +47,16 @@ export interface WorkCardStat {
   accent?: boolean;
 }
 
-export type WorkCardCta =
-  | { kind: 'fund-modal'; label: 'Fund' }
-  | { kind: 'link'; label: string; href: string };
-
 export interface WorkCardPresentation {
   authors: WorkCardAuthor[];
+  /** Set when the work is published by ResearchHub itself, shown in place of authors. */
+  brand?: 'researchhub';
   /** Funding organization, shown in place of authors when present. */
   organization?: string | null;
   institution?: string | null;
   score?: number | null;
   stats?: WorkCardStat[];
   progress?: number;
-  cta?: WorkCardCta;
   showComment: boolean;
 }
 
@@ -125,6 +122,7 @@ function toCardAuthors(authors?: AuthorProfile[]): WorkCardAuthor[] {
       name: author.fullName,
       verified: author.user?.isVerified ?? author.isVerified,
       authorUrl: author.id === 0 ? undefined : author.profileUrl,
+      profileImage: author.profileImage,
     }));
 }
 
@@ -162,6 +160,11 @@ function resolveReviewScore(entry: FeedEntry, work: ActivityWork): number | null
   return null;
 }
 
+/** Discussions are product updates written by the ResearchHub team. */
+function isDiscussion(work: ActivityWork): boolean {
+  return work.documentType === 'post' || work.documentType === 'discussion';
+}
+
 function buildBasePresentation(
   entry: FeedEntry,
   work: ActivityWork,
@@ -174,6 +177,7 @@ function buildBasePresentation(
 
   return {
     authors: hideAuthors ? [] : toCardAuthors(work.authors),
+    brand: isDiscussion(work) ? 'researchhub' : undefined,
     organization: resolveOrganization(entry, work),
     institution: entry.nonprofit?.name ?? null,
     score: resolveReviewScore(entry, work),
@@ -203,18 +207,11 @@ function presentFundraise(
       },
     ],
     progress: goalUsd > 0 ? raisedUsd / goalUsd : undefined,
-    cta: isFundraiseActive(fundraise) ? { kind: 'fund-modal', label: 'Fund' } : undefined,
   };
-}
-
-function isGrantActive(grant: NonNullable<ActivityWork['grant']>): boolean {
-  if (grant.status !== 'OPEN') return false;
-  return grant.endDate ? isDeadlineInFuture(grant.endDate) : true;
 }
 
 function presentGrant(
   base: WorkCardPresentation,
-  work: ActivityWork,
   grant: NonNullable<ActivityWork['grant']>,
   showUSD: boolean,
   exchangeRate: number
@@ -249,45 +246,26 @@ function presentGrant(
   return {
     ...base,
     stats,
-    cta: isGrantActive(grant) ? { kind: 'link', label: 'Apply', href: work.href } : undefined,
   };
-}
-
-function isBountyActive(bounty: Bounty): boolean {
-  if (bounty.status === 'OPEN') {
-    return bounty.expirationDate ? isDeadlineInFuture(bounty.expirationDate) : true;
-  }
-  return bounty.status === 'ASSESSMENT' || isOpenBounty(bounty);
 }
 
 function presentBounty(
   base: WorkCardPresentation,
-  work: ActivityWork,
   bounty: Bounty,
   showUSD: boolean,
   exchangeRate: number
 ): WorkCardPresentation {
   const { amount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
-  const isReviewBounty = bounty.bountyType === 'REVIEW';
-  const href = `${buildWorkUrl({
-    id: work.id,
-    slug: work.slug,
-    contentType: work.documentType,
-    tab: 'bounties',
-  })}?focus=true`;
 
   return {
     ...base,
     stats: [
       {
-        label: isReviewBounty ? 'Peer Review' : 'Bounty',
+        label: bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty',
         value: formatAmount(amount, showUSD, exchangeRate, true),
         accent: true,
       },
     ],
-    cta: isBountyActive(bounty)
-      ? { kind: 'link', label: isReviewBounty ? 'Review' : 'Solve', href }
-      : undefined,
   };
 }
 
@@ -304,10 +282,10 @@ export function getWorkCardPresentation(
     return presentFundraise(base, work.fundraise, showUSD, exchangeRate);
   }
   if (slot === 'grant' && work.grant) {
-    return presentGrant(base, work, work.grant, showUSD, exchangeRate);
+    return presentGrant(base, work.grant, showUSD, exchangeRate);
   }
   if (slot === 'bounty' && work.bounty) {
-    return presentBounty(base, work, work.bounty, showUSD, exchangeRate);
+    return presentBounty(base, work.bounty, showUSD, exchangeRate);
   }
 
   return base;
@@ -442,6 +420,26 @@ function resolveWorkAuthors(
   }
 
   return relatedAuthors;
+}
+
+/** True when `authorId` matches an author on the work or content object. */
+export function isActivityWorkAuthor(entry: FeedEntry, authorId?: number | null): boolean {
+  if (!authorId) return false;
+
+  const relatedAuthors = entry.relatedWork?.authors?.map((authorship) => authorship.authorProfile);
+  const authors = resolveWorkAuthors(entry, relatedAuthors);
+
+  return authors?.some((author) => author.id === authorId) ?? false;
+}
+
+/**
+ * Whether the activity header should show the Author badge. Opening an RFP or
+ * submitting a proposal already identifies the actor as the author, so the badge
+ * would be redundant.
+ */
+export function shouldShowAuthorBadge(entry: FeedEntry, authorId?: number | null): boolean {
+  if (isProposalSubmission(entry) || isGrantOpened(entry)) return false;
+  return isActivityWorkAuthor(entry, authorId);
 }
 
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {

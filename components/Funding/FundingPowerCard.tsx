@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowDownToLine, Zap } from 'lucide-react';
+import { ArrowDownToLine } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FundingPowerTooltip } from '@/components/tooltips/FundingPowerTooltip';
 import { FundingMethodsModal } from './FundingMethodsModal';
@@ -37,10 +37,7 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
 
   return (
     <aside className={cn(CARD_SURFACE, 'w-[250px]', className)}>
-      <p className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">
-        <Zap className="h-4 w-4 shrink-0" />
-        Funding power
-      </p>
+      <p className="flex items-center gap-1.5 text-sm font-semibold text-gray-500">Funding power</p>
 
       <div className="mt-3.5 flex items-center gap-2">
         <button

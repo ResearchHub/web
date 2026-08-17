@@ -67,7 +67,7 @@ const StandardCommentSkeleton: FC<{ commentType: CommentSkeletonType }> = ({ com
         <ContentLines />
       </div>
       <div className="border-t border-gray-200 px-4 py-3">
-        <SkeletonFeedItemActionsFooter />
+        <SkeletonFeedItemActionsFooter pill />
       </div>
     </SkeletonCardShell>
   </div>

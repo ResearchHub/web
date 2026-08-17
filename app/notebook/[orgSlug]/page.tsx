@@ -14,11 +14,15 @@ import {
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { useUser } from '@/contexts/UserContext';
+import { getPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
+import type { ID } from '@/types/root';
 
-// An empty document for the "Start blank" funding-opportunity path.
+// An empty document for the "Start blank" funding-opportunity path. The
+// notebook editor's schema is 'heading block+', so the document must open with
+// a heading (the title) followed by at least one block.
 const BLANK_DOCUMENT = {
   type: 'doc',
-  content: [{ type: 'paragraph' }],
+  content: [{ type: 'heading', attrs: { textAlign: 'left', level: 1 } }, { type: 'paragraph' }],
 } as typeof grantTemplate;
 
 export default function OrganizationPage() {
@@ -46,11 +50,13 @@ export default function OrganizationPage() {
       queryParam,
       queryValue,
       documentType,
+      selectedGrantId,
     }: {
       template: typeof proposalTemplate | typeof grantTemplate | typeof initialContent;
       queryParam?: string;
       queryValue?: string;
       documentType?: string;
+      selectedGrantId?: Exclude<ID, null | undefined>;
     }
   ) => {
     try {
@@ -60,6 +66,7 @@ export default function OrganizationPage() {
         title,
         grouping: 'WORKSPACE',
         documentType,
+        selectedGrantId,
       });
 
       if (newNote) {
@@ -96,13 +103,15 @@ export default function OrganizationPage() {
     } else if (isNewFunding) {
       // "Upload a document" is handled inline in OpenProposalModal; here we
       // only create from template/blank.
+      const selectedGrantId = getPendingGrant()?.id;
       if (proposalSource === 'blank') {
         createNoteWithContent(selectedOrg.slug, {
           template: BLANK_DOCUMENT,
           documentType: 'PREREGISTRATION',
+          selectedGrantId,
         });
       } else {
-        handleStartFromTemplate();
+        handleStartFromTemplate(selectedGrantId);
       }
     } else if (isNewGrant) {
       // "Upload a document" is handled inline in OpenFundingOpportunityModal;
@@ -125,13 +134,14 @@ export default function OrganizationPage() {
     proposalSource,
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleStartFromTemplate = async () => {
+  const handleStartFromTemplate = async (selectedGrantId?: Exclude<ID, null | undefined>) => {
     if (!selectedOrg) return;
     await createNoteWithContent(selectedOrg.slug, {
       template: proposalTemplate,
       queryParam: 'template',
       queryValue: 'preregistration',
       documentType: 'PREREGISTRATION',
+      selectedGrantId,
     });
   };
 

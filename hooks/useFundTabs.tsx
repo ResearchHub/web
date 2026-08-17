@@ -5,7 +5,15 @@ import { usePathname, useRouter } from 'next/navigation';
 import { type LucideIcon, type LucideProps } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faBullhorn, faFileSignature, faWavePulse } from '@fortawesome/pro-light-svg-icons';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
+import {
+  faBullhorn as faBullhornSolid,
+  faFileSignature as faFileSignatureSolid,
+} from '@fortawesome/pro-solid-svg-icons';
+import {
+  RadiatingDotTabIcon,
+  RadiatingDotTabIconActive,
+} from '@/components/ui/RadiatingDotTabIcon';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
 function faTabIcon(icon: IconDefinition) {
@@ -29,16 +37,23 @@ export const FUND_TABS = [
     id: 'activity' as const,
     label: 'Activity',
     href: '/feed-v2',
-    icon: faTabIcon(faWavePulse),
+    icon: RadiatingDotTabIcon,
+    activeIcon: RadiatingDotTabIconActive,
     iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
   {
     id: 'fund' as const,
-    label: 'Request for Proposals',
+    label: (
+      <>
+        <span className="tablet:hidden">RFPs</span>
+        <span className="hidden tablet:inline">Request for Proposals</span>
+      </>
+    ),
     href: '/feed-v2/fund',
     icon: faTabIcon(faBullhorn),
+    activeIcon: faTabIcon(faBullhornSolid),
     iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
@@ -48,6 +63,7 @@ export const FUND_TABS = [
     label: 'Proposals',
     href: '/feed-v2/fund/proposals',
     icon: faTabIcon(faFileSignature),
+    activeIcon: faTabIcon(faFileSignatureSolid),
     iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,

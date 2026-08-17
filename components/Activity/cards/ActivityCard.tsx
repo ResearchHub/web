@@ -7,6 +7,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
+import { ActivityTimestamp } from './ActivityTimestamp';
 import { ActivityWorkActions } from '../work/ActivityWorkActions';
 import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
@@ -71,19 +72,20 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
           )}
 
           <div className="mt-5 -ml-[42px] tablet:!ml-0">
-            <WorkPreviewCard work={work} onNavigate={markEntryClicked} showPlaceholder>
+            <WorkPreviewCard
+              work={work}
+              brand={presentation.brand}
+              onNavigate={markEntryClicked}
+              showPlaceholder
+            >
               <WorkPreviewCard.Metadata>
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions
-                  entry={entry}
-                  work={work}
-                  presentation={presentation}
-                  onNavigate={markEntryClicked}
-                />
+                <ActivityWorkActions entry={entry} work={work} />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
+            <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
           </div>
         </div>
       </div>
