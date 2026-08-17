@@ -101,7 +101,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               <>
                 {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
 
-                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
+                {pageInfo && (
+                  <TopBarBreadcrumb
+                    pageInfo={isFundPage ? { ...pageInfo, title: 'Fund Science' } : pageInfo}
+                    variant="mobile"
+                  />
+                )}
 
                 {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
 

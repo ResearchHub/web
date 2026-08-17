@@ -149,7 +149,7 @@ function WorkPreviewCardRoot({
       )}
 
       {showFooter && (
-        <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-3 py-2">
           <div className="w-full min-w-0">{actions}</div>
         </div>
       )}

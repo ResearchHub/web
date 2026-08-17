@@ -4,7 +4,7 @@ import { FC } from 'react';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { ActivityTimestamp } from './ActivityTimestamp';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -13,7 +13,6 @@ import { ActivityWorkActions } from '../work/ActivityWorkActions';
 import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
 import { getWorkCardPresentation } from '../lib/activityWork.utils';
-import { formatTimeAgo } from '@/utils/date';
 import type { ActivityFundingGroupRow, ActivityFundingTotals } from '../lib/activityGrouping.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { CurrencyAmount } from '@/utils/currency';
@@ -93,7 +92,7 @@ const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }>
       {remaining > 0 && (
         <span className="text-gray-500">{` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}</span>
       )}
-      <span className="text-gray-500"> funded this proposal</span>
+      <span className="text-gray-500"> funded this proposal for</span>
     </>
   );
 };
@@ -144,15 +143,6 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
           <FunderSummary funders={funders} contributionCount={contributionCount} />{' '}
           <ContributionAmount contribution={total} className="align-middle" />
         </div>
-
-        <Tooltip
-          content={new Date(latestEntry.timestamp).toLocaleString()}
-          wrapperClassName="flex-shrink-0"
-        >
-          <span className="pt-1 text-xs leading-6 text-gray-400 cursor-default whitespace-nowrap">
-            {formatTimeAgo(latestEntry.timestamp)}
-          </span>
-        </Tooltip>
       </div>
 
       {/* Indent matches a single-actor card's 32px avatar plus the 10px flex gap. */}
@@ -167,15 +157,12 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
             <ActivityWorkMetadata work={work} presentation={presentation} />
           </WorkPreviewCard.Metadata>
           <WorkPreviewCard.Actions>
-            <ActivityWorkActions
-              entry={latestEntry}
-              work={work}
-              presentation={presentation}
-              onNavigate={markEntryClicked}
-            />
+            <ActivityWorkActions entry={latestEntry} work={work} />
           </WorkPreviewCard.Actions>
         </WorkPreviewCard>
       </div>
+
+      <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3 tablet:ml-[42px]" />
     </article>
   );
 };
