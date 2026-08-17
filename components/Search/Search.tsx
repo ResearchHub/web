@@ -6,7 +6,6 @@ import { Search as SearchIcon, X } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
-import type { EntityType } from '@/types/search';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface SearchProps {
@@ -15,7 +14,6 @@ interface SearchProps {
   showSuggestionsOnFocus?: boolean;
   className?: string;
   placeholder?: string;
-  indices?: EntityType[];
 }
 
 export function Search({
@@ -24,7 +22,6 @@ export function Search({
   showSuggestionsOnFocus = true,
   className,
   placeholder = 'Search',
-  indices,
 }: SearchProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);

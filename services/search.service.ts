@@ -44,7 +44,7 @@ export interface FullSearchResponse {
 export class SearchService {
   private static readonly BASE_PATH = '/api';
   private static readonly INSTITUTIONS_SUGGEST_PATH = '/api/search/institutions/suggest';
-  private static readonly DEFAULT_INDICES: EntityType[] = ['hub', 'paper', 'user', 'post'];
+  private static readonly DEFAULT_INDICES: EntityType[] = ['user', 'post'];
 
   static async getSuggestions(
     query: string,
