@@ -124,8 +124,7 @@ function getReorderDetails(
   const { initialIndex: fromIndex, index: toIndex } = source;
   const optionData = getSortableOptionData(source);
   if (
-    !optionData ||
-    optionData.optionOrderKey !== optionOrderKey ||
+    optionData?.optionOrderKey !== optionOrderKey ||
     !canReorderOption(source, target, optionData)
   ) {
     return;
@@ -209,7 +208,7 @@ function MultiSelectOptionPill({
   isDragging,
   isDropping,
   onRemove,
-}: MultiSelectOptionPillProps) {
+}: Readonly<MultiSelectOptionPillProps>) {
   const gripIcon = <GripVertical className="h-4 w-4" aria-hidden="true" />;
   const removeOption = (event: React.MouseEvent<HTMLButtonElement>) => {
     preventComboboxActivation(event);
@@ -268,7 +267,7 @@ function MultiSelectOptionPill({
   );
 }
 
-function SortableOptionPill({ optionOrderKey, ...props }: SortableOptionPillProps) {
+function SortableOptionPill({ optionOrderKey, ...props }: Readonly<SortableOptionPillProps>) {
   const { option, index, disabled } = props;
   const {
     ref: setPillRef,
@@ -305,7 +304,7 @@ function SortableOptionList({
   disabled,
   onRemove,
   onReorder,
-}: SortableMultiSelectOptionsProps) {
+}: Readonly<SortableMultiSelectOptionsProps>) {
   const handleIdPrefix = useId();
   const optionOrderKey = getOptionOrderKey(options);
   const [dropFeedback, setDropFeedback] = useState<DropFeedback>({
@@ -418,7 +417,7 @@ function SortableOptionList({
   );
 }
 
-export function SortableMultiSelectOptions(props: SortableMultiSelectOptionsProps) {
+export function SortableMultiSelectOptions(props: Readonly<SortableMultiSelectOptionsProps>) {
   const { options, focusedOptionIndex, disabled, onRemove } = props;
   if (options.length > 1) return <SortableOptionList {...props} />;
 
