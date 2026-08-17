@@ -10,6 +10,7 @@ import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { Sprout, Star } from 'lucide-react';
 import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { cn } from '@/utils/styles';
 
 interface NavIcon {
@@ -67,10 +68,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   forceMinimize = false,
 }) => {
   const homeHref = useHomeHref();
-  const isFeedV2Nav =
-    currentPath.startsWith('/feed-v2') ||
-    currentPath === '/my-funding' ||
-    currentPath.startsWith('/fund/dashboard');
 
   const navigationItems: NavigationItem[] = [
     {
@@ -81,24 +78,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       isHome: true,
       description: 'Navigate to the home page',
     },
-    ...(isFeedV2Nav
-      ? [
-          {
-            label: 'My Funding',
-            href: '/my-funding',
-            iconKey: 'fund' as const,
-            requiresAuth: true,
-            description: 'View your funding activity',
-          },
-        ]
-      : [
-          {
-            label: 'Fund',
-            href: '/fund',
-            iconKey: 'fund' as const,
-            description: 'Browse grants and fundraising opportunities',
-          },
-        ]),
+    {
+      label: 'My Funding',
+      href: '/my-funding',
+      iconKey: 'fund',
+      requiresAuth: true,
+      description: 'View your funding activity',
+    },
     {
       label: 'Peer Review',
       href: '/peer-review',
@@ -142,19 +128,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const isPathActive = (path: string, isHome?: boolean) => {
     if (isHome) {
-      return (
-        isClassicHomeFeedPath(currentPath) ||
-        currentPath === '/' ||
-        currentPath.startsWith('/feed-v2')
-      );
-    }
-
-    if (path === '/fund') {
-      return (
-        currentPath === '/fund' ||
-        currentPath.startsWith('/fund/proposals') ||
-        (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
-      );
+      return isClassicHomeFeedPath(currentPath) || isHomeTabPath(currentPath);
     }
 
     if (path === '/peer-review') {
@@ -162,11 +136,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     }
 
     if (path === '/my-funding') {
-      return (
-        currentPath === '/my-funding' ||
-        currentPath === '/fund/dashboard' ||
-        currentPath.startsWith('/fund/dashboard/')
-      );
+      return currentPath === '/my-funding';
     }
 
     if (path === '/notebook') {

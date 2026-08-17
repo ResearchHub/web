@@ -1,6 +1,6 @@
 import { ActivityCardSkeleton } from '@/components/Activity';
 
-export default function FeedV2Loading() {
+export default function HomeLoading() {
   return (
     <div>
       {[...Array(6)].map((_, i) => (

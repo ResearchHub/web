@@ -23,6 +23,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 interface NavItem {
   label: string;
@@ -45,21 +46,10 @@ const moreNavItems: NavItem[] = [
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
   if (isHome) {
-    return isClassicHomeFeedPath(currentPath) || currentPath === '/';
-  }
-  if (path === '/fund') {
-    return (
-      currentPath === '/fund' ||
-      currentPath.startsWith('/fund/proposals') ||
-      (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
-    );
+    return isClassicHomeFeedPath(currentPath) || isHomeTabPath(currentPath);
   }
   if (path === '/my-funding') {
-    return (
-      currentPath === '/my-funding' ||
-      currentPath === '/fund/dashboard' ||
-      currentPath.startsWith('/fund/dashboard/')
-    );
+    return currentPath === '/my-funding';
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -91,7 +81,6 @@ export const MobileBottomNav: React.FC = () => {
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
     { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
-    { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];

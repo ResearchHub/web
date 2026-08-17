@@ -3,16 +3,13 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 
-export const metadata: Metadata = {
-  ...buildOpenGraphMetadata({
-    title: 'Proposals',
-    description: 'Propose research, get reviewed, receive funding.',
-    url: '/feed-v2/fund/proposals',
-  }),
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'Proposals',
+  description: 'Propose research, get reviewed, receive funding.',
+  url: '/fund/proposals',
+});
 
-export default function FeedV2ProposalsPage() {
+export default function FundProposalsPage() {
   return (
     <div>
       <ProposalSortAndFilters />

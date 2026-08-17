@@ -24,9 +24,9 @@ function faTabIcon(icon: IconDefinition) {
 
 export type FundTab = 'activity' | 'fund' | 'proposals';
 
-export const FEED_V2_TAB_PATHS = ['/feed-v2', '/feed-v2/fund', '/feed-v2/fund/proposals'];
+export const HOME_TAB_PATHS = ['/', '/fund', '/fund/proposals'];
 
-export const isFeedV2TabPath = (pathname: string) => FEED_V2_TAB_PATHS.includes(pathname);
+export const isHomeTabPath = (pathname: string) => HOME_TAB_PATHS.includes(pathname);
 
 const TAB_ACTIVE_CLASS_NAME = 'border-b-primary-600 text-primary-600 !border-b-4';
 
@@ -36,7 +36,7 @@ export const FUND_TABS = [
   {
     id: 'activity' as const,
     label: 'Activity',
-    href: '/feed-v2',
+    href: '/',
     icon: RadiatingDotTabIcon,
     activeIcon: RadiatingDotTabIconActive,
     iconClassName: TAB_ICON_CLASS_NAME,
@@ -51,7 +51,7 @@ export const FUND_TABS = [
         <span className="hidden tablet:inline">Request for Proposals</span>
       </>
     ),
-    href: '/feed-v2/fund',
+    href: '/fund',
     icon: faTabIcon(faBullhorn),
     activeIcon: faTabIcon(faBullhornSolid),
     iconClassName: TAB_ICON_CLASS_NAME,
@@ -61,7 +61,7 @@ export const FUND_TABS = [
   {
     id: 'proposals' as const,
     label: 'Proposals',
-    href: '/feed-v2/fund/proposals',
+    href: '/fund/proposals',
     icon: faTabIcon(faFileSignature),
     activeIcon: faTabIcon(faFileSignatureSolid),
     iconClassName: TAB_ICON_CLASS_NAME,
@@ -75,11 +75,11 @@ export function useFundTabs() {
   const router = useRouter();
   const scrollContainerRef = useScrollContainer();
 
-  const isFundPage = isFeedV2TabPath(pathname);
+  const isFundPage = isHomeTabPath(pathname);
 
   const activeTab = useMemo((): FundTab => {
-    if (pathname === '/feed-v2/fund/proposals') return 'proposals';
-    if (pathname === '/feed-v2/fund') return 'fund';
+    if (pathname === '/fund/proposals') return 'proposals';
+    if (pathname === '/fund') return 'fund';
     return 'activity';
   }, [pathname]);
 

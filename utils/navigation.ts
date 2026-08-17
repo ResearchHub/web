@@ -122,27 +122,3 @@ export function handleMissingSlugRedirect(
   const redirectPath = appendQueryString(`/${currentPath}/${id}/${slug}`, searchParams);
   redirect(redirectPath);
 }
-
-/**
- * Handles redirection to the classic research feed.
- * Preserves search parameters when provided.
- */
-export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
-  if (isUserLoggedIn) {
-    let redirectUrl = '/for-you';
-
-    if (searchParams && searchParams.toString()) {
-      redirectUrl += `?${searchParams.toString()}`;
-    }
-
-    redirect(redirectUrl);
-  } else {
-    let popularUrl = '/popular';
-
-    if (searchParams && searchParams.toString()) {
-      popularUrl += `?${searchParams.toString()}`;
-    }
-
-    redirect(popularUrl);
-  }
-}

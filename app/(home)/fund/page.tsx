@@ -1,13 +1,6 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { ActivitySidebarServer, ActivitySidebarSkeleton } from '@/components/Activity';
-import { HeroHeader } from '@/components/ui/HeroHeader';
-import { FundGrantsPageContent } from './FundGrantsPageContent';
-import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
-import { FundingHeroPanel } from '@/components/Funding/FundingHeroPanel';
-import { OpenFundingOpportunityCTA } from './OpenFundingOpportunityCTA';
+import { FeedV2GrantsPageContent } from '@/components/Funding/FeedV2GrantsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Funding Opportunities',
@@ -15,29 +8,9 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/fund',
 });
 
-export default async function FundPage() {
+export default function FundPage() {
   return (
-    <PageLayout
-      topBanner={
-        <HeroHeader
-          title="Funding Opportunities"
-          subtitle={
-            <p className="text-sm sm:text-base text-gray-500">
-              Apply for funding opportunities via proposals.
-            </p>
-          }
-          cta={<FundingHeroPanel primaryCta={<OpenFundingOpportunityCTA />} />}
-          alignTop
-        >
-          <MarketplaceCards selected="grants" />
-        </HeroHeader>
-      }
-      rightSidebar={
-        <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <ActivitySidebarServer />
-        </Suspense>
-      }
-    >
+    <>
       <section className="sr-only">
         <p>
           ResearchHub provides direct funding pathways for scientific research. Browse open funding
@@ -73,7 +46,7 @@ export default async function FundPage() {
           subject to a gift fee as specified by the researcher's university.
         </p>
       </section>
-      <FundGrantsPageContent />
-    </PageLayout>
+      <FeedV2GrantsPageContent />
+    </>
   );
 }
