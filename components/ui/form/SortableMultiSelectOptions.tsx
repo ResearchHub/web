@@ -4,6 +4,7 @@ import {
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
+  PointerSensor,
 } from '@dnd-kit/dom';
 import { arrayMove } from '@dnd-kit/helpers';
 import { DragDropProvider } from '@dnd-kit/react';
@@ -182,8 +183,18 @@ const sortableAccessibility = Accessibility.configure({
   },
 });
 
+const sortablePointerSensor = PointerSensor.configure({
+  activatorElements: (source) => [source.element],
+});
+
 function addSortableAccessibility(defaultPlugins: typeof defaultPreset.plugins) {
   return [...defaultPlugins, sortableAccessibility];
+}
+
+function enableFullPillDragging(defaultSensors: typeof defaultPreset.sensors) {
+  return defaultSensors.map((sensor) =>
+    sensor === PointerSensor ? sortablePointerSensor : sensor
+  );
 }
 
 function stopComboboxPropagation(event: React.SyntheticEvent) {
@@ -222,6 +233,7 @@ function MultiSelectOptionPill({
       className={cn(
         'inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 py-0.5 pl-0.5 pr-2 text-sm',
         isFocused && 'bg-gray-200 ring-2 ring-gray-400',
+        !isGripDecorative && !disabled && 'cursor-grab active:cursor-grabbing',
         (isDragging || isDropping) &&
           'relative z-10 bg-white opacity-90 shadow-lg ring-2 ring-primary-400'
       )}
@@ -256,7 +268,7 @@ function MultiSelectOptionPill({
         type="button"
         disabled={disabled}
         aria-label={`Remove ${option.label}`}
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
+        className="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
         onPointerDown={stopComboboxPropagation}
         onKeyDown={stopComboboxPropagation}
         onClick={removeOption}
@@ -385,7 +397,11 @@ function SortableOptionList({
 
   return (
     <>
-      <DragDropProvider plugins={addSortableAccessibility} onDragEnd={handleDragEnd}>
+      <DragDropProvider
+        plugins={addSortableAccessibility}
+        sensors={enableFullPillDragging}
+        onDragEnd={handleDragEnd}
+      >
         <Fragment key={resetGeneration}>
           {options.map((option, index) => (
             <SortableOptionPill
