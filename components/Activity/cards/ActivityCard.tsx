@@ -82,19 +82,13 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions
-                  entry={entry}
-                  work={work}
-                  presentation={presentation}
-                  onNavigate={markEntryClicked}
-                />
+                <ActivityWorkActions entry={entry} work={work} />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
+            <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
           </div>
         </div>
       </div>
-
-      <ActivityTimestamp timestamp={entry.timestamp} className="mt-3 ml-[42px]" />
     </article>
   );
 };

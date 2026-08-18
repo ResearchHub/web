@@ -1,12 +1,10 @@
 'use client';
 
 import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
-import { WorkEditModal } from '../WorkEditModal';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
@@ -23,7 +21,6 @@ export interface FundraiseModalConfig {
 
 export interface WorkHeaderModalsProps {
   work: Work;
-  metadata: WorkMetadata;
   isFlagModalOpen: boolean;
   onCloseFlagModal: () => void;
   isTipModalOpen: boolean;
@@ -31,8 +28,6 @@ export interface WorkHeaderModalsProps {
   onTipSuccess: (amount: number) => void;
   isAddToListModalOpen: boolean;
   onCloseAddToListModal: () => void;
-  isWorkEditModalOpen: boolean;
-  onCloseWorkEditModal: () => void;
   showFundraiseActionModal: boolean;
   onCloseFundraiseModal: () => void;
   onConfirmFundraise: () => void;
@@ -58,7 +53,6 @@ export interface WorkHeaderModalsProps {
 
 export function WorkHeaderModals({
   work,
-  metadata,
   isFlagModalOpen,
   onCloseFlagModal,
   isTipModalOpen,
@@ -66,8 +60,6 @@ export function WorkHeaderModals({
   onTipSuccess,
   isAddToListModalOpen,
   onCloseAddToListModal,
-  isWorkEditModalOpen,
-  onCloseWorkEditModal,
   showFundraiseActionModal,
   onCloseFundraiseModal,
   onConfirmFundraise,
@@ -110,14 +102,6 @@ export function WorkHeaderModals({
           isOpen={isAddToListModalOpen}
           onClose={onCloseAddToListModal}
           unifiedDocumentId={work.unifiedDocumentId}
-        />
-      )}
-      {work.contentType === 'paper' && (
-        <WorkEditModal
-          isOpen={isWorkEditModalOpen}
-          onClose={onCloseWorkEditModal}
-          work={work}
-          metadata={metadata}
         />
       )}
       <ConfirmModal

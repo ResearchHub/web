@@ -35,7 +35,7 @@ interface PageLayoutProps {
   /**
    * `default` centers the page in a 1180px container and lets the main column
    * fill whatever the right sidebar doesn't use. `narrow` keeps the older
-   * 1012px container with an 860px cap on the main column (used by /feed-v2).
+   * 1012px container with an 860px cap on the main column (used by the home tabs).
    */
   contentWidth?: 'default' | 'narrow';
 }

@@ -1,4 +1,5 @@
 import { useFormContext } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { Upload, Image as ImageIcon, Gift, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
@@ -6,14 +7,15 @@ import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
 import { useRef, useState, useEffect } from 'react';
-import { Note } from '@/types/note';
+import type { Note } from '@/types/note';
 import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
 import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
-import { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
+import type { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { formatCompactAmount } from '@/utils/currency';
 import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
+import { NoteService } from '@/services/note.service';
 
 interface FundingSectionProps {
   note: Note;
@@ -21,11 +23,27 @@ interface FundingSectionProps {
 
 const FEATURE_FLAG_NFT_REWARDS = false;
 
-function FundingOpportunitySection() {
+function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
   const { watch, setValue } = useFormContext();
   const selectedGrant: SelectedGrantData | null = watch('selectedGrant');
   const workId = watch('workId');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSavingGrant, setIsSavingGrant] = useState(false);
+
+  const saveSelectedGrant = async (grant: SelectedGrantData | null) => {
+    setIsSavingGrant(true);
+    try {
+      await NoteService.updateNote({
+        noteId: note.id,
+        selectedGrantId: grant?.id ?? null,
+      });
+      setValue('selectedGrant', grant);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update funding opportunity');
+    } finally {
+      setIsSavingGrant(false);
+    }
+  };
 
   if (workId) return null;
 
@@ -66,8 +84,10 @@ function FundingOpportunitySection() {
             </div>
             <button
               type="button"
-              onClick={() => setValue('selectedGrant', null)}
-              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-gray-600"
+              onClick={() => void saveSelectedGrant(null)}
+              disabled={isSavingGrant}
+              aria-label="Remove funding opportunity"
+              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-gray-600 disabled:pointer-events-none disabled:opacity-50"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -76,7 +96,8 @@ function FundingOpportunitySection() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition-colors"
+            disabled={isSavingGrant}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition-colors disabled:pointer-events-none disabled:opacity-50"
           >
             <Plus className="w-3.5 h-3.5" />
             Select Funding Opportunity
@@ -87,7 +108,7 @@ function FundingOpportunitySection() {
       <SelectFundingOpportunityModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSelect={(grant) => setValue('selectedGrant', grant)}
+        onSelect={(grant) => void saveSelectedGrant(grant)}
       />
     </>
   );
@@ -178,7 +199,7 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
 
   return (
     <div className="py-3 px-6 space-y-6">
-      <FundingOpportunitySection />
+      <FundingOpportunitySection note={note} />
 
       {fundraise ? (
         <>

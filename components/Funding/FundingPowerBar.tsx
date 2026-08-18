@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDownToLine, Zap } from 'lucide-react';
+import { Wallet, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FundingPowerTooltip } from '@/components/tooltips/FundingPowerTooltip';
 import { useFundingPowerControls } from '@/contexts/FundingPowerContext';
@@ -26,9 +26,10 @@ interface FundingPowerBarProps {
  * sized to that two-line cluster.
  */
 export const FundingPowerBar = ({ className }: FundingPowerBarProps) => {
-  const { isAmountHidden, toggleAmountHidden, isPrivacyReady, openDeposit } =
+  const { isAmountHidden, toggleAmountHidden, isPrivacyReady, openAddFunds } =
     useFundingPowerControls();
-  const { isReady, isEmpty, total, rscBalance, fundingCredits, format } = useFundingPower();
+  const { isReady, isEmpty, isSignedIn, total, rscBalance, fundingCredits, format } =
+    useFundingPower();
 
   return (
     <div className={cn(BAR_VISIBILITY, className)}>
@@ -46,22 +47,26 @@ export const FundingPowerBar = ({ className }: FundingPowerBarProps) => {
                 aria-label={isAmountHidden ? 'Show funding power' : 'Hide funding power'}
                 className={cn(
                   'font-mono text-2xl font-bold leading-none tracking-tight',
-                  isEmpty ? 'text-gray-300' : 'text-gray-900',
+                  isSignedIn && isEmpty ? 'text-gray-300' : 'text-gray-900',
                   !isPrivacyReady && 'invisible'
                 )}
               >
-                {isEmpty ? '—' : isAmountHidden ? '••••' : format(total)}
+                {!isSignedIn ? '$0.00' : isAmountHidden ? '••••' : format(total)}
               </button>
-              <FundingPowerTooltip
-                rscBalance={format(rscBalance)}
-                fundingCredits={format(fundingCredits)}
-              />
+              {isSignedIn && (
+                <FundingPowerTooltip
+                  rscBalance={format(rscBalance)}
+                  fundingCredits={format(fundingCredits)}
+                />
+              )}
             </div>
           </div>
 
-          <Button size="md" onClick={openDeposit} className="h-10 shrink-0 gap-1.5 px-4">
-            <ArrowDownToLine size={16} className="shrink-0" />
-            Deposit
+          {/* Single line here: at this width the card's subtitle would crowd
+              out the balance sitting next to it. */}
+          <Button size="md" onClick={openAddFunds} className="h-10 shrink-0 gap-1.5 px-4">
+            <Wallet size={16} className="shrink-0" />
+            Add funds
           </Button>
         </div>
       ) : (
@@ -76,7 +81,7 @@ export const FundingPowerBar = ({ className }: FundingPowerBarProps) => {
               <div className="h-4 w-4 rounded bg-gray-200" />
             </div>
           </div>
-          <div className="h-10 w-[5.5rem] shrink-0 rounded-lg bg-gray-200" />
+          <div className="h-10 w-[6.5rem] shrink-0 rounded-lg bg-gray-200" />
         </div>
       )}
     </div>

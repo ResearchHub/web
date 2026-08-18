@@ -40,8 +40,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
   // paint is acceptable for a one-line CTA shown only to the author.
   const [isVideoCtaDismissed, setIsVideoCtaDismissed] = useState(false);
 
-  // Experimental "Author Posts" flag (presence-only — value is ignored). Same
-  // shape as the `?exp=tabs` flag in components/Feed/FeedTabs.tsx. Controls:
+  // Experimental "Author Posts" flag (presence-only — value is ignored). Controls:
   //   1. The PostVideoCallout / AuthorPosts surface on the paper tab.
   //   2. The `?new=true` post-creation modal: enabled => NewlyCreatedProposalModal
   //      (the video-prompting flow), disabled => the legacy ShareModal.

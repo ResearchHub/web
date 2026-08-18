@@ -22,7 +22,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 interface NavItem {
   label: string;
@@ -30,7 +30,7 @@ interface NavItem {
   iconKey?: string;
   isMore?: boolean;
   requiresAuth?: boolean;
-  isDynamicHome?: boolean;
+  isHome?: boolean;
 }
 
 // Additional navigation items not in the bottom bar
@@ -45,21 +45,10 @@ const moreNavItems: NavItem[] = [
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
   if (isHome) {
-    return isClassicHomeFeedPath(currentPath) || currentPath === '/';
-  }
-  if (path === '/fund') {
-    return (
-      currentPath === '/fund' ||
-      currentPath.startsWith('/fund/proposals') ||
-      (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
-    );
+    return isHomeTabPath(currentPath);
   }
   if (path === '/my-funding') {
-    return (
-      currentPath === '/my-funding' ||
-      currentPath === '/fund/dashboard' ||
-      currentPath.startsWith('/fund/dashboard/')
-    );
+    return currentPath === '/my-funding';
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -86,12 +75,9 @@ export const MobileBottomNav: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
 
-  const homeHref = useHomeHref();
-
   const mainNavItems: NavItem[] = [
-    { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
+    { label: 'Home', href: '/', iconKey: 'home', isHome: true },
     { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
-    { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
@@ -239,7 +225,7 @@ export const MobileBottomNav: React.FC = () => {
             const isActive = item.isMore
               ? isMoreActive || isMoreOpen
               : item.href
-                ? isPathActive(item.href, pathname, item.isDynamicHome)
+                ? isPathActive(item.href, pathname, item.isHome)
                 : false;
 
             return (
