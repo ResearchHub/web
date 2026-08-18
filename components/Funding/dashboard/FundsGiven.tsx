@@ -91,7 +91,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   let overviewContent: ReactNode = null;
   if (isLoadingOverview) {
     overviewContent = (
-      <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+      <div className="h-[272px] tablet:h-[200px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
     );
   } else if (overview) {
     overviewContent = <FunderHero overview={overview} />;

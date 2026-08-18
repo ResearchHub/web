@@ -74,7 +74,7 @@ export function MyFundingPage() {
   if (isLoadingUser || !user || hasModeratorOverrideOnReceivedTab) return null;
 
   return (
-    <PageLayout rightSidebar={false}>
+    <PageLayout contentWidth="narrow">
       <Tabs tabs={MY_FUNDING_TABS} activeTab={activeTab} onTabChange={() => {}} />
 
       <div className="mt-6">

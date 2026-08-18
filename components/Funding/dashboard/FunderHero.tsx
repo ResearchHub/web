@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, ReactNode, useState } from 'react';
+import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FunderOverview, SupportedInstitution, SupportedResearcher } from '@/types/funder';
@@ -35,94 +36,106 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
   const communityMatch = fmt(overview.communityMatch.rsc, overview.communityMatch.usd);
   const totalDeployed = fmt(overview.totalDeployed.rsc, overview.totalDeployed.usd);
 
+  // No authorId: Avatar turns that into a <Link>, which can't live inside the
+  // row's button. Profile links live in the modal instead.
   const avatarItems = overview.supportedResearchers.map((r) => ({
     src: r.authorProfile.profileImage,
     alt: r.authorProfile.fullName,
-    authorId: r.authorProfile.id,
   }));
+
+  const scientistCount = overview.supportedScientistsCount;
+  const institutionCount = overview.supportedInstitutionCount;
+  const hasSupporters = scientistCount > 0 || institutionCount > 0;
 
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-xl border border-gray-200 bg-white px-5 py-4 tablet:py-6 tablet:px-7 shadow-sm',
-        'bg-[radial-gradient(1200px_400px_at_-10%_-50%,rgba(57,113,255,.08),transparent_50%),radial-gradient(800px_320px_at_110%_-30%,rgba(57,113,255,.06),transparent_55%)]',
+        'rounded-xl border border-gray-200 bg-white px-5 py-4 tablet:py-6 tablet:px-7 shadow-sm',
         className
       )}
       aria-label="Funding impact"
     >
-      <div className="grid grid-cols-1 gap-4 content-md:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] content-md:gap-7">
-        {/* Left — KPIs */}
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-            You have given
-          </div>
-          <div className="mt-1 text-4xl tablet:text-5xl font-semibold tracking-tight text-primary-600">
-            {totalGiven}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 tablet:mt-4">
-            <Stat
-              label="Community match"
-              value={communityMatch}
-              tooltip={
-                <TooltipBody
-                  title="Community match"
-                  body="Funds contributed by other ResearchHub members toward the proposals you've supported."
-                />
-              }
+      {/* One row at every width — stacking these was costing three rows on phones.
+          justify-evenly keeps the phone layout (where cells size to their content)
+          off the card's edges; from tablet up the cells are equal thirds and the
+          spacing is moot. */}
+      <div className="flex items-stretch justify-evenly gap-3 tablet:gap-7">
+        <Kpi
+          hero
+          label="Total deployed"
+          shortLabel="Deployed"
+          value={totalDeployed}
+          tooltip={
+            <TooltipBody
+              title="Total deployed"
+              body="Your funding plus the amount the community matched."
             />
-            <div className="hidden tablet:block w-px self-stretch bg-gray-200" />
-            <Stat
-              label="Total deployed"
-              value={totalDeployed}
-              tooltip={
-                <TooltipBody title="Total deployed" body="Your funding plus the community match." />
-              }
+          }
+        />
+
+        <Divider />
+
+        <Kpi label="You have given" shortLabel="Given" value={totalGiven} />
+
+        <Divider />
+
+        <Kpi
+          label="Community matched"
+          shortLabel="Matched"
+          value={communityMatch}
+          tooltip={
+            <TooltipBody
+              title="Community matched"
+              body="Funds contributed by other ResearchHub members toward the proposals you've supported."
             />
-          </div>
-        </div>
-
-        {/* Vertical divider — wide layout only */}
-        <div className="hidden content-md:block w-px self-stretch bg-gray-200" />
-
-        {/* Right — two stacked sections: scientists + institutions */}
-        <div className="flex flex-col gap-3 tablet:gap-5">
-          <Section label="Scientists supported" count={overview.supportedScientistsCount}>
-            {avatarItems.length > 0 ? (
-              <button
-                type="button"
-                onClick={() => setIsScientistsOpen(true)}
-                className="cursor-pointer hover:opacity-80 transition-opacity"
-              >
-                <AvatarStack
-                  items={avatarItems}
-                  size="md"
-                  maxItems={7}
-                  spacing={-8}
-                  showExtraCount
-                  disableTooltip
-                  totalItemsCount={overview.supportedScientistsCount}
-                  showLabel={false}
-                  className="!flex"
-                />
-              </button>
-            ) : (
-              <span className="text-xs text-gray-400">None yet</span>
-            )}
-          </Section>
-
-          <Section label="Institutions supported" count={overview.supportedInstitutionCount}>
-            {overview.supportedInstitutions.length > 0 ? (
-              <InstitutionPills
-                institutions={overview.supportedInstitutions}
-                onShowAll={() => setIsInstitutionsOpen(true)}
-              />
-            ) : (
-              <span className="text-xs text-gray-400">None yet</span>
-            )}
-          </Section>
-        </div>
+          }
+        />
       </div>
+
+      {/* Side by side when both fit, wrapping to their own lines when not. */}
+      {hasSupporters && (
+        <div className="mt-5 flex flex-wrap gap-x-10 gap-y-4 border-t border-gray-200 pt-4">
+          {scientistCount > 0 && (
+            <SupporterRow
+              label={
+                <>
+                  <span className="font-mono">{scientistCount}</span>{' '}
+                  {scientistCount === 1 ? 'scientist' : 'scientists'} supported
+                </>
+              }
+              onShowAll={() => setIsScientistsOpen(true)}
+              className="shrink-0"
+            >
+              <AvatarStack
+                items={avatarItems}
+                size="md"
+                maxItems={7}
+                spacing={-8}
+                showExtraCount
+                disableTooltip
+                totalItemsCount={scientistCount}
+                showLabel={false}
+                className="!flex"
+              />
+            </SupporterRow>
+          )}
+
+          {institutionCount > 0 && (
+            <SupporterRow
+              label={
+                <>
+                  <span className="font-mono">{institutionCount}</span>{' '}
+                  {institutionCount === 1 ? 'institution' : 'institutions'} supported
+                </>
+              }
+              onShowAll={() => setIsInstitutionsOpen(true)}
+              className="min-w-[240px] flex-1"
+            >
+              <InstitutionChips institutions={overview.supportedInstitutions} />
+            </SupporterRow>
+          )}
+        </div>
+      )}
 
       <ScientistsModal
         isOpen={isScientistsOpen}
@@ -139,21 +152,48 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
   );
 };
 
-interface StatProps {
+const Divider: FC<{ className?: string }> = ({ className }) => (
+  <div className={cn('w-px shrink-0 self-stretch bg-gray-200', className)} />
+);
+
+interface KpiProps {
   label: string;
+  /** Shown below tablet, where three full labels can't fit on one row. */
+  shortLabel: string;
   value: string;
+  hero?: boolean;
   tooltip?: ReactNode;
 }
 
-const Stat: FC<StatProps> = ({ label, value, tooltip }) => {
+/**
+ * From tablet up each cell takes an equal third and centers itself, so the
+ * three sit evenly across the card rather than being pushed to the left, middle
+ * and right edges. Below that the cells size to their content — equal thirds
+ * are too narrow for the values on a phone and they collide.
+ */
+const KPI_CELL = 'min-w-0 tablet:flex-1';
+
+const Kpi: FC<KpiProps> = ({ label, shortLabel, value, hero, tooltip }) => {
   const content = (
-    <div className={cn('flex flex-col gap-0.5', tooltip && 'cursor-help')}>
-      <span className="text-[11px] leading-none text-gray-500">{label}</span>
-      <span className="text-lg font-semibold tracking-tight text-gray-900">{value}</span>
+    <div className={cn('flex w-full flex-col items-center gap-1', tooltip && 'cursor-help')}>
+      <span className="text-[11px] font-semibold uppercase leading-none tracking-wider text-gray-500">
+        <span className="tablet:hidden">{shortLabel}</span>
+        <span className="hidden tablet:inline">{label}</span>
+      </span>
+      <span
+        className={cn(
+          'whitespace-nowrap font-mono font-semibold leading-none tracking-tight',
+          hero
+            ? 'text-3xl tablet:text-4xl text-primary-600'
+            : 'text-xl tablet:text-2xl text-gray-900'
+        )}
+      >
+        {value}
+      </span>
     </div>
   );
 
-  if (!tooltip) return content;
+  if (!tooltip) return <div className={KPI_CELL}>{content}</div>;
 
   return (
     <Tooltip
@@ -161,6 +201,7 @@ const Stat: FC<StatProps> = ({ label, value, tooltip }) => {
       position="top"
       width="w-64"
       className="bg-gray-900 text-white border-gray-900 text-left"
+      wrapperClassName={KPI_CELL}
     >
       {content}
     </Tooltip>
@@ -175,56 +216,50 @@ const TooltipBody: FC<{ title: string; body: string }> = ({ title, body }) => (
   </div>
 );
 
-interface SectionProps {
-  label: string;
-  count: number;
-  children: React.ReactNode;
+interface SupporterRowProps {
+  label: ReactNode;
+  onShowAll: () => void;
+  className?: string;
+  children: ReactNode;
 }
 
-/** Horizontal hero subsection: eyebrow over a row with a big count + visual. */
-const Section: FC<SectionProps> = ({ label, count, children }) => (
-  <div>
-    <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</div>
-    <div className="mt-1.5 flex items-center gap-4">
-      <span className="text-3xl tablet:text-4xl font-semibold tracking-tight text-gray-900 leading-none">
-        {count}
-      </span>
-      <div className="min-w-0 flex-1">{children}</div>
+/** Eyebrow heading over a row of avatars or chips, all opening a modal. */
+const SupporterRow: FC<SupporterRowProps> = ({ label, onShowAll, className, children }) => (
+  <div className={className}>
+    <div className="text-[11px] font-semibold uppercase leading-none tracking-wider text-gray-500">
+      {label}
     </div>
+    {/* min-height matches the avatar stack so chips sit on the same line as the faces. */}
+    <button
+      type="button"
+      onClick={onShowAll}
+      className="group mt-2.5 flex min-h-10 w-full flex-wrap items-center gap-2 text-left"
+    >
+      {children}
+    </button>
   </div>
 );
 
-const MAX_VISIBLE_INSTITUTIONS = 3;
+const MAX_VISIBLE_INSTITUTIONS = 5;
 
-const InstitutionPills: FC<{ institutions: SupportedInstitution[]; onShowAll?: () => void }> = ({
-  institutions,
-  onShowAll,
-}) => {
-  const visible = institutions.slice(0, MAX_VISIBLE_INSTITUTIONS);
-  const extra = institutions.length - visible.length;
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {visible.map((inst) => (
-        <span
-          key={inst.id}
-          className="inline-flex items-center max-w-[200px] px-2.5 py-0.5 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-gray-700"
-          title={inst.name}
-        >
-          <span className="truncate">{inst.name}</span>
-        </span>
-      ))}
-      {extra > 0 && (
-        <button
-          type="button"
-          onClick={onShowAll}
-          className="text-[11px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
-        >
-          +{extra} more
-        </button>
-      )}
-    </div>
-  );
-};
+const InstitutionChips: FC<{ institutions: SupportedInstitution[] }> = ({ institutions }) => (
+  <>
+    {/* Chips wrap within whatever width the row is given. */}
+    {institutions.slice(0, MAX_VISIBLE_INSTITUTIONS).map((inst) => (
+      <span
+        key={inst.id}
+        className="block max-w-[220px] truncate rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors group-hover:border-gray-300 group-hover:bg-gray-100"
+        title={inst.name}
+      >
+        {inst.name}
+      </span>
+    ))}
+
+    <span className="text-xs font-medium text-primary-600 group-hover:text-primary-700">
+      View all
+    </span>
+  </>
+);
 
 const ScientistsModal: FC<{
   isOpen: boolean;
@@ -234,7 +269,11 @@ const ScientistsModal: FC<{
   <BaseModal isOpen={isOpen} onClose={onClose} title="Scientists supported" size="md">
     <div className="space-y-1">
       {researchers.map((r) => (
-        <div key={r.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
+        <Link
+          key={r.id}
+          href={`/author/${r.authorProfile.id}`}
+          className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"
+        >
           <Avatar
             src={r.authorProfile.profileImage}
             alt={r.authorProfile.fullName}
@@ -250,7 +289,7 @@ const ScientistsModal: FC<{
               <div className="text-xs text-gray-500 truncate">{r.authorProfile.headline}</div>
             )}
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   </BaseModal>
