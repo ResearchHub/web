@@ -60,11 +60,11 @@ Guidelines: https://docs.researchhub.com/researchhub-foundation/programs-and-ini
 
 More: https://researchhub.com/peer-review
 
-### Personalized Home Feed
+### Home Activity Feed
 
-The home feed includes a personalized "For You" view that surfaces preprints tailored to each researcher based on their interests, followed Hubs, and activity on the platform — making it easier to keep up with relevant new work without manually filtering.
+The home page is a live feed of platform-wide activity — funding, peer review, and discussion as it happens. It has tabs for open Requests for Proposals and for community proposals seeking funding.
 
-More: https://researchhub.com/for-you
+More: https://researchhub.com/
 
 ### ResearchHub Journal
 
@@ -127,7 +127,7 @@ By holding RSC in a ResearchHub account, holders automatically earn yield as Fun
 - [Funding](https://researchhub.com/fund): Research funding opportunities
 - [Endowment](https://researchhub.com/endowment): Earn Funding Credits by holding RSC
 - [Peer Review](https://researchhub.com/peer-review): Earn for peer reviews
-- [For You](https://researchhub.com/for-you): Personalized preprint feed
+- [Proposals](https://researchhub.com/fund/proposals): Community research proposals seeking funding
 - [Journal](https://researchhub.com/journal): ResearchHub Journal
 - [Browse Hubs](https://researchhub.com/browse): Explore research by discipline
 - [Documentation](https://docs.researchhub.com): ResearchHub documentation

@@ -14,7 +14,7 @@ export function LandingPageFooter() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const platformLinks = [
-    { label: 'Home', href: '/popular' },
+    { label: 'Home', href: '/' },
     { label: 'Peer Review', href: '/peer-review' },
     { label: 'Fund', href: '/fund' },
     { label: 'RH journal', href: '/journal' },

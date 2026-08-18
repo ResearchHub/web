@@ -1,6 +1,15 @@
 'use client';
 
-import { createContext, useState, useContext, useEffect, useMemo, ReactNode } from 'react';
+import {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useMemo,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { useSession } from 'next-auth/react';
 import { HubService } from '@/services/hub.service';
 import { FollowService } from '@/services/follow.service';
 import { Topic } from '@/types/topic';
@@ -17,23 +26,24 @@ interface FollowContextType {
   loading: boolean;
   getFollowedTopics: () => Promise<Topic[]>;
   getFollowedTopicObjects: () => Promise<FollowedObject[]>;
+  /** Opts the caller into the lazy initial fetch. Called for you by `useFollowContext`. */
+  activate: () => void;
 }
 
 const FollowContext = createContext<FollowContextType | undefined>(undefined);
 
 export function FollowProvider({ children }: { children: ReactNode }) {
+  const { status } = useSession();
   const [followedTopicIds, setFollowedTopicIds] = useState<number[]>([]);
   const [followedTopics, setFollowedTopics] = useState<Topic[]>([]);
   const [followedTopicObjects, setFollowedTopicObjects] = useState<FollowedObject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isActivated, setIsActivated] = useState(false);
 
-  // Fetch followed topics when component mounts
-  useEffect(() => {
-    refreshFollowed();
-  }, []);
+  const activate = useCallback(() => setIsActivated(true), []);
 
   // Function to refresh the list of followed topics
-  const refreshFollowed = async () => {
+  const refreshFollowed = useCallback(async () => {
     setLoading(true);
     try {
       // Fetch full topic data with metadata
@@ -51,7 +61,25 @@ export function FollowProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // This provider wraps the whole app, so fetching on mount cost every page an
+  // `/api/hub/following/` request even when nothing on screen showed follows.
+  // Instead the first `useFollowContext` consumer to mount activates it, and
+  // signed-out visitors never follow anything so they skip the call entirely.
+  useEffect(() => {
+    if (!isActivated || status === 'loading') return;
+
+    if (status !== 'authenticated') {
+      setFollowedTopicIds([]);
+      setFollowedTopics([]);
+      setFollowedTopicObjects([]);
+      setLoading(false);
+      return;
+    }
+
+    refreshFollowed();
+  }, [isActivated, status, refreshFollowed]);
 
   // Check if a topic is being followed
   const isFollowing = (topicId: number): boolean => {
@@ -166,8 +194,9 @@ export function FollowProvider({ children }: { children: ReactNode }) {
       loading,
       getFollowedTopics,
       getFollowedTopicObjects,
+      activate,
     }),
-    [followedTopicIds, followedTopics, followedTopicObjects, loading]
+    [followedTopicIds, followedTopics, followedTopicObjects, loading, activate]
   );
 
   return <FollowContext.Provider value={contextValue}>{children}</FollowContext.Provider>;
@@ -176,6 +205,14 @@ export function FollowProvider({ children }: { children: ReactNode }) {
 // Hook to use the context
 export function useFollowContext() {
   const context = useContext(FollowContext);
+  const activate = context?.activate;
+
+  // Reading the context is what makes the data worth fetching, so the first
+  // consumer to mount triggers the provider's one-time fetch.
+  useEffect(() => {
+    activate?.();
+  }, [activate]);
+
   if (context === undefined) {
     throw new Error('useFollowContext must be used within a FollowProvider');
   }
