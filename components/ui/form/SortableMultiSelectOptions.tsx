@@ -232,7 +232,7 @@ function MultiSelectOptionPill({
     <span
       ref={setPillRef}
       className={cn(
-        'inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 py-0.5 pl-0.5 pr-2 text-sm',
+        'inline-flex max-w-full cursor-pointer items-center gap-1 rounded-md bg-gray-100 py-0.5 pl-0.5 pr-2 text-sm',
         isFocused && 'bg-gray-200 ring-2 ring-gray-400',
         (isDragging || isDropping) &&
           'relative z-10 bg-white opacity-90 shadow-lg ring-2 ring-primary-400'
