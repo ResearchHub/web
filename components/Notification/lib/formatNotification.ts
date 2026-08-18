@@ -154,12 +154,12 @@ const NOTIFICATION_TYPE_MAP = {
   GRANT_APPROVED: {
     icon: 'openGrant',
     useAvatar: false,
-    title: 'Funding opportunity approved',
+    title: 'RFP approved',
   },
   GRANT_DECLINED: {
     icon: 'openGrant',
     useAvatar: false,
-    title: 'Funding opportunity declined',
+    title: 'RFP declined',
   },
 
   // RFP owner notifications
@@ -495,17 +495,17 @@ export function formatNotificationMessage(
 
     // Grant moderation notifications
     case 'GRANT_APPROVED':
-      return `Your funding opportunity has been approved.`;
+      return `Your RFP has been approved.`;
 
     case 'GRANT_DECLINED':
-      return `Your funding opportunity has been declined.`;
+      return `Your RFP has been declined.`;
 
     // RFP owner notifications
     case 'GRANT_APPLICATION_SUBMITTED':
-      return `${userName} submitted a new proposal to your funding opportunity: "${truncatedTitle}"`;
+      return `${userName} submitted a new proposal to your RFP: "${truncatedTitle}"`;
 
     case 'PROPOSAL_PEER_REVIEW':
-      return `${userName} peer reviewed a proposal linked to your funding opportunity`;
+      return `${userName} peer reviewed a proposal linked to your RFP`;
 
     // Content moderation notifications (papers, posts, proposals)
     case 'CONTENT_APPROVED':

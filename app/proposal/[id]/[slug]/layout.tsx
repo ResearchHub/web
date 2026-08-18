@@ -63,7 +63,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
       ? [
           {
             stage: 'grant',
-            label: 'Funding Opportunity',
+            label: 'Request for Proposal',
             exists: Boolean(work.linkedGrant?.postId),
             postId: work.linkedGrant?.postId ?? null,
             title: work.linkedGrant?.title ?? work.linkedGrant?.shortTitle ?? null,

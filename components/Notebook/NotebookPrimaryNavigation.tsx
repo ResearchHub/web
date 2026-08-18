@@ -11,7 +11,7 @@ import { useUser } from '@/contexts/UserContext';
 export const NOTEBOOK_WORK_TYPES = [
   {
     value: 'grant',
-    label: 'Funding Opportunity',
+    label: 'RFP',
     description: 'Offer funding for research applications.',
   },
   {

@@ -124,7 +124,7 @@ export function NotebookHome() {
             <NoteList notes={notes || []} isLoading={isLoadingNotes} />
           ) : (
             <div className="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400">
-              No files yet. Create a funding opportunity or proposal to get started.
+              No files yet. Create an RFP or proposal to get started.
             </div>
           )}
         </div>

@@ -112,7 +112,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
       );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to select funding opportunity');
+      toast.error(error instanceof Error ? error.message : 'Failed to select RFP');
     } finally {
       setIsSavingSelection(false);
     }
