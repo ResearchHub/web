@@ -10,6 +10,7 @@ import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
 import { ID } from '@/types/root';
 import type { GrantApplicationVisibility } from '@/types/grant';
+import { HIDE_FROM_FEED_CONFIRM_MESSAGE } from '@/hooks/useHideFromFeed';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -49,6 +50,10 @@ export interface WorkHeaderModalsProps {
   showInviteExpertsModal?: boolean;
   onCloseInviteExpertsModal?: () => void;
   inviteExpertsGrantId?: ID;
+  showHideFromFeedModal?: boolean;
+  onCloseHideFromFeedModal?: () => void;
+  onConfirmHideFromFeed?: () => void;
+  isHidingFromFeed?: boolean;
 }
 
 export function WorkHeaderModals({
@@ -81,6 +86,10 @@ export function WorkHeaderModals({
   showInviteExpertsModal = false,
   onCloseInviteExpertsModal,
   inviteExpertsGrantId,
+  showHideFromFeedModal = false,
+  onCloseHideFromFeedModal,
+  onConfirmHideFromFeed,
+  isHidingFromFeed = false,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -131,6 +140,19 @@ export function WorkHeaderModals({
           title="Close RFP"
           message="Are you sure you want to close this RFP? It will stop accepting new proposals."
           confirmText={isClosingGrant ? 'Closing...' : 'Close RFP'}
+          cancelText="Cancel"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+        />
+      )}
+      {onCloseHideFromFeedModal && onConfirmHideFromFeed && (
+        <ConfirmModal
+          isOpen={showHideFromFeedModal}
+          onClose={onCloseHideFromFeedModal}
+          onConfirm={onConfirmHideFromFeed}
+          title="Hide from feed"
+          message={HIDE_FROM_FEED_CONFIRM_MESSAGE}
+          confirmText={isHidingFromFeed ? 'Hiding...' : 'Hide from feed'}
           cancelText="Cancel"
           confirmButtonClass="bg-red-600 hover:bg-red-700"
           cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
