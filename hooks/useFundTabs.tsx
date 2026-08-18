@@ -47,8 +47,7 @@ export const FUND_TABS = [
     id: 'fund' as const,
     label: (
       <>
-        <span className="tablet:hidden">RFPs</span>
-        <span className="hidden tablet:inline">Request for Proposals</span>
+        <span className="">RFPs</span>
       </>
     ),
     href: '/fund',
