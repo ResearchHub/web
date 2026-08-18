@@ -7,7 +7,7 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
 
 export const HIDE_FROM_FEED_CONFIRM_MESSAGE =
-  'This document and related entries will be removed from public feeds. Detail pages and direct links will still work. There is no way to unhide it from the UI yet.';
+  'This document and related entries will be removed from public feeds. Detail pages and direct links will still work. Restore it later from Moderators → Hidden from feed.';
 
 interface UseHideFromFeedReturn {
   hideFromFeed: (unifiedDocumentId: ID) => Promise<boolean>;
