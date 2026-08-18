@@ -80,7 +80,6 @@ export function WorkHeader({
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
-  const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
 
   const { showShareModal } = useShareModalContext();
   const shareToken = useShareToken();
@@ -119,7 +118,6 @@ export function WorkHeader({
     metadata,
     permissions,
     onOpenFlagModal: () => setIsFlagModalOpen(true),
-    onOpenWorkEditModal: () => setIsWorkEditModalOpen(true),
   });
 
   const foundationBounty = findLatestFoundationBounty(metadata.bounties);
@@ -268,7 +266,6 @@ export function WorkHeader({
 
       <WorkHeaderModals
         work={work}
-        metadata={metadata}
         isFlagModalOpen={isFlagModalOpen}
         onCloseFlagModal={() => setIsFlagModalOpen(false)}
         isTipModalOpen={isTipModalOpen}
@@ -279,8 +276,6 @@ export function WorkHeader({
         }}
         isAddToListModalOpen={isAddToListModalOpen}
         onCloseAddToListModal={() => setIsAddToListModalOpen(false)}
-        isWorkEditModalOpen={isWorkEditModalOpen}
-        onCloseWorkEditModal={() => setIsWorkEditModalOpen(false)}
         showFundraiseActionModal={showFundraiseActionModal}
         onCloseFundraiseModal={closeFundraiseModal}
         onConfirmFundraise={confirmFundraiseAction}
