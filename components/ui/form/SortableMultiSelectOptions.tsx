@@ -188,13 +188,8 @@ const sortablePointerSensor = PointerSensor.configure({
   activatorElements: (source) => [source.element],
 });
 
-const sortableCursor = Cursor.configure({ cursor: 'move' });
-
 function configureSortablePlugins(defaultPlugins: typeof defaultPreset.plugins) {
-  return [
-    ...defaultPlugins.map((plugin) => (plugin === Cursor ? sortableCursor : plugin)),
-    sortableAccessibility,
-  ];
+  return [...defaultPlugins.filter((plugin) => plugin !== Cursor), sortableAccessibility];
 }
 
 function enableFullPillDragging(defaultSensors: typeof defaultPreset.sensors) {
@@ -239,7 +234,6 @@ function MultiSelectOptionPill({
       className={cn(
         'inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 py-0.5 pl-0.5 pr-2 text-sm',
         isFocused && 'bg-gray-200 ring-2 ring-gray-400',
-        !isGripDecorative && !disabled && 'cursor-move',
         (isDragging || isDropping) &&
           'relative z-10 bg-white opacity-90 shadow-lg ring-2 ring-primary-400'
       )}
@@ -258,7 +252,7 @@ function MultiSelectOptionPill({
           type="button"
           disabled={disabled}
           aria-label={`Reorder ${option.label}, position ${index + 1} of ${optionCount}`}
-          className="inline-flex h-8 w-8 shrink-0 touch-none cursor-move items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
+          className="inline-flex h-8 w-8 shrink-0 touch-none items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
           onPointerDown={stopComboboxPropagation}
           onKeyDown={stopComboboxPropagation}
           onClick={preventComboboxActivation}
@@ -274,7 +268,7 @@ function MultiSelectOptionPill({
         type="button"
         disabled={disabled}
         aria-label={`Remove ${option.label}`}
-        className="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
         onPointerDown={stopComboboxPropagation}
         onKeyDown={stopComboboxPropagation}
         onClick={removeOption}
