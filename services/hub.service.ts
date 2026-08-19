@@ -71,7 +71,6 @@ export const transformHub = createTransformer<HubResponse, Hub>((hub) => ({
 export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
-  private static readonly BY_CATEGORY_PATH = '/api/hub/by_category';
   private static readonly PRIMARY_HUBS_PATH = '/api/hub/primary_only';
 
   static async getHubs(options: GetHubsOptions = {}): Promise<Topic[]> {
@@ -129,11 +128,6 @@ export class HubService {
     }
 
     return transformTopic(response.results[0]);
-  }
-
-  static async getHubsByCategory(): Promise<Topic[]> {
-    const response = await ApiClient.get<HubResponse[]>(this.BY_CATEGORY_PATH);
-    return response.map((rawHub) => transformTopic(rawHub));
   }
 
   static async getPrimaryHubs(): Promise<Topic[]> {
