@@ -5,6 +5,8 @@ import { isChangelogNote, type Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 import { useTransition } from 'react';
 import { useUser } from '@/contexts/UserContext';
+import { useInView } from 'react-intersection-observer';
+import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListProps {
   notes: Note[];
@@ -14,7 +16,18 @@ interface NoteListProps {
 export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) => {
   const [isPending, startTransition] = useTransition();
   const { user } = useUser();
+  const { hasMoreNotes, isLoadingMoreNotes, loadMoreNotes, notesError } = useNotebookContext();
   const isModerator = !!user?.isModerator;
+
+  const { ref: sentinelRef } = useInView({
+    threshold: 0,
+    rootMargin: '200px',
+    onChange: (inView) => {
+      if (inView) {
+        loadMoreNotes();
+      }
+    },
+  });
 
   const filteredAndSortedNotes = notes
     .filter(
@@ -28,7 +41,7 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) 
     return <NoteListSkeleton />;
   }
 
-  if (filteredAndSortedNotes.length === 0) {
+  if (filteredAndSortedNotes.length === 0 && !hasMoreNotes) {
     return (
       <div className="flex flex-col items-center py-4 text-center">
         <p className="text-sm text-gray-400">No notes yet</p>
@@ -46,6 +59,10 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) 
           startTransition={startTransition}
         />
       ))}
+      {isLoadingMoreNotes && <NoteListSkeleton />}
+      {!isLoadingMoreNotes && hasMoreNotes && !notesError && (
+        <div ref={sentinelRef} className="h-10" aria-hidden="true" />
+      )}
     </div>
   );
 };

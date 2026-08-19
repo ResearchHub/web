@@ -23,9 +23,12 @@ interface NotebookContextType {
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   isLoadingNotes: boolean;
+  isLoadingMoreNotes: boolean;
   notesError: Error | null;
   totalCount: number;
+  hasMoreNotes: boolean;
   refreshNotes: () => Promise<void>;
+  loadMoreNotes: () => Promise<void>;
 
   // Organization users state
   users: OrganizationUsers | null;
@@ -55,6 +58,9 @@ interface NotebookContextType {
 
 const NotebookContext = createContext<NotebookContextType | null>(null);
 
+const mergeNotesById = (notes: Note[], otherNotes: Note[]): Note[] =>
+  Array.from(new Map([...notes, ...otherNotes].map((note) => [note.id, note])).values());
+
 interface NotebookProviderProps {
   readonly children: ReactNode;
   readonly noteId?: string;
@@ -69,8 +75,10 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   // Notes list state
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoadingNotes, setIsLoadingNotes] = useState(true);
+  const [isLoadingMoreNotes, setIsLoadingMoreNotes] = useState(false);
   const [notesError, setNotesError] = useState<Error | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [nextPageUrls, setNextPageUrls] = useState<string[]>([]);
 
   // Organization users state
   const [users, setUsers] = useState<OrganizationUsers | null>(null);
@@ -94,6 +102,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
 
     setIsLoadingNotes(true);
     setNotesError(null);
+    setNextPageUrls([]);
 
     try {
       const [organizationNotes, registeredReports] = await Promise.all([
@@ -102,17 +111,13 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
           documentType: 'REGISTERED_REPORT',
         }),
       ]);
-      const mergedNotes = Array.from(
-        new Map(
-          [...organizationNotes.results, ...registeredReports.results].map((note) => [
-            note.id,
-            note,
-          ])
-        ).values()
-      );
+      const mergedNotes = mergeNotesById(organizationNotes.results, registeredReports.results);
 
       setNotes(mergedNotes);
       setTotalCount(Math.max(organizationNotes.count, mergedNotes.length));
+      setNextPageUrls(
+        [organizationNotes.next, registeredReports.next].filter((url) => url !== null)
+      );
     } catch (err) {
       setNotesError(err instanceof Error ? err : new Error('Failed to load notes'));
       setNotes([]);
@@ -162,6 +167,30 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
     await fetchNotes(selectedOrg.slug);
   }, [selectedOrg?.slug, fetchNotes]);
+
+  const loadMoreNotes = useCallback(async () => {
+    const slug = selectedOrg?.slug;
+    if (!slug || isLoadingMoreNotes || nextPageUrls.length === 0) {
+      return;
+    }
+
+    setIsLoadingMoreNotes(true);
+
+    try {
+      const nextPages = await Promise.all(
+        nextPageUrls.map((nextUrl) => NoteService.getOrganizationNotes(slug, { nextUrl }))
+      );
+
+      const newNotes = nextPages.flatMap((page) => page.results);
+
+      setNotes((currentNotes) => mergeNotesById(currentNotes, newNotes));
+      setNextPageUrls(nextPages.map(({ next }) => next).filter((url) => url !== null));
+    } catch (err) {
+      setNotesError(err instanceof Error ? err : new Error('Failed to load more notes'));
+    } finally {
+      setIsLoadingMoreNotes(false);
+    }
+  }, [isLoadingMoreNotes, nextPageUrls, selectedOrg?.slug]);
 
   const loadNote = useCallback(async (noteId: string) => {
     if (noteId === lastLoadedNoteIdRef.current) {
@@ -230,6 +259,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     if (!selectedOrg) {
       setNotes([]);
       setTotalCount(0);
+      setNextPageUrls([]);
       setUsers(null);
       setNotesError(null);
       setUsersError(null);
@@ -250,14 +280,18 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
 
   // Calculate overall loading state ignoring isLoadingNote
   const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;
+  const hasMoreNotes = nextPageUrls.length > 0;
 
   const value = {
     notes,
     setNotes,
     isLoadingNotes,
+    isLoadingMoreNotes,
     notesError,
     totalCount,
+    hasMoreNotes,
     refreshNotes,
+    loadMoreNotes,
     users,
     isLoadingUsers,
     usersError,
