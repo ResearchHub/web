@@ -19,11 +19,6 @@ interface HubResponse {
   editor_permission_groups?: any[];
 }
 
-interface GetHubsOptions {
-  namespace?: 'journal';
-  excludeJournals?: boolean;
-}
-
 interface HubsApiResponse {
   results: HubResponse[];
 }
@@ -72,23 +67,6 @@ export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
   private static readonly PRIMARY_HUBS_PATH = '/api/hub/primary_only';
-
-  static async getHubs(options: GetHubsOptions = {}): Promise<Topic[]> {
-    const params = new URLSearchParams({
-      ordering: '-paper_count',
-    });
-    if (options.namespace) {
-      params.append('namespace', options.namespace);
-    }
-    if (options.excludeJournals) {
-      params.append('exclude_journals', 'true');
-    }
-
-    const response = await ApiClient.get<HubsApiResponse>(
-      `${this.BASE_PATH}/?${params.toString()}`
-    );
-    return response.results.map(transformTopic);
-  }
 
   static async suggestTopics(query: string, limit?: number): Promise<Topic[]> {
     const params = new URLSearchParams({
