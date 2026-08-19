@@ -10,11 +10,13 @@
  *   - block-editor.json    components/Editor (notebook + posts)
  *   - comment-editor.json  components/Comment (incl. review-mode nodes)
  *
- * Only the schema-relevant parts of each spec survive serialization: DOM
- * concerns (`toDOM`/`parseDOM`/`leafText`/`toDebugString`) are stripped, and
- * any other function-valued field is dropped. Attribute `default`s must be
- * JSON-serializable — the script fails loudly if one isn't, because silently
- * dropping a default would turn an optional attribute into a required one.
+ * Only the schema-relevant parts of each spec survive serialization:
+ * DOM-oriented fields (`toDOM`/`parseDOM`/`toDebugString`) are stripped, plus
+ * `leafText` (model-level, but a function and unset by our extensions), and
+ * JSON.stringify drops any other function-valued field (e.g. TipTap's
+ * `toText`) natively. Attribute `default`s must be JSON-serializable — the
+ * script fails loudly if one isn't, because silently dropping a default would
+ * turn an optional attribute into a required one.
  *
  * Output is deterministic (schema order, 2-space indent) so regenerating with
  * no extension changes yields a byte-identical file.
@@ -22,7 +24,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { getSchema } from '@tiptap/core';
-import type { Schema } from '@tiptap/pm/model';
+import type { AttributeSpec, Schema } from '@tiptap/pm/model';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { AiImage, AiWriter } from '@/components/Editor/extensions';
@@ -30,67 +32,28 @@ import { getCommentEditorExtensions } from '@/components/Comment/lib/commentEdit
 
 const OUTPUT_DIR = path.join(__dirname, '..', 'schemas', 'prosemirror');
 
-type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
-
-/** Spec fields that only make sense with a DOM; meaningless to the backend. */
-const DOM_ONLY_KEYS = new Set(['parseDOM', 'toDOM', 'toDebugString', 'leafText']);
-
-/** Deep-copies a spec value, dropping functions and undefined. */
-function sanitizeValue(value: unknown, atPath: string): JsonValue | undefined {
-  if (value === null) return null;
-  switch (typeof value) {
-    case 'string':
-    case 'boolean':
-      return value;
-    case 'number':
-      if (!Number.isFinite(value)) {
-        throw new Error(`Non-finite number at ${atPath}`);
-      }
-      return value;
-    case 'function':
-    case 'undefined':
-      return undefined;
-    case 'object': {
-      if (Array.isArray(value)) {
-        return value
-          .map((item, i) => sanitizeValue(item, `${atPath}[${i}]`))
-          .filter((item): item is JsonValue => item !== undefined);
-      }
-      const out: { [key: string]: JsonValue } = {};
-      for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-        const sanitized = sanitizeValue(item, `${atPath}.${key}`);
-        if (sanitized !== undefined) out[key] = sanitized;
-      }
-      return out;
-    }
-    default:
-      throw new Error(`Cannot serialize ${typeof value} at ${atPath}`);
-  }
-}
+const STRIPPED_KEYS = new Set(['parseDOM', 'toDOM', 'toDebugString', 'leafText']);
 
 /**
- * Sanitizes one NodeSpec/MarkSpec. In ProseMirror, an attribute is optional
- * iff its spec has a `default` property, so a `default` that can't be
- * serialized (function/undefined) would silently become "required" — fail
- * loudly instead so the extension gets fixed or special-cased consciously.
+ * One NodeSpec/MarkSpec with stripped keys removed and attribute defaults made
+ * JSON-safe. In ProseMirror an attribute is optional iff its spec has a
+ * `default` property, so a default JSON.stringify would drop must fail loudly
+ * instead of silently making the attribute required. `default: undefined`
+ * (optional; the attr is simply omitted from serialized nodes, e.g.
+ * imageBlock.alt) becomes `default: null`, which JSON can represent.
  */
-function sanitizeSpec(typeName: string, spec: Record<string, unknown>): JsonValue {
-  const clean = Object.fromEntries(Object.entries(spec).filter(([key]) => !DOM_ONLY_KEYS.has(key)));
+function sanitizeSpec(typeName: string, spec: object): Record<string, unknown> {
+  const clean: Record<string, unknown> = Object.fromEntries(
+    Object.entries(spec).filter(([key]) => !STRIPPED_KEYS.has(key))
+  );
 
-  const attrs = clean.attrs as Record<string, Record<string, unknown>> | undefined;
+  const attrs = clean.attrs as Record<string, AttributeSpec> | undefined;
   if (attrs) {
     clean.attrs = Object.fromEntries(
       Object.entries(attrs).map(([attrName, attrSpec]) => {
-        if (!Object.prototype.hasOwnProperty.call(attrSpec, 'default')) {
-          return [attrName, attrSpec];
-        }
-        if (attrSpec.default === undefined) {
-          // JSON can't distinguish `default: undefined` (optional; the attr is
-          // simply omitted from serialized nodes, e.g. imageBlock.alt) from no
-          // `default` at all (required). Map to null to keep the attr optional.
-          return [attrName, { ...attrSpec, default: null }];
-        }
-        if (sanitizeValue(attrSpec.default, '') === undefined) {
+        if (!('default' in attrSpec)) return [attrName, attrSpec];
+        if (attrSpec.default === undefined) return [attrName, { ...attrSpec, default: null }];
+        if (JSON.stringify(attrSpec.default) === undefined) {
           throw new Error(
             `Attribute default for "${typeName}.${attrName}" is not JSON-serializable ` +
               `(${typeof attrSpec.default}); dropping it would make the attribute required.`
@@ -101,20 +64,28 @@ function sanitizeSpec(typeName: string, spec: Record<string, unknown>): JsonValu
     );
   }
 
-  return sanitizeValue(clean, typeName) ?? {};
+  return clean;
 }
 
 /** Serializes a schema to a plain-JSON spec, preserving schema order. */
-function schemaToJsonSpec(schema: Schema): JsonValue {
-  const nodes: { [name: string]: JsonValue } = {};
-  schema.spec.nodes.forEach((name: string, spec: Record<string, unknown>) => {
-    nodes[name] = sanitizeSpec(`nodes.${name}`, spec);
-  });
-  const marks: { [name: string]: JsonValue } = {};
-  schema.spec.marks.forEach((name: string, spec: Record<string, unknown>) => {
-    marks[name] = sanitizeSpec(`marks.${name}`, spec);
-  });
-  return { topNode: schema.topNodeType.name, nodes, marks };
+function schemaToJsonSpec(schema: Schema): Record<string, unknown> {
+  const sanitizeAll = (specs: Record<string, object>, kind: string) =>
+    Object.fromEntries(
+      Object.entries(specs).map(([name, spec]) => [name, sanitizeSpec(`${kind}.${name}`, spec)])
+    );
+  return {
+    topNode: schema.topNodeType.name,
+    nodes: sanitizeAll(schema.spec.nodes.toObject(), 'nodes'),
+    marks: sanitizeAll(schema.spec.marks.toObject(), 'marks'),
+  };
+}
+
+/** Guards against values JSON.stringify would silently corrupt into null. */
+function replacer(key: string, value: unknown): unknown {
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    throw new Error(`Non-finite number under key "${key}"`);
+  }
+  return value;
 }
 
 const schemas = {
@@ -132,7 +103,7 @@ const schemas = {
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 for (const [name, schema] of Object.entries(schemas)) {
   const outPath = path.join(OUTPUT_DIR, `${name}.json`);
-  fs.writeFileSync(outPath, `${JSON.stringify(schemaToJsonSpec(schema), null, 2)}\n`);
+  fs.writeFileSync(outPath, `${JSON.stringify(schemaToJsonSpec(schema), replacer, 2)}\n`);
   const nodeCount = Object.keys(schema.nodes).length;
   const markCount = Object.keys(schema.marks).length;
   console.log(
