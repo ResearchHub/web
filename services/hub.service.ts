@@ -19,19 +19,6 @@ interface HubResponse {
   editor_permission_groups?: any[];
 }
 
-interface HubsApiResponse {
-  results: HubResponse[];
-}
-
-interface FollowResponse {
-  id: number;
-  content_type: string;
-  type: string;
-  object_id: number;
-  created_date: string;
-  updated_date: string;
-}
-
 interface HubDetailResponse {
   count: number;
   next: string | null;
