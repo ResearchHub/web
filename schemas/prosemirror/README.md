@@ -12,9 +12,14 @@ from prosemirror.model import Node, Schema
 with open("comment-editor.json") as f:
     schema = Schema(json.load(f))
 
-doc = Node.from_json(schema, comment_json)  # raises on unknown nodes/marks/attrs
+doc = Node.from_json(schema, comment_json)  # raises on unknown node/mark types
 doc.check()                                 # raises on invalid nesting/content
 ```
+
+The validation boundary: unknown node/mark _types_, missing _required_
+attributes, and invalid nesting all raise. Unrecognized _attributes_ do not —
+they are silently stripped during parsing, so parsed output only ever carries
+schema-declared attributes.
 
 | File                  | Source extension set                                                     | Covers                      |
 | --------------------- | ------------------------------------------------------------------------ | --------------------------- |
