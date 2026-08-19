@@ -24,6 +24,8 @@ interface TabsProps {
   className?: string;
   variant?: 'primary' | 'pill';
   disabled?: boolean;
+  /** Rendered at the right end of the tab row, outside the scrollable strip. */
+  rightContent?: React.ReactNode;
 }
 
 const TabItem: React.FC<{
@@ -99,6 +101,7 @@ export const Tabs: React.FC<TabsProps> = ({
   className,
   variant = 'primary',
   disabled = false,
+  rightContent,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -132,64 +135,73 @@ export const Tabs: React.FC<TabsProps> = ({
 
   return (
     <div className={cn('w-full relative', isPrimary && 'border-b border-gray-200', className)}>
-      <div
-        className={cn(
-          'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
-          canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        style={{ background: `linear-gradient(to left, transparent, ${gradient} 40%)` }}
-      >
-        <button
-          onClick={() => scroll('left')}
-          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div
-        ref={scrollContainerRef}
-        onScroll={checkScrollability}
-        className={cn(
-          'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'gap-2' : 'space-x-8 -mb-px'
-        )}
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {tabs.map((tab) => (
-          <React.Fragment key={tab.id}>
-            {tab.separator && (
-              <div
-                className={cn(
-                  'h-6 w-px bg-gray-300 flex-shrink-0',
-                  isPrimary ? 'ml-6 mr-6' : 'ml-1 mr-1'
-                )}
-              />
+      {/* The scroll strip gets its own relative box so the fade/arrow overlays
+          stay pinned to it rather than to the row, which may also hold
+          rightContent on its right edge. */}
+      <div className="flex h-full items-center gap-3">
+        <div className="relative h-full min-w-0 flex-1">
+          <div
+            className={cn(
+              'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
+              canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
             )}
-            <TabItem
-              tab={tab}
-              isActive={activeTab === tab.id}
-              disabled={disabled}
-              variant={variant}
-              onTabChange={onTabChange}
-            />
-          </React.Fragment>
-        ))}
-      </div>
+            style={{ background: `linear-gradient(to left, transparent, ${gradient} 40%)` }}
+          >
+            <button
+              onClick={() => scroll('left')}
+              className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
 
-      <div
-        className={cn(
-          'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 transition-opacity duration-200',
-          canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        style={{ background: `linear-gradient(to right, transparent, ${gradient} 40%)` }}
-      >
-        <button
-          onClick={() => scroll('right')}
-          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          <div
+            ref={scrollContainerRef}
+            onScroll={checkScrollability}
+            className={cn(
+              'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
+              variant === 'pill' ? 'gap-2' : 'space-x-8 -mb-px'
+            )}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {tabs.map((tab) => (
+              <React.Fragment key={tab.id}>
+                {tab.separator && (
+                  <div
+                    className={cn(
+                      'h-6 w-px bg-gray-300 flex-shrink-0',
+                      isPrimary ? 'ml-6 mr-6' : 'ml-1 mr-1'
+                    )}
+                  />
+                )}
+                <TabItem
+                  tab={tab}
+                  isActive={activeTab === tab.id}
+                  disabled={disabled}
+                  variant={variant}
+                  onTabChange={onTabChange}
+                />
+              </React.Fragment>
+            ))}
+          </div>
+
+          <div
+            className={cn(
+              'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 transition-opacity duration-200',
+              canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            )}
+            style={{ background: `linear-gradient(to right, transparent, ${gradient} 40%)` }}
+          >
+            <button
+              onClick={() => scroll('right')}
+              className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
       </div>
     </div>
   );
