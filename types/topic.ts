@@ -13,7 +13,6 @@ export type Topic = {
   subscriberCount?: number;
   isLocked?: boolean;
   isRemoved?: boolean;
-  isUsedForRep?: boolean;
 };
 
 export const transformTopic = createTransformer<any, Topic>((raw: any) => {
@@ -33,7 +32,6 @@ export const transformTopic = createTransformer<any, Topic>((raw: any) => {
     subscriberCount: raw.subscriber_count,
     isLocked: raw.is_locked,
     isRemoved: raw.is_removed,
-    isUsedForRep: raw.is_used_for_rep,
   };
 });
 
