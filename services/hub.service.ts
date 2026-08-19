@@ -83,11 +83,6 @@ export class HubService {
     return transformTopicSuggestions(response);
   }
 
-  static async getFollowedHubs(): Promise<number[]> {
-    const response = await ApiClient.get<FollowResponse[]>(`${this.BASE_PATH}/following/`);
-    return response.map((follow) => follow.object_id);
-  }
-
   static async followHub(hubId: number): Promise<void> {
     await ApiClient.post(`${this.BASE_PATH}/${hubId}/follow/`);
   }
