@@ -2,7 +2,6 @@ import { Achievement, AchievementType } from '@/types/authorProfile';
 import {
   faAward,
   faChartNetwork,
-  faFire,
   faGlasses,
   faHandHoldingHeart,
   faQuoteLeft,
@@ -97,13 +96,6 @@ const ACHIEVEMENT_META: Record<AchievementType, AchievementMeta> = {
     unit: 'reviews',
     formatValue: integerFormatter,
     describe: (value) => `Peer reviewed ${value} publications.`,
-  },
-  HIGHLY_UPVOTED: {
-    icon: faFire,
-    title: 'Active User',
-    unit: 'upvotes',
-    formatValue: integerFormatter,
-    describe: (value) => `Received ${value} upvotes from the community.`,
   },
   OPEN_ACCESS: {
     icon: faChartNetwork,
