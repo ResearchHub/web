@@ -57,6 +57,12 @@ export default {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        // Light streak sweeping across an element. The skew is baked in because
+        // the animated transform would otherwise override a skew utility class.
+        shimmer: {
+          '0%': { transform: 'translateX(-150%) skewX(-20deg)' },
+          '100%': { transform: 'translateX(420%) skewX(-20deg)' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -64,6 +70,9 @@ export default {
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
         'logo-marquee': 'logo-marquee 32s linear infinite',
+        // Single sweep. `both` keeps the streak parked off-screen during the
+        // delay instead of sitting mid-element until it starts.
+        shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
       },
     },
   },
