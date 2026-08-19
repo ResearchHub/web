@@ -60,9 +60,19 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) 
         />
       ))}
       {isLoadingMoreNotes && <NoteListSkeleton />}
-      {!isLoadingMoreNotes && hasMoreNotes && !notesError && (
-        <div ref={sentinelRef} className="h-10" aria-hidden="true" />
-      )}
+      {!isLoadingMoreNotes &&
+        hasMoreNotes &&
+        (notesError ? (
+          <button
+            type="button"
+            onClick={loadMoreNotes}
+            className="h-10 w-full text-xs text-red-600 hover:text-red-700"
+          >
+            Failed to load more files. Try again.
+          </button>
+        ) : (
+          <div ref={sentinelRef} className="h-10" aria-hidden="true" />
+        ))}
     </div>
   );
 };

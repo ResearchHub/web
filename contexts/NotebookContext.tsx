@@ -28,7 +28,7 @@ interface NotebookContextType {
   totalCount: number;
   hasMoreNotes: boolean;
   refreshNotes: () => Promise<void>;
-  loadMoreNotes: () => Promise<void>;
+  loadMoreNotes: () => void;
 
   // Organization users state
   users: OrganizationUsers | null;
@@ -101,6 +101,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
 
     setIsLoadingNotes(true);
+    setIsLoadingMoreNotes(false);
     setNotesError(null);
     setNextPageUrls([]);
 
@@ -168,28 +169,41 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     await fetchNotes(selectedOrg.slug);
   }, [selectedOrg?.slug, fetchNotes]);
 
-  const loadMoreNotes = useCallback(async () => {
-    const slug = selectedOrg?.slug;
-    if (!slug || isLoadingMoreNotes || nextPageUrls.length === 0) {
-      return;
-    }
+  const loadMoreNotes = () => {
+    if (isLoadingMoreNotes || nextPageUrls.length === 0) return;
 
+    setNotesError(null);
     setIsLoadingMoreNotes(true);
+  };
 
-    try {
-      const nextPages = await Promise.all(
-        nextPageUrls.map((nextUrl) => NoteService.getOrganizationNotes(slug, { nextUrl }))
-      );
+  useEffect(() => {
+    const slug = selectedOrg?.slug;
+    if (!slug || !isLoadingMoreNotes || nextPageUrls.length === 0) return;
 
-      const newNotes = nextPages.flatMap((page) => page.results);
+    let cancelled = false;
 
-      setNotes((currentNotes) => mergeNotesById(currentNotes, newNotes));
-      setNextPageUrls(nextPages.map(({ next }) => next).filter((url) => url !== null));
-    } catch (err) {
-      setNotesError(err instanceof Error ? err : new Error('Failed to load more notes'));
-    } finally {
-      setIsLoadingMoreNotes(false);
-    }
+    const fetchNextNotes = async () => {
+      try {
+        const nextPages = await Promise.all(
+          nextPageUrls.map((nextUrl) => NoteService.getOrganizationNotes(slug, { nextUrl }))
+        );
+        if (cancelled) return;
+
+        const newNotes = nextPages.flatMap((page) => page.results);
+        setNotes((currentNotes) => mergeNotesById(currentNotes, newNotes));
+        setNextPageUrls(nextPages.flatMap(({ next }) => (next ? [next] : [])));
+      } catch (err) {
+        if (cancelled) return;
+        setNotesError(err instanceof Error ? err : new Error('Failed to load more notes'));
+      } finally {
+        if (!cancelled) setIsLoadingMoreNotes(false);
+      }
+    };
+
+    void fetchNextNotes();
+    return () => {
+      cancelled = true;
+    };
   }, [isLoadingMoreNotes, nextPageUrls, selectedOrg?.slug]);
 
   const loadNote = useCallback(async (noteId: string) => {
@@ -259,6 +273,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     if (!selectedOrg) {
       setNotes([]);
       setTotalCount(0);
+      setIsLoadingMoreNotes(false);
       setNextPageUrls([]);
       setUsers(null);
       setNotesError(null);
