@@ -15,7 +15,6 @@ interface HubResponse {
   subscriber_count?: number;
   is_locked?: boolean;
   is_removed?: boolean;
-  is_used_for_rep?: boolean;
   editor_permission_groups?: any[];
 }
 
