@@ -28,10 +28,6 @@ export default {
         'content-lg': '1440px',
         'content-xl': '1580px',
         wide: '1200px',
-        // Funder dashboard: applicant-row key-insights side column needs enough
-        // horizontal room to not crowd the title. Below this, insights fall
-        // back to a single inline row under the author meta.
-        'funder-wide': '1100px',
         '3xl': '1600px',
       },
       fontWeight: {
