@@ -31,8 +31,15 @@ Output is deterministic — rerunning without extension changes produces
 byte-identical files. **Any change to an editor's extensions (adding,
 removing, or reconfiguring — configuration can alter attribute defaults) must
 be accompanied by a regenerated schema**, and the backend copy updated.
-Enforcement via CI diff is a planned follow-up; until then this is by
-convention.
+
+Two layers enforce this:
+
+- **Pre-commit**: committing a change under `components/Editor/extensions/`,
+  `components/Comment/lib/`, or to the export script regenerates the schemas
+  and stages them automatically (see `lint-staged` in `package.json`).
+- **CI**: `.github/workflows/schema-check.yml` reruns the export on every PR
+  and fails on any diff in this directory. It also catches drift the
+  pre-commit globs can't see — e.g. a TipTap version bump changing a spec.
 
 ## What the export contains
 

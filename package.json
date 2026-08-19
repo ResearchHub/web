@@ -152,6 +152,7 @@
       "prettier --write --ignore-path .gitignore",
       "eslint --fix --no-warn-ignored"
     ],
-    "**/*.{ts,tsx}": "bash -c 'npm run type-check'"
+    "**/*.{ts,tsx}": "bash -c 'npm run type-check'",
+    "{components/Editor/extensions/**/*.{ts,tsx},components/Comment/lib/**/*.{ts,tsx},scripts/export-prosemirror-schema.ts}": "bash -c 'npm run schema:export && git add schemas/prosemirror'"
   }
 }

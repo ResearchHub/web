@@ -1,0 +1,70 @@
+name: ProseMirror Schema Check
+
+# Fails when schemas/prosemirror/ is out of date — i.e. an editor extension
+# change (or a TipTap dependency bump) landed without a regenerated schema.
+# The export is byte-deterministic, so a plain diff is a reliable check.
+# See schemas/prosemirror/README.md.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema-drift:
+    runs-on: ubuntu-latest
+    env:
+      TIPTAP_PRO_TOKEN: ${{ secrets.TIPTAP_PRO_TOKEN }}
+      FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check registry secrets
+        run: |
+          if [ -z "$TIPTAP_PRO_TOKEN" ] || [ -z "$FONTAWESOME_NPM_AUTH_TOKEN" ]; then
+            echo "::error::Missing TIPTAP_PRO_TOKEN and/or FONTAWESOME_NPM_AUTH_TOKEN repo secrets; npm ci needs them for the private TipTap Pro and Font Awesome registries."
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Same registry mapping developers keep in their local .npmrc; the
+      # ${VAR} references are expanded by npm itself from the job env.
+      - name: Configure private npm registries
+        run: |
+          {
+            echo '@tiptap-pro:registry=https://registry.tiptap.dev/'
+            echo '//registry.tiptap.dev/:_authToken=${TIPTAP_PRO_TOKEN}'
+            echo '@awesome.me:registry=https://npm.fontawesome.com/'
+            echo '@fortawesome:registry=https://npm.fontawesome.com/'
+            echo '//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}'
+          } > .npmrc
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export ProseMirror schemas
+        run: npm run schema:export
+
+      - name: Fail on schema drift
+        run: |
+          if [ -n "$(git status --porcelain -- schemas/prosemirror/)" ]; then
+            echo '::error::schemas/prosemirror/ is out of date. Run `npm run schema:export` and commit the result (see schemas/prosemirror/README.md).'
+            echo
+            echo 'Drift:'
+            git status --porcelain -- schemas/prosemirror/
+            git diff -- schemas/prosemirror/
+            exit 1
+          fi
+          echo 'Schemas are up to date.'
