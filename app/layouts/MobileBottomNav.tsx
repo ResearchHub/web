@@ -35,7 +35,6 @@ interface NavItem {
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
-  { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
   { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
@@ -77,6 +76,7 @@ export const MobileBottomNav: React.FC = () => {
 
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: '/', iconKey: 'home', isHome: true },
+    { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
     { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
@@ -238,7 +238,7 @@ export const MobileBottomNav: React.FC = () => {
                   {renderIcon(item, isActive)}
                 </div>
                 <span
-                  className={`text-[11px] mt-1 font-medium ${
+                  className={`text-[11px] mt-1 font-medium whitespace-nowrap ${
                     isActive ? 'text-primary-600' : 'text-black'
                   }`}
                 >
