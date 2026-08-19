@@ -91,7 +91,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   let overviewContent: ReactNode = null;
   if (isLoadingOverview) {
     overviewContent = (
-      <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+      <div className="h-[272px] tablet:h-[200px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
     );
   } else if (overview) {
     overviewContent = <FunderHero overview={overview} />;
@@ -118,7 +118,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
           <div className="flex items-baseline gap-2.5">
             <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-              My funding opportunities
+              My Requests for Proposals
             </h2>
             {!isLoadingOpportunities && (
               <span className="text-xs text-gray-500">{opportunities.length} active</span>
@@ -126,12 +126,12 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
           </div>
           {!isLoadingOpportunities && opportunities.length > 0 && (
             <Button
-              variant="default"
+              variant="secondary"
               size="sm"
               onClick={() => router.push('/notebook?newGrant=true')}
             >
               <Plus size={14} />
-              New opportunity
+              New RFP
             </Button>
           )}
         </div>
@@ -142,23 +142,22 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
           hasMore={hasMore}
           loadMore={loadMore}
           wideContent
-          grantCardVariant="comprehensive"
+          skeletonVariant="grant"
+          showGrantApplyCta={false}
           showGrantHeaders={false}
           showPostHeaders={false}
           showFundraiseHeaders={false}
           noEntriesElement={
             <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
-              <p className="text-sm text-gray-500">
-                You haven&apos;t created any opportunities yet.
-              </p>
+              <p className="text-sm text-gray-500">You haven&apos;t created any RFPs yet.</p>
               <Button
-                variant="outlined"
+                variant="secondary"
                 size="sm"
                 className="mt-4"
                 onClick={() => router.push('/notebook?newGrant=true')}
               >
                 <Plus size={14} />
-                Create your first opportunity
+                New RFP
               </Button>
             </div>
           }

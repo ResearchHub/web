@@ -29,7 +29,7 @@ const PUBLISH_MENU_SECTIONS = [
     items: [
       {
         id: 'give-funding',
-        title: 'Funding Opportunity',
+        title: 'Request for Proposal',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={18} color="#374151" />,
         handler: 'handleOpenGrant',

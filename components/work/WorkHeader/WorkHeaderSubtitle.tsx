@@ -56,10 +56,7 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
   const isPrivate = work.isPublic === false && work.contentType === 'preregistration';
   const linkedGrant = work.linkedGrant;
   const linkedGrantTitle =
-    linkedGrant?.title ||
-    linkedGrant?.shortTitle ||
-    linkedGrant?.organization ||
-    'a funding opportunity';
+    linkedGrant?.title || linkedGrant?.shortTitle || linkedGrant?.organization || 'an RFP';
   const linkedGrantHref = linkedGrant?.postId
     ? buildWorkUrl({
         id: linkedGrant.postId,

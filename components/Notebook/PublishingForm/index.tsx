@@ -58,7 +58,7 @@ const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
-  grant: 'Funding Opportunity',
+  grant: 'Request for Proposal',
   registered_report: 'Registered Report',
 };
 
@@ -617,7 +617,7 @@ export function PublishingForm({
 
       if (isNewGrantPending) {
         toast.success(
-          'Your Funding Opportunity has been submitted and is pending moderator review.',
+          'Your Request for Proposal has been submitted and is pending moderator review.',
           {
             duration: 5000,
           }

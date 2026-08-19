@@ -52,13 +52,13 @@ function getWorkTypeLabel(
 
   switch (documentType) {
     case 'GRANT':
-      return 'Funding Opportunity';
+      return 'Request for Proposal';
     case 'PREREGISTRATION':
       return 'Proposal';
     case 'DISCUSSION':
       return 'Preprint';
   }
-  if (contentType === 'funding_request') return 'Funding Opportunity';
+  if (contentType === 'funding_request') return 'Request for Proposal';
   if (contentType === 'preregistration') return 'Proposal';
   if (contentType) return 'Preprint';
   return undefined;

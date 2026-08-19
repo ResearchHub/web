@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { ActivityPageContent } from '@/components/Activity';
+import { JoinResearchHubBanner } from '@/components/banners/JoinResearchHubBanner';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Open Science Community & Research Platform',
@@ -10,5 +11,10 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 });
 
 export default function HomeActivityPage() {
-  return <ActivityPageContent />;
+  return (
+    <>
+      <ActivityPageContent />
+      <JoinResearchHubBanner />
+    </>
+  );
 }

@@ -116,9 +116,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
 
           {/* Fund tabs sit on the top bar's bottom border, aligned to PageLayout's
-              content column so they don't jump horizontally when they stick. */}
+              content column so they don't jump horizontally when they stick.
+              Only above content-lg: the content column is centered, so on
+              narrower screens it starts close enough to the left edge to run
+              into the title. Below that the tabs stack on their own row. */}
           {showTopBarFundTabs && (
-            <div className="pointer-events-none absolute inset-0 hidden tablet:!flex animate-in fade-in duration-200">
+            <div className="pointer-events-none absolute inset-0 hidden content-lg:!flex animate-in fade-in duration-200">
               <div className="mx-auto flex h-full w-full max-w-[1012px] px-4 tablet:!px-8">
                 <div className="pointer-events-auto flex h-full min-w-0 flex-shrink-0">
                   <Tabs
@@ -163,10 +166,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         </div>
 
-        {/* Content tabs — mobile only, stacked below title when page tabs scroll out of view */}
+        {/* Content tabs — stacked below the title when the page tabs scroll out
+            of view, for every width where they don't fit beside it. */}
         {isFundPage && (
           <div
-            className="tablet:!hidden overflow-hidden transition-all duration-300 ease-in-out border-b px-4 -mt-2 pb-1"
+            className="content-lg:!hidden overflow-hidden transition-all duration-300 ease-in-out border-b px-4 lg:px-8 -mt-2"
             style={{
               maxHeight: showTopBarFundTabs ? '62px' : '0px',
               opacity: showTopBarFundTabs ? 1 : 0,

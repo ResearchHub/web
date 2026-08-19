@@ -3,8 +3,8 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { FundGrantsPageContent } from '@/components/Funding/FundGrantsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Funding Opportunities',
-  description: 'Apply for funding opportunities via proposals.',
+  title: 'Request for Proposals',
+  description: 'Apply for research funding via proposals.',
   url: '/fund',
 });
 
@@ -13,13 +13,13 @@ export default function FundPage() {
     <>
       <section className="sr-only">
         <p>
-          ResearchHub provides direct funding pathways for scientific research. Browse open funding
-          opportunities posted by the ResearchHub Foundation and community funders, or create a
+          ResearchHub provides direct funding pathways for scientific research. Browse open requests
+          for proposals posted by the ResearchHub Foundation and community funders, or create a
           proposal to pitch your own research for funding consideration.
         </p>
         <p>
-          Each funding opportunity includes a defined scope of work, funding amount in USD, and a
-          deadline for submissions. Opportunities span a range of disciplines — biomedical sciences,
+          Each request for proposal includes a defined scope of work, funding amount in USD, and a
+          deadline for submissions. RFPs span a range of disciplines — biomedical sciences,
           computational biology, physics, economics, and beyond — so there is likely one relevant to
           your area of expertise. Researchers who find a match can apply directly, with all
           materials submitted and reviewed on-platform.
@@ -34,8 +34,8 @@ export default function FundPage() {
           Traditional funding processes often involve months of preparation and long wait times.
           ResearchHub streamlines this with clear requirements, open peer review, and practical
           timelines. The entire process is visible on-platform from submission to funding decision.
-          Browse the open opportunities below, or switch to the Proposals tab to see
-          community-submitted research plans seeking support.
+          Browse the open RFPs below, or switch to the Proposals tab to see community-submitted
+          research plans seeking support.
         </p>
         <p>
           Researchers at US-based institutions can attach their University nonprofit to their

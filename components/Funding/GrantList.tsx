@@ -33,7 +33,7 @@ export const GrantList: FC<GrantListProps> = ({
             className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
           >
             <Plus size={16} />
-            Open a funding opportunity
+            Open a request for proposal
           </Link>
         )}
       </div>
@@ -54,7 +54,7 @@ export const GrantList: FC<GrantListProps> = ({
               className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
             >
               <Plus size={16} />
-              Open a funding opportunity
+              Open a request for proposal
             </Link>
           </div>
         </div>

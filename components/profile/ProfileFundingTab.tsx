@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFeed } from '@/hooks/useFeed';
 
-export const FUNDING_PILLS = [{ id: 'grants', label: 'Funding Opportunities' }];
+export const FUNDING_PILLS = [{ id: 'grants', label: 'RFPs' }];
 
 export type FundingPillId = 'grants';
 
@@ -47,7 +47,7 @@ export function ProfileFundingTab({ userId }: ProfileFundingTabProps) {
       skeletonVariant="grant"
       noEntriesElement={
         <div className="py-12 text-center">
-          <p className="text-gray-400 text-sm">No funding opportunities yet</p>
+          <p className="text-gray-400 text-sm">No RFPs yet</p>
         </div>
       }
     />

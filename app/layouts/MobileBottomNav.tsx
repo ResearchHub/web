@@ -35,7 +35,7 @@ interface NavItem {
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
-  { label: 'Your Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
+  { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
   { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },

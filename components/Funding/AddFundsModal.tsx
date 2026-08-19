@@ -49,7 +49,7 @@ const METHODS: FundingMethod[] = [
     title: 'ResearchCoin',
     icon: <ResearchCoinIcon size={24} outlined color="currentColor" />,
     tileClassName:
-      'border-orange-200 bg-white text-orange-700 hover:border-orange-300 hover:bg-orange-50 focus-visible:ring-orange-500',
+      'border-orange-200 bg-white text-orange-600 hover:border-orange-300 hover:bg-orange-50 focus-visible:ring-orange-500',
   },
   {
     id: 'daf',
@@ -125,7 +125,7 @@ export function AddFundsModal({ isOpen, onClose, onReopen }: AddFundsModalProps)
 function MethodPicker({ onSelect }: { onSelect: (method: FundingMethodId) => void }) {
   return (
     <div>
-      <p className="text-md leading-relaxed text-gray-500">Choose a funding method.</p>
+      <p className="text-md leading-relaxed text-gray-600">Choose one:</p>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
         {METHODS.map((method) => (
