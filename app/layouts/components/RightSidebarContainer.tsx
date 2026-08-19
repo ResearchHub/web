@@ -80,7 +80,7 @@ export function RightSidebarContainer({
           height="85vh"
         >
           <div className="space-y-3">
-            {cardAboveSidebar}
+            {aboveSidebar}
             <Suspense fallback={null}>
               <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
             </Suspense>

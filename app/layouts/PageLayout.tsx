@@ -8,7 +8,6 @@ import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
-import { FundingPowerProvider } from '@/contexts/FundingPowerContext';
 import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
@@ -112,7 +111,7 @@ function PageLayoutInner({
             <main
               className={cn(
                 'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',
-                topBanner ? 'py-3 sm:py-6' : 'py-6 mt-4'
+                topBanner ? 'py-3 sm:py-6' : 'py-6'
               )}
             >
               <div
@@ -144,9 +143,7 @@ export function PageLayout({ fundraiseGrantId, ...props }: PageLayoutProps) {
       <FundraiseProvider grantId={fundraiseGrantId}>
         <FeedTabsVisibilityProvider>
           <TopBarSlotProvider>
-            <FundingPowerProvider>
-              <PageLayoutInner {...props} />
-            </FundingPowerProvider>
+            <PageLayoutInner {...props} />
           </TopBarSlotProvider>
         </FeedTabsVisibilityProvider>
       </FundraiseProvider>

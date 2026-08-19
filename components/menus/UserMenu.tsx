@@ -10,9 +10,7 @@ import {
   Search,
   Settings,
   Bookmark,
-  Notebook,
 } from 'lucide-react';
-import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
@@ -23,7 +21,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { ResearchCoinSnapshot } from '@/components/ResearchCoin/ResearchCoinSnapshot';
 import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
@@ -143,12 +140,6 @@ export default function UserMenu({
           <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
           Edit Profile
         </Button>
-
-        <ResearchCoinSnapshot
-          href="/researchcoin"
-          onClick={() => setMenuOpenState(false)}
-          className="mt-3"
-        />
       </div>
 
       {/* Menu items */}
@@ -175,15 +166,6 @@ export default function UserMenu({
             <span className="text-sm text-gray-700">View Profile</span>
           </div>
         </div>
-
-        <Link href="/my-funding" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
-            <div className="flex items-center">
-              <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
-              <span className="text-sm text-gray-700">Your Funding</span>
-            </div>
-          </div>
-        </Link>
 
         <Link
           href="/notifications"
@@ -232,15 +214,6 @@ export default function UserMenu({
             </div>
           </Link>
         )}
-
-        <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
-            <div className="flex items-center">
-              <Notebook className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-sm text-gray-700">Notebook</span>
-            </div>
-          </div>
-        </Link>
 
         <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
           <div className="px-6 py-2 hover:bg-gray-50">
@@ -373,12 +346,6 @@ export default function UserMenu({
                 <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
               </div>
             </div>
-
-            <ResearchCoinSnapshot
-              href="/researchcoin"
-              onClick={() => setMenuOpenState(false)}
-              className="mt-3"
-            />
           </div>
 
           {/* Menu items */}
@@ -392,15 +359,6 @@ export default function UserMenu({
                 <span className="text-sm text-gray-700">View Profile</span>
               </div>
             </BaseMenuItem>
-
-            <Link href="/my-funding" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
-                  <span className="text-sm text-gray-700">Your Funding</span>
-                </div>
-              </div>
-            </Link>
 
             <Link
               href="/notifications"
@@ -442,15 +400,6 @@ export default function UserMenu({
                 </div>
               </Link>
             )}
-
-            <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Notebook className="h-5 w-5 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Notebook</span>
-                </div>
-              </div>
-            </Link>
 
             <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">

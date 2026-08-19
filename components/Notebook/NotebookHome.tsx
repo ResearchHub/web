@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { NoteList } from '@/components/Notebook/LeftSidebar/NoteList';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import {
@@ -13,7 +15,6 @@ import {
   OpenProposalModal,
   type ProposalCreationMethod,
 } from '@/components/Funding/OpenProposalModal';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import Icon from '@/components/ui/icons/Icon';
 import { NotePaperWrapper } from './NotePaperWrapper';
 import { useUser } from '@/contexts/UserContext';
@@ -55,16 +56,16 @@ export function NotebookHome() {
   const createOptions: CreateOption[] = [
     {
       id: 'funding-opportunity',
-      title: 'RFP',
-      description: 'Fund research',
-      icon: <Icon name="fund" size={24} color="#2563eb" />,
+      title: 'Request for Proposal',
+      description: 'Fund specific research you care about',
+      icon: <FontAwesomeIcon icon={faBullhorn} className="h-6 w-6 text-blue-600" />,
       onClick: () => setIsFundingOpportunityModalOpen(true),
     },
     {
       id: 'proposal',
       title: 'Proposal',
-      description: 'Crowdfund your research',
-      icon: <FundingIcon size={24} color="#2563eb" />,
+      description: 'Raise money for your research',
+      icon: <FontAwesomeIcon icon={faFileSignature} className="h-6 w-6 text-blue-600" />,
       onClick: () => setIsProposalModalOpen(true),
     },
     ...(isModerator

@@ -8,6 +8,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { CurrencyPreferenceProvider } from '@/contexts/CurrencyPreferenceContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
+import { FundingPowerProvider } from '@/contexts/FundingPowerContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
@@ -48,18 +49,23 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                           <VerificationProvider>
                             <ExchangeRateProvider>
                               <CurrencyPreferenceProvider>
-                                <NotificationProvider>
-                                  <OrganizationProvider>
-                                    <UserListsProvider>
-                                      <LeaderboardProvider>
-                                        <DismissedFeaturesProvider>
-                                          <FollowProvider>{children}</FollowProvider>
-                                          <FeatureNotifications />
-                                        </DismissedFeaturesProvider>
-                                      </LeaderboardProvider>
-                                    </UserListsProvider>
-                                  </OrganizationProvider>
-                                </NotificationProvider>
+                                {/* Above the layouts because the left sidebar
+                                    carries the funding power card and mounts
+                                    outside PageLayout on some routes. */}
+                                <FundingPowerProvider>
+                                  <NotificationProvider>
+                                    <OrganizationProvider>
+                                      <UserListsProvider>
+                                        <LeaderboardProvider>
+                                          <DismissedFeaturesProvider>
+                                            <FollowProvider>{children}</FollowProvider>
+                                            <FeatureNotifications />
+                                          </DismissedFeaturesProvider>
+                                        </LeaderboardProvider>
+                                      </UserListsProvider>
+                                    </OrganizationProvider>
+                                  </NotificationProvider>
+                                </FundingPowerProvider>
                               </CurrencyPreferenceProvider>
                             </ExchangeRateProvider>
                           </VerificationProvider>

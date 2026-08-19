@@ -2,6 +2,7 @@
 
 import { FC, ReactNode, useState } from 'react';
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FunderOverview, SupportedInstitution, SupportedResearcher } from '@/types/funder';
@@ -59,7 +60,7 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
           justify-evenly keeps the phone layout (where cells size to their content)
           off the card's edges; from tablet up the cells are equal thirds and the
           spacing is moot. */}
-      <div className="flex items-stretch justify-evenly gap-3 tablet:gap-7">
+      <div className="flex items-stretch justify-evenly gap-2 tablet:gap-7">
         <Kpi
           hero
           label="Total deployed"
@@ -173,6 +174,15 @@ interface KpiProps {
  */
 const KPI_CELL = 'min-w-0 tablet:flex-1';
 
+/**
+ * All three amounts share one size until the card reaches its full desktop
+ * width, where the hero becomes the largest number on the row again. Mixing
+ * sizes in a row this tight reads as a rendering bug, and `text-2xl` is as
+ * large as three values can go before they collide on a phone.
+ */
+const KPI_VALUE =
+  'whitespace-nowrap font-mono font-semibold leading-none tracking-tight text-2xl tablet:text-4xl';
+
 const Kpi: FC<KpiProps> = ({ label, shortLabel, value, hero, tooltip }) => {
   const content = (
     <div className={cn('flex w-full flex-col items-center gap-1', tooltip && 'cursor-help')}>
@@ -180,14 +190,7 @@ const Kpi: FC<KpiProps> = ({ label, shortLabel, value, hero, tooltip }) => {
         <span className="tablet:hidden">{shortLabel}</span>
         <span className="hidden tablet:inline">{label}</span>
       </span>
-      <span
-        className={cn(
-          'whitespace-nowrap font-mono font-semibold leading-none tracking-tight',
-          hero
-            ? 'text-3xl tablet:text-4xl text-primary-600'
-            : 'text-xl tablet:text-2xl text-gray-900'
-        )}
-      >
+      <span className={cn(KPI_VALUE, hero ? 'text-primary-600' : 'text-gray-900 lg:text-2xl')}>
         {value}
       </span>
     </div>
@@ -241,25 +244,42 @@ const SupporterRow: FC<SupporterRowProps> = ({ label, onShowAll, className, chil
 );
 
 const MAX_VISIBLE_INSTITUTIONS = 5;
+/** Tablet and below the chips get a much narrower row, so the preview is shorter. */
+const MAX_VISIBLE_INSTITUTIONS_COMPACT = 3;
 
-const InstitutionChips: FC<{ institutions: SupportedInstitution[] }> = ({ institutions }) => (
-  <>
-    {/* Chips wrap within whatever width the row is given. */}
-    {institutions.slice(0, MAX_VISIBLE_INSTITUTIONS).map((inst) => (
-      <span
-        key={inst.id}
-        className="block max-w-[220px] truncate rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors group-hover:border-gray-300 group-hover:bg-gray-100"
-        title={inst.name}
-      >
-        {inst.name}
+const InstitutionChips: FC<{ institutions: SupportedInstitution[] }> = ({ institutions }) => {
+  const remainingCompact = Math.max(0, institutions.length - MAX_VISIBLE_INSTITUTIONS_COMPACT);
+  const remainingDesktop = Math.max(0, institutions.length - MAX_VISIBLE_INSTITUTIONS);
+
+  return (
+    <>
+      {institutions.slice(0, MAX_VISIBLE_INSTITUTIONS).map((inst, index) => (
+        <span
+          key={inst.id}
+          className={cn(
+            'max-w-[220px] truncate rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors group-hover:border-gray-300 group-hover:bg-gray-100',
+            index >= MAX_VISIBLE_INSTITUTIONS_COMPACT && 'hidden lg:!inline'
+          )}
+          title={inst.name}
+        >
+          {inst.name}
+        </span>
+      ))}
+
+      {/* Always in the row, same as the old "View all". The count swaps at lg
+          so it matches how many chips are actually hidden. */}
+      <span className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-xs font-medium text-primary-600 group-hover:text-primary-700">
+        <span className="lg:!hidden">
+          {remainingCompact > 0 ? `+${remainingCompact} more` : 'See all'}
+        </span>
+        <span className="hidden lg:!inline">
+          {remainingDesktop > 0 ? `+${remainingDesktop} more` : 'See all'}
+        </span>
+        <ChevronRight className="h-3.5 w-3.5" />
       </span>
-    ))}
-
-    <span className="text-xs font-medium text-primary-600 group-hover:text-primary-700">
-      View all
-    </span>
-  </>
-);
+    </>
+  );
+};
 
 const ScientistsModal: FC<{
   isOpen: boolean;
