@@ -292,6 +292,13 @@ export function AgentChatPanel({
     setDraft('');
   }, [noteId]);
 
+  // ---- server-side access gate ----
+  useEffect(() => {
+    if (list.access === 'hidden' || chatState.access === 'unauthorized') {
+      onUnavailable();
+    }
+  }, [list.access, chatState.access, onUnavailable]);
+
   // ---- auto-select the most recent chat once per panel open ----
   useEffect(() => {
     if (!open) {
@@ -516,8 +523,6 @@ export function AgentChatPanel({
   // The overlay lives on the editor instance, and mid-review the document
   // holds merged content — fold it to the accept-projection (the same thing
   // saves have been persisting) when the note or editor goes away mid-review.
-  // An assistant-only unmount is different: the access gate below resolves to
-  // the reader's side first, so this fold finds nothing left to accept.
   useEffect(() => {
     setReview(null);
     return () => {
@@ -525,33 +530,6 @@ export function AgentChatPanel({
       resolveNoteDiffReview(editor, 'accept');
     };
   }, [editor, noteId]);
-
-  // ---- server-side access gate ----
-  // The panel's lease on mutating the editor. Revocation and unmount end it,
-  // and async continuations re-check it before touching the editor: their
-  // other guards (same note, live editor) both hold across an assistant-only
-  // unmount, because the note and its editor outlive the panel.
-  const editorLeaseRef = useRef(0);
-  useEffect(() => {
-    return () => {
-      editorLeaseRef.current++;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (list.access !== 'hidden' && chatState.access !== 'unauthorized') return;
-    editorLeaseRef.current++;
-    // Revocation unmounts only this panel; every review control goes away
-    // with it while the note stays open. The user never chose, so restore
-    // the reader's side — the unmount fold would keep the assistant's — and
-    // try to make it durable: saves so far persisted the accept-projection.
-    reviewEpochRef.current++;
-    if (resolveNoteDiffReview(editor, 'reject')) {
-      setReview(null);
-      void onPersistEditorState?.();
-    }
-    onUnavailable();
-  }, [list.access, chatState.access, editor, onPersistEditorState, onUnavailable]);
 
   useEffect(() => {
     heldVersionRef.current = currentNote?.versionId ?? null;
@@ -570,7 +548,6 @@ export function AgentChatPanel({
     if (reloadLockRef.current != null) return;
     const lock = {};
     reloadLockRef.current = lock;
-    const lease = editorLeaseRef.current;
     setIsReloadingNote(true);
     setNoteReloadFailed(false);
     setPersistFailed(false);
@@ -584,7 +561,6 @@ export function AgentChatPanel({
       // Navigated away mid-fetch: this content and version belong to the
       // previous note and must not touch the current note's tracking.
       if (targetRef.current.noteId !== noteId) return;
-      if (editorLeaseRef.current !== lease) return;
       // A verbatim apply replaces the whole document; any half-merged review
       // content goes with it, so the overlay must not outlive it.
       reviewEpochRef.current++;
@@ -601,7 +577,6 @@ export function AgentChatPanel({
       if (pinnedVersionId != null && (serverHeadRef.current ?? 0) > pinnedVersionId) {
         const persisted = (await onPersistEditorState?.()) ?? true;
         if (targetRef.current.noteId !== noteId) return;
-        if (editorLeaseRef.current !== lease) return;
         if (!persisted) setPersistFailed(true);
       }
     } catch {
@@ -655,7 +630,6 @@ export function AgentChatPanel({
     if (reloadLockRef.current != null) return;
     const lock = {};
     reloadLockRef.current = lock;
-    const lease = editorLeaseRef.current;
     setIsReloadingNote(true);
     setNoteReloadFailed(false);
     setPersistFailed(false);
@@ -664,7 +638,6 @@ export function AgentChatPanel({
       // Same stale-note guard as reloadNoteContent.
       if (targetRef.current.noteId !== noteId) return;
       if (editor.isDestroyed) return;
-      if (editorLeaseRef.current !== lease) return;
       recordServerHead(pinnedVersionId);
       const { node: incoming, content } = parseVersionForEditor(editor, version.json, version.src);
       const epoch = ++reviewEpochRef.current;
@@ -689,7 +662,6 @@ export function AgentChatPanel({
         const persisted = (await onPersistEditorState?.()) ?? true;
         if (targetRef.current.noteId !== noteId) return;
         if (editor.isDestroyed) return;
-        if (editorLeaseRef.current !== lease) return;
         if (!persisted) setPersistFailed(true);
       }
     } catch (error) {
