@@ -138,10 +138,16 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     nudgeWidth: nudgeAgentChatWidth,
   } = useAgentChatWidth();
 
+  const isChangelog = isChangelogNote(note);
+  const isChangelogAccessDenied = isChangelog && !user?.isModerator;
+
   const isHubEditorOrModerator = Boolean(user?.moderator) || (user?.editorOfHubs?.length ?? 0) > 0;
   const showAgentChat =
     isHubEditorOrModerator &&
     !agentChatUnavailable &&
+    // Changelogs are moderator-only: the page renders Note Not Found in place
+    // of the document, so the assistant must not mount over it.
+    !isChangelogAccessDenied &&
     Boolean(activeNoteId) &&
     Boolean(note) &&
     !noteError &&
@@ -227,8 +233,6 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     return saveNoteNow(editor);
   }, [editor, saveNoteNow]);
 
-  const isChangelog = isChangelogNote(note);
-  const isChangelogAccessDenied = isChangelog && !user?.isModerator;
   const showTabs = Boolean(note) && !isLegacyNote && !isChangelogAccessDenied;
   const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
   const isEditorReadOnly =
