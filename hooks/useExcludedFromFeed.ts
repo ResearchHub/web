@@ -43,14 +43,16 @@ export function useExcludedFromFeed(): UseExcludedFromFeedReturn {
   }, [query]);
 
   const fetchPage = useCallback(
-    async (pageUrl?: string, append = false) => {
+    async (pageUrl?: string, append = false, { keepItems = false } = {}) => {
       const requestId = ++requestIdRef.current;
       if (append) {
         setIsLoadingMore(true);
       } else {
-        setIsLoading(true);
-        setItems([]);
         setNextUrl(null);
+        if (!keepItems) {
+          setIsLoading(true);
+          setItems([]);
+        }
       }
       setError(null);
 
@@ -69,7 +71,9 @@ export function useExcludedFromFeed(): UseExcludedFromFeedReturn {
         }
         const nextError = err instanceof Error ? err : new Error('Failed to load hidden documents');
         setError(nextError);
-        if (!append) {
+        // Prevent infinite-scroll from retrying the same failing page URL.
+        setNextUrl(null);
+        if (!append && !keepItems) {
           setItems([]);
         }
       } finally {
@@ -97,26 +101,31 @@ export function useExcludedFromFeed(): UseExcludedFromFeedReturn {
     await fetchPage();
   }, [fetchPage]);
 
-  const restore = useCallback(async (unifiedDocumentId: ID): Promise<boolean> => {
-    if (unifiedDocumentId == null || unifiedDocumentId === '') {
-      return false;
-    }
+  const restore = useCallback(
+    async (unifiedDocumentId: ID): Promise<boolean> => {
+      if (unifiedDocumentId == null || unifiedDocumentId === '') {
+        return false;
+      }
 
-    setIsRestoring(true);
-    try {
-      await FeedModerationService.includeInFeed(unifiedDocumentId);
-      setItems((prev) =>
-        prev.filter((item) => !idMatch(item.unifiedDocumentId, unifiedDocumentId))
-      );
-      toast.success('Restored to feeds.');
-      return true;
-    } catch (err) {
-      toast.error(extractApiErrorMessage(err, 'Failed to restore to feed'));
-      return false;
-    } finally {
-      setIsRestoring(false);
-    }
-  }, []);
+      setIsRestoring(true);
+      try {
+        await FeedModerationService.includeInFeed(unifiedDocumentId);
+        // Refetch page 1 so nextUrl tracks the shifted server-side pages.
+        setItems((prev) =>
+          prev.filter((item) => !idMatch(item.unifiedDocumentId, unifiedDocumentId))
+        );
+        toast.success('Restored to feeds.');
+        await fetchPage(undefined, false, { keepItems: true });
+        return true;
+      } catch (err) {
+        toast.error(extractApiErrorMessage(err, 'Failed to restore to feed'));
+        return false;
+      } finally {
+        setIsRestoring(false);
+      }
+    },
+    [fetchPage]
+  );
 
   return {
     items,
