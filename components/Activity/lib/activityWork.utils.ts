@@ -45,6 +45,7 @@ export interface WorkCardStat {
   label: string;
   value: string;
   accent?: boolean;
+  accentColor?: 'emerald' | 'orange';
 }
 
 export interface WorkCardPresentation {
@@ -264,6 +265,7 @@ function presentBounty(
         label: bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty',
         value: formatAmount(amount, showUSD, exchangeRate, true),
         accent: true,
+        accentColor: bounty.bountyType === 'REVIEW' ? 'orange' : 'emerald',
       },
     ],
   };

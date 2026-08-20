@@ -20,11 +20,13 @@ import { Application } from '@/types/funding';
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
   className?: string;
+  /** Apply footer is for public browse contexts (`/fund`). Hide it on owner dashboards. */
+  showApplyCta?: boolean;
 }
 
 const VISIBLE_PROPOSALS = 3;
 
-export function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
+function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
   return formatCurrency({ amount, showUSD, exchangeRate, skipConversion: true, shorten: true });
 }
 
@@ -128,6 +130,7 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
 export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> = ({
   entry,
   className,
+  showApplyCta = true,
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -276,7 +279,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 
       {/* No proposals — experts invited state */}
       {!hasProposals && !isClosed && (
-        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+        <div className={cn('px-5 py-4 bg-gray-50/50', showApplyCta && 'border-b border-gray-100')}>
           <div className="flex items-center justify-center gap-2 mb-1.5">
             <RadiatingDot color="bg-emerald-500" size="sm" />
             <span className="text-[11px] font-semibold text-gray-700">
@@ -290,7 +293,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       )}
 
       {/* Footer — Apply CTA */}
-      {!isClosed && (
+      {showApplyCta && !isClosed && (
         <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">
             {hasProposals

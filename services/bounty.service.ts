@@ -74,7 +74,6 @@ interface RawBounty {
     name: string;
     namespace: string | null;
     slug: string;
-    is_used_for_rep: boolean;
   }>;
   // Top-level category, subcategory, and journal from API
   category?: {

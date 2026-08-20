@@ -24,7 +24,44 @@ const nextConfig = {
     },
     {
       source: '/trending',
-      destination: '/popular',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/popular',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/latest',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/for-you',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/following',
+      destination: '/',
+      permanent: true,
+    },
+    // Retired experiment route: /feed-v2 became the homepage, and its children
+    // map 1:1 onto the top-level equivalents (/feed-v2/fund -> /fund).
+    {
+      source: '/feed-v2',
+      destination: '/',
+      permanent: false,
+    },
+    {
+      source: '/feed-v2/:path*',
+      destination: '/:path*',
+      permanent: false,
+    },
+    {
+      source: '/fund/dashboard',
+      destination: '/my-funding',
       permanent: true,
     },
     {

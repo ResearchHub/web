@@ -15,6 +15,7 @@ import {
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { Sprout, Star } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
+import { FundingPowerBar } from '@/components/Funding/FundingPowerBar';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -22,7 +23,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { isClassicHomeFeedPath, useHomeHref } from '@/hooks/useHomeHref';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 
 interface NavItem {
   label: string;
@@ -30,12 +31,11 @@ interface NavItem {
   iconKey?: string;
   isMore?: boolean;
   requiresAuth?: boolean;
-  isDynamicHome?: boolean;
+  isHome?: boolean;
 }
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
-  { label: 'Your Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
   { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
@@ -45,21 +45,10 @@ const moreNavItems: NavItem[] = [
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
   if (isHome) {
-    return isClassicHomeFeedPath(currentPath) || currentPath === '/';
-  }
-  if (path === '/fund') {
-    return (
-      currentPath === '/fund' ||
-      currentPath.startsWith('/fund/proposals') ||
-      (currentPath.startsWith('/fund/') && !currentPath.startsWith('/fund/dashboard'))
-    );
+    return isHomeTabPath(currentPath);
   }
   if (path === '/my-funding') {
-    return (
-      currentPath === '/my-funding' ||
-      currentPath === '/fund/dashboard' ||
-      currentPath.startsWith('/fund/dashboard/')
-    );
+    return currentPath === '/my-funding';
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -86,12 +75,10 @@ export const MobileBottomNav: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
 
-  const homeHref = useHomeHref();
-
   const mainNavItems: NavItem[] = [
-    { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
+    { label: 'Home', href: '/', iconKey: 'home', isHome: true },
+    { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
     { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
-    { label: 'Fund', href: '/fund', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
@@ -224,6 +211,16 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <>
+      {/* Docked over the content directly above the nav, sharing its scroll
+          fade so the two read as one piece of chrome. The nav is z-[100]. */}
+      <div
+        className={`fixed bottom-16 left-0 right-0 z-[99] px-3 pb-2 tablet:!hidden transition-opacity duration-300 ease-in-out ${
+          isScrollingDown ? 'opacity-20' : 'opacity-100'
+        }`}
+      >
+        <FundingPowerBar />
+      </div>
+
       {/* Bottom Navigation Bar */}
       <nav
         data-mobile-bottom-nav
@@ -239,7 +236,7 @@ export const MobileBottomNav: React.FC = () => {
             const isActive = item.isMore
               ? isMoreActive || isMoreOpen
               : item.href
-                ? isPathActive(item.href, pathname, item.isDynamicHome)
+                ? isPathActive(item.href, pathname, item.isHome)
                 : false;
 
             return (
@@ -252,7 +249,7 @@ export const MobileBottomNav: React.FC = () => {
                   {renderIcon(item, isActive)}
                 </div>
                 <span
-                  className={`text-[11px] mt-1 font-medium ${
+                  className={`text-[11px] mt-1 font-medium whitespace-nowrap ${
                     isActive ? 'text-primary-600' : 'text-black'
                   }`}
                 >

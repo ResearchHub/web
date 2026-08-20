@@ -9,8 +9,10 @@ import { formatCurrency } from '@/utils/currency';
 interface UseFundingPowerReturn {
   /** False while the user — or, when showing USD, the exchange rate — is still loading. */
   isReady: boolean;
-  /** No signed-in user, or nothing available to spend. */
+  /** Signed-in user with nothing available to spend. Logged-out is not empty — it shows $0.00. */
   isEmpty: boolean;
+  /** False until session + user fetch resolve to a signed-in user. */
+  isSignedIn: boolean;
   /** Spendable RSC plus fund-only credits. */
   total: number;
   /** Spendable RSC (available + promotional). */
@@ -50,7 +52,8 @@ export const useFundingPower = (): UseFundingPowerReturn => {
 
   return {
     isReady: !isUserLoading && (!showUSD || !isRateLoading),
-    isEmpty: !user || total === 0,
+    isEmpty: Boolean(user) && total === 0,
+    isSignedIn: Boolean(user),
     total,
     rscBalance,
     fundingCredits,

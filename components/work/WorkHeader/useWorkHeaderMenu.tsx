@@ -35,7 +35,6 @@ interface UseWorkHeaderMenuItemsOptions {
     canEdit: boolean;
   };
   onOpenFlagModal: () => void;
-  onOpenWorkEditModal: () => void;
 }
 
 export function useWorkHeaderMenuItems({
@@ -43,7 +42,6 @@ export function useWorkHeaderMenuItems({
   metadata,
   permissions,
   onOpenFlagModal,
-  onOpenWorkEditModal,
 }: UseWorkHeaderMenuItemsOptions) {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
@@ -84,22 +82,12 @@ export function useWorkHeaderMenuItems({
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
   const handleEdit = useCallback(() => {
-    if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
-      onOpenWorkEditModal();
-    } else if (selectedOrg && work.note) {
+    if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
     } else {
       toast.error('Unable to edit');
     }
-  }, [
-    work.contentType,
-    work.note,
-    selectedOrg,
-    router,
-    isModerator,
-    isHubEditor,
-    onOpenWorkEditModal,
-  ]);
+  }, [work.note, selectedOrg, router]);
 
   const handleAddVersion = useCallback(() => {
     if (!user) return;

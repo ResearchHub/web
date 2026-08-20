@@ -36,7 +36,7 @@ interface FeedContentProps {
   showFundraiseHeaders?: boolean;
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  grantCardVariant?: 'default' | 'comprehensive';
+  showGrantApplyCta?: boolean;
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
@@ -81,7 +81,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   showFundraiseHeaders = true,
   showPostHeaders = true,
   showReadMoreCTA = false,
-  grantCardVariant = 'default',
+  showGrantApplyCta = true,
   ordering,
   restoredScrollPosition,
   page,
@@ -134,8 +134,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   const displayEntries = entries;
   const showLoadingSkeletons = isLoading || isLoadingMore;
   const skeletonCount = 3;
-  const resolvedSkeletonVariant =
-    skeletonVariant ?? (grantCardVariant === 'comprehensive' ? 'comprehensive' : 'paper');
+  const resolvedSkeletonVariant = skeletonVariant ?? 'paper';
 
   useEffect(() => {
     if (inView && hasMore && !showLoadingSkeletons) {
@@ -196,7 +195,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   showGrantHeaders={showGrantHeaders}
                   showFundraiseHeaders={showFundraiseHeaders}
                   showReadMoreCTA={showReadMoreCTA}
-                  grantCardVariant={grantCardVariant}
+                  showGrantApplyCta={showGrantApplyCta}
                   feedOrdering={ordering}
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
@@ -226,6 +225,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                     variant={resolvedSkeletonVariant}
                     hideActions={hideActions}
                     showHeader={showPostHeaders}
+                    showGrantApplyCta={showGrantApplyCta}
                   />
                 ))}
               </div>

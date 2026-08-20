@@ -38,31 +38,6 @@ export class FollowService {
   }
 
   /**
-   * Get IDs of all followed hubs
-   * @returns Array of hub IDs
-   */
-  static async getFollowedHubIds(): Promise<number[]> {
-    const response = await ApiClient.get<FollowResponse[]>(`${this.BASE_PATH}/following/`);
-    return response.filter((item) => item.type === 'HUB').map((item) => item.object_id);
-  }
-
-  /**
-   * Follow a hub/topic
-   * @param hubId The ID of the hub to follow
-   */
-  static async followHub(hubId: number): Promise<void> {
-    await ApiClient.post(`${this.BASE_PATH}/${hubId}/follow/`);
-  }
-
-  /**
-   * Unfollow a hub/topic
-   * @param hubId The ID of the hub to unfollow
-   */
-  static async unfollowHub(hubId: number): Promise<void> {
-    await ApiClient.post(`${this.BASE_PATH}/${hubId}/unfollow/`);
-  }
-
-  /**
    * Follow multiple hubs/topics at once
    * @param hubIds Array of hub IDs to follow
    * @returns Response with followed, already following, and not found items

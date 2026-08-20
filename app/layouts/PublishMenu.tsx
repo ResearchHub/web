@@ -2,10 +2,10 @@
 
 import { ChevronRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import Icon from '@/components/ui/icons/Icon';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import {
   OpenFundingOpportunityModal,
@@ -29,16 +29,18 @@ const PUBLISH_MENU_SECTIONS = [
     items: [
       {
         id: 'give-funding',
-        title: 'Funding Opportunity',
+        title: 'Request for Proposal',
         description: 'Fund specific research you care about',
-        icon: <Icon name="fund" size={18} color="#374151" />,
+        icon: <FontAwesomeIcon icon={faBullhorn} className="h-[18px] w-[18px] text-gray-700" />,
         handler: 'handleOpenGrant',
       },
       {
         id: 'request-funding',
         title: 'Proposal',
         description: 'Raise money for your research',
-        icon: <FundingIcon size={18} color="#374151" />,
+        icon: (
+          <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-700" />
+        ),
         handler: 'handleFundResearch',
       },
     ],

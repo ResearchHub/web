@@ -16,8 +16,7 @@ interface FundingOpportunitySectionProps {
 }
 
 export function FundingOpportunitySection({ grant }: Readonly<FundingOpportunitySectionProps>) {
-  const displayTitle =
-    grant.title || grant.shortTitle || grant.organization || 'Funding Opportunity';
+  const displayTitle = grant.title || grant.shortTitle || grant.organization || 'RFP';
 
   const content = (
     <>
@@ -54,11 +53,7 @@ export function FundingOpportunitySection({ grant }: Readonly<FundingOpportunity
     <SidebarHeader
       title="Related Funding"
       action={
-        <Tooltip
-          content="This proposal applied to this funding opportunity"
-          position="top"
-          width="w-56"
-        >
+        <Tooltip content="This proposal applied to this RFP" position="top" width="w-56">
           <Button className="text-gray-400 hover:text-gray-600" variant="ghost" size="icon">
             <HelpCircle className="h-4 w-4" />
           </Button>

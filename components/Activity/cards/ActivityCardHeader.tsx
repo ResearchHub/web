@@ -46,7 +46,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({
   const headline = isProposalSubmission(entry) ? message.actor.headline?.trim() : undefined;
 
   return (
-    <div className="mb-2.5 min-w-0 pt-1 text-sm leading-6">
+    <div className="mb-2.5 min-w-0 pt-1 text-md leading-6">
       <ActivityHeaderActionText
         message={message}
         isAuthor={shouldShowAuthorBadge(entry, message.actor.id)}

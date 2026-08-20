@@ -86,7 +86,11 @@ export const ActivityWorkMetadata: FC<ActivityWorkMetadataProps> = ({ work, pres
                 <div
                   className={cn(
                     'font-extrabold font-mono text-sm leading-tight',
-                    s.accent ? 'text-emerald-300' : 'text-white/80'
+                    s.accent
+                      ? s.accentColor === 'orange'
+                        ? 'text-orange-300'
+                        : 'text-emerald-300'
+                      : 'text-white/80'
                   )}
                 >
                   {s.value}

@@ -3,15 +3,16 @@
 import { NoteList } from '@/components/Notebook/LeftSidebar/NoteList';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { UserPlus } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import Icon from '@/components/ui/icons/Icon';
 import { useUser } from '@/contexts/UserContext';
 
 export const NOTEBOOK_WORK_TYPES = [
   {
     value: 'grant',
-    label: 'Funding Opportunity',
+    label: 'RFP',
     description: 'Offer funding for research applications.',
   },
   {
@@ -71,11 +72,11 @@ export const NotebookPrimaryNavigation = ({
   );
   const createActions: Record<NotebookWorkType, { icon: React.ReactNode; onClick: () => void }> = {
     grant: {
-      icon: <Icon name="fund" size={18} color="#6b7280" />,
+      icon: <FontAwesomeIcon icon={faBullhorn} className="h-[18px] w-[18px] text-gray-500" />,
       onClick: onNewFundingOpportunity,
     },
     preregistration: {
-      icon: <FundingIcon size={18} color="#6b7280" />,
+      icon: <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-500" />,
       onClick: onNewProposal,
     },
     discussion: {
@@ -100,7 +101,7 @@ export const NotebookPrimaryNavigation = ({
           >
             {action.icon}
             <span className="font-medium">
-              New {workType.value === 'discussion' ? workType.label : workType.label.toLowerCase()}
+              New {workType.value === 'discussion' ? workType.label : workType.label}
             </span>
           </button>
         );

@@ -9,7 +9,7 @@ export function HomeTabs() {
   const tabsSentinelRef = useContentTabsVisibilitySentinel(true);
 
   return (
-    <div ref={tabsSentinelRef} className="mb-2 border-b border-gray-200">
+    <div ref={tabsSentinelRef} className="mb-6 border-b border-gray-200">
       <Tabs
         tabs={tabs}
         activeTab={highlightedTab}

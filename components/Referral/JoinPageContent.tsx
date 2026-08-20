@@ -22,10 +22,10 @@ export function JoinPageContent() {
   const { user, isLoading } = useUser();
   const { showAuthModal } = useAuthModalContext();
 
-  // Redirect authenticated users to trending page
+  // Redirect authenticated users to the home feed
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace('/popular');
+      router.replace('/');
     }
   }, [user, isLoading, router]);
 

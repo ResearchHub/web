@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowDownLeft, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundsGiven } from '@/components/Funding/dashboard/FundsGiven';
+import { ModeratorViewAsFunder } from '@/components/Funding/dashboard/ModeratorViewAsFunder';
 import { Tabs } from '@/components/ui/Tabs';
 import { useUser } from '@/contexts/UserContext';
 import { FundsReceived } from './FundsReceived';
@@ -74,8 +75,13 @@ export function MyFundingPage() {
   if (isLoadingUser || !user || hasModeratorOverrideOnReceivedTab) return null;
 
   return (
-    <PageLayout rightSidebar={false}>
-      <Tabs tabs={MY_FUNDING_TABS} activeTab={activeTab} onTabChange={() => {}} />
+    <PageLayout contentWidth="narrow">
+      <Tabs
+        tabs={MY_FUNDING_TABS}
+        activeTab={activeTab}
+        onTabChange={() => {}}
+        rightContent={isModerator && activeTab === 'given' ? <ModeratorViewAsFunder /> : undefined}
+      />
 
       <div className="mt-6">
         {activeTab === 'given' ? (

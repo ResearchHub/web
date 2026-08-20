@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -11,10 +11,6 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
 import { FunderOverview } from '@/types/funder';
-import {
-  SearchableUserSingleSelect,
-  UserOption,
-} from '@/components/ui/form/SearchableUserSingleSelect';
 
 function parseFunderIdParam(funderIdParam: string | null): number | undefined {
   if (!funderIdParam) return undefined;
@@ -34,22 +30,6 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   const funderId = isModerator
     ? (parseFunderIdParam(searchParams.get('funder_id')) ?? userId)
     : userId;
-
-  const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
-
-  const handleUserSelect = useCallback(
-    (selected: UserOption | null) => {
-      setSelectedUser(selected);
-      const params = new URLSearchParams(searchParams.toString());
-      if (selected) {
-        params.set('funder_id', selected.value);
-      } else {
-        params.delete('funder_id');
-      }
-      router.push(`?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -91,7 +71,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   let overviewContent: ReactNode = null;
   if (isLoadingOverview) {
     overviewContent = (
-      <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+      <div className="h-[272px] tablet:h-[200px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
     );
   } else if (overview) {
     overviewContent = <FunderHero overview={overview} />;
@@ -99,17 +79,6 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
 
   return (
     <>
-      {isModerator && (
-        <div className="mb-5 max-w-xs">
-          <p className="mb-1 text-xs font-medium text-gray-500">View as user (moderator only)</p>
-          <SearchableUserSingleSelect
-            value={selectedUser}
-            onChange={handleUserSelect}
-            placeholder="Search for a funder..."
-          />
-        </div>
-      )}
-
       {overviewContent}
 
       <FunderAuthorPostsSection funderId={funderId} className="mt-6" />
@@ -118,7 +87,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
           <div className="flex items-baseline gap-2.5">
             <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-              My funding opportunities
+              My Requests for Proposals
             </h2>
             {!isLoadingOpportunities && (
               <span className="text-xs text-gray-500">{opportunities.length} active</span>
@@ -126,12 +95,12 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
           </div>
           {!isLoadingOpportunities && opportunities.length > 0 && (
             <Button
-              variant="default"
+              variant="outlined"
               size="sm"
               onClick={() => router.push('/notebook?newGrant=true')}
             >
               <Plus size={14} />
-              New opportunity
+              New RFP
             </Button>
           )}
         </div>
@@ -142,15 +111,14 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
           hasMore={hasMore}
           loadMore={loadMore}
           wideContent
-          grantCardVariant="comprehensive"
+          skeletonVariant="grant"
+          showGrantApplyCta={false}
           showGrantHeaders={false}
           showPostHeaders={false}
           showFundraiseHeaders={false}
           noEntriesElement={
             <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
-              <p className="text-sm text-gray-500">
-                You haven&apos;t created any opportunities yet.
-              </p>
+              <p className="text-sm text-gray-500">You haven&apos;t created any RFPs yet.</p>
               <Button
                 variant="outlined"
                 size="sm"
@@ -158,7 +126,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
                 onClick={() => router.push('/notebook?newGrant=true')}
               >
                 <Plus size={14} />
-                Create your first opportunity
+                New RFP
               </Button>
             </div>
           }

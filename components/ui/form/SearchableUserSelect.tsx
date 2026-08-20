@@ -61,6 +61,7 @@ export interface SearchableUserSelectProps {
   error?: string;
   helperText?: string;
   debounceMs?: number;
+  sortable?: boolean;
   getOptionValue?: (user: UserSuggestion) => string;
 }
 
@@ -71,6 +72,7 @@ export function SearchableUserSelect({
   error,
   helperText,
   debounceMs = 300,
+  sortable = false,
   getOptionValue = defaultGetOptionValue,
 }: Readonly<SearchableUserSelectProps>) {
   const handleAsyncSearch = useCallback(
@@ -103,6 +105,7 @@ export function SearchableUserSelect({
       error={error}
       helperText={helperText}
       debounceMs={debounceMs}
+      sortable={sortable}
       renderOption={renderUserOption}
     />
   );

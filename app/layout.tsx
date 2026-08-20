@@ -38,20 +38,6 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  icons: {
-    icon: [
-      { url: '/favicons/favicon-16x16.png', sizes: '16x16' },
-      { url: '/favicons/favicon-32x32.png', sizes: '32x32' },
-      { url: '/favicons/favicon.ico', sizes: 'any' },
-    ],
-    shortcut: '/favicons/favicon.ico',
-    apple: [{ url: '/favicons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-    other: [
-      { rel: 'android-chrome', url: '/favicons/android-chrome-144x144.png', sizes: '144x144' },
-      { rel: 'mask-icon', url: '/favicons/mstile-150x150.png', color: '#da532c' },
-    ],
-  },
-  manifest: '/favicons/site.webmanifest',
   openGraph: {
     type: 'website',
     title: SITE_CONFIG.name,

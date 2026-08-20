@@ -67,12 +67,12 @@ const RISK_SCORE_EVENT_META: Record<RiskScoreEventType, RiskScoreEventMeta> = {
   WORK_APPROVED: {
     action: 'Approved',
     tooltip:
-      'A paper, proposal, or funding opportunity the user authored was approved by a moderator',
+      'A paper, proposal, or request for proposal the user authored was approved by a moderator',
   },
   WORK_DECLINED: {
     action: 'Declined',
     tooltip:
-      'A paper, proposal, or funding opportunity the user authored was declined by a moderator',
+      'A paper, proposal, or request for proposal the user authored was declined by a moderator',
     isContentRemoved: true,
   },
   CONTENT_CENSORED: {
@@ -136,7 +136,7 @@ const DOCUMENT_LABELS: Record<string, string> = {
   PAPER: 'Paper',
   DISCUSSION: 'Work',
   PREREGISTRATION: 'Proposal',
-  GRANT: 'Funding Opportunity',
+  GRANT: 'Request for Proposal',
   QUESTION: 'Question',
   NOTE: 'Note',
   BOUNTY: 'Bounty',

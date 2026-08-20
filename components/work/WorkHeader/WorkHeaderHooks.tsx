@@ -125,7 +125,7 @@ export function useWorkPermissions(work: Work) {
 
     switch (work.contentType) {
       case 'paper':
-        return isModerator || isHubEditor;
+        return false;
       case 'funding_request':
         return isGrantContact || isAuthor || isModerator;
       case 'post':
