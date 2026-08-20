@@ -786,6 +786,10 @@ export function AgentChatPanel({
     setNoteReloadFailed(false);
     setPersistFailed(false);
     const noteAtCall = targetRef.current.noteId;
+    // Captured with the payload: an agent version that lands while the save
+    // is in flight postdates what this save persists, and acknowledging it
+    // would let the auto-review guard skip its review.
+    const coveredAgentVersion = latestAgentVersionRef.current;
     try {
       const persisted = (await onPersistEditorState?.()) ?? true;
       if (targetRef.current.noteId !== noteAtCall) return;
@@ -794,9 +798,9 @@ export function AgentChatPanel({
         return;
       }
       const held = heldVersionRef.current;
-      const latestAgent = latestAgentVersionRef.current;
-      if (latestAgent != null) {
-        heldVersionRef.current = held == null ? latestAgent : Math.max(held, latestAgent);
+      if (coveredAgentVersion != null) {
+        heldVersionRef.current =
+          held == null ? coveredAgentVersion : Math.max(held, coveredAgentVersion);
       }
     } finally {
       // Owner-only cleanup — see persistLockRef.
