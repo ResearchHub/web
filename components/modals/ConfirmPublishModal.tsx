@@ -44,7 +44,7 @@ const GUIDELINES: Record<ConfirmPublishVariant, GuidelineConfig> = {
     ],
   },
   rfp: {
-    heading: 'Guidelines for Funding Opportunities',
+    heading: 'Guidelines for Request for Proposals',
     items: [
       { icon: GraduationCap, text: 'Stick to academically appropriate topics' },
       { icon: Scale, text: 'Clearly describe the scope and expectations for proposals' },
@@ -74,7 +74,7 @@ export function ConfirmPublishModal({
 
   const guidelines = GUIDELINES[variant];
   const resolvedDocumentLabel =
-    documentLabel ?? (variant === 'rfp' ? 'funding opportunity' : 'research proposal');
+    documentLabel ?? (variant === 'rfp' ? 'request for proposal' : 'research proposal');
 
   useEffect(() => {
     setTitle(initialTitle);

@@ -9,12 +9,14 @@ import { ActivityCommentGroupCard } from './cards/ActivityCommentGroupCard';
 import { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 import { groupActivityRows } from './lib/activityGrouping.utils';
 import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
 export function ActivityPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const scrollContainerRef = useScrollContainer();
   const {
     entries,
     isLoading,
@@ -24,6 +26,7 @@ export function ActivityPageContent() {
     loadMore,
     activate,
     restoredScrollPosition,
+    hasSavedScrollPosition,
     lastClickedEntryId,
     restorationTab,
   } = useActivityFeeds();
@@ -31,6 +34,14 @@ export function ActivityPageContent() {
   useEffect(() => {
     activate();
   }, [activate]);
+
+  // The scroll container belongs to PageLayout and on a fresh visit, it is not at the top of the page.
+  // This is bad because the FundingPowerCard gets hidden.
+  useEffect(() => {
+    if (!hasSavedScrollPosition && scrollContainerRef?.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [hasSavedScrollPosition, scrollContainerRef]);
 
   const feedKey = useMemo(() => {
     const queryParams: Record<string, string> = {};

@@ -6,8 +6,12 @@ import {
   SkeletonProposalSectionHeader,
 } from './shared';
 
-/** Mirrors `FeedItemGrantWithApplicants` on `/fund` (public grant cards). */
-export const GrantSkeleton: FC = () => (
+interface GrantSkeletonProps {
+  showApplyCta?: boolean;
+}
+
+/** Mirrors `FeedItemGrantWithApplicants` on `/fund` and `/my-funding`. */
+export const GrantSkeleton: FC<GrantSkeletonProps> = ({ showApplyCta = true }) => (
   <SkeletonGrantCardShell>
     <div className="relative h-[160px] bg-gray-300">
       <div className="absolute bottom-0 inset-x-0 px-5 py-2.5 bg-gray-400/40 border-t border-white/[0.06]">
@@ -28,6 +32,6 @@ export const GrantSkeleton: FC = () => (
 
     <SkeletonProposalSectionHeader />
     <SkeletonProposalRows count={1} flushAskColumn />
-    <SkeletonGrantApplyFooter />
+    {showApplyCta && <SkeletonGrantApplyFooter />}
   </SkeletonGrantCardShell>
 );

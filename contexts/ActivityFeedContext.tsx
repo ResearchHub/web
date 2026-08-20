@@ -23,6 +23,13 @@ interface ActivityFeedContextValue {
   loadMore: () => Promise<void>;
   activate: () => void;
   restoredScrollPosition: number | null;
+  /**
+   * Whether this feed ever had a saved scroll position to return to. Unlike
+   * `restoredScrollPosition`, which is consumed and reverts to null, this stays
+   * true, so callers can tell a restored feed apart from a fresh visit at any
+   * point in the provider's life.
+   */
+  hasSavedScrollPosition: boolean;
   lastClickedEntryId: string | null;
   restorationTab: string;
 }
@@ -51,6 +58,19 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
   const pageRef = useRef(initialPage);
+
+  // `restoredScrollPosition` only survives until useFeedScrollTracking consumes
+  // it and clears the back-navigation flag, after which a restored feed is
+  // indistinguishable from a fresh one. Latch it instead of re-reading it.
+  const [hasSavedScrollPosition, setHasSavedScrollPosition] = useState(
+    restoredScrollPosition !== null
+  );
+
+  useEffect(() => {
+    if (restoredScrollPosition !== null) {
+      setHasSavedScrollPosition(true);
+    }
+  }, [restoredScrollPosition]);
 
   const [activated, setActivated] = useState(hasRestoredEntries);
   const activate = useCallback(() => setActivated(true), []);
@@ -111,6 +131,7 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
       loadMore,
       activate,
       restoredScrollPosition,
+      hasSavedScrollPosition,
       lastClickedEntryId,
       restorationTab: RESTORATION_TAB,
     }),
@@ -124,6 +145,7 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
       loadMore,
       activate,
       restoredScrollPosition,
+      hasSavedScrollPosition,
       lastClickedEntryId,
     ]
   );

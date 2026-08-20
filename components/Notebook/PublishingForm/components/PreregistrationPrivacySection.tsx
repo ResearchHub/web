@@ -76,7 +76,7 @@ export function PreregistrationPrivacySection() {
           <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
             <p className="text-xs text-amber-800">
-              In order to submit a private proposal, you must select a funding opportunity.
+              In order to submit a private proposal, you must select an RFP.
             </p>
           </div>
         )}

@@ -177,7 +177,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Funding Opportunity Title',
+          text: 'Request for Proposal Title',
         },
       ],
     },

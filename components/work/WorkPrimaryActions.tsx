@@ -31,7 +31,6 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { useUser } from '@/contexts/UserContext';
-import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -80,7 +79,6 @@ export const WorkPrimaryActions = ({
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
-  const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
   const { isInList } = useIsInList(work.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
@@ -178,9 +176,7 @@ export const WorkPrimaryActions = ({
     work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
 
   const handleEdit = useCallback(() => {
-    if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
-      setIsWorkEditModalOpen(true);
-    } else if (selectedOrg && work.note) {
+    if (selectedOrg && work.note) {
       router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
     } else if (
       (work.contentType === 'post' || work.contentType === 'preregistration') &&
@@ -191,16 +187,7 @@ export const WorkPrimaryActions = ({
     } else {
       toast.error('Unable to edit');
     }
-  }, [
-    work.contentType,
-    work.note,
-    selectedOrg,
-    router,
-    isModerator,
-    isHubEditor,
-    isAuthor,
-    onEditClick,
-  ]);
+  }, [work.contentType, work.note, selectedOrg, router, isAuthor, onEditClick]);
 
   const handleTipSuccess = (amount: number) => {
     toast.success(`Successfully tipped ${amount} RSC`);
@@ -217,7 +204,7 @@ export const WorkPrimaryActions = ({
   const canEdit = (() => {
     switch (work.contentType) {
       case 'paper':
-        return isModerator || isHubEditor;
+        return false;
       case 'funding_request':
         return isGrantContact || isAuthor || isModerator;
       case 'post':
@@ -532,15 +519,6 @@ export const WorkPrimaryActions = ({
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}
           unifiedDocumentId={work.unifiedDocumentId}
-        />
-      )}
-
-      {work.contentType === 'paper' && (
-        <WorkEditModal
-          isOpen={isWorkEditModalOpen}
-          onClose={() => setIsWorkEditModalOpen(false)}
-          work={work}
-          metadata={metadata}
         />
       )}
 

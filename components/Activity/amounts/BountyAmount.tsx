@@ -20,7 +20,11 @@ export const BountyAmount: FC<BountyAmountProps> = ({ bounty, className, size })
   const { amount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
 
   return (
-    <AmountBadge className={className} size={size}>
+    <AmountBadge
+      className={className}
+      size={size}
+      variant={bounty.bountyType === 'REVIEW' ? 'orange' : 'green'}
+    >
       {formatCurrency({
         amount: Math.round(amount),
         showUSD,

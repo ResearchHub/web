@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { FeedSortDropdown } from '@/components/Feed/FeedTabs';
+import { FeedSortDropdown } from '@/components/Feed/FeedSortDropdown';
 import { useFeed } from '@/hooks/useFeed';
 import { JournalV2FeedEntryItem } from '@/components/Journal/JournalV2FeedEntryItem';
 

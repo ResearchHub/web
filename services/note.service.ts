@@ -53,6 +53,7 @@ export interface UpdateNoteTitleParams {
 export interface GetOrganizationNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
   documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION' | 'REGISTERED_REPORT';
+  nextUrl?: string;
 }
 
 export interface NoteInvitePreview {
@@ -159,9 +160,11 @@ export class NoteService {
       if (params?.documentType) queryParams.append('type', params.documentType);
       const qs = queryParams.toString();
 
-      const response = await ApiClient.get<any>(
-        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/${qs ? `?${qs}` : ''}`
-      );
+      const url =
+        params?.nextUrl ??
+        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/${qs ? `?${qs}` : ''}`;
+
+      const response = await ApiClient.get<any>(url);
 
       if (!response || !Array.isArray(response.results)) {
         throw new NoteError('Invalid response format', 'INVALID_RESPONSE');

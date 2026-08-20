@@ -16,23 +16,18 @@ import { FeedSource } from '@/types/analytics';
  * 3. Second path segment for list pages (e.g., /list/123 → tab: '123')
  * 4. Second path segment for other pages (e.g., /topic/ai/popular)
  * 5. For author pages: default to 'contributions' when no query param
- * 6. For home tabs, the source itself (e.g., /popular → tab: 'popular')
- * 7. For search pages: constant 'search' as tab
- * 8. Default to 'unknown'
+ * 6. For search pages: constant 'search' as tab
+ * 7. Default to 'unknown'
  *
  * Special handling:
  * - Root path (/) is treated as 'home' source
- * - trending, following, latest, for-you are all treated as 'home' source
  * - Topic pages (/topic/slug/tab) use the third path segment as tab
  * - List pages (/list/[id]) use the second path segment (list ID) as tab
  * - Author pages (/author/[id]) default to 'contributions' tab when no query param
  * - Search pages (/search) use 'search' as tab (no extraction needed)
  *
  * URL Structure Examples:
- * - /popular → source: 'home', tab: 'popular'
- * - /following → source: 'home', tab: 'following'
- * - /latest → source: 'home', tab: 'latest'
- * - /for-you → source: 'home', tab: 'for-you'
+ * - / → source: 'home', tab: 'unknown'
  * - /peer-review → source: 'peer-review', tab: 'unknown'
  * - /fund → source: 'fund', tab: 'unknown'
  * - /journal?tab=all → source: 'journal', tab: 'all'
@@ -92,17 +87,14 @@ export function useFeedSource(): FeedSourceInfo {
   // Extract source from first path segment
   const source = pathSegments[0] || 'home';
 
-  // Treat trending, following, latest, for-you as home
-  const homeTabs = ['popular', 'following', 'latest', 'for-you'];
-  const isHomeTab = homeTabs.includes(source);
   const isTopicTab = source === 'topic';
   const isAuthorTab = source === 'author';
   const isSearchTab = source === 'search';
   const isListTab = source === 'list';
 
-  const feedSource = isHomeTab ? 'home' : toFeedSource(source);
+  const feedSource = toFeedSource(source);
 
-  // Extract tab: 1) query param, 2) third path segment for topic pages, 3) second path segment, 4) home tab, 5) search (constant), 6) unknown
+  // Extract tab: 1) query param, 2) third path segment for topic pages, 3) second path segment, 4) search (constant), 5) unknown
   let tab: string;
 
   const queryTab = searchParams.get('tab');
@@ -124,9 +116,6 @@ export function useFeedSource(): FeedSourceInfo {
     tab = 'contributions';
   } else if (pathTab && !isTopicTab && !isAuthorTab && !isListTab) {
     tab = pathTab;
-  } else if (isHomeTab) {
-    // For home tabs, use the source as the tab
-    tab = source;
   } else {
     tab = 'unknown';
   }

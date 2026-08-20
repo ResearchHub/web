@@ -22,7 +22,7 @@ export function DeleteAuthorButton({ authorId, authorName }: Readonly<DeleteAuth
     try {
       await deleteAuthor(authorId);
       toast.success('Author has been deleted');
-      router.replace('/popular');
+      router.replace('/');
     } catch {
       toast.error('Failed to delete author');
     }

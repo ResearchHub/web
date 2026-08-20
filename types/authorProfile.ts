@@ -114,8 +114,7 @@ export type AchievementType =
   | 'CITED_AUTHOR'
   | 'OPEN_ACCESS'
   | 'OPEN_SCIENCE_SUPPORTER'
-  | 'EXPERT_PEER_REVIEWER'
-  | 'HIGHLY_UPVOTED';
+  | 'EXPERT_PEER_REVIEWER';
 
 export type Achievement = {
   type: AchievementType;
@@ -173,7 +172,6 @@ export interface AuthorSummaryStats {
   citationCount: number;
   twoYearMeanCitedness: number;
   peerReviewCount: number;
-  upvotesReceived: number;
   amountFunded: number;
 }
 
@@ -183,7 +181,6 @@ export const transformAuthorSummaryStats = createTransformer<any, AuthorSummaryS
       worksCount: 0,
       citationCount: 0,
       twoYearMeanCitedness: 0,
-      upvotesReceived: 0,
       amountFunded: 0,
       openAccessPct: 0,
       peerReviewCount: 0,
@@ -194,7 +191,6 @@ export const transformAuthorSummaryStats = createTransformer<any, AuthorSummaryS
     worksCount: raw.summary_stats.works_count || 0,
     citationCount: raw.summary_stats.citation_count || 0,
     twoYearMeanCitedness: raw.summary_stats.two_year_mean_citedness || 0,
-    upvotesReceived: raw.summary_stats.upvote_count || 0,
     amountFunded: raw.summary_stats.amount_funded || 0,
     openAccessPct: Math.round((raw.summary_stats.open_access_pct || 0) * 100),
     peerReviewCount: raw.summary_stats.peer_review_count || 0,

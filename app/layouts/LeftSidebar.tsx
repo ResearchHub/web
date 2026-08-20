@@ -9,6 +9,7 @@ import { PublishMenu } from './PublishMenu';
 import { Logo } from '@/components/ui/Logo';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
+import { FundingPowerRailButton } from '@/components/Funding/FundingPowerRailButton';
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
@@ -66,6 +67,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
         onUnimplementedFeature={handleUnimplementedFeature}
         forceMinimize={forceMinimize}
       />
+
+      {/* Navigation above is flex-1, so this sits at the bottom of the column.
+          Only covers 768px to the right sidebar's breakpoint: below that the
+          bar is docked over the mobile bottom nav, and above it the funding
+          power card is in the right sidebar. */}
+      <div className={`px-2 pb-3 ${forceMinimize ? '!block' : 'hidden tablet:max-lg:!block'}`}>
+        <FundingPowerRailButton />
+      </div>
 
       <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
         <FooterLinks />
