@@ -397,6 +397,12 @@ export function AgentChatPanel({
     if (renamed && isCurrentTarget(target)) refreshList();
   };
 
+  // A rename left open across a note switch would commit against whichever
+  // chat the new note auto-selects — it dies with the note that owned it.
+  useEffect(() => {
+    setRenaming(false);
+  }, [noteId]);
+
   // ---- note refresh when the agent edits the note ----
   const heldVersionRef = useRef<number | null>(null);
   const [noteReloadFailed, setNoteReloadFailed] = useState(false);
