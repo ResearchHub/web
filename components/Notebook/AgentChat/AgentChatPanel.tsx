@@ -85,20 +85,23 @@ function parseVersionContent(
 }
 
 /**
- * Fetch the content a reload should apply: the pinned version when the banner
- * promised a specific assistant version, otherwise the note's latest.
+ * Fetch the version a reload should apply: the pinned version when the banner
+ * promised a specific assistant version, otherwise the note's latest. Both
+ * serializations come back — which one the editor gets is decided against its
+ * schema (see parseVersionForEditor).
  */
 async function fetchReloadContent(
   noteId: string,
   pinnedVersionId: number | null
-): Promise<{ content: string | object; versionId: number | null }> {
+): Promise<{ contentJson?: string; contentSrc?: string; versionId: number | null }> {
   if (pinnedVersionId != null) {
     const version = await NoteService.getNoteVersion(pinnedVersionId);
-    return { content: parseVersionContent(version.json, version.src), versionId: pinnedVersionId };
+    return { contentJson: version.json, contentSrc: version.src, versionId: pinnedVersionId };
   }
   const note = await NoteService.getNote(noteId);
   return {
-    content: parseVersionContent(note.contentJson, note.content),
+    contentJson: note.contentJson,
+    contentSrc: note.content,
     versionId: note.versionId ?? null,
   };
 }
@@ -122,6 +125,36 @@ function parseIncomingNode(editor: Editor, content: string | object): ProseMirro
   } catch {
     return null;
   }
+}
+
+/**
+ * Parse a version for the editor: the schema node for diffing plus the
+ * content a verbatim apply should use. JSON the schema rejects — an unknown
+ * node from a newer serializer, say — falls back to the HTML source, which
+ * the DOM parser degrades around where nodeFromJSON refuses outright.
+ */
+function parseVersionForEditor(
+  editor: Editor,
+  contentJson: string | undefined,
+  contentSrc: string | undefined
+): { node: ProseMirrorNode | null; content: string | object } {
+  const content = parseVersionContent(contentJson, contentSrc);
+  const node = parseIncomingNode(editor, content);
+  if (node != null || typeof content === 'string' || !contentSrc) return { node, content };
+  return { node: parseIncomingNode(editor, contentSrc), content: contentSrc };
+}
+
+/**
+ * Verbatim-apply a fetched version: JSON when the schema accepts it, else
+ * the HTML source (see parseVersionForEditor). Never a user edit.
+ */
+function applyVersionContent(
+  editor: Editor | null,
+  contentJson: string | undefined,
+  contentSrc: string | undefined
+): void {
+  if (!editor || editor.isDestroyed) return;
+  applyEditorContent(editor, parseVersionForEditor(editor, contentJson, contentSrc).content);
 }
 
 /**
@@ -543,10 +576,11 @@ export function AgentChatPanel({
     setPersistFailed(false);
     try {
       const pinnedVersionId = latestAgentVersionRef.current;
-      const { content, versionId: nextVersionId } = await fetchReloadContent(
-        noteId,
-        pinnedVersionId
-      );
+      const {
+        contentJson,
+        contentSrc,
+        versionId: nextVersionId,
+      } = await fetchReloadContent(noteId, pinnedVersionId);
       // Navigated away mid-fetch: this content and version belong to the
       // previous note and must not touch the current note's tracking.
       if (targetRef.current.noteId !== noteId) return;
@@ -557,7 +591,7 @@ export function AgentChatPanel({
       endNoteDiffReview(editor);
       setReview(null);
       if (nextVersionId != null) recordServerHead(nextVersionId);
-      applyEditorContent(editor, content);
+      applyVersionContent(editor, contentJson, contentSrc);
       heldVersionRef.current = nextVersionId ?? heldVersionRef.current;
       lastFailedReviewVersionRef.current = null;
       // A pinned version older than the server head means newer saves buried
@@ -632,8 +666,7 @@ export function AgentChatPanel({
       if (editor.isDestroyed) return;
       if (editorLeaseRef.current !== lease) return;
       recordServerHead(pinnedVersionId);
-      const content = parseVersionContent(version.json, version.src);
-      const incoming = parseIncomingNode(editor, content);
+      const { node: incoming, content } = parseVersionForEditor(editor, version.json, version.src);
       const epoch = ++reviewEpochRef.current;
       let changeCount = 0;
       if (incoming) {
@@ -641,7 +674,8 @@ export function AgentChatPanel({
           onChangeCountUpdate: (count) => handleLiveChangeCount(epoch, count),
         });
       } else {
-        // Unparseable version content — fall back to a verbatim apply.
+        // Neither serialization yielded a schema node — verbatim apply,
+        // letting setContent's own parser do what it can.
         applyEditorContent(editor, content);
       }
       heldVersionRef.current = pinnedVersionId;
