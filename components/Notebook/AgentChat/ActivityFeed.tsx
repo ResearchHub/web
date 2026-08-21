@@ -225,10 +225,12 @@ function ActivityItemBody({
   readonly streaming: boolean;
 }) {
   if (item.type === 'narration') {
+    // Same renderer as the answer bubble, so the live narration preview and
+    // the settled message it becomes read as one continuous surface.
     return (
-      <p className="whitespace-pre-wrap break-words pl-6 leading-relaxed text-gray-500">
-        {item.text}
-      </p>
+      <div className="pl-6">
+        <MarkdownMessage content={item.text} className="text-gray-500" />
+      </div>
     );
   }
   if (item.type === 'thinking') {
