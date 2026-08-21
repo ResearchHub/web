@@ -7,7 +7,7 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
 
 export const HIDE_FROM_FEED_CONFIRM_MESSAGE =
-  'This document and related entries will be removed from public feeds. Detail pages and direct links will still work. There is no way to unhide it from the UI yet.';
+  'This document and related entries will be removed from feeds.';
 
 interface UseHideFromFeedReturn {
   hideFromFeed: (unifiedDocumentId: ID) => Promise<boolean>;
@@ -25,9 +25,7 @@ export function useHideFromFeed(): UseHideFromFeedReturn {
     setIsHiding(true);
     try {
       await FeedModerationService.excludeFromFeed(unifiedDocumentId);
-      toast.success(
-        'Hidden from feeds. This document and related entries will no longer appear in public feeds.'
-      );
+      toast.success('Hidden from feeds.');
       return true;
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to hide from feed'));
