@@ -63,6 +63,7 @@ export default {
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'thinking-dot': 'pulse-dot 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
         'logo-marquee': 'logo-marquee 32s linear infinite',
