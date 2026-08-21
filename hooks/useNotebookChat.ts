@@ -173,6 +173,10 @@ export function applyStreamEvent(
   // The socket can trail a REST checkpoint across an iteration boundary; a
   // late frame from an older iteration must not rewind the preview. Drop it —
   // the installed content is already newer, so there is nothing to repair.
+  // Known residual race: after a server `stream: null` there is no iteration
+  // to compare, so a late seq-1 frame from a dead iteration can briefly
+  // resurrect its preview until the next frame or refetch replaces it. Closing
+  // it needs the cleared checkpoint to carry its iteration (backend contract).
   if (!continuing && current != null && event.iteration < current.iteration) {
     return { chat, needsRepair: false };
   }
