@@ -63,10 +63,12 @@ export interface PendingSend {
 }
 
 /**
- * The cached stream when it is the same stream a REST response checkpointed
- * but at a newer sequence — a checkpoint captured just before a socket batch
- * arrived must not rewind it. Null whenever the server copy is authoritative:
- * explicit `stream: null`, a new stream id, or a terminal execution.
+ * The cached stream when it is newer than what a REST response checkpointed —
+ * a higher sequence of the same stream, or a later provider iteration the
+ * socket installed while the response was in flight. A checkpoint racing the
+ * socket must not rewind it; null whenever the server copy is authoritative:
+ * explicit `stream: null`, a same-or-newer server iteration, or a terminal
+ * execution.
  */
 function newerCachedStream(
   execution: ChatExecution,
@@ -76,7 +78,9 @@ function newerCachedStream(
   const serverStream = execution.stream;
   const cachedStream = cached?.stream;
   if (serverStream == null || cachedStream == null) return null;
-  if (cachedStream.id !== serverStream.id) return null;
+  if (cachedStream.id !== serverStream.id) {
+    return cachedStream.iteration > serverStream.iteration ? cachedStream : null;
+  }
   return cachedStream.sequence > serverStream.sequence ? cachedStream : null;
 }
 
@@ -166,6 +170,12 @@ export function applyStreamEvent(
 
   const current = execution.stream;
   const continuing = current?.id === event.stream_id;
+  // The socket can trail a REST checkpoint across an iteration boundary; a
+  // late frame from an older iteration must not rewind the preview. Drop it —
+  // the installed content is already newer, so there is nothing to repair.
+  if (!continuing && current != null && event.iteration < current.iteration) {
+    return { chat, needsRepair: false };
+  }
   if (continuing && event.sequence <= current.sequence) {
     return { chat, needsRepair: false };
   }
@@ -257,8 +267,9 @@ export function useNotebookChat({
   // Mirror of `chat` for non-reactive reads inside fetchChat.
   const chatRef = useRef<NotebookChat | null>(null);
   // A sequence gap can produce more gap frames while its recovery GET runs.
-  // Keep exactly one repair in flight rather than starting one per token.
-  const streamRepairRef = useRef(false);
+  // Keep one repair in flight; a gap seen mid-flight queues exactly one more,
+  // since the running GET may have been snapshotted before that frame.
+  const streamRepairRef = useRef<'idle' | 'running' | 'queued'>('idle');
   chatRef.current = chat;
 
   const fetchChat = useCallback(
@@ -299,7 +310,7 @@ export function useNotebookChat({
   useEffect(() => {
     seqRef.current += 1; // invalidate any in-flight response for the old chat
     epochRef.current += 1; // …and any pending send/cancel/rename continuation
-    streamRepairRef.current = false;
+    streamRepairRef.current = 'idle';
     setPendingSend(null);
     if (!enabled || noteId == null || chatId == null) {
       setChat(null);
@@ -374,11 +385,18 @@ export function useNotebookChat({
   }, [fetchChat]);
 
   const repairStream = useCallback(() => {
-    if (streamRepairRef.current) return;
-    streamRepairRef.current = true;
-    fetchChat('live').finally(() => {
-      streamRepairRef.current = false;
-    });
+    if (streamRepairRef.current !== 'idle') {
+      streamRepairRef.current = 'queued';
+      return;
+    }
+    const run = (): void => {
+      streamRepairRef.current = 'running';
+      fetchChat('live').finally(() => {
+        if (streamRepairRef.current === 'queued') run();
+        else streamRepairRef.current = 'idle';
+      });
+    };
+    run();
   }, [fetchChat]);
 
   const handleSocketEvent = useCallback(
