@@ -64,6 +64,22 @@ export interface ChatToolCallActivity {
 
 export type ChatActivityItem = ChatNarrationActivity | ChatThinkingActivity | ChatToolCallActivity;
 
+/** A transient item assembled from WebSocket deltas while a model turn runs. */
+export type ChatStreamItem = (ChatNarrationActivity | ChatThinkingActivity) & {
+  /** Stable within one provider iteration. */
+  id: string;
+};
+
+/** Bounded server checkpoint used to recover after a dropped socket frame. */
+export interface ChatExecutionStream {
+  /** Execution + provider iteration identity (for example `42:2`). */
+  id: string;
+  /** Monotonic within this stream id. */
+  sequence: number;
+  iteration: number;
+  items: ChatStreamItem[];
+}
+
 export interface ExecutionPhase {
   /**
    * Coarse machine state — `queued` / `using_tool` / `responding` / `thinking`
@@ -109,6 +125,12 @@ export interface ChatExecution {
    * consumers can rely on the field being present.
    */
   activity?: ChatActivityItem[];
+  /**
+   * In-flight text/readable-thinking snapshot. Present for active executions;
+   * null means an old local preview must be cleared. Terminal executions omit
+   * it because their durable activity/message is authoritative.
+   */
+  stream?: ChatExecutionStream | null;
   /** Coarse live status; null once the turn is terminal. */
   phase: ExecutionPhase | null;
 }
@@ -151,11 +173,62 @@ export interface CancelTurnResponse {
   execution_id: number | null;
 }
 
-/** Socket events carry identifiers only — on any event, refetch. */
-export interface ChatSocketEvent {
+interface ChatSocketEventBase {
   conversation_id: number;
   execution_id: number | null;
   kind: string;
+}
+
+export interface ChatStreamDelta {
+  id: string;
+  type: 'narration' | 'thinking';
+  delta: string;
+  at: string;
+}
+
+export interface ChatStreamSocketEvent extends ChatSocketEventBase {
+  execution_id: number;
+  kind: 'stream_delta';
+  stream_id: string;
+  sequence: number;
+  iteration: number;
+  deltas: ChatStreamDelta[];
+}
+
+/** Lifecycle events are identifier-only refetch nudges. */
+export type ChatSocketEvent = ChatSocketEventBase | ChatStreamSocketEvent;
+
+export function isChatSocketEvent(value: unknown): value is ChatSocketEvent {
+  if (value == null || typeof value !== 'object') return false;
+  const candidate = value as Partial<ChatSocketEventBase>;
+  return (
+    typeof candidate.conversation_id === 'number' &&
+    (candidate.execution_id == null || typeof candidate.execution_id === 'number') &&
+    typeof candidate.kind === 'string'
+  );
+}
+
+/** Runtime guard: WebSocket JSON crosses no schema-validation boundary. */
+export function isChatStreamSocketEvent(event: ChatSocketEvent): event is ChatStreamSocketEvent {
+  const candidate = event as Partial<ChatStreamSocketEvent>;
+  return (
+    event.kind === 'stream_delta' &&
+    typeof event.execution_id === 'number' &&
+    typeof candidate.stream_id === 'string' &&
+    typeof candidate.sequence === 'number' &&
+    Number.isInteger(candidate.sequence) &&
+    typeof candidate.iteration === 'number' &&
+    Array.isArray(candidate.deltas) &&
+    candidate.deltas.length > 0 &&
+    candidate.deltas.every(
+      (delta) =>
+        delta != null &&
+        typeof delta.id === 'string' &&
+        (delta.type === 'narration' || delta.type === 'thinking') &&
+        typeof delta.delta === 'string' &&
+        typeof delta.at === 'string'
+    )
+  );
 }
 
 export const MAX_CHAT_MESSAGE_LENGTH = 20_000;

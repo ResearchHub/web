@@ -9,8 +9,13 @@ import {
 } from '@/services/notebookChat.service';
 import { useNotebookChatSocket, type ChatSocketStatus } from '@/hooks/useNotebookChatSocket';
 import {
+  isChatStreamSocketEvent,
   isActiveExecutionStatus,
   type ChatExecution,
+  type ChatExecutionStream,
+  type ChatStreamDelta,
+  type ChatStreamItem,
+  type ChatStreamSocketEvent,
   type ChatSocketEvent,
   type NotebookChat,
   type NotebookChatListItem,
@@ -18,8 +23,10 @@ import {
 
 /** Fallback poll cadence while a turn runs; the socket nudge usually wins. */
 const POLL_INTERVAL_MS = 5000;
-/** Socket events are advisory nudges — collapse bursts into one refetch. */
+/** Lifecycle events and stream repair requests collapse into one refetch. */
 const NUDGE_DEBOUNCE_MS = 250;
+const MAX_STREAM_NARRATION_CHARS = 100_000;
+const MAX_STREAM_THINKING_CHARS = 4_000;
 
 export type ChatAccess = 'loading' | 'ok' | 'not_found' | 'unauthorized' | 'error';
 
@@ -56,27 +63,151 @@ export interface PendingSend {
 }
 
 /**
+ * The cached stream when it is newer than what a REST response checkpointed —
+ * a higher sequence of the same stream, or a later provider iteration the
+ * socket installed while the response was in flight. A checkpoint racing the
+ * socket must not rewind it; null whenever the server copy is authoritative:
+ * explicit `stream: null`, a same-or-newer server iteration, or a terminal
+ * execution.
+ */
+function newerCachedStream(
+  execution: ChatExecution,
+  cached: ChatExecution | undefined
+): ChatExecutionStream | null {
+  if (!isActiveExecutionStatus(execution.status)) return null;
+  const serverStream = execution.stream;
+  const cachedStream = cached?.stream;
+  if (serverStream == null || cachedStream == null) return null;
+  if (cachedStream.id !== serverStream.id) {
+    return cachedStream.iteration > serverStream.iteration ? cachedStream : null;
+  }
+  return cachedStream.sequence > serverStream.sequence ? cachedStream : null;
+}
+
+/**
  * Merge a `?activity=live` response over the cached chat.
  *
- * Everything except `activity` is replaced wholesale. `activity` follows the
- * server's omission contract: an absent key means "unchanged — keep the cached
- * copy", while a present key (even `[]`, a turn that used no tools) replaces
- * it. After the merge every execution carries a concrete `activity` array so
- * the UI never has to reason about the omission again.
+ * `activity` follows the server's omission contract: an absent key means
+ * "unchanged — keep the cached copy", while a present key (even `[]`, a turn
+ * that used no tools) replaces it. Streams keep whichever of the cached and
+ * server copies is newer, per {@link newerCachedStream}.
  */
 function mergeLiveChat(prev: NotebookChat | null, next: NotebookChat): NotebookChat {
-  const cachedActivity = new Map<number, ChatExecution['activity']>(
-    (prev?.executions ?? []).map((execution) => [execution.id, execution.activity])
+  const cachedExecutions = new Map<number, ChatExecution>(
+    (prev?.executions ?? []).map((execution) => [execution.id, execution])
   );
 
   return {
     ...next,
-    executions: next.executions.map((execution) =>
-      execution.activity !== undefined
-        ? execution
-        : { ...execution, activity: cachedActivity.get(execution.id) ?? [] }
-    ),
+    executions: next.executions.map((execution) => {
+      const cached = cachedExecutions.get(execution.id);
+      const activity = execution.activity ?? cached?.activity ?? [];
+      const newerStream = newerCachedStream(execution, cached);
+      return {
+        ...execution,
+        activity,
+        ...(newerStream != null ? { stream: newerStream, phase: cached?.phase ?? null } : {}),
+      };
+    }),
   };
+}
+
+interface ApplyStreamEventResult {
+  chat: NotebookChat | null;
+  needsRepair: boolean;
+}
+
+/** Append one batch's deltas to a copy of `current`; null = corrupt frame. */
+function appendStreamDeltas(
+  current: readonly ChatStreamItem[],
+  deltas: readonly ChatStreamDelta[]
+): ChatStreamItem[] | null {
+  const items = current.map((item) => ({ ...item }));
+  for (const delta of deltas) {
+    const maximum =
+      delta.type === 'thinking' ? MAX_STREAM_THINKING_CHARS : MAX_STREAM_NARRATION_CHARS;
+    const existing = items.find((item) => item.id === delta.id);
+    if (existing == null) {
+      items.push({
+        id: delta.id,
+        type: delta.type,
+        text: delta.delta.slice(0, maximum),
+        at: delta.at,
+      });
+    } else if (existing.type === delta.type) {
+      existing.text = `${existing.text}${delta.delta}`.slice(0, maximum);
+    } else {
+      // An id changing type indicates an incompatible/corrupt frame. Recover
+      // from the server checkpoint instead of combining unlike content.
+      return null;
+    }
+  }
+  return items;
+}
+
+/**
+ * Append one sequenced socket batch. Duplicate/old batches are harmless; a
+ * missing batch is never guessed and instead asks REST for its checkpoint.
+ */
+export function applyStreamEvent(
+  chat: NotebookChat | null,
+  event: ChatStreamSocketEvent
+): ApplyStreamEventResult {
+  if (chat?.conversation_id !== event.conversation_id) {
+    return { chat, needsRepair: true };
+  }
+
+  const executionIndex = chat.executions.findIndex(
+    (execution) => execution.id === event.execution_id
+  );
+  if (executionIndex < 0) return { chat, needsRepair: true };
+
+  const execution = chat.executions[executionIndex];
+  // A late frame must not resurrect a preview after the turn settled.
+  if (!isActiveExecutionStatus(execution.status)) {
+    return { chat, needsRepair: false };
+  }
+
+  const current = execution.stream;
+  const continuing = current?.id === event.stream_id;
+  // The socket can trail a REST checkpoint across an iteration boundary; a
+  // late frame from an older iteration must not rewind the preview. Drop it —
+  // the installed content is already newer, so there is nothing to repair.
+  // Known residual race: after a server `stream: null` there is no iteration
+  // to compare, so a late seq-1 frame from a dead iteration can briefly
+  // resurrect its preview until the next frame or refetch replaces it. Closing
+  // it needs the cleared checkpoint to carry its iteration (backend contract).
+  if (!continuing && current != null && event.iteration < current.iteration) {
+    return { chat, needsRepair: false };
+  }
+  if (continuing && event.sequence <= current.sequence) {
+    return { chat, needsRepair: false };
+  }
+  const expectedSequence = continuing ? current.sequence + 1 : 1;
+  if (event.sequence !== expectedSequence) {
+    return { chat, needsRepair: true };
+  }
+
+  const items = appendStreamDeltas(continuing ? current.items : [], event.deltas);
+  if (items == null) return { chat, needsRepair: true };
+
+  const lastDelta = event.deltas.at(-1);
+  const nextExecution: ChatExecution = {
+    ...execution,
+    stream: {
+      id: event.stream_id,
+      sequence: event.sequence,
+      iteration: event.iteration,
+      items,
+    },
+    phase:
+      lastDelta?.type === 'narration'
+        ? { state: 'responding', label: 'Writing a response' }
+        : { state: 'thinking', label: 'Thinking' },
+  };
+  const executions = [...chat.executions];
+  executions[executionIndex] = nextExecution;
+  return { chat: { ...chat, executions }, needsRepair: false };
 }
 
 interface UseNotebookChatOptions {
@@ -109,11 +240,10 @@ export interface UseNotebookChatResult {
 }
 
 /**
- * State machine for one open chat. REST is the source of truth: the first load
- * is a full GET, every subsequent refresh is `?activity=live` merged via
- * {@link mergeLiveChat}. The socket and the poll loop both funnel into the
- * same refetch, so dropped/duplicated/reordered events can only ever delay
- * data, never corrupt it.
+ * State machine for one open chat. REST is the durable source of truth and
+ * carries a bounded transient stream checkpoint. Lifecycle socket events
+ * trigger a live refetch; sequenced stream events append immediately. Polling,
+ * reconnects, and any detected sequence gap repair from REST.
  */
 export function useNotebookChat({
   noteId,
@@ -140,6 +270,10 @@ export function useNotebookChat({
   const seededChatIdRef = useRef<number | null>(null);
   // Mirror of `chat` for non-reactive reads inside fetchChat.
   const chatRef = useRef<NotebookChat | null>(null);
+  // A sequence gap can produce more gap frames while its recovery GET runs.
+  // Keep one repair in flight; a gap seen mid-flight queues exactly one more,
+  // since the running GET may have been snapshotted before that frame.
+  const streamRepairRef = useRef<'idle' | 'running' | 'queued'>('idle');
   chatRef.current = chat;
 
   const fetchChat = useCallback(
@@ -152,7 +286,11 @@ export function useNotebookChat({
       try {
         const data = await NotebookChatService.getChat(noteId, chatId, { live });
         if (seq !== seqRef.current) return;
-        setChat((prev) => mergeLiveChat(live ? prev : null, data));
+        setChat((prev) => {
+          const merged = mergeLiveChat(live ? prev : null, data);
+          chatRef.current = merged;
+          return merged;
+        });
         setAccess('ok');
       } catch (err) {
         if (seq !== seqRef.current) return;
@@ -176,6 +314,7 @@ export function useNotebookChat({
   useEffect(() => {
     seqRef.current += 1; // invalidate any in-flight response for the old chat
     epochRef.current += 1; // …and any pending send/cancel/rename continuation
+    streamRepairRef.current = 'idle';
     setPendingSend(null);
     if (!enabled || noteId == null || chatId == null) {
       setChat(null);
@@ -241,8 +380,7 @@ export function useNotebookChat({
     return () => clearInterval(timer);
   }, [enabled, access, isBusy, isFinishing, fetchChat]);
 
-  // Debounced socket nudge → live refetch. Every event kind is handled
-  // identically; the refetched status is what we trust.
+  // Debounced lifecycle nudge / stream-gap repair → live refetch.
   const nudgeRef = useRef<DebouncedFunc<() => void> | null>(null);
   useEffect(() => {
     const nudge = debounce(() => fetchChat('live'), NUDGE_DEBOUNCE_MS);
@@ -250,9 +388,48 @@ export function useNotebookChat({
     return () => nudge.cancel();
   }, [fetchChat]);
 
-  const handleSocketEvent = useCallback((_event: ChatSocketEvent) => {
-    nudgeRef.current?.();
-  }, []);
+  const repairStream = useCallback(() => {
+    if (streamRepairRef.current !== 'idle') {
+      streamRepairRef.current = 'queued';
+      return;
+    }
+    // A chat switch resets the repair state machine; a completion from the
+    // old chat must neither touch it nor start a fetch that could adopt the
+    // newest seq and land the old chat's data in the new one.
+    const epoch = epochRef.current;
+    const run = (): void => {
+      streamRepairRef.current = 'running';
+      fetchChat('live').finally(() => {
+        if (epochRef.current !== epoch) return;
+        if (streamRepairRef.current === 'queued') run();
+        else streamRepairRef.current = 'idle';
+      });
+    };
+    run();
+  }, [fetchChat]);
+
+  const handleSocketEvent = useCallback(
+    (event: ChatSocketEvent) => {
+      if (event.conversation_id !== chatId) return;
+      if (!isChatStreamSocketEvent(event)) {
+        nudgeRef.current?.();
+        return;
+      }
+
+      const current = chatRef.current;
+      const applied = applyStreamEvent(current, event);
+      if (applied.needsRepair) {
+        repairStream();
+        return;
+      }
+      if (applied.chat !== current) {
+        // Keep burst frames ordered even when React batches their renders.
+        chatRef.current = applied.chat;
+        setChat(applied.chat);
+      }
+    },
+    [chatId, repairStream]
+  );
 
   const handleSocketReconnect = useCallback(() => {
     fetchChat('live');

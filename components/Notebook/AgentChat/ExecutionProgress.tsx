@@ -7,8 +7,19 @@ import {
   isActiveExecutionStatus,
   type ChatActivityItem,
   type ChatExecution,
+  type ChatStreamItem,
 } from '@/types/notebookChat';
 import { ActivityFeed, humanizeLabel } from './ActivityFeed';
+
+/**
+ * Stream item ids are stable only within one provider iteration; namespaced
+ * with the stream identity they stay unique feed-wide, so a reused id in the
+ * next iteration mounts a fresh row instead of inheriting the old one's state.
+ */
+function namespaceStreamItems(stream: ChatExecution['stream']): ChatStreamItem[] {
+  if (stream == null) return [];
+  return stream.items.map((item) => ({ ...item, id: `${stream.id}:${item.id}` }));
+}
 
 /** "Searched the web ×2 · Read the note" — tool labels in first-appearance order. */
 function summarizeActivity(items: ChatActivityItem[]): string | null {
@@ -66,7 +77,11 @@ interface ExecutionProgressProps {
 export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
 
-  const activity = execution.activity ?? [];
+  // Durable activity is followed by the current provider iteration's
+  // transient preview. A lifecycle refetch replaces the preview with the
+  // newly durable rows/message once the complete turn is recorded.
+  const streamItems = namespaceStreamItems(execution.stream);
+  const activity: ChatActivityItem[] = [...(execution.activity ?? []), ...streamItems];
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.
@@ -119,7 +134,15 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         </button>
       )}
 
-      {showsFeed && <ActivityFeed items={activity} className={cn(showsSummaryRow && 'mt-3')} />}
+      {showsFeed && (
+        <ActivityFeed
+          items={activity}
+          // Deltas always append to the newest stream item, so while the turn
+          // is live the tail is the block currently being written.
+          streamingItemId={live ? streamItems.at(-1)?.id : undefined}
+          className={cn(showsSummaryRow && 'mt-3')}
+        />
+      )}
 
       {live && <LiveStatusLine label={statusLabel} />}
 
