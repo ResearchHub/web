@@ -389,9 +389,14 @@ export function useNotebookChat({
       streamRepairRef.current = 'queued';
       return;
     }
+    // A chat switch resets the repair state machine; a completion from the
+    // old chat must neither touch it nor start a fetch that could adopt the
+    // newest seq and land the old chat's data in the new one.
+    const epoch = epochRef.current;
     const run = (): void => {
       streamRepairRef.current = 'running';
       fetchChat('live').finally(() => {
+        if (epochRef.current !== epoch) return;
         if (streamRepairRef.current === 'queued') run();
         else streamRepairRef.current = 'idle';
       });
