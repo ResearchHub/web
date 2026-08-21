@@ -69,10 +69,8 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // Durable activity is followed by the current provider iteration's
   // transient preview. A lifecycle refetch replaces the preview with the
   // newly durable rows/message once the complete turn is recorded.
-  const activity: ChatActivityItem[] = [
-    ...(execution.activity ?? []),
-    ...(execution.stream?.items ?? []),
-  ];
+  const streamItems = execution.stream?.items ?? [];
+  const activity: ChatActivityItem[] = [...(execution.activity ?? []), ...streamItems];
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.
@@ -125,7 +123,15 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         </button>
       )}
 
-      {showsFeed && <ActivityFeed items={activity} className={cn(showsSummaryRow && 'mt-3')} />}
+      {showsFeed && (
+        <ActivityFeed
+          items={activity}
+          // Deltas always append to the newest stream item, so while the turn
+          // is live the tail is the block currently being written.
+          streamingItemId={live ? streamItems[streamItems.length - 1]?.id : undefined}
+          className={cn(showsSummaryRow && 'mt-3')}
+        />
+      )}
 
       {live && <LiveStatusLine label={statusLabel} />}
 

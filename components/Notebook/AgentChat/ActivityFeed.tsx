@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ComponentType } from 'react';
+import { useMemo, useState, type ComponentType } from 'react';
 import {
   Ban,
   BookOpen,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
+import { MarkdownMessage } from './MarkdownMessage';
 import type {
   ActivityCallStatus,
   ChatActivityItem,
@@ -146,19 +147,47 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
 }
 
 /**
+ * Markdown markers dropped for the collapsed one-line preview, where markup
+ * can't render and would read as clutter. Underscores stay: intraword `_`
+ * isn't emphasis, and thinking text is full of snake_case identifiers.
+ */
+function stripMarkdown(text: string): string {
+  return text
+    .replaceAll(/```[a-z]*\n?/g, '')
+    .replaceAll(/^#{1,6}\s+/gm, '')
+    .replaceAll(/^[-*+]\s+/gm, '')
+    .replaceAll(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replaceAll(/(\*\*|\*|`|~~)/g, '');
+}
+
+/**
  * One thinking block, collapsed to a labeled row with a one-line preview.
  * Readable reasoning can grow incrementally and runs up to 4000 chars per
  * block, so rendering it inline like narration would drown the tool rows;
  * the chevron-led button mirrors the settled-turn summary toggle.
+ *
+ * While the block is the one currently receiving stream deltas it stays
+ * expanded so the reasoning is readable as it arrives, then collapses on its
+ * own once the stream moves past it — unless the user has toggled it, which
+ * always wins.
  */
-function ThinkingRow({ item }: { readonly item: ChatThinkingActivity }) {
-  const [expanded, setExpanded] = useState(false);
+function ThinkingRow({
+  item,
+  streaming = false,
+}: {
+  readonly item: ChatThinkingActivity;
+  readonly streaming?: boolean;
+}) {
+  const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
+  const expanded = userExpanded ?? streaming;
+  // Settled rows re-render on every stream delta; strip once per text value.
+  const preview = useMemo(() => stripMarkdown(item.text), [item.text]);
 
   return (
     <div>
       <button
         type="button"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => setUserExpanded(!expanded)}
         aria-expanded={expanded}
         className="flex w-full items-start gap-2 text-left text-gray-500 transition-colors hover:text-gray-700"
       >
@@ -175,20 +204,26 @@ function ThinkingRow({ item }: { readonly item: ChatThinkingActivity }) {
             Thinking
           </span>
           {/* nowrap collapses the block's newlines, so the preview is one line. */}
-          {!expanded && <span className="min-w-0 truncate text-gray-400">{item.text}</span>}
+          {!expanded && <span className="min-w-0 truncate text-gray-400">{preview}</span>}
         </span>
       </button>
       {expanded && (
-        <p className="mt-1 whitespace-pre-wrap break-words pl-6 italic text-gray-500">
-          {item.text}
-        </p>
+        <div className="mt-1 pl-6">
+          <MarkdownMessage content={item.text} className="italic text-gray-500" />
+        </div>
       )}
     </div>
   );
 }
 
 /** Unknown item types from newer backends render nothing (never crash the feed). */
-function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
+function ActivityItemBody({
+  item,
+  streaming,
+}: {
+  readonly item: ChatActivityItem;
+  readonly streaming: boolean;
+}) {
   if (item.type === 'narration') {
     return (
       <p className="whitespace-pre-wrap break-words pl-6 leading-relaxed text-gray-500">
@@ -197,7 +232,7 @@ function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
     );
   }
   if (item.type === 'thinking') {
-    return <ThinkingRow item={item} />;
+    return <ThinkingRow item={item} streaming={streaming} />;
   }
   if (item.type === 'tool_call') {
     return <ToolCallRow call={item} />;
@@ -207,6 +242,8 @@ function ActivityItemBody({ item }: { readonly item: ChatActivityItem }) {
 
 interface ActivityFeedProps {
   readonly items: ChatActivityItem[];
+  /** Stream id of the item currently receiving deltas, while the turn is live. */
+  readonly streamingItemId?: string;
   readonly className?: string;
 }
 
@@ -214,22 +251,22 @@ interface ActivityFeedProps {
  * The ordered account of what the agent did during a turn: narration prose
  * between tool calls, and one row per tool call with status + citations.
  */
-export function ActivityFeed({ items, className }: ActivityFeedProps) {
+export function ActivityFeed({ items, streamingItemId, className }: ActivityFeedProps) {
   if (items.length === 0) return null;
 
   return (
     <ol className={cn('space-y-4', className)}>
-      {items.map((item, index) => (
-        // Stream items carry stable ids; durable feed items are append-only,
-        // making their fallback index stable within the settled activity list.
-        // eslint-disable-next-line react/no-array-index-key
-        <li
-          key={'id' in item && typeof item.id === 'string' ? item.id : index}
-          className="text-sm leading-relaxed"
-        >
-          <ActivityItemBody item={item} />
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const id = 'id' in item && typeof item.id === 'string' ? item.id : null;
+        return (
+          // Stream items carry stable ids; durable feed items are append-only,
+          // making their fallback index stable within the settled activity list.
+          // eslint-disable-next-line react/no-array-index-key
+          <li key={id ?? index} className="text-sm leading-relaxed">
+            <ActivityItemBody item={item} streaming={id != null && id === streamingItemId} />
+          </li>
+        );
+      })}
     </ol>
   );
 }
