@@ -128,7 +128,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           items={activity}
           // Deltas always append to the newest stream item, so while the turn
           // is live the tail is the block currently being written.
-          streamingItemId={live ? streamItems[streamItems.length - 1]?.id : undefined}
+          streamingItemId={live ? streamItems.at(-1)?.id : undefined}
           className={cn(showsSummaryRow && 'mt-3')}
         />
       )}

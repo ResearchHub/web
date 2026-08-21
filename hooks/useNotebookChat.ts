@@ -12,6 +12,9 @@ import {
   isChatStreamSocketEvent,
   isActiveExecutionStatus,
   type ChatExecution,
+  type ChatExecutionStream,
+  type ChatStreamDelta,
+  type ChatStreamItem,
   type ChatStreamSocketEvent,
   type ChatSocketEvent,
   type NotebookChat,
@@ -60,14 +63,30 @@ export interface PendingSend {
 }
 
 /**
+ * The cached stream when it is the same stream a REST response checkpointed
+ * but at a newer sequence — a checkpoint captured just before a socket batch
+ * arrived must not rewind it. Null whenever the server copy is authoritative:
+ * explicit `stream: null`, a new stream id, or a terminal execution.
+ */
+function newerCachedStream(
+  execution: ChatExecution,
+  cached: ChatExecution | undefined
+): ChatExecutionStream | null {
+  if (!isActiveExecutionStatus(execution.status)) return null;
+  const serverStream = execution.stream;
+  const cachedStream = cached?.stream;
+  if (serverStream == null || cachedStream == null) return null;
+  if (cachedStream.id !== serverStream.id) return null;
+  return cachedStream.sequence > serverStream.sequence ? cachedStream : null;
+}
+
+/**
  * Merge a `?activity=live` response over the cached chat.
  *
  * `activity` follows the server's omission contract: an absent key means
  * "unchanged — keep the cached copy", while a present key (even `[]`, a turn
- * that used no tools) replaces it. A REST response can also have captured a
- * stream checkpoint just before a newer socket batch arrived; for the same
- * stream id, keep whichever sequence is newer. Explicit `stream: null`, a new
- * stream id, and terminal executions remain server-authoritative.
+ * that used no tools) replaces it. Streams keep whichever of the cached and
+ * server copies is newer, per {@link newerCachedStream}.
  */
 function mergeLiveChat(prev: NotebookChat | null, next: NotebookChat): NotebookChat {
   const cachedExecutions = new Map<number, ChatExecution>(
@@ -79,18 +98,11 @@ function mergeLiveChat(prev: NotebookChat | null, next: NotebookChat): NotebookC
     executions: next.executions.map((execution) => {
       const cached = cachedExecutions.get(execution.id);
       const activity = execution.activity ?? cached?.activity ?? [];
-      const serverStream = execution.stream;
-      const cachedStream = cached?.stream;
-      const keepNewerSocketStream =
-        isActiveExecutionStatus(execution.status) &&
-        serverStream != null &&
-        cachedStream != null &&
-        serverStream.id === cachedStream.id &&
-        cachedStream.sequence > serverStream.sequence;
+      const newerStream = newerCachedStream(execution, cached);
       return {
         ...execution,
         activity,
-        ...(keepNewerSocketStream ? { stream: cachedStream, phase: cached?.phase ?? null } : {}),
+        ...(newerStream != null ? { stream: newerStream, phase: cached?.phase ?? null } : {}),
       };
     }),
   };
@@ -101,6 +113,34 @@ interface ApplyStreamEventResult {
   needsRepair: boolean;
 }
 
+/** Append one batch's deltas to a copy of `current`; null = corrupt frame. */
+function appendStreamDeltas(
+  current: readonly ChatStreamItem[],
+  deltas: readonly ChatStreamDelta[]
+): ChatStreamItem[] | null {
+  const items = current.map((item) => ({ ...item }));
+  for (const delta of deltas) {
+    const maximum =
+      delta.type === 'thinking' ? MAX_STREAM_THINKING_CHARS : MAX_STREAM_NARRATION_CHARS;
+    const existing = items.find((item) => item.id === delta.id);
+    if (existing == null) {
+      items.push({
+        id: delta.id,
+        type: delta.type,
+        text: delta.delta.slice(0, maximum),
+        at: delta.at,
+      });
+    } else if (existing.type === delta.type) {
+      existing.text = `${existing.text}${delta.delta}`.slice(0, maximum);
+    } else {
+      // An id changing type indicates an incompatible/corrupt frame. Recover
+      // from the server checkpoint instead of combining unlike content.
+      return null;
+    }
+  }
+  return items;
+}
+
 /**
  * Append one sequenced socket batch. Duplicate/old batches are harmless; a
  * missing batch is never guessed and instead asks REST for its checkpoint.
@@ -109,7 +149,7 @@ export function applyStreamEvent(
   chat: NotebookChat | null,
   event: ChatStreamSocketEvent
 ): ApplyStreamEventResult {
-  if (chat == null || chat.conversation_id !== event.conversation_id) {
+  if (chat?.conversation_id !== event.conversation_id) {
     return { chat, needsRepair: true };
   }
 
@@ -134,29 +174,10 @@ export function applyStreamEvent(
     return { chat, needsRepair: true };
   }
 
-  const items = continuing ? current.items.map((item) => ({ ...item })) : [];
-  for (const delta of event.deltas) {
-    const existing = items.find((item) => item.id === delta.id);
-    if (existing) {
-      // An id changing type indicates an incompatible/corrupt frame. Recover
-      // from the server checkpoint instead of combining unlike content.
-      if (existing.type !== delta.type) return { chat, needsRepair: true };
-      const maximum =
-        existing.type === 'thinking' ? MAX_STREAM_THINKING_CHARS : MAX_STREAM_NARRATION_CHARS;
-      existing.text = `${existing.text}${delta.delta}`.slice(0, maximum);
-    } else {
-      const maximum =
-        delta.type === 'thinking' ? MAX_STREAM_THINKING_CHARS : MAX_STREAM_NARRATION_CHARS;
-      items.push({
-        id: delta.id,
-        type: delta.type,
-        text: delta.delta.slice(0, maximum),
-        at: delta.at,
-      });
-    }
-  }
+  const items = appendStreamDeltas(continuing ? current.items : [], event.deltas);
+  if (items == null) return { chat, needsRepair: true };
 
-  const lastDelta = event.deltas[event.deltas.length - 1];
+  const lastDelta = event.deltas.at(-1);
   const nextExecution: ChatExecution = {
     ...execution,
     stream: {

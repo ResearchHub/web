@@ -156,7 +156,7 @@ function stripMarkdown(text: string): string {
     .replaceAll(/```[a-z]*\n?/g, '')
     .replaceAll(/^#{1,6}\s+/gm, '')
     .replaceAll(/^[-*+]\s+/gm, '')
-    .replaceAll(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replaceAll(/\[([^\][]*)\]\([^()]*\)/g, '$1')
     .replaceAll(/(\*\*|\*|`|~~)/g, '');
 }
 
