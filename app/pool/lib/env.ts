@@ -11,7 +11,7 @@ export type PoolEnv = 'production' | 'staging' | 'development';
  * belonging to another environment, where they resolve to real but unrelated
  * fundraises.
  */
-export const ENV_ACTIVE: PoolEnv = 'development';
+export const ENV_ACTIVE: PoolEnv = 'production';
 
 /**
  * A property of the environment, not of any campaign. Fundraise IDs are small
