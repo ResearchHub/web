@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import './globals.css';
 import 'cal-sans/index.css';
 import 'katex/dist/katex.min.css';
@@ -21,13 +21,19 @@ import { clearPendingGrant } from '@/components/Editor/lib/utils/publishingFormS
 function NotebookContent({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => () => clearPendingGrant(), []);
 
+  // The docked assistant already reserves its own gutter inside the page
+  // container, so keeping the container capped would centre the document in
+  // what's left and leave a wide dead band on either side. Release the cap for
+  // as long as the panel is docked.
+  const [isAgentChatDocked, setIsAgentChatDocked] = useState(false);
+
   // The shared layout's sidebar and TopBar are opaque white and the scroll
   // area is transparent, so wrapping in a gray surface turns just the content
   // canvas gray — no change needed to the shared PageLayout.
   return (
     <div className="bg-gray-50">
-      <PageLayout rightSidebar={false}>
-        <NoteEditorLayout />
+      <PageLayout rightSidebar={false} wideRow={isAgentChatDocked}>
+        <NoteEditorLayout onAgentChatDockedChange={setIsAgentChatDocked} />
         {children}
       </PageLayout>
     </div>

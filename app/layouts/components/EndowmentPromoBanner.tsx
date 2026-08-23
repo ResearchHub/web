@@ -5,10 +5,17 @@ import { ArrowRight, Sprout, X } from 'lucide-react';
 import { memo } from 'react';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 
-const FEATURE_NAME = 'endowment_promo_banner';
+/**
+ * Shared because the banner changes the layout around it: it renders above the
+ * TopBar on mobile, so anything positioning itself against the top of the
+ * screen has to know whether it is showing.
+ */
+export const ENDOWMENT_PROMO_BANNER_FEATURE = 'endowment_promo_banner';
 
 const EndowmentPromoBannerComponent: React.FC = () => {
-  const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature(FEATURE_NAME);
+  const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature(
+    ENDOWMENT_PROMO_BANNER_FEATURE
+  );
 
   if (dismissStatus !== 'checked' || isDismissed) {
     return null;
