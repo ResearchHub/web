@@ -6,7 +6,6 @@ import { toOptionalNumber } from '@/utils/number';
 import type {
   ActivityAction,
   FeedBountyContent,
-  FeedCommentContent,
   FeedEntry,
   FeedGrantContent,
   FeedPaperContent,
@@ -62,13 +61,14 @@ export interface WorkCardPresentation {
 }
 
 export function getActivityBounty(entry: FeedEntry): Bounty | undefined {
-  if (entry.contentType === 'COMMENT') {
-    return (entry.content as FeedCommentContent).bounties?.[0];
-  }
+  // A BOUNTY entry is the only shape that carries its bounty singularly; every
+  // other content type (comments, and the PAPER/POST entries the peer review
+  // feed builds) hangs them off `bounties`.
   if (entry.contentType === 'BOUNTY') {
     return (entry.content as FeedBountyContent).bounty;
   }
-  return undefined;
+  const bounties = entry.content.bounties;
+  return bounties?.find((bounty) => bounty.status === 'OPEN') ?? bounties?.[0];
 }
 
 function resolveTabFromAction(activityAction?: ActivityAction): ActivityWork['tab'] {

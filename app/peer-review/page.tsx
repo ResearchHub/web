@@ -52,7 +52,7 @@ export default async function PeerReviewPage() {
         </p>
       </section>
       <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-        <RadiatingDot ring color="bg-emerald-500" />
+        <RadiatingDot ring color="bg-orange-500" />
         Open peer-review bounties
       </h2>
       <p className="text-sm text-gray-500 mt-0.5">
