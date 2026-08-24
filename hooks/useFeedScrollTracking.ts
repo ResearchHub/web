@@ -11,6 +11,8 @@ interface UseFeedScrollTrackingOptions {
   restoredScrollPosition?: number | null;
   activeTab?: string;
   lastClickedEntryId?: string;
+  /** Local feed controls to persist with scroll state (sort/status/etc.). */
+  filters?: Record<string, string>;
 }
 
 export const useFeedScrollTracking = ({
@@ -20,10 +22,13 @@ export const useFeedScrollTracking = ({
   page,
   restoredScrollPosition,
   lastClickedEntryId,
+  filters,
 }: UseFeedScrollTrackingOptions) => {
   const scrollContainerRef = useScrollContainer();
   const scrollPositionRef = useRef(0);
   const hasRestoredScrollRef = useRef(false);
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
   const { startTrackingFeed, stopTrackingFeed, saveFeedState, resetBackNavigation } =
     useNavigation();
 
@@ -129,6 +134,7 @@ export const useFeedScrollTracking = ({
           scrollPosition: scrollPos,
           hasMore,
           page,
+          filters: filtersRef.current,
         });
       }
       stopTrackingFeed();

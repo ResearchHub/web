@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -11,10 +11,6 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
 import { FunderOverview } from '@/types/funder';
-import {
-  SearchableUserSingleSelect,
-  UserOption,
-} from '@/components/ui/form/SearchableUserSingleSelect';
 
 function parseUserIdParam(userIdParam: string | null): number | undefined {
   if (!userIdParam) return undefined;
@@ -34,22 +30,6 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   const viewedUserId = isModerator
     ? (parseUserIdParam(searchParams.get('user_id')) ?? userId)
     : userId;
-
-  const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
-
-  const handleUserSelect = useCallback(
-    (selected: UserOption | null) => {
-      setSelectedUser(selected);
-      const params = new URLSearchParams(searchParams.toString());
-      if (selected) {
-        params.set('user_id', selected.value);
-      } else {
-        params.delete('user_id');
-      }
-      router.push(`?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -99,17 +79,6 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
 
   return (
     <>
-      {isModerator && (
-        <div className="mb-5 max-w-xs">
-          <p className="mb-1 text-xs font-medium text-gray-500">View as user (moderator only)</p>
-          <SearchableUserSingleSelect
-            value={selectedUser}
-            onChange={handleUserSelect}
-            placeholder="Search for a funder..."
-          />
-        </div>
-      )}
-
       {overviewContent}
 
       <FunderAuthorPostsSection funderId={viewedUserId} className="mt-6" />
@@ -126,7 +95,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
           </div>
           {!isLoadingOpportunities && opportunities.length > 0 && (
             <Button
-              variant="secondary"
+              variant="outlined"
               size="sm"
               onClick={() => router.push('/notebook?newGrant=true')}
             >
@@ -151,7 +120,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
             <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
               <p className="text-sm text-gray-500">You haven&apos;t created any RFPs yet.</p>
               <Button
-                variant="secondary"
+                variant="outlined"
                 size="sm"
                 className="mt-4"
                 onClick={() => router.push('/notebook?newGrant=true')}

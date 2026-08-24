@@ -17,6 +17,7 @@ export interface StoredFeedState {
   hasMore?: boolean;
   page?: number;
   lastClickedEntryId?: string;
+  filters?: Record<string, string>;
 }
 
 const STORAGE_KEY = 'rh_feed_states';

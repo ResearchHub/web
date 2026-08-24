@@ -21,28 +21,30 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialError }: 
 
   return (
     <div
-      className="fixed inset-0 !bg-black/50 flex items-center justify-center z-[60]"
+      className="fixed inset-0 !bg-black/50 flex items-center justify-center z-[60] p-0 md:!p-4"
       onClick={handleBackgroundClick}
     >
-      <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
+      <div className="bg-white w-full h-full overflow-y-auto relative md:!h-auto md:!max-h-[85vh] md:!max-w-md md:!rounded-lg">
         <Button
           type="button"
           onClick={onClose}
           variant="ghost"
           size="icon"
-          className="absolute top-6 right-6 z-10"
+          className="absolute top-4 right-4 z-10 md:!top-6 md:!right-6"
         >
           <FontAwesomeIcon icon={faXmark} className="h-5 w-5" />
         </Button>
 
-        <AuthContent
-          onClose={onClose}
-          onSuccess={onSuccess}
-          initialError={initialError}
-          modalView={true}
-          // Return to the current URL after Google OAuth, preserving query params.
-          callbackUrl={typeof window !== 'undefined' ? window.location.href : undefined}
-        />
+        <div className="p-6 pt-14 md:!pt-6">
+          <AuthContent
+            onClose={onClose}
+            onSuccess={onSuccess}
+            initialError={initialError}
+            modalView={true}
+            // Return to the current URL after Google OAuth, preserving query params.
+            callbackUrl={typeof window !== 'undefined' ? window.location.href : undefined}
+          />
+        </div>
       </div>
     </div>
   );

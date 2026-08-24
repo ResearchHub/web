@@ -5,11 +5,6 @@ import { User } from '@/types/user';
 export function KeyStatsSkeleton() {
   return (
     <div className="flex flex-col gap-3 text-sm">
-      {/* Upvotes received */}
-      <div className="flex items-center gap-1.5">
-        <span className="font-medium bg-gray-200 rounded w-28 h-4 animate-pulse" />
-        <span className="bg-gray-200 rounded w-10 h-4 animate-pulse" />
-      </div>
       {/* Publications */}
       <div className="flex items-center gap-1.5">
         <span className="font-medium bg-gray-200 rounded w-20 h-4 animate-pulse" />
@@ -53,11 +48,6 @@ export default function KeyStats({ summaryStats, profile, isLoading }: KeyStatsP
 
   return (
     <div className="flex flex-col gap-3 text-sm">
-      <div className="flex items-center gap-1.5">
-        <span className="font-medium">Upvotes received:</span>
-        <span>{summaryStats.upvotesReceived}</span>
-      </div>
-
       <div className="flex items-center gap-1.5">
         <span className="font-medium">Publications:</span>
         <span>

@@ -1,6 +1,7 @@
 import { recreateTransform } from '@fellow/prosemirror-recreate-transform';
-import { ChangeSet, simplifyChanges } from '@tiptap/pm/changeset';
-import type { Node as ProseMirrorNode, Schema } from '@tiptap/pm/model';
+import { ChangeSet, simplifyChanges, type TokenEncoder } from '@tiptap/pm/changeset';
+import type { Mark, Node as ProseMirrorNode, Schema } from '@tiptap/pm/model';
+import { AddMarkStep, RemoveMarkStep, StepMap, type Transform } from '@tiptap/pm/transform';
 
 /**
  * Node types the editor's UniqueID extension stamps `id` attrs onto (see
@@ -45,6 +46,56 @@ function stripUniqueIds(node: JsonNode): JsonNode {
 /** A copy of the document with volatile ids dropped, used only for alignment. */
 function alignmentDoc(schema: Schema, doc: ProseMirrorNode): ProseMirrorNode {
   return schema.nodeFromJSON(stripUniqueIds(doc.toJSON()));
+}
+
+/**
+ * Mark-set fingerprints cached on the mark arrays themselves — ProseMirror
+ * hands the same array to every character of a text node, so each stringify
+ * runs once per node rather than once per character.
+ */
+const markFingerprints = new WeakMap<readonly Mark[], string>();
+
+function marksFingerprint(marks: readonly Mark[]): string {
+  let fingerprint = markFingerprints.get(marks);
+  if (fingerprint === undefined) {
+    fingerprint = marks.map((mark) => mark.type.name + JSON.stringify(mark.attrs)).join('\u0001');
+    markFingerprints.set(marks, fingerprint);
+  }
+  return fingerprint;
+}
+
+/**
+ * Token identity for diffing. The library's default encoder compares text by
+ * character code and nodes by type name alone, so versions differing only in
+ * marks (bold, links) or attrs (heading level, image src) diff to zero
+ * regions and the review adopts the incoming side wholesale — erasing, for
+ * example, formatting the user applied while the assistant was writing.
+ * Folding marks and attrs into the tokens makes those differences ordinary
+ * reviewable changes. Volatile ids never reach this encoder: the alignment
+ * docs drop them first.
+ */
+const formattingAwareEncoder: TokenEncoder<number | string> = {
+  encodeCharacter: (char, marks) =>
+    marks.length === 0 ? char : `${char}\u0001${marksFingerprint(marks)}`,
+  encodeNodeStart: (node) =>
+    `${node.type.name}\u0001${JSON.stringify(node.attrs)}\u0001${marksFingerprint(node.marks)}`,
+  encodeNodeEnd: (node) => `/${node.type.name}`,
+  compareTokens: (a, b) => a === b,
+};
+
+/**
+ * Per-step maps for the changeset, with mark steps made visible. Mark steps
+ * move no positions, so their real step maps are empty and the changeset
+ * would never compare the ranges they touch; substitute a same-size map over
+ * the marked range so those tokens get diffed — with the formatting-aware
+ * encoder — like any other edit.
+ */
+function coverageMaps(tr: Transform): readonly StepMap[] {
+  return tr.steps.map((step, index) =>
+    step instanceof AddMarkStep || step instanceof RemoveMarkStep
+      ? new StepMap([step.from, step.to - step.from, step.to - step.from])
+      : tr.mapping.maps[index]
+  );
 }
 
 /**
@@ -103,8 +154,9 @@ function expandChangesToBlocks(
  * entire new one, and edits meeting inside one block merge into a single
  * region. Alignment runs on id-stripped copies; since attrs never change a
  * node's size, the resulting positions are valid in the real documents.
- * Changes are ascending and non-overlapping. Formatting-only changes produce
- * no regions: the changeset tracks content, not marks.
+ * Changes are ascending and non-overlapping. Marks and attrs take part in
+ * token identity (see formattingAwareEncoder), so formatting-only edits are
+ * real regions; only the volatile ids are exempt.
  */
 export function computeNoteDiffChanges(
   schema: Schema,
@@ -115,7 +167,11 @@ export function computeNoteDiffChanges(
   const docB = alignmentDoc(schema, newer);
 
   const tr = recreateTransform(docA, docB, { complexSteps: true, wordDiffs: true });
-  const changeSet = ChangeSet.create(docA).addSteps(tr.doc, tr.mapping.maps, 0);
+  const changeSet = ChangeSet.create(docA, undefined, formattingAwareEncoder).addSteps(
+    tr.doc,
+    coverageMaps(tr),
+    0
+  );
   const changes = simplifyChanges(changeSet.changes, docB);
 
   return expandChangesToBlocks(
