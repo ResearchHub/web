@@ -183,6 +183,7 @@ interface FeedItemActionsProps {
   tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
+  feedEntryId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
   onExpand?: (e?: React.MouseEvent) => void;
@@ -225,6 +226,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
+  feedEntryId,
   showPeerReviews = true,
   onFeedItemClick,
   onExpand,
@@ -417,8 +419,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   };
 
   const handleConfirmHideFromFeed = async () => {
-    if (!relatedDocumentUnifiedDocumentId) return;
-    const success = await hideFromFeed(relatedDocumentUnifiedDocumentId);
+    if (!feedEntryId) return;
+    const success = await hideFromFeed(feedEntryId);
     if (success) {
       setIsHideFromFeedModalOpen(false);
     }
@@ -444,14 +446,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Add separator if needed before Report
   const canHideFromFeed =
     !!user?.isModerator &&
-    !!relatedDocumentUnifiedDocumentId &&
+    !!feedEntryId &&
     feedContentType !== 'COMMENT' &&
     feedContentType !== 'BOUNTY' &&
     feedContentType !== 'APPLICATION';
   const showSeparator =
-    !hideReportButton &&
-    (menuItems.length > 0 || canHideFromFeed) &&
-    !isTabletOrSmaller;
+    !hideReportButton && (menuItems.length > 0 || canHideFromFeed) && !isTabletOrSmaller;
 
   // Calculate total awarded amount (tips + bounty awards)
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);

@@ -6,34 +6,12 @@ import { EyeOff, RefreshCw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
-import { WorkPreviewCard } from '@/components/Activity/work/WorkPreviewCard';
+import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
 import { useExcludedFromFeed } from '@/hooks/useExcludedFromFeed';
-import { buildWorkUrl } from '@/utils/url';
-import type { ActivityWork } from '@/components/Activity/lib/activityWork.utils';
-import type { Work } from '@/types/work';
+import type { FeedEntry } from '@/types/feed';
 
-function toActivityWork(work: Work): ActivityWork | null {
-  if (!work.id) {
-    return null;
-  }
-
-  return {
-    id: work.id,
-    slug: work.slug,
-    title: work.title,
-    href: buildWorkUrl({
-      id: work.id,
-      slug: work.slug,
-      contentType: work.contentType,
-    }),
-    imageUrl: work.image,
-    documentType: work.contentType,
-    unifiedDocumentId: work.unifiedDocumentId,
-    fundraise: work.fundraise,
-    grant: work.grantSummary,
-    authors: work.authors?.map((authorship) => authorship.authorProfile),
-  };
-}
+const noopRegisterVisibleItem = (_index: number, _unifiedDocumentId: string) => {};
+const noopGetVisibleItems = (_clickedUnifiedDocumentId: string) => [] as string[];
 
 function HiddenFeedCardSkeleton() {
   return (
@@ -65,7 +43,7 @@ export function HiddenFeedContent() {
     restore,
   } = useExcludedFromFeed();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [workToRestore, setWorkToRestore] = useState<Work | null>(null);
+  const [entryToRestore, setEntryToRestore] = useState<FeedEntry | null>(null);
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     rootMargin: '100px',
@@ -87,19 +65,18 @@ export function HiddenFeedContent() {
   };
 
   const handleConfirmRestore = async () => {
-    const unifiedDocumentId = workToRestore?.unifiedDocumentId;
-    if (unifiedDocumentId == null) {
+    if (entryToRestore == null) {
       return;
     }
-    const success = await restore(unifiedDocumentId);
+    const success = await restore(entryToRestore.id);
     if (success) {
-      setWorkToRestore(null);
+      setEntryToRestore(null);
     }
   };
 
   const emptyMessage = query.trim()
-    ? 'No hidden documents match this search.'
-    : 'No documents are currently hidden from public feeds.';
+    ? 'No hidden feed entries match this search.'
+    : 'No feed entries are currently hidden from public feeds.';
 
   return (
     <div className="flex h-full flex-col p-4">
@@ -108,7 +85,7 @@ export function HiddenFeedContent() {
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Hidden from feed</h1>
             <p className="mt-1 text-sm text-gray-600">
-              Restore documents that were hidden from feeds
+              Restore feed entries that were hidden from public feeds
             </p>
           </div>
           <Button
@@ -129,7 +106,7 @@ export function HiddenFeedContent() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by title"
-            aria-label="Search hidden documents by title"
+            aria-label="Search hidden feed entries by title"
           />
         </div>
       </div>
@@ -158,7 +135,7 @@ export function HiddenFeedContent() {
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                 <EyeOff className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="mb-2 text-lg font-medium text-gray-900">No hidden documents</h3>
+              <h3 className="mb-2 text-lg font-medium text-gray-900">No hidden feed entries</h3>
               <p className="max-w-md text-center text-gray-600">{emptyMessage}</p>
             </div>
           </div>
@@ -166,32 +143,31 @@ export function HiddenFeedContent() {
 
         {items.length > 0 && (
           <div className="space-y-4">
-            {items.map((work) => {
-              const activityWork = toActivityWork(work);
-              if (!activityWork) {
-                return null;
-              }
-
-              return (
-                <WorkPreviewCard
-                  key={String(work.unifiedDocumentId ?? work.id)}
-                  work={activityWork}
-                >
-                  <WorkPreviewCard.Actions>
-                    <div className="flex justify-end">
-                      <Button
-                        variant="outlined"
-                        size="sm"
-                        onClick={() => setWorkToRestore(work)}
-                        disabled={isRestoring}
-                      >
-                        Restore to feed
-                      </Button>
-                    </div>
-                  </WorkPreviewCard.Actions>
-                </WorkPreviewCard>
-              );
-            })}
+            {items.map((entry, index) => (
+              <div
+                key={entry.id}
+                className="overflow-hidden rounded-[14px] border border-gray-200 bg-white"
+              >
+                <FeedEntryItem
+                  entry={entry}
+                  index={index}
+                  hideActions
+                  registerVisibleItem={noopRegisterVisibleItem}
+                  unregisterVisibleItem={noopRegisterVisibleItem}
+                  getVisibleItems={noopGetVisibleItems}
+                />
+                <div className="flex justify-end border-t border-gray-100 px-3 py-2">
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={() => setEntryToRestore(entry)}
+                    disabled={isRestoring}
+                  >
+                    Restore to feed
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -205,14 +181,14 @@ export function HiddenFeedContent() {
       </div>
 
       <ConfirmationModal
-        isOpen={workToRestore != null}
+        isOpen={entryToRestore != null}
         onClose={() => {
           if (!isRestoring) {
-            setWorkToRestore(null);
+            setEntryToRestore(null);
           }
         }}
         title="Restore to feed"
-        description="This document and related entries will appear in public feeds again."
+        description="This feed entry will appear in public feeds again."
         confirmLabel="Restore to feed"
         isConfirming={isRestoring}
         onConfirm={handleConfirmRestore}

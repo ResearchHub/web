@@ -32,6 +32,7 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({ entry, work 
       relatedDocumentId={work.id.toString()}
       relatedDocumentContentType={work.documentType}
       relatedDocumentUnifiedDocumentId={work.unifiedDocumentId?.toString()}
+      feedEntryId={entry.id}
       userVote={entry.userVote}
       href={work.href}
       actionLabels={{ report: 'Flag Content' }}
