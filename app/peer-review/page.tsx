@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ReviewsPageContent } from './ReviewsPageContent';
 
@@ -13,7 +12,7 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default async function PeerReviewPage() {
   return (
-    <PageLayout rightSidebar={<EarnRightSidebar />}>
+    <PageLayout>
       <section className="sr-only">
         <p>
           ResearchHub offers two ways to earn ResearchCoin in one place. You can hold ResearchCoin
@@ -55,9 +54,7 @@ export default async function PeerReviewPage() {
         <RadiatingDot ring color="bg-orange-500" />
         Open peer-review bounties
       </h2>
-      <p className="text-sm text-gray-500 mt-0.5">
-        Pick a paper or proposal in your field and earn ResearchCoin for your review.
-      </p>
+      <p className="text-sm text-gray-500 mt-0.5">Get paid to peer-review research proposals.</p>
       <ReviewsPageContent />
     </PageLayout>
   );

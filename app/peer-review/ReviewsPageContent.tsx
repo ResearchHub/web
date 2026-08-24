@@ -2,7 +2,15 @@
 
 import { BountyFeedItem } from '@/components/Bounty/BountyFeedItem';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { FeedSortDropdown } from '@/components/Feed/FeedSortDropdown';
 import { useBounties } from '@/hooks/useBounties';
+
+const SORT_OPTIONS = [
+  { label: 'Best', value: 'personalized' },
+  { label: 'Newest', value: '-created_date' },
+  { label: 'Expiring soon', value: 'expiration_date' },
+  { label: 'RSC amount', value: '-total_amount' },
+];
 
 export function ReviewsPageContent() {
   const {
@@ -11,6 +19,7 @@ export function ReviewsPageContent() {
     hasMore,
     loadMore,
     sort,
+    handleSortChange,
     restoredScrollPosition,
     page,
     lastClickedEntryId,
@@ -23,6 +32,11 @@ export function ReviewsPageContent() {
       hasMore={hasMore}
       loadMore={loadMore}
       ordering={sort}
+      filters={
+        <div className="mb-2 mt-2 flex items-center justify-end sm:mt-4">
+          <FeedSortDropdown options={SORT_OPTIONS} value={sort} onChange={handleSortChange} />
+        </div>
+      }
       skeletonVariant="proposalWork"
       restoredScrollPosition={restoredScrollPosition}
       page={page}
