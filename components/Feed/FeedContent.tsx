@@ -41,6 +41,7 @@ interface FeedContentProps {
   restoredScrollPosition?: number | null;
   page?: number;
   lastClickedEntryId?: string;
+  persistedFilters?: Record<string, string>;
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
@@ -85,6 +86,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   restoredScrollPosition,
   page,
   lastClickedEntryId,
+  persistedFilters,
   insertContent,
   shouldRenderBountyAsComment,
   showBountyInfo = false,
@@ -123,6 +125,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     page,
     restoredScrollPosition,
     lastClickedEntryId,
+    filters: persistedFilters,
   });
 
   const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =

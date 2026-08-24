@@ -12,16 +12,20 @@ import {
 } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
-import type {
-  ProposalStatusFilter,
-  ProposalSortOption,
+import {
+  STATUS_OPTIONS,
+  SORT_OPTIONS,
+  type ProposalStatusFilter,
+  type ProposalSortOption,
 } from '@/components/Funding/lib/proposalSortAndFilterConfig';
+import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 interface FundraiseContextValue {
   entries: FeedEntry[];
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
+  page: number;
   loadMore: () => Promise<void>;
   proposalCount: number;
 
@@ -34,10 +38,30 @@ interface FundraiseContextValue {
 
   /** Call once from the consuming component to trigger the initial fetch. */
   activate: () => void;
+
+  restoredScrollPosition: number | null;
+  lastClickedEntryId: string | null;
+  restorationTab: string;
 }
 
 const PAGE_SIZE = 20;
+const DEFAULT_STATUS: ProposalStatusFilter = 'all';
+const DEFAULT_SORT: ProposalSortOption = 'best';
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
+
+function resolveRestoredStatus(value: string | undefined): ProposalStatusFilter {
+  if (STATUS_OPTIONS.some((option) => option.value === value)) {
+    return value as ProposalStatusFilter;
+  }
+  return DEFAULT_STATUS;
+}
+
+function resolveRestoredSort(value: string | undefined): ProposalSortOption {
+  if (SORT_OPTIONS.some((option) => option.value === value)) {
+    return value as ProposalSortOption;
+  }
+  return DEFAULT_SORT;
+}
 
 interface FundraiseProviderProps {
   children: ReactNode;
@@ -45,16 +69,34 @@ interface FundraiseProviderProps {
 }
 
 export function FundraiseProvider({ children, grantId }: FundraiseProviderProps) {
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
+  const restorationTab = useMemo(() => {
+    const parts = ['proposals'];
+    if (grantId != null) parts.push(`grant-${grantId}`);
+    return parts.join('-');
+  }, [grantId]);
 
-  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>('all');
+  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
+    activeTab: restorationTab,
+  });
+
+  const hasRestoredEntries = restoredState !== null && (restoredState.entries?.length ?? 0) > 0;
+  const initialEntries = restoredState?.entries ?? [];
+  const initialHasMore = restoredState?.hasMore ?? false;
+  const initialPage = restoredState?.page ?? 1;
+  const initialStatusFilter = resolveRestoredStatus(restoredState?.filters?.statusFilter);
+  const initialSortBy = resolveRestoredSort(restoredState?.filters?.sortBy);
+
+  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
+  const [totalCount, setTotalCount] = useState(initialEntries.length);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [page, setPage] = useState(initialPage);
+  const pageRef = useRef(initialPage);
+
+  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>(initialStatusFilter);
   const [taxDeductible, setTaxDeductible] = useState(false);
-  const [sortBy, setSortBy] = useState<ProposalSortOption>('best');
+  const [sortBy, setSortBy] = useState<ProposalSortOption>(initialSortBy);
 
   const feedParams = useMemo(() => {
     const isStatusCompleted = statusFilter === 'completed';
@@ -70,8 +112,9 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     };
   }, [statusFilter, sortBy]);
 
-  const [activated, setActivated] = useState(false);
+  const [activated, setActivated] = useState(hasRestoredEntries);
   const activate = useCallback(() => setActivated(true), []);
+  const skipFetchAfterRestoreRef = useRef(hasRestoredEntries);
 
   useEffect(() => {
     if (grantId != null) {
@@ -82,6 +125,8 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const fetchProposals = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
+    pageRef.current = 1;
+    setPage(1);
     try {
       const result = await FeedService.getFeed({
         page: 1,
@@ -95,7 +140,6 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       setEntries(result.entries);
       setTotalCount(result.count);
       setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
-      setPage(1);
     } catch (error) {
       console.error('Error fetching fundraises:', error);
     } finally {
@@ -104,16 +148,19 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   }, [grantId, feedParams]);
 
   useEffect(() => {
-    if (activated) {
-      fetchProposals();
+    if (!activated) return;
+    if (skipFetchAfterRestoreRef.current) {
+      skipFetchAfterRestoreRef.current = false;
+      return;
     }
+    fetchProposals();
   }, [activated, fetchProposals]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
 
     setIsLoadingMore(true);
-    const nextPage = page + 1;
+    const nextPage = pageRef.current + 1;
     try {
       const result = await FeedService.getFeed({
         page: nextPage,
@@ -127,13 +174,14 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       setEntries((prev) => [...prev, ...result.entries]);
       setTotalCount(result.count);
       setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
+      pageRef.current = nextPage;
       setPage(nextPage);
     } catch (error) {
       console.error('Error loading more fundraises:', error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore, page, grantId, feedParams]);
+  }, [isLoading, isLoadingMore, hasMore, grantId, feedParams]);
 
   const value = useMemo<FundraiseContextValue>(
     () => ({
@@ -141,6 +189,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       isLoading: !activated || isLoading,
       isLoadingMore,
       hasMore,
+      page,
       loadMore,
       proposalCount: totalCount,
       statusFilter,
@@ -150,6 +199,9 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       sortBy,
       setSortBy,
       activate,
+      restoredScrollPosition,
+      lastClickedEntryId,
+      restorationTab,
     }),
     [
       entries,
@@ -158,11 +210,15 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       isLoading,
       isLoadingMore,
       hasMore,
+      page,
       loadMore,
       statusFilter,
       taxDeductible,
       sortBy,
       activate,
+      restoredScrollPosition,
+      lastClickedEntryId,
+      restorationTab,
     ]
   );
 
