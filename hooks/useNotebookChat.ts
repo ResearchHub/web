@@ -27,6 +27,14 @@ const POLL_INTERVAL_MS = 5000;
 const NUDGE_DEBOUNCE_MS = 250;
 const MAX_STREAM_NARRATION_CHARS = 100_000;
 const MAX_STREAM_THINKING_CHARS = 4_000;
+const MAX_STREAM_TOOL_DRAFT_CHARS = 20_000;
+
+/** Delta kinds this build can assemble, with their per-item text bounds. */
+const STREAM_ITEM_MAXIMUMS: Record<string, number> = {
+  narration: MAX_STREAM_NARRATION_CHARS,
+  thinking: MAX_STREAM_THINKING_CHARS,
+  tool_draft: MAX_STREAM_TOOL_DRAFT_CHARS,
+};
 
 export type ChatAccess = 'loading' | 'ok' | 'not_found' | 'unauthorized' | 'error';
 
@@ -124,16 +132,26 @@ function appendStreamDeltas(
 ): ChatStreamItem[] | null {
   const items = current.map((item) => ({ ...item }));
   for (const delta of deltas) {
-    const maximum =
-      delta.type === 'thinking' ? MAX_STREAM_THINKING_CHARS : MAX_STREAM_NARRATION_CHARS;
+    const maximum = STREAM_ITEM_MAXIMUMS[delta.type];
+    if (maximum == null) {
+      // A kind newer than this build: skip its payload but keep the frame —
+      // the sequence still advances, so a growing backend never pokes a gap
+      // that would force REST repairs on every batch.
+      continue;
+    }
     const existing = items.find((item) => item.id === delta.id);
     if (existing == null) {
-      items.push({
-        id: delta.id,
-        type: delta.type,
-        text: delta.delta.slice(0, maximum),
-        at: delta.at,
-      });
+      const base = { id: delta.id, text: delta.delta.slice(0, maximum), at: delta.at };
+      items.push(
+        delta.type === 'tool_draft'
+          ? {
+              ...base,
+              type: 'tool_draft',
+              tool: delta.tool ?? '',
+              label: delta.label ?? 'Preparing a tool call',
+            }
+          : { ...base, type: delta.type as 'narration' | 'thinking' }
+      );
     } else if (existing.type === delta.type) {
       existing.text = `${existing.text}${delta.delta}`.slice(0, maximum);
     } else {
@@ -199,7 +217,13 @@ export function applyStreamEvent(
     phase:
       lastDelta?.type === 'narration'
         ? { state: 'responding', label: 'Writing a response' }
-        : { state: 'thinking', label: 'Thinking' },
+        : lastDelta?.type === 'tool_draft'
+          ? {
+              state: 'using_tool',
+              label: lastDelta.label ?? 'Preparing a tool call',
+              tool: lastDelta.tool ?? null,
+            }
+          : { state: 'thinking', label: 'Thinking' },
   };
   const executions = [...chat.executions];
   executions[executionIndex] = nextExecution;

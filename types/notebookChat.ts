@@ -62,10 +62,30 @@ export interface ChatToolCallActivity {
   sources?: ChatActivitySource[] | null;
 }
 
-export type ChatActivityItem = ChatNarrationActivity | ChatThinkingActivity | ChatToolCallActivity;
+/** A tool call the model is still composing — its arguments stream in for seconds. */
+export interface ChatToolDraftActivity {
+  type: 'tool_draft';
+  /** Machine name; may be empty when the backend could not tell. */
+  tool: string;
+  /** Human copy supplied by the backend; always rendered verbatim. */
+  label: string;
+  /** Prose extracted from the arguments (e.g. the edit being drafted); often empty. */
+  text: string;
+  at: string;
+}
+
+export type ChatActivityItem =
+  | ChatNarrationActivity
+  | ChatThinkingActivity
+  | ChatToolCallActivity
+  | ChatToolDraftActivity;
 
 /** A transient item assembled from WebSocket deltas while a model turn runs. */
-export type ChatStreamItem = (ChatNarrationActivity | ChatThinkingActivity) & {
+export type ChatStreamItem = (
+  | ChatNarrationActivity
+  | ChatThinkingActivity
+  | ChatToolDraftActivity
+) & {
   /** Stable within one provider iteration. */
   id: string;
 };
@@ -181,9 +201,18 @@ interface ChatSocketEventBase {
 
 export interface ChatStreamDelta {
   id: string;
-  type: 'narration' | 'thinking';
+  /**
+   * `narration` / `thinking` / `tool_draft` today, but the backend adds kinds
+   * without notice; the appender skips kinds it does not know while keeping
+   * the frame's sequence, so never validate this against a closed list.
+   */
+  type: string;
   delta: string;
   at: string;
+  /** tool_draft only. */
+  tool?: string;
+  /** tool_draft only. */
+  label?: string;
 }
 
 export interface ChatStreamSocketEvent extends ChatSocketEventBase {
@@ -224,7 +253,9 @@ export function isChatStreamSocketEvent(event: ChatSocketEvent): event is ChatSt
       (delta) =>
         delta != null &&
         typeof delta.id === 'string' &&
-        (delta.type === 'narration' || delta.type === 'thinking') &&
+        // Open on purpose: rejecting a frame for an unknown kind would poke a
+        // sequence gap and force a REST repair every time the backend grows.
+        typeof delta.type === 'string' &&
         typeof delta.delta === 'string' &&
         typeof delta.at === 'string'
     )

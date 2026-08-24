@@ -28,6 +28,7 @@ import type {
   ChatActivitySource,
   ChatThinkingActivity,
   ChatToolCallActivity,
+  ChatToolDraftActivity,
 } from '@/types/notebookChat';
 
 /**
@@ -216,6 +217,36 @@ function ThinkingRow({
   );
 }
 
+/**
+ * A tool call the model is still composing. The spinner marks it live, and any
+ * prose the backend extracts from the arguments (the edit being drafted)
+ * streams below the label, so long argument stretches read as progress rather
+ * than silence. A lifecycle refetch replaces this row with the durable
+ * `tool_call` account of the dispatched call.
+ */
+function ToolDraftRow({ draft }: { readonly draft: ChatToolDraftActivity }) {
+  const ToolIcon = TOOL_ICONS[draft.tool] ?? Wrench;
+
+  return (
+    <div className="flex items-start gap-2">
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
+        <Loader size="sm" className="!h-3.5 !w-3.5 text-primary-500" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 font-medium text-gray-800">
+          <ToolIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+          <span className="min-w-0 truncate">{humanizeLabel(draft.label)}</span>
+        </div>
+        {draft.text && (
+          <p className="mt-1.5 whitespace-pre-wrap break-words leading-relaxed text-gray-500">
+            {draft.text}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Unknown item types from newer backends render nothing (never crash the feed). */
 function ActivityItemBody({
   item,
@@ -236,6 +267,9 @@ function ActivityItemBody({
   }
   if (item.type === 'tool_call') {
     return <ToolCallRow call={item} />;
+  }
+  if (item.type === 'tool_draft') {
+    return <ToolDraftRow draft={item} />;
   }
   return null;
 }
