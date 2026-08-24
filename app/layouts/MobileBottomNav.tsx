@@ -212,9 +212,16 @@ export const MobileBottomNav: React.FC = () => {
   return (
     <>
       {/* Docked over the content directly above the nav, sharing its scroll
-          fade so the two read as one piece of chrome. The nav is z-[100]. */}
+          fade so the two read as one piece of chrome. The nav is z-[100].
+
+          The wrapper spans the full width but only the bar inside it is drawn,
+          so it stays `pointer-events-none` and FundingPowerBar re-enables hits
+          on the bar itself. A fixed element swallows touch drags that start on
+          it — they scroll the document, not the feed's scrollport — so every
+          pixel of it that isn't a control is a band the feed can't be scrolled
+          from, and `opacity-20` makes those bands invisible rather than absent. */}
       <div
-        className={`fixed bottom-16 left-0 right-0 z-[99] px-3 pb-2 tablet:!hidden transition-opacity duration-300 ease-in-out ${
+        className={`pointer-events-none fixed bottom-16 left-0 right-0 z-[99] px-3 pb-2 tablet:!hidden transition-opacity duration-300 ease-in-out ${
           isScrollingDown ? 'opacity-20' : 'opacity-100'
         }`}
       >
