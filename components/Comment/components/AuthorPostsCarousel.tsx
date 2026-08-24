@@ -61,7 +61,7 @@ const INITIAL_SKELETONS = 4;
 const PAGE_SKELETONS = 2;
 
 const Skeleton: FC = () => (
-  <div className="snap-start shrink-0 w-[88vw] sm:!w-[420px] max-w-[440px] h-[360px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+  <div className="h-72 w-[88vw] max-w-[440px] shrink-0 snap-start rounded-xl border border-gray-200 bg-gray-50 sm:!w-[420px] animate-pulse" />
 );
 
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
@@ -132,7 +132,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           {cards.map((card) => (
             <div
               key={card.key}
-              className="flex-shrink-0 snap-start w-[88vw] sm:!w-[420px] max-w-[440px]"
+              className="h-72 w-[88vw] max-w-[440px] shrink-0 snap-start sm:!w-[420px]"
             >
               <CardForVariant
                 card={card}
