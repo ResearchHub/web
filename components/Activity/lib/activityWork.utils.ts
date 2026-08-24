@@ -1,12 +1,15 @@
 import { buildWorkUrl } from '@/utils/url';
 import { getBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
-import { isGrantOpened, isProposalSubmission } from './activityDisplay.utils';
+import {
+  isGrantOpened,
+  isProposalSubmission,
+  shouldLinkToUpdatesTab,
+} from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
 import { toOptionalNumber } from '@/utils/number';
 import type {
   ActivityAction,
   FeedBountyContent,
-  FeedCommentContent,
   FeedEntry,
   FeedGrantContent,
   FeedPaperContent,
@@ -31,7 +34,7 @@ export interface ActivityWork {
   grant?: WorkGrantSummary;
   bounty?: Bounty;
   authors?: AuthorProfile[];
-  tab?: 'reviews' | 'bounties' | 'conversation';
+  tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
 }
 
 export interface WorkCardAuthor {
@@ -62,17 +65,23 @@ export interface WorkCardPresentation {
 }
 
 export function getActivityBounty(entry: FeedEntry): Bounty | undefined {
-  if (entry.contentType === 'COMMENT') {
-    return (entry.content as FeedCommentContent).bounties?.[0];
-  }
+  // A BOUNTY entry is the only shape that carries its bounty singularly; every
+  // other content type (comments, and the PAPER/POST entries the peer review
+  // feed builds) hangs them off `bounties`.
   if (entry.contentType === 'BOUNTY') {
     return (entry.content as FeedBountyContent).bounty;
   }
-  return undefined;
+  const bounties = entry.content.bounties;
+  return bounties?.find((bounty) => bounty.status === 'OPEN') ?? bounties?.[0];
 }
 
-function resolveTabFromAction(activityAction?: ActivityAction): ActivityWork['tab'] {
-  switch (activityAction) {
+/**
+ * `workContentType` is the type of the work being linked to, not of the entry —
+ * author updates are `comment_published` like any other comment and only the
+ * target tells them apart from a conversation comment.
+ */
+function resolveWorkTab(entry: FeedEntry, workContentType?: ContentType): ActivityWork['tab'] {
+  switch (entry.activityAction) {
     case 'tip_review':
     case 'peer_review_published':
       return 'reviews';
@@ -81,7 +90,7 @@ function resolveTabFromAction(activityAction?: ActivityAction): ActivityWork['ta
     case 'bounty_payout':
       return 'bounties';
     case 'comment_published':
-      return 'conversation';
+      return shouldLinkToUpdatesTab(entry, workContentType) ? 'updates' : 'conversation';
     default:
       return undefined;
   }
@@ -310,13 +319,13 @@ function grantSummaryFromFeedGrant(content: FeedGrantContent): WorkGrantSummary 
  * absent (PAPER / POST / GRANT / proposal / contribution events).
  */
 function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
-  const tab = resolveTabFromAction(entry.activityAction);
   const bounty = getActivityBounty(entry);
 
   if (entry.contentType === 'PAPER') {
     const paper = entry.content as FeedPaperContent;
     if (!paper.title) return null;
     const documentType: ContentType = 'paper';
+    const tab = resolveWorkTab(entry, documentType);
     return {
       id: paper.id,
       slug: paper.slug,
@@ -340,6 +349,7 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
     const grantContent = entry.content as FeedGrantContent;
     if (!grantContent.title) return null;
     const documentType: ContentType = 'funding_request';
+    const tab = resolveWorkTab(entry, documentType);
     return {
       id: grantContent.id,
       slug: grantContent.slug,
@@ -375,6 +385,7 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
       post.contentType === 'PREREGISTRATION'
         ? 'preregistration'
         : 'post';
+    const tab = resolveWorkTab(entry, documentType);
     return {
       id: post.id,
       slug: post.slug,
@@ -445,8 +456,8 @@ export function shouldShowAuthorBadge(entry: FeedEntry, authorId?: number | null
 }
 
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
-  const tab = resolveTabFromAction(entry.activityAction);
   const documentType = related.contentType;
+  const tab = resolveWorkTab(entry, documentType);
   const relatedAuthors = related.authors?.map((authorship) => authorship.authorProfile);
 
   return {

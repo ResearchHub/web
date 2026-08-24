@@ -1,6 +1,6 @@
 'use client';
 
-import { Wallet, Zap } from 'lucide-react';
+import { Coins, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FundingPowerTooltip } from '@/components/tooltips/FundingPowerTooltip';
 import { useFundingPowerControls } from '@/contexts/FundingPowerContext';
@@ -35,7 +35,11 @@ export const FundingPowerBar = ({ className }: FundingPowerBarProps) => {
   return (
     <div className={cn(BAR_VISIBILITY, className)}>
       {isReady ? (
-        <div className={BAR_SURFACE}>
+        // Hits are re-enabled here rather than on the wrapper (see
+        // MobileBottomNav) so the gutters around the bar stay transparent to
+        // touch. The loading state stays transparent throughout — it has
+        // nothing to tap, so it may as well let scrolls through.
+        <div className={cn(BAR_SURFACE, 'pointer-events-auto')}>
           <Zap className="h-4 w-4 shrink-0 text-gray-500" />
           <p className="min-w-0 truncate text-xs font-semibold text-gray-500">Funding power</p>
 
@@ -59,7 +63,7 @@ export const FundingPowerBar = ({ className }: FundingPowerBarProps) => {
           )}
 
           <Button size="sm" onClick={openAddFunds} className="ml-auto shrink-0 gap-1.5">
-            <Wallet size={14} className="shrink-0" />
+            <Coins size={14} className="shrink-0" />
             Add funds
           </Button>
         </div>
