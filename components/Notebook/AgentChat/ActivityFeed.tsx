@@ -4,7 +4,6 @@ import { useMemo, useState, type ComponentType } from 'react';
 import {
   Ban,
   BookOpen,
-  Brain,
   Building2,
   Check,
   ChevronDown,
@@ -161,6 +160,22 @@ function stripMarkdown(text: string): string {
 }
 
 /**
+ * A lighter band sweeping through the word itself, clipped to the glyphs — the
+ * label carries the "still working" signal on its own, which is why the row
+ * needs no icon. Only the live block wears it; a settled one says "Thought"
+ * instead, so the state is in the word rather than in two weights of the same
+ * word. `-webkit-text-fill-color` is what actually reveals the gradient in
+ * WebKit, so both it and `text-transparent` have to be set, and both have to be
+ * put back when motion is reduced.
+ */
+const THINKING_SHINE = cn(
+  'bg-text-shine bg-[length:300%_100%] bg-clip-text text-transparent',
+  '[-webkit-text-fill-color:transparent] animate-text-shine',
+  'motion-reduce:animate-none motion-reduce:bg-none motion-reduce:text-gray-500',
+  'motion-reduce:[-webkit-text-fill-color:currentColor]'
+);
+
+/**
  * One thinking block, collapsed to a labeled row with a one-line preview.
  * Readable reasoning can grow incrementally and runs up to 4000 chars per
  * block, so rendering it inline like narration would drown the tool rows;
@@ -199,9 +214,8 @@ function ThinkingRow({
           )}
         </span>
         <span className="flex min-w-0 items-center gap-x-1.5">
-          <span className="inline-flex items-center gap-1 font-medium">
-            <Brain className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-            Thinking
+          <span className={cn('font-medium', streaming && THINKING_SHINE)}>
+            {streaming ? 'Thinking' : 'Thought'}
           </span>
           {/* nowrap collapses the block's newlines, so the preview is one line. */}
           {!expanded && <span className="min-w-0 truncate text-gray-400">{preview}</span>}

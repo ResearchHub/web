@@ -59,6 +59,13 @@ export default {
           '0%': { transform: 'translateX(-150%) skewX(-20deg)' },
           '100%': { transform: 'translateX(420%) skewX(-20deg)' },
         },
+        // Sweeps `bg-text-shine` through text clipped to the glyphs. The held
+        // frames at each end pause the band off the word, so it reads as a
+        // repeating pulse rather than a continuous scroll.
+        'text-shine': {
+          '0%, 18%': { backgroundPosition: '100% 0' },
+          '82%, 100%': { backgroundPosition: '0% 0' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -70,6 +77,14 @@ export default {
         // Single sweep. `both` keeps the streak parked off-screen during the
         // delay instead of sitting mid-element until it starts.
         shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
+        'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
+      },
+      backgroundImage: {
+        // Paired with `animate-text-shine` and `bg-clip-text`. Sized to 300% so
+        // the lighter middle band starts and ends clear of the text. The band
+        // is the same gray at 30% alpha (`4d`) rather than a lighter gray, so
+        // it composites over whatever surface the label sits on.
+        'text-shine': `linear-gradient(90deg, ${colors.gray[500]} 0%, ${colors.gray[500]} 30%, ${colors.gray[500]}4d 45%, ${colors.gray[500]}4d 55%, ${colors.gray[500]} 70%, ${colors.gray[500]} 100%)`,
       },
     },
   },
