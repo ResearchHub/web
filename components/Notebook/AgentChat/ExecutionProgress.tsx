@@ -9,7 +9,7 @@ import {
   type ChatExecution,
   type ChatStreamItem,
 } from '@/types/notebookChat';
-import { ActivityFeed, humanizeLabel } from './ActivityFeed';
+import { ActivityFeed, humanizeLabel, TEXT_SHINE } from './ActivityFeed';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -46,19 +46,18 @@ function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
   return execution.status === 'PENDING' ? 'Waiting to start' : 'Working';
 }
 
+/**
+ * The turn's live phase, e.g. "Thinking" (the label is the backend's — see
+ * `liveStatusLabel`). The sweep across the word is the running signal, so the
+ * pulsing dots that used to sit beside it are gone; `--shine` keeps the line in
+ * its own primary colour rather than the feed's gray.
+ */
 export function LiveStatusLine({ label }: { readonly label: string }) {
   return (
     <div className="flex items-center gap-2 pt-1 text-sm font-medium text-primary-600">
-      <span className="flex items-center gap-0.5" aria-hidden="true">
-        {[0, 1, 2].map((dot) => (
-          <span
-            key={dot}
-            className="h-1.5 w-1.5 rounded-full bg-primary-500 animate-thinking-dot"
-            style={{ animationDelay: `${dot * 150}ms` }}
-          />
-        ))}
+      <span aria-live="polite" className={cn('[--shine:theme(colors.primary.600)]', TEXT_SHINE)}>
+        {label}
       </span>
-      <span aria-live="polite">{label}</span>
     </div>
   );
 }

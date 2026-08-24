@@ -70,7 +70,6 @@ export default {
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'thinking-dot': 'pulse-dot 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
         'logo-marquee': 'logo-marquee 32s linear infinite',
@@ -81,10 +80,16 @@ export default {
       },
       backgroundImage: {
         // Paired with `animate-text-shine` and `bg-clip-text`. Sized to 300% so
-        // the lighter middle band starts and ends clear of the text. The band
-        // is the same gray at 30% alpha (`4d`) rather than a lighter gray, so
-        // it composites over whatever surface the label sits on.
-        'text-shine': `linear-gradient(90deg, ${colors.gray[500]} 0%, ${colors.gray[500]} 30%, ${colors.gray[500]}4d 45%, ${colors.gray[500]}4d 55%, ${colors.gray[500]} 70%, ${colors.gray[500]} 100%)`,
+        // the band starts and ends clear of the text. Callers set `--shine` to
+        // the label's own color (it can't be `currentColor` — the element's
+        // color is transparent so the clipped gradient can show through); the
+        // band is that same color faded rather than a lighter one, so it
+        // composites over whatever surface the label sits on.
+        'text-shine': `linear-gradient(90deg,
+          var(--shine) 0%, var(--shine) 30%,
+          color-mix(in srgb, var(--shine) 30%, transparent) 45%,
+          color-mix(in srgb, var(--shine) 30%, transparent) 55%,
+          var(--shine) 70%, var(--shine) 100%)`,
       },
     },
   },

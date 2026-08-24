@@ -160,19 +160,22 @@ function stripMarkdown(text: string): string {
 }
 
 /**
- * A lighter band sweeping through the word itself, clipped to the glyphs — the
- * label carries the "still working" signal on its own, which is why the row
- * needs no icon. Only the live block wears it; a settled one says "Thought"
- * instead, so the state is in the word rather than in two weights of the same
- * word. `-webkit-text-fill-color` is what actually reveals the gradient in
- * WebKit, so both it and `text-transparent` have to be set, and both have to be
- * put back when motion is reduced.
+ * A faded band sweeping through the word itself, clipped to the glyphs, marking
+ * a label as live. The motion carries the "still working" signal on its own,
+ * which is why the labels that wear it need no icon or dots beside them.
+ *
+ * Callers must set `--shine` to the label's color — the gradient is drawn from
+ * it, and `text-transparent` rules out `currentColor`.
+ * `-webkit-text-fill-color` is what actually reveals the gradient in WebKit, so
+ * both it and `text-transparent` have to be set, and both have to be put back
+ * when motion is reduced or the label would render invisible rather than merely
+ * unanimated.
  */
-const THINKING_SHINE = cn(
+export const TEXT_SHINE = cn(
   'bg-text-shine bg-[length:300%_100%] bg-clip-text text-transparent',
   '[-webkit-text-fill-color:transparent] animate-text-shine',
-  'motion-reduce:animate-none motion-reduce:bg-none motion-reduce:text-gray-500',
-  'motion-reduce:[-webkit-text-fill-color:currentColor]'
+  'motion-reduce:animate-none motion-reduce:bg-none',
+  'motion-reduce:[color:var(--shine)] motion-reduce:[-webkit-text-fill-color:var(--shine)]'
 );
 
 /**
@@ -214,7 +217,12 @@ function ThinkingRow({
           )}
         </span>
         <span className="flex min-w-0 items-center gap-x-1.5">
-          <span className={cn('font-medium', streaming && THINKING_SHINE)}>
+          <span
+            className={cn(
+              'font-medium',
+              streaming && cn('[--shine:theme(colors.gray.500)]', TEXT_SHINE)
+            )}
+          >
             {streaming ? 'Thinking' : 'Thought'}
           </span>
           {/* nowrap collapses the block's newlines, so the preview is one line. */}
