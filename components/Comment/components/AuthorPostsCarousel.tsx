@@ -60,8 +60,14 @@ const summarizeCount = (cards: PostCardData[]): string => {
 const INITIAL_SKELETONS = 4;
 const PAGE_SKELETONS = 2;
 
+/**
+ * Height tracks a real card rather than a round number: an EmbeddedPostCard is
+ * its header, a two-line snippet and an `md` embed (h-32), which lands just
+ * under 264px. Reviews come in shorter, so nothing here is ever taller than
+ * what replaces it.
+ */
 const Skeleton: FC = () => (
-  <div className="snap-start shrink-0 w-[88vw] sm:!w-[420px] max-w-[440px] h-[360px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+  <div className="snap-start shrink-0 w-[88vw] sm:!w-[420px] max-w-[440px] h-[264px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
 );
 
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({

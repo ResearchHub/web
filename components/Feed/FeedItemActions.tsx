@@ -12,6 +12,7 @@ import {
   Maximize2,
   Share,
   Trash2,
+  EyeOff,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -40,6 +41,9 @@ import { formatCurrency } from '@/utils/currency';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { useUser } from '@/contexts/UserContext';
+import { useHideFromFeed, HIDE_FROM_FEED_CONFIRM_MESSAGE } from '@/hooks/useHideFromFeed';
+import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -229,9 +233,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   variant = 'default',
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { user } = useUser();
+  const { hideFromFeed, isHiding } = useHideFromFeed();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const listDetailContext = useContext(ListDetailContext);
+  const [isHideFromFeedModalOpen, setIsHideFromFeedModalOpen] = useState(false);
   const [localVoteCount, setLocalVoteCount] = useState(
     metrics?.adjustedScore ?? metrics?.votes ?? 0
   );
@@ -403,6 +410,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  const handleOpenHideFromFeed = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIsMenuOpen(false);
+    setIsHideFromFeedModalOpen(true);
+  };
+
+  const handleConfirmHideFromFeed = async () => {
+    if (!relatedDocumentUnifiedDocumentId) return;
+    const success = await hideFromFeed(relatedDocumentUnifiedDocumentId);
+    if (success) {
+      setIsHideFromFeedModalOpen(false);
+    }
+  };
+
   const handleCopyDocumentUrl = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
 
@@ -421,7 +442,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
 
   // Add separator if needed before Report
-  const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
+  const canHideFromFeed =
+    !!user?.isModerator &&
+    !!relatedDocumentUnifiedDocumentId &&
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    feedContentType !== 'APPLICATION';
+  const showSeparator =
+    !hideReportButton && (menuItems.length > 0 || canHideFromFeed) && !isTabletOrSmaller;
 
   // Calculate total awarded amount (tips + bounty awards)
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -438,7 +466,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const showMoreMenu =
     !!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
     menuItems.length > 0 ||
-    !hideReportButton;
+    !hideReportButton ||
+    canHideFromFeed;
   // Comment rows keep the pill chrome; cards use bare icons.
   const isFlat = variant !== 'inline';
 
@@ -766,6 +795,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 </BaseMenuItem>
               )}
 
+              {canHideFromFeed && (
+                <BaseMenuItem onClick={handleOpenHideFromFeed} className="flex items-center gap-2">
+                  <EyeOff className="w-4 h-4" />
+                  <span>Hide from feed</span>
+                </BaseMenuItem>
+              )}
+
               {menuItems.map((item, index) => (
                 <BaseMenuItem
                   key={`menu-item-${index}`}
@@ -800,6 +836,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
+        />
+      )}
+
+      {canHideFromFeed && (
+        <ConfirmationModal
+          isOpen={isHideFromFeedModalOpen}
+          onClose={() => setIsHideFromFeedModalOpen(false)}
+          title="Hide from feed"
+          description={HIDE_FROM_FEED_CONFIRM_MESSAGE}
+          confirmLabel="Hide from feed"
+          confirmVariant="destructive"
+          isConfirming={isHiding}
+          onConfirm={handleConfirmHideFromFeed}
         />
       )}
 

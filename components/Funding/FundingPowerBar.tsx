@@ -1,6 +1,6 @@
 'use client';
 
-import { Wallet, Zap } from 'lucide-react';
+import { Coins, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FundingPowerTooltip } from '@/components/tooltips/FundingPowerTooltip';
 import { useFundingPowerControls } from '@/contexts/FundingPowerContext';
@@ -63,7 +63,7 @@ export const FundingPowerBar = ({ className }: FundingPowerBarProps) => {
           )}
 
           <Button size="sm" onClick={openAddFunds} className="ml-auto shrink-0 gap-1.5">
-            <Wallet size={14} className="shrink-0" />
+            <Coins size={14} className="shrink-0" />
             Add funds
           </Button>
         </div>
