@@ -42,8 +42,9 @@ import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
-import { useHideFromFeed, HIDE_FROM_FEED_CONFIRM_MESSAGE } from '@/hooks/useHideFromFeed';
-import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import { useHideFromFeedFlow } from '@/hooks/useHideFromFeedFlow';
+import { HideFromFeedFlowModals } from '@/components/Feed/HideFromFeedFlowModals';
+import type { FeedEntry } from '@/types/feed';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -183,7 +184,8 @@ interface FeedItemActionsProps {
   tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
-  feedEntryId?: string;
+  /** Feed entries that can be hidden from this row (one → confirm, many → picker). */
+  hideableEntries?: FeedEntry[];
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
   onExpand?: (e?: React.MouseEvent) => void;
@@ -226,7 +228,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
-  feedEntryId,
+  hideableEntries,
   showPeerReviews = true,
   onFeedItemClick,
   onExpand,
@@ -236,11 +238,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
-  const { hideFromFeed, isHiding } = useHideFromFeed();
+  const hideFromFeedFlow = useHideFromFeedFlow();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const listDetailContext = useContext(ListDetailContext);
-  const [isHideFromFeedModalOpen, setIsHideFromFeedModalOpen] = useState(false);
   const [localVoteCount, setLocalVoteCount] = useState(
     metrics?.adjustedScore ?? metrics?.votes ?? 0
   );
@@ -415,14 +416,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const handleOpenHideFromFeed = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setIsMenuOpen(false);
-    setIsHideFromFeedModalOpen(true);
-  };
-
-  const handleConfirmHideFromFeed = async () => {
-    if (!feedEntryId) return;
-    const success = await hideFromFeed(feedEntryId);
-    if (success) {
-      setIsHideFromFeedModalOpen(false);
+    if (hideableEntries?.length) {
+      hideFromFeedFlow.requestHide(hideableEntries);
     }
   };
 
@@ -446,7 +441,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Add separator if needed before Report
   const canHideFromFeed =
     !!user?.isModerator &&
-    !!feedEntryId &&
+    (hideableEntries?.length ?? 0) > 0 &&
     feedContentType !== 'COMMENT' &&
     feedContentType !== 'BOUNTY' &&
     feedContentType !== 'APPLICATION';
@@ -842,15 +837,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       )}
 
       {canHideFromFeed && (
-        <ConfirmationModal
-          isOpen={isHideFromFeedModalOpen}
-          onClose={() => setIsHideFromFeedModalOpen(false)}
-          title="Hide from feed"
-          description={HIDE_FROM_FEED_CONFIRM_MESSAGE}
-          confirmLabel="Hide from feed"
-          confirmVariant="destructive"
-          isConfirming={isHiding}
-          onConfirm={handleConfirmHideFromFeed}
+        <HideFromFeedFlowModals
+          step={hideFromFeedFlow.step}
+          entries={hideFromFeedFlow.entries}
+          selectedEntryId={hideFromFeedFlow.selectedEntryId}
+          isHiding={hideFromFeedFlow.isHiding}
+          onClose={hideFromFeedFlow.close}
+          onSelectEntry={hideFromFeedFlow.selectEntry}
+          onProceedToConfirm={hideFromFeedFlow.proceedToConfirm}
+          onConfirmHide={hideFromFeedFlow.confirmHide}
         />
       )}
 

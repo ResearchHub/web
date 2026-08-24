@@ -6,8 +6,7 @@ import { FeedModerationService } from '@/services/feed-moderation.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
 
-export const HIDE_FROM_FEED_CONFIRM_MESSAGE =
-  'This feed entry will be hidden from public feeds. Other entries for the same document will remain visible.';
+export const HIDE_FROM_FEED_CONFIRM_MESSAGE = 'This feed entry will be hidden from public feeds.';
 
 interface UseHideFromFeedReturn {
   hideFromFeed: (feedEntryId: ID) => Promise<boolean>;

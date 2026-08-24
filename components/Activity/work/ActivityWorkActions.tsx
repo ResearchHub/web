@@ -8,6 +8,7 @@ import type { FeedContentType, FeedEntry } from '@/types/feed';
 interface ActivityWorkActionsProps {
   entry: FeedEntry;
   work: ActivityWork;
+  hideableEntries?: FeedEntry[];
 }
 
 function getFeedContentTypeForWork(work: ActivityWork): FeedContentType {
@@ -21,7 +22,11 @@ function getFeedContentTypeForWork(work: ActivityWork): FeedContentType {
  * Footer actions for an activity work card: votes on the left, utility actions and
  * the flag menu on the right, matching the action bar on the rest of the feed cards.
  */
-export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({ entry, work }) => {
+export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
+  entry,
+  work,
+  hideableEntries,
+}) => {
   const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
 
   return (
@@ -32,7 +37,7 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({ entry, work 
       relatedDocumentId={work.id.toString()}
       relatedDocumentContentType={work.documentType}
       relatedDocumentUnifiedDocumentId={work.unifiedDocumentId?.toString()}
-      feedEntryId={entry.id}
+      hideableEntries={hideableEntries ?? [entry]}
       userVote={entry.userVote}
       href={work.href}
       actionLabels={{ report: 'Flag Content' }}

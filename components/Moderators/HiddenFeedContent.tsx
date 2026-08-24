@@ -6,27 +6,11 @@ import { EyeOff, RefreshCw, Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
-import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
+import { ActivityCard } from '@/components/Activity/cards/ActivityCard';
+import { ActivityCardSkeleton } from '@/components/Activity/cards/ActivityCardSkeleton';
 import { useExcludedFromFeed } from '@/hooks/useExcludedFromFeed';
 import type { FeedEntry } from '@/types/feed';
-
-const noopRegisterVisibleItem = (_index: number, _unifiedDocumentId: string) => {};
-const noopGetVisibleItems = (_clickedUnifiedDocumentId: string) => [] as string[];
-
-function HiddenFeedCardSkeleton() {
-  return (
-    <div className="animate-pulse overflow-hidden rounded-[14px] border border-gray-200 bg-white">
-      <div className="relative h-[190px] overflow-hidden bg-gray-200 sm:h-[180px]">
-        <div className="absolute inset-x-0 bottom-0 bg-black/40 px-4 pb-2 pt-2">
-          <div className="h-3.5 w-3/4 rounded bg-white/30" />
-        </div>
-      </div>
-      <div className="flex items-center justify-end border-t border-gray-100 px-3 py-2">
-        <div className="h-8 w-28 rounded bg-gray-200" />
-      </div>
-    </div>
-  );
-}
+import { cn } from '@/utils/styles';
 
 export function HiddenFeedContent() {
   const {
@@ -123,9 +107,9 @@ export function HiddenFeedContent() {
 
         {isLoading && items.length === 0 && !error && (
           <div className="space-y-4">
-            <HiddenFeedCardSkeleton />
-            <HiddenFeedCardSkeleton />
-            <HiddenFeedCardSkeleton />
+            <ActivityCardSkeleton />
+            <ActivityCardSkeleton />
+            <ActivityCardSkeleton />
           </div>
         )}
 
@@ -142,21 +126,11 @@ export function HiddenFeedContent() {
         )}
 
         {items.length > 0 && (
-          <div className="space-y-4">
+          <div>
             {items.map((entry, index) => (
-              <div
-                key={entry.id}
-                className="overflow-hidden rounded-[14px] border border-gray-200 bg-white"
-              >
-                <FeedEntryItem
-                  entry={entry}
-                  index={index}
-                  hideActions
-                  registerVisibleItem={noopRegisterVisibleItem}
-                  unregisterVisibleItem={noopRegisterVisibleItem}
-                  getVisibleItems={noopGetVisibleItems}
-                />
-                <div className="flex justify-end border-t border-gray-100 px-3 py-2">
+              <div key={entry.id} className={cn(index > 0 && 'border-t border-gray-100', 'pb-4')}>
+                <ActivityCard entry={entry} hideActions hideEntryDivider />
+                <div className="flex justify-end">
                   <Button
                     variant="outlined"
                     size="sm"
@@ -173,7 +147,7 @@ export function HiddenFeedContent() {
 
         {isLoadingMore && (
           <div className="mt-4 space-y-4">
-            <HiddenFeedCardSkeleton />
+            <ActivityCardSkeleton />
           </div>
         )}
 
