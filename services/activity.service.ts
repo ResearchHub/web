@@ -5,6 +5,7 @@ import {
   transformFeedEntry,
   RawApiFeedEntry,
 } from '@/types/feed';
+import type { CommentType } from '@/types/comment';
 
 export type ActivityDocumentType = 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 
@@ -23,6 +24,7 @@ export interface GetUserActivityParams {
   page?: number;
   pageSize?: number;
   contentType?: string;
+  commentTypes?: CommentType[];
   scope?: ActivityScope;
 }
 
@@ -87,6 +89,7 @@ export class ActivityService {
     });
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.contentType) queryParams.append('content_type', params.contentType);
+    params?.commentTypes?.forEach((commentType) => queryParams.append('comment_type', commentType));
     if (params?.scope) queryParams.append('scope', params.scope);
 
     return this.fetchActivity(`${this.BASE_PATH}/user_activity/?${queryParams.toString()}`);
