@@ -11,6 +11,8 @@ export type ActivityDocumentType = 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 
 export type ActivityScope = 'grants' | 'peer_reviews' | 'financial';
 
+export type ActivityCommentType = CommentType | 'PEER_REVIEW';
+
 export interface GetActivityParams {
   page?: number;
   pageSize?: number;
@@ -24,7 +26,7 @@ export interface GetUserActivityParams {
   page?: number;
   pageSize?: number;
   contentType?: string;
-  commentTypes?: CommentType[];
+  commentTypes?: readonly ActivityCommentType[];
   scope?: ActivityScope;
 }
 

@@ -2,11 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { FunderService } from '@/services/funder.service';
-import type { CommentType } from '@/types/comment';
 import type { FeedEntry } from '@/types/feed';
 
 const PAGE_SIZE = 20;
-const RENDERABLE_COMMENT_TYPES: CommentType[] = ['AUTHOR_UPDATE', 'REVIEW'];
+const RENDERABLE_COMMENT_TYPES = ['AUTHOR_UPDATE', 'REVIEW', 'PEER_REVIEW'] as const;
 
 interface UseFunderActivityResult {
   entries: FeedEntry[];
