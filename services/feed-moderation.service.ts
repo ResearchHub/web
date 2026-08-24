@@ -1,9 +1,6 @@
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
-import {
-  transformExcludedFromFeedList,
-  type ExcludedFromFeedList,
-} from '@/types/feed';
+import { transformExcludedFromFeedList, type ExcludedFromFeedList } from '@/types/feed';
 
 interface ListExcludedFromFeedParams {
   page?: number;

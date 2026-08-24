@@ -24,9 +24,28 @@ function WorkPreviewCardActions({ children }: SlotProps) {
   return <>{children}</>;
 }
 
-function findSlot(children: ReactNode, slot: FC<SlotProps>): ReactElement<SlotProps> | undefined {
+/** Corners available to the overlay. The bottom edge belongs to the metadata bar. */
+type OverlayPosition = 'top-left' | 'top-right';
+
+const OVERLAY_POSITION_CLASSES: Record<OverlayPosition, string> = {
+  'top-left': 'left-2 top-2',
+  'top-right': 'right-2 top-2',
+};
+
+interface OverlaySlotProps extends SlotProps {
+  position?: OverlayPosition;
+}
+
+function WorkPreviewCardOverlay({ children }: OverlaySlotProps) {
+  return <>{children}</>;
+}
+
+function findSlot<P extends SlotProps>(
+  children: ReactNode,
+  slot: FC<P>
+): ReactElement<P> | undefined {
   return Children.toArray(children).find(
-    (child): child is ReactElement<SlotProps> => isValidElement(child) && child.type === slot
+    (child): child is ReactElement<P> => isValidElement(child) && child.type === slot
   );
 }
 
@@ -49,6 +68,7 @@ interface WorkPreviewCardProps {
  * Compose with slots:
  * ```tsx
  * <WorkPreviewCard work={work}>
+ *   <WorkPreviewCard.Overlay position="top-left">...</WorkPreviewCard.Overlay>
  *   <WorkPreviewCard.Metadata>...</WorkPreviewCard.Metadata>
  *   <WorkPreviewCard.Actions>...</WorkPreviewCard.Actions>
  * </WorkPreviewCard>
@@ -64,6 +84,9 @@ function WorkPreviewCardRoot({
 }: WorkPreviewCardProps) {
   const metadata = findSlot(children, WorkPreviewCardMetadata)?.props.children;
   const actions = findSlot(children, WorkPreviewCardActions)?.props.children;
+  const overlaySlot = findSlot(children, WorkPreviewCardOverlay);
+  const overlay = overlaySlot?.props.children;
+  const overlayPosition = overlaySlot?.props.position ?? 'top-left';
   const showFooter = !!actions;
 
   const imageBlock = (
@@ -129,7 +152,7 @@ function WorkPreviewCardRoot({
   return (
     <div
       className={cn(
-        'rounded-[14px] border border-gray-200',
+        'relative rounded-[14px] border border-gray-200',
         showFooter ? 'bg-white' : 'bg-transparent',
         className
       )}
@@ -148,6 +171,18 @@ function WorkPreviewCardRoot({
         imageBlock
       )}
 
+      {/* Sits outside the link so badge tooltips don't double as navigation. */}
+      {overlay && (
+        <div
+          className={cn(
+            'absolute z-10 flex items-center gap-1.5',
+            OVERLAY_POSITION_CLASSES[overlayPosition]
+          )}
+        >
+          {overlay}
+        </div>
+      )}
+
       {showFooter && (
         <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-3 py-2">
           <div className="w-full min-w-0">{actions}</div>
@@ -160,4 +195,5 @@ function WorkPreviewCardRoot({
 export const WorkPreviewCard = Object.assign(WorkPreviewCardRoot, {
   Metadata: WorkPreviewCardMetadata,
   Actions: WorkPreviewCardActions,
+  Overlay: WorkPreviewCardOverlay,
 });

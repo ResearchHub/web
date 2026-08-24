@@ -449,9 +449,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     feedContentType !== 'BOUNTY' &&
     feedContentType !== 'APPLICATION';
   const showSeparator =
-    !hideReportButton &&
-    (menuItems.length > 0 || canHideFromFeed) &&
-    !isTabletOrSmaller;
+    !hideReportButton && (menuItems.length > 0 || canHideFromFeed) && !isTabletOrSmaller;
 
   // Calculate total awarded amount (tips + bounty awards)
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -781,6 +779,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           className={cn('flex flex-shrink-0 items-center justify-end', isFlat ? 'gap-3' : 'gap-1')}
         >
           {rightSideActionButton}
+          {shareButton}
+          {saveButton}
           {showMoreMenu && (
             <BaseMenu
               trigger={moreMenuTrigger}
@@ -826,8 +826,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               )}
             </BaseMenu>
           )}
-          {shareButton}
-          {saveButton}
         </div>
       </div>
 

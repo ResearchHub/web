@@ -30,7 +30,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ContentFormat } from '@/types/comment';
 
-interface FeedItemBountyProps {
+interface DeprecatedFeedItemBountyProps {
   entry: FeedEntry;
   href?: string;
   showActions?: boolean;
@@ -112,7 +112,12 @@ function extractBountyData(entry: FeedEntry) {
   };
 }
 
-export const FeedItemBounty: FC<FeedItemBountyProps> = ({
+/**
+ * @deprecated Bounties now render through `BountyWorkCard` on the peer review
+ * feed. The only surface still reaching this component is the profile activity
+ * tab, which shows `BOUNTY` entries without forcing the comment variant.
+ */
+export const DeprecatedFeedItemBounty: FC<DeprecatedFeedItemBountyProps> = ({
   entry,
   href,
   showActions = true,

@@ -243,41 +243,30 @@ const SupporterRow: FC<SupporterRowProps> = ({ label, onShowAll, className, chil
   </div>
 );
 
-const MAX_VISIBLE_INSTITUTIONS = 5;
-/** Tablet and below the chips get a much narrower row, so the preview is shorter. */
-const MAX_VISIBLE_INSTITUTIONS_COMPACT = 3;
+const MAX_VISIBLE_INSTITUTIONS = 2;
 
 const InstitutionChips: FC<{ institutions: SupportedInstitution[] }> = ({ institutions }) => {
-  const remainingCompact = Math.max(0, institutions.length - MAX_VISIBLE_INSTITUTIONS_COMPACT);
-  const remainingDesktop = Math.max(0, institutions.length - MAX_VISIBLE_INSTITUTIONS);
+  const remaining = Math.max(0, institutions.length - MAX_VISIBLE_INSTITUTIONS);
 
   return (
-    <>
-      {institutions.slice(0, MAX_VISIBLE_INSTITUTIONS).map((inst, index) => (
+    // One row at every width: the chips shrink and truncate rather than wrap, so
+    // a couple of long institution names can't turn the preview into a stack.
+    <div className="flex w-full min-w-0 items-center gap-2">
+      {institutions.slice(0, MAX_VISIBLE_INSTITUTIONS).map((inst) => (
         <span
           key={inst.id}
-          className={cn(
-            'max-w-[220px] truncate rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors group-hover:border-gray-300 group-hover:bg-gray-100',
-            index >= MAX_VISIBLE_INSTITUTIONS_COMPACT && 'hidden lg:!inline'
-          )}
+          className="min-w-0 truncate rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors group-hover:border-gray-300 group-hover:bg-gray-100"
           title={inst.name}
         >
           {inst.name}
         </span>
       ))}
 
-      {/* Always in the row, same as the old "View all". The count swaps at lg
-          so it matches how many chips are actually hidden. */}
       <span className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap text-xs font-medium text-primary-600 group-hover:text-primary-700">
-        <span className="lg:!hidden">
-          {remainingCompact > 0 ? `+${remainingCompact} more` : 'See all'}
-        </span>
-        <span className="hidden lg:!inline">
-          {remainingDesktop > 0 ? `+${remainingDesktop} more` : 'See all'}
-        </span>
+        {remaining > 0 ? `+${remaining} more` : 'See all'}
         <ChevronRight className="h-3.5 w-3.5" />
       </span>
-    </>
+    </div>
   );
 };
 
