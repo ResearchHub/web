@@ -39,9 +39,7 @@ export const HideFromFeedFlowModals: FC<HideFromFeedFlowModalsProps> = ({
       }}
       title="Hide from feed"
     >
-      <p className="mb-4 text-sm text-gray-600">
-        This row contains multiple feed entries. Choose which one to hide.
-      </p>
+      <p className="mb-4 text-sm text-gray-600">Choose which one to hide.</p>
       <div className="mb-4 max-h-[min(60vh,28rem)] space-y-2 overflow-y-auto">
         {entries.map((entry) => (
           <FeedEntryPickerRow
