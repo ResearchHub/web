@@ -14,12 +14,19 @@ import { WorkPreviewCard } from '../work/WorkPreviewCard';
 import { getActivityHeaderMessage, getCommentPreview } from '../lib/activityDisplay.utils';
 import { getActivityWork, getWorkCardPresentation } from '../lib/activityWork.utils';
 import type { FeedEntry } from '@/types/feed';
+import { cn } from '@/utils/styles';
 
 interface ActivityCardProps {
   entry: FeedEntry;
+  hideActions?: boolean;
+  hideEntryDivider?: boolean;
 }
 
-export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
+export const ActivityCard: FC<ActivityCardProps> = ({
+  entry,
+  hideActions = false,
+  hideEntryDivider = false,
+}) => {
   const work = getActivityWork(entry);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -42,7 +49,13 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   };
 
   return (
-    <article className="py-4 border-b border-gray-100 last:border-b-0" data-entry-id={entryId}>
+    <article
+      className={cn(
+        hideActions ? 'pt-4 pb-2' : 'py-4',
+        !hideEntryDivider && 'border-b border-gray-100 last:border-b-0'
+      )}
+      data-entry-id={entryId}
+    >
       <div className="flex gap-2.5">
         <div className="flex w-8 flex-shrink-0 flex-col items-center">
           <div className="pt-0.5">
@@ -81,9 +94,11 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
               <WorkPreviewCard.Metadata>
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
-              <WorkPreviewCard.Actions>
-                <ActivityWorkActions entry={entry} work={work} />
-              </WorkPreviewCard.Actions>
+              {!hideActions && (
+                <WorkPreviewCard.Actions>
+                  <ActivityWorkActions entry={entry} work={work} />
+                </WorkPreviewCard.Actions>
+              )}
             </WorkPreviewCard>
             <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
           </div>

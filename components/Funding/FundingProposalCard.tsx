@@ -124,6 +124,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
                 hideReportButton={true}
                 showPeerReviews={true}
                 relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
+                hideableEntries={[entry]}
                 onExpand={() => {
                   setIsExpanded((prev) => !prev);
                   setHasBeenExpanded(true);
