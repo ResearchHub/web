@@ -206,16 +206,12 @@ function stripMarkdown(text: string): string {
  * no button and no chevron. Drafts of tools whose arguments aren't prose stay
  * that way for their whole life.
  *
- * `labelHidden` hands the row's identity to its icon; the label stays in the
- * markup so the collapsed row still names itself to a screen reader.
- *
  * `className` carries the row's colour *and* the matching `--shine`, which have
  * to agree: the sweep is drawn from `--shine`, and the label's own colour is
  * transparent while it runs.
  */
 function StreamedTextRow({
   label,
-  labelHidden = false,
   text,
   streaming,
   className,
@@ -223,7 +219,6 @@ function StreamedTextRow({
   icon: Icon,
 }: {
   readonly label: string;
-  readonly labelHidden?: boolean;
   readonly text: string;
   readonly streaming: boolean;
   readonly className: string;
@@ -249,16 +244,8 @@ function StreamedTextRow({
       <span className="flex min-w-0 items-center gap-x-1.5">
         {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />}
         {/* The label is the row's identity: it keeps its width and the preview
-            beside it gives way, or a label longer than "Thought" wraps. When an
-            icon has taken that job the word goes to screen readers only —
-            `sr-only` pulls it out of the flex flow, so it costs no gap either. */}
-        <span
-          className={cn(
-            'shrink-0 whitespace-nowrap font-medium',
-            labelHidden && 'sr-only',
-            streaming && TEXT_SHINE
-          )}
-        >
+            beside it gives way, or a label longer than "Thought" wraps. */}
+        <span className={cn('shrink-0 whitespace-nowrap font-medium', streaming && TEXT_SHINE)}>
           {label}
         </span>
         {/* nowrap collapses the block's newlines, so the preview is one line. */}
@@ -356,14 +343,13 @@ function ActivityItemBody({
     );
   }
   if (item.type === 'thinking') {
-    // Live, the word is the thing that sweeps, so it has to be there to carry
-    // the signal. Settled, it would be one more "Thought" stacked down a column
-    // of them, saying nothing the icon doesn't — so the icon takes over and the
-    // reasoning's own first line gets the room.
+    // The icon is the settled row's mark, next to the past-tense word, which
+    // puts it in the same shape as the tool rows it sits among. A live block
+    // goes without: the sweep needs the word to run through, and an icon beside
+    // a shimmering label is a second thing saying the same thing.
     return (
       <StreamedTextRow
         label={streaming ? 'Thinking' : 'Thought'}
-        labelHidden={!streaming}
         icon={streaming ? undefined : Brain}
         text={item.text}
         streaming={streaming}
