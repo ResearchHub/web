@@ -16,6 +16,7 @@ import {
   type ChatStreamDelta,
   type ChatStreamItem,
   type ChatStreamSocketEvent,
+  type ExecutionPhase,
   type ChatSocketEvent,
   type NotebookChat,
   type NotebookChatListItem,
@@ -27,6 +28,14 @@ const POLL_INTERVAL_MS = 5000;
 const NUDGE_DEBOUNCE_MS = 250;
 const MAX_STREAM_NARRATION_CHARS = 100_000;
 const MAX_STREAM_THINKING_CHARS = 4_000;
+/** Matches the server's own cap on a draft's extracted prose. */
+const MAX_STREAM_TOOL_DRAFT_CHARS = 20_000;
+
+const STREAM_CHAR_CAPS: Record<ChatStreamDelta['type'], number> = {
+  narration: MAX_STREAM_NARRATION_CHARS,
+  thinking: MAX_STREAM_THINKING_CHARS,
+  tool_draft: MAX_STREAM_TOOL_DRAFT_CHARS,
+};
 
 export type ChatAccess = 'loading' | 'ok' | 'not_found' | 'unauthorized' | 'error';
 
@@ -117,6 +126,33 @@ interface ApplyStreamEventResult {
   needsRepair: boolean;
 }
 
+/**
+ * The coarse phase the newest delta puts the turn in. Nothing renders this any
+ * more — the sweep on the streaming row is the live signal — but it stays part
+ * of the merged execution, so it should describe what is actually happening.
+ * A draft's own label is the backend's copy, used verbatim.
+ */
+function phaseForDelta(delta: ChatStreamDelta | undefined): ExecutionPhase {
+  if (delta?.type === 'narration') return { state: 'responding', label: 'Writing a response' };
+  if (delta?.type === 'tool_draft' && delta.label) {
+    return { state: 'using_tool', label: delta.label, tool: delta.tool ?? null };
+  }
+  return { state: 'thinking', label: 'Thinking' };
+}
+
+/**
+ * The item a delta opens. A draft's identity rides on its frames; an argument
+ * delta arriving without the block-start that names its tool leaves both empty,
+ * which is the same state the REST checkpoint documents and the row already
+ * draws (wrench icon, no label).
+ */
+function newStreamItem(delta: ChatStreamDelta, maximum: number): ChatStreamItem {
+  const base = { id: delta.id, text: delta.delta.slice(0, maximum), at: delta.at };
+  return delta.type === 'tool_draft'
+    ? { ...base, type: 'tool_draft', tool: delta.tool ?? '', label: delta.label ?? '' }
+    : { ...base, type: delta.type };
+}
+
 /** Append one batch's deltas to a copy of `current`; null = corrupt frame. */
 function appendStreamDeltas(
   current: readonly ChatStreamItem[],
@@ -124,16 +160,10 @@ function appendStreamDeltas(
 ): ChatStreamItem[] | null {
   const items = current.map((item) => ({ ...item }));
   for (const delta of deltas) {
-    const maximum =
-      delta.type === 'thinking' ? MAX_STREAM_THINKING_CHARS : MAX_STREAM_NARRATION_CHARS;
+    const maximum = STREAM_CHAR_CAPS[delta.type];
     const existing = items.find((item) => item.id === delta.id);
     if (existing == null) {
-      items.push({
-        id: delta.id,
-        type: delta.type,
-        text: delta.delta.slice(0, maximum),
-        at: delta.at,
-      });
+      items.push(newStreamItem(delta, maximum));
     } else if (existing.type === delta.type) {
       existing.text = `${existing.text}${delta.delta}`.slice(0, maximum);
     } else {
@@ -200,10 +230,7 @@ export function applyStreamEvent(
       iteration: event.iteration,
       items,
     },
-    phase:
-      lastDelta?.type === 'narration'
-        ? { state: 'responding', label: 'Writing a response' }
-        : { state: 'thinking', label: 'Thinking' },
+    phase: phaseForDelta(lastDelta),
   };
   const executions = [...chat.executions];
   executions[executionIndex] = nextExecution;

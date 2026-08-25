@@ -213,9 +213,17 @@ interface ChatSocketEventBase {
 
 export interface ChatStreamDelta {
   id: string;
-  type: 'narration' | 'thinking';
+  type: 'narration' | 'thinking' | 'tool_draft';
   delta: string;
   at: string;
+  /**
+   * `tool_draft` only, and repeated on every frame of one draft — the item
+   * keeps what its first frame carried. Optional here rather than required so
+   * one unexpected frame can't fail the guard and take its whole batch (the
+   * narration streaming alongside it included) down to the poll.
+   */
+  tool?: string;
+  label?: string;
 }
 
 export interface ChatStreamSocketEvent extends ChatSocketEventBase {
@@ -256,9 +264,11 @@ export function isChatStreamSocketEvent(event: ChatSocketEvent): event is ChatSt
       (delta) =>
         delta != null &&
         typeof delta.id === 'string' &&
-        (delta.type === 'narration' || delta.type === 'thinking') &&
+        (delta.type === 'narration' || delta.type === 'thinking' || delta.type === 'tool_draft') &&
         typeof delta.delta === 'string' &&
-        typeof delta.at === 'string'
+        typeof delta.at === 'string' &&
+        (delta.tool == null || typeof delta.tool === 'string') &&
+        (delta.label == null || typeof delta.label === 'string')
     )
   );
 }
