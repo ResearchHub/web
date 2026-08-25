@@ -162,7 +162,7 @@ export function HiddenFeedContent() {
           }
         }}
         title="Restore to feed"
-        description="This feed entry will appear in public feeds again."
+        description="This feed entry will appear in activity feed again."
         confirmLabel="Restore to feed"
         isConfirming={isRestoring}
         onConfirm={handleConfirmRestore}
