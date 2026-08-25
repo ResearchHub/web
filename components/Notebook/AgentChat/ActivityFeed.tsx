@@ -280,30 +280,28 @@ function StreamedTextRow({
 /**
  * Stands in for the streaming row in the moment before the first one arrives:
  * the turn is live and has produced nothing, so there is no row yet to carry
- * the sweep. It says the same word the real reasoning row says while it runs,
- * and wears the same sweep — it is standing in for that row, so it should be
- * indistinguishable from it until the real one takes over.
+ * the sweep. It also covers the case where the newest stream item is a kind
+ * this build can't draw, which would otherwise leave nothing shimmering.
  *
- * It also covers the case where the newest stream item is a kind this build
- * can't draw, which would otherwise leave nothing shimmering at all.
- *
- * Flush with the feed's left edge, holding none of the rows' columns. It isn't
- * one of them — taking their label column put it in their marker slot with
- * nothing in it, which read as a row whose chevron had gone missing. Starting
- * left of every row's text is what reads as standing outside the list.
+ * It is the reasoning row, built from the same component with nothing to
+ * disclose yet — which is what keeps the handoff invisible. Standing outside
+ * the feed's columns meant the word hopped 24px right the instant the real row
+ * mounted; from the row's own label column it doesn't move at all, and the
+ * arriving text just opens a chevron beside it.
  *
  * Deliberately not driven by the backend's phase label: this is a placeholder
  * for a missing row, not a report on what the turn is doing.
  */
 export function PendingThinkingRow({ className }: { readonly className?: string }) {
   return (
-    <div className={cn('flex items-start text-sm leading-relaxed text-gray-500', className)}>
-      <span
-        aria-live="polite"
-        className={cn('font-medium', '[--shine:theme(colors.gray.500)]', TEXT_SHINE)}
-      >
-        Thinking
-      </span>
+    // The feed sets this on each `li`; there is no `li` here to inherit it.
+    <div aria-live="polite" className={cn('text-sm leading-relaxed', className)}>
+      <StreamedTextRow
+        label="Thinking"
+        text=""
+        streaming
+        className="text-gray-500 [--shine:theme(colors.gray.500)]"
+      />
     </div>
   );
 }
