@@ -5,11 +5,11 @@ import { AlertCircle, Ban, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import {
   isActiveExecutionStatus,
-  type ChatActivityItem,
+  type ChatFeedItem,
   type ChatExecution,
   type ChatStreamItem,
 } from '@/types/notebookChat';
-import { ActivityFeed, humanizeLabel, PendingThinkingRow } from './ActivityFeed';
+import { ActivityFeed, drawsAsRow, humanizeLabel, PendingThinkingRow } from './ActivityFeed';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -22,7 +22,7 @@ function namespaceStreamItems(stream: ChatExecution['stream']): ChatStreamItem[]
 }
 
 /** "Searched the web ×2 · Read the note" — tool labels in first-appearance order. */
-function summarizeActivity(items: ChatActivityItem[]): string | null {
+function summarizeActivity(items: ChatFeedItem[]): string | null {
   const counts = new Map<string, number>();
   for (const item of items) {
     if (item.type === 'tool_call') {
@@ -48,9 +48,9 @@ interface ExecutionProgressProps {
  * The summary row can collapse it by hand.
  *
  * Nothing here announces that the turn is running — the sweep on whichever row
- * is moving is the whole signal. Before the first row exists a placeholder
- * carries it; after the last one settles, while the answer is published, the
- * composer's Stop button is what's left.
+ * is moving is the whole signal. When no row can carry it a placeholder does;
+ * after the last row settles, while the answer is published, the composer's
+ * Stop button is what's left.
  *
  * Failed turns render their user-safe `error.message`; cancelled turns render a
  * "Stopped" marker; both keep their partial feed.
@@ -62,7 +62,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // transient preview. A lifecycle refetch replaces the preview with the
   // newly durable rows/message once the complete turn is recorded.
   const streamItems = namespaceStreamItems(execution.stream);
-  const activity: ChatActivityItem[] = [...(execution.activity ?? []), ...streamItems];
+  const activity: ChatFeedItem[] = [...(execution.activity ?? []), ...streamItems];
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.
@@ -78,18 +78,25 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
   const summary = summarizeActivity(activity);
 
-  // A live turn that hasn't produced its first row stands in for it, so the
-  // transcript is never dead while the turn runs. A settled tool-less success
-  // has nothing worth a progress block at all.
-  if (!failed && !cancelled && activity.length === 0) {
-    return live ? <PendingThinkingRow /> : null;
+  // A settled, tool-less success has nothing worth a progress block. A live
+  // turn always has something: at worst the placeholder below.
+  if (!live && !failed && !cancelled && activity.length === 0) {
+    return null;
   }
 
   const showsSummaryRow = !live && Boolean(summary);
-  const showsFeed = (live || expanded) && activity.length > 0;
+  const showsFeed = (live || expanded) && activity.some(drawsAsRow);
   // Deltas always append to the newest stream item, so while the turn is live
   // the tail is the block currently being written.
-  const streamingItemId = live ? streamItems.at(-1)?.id : undefined;
+  const streamingItem = live ? streamItems.at(-1) : undefined;
+  const streamingItemId = streamingItem?.id;
+  // The sweep needs a row to sit on: the block taking deltas, or a tool still
+  // running. When there is neither — before the first row arrives, or when the
+  // newest stream item is a kind this build doesn't draw — the placeholder
+  // carries it, so the transcript is never dead while the turn is.
+  const sweepHasARow =
+    (streamingItem != null && drawsAsRow(streamingItem)) ||
+    activity.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
   // A failed turn with no tool activity has nothing above the error, so the
   // usual separating margin would just be dead space.
   const hasBodyAbove = showsSummaryRow || showsFeed;
@@ -125,6 +132,8 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           className={cn(showsSummaryRow && 'mt-3')}
         />
       )}
+
+      {live && !sweepHasARow && <PendingThinkingRow className={cn(showsFeed && 'mt-4')} />}
 
       {failed && (
         <div

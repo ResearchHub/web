@@ -62,10 +62,42 @@ export interface ChatToolCallActivity {
   sources?: ChatActivitySource[] | null;
 }
 
+/**
+ * A tool call the model is still composing, published from the moment the block
+ * opens so the long stretch spent writing arguments isn't silent — an
+ * `edit_note` can spend 8-18s emitting nothing but its own arguments.
+ *
+ * Preview-only: once the call is actually sent it appears as a `tool_call` in
+ * durable activity, and the draft goes with the rest of the iteration's
+ * preview.
+ */
+export interface ChatToolDraftActivity {
+  type: 'tool_draft';
+  /**
+   * The prose extracted from the arguments so far. Empty for tools whose
+   * arguments aren't prose — a search query is written in an instant, so only
+   * the label is worth showing.
+   */
+  text: string;
+  at: string;
+  /** Machine name; empty when the provider skipped the block-start event. */
+  tool: string;
+  /** Human copy supplied by the backend; always rendered verbatim. */
+  label: string;
+}
+
+/** What a settled turn durably records. */
 export type ChatActivityItem = ChatNarrationActivity | ChatThinkingActivity | ChatToolCallActivity;
 
+/** Everything the feed draws: durable activity plus the preview's own kinds. */
+export type ChatFeedItem = ChatActivityItem | ChatToolDraftActivity;
+
 /** A transient item assembled from WebSocket deltas while a model turn runs. */
-export type ChatStreamItem = (ChatNarrationActivity | ChatThinkingActivity) & {
+export type ChatStreamItem = (
+  | ChatNarrationActivity
+  | ChatThinkingActivity
+  | ChatToolDraftActivity
+) & {
   /** Stable within one provider iteration. */
   id: string;
 };

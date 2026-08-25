@@ -23,9 +23,8 @@ import { cn } from '@/utils/styles';
 import { MarkdownMessage } from './MarkdownMessage';
 import type {
   ActivityCallStatus,
-  ChatActivityItem,
+  ChatFeedItem,
   ChatActivitySource,
-  ChatThinkingActivity,
   ChatToolCallActivity,
 } from '@/types/notebookChat';
 
@@ -190,59 +189,87 @@ function stripMarkdown(text: string): string {
 }
 
 /**
- * One thinking block, collapsed to a labeled row with a one-line preview.
- * Readable reasoning can grow incrementally and runs up to 4000 chars per
- * block, so rendering it inline like narration would drown the tool rows;
- * the chevron-led button mirrors the settled-turn summary toggle.
+ * A block of text the model is writing: its readable reasoning, or the prose
+ * inside a tool call it is still composing. Both grow incrementally and both
+ * run long — 4000 chars of reasoning, a whole redrafted section — so both
+ * collapse to a labeled row with a one-line preview rather than drowning the
+ * tool rows inline; the chevron-led button mirrors the settled-turn summary
+ * toggle.
  *
  * While the block is the one currently receiving stream deltas it stays
- * expanded so the reasoning is readable as it arrives, then collapses on its
- * own once the stream moves past it — unless the user has toggled it, which
- * always wins.
+ * expanded so the text is readable as it arrives, then collapses on its own
+ * once the stream moves past it — unless the user has toggled it, which always
+ * wins.
+ *
+ * A block with no text is a plain row: there is nothing to disclose, so it gets
+ * no button and no chevron. Drafts of tools whose arguments aren't prose stay
+ * that way for their whole life.
+ *
+ * `className` carries the row's colour *and* the matching `--shine`, which have
+ * to agree: the sweep is drawn from `--shine`, and the label's own colour is
+ * transparent while it runs.
  */
-function ThinkingRow({
-  item,
-  streaming = false,
+function StreamedTextRow({
+  label,
+  text,
+  streaming,
+  className,
+  bodyClassName,
+  icon: Icon,
 }: {
-  readonly item: ChatThinkingActivity;
-  readonly streaming?: boolean;
+  readonly label: string;
+  readonly text: string;
+  readonly streaming: boolean;
+  readonly className: string;
+  readonly bodyClassName?: string;
+  readonly icon?: ComponentType<{ className?: string }>;
 }) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
-  const expanded = userExpanded ?? streaming;
+  const hasText = text.length > 0;
+  const expanded = hasText && (userExpanded ?? streaming);
   // Settled rows re-render on every stream delta; strip once per text value.
-  const preview = useMemo(() => stripMarkdown(item.text), [item.text]);
+  const preview = useMemo(() => stripMarkdown(text), [text]);
 
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setUserExpanded(!expanded)}
-        aria-expanded={expanded}
-        className="flex w-full items-start gap-2 text-left text-gray-500 transition-colors hover:text-gray-700"
-      >
-        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-          {expanded ? (
+  const head = (
+    <>
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
+        {hasText &&
+          (expanded ? (
             <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
           ) : (
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-          )}
+          ))}
+      </span>
+      <span className="flex min-w-0 items-center gap-x-1.5">
+        {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />}
+        {/* The label is the row's identity: it keeps its width and the preview
+            beside it gives way, or a label longer than "Thought" wraps. */}
+        <span className={cn('shrink-0 whitespace-nowrap font-medium', streaming && TEXT_SHINE)}>
+          {label}
         </span>
-        <span className="flex min-w-0 items-center gap-x-1.5">
-          <span
-            className={cn(
-              'font-medium',
-              streaming && cn('[--shine:theme(colors.gray.500)]', TEXT_SHINE)
-            )}
-          >
-            {streaming ? 'Thinking' : 'Thought'}
-          </span>
-          {/* nowrap collapses the block's newlines, so the preview is one line. */}
-          {!expanded && <span className="min-w-0 truncate text-gray-400">{preview}</span>}
-        </span>
-      </button>
+        {/* nowrap collapses the block's newlines, so the preview is one line. */}
+        {hasText && !expanded && <span className="min-w-0 truncate text-gray-400">{preview}</span>}
+      </span>
+    </>
+  );
+
+  return (
+    <div className={className}>
+      {hasText ? (
+        <button
+          type="button"
+          onClick={() => setUserExpanded(!expanded)}
+          aria-expanded={expanded}
+          className="flex w-full items-start gap-2 text-left transition-colors"
+        >
+          {head}
+        </button>
+      ) : (
+        <div className="flex items-start gap-2">{head}</div>
+      )}
       {expanded && (
         <div className="mt-1 pl-6">
-          <MarkdownMessage content={item.text} className="italic text-gray-500" />
+          <MarkdownMessage content={text} className={bodyClassName} />
         </div>
       )}
     </div>
@@ -256,12 +283,15 @@ function ThinkingRow({
  * indent, with the chevron's gutter left empty — so when the real row lands the
  * label doesn't move, it just grows a chevron and its text.
  *
+ * It also covers the case where the newest stream item is a kind this build
+ * can't draw, which would otherwise leave nothing shimmering at all.
+ *
  * Deliberately not driven by the backend's phase label: this is a placeholder
  * for a missing row, not a report on what the turn is doing.
  */
-export function PendingThinkingRow() {
+export function PendingThinkingRow({ className }: { readonly className?: string }) {
   return (
-    <div className="flex items-start gap-2 text-sm leading-relaxed text-gray-500">
+    <div className={cn('flex items-start gap-2 text-sm leading-relaxed text-gray-500', className)}>
       <span className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span
         aria-live="polite"
@@ -273,12 +303,29 @@ export function PendingThinkingRow() {
   );
 }
 
-/** Unknown item types from newer backends render nothing (never crash the feed). */
+/** Item kinds this build draws. A newer backend's is skipped, not left empty. */
+const DRAWN_TYPES: ReadonlySet<string> = new Set([
+  'narration',
+  'thinking',
+  'tool_call',
+  'tool_draft',
+]);
+
+/**
+ * Whether this build can draw `item` at all. An item it can't draw is left out
+ * of the feed entirely — an empty row would open a gap — and can't carry the
+ * live sweep either, which is why callers check this before deciding the feed
+ * shows the turn is alive.
+ */
+export function drawsAsRow(item: ChatFeedItem): boolean {
+  return DRAWN_TYPES.has(item.type);
+}
+
 function ActivityItemBody({
   item,
   streaming,
 }: {
-  readonly item: ChatActivityItem;
+  readonly item: ChatFeedItem;
   readonly streaming: boolean;
 }) {
   if (item.type === 'narration') {
@@ -291,7 +338,29 @@ function ActivityItemBody({
     );
   }
   if (item.type === 'thinking') {
-    return <ThinkingRow item={item} streaming={streaming} />;
+    return (
+      <StreamedTextRow
+        label={streaming ? 'Thinking' : 'Thought'}
+        text={item.text}
+        streaming={streaming}
+        className="text-gray-500 hover:text-gray-700 [--shine:theme(colors.gray.500)]"
+        bodyClassName="italic text-gray-500"
+      />
+    );
+  }
+  if (item.type === 'tool_draft') {
+    // Coloured and iconed like the tool row it becomes, so the draft and the
+    // call it turns into read as one step rather than two.
+    return (
+      <StreamedTextRow
+        label={humanizeLabel(item.label)}
+        text={item.text}
+        streaming={streaming}
+        icon={TOOL_ICONS[item.tool] ?? Wrench}
+        className="text-gray-800 hover:text-gray-600 [--shine:theme(colors.gray.800)]"
+        bodyClassName="text-gray-500"
+      />
+    );
   }
   if (item.type === 'tool_call') {
     return <ToolCallRow call={item} />;
@@ -300,7 +369,7 @@ function ActivityItemBody({
 }
 
 interface ActivityFeedProps {
-  readonly items: ChatActivityItem[];
+  readonly items: ChatFeedItem[];
   /** Stream id of the item currently receiving deltas, while the turn is live. */
   readonly streamingItemId?: string;
   readonly className?: string;
@@ -311,11 +380,12 @@ interface ActivityFeedProps {
  * between tool calls, and one row per tool call with status + citations.
  */
 export function ActivityFeed({ items, streamingItemId, className }: ActivityFeedProps) {
-  if (items.length === 0) return null;
+  const rows = items.filter(drawsAsRow);
+  if (rows.length === 0) return null;
 
   return (
     <ol className={cn('space-y-4', className)}>
-      {items.map((item, index) => {
+      {rows.map((item, index) => {
         const id = 'id' in item && typeof item.id === 'string' ? item.id : null;
         return (
           // Stream items carry stable ids; durable feed items are append-only,
@@ -331,7 +401,7 @@ export function ActivityFeed({ items, streamingItemId, className }: ActivityFeed
 }
 
 /** Unique sources across a whole turn, for the Sources tab. */
-export function collectSources(items: ChatActivityItem[]): ChatActivitySource[] {
+export function collectSources(items: ChatFeedItem[]): ChatActivitySource[] {
   const byUrl = new Map<string, ChatActivitySource>();
   for (const item of items) {
     if (item.type === 'tool_call' && item.sources) {
