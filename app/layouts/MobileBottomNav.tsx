@@ -148,14 +148,6 @@ export const MobileBottomNav: React.FC = () => {
             fill={isActive ? iconColor : 'none'}
           />
         );
-      case 'earn':
-        return (
-          <Icon
-            name={isActive ? 'solidEarn' : ('earn1' as IconName)}
-            size={iconSize}
-            color={iconColor}
-          />
-        );
       case 'fund':
         return (
           <Icon

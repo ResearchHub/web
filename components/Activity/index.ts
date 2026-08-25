@@ -7,6 +7,7 @@ export { ActivityCommentGroupCard } from './cards/ActivityCommentGroupCard';
 export { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 
 // Feed
+export { ActivityFeedList } from './ActivityFeedList';
 export { ActivityPageContent } from './ActivityPageContent';
 
 // Sidebar
