@@ -174,7 +174,7 @@ export function ChatTranscript({ chat, pendingSend }: ChatTranscriptProps) {
             return (
               <div key={entry.key} className="space-y-3">
                 <UserBubble text={entry.text} />
-                <LiveStatusLine label="Waiting to start" />
+                <LiveStatusLine state="idle" label="Waiting to start" />
               </div>
             );
           case 'execution':

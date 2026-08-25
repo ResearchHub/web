@@ -9,7 +9,8 @@ import {
   type ChatExecution,
   type ChatStreamItem,
 } from '@/types/notebookChat';
-import { ActivityFeed, humanizeLabel, TEXT_SHINE } from './ActivityFeed';
+import { ActivityFeed, humanizeLabel } from './ActivityFeed';
+import { LivingFlask, type FlaskState } from './LivingFlask';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -38,7 +39,7 @@ function summarizeActivity(items: ChatActivityItem[]): string | null {
     .join(' · ');
 }
 
-/** Copy for the live status line while a turn runs or finishes up. */
+/** Announced copy for the live status line, which otherwise shows no words. */
 function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
   if (finishing) return 'Finishing up';
   const phaseLabel = execution.phase?.label;
@@ -47,15 +48,42 @@ function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
 }
 
 /**
- * The turn's live phase, e.g. "Thinking" (the label is the backend's — see
- * `liveStatusLabel`). The sweep across the word is the running signal, so the
- * pulsing dots that used to sit beside it are gone; `--shine` keeps the line in
- * its own primary colour rather than the feed's gray.
+ * How the flask plays the turn: waiting to be started, then head-down working,
+ * then a pop as the answer arrives. `phase.state` is the backend's coarse
+ * machine state and grows without notice, so anything unrecognised reads as
+ * plain work rather than being branched on exhaustively.
  */
-export function LiveStatusLine({ label }: { readonly label: string }) {
+function liveFlaskState(execution: ChatExecution, finishing: boolean): FlaskState {
+  if (finishing) return 'delivered';
+  if (execution.status === 'PENDING') return 'listen';
+  switch (execution.phase?.state) {
+    case 'queued':
+      return 'listen';
+    case 'responding':
+      return 'delivered';
+    default:
+      return 'active';
+  }
+}
+
+/**
+ * The turn's live phase, carried by the flask instead of by words. The words
+ * the backend sends — "Thinking", or a tool's own label — are already a line
+ * above in the feed, so printing them again here only reads as duplication;
+ * the flask says the same thing without competing for the same words. The
+ * label stays as the announced text, the one place it was never redundant.
+ */
+export function LiveStatusLine({
+  state,
+  label,
+}: {
+  readonly state: FlaskState;
+  readonly label: string;
+}) {
   return (
-    <div className="flex items-center gap-2 pt-1 text-sm font-medium text-primary-600">
-      <span aria-live="polite" className={cn('[--shine:theme(colors.primary.600)]', TEXT_SHINE)}>
+    <div className="flex items-center pt-1 text-primary-500">
+      <LivingFlask state={state} />
+      <span aria-live="polite" className="sr-only">
         {label}
       </span>
     </div>
@@ -102,6 +130,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   }
 
   const statusLabel = liveStatusLabel(execution, finishing);
+  const flaskState = liveFlaskState(execution, finishing);
 
   const showsSummaryRow = !live && Boolean(summary);
   const showsFeed = (live || expanded) && activity.length > 0;
@@ -143,7 +172,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         />
       )}
 
-      {live && <LiveStatusLine label={statusLabel} />}
+      {live && <LiveStatusLine state={flaskState} label={statusLabel} />}
 
       {failed && (
         <div
