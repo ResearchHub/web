@@ -324,17 +324,15 @@ export function drawsAsRow(item: ChatFeedItem): boolean {
 
 /**
  * Whether `item`, while it is the block taking deltas, says on its own that the
- * turn is still running. It comes down to having a label for the band to run
- * through. Streaming narration is bare prose, drawn so it reads continuously
- * into the answer it becomes, and goes still the moment its text stops
- * arriving; a draft whose frames never named its tool has an empty label,
- * which sweeps to exactly nothing. Both need the placeholder underneath them
- * rather than instead of them, so callers check this and not `drawsAsRow`
- * before deciding the feed is carrying the live signal.
+ * turn is still running — which comes down to having a label for the band to
+ * run through. Strictly narrower than `drawsAsRow`: streaming narration is bare
+ * prose, drawn so it reads continuously into the answer it becomes, and it goes
+ * still the moment its text stops arriving, so it needs the placeholder
+ * underneath it rather than instead of it. Callers check this and not
+ * `drawsAsRow` before deciding the feed is carrying the live signal.
  */
 export function carriesSweep(item: ChatFeedItem): boolean {
-  if (item.type === 'thinking') return true;
-  return item.type === 'tool_draft' && item.label.length > 0;
+  return item.type === 'thinking' || item.type === 'tool_draft';
 }
 
 function ActivityItemBody({

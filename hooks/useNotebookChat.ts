@@ -134,22 +134,17 @@ interface ApplyStreamEventResult {
  */
 function phaseForDelta(delta: ChatStreamDelta | undefined): ExecutionPhase {
   if (delta?.type === 'narration') return { state: 'responding', label: 'Writing a response' };
-  if (delta?.type === 'tool_draft' && delta.label) {
-    return { state: 'using_tool', label: delta.label, tool: delta.tool ?? null };
+  if (delta?.type === 'tool_draft') {
+    return { state: 'using_tool', label: delta.label, tool: delta.tool };
   }
   return { state: 'thinking', label: 'Thinking' };
 }
 
-/**
- * The item a delta opens. A draft's identity rides on its frames; an argument
- * delta arriving without the block-start that names its tool leaves both empty,
- * which is the same state the REST checkpoint documents and the row already
- * draws (wrench icon, no label).
- */
+/** The item a delta opens; a draft's identity comes off the frame itself. */
 function newStreamItem(delta: ChatStreamDelta, maximum: number): ChatStreamItem {
   const base = { id: delta.id, text: delta.delta.slice(0, maximum), at: delta.at };
   return delta.type === 'tool_draft'
-    ? { ...base, type: 'tool_draft', tool: delta.tool ?? '', label: delta.label ?? '' }
+    ? { ...base, type: 'tool_draft', tool: delta.tool, label: delta.label }
     : { ...base, type: delta.type };
 }
 

@@ -211,20 +211,27 @@ interface ChatSocketEventBase {
   kind: string;
 }
 
-export interface ChatStreamDelta {
+interface ChatStreamDeltaBase {
   id: string;
-  type: 'narration' | 'thinking' | 'tool_draft';
   delta: string;
   at: string;
-  /**
-   * `tool_draft` only, and repeated on every frame of one draft — the item
-   * keeps what its first frame carried. Optional here rather than required so
-   * one unexpected frame can't fail the guard and take its whole batch (the
-   * narration streaming alongside it included) down to the poll.
-   */
-  tool?: string;
-  label?: string;
 }
+
+/**
+ * One frame of one stream item. A draft's frames all carry its identity — the
+ * item keeps what its first one had — so these are required rather than
+ * optional: the server sends them on every draft frame, and a frame without
+ * them is a contract violation for the guard to reject, not a state to render.
+ */
+export type ChatStreamDelta =
+  | (ChatStreamDeltaBase & { type: 'narration' | 'thinking' })
+  | (ChatStreamDeltaBase & {
+      type: 'tool_draft';
+      /** Machine name; empty when the provider skipped the block-start event. */
+      tool: string;
+      /** Human copy supplied by the backend; always rendered verbatim. */
+      label: string;
+    });
 
 export interface ChatStreamSocketEvent extends ChatSocketEventBase {
   execution_id: number;
@@ -264,11 +271,13 @@ export function isChatStreamSocketEvent(event: ChatSocketEvent): event is ChatSt
       (delta) =>
         delta != null &&
         typeof delta.id === 'string' &&
-        (delta.type === 'narration' || delta.type === 'thinking' || delta.type === 'tool_draft') &&
         typeof delta.delta === 'string' &&
         typeof delta.at === 'string' &&
-        (delta.tool == null || typeof delta.tool === 'string') &&
-        (delta.label == null || typeof delta.label === 'string')
+        (delta.type === 'narration' ||
+          delta.type === 'thinking' ||
+          (delta.type === 'tool_draft' &&
+            typeof delta.tool === 'string' &&
+            typeof delta.label === 'string'))
     )
   );
 }

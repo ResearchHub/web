@@ -56,11 +56,7 @@ function summarizeActivity(items: ChatFeedItem[]): string | null {
  * out as it is written.
  */
 function liveRowLabel(items: ChatFeedItem[], streamingItem: ChatStreamItem | undefined): string {
-  // Same emptiness check `carriesSweep` makes: a draft with no label of its own
-  // has nothing to announce either, so fall through to whatever else is live.
-  if (streamingItem?.type === 'tool_draft' && streamingItem.label.length > 0) {
-    return humanizeLabel(streamingItem.label);
-  }
+  if (streamingItem?.type === 'tool_draft') return humanizeLabel(streamingItem.label);
   if (streamingItem?.type === 'thinking') return 'Thinking';
   const running = items.find(
     (item): item is ChatToolCallActivity =>
