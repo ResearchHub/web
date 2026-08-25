@@ -48,7 +48,7 @@ export function useFunderActivity(funderId: number | undefined): UseFunderActivi
       .then((res) => {
         if (cancelled) return;
         setEntries((prev) => (requestPage === 1 ? res.entries : [...prev, ...res.entries]));
-        setTotalCount(res.count);
+        if (requestPage === 1) setTotalCount(res.count);
         setHasMore(res.hasMore);
       })
       .catch(() => {

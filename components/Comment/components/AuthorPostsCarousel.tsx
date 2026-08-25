@@ -51,12 +51,14 @@ const CardForVariant: FC<{
   }
 };
 
-const summarizeCount = (cards: PostCardData[], totalCount = cards.length): string => {
-  if (totalCount === 0) return '';
+const summarizeCount = (cards: PostCardData[], totalCount?: number): string => {
+  const count = totalCount ?? cards.length;
+  if (count === 0) return '';
   const kinds = new Set(cards.map((c) => c.kind));
-  const singular = kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
+  const singular =
+    totalCount === undefined && kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
   const plural = singular === 'review' ? 'reviews' : 'updates';
-  return `${totalCount} ${totalCount === 1 ? singular : plural}`;
+  return `${count} ${count === 1 ? singular : plural}`;
 };
 
 const INITIAL_SKELETONS = 4;
