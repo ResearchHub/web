@@ -243,13 +243,17 @@ function StreamedTextRow({
       </span>
       <span className="flex min-w-0 items-center gap-x-1.5">
         {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />}
-        {/* The label is the row's identity: it keeps its width and the preview
-            beside it gives way, or a label longer than "Thought" wraps. */}
-        <span className={cn('shrink-0 whitespace-nowrap font-medium', streaming && TEXT_SHINE)}>
-          {label}
-        </span>
+        {/* The label is the row's identity, so it gives way last: the lopsided
+            shrink factor below sends the whole deficit to the preview until
+            there is no preview left, and only then does the label itself
+            truncate. Tool labels come from the backend and new tools appear
+            without notice, so a long one has to end in an ellipsis at the panel
+            edge rather than push the transcript sideways. */}
+        <span className={cn('min-w-0 truncate font-medium', streaming && TEXT_SHINE)}>{label}</span>
         {/* nowrap collapses the block's newlines, so the preview is one line. */}
-        {hasText && !expanded && <span className="min-w-0 truncate text-gray-400">{preview}</span>}
+        {hasText && !expanded && (
+          <span className="min-w-0 shrink-[9999] truncate text-gray-400">{preview}</span>
+        )}
       </span>
     </>
   );
@@ -289,15 +293,22 @@ function StreamedTextRow({
  * mounted; from the row's own label column it doesn't move at all, and the
  * arriving text just opens a chevron beside it.
  *
- * Deliberately not driven by the backend's phase label: this is a placeholder
- * for a missing row, not a report on what the turn is doing.
+ * Deliberately not driven by the backend's phase label: the caller picks from
+ * the handful of words we control, because this is a placeholder for a missing
+ * row, not a report on what the turn is doing.
  */
-export function PendingThinkingRow({ className }: { readonly className?: string }) {
+export function PendingThinkingRow({
+  label = 'Thinking',
+  className,
+}: {
+  readonly label?: string;
+  readonly className?: string;
+}) {
   return (
     // The feed sets this on each `li`; there is no `li` here to inherit it.
     <div aria-live="polite" className={cn('text-sm leading-relaxed', className)}>
       <StreamedTextRow
-        label="Thinking"
+        label={label}
         text=""
         streaming
         className="text-gray-500 [--shine:theme(colors.gray.500)]"

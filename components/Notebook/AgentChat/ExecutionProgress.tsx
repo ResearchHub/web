@@ -162,16 +162,23 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         />
       )}
 
-      {/* `active`, not `live`: a SUCCEEDED turn waiting on its answer has
-          finished thinking, and its terminal response drops `stream` anyway, so
-          `live` here would label every successful turn "Thinking" on its way
-          out. The composer's Stop button covers that window. */}
-      {active && !sweepHasARow && <PendingThinkingRow className={cn(showsFeed && 'mt-4')} />}
+      {/* A publishing turn gets its own word rather than the thinking one: it
+          has finished thinking, and its terminal response drops `stream`, so
+          reusing "Thinking" would mislabel every successful turn on its way
+          out. Nothing else covers this window — `canStop` is false once the
+          status leaves PENDING/RUNNING, so the composer offers a disabled Send,
+          not Stop — and at a 5s poll it lasts whole seconds, not a frame. */}
+      {live && !sweepHasARow && (
+        <PendingThinkingRow
+          label={finishing ? 'Finishing up' : 'Thinking'}
+          className={cn(showsFeed && 'mt-4')}
+        />
+      )}
 
       {/* Exactly complementary to the placeholder, which carries its own live
-          region — between them one polite region is mounted for the whole
-          active turn, and never two saying the same thing. */}
-      {active && sweepHasARow && (
+          region — between them one polite region is mounted for the whole live
+          turn, and never two saying the same thing. */}
+      {live && sweepHasARow && (
         <span className="sr-only" aria-live="polite">
           {liveRowLabel(activity, streamingItem)}
         </span>
