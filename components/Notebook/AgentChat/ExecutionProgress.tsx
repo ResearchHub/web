@@ -8,6 +8,7 @@ import {
   type ChatFeedItem,
   type ChatExecution,
   type ChatStreamItem,
+  type ChatToolCallActivity,
 } from '@/types/notebookChat';
 import {
   ActivityFeed,
@@ -44,6 +45,26 @@ function summarizeActivity(items: ChatFeedItem[]): string | null {
     .join(' · ');
 }
 
+/**
+ * What a screen reader is told while a real row carries the sweep. A sweep
+ * can't be heard, so without this an active turn goes silent to assistive
+ * technology the moment its first row arrives and the placeholder — which
+ * announces itself — stands down.
+ *
+ * Names the row the sweep is on and nothing more: it changes when the turn
+ * moves to a new step, never per delta, so the streaming prose is never read
+ * out as it is written.
+ */
+function liveRowLabel(items: ChatFeedItem[], streamingItem: ChatStreamItem | undefined): string {
+  if (streamingItem?.type === 'tool_draft') return humanizeLabel(streamingItem.label);
+  if (streamingItem?.type === 'thinking') return 'Thinking';
+  const running = items.find(
+    (item): item is ChatToolCallActivity =>
+      item.type === 'tool_call' && item.status === 'in_progress'
+  );
+  return running ? humanizeLabel(running.label) : 'Thinking';
+}
+
 interface ExecutionProgressProps {
   readonly execution: ChatExecution;
 }
@@ -54,9 +75,10 @@ interface ExecutionProgressProps {
  * The summary row can collapse it by hand.
  *
  * Nothing here announces that the turn is running — the sweep on whichever row
- * is moving is the whole signal. When no row can carry it a placeholder does;
- * after the last row settles, while the answer is published, the composer's
- * Stop button is what's left.
+ * is moving is the whole visible signal, with a polite live region saying the
+ * same thing for anyone who can't see it. When no row can carry the sweep a
+ * placeholder does; after the last row settles, while the answer is published,
+ * the composer's Stop button is what's left.
  *
  * Failed turns render their user-safe `error.message`; cancelled turns render a
  * "Stopped" marker; both keep their partial feed.
@@ -69,6 +91,10 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // newly durable rows/message once the complete turn is recorded.
   const streamItems = namespaceStreamItems(execution.stream);
   const activity: ChatFeedItem[] = [...(execution.activity ?? []), ...streamItems];
+  // Kinds this build can't draw are left out of everything the block reports,
+  // not just the rows: a summary counted from them would head a list with
+  // nothing under it, and its chevron would toggle an empty set.
+  const drawable = activity.filter(drawsAsRow);
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.
@@ -82,16 +108,16 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const failed = execution.status === 'FAILED' || execution.status === 'INTERRUPTED';
   const cancelled = execution.status === 'CANCELLED';
 
-  const summary = summarizeActivity(activity);
+  const summary = summarizeActivity(drawable);
 
   // A settled, tool-less success has nothing worth a progress block. A live
   // turn always has something: at worst the placeholder below.
-  if (!live && !failed && !cancelled && activity.length === 0) {
+  if (!live && !failed && !cancelled && drawable.length === 0) {
     return null;
   }
 
   const showsSummaryRow = !live && Boolean(summary);
-  const showsFeed = (live || expanded) && activity.some(drawsAsRow);
+  const showsFeed = (live || expanded) && drawable.length > 0;
   // Deltas always append to the newest stream item, so while the turn is live
   // the tail is the block currently being written.
   const streamingItem = live ? streamItems.at(-1) : undefined;
@@ -103,7 +129,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // transcript is never dead while the turn is.
   const sweepHasARow =
     (streamingItem != null && carriesSweep(streamingItem)) ||
-    activity.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
+    drawable.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
   // A failed turn with no tool activity has nothing above the error, so the
   // usual separating margin would just be dead space.
   const hasBodyAbove = showsSummaryRow || showsFeed;
@@ -134,7 +160,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
       {showsFeed && (
         <ActivityFeed
-          items={activity}
+          items={drawable}
           streamingItemId={streamingItemId}
           className={cn(showsSummaryRow && 'mt-3')}
         />
@@ -145,6 +171,15 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           `live` here would label every successful turn "Thinking" on its way
           out. The composer's Stop button covers that window. */}
       {active && !sweepHasARow && <PendingThinkingRow className={cn(showsFeed && 'mt-4')} />}
+
+      {/* Exactly complementary to the placeholder, which carries its own live
+          region — between them one polite region is mounted for the whole
+          active turn, and never two saying the same thing. */}
+      {active && sweepHasARow && (
+        <span className="sr-only" aria-live="polite">
+          {liveRowLabel(drawable, streamingItem)}
+        </span>
+      )}
 
       {failed && (
         <div
