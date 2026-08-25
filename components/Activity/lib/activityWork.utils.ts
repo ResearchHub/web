@@ -111,15 +111,12 @@ function resolveActivityBodySlot(
     activityAction === 'tip_review' ||
     activityAction === 'bounty_payout' ||
     activityAction === 'fundraise_contribution' ||
-    activityAction === 'proposal_submitted'
+    activityAction === 'proposal_submitted' ||
+    activityAction === 'peer_review_published' ||
+    activityAction === 'comment_published' ||
+    options?.isReview
   ) {
     return work?.fundraise ? 'fundraise' : 'default';
-  }
-  if (activityAction === 'peer_review_published' || options?.isReview) {
-    return work?.fundraise ? 'fundraise' : 'default';
-  }
-  if (activityAction === 'comment_published' && work?.fundraise) {
-    return 'fundraise';
   }
   return 'default';
 }

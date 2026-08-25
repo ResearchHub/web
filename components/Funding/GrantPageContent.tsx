@@ -17,6 +17,7 @@ interface GrantTabContextValue {
     count: number;
     page: number;
     loadMore: () => void;
+    feedKey: string;
     restoredScrollPosition: number | null;
     lastClickedEntryId: string | null;
     restorationTab: string;
@@ -49,6 +50,7 @@ export function GrantTabProvider({
     count,
     page,
     loadMore,
+    feedKey,
     restoredScrollPosition,
     lastClickedEntryId,
     restorationTab,
@@ -70,6 +72,7 @@ export function GrantTabProvider({
           count,
           page,
           loadMore,
+          feedKey,
           restoredScrollPosition,
           lastClickedEntryId,
           restorationTab,
