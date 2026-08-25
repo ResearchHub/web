@@ -117,7 +117,30 @@ function CallStatusIcon({ status }: { readonly status: ActivityCallStatus }) {
 }
 
 /**
- * One tool call. The status icon sits in a fixed 16px gutter and everything
+ * A faded band sweeping through the word itself, clipped to the glyphs, marking
+ * a label as live. The motion carries the "still working" signal on its own,
+ * which is why the labels that wear it need no icon or dots beside them.
+ *
+ * Callers must set `--shine` to the label's color — the gradient is drawn from
+ * it, and `text-transparent` rules out `currentColor`.
+ * `-webkit-text-fill-color` is what actually reveals the gradient in WebKit, so
+ * both it and `text-transparent` have to be set, and both have to be put back
+ * when motion is reduced or the label would render invisible rather than merely
+ * unanimated.
+ */
+export const TEXT_SHINE = cn(
+  'bg-text-shine bg-[length:300%_100%] bg-clip-text text-transparent',
+  '[-webkit-text-fill-color:transparent] animate-text-shine',
+  'motion-reduce:animate-none motion-reduce:bg-none',
+  'motion-reduce:[color:var(--shine)] motion-reduce:[-webkit-text-fill-color:var(--shine)]'
+);
+
+/**
+ * One tool call. A call still running wears the sweep on its label, the same
+ * mark the streaming reasoning block gets, so the one live row in the feed is
+ * always the one that's moving.
+ *
+ * The status icon sits in a fixed 16px gutter and everything
  * else stacks in the column beside it: label, then the query on its own line
  * (wrapped, not truncated — a clipped search string is unreadable), then any
  * citations. Narration indents to the same column so the feed reads as one
@@ -134,7 +157,14 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 font-medium text-gray-800">
           <ToolIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-          <span className="min-w-0 truncate">{humanizeLabel(call.label)}</span>
+          <span
+            className={cn(
+              'min-w-0 truncate',
+              call.status === 'in_progress' && cn('[--shine:theme(colors.gray.800)]', TEXT_SHINE)
+            )}
+          >
+            {humanizeLabel(call.label)}
+          </span>
         </div>
         {call.detail && (
           <p className="mt-1.5 break-words leading-relaxed text-gray-500">{call.detail}</p>
@@ -158,25 +188,6 @@ function stripMarkdown(text: string): string {
     .replaceAll(/\[([^\][]*)\]\([^()]*\)/g, '$1')
     .replaceAll(/(\*\*|\*|`|~~)/g, '');
 }
-
-/**
- * A faded band sweeping through the word itself, clipped to the glyphs, marking
- * a label as live. The motion carries the "still working" signal on its own,
- * which is why the labels that wear it need no icon or dots beside them.
- *
- * Callers must set `--shine` to the label's color — the gradient is drawn from
- * it, and `text-transparent` rules out `currentColor`.
- * `-webkit-text-fill-color` is what actually reveals the gradient in WebKit, so
- * both it and `text-transparent` have to be set, and both have to be put back
- * when motion is reduced or the label would render invisible rather than merely
- * unanimated.
- */
-export const TEXT_SHINE = cn(
-  'bg-text-shine bg-[length:300%_100%] bg-clip-text text-transparent',
-  '[-webkit-text-fill-color:transparent] animate-text-shine',
-  'motion-reduce:animate-none motion-reduce:bg-none',
-  'motion-reduce:[color:var(--shine)] motion-reduce:[-webkit-text-fill-color:var(--shine)]'
-);
 
 /**
  * One thinking block, collapsed to a labeled row with a one-line preview.
