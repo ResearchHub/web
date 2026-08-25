@@ -206,12 +206,16 @@ function stripMarkdown(text: string): string {
  * no button and no chevron. Drafts of tools whose arguments aren't prose stay
  * that way for their whole life.
  *
+ * `labelHidden` hands the row's identity to its icon; the label stays in the
+ * markup so the collapsed row still names itself to a screen reader.
+ *
  * `className` carries the row's colour *and* the matching `--shine`, which have
  * to agree: the sweep is drawn from `--shine`, and the label's own colour is
  * transparent while it runs.
  */
 function StreamedTextRow({
   label,
+  labelHidden = false,
   text,
   streaming,
   className,
@@ -219,6 +223,7 @@ function StreamedTextRow({
   icon: Icon,
 }: {
   readonly label: string;
+  readonly labelHidden?: boolean;
   readonly text: string;
   readonly streaming: boolean;
   readonly className: string;
@@ -244,8 +249,16 @@ function StreamedTextRow({
       <span className="flex min-w-0 items-center gap-x-1.5">
         {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />}
         {/* The label is the row's identity: it keeps its width and the preview
-            beside it gives way, or a label longer than "Thought" wraps. */}
-        <span className={cn('shrink-0 whitespace-nowrap font-medium', streaming && TEXT_SHINE)}>
+            beside it gives way, or a label longer than "Thought" wraps. When an
+            icon has taken that job the word goes to screen readers only —
+            `sr-only` pulls it out of the flex flow, so it costs no gap either. */}
+        <span
+          className={cn(
+            'shrink-0 whitespace-nowrap font-medium',
+            labelHidden && 'sr-only',
+            streaming && TEXT_SHINE
+          )}
+        >
           {label}
         </span>
         {/* nowrap collapses the block's newlines, so the preview is one line. */}
@@ -280,31 +293,30 @@ function StreamedTextRow({
 /**
  * Stands in for the streaming row in the moment before the first one arrives:
  * the turn is live and has produced nothing, so there is no row yet to carry
- * the sweep.
+ * the sweep. It says the same word the real reasoning row says while it runs,
+ * and wears the same sweep — it is standing in for that row, so it should be
+ * indistinguishable from it until the real one takes over.
  *
  * It also covers the case where the newest stream item is a kind this build
  * can't draw, which would otherwise leave nothing shimmering at all.
  *
- * The reasoning row's own icon, on its own — a word here would be the third
- * "Thinking" the panel has worn in as many states, and this is the one moment
- * with no text to attach it to. It breathes rather than sweeping, which is the
- * same signal in the only form a glyph this size can carry it, and keeps the
- * label for the screen reader.
- *
- * Flush with the feed's left edge, holding none of the rows' columns: it isn't
- * one of them, and starting left of every row's text is what reads as standing
- * outside the list.
+ * Flush with the feed's left edge, holding none of the rows' columns. It isn't
+ * one of them — taking their label column put it in their marker slot with
+ * nothing in it, which read as a row whose chevron had gone missing. Starting
+ * left of every row's text is what reads as standing outside the list.
  *
  * Deliberately not driven by the backend's phase label: this is a placeholder
  * for a missing row, not a report on what the turn is doing.
  */
 export function PendingThinkingRow({ className }: { readonly className?: string }) {
   return (
-    <div className={cn('flex items-start text-gray-500', className)} aria-live="polite">
-      <Brain
-        className="h-4 w-4 shrink-0 animate-icon-shine motion-reduce:animate-none"
-        aria-label="Thinking"
-      />
+    <div className={cn('flex items-start text-sm leading-relaxed text-gray-500', className)}>
+      <span
+        aria-live="polite"
+        className={cn('font-medium', '[--shine:theme(colors.gray.500)]', TEXT_SHINE)}
+      >
+        Thinking
+      </span>
     </div>
   );
 }
@@ -344,9 +356,15 @@ function ActivityItemBody({
     );
   }
   if (item.type === 'thinking') {
+    // Live, the word is the thing that sweeps, so it has to be there to carry
+    // the signal. Settled, it would be one more "Thought" stacked down a column
+    // of them, saying nothing the icon doesn't — so the icon takes over and the
+    // reasoning's own first line gets the room.
     return (
       <StreamedTextRow
         label={streaming ? 'Thinking' : 'Thought'}
+        labelHidden={!streaming}
+        icon={streaming ? undefined : Brain}
         text={item.text}
         streaming={streaming}
         className="text-gray-500 hover:text-gray-700 [--shine:theme(colors.gray.500)]"
