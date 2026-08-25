@@ -42,8 +42,8 @@ import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
-import { useHideFromFeedFlow } from '@/hooks/useHideFromFeedFlow';
-import { HideFromFeedFlowModals } from '@/components/Feed/HideFromFeedFlowModals';
+import { useHideFromFeed } from '@/hooks/useHideFromFeed';
+import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import type { FeedEntry } from '@/types/feed';
 
 // Basic media query hook (can be moved to a utility file later)
@@ -238,10 +238,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
-  const hideFromFeedFlow = useHideFromFeedFlow();
+  const { hideFromFeed, isHiding } = useHideFromFeed();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const listDetailContext = useContext(ListDetailContext);
+  const [isHideFromFeedModalOpen, setIsHideFromFeedModalOpen] = useState(false);
   const [localVoteCount, setLocalVoteCount] = useState(
     metrics?.adjustedScore ?? metrics?.votes ?? 0
   );
@@ -416,8 +417,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const handleOpenHideFromFeed = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setIsMenuOpen(false);
-    if (hideableEntries?.length) {
-      hideFromFeedFlow.requestHide(hideableEntries);
+    setIsHideFromFeedModalOpen(true);
+  };
+
+  const handleConfirmHideFromFeed = async () => {
+    if (!hideableEntries?.length) return;
+    const success = await hideFromFeed(hideableEntries.map((entry) => entry.id));
+    if (success) {
+      setIsHideFromFeedModalOpen(false);
     }
   };
 
@@ -837,15 +844,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       )}
 
       {canHideFromFeed && (
-        <HideFromFeedFlowModals
-          step={hideFromFeedFlow.step}
-          entries={hideFromFeedFlow.entries}
-          selectedEntryId={hideFromFeedFlow.selectedEntryId}
-          isHiding={hideFromFeedFlow.isHiding}
-          onClose={hideFromFeedFlow.close}
-          onSelectEntry={hideFromFeedFlow.selectEntry}
-          onProceedToConfirm={hideFromFeedFlow.proceedToConfirm}
-          onConfirmHide={hideFromFeedFlow.confirmHide}
+        <ConfirmationModal
+          isOpen={isHideFromFeedModalOpen}
+          onClose={() => setIsHideFromFeedModalOpen(false)}
+          title="Hide from feed"
+          description={
+            (hideableEntries?.length ?? 0) > 1
+              ? 'All feed entries will be hidden from activity feed.'
+              : 'This feed entry will be hidden from activity feed.'
+          }
+          confirmLabel="Hide from feed"
+          confirmVariant="destructive"
+          isConfirming={isHiding}
+          onConfirm={handleConfirmHideFromFeed}
         />
       )}
 

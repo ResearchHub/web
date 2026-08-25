@@ -6,24 +6,29 @@ import { FeedModerationService } from '@/services/feed-moderation.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
 
-export const HIDE_FROM_FEED_CONFIRM_MESSAGE = 'This feed entry will be hidden from public feeds.';
-
 interface UseHideFromFeedReturn {
-  hideFromFeed: (feedEntryId: ID) => Promise<boolean>;
+  /** Hides one or more feed entries. Multiple IDs are excluded in parallel. */
+  hideFromFeed: (feedEntryIds: ID | ID[]) => Promise<boolean>;
   isHiding: boolean;
+}
+
+function toIdList(feedEntryIds: ID | ID[]): ID[] {
+  const list = Array.isArray(feedEntryIds) ? feedEntryIds : [feedEntryIds];
+  return list.filter((id) => id != null && id !== '');
 }
 
 export function useHideFromFeed(): UseHideFromFeedReturn {
   const [isHiding, setIsHiding] = useState(false);
 
-  const hideFromFeed = useCallback(async (feedEntryId: ID): Promise<boolean> => {
-    if (feedEntryId == null || feedEntryId === '') {
+  const hideFromFeed = useCallback(async (feedEntryIds: ID | ID[]): Promise<boolean> => {
+    const ids = toIdList(feedEntryIds);
+    if (ids.length === 0) {
       return false;
     }
 
     setIsHiding(true);
     try {
-      await FeedModerationService.excludeFromFeed(feedEntryId);
+      await Promise.all(ids.map((id) => FeedModerationService.excludeFromFeed(id)));
       toast.success('Hidden from feed.');
       return true;
     } catch (error) {
