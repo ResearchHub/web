@@ -56,7 +56,11 @@ function summarizeActivity(items: ChatFeedItem[]): string | null {
  * out as it is written.
  */
 function liveRowLabel(items: ChatFeedItem[], streamingItem: ChatStreamItem | undefined): string {
-  if (streamingItem?.type === 'tool_draft') return humanizeLabel(streamingItem.label);
+  // Same emptiness check `carriesSweep` makes: a draft with no label of its own
+  // has nothing to announce either, so fall through to whatever else is live.
+  if (streamingItem?.type === 'tool_draft' && streamingItem.label.length > 0) {
+    return humanizeLabel(streamingItem.label);
+  }
   if (streamingItem?.type === 'thinking') return 'Thinking';
   const running = items.find(
     (item): item is ChatToolCallActivity =>
@@ -91,10 +95,6 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // newly durable rows/message once the complete turn is recorded.
   const streamItems = namespaceStreamItems(execution.stream);
   const activity: ChatFeedItem[] = [...(execution.activity ?? []), ...streamItems];
-  // Kinds this build can't draw are left out of everything the block reports,
-  // not just the rows: a summary counted from them would head a list with
-  // nothing under it, and its chevron would toggle an empty set.
-  const drawable = activity.filter(drawsAsRow);
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.
@@ -108,16 +108,16 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const failed = execution.status === 'FAILED' || execution.status === 'INTERRUPTED';
   const cancelled = execution.status === 'CANCELLED';
 
-  const summary = summarizeActivity(drawable);
+  const summary = summarizeActivity(activity);
 
   // A settled, tool-less success has nothing worth a progress block. A live
   // turn always has something: at worst the placeholder below.
-  if (!live && !failed && !cancelled && drawable.length === 0) {
+  if (!live && !failed && !cancelled && activity.length === 0) {
     return null;
   }
 
   const showsSummaryRow = !live && Boolean(summary);
-  const showsFeed = (live || expanded) && drawable.length > 0;
+  const showsFeed = (live || expanded) && activity.some(drawsAsRow);
   // Deltas always append to the newest stream item, so while the turn is live
   // the tail is the block currently being written.
   const streamingItem = live ? streamItems.at(-1) : undefined;
@@ -129,7 +129,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // transcript is never dead while the turn is.
   const sweepHasARow =
     (streamingItem != null && carriesSweep(streamingItem)) ||
-    drawable.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
+    activity.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
   // A failed turn with no tool activity has nothing above the error, so the
   // usual separating margin would just be dead space.
   const hasBodyAbove = showsSummaryRow || showsFeed;
@@ -160,7 +160,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
       {showsFeed && (
         <ActivityFeed
-          items={drawable}
+          items={activity}
           streamingItemId={streamingItemId}
           className={cn(showsSummaryRow && 'mt-3')}
         />
@@ -177,7 +177,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           active turn, and never two saying the same thing. */}
       {active && sweepHasARow && (
         <span className="sr-only" aria-live="polite">
-          {liveRowLabel(drawable, streamingItem)}
+          {liveRowLabel(activity, streamingItem)}
         </span>
       )}
 
