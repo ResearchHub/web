@@ -9,6 +9,7 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
+import { useAgentModels } from '@/hooks/useAgentModels';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
 import { NoteService } from '@/services/note.service';
@@ -24,6 +25,7 @@ import { belowMobileTopBar } from '../mobileChromeOffsets';
 import { NoteReviewControls } from '../NoteReview/NoteReviewControls';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
+import { ModelPicker } from './ModelPicker';
 import { ChatSources, collectChatSources } from './ChatSources';
 import { ChatTranscript } from './ChatTranscript';
 import { Logo } from '@/components/ui/Logo';
@@ -247,6 +249,8 @@ export function AgentChatPanel({
     initialChat,
   });
 
+  const models = useAgentModels(open);
+
   const switchChat = useCallback((nextChatId: number | null) => {
     setSelectedChatId(nextChatId);
     setInitialChat(null);
@@ -346,6 +350,24 @@ export function AgentChatPanel({
     []
   );
 
+  // ---- model selection ----
+  // The backend pins a conversation to the model of its first turn and rejects
+  // any later switch, so a chat that has run reports its model rather than
+  // offering one. Executions arrive oldest → newest, matching how the server
+  // resolves the pin.
+  const pinnedModel = useMemo(
+    () => chatState.chat?.executions.find((execution) => execution.model)?.model ?? '',
+    [chatState.chat]
+  );
+  const activeModel = pinnedModel || models.selectedRef;
+  // Live mirror of what a send should submit. Once pinned there is nothing to
+  // choose, so the request carries no `model` at all — repeating the pinned ref
+  // would only be a chance to disagree with the server about it. Held in a ref
+  // so the queued-first-message effect reads the current value without joining
+  // its deps and re-running.
+  const submitModelRef = useRef('');
+  submitModelRef.current = pinnedModel ? '' : models.selectedRef;
+
   const handleSend = useCallback(async () => {
     const text = draft.trim();
     if (!text) return;
@@ -376,7 +398,7 @@ export function AgentChatPanel({
       return;
     }
 
-    const outcome = await chatState.send(text);
+    const outcome = await chatState.send(text, submitModelRef.current || undefined);
     if (outcome.ok) {
       if (isCurrentTarget(target)) {
         updateDraft('');
@@ -397,7 +419,7 @@ export function AgentChatPanel({
     const text = queuedMessage;
     const target = targetRef.current;
     setQueuedMessage(null);
-    sendToChat(text).then((outcome) => {
+    sendToChat(text, submitModelRef.current || undefined).then((outcome) => {
       if (outcome.ok) return;
       if (isCurrentTarget(target)) {
         setNotice(noticeFromOutcome(outcome));
@@ -1141,6 +1163,19 @@ export function AgentChatPanel({
         canStop={canStop}
         disabled={composerDisabled}
         notice={notice}
+        modelPicker={
+          // No catalog, no control: a failed or gated load leaves the composer
+          // exactly as it was, and the turn runs the server's default.
+          models.access === 'ok' && activeModel ? (
+            <ModelPicker
+              models={models.models}
+              value={activeModel}
+              onChange={models.selectModel}
+              locked={pinnedModel !== ''}
+              disabled={composerDisabled}
+            />
+          ) : null
+        }
       />
     </aside>
   );

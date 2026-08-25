@@ -1,6 +1,7 @@
 import { ApiClient } from './client';
 import { ApiError } from './types';
 import type {
+  AvailableModels,
   CancelTurnResponse,
   NotebookChat,
   NotebookChatListItem,
@@ -46,10 +47,21 @@ export class NotebookChatService {
    * Starts an asynchronous turn. 202 means the user message is already recorded
    * server-side. Throws ApiError with status 409 while a previous turn is still
    * running (one turn per chat), 400 for empty/oversized messages.
+   *
+   * `model` names a ref from {@link AgentModelService.listModels} and only
+   * takes effect on a chat's first turn — the conversation is pinned to that
+   * model, and a later turn naming a different one is a 400. Omit it to run
+   * the server's configured default.
    */
-  static async sendMessage(noteId: ID, chatId: ID, message: string): Promise<SendMessageResponse> {
+  static async sendMessage(
+    noteId: ID,
+    chatId: ID,
+    message: string,
+    model?: string
+  ): Promise<SendMessageResponse> {
     return ApiClient.post<SendMessageResponse>(`${this.basePath(noteId)}${chatId}/messages/`, {
       message,
+      ...(model ? { model } : {}),
     });
   }
 
@@ -67,6 +79,21 @@ export class NotebookChatService {
    */
   static async cancelTurn(noteId: ID, chatId: ID): Promise<CancelTurnResponse> {
     return ApiClient.post<CancelTurnResponse>(`${this.basePath(noteId)}${chatId}/cancel/`);
+  }
+}
+
+/**
+ * The selectable model catalog. Not note-scoped: one server-curated roster
+ * serves every research_ai workflow that takes a model selection, and a
+ * submitted `model` must name one of its refs.
+ */
+export class AgentModelService {
+  /**
+   * Gated like the workflows it feeds — 401/403/404 mean this user has no
+   * model selection to make, not that the request was malformed.
+   */
+  static async listModels(): Promise<AvailableModels> {
+    return ApiClient.get<AvailableModels>('/api/research_ai/models/');
   }
 }
 

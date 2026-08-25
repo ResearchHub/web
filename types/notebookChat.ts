@@ -134,6 +134,13 @@ export interface ChatExecution {
   id: number;
   attempt: number;
   status: ExecutionStatus;
+  /**
+   * Model ref this turn ran on. A conversation is pinned to the model of its
+   * first turn, so this is also how the client learns which model a chat is
+   * locked to. Absent on backends predating model selection, empty on turns
+   * recorded before the chat had one.
+   */
+  model?: string;
   /** The user message that started this turn. */
   trigger_message_id: number | null;
   retry_of_id: number | null;
@@ -280,6 +287,38 @@ export function isChatStreamSocketEvent(event: ChatSocketEvent): event is ChatSt
             typeof delta.label === 'string'))
     )
   );
+}
+
+/**
+ * One selectable generator model from `GET /api/research_ai/models/`.
+ *
+ * The catalog is server-curated and credential-aware — a model whose provider
+ * has no credentials configured is simply absent from the response — so the
+ * client renders whatever comes back and never keeps a roster of its own.
+ */
+export interface AgentModel {
+  /** Canonical provider-prefixed ref (`<provider>:<model id>`); the wire value. */
+  ref: string;
+  label: string;
+  description: string;
+  provider: string;
+}
+
+export interface AvailableModels {
+  /** Ref the backend runs for a turn submitted without a selection. */
+  default: string;
+  models: AgentModel[];
+}
+
+/**
+ * Display name for a ref. A pinned ref can outlive the catalog (a model
+ * retired, or its provider's credentials removed), so fall back to the bare
+ * model id rather than rendering an empty control.
+ */
+export function modelLabel(models: readonly AgentModel[], ref: string): string {
+  const match = models.find((model) => model.ref === ref);
+  if (match) return match.label;
+  return ref.split(':').slice(1).join(':') || ref;
 }
 
 export const MAX_CHAT_MESSAGE_LENGTH = 20_000;
