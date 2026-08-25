@@ -12,10 +12,7 @@ import {
 } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
-import {
-  GRANT_SORT_OPTIONS,
-  type GrantSortOption,
-} from '@/components/Funding/lib/grantSortConfig';
+import { GRANT_SORT_OPTIONS, type GrantSortOption } from '@/components/Funding/lib/grantSortConfig';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 interface GrantFeedContextValue {

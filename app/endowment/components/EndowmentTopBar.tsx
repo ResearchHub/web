@@ -111,6 +111,19 @@ export function EndowmentTopBar() {
             opacity 0.25s ease,
             transform 0.25s ease;
         }
+        /* Clear the app nav rail, which is 70px from the tablet breakpoint and
+           240px once it expands at sidebar-compact. Below tablet the rail is
+           off-canvas, so the bar spans the full width. */
+        @media (min-width: 768px) {
+          .endowment-topbar {
+            left: 70px;
+          }
+        }
+        @media (min-width: 1240px) {
+          .endowment-topbar {
+            left: 240px;
+          }
+        }
         .endowment-topbar-visible {
           opacity: 1;
           transform: translateY(0);

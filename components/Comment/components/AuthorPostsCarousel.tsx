@@ -58,10 +58,9 @@ const summarizeCount = (cards: PostCardData[]): string => {
 };
 
 const INITIAL_SKELETONS = 4;
-const PAGE_SKELETONS = 2;
 
 const Skeleton: FC = () => (
-  <div className="snap-start shrink-0 w-[88vw] sm:!w-[420px] max-w-[440px] h-[360px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+  <div className="h-56 w-[88vw] max-w-[440px] shrink-0 snap-start rounded-xl border border-gray-200 bg-gray-50 sm:!w-[420px] animate-pulse" />
 );
 
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
@@ -83,7 +82,6 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   const resolvedArrowOffset = arrowOffset ?? (variant === 'plain' ? 'outset' : 'inset');
   const hasCards = cards.length > 0;
   const showInitialSkeletons = !!isLoading && !hasCards;
-  const showPageSkeletons = !!isLoading && hasCards;
   const handleReachEnd = hasMore && !isLoading ? loadMore : undefined;
 
   const isPageHeader = headerVariant === 'page';
@@ -132,7 +130,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           {cards.map((card) => (
             <div
               key={card.key}
-              className="flex-shrink-0 snap-start w-[88vw] sm:!w-[420px] max-w-[440px]"
+              className="w-[88vw] max-w-[440px] shrink-0 snap-start sm:!w-[420px]"
             >
               <CardForVariant
                 card={card}
@@ -141,8 +139,6 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
               />
             </div>
           ))}
-          {showPageSkeletons &&
-            Array.from({ length: PAGE_SKELETONS }).map((_, i) => <Skeleton key={`page-${i}`} />)}
         </Carousel>
       </div>
     );

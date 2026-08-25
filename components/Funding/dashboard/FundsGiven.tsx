@@ -12,10 +12,10 @@ import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
 import { FunderOverview } from '@/types/funder';
 
-function parseFunderIdParam(funderIdParam: string | null): number | undefined {
-  if (!funderIdParam) return undefined;
-  const funderId = Number(funderIdParam);
-  return Number.isFinite(funderId) && funderId > 0 ? funderId : undefined;
+function parseUserIdParam(userIdParam: string | null): number | undefined {
+  if (!userIdParam) return undefined;
+  const userId = Number(userIdParam);
+  return Number.isInteger(userId) && userId > 0 ? userId : undefined;
 }
 
 interface FundsGivenProps {
@@ -27,8 +27,8 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const funderId = isModerator
-    ? (parseFunderIdParam(searchParams.get('funder_id')) ?? userId)
+  const viewedUserId = isModerator
+    ? (parseUserIdParam(searchParams.get('user_id')) ?? userId)
     : userId;
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
@@ -38,9 +38,9 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
     () => ({
       endpoint: 'grant_feed' as const,
       contentType: 'GRANT',
-      createdBy: funderId,
+      createdBy: viewedUserId,
     }),
-    [funderId]
+    [viewedUserId]
   );
 
   const {
@@ -53,7 +53,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
   useEffect(() => {
     let cancelled = false;
     setIsLoadingOverview(true);
-    FunderService.getFundingOverview(funderId)
+    FunderService.getFundingOverview(viewedUserId)
       .then((data) => {
         if (!cancelled) setOverview(data);
       })
@@ -66,7 +66,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
     return () => {
       cancelled = true;
     };
-  }, [funderId]);
+  }, [viewedUserId]);
 
   let overviewContent: ReactNode = null;
   if (isLoadingOverview) {
@@ -81,7 +81,7 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
     <>
       {overviewContent}
 
-      <FunderAuthorPostsSection funderId={funderId} className="mt-6" />
+      <FunderAuthorPostsSection funderId={viewedUserId} className="mt-6" />
 
       <div className="mt-6">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">

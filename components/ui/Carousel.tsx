@@ -47,7 +47,6 @@ export const Carousel: FC<CarouselProps> = ({
   }, []);
 
   useEffect(() => {
-    checkScroll();
     const el = scrollRef.current;
     if (!el) return;
 
@@ -60,6 +59,11 @@ export const Carousel: FC<CarouselProps> = ({
       observer.disconnect();
     };
   }, [checkScroll]);
+
+  useEffect(() => {
+    // Appending a paginated page changes scrollWidth without resizing the container.
+    checkScroll();
+  }, [checkScroll, children]);
 
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;

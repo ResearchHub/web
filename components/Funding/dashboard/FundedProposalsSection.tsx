@@ -33,7 +33,7 @@ export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
     [showUSD, exchangeRate]
   );
 
-  // Ranked by the amount actually on screen, so the bars always descend even
+  // Ranked by the amount actually on screen, so the rows always descend even
   // when the RSC and USD orderings disagree.
   const displayedAmount = useCallback(
     (proposal: SupportedProposal) =>
@@ -46,30 +46,28 @@ export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
     [proposals, displayedAmount]
   );
 
-  const total = ranked.reduce((sum, p) => sum + displayedAmount(p), 0);
   const totalRsc = proposals.reduce((sum, p) => sum + p.fundedAmount.rsc, 0);
   const totalUsd = proposals.reduce((sum, p) => sum + p.fundedAmount.usd, 0);
 
   return (
     <div className={className}>
       <div className="mb-4 flex items-baseline gap-2.5">
-        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Proposals funded</h2>
+        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Proposals you funded</h2>
         {proposals.length > 0 && (
           <span className="text-xs text-gray-500">
             {proposals.length} {proposals.length === 1 ? 'proposal' : 'proposals'} ·{' '}
-            {fmt(totalRsc, totalUsd)}
+            {fmt(totalRsc, totalUsd)} given
           </span>
         )}
       </div>
 
       {ranked.length > 0 ? (
-        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="space-y-2">
           {ranked.map((proposal) => (
             <ProposalRow
               key={proposal.id}
               proposal={proposal}
               amount={fmt(proposal.fundedAmount.rsc, proposal.fundedAmount.usd)}
-              share={total > 0 ? (displayedAmount(proposal) / total) * 100 : 0}
             />
           ))}
         </div>
@@ -85,24 +83,20 @@ export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
 interface ProposalRowProps {
   proposal: SupportedProposal;
   amount: string;
-  /** Percentage of the funder's total, 0-100. */
-  share: number;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({ proposal, amount, share }) => {
+const ProposalRow: FC<ProposalRowProps> = ({ proposal, amount }) => {
   const href = buildWorkUrl({
     id: proposal.id,
     contentType: 'preregistration',
     slug: proposal.slug,
   });
 
-  // A share under half a percent would otherwise render as an invisible bar and
-  // a misleading "0%".
-  const shareLabel = share > 0 && share < 1 ? '<1%' : `${Math.round(share)}%`;
-  const barWidth = share > 0 ? Math.max(share, 2) : 0;
-
   return (
-    <Link href={href} className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+    <Link
+      href={href}
+      className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50"
+    >
       <Avatar
         src={proposal.createdBy.authorProfile.profileImage}
         alt={proposal.createdBy.authorProfile.fullName}
@@ -111,24 +105,19 @@ const ProposalRow: FC<ProposalRowProps> = ({ proposal, amount, share }) => {
         className="flex-shrink-0"
       />
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <div className="min-w-0">
-            <div className="truncate text-sm font-medium text-gray-900">{proposal.title}</div>
-            <div className="truncate text-xs text-gray-500">
-              {proposal.createdBy.authorProfile.fullName}
-            </div>
-          </div>
-          <div className="flex-shrink-0 text-right">
-            <div className="font-mono text-sm font-semibold text-gray-900">{amount}</div>
-            <div className="text-xs text-gray-500">{shareLabel}</div>
-          </div>
+        <div className="truncate text-sm font-medium text-gray-900">{proposal.title}</div>
+        <div className="truncate text-xs text-gray-500">
+          {proposal.createdBy.authorProfile.fullName}
         </div>
-        {/* Decorative — the same number is spelled out next to the amount. */}
-        <div className="mt-2 h-1 overflow-hidden rounded-full bg-gray-100" aria-hidden>
-          <div
-            className="h-full rounded-full bg-primary-500 transition-colors group-hover:bg-primary-600"
-            style={{ width: `${barWidth}%` }}
-          />
+      </div>
+      <div className="flex-shrink-0 text-right">
+        {/* Same eyebrow treatment as the hero KPIs, so the label reads as a
+            field name rather than part of the proposal's own metadata. */}
+        <div className="whitespace-nowrap text-[11px] font-semibold uppercase leading-none tracking-wider text-gray-500">
+          Amount funded
+        </div>
+        <div className="mt-1.5 font-mono text-sm font-semibold leading-none text-gray-900 tablet:text-base">
+          {amount}
         </div>
       </div>
     </Link>

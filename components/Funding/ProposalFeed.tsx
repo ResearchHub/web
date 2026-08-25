@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useMemo } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { ProposalFeedItem } from './ProposalFeedItem';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { cn } from '@/utils/styles';
 

@@ -12,6 +12,8 @@ export { QuickAmountSelector } from './QuickAmountSelector';
 export { FundingProposalCard } from './FundingProposalCard';
 export { GrantCard } from './GrantCard';
 export { ProposalFeed } from './ProposalFeed';
+export { ProposalFeedItem } from './ProposalFeedItem';
+export { ProposalWorkCard } from './ProposalWorkCard';
 export { ProposalCount } from './ProposalCount';
 export { FundraiseProgressBar } from './FundraiseProgressBar';
 

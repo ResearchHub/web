@@ -161,25 +161,39 @@ export interface ActivityEntryMeta {
   href?: string;
 }
 
-type CommentWorkTab = 'reviews' | 'bounties' | 'conversation' | undefined;
+type CommentWorkTab = 'reviews' | 'bounties' | 'conversation' | 'updates' | undefined;
+
+/**
+ * Author updates belong on their work's Updates tab, but only proposals have
+ * one: `WorkTabs` renders it for the fund content type alone, and `/updates` is
+ * only routed under `/proposal` and `/report`. On any other work the update has
+ * to settle for the conversation tab rather than link at a missing route.
+ */
+export function shouldLinkToUpdatesTab(entry: FeedEntry, workContentType?: ContentType): boolean {
+  if (entry.contentType !== 'COMMENT') return false;
+  if (workContentType !== 'preregistration') return false;
+  return (entry.content as FeedCommentContent).comment?.commentType === 'AUTHOR_UPDATE';
+}
 
 function resolveCommentWorkTab(
   entry: FeedEntry,
-  comment: FeedCommentContent | null
+  comment: FeedCommentContent | null,
+  workContentType?: ContentType
 ): CommentWorkTab {
   if (comment?.comment?.commentType === 'REVIEW') return 'reviews';
   if (entry.contentType === 'BOUNTY' || (comment?.bounties?.length ?? 0) > 0) return 'bounties';
+  if (shouldLinkToUpdatesTab(entry, workContentType)) return 'updates';
   if (entry.contentType === 'COMMENT') return 'conversation';
   return undefined;
 }
 
-function resolveRelatedWorkTab(entry: FeedEntry): CommentWorkTab {
+function resolveRelatedWorkTab(entry: FeedEntry, workContentType?: ContentType): CommentWorkTab {
   if (entry.contentType === 'FUNDINGACTIVITY') {
     const funding = entry.content as FeedFundingActivityContent;
     return funding.sourceType === 'BOUNTY_PAYOUT' ? 'bounties' : 'reviews';
   }
   if (entry.contentType === 'COMMENT') {
-    return resolveCommentWorkTab(entry, entry.content as FeedCommentContent);
+    return resolveCommentWorkTab(entry, entry.content as FeedCommentContent, workContentType);
   }
   if (entry.contentType === 'BOUNTY') return 'bounties';
   return undefined;
@@ -189,7 +203,7 @@ function getRelatedWorkMeta(entry: FeedEntry): ActivityEntryMeta | null {
   const related = entry.relatedWork;
   if (!related?.title) return null;
 
-  const tab = resolveRelatedWorkTab(entry);
+  const tab = resolveRelatedWorkTab(entry, related.contentType);
 
   return {
     title: related.title,
@@ -213,7 +227,7 @@ export function getEntryMeta(entry: FeedEntry): ActivityEntryMeta {
   if (entry.contentType === 'COMMENT' || entry.contentType === 'BOUNTY') {
     const work = entry.relatedWork;
     const comment = entry.contentType === 'COMMENT' ? (content as FeedCommentContent) : null;
-    const tab = resolveCommentWorkTab(entry, comment);
+    const tab = resolveCommentWorkTab(entry, comment, work?.contentType);
     return {
       title: work?.title,
       author,
