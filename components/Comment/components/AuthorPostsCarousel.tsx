@@ -22,6 +22,7 @@ interface AuthorPostsCarouselProps {
   emptyState?: ReactNode;
   variant?: 'card' | 'plain';
   arrowOffset?: 'inset' | 'outset';
+  snapAlignment?: 'start' | 'end';
   className?: string;
 }
 
@@ -79,6 +80,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   emptyState,
   variant = 'plain',
   arrowOffset,
+  snapAlignment = 'start',
   className,
 }) => {
   const resolvedArrowOffset = arrowOffset ?? (variant === 'plain' ? 'outset' : 'inset');
@@ -132,7 +134,10 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           {cards.map((card) => (
             <div
               key={card.key}
-              className="w-[88vw] max-w-[440px] shrink-0 snap-start sm:!w-[420px]"
+              className={cn(
+                'w-[88vw] max-w-[440px] shrink-0 sm:!w-[420px]',
+                snapAlignment === 'end' ? 'snap-end' : 'snap-start'
+              )}
             >
               <CardForVariant
                 card={card}

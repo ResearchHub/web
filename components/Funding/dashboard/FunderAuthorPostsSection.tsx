@@ -34,6 +34,7 @@ export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
       loadMore={loadMore}
       title="Recent activity"
       headerVariant="page"
+      snapAlignment="end"
       showRelatedWork
       showTypeBadge
       emptyState={<EmptyState />}
