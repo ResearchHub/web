@@ -10,9 +10,14 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import { ActivityService } from '@/services/activity.service';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
+
+function isDisableCacheParam(value: string | null): boolean {
+  return value === 'true' || value === '1';
+}
 
 interface ActivityFeedContextValue {
   entries: FeedEntry[];
@@ -43,6 +48,9 @@ const RESTORATION_TAB = 'activity';
  * refetch when the provider remounts (leave home) or after back-nav restore.
  */
 export function ActivityFeedProvider({ children }: { children: ReactNode }) {
+  const searchParams = useSearchParams();
+  const disableCache = isDisableCacheParam(searchParams.get('disable_cache'));
+
   const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
     activeTab: RESTORATION_TAB,
   });
@@ -83,7 +91,7 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
     setPage(1);
 
     try {
-      const result = await ActivityService.getActivity({ page: 1 });
+      const result = await ActivityService.getActivity({ page: 1, disableCache });
       setEntries(result.entries);
       setHasMore(result.hasMore);
     } catch (error) {
@@ -91,7 +99,7 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [disableCache]);
 
   useEffect(() => {
     if (!activated) return;
@@ -109,7 +117,7 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
     const nextPage = pageRef.current + 1;
 
     try {
-      const result = await ActivityService.getActivity({ page: nextPage });
+      const result = await ActivityService.getActivity({ page: nextPage, disableCache });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
       pageRef.current = nextPage;
@@ -119,7 +127,7 @@ export function ActivityFeedProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore]);
+  }, [isLoading, isLoadingMore, hasMore, disableCache]);
 
   const value = useMemo<ActivityFeedContextValue>(
     () => ({

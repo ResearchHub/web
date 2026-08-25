@@ -18,6 +18,7 @@ export interface GetActivityParams {
   grantId?: number | string;
   funderId?: number | string;
   scope?: ActivityScope;
+  disableCache?: boolean;
 }
 
 export class ActivityService {
@@ -38,6 +39,7 @@ export class ActivityService {
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.funderId) queryParams.append('funder_id', params.funderId.toString());
     if (params?.scope) queryParams.append('scope', params.scope);
+    if (params?.disableCache) queryParams.append('disable_cache', 'true');
 
     const qs = queryParams.toString();
     const url = `${this.BASE_PATH}/${qs ? `?${qs}` : ''}`;

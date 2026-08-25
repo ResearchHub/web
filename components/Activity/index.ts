@@ -14,6 +14,7 @@ export { WorkPreviewCard } from './work/WorkPreviewCard';
 
 // Feed
 export { ActivityPageContent } from './ActivityPageContent';
+export { ActivityCacheBypassControl } from './ActivityCacheBypassControl';
 
 // Sidebar
 export { ActivitySidebar } from './sidebar/ActivitySidebar';
