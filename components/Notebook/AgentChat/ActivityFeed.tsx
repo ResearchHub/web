@@ -4,6 +4,7 @@ import { useMemo, useState, type ComponentType } from 'react';
 import {
   Ban,
   BookOpen,
+  Brain,
   Building2,
   Check,
   ChevronDown,
@@ -279,28 +280,31 @@ function StreamedTextRow({
 /**
  * Stands in for the streaming row in the moment before the first one arrives:
  * the turn is live and has produced nothing, so there is no row yet to carry
- * the sweep. It says the same word the real reasoning row will say.
+ * the sweep.
  *
  * It also covers the case where the newest stream item is a kind this build
  * can't draw, which would otherwise leave nothing shimmering at all.
  *
- * Flush with the feed's left edge, holding none of the rows' columns. It isn't
- * one of them — taking their label column put it in their marker slot with
- * nothing in it, which read as a row whose chevron had gone missing. Starting
- * left of every row's text is what reads as standing outside the list.
+ * The reasoning row's own icon, on its own — a word here would be the third
+ * "Thinking" the panel has worn in as many states, and this is the one moment
+ * with no text to attach it to. It breathes rather than sweeping, which is the
+ * same signal in the only form a glyph this size can carry it, and keeps the
+ * label for the screen reader.
+ *
+ * Flush with the feed's left edge, holding none of the rows' columns: it isn't
+ * one of them, and starting left of every row's text is what reads as standing
+ * outside the list.
  *
  * Deliberately not driven by the backend's phase label: this is a placeholder
  * for a missing row, not a report on what the turn is doing.
  */
 export function PendingThinkingRow({ className }: { readonly className?: string }) {
   return (
-    <div className={cn('flex items-start text-sm leading-relaxed text-gray-500', className)}>
-      <span
-        aria-live="polite"
-        className={cn('font-medium', '[--shine:theme(colors.gray.500)]', TEXT_SHINE)}
-      >
-        Thinking
-      </span>
+    <div className={cn('flex items-start text-gray-500', className)} aria-live="polite">
+      <Brain
+        className="h-4 w-4 shrink-0 animate-icon-shine motion-reduce:animate-none"
+        aria-label="Thinking"
+      />
     </div>
   );
 }

@@ -66,6 +66,15 @@ export default {
           '0%, 18%': { backgroundPosition: '100% 0' },
           '82%, 100%': { backgroundPosition: '0% 0' },
         },
+        // The icon form of the same signal. A 14px glyph has no width for a
+        // band to travel across, so it breathes instead -- same clock and same
+        // held ends as `text-shine`, fading to the depth that gradient's band
+        // fades to, so the two read as one motion in different bodies.
+        'icon-shine': {
+          '0%, 18%': { opacity: '1' },
+          '50%': { opacity: '0.35' },
+          '82%, 100%': { opacity: '1' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -77,6 +86,7 @@ export default {
         // delay instead of sitting mid-element until it starts.
         shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
         'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
+        'icon-shine': 'icon-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
       },
       backgroundImage: {
         // Paired with `animate-text-shine` and `bg-clip-text`. Sized to 300% so
