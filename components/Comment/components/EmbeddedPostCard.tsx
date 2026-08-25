@@ -79,12 +79,21 @@ export const EmbeddedPostCard: FC<EmbeddedPostCardProps> = ({
       </header>
 
       {snippet && (
-        <p className="m-0 mt-2 line-clamp-2 text-sm leading-snug text-gray-700">{snippet}</p>
+        <p
+          className={cn(
+            'm-0 mt-2 text-sm leading-snug text-gray-700',
+            embed ? 'line-clamp-2' : 'line-clamp-4'
+          )}
+        >
+          {snippet}
+        </p>
       )}
 
-      <div className="mt-2">
-        <Embed embed={embed} />
-      </div>
+      {embed && (
+        <div className="mt-2">
+          <Embed embed={embed} />
+        </div>
+      )}
 
       {showRelatedWork && relatedWork && (
         <Link

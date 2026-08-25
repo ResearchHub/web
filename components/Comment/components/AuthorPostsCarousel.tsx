@@ -9,6 +9,7 @@ import { ReviewPostCard } from './ReviewPostCard';
 
 interface AuthorPostsCarouselProps {
   cards: PostCardData[];
+  totalCount?: number;
   showRelatedWork?: boolean;
   showTypeBadge?: boolean;
   title?: ReactNode;
@@ -21,6 +22,7 @@ interface AuthorPostsCarouselProps {
   emptyState?: ReactNode;
   variant?: 'card' | 'plain';
   arrowOffset?: 'inset' | 'outset';
+  snapAlignment?: 'start' | 'end';
   className?: string;
 }
 
@@ -49,12 +51,14 @@ const CardForVariant: FC<{
   }
 };
 
-const summarizeCount = (cards: PostCardData[]): string => {
-  if (cards.length === 0) return '';
+const summarizeCount = (cards: PostCardData[], totalCount?: number): string => {
+  const count = totalCount ?? cards.length;
+  if (count === 0) return '';
   const kinds = new Set(cards.map((c) => c.kind));
-  const singular = kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
+  const singular =
+    totalCount === undefined && kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
   const plural = singular === 'review' ? 'reviews' : 'updates';
-  return `${cards.length} ${cards.length === 1 ? singular : plural}`;
+  return `${count} ${count === 1 ? singular : plural}`;
 };
 
 const INITIAL_SKELETONS = 4;
@@ -65,6 +69,7 @@ const Skeleton: FC = () => (
 
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   cards,
+  totalCount,
   showRelatedWork,
   showTypeBadge,
   title,
@@ -77,6 +82,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   emptyState,
   variant = 'plain',
   arrowOffset,
+  snapAlignment = 'start',
   className,
 }) => {
   const resolvedArrowOffset = arrowOffset ?? (variant === 'plain' ? 'outset' : 'inset');
@@ -106,7 +112,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           )}
           {hasCards && (
             <span className={cn('text-xs text-gray-500', !isPageHeader && 'font-medium')}>
-              {summarizeCount(cards)}
+              {summarizeCount(cards, totalCount)}
             </span>
           )}
         </div>
@@ -130,7 +136,10 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           {cards.map((card) => (
             <div
               key={card.key}
-              className="w-[88vw] max-w-[440px] shrink-0 snap-start sm:!w-[420px]"
+              className={cn(
+                'w-[88vw] max-w-[440px] shrink-0 sm:!w-[420px]',
+                snapAlignment === 'end' ? 'snap-end' : 'snap-start'
+              )}
             >
               <CardForVariant
                 card={card}

@@ -29,6 +29,7 @@ export const Carousel: FC<CarouselProps> = ({
   const onReachEndRef = useRef(onReachEnd);
   onReachEndRef.current = onReachEnd;
   const hasScrolledRef = useRef(false);
+  const hasRequestedMoreRef = useRef(false);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -38,10 +39,18 @@ export const Carousel: FC<CarouselProps> = ({
     const atStart = el.scrollLeft <= paddingLeft + 1;
     setCanScrollLeft(!atStart);
     const isScrollable = el.scrollWidth > el.clientWidth + 1;
-    const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 100;
-    setCanScrollRight(!nearEnd && isScrollable);
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    const shouldLoadMore = el.scrollLeft + el.clientWidth >= el.scrollWidth - el.clientWidth;
+    setCanScrollRight(!atEnd && isScrollable);
     if (!atStart) hasScrolledRef.current = true;
-    if (nearEnd && hasScrolledRef.current && onReachEndRef.current) {
+    if (!shouldLoadMore) hasRequestedMoreRef.current = false;
+    if (
+      shouldLoadMore &&
+      !hasRequestedMoreRef.current &&
+      hasScrolledRef.current &&
+      onReachEndRef.current
+    ) {
+      hasRequestedMoreRef.current = true;
       onReachEndRef.current();
     }
   }, []);

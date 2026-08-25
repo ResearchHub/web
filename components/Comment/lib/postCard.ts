@@ -18,7 +18,7 @@ interface PostCardBase {
 
 export interface PostCardPost extends PostCardBase {
   kind: 'post';
-  embed: DetectedUrl;
+  embed?: DetectedUrl;
   onEdit?: () => void;
 }
 
@@ -134,8 +134,7 @@ export const feedEntryToPostCard = (entry: FeedEntry): PostCardData | null => {
   }
 
   const text = typeof rawContent === 'string' ? rawContent : JSON.stringify(rawContent ?? '');
-  const embed = extractFirstUrl(text);
-  if (!embed) return null;
+  const embed = extractFirstUrl(text) ?? undefined;
 
   return {
     kind: 'post',
