@@ -4,8 +4,15 @@ import { GrantSkeleton } from './skeletons/GrantSkeleton';
 import { FundraiseSkeleton } from './skeletons/FundraiseSkeleton';
 import { BountySkeleton } from './skeletons/BountySkeleton';
 import { RegisteredReportSkeleton } from './skeletons/RegisteredReportSkeleton';
+import { ProposalWorkSkeleton } from './skeletons/ProposalWorkSkeleton';
 
-export type FeedSkeletonVariant = 'paper' | 'grant' | 'fundraise' | 'bounty' | 'registeredReport';
+export type FeedSkeletonVariant =
+  | 'paper'
+  | 'grant'
+  | 'fundraise'
+  | 'bounty'
+  | 'registeredReport'
+  | 'proposalWork';
 
 interface FeedItemSkeletonProps {
   variant?: FeedSkeletonVariant;
@@ -29,6 +36,8 @@ export const FeedItemSkeleton: FC<FeedItemSkeletonProps> = ({
       return <BountySkeleton />;
     case 'registeredReport':
       return <RegisteredReportSkeleton />;
+    case 'proposalWork':
+      return <ProposalWorkSkeleton />;
     case 'paper':
     default:
       return <PaperPostSkeleton hideActions={hideActions} showHeader={showHeader} />;

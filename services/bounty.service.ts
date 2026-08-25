@@ -23,6 +23,25 @@ interface ContributeToBountyPayload {
   expiration_date: string;
 }
 
+interface RawBountyDocument {
+  id: number;
+  authors: Array<{
+    id: number;
+    first_name: string;
+    last_name: string;
+    user: any;
+    authorship: {
+      position: string;
+      is_corresponding: boolean;
+    };
+  }>;
+  title: string;
+  abstract: string;
+  renderable_text?: string;
+  slug: string;
+  image_url?: string | null;
+}
+
 // Raw bounty response from the API
 interface RawBounty {
   id: number;
@@ -50,24 +69,10 @@ interface RawBounty {
   total_amount: number;
   unified_document: {
     id: number;
-    documents: {
-      id: number;
-      authors: Array<{
-        id: number;
-        first_name: string;
-        last_name: string;
-        user: any;
-        authorship: {
-          position: string;
-          is_corresponding: boolean;
-        };
-      }>;
-      title: string;
-      abstract: string;
-      renderable_text?: string;
-      slug: string;
-    };
+    documents: RawBountyDocument | RawBountyDocument[];
     document_type: string;
+    // Present when the bounty sits on a proposal that is also raising funds.
+    fundraise?: any;
   };
   hubs: Array<{
     id: number;
@@ -253,6 +258,14 @@ export class BountyService {
         // Posts may lack an abstract; use renderableText as preview fallback
         const renderableText = transformedDoc?.document.renderableText || '';
 
+        // The work card leads with the document image and shows fundraise
+        // progress for proposals. `transformUnifiedDocument` carries neither,
+        // so read them off the raw payload.
+        const rawDocuments = rawBounty.unified_document?.documents;
+        const rawDocument = Array.isArray(rawDocuments) ? rawDocuments[0] : rawDocuments;
+        const imageUrl = rawDocument?.image_url || undefined;
+        const fundraise = rawBounty.unified_document?.fundraise;
+
         // Create the bounty object to attach to the paper/post
         const bountyData = {
           id: rawBounty.id,
@@ -308,6 +321,10 @@ export class BountyService {
             category: rawBounty.category,
             subcategory: rawBounty.subcategory,
             journal: rawBounty.journal,
+            // Image key differs per content type: papers read `primary_image`,
+            // posts read `image_url`.
+            ...(isPaper ? { primary_image: imageUrl } : { image_url: imageUrl }),
+            fundraise,
             // Attach the bounty to the paper/post
             bounties: [bountyData],
             // For non-paper types, include type info and renderable_text
@@ -343,8 +360,11 @@ export class BountyService {
             votes: rawBounty.metrics?.votes || 0,
             comments: rawBounty.metrics?.replies || 0,
           },
-          // Include user_vote from the API response
-          user_vote: rawBounty.user_vote,
+          // `user_vote` on this payload is the caller's vote on the bounty
+          // comment (the bounty's own `content_type` is `rhcommentmodel`), but
+          // the card votes on the document. Forwarding it would light up the
+          // arrows for a vote the user never cast on the document, so the card
+          // starts neutral until the API returns the document's own vote.
         };
 
         return transformFeedEntry(feedEntry);

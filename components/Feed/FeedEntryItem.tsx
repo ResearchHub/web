@@ -18,7 +18,7 @@ import { FeedItemGrantWithApplicants } from './items/FeedItemGrantWithApplicants
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
-import { FeedItemBounty } from './items/FeedItemBounty';
+import { DeprecatedFeedItemBounty } from './items/DeprecatedFeedItemBounty';
 import { buildWorkUrl } from '@/utils/url';
 import { ContentType } from '@/types/work';
 
@@ -214,7 +214,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         entry.contentType === 'PREREGISTRATION')
     ) {
       content = (
-        <FeedItemBounty
+        <DeprecatedFeedItemBounty
           entry={entry}
           href={href}
           showActions={!hideActions}
@@ -287,7 +287,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             );
           } else {
             content = (
-              <FeedItemBounty
+              <DeprecatedFeedItemBounty
                 entry={entry}
                 href={href}
                 showActions={showBountyFooter}

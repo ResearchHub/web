@@ -11,7 +11,6 @@ import {
   Search,
   RotateCcw,
   UserRoundPlus,
-  EyeOff,
 } from 'lucide-react';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Work } from '@/types/work';
@@ -23,7 +22,6 @@ import { GrantModerationService } from '@/services/grant-moderation.service';
 import { handleDownload } from '@/utils/download';
 import { FundraiseModalConfig } from './WorkHeaderModals';
 import toast from 'react-hot-toast';
-import { useHideFromFeed } from '@/hooks/useHideFromFeed';
 
 interface UseWorkHeaderMenuItemsOptions {
   work: Work;
@@ -56,8 +54,6 @@ export function useWorkHeaderMenuItems({
   const [isCloseGrantModalOpen, setIsCloseGrantModalOpen] = useState(false);
   const [isClosingGrant, setIsClosingGrant] = useState(false);
   const [isInviteExpertsModalOpen, setIsInviteExpertsModalOpen] = useState(false);
-  const [isHideFromFeedModalOpen, setIsHideFromFeedModalOpen] = useState(false);
-  const { hideFromFeed, isHiding: isHidingFromFeed } = useHideFromFeed();
 
   const grant = work.note?.post?.grant;
   const canCloseGrant =
@@ -82,16 +78,6 @@ export function useWorkHeaderMenuItems({
       setIsClosingGrant(false);
     }
   }, [grant?.id, router]);
-
-  const canHideFromFeed = isModerator && work.unifiedDocumentId != null;
-
-  const confirmHideFromFeed = useCallback(async () => {
-    if (work.unifiedDocumentId == null) return;
-    const success = await hideFromFeed(work.unifiedDocumentId);
-    if (success) {
-      setIsHideFromFeedModalOpen(false);
-    }
-  }, [work.unifiedDocumentId, hideFromFeed]);
 
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
@@ -287,18 +273,6 @@ export function useWorkHeaderMenuItems({
           <span>Find experts</span>
         </BaseMenuItem>
       )}
-      {canHideFromFeed && (
-        <BaseMenuItem
-          onSelect={() =>
-            executeAuthenticatedAction(() => {
-              setIsHideFromFeedModalOpen(true);
-            })
-          }
-        >
-          <EyeOff className="h-4 w-4 mr-2" />
-          <span>Hide from feed</span>
-        </BaseMenuItem>
-      )}
       <BaseMenuItem onSelect={() => executeAuthenticatedAction(onOpenFlagModal)}>
         <Flag className="h-4 w-4 mr-2" />
         <span>Flag Content</span>
@@ -323,9 +297,5 @@ export function useWorkHeaderMenuItems({
     showInviteExpertsModal: isInviteExpertsModalOpen,
     closeInviteExpertsModal: () => setIsInviteExpertsModalOpen(false),
     inviteExpertsGrantId: grant?.id,
-    showHideFromFeedModal: isHideFromFeedModalOpen,
-    closeHideFromFeedModal: () => setIsHideFromFeedModalOpen(false),
-    confirmHideFromFeed,
-    isHidingFromFeed,
   };
 }

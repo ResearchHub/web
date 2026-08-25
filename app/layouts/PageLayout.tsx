@@ -80,7 +80,7 @@ function PageLayoutInner({
       scrollContainerRef={scrollContainerRef}
       isMobileTopNavHidden={isMobileTopNavHidden}
     >
-      <div className="flex h-screen">
+      <div className="flex app-shell-viewport">
         <TopBarContainer
           isMobileTopNavHidden={isMobileTopNavHidden}
           isLeftSidebarOpen={isLeftSidebarOpen}
@@ -103,7 +103,7 @@ function PageLayoutInner({
         <div
           ref={scrollContainerRef}
           className={cn(
-            'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+            'flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain relative transition-all duration-150',
             'page-layout-with-mobile-bottom-nav',
             'pt-[var(--top-bar-height)] mt-0',
             'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',

@@ -1,9 +1,6 @@
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
-import {
-  transformExcludedFromFeedList,
-  type ExcludedFromFeedList,
-} from '@/types/feed';
+import { transformExcludedFromFeedList, type ExcludedFromFeedList } from '@/types/feed';
 
 interface ListExcludedFromFeedParams {
   page?: number;
@@ -13,22 +10,20 @@ interface ListExcludedFromFeedParams {
 }
 
 export class FeedModerationService {
-  private static readonly BASE_PATH = '/api/researchhub_unified_document';
+  private static readonly BASE_PATH = '/api/activity_feed';
   private static readonly DEFAULT_PAGE_SIZE = 20;
 
-  /** Removes the document and its activity from public feeds. Detail pages are unaffected. */
-  static async excludeFromFeed(unifiedDocumentId: ID): Promise<boolean> {
+  /** Removes this feed entry from public feeds. */
+  static async excludeFromFeed(feedEntryId: ID): Promise<boolean> {
     const response = await ApiClient.post<any>(
-      `${this.BASE_PATH}/${unifiedDocumentId}/exclude_from_feed/`
+      `${this.BASE_PATH}/${feedEntryId}/exclude_from_feed/`
     );
     return response.is_excluded_in_feed;
   }
 
-  /** Restores the document and its activity to public feeds. */
-  static async includeInFeed(unifiedDocumentId: ID): Promise<boolean> {
-    const response = await ApiClient.post<any>(
-      `${this.BASE_PATH}/${unifiedDocumentId}/include_in_feed/`
-    );
+  /** Restores this feed entry to public feeds. */
+  static async includeInFeed(feedEntryId: ID): Promise<boolean> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/${feedEntryId}/include_in_feed/`);
     return response.is_excluded_in_feed;
   }
 
