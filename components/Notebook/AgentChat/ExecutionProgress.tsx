@@ -9,7 +9,13 @@ import {
   type ChatExecution,
   type ChatStreamItem,
 } from '@/types/notebookChat';
-import { ActivityFeed, drawsAsRow, humanizeLabel, PendingThinkingRow } from './ActivityFeed';
+import {
+  ActivityFeed,
+  carriesSweep,
+  drawsAsRow,
+  humanizeLabel,
+  PendingThinkingRow,
+} from './ActivityFeed';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -90,12 +96,13 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // the tail is the block currently being written.
   const streamingItem = live ? streamItems.at(-1) : undefined;
   const streamingItemId = streamingItem?.id;
-  // The sweep needs a row to sit on: the block taking deltas, or a tool still
-  // running. When there is neither — before the first row arrives, or when the
-  // newest stream item is a kind this build doesn't draw — the placeholder
-  // carries it, so the transcript is never dead while the turn is.
+  // The sweep needs a row that wears it: the block taking deltas, or a tool
+  // still running. When there is neither — before the first row arrives, while
+  // narration streams with no label to shimmer, or when the newest stream item
+  // is a kind this build doesn't draw — the placeholder carries it, so the
+  // transcript is never dead while the turn is.
   const sweepHasARow =
-    (streamingItem != null && drawsAsRow(streamingItem)) ||
+    (streamingItem != null && carriesSweep(streamingItem)) ||
     activity.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
   // A failed turn with no tool activity has nothing above the error, so the
   // usual separating margin would just be dead space.
@@ -133,7 +140,11 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         />
       )}
 
-      {live && !sweepHasARow && <PendingThinkingRow className={cn(showsFeed && 'mt-4')} />}
+      {/* `active`, not `live`: a SUCCEEDED turn waiting on its answer has
+          finished thinking, and its terminal response drops `stream` anyway, so
+          `live` here would label every successful turn "Thinking" on its way
+          out. The composer's Stop button covers that window. */}
+      {active && !sweepHasARow && <PendingThinkingRow className={cn(showsFeed && 'mt-4')} />}
 
       {failed && (
         <div
