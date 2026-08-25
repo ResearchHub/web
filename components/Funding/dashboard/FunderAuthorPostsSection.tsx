@@ -23,11 +23,12 @@ export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
   funderId,
   className,
 }) => {
-  const { cards, isLoading, hasMore, loadMore } = useFunderAuthorPosts(funderId);
+  const { cards, totalCount, isLoading, hasMore, loadMore } = useFunderAuthorPosts(funderId);
 
   return (
     <AuthorPostsCarousel
       cards={cards}
+      totalCount={totalCount}
       isLoading={isLoading}
       hasMore={hasMore}
       loadMore={loadMore}

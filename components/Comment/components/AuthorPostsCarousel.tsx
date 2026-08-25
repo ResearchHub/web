@@ -9,6 +9,7 @@ import { ReviewPostCard } from './ReviewPostCard';
 
 interface AuthorPostsCarouselProps {
   cards: PostCardData[];
+  totalCount?: number;
   showRelatedWork?: boolean;
   showTypeBadge?: boolean;
   title?: ReactNode;
@@ -49,12 +50,12 @@ const CardForVariant: FC<{
   }
 };
 
-const summarizeCount = (cards: PostCardData[]): string => {
-  if (cards.length === 0) return '';
+const summarizeCount = (cards: PostCardData[], totalCount = cards.length): string => {
+  if (totalCount === 0) return '';
   const kinds = new Set(cards.map((c) => c.kind));
   const singular = kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
   const plural = singular === 'review' ? 'reviews' : 'updates';
-  return `${cards.length} ${cards.length === 1 ? singular : plural}`;
+  return `${totalCount} ${totalCount === 1 ? singular : plural}`;
 };
 
 const INITIAL_SKELETONS = 4;
@@ -65,6 +66,7 @@ const Skeleton: FC = () => (
 
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   cards,
+  totalCount,
   showRelatedWork,
   showTypeBadge,
   title,
@@ -106,7 +108,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           )}
           {hasCards && (
             <span className={cn('text-xs text-gray-500', !isPageHeader && 'font-medium')}>
-              {summarizeCount(cards)}
+              {summarizeCount(cards, totalCount)}
             </span>
           )}
         </div>
