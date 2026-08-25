@@ -95,8 +95,8 @@ export function SelectFundingOpportunityModal({
       onClose={onClose}
       title={
         <div className="flex flex-col gap-1">
-          <span className="text-lg font-medium text-gray-900">Funding Opportunity</span>
-          <span className="text-sm text-gray-500">Apply to specific funding opportunity</span>
+          <span className="text-lg font-medium text-gray-900">Request for Proposal</span>
+          <span className="text-sm text-gray-500">Apply to a specific RFP</span>
         </div>
       }
       maxWidth="max-w-[600px]"
@@ -108,7 +108,7 @@ export function SelectFundingOpportunityModal({
 
         {grants.length === 0 && !loading && (
           <div className="text-center py-10">
-            <p className="text-sm text-gray-500">No open funding opportunities available</p>
+            <p className="text-sm text-gray-500">No open RFPs available</p>
           </div>
         )}
 
@@ -142,7 +142,7 @@ export function SelectFundingOpportunityModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-0.5">
-                      {grant.organization || 'Funding Opportunity'}
+                      {grant.organization || 'RFP'}
                     </div>
                     <div className="text-sm font-semibold text-gray-900 truncate">
                       {grant.shortTitle || content.title}

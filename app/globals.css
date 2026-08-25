@@ -41,6 +41,37 @@ body {
     sans-serif;
 }
 
+/* Height for the app shell, which fills the viewport and hosts its own
+   scrollport rather than scrolling the document.
+
+   Must not be `100vh`. On iOS Safari (and Chrome on Android) `vh` resolves to
+   the *large* viewport — the height the page would have with the browser
+   toolbars retracted — so a `100vh` shell leaves the document itself 60-115px
+   taller than what is actually visible while the toolbars show. That slack is
+   a real but invisible document scroll range, and because a touch drag that
+   starts on a `position: fixed` element scrolls the document instead of the
+   nested scrollport, any drag over the fixed bottom chrome spends that slack
+   and then dead-ends without the feed ever moving.
+
+   `svh` is the small viewport, so the document has no slack to spend. It is
+   also stable, unlike `dvh`, which would resize the shell mid-scroll as the
+   toolbars animate.
+
+   The `@supports` guard rather than two `height` declarations in one block:
+   the optimizer drops a plain fallback whenever its targets all understand
+   `svh`, and a browser that then falls through to `height: auto` doesn't
+   degrade to the old behaviour, it collapses the shell — the scrollport stops
+   scrolling internally, taking the scroll listeners hung off it with it. */
+.app-shell-viewport {
+  height: 100vh;
+}
+
+@supports (height: 100svh) {
+  .app-shell-viewport {
+    height: 100svh;
+  }
+}
+
 @layer utilities {
   .animate-in {
     animation: slideIn 0.2s ease-out;
@@ -130,8 +161,9 @@ mark {
     padding-top: calc(56px + var(--top-bar-height)) !important;
   }
 
-  /* Reserve space for fixed MobileBottomNav (h-16 + safe-area inset). */
+  /* Reserve space for the fixed MobileBottomNav (h-16 + safe-area inset) plus
+     the funding power bar docked above it (3.75rem including its gutter). */
   .page-layout-with-mobile-bottom-nav {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
   }
 }

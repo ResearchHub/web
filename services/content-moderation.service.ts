@@ -42,8 +42,8 @@ export function slugToModule(slug: string): PendingModule | undefined {
 
 export const PENDING_MODULE_CONFIG: Record<PendingModule, PendingModuleConfig> = {
   funding_opportunities: {
-    tabLabel: 'Funding Opportunities',
-    itemLabel: 'Funding Opportunity',
+    tabLabel: 'RFPs',
+    itemLabel: 'RFP',
   },
   proposals: {
     tabLabel: 'Proposals',

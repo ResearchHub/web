@@ -41,7 +41,6 @@ export type Hub = {
   relevancyScore: number;
   numDocs?: number;
   numComments?: number;
-  isUsedForRep: boolean;
 };
 
 // Types for different contribution items
@@ -218,7 +217,6 @@ const parseHub = (raw: any): Hub => {
     id: raw.id,
     slug: raw.slug,
     name: raw.name,
-    isUsedForRep: raw.is_used_for_rep || false,
     relevancyScore: raw.relevancy_score || 0,
     description: raw.description || '',
     numComments: raw.discussion_count || 0,

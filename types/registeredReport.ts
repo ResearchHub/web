@@ -10,7 +10,7 @@ export type RegisteredReportStage = 'grant' | 'proposal' | 'registered_report';
 
 export interface RegisteredReportTrackerStep {
   stage: RegisteredReportStage;
-  label: 'Funding Opportunity' | 'Proposal' | 'Registered Report';
+  label: 'Request for Proposal' | 'Proposal' | 'Registered Report';
   exists: boolean;
   postId: number | null;
   title: string | null;
@@ -105,7 +105,7 @@ export type RawRegisteredReportWorkResponse = {
 const TRACKER_STEPS: RegisteredReportTrackerStep[] = [
   {
     stage: 'grant',
-    label: 'Funding Opportunity',
+    label: 'Request for Proposal',
     exists: false,
     postId: null,
     title: null,

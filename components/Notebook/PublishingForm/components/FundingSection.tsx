@@ -39,7 +39,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
       });
       setValue('selectedGrant', grant);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update funding opportunity');
+      toast.error(error instanceof Error ? error.message : 'Failed to update RFP');
     } finally {
       setIsSavingGrant(false);
     }
@@ -51,7 +51,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
     <>
       <div>
         <h3 className="text-[15px] font-semibold tracking-tight text-gray-900 mb-2">
-          Funding Opportunity <span className="font-normal text-gray-500 text-xs">(Optional)</span>
+          Request for Proposal <span className="font-normal text-gray-500 text-xs">(Optional)</span>
         </h3>
         {selectedGrant ? (
           <div className="flex gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50 relative">
@@ -73,7 +73,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                {selectedGrant.organization || 'Funding Opportunity'}
+                {selectedGrant.organization || 'RFP'}
               </div>
               <div className="text-sm font-semibold text-gray-900 truncate">
                 {selectedGrant.shortTitle}
@@ -86,7 +86,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
               type="button"
               onClick={() => void saveSelectedGrant(null)}
               disabled={isSavingGrant}
-              aria-label="Remove funding opportunity"
+              aria-label="Remove RFP"
               className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-gray-600 disabled:pointer-events-none disabled:opacity-50"
             >
               <X className="w-3.5 h-3.5" />
@@ -100,7 +100,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
             className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition-colors disabled:pointer-events-none disabled:opacity-50"
           >
             <Plus className="w-3.5 h-3.5" />
-            Select Funding Opportunity
+            Select RFP
           </button>
         )}
       </div>

@@ -6,6 +6,12 @@ export { ActivityCardSkeleton } from './cards/ActivityCardSkeleton';
 export { ActivityCommentGroupCard } from './cards/ActivityCommentGroupCard';
 export { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 
+// Work card primitives, shared with the funding feeds
+export { ActivityTimestamp } from './cards/ActivityTimestamp';
+export { ActivityWorkActions } from './work/ActivityWorkActions';
+export { ActivityWorkMetadata } from './work/ActivityWorkMetadata';
+export { WorkPreviewCard } from './work/WorkPreviewCard';
+
 // Feed
 export { ActivityPageContent } from './ActivityPageContent';
 

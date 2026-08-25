@@ -28,11 +28,6 @@ export function ProfileStatsStrip({ summaryStats, profile }: ProfileStatsStripPr
 
   const items: React.ReactNode[] = [];
 
-  if (summaryStats.upvotesReceived > 0) {
-    items.push(
-      <Stat key="upvotes" value={summaryStats.upvotesReceived.toLocaleString()} label="upvotes" />
-    );
-  }
   if (summaryStats.worksCount > 0) {
     items.push(
       <Stat key="works" value={summaryStats.worksCount.toLocaleString()} label="publications" />

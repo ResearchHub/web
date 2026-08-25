@@ -387,8 +387,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   // space on other tabs at narrow widths. Tablet+ uses the full `sidebarContent`.
   const hasAnyStats =
     !!summaryStats &&
-    (summaryStats.upvotesReceived > 0 ||
-      summaryStats.worksCount > 0 ||
+    (summaryStats.worksCount > 0 ||
       summaryStats.citationCount > 0 ||
       summaryStats.amountFunded > 0 ||
       (user?.authorProfile?.hIndex ?? 0) > 0 ||

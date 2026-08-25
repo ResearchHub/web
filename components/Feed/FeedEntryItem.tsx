@@ -15,11 +15,10 @@ import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { FeedItemGrantWithApplicants } from './items/FeedItemGrantWithApplicants';
-import { FeedItemGrantComprehensive } from './items/FeedItemGrantComprehensive';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
-import { FeedItemBounty } from './items/FeedItemBounty';
+import { DeprecatedFeedItemBounty } from './items/DeprecatedFeedItemBounty';
 import { buildWorkUrl } from '@/utils/url';
 import { ContentType } from '@/types/work';
 
@@ -38,12 +37,7 @@ interface FeedEntryItemProps {
   showFundraiseHeaders?: boolean;
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  /**
-   * Which grant card to render for GRANT entries. `comprehensive` adds the
-   * deployment progress bar, community match and key insights, and is used on
-   * the funder dashboard. Defaults to the simpler public-facing card.
-   */
-  grantCardVariant?: 'default' | 'comprehensive';
+  showGrantApplyCta?: boolean;
   feedOrdering?: string;
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
@@ -65,7 +59,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showFundraiseHeaders = true,
   showPostHeaders = true,
   showReadMoreCTA = false,
-  grantCardVariant = 'default',
+  showGrantApplyCta = true,
   feedOrdering,
   registerVisibleItem,
   unregisterVisibleItem,
@@ -220,7 +214,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         entry.contentType === 'PREREGISTRATION')
     ) {
       content = (
-        <FeedItemBounty
+        <DeprecatedFeedItemBounty
           entry={entry}
           href={href}
           showActions={!hideActions}
@@ -293,7 +287,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             );
           } else {
             content = (
-              <FeedItemBounty
+              <DeprecatedFeedItemBounty
                 entry={entry}
                 href={href}
                 showActions={showBountyFooter}
@@ -322,12 +316,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           break;
 
         case 'GRANT':
-          content =
-            grantCardVariant === 'comprehensive' ? (
-              <FeedItemGrantComprehensive entry={entry} />
-            ) : (
-              <FeedItemGrantWithApplicants entry={entry} />
-            );
+          content = <FeedItemGrantWithApplicants entry={entry} showApplyCta={showGrantApplyCta} />;
           break;
 
         default:

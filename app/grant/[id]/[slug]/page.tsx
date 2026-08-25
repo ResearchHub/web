@@ -2,8 +2,6 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
-import { ProposalFeed } from '@/components/Funding/ProposalFeed';
-import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
@@ -40,9 +38,10 @@ export default async function GrantSlugPage({ params }: Props) {
   const grant = work.note?.post?.grant;
 
   return (
-    <GrantContentSwitcher content={work.previewContent} imageUrl={work.image}>
-      {grant?.description && <ProposalSortAndFilters />}
-      <ProposalFeed />
-    </GrantContentSwitcher>
+    <GrantContentSwitcher
+      content={work.previewContent}
+      imageUrl={work.image}
+      showProposalFilters={Boolean(grant?.description)}
+    />
   );
 }

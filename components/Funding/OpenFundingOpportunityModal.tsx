@@ -50,7 +50,7 @@ const BENEFITS: Benefit[] = [
     id: 'scientists',
     title: 'The best scientists within reach',
     description:
-      'We source the best scientists in the world to apply for your funding opportunity.',
+      'We source the best scientists in the world to apply for your request for proposal.',
     icon: <Award className="h-[22px] w-[22px] text-rhBlue-600" />,
     learnMoreHref: '/give',
   },
@@ -86,7 +86,7 @@ const CREATION_OPTIONS: CreationOption[] = [
   {
     id: 'template',
     title: 'From a template',
-    description: 'Start with our funding opportunity template',
+    description: 'Start with our RFP template',
     icon: <FileText className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
   {
@@ -178,7 +178,7 @@ export const OpenFundingOpportunityModal = ({
                 as="h2"
                 className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
               >
-                Open a funding opportunity
+                Open a request for proposal
               </Dialog.Title>
               <p className="mt-3 text-base leading-[1.5] text-gray-600">
                 The most efficient way to fund science.
@@ -322,7 +322,7 @@ export const OpenFundingOpportunityModal = ({
           ) : (
             <DocumentUploadStep
               title="Upload your document"
-              description="Import a Word, OpenDocument, or Markdown file and we'll set up your funding opportunity from it."
+              description="Import a Word, OpenDocument, or Markdown file and we'll set up your RFP from it."
               documentType="GRANT"
               onBack={() => setStep('method')}
               onClose={handleClose}

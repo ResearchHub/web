@@ -38,6 +38,29 @@ interface ContributeToFundraiseModalProps {
   proposalTitle?: string;
   /** Work object containing author information */
   work?: Work;
+  /** Replaces the "Fund Proposal" heading. */
+  headerTitle?: string;
+  /** Replaces the `proposalTitle` subtitle. */
+  headerSubtitle?: string;
+  /**
+   * Progress figures to show instead of the target fundraise's own. Pooled
+   * campaigns contribute to one fundraise but present the pool's totals, since
+   * that's the goal the funder is actually backing.
+   */
+  progressOverride?: { currentAmountUsd: number; goalAmountUsd: number };
+  /**
+   * Whether to offer the Endaoment donor-advised fund option. Pooled campaigns
+   * turn it off: the target is picked for the funder, so tax-deductibility
+   * would vary by draw.
+   */
+  allowDafPayment?: boolean;
+  /** Replaces the default contribution success toast. */
+  successMessage?: string;
+  /**
+   * Upper bound on the contribution, in USD. Unset leaves the amount
+   * unbounded, which is how single-proposal funding behaves.
+   */
+  maxAmountUsd?: number;
 }
 
 type ModalView = 'funding' | 'auth' | 'payment';
@@ -84,13 +107,23 @@ function ContributeToFundraiseModalInner({
   fundraise,
   proposalTitle,
   work,
+  headerTitle,
+  headerSubtitle,
+  progressOverride,
+  allowDafPayment = true,
+  successMessage,
+  maxAmountUsd,
 }: Readonly<ContributeToFundraiseModalProps>) {
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
-  const { nonprofit } = useNonprofitByFundraiseId(fundraise.id);
-  const hasNonprofit = nonprofit !== null;
+  // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
+  // and EIN-search round trips on every open.
+  const { nonprofit } = useNonprofitByFundraiseId(allowDafPayment ? fundraise.id : undefined);
+  const hasNonprofit = allowDafPayment && nonprofit !== null;
+  const contributionSuccessMessage =
+    successMessage ?? 'Your contribution has been successfully added to the fundraise.';
   const [amountUsd, setAmountUsd] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +174,12 @@ function ContributeToFundraiseModalInner({
 
       if (numValue < minAmountUsd) {
         setAmountError(`Minimum contribution is $${minAmountUsd}`);
+      } else if (maxAmountUsd != null && numValue > maxAmountUsd) {
+        setAmountError(
+          `Maximum contribution is $${maxAmountUsd.toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+          })}`
+        );
       } else {
         setAmountError(undefined);
       }
@@ -208,6 +247,21 @@ function ContributeToFundraiseModalInner({
         return;
       }
 
+      if (maxAmountUsd != null && amountUsd > maxAmountUsd) {
+        setError(
+          `Maximum contribution is $${maxAmountUsd.toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+          })}`
+        );
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          fundraise_id: fundraise.id,
+          payment_method: paymentMethod,
+          error_type: 'validation',
+          error_message: 'Amount above maximum',
+        });
+        return;
+      }
+
       setIsContributing(true);
       setError(null);
 
@@ -220,7 +274,7 @@ function ContributeToFundraiseModalInner({
           'rsc',
           paymentMethod === 'funding_credits'
         );
-        toast.success('Your contribution has been successfully added to the fundraise.');
+        toast.success(contributionSuccessMessage);
       } else if (paymentMethod === 'credit_card') {
         // Credit card payment flow:
         // 1. Create payment intent (backend adds fees)
@@ -285,7 +339,7 @@ function ContributeToFundraiseModalInner({
         }
 
         // Payment succeeded - backend handles contribution automatically
-        toast.success('Your contribution has been successfully added to the fundraise.');
+        toast.success(contributionSuccessMessage);
       } else if (paymentMethod === 'paypal') {
         // PayPal not yet implemented
         toast.error('PayPal is not yet available. Please use Credit Card or ResearchCoin.');
@@ -337,8 +391,8 @@ function ContributeToFundraiseModalInner({
   }, []);
 
   // Calculate amounts in USD for display
-  const currentAmountUsd = fundraise.amountRaised?.usd ?? 0;
-  const goalAmountUsd = fundraise.goalAmount?.usd ?? 0;
+  const currentAmountUsd = progressOverride?.currentAmountUsd ?? fundraise.amountRaised?.usd ?? 0;
+  const goalAmountUsd = progressOverride?.goalAmountUsd ?? fundraise.goalAmount?.usd ?? 0;
   const remainingGoalUsd = Math.max(0, goalAmountUsd - currentAmountUsd);
 
   const handleBack = useCallback(() => {
@@ -377,7 +431,7 @@ function ContributeToFundraiseModalInner({
           amount_rsc: amountInRsc,
         });
 
-        toast.success('Your contribution has been successfully added to the fundraise.');
+        toast.success(contributionSuccessMessage);
         refreshUser?.();
         if (onContributeSuccess) {
           onContributeSuccess();
@@ -396,7 +450,15 @@ function ContributeToFundraiseModalInner({
         setIsContributing(false);
       }
     },
-    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+    [
+      fundraise.id,
+      amountUsd,
+      amountInRsc,
+      refreshUser,
+      onContributeSuccess,
+      handleClose,
+      contributionSuccessMessage,
+    ]
   );
 
   // Handle Apple Pay / Google Pay success
@@ -410,34 +472,42 @@ function ContributeToFundraiseModalInner({
         amount_rsc: amountInRsc,
       });
 
-      toast.success('Your contribution has been successfully added to the fundraise.');
+      toast.success(contributionSuccessMessage);
       refreshUser?.();
       if (onContributeSuccess) {
         onContributeSuccess();
       }
       handleClose();
     },
-    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+    [
+      fundraise.id,
+      amountUsd,
+      amountInRsc,
+      refreshUser,
+      onContributeSuccess,
+      handleClose,
+      contributionSuccessMessage,
+    ]
   );
 
   // Get title based on current view
   const getTitle = () => {
     switch (currentView) {
       case 'funding':
-        return 'Fund Proposal';
+        return headerTitle ?? 'Fund Proposal';
       case 'auth':
         return 'Sign in to continue';
       case 'payment':
         return 'Select Payment Method';
       default:
-        return 'Fund Proposal';
+        return headerTitle ?? 'Fund Proposal';
     }
   };
 
   // Get subtitle - show proposal title on funding and payment screens
   const getSubtitle = () => {
     if (currentView === 'funding' || currentView === 'payment') {
-      return proposalTitle;
+      return headerSubtitle ?? proposalTitle;
     }
     return undefined;
   };
