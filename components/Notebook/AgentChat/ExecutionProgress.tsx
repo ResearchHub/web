@@ -9,7 +9,7 @@ import {
   type ChatExecution,
   type ChatStreamItem,
 } from '@/types/notebookChat';
-import { ActivityFeed, humanizeLabel } from './ActivityFeed';
+import { ActivityFeed, humanizeLabel, PendingThinkingRow } from './ActivityFeed';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -48,8 +48,9 @@ interface ExecutionProgressProps {
  * The summary row can collapse it by hand.
  *
  * Nothing here announces that the turn is running — the sweep on whichever row
- * is moving is the whole signal, and the composer's Stop button covers the
- * moments at either end when no row is moving yet.
+ * is moving is the whole signal. Before the first row exists a placeholder
+ * carries it; after the last one settles, while the answer is published, the
+ * composer's Stop button is what's left.
  *
  * Failed turns render their user-safe `error.message`; cancelled turns render a
  * "Stopped" marker; both keep their partial feed.
@@ -77,11 +78,11 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
   const summary = summarizeActivity(activity);
 
-  // Nothing to show: a clean tool-less success, or a turn that hasn't produced
-  // its first row yet. Rendering an empty block would only open a gap under the
-  // user's message while the turn spins up.
+  // A live turn that hasn't produced its first row stands in for it, so the
+  // transcript is never dead while the turn runs. A settled tool-less success
+  // has nothing worth a progress block at all.
   if (!failed && !cancelled && activity.length === 0) {
-    return null;
+    return live ? <PendingThinkingRow /> : null;
   }
 
   const showsSummaryRow = !live && Boolean(summary);

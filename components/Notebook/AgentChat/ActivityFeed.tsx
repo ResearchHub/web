@@ -249,6 +249,30 @@ function ThinkingRow({
   );
 }
 
+/**
+ * Stands in for the streaming row in the moment before the first one arrives:
+ * the turn is live and has produced nothing, so there is no row yet to carry
+ * the sweep. It says the same word the real reasoning row will say, at the same
+ * indent, with the chevron's gutter left empty — so when the real row lands the
+ * label doesn't move, it just grows a chevron and its text.
+ *
+ * Deliberately not driven by the backend's phase label: this is a placeholder
+ * for a missing row, not a report on what the turn is doing.
+ */
+export function PendingThinkingRow() {
+  return (
+    <div className="flex items-start gap-2 text-sm leading-relaxed text-gray-500">
+      <span className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span
+        aria-live="polite"
+        className={cn('font-medium', '[--shine:theme(colors.gray.500)]', TEXT_SHINE)}
+      >
+        Thinking
+      </span>
+    </div>
+  );
+}
+
 /** Unknown item types from newer backends render nothing (never crash the feed). */
 function ActivityItemBody({
   item,
