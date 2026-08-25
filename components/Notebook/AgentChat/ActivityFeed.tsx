@@ -279,20 +279,25 @@ function StreamedTextRow({
 /**
  * Stands in for the streaming row in the moment before the first one arrives:
  * the turn is live and has produced nothing, so there is no row yet to carry
- * the sweep. It says the same word the real reasoning row will say, at the same
- * indent, with the chevron's gutter left empty — so when the real row lands the
- * label doesn't move, it just grows a chevron and its text.
+ * the sweep. It says the same word the real reasoning row will say.
  *
  * It also covers the case where the newest stream item is a kind this build
  * can't draw, which would otherwise leave nothing shimmering at all.
+ *
+ * Indented clear of the feed's left rail rather than aligned to it. Sharing the
+ * rows' label column meant sitting in their marker slot with nothing in it,
+ * which read as a row whose chevron had gone missing; it isn't one of the rows,
+ * so it shouldn't hold their column. The label shifts left when the real row
+ * takes over, which costs less than a standing gap in the rail.
  *
  * Deliberately not driven by the backend's phase label: this is a placeholder
  * for a missing row, not a report on what the turn is doing.
  */
 export function PendingThinkingRow({ className }: { readonly className?: string }) {
   return (
-    <div className={cn('flex items-start gap-2 text-sm leading-relaxed text-gray-500', className)}>
-      <span className="h-4 w-4 shrink-0" aria-hidden="true" />
+    // pl-11 clears the rail exactly: a row's marker (w-4 + gap-2) plus its tool
+    // icon (w-3.5 + gap-1.5), so this lands on the same edge as a tool label.
+    <div className={cn('flex items-start pl-11 text-sm leading-relaxed text-gray-500', className)}>
       <span
         aria-live="polite"
         className={cn('font-medium', '[--shine:theme(colors.gray.500)]', TEXT_SHINE)}
