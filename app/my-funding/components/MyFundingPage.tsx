@@ -55,7 +55,7 @@ export function MyFundingPage() {
   const activeTab = resolveMyFundingTab(searchParams.get('tab'));
   const isModerator = !!user?.isModerator;
   const hasModeratorOverrideOnReceivedTab =
-    activeTab === 'received' && isModerator && searchParams.has('funder_id');
+    activeTab === 'received' && isModerator && searchParams.has('user_id');
 
   useEffect(() => {
     if (isLoadingUser) return;
@@ -68,7 +68,7 @@ export function MyFundingPage() {
     if (!hasModeratorOverrideOnReceivedTab) return;
 
     const params = new URLSearchParams(searchParams.toString());
-    params.delete('funder_id');
+    params.delete('user_id');
     router.replace(`/my-funding?${params.toString()}`, { scroll: false });
   }, [hasModeratorOverrideOnReceivedTab, isLoadingUser, router, searchParams, user]);
 

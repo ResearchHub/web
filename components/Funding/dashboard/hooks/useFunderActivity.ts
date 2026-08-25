@@ -5,6 +5,7 @@ import { FunderService } from '@/services/funder.service';
 import type { FeedEntry } from '@/types/feed';
 
 const PAGE_SIZE = 20;
+const RENDERABLE_COMMENT_TYPES = ['AUTHOR_UPDATE', 'REVIEW', 'PEER_REVIEW'] as const;
 
 interface UseFunderActivityResult {
   entries: FeedEntry[];
@@ -37,7 +38,7 @@ export function useFunderActivity(funderId: number | undefined): UseFunderActivi
     setIsLoading(true);
 
     FunderService.getActivity(funderId, {
-      contentType: 'RHCOMMENTMODEL',
+      commentTypes: RENDERABLE_COMMENT_TYPES,
       pageSize: PAGE_SIZE,
       page: requestPage,
     })
@@ -59,8 +60,8 @@ export function useFunderActivity(funderId: number | undefined): UseFunderActivi
   }, [funderId, page]);
 
   const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) setPage((p) => p + 1);
-  }, [isLoading, hasMore]);
+    if (!isLoading && hasMore) setPage(page + 1);
+  }, [hasMore, isLoading, page]);
 
   return { entries, isLoading, hasMore, loadMore };
 }
