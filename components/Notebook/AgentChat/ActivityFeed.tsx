@@ -128,7 +128,7 @@ function CallStatusIcon({ status }: { readonly status: ActivityCallStatus }) {
  * when motion is reduced or the label would render invisible rather than merely
  * unanimated.
  */
-export const TEXT_SHINE = cn(
+const TEXT_SHINE = cn(
   'bg-text-shine bg-[length:300%_100%] bg-clip-text text-transparent',
   '[-webkit-text-fill-color:transparent] animate-text-shine',
   'motion-reduce:animate-none motion-reduce:bg-none',

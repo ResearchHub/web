@@ -9,7 +9,7 @@ import {
   type ChatExecution,
   type ChatStreamItem,
 } from '@/types/notebookChat';
-import { ActivityFeed, humanizeLabel, TEXT_SHINE } from './ActivityFeed';
+import { ActivityFeed, humanizeLabel } from './ActivityFeed';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -38,44 +38,21 @@ function summarizeActivity(items: ChatActivityItem[]): string | null {
     .join(' · ');
 }
 
-/** Copy for the live status line while a turn runs or finishes up. */
-function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
-  if (finishing) return 'Finishing up';
-  const phaseLabel = execution.phase?.label;
-  if (phaseLabel != null) return phaseLabel;
-  return execution.status === 'PENDING' ? 'Waiting to start' : 'Working';
-}
-
-/**
- * The turn's live phase, e.g. "Thinking" (the label is the backend's — see
- * `liveStatusLabel`). The sweep across the word is the running signal, so the
- * pulsing dots that used to sit beside it are gone; `--shine` keeps the line in
- * its own primary colour rather than the feed's gray.
- *
- * Shown only in the gaps the feed can't cover — before the first block arrives,
- * and while the turn finishes up. Once the feed has something moving, that is
- * the live signal and this line stays out of its way.
- */
-export function LiveStatusLine({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 pt-1 text-sm font-medium text-primary-600">
-      <span aria-live="polite" className={cn('[--shine:theme(colors.primary.600)]', TEXT_SHINE)}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 interface ExecutionProgressProps {
   readonly execution: ChatExecution;
 }
 
 /**
- * The progress block for one turn: the streaming activity feed plus the live
- * phase line while the turn runs, keeping the same feed once it settles so the
- * turn doesn't reformat under the reader. The summary row can collapse it by
- * hand. Failed turns render their user-safe `error.message`; cancelled turns
- * render a "Stopped" marker; both keep their partial feed.
+ * The progress block for one turn: the streaming activity feed, keeping its
+ * shape once the turn settles so the turn doesn't reformat under the reader.
+ * The summary row can collapse it by hand.
+ *
+ * Nothing here announces that the turn is running — the sweep on whichever row
+ * is moving is the whole signal, and the composer's Stop button covers the
+ * moments at either end when no row is moving yet.
+ *
+ * Failed turns render their user-safe `error.message`; cancelled turns render a
+ * "Stopped" marker; both keep their partial feed.
  */
 export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
@@ -100,25 +77,18 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
   const summary = summarizeActivity(activity);
 
-  // A clean, tool-less success has nothing worth a progress block.
-  if (!live && !failed && !cancelled && activity.length === 0) {
+  // Nothing to show: a clean tool-less success, or a turn that hasn't produced
+  // its first row yet. Rendering an empty block would only open a gap under the
+  // user's message while the turn spins up.
+  if (!failed && !cancelled && activity.length === 0) {
     return null;
   }
-
-  const statusLabel = liveStatusLabel(execution, finishing);
 
   const showsSummaryRow = !live && Boolean(summary);
   const showsFeed = (live || expanded) && activity.length > 0;
   // Deltas always append to the newest stream item, so while the turn is live
   // the tail is the block currently being written.
   const streamingItemId = live ? streamItems.at(-1)?.id : undefined;
-  // Whatever is moving in the feed — the streaming block's shimmering label,
-  // or a tool still running — already says the turn is alive, and says it in
-  // the same words the phase line would use. Only one of them shows.
-  const feedCarriesLive =
-    showsFeed &&
-    (streamingItemId != null ||
-      activity.some((item) => item.type === 'tool_call' && item.status === 'in_progress'));
   // A failed turn with no tool activity has nothing above the error, so the
   // usual separating margin would just be dead space.
   const hasBodyAbove = showsSummaryRow || showsFeed;
@@ -154,8 +124,6 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           className={cn(showsSummaryRow && 'mt-3')}
         />
       )}
-
-      {live && !feedCarriesLive && <LiveStatusLine label={statusLabel} />}
 
       {failed && (
         <div
