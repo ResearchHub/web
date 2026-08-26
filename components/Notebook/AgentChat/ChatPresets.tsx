@@ -32,7 +32,7 @@ const DRAFT_PROPOSAL: ChatPreset = {
   icon: PenLine,
   message:
     'Help me draft this proposal. Ask me for anything you still need to know about the work, ' +
-    'then generate me three hypotheses.',
+    'then generate me three hypotheses to start.',
 };
 
 const EDIT_PROPOSAL: ChatPreset = {
