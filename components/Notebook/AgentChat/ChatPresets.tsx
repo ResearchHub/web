@@ -44,7 +44,13 @@ const EDIT_PROPOSAL: ChatPreset = {
     'is missing, and flag anything a reviewer would push back on.',
 };
 
-const RESEARCH: ChatPreset = {
+/**
+ * The two searches, each in a note-shaped and an author-shaped form. Both have
+ * to match on something: a written note is the better brief, and an empty one
+ * is no brief at all, so the search falls back to the person doing it. A pair
+ * shares its id, since the two never appear together.
+ */
+const RESEARCH_FROM_NOTE: ChatPreset = {
   id: 'research',
   label: 'Help me research',
   icon: Telescope,
@@ -53,11 +59,15 @@ const RESEARCH: ChatPreset = {
     'relevant to this note, and summarise what I should know, with sources.',
 };
 
-/**
- * The funding search, which has to match on something. A written note is the
- * better brief; an empty one is no brief at all, so it falls back to the
- * author — the same id either way, since they never appear together.
- */
+const RESEARCH_FROM_EXPERTISE: ChatPreset = {
+  id: 'research',
+  label: 'Help me research',
+  icon: Telescope,
+  message:
+    'Help me research. Search the web and the scholarly literature for the work most relevant ' +
+    'to my expertise, and summarise what I should know, with sources.',
+};
+
 const FUNDING_FROM_NOTE: ChatPreset = {
   id: 'funding',
   label: 'Find me funding',
@@ -81,10 +91,11 @@ const FUNDING_FROM_EXPERTISE: ChatPreset = {
  * preset turning on whether there is a draft to improve yet.
  */
 function presetsFor(noteIsEmpty: boolean, isRfp: boolean): ChatPreset[] {
-  if (isRfp) return [DRAFT_RFP, RESEARCH];
+  const research = noteIsEmpty ? RESEARCH_FROM_EXPERTISE : RESEARCH_FROM_NOTE;
+  if (isRfp) return [DRAFT_RFP, research];
   return [
     noteIsEmpty ? DRAFT_PROPOSAL : EDIT_PROPOSAL,
-    RESEARCH,
+    research,
     noteIsEmpty ? FUNDING_FROM_EXPERTISE : FUNDING_FROM_NOTE,
   ];
 }
