@@ -12,7 +12,7 @@ import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
 import { NoteService } from '@/services/note.service';
-import { NOTE_VERSION_CREATED } from '@/types/note';
+import { isRfpNote, NOTE_VERSION_CREATED } from '@/types/note';
 import {
   isActiveExecutionStatus,
   MAX_CHAT_TITLE_LENGTH,
@@ -20,10 +20,12 @@ import {
 } from '@/types/notebookChat';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
 import { belowMobileTopBar } from '../mobileChromeOffsets';
 import { NoteReviewControls } from '../NoteReview/NoteReviewControls';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
+import { ChatPresets } from './ChatPresets';
 import { ChatSources, collectChatSources } from './ChatSources';
 import { ChatTranscript } from './ChatTranscript';
 import { Logo } from '@/components/ui/Logo';
@@ -223,6 +225,10 @@ export function AgentChatPanel({
   onReviewChange,
 }: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
+  // Decide which writing preset the empty chat screen offers, and what it
+  // calls the document: the notebook holds RFPs as well as proposals.
+  const noteIsEmpty = useEditorIsEmpty(editor);
+  const noteIsRfp = isRfpNote(currentNote);
 
   // Mirrors PageLayout: the promo banner sits above the TopBar on mobile, and
   // this panel hangs from the bar's underside, so it has to know.
@@ -270,6 +276,26 @@ export function AgentChatPanel({
       setDraft(value);
     },
     [draftKey]
+  );
+
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  /**
+   * A preset loads the composer rather than sending: its message is a starting
+   * point, and the details that make it worth sending — the deadline, the
+   * section, the sub-field — are the user's to add. Focus follows the text so
+   * the caret is already waiting at the end of it.
+   */
+  const applyPreset = useCallback(
+    (message: string) => {
+      setNotice(null);
+      updateDraft(message);
+      const textarea = composerRef.current;
+      if (!textarea) return;
+      textarea.focus();
+      textarea.setSelectionRange(message.length, message.length);
+    },
+    [updateDraft]
   );
 
   const prevDraftKeyRef = useRef(draftKey);
@@ -889,13 +915,22 @@ export function AgentChatPanel({
   const composerDisabled =
     selectedChatId == null ? list.access !== 'ok' : chatState.access !== 'ok';
 
+  const emptyState = (
+    <EmptyState
+      noteIsEmpty={noteIsEmpty}
+      noteIsRfp={noteIsRfp}
+      onSelectPreset={applyPreset}
+      presetsDisabled={composerDisabled}
+    />
+  );
+
   const renderBody = () => {
     if (selectedChatId == null) {
       if (list.access === 'loading') return <CenteredLoader />;
       if (list.access === 'error') {
         return <ErrorState message="Couldn’t load your chats." onRetry={() => refreshList()} />;
       }
-      return <EmptyState />;
+      return emptyState;
     }
 
     switch (chatState.access) {
@@ -920,7 +955,7 @@ export function AgentChatPanel({
           chatState.chat.messages.length === 0 &&
           chatState.chat.executions.length === 0 &&
           !chatState.pendingSend;
-        if (isEmpty) return <EmptyState />;
+        if (isEmpty) return emptyState;
         return <ChatTranscript chat={chatState.chat} pendingSend={chatState.pendingSend} />;
       }
     }
@@ -1133,6 +1168,7 @@ export function AgentChatPanel({
       )}
 
       <ChatComposer
+        textareaRef={composerRef}
         value={draft}
         onChange={updateDraft}
         onSend={handleSend}
@@ -1208,21 +1244,39 @@ function ErrorState({
   );
 }
 
-function EmptyState() {
+function EmptyState({
+  noteIsEmpty,
+  noteIsRfp,
+  onSelectPreset,
+  presetsDisabled,
+}: {
+  readonly noteIsEmpty: boolean;
+  readonly noteIsRfp: boolean;
+  readonly onSelectPreset: (message: string) => void;
+  readonly presetsDisabled: boolean;
+}) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50">
-        <Logo size={32} noText />
+    <div className="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50">
+          <Logo size={32} noText />
+        </div>
+        <div>
+          <p className="flex items-center justify-center gap-1.5 font-serif text-lg tracking-tight text-gray-800">
+            Research assistant
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+            Ask questions about this note, search the web and scholarly literature, or have the
+            assistant edit the draft for you.
+          </p>
+        </div>
       </div>
-      <div>
-        <p className="flex items-center justify-center gap-1.5 font-serif text-lg tracking-tight text-gray-800">
-          Research assistant
-        </p>
-        <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
-          Ask questions about this note, search the web and scholarly literature, or have the
-          assistant edit the draft for you.
-        </p>
-      </div>
+      <ChatPresets
+        noteIsEmpty={noteIsEmpty}
+        isRfp={noteIsRfp}
+        onSelect={onSelectPreset}
+        disabled={presetsDisabled}
+      />
     </div>
   );
 }
