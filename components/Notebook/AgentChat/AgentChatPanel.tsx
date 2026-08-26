@@ -238,9 +238,13 @@ export function AgentChatPanel({
   const promoBannerVisible = promoStatus === 'checked' && !promoDismissed;
 
   const list = useNotebookChatList(noteId, open);
+  // Null is the new-chat screen, and it is where a page visit starts: the
+  // assistant opens on its own opening moves rather than dropping the reader
+  // into the middle of whatever they last asked. Earlier chats stay one click
+  // away in the picker, and a selection survives closing the panel — only a
+  // fresh visit or a note switch resets it.
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [initialChat, setInitialChat] = useState<NotebookChat | null>(null);
-  const autoSelectedRef = useRef(false);
 
   // Network activity is gated on `open`. No keep-alive is needed for turns
   // that finish while the panel is closed or another chat is selected: the
@@ -313,7 +317,6 @@ export function AgentChatPanel({
     setNotice(null);
     setQueuedMessage(null);
     setCreatingChat(false);
-    autoSelectedRef.current = false;
     draftsRef.current.clear();
     setDraft('');
   }, [noteId]);
@@ -324,20 +327,6 @@ export function AgentChatPanel({
       onUnavailable();
     }
   }, [list.access, chatState.access, onUnavailable]);
-
-  // ---- auto-select the most recent chat once per panel open ----
-  useEffect(() => {
-    if (!open) {
-      autoSelectedRef.current = false;
-      return;
-    }
-    if (autoSelectedRef.current || list.access !== 'ok') return;
-    autoSelectedRef.current = true;
-    if (selectedChatId == null && list.chats.length > 0) {
-      setSelectedChatId(list.chats[0].id);
-      setInitialChat(null);
-    }
-  }, [open, list.access, list.chats, selectedChatId]);
 
   // ---- keep the listing fresh as the open chat evolves ----
   // Derived titles land after the first turn, previews/spinners change as
