@@ -53,12 +53,25 @@ const RESEARCH: ChatPreset = {
     'relevant to this note, and summarise what I should know, with sources.',
 };
 
-const FUNDING: ChatPreset = {
+/**
+ * The funding search, which has to match on something. A written note is the
+ * better brief; an empty one is no brief at all, so it falls back to the
+ * author — the same id either way, since they never appear together.
+ */
+const FUNDING_FROM_NOTE: ChatPreset = {
   id: 'funding',
   label: 'Find me funding',
   icon: HandCoins,
   message:
     'Find open RFPs I could apply to that fit this work, and tell me why each one is a match.',
+};
+
+const FUNDING_FROM_EXPERTISE: ChatPreset = {
+  id: 'funding',
+  label: 'Find me funding',
+  icon: HandCoins,
+  message:
+    'Find open RFPs I could apply to based on my expertise, and tell me why each one is a match.',
 };
 
 /**
@@ -69,7 +82,11 @@ const FUNDING: ChatPreset = {
  */
 function presetsFor(noteIsEmpty: boolean, isRfp: boolean): ChatPreset[] {
   if (isRfp) return [DRAFT_RFP, RESEARCH];
-  return [noteIsEmpty ? DRAFT_PROPOSAL : EDIT_PROPOSAL, RESEARCH, FUNDING];
+  return [
+    noteIsEmpty ? DRAFT_PROPOSAL : EDIT_PROPOSAL,
+    RESEARCH,
+    noteIsEmpty ? FUNDING_FROM_EXPERTISE : FUNDING_FROM_NOTE,
+  ];
 }
 
 interface ChatPresetsProps {
