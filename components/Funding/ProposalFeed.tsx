@@ -41,10 +41,25 @@ export const ProposalFeed: FC<ProposalFeedProps> = ({ className, isActive = true
         isLoadingMore={isLoadingMore}
         hasMore={hasMore}
         loadMore={loadMore}
-        skeletonVariant="fundraise"
-        showFundraiseHeaders={false}
-        showGrantHeaders={false}
-        showPostHeaders={false}
+        ordering={sortBy}
+        skeletonVariant="proposalWork"
+        renderEntry={({
+          entry,
+          index,
+          ordering,
+          registerVisibleItem,
+          unregisterVisibleItem,
+          getVisibleItems,
+        }) => (
+          <ProposalFeedItem
+            entry={entry}
+            index={index}
+            ordering={ordering}
+            registerVisibleItem={registerVisibleItem}
+            unregisterVisibleItem={unregisterVisibleItem}
+            getVisibleItems={getVisibleItems}
+          />
+        )}
         activeTab={restorationTab}
         restoredScrollPosition={isActive ? restoredScrollPosition : null}
         page={page}

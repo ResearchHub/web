@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, type KeyboardEvent, type RefObject } from 'react';
 import { ArrowUp, Square } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@/types/notebookChat';
@@ -27,6 +27,11 @@ interface ChatComposerProps {
   readonly disabled: boolean;
   readonly notice: ComposerNotice | null;
   readonly placeholder?: string;
+  /**
+   * The textarea itself, owned by the parent: a preset drops its text into the
+   * draft and then has to hand the caret over to the box the user edits.
+   */
+  readonly textareaRef: RefObject<HTMLTextAreaElement | null>;
 }
 
 const COUNTER_THRESHOLD = MAX_CHAT_MESSAGE_LENGTH - 1000;
@@ -45,9 +50,8 @@ export function ChatComposer({
   disabled,
   notice,
   placeholder = 'Ask the assistant…',
+  textareaRef,
 }: ChatComposerProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
   // Grow with content up to ~6 lines, then scroll.
   useEffect(() => {
     const textarea = textareaRef.current;

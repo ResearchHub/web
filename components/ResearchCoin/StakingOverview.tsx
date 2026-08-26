@@ -193,7 +193,8 @@ export function StakingOverview() {
                   )
                 }
               />
-              <StatRow
+              {/* TODO: Re-enable this when we have a way to display the multiplier that is clear */}
+              {/* <StatRow
                 label={
                   <span className="inline-flex items-center gap-1.5">
                     Current multiplier
@@ -225,7 +226,7 @@ export function StakingOverview() {
                   )
                 }
                 isLast
-              />
+              /> */}
             </ul>
           )}
         </div>
