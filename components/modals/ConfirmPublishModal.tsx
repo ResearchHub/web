@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { GraduationCap, Scale, Users, FileText, type LucideIcon } from 'lucide-react';
@@ -13,7 +13,6 @@ interface ConfirmPublishModalProps {
   onConfirm: (editedTitle: string) => void;
   title: string;
   isPublishing: boolean;
-  onTitleChange?: (title: string) => void;
   isUpdate?: boolean;
   variant?: ConfirmPublishVariant;
   documentLabel?: string;
@@ -60,7 +59,6 @@ export function ConfirmPublishModal({
   onConfirm,
   title: initialTitle,
   isPublishing,
-  onTitleChange,
   isUpdate,
   variant = 'default',
   documentLabel,
@@ -76,20 +74,17 @@ export function ConfirmPublishModal({
   const resolvedDocumentLabel =
     documentLabel ?? (variant === 'rfp' ? 'request for proposal' : 'research proposal');
 
-  useEffect(() => {
-    setTitle(initialTitle);
-    setHasAgreed(false);
-  }, [initialTitle]);
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    onTitleChange?.(newTitle);
+    setTitle(e.target.value);
+  };
+
+  const handleClose = () => {
+    if (!isPublishing) onClose();
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative" style={{ zIndex }} onClose={onClose}>
+      <Dialog as="div" className="relative" style={{ zIndex }} onClose={handleClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -126,7 +121,8 @@ export function ConfirmPublishModal({
                     type="text"
                     value={title}
                     onChange={handleTitleChange}
-                    className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    disabled={isPublishing}
+                    className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="Enter title..."
                   />
 
@@ -164,7 +160,7 @@ export function ConfirmPublishModal({
                   )}
 
                   <div className="mt-6 flex justify-end gap-3">
-                    <Button variant="ghost" onClick={onClose}>
+                    <Button variant="ghost" onClick={handleClose} disabled={isPublishing}>
                       Cancel
                     </Button>
                     <Button

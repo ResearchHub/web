@@ -351,7 +351,10 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
         <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
         {showTabs && (
           <div className={cn(activeTab !== 'details' && 'hidden')}>
-            <PublishingForm readOnly={isPublishedRegisteredReport} />
+            <PublishingForm
+              onPersistEditorState={handlePersistEditorState}
+              readOnly={isPublishedRegisteredReport}
+            />
           </div>
         )}
 
