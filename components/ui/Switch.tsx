@@ -7,6 +7,8 @@ interface SwitchProps {
   disabled?: boolean;
   className?: string;
   variant?: 'default' | 'currency';
+  /** Required when no visible label is programmatically associated. */
+  'aria-label'?: string;
 }
 
 export const Switch = ({
@@ -15,6 +17,7 @@ export const Switch = ({
   disabled,
   className,
   variant = 'default',
+  'aria-label': ariaLabel,
 }: SwitchProps) => {
   const getBackgroundColor = () => {
     if (variant === 'currency') {
@@ -30,6 +33,7 @@ export const Switch = ({
       checked={checked}
       onChange={onCheckedChange}
       disabled={disabled}
+      aria-label={ariaLabel}
       className={cn(
         'inline-flex h-6 w-11 items-center rounded-full border-2 border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
         getBackgroundColor(),

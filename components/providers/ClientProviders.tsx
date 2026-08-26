@@ -26,6 +26,8 @@ import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
+import { AIModeProvider } from '@/components/AIMode/lib/AIModeContext';
+import { AIModeRoot } from '@/components/AIMode/AIModeRoot';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -58,7 +60,14 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                       <UserListsProvider>
                                         <LeaderboardProvider>
                                           <DismissedFeaturesProvider>
-                                            <FollowProvider>{children}</FollowProvider>
+                                            {/* Wraps children so the top-bar
+                                                launcher can reach it, and sits
+                                                inside the feed-card providers
+                                                the transcript renders with. */}
+                                            <AIModeProvider>
+                                              <FollowProvider>{children}</FollowProvider>
+                                              <AIModeRoot />
+                                            </AIModeProvider>
                                             <FeatureNotifications />
                                           </DismissedFeaturesProvider>
                                         </LeaderboardProvider>

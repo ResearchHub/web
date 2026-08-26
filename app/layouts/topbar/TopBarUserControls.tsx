@@ -5,6 +5,7 @@ import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
 import UserMenu from '@/components/menus/UserMenu';
 import type { User } from '@/types/user';
+import { AIModeLauncher } from '@/components/AIMode/AIModeLauncher';
 import { TopBarSearchButton } from './TopBarSearchButton';
 import { formatBadgeCount, formatRSC } from '@/utils/number';
 import { UserService } from '@/services/user.service';
@@ -74,6 +75,8 @@ export const TopBarUserControls = ({
           <SearchIcon className="text-gray-600 h-6 w-6" />
         </button>
 
+        <AIModeLauncher variant="mobile" />
+
         {isLoading ? (
           <AvatarSkeleton variant="mobile" />
         ) : user ? (
@@ -100,6 +103,8 @@ export const TopBarUserControls = ({
   return (
     <div className="hidden tablet:!flex items-center space-x-2 h-full">
       <TopBarSearchButton onClick={onSearchOpen} />
+
+      <AIModeLauncher variant="desktop" />
 
       {isLoading ? (
         <>
