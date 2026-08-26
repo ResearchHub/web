@@ -9,7 +9,7 @@ import {
   FeedPaperContent,
   FeedGrantContent,
 } from '@/types/feed';
-import { FeedItemFundraise } from './items/FeedItemFundraise';
+import { FeedItemFundraise } from './items/DeprecatedFeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';

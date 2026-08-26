@@ -49,7 +49,7 @@ const METHODS: FundingMethod[] = [
     title: 'ResearchCoin',
     icon: <ResearchCoinIcon size={24} outlined color="currentColor" />,
     tileClassName:
-      'border-orange-200 bg-white text-orange-600 hover:border-orange-300 hover:bg-orange-50 focus-visible:ring-orange-500',
+      'border-orange-200 bg-white text-orange-500 hover:border-orange-300 hover:bg-orange-50 focus-visible:ring-orange-500',
   },
   {
     id: 'daf',
