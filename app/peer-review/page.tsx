@@ -12,7 +12,7 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default async function PeerReviewPage() {
   return (
-    <PageLayout>
+    <PageLayout contentWidth="narrow">
       <section className="sr-only">
         <p>
           ResearchHub offers two ways to earn ResearchCoin in one place. You can hold ResearchCoin

@@ -5,11 +5,18 @@ import { AlertCircle, Ban, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import {
   isActiveExecutionStatus,
-  type ChatActivityItem,
+  type ChatFeedItem,
   type ChatExecution,
   type ChatStreamItem,
+  type ChatToolCallActivity,
 } from '@/types/notebookChat';
-import { ActivityFeed, humanizeLabel } from './ActivityFeed';
+import {
+  ActivityFeed,
+  carriesSweep,
+  drawsAsRow,
+  humanizeLabel,
+  PendingThinkingRow,
+} from './ActivityFeed';
 
 /**
  * Stream item ids are stable only within one provider iteration; namespaced
@@ -22,7 +29,7 @@ function namespaceStreamItems(stream: ChatExecution['stream']): ChatStreamItem[]
 }
 
 /** "Searched the web ×2 · Read the note" — tool labels in first-appearance order. */
-function summarizeActivity(items: ChatActivityItem[]): string | null {
+function summarizeActivity(items: ChatFeedItem[]): string | null {
   const counts = new Map<string, number>();
   for (const item of items) {
     if (item.type === 'tool_call') {
@@ -38,29 +45,24 @@ function summarizeActivity(items: ChatActivityItem[]): string | null {
     .join(' · ');
 }
 
-/** Copy for the live status line while a turn runs or finishes up. */
-function liveStatusLabel(execution: ChatExecution, finishing: boolean): string {
-  if (finishing) return 'Finishing up';
-  const phaseLabel = execution.phase?.label;
-  if (phaseLabel != null) return phaseLabel;
-  return execution.status === 'PENDING' ? 'Waiting to start' : 'Working';
-}
-
-export function LiveStatusLine({ label }: { readonly label: string }) {
-  return (
-    <div className="flex items-center gap-2 pt-1 text-sm font-medium text-primary-600">
-      <span className="flex items-center gap-0.5" aria-hidden="true">
-        {[0, 1, 2].map((dot) => (
-          <span
-            key={dot}
-            className="h-1.5 w-1.5 rounded-full bg-primary-500 animate-thinking-dot"
-            style={{ animationDelay: `${dot * 150}ms` }}
-          />
-        ))}
-      </span>
-      <span aria-live="polite">{label}</span>
-    </div>
+/**
+ * What a screen reader is told while a real row carries the sweep. A sweep
+ * can't be heard, so without this an active turn goes silent to assistive
+ * technology the moment its first row arrives and the placeholder — which
+ * announces itself — stands down.
+ *
+ * Names the row the sweep is on and nothing more: it changes when the turn
+ * moves to a new step, never per delta, so the streaming prose is never read
+ * out as it is written.
+ */
+function liveRowLabel(items: ChatFeedItem[], streamingItem: ChatStreamItem | undefined): string {
+  if (streamingItem?.type === 'tool_draft') return humanizeLabel(streamingItem.label);
+  if (streamingItem?.type === 'thinking') return 'Thinking';
+  const running = items.find(
+    (item): item is ChatToolCallActivity =>
+      item.type === 'tool_call' && item.status === 'in_progress'
   );
+  return running ? humanizeLabel(running.label) : 'Thinking';
 }
 
 interface ExecutionProgressProps {
@@ -68,11 +70,18 @@ interface ExecutionProgressProps {
 }
 
 /**
- * The progress block for one turn: the streaming activity feed plus the live
- * phase line while the turn runs, keeping the same feed once it settles so the
- * turn doesn't reformat under the reader. The summary row can collapse it by
- * hand. Failed turns render their user-safe `error.message`; cancelled turns
- * render a "Stopped" marker; both keep their partial feed.
+ * The progress block for one turn: the streaming activity feed, keeping its
+ * shape once the turn settles so the turn doesn't reformat under the reader.
+ * The summary row can collapse it by hand.
+ *
+ * Nothing here announces that the turn is running — the sweep on whichever row
+ * is moving is the whole visible signal, with a polite live region saying the
+ * same thing for anyone who can't see it. When no row can carry the sweep a
+ * placeholder does; after the last row settles, while the answer is published,
+ * the composer's Stop button is what's left.
+ *
+ * Failed turns render their user-safe `error.message`; cancelled turns render a
+ * "Stopped" marker; both keep their partial feed.
  */
 export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
@@ -81,7 +90,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // transient preview. A lifecycle refetch replaces the preview with the
   // newly durable rows/message once the complete turn is recorded.
   const streamItems = namespaceStreamItems(execution.stream);
-  const activity: ChatActivityItem[] = [...(execution.activity ?? []), ...streamItems];
+  const activity: ChatFeedItem[] = [...(execution.activity ?? []), ...streamItems];
   const active = isActiveExecutionStatus(execution.status);
   // SUCCEEDED can precede the answer landing in `messages`; stay visually live
   // until publication so we never render "done" with no answer bubble.
@@ -97,15 +106,26 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
 
   const summary = summarizeActivity(activity);
 
-  // A clean, tool-less success has nothing worth a progress block.
+  // A settled, tool-less success has nothing worth a progress block. A live
+  // turn always has something: at worst the placeholder below.
   if (!live && !failed && !cancelled && activity.length === 0) {
     return null;
   }
 
-  const statusLabel = liveStatusLabel(execution, finishing);
-
   const showsSummaryRow = !live && Boolean(summary);
-  const showsFeed = (live || expanded) && activity.length > 0;
+  const showsFeed = (live || expanded) && activity.some(drawsAsRow);
+  // Deltas always append to the newest stream item, so while the turn is live
+  // the tail is the block currently being written.
+  const streamingItem = live ? streamItems.at(-1) : undefined;
+  const streamingItemId = streamingItem?.id;
+  // The sweep needs a row that wears it: the block taking deltas, or a tool
+  // still running. When there is neither — before the first row arrives, while
+  // narration streams with no label to shimmer, or when the newest stream item
+  // is a kind this build doesn't draw — the placeholder carries it, so the
+  // transcript is never dead while the turn is.
+  const sweepHasARow =
+    (streamingItem != null && carriesSweep(streamingItem)) ||
+    activity.some((item) => item.type === 'tool_call' && item.status === 'in_progress');
   // A failed turn with no tool activity has nothing above the error, so the
   // usual separating margin would just be dead space.
   const hasBodyAbove = showsSummaryRow || showsFeed;
@@ -137,14 +157,32 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
       {showsFeed && (
         <ActivityFeed
           items={activity}
-          // Deltas always append to the newest stream item, so while the turn
-          // is live the tail is the block currently being written.
-          streamingItemId={live ? streamItems.at(-1)?.id : undefined}
+          streamingItemId={streamingItemId}
           className={cn(showsSummaryRow && 'mt-3')}
         />
       )}
 
-      {live && <LiveStatusLine label={statusLabel} />}
+      {/* A publishing turn gets its own word rather than the thinking one: it
+          has finished thinking, and its terminal response drops `stream`, so
+          reusing "Thinking" would mislabel every successful turn on its way
+          out. Nothing else covers this window — `canStop` is false once the
+          status leaves PENDING/RUNNING, so the composer offers a disabled Send,
+          not Stop — and at a 5s poll it lasts whole seconds, not a frame. */}
+      {live && !sweepHasARow && (
+        <PendingThinkingRow
+          label={finishing ? 'Finishing up' : 'Thinking'}
+          className={cn(showsFeed && 'mt-4')}
+        />
+      )}
+
+      {/* Exactly complementary to the placeholder, which carries its own live
+          region — between them one polite region is mounted for the whole live
+          turn, and never two saying the same thing. */}
+      {live && sweepHasARow && (
+        <span className="sr-only" aria-live="polite">
+          {liveRowLabel(activity, streamingItem)}
+        </span>
+      )}
 
       {failed && (
         <div

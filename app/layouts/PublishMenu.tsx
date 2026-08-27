@@ -19,7 +19,6 @@ import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
 
 interface PublishMenuProps {
-  children?: React.ReactNode;
   forceMinimize?: boolean;
 }
 

@@ -181,6 +181,9 @@ const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | n
 const isRegisteredReportDocumentType = (documentType?: string | null): boolean =>
   documentType?.trim().toUpperCase() === 'REGISTERED_REPORT';
 
+const isGrantDocumentType = (documentType?: string | null): boolean =>
+  documentType?.trim().toUpperCase() === 'GRANT';
+
 const serializeNoteJson = (value: unknown): string | undefined => {
   if (typeof value === 'string') return value;
   if (!value || typeof value !== 'object') return undefined;
@@ -269,6 +272,17 @@ export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean 
 
 export const isPublishedRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
   Boolean(note?.post?.id) && isRegisteredReportNote(note);
+
+/**
+ * A Request for Proposal — the funder's call for work, as opposed to the
+ * proposals answering it. Reads the same signals as the editor's work-type
+ * label, including `contentType`, which is where a note carrying only a post
+ * records it.
+ */
+export const isRfpNote = (note?: ClassifiableNote | null): boolean =>
+  isGrantDocumentType(note?.documentType) ||
+  isGrantDocumentType(note?.post?.documentType) ||
+  note?.post?.contentType === 'funding_request';
 
 /** Uses exact legacy IDs because ordinary preprints also used DISCUSSION before rollout. */
 export const isChangelogNote = (note?: ClassifiableChangelogNote | null): boolean => {

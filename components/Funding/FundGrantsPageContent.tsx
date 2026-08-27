@@ -9,6 +9,7 @@ export function FundGrantsPageContent() {
   const {
     entries,
     isLoading,
+    isLoadingMore,
     hasMore,
     page,
     loadMore,
@@ -30,6 +31,7 @@ export function FundGrantsPageContent() {
     <FeedContent
       entries={entries}
       isLoading={isLoading}
+      isLoadingMore={isLoadingMore}
       hasMore={hasMore}
       loadMore={loadMore}
       filters={<GrantSortAndFilters sortBy={sortBy} onSortChange={setSortBy} />}

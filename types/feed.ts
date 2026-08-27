@@ -706,39 +706,9 @@ export function transformActivityRelatedWork(raw: any): Work | undefined {
 }
 
 export interface ExcludedFromFeedList {
-  results: Work[];
+  results: FeedEntry[];
   next: string | null;
   count: number;
-}
-
-/**
- * List rows remap `id` (unified document) and `document_id` (paper/post/grant)
- * onto the activity related_work shape before reuse.
- */
-export function transformExcludedFromFeedWork(raw: any): Work | undefined {
-  if (!raw || raw.document_id == null) {
-    return undefined;
-  }
-
-  return transformActivityRelatedWork({
-    ...raw,
-    id: raw.document_id,
-    unified_document_id: raw.id,
-  });
-}
-
-export function transformExcludedFromFeedList(raw: any): ExcludedFromFeedList {
-  const results = Array.isArray(raw?.results)
-    ? raw.results
-        .map(transformExcludedFromFeedWork)
-        .filter((work: Work | undefined): work is Work => work != null)
-    : [];
-
-  return {
-    results,
-    next: raw?.next ?? null,
-    count: raw?.count ?? results.length,
-  };
 }
 
 // Updated transformFeedEntry function to use the simplified Content type
@@ -1431,6 +1401,20 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     activityAction: deriveActivityAction(feedEntry),
   } as FeedEntry;
 };
+
+export function transformExcludedFromFeedList(raw: any): ExcludedFromFeedList {
+  const results = Array.isArray(raw?.results)
+    ? raw.results
+        .map((entry: RawApiFeedEntry) => transformFeedEntry(entry))
+        .filter((entry: FeedEntry | undefined): entry is FeedEntry => entry != null)
+    : [];
+
+  return {
+    results,
+    next: raw?.next ?? null,
+    count: raw?.count ?? results.length,
+  };
+}
 
 /**
  * Helper function to get review score from various sources

@@ -229,7 +229,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const [{ achievements, isLoading: isAchievementsLoading }] = useAuthorAchievements(authorId);
   const [{ summaryStats, isLoading: isSummaryStatsLoading }] = useAuthorSummaryStats(authorId);
 
-  // Tab state — lifted here so the tab bar can live in the hero banner
+  // Tab state â€” lifted here so the tab bar can live in the hero banner
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();

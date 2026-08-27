@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FeedModerationService } from '@/services/feed-moderation.service';
-import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
-import type { Work } from '@/types/work';
+import type { FeedEntry } from '@/types/feed';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 interface UseExcludedFromFeedReturn {
-  items: Work[];
+  items: FeedEntry[];
   isLoading: boolean;
   isLoadingMore: boolean;
   isRestoring: boolean;
@@ -20,11 +20,11 @@ interface UseExcludedFromFeedReturn {
   setQuery: (query: string) => void;
   loadMore: () => Promise<void>;
   refresh: () => Promise<void>;
-  restore: (unifiedDocumentId: ID) => Promise<boolean>;
+  restore: (feedEntryId: ID) => Promise<boolean>;
 }
 
 export function useExcludedFromFeed(): UseExcludedFromFeedReturn {
-  const [items, setItems] = useState<Work[]>([]);
+  const [items, setItems] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -69,7 +69,8 @@ export function useExcludedFromFeed(): UseExcludedFromFeedReturn {
         if (requestId !== requestIdRef.current) {
           return;
         }
-        const nextError = err instanceof Error ? err : new Error('Failed to load hidden documents');
+        const nextError =
+          err instanceof Error ? err : new Error('Failed to load hidden feed entries');
         setError(nextError);
         // Prevent infinite-scroll from retrying the same failing page URL.
         setNextUrl(null);
@@ -102,18 +103,16 @@ export function useExcludedFromFeed(): UseExcludedFromFeedReturn {
   }, [fetchPage]);
 
   const restore = useCallback(
-    async (unifiedDocumentId: ID): Promise<boolean> => {
-      if (unifiedDocumentId == null || unifiedDocumentId === '') {
+    async (feedEntryId: ID): Promise<boolean> => {
+      if (feedEntryId == null || feedEntryId === '') {
         return false;
       }
 
       setIsRestoring(true);
       try {
-        await FeedModerationService.includeInFeed(unifiedDocumentId);
+        await FeedModerationService.includeInFeed(feedEntryId);
         // Refetch page 1 so nextUrl tracks the shifted server-side pages.
-        setItems((prev) =>
-          prev.filter((item) => !idMatch(item.unifiedDocumentId, unifiedDocumentId))
-        );
+        setItems((prev) => prev.filter((item) => item.id !== String(feedEntryId)));
         toast.success('Restored to feeds.');
         await fetchPage(undefined, false, { keepItems: true });
         return true;

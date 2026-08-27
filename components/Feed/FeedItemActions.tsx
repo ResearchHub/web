@@ -42,8 +42,9 @@ import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
-import { useHideFromFeed, HIDE_FROM_FEED_CONFIRM_MESSAGE } from '@/hooks/useHideFromFeed';
+import { useHideFromFeed } from '@/hooks/useHideFromFeed';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import type { FeedEntry } from '@/types/feed';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -183,6 +184,8 @@ interface FeedItemActionsProps {
   tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
+  /** Feed entries that can be hidden from this row (one → confirm, many → picker). */
+  hideableEntries?: FeedEntry[];
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
   onExpand?: (e?: React.MouseEvent) => void;
@@ -225,6 +228,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
+  hideableEntries,
   showPeerReviews = true,
   onFeedItemClick,
   onExpand,
@@ -417,8 +421,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   };
 
   const handleConfirmHideFromFeed = async () => {
-    if (!relatedDocumentUnifiedDocumentId) return;
-    const success = await hideFromFeed(relatedDocumentUnifiedDocumentId);
+    if (!hideableEntries?.length) return;
+    const success = await hideFromFeed(hideableEntries.map((entry) => entry.id));
     if (success) {
       setIsHideFromFeedModalOpen(false);
     }
@@ -444,7 +448,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Add separator if needed before Report
   const canHideFromFeed =
     !!user?.isModerator &&
-    !!relatedDocumentUnifiedDocumentId &&
+    (hideableEntries?.length ?? 0) > 0 &&
     feedContentType !== 'COMMENT' &&
     feedContentType !== 'BOUNTY' &&
     feedContentType !== 'APPLICATION';
@@ -844,7 +848,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           isOpen={isHideFromFeedModalOpen}
           onClose={() => setIsHideFromFeedModalOpen(false)}
           title="Hide from feed"
-          description={HIDE_FROM_FEED_CONFIRM_MESSAGE}
+          description={
+            (hideableEntries?.length ?? 0) > 1
+              ? 'All feed entries will be hidden from activity feed.'
+              : 'This feed entry will be hidden from activity feed.'
+          }
           confirmLabel="Hide from feed"
           confirmVariant="destructive"
           isConfirming={isHiding}
