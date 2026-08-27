@@ -21,7 +21,6 @@ import { buildWorkUrl } from '@/utils/url';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
-import { NoteService } from '@/services/note.service';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import {
   getDocumentTitleFromEditor,
@@ -50,15 +49,8 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
-import {
-  isChangelogNote,
-  isRegisteredReportNote,
-  type NoteWithContent,
-  type Post as NotePost,
-} from '@/types/note';
+import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
 import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
-import type { GrantStatus } from '@/types/grant';
-import type { ModerationStatus } from '@/types/work';
 import type { ID } from '@/types/root';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -78,14 +70,6 @@ interface PublishingFormProps {
   onBountyClick?: () => void;
   onPersistEditorState: () => Promise<boolean>;
   readOnly?: boolean;
-}
-
-interface PublishedWork {
-  id: number;
-  slug: string;
-  moderationStatus?: ModerationStatus;
-  grantStatus?: GrantStatus;
-  fundraiseId: ID;
 }
 
 const getButtonText = ({
@@ -297,15 +281,6 @@ const getRedirectPath = (articleType: string, responseId: string, slug: string):
     return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
   if (articleType === 'registered_report') return buildRegisteredReportUrl(responseId, slug);
   return `/post/${responseId}/${slug}`;
-};
-
-const recoverPublishedPost = async (noteId: string): Promise<NotePost | null> => {
-  try {
-    return (await NoteService.getNote(noteId)).post;
-  } catch (error) {
-    console.error('Error recovering published work:', error);
-    return null;
-  }
 };
 
 const showPublishError = (error: unknown, articleType: PublishingFormData['articleType']) => {
@@ -618,91 +593,62 @@ export function PublishingForm({
           : json
       );
 
-      let publishedWork: PublishedWork;
-      try {
-        const response = await upsertPost(
-          {
-            budget: budgetValue,
-            rewardFunders: formData.rewardFunders,
-            nftSupply: formData.nftSupply || '1000',
-            title: editedTitle,
-            noteId: note.id.toString(),
-            proposalId,
-            renderableText: text,
-            fullJSON,
-            fullSrc: html,
-            assignDOI: !formData.workId,
-            topics: formData.topics.map((topic) => topic.value),
-            authors: formData.authors
-              .map((author) => author.value)
-              .map(Number)
-              .filter((id) => !Number.isNaN(id)),
-            contacts: formData.contacts
-              .map((contact) => contact.value)
-              .map(Number)
-              .filter((id) => !Number.isNaN(id)),
-            articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
-            image: imagePath,
-            previewImg:
-              formData.articleType === 'registered_report' && !formData.coverImage?.file
-                ? (formData.coverImage?.url ?? note.previewImage ?? null)
-                : undefined,
-            editorType: formData.articleType === 'registered_report' ? 'CK_EDITOR' : undefined,
-            organization: formData.organization,
-            description: formData.shortDescription,
-            applicationDeadline: (() => {
-              if (formData.articleType === 'grant') return new Date('2029-12-31');
-              if (isNewProposal) {
-                const days = parseInt(formData.fundraiseEndDays ?? DEFAULT_FUNDRAISE_END_DAYS, 10);
-                const date = new Date();
-                date.setDate(date.getDate() + days);
-                return date;
-              }
-              return formData.applicationDeadline;
-            })(),
-            grantId,
-            applicationVisibility:
-              formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
-            isPublic: isNewProposal ? formData.isPublic : undefined,
-          },
-          formData.workId
-        );
+      const response = await upsertPost(
+        {
+          budget: budgetValue,
+          rewardFunders: formData.rewardFunders,
+          nftSupply: formData.nftSupply || '1000',
+          title: editedTitle,
+          noteId: note.id.toString(),
+          proposalId,
+          renderableText: text,
+          fullJSON,
+          fullSrc: html,
+          assignDOI: !formData.workId,
+          topics: formData.topics.map((topic) => topic.value),
+          authors: formData.authors
+            .map((author) => author.value)
+            .map(Number)
+            .filter((id) => !Number.isNaN(id)),
+          contacts: formData.contacts
+            .map((contact) => contact.value)
+            .map(Number)
+            .filter((id) => !Number.isNaN(id)),
+          articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
+          image: imagePath,
+          previewImg:
+            formData.articleType === 'registered_report' && !formData.coverImage?.file
+              ? (formData.coverImage?.url ?? note.previewImage ?? null)
+              : undefined,
+          editorType: formData.articleType === 'registered_report' ? 'CK_EDITOR' : undefined,
+          organization: formData.organization,
+          description: formData.shortDescription,
+          applicationDeadline: (() => {
+            if (formData.articleType === 'grant') return new Date('2029-12-31');
+            if (isNewProposal) {
+              const days = parseInt(formData.fundraiseEndDays ?? DEFAULT_FUNDRAISE_END_DAYS, 10);
+              const date = new Date();
+              date.setDate(date.getDate() + days);
+              return date;
+            }
+            return formData.applicationDeadline;
+          })(),
+          grantId,
+          applicationVisibility:
+            formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
+          isPublic: isNewProposal ? formData.isPublic : undefined,
+        },
+        formData.workId
+      );
 
-        if (response.id == null || !response.slug) {
-          throw new Error('Publication response did not include a work ID and slug.');
-        }
-
-        publishedWork = {
-          id: response.id,
-          slug: response.slug,
-          moderationStatus: response.moderationStatus,
-          grantStatus: response.note?.post?.grant?.status,
-          fundraiseId: response.fundraiseId,
-        };
-      } catch (error: unknown) {
-        const recoveredPost = formData.workId
-          ? null
-          : await recoverPublishedPost(note.id.toString());
-
-        if (!recoveredPost?.id || !recoveredPost.slug) {
-          showPublishError(error, formData.articleType);
-          return;
-        }
-
-        console.warn('Recovered published work after the publication response failed.', error);
-        publishedWork = {
-          id: recoveredPost.id,
-          slug: recoveredPost.slug,
-          moderationStatus: recoveredPost.moderationStatus,
-          grantStatus: recoveredPost.grant?.status,
-          fundraiseId: recoveredPost.fundraise?.id,
-        };
+      if (response.id == null || !response.slug) {
+        throw new Error('Publication response did not include a work ID and slug.');
       }
 
-      methods.setValue('workId', String(publishedWork.id));
+      methods.setValue('workId', String(response.id));
       setShowConfirmModal(false);
 
-      const fundraiseId = publishedWork.fundraiseId || note.post?.fundraise?.id;
+      const fundraiseId = response.fundraiseId || note.post?.fundraise?.id;
       const isNonprofitLinked = await tryLinkNonprofit(formData, fundraiseId);
 
       setIsRedirecting(true);
@@ -710,7 +656,7 @@ export function PublishingForm({
       const publishLabel = isChangelog
         ? 'ChangeLog'
         : (PUBLISH_LABEL[formData.articleType] ?? 'Post');
-      const isNewGrantPending = isNewGrant && publishedWork.grantStatus !== 'OPEN';
+      const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
 
       if (isNonprofitLinked) {
         if (isNewGrantPending) {
@@ -720,7 +666,7 @@ export function PublishingForm({
               duration: 5000,
             }
           );
-        } else if (!isNewGrant && publishedWork.moderationStatus === 'PENDING') {
+        } else if (!isNewGrant && response.moderationStatus === 'PENDING') {
           toast.success(
             `Your ${publishLabel} has been submitted and is pending moderator review.`,
             {
@@ -732,9 +678,7 @@ export function PublishingForm({
         }
       }
 
-      router.push(
-        getRedirectPath(formData.articleType, String(publishedWork.id), publishedWork.slug)
-      );
+      router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       showPublishError(error, formData.articleType);
     } finally {
