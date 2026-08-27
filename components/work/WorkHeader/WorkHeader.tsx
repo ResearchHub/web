@@ -113,10 +113,6 @@ export function WorkHeader({
     showInviteExpertsModal,
     closeInviteExpertsModal,
     inviteExpertsGrantId,
-    showHideFromFeedModal,
-    closeHideFromFeedModal,
-    confirmHideFromFeed,
-    isHidingFromFeed,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -301,10 +297,6 @@ export function WorkHeader({
         showInviteExpertsModal={showInviteExpertsModal}
         onCloseInviteExpertsModal={closeInviteExpertsModal}
         inviteExpertsGrantId={inviteExpertsGrantId}
-        showHideFromFeedModal={showHideFromFeedModal}
-        onCloseHideFromFeedModal={closeHideFromFeedModal}
-        onConfirmHideFromFeed={confirmHideFromFeed}
-        isHidingFromFeed={isHidingFromFeed}
       />
     </>
   );

@@ -59,17 +59,37 @@ export default {
           '0%': { transform: 'translateX(-150%) skewX(-20deg)' },
           '100%': { transform: 'translateX(420%) skewX(-20deg)' },
         },
+        // Sweeps `bg-text-shine` through text clipped to the glyphs. The held
+        // frames at each end pause the band off the word, so it reads as a
+        // repeating pulse rather than a continuous scroll.
+        'text-shine': {
+          '0%, 18%': { backgroundPosition: '100% 0' },
+          '82%, 100%': { backgroundPosition: '0% 0' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'thinking-dot': 'pulse-dot 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
         'logo-marquee': 'logo-marquee 32s linear infinite',
         // Single sweep. `both` keeps the streak parked off-screen during the
         // delay instead of sitting mid-element until it starts.
         shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
+        'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
+      },
+      backgroundImage: {
+        // Paired with `animate-text-shine` and `bg-clip-text`. Sized to 300% so
+        // the band starts and ends clear of the text. Callers set `--shine` to
+        // the label's own color (it can't be `currentColor` — the element's
+        // color is transparent so the clipped gradient can show through); the
+        // band is that same color faded rather than a lighter one, so it
+        // composites over whatever surface the label sits on.
+        'text-shine': `linear-gradient(90deg,
+          var(--shine) 0%, var(--shine) 30%,
+          color-mix(in srgb, var(--shine) 30%, transparent) 45%,
+          color-mix(in srgb, var(--shine) 30%, transparent) 55%,
+          var(--shine) 70%, var(--shine) 100%)`,
       },
     },
   },

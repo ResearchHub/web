@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry, FeedPostContent } from '@/types/feed';
-import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
+import { FeedItemFundraise } from '@/components/Feed/items/DeprecatedFeedItemFundraise';
 import { FeedItemRegisteredReport } from '@/components/Feed/items/FeedItemRegisteredReport';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';

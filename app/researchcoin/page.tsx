@@ -64,7 +64,7 @@ export default function ResearchCoinPage() {
   };
 
   return (
-    <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
+    <PageLayout contentWidth="narrow" rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full min-w-0">
         <div className="min-w-0">
           <div className="min-w-0">

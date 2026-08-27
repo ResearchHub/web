@@ -9,6 +9,7 @@ import { ReviewPostCard } from './ReviewPostCard';
 
 interface AuthorPostsCarouselProps {
   cards: PostCardData[];
+  totalCount?: number;
   showRelatedWork?: boolean;
   showTypeBadge?: boolean;
   title?: ReactNode;
@@ -21,6 +22,7 @@ interface AuthorPostsCarouselProps {
   emptyState?: ReactNode;
   variant?: 'card' | 'plain';
   arrowOffset?: 'inset' | 'outset';
+  snapAlignment?: 'start' | 'end';
   className?: string;
 }
 
@@ -49,29 +51,25 @@ const CardForVariant: FC<{
   }
 };
 
-const summarizeCount = (cards: PostCardData[]): string => {
-  if (cards.length === 0) return '';
+const summarizeCount = (cards: PostCardData[], totalCount?: number): string => {
+  const count = totalCount ?? cards.length;
+  if (count === 0) return '';
   const kinds = new Set(cards.map((c) => c.kind));
-  const singular = kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
+  const singular =
+    totalCount === undefined && kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
   const plural = singular === 'review' ? 'reviews' : 'updates';
-  return `${cards.length} ${cards.length === 1 ? singular : plural}`;
+  return `${count} ${count === 1 ? singular : plural}`;
 };
 
 const INITIAL_SKELETONS = 4;
-const PAGE_SKELETONS = 2;
 
-/**
- * Height tracks a real card rather than a round number: an EmbeddedPostCard is
- * its header, a two-line snippet and an `md` embed (h-32), which lands just
- * under 264px. Reviews come in shorter, so nothing here is ever taller than
- * what replaces it.
- */
 const Skeleton: FC = () => (
-  <div className="snap-start shrink-0 w-[88vw] sm:!w-[420px] max-w-[440px] h-[264px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
+  <div className="h-56 w-[88vw] max-w-[440px] shrink-0 snap-start rounded-xl border border-gray-200 bg-gray-50 sm:!w-[420px] animate-pulse" />
 );
 
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   cards,
+  totalCount,
   showRelatedWork,
   showTypeBadge,
   title,
@@ -84,12 +82,12 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   emptyState,
   variant = 'plain',
   arrowOffset,
+  snapAlignment = 'start',
   className,
 }) => {
   const resolvedArrowOffset = arrowOffset ?? (variant === 'plain' ? 'outset' : 'inset');
   const hasCards = cards.length > 0;
   const showInitialSkeletons = !!isLoading && !hasCards;
-  const showPageSkeletons = !!isLoading && hasCards;
   const handleReachEnd = hasMore && !isLoading ? loadMore : undefined;
 
   const isPageHeader = headerVariant === 'page';
@@ -114,7 +112,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           )}
           {hasCards && (
             <span className={cn('text-xs text-gray-500', !isPageHeader && 'font-medium')}>
-              {summarizeCount(cards)}
+              {summarizeCount(cards, totalCount)}
             </span>
           )}
         </div>
@@ -138,7 +136,10 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           {cards.map((card) => (
             <div
               key={card.key}
-              className="flex-shrink-0 snap-start w-[88vw] sm:!w-[420px] max-w-[440px]"
+              className={cn(
+                'w-[88vw] max-w-[440px] shrink-0 sm:!w-[420px]',
+                snapAlignment === 'end' ? 'snap-end' : 'snap-start'
+              )}
             >
               <CardForVariant
                 card={card}
@@ -147,8 +148,6 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
               />
             </div>
           ))}
-          {showPageSkeletons &&
-            Array.from({ length: PAGE_SKELETONS }).map((_, i) => <Skeleton key={`page-${i}`} />)}
         </Carousel>
       </div>
     );

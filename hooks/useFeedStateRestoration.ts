@@ -9,6 +9,7 @@ interface UseFeedStateRestorationOptions {
 }
 
 interface UseFeedStateRestorationReturn {
+  feedKey: string;
   queryParams: Record<string, string>;
   restoredState: StoredFeedState | null;
   initialEntries: FeedEntry[];
@@ -31,6 +32,16 @@ export function useFeedStateRestoration(
     return params;
   }, [searchParams]);
 
+  const feedKey = useMemo(
+    () =>
+      getFeedKey({
+        pathname,
+        tab: options.activeTab,
+        queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+      }),
+    [pathname, options.activeTab, queryParams]
+  );
+
   const restoredState = useMemo(() => {
     const shouldRestore = options.shouldRestore
       ? options.shouldRestore(isBackNavigation)
@@ -39,12 +50,6 @@ export function useFeedStateRestoration(
     if (!shouldRestore) {
       return null;
     }
-
-    const feedKey = getFeedKey({
-      pathname,
-      tab: options.activeTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    });
 
     const savedState = getFeedState(feedKey);
     if (savedState) {
@@ -55,9 +60,7 @@ export function useFeedStateRestoration(
     return null;
   }, [
     isBackNavigation,
-    pathname,
-    options.activeTab,
-    queryParams,
+    feedKey,
     getFeedState,
     clearFeedState,
     options.shouldRestore,
@@ -68,6 +71,7 @@ export function useFeedStateRestoration(
   const lastClickedEntryId = restoredState?.lastClickedEntryId ?? null;
 
   return {
+    feedKey,
     queryParams,
     restoredState,
     initialEntries,

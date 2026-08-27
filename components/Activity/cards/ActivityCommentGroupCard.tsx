@@ -99,7 +99,7 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                 <ActivityWorkMetadata work={work} presentation={presentation} />
               </WorkPreviewCard.Metadata>
               <WorkPreviewCard.Actions>
-                <ActivityWorkActions entry={latestEntry} work={work} />
+                <ActivityWorkActions entry={latestEntry} work={work} hideableEntries={entries} />
               </WorkPreviewCard.Actions>
             </WorkPreviewCard>
             <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3" />

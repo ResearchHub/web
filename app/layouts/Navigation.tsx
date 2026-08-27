@@ -17,7 +17,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
+type NavIconKey = 'fund' | 'journal' | 'notebook' | 'home';
 
 interface NavigationItem {
   label: string;
@@ -42,10 +42,6 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   home: {
     light: 'home1',
     solid: 'home2',
-  },
-  earn: {
-    light: 'earn1',
-    solid: 'solidEarn',
   },
   fund: {
     light: 'fund',
@@ -129,7 +125,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     }
 
     if (path === '/peer-review') {
-      return currentPath.startsWith('/peer-review') || currentPath === '/grants';
+      return currentPath.startsWith('/peer-review');
     }
 
     if (path === '/my-funding') {

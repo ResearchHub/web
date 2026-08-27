@@ -18,6 +18,7 @@ import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 interface GrantFeedContextValue {
   entries: FeedEntry[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   hasMore: boolean;
   page: number;
   loadMore: () => Promise<void>;
@@ -129,6 +130,7 @@ export function GrantFeedProvider({ children }: { children: ReactNode }) {
     () => ({
       entries,
       isLoading: !activated || isLoading,
+      isLoadingMore,
       hasMore,
       page,
       loadMore,
@@ -143,6 +145,7 @@ export function GrantFeedProvider({ children }: { children: ReactNode }) {
       entries,
       activated,
       isLoading,
+      isLoadingMore,
       hasMore,
       page,
       loadMore,

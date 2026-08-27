@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import type { ChatExecution, ChatMessage, NotebookChat } from '@/types/notebookChat';
 import type { PendingSend } from '@/hooks/useNotebookChat';
 import { MarkdownMessage } from './MarkdownMessage';
-import { ExecutionProgress, LiveStatusLine } from './ExecutionProgress';
+import { ExecutionProgress } from './ExecutionProgress';
+import { PendingThinkingRow } from './ActivityFeed';
 
 type TranscriptEntry =
   | { key: string; kind: 'user'; message: ChatMessage }
@@ -171,11 +172,16 @@ export function ChatTranscript({ chat, pendingSend }: ChatTranscriptProps) {
           case 'user':
             return <UserBubble key={entry.key} text={entry.message.content} />;
           case 'pending-user':
+            // Two siblings, not one wrapper: the echo stands in for a user
+            // entry and the execution entry about to follow it, so it has to
+            // take the same between-entry gap that pair will. Boxed together
+            // they took the within-turn 12px where the real pair takes 20px,
+            // and the placeholder dropped 8px the moment the refetch landed.
             return (
-              <div key={entry.key} className="space-y-3">
+              <Fragment key={entry.key}>
                 <UserBubble text={entry.text} />
-                <LiveStatusLine label="Waiting to start" />
-              </div>
+                <PendingThinkingRow />
+              </Fragment>
             );
           case 'execution':
             return (

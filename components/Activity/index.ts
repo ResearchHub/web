@@ -13,6 +13,7 @@ export { ActivityWorkMetadata } from './work/ActivityWorkMetadata';
 export { WorkPreviewCard } from './work/WorkPreviewCard';
 
 // Feed
+export { ActivityFeedList } from './ActivityFeedList';
 export { ActivityPageContent } from './ActivityPageContent';
 export { ActivityCacheBypassControl } from './ActivityCacheBypassControl';
 

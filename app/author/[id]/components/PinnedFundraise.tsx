@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { useFeed } from '@/hooks/useFeed';
 import { ID } from '@/types/root';
 import { FundraiseSkeleton } from '@/components/Feed/skeletons/FundraiseSkeleton';
-import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
+import { FeedItemFundraise } from '@/components/Feed/items/DeprecatedFeedItemFundraise';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { cn } from '@/utils/styles';
 

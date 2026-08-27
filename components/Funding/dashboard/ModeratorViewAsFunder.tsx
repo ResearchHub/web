@@ -18,7 +18,7 @@ interface ModeratorViewAsFunderProps {
 /**
  * Moderator-only override that points the funding dashboard at another funder,
  * kept to a shield icon until it is in use. The active state comes from the
- * `funder_id` param rather than local state so a reload or a shared link still
+ * `user_id` param rather than local state so a reload or a shared link still
  * shows that the dashboard belongs to someone else.
  */
 export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ className }) => {
@@ -27,19 +27,19 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<UserOption | null>(null);
 
-  const funderIdParam = searchParams.get('funder_id');
+  const userIdParam = searchParams.get('user_id');
   // The name is only known for a funder picked in this session; otherwise the
   // id is all we have to show.
-  const label = selected?.value === funderIdParam ? selected.label : `#${funderIdParam}`;
+  const label = selected?.value === userIdParam ? selected.label : `#${userIdParam}`;
 
-  const applyFunderId = useCallback(
+  const applyUserId = useCallback(
     (option: UserOption | null) => {
       setSelected(option);
       const params = new URLSearchParams(searchParams.toString());
       if (option) {
-        params.set('funder_id', option.value);
+        params.set('user_id', option.value);
       } else {
-        params.delete('funder_id');
+        params.delete('user_id');
       }
       router.push(`?${params.toString()}`);
       setIsOpen(false);
@@ -49,7 +49,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
 
   return (
     <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
-      {funderIdParam ? (
+      {userIdParam ? (
         // Two sibling buttons rather than a nested one: the chip as a whole
         // reopens the picker, the X exits the override.
         <div
@@ -61,7 +61,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
           <Popover.Trigger asChild>
             <button type="button" className="inline-flex items-center gap-1.5 text-sm">
               <Shield className="h-4 w-4 flex-shrink-0" />
-              {selected?.value === funderIdParam && (
+              {selected?.value === userIdParam && (
                 <Avatar src={selected.avatarUrl} alt={selected.label} size="xs" disableTooltip />
               )}
               <span className="max-w-[140px] truncate font-medium">{label}</span>
@@ -69,7 +69,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
           </Popover.Trigger>
           <button
             type="button"
-            onClick={() => applyFunderId(null)}
+            onClick={() => applyUserId(null)}
             aria-label="Stop viewing as another funder"
             className="rounded-full p-0.5 transition-colors hover:bg-primary-100"
           >
@@ -103,7 +103,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
           <p className="mb-2 text-xs font-medium text-gray-500">View dashboard as another funder</p>
           <SearchableUserSingleSelect
             value={selected}
-            onChange={applyFunderId}
+            onChange={applyUserId}
             placeholder="Search for a funder..."
           />
         </Popover.Content>

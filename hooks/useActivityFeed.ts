@@ -10,9 +10,11 @@ export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 interface UseActivityFeedOptions {
   scope?: ActivityScope;
   grantId?: number | string;
+
+  enabled?: boolean;
 }
 
-export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {}) {
+export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityFeedOptions = {}) {
   const restorationTab = useMemo(() => {
     const parts = ['activity'];
     if (grantId != null) parts.push(`grant-${grantId}`);
@@ -20,9 +22,10 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
     return parts.join('-');
   }, [grantId, scope]);
 
-  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
-    activeTab: restorationTab,
-  });
+  const { feedKey, restoredState, restoredScrollPosition, lastClickedEntryId } =
+    useFeedStateRestoration({
+      activeTab: restorationTab,
+    });
 
   const hasRestoredEntries = restoredState !== null;
   const initialEntries = restoredState?.entries ?? [];
@@ -36,9 +39,9 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
   const [count, setCount] = useState(initialEntries.length);
   const [page, setPage] = useState(initialPage);
   const pageRef = useRef(initialPage);
-  // Skip the first fetch when we restored entries; subsequent fetchInitial
-  // identity changes (scope / grantId) still refetch.
-  const skipNextFetchRef = useRef(hasRestoredEntries && initialEntries.length > 0);
+  // Skip the first fetch when we restored; subsequent fetchInitial identity
+  // changes (scope / grantId) still refetch.
+  const skipNextFetchRef = useRef(hasRestoredEntries);
 
   const fetchInitial = useCallback(async () => {
     setEntries([]);
@@ -63,12 +66,13 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
   }, [scope, grantId]);
 
   useEffect(() => {
+    if (enabled === false) return;
     if (skipNextFetchRef.current) {
       skipNextFetchRef.current = false;
       return;
     }
     fetchInitial();
-  }, [fetchInitial]);
+  }, [enabled, fetchInitial]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
@@ -99,12 +103,14 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
 
   return {
     entries,
-    isLoading,
+    // While deferred, keep the loading UI unless we already restored entries.
+    isLoading: enabled === false ? !hasRestoredEntries : isLoading,
     isLoadingMore,
     hasMore,
     count,
     page,
     loadMore,
+    feedKey,
     restoredScrollPosition,
     lastClickedEntryId,
     restorationTab,

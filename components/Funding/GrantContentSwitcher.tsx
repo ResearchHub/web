@@ -1,15 +1,12 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { useInView } from 'react-intersection-observer';
+import { useEffect } from 'react';
 import { useGrantTab } from '@/components/Funding/GrantPageContent';
 import { GrantDetailsInline } from '@/components/Funding/GrantDetailsInline';
-import { ActivityCard, ActivityCardSkeleton } from '@/components/Activity';
+import { ActivityCard, ActivityFeedList } from '@/components/Activity';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
-import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFundraises } from '@/contexts/FundraiseContext';
 
 interface GrantContentSwitcherProps {
@@ -23,8 +20,6 @@ export function GrantContentSwitcher({
   imageUrl,
   showProposalFilters = false,
 }: GrantContentSwitcherProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { activeTab, setActiveTab, activity } = useGrantTab();
   const { restoredScrollPosition: proposalsRestoredScrollPosition } = useFundraises();
   const {
@@ -34,9 +29,9 @@ export function GrantContentSwitcher({
     hasMore,
     page,
     loadMore,
+    feedKey,
     restoredScrollPosition,
     lastClickedEntryId,
-    restorationTab,
   } = activity;
 
   const isProposalsActive = activeTab === 'proposals';
@@ -50,18 +45,6 @@ export function GrantContentSwitcher({
     }
   }, [proposalsRestoredScrollPosition, restoredScrollPosition, setActiveTab]);
 
-  const feedKey = useMemo(() => {
-    const queryParams: Record<string, string> = {};
-    for (const [key, value] of searchParams) {
-      queryParams[key] = value;
-    }
-    return getFeedKey({
-      pathname,
-      tab: restorationTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    });
-  }, [pathname, restorationTab, searchParams]);
-
   useFeedScrollTracking({
     feedKey,
     entries,
@@ -69,16 +52,6 @@ export function GrantContentSwitcher({
     page,
     restoredScrollPosition: isActivityActive ? restoredScrollPosition : null,
     lastClickedEntryId: isActivityActive ? (lastClickedEntryId ?? undefined) : undefined,
-  });
-
-  const { ref: sentinelRef } = useInView({
-    threshold: 0,
-    rootMargin: '200px',
-    onChange: (inView) => {
-      if (inView && hasMore && !isLoading && !isLoadingMore) {
-        loadMore();
-      }
-    },
   });
 
   return (
@@ -91,22 +64,17 @@ export function GrantContentSwitcher({
         <GrantDetailsInline content={content} imageUrl={imageUrl} />
       </div>
       <div className={!isActivityActive ? 'hidden' : undefined}>
-        <div>
+        <ActivityFeedList
+          isLoading={isLoading}
+          isLoadingMore={isLoadingMore}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          isEmpty={entries.length === 0}
+        >
           {entries.map((entry) => (
             <ActivityCard key={entry.id} entry={entry} />
           ))}
-
-          {(isLoading || isLoadingMore) &&
-            [...Array(8)].map((_, i) => <ActivityCardSkeleton key={i} />)}
-
-          {!isLoading && !isLoadingMore && entries.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-gray-500">No activity found</p>
-            </div>
-          )}
-
-          {!isLoading && !isLoadingMore && hasMore && <div ref={sentinelRef} className="h-10" />}
-        </div>
+        </ActivityFeedList>
       </div>
     </>
   );

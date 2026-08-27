@@ -2,15 +2,15 @@
 
 import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { FeedItemSkeleton, FeedSkeletonVariant } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { FeedEntryItem, Highlight } from './FeedEntryItem';
-import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
 import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
+import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 interface InsertContentItem {
   index: number;
@@ -96,7 +96,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   skeletonVariant,
 }) => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const tabsSentinelRef = useContentTabsVisibilitySentinel(!!tabs);
 
   const { ref: loadMoreRef, inView } = useInView({
@@ -104,18 +103,9 @@ export const FeedContent: FC<FeedContentProps> = ({
     rootMargin: '100px',
   });
 
-  // Build query params from URL for feed key
-  const queryParams: Record<string, string> = {};
-  for (const [key, value] of searchParams) {
-    queryParams[key] = value;
-  }
-
-  // Generate feed key from pathname/tab/queryParams
-  // For search pages, explicitly exclude tab portion
-  const feedKey = getFeedKey({
-    pathname,
-    tab: pathname === '/search' ? undefined : activeTab,
-    queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+  const { feedKey } = useFeedStateRestoration({
+    activeTab: pathname === '/search' ? undefined : activeTab,
+    shouldRestore: () => false,
   });
 
   useFeedScrollTracking({
