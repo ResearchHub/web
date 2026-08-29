@@ -1,6 +1,6 @@
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { publishingFormSchema } from './schema';
+import { parseBudget, publishingFormSchema } from './schema';
 import type { PublishingFormData, SelectOption } from './schema';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
@@ -34,6 +34,7 @@ import {
   savePublishingFormToStorage,
   getPendingGrant,
   clearPendingGrant,
+  SERVER_OWNED_FIELDS,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 import { Loader2 } from 'lucide-react';
@@ -52,15 +53,26 @@ import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import {
   isChangelogNote,
   isRegisteredReportNote,
+  mergeNoteDetails,
   type NoteDetailsDraft,
+  type NoteFundraiseDraft,
+  type NoteGrantDraft,
   type NoteWithContent,
 } from '@/types/note';
+import type { NonprofitOrg } from '@/types/nonprofit';
+import type { Currency } from '@/types/root';
+import { NonprofitService } from '@/services/nonprofit.service';
 import type { NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const DEFAULT_FUNDRAISE_END_DAYS = '60';
 const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
+// Both amount inputs are labelled USD and the form offers no other choice.
+const FUNDING_CURRENCY: Currency = 'USD';
+
+/** Which funding object the note row accepts, if any. */
+type NoteFundingType = 'grant' | 'fundraise';
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
@@ -143,6 +155,13 @@ const mapDocumentTypeToArticleType = (
   return map[documentType] ?? null;
 };
 
+const resolveFundingType = (documentType?: string | null): NoteFundingType | null => {
+  const articleType = documentType ? mapDocumentTypeToArticleType(documentType) : null;
+  if (articleType === 'grant') return 'grant';
+  if (articleType === 'preregistration') return 'fundraise';
+  return null;
+};
+
 const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
   if (!grant) return;
   if (grant.endDate) setValue('applicationDeadline', new Date(grant.endDate));
@@ -203,7 +222,12 @@ const buildCoverDetails = (values: PublishingFormData): NoteDetailsDraft | null 
     ? null
     : { image: values.coverImage?.key ?? null, previewImage: values.coverImage?.url ?? null };
 
-const buildChangedDetails = (
+/** An empty or unparsed amount is a half-finished edit, not a deliberate clear. */
+const readDraftAmount = (budget?: string): string | null =>
+  budget && parseBudget(budget) > 0 ? budget : null;
+
+/** The Details every work type accepts. */
+const buildChangedSharedDetails = (
   field: string,
   values: PublishingFormData
 ): NoteDetailsDraft | null => {
@@ -216,17 +240,117 @@ const buildChangedDetails = (
       return { publicationIsPublic: values.isPublic ?? null };
     case 'coverImage':
       return buildCoverDetails(values);
+    case 'selectedGrant':
+      return { selectedGrantId: values.selectedGrant?.id ?? null };
     default:
       return null;
   }
 };
 
-const buildSharedDetails = (values: PublishingFormData): NoteDetailsDraft => ({
-  authorIds: mapOptionsToIds(values.authors),
-  hubIds: mapOptionsToIds(values.topics),
-  publicationIsPublic: values.isPublic ?? null,
-  ...buildCoverDetails(values),
-});
+const buildChangedGrantDetails = (
+  field: string,
+  values: PublishingFormData
+): NoteGrantDraft | null => {
+  switch (field) {
+    case 'budget': {
+      const amount = readDraftAmount(values.budget);
+      return amount === null ? null : { amount, currency: FUNDING_CURRENCY };
+    }
+    case 'organization':
+      return { organization: values.organization ?? '' };
+    case 'shortDescription':
+      return { description: values.shortDescription ?? '' };
+    case 'applicationVisibility':
+      return { applicationVisibility: values.applicationVisibility ?? 'OPTIONAL' };
+    // An empty contact list is a real clear, so it goes as one.
+    case 'contacts':
+      return { contactIds: mapOptionsToIds(values.contacts) };
+    default:
+      return null;
+  }
+};
+
+const buildChangedFundraiseDetails = (
+  field: string,
+  values: PublishingFormData
+): NoteFundraiseDraft | null => {
+  switch (field) {
+    case 'budget': {
+      const goalAmount = readDraftAmount(values.budget);
+      return goalAmount === null ? null : { goalAmount, goalCurrency: FUNDING_CURRENCY };
+    }
+    case 'fundraiseEndDays':
+      return { durationDays: Number(values.fundraiseEndDays ?? DEFAULT_FUNDRAISE_END_DAYS) };
+    default:
+      return null;
+  }
+};
+
+/**
+ * What one changed field saves. Funding fields follow the note's own type,
+ * never the locally chosen `articleType`, because the route rejects `grant` on
+ * a note that is not one and `fundraise` on a note that is not a
+ * preregistration — and masks its reads by the same rule.
+ */
+const buildChangedDetails = (
+  field: string,
+  values: PublishingFormData,
+  fundingType: NoteFundingType | null
+): NoteDetailsDraft | null => {
+  const shared = buildChangedSharedDetails(field, values);
+  if (shared) return shared;
+
+  if (fundingType === 'grant') {
+    const grant = buildChangedGrantDetails(field, values);
+    return grant ? { grant } : null;
+  }
+  if (fundingType === 'fundraise') {
+    const fundraise = buildChangedFundraiseDetails(field, values);
+    return fundraise ? { fundraise } : null;
+  }
+  return null;
+};
+
+/** Every server-owned field at once, for the one-time move out of localStorage. */
+const buildMigrationDetails = (
+  values: PublishingFormData,
+  fundingType: NoteFundingType | null
+): NoteDetailsDraft =>
+  SERVER_OWNED_FIELDS.reduce<NoteDetailsDraft>((merged, field) => {
+    const details = buildChangedDetails(field, values, fundingType);
+    return details ? mergeNoteDetails(merged, details) : merged;
+  }, {});
+
+/**
+ * The nonprofit saves itself, because only a canonical id means anything to the
+ * note and a search result's prefixed Endaoment id has to be traded for one
+ * first. Keeping that request out of the field mapping is what lets a control
+ * mark itself dirty before the flush it goes on to trigger.
+ */
+const saveNonprofitDetails = async (
+  nonprofit: NonprofitOrg | null,
+  fundingType: NoteFundingType | null,
+  saveDetails: NoteDetailsSaver['saveDetails']
+) => {
+  if (fundingType !== 'fundraise') return;
+  if (!nonprofit) {
+    saveDetails({ fundraise: { nonprofitId: null } });
+    return;
+  }
+
+  try {
+    // Idempotent, which is why the post-publish link can run it again.
+    const { id } = await NonprofitService.createNonprofit({
+      name: nonprofit.name,
+      endaomentOrgId: nonprofit.endaomentOrgId,
+      ein: nonprofit.ein,
+      baseWalletAddress: nonprofit.baseWalletAddress,
+    });
+    saveDetails({ fundraise: { nonprofitId: id } });
+  } catch (error) {
+    console.error('Error resolving nonprofit:', error);
+  }
+};
 
 /** The saved Details, which every later step may only fill gaps around. */
 const populateSharedDetails = (
@@ -257,9 +381,41 @@ const populateSharedDetails = (
   }
 };
 
-/** Whether this browser still holds pre-cutover shared Details to migrate. */
-const hasStoredSharedDetails = (stored: Partial<PublishingFormData> | null): boolean =>
-  stored != null && (['authors', 'topics', 'isPublic'] as const).some((field) => field in stored);
+/** The note's saved funding row, for whichever form its work type owns. */
+const populateFundingDetails = (
+  note: NoteWithContent,
+  setValue: (name: any, value: any) => void
+) => {
+  const { grant, fundraise, selectedGrant } = note;
+
+  if (selectedGrant) {
+    setValue('selectedGrant', selectedGrant);
+  }
+  if (grant) {
+    // Both amount inputs hold digits, so a `(19,2)` string arrives as one.
+    if (grant.amount) setValue('budget', parseBudget(grant.amount).toString());
+    if (grant.organization) setValue('organization', grant.organization);
+    if (grant.description) setValue('shortDescription', grant.description);
+    if (grant.applicationVisibility) {
+      setValue('applicationVisibility', grant.applicationVisibility);
+    }
+    if (grant.contacts.length) {
+      setValue(
+        'contacts',
+        grant.contacts.map((contact) => ({ value: contact.id.toString(), label: contact.name }))
+      );
+    }
+  }
+  if (fundraise) {
+    if (fundraise.goalAmount) setValue('budget', parseBudget(fundraise.goalAmount).toString());
+    if (fundraise.durationDays) setValue('fundraiseEndDays', fundraise.durationDays.toString());
+    if (fundraise.nonprofit) setValue('selectedNonprofit', fundraise.nonprofit);
+  }
+};
+
+/** Whether this browser still holds pre-cutover Details the note row now owns. */
+const hasStoredServerDetails = (stored: Partial<PublishingFormData> | null): boolean =>
+  stored != null && SERVER_OWNED_FIELDS.some((field) => field in stored);
 
 /**
  * The prefill's bare ids, for the gaps `populateSharedDetails` left. Its
@@ -370,6 +526,7 @@ export function PublishingForm({
 
   const noteId = note?.id;
   const isPublished = Boolean(note?.post);
+  const fundingType = resolveFundingType(note?.documentType);
   const { saveDetails, flushDetails, markPublished } = detailsSaver;
 
   // Hydration runs before the autosave subscription below resubscribes, so
@@ -388,6 +545,7 @@ export function PublishingForm({
       populateFromPost(note.post, methods.setValue);
     } else {
       populateSharedDetails(note, methods.setValue);
+      populateFundingDetails(note, methods.setValue);
 
       if (isRegisteredReport) {
         populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);
@@ -419,6 +577,9 @@ export function PublishingForm({
     if (pending) {
       methods.setValue('selectedGrant', pending);
       clearPendingGrant();
+      // The choice was made on another page, so hydration is the only moment
+      // that can make it durable.
+      saveDetails({ selectedGrantId: pending.id });
     }
 
     // A saved choice can predate the current RFP, and the publisher rejects a
@@ -433,13 +594,16 @@ export function PublishingForm({
         methods.getValues() as Partial<PublishingFormData>
       );
 
-    if (hasStoredSharedDetails(storedData)) {
-      // Migrate this browser's shared Details once, and only drop the local
-      // copy once the server has them.
-      saveDetails(buildSharedDetails(methods.getValues()));
-      void flushDetails().then((saved) => {
-        if (saved) persistLocalDraft();
-      });
+    if (hasStoredServerDetails(storedData)) {
+      // Migrate this browser's copy once, and only drop it once the server
+      // has taken everything.
+      const values = methods.getValues();
+      saveDetails(buildMigrationDetails(values, fundingType));
+      void saveNonprofitDetails(values.selectedNonprofit, fundingType, saveDetails)
+        .then(flushDetails)
+        .then((saved) => {
+          if (saved) persistLocalDraft();
+        });
     } else {
       persistLocalDraft();
     }
@@ -455,12 +619,19 @@ export function PublishingForm({
       // A published note answers 409 to every Details field, so it keeps its
       // values in the publish request alone.
       if (isPublished || !name) return;
-      const details = buildChangedDetails(name, methods.getValues());
+
+      const values = methods.getValues();
+      if (name === 'selectedNonprofit') {
+        void saveNonprofitDetails(values.selectedNonprofit, fundingType, saveDetails);
+        return;
+      }
+
+      const details = buildChangedDetails(name, values, fundingType);
       if (details) saveDetails(details);
     });
 
     return () => subscription.unsubscribe();
-  }, [noteId, methods, isPublished, saveDetails]);
+  }, [noteId, methods, isPublished, saveDetails, fundingType]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -844,7 +1015,9 @@ export function PublishingForm({
                 )}
                 {articleType === 'grant' && <GrantFundingAmountSection />}
                 {articleType === 'grant' && <GrantApplicationVisibilitySection />}
-                {articleType === 'preregistration' && <FundingSection note={note} />}
+                {articleType === 'preregistration' && (
+                  <FundingSection note={note} flushDetails={flushDetails} />
+                )}
                 {articleType === 'preregistration' && !workId && (
                   <div className="py-3 px-6">
                     <EndDateSection />

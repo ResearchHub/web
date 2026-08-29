@@ -52,7 +52,6 @@ export interface UpdateNoteContentParams {
 export interface UpdateNoteParams {
   noteId: ID;
   document_type?: string;
-  selectedGrantId: ID;
   details?: NoteDetailsDraft;
 }
 
@@ -291,10 +290,9 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, selectedGrantId, details, ...fields } = params;
+    const { noteId, details, ...fields } = params;
     const payload = {
       ...fields,
-      ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
       ...(details ? buildNoteDetailsPayload(details) : {}),
     };
 

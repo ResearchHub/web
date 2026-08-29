@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { debounce, DebouncedFunc } from 'lodash-es';
 import { NoteError, NoteService } from '@/services/note.service';
-import type { NoteDetailsDraft } from '@/types/note';
+import { mergeNoteDetails, type NoteDetailsDraft } from '@/types/note';
 import { ID } from '@/types/root';
 
 const DEBOUNCE_MS = 2000;
@@ -72,11 +72,7 @@ export const useNoteDetailsSaver = (
   const patchDetails = useCallback(
     async (savingNoteId: ID, details: NoteDetailsDraft): Promise<boolean> => {
       try {
-        await NoteService.updateNote({
-          noteId: savingNoteId,
-          selectedGrantId: undefined,
-          details,
-        });
+        await NoteService.updateNote({ noteId: savingNoteId, details });
         if (details.title !== undefined) {
           onTitleSavedRef.current?.(details.title, savingNoteId);
         }
@@ -111,7 +107,7 @@ export const useNoteDetailsSaver = (
         if (!saved) {
           // Keep whatever is still writable dirty, so a later save carries it
           // without undoing anything edited while this request was in flight.
-          pendingRef.current = { ...keepWritableDetails(details), ...pendingRef.current };
+          pendingRef.current = mergeNoteDetails(keepWritableDetails(details), pendingRef.current);
         }
         return saved;
       });
@@ -137,7 +133,7 @@ export const useNoteDetailsSaver = (
         void chain(() => patchDetails(forNoteId, details));
         return;
       }
-      pendingRef.current = { ...pendingRef.current, ...details };
+      pendingRef.current = mergeNoteDetails(pendingRef.current, details);
       debouncedSave.current();
     },
     [chain, keepWritableDetails, patchDetails]

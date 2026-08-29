@@ -8,8 +8,7 @@ import { GrantService } from '@/services/grant.service';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Loader2 } from 'lucide-react';
 import { formatCompactAmount } from '@/utils/currency';
-import { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
-import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
+import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantData } from '@/types/grant';
 
 interface SelectFundingOpportunityModalProps {
   isOpen: boolean;

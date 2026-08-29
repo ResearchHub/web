@@ -2,11 +2,18 @@ import { CHANGELOG_NOTEBOOK_ROLLOUT_AT, CHANGELOG_POST_IDS } from '@/constants/c
 import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
-import { ID } from './root';
+import { Currency, ID } from './root';
 import { ContentType, ModerationStatus } from './work';
 import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
-import { Grant, transformGrant } from './grant';
+import {
+  Grant,
+  GrantApplicationVisibility,
+  SelectedGrantData,
+  transformGrant,
+  transformSelectedGrant,
+} from './grant';
+import { NonprofitOrg, transformNonprofitDetailsToOrg } from './nonprofit';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
@@ -43,6 +50,27 @@ export type Post = {
   image?: string;
 };
 
+/**
+ * A grant note's draft funding row. The route masks it to `null` unless the
+ * note is a `GRANT`, and keeps the row when the work type moves away.
+ */
+export interface NoteGrant {
+  /** Decimal string end to end, so a `(19,2)` amount never loses its cents. */
+  amount: string | null;
+  organization: string | null;
+  description: string | null;
+  applicationVisibility: GrantApplicationVisibility | null;
+  contacts: Contact[];
+}
+
+/** A preregistration note's draft fundraise row, masked and kept the same way. */
+export interface NoteFundraise {
+  goalAmount: string | null;
+  /** Relative while drafting; publishing turns it into an absolute deadline. */
+  durationDays: number | null;
+  nonprofit: NonprofitOrg | null;
+}
+
 export interface Note {
   id: number;
   access: NoteAccess;
@@ -60,10 +88,33 @@ export interface Note {
   publicationIsPublic?: boolean | null;
   topics?: Topic[];
   authors?: Author[];
+  /** The draft funding row, present only for the work type that owns it. */
+  grant?: NoteGrant | null;
+  fundraise?: NoteFundraise | null;
+  selectedGrant?: SelectedGrantData | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
 }
 
-/** The shared Details a notebook draft autosaves to `PATCH /api/note/{id}/`. */
+/** The grant fields a notebook draft autosaves. Any other work type answers 400. */
+export interface NoteGrantDraft {
+  amount?: string;
+  currency?: Currency;
+  organization?: string;
+  description?: string;
+  applicationVisibility?: GrantApplicationVisibility;
+  /** User ids, not author profile ids. */
+  contactIds?: number[];
+}
+
+/** The fundraise fields a notebook draft autosaves. Any other work type answers 400. */
+export interface NoteFundraiseDraft {
+  goalAmount?: string;
+  goalCurrency?: Currency;
+  durationDays?: number;
+  nonprofitId?: ID;
+}
+
+/** The Details a notebook draft autosaves to `PATCH /api/note/{id}/`. */
 export interface NoteDetailsDraft {
   title?: string;
   image?: string | null;
@@ -71,28 +122,75 @@ export interface NoteDetailsDraft {
   publicationIsPublic?: boolean | null;
   authorIds?: number[];
   hubIds?: number[];
+  selectedGrantId?: ID;
+  grant?: NoteGrantDraft;
+  fundraise?: NoteFundraiseDraft;
 }
 
-const NOTE_DETAILS_PAYLOAD_KEYS: Record<keyof NoteDetailsDraft, string> = {
+type NoteDetailsScalarDraft = Omit<NoteDetailsDraft, 'grant' | 'fundraise'>;
+
+const NOTE_DETAILS_PAYLOAD_KEYS: Record<keyof NoteDetailsScalarDraft, string> = {
   title: 'title',
   image: 'image',
   previewImage: 'preview_img',
   publicationIsPublic: 'publication_is_public',
   authorIds: 'author_ids',
   hubIds: 'hub_ids',
+  selectedGrantId: 'selected_grant',
+};
+
+const NOTE_GRANT_PAYLOAD_KEYS: Record<keyof NoteGrantDraft, string> = {
+  amount: 'amount',
+  currency: 'currency',
+  organization: 'organization',
+  description: 'description',
+  applicationVisibility: 'application_visibility',
+  contactIds: 'contact_ids',
+};
+
+const NOTE_FUNDRAISE_PAYLOAD_KEYS: Record<keyof NoteFundraiseDraft, string> = {
+  goalAmount: 'goal_amount',
+  goalCurrency: 'goal_currency',
+  durationDays: 'duration_days',
+  nonprofitId: 'nonprofit_id',
 };
 
 /**
  * Only the keys the draft actually carries, because the route reads an absent
  * key as "leave this alone" and an explicit null as "clear it".
  */
-export const buildNoteDetailsPayload = (draft: NoteDetailsDraft): Record<string, unknown> =>
+const buildPayload = <T extends object>(keys: Record<keyof T, string>, draft: T) =>
   Object.fromEntries(
-    Object.entries(draft).map(([field, value]) => [
-      NOTE_DETAILS_PAYLOAD_KEYS[field as keyof NoteDetailsDraft],
-      value,
-    ])
+    Object.entries(draft).map(([field, value]) => [keys[field as keyof T], value])
   );
+
+/** The nested funding objects are partial in exactly the same way as the row itself. */
+export const buildNoteDetailsPayload = ({
+  grant,
+  fundraise,
+  ...scalars
+}: NoteDetailsDraft): Record<string, unknown> => ({
+  ...buildPayload(NOTE_DETAILS_PAYLOAD_KEYS, scalars),
+  ...(grant ? { grant: buildPayload(NOTE_GRANT_PAYLOAD_KEYS, grant) } : {}),
+  ...(fundraise ? { fundraise: buildPayload(NOTE_FUNDRAISE_PAYLOAD_KEYS, fundraise) } : {}),
+});
+
+/**
+ * Folds two drafts together, letting the later one win. The funding objects
+ * merge field by field, because a plain spread would let a later `grant`
+ * replace an earlier one and lose an amount edited just before an organization.
+ */
+export const mergeNoteDetails = (
+  earlier: NoteDetailsDraft,
+  later: NoteDetailsDraft
+): NoteDetailsDraft => {
+  const merged = { ...earlier, ...later };
+  if (earlier.grant && later.grant) merged.grant = { ...earlier.grant, ...later.grant };
+  if (earlier.fundraise && later.fundraise) {
+    merged.fundraise = { ...earlier.fundraise, ...later.fundraise };
+  }
+  return merged;
+};
 
 /**
  * Who committed a note version: the editor autosave endpoint, the notebook AI
@@ -146,16 +244,41 @@ export interface NoteApiItem {
 
 export type TransformedNote = Note & BaseTransformed;
 
+const buildFullName = (raw: any): string =>
+  `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown';
+
 export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
   authorId: raw.id,
   userId: raw.user,
-  name: `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown',
+  name: buildFullName(raw),
 }));
 
 export const transformContact = createTransformer<any, Contact>((raw) => ({
   id: raw.id,
   name: raw.name,
   authorProfile: raw.author_profile ? transformAuthorProfile(raw.author_profile) : undefined,
+}));
+
+/** A draft grant names its contacts by user id and spells the name out itself. */
+const transformNoteGrantContact = createTransformer<any, Contact>((raw) => ({
+  id: raw.id,
+  name: buildFullName(raw),
+}));
+
+const transformNoteGrant = createTransformer<any, NoteGrant>((raw) => ({
+  amount: raw.amount ?? null,
+  organization: raw.organization ?? null,
+  description: raw.description ?? null,
+  applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? null,
+  contacts: Array.isArray(raw.contacts)
+    ? raw.contacts.map((contact: any) => transformNoteGrantContact(contact))
+    : [],
+}));
+
+const transformNoteFundraise = createTransformer<any, NoteFundraise>((raw) => ({
+  goalAmount: raw.goal_amount ?? null,
+  durationDays: raw.duration_days ?? null,
+  nonprofit: raw.nonprofit_details ? transformNonprofitDetailsToOrg(raw.nonprofit_details) : null,
 }));
 
 const getDocumentType = (raw: any): string | null =>
@@ -269,6 +392,11 @@ export const transformNote = createTransformer<any, Note>((raw) => {
       raw.author_profiles,
       raw.registered_report_prefill?.authors
     ),
+    grant: raw.grant ? transformNoteGrant(raw.grant) : null,
+    fundraise: raw.fundraise ? transformNoteFundraise(raw.fundraise) : null,
+    selectedGrant: raw.selected_grant_details
+      ? transformSelectedGrant(raw.selected_grant_details)
+      : null,
   };
 });
 

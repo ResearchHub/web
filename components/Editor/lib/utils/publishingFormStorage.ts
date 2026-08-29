@@ -1,12 +1,28 @@
 import { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
-import type { GrantApplicationVisibility } from '@/types/grant';
+import type { SelectedGrantData } from '@/types/grant';
 
 const STORAGE_KEY = 'publishing_forms';
 const MAX_STORED_NOTES = 20;
 
-// Fields that should be excluded from storage. The note row owns the shared
-// Details now, so keeping a second copy here would let a stale browser win.
-const EXCLUDED_FIELDS = ['coverImage', 'authors', 'topics', 'isPublic'] as const;
+/**
+ * Fields the note row owns now, so keeping a second copy here would let a
+ * stale browser win. Reads still see pre-cutover values, which is what the
+ * form's one-time migration consumes.
+ */
+export const SERVER_OWNED_FIELDS = [
+  'coverImage',
+  'authors',
+  'topics',
+  'isPublic',
+  'budget',
+  'organization',
+  'shortDescription',
+  'applicationVisibility',
+  'contacts',
+  'fundraiseEndDays',
+  'selectedNonprofit',
+  'selectedGrant',
+] as const;
 
 type StoredNote = {
   noteId: string;
@@ -25,10 +41,11 @@ const getStoredNotes = (): StoredNote[] => {
   }
 };
 
-// Helper function to remove excluded fields from data
-const removeExcludedFields = (data: Partial<PublishingFormData>): Partial<PublishingFormData> => {
+const removeServerOwnedFields = (
+  data: Partial<PublishingFormData>
+): Partial<PublishingFormData> => {
   const filteredData = { ...data };
-  EXCLUDED_FIELDS.forEach((field) => {
+  SERVER_OWNED_FIELDS.forEach((field) => {
     delete filteredData[field];
   });
   return filteredData;
@@ -39,8 +56,7 @@ export const savePublishingFormToStorage = (noteId: string, data: Partial<Publis
   try {
     const storedNotes = getStoredNotes();
     const currentIndex = storedNotes.findIndex((note) => note.noteId === noteId);
-    // Remove excluded fields before storing
-    const filteredData = removeExcludedFields(data);
+    const filteredData = removeServerOwnedFields(data);
     const newNote: StoredNote = { noteId, data: filteredData, timestamp: Date.now() };
 
     if (currentIndex !== -1) {
@@ -89,15 +105,6 @@ export const clearPublishingFormStorage = (noteId: string) => {
 };
 
 const PENDING_GRANT_KEY = 'pendingGrant';
-
-export interface SelectedGrantData {
-  id: string;
-  shortTitle: string;
-  imageUrl: string;
-  fundingAmount: number;
-  organization: string;
-  applicationVisibility?: GrantApplicationVisibility;
-}
 
 export const setPendingGrant = (grant: SelectedGrantData) => {
   if (globalThis.window === undefined) return;

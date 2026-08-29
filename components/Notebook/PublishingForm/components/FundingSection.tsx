@@ -12,18 +12,20 @@ import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
 import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
-import type { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { formatCompactAmount } from '@/utils/currency';
-import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
-import { NoteService } from '@/services/note.service';
+import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantData } from '@/types/grant';
 
 interface FundingSectionProps {
   note: Note;
+  /** Choosing an RFP is a deliberate action, so it does not wait out the debounce. */
+  flushDetails: () => Promise<boolean>;
 }
 
 const FEATURE_FLAG_NFT_REWARDS = false;
 
-function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
+function FundingOpportunitySection({
+  flushDetails,
+}: Readonly<Pick<FundingSectionProps, 'flushDetails'>>) {
   const { watch, setValue } = useFormContext();
   const selectedGrant: SelectedGrantData | null = watch('selectedGrant');
   const workId = watch('workId');
@@ -32,17 +34,11 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
 
   const saveSelectedGrant = async (grant: SelectedGrantData | null) => {
     setIsSavingGrant(true);
-    try {
-      await NoteService.updateNote({
-        noteId: note.id,
-        selectedGrantId: grant?.id ?? null,
-      });
-      setValue('selectedGrant', grant);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update RFP');
-    } finally {
-      setIsSavingGrant(false);
+    setValue('selectedGrant', grant);
+    if (!(await flushDetails())) {
+      toast.error('Failed to update RFP');
     }
+    setIsSavingGrant(false);
   };
 
   if (workId) return null;
@@ -114,7 +110,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
   );
 }
 
-export function FundingSection({ note }: Readonly<FundingSectionProps>) {
+export function FundingSection({ note, flushDetails }: Readonly<FundingSectionProps>) {
   const {
     register,
     watch,
@@ -199,7 +195,7 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
 
   return (
     <div className="py-3 px-6 space-y-6">
-      <FundingOpportunitySection note={note} />
+      <FundingOpportunitySection flushDetails={flushDetails} />
 
       {fundraise ? (
         <>

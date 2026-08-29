@@ -104,7 +104,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     try {
       await NoteService.updateNote({
         noteId: selectedDraftNote.id,
-        selectedGrantId: grantId,
+        details: { selectedGrantId: grantId },
       });
       setPendingGrantForGrant();
       onClose();

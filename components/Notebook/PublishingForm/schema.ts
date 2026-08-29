@@ -9,7 +9,7 @@ const addIssue = (ctx: z.RefinementCtx, path: string, message: string) => {
   ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: [path] });
 };
 
-const parseBudget = (budget?: string): number =>
+export const parseBudget = (budget?: string): number =>
   Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
 
 const validatePreregistration = (data: any, ctx: z.RefinementCtx) => {

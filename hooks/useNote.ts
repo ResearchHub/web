@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteService, NoteError, type NoteInvitePreview } from '@/services/note.service';
 import {
   isChangelogNote,
+  isRegisteredReportNote,
   type NoteWithContent,
   type Note,
   type NoteAccess,
@@ -552,6 +553,18 @@ interface UseDuplicateNoteState {
 type DuplicateNoteFn = (noteId: string, organizationSlug: string) => Promise<Note>;
 type UseDuplicateNoteReturn = [UseDuplicateNoteState, DuplicateNoteFn];
 
+/**
+ * A copy inherits the original's work type, because creation is the only thing
+ * that gives a note one and a grant or proposal cannot save its funding Details
+ * without it. A registered report is the exception: the copy has no proposal to
+ * report on, so it starts untyped rather than typed and unpublishable.
+ */
+const resolveDuplicateDocumentType = (note: NoteWithContent): string | undefined => {
+  if (isChangelogNote(note)) return 'DISCUSSION';
+  if (isRegisteredReportNote(note)) return undefined;
+  return note.documentType ?? undefined;
+};
+
 export const useDuplicateNote = (): UseDuplicateNoteReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -569,7 +582,7 @@ export const useDuplicateNote = (): UseDuplicateNoteReturn => {
         title: `${originalNote.title} (Copy)`,
         grouping: originalNote.access,
         organization_slug: organizationSlug,
-        document_type: isChangelogNote(originalNote) ? 'DISCUSSION' : undefined,
+        document_type: resolveDuplicateDocumentType(originalNote),
         selectedGrantId: undefined,
       });
 
