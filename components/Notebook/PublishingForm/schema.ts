@@ -53,7 +53,10 @@ export const publishingFormSchema = z
       }),
     coverImage: z
       .object({
+        // `file` is the selection still uploading; `key` and `url` are what the
+        // note stores once it has.
         file: z.instanceof(File).nullable().optional(),
+        key: z.string().nullable().optional(),
         url: z.string().nullable().optional(),
       })
       .nullable()

@@ -286,11 +286,12 @@ interface UseUpdateNoteState {
 
 interface UpdateNoteOptions {
   /**
-   * Reports the note the title belongs to: a save can complete (or a pending
-   * autosave flush) after the user moved to another note, so consumers must
-   * scope their state updates to `noteId` rather than whatever is current.
+   * Hands a renamed title to the note's Details saver, which owns every write
+   * to the note row. Reports the note the title belongs to: a save can happen
+   * after the user moved to another note, so consumers must scope their state
+   * updates to `noteId` rather than whatever is current.
    */
-  onTitleUpdate?: (newTitle: string, noteId: ID) => void;
+  onTitleChange?: (newTitle: string, noteId: ID) => void;
   debounceMs?: number;
   registeredReportProposalId?: number | null;
   /**
@@ -347,32 +348,18 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     setError(null);
 
     try {
-      const promises: Promise<any>[] = [];
-
-      // Only update title if it changed
+      // Only report the title when it changed; the Details saver writes it.
       if (payload.title !== titleRef.current) {
         titleRef.current = payload.title;
-        promises.push(
-          NoteService.updateNoteTitle({
-            noteId,
-            title: payload.title,
-          }).then(() => {
-            options.onTitleUpdate?.(payload.title, noteId);
-          })
-        );
+        options.onTitleChange?.(payload.title, noteId);
       }
 
-      // Always update content
-      promises.push(
-        NoteService.updateNoteContent({
-          note: noteId,
-          full_src: payload.html || '',
-          plain_text: payload.plainText || '',
-          full_json: JSON.stringify(payload.json),
-        })
-      );
-
-      await Promise.all(promises);
+      await NoteService.updateNoteContent({
+        note: noteId,
+        full_src: payload.html || '',
+        plain_text: payload.plainText || '',
+        full_json: JSON.stringify(payload.json),
+      });
       return true;
     } catch (err) {
       const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
@@ -410,7 +397,7 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
       // a review installed meanwhile (see docToPersist) and persist the side
       // the caller's action had just decided against; resolving the save fn
       // late would likewise report through whichever note's callbacks
-      // (onTitleUpdate) the still-mounted layout holds by then.
+      // (onTitleChange) the still-mounted layout holds by then.
       const payload = buildSavePayloadRef.current(editor, registeredReportProposalId);
       const save = performSaveRef.current;
       const run = saveChainRef.current.catch(() => undefined).then(() => save(payload, noteId));

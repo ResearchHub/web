@@ -26,6 +26,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useAgentChatWidth } from '@/hooks/useAgentChatWidth';
 import { useUpdateNote } from '@/hooks/useNote';
+import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
@@ -211,8 +212,12 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
+  // One debounced writer owns the note row, shared by the editor's title and
+  // every Details control, so a burst of edits is a single request.
+  const detailsSaver = useNoteDetailsSaver(note?.id, { onTitleSaved: updateNoteTitle });
+
   const [, updateNote, saveNoteNow] = useUpdateNote(note?.id, {
-    onTitleUpdate: updateNoteTitle,
+    onTitleChange: (title, titleNoteId) => detailsSaver.saveDetails({ title }, titleNoteId),
     registeredReportProposalId: note?.proposalId,
     // While an assistant review is open the editor holds a merged document;
     // saves must persist it without the struck (pending-removal) ranges.
@@ -351,7 +356,11 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
         <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
         {showTabs && (
           <div className={cn(activeTab !== 'details' && 'hidden')}>
-            <PublishingForm readOnly={isPublishedRegisteredReport} />
+            <PublishingForm
+              readOnly={isPublishedRegisteredReport}
+              detailsSaver={detailsSaver}
+              saveContentNow={handlePersistEditorState}
+            />
           </div>
         )}
 

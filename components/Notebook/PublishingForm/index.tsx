@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
-import type { PublishingFormData } from './schema';
+import type { PublishingFormData, SelectOption } from './schema';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -49,7 +49,13 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
-import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import {
+  isChangelogNote,
+  isRegisteredReportNote,
+  type NoteDetailsDraft,
+  type NoteWithContent,
+} from '@/types/note';
+import type { NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -68,6 +74,9 @@ interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
   readOnly?: boolean;
+  /** The note's one debounced writer — every Details control marks fields dirty here. */
+  detailsSaver: NoteDetailsSaver;
+  saveContentNow: () => Promise<boolean>;
 }
 
 const getButtonText = ({
@@ -111,7 +120,9 @@ const FORM_DEFAULTS = {
   applicationDeadline: null,
   fundraiseEndDays: DEFAULT_FUNDRAISE_END_DAYS as '60',
   applicationVisibility: 'OPTIONAL' as const,
-  isPublic: true,
+  // Undefined until the author picks, which is how the publisher knows to keep
+  // its own default and the target grant's visibility rules.
+  isPublic: undefined as boolean | undefined,
 };
 
 const mapContentTypeToArticleType = (contentType: string): PublishingFormData['articleType'] => {
@@ -183,41 +194,96 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
   }
 };
 
-const populateRegisteredReportFields = (
+const mapOptionsToIds = (options: SelectOption[]): number[] =>
+  options.map((option) => Number(option.value)).filter((id) => !Number.isNaN(id));
+
+/** A cover still uploading is not durable yet, so it stays out of the dirty set. */
+const buildCoverDetails = (values: PublishingFormData): NoteDetailsDraft | null =>
+  values.coverImage?.file
+    ? null
+    : { image: values.coverImage?.key ?? null, previewImage: values.coverImage?.url ?? null };
+
+const buildChangedDetails = (
+  field: string,
+  values: PublishingFormData
+): NoteDetailsDraft | null => {
+  switch (field) {
+    case 'authors':
+      return { authorIds: mapOptionsToIds(values.authors) };
+    case 'topics':
+      return { hubIds: mapOptionsToIds(values.topics) };
+    case 'isPublic':
+      return { publicationIsPublic: values.isPublic ?? null };
+    case 'coverImage':
+      return buildCoverDetails(values);
+    default:
+      return null;
+  }
+};
+
+const buildSharedDetails = (values: PublishingFormData): NoteDetailsDraft => ({
+  authorIds: mapOptionsToIds(values.authors),
+  hubIds: mapOptionsToIds(values.topics),
+  publicationIsPublic: values.isPublic ?? null,
+  ...buildCoverDetails(values),
+});
+
+/** The saved Details, which every later step may only fill gaps around. */
+const populateSharedDetails = (
+  note: NoteWithContent,
+  setValue: (name: any, value: any) => void
+) => {
+  if (note.image || note.previewImage) {
+    setValue('coverImage', {
+      file: null,
+      key: note.image ?? null,
+      url: note.previewImage ?? null,
+    });
+  }
+  if (note.topics?.length) {
+    setValue(
+      'topics',
+      note.topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
+    );
+  }
+  if (note.authors?.length) {
+    setValue(
+      'authors',
+      note.authors.map((author) => ({ value: author.authorId.toString(), label: author.name }))
+    );
+  }
+  if (note.publicationIsPublic != null) {
+    setValue('isPublic', note.publicationIsPublic);
+  }
+};
+
+/** Whether this browser still holds pre-cutover shared Details to migrate. */
+const hasStoredSharedDetails = (stored: Partial<PublishingFormData> | null): boolean =>
+  stored != null && (['authors', 'topics', 'isPublic'] as const).some((field) => field in stored);
+
+/**
+ * The prefill's bare ids, for the gaps `populateSharedDetails` left. Its
+ * populated topics and authors already reach the form through `note`.
+ */
+const populateRegisteredReportPrefill = (
   note: NoteWithContent,
   getValues: (name: any) => any,
   setValue: (name: any, value: any) => void
 ) => {
-  const topics = note.topics ?? [];
-  const authors = note.authors ?? [];
-  const topicOptions =
-    topics.length > 0
-      ? topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
-      : (note.registeredReportPrefill?.topicIds ?? []).map((id) => ({
-          value: id.toString(),
-          label: `Topic ${id}`,
-        }));
-  const authorOptions =
-    authors.length > 0
-      ? authors.map((author) => ({
-          value: author.authorId.toString(),
-          label: author.name,
-        }))
-      : (note.registeredReportPrefill?.authorIds ?? []).map((id) => ({
-          value: id.toString(),
-          label: `Author ${id}`,
-        }));
+  const { topicIds = [], authorIds = [] } = note.registeredReportPrefill ?? {};
 
-  if (note.previewImage && !getValues('coverImage')) {
-    setValue('coverImage', { file: null, url: note.previewImage });
+  if (topicIds.length > 0 && getValues('topics').length === 0) {
+    setValue(
+      'topics',
+      topicIds.map((id) => ({ value: id.toString(), label: `Topic ${id}` }))
+    );
   }
 
-  if (topicOptions.length > 0 && getValues('topics').length === 0) {
-    setValue('topics', topicOptions);
-  }
-
-  if (authorOptions.length > 0 && getValues('authors').length === 0) {
-    setValue('authors', authorOptions);
+  if (authorIds.length > 0 && getValues('authors').length === 0) {
+    setValue(
+      'authors',
+      authorIds.map((id) => ({ value: id.toString(), label: `Author ${id}` }))
+    );
   }
 };
 
@@ -285,6 +351,8 @@ export function PublishingForm({
   bountyAmount,
   onBountyClick,
   readOnly = false,
+  detailsSaver,
+  saveContentNow,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
   const { user: currentUser } = useUser();
@@ -301,23 +369,33 @@ export function PublishingForm({
   });
 
   const noteId = note?.id;
+  const isPublished = Boolean(note?.post);
+  const { saveDetails, flushDetails, markPublished } = detailsSaver;
 
+  // Hydration runs before the autosave subscription below resubscribes, so
+  // seeding the form never schedules a save of what it just read. That holds
+  // only while these deps stay a subset of the subscription's: React runs
+  // every cleanup before any effect body, but it skips the ones whose deps
+  // did not change.
   useEffect(() => {
     if (!note) return;
 
     methods.reset(FORM_DEFAULTS);
     const isRegisteredReport = isRegisteredReportNote(note);
+    let storedData: Partial<PublishingFormData> | null = null;
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
     } else {
-      const storedData = loadPublishingFormFromStorage(note.id.toString());
-      if (storedData) {
-        restoreFromStorage(storedData, methods.setValue);
-      }
+      populateSharedDetails(note, methods.setValue);
 
       if (isRegisteredReport) {
-        populateRegisteredReportFields(note, methods.getValues, methods.setValue);
+        populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);
+      }
+
+      storedData = loadPublishingFormFromStorage(note.id.toString());
+      if (storedData) {
+        restoreFromStorage(storedData, methods.setValue);
       }
 
       const articleType =
@@ -340,28 +418,49 @@ export function PublishingForm({
     const pending = getPendingGrant();
     if (pending) {
       methods.setValue('selectedGrant', pending);
-      if (pending.applicationVisibility === 'PRIVATE') {
-        methods.setValue('isPublic', false);
-      }
       clearPendingGrant();
     }
 
-    savePublishingFormToStorage(
-      note.id.toString(),
-      methods.getValues() as Partial<PublishingFormData>
-    );
+    // A saved choice can predate the current RFP, and the publisher rejects a
+    // public proposal on a private one.
+    if (methods.getValues('selectedGrant')?.applicationVisibility === 'PRIVATE') {
+      methods.setValue('isPublic', false);
+    }
+
+    const persistLocalDraft = () =>
+      savePublishingFormToStorage(
+        note.id.toString(),
+        methods.getValues() as Partial<PublishingFormData>
+      );
+
+    if (hasStoredSharedDetails(storedData)) {
+      // Migrate this browser's shared Details once, and only drop the local
+      // copy once the server has them.
+      saveDetails(buildSharedDetails(methods.getValues()));
+      void flushDetails().then((saved) => {
+        if (saved) persistLocalDraft();
+      });
+    } else {
+      persistLocalDraft();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId]);
 
   useEffect(() => {
     if (!noteId) return;
 
-    const subscription = methods.watch((data) => {
+    const subscription = methods.watch((data, { name }) => {
       savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+
+      // A published note answers 409 to every Details field, so it keeps its
+      // values in the publish request alone.
+      if (isPublished || !name) return;
+      const details = buildChangedDetails(name, methods.getValues());
+      if (details) saveDetails(details);
     });
 
     return () => subscription.unsubscribe();
-  }, [noteId, methods]);
+  }, [noteId, methods, isPublished, saveDetails]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -450,8 +549,12 @@ export function PublishingForm({
       formData.articleType === 'preregistration' ||
       formData.articleType === 'grant' ||
       formData.articleType === 'registered_report';
-    const file = needsImage ? formData.coverImage?.file : null;
-    if (!file) return null;
+    if (!needsImage) return null;
+
+    // The cover normally uploaded when it was selected; only a selection still
+    // in flight is left to send.
+    const file = formData.coverImage?.file;
+    if (!file) return formData.coverImage?.key ?? null;
 
     try {
       const result = await uploadAsset(file, 'post');
@@ -511,6 +614,15 @@ export function PublishingForm({
     try {
       setDocumentTitle(editor, editedTitle);
 
+      // Publish from confirmed server state. Content goes first because saving
+      // it is what hands the renamed title to the Details saver.
+      const contentSaved = await saveContentNow();
+      const detailsSaved = await flushDetails();
+      if (!contentSaved || !detailsSaved) {
+        toast.error('Could not save your latest changes. Please try again.');
+        return;
+      }
+
       const text = editor?.getText();
       const json = editor?.getJSON() ?? { type: 'doc', content: [] };
       const html = editor?.getHTML();
@@ -565,14 +677,8 @@ export function PublishingForm({
           fullSrc: html || '',
           assignDOI: !formData.workId,
           topics: formData.topics.map((topic) => topic.value),
-          authors: formData.authors
-            .map((author) => author.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
-          contacts: formData.contacts
-            .map((contact) => contact.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
+          authors: mapOptionsToIds(formData.authors),
+          contacts: mapOptionsToIds(formData.contacts),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
           previewImg:
@@ -599,6 +705,10 @@ export function PublishingForm({
         },
         formData.workId
       );
+
+      // The note now has a post, which rejects every shared field. Draining the
+      // queue is not enough — a timer armed a moment ago would still carry them.
+      markPublished();
 
       const fundraiseId = response.fundraiseId || note?.post?.fundraise?.id || undefined;
       const linked = await tryLinkNonprofit(formData, fundraiseId);

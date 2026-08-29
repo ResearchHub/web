@@ -1,6 +1,17 @@
 import { ApiClient } from './client';
-import { transformNote, transformNoteContent, transformNoteWithContent } from '@/types/note';
-import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
+import {
+  buildNoteDetailsPayload,
+  transformNote,
+  transformNoteContent,
+  transformNoteWithContent,
+} from '@/types/note';
+import type {
+  Note,
+  NoteAccess,
+  NoteContent,
+  NoteDetailsDraft,
+  NoteWithContent,
+} from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
 import { extractApiErrorMessage } from './lib/serviceUtils';
@@ -40,14 +51,9 @@ export interface UpdateNoteContentParams {
 
 export interface UpdateNoteParams {
   noteId: ID;
-  title?: string;
   document_type?: string;
   selectedGrantId: ID;
-}
-
-export interface UpdateNoteTitleParams {
-  noteId: ID;
-  title: string;
+  details?: NoteDetailsDraft;
 }
 
 export interface GetOrganizationNotesParams {
@@ -285,10 +291,11 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, selectedGrantId, ...fields } = params;
+    const { noteId, selectedGrantId, details, ...fields } = params;
     const payload = {
       ...fields,
       ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
+      ...(details ? buildNoteDetailsPayload(details) : {}),
     };
 
     try {
@@ -301,14 +308,6 @@ export class NoteService {
         error instanceof ApiError ? error.status : undefined
       );
     }
-  }
-
-  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    return this.updateNote({
-      noteId: params.noteId,
-      title: params.title,
-      selectedGrantId: undefined,
-    });
   }
 
   /**

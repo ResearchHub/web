@@ -56,10 +56,43 @@ export interface Note {
   proposalId?: number | null;
   image?: string | null;
   previewImage?: string | null;
+  /** Null until the author picks one, which is how the publisher knows to keep its own default. */
+  publicationIsPublic?: boolean | null;
   topics?: Topic[];
   authors?: Author[];
   registeredReportPrefill?: RegisteredReportPrefill | null;
 }
+
+/** The shared Details a notebook draft autosaves to `PATCH /api/note/{id}/`. */
+export interface NoteDetailsDraft {
+  title?: string;
+  image?: string | null;
+  previewImage?: string | null;
+  publicationIsPublic?: boolean | null;
+  authorIds?: number[];
+  hubIds?: number[];
+}
+
+const NOTE_DETAILS_PAYLOAD_KEYS: Record<keyof NoteDetailsDraft, string> = {
+  title: 'title',
+  image: 'image',
+  previewImage: 'preview_img',
+  publicationIsPublic: 'publication_is_public',
+  authorIds: 'author_ids',
+  hubIds: 'hub_ids',
+};
+
+/**
+ * Only the keys the draft actually carries, because the route reads an absent
+ * key as "leave this alone" and an explicit null as "clear it".
+ */
+export const buildNoteDetailsPayload = (draft: NoteDetailsDraft): Record<string, unknown> =>
+  Object.fromEntries(
+    Object.entries(draft).map(([field, value]) => [
+      NOTE_DETAILS_PAYLOAD_KEYS[field as keyof NoteDetailsDraft],
+      value,
+    ])
+  );
 
 /**
  * Who committed a note version: the editor autosave endpoint, the notebook AI
@@ -212,22 +245,29 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     documentType,
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-    image: raw.registered_report_prefill?.image || raw.registered_report_prefill?.image_url || null,
+    image:
+      raw.image ||
+      raw.registered_report_prefill?.image ||
+      raw.registered_report_prefill?.image_url ||
+      null,
     previewImage:
+      raw.preview_img ||
       raw.registered_report_prefill?.preview_img ||
       raw.registered_report_prefill?.image_url ||
       null,
+    publicationIsPublic: raw.publication_is_public ?? null,
+    // Saved note values first; the registered-report prefill only fills gaps.
     topics: transformTopicsFromSources(
-      raw.registered_report_prefill?.topics,
-      raw.registered_report_prefill?.hubs,
       raw.hubs,
       raw.topics,
-      raw.unified_document?.hubs
+      raw.unified_document?.hubs,
+      raw.registered_report_prefill?.topics,
+      raw.registered_report_prefill?.hubs
     ),
     authors: transformAuthorsFromSources(
-      raw.registered_report_prefill?.authors,
       raw.authors,
-      raw.author_profiles
+      raw.author_profiles,
+      raw.registered_report_prefill?.authors
     ),
   };
 });

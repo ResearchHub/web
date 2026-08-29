@@ -3,6 +3,7 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { PublishingFormData } from '../schema';
+import { useAssetUpload } from '@/hooks/useAssetUpload';
 
 const ACCEPT = ['image/jpeg', 'image/png'];
 const MAX_SIZE_MB = 10;
@@ -17,6 +18,7 @@ export function WorkImageSection() {
   } = useFormContext<PublishingFormData>();
 
   const [error, setError] = useState<string | null>(null);
+  const [, uploadAsset] = useAssetUpload();
 
   return (
     <div className="py-3 px-6">
@@ -33,9 +35,20 @@ export function WorkImageSection() {
               file={file}
               existingUrl={existingUrl}
               error={error || (errors.coverImage?.message as string) || null}
-              onSelect={(selected) => {
+              onSelect={async (selected) => {
                 setError(null);
-                field.onChange({ file: selected, url: null });
+                // Preview the selection right away, then swap it for the
+                // uploaded reference — a File cannot be saved on the note.
+                const previousCover = field.value ?? null;
+                field.onChange({ file: selected, key: null, url: null });
+                try {
+                  const { objectKey, absoluteUrl } = await uploadAsset(selected, 'post');
+                  field.onChange({ file: null, key: objectKey, url: absoluteUrl });
+                } catch (error) {
+                  console.error('Error uploading image:', error);
+                  field.onChange(previousCover);
+                  setError('Failed to upload image. Please try again.');
+                }
               }}
               onRemove={() => {
                 setError(null);
