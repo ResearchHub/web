@@ -20,6 +20,7 @@ export interface GetActivityParams {
   contentType?: string;
   grantId?: number | string;
   scope?: ActivityScope;
+  disableCache?: boolean;
 }
 
 export interface GetUserActivityParams {
@@ -74,6 +75,7 @@ export class ActivityService {
     if (params?.contentType) queryParams.append('content_type', params.contentType);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.scope) queryParams.append('scope', params.scope);
+    if (params?.disableCache) queryParams.append('disable_cache', 'true');
 
     const qs = queryParams.toString();
     const url = `${this.BASE_PATH}/${qs ? `?${qs}` : ''}`;

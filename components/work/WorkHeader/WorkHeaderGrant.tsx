@@ -9,6 +9,8 @@ import { Tabs } from '@/components/ui/Tabs';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
+import { useUser } from '@/contexts/UserContext';
+import { IncludePrivateProposalsControl } from '@/components/Funding/IncludePrivateProposalsControl';
 import type { GrantApplicationVisibility } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
@@ -41,6 +43,9 @@ export function WorkHeaderGrant({
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity } = useGrantTab();
   const { proposalCount } = useFundraises();
+  const { user } = useUser();
+
+  const canSeePrivateControl = !!user?.isModerator || !!user?.authorProfile?.isHubEditor;
 
   const handleTabChange = useCallback(
     (tabId: string) => setActiveTab(tabId as GrantBannerTab),
@@ -129,7 +134,18 @@ export function WorkHeaderGrant({
     },
   ];
 
-  const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
+  const tabs = (
+    <Tabs
+      tabs={grantTabs}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      rightContent={
+        canSeePrivateControl && activeTab === 'proposals' ? (
+          <IncludePrivateProposalsControl locked />
+        ) : undefined
+      }
+    />
+  );
 
   return (
     <WorkHeader
