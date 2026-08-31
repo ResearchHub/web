@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  PublicationService,
-  AuthorPublicationsResponse,
-} from '@/services/publication.service';
+import { PublicationService, AuthorPublicationsResponse } from '@/services/publication.service';
 import { ID } from '@/types/root';
 import { useFeedStateRestoration } from './useFeedStateRestoration';
 import { FeedEntry } from '@/types/feed';
