@@ -51,10 +51,10 @@ export type Post = {
 };
 
 /**
- * A grant note's draft funding row. The route masks it to `null` unless the
+ * A grant note's draft settings row. The route masks it to `null` unless the
  * note is a `GRANT`, and keeps the row when the work type moves away.
  */
-export interface NoteGrant {
+export interface NoteGrantSettings {
   /** Decimal string end to end, so a `(19,2)` amount never loses its cents. */
   amount: string | null;
   organization: string | null;
@@ -63,8 +63,8 @@ export interface NoteGrant {
   contacts: Contact[];
 }
 
-/** A preregistration note's draft fundraise row, masked and kept the same way. */
-export interface NoteFundraise {
+/** A preregistration note's draft settings row, masked and kept the same way. */
+export interface NotePreregistrationSettings {
   goalAmount: string | null;
   /** Relative while drafting; publishing turns it into an absolute deadline. */
   durationDays: number | null;
@@ -88,15 +88,15 @@ export interface Note {
   previewImage?: string | null;
   topics?: Topic[];
   authors?: Author[];
-  /** The draft funding row, present only for the work type that owns it. */
-  grant?: NoteGrant | null;
-  fundraise?: NoteFundraise | null;
+  /** The draft settings row, present only for the work type that owns it. */
+  grantSettings?: NoteGrantSettings | null;
+  preregistrationSettings?: NotePreregistrationSettings | null;
   selectedGrant?: SelectedGrantData | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
 }
 
 /** The grant fields a notebook draft autosaves. Any other work type answers 400. */
-export interface NoteGrantDraft {
+export interface NoteGrantSettingsDraft {
   amount?: string;
   currency?: Currency;
   organization?: string;
@@ -106,8 +106,8 @@ export interface NoteGrantDraft {
   contactIds?: number[];
 }
 
-/** The fundraise fields a notebook draft autosaves. Any other work type answers 400. */
-export interface NoteFundraiseDraft {
+/** The preregistration fields a notebook draft autosaves. Any other work type answers 400. */
+export interface NotePreregistrationSettingsDraft {
   goalAmount?: string;
   goalCurrency?: Currency;
   durationDays?: number;
@@ -123,11 +123,11 @@ export interface NoteDetailsDraft {
   authorIds?: number[];
   hubIds?: number[];
   selectedGrantId?: ID;
-  grant?: NoteGrantDraft;
-  fundraise?: NoteFundraiseDraft;
+  grantSettings?: NoteGrantSettingsDraft;
+  preregistrationSettings?: NotePreregistrationSettingsDraft;
 }
 
-type NoteDetailsScalarDraft = Omit<NoteDetailsDraft, 'grant' | 'fundraise'>;
+type NoteDetailsScalarDraft = Omit<NoteDetailsDraft, 'grantSettings' | 'preregistrationSettings'>;
 
 const NOTE_DETAILS_PAYLOAD_KEYS: Record<keyof NoteDetailsScalarDraft, string> = {
   title: 'title',
@@ -138,7 +138,7 @@ const NOTE_DETAILS_PAYLOAD_KEYS: Record<keyof NoteDetailsScalarDraft, string> = 
   selectedGrantId: 'selected_grant',
 };
 
-const NOTE_GRANT_PAYLOAD_KEYS: Record<keyof NoteGrantDraft, string> = {
+const NOTE_GRANT_SETTINGS_PAYLOAD_KEYS: Record<keyof NoteGrantSettingsDraft, string> = {
   amount: 'amount',
   currency: 'currency',
   organization: 'organization',
@@ -147,7 +147,10 @@ const NOTE_GRANT_PAYLOAD_KEYS: Record<keyof NoteGrantDraft, string> = {
   contactIds: 'contact_ids',
 };
 
-const NOTE_FUNDRAISE_PAYLOAD_KEYS: Record<keyof NoteFundraiseDraft, string> = {
+const NOTE_PREREGISTRATION_SETTINGS_PAYLOAD_KEYS: Record<
+  keyof NotePreregistrationSettingsDraft,
+  string
+> = {
   goalAmount: 'goal_amount',
   goalCurrency: 'goal_currency',
   durationDays: 'duration_days',
@@ -164,20 +167,29 @@ const buildPayload = <T extends object>(keys: Record<keyof T, string>, draft: T)
     Object.entries(draft).map(([field, value]) => [keys[field as keyof T], value])
   );
 
-/** The nested funding objects are partial in exactly the same way as the row itself. */
+/** The nested settings objects are partial in exactly the same way as the row itself. */
 export const buildNoteDetailsPayload = ({
-  grant,
-  fundraise,
+  grantSettings,
+  preregistrationSettings,
   ...scalars
 }: NoteDetailsDraft): Record<string, unknown> => ({
   ...buildPayload(NOTE_DETAILS_PAYLOAD_KEYS, scalars),
-  ...(grant ? { grant: buildPayload(NOTE_GRANT_PAYLOAD_KEYS, grant) } : {}),
-  ...(fundraise ? { fundraise: buildPayload(NOTE_FUNDRAISE_PAYLOAD_KEYS, fundraise) } : {}),
+  ...(grantSettings
+    ? { grant_settings: buildPayload(NOTE_GRANT_SETTINGS_PAYLOAD_KEYS, grantSettings) }
+    : {}),
+  ...(preregistrationSettings
+    ? {
+        preregistration_settings: buildPayload(
+          NOTE_PREREGISTRATION_SETTINGS_PAYLOAD_KEYS,
+          preregistrationSettings
+        ),
+      }
+    : {}),
 });
 
 /**
- * Folds two drafts together, letting the later one win. The funding objects
- * merge field by field, because a plain spread would let a later `grant`
+ * Folds two drafts together, letting the later one win. The settings objects
+ * merge field by field, because a plain spread would let a later `grantSettings`
  * replace an earlier one and lose an amount edited just before an organization.
  */
 export const mergeNoteDetails = (
@@ -185,9 +197,14 @@ export const mergeNoteDetails = (
   later: NoteDetailsDraft
 ): NoteDetailsDraft => {
   const merged = { ...earlier, ...later };
-  if (earlier.grant && later.grant) merged.grant = { ...earlier.grant, ...later.grant };
-  if (earlier.fundraise && later.fundraise) {
-    merged.fundraise = { ...earlier.fundraise, ...later.fundraise };
+  if (earlier.grantSettings && later.grantSettings) {
+    merged.grantSettings = { ...earlier.grantSettings, ...later.grantSettings };
+  }
+  if (earlier.preregistrationSettings && later.preregistrationSettings) {
+    merged.preregistrationSettings = {
+      ...earlier.preregistrationSettings,
+      ...later.preregistrationSettings,
+    };
   }
   return merged;
 };
@@ -265,7 +282,7 @@ const transformNoteGrantContact = createTransformer<any, Contact>((raw) => ({
   name: buildFullName(raw),
 }));
 
-const transformNoteGrant = createTransformer<any, NoteGrant>((raw) => ({
+const transformNoteGrantSettings = createTransformer<any, NoteGrantSettings>((raw) => ({
   amount: raw.amount ?? null,
   organization: raw.organization ?? null,
   description: raw.description ?? null,
@@ -275,12 +292,14 @@ const transformNoteGrant = createTransformer<any, NoteGrant>((raw) => ({
     : [],
 }));
 
-const transformNoteFundraise = createTransformer<any, NoteFundraise>((raw) => ({
-  goalAmount: raw.goal_amount ?? null,
-  durationDays: raw.duration_days ?? null,
-  isPublic: raw.is_public ?? null,
-  nonprofit: raw.nonprofit_details ? transformNonprofitDetailsToOrg(raw.nonprofit_details) : null,
-}));
+const transformNotePreregistrationSettings = createTransformer<any, NotePreregistrationSettings>(
+  (raw) => ({
+    goalAmount: raw.goal_amount ?? null,
+    durationDays: raw.duration_days ?? null,
+    isPublic: raw.is_public ?? null,
+    nonprofit: raw.nonprofit_details ? transformNonprofitDetailsToOrg(raw.nonprofit_details) : null,
+  })
+);
 
 const getDocumentType = (raw: any): string | null =>
   [raw.document_type, raw.unified_document?.document_type, raw.type]
@@ -392,8 +411,10 @@ export const transformNote = createTransformer<any, Note>((raw) => {
       raw.author_profiles,
       raw.registered_report_prefill?.authors
     ),
-    grant: raw.grant ? transformNoteGrant(raw.grant) : null,
-    fundraise: raw.fundraise ? transformNoteFundraise(raw.fundraise) : null,
+    grantSettings: raw.grant_settings ? transformNoteGrantSettings(raw.grant_settings) : null,
+    preregistrationSettings: raw.preregistration_settings
+      ? transformNotePreregistrationSettings(raw.preregistration_settings)
+      : null,
     selectedGrant: raw.selected_grant_details
       ? transformSelectedGrant(raw.selected_grant_details)
       : null,

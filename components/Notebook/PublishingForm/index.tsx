@@ -55,8 +55,8 @@ import {
   isRegisteredReportNote,
   mergeNoteDetails,
   type NoteDetailsDraft,
-  type NoteFundraiseDraft,
-  type NoteGrantDraft,
+  type NoteGrantSettingsDraft,
+  type NotePreregistrationSettingsDraft,
   type NoteWithContent,
 } from '@/types/note';
 import type { NonprofitOrg } from '@/types/nonprofit';
@@ -71,8 +71,8 @@ const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
 // Both amount inputs are labelled USD and the form offers no other choice.
 const FUNDING_CURRENCY: Currency = 'USD';
 
-/** Which funding object the note row accepts, if any. */
-type NoteFundingType = 'grant' | 'fundraise';
+/** Which settings object the note row accepts, if any. */
+type NoteFundingType = 'grant' | 'preregistration';
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
@@ -158,7 +158,7 @@ const mapDocumentTypeToArticleType = (
 const resolveFundingType = (documentType?: string | null): NoteFundingType | null => {
   const articleType = documentType ? mapDocumentTypeToArticleType(documentType) : null;
   if (articleType === 'grant') return 'grant';
-  if (articleType === 'preregistration') return 'fundraise';
+  if (articleType === 'preregistration') return 'preregistration';
   return null;
 };
 
@@ -245,10 +245,10 @@ const buildChangedSharedDetails = (
   }
 };
 
-const buildChangedGrantDetails = (
+const buildChangedGrantSettings = (
   field: string,
   values: PublishingFormData
-): NoteGrantDraft | null => {
+): NoteGrantSettingsDraft | null => {
   switch (field) {
     case 'budget': {
       const amount = readDraftAmount(values.budget);
@@ -268,10 +268,10 @@ const buildChangedGrantDetails = (
   }
 };
 
-const buildChangedFundraiseDetails = (
+const buildChangedPreregistrationSettings = (
   field: string,
   values: PublishingFormData
-): NoteFundraiseDraft | null => {
+): NotePreregistrationSettingsDraft | null => {
   switch (field) {
     case 'budget': {
       const goalAmount = readDraftAmount(values.budget);
@@ -287,10 +287,11 @@ const buildChangedFundraiseDetails = (
 };
 
 /**
- * What one changed field saves. Funding fields follow the note's own type,
- * never the locally chosen `articleType`, because the route rejects `grant` on
- * a note that is not one and `fundraise` on a note that is not a
- * preregistration — and masks its reads by the same rule.
+ * What one changed field saves. Settings fields follow the note's own type,
+ * never the locally chosen `articleType`, because the route rejects
+ * `grant_settings` on a note that is not a grant and
+ * `preregistration_settings` on a note that is not a preregistration — and
+ * masks its reads by the same rule.
  */
 const buildChangedDetails = (
   field: string,
@@ -301,12 +302,12 @@ const buildChangedDetails = (
   if (shared) return shared;
 
   if (fundingType === 'grant') {
-    const grant = buildChangedGrantDetails(field, values);
-    return grant ? { grant } : null;
+    const grantSettings = buildChangedGrantSettings(field, values);
+    return grantSettings ? { grantSettings } : null;
   }
-  if (fundingType === 'fundraise') {
-    const fundraise = buildChangedFundraiseDetails(field, values);
-    return fundraise ? { fundraise } : null;
+  if (fundingType === 'preregistration') {
+    const preregistrationSettings = buildChangedPreregistrationSettings(field, values);
+    return preregistrationSettings ? { preregistrationSettings } : null;
   }
   return null;
 };
@@ -332,9 +333,9 @@ const saveNonprofitDetails = async (
   fundingType: NoteFundingType | null,
   saveDetails: NoteDetailsSaver['saveDetails']
 ) => {
-  if (fundingType !== 'fundraise') return;
+  if (fundingType !== 'preregistration') return;
   if (!nonprofit) {
-    saveDetails({ fundraise: { nonprofitId: null } });
+    saveDetails({ preregistrationSettings: { nonprofitId: null } });
     return;
   }
 
@@ -346,7 +347,7 @@ const saveNonprofitDetails = async (
       ein: nonprofit.ein,
       baseWalletAddress: nonprofit.baseWalletAddress,
     });
-    saveDetails({ fundraise: { nonprofitId: id } });
+    saveDetails({ preregistrationSettings: { nonprofitId: id } });
   } catch (error) {
     console.error('Error resolving nonprofit:', error);
   }
@@ -378,36 +379,40 @@ const populateSharedDetails = (
   }
 };
 
-/** The note's saved funding row, for whichever form its work type owns. */
+/** The note's saved settings row, for whichever form its work type owns. */
 const populateFundingDetails = (
   note: NoteWithContent,
   setValue: (name: any, value: any) => void
 ) => {
-  const { grant, fundraise, selectedGrant } = note;
+  const { grantSettings, preregistrationSettings, selectedGrant } = note;
 
   if (selectedGrant) {
     setValue('selectedGrant', selectedGrant);
   }
-  if (grant) {
+  if (grantSettings) {
     // Both amount inputs hold digits, so a `(19,2)` string arrives as one.
-    if (grant.amount) setValue('budget', parseBudget(grant.amount).toString());
-    if (grant.organization) setValue('organization', grant.organization);
-    if (grant.description) setValue('shortDescription', grant.description);
-    if (grant.applicationVisibility) {
-      setValue('applicationVisibility', grant.applicationVisibility);
+    if (grantSettings.amount) setValue('budget', parseBudget(grantSettings.amount).toString());
+    if (grantSettings.organization) setValue('organization', grantSettings.organization);
+    if (grantSettings.description) setValue('shortDescription', grantSettings.description);
+    if (grantSettings.applicationVisibility) {
+      setValue('applicationVisibility', grantSettings.applicationVisibility);
     }
-    if (grant.contacts.length) {
+    if (grantSettings.contacts.length) {
       setValue(
         'contacts',
-        grant.contacts.map((contact) => ({ value: contact.id.toString(), label: contact.name }))
+        grantSettings.contacts.map((contact) => ({
+          value: contact.id.toString(),
+          label: contact.name,
+        }))
       );
     }
   }
-  if (fundraise) {
-    if (fundraise.goalAmount) setValue('budget', parseBudget(fundraise.goalAmount).toString());
-    if (fundraise.durationDays) setValue('fundraiseEndDays', fundraise.durationDays.toString());
-    if (fundraise.isPublic != null) setValue('isPublic', fundraise.isPublic);
-    if (fundraise.nonprofit) setValue('selectedNonprofit', fundraise.nonprofit);
+  if (preregistrationSettings) {
+    const { goalAmount, durationDays, isPublic, nonprofit } = preregistrationSettings;
+    if (goalAmount) setValue('budget', parseBudget(goalAmount).toString());
+    if (durationDays) setValue('fundraiseEndDays', durationDays.toString());
+    if (isPublic != null) setValue('isPublic', isPublic);
+    if (nonprofit) setValue('selectedNonprofit', nonprofit);
   }
 };
 
