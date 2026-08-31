@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Check, ChevronDown, Gauge, Lock, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Slider } from '@/components/ui/Slider';
@@ -64,6 +64,18 @@ export function ModelControls({
   const containerRef = useRef<HTMLDivElement>(null);
   useOutsidePointerDown(containerRef, () => setOpenMenu(null), openMenu != null);
 
+  // Escape closes the open menu. Bound to the document rather than the wrapper
+  // so the wrapper stays a plain layout div — and so it still fires once focus
+  // has left the menu.
+  useEffect(() => {
+    if (openMenu == null) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpenMenu(null);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [openMenu]);
+
   if (!model) return null;
 
   const effortLevels = availableEffortLevels(model, options.thinking);
@@ -84,16 +96,7 @@ export function ModelControls({
     // Deliberately not positioned: both menus open against the composer box
     // (see ChatComposer), which is wider than this row and wider still than
     // either button — anchored to a button they would run off the panel.
-    <div
-      ref={containerRef}
-      className="flex items-center gap-1"
-      onKeyDown={(event) => {
-        if (event.key === 'Escape' && openMenu != null) {
-          event.stopPropagation();
-          setOpenMenu(null);
-        }
-      }}
-    >
+    <div ref={containerRef} className="flex items-center gap-1">
       <ControlButton
         onClick={() => toggle('model')}
         open={openMenu === 'model'}

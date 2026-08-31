@@ -25,16 +25,14 @@ let inFlight: Promise<AgentModelCatalog> | null = null;
 
 function loadCatalog(): Promise<AgentModelCatalog> {
   if (cachedCatalog) return Promise.resolve(cachedCatalog);
-  if (!inFlight) {
-    inFlight = AgentModelService.listModels()
-      .then((catalog) => {
-        cachedCatalog = catalog;
-        return catalog;
-      })
-      .finally(() => {
-        inFlight = null;
-      });
-  }
+  inFlight ??= AgentModelService.listModels()
+    .then((catalog) => {
+      cachedCatalog = catalog;
+      return catalog;
+    })
+    .finally(() => {
+      inFlight = null;
+    });
   return inFlight;
 }
 

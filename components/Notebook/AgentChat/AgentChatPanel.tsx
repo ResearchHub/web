@@ -925,8 +925,17 @@ export function AgentChatPanel({
   }, [chatState.chat, chatState.pendingSend, activeTab]);
 
   // ---- derived composer state ----
+  // Sending before the catalog lands would run the turn on the server default
+  // and pin the conversation to it, silently losing the user's chosen model
+  // with no way back. Busy rather than disabled: the draft stays editable, only
+  // send waits. A catalog that fails resolves to `unavailable`, which sends on
+  // the server default by design.
   const composerBusy =
-    chatState.isBusy || chatState.isFinishing || creatingChat || queuedMessage != null;
+    chatState.isBusy ||
+    chatState.isFinishing ||
+    creatingChat ||
+    queuedMessage != null ||
+    modelSelection.status === 'loading';
   // Stop is only offered once something cancellable exists server-side. While
   // the message POST is still in flight or the chat is being created, cancel
   // would no-op and the turn would start anyway.
