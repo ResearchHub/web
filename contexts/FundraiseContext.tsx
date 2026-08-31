@@ -10,6 +10,7 @@ import {
   useRef,
   ReactNode,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import {
@@ -19,6 +20,10 @@ import {
   type ProposalSortOption,
 } from '@/components/Funding/lib/proposalSortAndFilterConfig';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
+
+function isTruthyQueryParam(value: string | null): boolean {
+  return value === 'true' || value === '1';
+}
 
 interface FundraiseContextValue {
   entries: FeedEntry[];
@@ -35,6 +40,7 @@ interface FundraiseContextValue {
   setTaxDeductible: (value: boolean) => void;
   sortBy: ProposalSortOption;
   setSortBy: (value: ProposalSortOption) => void;
+  isGrantScoped: boolean;
 
   /** Call once from the consuming component to trigger the initial fetch. */
   activate: () => void;
@@ -69,6 +75,10 @@ interface FundraiseProviderProps {
 }
 
 export function FundraiseProvider({ children, grantId }: FundraiseProviderProps) {
+  const searchParams = useSearchParams();
+  const isGrantScoped = grantId != null;
+  const includePrivate = isGrantScoped || isTruthyQueryParam(searchParams.get('include_private'));
+
   const restorationTab = useMemo(() => {
     const parts = ['proposals'];
     if (grantId != null) parts.push(`grant-${grantId}`);
@@ -136,6 +146,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         grantId,
         fundraiseStatus: feedParams.fundraiseStatus,
         ordering: feedParams.ordering,
+        includePrivate,
       });
       setEntries(result.entries);
       setTotalCount(result.count);
@@ -145,7 +156,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     } finally {
       setIsLoading(false);
     }
-  }, [grantId, feedParams]);
+  }, [grantId, feedParams, includePrivate]);
 
   useEffect(() => {
     if (!activated) return;
@@ -170,6 +181,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         grantId,
         fundraiseStatus: feedParams.fundraiseStatus,
         ordering: feedParams.ordering,
+        includePrivate,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setTotalCount(result.count);
@@ -181,7 +193,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore, grantId, feedParams]);
+  }, [isLoading, isLoadingMore, hasMore, grantId, feedParams, includePrivate]);
 
   const value = useMemo<FundraiseContextValue>(
     () => ({
@@ -198,6 +210,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       setTaxDeductible,
       sortBy,
       setSortBy,
+      isGrantScoped,
       activate,
       restoredScrollPosition,
       lastClickedEntryId,
@@ -215,6 +228,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       statusFilter,
       taxDeductible,
       sortBy,
+      isGrantScoped,
       activate,
       restoredScrollPosition,
       lastClickedEntryId,
