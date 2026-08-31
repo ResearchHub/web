@@ -134,6 +134,13 @@ export interface ChatExecution {
   id: number;
   attempt: number;
   status: ExecutionStatus;
+  /**
+   * Provider-prefixed ref of the model this turn was submitted with (e.g.
+   * `claude_platform:claude-opus-5`). Empty on turns recorded before the
+   * server tracked one; a conversation's first non-empty value is the model
+   * every later turn on it runs, and cannot be changed.
+   */
+  model: string;
   /** The user message that started this turn. */
   trigger_message_id: number | null;
   retry_of_id: number | null;
