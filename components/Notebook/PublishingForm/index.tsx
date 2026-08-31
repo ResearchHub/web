@@ -236,8 +236,6 @@ const buildChangedSharedDetails = (
       return { authorIds: mapOptionsToIds(values.authors) };
     case 'topics':
       return { hubIds: mapOptionsToIds(values.topics) };
-    case 'isPublic':
-      return { publicationIsPublic: values.isPublic ?? null };
     case 'coverImage':
       return buildCoverDetails(values);
     case 'selectedGrant':
@@ -281,6 +279,8 @@ const buildChangedFundraiseDetails = (
     }
     case 'fundraiseEndDays':
       return { durationDays: Number(values.fundraiseEndDays ?? DEFAULT_FUNDRAISE_END_DAYS) };
+    case 'isPublic':
+      return { isPublic: values.isPublic ?? null };
     default:
       return null;
   }
@@ -376,9 +376,6 @@ const populateSharedDetails = (
       note.authors.map((author) => ({ value: author.authorId.toString(), label: author.name }))
     );
   }
-  if (note.publicationIsPublic != null) {
-    setValue('isPublic', note.publicationIsPublic);
-  }
 };
 
 /** The note's saved funding row, for whichever form its work type owns. */
@@ -409,6 +406,7 @@ const populateFundingDetails = (
   if (fundraise) {
     if (fundraise.goalAmount) setValue('budget', parseBudget(fundraise.goalAmount).toString());
     if (fundraise.durationDays) setValue('fundraiseEndDays', fundraise.durationDays.toString());
+    if (fundraise.isPublic != null) setValue('isPublic', fundraise.isPublic);
     if (fundraise.nonprofit) setValue('selectedNonprofit', fundraise.nonprofit);
   }
 };
