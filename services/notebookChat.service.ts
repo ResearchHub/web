@@ -6,6 +6,7 @@ import type {
   NotebookChatListItem,
   SendMessageResponse,
 } from '@/types/notebookChat';
+import type { GenerationRequest } from '@/types/notebookModels';
 import { ID } from '@/types/root';
 
 /**
@@ -46,10 +47,21 @@ export class NotebookChatService {
    * Starts an asynchronous turn. 202 means the user message is already recorded
    * server-side. Throws ApiError with status 409 while a previous turn is still
    * running (one turn per chat), 400 for empty/oversized messages.
+   *
+   * `generation` carries the model and its controls; every field is optional
+   * and an omitted one runs the server's configured default. `model` is only
+   * honoured on a conversation's first turn — naming a different one later is
+   * a 400, so send it only while the conversation is still unpinned.
    */
-  static async sendMessage(noteId: ID, chatId: ID, message: string): Promise<SendMessageResponse> {
+  static async sendMessage(
+    noteId: ID,
+    chatId: ID,
+    message: string,
+    generation?: GenerationRequest
+  ): Promise<SendMessageResponse> {
     return ApiClient.post<SendMessageResponse>(`${this.basePath(noteId)}${chatId}/messages/`, {
       message,
+      ...generation,
     });
   }
 
