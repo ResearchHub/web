@@ -6,7 +6,7 @@ const MAX_STORED_NOTES = 20;
 
 // Fields that should be excluded from storage. The note row owns the shared
 // Details now, so keeping a second copy here would let a stale browser win.
-const EXCLUDED_FIELDS = ['coverImage', 'authors', 'topics', 'isPublic'] as const;
+const EXCLUDED_FIELDS = ['coverImage', 'authors', 'topics'] as const;
 
 type StoredNote = {
   noteId: string;

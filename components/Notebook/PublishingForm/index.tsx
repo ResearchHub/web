@@ -212,8 +212,6 @@ const buildChangedDetails = (
       return { authorIds: mapOptionsToIds(values.authors) };
     case 'topics':
       return { hubIds: mapOptionsToIds(values.topics) };
-    case 'isPublic':
-      return { publicationIsPublic: values.isPublic ?? null };
     case 'coverImage':
       return buildCoverDetails(values);
     default:
@@ -224,7 +222,6 @@ const buildChangedDetails = (
 const buildSharedDetails = (values: PublishingFormData): NoteDetailsDraft => ({
   authorIds: mapOptionsToIds(values.authors),
   hubIds: mapOptionsToIds(values.topics),
-  publicationIsPublic: values.isPublic ?? null,
   ...buildCoverDetails(values),
 });
 
@@ -252,14 +249,11 @@ const populateSharedDetails = (
       note.authors.map((author) => ({ value: author.authorId.toString(), label: author.name }))
     );
   }
-  if (note.publicationIsPublic != null) {
-    setValue('isPublic', note.publicationIsPublic);
-  }
 };
 
 /** Whether this browser still holds pre-cutover shared Details to migrate. */
 const hasStoredSharedDetails = (stored: Partial<PublishingFormData> | null): boolean =>
-  stored != null && (['authors', 'topics', 'isPublic'] as const).some((field) => field in stored);
+  stored != null && (['authors', 'topics'] as const).some((field) => field in stored);
 
 /**
  * The prefill's bare ids, for the gaps `populateSharedDetails` left. Its
