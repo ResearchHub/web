@@ -29,6 +29,7 @@ export class FeedService {
     status?: string;
     userId?: string;
     viewAsUserId?: number;
+    includePrivate?: boolean;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean; count: number }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -52,6 +53,9 @@ export class FeedService {
     if (params?.userId) queryParams.append('user_id', params.userId);
     if (params?.viewAsUserId) {
       queryParams.append('view_as_user_id', params.viewAsUserId.toString());
+    }
+    if (params?.includePrivate) {
+      queryParams.append('include_private', 'true');
     }
 
     // Determine which endpoint to use

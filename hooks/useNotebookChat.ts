@@ -21,6 +21,7 @@ import {
   type NotebookChat,
   type NotebookChatListItem,
 } from '@/types/notebookChat';
+import type { GenerationRequest } from '@/types/notebookModels';
 
 /** Fallback poll cadence while a turn runs; the socket nudge usually wins. */
 const POLL_INTERVAL_MS = 5000;
@@ -255,7 +256,14 @@ export interface UseNotebookChatResult {
   isFinishing: boolean;
   pendingSend: PendingSend | null;
   socketStatus: ChatSocketStatus;
-  send: (text: string) => Promise<SendOutcome>;
+  /**
+   * The model this conversation committed to on its first turn, or null while
+   * it is still free to take one. Mirrors the server's own rule: the earliest
+   * execution carrying a model owns the conversation, and a later turn naming
+   * a different one is refused.
+   */
+  pinnedModelRef: string | null;
+  send: (text: string, generation?: GenerationRequest) => Promise<SendOutcome>;
   cancel: () => Promise<void>;
   rename: (title: string) => Promise<boolean>;
   refetch: () => void;
@@ -357,6 +365,11 @@ export function useNotebookChat({
 
   const latestExecution = useMemo(
     () => (chat && chat.executions.length > 0 ? chat.executions[chat.executions.length - 1] : null),
+    [chat]
+  );
+
+  const pinnedModelRef = useMemo(
+    () => (chat?.executions ?? []).find((execution) => execution.model)?.model ?? null,
     [chat]
   );
 
@@ -467,12 +480,12 @@ export function useNotebookChat({
   });
 
   const send = useCallback(
-    async (text: string): Promise<SendOutcome> => {
+    async (text: string, generation?: GenerationRequest): Promise<SendOutcome> => {
       if (noteId == null || chatId == null) return { ok: false, reason: 'error' };
       const epoch = epochRef.current;
       setPendingSend({ text, executionId: null });
       try {
-        const response = await NotebookChatService.sendMessage(noteId, chatId, text);
+        const response = await NotebookChatService.sendMessage(noteId, chatId, text, generation);
         if (epoch === epochRef.current) {
           setPendingSend({ text, executionId: response.execution_id });
           fetchChat('live');
@@ -542,6 +555,7 @@ export function useNotebookChat({
     isFinishing,
     pendingSend,
     socketStatus,
+    pinnedModelRef,
     send,
     cancel,
     rename,
