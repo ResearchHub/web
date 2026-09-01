@@ -193,6 +193,9 @@ const dropZeroCents = (amount: string): string => amount.replace(/\.0+$/, '');
 
 /** Loads the Details this draft has already saved on the server. */
 const populateNoteDetails = (note: NoteWithContent, setValue: (name: any, value: any) => void) => {
+  if (note.image || note.previewImage) {
+    setValue('coverImage', { file: null, key: note.image, url: note.previewImage });
+  }
   if (note.topics?.length) {
     setValue(
       'topics',
@@ -244,10 +247,6 @@ const populateRegisteredReportPrefill = (
 ) => {
   const { topicIds = [], authorIds = [] } = note.registeredReportPrefill ?? {};
 
-  if (note.previewImage && !getValues('coverImage')) {
-    setValue('coverImage', { file: null, url: note.previewImage });
-  }
-
   if (topicIds.length > 0 && getValues('topics').length === 0) {
     setValue(
       'topics',
@@ -274,6 +273,11 @@ const buildDetailsUpdate = (
   switch (field) {
     case 'articleType':
       return { documentType: ARTICLE_TYPE_API_MAP[values.articleType] };
+    case 'coverImage':
+      // A file is still uploading, and the key it produces triggers this again.
+      if (values.coverImage?.file) return null;
+      // The API clears an image with a blank string; null is rejected.
+      return { image: values.coverImage?.key ?? '', previewImage: values.coverImage?.url ?? '' };
     case 'authors':
       return { authorIds: mapOptionsToIds(values.authors) };
     case 'topics':
@@ -294,13 +298,13 @@ const buildDetailsUpdate = (
         : null;
     case 'isPublic':
       return isProposal ? { preregistrationSettings: { isPublic: values.isPublic } } : null;
-    case 'budget':
-      // An empty box is a half-typed amount, not a decision to clear the saved one.
-      if (!values.budget) return null;
-      if (isGrant) return { grantSettings: { amount: values.budget, currency: 'USD' } };
+    case 'budget': {
+      const amount = values.budget || null;
+      if (isGrant) return { grantSettings: { amount, currency: 'USD' } };
       return isProposal
-        ? { preregistrationSettings: { goalAmount: values.budget, goalCurrency: 'USD' } }
+        ? { preregistrationSettings: { goalAmount: amount, goalCurrency: 'USD' } }
         : null;
+    }
     default:
       return null;
   }
@@ -549,8 +553,10 @@ export function PublishingForm({
       formData.articleType === 'preregistration' ||
       formData.articleType === 'grant' ||
       formData.articleType === 'registered_report';
-    const file = needsImage ? formData.coverImage?.file : null;
-    if (!file) return null;
+    if (!needsImage) return null;
+
+    const file = formData.coverImage?.file;
+    if (!file) return formData.coverImage?.key ?? null;
 
     try {
       const result = await uploadAsset(file, 'post');

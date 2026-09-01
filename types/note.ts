@@ -92,7 +92,7 @@ export interface Note {
 
 /** Grant fields the Note API accepts; an omitted key keeps its saved value. */
 export interface NoteGrantSettingsUpdate {
-  amount?: string;
+  amount?: string | null;
   currency?: Currency;
   organization?: string;
   description?: string;
@@ -103,7 +103,7 @@ export interface NoteGrantSettingsUpdate {
 
 /** Proposal funding fields the Note API accepts. */
 export interface NotePreregistrationSettingsUpdate {
-  goalAmount?: string;
+  goalAmount?: string | null;
   goalCurrency?: Currency;
   durationDays?: number;
   isPublic?: boolean;
@@ -115,6 +115,8 @@ export interface NoteDetailsUpdate {
   documentType?: string;
   authorIds?: number[];
   hubIds?: number[];
+  image?: string;
+  previewImage?: string;
   grantSettings?: NoteGrantSettingsUpdate;
   preregistrationSettings?: NotePreregistrationSettingsUpdate;
 }
@@ -125,6 +127,8 @@ const NOTE_FIELD_KEYS: Record<keyof NoteDetailsFields, string> = {
   documentType: 'document_type',
   authorIds: 'author_ids',
   hubIds: 'hub_ids',
+  image: 'image',
+  previewImage: 'preview_img',
 };
 
 const GRANT_SETTINGS_KEYS: Record<keyof NoteGrantSettingsUpdate, string> = {
@@ -357,12 +361,12 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     documentType,
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-    image: raw.registered_report_prefill?.image || raw.registered_report_prefill?.image_url || null,
+    image: raw.image || null,
     previewImage:
+      raw.preview_img ||
       raw.registered_report_prefill?.preview_img ||
       raw.registered_report_prefill?.image_url ||
       null,
-    // Saved values first, so a Registered Report prefill only fills the gaps.
     topics: transformTopicsFromSources(
       raw.hubs,
       raw.topics,

@@ -3,6 +3,7 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { PublishingFormData } from '../schema';
+import { useAssetUpload } from '@/hooks/useAssetUpload';
 
 const ACCEPT = ['image/jpeg', 'image/png'];
 const MAX_SIZE_MB = 10;
@@ -13,10 +14,12 @@ const isValidFile = (file: unknown): file is File =>
 export function WorkImageSection() {
   const {
     control,
+    getValues,
     formState: { errors },
   } = useFormContext<PublishingFormData>();
 
   const [error, setError] = useState<string | null>(null);
+  const [, uploadAsset] = useAssetUpload();
 
   return (
     <div className="py-3 px-6">
@@ -33,9 +36,26 @@ export function WorkImageSection() {
               file={file}
               existingUrl={existingUrl}
               error={error || (errors.coverImage?.message as string) || null}
-              onSelect={(selected) => {
+              onSelect={async (selected) => {
                 setError(null);
-                field.onChange({ file: selected, url: null });
+                const previousCover = field.value ?? null;
+                // Show the pick right away, then swap in what the server stored.
+                field.onChange({ file: selected, key: null, url: null });
+
+                const uploaded = await uploadAsset(selected, 'post').catch((uploadError) => {
+                  console.error('Error uploading cover image:', uploadError);
+                  return null;
+                });
+
+                // A newer pick may have replaced this one while it uploaded.
+                if (getValues('coverImage')?.file !== selected) return;
+
+                if (!uploaded) {
+                  field.onChange(previousCover);
+                  setError('Failed to upload image. Please try again.');
+                  return;
+                }
+                field.onChange({ file: null, key: uploaded.objectKey, url: uploaded.absoluteUrl });
               }}
               onRemove={() => {
                 setError(null);
