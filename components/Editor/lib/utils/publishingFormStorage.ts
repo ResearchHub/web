@@ -4,6 +4,17 @@ import type { SelectedGrantData } from '@/types/grant';
 const STORAGE_KEY = 'publishing_forms';
 const MAX_STORED_NOTES = 20;
 
+export const FUNDING_DETAILS_FIELDS: ReadonlySet<keyof PublishingFormData> = new Set([
+  'isPublic',
+  'budget',
+  'organization',
+  'shortDescription',
+  'applicationVisibility',
+  'contacts',
+  'fundraiseEndDays',
+  'selectedNonprofit',
+]);
+
 /**
  * Fields the note row owns now, so keeping a second copy here would let a
  * stale browser win. Reads still see pre-cutover values, which is what the
@@ -30,6 +41,11 @@ type StoredNote = {
   timestamp: number;
 };
 
+interface SavePublishingFormOptions {
+  preserveFundingDetails?: boolean;
+  preserveSelectedNonprofit?: boolean;
+}
+
 const getStoredNotes = (): StoredNote[] => {
   if (typeof window === 'undefined') return [];
   try {
@@ -42,21 +58,28 @@ const getStoredNotes = (): StoredNote[] => {
 };
 
 const removeServerOwnedFields = (
-  data: Partial<PublishingFormData>
+  data: Partial<PublishingFormData>,
+  { preserveFundingDetails = false, preserveSelectedNonprofit = false }: SavePublishingFormOptions
 ): Partial<PublishingFormData> => {
   const filteredData = { ...data };
   SERVER_OWNED_FIELDS.forEach((field) => {
+    if (preserveFundingDetails && FUNDING_DETAILS_FIELDS.has(field)) return;
+    if (preserveSelectedNonprofit && field === 'selectedNonprofit') return;
     delete filteredData[field];
   });
   return filteredData;
 };
 
-export const savePublishingFormToStorage = (noteId: string, data: Partial<PublishingFormData>) => {
+export const savePublishingFormToStorage = (
+  noteId: string,
+  data: Partial<PublishingFormData>,
+  options: SavePublishingFormOptions = {}
+) => {
   if (typeof window === 'undefined') return;
   try {
     const storedNotes = getStoredNotes();
     const currentIndex = storedNotes.findIndex((note) => note.noteId === noteId);
-    const filteredData = removeServerOwnedFields(data);
+    const filteredData = removeServerOwnedFields(data, options);
     const newNote: StoredNote = { noteId, data: filteredData, timestamp: Date.now() };
 
     if (currentIndex !== -1) {

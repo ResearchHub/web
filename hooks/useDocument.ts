@@ -109,7 +109,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.reward_funders = postParams.rewardFunders;
         payload.nft_supply = postParams.nftSupply;
         payload.fundraise_goal_currency = 'USD';
-        payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+        payload.fundraise_goal_amount = postParams.budget.replace(/[^0-9.]/g, '');
 
         if (postParams.applicationDeadline) {
           payload.fundraise_end_date = postParams.applicationDeadline.toISOString();
@@ -123,7 +123,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
       }
 
       if (postParams.articleType === 'GRANT') {
-        payload.grant_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+        payload.grant_amount = postParams.budget.replace(/[^0-9.]/g, '');
         payload.grant_currency = 'USD';
         payload.grant_organization = postParams.organization;
         payload.grant_description = postParams.description;

@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -34,6 +34,7 @@ import {
   savePublishingFormToStorage,
   getPendingGrant,
   clearPendingGrant,
+  FUNDING_DETAILS_FIELDS,
   SERVER_OWNED_FIELDS,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
@@ -226,6 +227,9 @@ const buildCoverDetails = (values: PublishingFormData): NoteDetailsDraft | null 
 const readDraftAmount = (budget?: string): string | null =>
   budget && parseBudget(budget) > 0 ? budget : null;
 
+/** Drops an all-zero fraction without parsing the database decimal through `Number`. */
+const normalizeDraftAmount = (amount: string): string => amount.replace(/\.0+$/, '');
+
 /** The Details every work type accepts. */
 const buildChangedSharedDetails = (
   field: string,
@@ -325,33 +329,41 @@ const buildMigrationDetails = (
   }, {});
 
 /**
- * The nonprofit saves itself, because only a canonical id means anything to the
- * note and a search result's prefixed Endaoment id has to be traded for one
- * first. Keeping that request out of the field mapping is what lets a control
- * mark itself dirty before the flush it goes on to trigger.
+ * Resolve the search result to a canonical id before saving it. The selection
+ * checks keep a late resolution from overwriting a newer choice or another
+ * note, while the final flush confirms the PATCH before local recovery data is
+ * removed.
  */
 const saveNonprofitDetails = async (
   nonprofit: NonprofitOrg | null,
-  fundingType: NoteFundingType | null,
-  saveDetails: NoteDetailsSaver['saveDetails']
-) => {
-  if (fundingType !== 'preregistration') return;
-  if (!nonprofit) {
-    saveDetails({ preregistrationSettings: { nonprofitId: null } });
-    return;
-  }
+  savingNoteId: number,
+  saveDetails: NoteDetailsSaver['saveDetails'],
+  flushDetails: NoteDetailsSaver['flushDetails'],
+  isCurrentSelection: () => boolean
+): Promise<boolean> => {
+  if (!isCurrentSelection()) return false;
 
   try {
-    // Idempotent, which is why the post-publish link can run it again.
-    const { id } = await NonprofitService.createNonprofit({
-      name: nonprofit.name,
-      endaomentOrgId: nonprofit.endaomentOrgId,
-      ein: nonprofit.ein,
-      baseWalletAddress: nonprofit.baseWalletAddress,
-    });
-    saveDetails({ preregistrationSettings: { nonprofitId: id } });
+    let nonprofitId: string | null = null;
+    if (nonprofit) {
+      // Idempotent, which is why the post-publish link can run it again.
+      const resolved = await NonprofitService.createNonprofit({
+        name: nonprofit.name,
+        endaomentOrgId: nonprofit.endaomentOrgId,
+        ein: nonprofit.ein,
+        baseWalletAddress: nonprofit.baseWalletAddress,
+      });
+      if (!isCurrentSelection()) return false;
+      nonprofitId = resolved.id;
+    }
+
+    saveDetails({ preregistrationSettings: { nonprofitId } }, savingNoteId);
+    const saved = await flushDetails();
+    return saved && isCurrentSelection();
   } catch (error) {
     console.error('Error resolving nonprofit:', error);
+    if (isCurrentSelection()) await flushDetails();
+    return false;
   }
 };
 
@@ -392,8 +404,7 @@ const populateFundingDetails = (
     setValue('selectedGrant', selectedGrant);
   }
   if (grantSettings) {
-    // Both amount inputs hold digits, so a `(19,2)` string arrives as one.
-    if (grantSettings.amount) setValue('budget', parseBudget(grantSettings.amount).toString());
+    if (grantSettings.amount) setValue('budget', normalizeDraftAmount(grantSettings.amount));
     if (grantSettings.organization) setValue('organization', grantSettings.organization);
     if (grantSettings.description) setValue('shortDescription', grantSettings.description);
     if (grantSettings.applicationVisibility) {
@@ -411,16 +422,22 @@ const populateFundingDetails = (
   }
   if (preregistrationSettings) {
     const { goalAmount, durationDays, isPublic, nonprofit } = preregistrationSettings;
-    if (goalAmount) setValue('budget', parseBudget(goalAmount).toString());
+    if (goalAmount) setValue('budget', normalizeDraftAmount(goalAmount));
     if (durationDays) setValue('fundraiseEndDays', durationDays.toString());
     if (isPublic != null) setValue('isPublic', isPublic);
     if (nonprofit) setValue('selectedNonprofit', nonprofit);
   }
 };
 
-/** Whether this browser still holds pre-cutover Details the note row now owns. */
-const hasStoredServerDetails = (stored: Partial<PublishingFormData> | null): boolean =>
-  stored != null && SERVER_OWNED_FIELDS.some((field) => field in stored);
+/** Whether this browser holds pre-cutover Details the current note type can accept. */
+const hasMigratableStoredDetails = (
+  stored: Partial<PublishingFormData> | null,
+  fundingType: NoteFundingType | null
+): boolean =>
+  stored !== null &&
+  SERVER_OWNED_FIELDS.some(
+    (field) => field in stored && (fundingType !== null || !FUNDING_DETAILS_FIELDS.has(field))
+  );
 
 /**
  * The prefill's bare ids, for the gaps `populateSharedDetails` left. Its
@@ -533,6 +550,42 @@ export function PublishingForm({
   const isPublished = Boolean(note?.post);
   const fundingType = resolveFundingType(note?.documentType);
   const { saveDetails, flushDetails, markPublished } = detailsSaver;
+  const activeNoteIdRef = useRef(noteId);
+  activeNoteIdRef.current = noteId;
+  const nonprofitSaveChainRef = useRef<Promise<boolean>>(Promise.resolve(true));
+  const hasUnsavedNonprofitRef = useRef(false);
+
+  const queueNonprofitSave = useCallback(
+    (nonprofit: NonprofitOrg | null, savingNoteId: number) => {
+      const selectedNonprofitId = nonprofit?.id ?? null;
+      const isCurrentSelection = () =>
+        activeNoteIdRef.current === savingNoteId &&
+        (methods.getValues('selectedNonprofit')?.id ?? null) === selectedNonprofitId;
+      const save = () =>
+        saveNonprofitDetails(
+          nonprofit,
+          savingNoteId,
+          saveDetails,
+          flushDetails,
+          isCurrentSelection
+        );
+      const run = nonprofitSaveChainRef.current
+        .catch(() => false)
+        .then(save)
+        .then((saved) => {
+          if (!saved || activeNoteIdRef.current !== savingNoteId) return false;
+          hasUnsavedNonprofitRef.current = false;
+          savePublishingFormToStorage(
+            savingNoteId.toString(),
+            methods.getValues() as Partial<PublishingFormData>
+          );
+          return true;
+        });
+      nonprofitSaveChainRef.current = run;
+      return run;
+    },
+    [flushDetails, methods, saveDetails]
+  );
 
   // Hydration runs before the autosave subscription below resubscribes, so
   // seeding the form never schedules a save of what it just read. That holds
@@ -542,6 +595,7 @@ export function PublishingForm({
   useEffect(() => {
     if (!note) return;
 
+    hasUnsavedNonprofitRef.current = false;
     methods.reset(FORM_DEFAULTS);
     const isRegisteredReport = isRegisteredReportNote(note);
     let storedData: Partial<PublishingFormData> | null = null;
@@ -559,6 +613,8 @@ export function PublishingForm({
       storedData = loadPublishingFormFromStorage(note.id.toString());
       if (storedData) {
         restoreFromStorage(storedData, methods.setValue);
+        hasUnsavedNonprofitRef.current =
+          fundingType === 'preregistration' && 'selectedNonprofit' in storedData;
       }
 
       const articleType =
@@ -596,19 +652,25 @@ export function PublishingForm({
     const persistLocalDraft = () =>
       savePublishingFormToStorage(
         note.id.toString(),
-        methods.getValues() as Partial<PublishingFormData>
+        methods.getValues() as Partial<PublishingFormData>,
+        {
+          preserveFundingDetails: fundingType === null,
+          preserveSelectedNonprofit: hasUnsavedNonprofitRef.current,
+        }
       );
 
-    if (hasStoredServerDetails(storedData)) {
+    if (hasMigratableStoredDetails(storedData, fundingType)) {
       // Migrate this browser's copy once, and only drop it once the server
       // has taken everything.
       const values = methods.getValues();
       saveDetails(buildMigrationDetails(values, fundingType));
-      void saveNonprofitDetails(values.selectedNonprofit, fundingType, saveDetails)
-        .then(flushDetails)
-        .then((saved) => {
-          if (saved) persistLocalDraft();
+      if (hasUnsavedNonprofitRef.current) {
+        void queueNonprofitSave(values.selectedNonprofit, note.id);
+      } else {
+        void flushDetails().then((saved) => {
+          if (saved && activeNoteIdRef.current === note.id) persistLocalDraft();
         });
+      }
     } else {
       persistLocalDraft();
     }
@@ -619,7 +681,13 @@ export function PublishingForm({
     if (!noteId) return;
 
     const subscription = methods.watch((data, { name }) => {
-      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+      if (!isPublished && fundingType === 'preregistration' && name === 'selectedNonprofit') {
+        hasUnsavedNonprofitRef.current = true;
+      }
+      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>, {
+        preserveFundingDetails: fundingType === null,
+        preserveSelectedNonprofit: hasUnsavedNonprofitRef.current,
+      });
 
       // A published note answers 409 to every Details field, so it keeps its
       // values in the publish request alone.
@@ -627,7 +695,9 @@ export function PublishingForm({
 
       const values = methods.getValues();
       if (name === 'selectedNonprofit') {
-        void saveNonprofitDetails(values.selectedNonprofit, fundingType, saveDetails);
+        if (fundingType === 'preregistration') {
+          void queueNonprofitSave(values.selectedNonprofit, noteId);
+        }
         return;
       }
 
@@ -636,7 +706,7 @@ export function PublishingForm({
     });
 
     return () => subscription.unsubscribe();
-  }, [noteId, methods, isPublished, saveDetails, fundingType]);
+  }, [noteId, methods, isPublished, saveDetails, fundingType, queueNonprofitSave]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -801,8 +871,13 @@ export function PublishingForm({
       // Publish from confirmed server state. Content goes first because saving
       // it is what hands the renamed title to the Details saver.
       const contentSaved = await saveContentNow();
+      await nonprofitSaveChainRef.current;
+      let nonprofitSaved = true;
+      if (hasUnsavedNonprofitRef.current) {
+        nonprofitSaved = await queueNonprofitSave(methods.getValues('selectedNonprofit'), note.id);
+      }
       const detailsSaved = await flushDetails();
-      if (!contentSaved || !detailsSaved) {
+      if (!contentSaved || !nonprofitSaved || !detailsSaved) {
         toast.error('Could not save your latest changes. Please try again.');
         return;
       }
