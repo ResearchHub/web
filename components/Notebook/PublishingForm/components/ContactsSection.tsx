@@ -21,10 +21,11 @@ export function ContactsSection() {
       <SectionHeader icon={Users}>Contacts</SectionHeader>
       <SearchableUserSelect
         value={contacts}
+        sortable
         onChange={(newContacts) => setValue('contacts', newContacts, { shouldValidate: true })}
         placeholder="Search for contacts..."
         error={getFieldErrorMessage(errors.contacts, 'Invalid contacts')}
-        helperText="Add contacts who will be responsible for managing this RFP. These contacts will receive important updates about its progress."
+        helperText="Add contacts who will manage this RFP and receive updates. Drag and drop contacts to arrange them in the order they should appear."
         getOptionValue={getContactId}
       />
     </div>
