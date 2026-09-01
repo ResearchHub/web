@@ -9,6 +9,7 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
+import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
 import { NoteService } from '@/services/note.service';
@@ -18,6 +19,7 @@ import {
   MAX_CHAT_TITLE_LENGTH,
   type NotebookChat,
 } from '@/types/notebookChat';
+import type { GenerationRequest } from '@/types/notebookModels';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
@@ -28,6 +30,7 @@ import { ChatPicker } from './ChatPicker';
 import { ChatPresets } from './ChatPresets';
 import { ChatSources, collectChatSources } from './ChatSources';
 import { ChatTranscript } from './ChatTranscript';
+import { ModelControls } from './ModelControls';
 import { Logo } from '@/components/ui/Logo';
 import {
   beginNoteDiffReview,
@@ -36,6 +39,15 @@ import {
 } from '../NoteReview/noteDiffOverlay';
 
 type PanelTab = 'chat' | 'sources';
+
+/**
+ * A first message waiting on the chat it will start, holding the model choice
+ * it was composed under so a later change can't retarget a send in flight.
+ */
+interface QueuedMessage {
+  readonly text: string;
+  readonly generation: GenerationRequest;
+}
 
 /** Pixels per arrow key press while the resize divider has focus. */
 const RESIZE_KEY_STEP = 24;
@@ -262,13 +274,22 @@ export function AgentChatPanel({
     setInitialChat(null);
   }, []);
 
+  // ---- model selection ----
+  // The catalog loads with the panel. A chat that has already run a turn is
+  // locked to the model it started on, and reports it here; until then the
+  // browser-level preference decides.
+  const modelSelection = useAgentModelSelection({
+    enabled: open,
+    pinnedRef: chatState.pinnedModelRef,
+  });
+
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
   const draftKey = selectedChatId == null ? 'new' : String(selectedChatId);
   const [draft, setDraft] = useState('');
   const [notice, setNotice] = useState<ComposerNotice | null>(null);
   /** First message for a chat we just created, sent once the chat is live. */
-  const [queuedMessage, setQueuedMessage] = useState<string | null>(null);
+  const [queuedMessage, setQueuedMessage] = useState<QueuedMessage | null>(null);
   const [creatingChat, setCreatingChat] = useState(false);
   /** Identity of the latest creation, so a stale settle can't clear its flag. */
   const creationSeqRef = useRef(0);
@@ -366,6 +387,9 @@ export function AgentChatPanel({
     if (!text) return;
     setNotice(null);
     const target = targetRef.current;
+    // Captured before the awaits: the turn runs on what was selected when the
+    // user pressed send, not on whatever the picker says by the time it lands.
+    const generation = modelSelection.request;
 
     if (selectedChatId == null) {
       // Default flow: create untitled, send the first message; the refetch
@@ -387,11 +411,11 @@ export function AgentChatPanel({
       draftsRef.current.delete('new');
       setInitialChat(created);
       setSelectedChatId(created.conversation_id);
-      setQueuedMessage(text);
+      setQueuedMessage({ text, generation });
       return;
     }
 
-    const outcome = await chatState.send(text);
+    const outcome = await chatState.send(text, generation);
     if (outcome.ok) {
       if (isCurrentTarget(target)) {
         updateDraft('');
@@ -403,16 +427,24 @@ export function AgentChatPanel({
       // Keep the draft on any failure.
       setNotice(noticeFromOutcome(outcome));
     }
-  }, [draft, selectedChatId, list, chatState, updateDraft, isCurrentTarget]);
+  }, [
+    draft,
+    selectedChatId,
+    list,
+    chatState,
+    modelSelection.request,
+    updateDraft,
+    isCurrentTarget,
+  ]);
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chatState.send;
   useEffect(() => {
     if (queuedMessage == null || selectedChatId == null || chatState.access !== 'ok') return;
-    const text = queuedMessage;
+    const { text, generation } = queuedMessage;
     const target = targetRef.current;
     setQueuedMessage(null);
-    sendToChat(text).then((outcome) => {
+    sendToChat(text, generation).then((outcome) => {
       if (outcome.ok) return;
       if (isCurrentTarget(target)) {
         setNotice(noticeFromOutcome(outcome));
@@ -893,8 +925,17 @@ export function AgentChatPanel({
   }, [chatState.chat, chatState.pendingSend, activeTab]);
 
   // ---- derived composer state ----
+  // Sending before the catalog lands would run the turn on the server default
+  // and pin the conversation to it, silently losing the user's chosen model
+  // with no way back. Busy rather than disabled: the draft stays editable, only
+  // send waits. A catalog that fails resolves to `unavailable`, which sends on
+  // the server default by design.
   const composerBusy =
-    chatState.isBusy || chatState.isFinishing || creatingChat || queuedMessage != null;
+    chatState.isBusy ||
+    chatState.isFinishing ||
+    creatingChat ||
+    queuedMessage != null ||
+    modelSelection.status === 'loading';
   // Stop is only offered once something cancellable exists server-side. While
   // the message POST is still in flight or the chat is being created, cancel
   // would no-op and the turn would start anyway.
@@ -1166,6 +1207,17 @@ export function AgentChatPanel({
         canStop={canStop}
         disabled={composerDisabled}
         notice={notice}
+        toolbar={
+          <ModelControls
+            models={modelSelection.models}
+            model={modelSelection.model}
+            pinned={modelSelection.pinned}
+            options={modelSelection.options}
+            onSelectModel={modelSelection.selectModel}
+            onChangeOptions={modelSelection.setOptions}
+            disabled={composerDisabled}
+          />
+        }
       />
     </aside>
   );
