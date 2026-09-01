@@ -52,7 +52,7 @@ export interface SelectedGrantData {
 
 export const transformSelectedGrant = createTransformer<any, SelectedGrantData>((raw) => ({
   id: raw.id.toString(),
-  shortTitle: raw.short_title || raw.title || '',
+  shortTitle: raw.short_title || '',
   imageUrl: raw.image_url || '',
   fundingAmount: raw.amount?.usd ?? 0,
   organization: raw.organization || '',

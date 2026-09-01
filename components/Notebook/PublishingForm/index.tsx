@@ -192,7 +192,12 @@ const mapOptionsToIds = (options: SelectOption[]): number[] =>
 const dropZeroCents = (amount: string): string => amount.replace(/\.0+$/, '');
 
 /** Loads the Details this draft has already saved on the server. */
-const populateNoteDetails = (note: NoteWithContent, setValue: (name: any, value: any) => void) => {
+const populateNoteDetails = (
+  note: NoteWithContent,
+  setValue: (name: any, value: any) => void,
+  /** The RFP's title, which the note records by id alone. */
+  selectedGrantTitle?: string
+) => {
   if (note.image || note.previewImage) {
     setValue('coverImage', { file: null, key: note.image, url: note.previewImage });
   }
@@ -209,7 +214,10 @@ const populateNoteDetails = (note: NoteWithContent, setValue: (name: any, value:
     );
   }
   if (note.selectedGrant) {
-    setValue('selectedGrant', note.selectedGrant);
+    setValue('selectedGrant', {
+      ...note.selectedGrant,
+      shortTitle: note.selectedGrant.shortTitle || selectedGrantTitle || '',
+    });
   }
 
   const { grantSettings, preregistrationSettings } = note;
@@ -416,7 +424,11 @@ export function PublishingForm({
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
     } else {
-      populateNoteDetails(note, methods.setValue);
+      populateNoteDetails(
+        note,
+        methods.setValue,
+        searchParams?.get('selectedGrantTitle') ?? undefined
+      );
 
       if (isRegisteredReport) {
         populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);

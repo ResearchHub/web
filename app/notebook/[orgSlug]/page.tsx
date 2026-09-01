@@ -42,6 +42,7 @@ export default function OrganizationPage() {
   const grantSource = searchParams.get('grantSource');
   const proposalSource = searchParams.get('proposalSource');
   const selectedGrantId = searchParams.get('selectedGrantId') ?? undefined;
+  const selectedGrantTitle = searchParams.get('selectedGrantTitle');
 
   const createNoteWithContent = async (
     orgSlug: string,
@@ -76,9 +77,14 @@ export default function OrganizationPage() {
           plainText: getTemplatePlainText(template),
         });
 
-        const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
+        // The RFP title is not stored on the note, so it follows it to the editor.
+        const params = new URLSearchParams(
+          queryParam && queryValue ? { [queryParam]: queryValue } : {}
+        );
+        if (selectedGrantTitle) params.set('selectedGrantTitle', selectedGrantTitle);
+
         refreshNotes();
-        router.replace(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
+        router.replace(`/notebook/${orgSlug}/${newNote.id}${params.size ? `?${params}` : ''}`);
       }
     } catch (err) {
       console.error('Failed to create note:', err);

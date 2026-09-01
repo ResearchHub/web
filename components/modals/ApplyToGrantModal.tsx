@@ -71,10 +71,16 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     setDraftNewSelected(false);
   };
 
-  // The new note is created against this RFP, so its Details read back from the note.
+  // The note stores the RFP by id alone, so its title rides along for the card.
+  const grantQuery = () =>
+    new URLSearchParams(grantTitle ? { selectedGrantTitle: grantTitle } : {});
+
   const handleDraftNew = () => {
     onClose();
-    router.push(`/notebook?newFunding=true&selectedGrantId=${encodeURIComponent(grantId)}`);
+    const params = grantQuery();
+    params.set('newFunding', 'true');
+    params.set('selectedGrantId', grantId);
+    router.push(`/notebook?${params}`);
   };
 
   const handleContinueWithDraft = async () => {
@@ -87,8 +93,10 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         selectedGrantId: grantId,
       });
       onClose();
+      const params = grantQuery();
+      params.set('tab', 'details');
       router.push(
-        `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
+        `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?${params}`
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to select RFP');
