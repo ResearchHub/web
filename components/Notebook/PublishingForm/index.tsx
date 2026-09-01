@@ -220,7 +220,7 @@ const mapOptionsToIds = (options: SelectOption[]): number[] =>
 const buildCoverDetails = (values: PublishingFormData): NoteDetailsDraft | null =>
   values.coverImage?.file
     ? null
-    : { image: values.coverImage?.key ?? null, previewImage: values.coverImage?.url ?? null };
+    : { image: values.coverImage?.key ?? '', previewImage: values.coverImage?.url ?? null };
 
 /** An empty or unparsed amount is a half-finished edit, not a deliberate clear. */
 const readDraftAmount = (budget?: string): string | null =>

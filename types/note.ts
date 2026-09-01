@@ -118,7 +118,7 @@ export interface NotePreregistrationSettingsDraft {
 /** The Details a notebook draft autosaves to `PATCH /api/note/{id}/`. */
 export interface NoteDetailsDraft {
   title?: string;
-  image?: string | null;
+  image?: string;
   previewImage?: string | null;
   authorIds?: number[];
   hubIds?: number[];
@@ -160,7 +160,7 @@ const NOTE_PREREGISTRATION_SETTINGS_PAYLOAD_KEYS: Record<
 
 /**
  * Only the keys the draft actually carries, because the route reads an absent
- * key as "leave this alone" and an explicit null as "clear it".
+ * key as "leave this alone". Each field's draft type defines its clear value.
  */
 const buildPayload = <T extends object>(keys: Record<keyof T, string>, draft: T) =>
   Object.fromEntries(
