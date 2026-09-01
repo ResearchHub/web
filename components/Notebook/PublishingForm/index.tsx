@@ -222,7 +222,7 @@ const buildCoverDetails = (values: PublishingFormData): NoteDetailsDraft | null 
     ? null
     : { image: values.coverImage?.key ?? '', previewImage: values.coverImage?.url ?? null };
 
-/** An empty or unparsed amount is a half-finished edit, not a deliberate clear. */
+/** Only positive amounts are durable; callers decide whether an empty value is a clear. */
 const readDraftAmount = (budget?: string): string | null =>
   budget && parseBudget(budget) > 0 ? budget : null;
 
@@ -251,6 +251,7 @@ const buildChangedGrantSettings = (
 ): NoteGrantSettingsDraft | null => {
   switch (field) {
     case 'budget': {
+      if (!values.budget) return { amount: null };
       const amount = readDraftAmount(values.budget);
       return amount === null ? null : { amount, currency: FUNDING_CURRENCY };
     }

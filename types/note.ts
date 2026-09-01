@@ -97,7 +97,7 @@ export interface Note {
 
 /** The grant fields a notebook draft autosaves. Any other work type answers 400. */
 export interface NoteGrantSettingsDraft {
-  amount?: string;
+  amount?: string | null;
   currency?: Currency | '';
   organization?: string;
   description?: string;
