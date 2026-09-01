@@ -41,7 +41,7 @@ export const useNoteDetailsSaver = (
   noteId: ID,
   options: UseNoteDetailsSaverOptions = {}
 ): NoteDetailsSaver => {
-  const pendingRef = useRef<NoteDetailsDraft>({});
+  const pendingByNoteIdRef = useRef(new Map<NonNullable<ID>, NoteDetailsDraft>());
   const isPublishedRef = useRef(false);
   const saveChainRef = useRef<Promise<unknown>>(Promise.resolve());
 
@@ -88,31 +88,33 @@ export const useNoteDetailsSaver = (
     []
   );
 
-  const hasPendingDetails = useCallback(() => Object.keys(pendingRef.current).length > 0, []);
-
   const sendPendingDetails = useCallback(
     (savingNoteId: ID): Promise<boolean> => {
-      if (savingNoteId == null || !hasPendingDetails()) {
-        // Nothing of this call's own to send, so report on what is in flight.
-        return chain(async () => !hasPendingDetails());
-      }
-
-      // Claim the dirty set now, so edits made while this request is in flight
-      // belong to the next save rather than being dropped or sent twice.
-      const details = pendingRef.current;
-      pendingRef.current = {};
-
       return chain(async () => {
+        if (savingNoteId == null) return true;
+
+        // Claim this note's dirty set only when its queued save begins. That
+        // lets a failed earlier request merge beneath every newer edit.
+        const details = pendingByNoteIdRef.current.get(savingNoteId);
+        if (!details) return true;
+        pendingByNoteIdRef.current.delete(savingNoteId);
+
         const saved = await patchDetails(savingNoteId, details);
         if (!saved) {
-          // Keep whatever is still writable dirty, so a later save carries it
-          // without undoing anything edited while this request was in flight.
-          pendingRef.current = mergeNoteDetails(keepWritableDetails(details), pendingRef.current);
+          const retryableDetails =
+            savingNoteId === openNoteIdRef.current ? keepWritableDetails(details) : details;
+          const pendingDetails = pendingByNoteIdRef.current.get(savingNoteId) ?? {};
+          if (Object.keys(retryableDetails).length > 0) {
+            pendingByNoteIdRef.current.set(
+              savingNoteId,
+              mergeNoteDetails(retryableDetails, pendingDetails)
+            );
+          }
         }
         return saved;
       });
     },
-    [chain, hasPendingDetails, keepWritableDetails, patchDetails]
+    [chain, keepWritableDetails, patchDetails]
   );
 
   // Created once so every control shares one timer.
@@ -124,19 +126,24 @@ export const useNoteDetailsSaver = (
 
   const saveDetails = useCallback(
     (fields: NoteDetailsDraft, forNoteId?: ID) => {
-      const details = keepWritableDetails(fields);
+      const savingNoteId = forNoteId ?? openNoteIdRef.current;
+      if (savingNoteId == null) return;
+
+      const details = savingNoteId === openNoteIdRef.current ? keepWritableDetails(fields) : fields;
       if (Object.keys(details).length === 0) return;
 
-      // A late save — the editor flushing a rename after the user moved on —
-      // belongs to its own note, never to the one now open.
-      if (forNoteId != null && forNoteId !== openNoteIdRef.current) {
-        void chain(() => patchDetails(forNoteId, details));
+      const pendingDetails = pendingByNoteIdRef.current.get(savingNoteId) ?? {};
+      pendingByNoteIdRef.current.set(savingNoteId, mergeNoteDetails(pendingDetails, details));
+
+      // A late save belongs to its original note and should not wait for the
+      // open note's debounce.
+      if (savingNoteId !== openNoteIdRef.current) {
+        void sendPendingDetails(savingNoteId);
         return;
       }
-      pendingRef.current = mergeNoteDetails(pendingRef.current, details);
       debouncedSave.current();
     },
-    [chain, keepWritableDetails, patchDetails]
+    [keepWritableDetails, sendPendingDetails]
   );
 
   const flushDetails = useCallback(() => {
@@ -146,7 +153,17 @@ export const useNoteDetailsSaver = (
 
   const markPublished = useCallback(() => {
     isPublishedRef.current = true;
-    pendingRef.current = keepWritableDetails(pendingRef.current);
+    const publishedNoteId = openNoteIdRef.current;
+    if (publishedNoteId == null) return;
+
+    const writableDetails = keepWritableDetails(
+      pendingByNoteIdRef.current.get(publishedNoteId) ?? {}
+    );
+    if (Object.keys(writableDetails).length > 0) {
+      pendingByNoteIdRef.current.set(publishedNoteId, writableDetails);
+    } else {
+      pendingByNoteIdRef.current.delete(publishedNoteId);
+    }
   }, [keepWritableDetails]);
 
   // A pending write belongs to the note that was open when it was made, so
@@ -160,15 +177,20 @@ export const useNoteDetailsSaver = (
     debouncedSave.current.cancel();
     void sendPendingDetails(previousNoteId);
     isPublishedRef.current = false;
+    if (noteId != null && pendingByNoteIdRef.current.has(noteId)) {
+      debouncedSave.current();
+    }
   }, [noteId, sendPendingDetails]);
 
   useEffect(() => {
     return () => {
-      // Unmounting with a save still scheduled: persist it rather than drop
-      // the user's last edits.
-      debouncedSave.current.flush();
+      // Give every note with retained work one last ordered save on unmount.
+      debouncedSave.current.cancel();
+      pendingByNoteIdRef.current.forEach((_details, pendingNoteId) => {
+        void sendPendingDetails(pendingNoteId);
+      });
     };
-  }, []);
+  }, [sendPendingDetails]);
 
   return { saveDetails, flushDetails, markPublished };
 };
