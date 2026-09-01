@@ -78,7 +78,6 @@ export function ConfirmPublishModal({
 
   useEffect(() => {
     setTitle(initialTitle);
-    setHasAgreed(false);
   }, [initialTitle]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,9 +86,13 @@ export function ConfirmPublishModal({
     onTitleChange?.(newTitle);
   };
 
+  const handleClose = () => {
+    if (!isPublishing) onClose();
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative" style={{ zIndex }} onClose={onClose}>
+      <Dialog as="div" className="relative" style={{ zIndex }} onClose={handleClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -126,7 +129,8 @@ export function ConfirmPublishModal({
                     type="text"
                     value={title}
                     onChange={handleTitleChange}
-                    className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    disabled={isPublishing}
+                    className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="Enter title..."
                   />
 
@@ -164,7 +168,7 @@ export function ConfirmPublishModal({
                   )}
 
                   <div className="mt-6 flex justify-end gap-3">
-                    <Button variant="ghost" onClick={onClose}>
+                    <Button variant="ghost" onClick={handleClose} disabled={isPublishing}>
                       Cancel
                     </Button>
                     <Button

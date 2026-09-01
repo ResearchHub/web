@@ -644,6 +644,7 @@ export function PublishingForm({
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isPublishInProgress, setIsPublishInProgress] = useState(false);
   const router = useRouter();
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
@@ -651,7 +652,12 @@ export function PublishingForm({
   const isChangelog = isChangelogNote(note);
   const isNewPreprint = articleType === 'discussion' && !workId && !isChangelog;
   const canPublishChangelog = !isChangelog || isModerator;
-  const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+  const isPublishing =
+    isPublishInProgress ||
+    isLoadingUpsert ||
+    isRedirecting ||
+    isLinkingNonprofit ||
+    isUploadingImage;
   const canPublishRegisteredReport = articleType !== 'registered_report' || isModerator;
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
@@ -773,7 +779,7 @@ export function PublishingForm({
   };
 
   const handleConfirmPublish = async (editedTitle: string) => {
-    if (readOnly || !note) return;
+    if (readOnly || !note || isPublishInProgress) return;
 
     if (isNewPreprint) {
       toast.error('Preprints can no longer be created in the notebook.');
@@ -784,6 +790,8 @@ export function PublishingForm({
       toast.error(CHANGELOG_PUBLISH_ERROR_MESSAGE);
       return;
     }
+
+    setIsPublishInProgress(true);
 
     try {
       setDocumentTitle(editor, editedTitle);
@@ -932,6 +940,7 @@ export function PublishingForm({
       }
       console.error('Error publishing:', error);
     } finally {
+      setIsPublishInProgress(false);
       setShowConfirmModal(false);
     }
   };
