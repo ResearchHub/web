@@ -14,6 +14,7 @@ const isValidFile = (file: unknown): file is File =>
 export function WorkImageSection() {
   const {
     control,
+    getValues,
     formState: { errors },
   } = useFormContext<PublishingFormData>();
 
@@ -39,12 +40,14 @@ export function WorkImageSection() {
                 setError(null);
                 // Preview the selection right away, then swap it for the
                 // uploaded reference — a File cannot be saved on the note.
-                const previousCover = field.value ?? null;
+                const previousCover = getValues('coverImage') ?? null;
                 field.onChange({ file: selected, key: null, url: null });
                 try {
                   const { objectKey, absoluteUrl } = await uploadAsset(selected, 'post');
+                  if (getValues('coverImage')?.file !== selected) return;
                   field.onChange({ file: null, key: objectKey, url: absoluteUrl });
                 } catch (error) {
+                  if (getValues('coverImage')?.file !== selected) return;
                   console.error('Error uploading image:', error);
                   field.onChange(previousCover);
                   setError('Failed to upload image. Please try again.');
