@@ -110,8 +110,12 @@ export interface NotePreregistrationSettingsUpdate {
   nonprofitId?: string | null;
 }
 
-/** A partial update to the Details a notebook draft saves before it is published. */
+/**
+ * A partial update to a note's own fields: the title the editor derives from
+ * the document, plus the Details a draft fills in before it is published.
+ */
 export interface NoteDetailsUpdate {
+  title?: string;
   documentType?: string;
   authorIds?: number[];
   hubIds?: number[];
@@ -124,6 +128,7 @@ export interface NoteDetailsUpdate {
 type NoteDetailsFields = Omit<NoteDetailsUpdate, 'grantSettings' | 'preregistrationSettings'>;
 
 const NOTE_FIELD_KEYS: Record<keyof NoteDetailsFields, string> = {
+  title: 'title',
   documentType: 'document_type',
   authorIds: 'author_ids',
   hubIds: 'hub_ids',
@@ -361,7 +366,9 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     documentType,
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-    image: raw.image || null,
+    // Saved values first, so a Registered Report prefill only fills the gaps.
+    // `image` holds a storage key, which the prefill's `image_url` is not.
+    image: raw.image || raw.registered_report_prefill?.image || null,
     previewImage:
       raw.preview_img ||
       raw.registered_report_prefill?.preview_img ||

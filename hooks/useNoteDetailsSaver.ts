@@ -21,13 +21,29 @@ interface QueuedNoteDetails {
 }
 
 /**
- * The single writer for a notebook draft's Details. A burst of edits becomes
- * one request, and requests run in the order they were made so a slow save
- * cannot land on top of the edit that followed it.
+ * The single writer for a note's own fields — the editor's title as much as the
+ * publishing form's Details, which is why one instance is shared through
+ * NotebookContext. A burst of edits becomes one request, and requests run in the
+ * order they were made so a slow save cannot land on top of the edit after it.
  */
 export const useNoteDetailsSaver = (noteId?: number): NoteDetailsSaver => {
   const queuedDetailsRef = useRef<QueuedNoteDetails | null>(null);
   const lastSaveRef = useRef<Promise<void>>(Promise.resolve());
+
+  /**
+   * Puts a failed edit back under anything queued since, so the next flush
+   * retries it. Only an edit to the same field supersedes it, and an edit that
+   * moved to another note has to be dropped: the two cannot share a request.
+   */
+  const requeueFailedDetails = useCallback((failed: QueuedNoteDetails) => {
+    const queued = queuedDetailsRef.current;
+    if (queued && queued.noteId !== failed.noteId) return;
+
+    queuedDetailsRef.current = {
+      noteId: failed.noteId,
+      details: mergeNoteDetailsUpdates(failed.details, queued?.details ?? {}),
+    };
+  }, []);
 
   const sendQueuedDetails = useCallback((): Promise<void> => {
     const queued = queuedDetailsRef.current;
@@ -38,13 +54,13 @@ export const useNoteDetailsSaver = (noteId?: number): NoteDetailsSaver => {
       try {
         await NoteService.updateNote({ noteId: queued.noteId, details: queued.details });
       } catch (error) {
-        // The form still holds the value, so the next edit to it saves again.
         console.error('Error saving note details:', error);
+        requeueFailedDetails(queued);
       }
     });
     lastSaveRef.current = save;
     return save;
-  }, []);
+  }, [requeueFailedDetails]);
 
   const sendQueuedDetailsSoon = useRef(
     debounce(() => void sendQueuedDetails(), DEBOUNCE_MS)
@@ -73,9 +89,17 @@ export const useNoteDetailsSaver = (noteId?: number): NoteDetailsSaver => {
     return sendQueuedDetails();
   }, [sendQueuedDetails, sendQueuedDetailsSoon]);
 
-  // Leaving the notebook must not cost the user the edits still inside the debounce.
+  // Leaving the notebook must not cost the user the edits still inside the
+  // debounce. A closing or backgrounded tab never runs the cleanup below, so it
+  // is flushed while the page is still alive enough to send the request.
   useEffect(() => {
+    const flushOnHide = () => {
+      if (document.visibilityState === 'hidden') void saveDetailsNow();
+    };
+
+    document.addEventListener('visibilitychange', flushOnHide);
     return () => {
+      document.removeEventListener('visibilitychange', flushOnHide);
       void saveDetailsNow();
     };
   }, [saveDetailsNow]);

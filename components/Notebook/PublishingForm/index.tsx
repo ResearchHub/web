@@ -51,7 +51,7 @@ import {
 } from '@/types/note';
 import type { NonprofitOrg } from '@/types/nonprofit';
 import { NonprofitService } from '@/services/nonprofit.service';
-import { useNoteDetailsSaver, type NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
+import type { NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -321,7 +321,8 @@ const buildDetailsUpdate = (
 /** Saves the nonprofit under the id the Note API stores, not its Endaoment one. */
 const saveSelectedNonprofit = async (
   nonprofit: NonprofitOrg | null,
-  saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon']
+  saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon'],
+  getValues: (name: any) => any
 ) => {
   if (!nonprofit) {
     saveDetailsSoon({ preregistrationSettings: { nonprofitId: null } });
@@ -335,6 +336,8 @@ const saveSelectedNonprofit = async (
       ein: nonprofit.ein,
       baseWalletAddress: nonprofit.baseWalletAddress,
     });
+    // A newer choice may have replaced this one while it was being created.
+    if (getValues('selectedNonprofit') !== nonprofit) return;
     saveDetailsSoon({ preregistrationSettings: { nonprofitId: saved.id } });
   } catch (error) {
     console.error('Error saving selected nonprofit:', error);
@@ -347,28 +350,29 @@ const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) =>
   }
 };
 
+/** Names the field it defaulted, which the caller has to save like any edit. */
 const autoAddCurrentUser = (
   getValues: any,
   setValue: (name: any, value: any) => void,
   currentUser: any
-) => {
+): 'authors' | 'contacts' | null => {
   const articleType = getValues('articleType');
-  if (!currentUser || articleType === 'registered_report') return;
+  if (!currentUser || articleType === 'registered_report') return null;
 
   const isGrant = articleType === 'grant';
   const field = isGrant ? 'contacts' : 'authors';
+  if (getValues(field).length > 0) return null;
 
-  if (getValues(field).length === 0) {
-    const profile = currentUser.authorProfile;
-    setValue(field, [
-      {
-        value: isGrant
-          ? currentUser.id.toString()
-          : profile?.id?.toString() || currentUser.id.toString(),
-        label: currentUser.fullName || currentUser.email || 'Unknown User',
-      },
-    ]);
-  }
+  const profile = currentUser.authorProfile;
+  setValue(field, [
+    {
+      value: isGrant
+        ? currentUser.id.toString()
+        : profile?.id?.toString() || currentUser.id.toString(),
+      label: currentUser.fullName || currentUser.email || 'Unknown User',
+    },
+  ]);
+  return field;
 };
 
 const resolveArticleType = (
@@ -397,7 +401,7 @@ export function PublishingForm({
   onBountyClick,
   readOnly = false,
 }: Readonly<PublishingFormProps>) {
-  const { currentNote: note, editor } = useNotebookContext();
+  const { currentNote: note, editor, saveDetailsSoon, saveDetailsNow } = useNotebookContext();
   const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -413,7 +417,6 @@ export function PublishingForm({
 
   const noteId = note?.id;
   const isPublished = Boolean(note?.post);
-  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId);
 
   useEffect(() => {
     if (!note) return;
@@ -448,7 +451,12 @@ export function PublishingForm({
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
-    autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+
+    // Hydration runs with the watcher detached, so a default the form generates
+    // has to be saved here or the draft would never record who is on it.
+    const defaultedField = autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+    const defaults = defaultedField && buildDetailsUpdate(defaultedField, methods.getValues());
+    if (defaults && !isPublished) saveDetailsSoon(defaults);
 
     // A proposal answering a private Request for Proposal cannot be public.
     if (methods.getValues('selectedGrant')?.applicationVisibility === 'PRIVATE') {
@@ -467,7 +475,7 @@ export function PublishingForm({
 
       const values = methods.getValues();
       if (name === 'selectedNonprofit') {
-        void saveSelectedNonprofit(values.selectedNonprofit, saveDetailsSoon);
+        void saveSelectedNonprofit(values.selectedNonprofit, saveDetailsSoon, methods.getValues);
         return;
       }
 

@@ -51,14 +51,8 @@ export interface UpdateNoteContentParams {
 
 export interface UpdateNoteParams {
   noteId: ID;
-  title?: string;
   selectedGrantId?: ID;
   details?: NoteDetailsUpdate;
-}
-
-export interface UpdateNoteTitleParams {
-  noteId: ID;
-  title: string;
 }
 
 export interface GetOrganizationNotesParams {
@@ -296,9 +290,8 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, selectedGrantId, details, ...fields } = params;
+    const { noteId, selectedGrantId, details } = params;
     const payload = {
-      ...fields,
       ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
       ...(details && buildNoteDetailsPayload(details)),
     };
@@ -313,14 +306,6 @@ export class NoteService {
         error instanceof ApiError ? error.status : undefined
       );
     }
-  }
-
-  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    return this.updateNote({
-      noteId: params.noteId,
-      title: params.title,
-      selectedGrantId: undefined,
-    });
   }
 
   /**
