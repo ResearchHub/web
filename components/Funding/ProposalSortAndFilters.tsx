@@ -34,6 +34,7 @@ function SortDropdown() {
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         className="inline-flex items-center gap-1.5 -mr-2 min-h-[44px] px-2 rounded-lg text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer touch-manipulation"
+        data-testid="feed-sort-trigger"
       >
         <span className="font-medium text-gray-700">{selectedLabel}</span>
         {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}

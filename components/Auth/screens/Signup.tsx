@@ -92,6 +92,7 @@ export default function Signup({
           placeholder="Full name (e.g. John Smith)"
           className="w-full p-3 border rounded mb-4"
           ref={fullNameInputRef}
+          data-testid="auth-signup-name-input"
         />
 
         <div className="relative mb-4">
@@ -101,6 +102,7 @@ export default function Signup({
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             className="w-full p-3 border rounded pr-12"
+            data-testid="auth-signup-password-input"
           />
           <button
             type="button"
@@ -115,6 +117,7 @@ export default function Signup({
           type="submit"
           disabled={isLoading}
           className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
+          data-testid="auth-signup-submit"
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </button>

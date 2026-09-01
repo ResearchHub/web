@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { expect, type Page } from '@playwright/test';
 
 function requiredEnv(name: string): string {
@@ -17,6 +18,20 @@ export function smokeCredentials() {
     email: requiredEnv('SMOKE_USER_EMAIL'),
     password: requiredEnv('SMOKE_USER_PASSWORD'),
   };
+}
+
+/**
+ * An address for the registration spec that no account can already own.
+ *
+ * example.com is reserved by RFC 2606 and can never receive mail, so nothing
+ * reaches a real person even if a request escapes the mock. Randomised per
+ * call rather than per run because a retry that reused an address would find
+ * the account from the previous attempt: check_account would report it as
+ * existing and route the modal into the login flow, and the test would pass
+ * while exercising the wrong screen.
+ */
+export function uniqueEmail(): string {
+  return `rh-smoke-${randomUUID()}@example.com`;
 }
 
 /**

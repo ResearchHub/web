@@ -285,6 +285,7 @@ export default function UserMenu({
           tabIndex={0}
           role="button"
           aria-label="Sign Out"
+          data-testid="user-menu-signout"
         >
           <div className="flex items-center">
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
@@ -446,6 +447,7 @@ export default function UserMenu({
             <BaseMenuItem
               onClick={() => AuthSharingService.signOutFromBothApps()}
               className="w-full px-4 py-2"
+              data-testid="user-menu-signout"
             >
               <div className="flex items-center">
                 <LogOut className="h-5 w-5 mr-3 text-gray-500" />
