@@ -89,9 +89,9 @@ export const GuardrailsBlock = ({ guardrails, confirmed }: GuardrailsBlockProps)
               </div>
               <Slider
                 value={[guardrails.maxPerProposalUsd]}
-                min={25_000}
-                max={200_000}
-                step={25_000}
+                min={50_000}
+                max={400_000}
+                step={50_000}
                 disabled={confirmed}
                 onValueChange={([value]) => update({ maxPerProposalUsd: value })}
               />
@@ -106,9 +106,9 @@ export const GuardrailsBlock = ({ guardrails, confirmed }: GuardrailsBlockProps)
               </div>
               <Slider
                 value={[guardrails.totalBudgetUsd]}
-                min={50_000}
-                max={200_000}
-                step={25_000}
+                min={250_000}
+                max={1_000_000}
+                step={250_000}
                 disabled={confirmed}
                 onValueChange={([value]) => update({ totalBudgetUsd: value })}
               />

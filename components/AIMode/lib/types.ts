@@ -19,7 +19,7 @@ export type MessageBlock =
   | { kind: 'payment'; amountUsd: number }
   | { kind: 'guardrails' }
   | { kind: 'allocations' }
-  | { kind: 'rfp_live'; href: string; title: string };
+  | { kind: 'rfp_live'; title: string };
 
 export type MessageBlockKind = MessageBlock['kind'];
 
@@ -84,24 +84,42 @@ export interface RfpSection {
   body: string;
 }
 
-/** A reviewer the assistant recruited, shown before any proposals arrive. */
+/**
+ * An expert the assistant invited to submit a proposal, shown before any
+ * proposals arrive. Those who accept are the principal investigators whose
+ * proposals land at the next checkpoint.
+ */
 export interface InvitedExpert {
   name: string;
   affiliation: string;
-  /** Which of the RFP's three axes this reviewer was brought in to cover. */
+  /** Which of the RFP's claims this expert was approached about. */
   axis: string;
   /** Local asset path, so the roster never waits on a third-party image. */
-  avatarUrl: string;
+  avatarUrl: string | null;
+  /** Whether they agreed to submit. */
   accepted: boolean;
 }
 
 /**
+ * A reviewer recruited to score proposals — deliberately not drawn from the
+ * invited-expert roster, since nobody should review against a claim they are
+ * competing for.
+ */
+export interface Reviewer {
+  name: string;
+  affiliation: string;
+  /** Domain they were recruited for, shown under their name on a review. */
+  focus: string;
+  avatarUrl: string | null;
+}
+
+/**
  * One written review against a proposal, in the shape the feed renders them.
- * The reviewer's face and affiliation are resolved from the invited roster, so
- * the people who accepted in checkpoint one are the people who show up here.
+ * The reviewer's face, focus and affiliation are resolved from the reviewer
+ * roster rather than from the invited experts, who are the applicants.
  */
 export interface PeerReview {
-  /** Must match a name in `INVITED_EXPERTS`. */
+  /** Must match a name in `PEER_REVIEWERS`. */
   reviewerName: string;
   /** The score this reviewer filed, which is not the proposal's average. */
   score: number;
@@ -117,6 +135,20 @@ export interface ProposalRecord {
   principalInvestigator: string;
   /** Used when the assistant refers to the PI mid-sentence. */
   lastName: string;
+  /**
+   * The unresolved claim from the case file this proposal is a test of, e.g.
+   * `VASO-C004`. The RFP is organised by claim, so every proposal has to name
+   * the one it targets or the allocation cannot be argued for.
+   */
+  claimId: string;
+  /** The case file's own study design this proposal answers, e.g. `VASO-R001`. */
+  studyId: string;
+  /**
+   * What the proposal asks for. Funding at the per-proposal cap regardless of
+   * ask would have the assistant handing a $70K desk study a quarter of a
+   * million dollars.
+   */
+  requestedUsd: number;
   /** Average peer-review score as displayed on the proposal card. */
   reviewScore: number;
   reviewCount: number;

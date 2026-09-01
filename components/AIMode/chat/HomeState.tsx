@@ -67,7 +67,7 @@ export const HomeState = ({ firstName }: HomeStateProps) => {
           autoFocus
           disabled={false}
           onSend={(value) => actions.sendMessage(value)}
-          placeholder="Paste a paper, a video, a thread — or just describe it…"
+          placeholder="Paste a case file, a paper, a thread — or just describe it…"
           className="mt-7"
         />
 

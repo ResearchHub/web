@@ -1,8 +1,8 @@
 'use client';
 
 import { ProposalWorkCard } from '@/components/Funding/ProposalWorkCard';
-import { useAIMode } from '../lib/AIModeContext';
 import { getFeedEntries } from '../lib/proposals';
+import { NonNavigating } from './NonNavigating';
 
 interface ProposalsBlockProps {
   readonly postIds: number[];
@@ -11,11 +11,10 @@ interface ProposalsBlockProps {
 
 /**
  * Renders proposals with the production feed card rather than a bespoke one, fed
- * by fixture JSON run through the real `transformFeedEntry`. Navigating away
- * closes the overlay; the conversation is restored on reopen.
+ * by fixture JSON run through the real `transformFeedEntry`. The cards do not
+ * navigate: see `NonNavigating`.
  */
 export const ProposalsBlock = ({ postIds, heading }: ProposalsBlockProps) => {
-  const { actions } = useAIMode();
   const entries = getFeedEntries(postIds);
 
   if (entries.length === 0) return null;
@@ -29,7 +28,9 @@ export const ProposalsBlock = ({ postIds, heading }: ProposalsBlockProps) => {
       )}
       <div className="grid gap-4 min-[560px]:grid-cols-2">
         {entries.map((entry) => (
-          <ProposalWorkCard key={entry.id} entry={entry} onNavigate={actions.close} />
+          <NonNavigating key={entry.id}>
+            <ProposalWorkCard entry={entry} />
+          </NonNavigating>
         ))}
       </div>
     </div>

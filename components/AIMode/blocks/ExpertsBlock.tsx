@@ -9,9 +9,9 @@ interface ExpertsBlockProps {
 }
 
 /**
- * The first updates checkpoint: who the assistant recruited to review, before a
- * single proposal exists. It is the beat that shows the funder work happening on
- * his behalf while there is nothing yet to decide.
+ * The first updates checkpoint: who the assistant invited to submit a proposal,
+ * before a single proposal exists. It is the beat that shows the funder work
+ * happening on his behalf while there is nothing yet to decide.
  */
 export const ExpertsBlock = ({ heading }: ExpertsBlockProps) => {
   const accepted = INVITED_EXPERTS.filter((expert) => expert.accepted).length;
@@ -20,7 +20,7 @@ export const ExpertsBlock = ({ heading }: ExpertsBlockProps) => {
     <div className="mt-4 max-w-[620px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-3.5 py-2.5">
         <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-          {heading ?? 'Reviewers invited'}
+          {heading ?? 'Experts invited'}
         </span>
         <span className="text-xs text-gray-500">
           {accepted} of {INVITED_EXPERTS.length} accepted

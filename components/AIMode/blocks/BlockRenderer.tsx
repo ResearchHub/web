@@ -74,7 +74,7 @@ export const BlockRenderer = ({ block, animate, onDone, conversation }: BlockRen
     case 'allocations':
       return <AllocationsBlock guardrails={conversation.guardrails} />;
     case 'rfp_live':
-      return <RfpLiveBlock href={block.href} title={block.title} />;
+      return <RfpLiveBlock title={block.title} />;
     default:
       return null;
   }

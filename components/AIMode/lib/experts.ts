@@ -1,64 +1,105 @@
-import type { InvitedExpert } from './types';
+import type { InvitedExpert, Reviewer } from './types';
 
 /**
- * Reviewers the assistant recruited for the RFP.
+ * Experts the assistant invited to **submit a proposal**, one cluster per
+ * unresolved claim. This is the first updates checkpoint: outreach done on the
+ * funder's behalf while there is nothing yet to decide.
  *
- * These are ResearchHub's own editors and featured scientists, with the same
- * photos, names and affiliations the product already publishes on the journal
- * and globe surfaces. Two reasons for that: the images are local, so they always
- * load in a live demo — the reviewer avatars in the captured feed are Google
- * account URLs that do not — and nobody's identity or affiliation is invented.
+ * The four who accepted are the four principal investigators whose proposals
+ * arrive at the next checkpoint, and the one invited against VASO-C021 is the
+ * one who did not — which is why no proposal targets the memory claim and why
+ * the assistant reserves budget against it at the end of the run.
  *
- * What is scripted is the axis each was assigned and the review text, which is
- * the assistant's work in the story rather than a claim about these people.
+ * Representative, not real. Names are invented and the portraits are mock
+ * (`public/ai-mode/ATTRIBUTION.md`). Verify the names against a search before
+ * presenting: vasocomputation is a small field and a plausible-sounding
+ * invented researcher can turn out to exist.
  */
 export const INVITED_EXPERTS: InvitedExpert[] = [
   {
-    name: 'Suramya Asthana, PhD',
-    affiliation: 'Indian Institute of Science',
-    axis: 'Replication',
-    avatarUrl: '/people/suramya.jpeg',
+    name: 'Ines Halvorsen, PhD',
+    affiliation: 'Oslo University Hospital',
+    axis: 'VASO-C004 · Release imaging',
+    avatarUrl: '/ai-mode/halvorsen.jpg',
     accepted: true,
   },
   {
-    name: 'Xavier Pereira-Hernández, PhD',
-    affiliation: 'Washington State University',
-    axis: 'Materials analysis',
-    avatarUrl: '/people/xavier.jpeg',
+    name: 'Rafael Otieno-Mbeki, PhD',
+    affiliation: 'University of Cape Town',
+    axis: 'VASO-C020 · Vascular smooth muscle',
+    avatarUrl: '/ai-mode/otieno-mbeki.jpg',
     accepted: true,
   },
   {
-    name: 'Scott Nelson, PhD',
-    affiliation: 'Iowa State University',
-    axis: 'Historical feasibility',
-    avatarUrl: '/people/scott.jpeg',
+    name: 'Junko Aristov, PhD',
+    affiliation: 'Karolinska Institutet',
+    axis: 'VASO-C004 · Natural history',
+    avatarUrl: '/ai-mode/aristov.jpg',
     accepted: true,
   },
   {
-    name: 'Dominikus Brian',
-    affiliation: 'Shanghai Jiao Tong University',
-    axis: 'Materials analysis',
-    avatarUrl: '/people/dominikus_brian.jpeg',
+    name: 'Kalsang Norbu Rabten, PhD',
+    affiliation: 'Central University of Tibetan Studies',
+    axis: 'VASO-C022 · Contemplative anatomy',
+    avatarUrl: '/ai-mode/rabten.jpg',
     accepted: true,
   },
   {
-    name: 'Tibor V. Varga, PhD',
-    affiliation: 'University of Copenhagen',
-    axis: 'Replication',
-    avatarUrl: '/people/tibor.jpeg',
+    name: 'Priya Ramanathan-Boaz, PhD',
+    affiliation: 'Weizmann Institute of Science',
+    axis: 'VASO-C021 · Neurovascular coupling',
+    avatarUrl: '/ai-mode/ramanathan.jpg',
     accepted: false,
   },
   {
-    name: 'Ruslan Rust, PhD',
-    affiliation: 'University of Southern California',
-    axis: 'Historical feasibility',
-    avatarUrl: '/people/ruslan.jpeg',
+    name: 'Olumide Fashakin, MD',
+    affiliation: 'University of Ibadan',
+    axis: 'VASO-C004 · Rehabilitation trials',
+    avatarUrl: '/ai-mode/fashakin.jpg',
     accepted: false,
   },
 ];
 
-const EXPERTS_BY_NAME = new Map(INVITED_EXPERTS.map((expert) => [expert.name, expert]));
+/**
+ * Reviewers recruited to score the proposals — a separate roster from the
+ * experts invited to write them, since nobody should review against a claim
+ * they are competing for.
+ *
+ * Kirchmayr is here on purpose: she disputes the reliability of the
+ * trigger-point construct itself. An RFP on a contested question that only
+ * recruits reviewers who accept the premise cannot produce a usable score, and
+ * her 3 against the AI reviewer's 5 is the split the assistant surfaces rather
+ * than averages.
+ */
+export const PEER_REVIEWERS: Reviewer[] = [
+  {
+    name: 'Ilse Vandermeer, PhD',
+    affiliation: 'KU Leuven',
+    focus: 'Musculoskeletal imaging',
+    avatarUrl: '/ai-mode/vandermeer.jpg',
+  },
+  {
+    name: 'Hedda Kirchmayr, PhD',
+    affiliation: 'Medical University of Vienna',
+    focus: 'Pain medicine · methodological critique',
+    avatarUrl: '/ai-mode/kirchmayr.jpg',
+  },
+  {
+    name: 'Tomás Reñé Alcázar, MD, PhD',
+    affiliation: 'Universidad de Navarra',
+    focus: 'Vascular smooth-muscle physiology',
+    avatarUrl: '/ai-mode/alcazar.jpg',
+  },
+  {
+    name: 'Kunga Dorje Tsering, PhD',
+    affiliation: 'University of Vienna, Institute for South Asian, Tibetan and Buddhist Studies',
+    focus: 'Tibetan medical philology',
+    avatarUrl: '/ai-mode/tsering.jpg',
+  },
+];
 
-export const getExpert = (name: string): InvitedExpert | undefined => EXPERTS_BY_NAME.get(name);
+const REVIEWERS_BY_NAME = new Map(PEER_REVIEWERS.map((reviewer) => [reviewer.name, reviewer]));
+
+export const getReviewer = (name: string): Reviewer | undefined => REVIEWERS_BY_NAME.get(name);
 
 export const ACCEPTED_EXPERT_COUNT = INVITED_EXPERTS.filter((expert) => expert.accepted).length;

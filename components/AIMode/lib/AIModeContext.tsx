@@ -22,7 +22,12 @@ import {
 } from './script';
 import type { AIConversation, AIModeTrack, ChatMessage, GuardrailConfig } from './types';
 
-const STORAGE_KEY = 'researchhub:ai-mode:v1';
+/**
+ * Bump on any script change that would leave a persisted conversation
+ * mid-flight in a stage that no longer exists — otherwise a browser that ran an
+ * earlier version of the demo restores it and the run opens on the wrong topic.
+ */
+const STORAGE_KEY = 'researchhub:ai-mode:v2';
 
 /** Delay before the first drafted section lands, and the gap between sections. */
 const SECTION_REVEAL_DELAY_MS = 500;
@@ -90,7 +95,9 @@ export const AIModeProvider = ({ children }: { readonly children: ReactNode }) =
   const [isOpen, setIsOpen] = useState(false);
   const [conversations, setConversations] = useState<AIConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const [aiDelegationEnabled, setAiDelegationEnabled] = useState(false);
+  // On by default: this run is meant to show delegated disbursement, so the
+  // guardrails step should not be something the presenter has to switch on.
+  const [aiDelegationEnabled, setAiDelegationEnabled] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Scripted turns run on timers; they have to be cancellable so a reset or an
@@ -117,7 +124,7 @@ export const AIModeProvider = ({ children }: { readonly children: ReactNode }) =
     if (persisted) {
       setConversations(persisted.conversations);
       setActiveConversationId(persisted.activeConversationId);
-      setAiDelegationEnabled(persisted.aiDelegationEnabled ?? false);
+      setAiDelegationEnabled(persisted.aiDelegationEnabled ?? true);
     }
     setIsHydrated(true);
   }, []);

@@ -4,10 +4,10 @@ import { Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { ProposalWorkCard } from '@/components/Funding/ProposalWorkCard';
 import { cn } from '@/utils/styles';
-import { useAIMode } from '../lib/AIModeContext';
-import { getExpert } from '../lib/experts';
+import { getReviewer } from '../lib/experts';
 import { getFeedEntries, getProposal, rankProposals } from '../lib/proposals';
 import type { ProposalRecord } from '../lib/types';
+import { NonNavigating } from './NonNavigating';
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -30,10 +30,9 @@ interface ReviewProps {
 }
 
 const Review = ({ proposal }: ReviewProps) => {
-  const { actions } = useAIMode();
   const [entry] = getFeedEntries([proposal.postId]);
   const { peerReview } = proposal;
-  const reviewer = getExpert(peerReview.reviewerName);
+  const reviewer = getReviewer(peerReview.reviewerName);
 
   return (
     <div className="border-t border-gray-200 p-3.5 first:border-t-0">
@@ -47,7 +46,9 @@ const Review = ({ proposal }: ReviewProps) => {
             <ScoreStars score={peerReview.score} />
           </div>
           {reviewer && (
-            <div className="mt-0.5 truncate text-xs text-gray-500">{reviewer.affiliation}</div>
+            <div className="mt-0.5 truncate text-xs text-gray-500">
+              {reviewer.focus} · {reviewer.affiliation}
+            </div>
           )}
         </div>
       </div>
@@ -59,7 +60,9 @@ const Review = ({ proposal }: ReviewProps) => {
 
       {entry && (
         <div className="mt-3">
-          <ProposalWorkCard entry={entry} onNavigate={actions.close} />
+          <NonNavigating>
+            <ProposalWorkCard entry={entry} />
+          </NonNavigating>
         </div>
       )}
     </div>

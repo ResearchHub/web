@@ -45,6 +45,9 @@ const AllocationRow = ({ allocation, minReviewScore }: AllocationRowProps) => {
               </span>
             </div>
             <div className="mt-1 truncate text-xs text-gray-500">{proposal.shortTitle}</div>
+            <div className="mt-1 font-mono text-[11px] text-gray-400">
+              {proposal.claimId} · {proposal.studyId}
+            </div>
           </div>
           <div className="shrink-0 text-right">
             <div

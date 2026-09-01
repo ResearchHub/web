@@ -10,74 +10,93 @@ import type {
 } from './types';
 
 /**
- * The four real proposals submitted to grant 32. Review scores are the averages
- * shown on the proposal cards (`metrics.review_metrics`), so the assistant's
- * prose and the cards in the transcript can never disagree.
+ * The four proposals in the demo, one per unresolved claim except VASO-C004,
+ * which draws two. Nothing arrives for VASO-C021 — the memory claim — and that
+ * absence is load-bearing: it is what the assistant reserves the remaining
+ * budget against instead of spending the round down to zero.
+ *
+ * Review scores are the averages the cards display (`metrics.review_metrics`),
+ * so the assistant's prose and the cards can never disagree. Where a score is
+ * an average over a split — Aristov, at 4.0 across an AI review of 5 and a
+ * human review of 3 — the split is the point, not noise to be smoothed.
  */
 export const PROPOSALS: ProposalRecord[] = [
   {
-    postId: 32055,
-    shortTitle: 'Experimental replication, characterization and feasibility',
-    principalInvestigator: 'Narayanan Neithalath',
-    lastName: 'Neithalath',
+    postId: 41001,
+    shortTitle: 'Time-locked imaging of breath-assisted release',
+    principalInvestigator: 'Ines Halvorsen',
+    lastName: 'Halvorsen',
+    claimId: 'VASO-C004',
+    studyId: 'VASO-R001',
+    requestedUsd: 150_000,
+    reviewScore: 4.7,
+    reviewCount: 3,
+    rationale:
+      'The keystone. It is the only proposal that can settle the claim everything else in the case file is waiting on, it is the cheapest study in the round, and it is designed so that a null result is as publishable as a positive one.',
+    peerReview: {
+      reviewerName: 'Ilse Vandermeer, PhD',
+      score: 5,
+      heading: 'Adequacy of the controls against expectation',
+      body: 'This is the study the field has been missing, and the applicant has not cut the corner that would have made it cheap and worthless. The factorial arms are right — pressure with normal breathing, slow breathing without pressure, sham sites, and crucially the failed attempts, which most designs discard. Blinded site localization by two examiners with the analysis volume predefined removes the obvious objection. What raises this from good to fundable is the preregistered latch-specific ordering: perfusion rises before stiffness falls. That is a prediction the conventional guarding account does not make, so the two hypotheses are separable on this data rather than merely compared. My one request is that the probe load-cell calibration be reported per session rather than once, since drift over a long imaging block would smear exactly the seconds-scale window the study is built to resolve.',
+    },
+  },
+  {
+    postId: 41002,
+    shortTitle: 'Paired-caliber latch test with stimulus withdrawal',
+    principalInvestigator: 'Rafael Otieno-Mbeki',
+    lastName: 'Otieno-Mbeki',
+    claimId: 'VASO-C020',
+    studyId: 'VASO-R004',
+    requestedUsd: 240_000,
     reviewScore: 4.0,
     reviewCount: 3,
     rationale:
-      'The only proposal that commits to running the full protocol end to end across multiple input rock types, which is what turns a single successful batch into a reproducibility claim.',
+      'Attacks the mechanism claim where it is actually weak. The paired-caliber design answers the branch-order problem directly, and the stimulus-withdrawal phase distinguishes a cheap hold from a state that persists after its input stops — which is the only version of the latch a knot could be made of.',
     peerReview: {
-      reviewerName: 'Suramya Asthana, PhD',
+      reviewerName: 'Tomás Reñé Alcázar, MD, PhD',
       score: 4,
-      heading: 'Methodological rigor and reproducibility',
-      body: 'This is the most complete replication design of the submissions I have read. The applicant commits to the full two-stage protocol across four input lithologies with batch sizes varied by an order of magnitude, and — importantly — pre-registers a failure criterion, so a negative result is publishable rather than discarded. My one reservation is the curing environment: humidity is held constant where the original demonstration ran open to atmosphere, and that difference could plausibly account for a null. I would fund this and ask for an ambient-condition arm.',
+      heading: 'Vessel-class and caliber coverage',
+      body: 'The design is correctly aimed. Taking a feeding artery and successive arteriole orders from the same bed, cannulated and pressurized rather than held isometric, is the right response to a literature where latch behaviour was present in a parent vessel and absent one branch order downstream. The stimulus-withdrawal phase is the part I would protect if the budget were cut: economical force maintenance under continuing activation is a different finding, and conflating the two is how this hypothesis has stayed alive without evidence. Where the proposal is thinner is energetics. It measures phosphorylation and diameter but no contemporaneous oxygen consumption or ATP turnover, and the cheap-hold argument has never been measured in any arteriole of any bed. This study could close that gap and chooses not to. I would fund it and ask for an energetic arm.',
     },
   },
   {
-    postId: 32220,
-    shortTitle: "Validation of Fóti's protocol and historical feasibility",
-    principalInvestigator: 'Ange Therese Akono',
-    lastName: 'Akono',
+    postId: 41003,
+    shortTitle: 'The knot census',
+    principalInvestigator: 'Junko Aristov',
+    lastName: 'Aristov',
+    claimId: 'VASO-C004',
+    studyId: 'VASO-R002',
+    requestedUsd: 265_000,
     reviewScore: 4.0,
     reviewCount: 2,
     rationale:
-      'Pairs mechanical characterization with the pre-industrial feasibility question, which no other proposal treats as an experiment rather than an argument.',
+      'Infrastructure rather than a verdict. It produces the two curves the field lacks and, more usefully for this program, the localization protocol every other study on this claim has to borrow.',
     peerReview: {
-      reviewerName: 'Scott Nelson, PhD',
-      score: 4,
-      heading: 'Treatment of the historical feasibility question',
-      body: 'This is the only proposal that treats historical feasibility as an experiment rather than an argument. Sourcing the alkali from locally available plant ash and mineral deposits, then attempting the synthesis with pre-industrial vessels and fuel, is exactly the test the hypothesis has never been subjected to. The mechanical characterization plan is strong and the comparison samples are properly documented. My one condition is that sampling permits be confirmed before funds are released, since the timeline assumes access that has not been granted yet.',
+      reviewerName: 'Hedda Kirchmayr, PhD',
+      score: 3,
+      heading: 'Reliability of the observational base',
+      body: 'I score this lower than the AI reviewer did, and the disagreement is substantive rather than a matter of taste. The census presupposes that trained examiners can agree on where a tender point is. Systematic reviews report that they cannot, and there is no validated reference standard for what one is — which means a burden-versus-age curve built on blinded palpation may be measuring examiner behaviour with age-related expectations rather than tissue. The proposal treats this as a training problem and allocates two weeks to calibration. It is not a training problem; it is the construct problem, and it is the reason the observational base of this whole case is contested. What would move me to a 4 is small: lock the inter-examiner reliability substudy as a gate before the main cohort opens, with a prespecified kappa below which the study reports a null on reliability and stops. That is a cheap amendment and it would make the census informative in either direction. As written it risks producing an atlas that nobody outside this program will accept.',
     },
   },
   {
-    postId: 32125,
-    shortTitle: 'Controlled study of low-temperature alkali silicate synthesis',
-    principalInvestigator: 'Michel Barsoum',
-    lastName: 'Barsoum',
-    reviewScore: 3.5,
-    reviewCount: 2,
-    rationale:
-      'Comes from the group with the longest published record on geopolymer signatures in ancient stone, and proposes the tightest controls on the binder chemistry itself.',
-    peerReview: {
-      reviewerName: 'Xavier Pereira-Hernández, PhD',
-      score: 4,
-      heading: 'Analytical approach and controls',
-      body: 'The binder chemistry work here is the tightest of the four. Tracking the eutectic through the dissolution stage with in-situ spectroscopy, rather than characterizing only the cured product, is the right call and will tell us what actually forms. Where the proposal is thinner is scope: it stops at the binder and does not carry through to mechanical properties of the cast stone, so on its own it cannot settle whether the product resembles the megalithic material. Strong and worth funding, but it needs a companion study.',
-    },
-  },
-  {
-    postId: 32249,
-    shortTitle: 'Is it really a geopolymer?',
-    principalInvestigator: 'Waltraud M. Kriven',
-    lastName: 'Kriven',
+    postId: 41004,
+    shortTitle: 'Preregistered coding of the contemplative knot maps',
+    principalInvestigator: 'Kalsang Norbu Rabten',
+    lastName: 'Rabten',
+    claimId: 'VASO-C022',
+    studyId: 'VASO-R006',
+    requestedUsd: 70_000,
     reviewScore: 3.0,
     reviewCount: 1,
     rationale:
-      'Attacks the framing question directly — whether the product is a geopolymer at all — with the strongest analytical toolkit of the four.',
-    holdNote: 'Only one review on file, so this is thin evidence rather than bad evidence.',
+      'Cheap, decisive for its own claim, and publishable either way — it either elevates the traditional maps to admissible documents or retires the convergence argument as pattern-matching.',
+    holdNote:
+      "One review on file, and the reviewer's objection is to the corpus design rather than to the applicant — thin evidence rather than bad evidence.",
     peerReview: {
-      reviewerName: 'Dominikus Brian',
+      reviewerName: 'Kunga Dorje Tsering, PhD',
       score: 3,
-      heading: 'Framing and feasibility of the proposed work',
-      body: 'The central question — whether the product is a geopolymer at all, or a lime-silicate with a different setting mechanism — is the right one to ask, and the analytical toolkit proposed is the strongest of the submissions. My hesitation is entirely about execution: the timeline allocates six weeks to sample preparation that I would expect to take twice that, and no contingency is described. I score this cautiously rather than negatively. A revised timeline would move my assessment up.',
+      heading: 'Corpus selection and coding before inspection',
+      body: 'The blinding order is correct and it is the whole ballgame: coding traditional locations into a common coordinate system before any modern map is inspected is what separates first-person cartography from post-hoc resemblance, and the applicant clearly understands this. My reservation is that the three corpora are being treated as one object. The rtsa mdud of Tibetan tantric physiology are positions in a system of channels and winds with soteriological function; the ashi points of seventh-century Chinese medicine are, by their own name, wherever the patient cries out. Those are different epistemic kinds, and pooling them into a single coordinate set before testing means a chance alignment driven by the ashi corpus — which is defined by tenderness and so is nearly guaranteed to sit where tender points are — would be reported as convergence for the tantric maps. Code and test them separately, with the pooled analysis as a secondary, and I would score this a 4.',
     },
   },
 ];
@@ -89,31 +108,6 @@ export const getProposal = (postId: number) => PROPOSALS_BY_ID.get(postId);
 const RAW_ENTRIES = proposalFeedFixture.results as unknown as RawApiFeedEntry[];
 
 /**
- * Three of the captured proposals finished crowdfunding months ago, but in the
- * demo the RFP has only just gone live: a green "Funded" badge on a proposal the
- * assistant is describing as unfunded and mid-review reads as a bug. Reopening
- * the fundraise with nothing raised puts the cards back in the state the
- * transcript claims they're in.
- */
-const asStillFundraising = (raw: RawApiFeedEntry): RawApiFeedEntry => {
-  const fundraise = raw.content_object?.fundraise;
-  if (!fundraise) return raw;
-
-  return {
-    ...raw,
-    content_object: {
-      ...raw.content_object,
-      fundraise: {
-        ...fundraise,
-        status: 'OPEN',
-        amount_raised: { usd: 0, rsc: 0 },
-        contributors: { total: 0, top: [] },
-      },
-    },
-  };
-};
-
-/**
  * Feed entries for the fixture, built through the same transformer the real feed
  * uses so the production proposal card consumes them unmodified. Failures are
  * swallowed per entry, matching `FeedService.getFeed`, so a shape change
@@ -121,7 +115,7 @@ const asStillFundraising = (raw: RawApiFeedEntry): RawApiFeedEntry => {
  */
 const FEED_ENTRIES: FeedEntry[] = RAW_ENTRIES.map((raw) => {
   try {
-    return transformFeedEntry(asStillFundraising(raw));
+    return transformFeedEntry(raw);
   } catch (error) {
     console.error('AI Mode: failed to transform proposal fixture entry', error);
     return null;
@@ -151,11 +145,10 @@ const toReviewer = (author: RawAuthor | undefined): ProposalReviewer => ({
 });
 
 /**
- * Reviewer faces come off the captured reviews, but the count the card displays
- * is `review_metrics.count`, which is smaller — it excludes reviews that never
- * scored. Truncating to that count keeps the avatars and the stated number in
- * agreement, and floating the AI reviewer to the front keeps it visible, since
- * mixed AI and human review is the part of the pipeline the demo is about.
+ * Reviewer faces come off the fixture's review list, truncated to the count the
+ * card displays so the avatars and the stated number agree. The AI reviewer
+ * floats to the front deliberately: mixed AI and human review, labeled as such,
+ * is the part of the pipeline the demo is about.
  */
 const buildReviewers = (raw: RawApiFeedEntry, limit: number): ProposalReviewer[] => {
   const reviews: { author?: RawAuthor }[] = raw.content_object?.reviews ?? [];
@@ -197,9 +190,9 @@ export const rankProposals = (records: ProposalRecord[]): ProposalRecord[] =>
 
 /**
  * Turns the guardrail policy into the actual disbursement. Eligible proposals
- * are funded strongest-first, each taking the smaller of the per-proposal cap
- * and whatever budget remains — so every control in the guardrails step moves a
- * real number in the allocation summary.
+ * are funded strongest-first at what they asked for, capped by the per-proposal
+ * limit, and only if the whole award still fits in the remaining budget — a
+ * part-funded protocol is not a smaller version of the same experiment.
  */
 export const computeAllocations = (guardrails: GuardrailConfig): AllocationOutcome => {
   const ranked = rankProposals(PROPOSALS);
@@ -208,7 +201,9 @@ export const computeAllocations = (guardrails: GuardrailConfig): AllocationOutco
 
   const allocations: Allocation[] = ranked.map((proposal) => {
     const clearsBar = proposal.reviewScore >= guardrails.minReviewScore;
-    const amountUsd = clearsBar ? Math.min(guardrails.maxPerProposalUsd, remaining) : 0;
+    const award = Math.min(proposal.requestedUsd, guardrails.maxPerProposalUsd);
+    const fits = award <= remaining;
+    const amountUsd = clearsBar && fits ? award : 0;
 
     if (amountUsd > 0) {
       remaining -= amountUsd;
