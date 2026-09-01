@@ -112,7 +112,7 @@ export interface NotePreregistrationSettingsDraft {
   goalCurrency?: Currency | '';
   durationDays?: number;
   isPublic?: boolean | null;
-  nonprofitId?: ID;
+  nonprofitId?: Exclude<ID, undefined>;
 }
 
 /** The Details a notebook draft autosaves to `PATCH /api/note/{id}/`. */
@@ -122,7 +122,7 @@ export interface NoteDetailsDraft {
   previewImage?: string | null;
   authorIds?: number[];
   hubIds?: number[];
-  selectedGrantId?: ID;
+  selectedGrantId?: Exclude<ID, undefined>;
   grantSettings?: NoteGrantSettingsDraft;
   preregistrationSettings?: NotePreregistrationSettingsDraft;
 }
