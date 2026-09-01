@@ -59,7 +59,7 @@ export interface NoteGrantSettings {
   amount: string | null;
   organization: string | null;
   description: string | null;
-  applicationVisibility: GrantApplicationVisibility | null;
+  applicationVisibility: GrantApplicationVisibility | '' | null;
   contacts: Contact[];
 }
 
@@ -98,10 +98,10 @@ export interface Note {
 /** The grant fields a notebook draft autosaves. Any other work type answers 400. */
 export interface NoteGrantSettingsDraft {
   amount?: string;
-  currency?: Currency;
+  currency?: Currency | '';
   organization?: string;
   description?: string;
-  applicationVisibility?: GrantApplicationVisibility;
+  applicationVisibility?: GrantApplicationVisibility | '';
   /** User ids, not author profile ids. */
   contactIds?: number[];
 }
@@ -109,7 +109,7 @@ export interface NoteGrantSettingsDraft {
 /** The preregistration fields a notebook draft autosaves. Any other work type answers 400. */
 export interface NotePreregistrationSettingsDraft {
   goalAmount?: string;
-  goalCurrency?: Currency;
+  goalCurrency?: Currency | '';
   durationDays?: number;
   isPublic?: boolean | null;
   nonprofitId?: ID;
@@ -286,7 +286,7 @@ const transformNoteGrantSettings = createTransformer<any, NoteGrantSettings>((ra
   amount: raw.amount ?? null,
   organization: raw.organization ?? null,
   description: raw.description ?? null,
-  applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? null,
+  applicationVisibility: (raw.application_visibility as GrantApplicationVisibility | '') ?? null,
   contacts: Array.isArray(raw.contacts)
     ? raw.contacts.map((contact: any) => transformNoteGrantContact(contact))
     : [],
