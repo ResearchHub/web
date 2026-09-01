@@ -127,6 +127,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
       data-entry-id={latestEntryId}
       // Absorbed members keep an anchor here so scroll restoration can find them.
       data-entry-ids={entries.map((entry) => String(entry.id)).join(' ')}
+      data-testid="activity-card"
     >
       <div className="flex items-start gap-2.5">
         <div className="flex-shrink-0 pt-0.5">
