@@ -33,6 +33,22 @@ jobs:
           node-version: 20
           cache: npm
 
+      # .npmrc is gitignored because it carries registry credentials, so the
+      # runner has to build its own. Both private registries are needed: Tiptap
+      # Pro and FontAwesome Pro packages are dependencies of the app.
+      - name: Configure private registries
+        env:
+          TIPTAP_TOKEN: ${{ secrets.TIPTAP_PRO_TOKEN }}
+          FONTAWESOME_TOKEN: ${{ secrets.FONTAWESOME_TOKEN }}
+        run: |
+          cat > .npmrc <<EOF
+          @tiptap-pro:registry=https://registry.tiptap.dev/
+          //registry.tiptap.dev/:_authToken=${TIPTAP_TOKEN}
+          @awesome.me:registry=https://npm.fontawesome.com/
+          @fortawesome:registry=https://npm.fontawesome.com/
+          //npm.fontawesome.com/:_authToken=${FONTAWESOME_TOKEN}
+          EOF
+
       - name: Install dependencies
         run: npm ci
 
