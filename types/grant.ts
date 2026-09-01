@@ -40,6 +40,25 @@ export interface GrantAmount {
   formatted: string;
 }
 
+/** The Request for Proposal a notebook draft is answering, as its card draws it. */
+export interface SelectedGrantData {
+  id: string;
+  shortTitle: string;
+  imageUrl: string;
+  fundingAmount: number;
+  organization: string;
+  applicationVisibility?: GrantApplicationVisibility;
+}
+
+export const transformSelectedGrant = createTransformer<any, SelectedGrantData>((raw) => ({
+  id: raw.id.toString(),
+  shortTitle: raw.short_title || '',
+  imageUrl: raw.image_url || '',
+  fundingAmount: raw.amount?.usd ?? 0,
+  organization: raw.organization || '',
+  applicationVisibility: raw.application_visibility,
+}));
+
 export interface Grant {
   id: ID;
   createdBy: {

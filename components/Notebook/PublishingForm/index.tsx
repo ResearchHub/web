@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
-import type { PublishingFormData } from './schema';
+import type { PublishingFormData, SelectOption } from './schema';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -29,12 +29,6 @@ import {
 import { ResearchCoinSection } from './components/ResearchCoinSection';
 import { EndDateSection } from './components/EndDateSection';
 import { toast } from 'react-hot-toast';
-import {
-  loadPublishingFormFromStorage,
-  savePublishingFormToStorage,
-  getPendingGrant,
-  clearPendingGrant,
-} from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
@@ -49,7 +43,15 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
-import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import {
+  isChangelogNote,
+  isRegisteredReportNote,
+  type NoteDetailsUpdate,
+  type NoteWithContent,
+} from '@/types/note';
+import type { NonprofitOrg } from '@/types/nonprofit';
+import { NonprofitService } from '@/services/nonprofit.service';
+import { useNoteDetailsSaver, type NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -183,50 +185,147 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
   }
 };
 
-const populateRegisteredReportFields = (
+const mapOptionsToIds = (options: SelectOption[]): number[] =>
+  options.map((option) => Number(option.value)).filter((id) => !Number.isNaN(id));
+
+/** Both amount inputs accept digits only, so a saved `5000.00` reads back as `5000`. */
+const dropZeroCents = (amount: string): string => amount.replace(/\.0+$/, '');
+
+/** Loads the Details this draft has already saved on the server. */
+const populateNoteDetails = (note: NoteWithContent, setValue: (name: any, value: any) => void) => {
+  if (note.topics?.length) {
+    setValue(
+      'topics',
+      note.topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
+    );
+  }
+  if (note.authors?.length) {
+    setValue(
+      'authors',
+      note.authors.map((author) => ({ value: author.authorId.toString(), label: author.name }))
+    );
+  }
+  if (note.selectedGrant) {
+    setValue('selectedGrant', note.selectedGrant);
+  }
+
+  const { grantSettings, preregistrationSettings } = note;
+  if (grantSettings) {
+    if (grantSettings.amount) setValue('budget', dropZeroCents(grantSettings.amount));
+    if (grantSettings.organization) setValue('organization', grantSettings.organization);
+    if (grantSettings.description) setValue('shortDescription', grantSettings.description);
+    if (grantSettings.applicationVisibility) {
+      setValue('applicationVisibility', grantSettings.applicationVisibility);
+    }
+    if (grantSettings.contacts.length > 0) {
+      setValue(
+        'contacts',
+        grantSettings.contacts.map((contact) => ({
+          value: contact.id.toString(),
+          label: contact.name,
+        }))
+      );
+    }
+  }
+  if (preregistrationSettings) {
+    const { goalAmount, durationDays, isPublic, nonprofit } = preregistrationSettings;
+    if (goalAmount) setValue('budget', dropZeroCents(goalAmount));
+    if (durationDays) setValue('fundraiseEndDays', durationDays.toString());
+    if (isPublic !== null) setValue('isPublic', isPublic);
+    if (nonprofit) setValue('selectedNonprofit', nonprofit);
+  }
+};
+
+/** Fills the gaps a Registered Report's proposal covers, which are ids without labels. */
+const populateRegisteredReportPrefill = (
   note: NoteWithContent,
   getValues: (name: any) => any,
   setValue: (name: any, value: any) => void
 ) => {
-  const topics = note.topics ?? [];
-  const authors = note.authors ?? [];
-  const topicOptions =
-    topics.length > 0
-      ? topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
-      : (note.registeredReportPrefill?.topicIds ?? []).map((id) => ({
-          value: id.toString(),
-          label: `Topic ${id}`,
-        }));
-  const authorOptions =
-    authors.length > 0
-      ? authors.map((author) => ({
-          value: author.authorId.toString(),
-          label: author.name,
-        }))
-      : (note.registeredReportPrefill?.authorIds ?? []).map((id) => ({
-          value: id.toString(),
-          label: `Author ${id}`,
-        }));
+  const { topicIds = [], authorIds = [] } = note.registeredReportPrefill ?? {};
 
   if (note.previewImage && !getValues('coverImage')) {
     setValue('coverImage', { file: null, url: note.previewImage });
   }
 
-  if (topicOptions.length > 0 && getValues('topics').length === 0) {
-    setValue('topics', topicOptions);
+  if (topicIds.length > 0 && getValues('topics').length === 0) {
+    setValue(
+      'topics',
+      topicIds.map((id) => ({ value: id.toString(), label: `Topic ${id}` }))
+    );
   }
 
-  if (authorOptions.length > 0 && getValues('authors').length === 0) {
-    setValue('authors', authorOptions);
+  if (authorIds.length > 0 && getValues('authors').length === 0) {
+    setValue(
+      'authors',
+      authorIds.map((id) => ({ value: id.toString(), label: `Author ${id}` }))
+    );
   }
 };
 
-const restoreFromStorage = (
-  data: Record<string, any>,
-  setValue: (name: any, value: any) => void
+/** Maps one changed Details field to the update that saves it on the note. */
+const buildDetailsUpdate = (
+  field: string,
+  values: PublishingFormData
+): NoteDetailsUpdate | null => {
+  const isGrant = values.articleType === 'grant';
+  const isProposal = values.articleType === 'preregistration';
+
+  switch (field) {
+    case 'articleType':
+      return { documentType: ARTICLE_TYPE_API_MAP[values.articleType] };
+    case 'authors':
+      return { authorIds: mapOptionsToIds(values.authors) };
+    case 'topics':
+      return { hubIds: mapOptionsToIds(values.topics) };
+    case 'contacts':
+      return isGrant ? { grantSettings: { contactIds: mapOptionsToIds(values.contacts) } } : null;
+    case 'organization':
+      return isGrant ? { grantSettings: { organization: values.organization } } : null;
+    case 'shortDescription':
+      return isGrant ? { grantSettings: { description: values.shortDescription } } : null;
+    case 'applicationVisibility':
+      return isGrant
+        ? { grantSettings: { applicationVisibility: values.applicationVisibility } }
+        : null;
+    case 'fundraiseEndDays':
+      return isProposal
+        ? { preregistrationSettings: { durationDays: Number(values.fundraiseEndDays) } }
+        : null;
+    case 'isPublic':
+      return isProposal ? { preregistrationSettings: { isPublic: values.isPublic } } : null;
+    case 'budget':
+      // An empty box is a half-typed amount, not a decision to clear the saved one.
+      if (!values.budget) return null;
+      if (isGrant) return { grantSettings: { amount: values.budget, currency: 'USD' } };
+      return isProposal
+        ? { preregistrationSettings: { goalAmount: values.budget, goalCurrency: 'USD' } }
+        : null;
+    default:
+      return null;
+  }
+};
+
+/** Saves the nonprofit under the id the Note API stores, not its Endaoment one. */
+const saveSelectedNonprofit = async (
+  nonprofit: NonprofitOrg | null,
+  saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon']
 ) => {
-  for (const [key, value] of Object.entries(data)) {
-    setValue(key, key === 'applicationDeadline' && value ? new Date(value) : value);
+  if (!nonprofit) {
+    saveDetailsSoon({ preregistrationSettings: { nonprofitId: null } });
+    return;
+  }
+
+  try {
+    const saved = await NonprofitService.createNonprofit({
+      name: nonprofit.name,
+      endaomentOrgId: nonprofit.endaomentOrgId,
+      ein: nonprofit.ein,
+      baseWalletAddress: nonprofit.baseWalletAddress,
+    });
+    saveDetailsSoon({ preregistrationSettings: { nonprofitId: saved.id } });
+  } catch (error) {
+    console.error('Error saving selected nonprofit:', error);
   }
 };
 
@@ -301,6 +400,8 @@ export function PublishingForm({
   });
 
   const noteId = note?.id;
+  const isPublished = Boolean(note?.post);
+  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId);
 
   useEffect(() => {
     if (!note) return;
@@ -311,17 +412,13 @@ export function PublishingForm({
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
     } else {
-      const storedData = loadPublishingFormFromStorage(note.id.toString());
-      if (storedData) {
-        restoreFromStorage(storedData, methods.setValue);
-      }
+      populateNoteDetails(note, methods.setValue);
 
       if (isRegisteredReport) {
-        populateRegisteredReportFields(note, methods.getValues, methods.setValue);
+        populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);
       }
 
       const articleType =
-        storedData?.articleType ??
         (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
         resolveArticleType(searchParams);
 
@@ -337,31 +434,33 @@ export function PublishingForm({
     applyGrantDefaults(methods.getValues, methods.setValue);
     autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
 
-    const pending = getPendingGrant();
-    if (pending) {
-      methods.setValue('selectedGrant', pending);
-      if (pending.applicationVisibility === 'PRIVATE') {
-        methods.setValue('isPublic', false);
-      }
-      clearPendingGrant();
+    // A proposal answering a private Request for Proposal cannot be public.
+    if (methods.getValues('selectedGrant')?.applicationVisibility === 'PRIVATE') {
+      methods.setValue('isPublic', false);
     }
-
-    savePublishingFormToStorage(
-      note.id.toString(),
-      methods.getValues() as Partial<PublishingFormData>
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId]);
 
+  // Declared after the effect above so React unsubscribes before it hydrates,
+  // which is what keeps loading a note from saving it straight back.
   useEffect(() => {
-    if (!noteId) return;
+    if (!noteId || isPublished) return;
 
-    const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+    const subscription = methods.watch((_values, { name }) => {
+      if (!name) return;
+
+      const values = methods.getValues();
+      if (name === 'selectedNonprofit') {
+        void saveSelectedNonprofit(values.selectedNonprofit, saveDetailsSoon);
+        return;
+      }
+
+      const update = buildDetailsUpdate(name, values);
+      if (update) saveDetailsSoon(update);
     });
 
     return () => subscription.unsubscribe();
-  }, [noteId, methods]);
+  }, [noteId, isPublished, methods, saveDetailsSoon]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -511,6 +610,10 @@ export function PublishingForm({
     try {
       setDocumentTitle(editor, editedTitle);
 
+      // Drain the queue now: publishing supersedes the draft, and the API
+      // rejects Details on a published note.
+      await saveDetailsNow();
+
       const text = editor?.getText();
       const json = editor?.getJSON() ?? { type: 'doc', content: [] };
       const html = editor?.getHTML();
@@ -565,14 +668,8 @@ export function PublishingForm({
           fullSrc: html || '',
           assignDOI: !formData.workId,
           topics: formData.topics.map((topic) => topic.value),
-          authors: formData.authors
-            .map((author) => author.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
-          contacts: formData.contacts
-            .map((contact) => contact.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
+          authors: mapOptionsToIds(formData.authors),
+          contacts: mapOptionsToIds(formData.contacts),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
           previewImg:

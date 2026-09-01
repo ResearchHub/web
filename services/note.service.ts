@@ -1,6 +1,17 @@
 import { ApiClient } from './client';
-import { transformNote, transformNoteContent, transformNoteWithContent } from '@/types/note';
-import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
+import {
+  buildNoteDetailsPayload,
+  transformNote,
+  transformNoteContent,
+  transformNoteWithContent,
+} from '@/types/note';
+import type {
+  Note,
+  NoteAccess,
+  NoteContent,
+  NoteDetailsUpdate,
+  NoteWithContent,
+} from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
 import { extractApiErrorMessage } from './lib/serviceUtils';
@@ -41,8 +52,8 @@ export interface UpdateNoteContentParams {
 export interface UpdateNoteParams {
   noteId: ID;
   title?: string;
-  document_type?: string;
-  selectedGrantId: ID;
+  selectedGrantId?: ID;
+  details?: NoteDetailsUpdate;
 }
 
 export interface UpdateNoteTitleParams {
@@ -285,10 +296,11 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, selectedGrantId, ...fields } = params;
+    const { noteId, selectedGrantId, details, ...fields } = params;
     const payload = {
       ...fields,
       ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
+      ...(details && buildNoteDetailsPayload(details)),
     };
 
     try {

@@ -12,9 +12,8 @@ import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
 import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
-import type { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { formatCompactAmount } from '@/utils/currency';
-import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
+import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantData } from '@/types/grant';
 import { NoteService } from '@/services/note.service';
 
 interface FundingSectionProps {
