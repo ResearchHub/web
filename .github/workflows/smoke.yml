@@ -1,13 +1,13 @@
 name: Smoke Tests
 
 on:
-  # Vercel reports a GitHub deployment for every preview build. Triggering on
-  # its status means we run once the preview URL is actually live, rather than
-  # racing the build the way `pull_request` would.
-  deployment_status:
+  # Runs on every pull request. Unlike deployment_status or repository_dispatch,
+  # this trigger works from a feature branch, so it takes effect without being
+  # merged to the default branch first.
+  pull_request:
 
-  # Manual runs against any environment. Only selectable once this file is on
-  # the default branch.
+  # Manual runs against any environment. GitHub only surfaces this once the
+  # file is on the default branch, so it becomes available after merging.
   workflow_dispatch:
     inputs:
       base_url:
@@ -15,19 +15,11 @@ on:
         required: true
 
 concurrency:
-  group: smoke-${{ github.event.deployment_status.target_url || inputs.base_url }}
+  group: smoke-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   smoke:
-    # deployment_status fires for every state transition, so ignore everything
-    # that is not a live deployment. Previews only - drop the environment check
-    # to also smoke production after a release.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.deployment_status.state == 'success' &&
-       github.event.deployment_status.environment != 'Production')
-
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -49,7 +41,12 @@ jobs:
 
       - name: Run smoke tests
         env:
-          SMOKE_BASE_URL: ${{ github.event.deployment_status.target_url || inputs.base_url }}
+          # A manual run takes the URL from its input; a pull request falls back
+          # to the shared environment in the SMOKE_BASE_URL repository variable.
+          # To test each PR against its own Vercel preview instead, switch to
+          # Vercel's repository_dispatch event and read client_payload.url -
+          # that only works once this file is on the default branch.
+          SMOKE_BASE_URL: ${{ inputs.base_url || vars.SMOKE_BASE_URL }}
           SMOKE_USER_EMAIL: ${{ secrets.SMOKE_USER_EMAIL }}
           SMOKE_USER_PASSWORD: ${{ secrets.SMOKE_USER_PASSWORD }}
         run: npm run test:smoke
