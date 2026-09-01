@@ -64,7 +64,7 @@ export interface Note {
 /** The shared Details a notebook draft autosaves to `PATCH /api/note/{id}/`. */
 export interface NoteDetailsDraft {
   title?: string;
-  image?: string | null;
+  image?: string;
   previewImage?: string | null;
   authorIds?: number[];
   hubIds?: number[];
@@ -80,7 +80,7 @@ const NOTE_DETAILS_PAYLOAD_KEYS: Record<keyof NoteDetailsDraft, string> = {
 
 /**
  * Only the keys the draft actually carries, because the route reads an absent
- * key as "leave this alone" and an explicit null as "clear it".
+ * key as "leave this alone". Each field's draft type defines its clear value.
  */
 export const buildNoteDetailsPayload = (draft: NoteDetailsDraft): Record<string, unknown> =>
   Object.fromEntries(
