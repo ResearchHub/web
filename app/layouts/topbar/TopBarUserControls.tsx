@@ -164,6 +164,7 @@ export const TopBarUserControls = ({
                 size="md"
                 onClick={onAuth}
                 className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                data-testid="topbar-login-button"
               >
                 Log in
               </Button>

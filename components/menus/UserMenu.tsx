@@ -88,6 +88,7 @@ export default function UserMenu({
   const avatarButton = (
     <button
       className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative"
+      data-testid="user-menu-button"
       onClick={() => setMenuOpenState(true)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
