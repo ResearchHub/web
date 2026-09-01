@@ -10,11 +10,16 @@ export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 interface UseActivityFeedOptions {
   scope?: ActivityScope;
   grantId?: number | string;
-
+  disableCache?: boolean;
   enabled?: boolean;
 }
 
-export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityFeedOptions = {}) {
+export function useActivityFeed({
+  scope,
+  grantId,
+  disableCache = false,
+  enabled = true,
+}: UseActivityFeedOptions = {}) {
   const restorationTab = useMemo(() => {
     const parts = ['activity'];
     if (grantId != null) parts.push(`grant-${grantId}`);
@@ -54,6 +59,7 @@ export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityF
         page: 1,
         scope,
         grantId,
+        disableCache,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -63,7 +69,7 @@ export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityF
     } finally {
       setIsLoading(false);
     }
-  }, [scope, grantId]);
+  }, [scope, grantId, disableCache]);
 
   useEffect(() => {
     if (enabled === false) return;
@@ -85,6 +91,7 @@ export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityF
         page: nextPage,
         scope,
         grantId,
+        disableCache,
       });
       setEntries((prev) => {
         const next = [...prev, ...result.entries];
@@ -99,7 +106,7 @@ export function useActivityFeed({ scope, grantId, enabled = true }: UseActivityF
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore, scope, grantId]);
+  }, [isLoading, isLoadingMore, hasMore, scope, grantId, disableCache]);
 
   return {
     entries,
