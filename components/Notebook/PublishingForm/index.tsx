@@ -275,6 +275,7 @@ const buildChangedPreregistrationSettings = (
 ): NotePreregistrationSettingsDraft | null => {
   switch (field) {
     case 'budget': {
+      if (!values.budget) return { goalAmount: null };
       const goalAmount = readDraftAmount(values.budget);
       return goalAmount === null ? null : { goalAmount, goalCurrency: FUNDING_CURRENCY };
     }

@@ -108,7 +108,7 @@ export interface NoteGrantSettingsDraft {
 
 /** The preregistration fields a notebook draft autosaves. Any other work type answers 400. */
 export interface NotePreregistrationSettingsDraft {
-  goalAmount?: string;
+  goalAmount?: string | null;
   goalCurrency?: Currency | '';
   durationDays?: number;
   isPublic?: boolean | null;
