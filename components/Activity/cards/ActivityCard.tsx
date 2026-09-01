@@ -55,6 +55,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
         !hideEntryDivider && 'border-b border-gray-100 last:border-b-0'
       )}
       data-entry-id={entryId}
+      data-testid="activity-card"
     >
       <div className="flex gap-2.5">
         <div className="flex w-8 flex-shrink-0 flex-col items-center">

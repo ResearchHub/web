@@ -57,6 +57,7 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
       data-entry-id={latestEntryId}
       // Absorbed members keep an anchor here so scroll restoration can find them.
       data-entry-ids={entries.map((entry) => String(entry.id)).join(' ')}
+      data-testid="activity-card"
     >
       <div className="flex gap-2.5">
         <div className="flex w-8 flex-shrink-0 flex-col items-center">
