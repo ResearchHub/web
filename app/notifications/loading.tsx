@@ -3,7 +3,7 @@ import { NotificationSkeletonList } from '@/components/skeletons/NotificationSke
 
 export default function NotificationsLoading() {
   return (
-    <PageLayout contentWidth="narrow">
+    <PageLayout contentWidth="narrow" className="lg:mt-4">
       <h1 className="sr-only">Notifications</h1>
       <NotificationSkeletonList />
     </PageLayout>

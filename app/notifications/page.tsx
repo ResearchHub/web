@@ -39,7 +39,7 @@ export default function NotificationsPage() {
   });
 
   return (
-    <PageLayout rightSidebar={true} contentWidth="narrow">
+    <PageLayout rightSidebar={true} contentWidth="narrow" className="lg:mt-4">
       <h1 className="sr-only">Notifications</h1>
       <NotificationList notifications={notificationData.results} loading={loading} error={error} />
 
