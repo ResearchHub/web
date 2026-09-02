@@ -240,6 +240,7 @@ export default function Login({
             onClick={onForgotPassword}
             disabled={isLoading}
             className="text-rhBlue-500 hover:text-rhBlue-600 text-sm"
+            data-testid="auth-forgot-password"
           >
             Forgot your password?
           </Button>

@@ -157,6 +157,7 @@ function CoverImageControl({
       )}
 
       <input
+        data-testid="cover-image-input"
         ref={inputRef}
         type="file"
         accept={ACCEPT.join(',')}

@@ -222,6 +222,7 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
         <>
           <div>
             <Input
+              data-testid="funding-goal-input"
               {...register('budget')}
               label="Funding Goal"
               required

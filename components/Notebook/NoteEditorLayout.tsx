@@ -336,6 +336,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
               <div className="flex items-center gap-2">
                 {activeTab === 'document' && (
                   <Button
+                    data-testid="notebook-add-details"
                     variant="outlined"
                     size="sm"
                     onClick={() => setActiveTab('details')}

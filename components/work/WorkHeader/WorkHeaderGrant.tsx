@@ -70,6 +70,7 @@ export function WorkHeaderGrant({
       <>
         <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
           <Button
+            data-testid="grant-submit-proposal"
             variant="default"
             size="lg"
             onClick={() => setIsApplyModalOpen(true)}
