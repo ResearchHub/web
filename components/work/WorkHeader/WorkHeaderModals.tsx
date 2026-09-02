@@ -35,8 +35,6 @@ export interface WorkHeaderModalsProps {
   isApplyToGrantModalOpen?: boolean;
   onCloseApplyToGrantModal?: () => void;
   grantId?: string;
-  grantAmountUsd?: number;
-  grantOrganization?: string;
   grantApplicationVisibility?: GrantApplicationVisibility;
   showReopenModal?: boolean;
   onCloseReopenModal?: () => void;
@@ -67,8 +65,6 @@ export function WorkHeaderModals({
   isApplyToGrantModalOpen = false,
   onCloseApplyToGrantModal,
   grantId,
-  grantAmountUsd,
-  grantOrganization,
   grantApplicationVisibility,
   showReopenModal = false,
   onCloseReopenModal,
@@ -150,8 +146,6 @@ export function WorkHeaderModals({
           onUseSelected={onCloseApplyToGrantModal}
           grantId={grantId}
           grantTitle={work.title}
-          grantAmountUsd={grantAmountUsd}
-          grantOrganization={grantOrganization}
           grantApplicationVisibility={grantApplicationVisibility}
         />
       )}

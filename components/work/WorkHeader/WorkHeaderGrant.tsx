@@ -165,8 +165,6 @@ export function WorkHeaderGrant({
               isApplyToGrantModalOpen: isApplyModalOpen,
               onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
               grantId,
-              grantAmountUsd: amountUsd,
-              grantOrganization: organization,
               grantApplicationVisibility: applicationVisibility,
             }
           : undefined

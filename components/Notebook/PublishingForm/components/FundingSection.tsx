@@ -12,9 +12,8 @@ import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
 import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
-import type { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { formatCompactAmount } from '@/utils/currency';
-import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
+import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantDetails } from '@/types/grant';
 import { NoteService } from '@/services/note.service';
 
 interface FundingSectionProps {
@@ -25,12 +24,12 @@ const FEATURE_FLAG_NFT_REWARDS = false;
 
 function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
   const { watch, setValue } = useFormContext();
-  const selectedGrant: SelectedGrantData | null = watch('selectedGrant');
+  const selectedGrant: SelectedGrantDetails | null = watch('selectedGrant');
   const workId = watch('workId');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSavingGrant, setIsSavingGrant] = useState(false);
 
-  const saveSelectedGrant = async (grant: SelectedGrantData | null) => {
+  const saveSelectedGrant = async (grant: SelectedGrantDetails | null) => {
     setIsSavingGrant(true);
     try {
       await NoteService.updateNote({
