@@ -91,7 +91,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   };
 
   return (
-    <article data-entry-id={entryId}>
+    <article data-entry-id={entryId} data-testid="proposal-card">
       <WorkPreviewCard work={work} brand={presentation.brand} onNavigate={handleNavigate}>
         <WorkPreviewCard.Overlay position="top-left">
           <FeedItemFundingBadges

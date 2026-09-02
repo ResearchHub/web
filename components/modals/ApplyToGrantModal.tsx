@@ -327,6 +327,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             )}
           >
             <div
+              data-testid="apply-draft-new"
               onClick={handleSelectDraftNew}
               className={cn(
                 'px-3 py-2 rounded-lg border cursor-pointer transition-all duration-200',
@@ -383,6 +384,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
               </div>
             )}
             <Button
+              data-testid="apply-continue"
               variant={draftNewSelected ? 'dark' : 'default'}
               onClick={handleFooterAction}
               disabled={!hasSelection || isSavingSelection}

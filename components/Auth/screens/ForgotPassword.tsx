@@ -117,10 +117,16 @@ export default function ForgotPassword({
             autoComplete="email"
             className="w-full p-3 border rounded"
             ref={emailInputRef}
+            data-testid="auth-forgot-email-input"
           />
         </div>
 
-        <Button type="submit" disabled={isLoading} className="w-full mb-4">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full mb-4"
+          data-testid="auth-forgot-submit"
+        >
           {isLoading ? 'Sending...' : 'Send reset link'}
         </Button>
       </form>

@@ -171,6 +171,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         'bg-white rounded-[14px] overflow-hidden border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
         className
       )}
+      data-testid="grant-card"
     >
       {/* Frosted header */}
       <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-900">
