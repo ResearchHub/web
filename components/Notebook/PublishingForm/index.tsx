@@ -766,6 +766,7 @@ export function PublishingForm({
               <p className="text-sm text-red-600">{CHANGELOG_PUBLISH_ERROR_MESSAGE}</p>
             )}
             <Button
+              data-testid="publishing-form-submit"
               variant="default"
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"

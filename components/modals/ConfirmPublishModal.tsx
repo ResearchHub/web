@@ -123,6 +123,7 @@ export function ConfirmPublishModal({
                     {resolvedDocumentLabel}:
                   </p>
                   <input
+                    data-testid="confirm-publish-title"
                     type="text"
                     value={title}
                     onChange={handleTitleChange}
@@ -168,6 +169,7 @@ export function ConfirmPublishModal({
                       Cancel
                     </Button>
                     <Button
+                      data-testid="confirm-publish-submit"
                       variant="default"
                       onClick={() => onConfirm(title)}
                       disabled={!isPublishEnabled || isPublishing}

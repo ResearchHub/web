@@ -1,16 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { expect, type Page } from '@playwright/test';
-
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(
-      `${name} is required to run the smoke tests. ` +
-        'Set it in .env.development, or pass it inline on the command line.'
-    );
-  }
-  return value;
-}
+import { requiredEnv } from './env';
 
 /** Credentials for the dedicated smoke-test account, from the environment. */
 export function smokeCredentials() {
