@@ -39,7 +39,6 @@ export interface CreateNoteParams {
   grouping: NoteAccess;
   organization_slug: string;
   document_type?: string;
-  selectedGrantId: ID;
 }
 
 export interface UpdateNoteContentParams {
@@ -202,14 +201,8 @@ export class NoteService {
       throw new NoteError('Missing organization slug', 'INVALID_PARAMS');
     }
 
-    const { selectedGrantId, ...fields } = params;
-    const payload = {
-      ...fields,
-      ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
-    };
-
     try {
-      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/`, payload);
+      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/`, params);
       return transformNote(response);
     } catch (error) {
       throw new NoteError(

@@ -12,6 +12,7 @@ import {
   getTemplatePlainText,
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
+import { NoteService } from '@/services/note.service';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { useUser } from '@/contexts/UserContext';
 import type { ID } from '@/types/root';
@@ -42,7 +43,6 @@ export default function OrganizationPage() {
   const grantSource = searchParams.get('grantSource');
   const proposalSource = searchParams.get('proposalSource');
   const selectedGrantId = searchParams.get('selectedGrantId') ?? undefined;
-  const selectedGrantTitle = searchParams.get('selectedGrantTitle');
 
   const createNoteWithContent = async (
     orgSlug: string,
@@ -67,24 +67,22 @@ export default function OrganizationPage() {
         title,
         grouping: 'WORKSPACE',
         documentType,
-        selectedGrantId,
       });
 
       if (newNote) {
+        if (selectedGrantId) {
+          await NoteService.updateNote({ noteId: newNote.id, selectedGrantId });
+        }
+
         await updateNoteContent({
           note: newNote.id,
           fullJson: JSON.stringify(template),
           plainText: getTemplatePlainText(template),
         });
 
-        // The RFP title is not stored on the note, so it follows it to the editor.
-        const params = new URLSearchParams(
-          queryParam && queryValue ? { [queryParam]: queryValue } : {}
-        );
-        if (selectedGrantTitle) params.set('selectedGrantTitle', selectedGrantTitle);
-
+        const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
         refreshNotes();
-        router.replace(`/notebook/${orgSlug}/${newNote.id}${params.size ? `?${params}` : ''}`);
+        router.replace(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
       }
     } catch (err) {
       console.error('Failed to create note:', err);
