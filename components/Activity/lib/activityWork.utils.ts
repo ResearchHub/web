@@ -90,6 +90,12 @@ function resolveWorkTab(entry: FeedEntry, workContentType?: ContentType): Activi
     case 'bounty_payout':
       return 'bounties';
     case 'comment_published':
+      if (
+        entry.content.contentType === 'COMMENT' &&
+        entry.content.comment.commentType === 'REVIEW'
+      ) {
+        return 'reviews';
+      }
       return shouldLinkToUpdatesTab(entry, workContentType) ? 'updates' : 'conversation';
     default:
       return undefined;
