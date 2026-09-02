@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { PublishingFormData } from '../schema';
@@ -47,12 +48,12 @@ export function WorkImageSection() {
                   return null;
                 });
 
-                // A newer pick may have replaced this one while it uploaded.
+                // Ignore this upload if its selection was removed or replaced while it ran.
                 if (getValues('coverImage')?.file !== selected) return;
 
                 if (!uploaded) {
                   field.onChange(previousCover);
-                  setError('Failed to upload image. Please try again.');
+                  toast.error('Failed to upload image. Please try again.');
                   return;
                 }
                 field.onChange({ file: null, key: uploaded.objectKey, url: uploaded.absoluteUrl });

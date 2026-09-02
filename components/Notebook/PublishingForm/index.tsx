@@ -191,8 +191,11 @@ const mapOptionsToIds = (options: SelectOption[]): number[] =>
 /** Both amount inputs accept digits only, so a saved `5000.00` reads back as `5000`. */
 const dropZeroCents = (amount: string): string => amount.replace(/\.0+$/, '');
 
-/** Loads the Details this draft has already saved on the server. */
-const populateNoteDetails = (note: NoteWithContent, setValue: (name: any, value: any) => void) => {
+/** Populates the form from this draft's saved Details. */
+const populateFormFromNoteDetails = (
+  note: NoteWithContent,
+  setValue: (name: any, value: any) => void
+) => {
   if (note.image || note.previewImage) {
     setValue('coverImage', { file: null, key: note.image, url: note.previewImage });
   }
@@ -262,8 +265,8 @@ const populateRegisteredReportPrefill = (
   }
 };
 
-/** Maps one changed Details field to the update that saves it on the note. */
-const buildDetailsUpdate = (
+/** Builds a Note Details update for one changed form field. */
+const buildNoteDetailsUpdate = (
   field: string,
   values: PublishingFormData
 ): NoteDetailsUpdate | null => {
@@ -419,7 +422,7 @@ export function PublishingForm({
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
     } else {
-      populateNoteDetails(note, methods.setValue);
+      populateFormFromNoteDetails(note, methods.setValue);
 
       if (isRegisteredReport) {
         populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);
@@ -443,7 +446,7 @@ export function PublishingForm({
     // Hydration runs with the watcher detached, so a default the form generates
     // has to be saved here or the draft would never record who is on it.
     const defaultedField = autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
-    const defaults = defaultedField && buildDetailsUpdate(defaultedField, methods.getValues());
+    const defaults = defaultedField && buildNoteDetailsUpdate(defaultedField, methods.getValues());
     if (defaults && !isPublished) saveDetailsSoon(defaults);
 
     // A proposal answering a private Request for Proposal cannot be public.
@@ -467,7 +470,7 @@ export function PublishingForm({
         return;
       }
 
-      const update = buildDetailsUpdate(name, values);
+      const update = buildNoteDetailsUpdate(name, values);
       if (update) saveDetailsSoon(update);
     });
 

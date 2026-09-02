@@ -9,7 +9,7 @@ import { Topic, transformTopic } from './topic';
 import {
   Grant,
   GrantApplicationVisibility,
-  SelectedGrantData,
+  SelectedGrantDetails,
   transformGrant,
   transformSelectedGrant,
 } from './grant';
@@ -86,7 +86,7 @@ export interface Note {
   authors?: Author[];
   grantSettings?: NoteGrantSettings | null;
   preregistrationSettings?: NotePreregistrationSettings | null;
-  selectedGrant?: SelectedGrantData | null;
+  selectedGrant?: SelectedGrantDetails | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
 }
 
