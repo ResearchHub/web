@@ -65,13 +65,7 @@ jobs:
           SMOKE_BASE_URL: ${{ inputs.base_url || vars.SMOKE_BASE_URL }}
           SMOKE_USER_EMAIL: ${{ secrets.SMOKE_USER_EMAIL }}
           SMOKE_USER_PASSWORD: ${{ secrets.SMOKE_USER_PASSWORD }}
-          # Ids of the fixture content, which is public and so kept in
-          # variables rather than secrets. They are read through requiredEnv,
-          # which throws rather than defaults: unset here, every spec that
-          # navigates to a grant or a proposal fails before its first
-          # assertion. Note they have to be listed even though they exist as
-          # repository variables, since only what is named in this block
-          # reaches the process.
+          # Ids of the fixture content, which is public.
           SMOKE_GRANT_POST_ID: ${{ vars.SMOKE_GRANT_POST_ID }}
           SMOKE_PROPOSAL_POST_ID: ${{ vars.SMOKE_PROPOSAL_POST_ID }}
         run: npm run test:smoke
