@@ -21,7 +21,7 @@ const CommentList: React.FC<CommentListProps> = ({
   readOnly = false,
 }) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid={isRootList ? 'comment-list' : undefined}>
       {comments.map((comment) => (
         <CommentItem
           commentType={commentType}

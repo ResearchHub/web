@@ -100,6 +100,7 @@ interface ActionButtonProps {
   hideIcon?: boolean;
   /** Bare icon and count instead of the pill chrome. */
   flat?: boolean;
+  testId?: string;
 }
 
 // Export ActionButton so it can be used in other components
@@ -116,8 +117,10 @@ export const ActionButton: FC<ActionButtonProps> = ({
   showTooltip = true,
   hideIcon = false,
   flat = false,
+  testId,
 }) => (
   <Button
+    data-testid={testId}
     variant="ghost"
     size="sm"
     className={cn(
@@ -503,9 +506,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     )
   ) : null;
 
+  // Note the test id rather than the label: FeedItemComment renders this whole
+  // bar inside an aria-hidden wrapper, which takes every control in it out of
+  // the accessibility tree and so out of reach of a role-based locator.
   const moreMenuTrigger = isFlat ? (
     <button
       type="button"
+      data-testid="feed-item-more-options"
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
       className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800"
@@ -515,6 +522,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     </button>
   ) : (
     <Button
+      data-testid="feed-item-more-options"
       onMouseDown={(e) => {
         e.stopPropagation();
       }}
@@ -524,6 +532,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       variant="ghost"
       size="sm"
       className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
+      aria-label="More options"
     >
       <MoreHorizontal className="h-[18px] w-[18px]" />
     </Button>
@@ -664,6 +673,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
               flat={isFlat}
+              testId="feed-item-comment-action"
             />
           )}
           {(onTip || totalAwarded > 0) &&

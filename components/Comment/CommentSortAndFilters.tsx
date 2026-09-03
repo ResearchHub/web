@@ -44,7 +44,12 @@ export const CommentSortAndFilters: FC<CommentSortAndFiltersProps> = ({
         <BaseMenu
           align="start"
           trigger={
-            <Button variant="outlined" size="sm" className="flex items-center gap-1">
+            <Button
+              variant="outlined"
+              size="sm"
+              className="flex items-center gap-1"
+              data-testid="comment-sort-trigger"
+            >
               {(() => {
                 const currentOption = sortOptions.find((option) => option.value === sortBy);
                 const Icon = currentOption?.icon || Star;
@@ -62,6 +67,7 @@ export const CommentSortAndFilters: FC<CommentSortAndFiltersProps> = ({
                 key={option.value}
                 onClick={() => handleSortChange(option.value)}
                 className={sortBy === option.value ? 'bg-gray-100' : ''}
+                data-testid={`comment-sort-option-${option.value}`}
               >
                 <div className="flex items-center gap-2">
                   <Icon className="h-4 w-4" />
