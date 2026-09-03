@@ -35,8 +35,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: work.updatedDate,
       expirationTime: work.note?.post?.grant?.endDate,
       authors: work.authors.map((a) => a.authorProfile.fullName),
-      section: work.topics[0]?.name,
-      tags: work.topics.map((t) => t.name),
     });
   } catch {
     return {};
@@ -64,7 +62,9 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
 
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '', {
+    includeTopics: false,
+  });
 
   return (
     <GrantTabProvider defaultTab="details" grantId={grantId}>

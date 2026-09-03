@@ -40,7 +40,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
           })}
         />
       )}
-      <TopicsSection topics={metadata.topics || []} />
+      {work.contentType === 'paper' && <TopicsSection topics={metadata.topics || []} />}
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />

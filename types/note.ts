@@ -5,7 +5,6 @@ import { transformOrganization } from './organization';
 import { Currency, ID } from './root';
 import { ContentType, ModerationStatus } from './work';
 import { Fundraise, transformFundraise } from './funding';
-import { Topic, transformTopic } from './topic';
 import {
   Grant,
   GrantApplicationVisibility,
@@ -26,7 +25,6 @@ export type Author = {
 
 export interface RegisteredReportPrefill {
   authorIds?: number[];
-  topicIds?: number[];
 }
 
 export type Contact = {
@@ -43,7 +41,6 @@ export type Post = {
   moderationStatus?: ModerationStatus;
   fundraise?: Fundraise;
   grant?: Grant;
-  topics?: Topic[];
   authors?: Author[];
   contacts?: Contact[];
   doi?: string;
@@ -82,7 +79,6 @@ export interface Note {
   proposalId?: number | null;
   image?: string | null;
   previewImage?: string | null;
-  topics?: Topic[];
   authors?: Author[];
   grantSettings?: NoteGrantSettings | null;
   preregistrationSettings?: NotePreregistrationSettings | null;
@@ -118,7 +114,6 @@ export interface NoteDetailsUpdate {
   title?: string;
   documentType?: string;
   authorIds?: number[];
-  hubIds?: number[];
   image?: string;
   previewImage?: string;
   grantSettings?: NoteGrantSettingsUpdate;
@@ -131,7 +126,6 @@ const NOTE_FIELD_KEYS: Record<keyof NoteDetailsFields, string> = {
   title: 'title',
   documentType: 'document_type',
   authorIds: 'author_ids',
-  hubIds: 'hub_ids',
   image: 'image',
   previewImage: 'preview_img',
 };
@@ -300,7 +294,6 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
     : undefined,
   grant: raw.unified_document?.grant ? transformGrant(raw.unified_document.grant) : undefined,
   doi: raw.doi,
-  topics: Array.isArray(raw.hubs) ? raw.hubs.map((hub: any) => transformTopic(hub)) : undefined,
   authors: Array.isArray(raw.authors)
     ? raw.authors.map((author: any) => transformAuthor(author))
     : undefined,
@@ -314,11 +307,6 @@ const findFirstPopulatedArray = (sources: unknown[]): unknown[] | undefined =>
   sources.find((source): source is unknown[] => Array.isArray(source) && source.length > 0) ??
   sources.find((source): source is unknown[] => Array.isArray(source));
 
-const transformTopicsFromSources = (...sources: unknown[]): Topic[] | undefined => {
-  const topicSource = findFirstPopulatedArray(sources);
-  return topicSource?.map((topic) => transformTopic(topic));
-};
-
 const transformAuthorsFromSources = (...sources: unknown[]): Author[] | undefined => {
   const authorSource = findFirstPopulatedArray(sources);
   return authorSource?.map((author) => transformAuthor(author));
@@ -328,8 +316,7 @@ const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | n
   if (!raw) return null;
 
   const authorIds = raw.author_ids as number[] | undefined;
-  const topicIds = (raw.hub_ids ?? raw.topic_ids) as number[] | undefined;
-  return authorIds || topicIds ? { authorIds, topicIds } : null;
+  return authorIds ? { authorIds } : null;
 };
 
 const isRegisteredReportDocumentType = (documentType?: string | null): boolean =>
@@ -374,13 +361,6 @@ export const transformNote = createTransformer<any, Note>((raw) => {
       raw.registered_report_prefill?.preview_img ||
       raw.registered_report_prefill?.image_url ||
       null,
-    topics: transformTopicsFromSources(
-      raw.hubs,
-      raw.topics,
-      raw.unified_document?.hubs,
-      raw.registered_report_prefill?.topics,
-      raw.registered_report_prefill?.hubs
-    ),
     authors: transformAuthorsFromSources(
       raw.authors,
       raw.author_profiles,

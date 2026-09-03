@@ -64,16 +64,6 @@ export const ProposalSidebarSkeleton = () => {
         </div>
       </section>
 
-      {/* Topics */}
-      <section>
-        <div className="h-5 w-16 bg-gray-200 rounded mb-3" />
-        <div className="flex flex-wrap gap-2">
-          <div className="h-6 w-20 bg-gray-200 rounded-full" />
-          <div className="h-6 w-24 bg-gray-200 rounded-full" />
-          <div className="h-6 w-16 bg-gray-200 rounded-full" />
-        </div>
-      </section>
-
       {/* DOI */}
       <section>
         <div className="h-5 w-10 bg-gray-200 rounded mb-2" />

@@ -1,7 +1,6 @@
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { DOISection } from './components/DOISection';
 import { PeerReviewsSection } from './components/PeerReviewsSection';
-import { TopicsSection } from './components/TopicsSection';
 import type { RegisteredReportProposalDetails } from '@/types/registeredReport';
 
 interface RegisteredReportSidebarProps {
@@ -34,7 +33,6 @@ export function RegisteredReportSidebar({
       {reviewsUrl && (
         <PeerReviewsSection peerReviews={proposal.peerReviews} reviewsUrl={reviewsUrl} />
       )}
-      <TopicsSection topics={proposal.topics} />
       {reportDoi && <DOISection doi={reportDoi} />}
     </div>
   );

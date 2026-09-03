@@ -56,7 +56,7 @@ export function getRegisteredReportSourceProposalPostIdOrNotFound(
 }
 
 const getMetadataByDocumentId = cache((documentId: number) =>
-  MetadataService.get(documentId.toString())
+  MetadataService.get(documentId.toString(), { includeTopics: false })
 );
 
 export async function getRegisteredReportMetadata(
@@ -66,7 +66,6 @@ export async function getRegisteredReportMetadata(
   const fallbackMetadata: WorkMetadata = {
     id: documentId ?? work.id,
     score: work.metrics?.votes ?? 0,
-    topics: work.topics ?? [],
     metrics: {
       votes: work.metrics?.votes ?? 0,
       comments: work.metrics?.comments ?? 0,

@@ -11,7 +11,7 @@ import { countActiveBounties, countClosedBounties } from '@/components/Bounty/li
 export interface WorkMetadata {
   id: number;
   score: number;
-  topics: Topic[];
+  topics?: Topic[];
   metrics: ContentMetrics;
   fundraising?: Fundraise;
   bounties: Bounty[];
@@ -19,7 +19,7 @@ export interface WorkMetadata {
   closedBounties: number;
 }
 
-function transformWorkMetadata(response: any): WorkMetadata {
+function transformWorkMetadata(response: any, includeTopics: boolean): WorkMetadata {
   // Handle both array and object document structures
   const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
 
@@ -32,9 +32,11 @@ function transformWorkMetadata(response: any): WorkMetadata {
   return {
     id: response.id,
     score: response.score,
-    topics: response.hubs
-      .filter((hub: any) => hub.namespace !== 'journal')
-      .map((hub: any) => transformTopic(hub)),
+    ...(includeTopics && {
+      topics: response.hubs
+        .filter((hub: any) => hub.namespace !== 'journal')
+        .map((hub: any) => transformTopic(hub)),
+    }),
     metrics: {
       votes: response.score,
       comments: document.discussion_aggregates.discussion_count,
@@ -56,7 +58,7 @@ export class MetadataService {
 
   static async get(
     unifiedDocumentId: string,
-    options?: { shareToken?: string | null }
+    options?: { shareToken?: string | null; includeTopics?: boolean }
   ): Promise<WorkMetadata> {
     const response = await ApiClient.get<any>(
       withShareToken(
@@ -64,6 +66,6 @@ export class MetadataService {
         options?.shareToken
       )
     );
-    return transformWorkMetadata(response);
+    return transformWorkMetadata(response, options?.includeTopics !== false);
   }
 }

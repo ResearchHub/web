@@ -28,7 +28,9 @@ export default async function QuestionSlugLayout({ params, children }: Props) {
     notFound();
   }
 
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '', {
+    includeTopics: false,
+  });
 
   return (
     <WorkTabProvider>

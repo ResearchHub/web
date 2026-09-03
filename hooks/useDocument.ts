@@ -10,7 +10,6 @@ export interface PreregistrationPostParams {
   budget: string;
   rewardFunders: boolean;
   nftSupply: string;
-  topics: string[];
 
   // Document related
   articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
@@ -82,7 +81,6 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
           postParams.articleType === 'REGISTERED_REPORT'
             ? undefined
             : (postParams.assignDOI ?? false),
-        hubs: postParams.topics,
         authors: postParams.authors,
       };
 
