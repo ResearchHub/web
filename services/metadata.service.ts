@@ -19,9 +19,10 @@ export interface WorkMetadata {
   closedBounties: number;
 }
 
-function transformWorkMetadata(response: any, includeTopics: boolean): WorkMetadata {
-  // Handle both array and object document structures
-  const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
+function transformWorkMetadata(response: any): WorkMetadata {
+  // Post documents are arrays; paper documents are objects.
+  const isPaper = !Array.isArray(response.documents);
+  const document = isPaper ? response.documents : response.documents[0];
 
   // Transform bounties if they exist using the existing transformer
   const bounties = document.bounties?.map((bounty: any) => transformBounty(bounty)) || [];
@@ -32,7 +33,7 @@ function transformWorkMetadata(response: any, includeTopics: boolean): WorkMetad
   return {
     id: response.id,
     score: response.score,
-    ...(includeTopics && {
+    ...(isPaper && {
       topics: response.hubs
         .filter((hub: any) => hub.namespace !== 'journal')
         .map((hub: any) => transformTopic(hub)),
@@ -58,7 +59,7 @@ export class MetadataService {
 
   static async get(
     unifiedDocumentId: string,
-    options?: { shareToken?: string | null; includeTopics?: boolean }
+    options?: { shareToken?: string | null }
   ): Promise<WorkMetadata> {
     const response = await ApiClient.get<any>(
       withShareToken(
@@ -66,13 +67,6 @@ export class MetadataService {
         options?.shareToken
       )
     );
-    return transformWorkMetadata(response, options?.includeTopics !== false);
-  }
-
-  static getPost(
-    unifiedDocumentId: string,
-    options?: { shareToken?: string | null }
-  ): Promise<WorkMetadata> {
-    return this.get(unifiedDocumentId, { ...options, includeTopics: false });
+    return transformWorkMetadata(response);
   }
 }

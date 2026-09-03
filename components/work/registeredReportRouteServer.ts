@@ -56,7 +56,7 @@ export function getRegisteredReportSourceProposalPostIdOrNotFound(
 }
 
 const getMetadataByDocumentId = cache((documentId: number) =>
-  MetadataService.getPost(documentId.toString())
+  MetadataService.get(documentId.toString())
 );
 
 export async function getRegisteredReportMetadata(

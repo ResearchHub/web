@@ -56,7 +56,7 @@ export default async function PostBountiesPage({ params }: Props) {
 
   handlePostRedirect(post, resolvedParams.id, resolvedParams.slug, 'bounties');
 
-  const metadata = await MetadataService.getPost(post.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
   const content = await getPostContent(post);
 
   if (!post) {

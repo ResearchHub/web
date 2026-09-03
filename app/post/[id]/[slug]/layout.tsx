@@ -28,7 +28,7 @@ export default async function PostSlugLayout({ params, children }: Props) {
     notFound();
   }
 
-  const metadata = await MetadataService.getPost(work.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
     <WorkTabProvider>

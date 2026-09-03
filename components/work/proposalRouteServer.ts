@@ -29,7 +29,7 @@ export const getProposalOrNotFound = cache(async (id: string): Promise<Work> => 
 
 export const getProposalMetadata = cache(
   async (unifiedDocumentId: string): Promise<WorkMetadata> =>
-    MetadataService.getPost(unifiedDocumentId, { shareToken: await getShareToken() })
+    MetadataService.get(unifiedDocumentId, { shareToken: await getShareToken() })
 );
 
 export async function getProposalContent(work: Work): Promise<string | undefined> {

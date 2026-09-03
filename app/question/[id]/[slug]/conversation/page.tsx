@@ -56,7 +56,7 @@ export default async function QuestionConversationPage({ params }: Props) {
 
   handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
 
-  const metadata = await MetadataService.getPost(post.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
   const content = await getPostContent(post);
 
   if (!post) {

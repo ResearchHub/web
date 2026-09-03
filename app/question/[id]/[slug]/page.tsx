@@ -53,7 +53,7 @@ export default async function QuestionPage({ params }: Props) {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
 
-  const metadata = await MetadataService.getPost(post.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
   const content = await getPostContent(post);
 
   if (!post) {
