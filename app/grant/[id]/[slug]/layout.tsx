@@ -62,9 +62,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
 
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '', {
-    includeTopics: false,
-  });
+  const metadata = await MetadataService.getPost(work.unifiedDocumentId?.toString() || '');
 
   return (
     <GrantTabProvider defaultTab="details" grantId={grantId}>

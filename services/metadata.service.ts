@@ -68,4 +68,11 @@ export class MetadataService {
     );
     return transformWorkMetadata(response, options?.includeTopics !== false);
   }
+
+  static getPost(
+    unifiedDocumentId: string,
+    options?: { shareToken?: string | null }
+  ): Promise<WorkMetadata> {
+    return this.get(unifiedDocumentId, { ...options, includeTopics: false });
+  }
 }

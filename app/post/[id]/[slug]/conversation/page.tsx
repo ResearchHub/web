@@ -56,9 +56,7 @@ export default async function PostConversationPage({ params }: Props) {
 
   handlePostRedirect(post, resolvedParams.id, resolvedParams.slug, 'conversation');
 
-  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '', {
-    includeTopics: false,
-  });
+  const metadata = await MetadataService.getPost(post.unifiedDocumentId?.toString() || '');
   const content = await getPostContent(post);
 
   if (!post) {
