@@ -66,7 +66,6 @@ export const DocumentUploadStep = ({
         title: result.title,
         grouping: 'WORKSPACE',
         documentType,
-        selectedGrantId: undefined,
       });
       await updateNoteContent({
         note: newNote.id,

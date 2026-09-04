@@ -15,6 +15,7 @@ import type { Note, NoteWithContent } from '@/types/note';
 import type { ID } from '@/types/root';
 import type { OrganizationUsers } from '@/types/organization';
 import { useOrganizationContext } from './OrganizationContext';
+import { useNoteDetailsSaver, type NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { Editor } from '@tiptap/core';
 import { useParams } from 'next/navigation';
 
@@ -42,6 +43,13 @@ interface NotebookContextType {
   noteError: Error | null;
   loadNote: (noteId: string) => Promise<void>;
   updateNoteTitle: (newTitle: string, noteId: ID) => void;
+
+  /**
+   * The one writer for the current note's own fields. Shared so the editor's
+   * title and the publishing form's Details cannot patch the note at once.
+   */
+  saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon'];
+  saveDetailsNow: NoteDetailsSaver['saveDetailsNow'];
 
   // Editor state
   editor: Editor | null;
@@ -93,6 +101,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
 
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
+
+  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(currentNote?.id);
 
   const fetchNotes = useCallback(async (slug?: string) => {
     if (!slug) {
@@ -316,6 +326,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     noteError,
     loadNote,
     updateNoteTitle,
+    saveDetailsSoon,
+    saveDetailsNow,
     editor,
     setEditor,
     isLoading,

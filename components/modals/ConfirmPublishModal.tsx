@@ -1,5 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { GraduationCap, Scale, Users, FileText, type LucideIcon } from 'lucide-react';
@@ -76,11 +76,6 @@ export function ConfirmPublishModal({
   const resolvedDocumentLabel =
     documentLabel ?? (variant === 'rfp' ? 'request for proposal' : 'research proposal');
 
-  useEffect(() => {
-    setTitle(initialTitle);
-    setHasAgreed(false);
-  }, [initialTitle]);
-
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
@@ -123,6 +118,7 @@ export function ConfirmPublishModal({
                     {resolvedDocumentLabel}:
                   </p>
                   <input
+                    data-testid="confirm-publish-title"
                     type="text"
                     value={title}
                     onChange={handleTitleChange}
@@ -168,6 +164,7 @@ export function ConfirmPublishModal({
                       Cancel
                     </Button>
                     <Button
+                      data-testid="confirm-publish-submit"
                       variant="default"
                       onClick={() => onConfirm(title)}
                       disabled={!isPublishEnabled || isPublishing}

@@ -2,11 +2,18 @@ import { CHANGELOG_NOTEBOOK_ROLLOUT_AT, CHANGELOG_POST_IDS } from '@/constants/c
 import type { Organization } from './organization';
 import { createTransformer, BaseTransformed } from './transformer';
 import { transformOrganization } from './organization';
-import { ID } from './root';
+import { Currency, ID } from './root';
 import { ContentType, ModerationStatus } from './work';
 import { Fundraise, transformFundraise } from './funding';
 import { Topic, transformTopic } from './topic';
-import { Grant, transformGrant } from './grant';
+import {
+  Grant,
+  GrantApplicationVisibility,
+  SelectedGrantDetails,
+  transformGrant,
+  transformSelectedGrant,
+} from './grant';
+import { NonprofitOrg, transformNonprofitDetailsToOrg } from './nonprofit';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 
 export type NoteAccess = 'WORKSPACE' | 'PRIVATE' | 'SHARED';
@@ -43,6 +50,25 @@ export type Post = {
   image?: string;
 };
 
+/** What a draft Request for Proposal has filled in so far. */
+export interface NoteGrantSettings {
+  /** A decimal string, so cents cannot be rounded away in JavaScript. */
+  amount: string | null;
+  organization: string | null;
+  description: string | null;
+  applicationVisibility: GrantApplicationVisibility | null;
+  contacts: Contact[];
+}
+
+/** What a draft proposal has filled in so far. */
+export interface NotePreregistrationSettings {
+  goalAmount: string | null;
+  /** How long the fundraise runs; publishing turns it into a deadline. */
+  durationDays: number | null;
+  isPublic: boolean | null;
+  nonprofit: NonprofitOrg | null;
+}
+
 export interface Note {
   id: number;
   access: NoteAccess;
@@ -58,8 +84,112 @@ export interface Note {
   previewImage?: string | null;
   topics?: Topic[];
   authors?: Author[];
+  grantSettings?: NoteGrantSettings | null;
+  preregistrationSettings?: NotePreregistrationSettings | null;
+  selectedGrant?: SelectedGrantDetails | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
 }
+
+/** Grant fields the Note API accepts; an omitted key keeps its saved value. */
+export interface NoteGrantSettingsUpdate {
+  amount?: string | null;
+  currency?: Currency;
+  organization?: string;
+  description?: string;
+  applicationVisibility?: GrantApplicationVisibility;
+  /** User ids, not author profile ids. */
+  contactIds?: number[];
+}
+
+/** Proposal funding fields the Note API accepts. */
+export interface NotePreregistrationSettingsUpdate {
+  goalAmount?: string | null;
+  goalCurrency?: Currency;
+  durationDays?: number;
+  isPublic?: boolean;
+  nonprofitId?: string | null;
+}
+
+/**
+ * A partial update to a note's own fields: the title the editor derives from
+ * the document, plus the Details a draft fills in before it is published.
+ */
+export interface NoteDetailsUpdate {
+  title?: string;
+  documentType?: string;
+  authorIds?: number[];
+  hubIds?: number[];
+  image?: string;
+  previewImage?: string;
+  grantSettings?: NoteGrantSettingsUpdate;
+  preregistrationSettings?: NotePreregistrationSettingsUpdate;
+}
+
+type NoteDetailsFields = Omit<NoteDetailsUpdate, 'grantSettings' | 'preregistrationSettings'>;
+
+const NOTE_FIELD_KEYS: Record<keyof NoteDetailsFields, string> = {
+  title: 'title',
+  documentType: 'document_type',
+  authorIds: 'author_ids',
+  hubIds: 'hub_ids',
+  image: 'image',
+  previewImage: 'preview_img',
+};
+
+const GRANT_SETTINGS_KEYS: Record<keyof NoteGrantSettingsUpdate, string> = {
+  amount: 'amount',
+  currency: 'currency',
+  organization: 'organization',
+  description: 'description',
+  applicationVisibility: 'application_visibility',
+  contactIds: 'contact_ids',
+};
+
+const PREREGISTRATION_SETTINGS_KEYS: Record<keyof NotePreregistrationSettingsUpdate, string> = {
+  goalAmount: 'goal_amount',
+  goalCurrency: 'goal_currency',
+  durationDays: 'duration_days',
+  isPublic: 'is_public',
+  nonprofitId: 'nonprofit_id',
+};
+
+/** Renames the fields the update actually set, so an untouched key is never sent. */
+const toApiPayload = <T extends object>(apiKeys: Record<keyof T, string>, update: T) =>
+  Object.fromEntries(
+    Object.entries(update).map(([field, value]) => [apiKeys[field as keyof T], value])
+  );
+
+export const buildNoteDetailsPayload = ({
+  grantSettings,
+  preregistrationSettings,
+  ...noteFields
+}: NoteDetailsUpdate): Record<string, unknown> => ({
+  ...toApiPayload(NOTE_FIELD_KEYS, noteFields),
+  ...(grantSettings && { grant_settings: toApiPayload(GRANT_SETTINGS_KEYS, grantSettings) }),
+  ...(preregistrationSettings && {
+    preregistration_settings: toApiPayload(PREREGISTRATION_SETTINGS_KEYS, preregistrationSettings),
+  }),
+});
+
+/** Combines queued edits so a later settings change cannot drop an earlier one. */
+export const mergeNoteDetailsUpdates = (
+  earlier: NoteDetailsUpdate,
+  later: NoteDetailsUpdate
+): NoteDetailsUpdate => ({
+  ...earlier,
+  ...later,
+  ...(earlier.grantSettings &&
+    later.grantSettings && {
+      grantSettings: { ...earlier.grantSettings, ...later.grantSettings },
+    }),
+  ...(earlier.preregistrationSettings &&
+    later.preregistrationSettings && {
+      preregistrationSettings: {
+        ...earlier.preregistrationSettings,
+        ...later.preregistrationSettings,
+      },
+    }),
+});
 
 /**
  * Who committed a note version: the editor autosave endpoint, the notebook AI
@@ -113,10 +243,13 @@ export interface NoteApiItem {
 
 export type TransformedNote = Note & BaseTransformed;
 
+const buildFullName = (raw: any): string =>
+  `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown';
+
 export const transformAuthor = createTransformer<any, Author>((raw: any) => ({
   authorId: raw.id,
   userId: raw.user,
-  name: `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown',
+  name: buildFullName(raw),
 }));
 
 export const transformContact = createTransformer<any, Contact>((raw) => ({
@@ -124,6 +257,27 @@ export const transformContact = createTransformer<any, Contact>((raw) => ({
   name: raw.name,
   authorProfile: raw.author_profile ? transformAuthorProfile(raw.author_profile) : undefined,
 }));
+
+const transformNoteGrantSettings = createTransformer<any, NoteGrantSettings>((raw) => ({
+  amount: raw.amount ?? null,
+  organization: raw.organization ?? null,
+  description: raw.description ?? null,
+  applicationVisibility: raw.application_visibility ?? null,
+  // Saved grant contacts are users, so they arrive as names rather than a label.
+  contacts: (raw.contacts ?? []).map((contact: any) => ({
+    id: contact.id,
+    name: buildFullName(contact),
+  })),
+}));
+
+const transformNotePreregistrationSettings = createTransformer<any, NotePreregistrationSettings>(
+  (raw) => ({
+    goalAmount: raw.goal_amount ?? null,
+    durationDays: raw.duration_days ?? null,
+    isPublic: raw.is_public ?? null,
+    nonprofit: raw.nonprofit_details ? transformNonprofitDetailsToOrg(raw.nonprofit_details) : null,
+  })
+);
 
 const getDocumentType = (raw: any): string | null =>
   [raw.document_type, raw.unified_document?.document_type, raw.type]
@@ -212,23 +366,33 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     documentType,
     proposalId,
     registeredReportPrefill: transformRegisteredReportPrefill(raw.registered_report_prefill),
-    image: raw.registered_report_prefill?.image || raw.registered_report_prefill?.image_url || null,
+    // Saved values first, so a Registered Report prefill only fills the gaps.
+    // `image` holds a storage key, which the prefill's `image_url` is not.
+    image: raw.image || raw.registered_report_prefill?.image || null,
     previewImage:
+      raw.preview_img ||
       raw.registered_report_prefill?.preview_img ||
       raw.registered_report_prefill?.image_url ||
       null,
     topics: transformTopicsFromSources(
-      raw.registered_report_prefill?.topics,
-      raw.registered_report_prefill?.hubs,
       raw.hubs,
       raw.topics,
-      raw.unified_document?.hubs
+      raw.unified_document?.hubs,
+      raw.registered_report_prefill?.topics,
+      raw.registered_report_prefill?.hubs
     ),
     authors: transformAuthorsFromSources(
-      raw.registered_report_prefill?.authors,
       raw.authors,
-      raw.author_profiles
+      raw.author_profiles,
+      raw.registered_report_prefill?.authors
     ),
+    grantSettings: raw.grant_settings ? transformNoteGrantSettings(raw.grant_settings) : null,
+    preregistrationSettings: raw.preregistration_settings
+      ? transformNotePreregistrationSettings(raw.preregistration_settings)
+      : null,
+    selectedGrant: raw.selected_grant_details
+      ? transformSelectedGrant(raw.selected_grant_details)
+      : null,
   };
 });
 

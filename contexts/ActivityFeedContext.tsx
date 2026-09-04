@@ -8,7 +8,12 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
+
+function isDisableCacheParam(value: string | null): boolean {
+  return value === 'true' || value === '1';
+}
 
 type ActivityFeedHookValue = ReturnType<typeof useActivityFeed>;
 
@@ -31,9 +36,12 @@ const ActivityFeedContext = createContext<ActivityFeedContextValue | null>(null)
  * Starts with `enabled: false` until `activate()` on first Activity tab visit.
  */
 export function ActivityFeedProvider({ children }: { children: ReactNode }) {
+  const searchParams = useSearchParams();
+  const disableCache = isDisableCacheParam(searchParams.get('disable_cache'));
+
   const [enabled, setEnabled] = useState(false);
   const activate = useCallback(() => setEnabled(true), []);
-  const feed = useActivityFeed({ enabled });
+  const feed = useActivityFeed({ enabled, disableCache });
 
   // `restoredScrollPosition` only survives until useFeedScrollTracking consumes
   // it and clears the back-navigation flag, after which a restored feed is

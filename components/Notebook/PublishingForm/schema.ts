@@ -54,6 +54,7 @@ export const publishingFormSchema = z
     coverImage: z
       .object({
         file: z.instanceof(File).nullable().optional(),
+        key: z.string().nullable().optional(),
         url: z.string().nullable().optional(),
       })
       .nullable()

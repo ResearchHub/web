@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import './globals.css';
 import 'cal-sans/index.css';
 import 'katex/dist/katex.min.css';
@@ -16,11 +16,8 @@ import '@fontsource/inter/700.css';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { NotebookProvider } from '@/contexts/NotebookContext';
 import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
-import { clearPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 
 function NotebookContent({ children }: Readonly<{ children: ReactNode }>) {
-  useEffect(() => () => clearPendingGrant(), []);
-
   // The docked assistant already reserves its own gutter inside the page
   // container, so keeping the container capped would centre the document in
   // what's left and leave a wide dead band on either side. Release the cap for
