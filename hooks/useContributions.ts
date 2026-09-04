@@ -18,7 +18,6 @@ export const useContributions = (options: UseContributionsOptions = {}) => {
     useFeedStateRestoration({
       activeTab: options.activeTab,
       shouldRestore: (isBackNavigation) => {
-        if (options.contribution_type === 'ARTICLE') return false;
         if (!isBackNavigation || !options.author_id) return false;
         return true;
       },

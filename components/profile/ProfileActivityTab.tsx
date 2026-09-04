@@ -5,7 +5,6 @@ import { PillTabs } from '@/components/ui/PillTabs';
 import { useFeed } from '@/hooks/useFeed';
 
 export const ACTIVITY_PILLS = [
-  { id: 'publications', label: 'Publications' },
   { id: 'proposals', label: 'Proposals' },
   { id: 'peer-reviews', label: 'Peer Reviews' },
   { id: 'comments', label: 'Comments' },
@@ -23,6 +22,14 @@ interface ProfileActivityTabProps {
   onPillChange: (pillId: ActivityPillId) => void;
   userId?: number;
   children: React.ReactNode;
+}
+
+function ProposalsEmptyState() {
+  return (
+    <div className="py-12 text-center">
+      <p className="text-gray-400 text-sm">No proposals yet</p>
+    </div>
+  );
 }
 
 function ProposalsContent({ userId }: { userId: number }) {
@@ -45,11 +52,7 @@ function ProposalsContent({ userId }: { userId: number }) {
       hideActions
       skeletonVariant="fundraise"
       wideContent
-      noEntriesElement={
-        <div className="py-12 text-center">
-          <p className="text-gray-400 text-sm">No proposals yet</p>
-        </div>
-      }
+      noEntriesElement={<ProposalsEmptyState />}
     />
   );
 }
@@ -75,7 +78,15 @@ export function ProfileActivityTab({
           size="sm"
         />
       </div>
-      {activePill === 'proposals' && userId ? <ProposalsContent userId={userId} /> : children}
+      {activePill === 'proposals' ? (
+        userId ? (
+          <ProposalsContent userId={userId} />
+        ) : (
+          <ProposalsEmptyState />
+        )
+      ) : (
+        children
+      )}
     </div>
   );
 }
