@@ -14,6 +14,7 @@ export function GrantDescriptionSection() {
       <SectionHeader icon={FileText}>Short Description</SectionHeader>
       <div className="mt-2">
         <Textarea
+          data-testid="grant-description-input"
           {...register('shortDescription')}
           placeholder="Describe what this RFP is for and what you're looking to fund"
           error={errors.shortDescription?.message?.toString()}

@@ -26,6 +26,7 @@ export const CollapsedCommentEditor = ({ commentType, onExpand }: CollapsedComme
       type="button"
       onClick={onExpand}
       className="group w-full flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+      data-testid="comment-editor-collapsed"
     >
       <Avatar
         src={authorProfile?.profileImage}

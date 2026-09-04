@@ -293,7 +293,10 @@ export const CommentEditor = ({
   }
 
   const renderEditor = (canReview: boolean, banner: React.ReactNode = null) => (
-    <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
+    <div
+      className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200"
+      data-testid="comment-editor"
+    >
       {/* User info header */}
       {showHeader && (
         <EditorHeader
