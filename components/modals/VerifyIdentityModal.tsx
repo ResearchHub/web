@@ -2,10 +2,21 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import { X, Check, AlertTriangle, BadgeCheck, Users, GraduationCap } from 'lucide-react';
+import {
+  X,
+  Check,
+  AlertTriangle,
+  BadgeCheck,
+  Users,
+  GraduationCap,
+  TrendingUp,
+  CircleDollarSign,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
+import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
+import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import type { VerificationModalContext } from '@/contexts/VerificationContext';
 
@@ -20,7 +31,15 @@ type VerificationStep =
   | 'INTRO'
   | 'IDENTITY'
   | 'IDENTITY_VERIFIED_SUCCESSFULLY'
-  | 'IDENTITY_CANNOT_BE_VERIFIED';
+  | 'IDENTITY_CANNOT_BE_VERIFIED'
+  | 'PUBLICATIONS'
+  | 'SUCCESS';
+
+const stepperSteps = [
+  { id: 'IDENTITY', label: 'Verify Identity' },
+  { id: 'PUBLICATIONS', label: 'Publication History' },
+  { id: 'SUCCESS', label: 'View Rewards' },
+];
 
 export function VerifyIdentityModal({
   isOpen,
@@ -29,6 +48,7 @@ export function VerifyIdentityModal({
   context = null,
 }: VerifyIdentityModalProps) {
   const [currentStep, setCurrentStep] = useState<VerificationStep>(initialStep);
+  const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
   const isPublishContext = context === 'publish';
@@ -36,12 +56,25 @@ export function VerifyIdentityModal({
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(context === 'publish' ? 'IDENTITY' : initialStep);
+      setPublicationsSubstep('DOI');
     }
   }, [isOpen, initialStep, context]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {
       setCurrentStep('IDENTITY');
+    } else if (currentStep === 'IDENTITY') {
+      setCurrentStep('PUBLICATIONS');
+    } else if (currentStep === 'PUBLICATIONS') {
+      // Send verification request via WebSocket
+      if (user?.id) {
+        // Placeholder for WebSocket sendMessage
+      }
+    } else if (currentStep === 'SUCCESS') {
+      onClose();
+      if (context !== 'publish') {
+        navigateToAuthorProfile(user?.authorProfile?.id, false);
+      }
     }
   };
 
@@ -51,11 +84,6 @@ export function VerifyIdentityModal({
     } else {
       setCurrentStep('IDENTITY_CANNOT_BE_VERIFIED');
     }
-  };
-
-  const handleViewProfile = () => {
-    onClose();
-    navigateToAuthorProfile(user?.authorProfile?.id, false);
   };
 
   const renderStepContent = () => {
@@ -192,7 +220,7 @@ export function VerifyIdentityModal({
             </div>
           );
         }
-
+        // General flow: continue to publications step
         return (
           <div className="space-y-6 text-center p-6 flex flex-col justify-between min-h-[400px]">
             <div>
@@ -209,11 +237,18 @@ export function VerifyIdentityModal({
               </p>
             </div>
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={handleViewProfile} className="w-full">
-                View my profile
+              <Button onClick={() => setCurrentStep('PUBLICATIONS')} className="w-full">
+                Next: View rewards on my publications
               </Button>
-              <Button variant="ghost" onClick={onClose} className="w-full">
-                Done
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  onClose();
+                  navigateToAuthorProfile(user?.authorProfile?.id, false);
+                }}
+                className="w-full"
+              >
+                View my profile
               </Button>
             </div>
           </div>
@@ -243,6 +278,94 @@ export function VerifyIdentityModal({
               <Button onClick={onClose} className="w-[200px] mx-auto mt-5">
                 Close
               </Button>
+            </div>
+          </div>
+        );
+
+      case 'PUBLICATIONS':
+        return (
+          <div className="p-6">
+            {publicationsSubstep === 'DOI' && (
+              <div className="mb-10">
+                <h3 className="text-2xl font-semibold text-center text-gray-900">
+                  Let's find rewards on your publications
+                </h3>
+                <p className="mt-4 text-gray-600 text-center text-lg">
+                  Enter a DOI for any paper you've published and we will fetch the rest of your
+                  works.
+                </p>
+
+                <div className="mt-8 mb-4 text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  What happens next
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 text-gray-700">
+                    <div className="bg-gray-100 p-2 rounded-full">
+                      <Users className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <span>We will build your researcher profile</span>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-gray-700">
+                    <div className="bg-gray-100 p-2 rounded-full">
+                      <TrendingUp className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <span>We will calculate your hub specific reputation</span>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-gray-700">
+                    <div className="bg-gray-100 p-2 rounded-full">
+                      <CircleDollarSign className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <span>
+                      We will identify your prior publications that are eligible for rewards
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {publicationsSubstep === 'RESULTS' && (
+              <div className="mb-10">
+                <h3 className="text-2xl font-semibold text-center text-gray-900">
+                  Review your publication history
+                </h3>
+                <p className="mt-4 text-gray-600 text-center text-lg">
+                  We fetched some of your publications. We may have mislabeled a paper or two so
+                  please select only the ones that you have authored or co-authored.
+                </p>
+              </div>
+            )}
+
+            <AddPublicationsForm
+              onStepChange={({ step }) => {
+                if (step === 'FINISHED') setCurrentStep('SUCCESS');
+                else {
+                  setPublicationsSubstep(step);
+                }
+              }}
+              onDoThisLater={onClose}
+              allowDoThisLater={true}
+            />
+          </div>
+        );
+
+      case 'SUCCESS':
+        return (
+          <div className="space-y-6 text-center p-6">
+            <div className="flex justify-center">
+              <div className="bg-green-100 p-4 rounded-full">
+                <BadgeCheck className="h-8 w-8 text-green-600" />
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900">Verification Successful!</h3>
+            <p className="text-gray-600">
+              Your identity has been verified. You can now claim your publications and earn
+              ResearchCoin for your contributions.
+            </p>
+            <div className="flex justify-center">
+              <Button onClick={handleNext}>View My Profile</Button>
             </div>
           </div>
         );
@@ -301,6 +424,13 @@ export function VerifyIdentityModal({
                       >
                         <X className="h-5 w-5" />
                       </Button>
+                    </div>
+                  )}
+
+                  {/* Progress stepper */}
+                  {['PUBLICATIONS', 'SUCCESS'].includes(currentStep) && (
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <ProgressStepper steps={stepperSteps} currentStep={currentStep} />
                     </div>
                   )}
 
