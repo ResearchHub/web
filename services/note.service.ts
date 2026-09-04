@@ -1,6 +1,17 @@
 import { ApiClient } from './client';
-import { transformNote, transformNoteContent, transformNoteWithContent } from '@/types/note';
-import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
+import {
+  buildNoteDetailsPayload,
+  transformNote,
+  transformNoteContent,
+  transformNoteWithContent,
+} from '@/types/note';
+import type {
+  Note,
+  NoteAccess,
+  NoteContent,
+  NoteDetailsUpdate,
+  NoteWithContent,
+} from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
 import { extractApiErrorMessage } from './lib/serviceUtils';
@@ -28,7 +39,6 @@ export interface CreateNoteParams {
   grouping: NoteAccess;
   organization_slug: string;
   document_type?: string;
-  selectedGrantId: ID;
 }
 
 export interface UpdateNoteContentParams {
@@ -40,14 +50,8 @@ export interface UpdateNoteContentParams {
 
 export interface UpdateNoteParams {
   noteId: ID;
-  title?: string;
-  document_type?: string;
-  selectedGrantId: ID;
-}
-
-export interface UpdateNoteTitleParams {
-  noteId: ID;
-  title: string;
+  selectedGrantId?: ID;
+  details?: NoteDetailsUpdate;
 }
 
 export interface GetOrganizationNotesParams {
@@ -197,14 +201,8 @@ export class NoteService {
       throw new NoteError('Missing organization slug', 'INVALID_PARAMS');
     }
 
-    const { selectedGrantId, ...fields } = params;
-    const payload = {
-      ...fields,
-      ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
-    };
-
     try {
-      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/`, payload);
+      const response = await ApiClient.post<any>(`${this.BASE_PATH}/note/`, params);
       return transformNote(response);
     } catch (error) {
       throw new NoteError(
@@ -285,10 +283,10 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, selectedGrantId, ...fields } = params;
+    const { noteId, selectedGrantId, details } = params;
     const payload = {
-      ...fields,
       ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
+      ...(details && buildNoteDetailsPayload(details)),
     };
 
     try {
@@ -301,14 +299,6 @@ export class NoteService {
         error instanceof ApiError ? error.status : undefined
       );
     }
-  }
-
-  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    return this.updateNote({
-      noteId: params.noteId,
-      title: params.title,
-      selectedGrantId: undefined,
-    });
   }
 
   /**

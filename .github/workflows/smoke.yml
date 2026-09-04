@@ -1,0 +1,76 @@
+name: Smoke Tests
+
+on:
+  # Runs on every pull request. Unlike deployment_status or repository_dispatch,
+  # this trigger works from a feature branch, so it takes effect without being
+  # merged to the default branch first.
+  pull_request:
+
+  # Manual runs against any environment. GitHub only surfaces this once the
+  # file is on the default branch, so it becomes available after merging.
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Environment to test, e.g. https://staging.researchhub.com
+        required: true
+
+concurrency:
+  group: smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # .npmrc is gitignored because it carries registry credentials, so the
+      # runner has to build its own. Both private registries are needed: Tiptap
+      # Pro and FontAwesome Pro packages are dependencies of the app.
+      - name: Configure private registries
+        env:
+          TIPTAP_TOKEN: ${{ secrets.TIPTAP_PRO_TOKEN }}
+          FONTAWESOME_TOKEN: ${{ secrets.FONTAWESOME_TOKEN }}
+        run: |
+          cat > .npmrc <<EOF
+          @tiptap-pro:registry=https://registry.tiptap.dev/
+          //registry.tiptap.dev/:_authToken=${TIPTAP_TOKEN}
+          @awesome.me:registry=https://npm.fontawesome.com/
+          @fortawesome:registry=https://npm.fontawesome.com/
+          //npm.fontawesome.com/:_authToken=${FONTAWESOME_TOKEN}
+          EOF
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        env:
+          # A manual run takes the URL from its input; a pull request falls back
+          # to the shared environment in the SMOKE_BASE_URL repository variable.
+          # To test each PR against its own Vercel preview instead, switch to
+          # Vercel's repository_dispatch event and read client_payload.url -
+          # that only works once this file is on the default branch.
+          SMOKE_BASE_URL: ${{ inputs.base_url || vars.SMOKE_BASE_URL }}
+          SMOKE_USER_EMAIL: ${{ secrets.SMOKE_USER_EMAIL }}
+          SMOKE_USER_PASSWORD: ${{ secrets.SMOKE_USER_PASSWORD }}
+        run: npm run test:smoke
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

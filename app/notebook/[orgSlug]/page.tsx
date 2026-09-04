@@ -12,9 +12,9 @@ import {
   getTemplatePlainText,
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
+import { NoteService } from '@/services/note.service';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { useUser } from '@/contexts/UserContext';
-import { getPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 import type { ID } from '@/types/root';
 
 // An empty document for the "Start blank" funding-opportunity path. The
@@ -42,6 +42,7 @@ export default function OrganizationPage() {
   const isNewGrant = searchParams.get('newGrant') === 'true';
   const grantSource = searchParams.get('grantSource');
   const proposalSource = searchParams.get('proposalSource');
+  const selectedGrantId = searchParams.get('selectedGrantId') ?? undefined;
 
   const createNoteWithContent = async (
     orgSlug: string,
@@ -66,10 +67,13 @@ export default function OrganizationPage() {
         title,
         grouping: 'WORKSPACE',
         documentType,
-        selectedGrantId,
       });
 
       if (newNote) {
+        if (selectedGrantId) {
+          await NoteService.updateNote({ noteId: newNote.id, selectedGrantId });
+        }
+
         await updateNoteContent({
           note: newNote.id,
           fullJson: JSON.stringify(template),
@@ -103,7 +107,6 @@ export default function OrganizationPage() {
     } else if (isNewFunding) {
       // "Upload a document" is handled inline in OpenProposalModal; here we
       // only create from template/blank.
-      const selectedGrantId = getPendingGrant()?.id;
       if (proposalSource === 'blank') {
         createNoteWithContent(selectedOrg.slug, {
           template: BLANK_DOCUMENT,
@@ -132,6 +135,7 @@ export default function OrganizationPage() {
     isNewGrant,
     grantSource,
     proposalSource,
+    selectedGrantId,
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStartFromTemplate = async (selectedGrantId?: Exclude<ID, null | undefined>) => {

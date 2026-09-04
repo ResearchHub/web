@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
-import type { PublishingFormData } from './schema';
+import type { PublishingFormData, SelectOption } from './schema';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -29,12 +29,6 @@ import {
 import { ResearchCoinSection } from './components/ResearchCoinSection';
 import { EndDateSection } from './components/EndDateSection';
 import { toast } from 'react-hot-toast';
-import {
-  loadPublishingFormFromStorage,
-  savePublishingFormToStorage,
-  getPendingGrant,
-  clearPendingGrant,
-} from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
@@ -49,7 +43,15 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
-import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import {
+  isChangelogNote,
+  isRegisteredReportNote,
+  type NoteDetailsUpdate,
+  type NoteWithContent,
+} from '@/types/note';
+import type { NonprofitOrg } from '@/types/nonprofit';
+import { NonprofitService } from '@/services/nonprofit.service';
+import type { NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -183,50 +185,157 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
   }
 };
 
-const populateRegisteredReportFields = (
+const mapOptionsToIds = (options: SelectOption[]): number[] =>
+  options.map((option) => Number(option.value)).filter((id) => !Number.isNaN(id));
+
+/** Both amount inputs accept digits only, so a saved `5000.00` reads back as `5000`. */
+const dropZeroCents = (amount: string): string => amount.replace(/\.0+$/, '');
+
+/** Populates the form from this draft's saved Details. */
+const populateFormFromNoteDetails = (
+  note: NoteWithContent,
+  setValue: (name: any, value: any) => void
+) => {
+  if (note.image || note.previewImage) {
+    setValue('coverImage', { file: null, key: note.image, url: note.previewImage });
+  }
+  if (note.topics?.length) {
+    setValue(
+      'topics',
+      note.topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
+    );
+  }
+  if (note.authors?.length) {
+    setValue(
+      'authors',
+      note.authors.map((author) => ({ value: author.authorId.toString(), label: author.name }))
+    );
+  }
+  if (note.selectedGrant) {
+    setValue('selectedGrant', note.selectedGrant);
+  }
+
+  const { grantSettings, preregistrationSettings } = note;
+  if (grantSettings) {
+    if (grantSettings.amount) setValue('budget', dropZeroCents(grantSettings.amount));
+    if (grantSettings.organization) setValue('organization', grantSettings.organization);
+    if (grantSettings.description) setValue('shortDescription', grantSettings.description);
+    if (grantSettings.applicationVisibility) {
+      setValue('applicationVisibility', grantSettings.applicationVisibility);
+    }
+    if (grantSettings.contacts.length > 0) {
+      setValue(
+        'contacts',
+        grantSettings.contacts.map((contact) => ({
+          value: contact.id.toString(),
+          label: contact.name,
+        }))
+      );
+    }
+  }
+  if (preregistrationSettings) {
+    const { goalAmount, durationDays, isPublic, nonprofit } = preregistrationSettings;
+    if (goalAmount) setValue('budget', dropZeroCents(goalAmount));
+    if (durationDays) setValue('fundraiseEndDays', durationDays.toString());
+    if (isPublic !== null) setValue('isPublic', isPublic);
+    if (nonprofit) setValue('selectedNonprofit', nonprofit);
+  }
+};
+
+/** Fills the gaps a Registered Report's proposal covers, which are ids without labels. */
+const populateRegisteredReportPrefill = (
   note: NoteWithContent,
   getValues: (name: any) => any,
   setValue: (name: any, value: any) => void
 ) => {
-  const topics = note.topics ?? [];
-  const authors = note.authors ?? [];
-  const topicOptions =
-    topics.length > 0
-      ? topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
-      : (note.registeredReportPrefill?.topicIds ?? []).map((id) => ({
-          value: id.toString(),
-          label: `Topic ${id}`,
-        }));
-  const authorOptions =
-    authors.length > 0
-      ? authors.map((author) => ({
-          value: author.authorId.toString(),
-          label: author.name,
-        }))
-      : (note.registeredReportPrefill?.authorIds ?? []).map((id) => ({
-          value: id.toString(),
-          label: `Author ${id}`,
-        }));
+  const { topicIds = [], authorIds = [] } = note.registeredReportPrefill ?? {};
 
-  if (note.previewImage && !getValues('coverImage')) {
-    setValue('coverImage', { file: null, url: note.previewImage });
+  if (topicIds.length > 0 && getValues('topics').length === 0) {
+    setValue(
+      'topics',
+      topicIds.map((id) => ({ value: id.toString(), label: `Topic ${id}` }))
+    );
   }
 
-  if (topicOptions.length > 0 && getValues('topics').length === 0) {
-    setValue('topics', topicOptions);
-  }
-
-  if (authorOptions.length > 0 && getValues('authors').length === 0) {
-    setValue('authors', authorOptions);
+  if (authorIds.length > 0 && getValues('authors').length === 0) {
+    setValue(
+      'authors',
+      authorIds.map((id) => ({ value: id.toString(), label: `Author ${id}` }))
+    );
   }
 };
 
-const restoreFromStorage = (
-  data: Record<string, any>,
-  setValue: (name: any, value: any) => void
+/** Builds a Note Details update for one changed form field. */
+const buildNoteDetailsUpdate = (
+  field: string,
+  values: PublishingFormData
+): NoteDetailsUpdate | null => {
+  const isGrant = values.articleType === 'grant';
+  const isProposal = values.articleType === 'preregistration';
+
+  switch (field) {
+    case 'articleType':
+      return { documentType: ARTICLE_TYPE_API_MAP[values.articleType] };
+    case 'coverImage':
+      // A file is still uploading, and the key it produces triggers this again.
+      if (values.coverImage?.file) return null;
+      // The API clears an image with a blank string; null is rejected.
+      return { image: values.coverImage?.key ?? '', previewImage: values.coverImage?.url ?? '' };
+    case 'authors':
+      return { authorIds: mapOptionsToIds(values.authors) };
+    case 'topics':
+      return { hubIds: mapOptionsToIds(values.topics) };
+    case 'contacts':
+      return isGrant ? { grantSettings: { contactIds: mapOptionsToIds(values.contacts) } } : null;
+    case 'organization':
+      return isGrant ? { grantSettings: { organization: values.organization } } : null;
+    case 'shortDescription':
+      return isGrant ? { grantSettings: { description: values.shortDescription } } : null;
+    case 'applicationVisibility':
+      return isGrant
+        ? { grantSettings: { applicationVisibility: values.applicationVisibility } }
+        : null;
+    case 'fundraiseEndDays':
+      return isProposal
+        ? { preregistrationSettings: { durationDays: Number(values.fundraiseEndDays) } }
+        : null;
+    case 'isPublic':
+      return isProposal ? { preregistrationSettings: { isPublic: values.isPublic } } : null;
+    case 'budget': {
+      const amount = values.budget || null;
+      if (isGrant) return { grantSettings: { amount, currency: 'USD' } };
+      return isProposal
+        ? { preregistrationSettings: { goalAmount: amount, goalCurrency: 'USD' } }
+        : null;
+    }
+    default:
+      return null;
+  }
+};
+
+/** Saves the nonprofit under the id the Note API stores, not its Endaoment one. */
+const saveSelectedNonprofit = async (
+  nonprofit: NonprofitOrg | null,
+  saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon'],
+  getValues: (name: any) => any
 ) => {
-  for (const [key, value] of Object.entries(data)) {
-    setValue(key, key === 'applicationDeadline' && value ? new Date(value) : value);
+  if (!nonprofit) {
+    saveDetailsSoon({ preregistrationSettings: { nonprofitId: null } });
+    return;
+  }
+
+  try {
+    const saved = await NonprofitService.createNonprofit({
+      name: nonprofit.name,
+      endaomentOrgId: nonprofit.endaomentOrgId,
+      ein: nonprofit.ein,
+      baseWalletAddress: nonprofit.baseWalletAddress,
+    });
+    // A newer choice may have replaced this one while it was being created.
+    if (getValues('selectedNonprofit') !== nonprofit) return;
+    saveDetailsSoon({ preregistrationSettings: { nonprofitId: saved.id } });
+  } catch (error) {
+    console.error('Error saving selected nonprofit:', error);
   }
 };
 
@@ -236,28 +345,29 @@ const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) =>
   }
 };
 
+/** Names the field it defaulted, which the caller has to save like any edit. */
 const autoAddCurrentUser = (
   getValues: any,
   setValue: (name: any, value: any) => void,
   currentUser: any
-) => {
+): 'authors' | 'contacts' | null => {
   const articleType = getValues('articleType');
-  if (!currentUser || articleType === 'registered_report') return;
+  if (!currentUser || articleType === 'registered_report') return null;
 
   const isGrant = articleType === 'grant';
   const field = isGrant ? 'contacts' : 'authors';
+  if (getValues(field).length > 0) return null;
 
-  if (getValues(field).length === 0) {
-    const profile = currentUser.authorProfile;
-    setValue(field, [
-      {
-        value: isGrant
-          ? currentUser.id.toString()
-          : profile?.id?.toString() || currentUser.id.toString(),
-        label: currentUser.fullName || currentUser.email || 'Unknown User',
-      },
-    ]);
-  }
+  const profile = currentUser.authorProfile;
+  setValue(field, [
+    {
+      value: isGrant
+        ? currentUser.id.toString()
+        : profile?.id?.toString() || currentUser.id.toString(),
+      label: currentUser.fullName || currentUser.email || 'Unknown User',
+    },
+  ]);
+  return field;
 };
 
 const resolveArticleType = (
@@ -286,7 +396,7 @@ export function PublishingForm({
   onBountyClick,
   readOnly = false,
 }: Readonly<PublishingFormProps>) {
-  const { currentNote: note, editor } = useNotebookContext();
+  const { currentNote: note, editor, saveDetailsSoon, saveDetailsNow } = useNotebookContext();
   const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -301,6 +411,7 @@ export function PublishingForm({
   });
 
   const noteId = note?.id;
+  const isPublished = Boolean(note?.post);
 
   useEffect(() => {
     if (!note) return;
@@ -311,17 +422,13 @@ export function PublishingForm({
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
     } else {
-      const storedData = loadPublishingFormFromStorage(note.id.toString());
-      if (storedData) {
-        restoreFromStorage(storedData, methods.setValue);
-      }
+      populateFormFromNoteDetails(note, methods.setValue);
 
       if (isRegisteredReport) {
-        populateRegisteredReportFields(note, methods.getValues, methods.setValue);
+        populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);
       }
 
       const articleType =
-        storedData?.articleType ??
         (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
         resolveArticleType(searchParams);
 
@@ -335,33 +442,40 @@ export function PublishingForm({
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
-    autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
 
-    const pending = getPendingGrant();
-    if (pending) {
-      methods.setValue('selectedGrant', pending);
-      if (pending.applicationVisibility === 'PRIVATE') {
-        methods.setValue('isPublic', false);
-      }
-      clearPendingGrant();
+    // Hydration runs with the watcher detached, so a default the form generates
+    // has to be saved here or the draft would never record who is on it.
+    const defaultedField = autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+    const defaults = defaultedField && buildNoteDetailsUpdate(defaultedField, methods.getValues());
+    if (defaults && !isPublished) saveDetailsSoon(defaults);
+
+    // A proposal answering a private Request for Proposal cannot be public.
+    if (methods.getValues('selectedGrant')?.applicationVisibility === 'PRIVATE') {
+      methods.setValue('isPublic', false);
     }
-
-    savePublishingFormToStorage(
-      note.id.toString(),
-      methods.getValues() as Partial<PublishingFormData>
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId]);
 
+  // Declared after the effect above so React unsubscribes before it hydrates,
+  // which is what keeps loading a note from saving it straight back.
   useEffect(() => {
-    if (!noteId) return;
+    if (!noteId || isPublished) return;
 
-    const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
+    const subscription = methods.watch((_values, { name }) => {
+      if (!name) return;
+
+      const values = methods.getValues();
+      if (name === 'selectedNonprofit') {
+        void saveSelectedNonprofit(values.selectedNonprofit, saveDetailsSoon, methods.getValues);
+        return;
+      }
+
+      const update = buildNoteDetailsUpdate(name, values);
+      if (update) saveDetailsSoon(update);
     });
 
     return () => subscription.unsubscribe();
-  }, [noteId, methods]);
+  }, [noteId, isPublished, methods, saveDetailsSoon]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -450,8 +564,10 @@ export function PublishingForm({
       formData.articleType === 'preregistration' ||
       formData.articleType === 'grant' ||
       formData.articleType === 'registered_report';
-    const file = needsImage ? formData.coverImage?.file : null;
-    if (!file) return null;
+    if (!needsImage) return null;
+
+    const file = formData.coverImage?.file;
+    if (!file) return formData.coverImage?.key ?? null;
 
     try {
       const result = await uploadAsset(file, 'post');
@@ -511,6 +627,10 @@ export function PublishingForm({
     try {
       setDocumentTitle(editor, editedTitle);
 
+      // Drain the queue now: publishing supersedes the draft, and the API
+      // rejects Details on a published note.
+      await saveDetailsNow();
+
       const text = editor?.getText();
       const json = editor?.getJSON() ?? { type: 'doc', content: [] };
       const html = editor?.getHTML();
@@ -565,14 +685,8 @@ export function PublishingForm({
           fullSrc: html || '',
           assignDOI: !formData.workId,
           topics: formData.topics.map((topic) => topic.value),
-          authors: formData.authors
-            .map((author) => author.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
-          contacts: formData.contacts
-            .map((contact) => contact.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
+          authors: mapOptionsToIds(formData.authors),
+          contacts: mapOptionsToIds(formData.contacts),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
           previewImg:
@@ -766,6 +880,7 @@ export function PublishingForm({
               <p className="text-sm text-red-600">{CHANGELOG_PUBLISH_ERROR_MESSAGE}</p>
             )}
             <Button
+              data-testid="publishing-form-submit"
               variant="default"
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"

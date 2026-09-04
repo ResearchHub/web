@@ -55,8 +55,6 @@ interface WorkHeaderProps {
     isApplyToGrantModalOpen: boolean;
     onCloseApplyToGrantModal: () => void;
     grantId: string;
-    grantAmountUsd?: number;
-    grantOrganization?: string;
     grantApplicationVisibility?: GrantApplicationVisibility;
   };
 }
@@ -283,8 +281,6 @@ export function WorkHeader({
         isApplyToGrantModalOpen={grantModalProps?.isApplyToGrantModalOpen}
         onCloseApplyToGrantModal={grantModalProps?.onCloseApplyToGrantModal}
         grantId={grantModalProps?.grantId}
-        grantAmountUsd={grantModalProps?.grantAmountUsd}
-        grantOrganization={grantModalProps?.grantOrganization}
         grantApplicationVisibility={grantModalProps?.grantApplicationVisibility}
         showReopenModal={showReopenModal}
         onCloseReopenModal={closeReopenModal}

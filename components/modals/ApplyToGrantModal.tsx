@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
 import { NoteService } from '@/services/note.service';
-import { setPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { useUser } from '@/contexts/UserContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
@@ -41,10 +40,6 @@ interface ApplyToGrantModalProps {
   onUseSelected: (proposal: ProposalForModal) => void;
   grantId: string;
   grantTitle?: string;
-  grantAmountUsd?: number;
-  grantShortTitle?: string;
-  grantImageUrl?: string;
-  grantOrganization?: string;
   grantApplicationVisibility?: GrantApplicationVisibility;
 }
 
@@ -53,10 +48,6 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   onClose,
   grantId,
   grantTitle,
-  grantAmountUsd,
-  grantShortTitle,
-  grantImageUrl,
-  grantOrganization,
   grantApplicationVisibility,
 }) => {
   const [draftNotes, setDraftNotes] = useState<Note[]>([]);
@@ -70,17 +61,6 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
 
   const selectedDraftNote = draftNotes.find((n) => n.id.toString() === selectedDraftNoteId);
 
-  const setPendingGrantForGrant = () => {
-    setPendingGrant({
-      id: grantId,
-      shortTitle: grantShortTitle || grantTitle || '',
-      imageUrl: grantImageUrl || '',
-      fundingAmount: grantAmountUsd || 0,
-      organization: grantOrganization || '',
-      applicationVisibility: grantApplicationVisibility,
-    });
-  };
-
   const handleSelectDraftNew = () => {
     setDraftNewSelected(true);
     setSelectedDraftNoteId(null);
@@ -92,9 +72,8 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   };
 
   const handleDraftNew = () => {
-    setPendingGrantForGrant();
     onClose();
-    router.push('/notebook?newFunding=true');
+    router.push(`/notebook?newFunding=true&selectedGrantId=${encodeURIComponent(grantId)}`);
   };
 
   const handleContinueWithDraft = async () => {
@@ -106,7 +85,6 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         noteId: selectedDraftNote.id,
         selectedGrantId: grantId,
       });
-      setPendingGrantForGrant();
       onClose();
       router.push(
         `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
@@ -327,6 +305,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             )}
           >
             <div
+              data-testid="apply-draft-new"
               onClick={handleSelectDraftNew}
               className={cn(
                 'px-3 py-2 rounded-lg border cursor-pointer transition-all duration-200',
@@ -383,6 +362,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
               </div>
             )}
             <Button
+              data-testid="apply-continue"
               variant={draftNewSelected ? 'dark' : 'default'}
               onClick={handleFooterAction}
               disabled={!hasSelection || isSavingSelection}

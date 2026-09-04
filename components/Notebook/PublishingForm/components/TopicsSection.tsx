@@ -24,7 +24,7 @@ export function TopicsSection() {
   }, []);
 
   return (
-    <div className="py-3 px-6">
+    <div className="py-3 px-6" data-testid="topics-section">
       <SectionHeader icon={Tag}>Topics</SectionHeader>
       <SearchableMultiSelect
         value={topics}

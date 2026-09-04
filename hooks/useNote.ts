@@ -156,7 +156,6 @@ interface CreateNoteInput {
   grouping: NoteAccess;
   organizationSlug: string;
   documentType?: string;
-  selectedGrantId: ID;
 }
 
 interface UseCreateNoteState {
@@ -183,7 +182,6 @@ export const useCreateNote = (): UseCreateNoteReturn => {
         grouping: params.grouping,
         organization_slug: params.organizationSlug,
         document_type: params.documentType,
-        selectedGrantId: params.selectedGrantId,
       });
       setNote(response);
       return response;
@@ -286,6 +284,11 @@ interface UseUpdateNoteState {
 
 interface UpdateNoteOptions {
   /**
+   * Persists the document's title, which is a note field rather than note
+   * content and so belongs to whichever writer owns the note record.
+   */
+  saveTitle?: (newTitle: string) => void;
+  /**
    * Reports the note the title belongs to: a save can complete (or a pending
    * autosave flush) after the user moved to another note, so consumers must
    * scope their state updates to `noteId` rather than whatever is current.
@@ -347,32 +350,20 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
     setError(null);
 
     try {
-      const promises: Promise<any>[] = [];
-
-      // Only update title if it changed
+      // The title goes to the note record's own writer, which queues it and
+      // retries it on its own; only a change to it is worth sending.
       if (payload.title !== titleRef.current) {
         titleRef.current = payload.title;
-        promises.push(
-          NoteService.updateNoteTitle({
-            noteId,
-            title: payload.title,
-          }).then(() => {
-            options.onTitleUpdate?.(payload.title, noteId);
-          })
-        );
+        options.saveTitle?.(payload.title);
+        options.onTitleUpdate?.(payload.title, noteId);
       }
 
-      // Always update content
-      promises.push(
-        NoteService.updateNoteContent({
-          note: noteId,
-          full_src: payload.html || '',
-          plain_text: payload.plainText || '',
-          full_json: JSON.stringify(payload.json),
-        })
-      );
-
-      await Promise.all(promises);
+      await NoteService.updateNoteContent({
+        note: noteId,
+        full_src: payload.html || '',
+        plain_text: payload.plainText || '',
+        full_json: JSON.stringify(payload.json),
+      });
       return true;
     } catch (err) {
       const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note';
@@ -583,7 +574,6 @@ export const useDuplicateNote = (): UseDuplicateNoteReturn => {
         grouping: originalNote.access,
         organization_slug: organizationSlug,
         document_type: isChangelogNote(originalNote) ? 'DISCUSSION' : undefined,
-        selectedGrantId: undefined,
       });
 
       // 3. Copy the content to the new note

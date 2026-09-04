@@ -321,9 +321,16 @@ export default function SelectProvider({
           autoComplete="email"
           className="w-full p-3 border rounded mb-4"
           ref={emailInputRef}
+          data-testid="auth-email-input"
         />
 
-        <Button type="submit" disabled={isLoading} className="w-full" size="lg">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full"
+          size="lg"
+          data-testid="auth-email-continue"
+        >
           {isLoading ? auth.loadingLabel : auth.continueLabel}
         </Button>
 

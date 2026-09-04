@@ -190,6 +190,7 @@ export default function Login({
               placeholder="Password"
               className="w-full p-3 border rounded pr-12"
               ref={passwordInputRef}
+              data-testid="auth-password-input"
             />
             <Button
               type="button"
@@ -203,7 +204,12 @@ export default function Login({
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading} className="w-full mb-4">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full mb-4"
+          data-testid={isMfaStep ? 'auth-mfa-submit' : 'auth-login-submit'}
+        >
           {isLoading
             ? isMfaStep
               ? 'Verifying...'
@@ -234,6 +240,7 @@ export default function Login({
             onClick={onForgotPassword}
             disabled={isLoading}
             className="text-rhBlue-500 hover:text-rhBlue-600 text-sm"
+            data-testid="auth-forgot-password"
           >
             Forgot your password?
           </Button>

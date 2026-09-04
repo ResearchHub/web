@@ -86,6 +86,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     noteError,
     setEditor,
     updateNoteTitle,
+    saveDetailsSoon,
     activeNoteId,
     editor,
   } = useNotebookContext();
@@ -212,6 +213,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   }, [note, noteError, isLoadingNote]);
 
   const [, updateNote, saveNoteNow] = useUpdateNote(note?.id, {
+    saveTitle: (title) => saveDetailsSoon({ title }),
     onTitleUpdate: updateNoteTitle,
     registeredReportProposalId: note?.proposalId,
     // While an assistant review is open the editor holds a merged document;
@@ -334,6 +336,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
               <div className="flex items-center gap-2">
                 {activeTab === 'document' && (
                   <Button
+                    data-testid="notebook-add-details"
                     variant="outlined"
                     size="sm"
                     onClick={() => setActiveTab('details')}

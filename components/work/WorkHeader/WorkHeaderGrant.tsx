@@ -70,6 +70,7 @@ export function WorkHeaderGrant({
       <>
         <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
           <Button
+            data-testid="grant-submit-proposal"
             variant="default"
             size="lg"
             onClick={() => setIsApplyModalOpen(true)}
@@ -164,8 +165,6 @@ export function WorkHeaderGrant({
               isApplyToGrantModalOpen: isApplyModalOpen,
               onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
               grantId,
-              grantAmountUsd: amountUsd,
-              grantOrganization: organization,
               grantApplicationVisibility: applicationVisibility,
             }
           : undefined
