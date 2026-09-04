@@ -133,7 +133,7 @@ export function ModelControls({
         </ControlButton>
       )}
 
-      {openMenu === 'model' && (
+      {openMenu === 'model' && !disabled && !pinned && (
         <Menu label="Assistant model">
           <div className="max-h-64 overflow-y-auto p-1">
             {models.map((option) => (
@@ -154,7 +154,7 @@ export function ModelControls({
         </Menu>
       )}
 
-      {openMenu === 'effort' && (
+      {openMenu === 'effort' && !disabled && (
         <Menu label="Effort">
           <div className="space-y-3 px-3 py-3">
             {effortLevels.length > 0 && (
@@ -300,11 +300,13 @@ function ModelRow({
     <button
       type="button"
       onClick={onSelect}
+      disabled={!model.allowed}
       aria-current={selected}
       className={cn(
         'flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors',
         'hover:bg-gray-50 focus:outline-none focus-visible:bg-gray-50',
-        selected && 'bg-primary-50/60 hover:bg-primary-50/60'
+        selected && 'bg-primary-50/60 hover:bg-primary-50/60',
+        !model.allowed && 'cursor-not-allowed opacity-50'
       )}
     >
       <Check
@@ -316,6 +318,9 @@ function ModelRow({
       />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-gray-800">{model.label}</span>
+        {!model.allowed && (
+          <span className="text-[11px] text-gray-500">Unavailable for your account</span>
+        )}
         {model.description && (
           <span className="mt-0.5 block text-[11px] leading-snug text-gray-500">
             {model.description}

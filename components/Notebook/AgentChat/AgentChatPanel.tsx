@@ -9,6 +9,9 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
+import { useResearchAiUsage } from '@/hooks/useResearchAiUsage';
+import { AI_BUSY_MESSAGE, isUsageExhausted, usageLimitMessage } from '@/types/researchAiUsage';
+import { UsageMeter } from './UsageMeter';
 import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
@@ -57,7 +60,14 @@ function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice
     case 'busy':
       return {
         tone: 'warning',
-        text: outcome.detail ?? 'The assistant is still working on a previous message.',
+        text: AI_BUSY_MESSAGE,
+      };
+    case 'limit':
+      return { tone: 'warning', kind: 'limit', text: usageLimitMessage(null) };
+    case 'model_not_allowed':
+      return {
+        tone: 'warning',
+        text: 'Your available models or settings have changed. Choose an allowed option before sending again. Start a new chat to change a locked model.',
       };
     case 'invalid':
       return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
@@ -250,6 +260,8 @@ export function AgentChatPanel({
   const promoBannerVisible = promoStatus === 'checked' && !promoDismissed;
 
   const list = useNotebookChatList(noteId, open);
+  const usage = useResearchAiUsage(open);
+  const usageExhausted = isUsageExhausted(usage.budget);
   // Null is the new-chat screen, and it is where a page visit starts: the
   // assistant opens on its own opening moves rather than dropping the reader
   // into the middle of whatever they last asked. Earlier chats stay one click
@@ -281,6 +293,7 @@ export function AgentChatPanel({
   const modelSelection = useAgentModelSelection({
     enabled: open,
     pinnedRef: chatState.pinnedModelRef,
+    started: (chatState.chat?.executions.length ?? 0) > 0 || chatState.pendingSend != null,
   });
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
@@ -293,6 +306,8 @@ export function AgentChatPanel({
   const [creatingChat, setCreatingChat] = useState(false);
   /** Identity of the latest creation, so a stale settle can't clear its flag. */
   const creationSeqRef = useRef(0);
+  const sendingRef = useRef(false);
+  const dispatchedFirstMessage = useRef<QueuedMessage | null>(null);
 
   /** Draft writes go through here so the per-chat map stays in sync. */
   const updateDraft = useCallback(
@@ -344,10 +359,14 @@ export function AgentChatPanel({
 
   // ---- server-side access gate ----
   useEffect(() => {
-    if (list.access === 'hidden' || chatState.access === 'unauthorized') {
+    if (
+      list.access === 'hidden' ||
+      chatState.access === 'unauthorized' ||
+      modelSelection.status === 'unauthorized'
+    ) {
       onUnavailable();
     }
-  }, [list.access, chatState.access, onUnavailable]);
+  }, [list.access, chatState.access, modelSelection.status, onUnavailable]);
 
   // ---- keep the listing fresh as the open chat evolves ----
   // Derived titles land after the first turn, previews/spinners change as
@@ -366,6 +385,49 @@ export function AgentChatPanel({
     if (open && changed) refreshList();
   }, [open, latestStatus, chatTitle, refreshList]);
 
+  const refreshUsage = usage.refresh;
+  const refreshModels = modelSelection.refresh;
+  const failureNotice = useCallback(
+    async (outcome: SendOutcome & { ok: false }): Promise<ComposerNotice> => {
+      if (outcome.reason === 'limit') {
+        const budget = await refreshUsage();
+        return {
+          tone: 'warning',
+          kind: 'limit',
+          resetsAt: budget?.resets_at,
+          text: usageLimitMessage(budget),
+        };
+      }
+      if (outcome.reason === 'model_not_allowed') await refreshModels();
+      if (outcome.reason === 'busy') void refreshList();
+      return noticeFromOutcome(outcome);
+    },
+    [refreshUsage, refreshModels, refreshList]
+  );
+
+  const terminalExecution = chatState.latestExecution;
+  const terminalSignal =
+    terminalExecution && !isActiveExecutionStatus(terminalExecution.status)
+      ? `${selectedChatId}:${terminalExecution.id}:${terminalExecution.status}`
+      : null;
+  const limitDuringRun = terminalExecution?.error?.code === 'usage_limit_exceeded';
+  useEffect(() => {
+    if (!open || !terminalSignal) return;
+    let cancelled = false;
+    refreshUsage().then((budget) => {
+      if (!cancelled && limitDuringRun)
+        setNotice({
+          tone: 'warning',
+          kind: 'limit',
+          resetsAt: budget?.resets_at,
+          text: usageLimitMessage(budget),
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, terminalSignal, limitDuringRun, refreshUsage]);
+
   // ---- sending ----
   // Live mirror of the panel's target. Async continuations compare against it
   // and discard results that raced a chat or note switch instead of applying
@@ -376,6 +438,13 @@ export function AgentChatPanel({
     chatId: selectedChatId,
   });
   targetRef.current = { noteId, chatId: selectedChatId };
+  useEffect(() => {
+    targetRef.current = { noteId, chatId: selectedChatId };
+    return () => {
+      // A pending note fetch must not apply content after this panel unmounts.
+      targetRef.current = { noteId: '', chatId: null };
+    };
+  }, []);
   const isCurrentTarget = useCallback(
     (target: { noteId: string; chatId: number | null }) =>
       targetRef.current.noteId === target.noteId && targetRef.current.chatId === target.chatId,
@@ -384,48 +453,68 @@ export function AgentChatPanel({
 
   const handleSend = useCallback(async () => {
     const text = draft.trim();
-    if (!text) return;
+    if (
+      !text ||
+      sendingRef.current ||
+      usage.busy ||
+      usageExhausted ||
+      chatState.isBusy ||
+      chatState.isFinishing ||
+      creatingChat ||
+      queuedMessage ||
+      modelSelection.status !== 'ok' ||
+      (!modelSelection.pinned && !modelSelection.model)
+    )
+      return;
+    if (selectedChatId == null ? list.access !== 'ok' : chatState.access !== 'ok') return;
+    sendingRef.current = true;
     setNotice(null);
-    const target = targetRef.current;
-    // Captured before the awaits: the turn runs on what was selected when the
-    // user pressed send, not on whatever the picker says by the time it lands.
-    const generation = modelSelection.request;
+    try {
+      const target = targetRef.current;
+      // Captured before the awaits: the turn runs on what was selected when the
+      // user pressed send, not on whatever the picker says by the time it lands.
+      const generation = modelSelection.request;
 
-    if (selectedChatId == null) {
-      // Default flow: create untitled, send the first message; the refetch
-      // after the turn brings the derived title.
-      const creationSeq = ++creationSeqRef.current;
-      setCreatingChat(true);
-      const created = await list.createChat();
-      // A newer creation may own the flag by now (the user moved to another
-      // note and started a chat there) — a stale settle must not unblock its
-      // composer while that creation is still in flight.
-      if (creationSeqRef.current === creationSeq) setCreatingChat(false);
-      // Switched note or picked an existing chat meanwhile — abandon the
-      // creation instead of yanking the selection to a stale chat.
-      if (!isCurrentTarget(target)) return;
-      if (!created) {
-        setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
+      if (selectedChatId == null) {
+        // Default flow: create untitled, send the first message; the refetch
+        // after the turn brings the derived title.
+        const creationSeq = ++creationSeqRef.current;
+        setCreatingChat(true);
+        const created = await list.createChat();
+        // A newer creation may own the flag by now (the user moved to another
+        // note and started a chat there) — a stale settle must not unblock its
+        // composer while that creation is still in flight.
+        if (creationSeqRef.current === creationSeq) setCreatingChat(false);
+        // Switched note or picked an existing chat meanwhile — abandon the
+        // creation instead of yanking the selection to a stale chat.
+        if (!isCurrentTarget(target)) return;
+        if (!created) {
+          setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
+          return;
+        }
+        draftsRef.current.delete('new');
+        draftsRef.current.set(String(created.conversation_id), text);
+        setInitialChat(created);
+        setSelectedChatId(created.conversation_id);
+        setQueuedMessage({ text, generation });
         return;
       }
-      draftsRef.current.delete('new');
-      setInitialChat(created);
-      setSelectedChatId(created.conversation_id);
-      setQueuedMessage({ text, generation });
-      return;
-    }
 
-    const outcome = await chatState.send(text, generation);
-    if (outcome.ok) {
-      if (isCurrentTarget(target)) {
-        updateDraft('');
+      const outcome = await chatState.send(text, generation);
+      if (outcome.ok) {
+        if (isCurrentTarget(target)) {
+          if (draftsRef.current.get(String(target.chatId))?.trim() === text) updateDraft('');
+        } else {
+          // Sent fine, but the user moved on — just retire the sent draft.
+          if (draftsRef.current.get(String(target.chatId))?.trim() === text)
+            draftsRef.current.delete(String(target.chatId));
+        }
       } else {
-        // Sent fine, but the user moved on — just retire the sent draft.
-        draftsRef.current.delete(String(target.chatId));
+        const nextNotice = await failureNotice(outcome);
+        if (isCurrentTarget(target)) setNotice(nextNotice);
       }
-    } else if (isCurrentTarget(target)) {
-      // Keep the draft on any failure.
-      setNotice(noticeFromOutcome(outcome));
+    } finally {
+      sendingRef.current = false;
     }
   }, [
     draft,
@@ -435,26 +524,46 @@ export function AgentChatPanel({
     modelSelection.request,
     updateDraft,
     isCurrentTarget,
+    usage.busy,
+    usageExhausted,
+    creatingChat,
+    queuedMessage,
+    modelSelection.status,
+    modelSelection.pinned,
+    modelSelection.model,
+    failureNotice,
   ]);
 
-  // Fire the queued first message once the freshly created chat is live.
+  // Dispatch the first message once the newly created chat is ready. Rejections
+  // stay drafts; this handoff never retries a refused POST.
   const sendToChat = chatState.send;
   useEffect(() => {
     if (queuedMessage == null || selectedChatId == null || chatState.access !== 'ok') return;
+    if (dispatchedFirstMessage.current === queuedMessage) return;
+    dispatchedFirstMessage.current = queuedMessage;
     const { text, generation } = queuedMessage;
     const target = targetRef.current;
     setQueuedMessage(null);
-    sendToChat(text, generation).then((outcome) => {
-      if (outcome.ok) return;
-      if (isCurrentTarget(target)) {
-        setNotice(noticeFromOutcome(outcome));
-        updateDraft(text);
-      } else {
-        // Failed after a switch — keep the unsent text under its own chat.
-        draftsRef.current.set(String(target.chatId), text);
+    sendToChat(text, generation).then(async (outcome) => {
+      if (outcome.ok) {
+        if (draftsRef.current.get(String(target.chatId))?.trim() === text) {
+          if (isCurrentTarget(target)) updateDraft('');
+          else draftsRef.current.delete(String(target.chatId));
+        }
+        return;
       }
+      const nextNotice = await failureNotice(outcome);
+      if (isCurrentTarget(target)) setNotice(nextNotice);
     });
-  }, [queuedMessage, selectedChatId, chatState.access, sendToChat, updateDraft, isCurrentTarget]);
+  }, [
+    queuedMessage,
+    selectedChatId,
+    chatState.access,
+    sendToChat,
+    updateDraft,
+    isCurrentTarget,
+    failureNotice,
+  ]);
 
   // ---- rename ----
   const [renaming, setRenaming] = useState(false);
@@ -924,18 +1033,26 @@ export function AgentChatPanel({
     }
   }, [chatState.chat, chatState.pendingSend, activeTab]);
 
+  // A limit notice expires with the budget window it described.
+  const currentNotice =
+    notice?.kind === 'limit' && notice.resetsAt && new Date(notice.resetsAt).getTime() <= Date.now()
+      ? null
+      : notice;
+
   // ---- derived composer state ----
   // Sending before the catalog lands would run the turn on the server default
   // and pin the conversation to it, silently losing the user's chosen model
   // with no way back. Busy rather than disabled: the draft stays editable, only
-  // send waits. A catalog that fails resolves to `unavailable`, which sends on
-  // the server default by design.
+  // send waits. A catalog failure offers a refresh before submitting.
   const composerBusy =
     chatState.isBusy ||
     chatState.isFinishing ||
     creatingChat ||
     queuedMessage != null ||
-    modelSelection.status === 'loading';
+    usage.busy ||
+    usageExhausted ||
+    modelSelection.status !== 'ok' ||
+    (!modelSelection.pinned && !modelSelection.model);
   // Stop is only offered once something cancellable exists server-side. While
   // the message POST is still in flight or the chat is being created, cancel
   // would no-op and the turn would start anyway.
@@ -1197,6 +1314,32 @@ export function AgentChatPanel({
         </div>
       )}
 
+      <UsageMeter
+        budget={usage.budget}
+        failed={usage.failed}
+        onRefresh={() => {
+          void usage.refresh();
+        }}
+      />
+      {modelSelection.status === 'unavailable' && (
+        <div className="flex items-center justify-between gap-2 px-3 py-1 text-xs text-gray-500">
+          <span>Couldn’t load available models.</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              void modelSelection.refresh();
+            }}
+          >
+            Try again
+          </Button>
+        </div>
+      )}
+      {modelSelection.status === 'ok' && !modelSelection.model && (
+        <p className="px-3 py-1 text-xs text-gray-500">
+          No models are currently available for your account.
+        </p>
+      )}
       <ChatComposer
         textareaRef={composerRef}
         value={draft}
@@ -1206,7 +1349,12 @@ export function AgentChatPanel({
         busy={composerBusy}
         canStop={canStop}
         disabled={composerDisabled}
-        notice={notice}
+        notice={
+          (currentNotice?.kind === 'limit' || usageExhausted
+            ? { tone: 'warning', text: usageLimitMessage(usage.budget) }
+            : currentNotice) ??
+          (usage.busy && !chatState.isBusy ? { tone: 'warning', text: AI_BUSY_MESSAGE } : null)
+        }
         toolbar={
           <ModelControls
             models={modelSelection.models}
@@ -1215,7 +1363,12 @@ export function AgentChatPanel({
             options={modelSelection.options}
             onSelectModel={modelSelection.selectModel}
             onChangeOptions={modelSelection.setOptions}
-            disabled={composerDisabled}
+            disabled={
+              composerDisabled ||
+              chatState.pendingSend != null ||
+              creatingChat ||
+              queuedMessage != null
+            }
           />
         }
       />

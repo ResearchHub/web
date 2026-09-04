@@ -117,13 +117,13 @@ function buildTranscript(chat: NotebookChat, pendingSend: PendingSend | null): T
     }
   }
 
-  // Optimistic echo of a just-sent message until its execution shows up in a
+  // Echo only accepted (202) messages until their execution shows up in a
   // refetch (the hook retires it at that point).
   const pendingExecutionId = pendingSend?.executionId ?? null;
   const echoRetired =
     pendingExecutionId != null &&
     chat.executions.some((execution) => execution.id === pendingExecutionId);
-  if (pendingSend && !echoRetired) {
+  if (pendingSend && pendingExecutionId != null && !echoRetired) {
     build.entries.push({ key: 'pending-user', kind: 'pending-user', text: pendingSend.text });
   }
 

@@ -46,7 +46,8 @@ export class NotebookChatService {
   /**
    * Starts an asynchronous turn. 202 means the user message is already recorded
    * server-side. Throws ApiError with status 409 while a previous turn is still
-   * running (one turn per chat), 400 for empty/oversized messages.
+   * running (including another Research AI workflow), 429 for usage limits,
+   * and 400 for invalid messages or disallowed models/settings.
    *
    * `generation` carries the model and its controls; every field is optional
    * and an omitted one runs the server's configured default. `model` is only
@@ -98,4 +99,11 @@ export function chatErrorDetail(error: unknown): string | undefined {
     return error.message;
   }
   return error instanceof Error ? error.message : undefined;
+}
+
+/** Structured admission error code; status alone cannot identify model/usage errors. */
+export function chatErrorCode(error: unknown): string | undefined {
+  if (!(error instanceof ApiError)) return undefined;
+  const code = (error.errors as Record<string, unknown> | undefined)?.code;
+  return typeof code === 'string' ? code : undefined;
 }

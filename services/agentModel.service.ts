@@ -9,9 +9,8 @@ import {
  * The user-selectable model catalog, shared by every agent workflow that
  * takes a model (the notebook assistant today, proposal drafting next).
  *
- * Gated exactly like those workflows, so a 401/403 here means the same thing
- * as one on the chat itself: this user has no assistant, and the picker
- * simply isn't there.
+ * Eligibility and generation capabilities are specific to the authenticated
+ * user. Callers revalidate on opening and after a model_not_allowed response.
  */
 export class AgentModelService {
   static async listModels(): Promise<AgentModelCatalog> {

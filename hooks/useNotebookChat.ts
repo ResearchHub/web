@@ -1,10 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { researchAiJobs } from '@/store/researchAiJobs';
 import { debounce, type DebouncedFunc } from 'lodash-es';
 import {
   NotebookChatService,
   chatErrorDetail,
+  chatErrorCode,
   chatErrorStatus,
 } from '@/services/notebookChat.service';
 import { useNotebookChatSocket, type ChatSocketStatus } from '@/hooks/useNotebookChatSocket';
@@ -44,18 +47,32 @@ export type SendOutcome =
   | { ok: true }
   | {
       ok: false;
-      reason: 'busy' | 'invalid' | 'not_found' | 'unauthorized' | 'error';
+      reason:
+        | 'busy'
+        | 'limit'
+        | 'model_not_allowed'
+        | 'invalid'
+        | 'not_found'
+        | 'unauthorized'
+        | 'error';
       detail?: string;
     };
 
 /** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
 function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
   const detail = chatErrorDetail(err);
+  const code = chatErrorCode(err);
   switch (chatErrorStatus(err)) {
     case 409:
       return { ok: false, reason: 'busy', detail };
+    case 429:
+      return { ok: false, reason: code === 'usage_limit_exceeded' ? 'limit' : 'error', detail };
     case 400:
-      return { ok: false, reason: 'invalid', detail };
+      return {
+        ok: false,
+        reason: code === 'model_not_allowed' ? 'model_not_allowed' : 'invalid',
+        detail,
+      };
     case 401:
     case 403:
       return { ok: false, reason: 'unauthorized', detail };
@@ -281,6 +298,8 @@ export function useNotebookChat({
   enabled,
   initialChat = null,
 }: UseNotebookChatOptions): UseNotebookChatResult {
+  const { user } = useUser();
+  const userId = String(user?.id ?? '');
   const [chat, setChat] = useState<NotebookChat | null>(null);
   const [access, setAccess] = useState<ChatAccess>('loading');
   const [pendingSend, setPendingSend] = useState<PendingSend | null>(null);
@@ -298,6 +317,13 @@ export function useNotebookChat({
   // (panel reopen, switch-back) must fetch, or the transcript would silently
   // revert to the empty creation state with no poll/socket path to recover.
   const seededChatIdRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      seqRef.current += 1;
+      epochRef.current += 1;
+    },
+    []
+  );
   // Mirror of `chat` for non-reactive reads inside fetchChat.
   const chatRef = useRef<NotebookChat | null>(null);
   // A sequence gap can produce more gap frames while its recovery GET runs.
@@ -316,6 +342,7 @@ export function useNotebookChat({
       try {
         const data = await NotebookChatService.getChat(noteId, chatId, { live });
         if (seq !== seqRef.current) return;
+        researchAiJobs.observe(userId, noteId, data);
         setChat((prev) => {
           const merged = mergeLiveChat(live ? prev : null, data);
           chatRef.current = merged;
@@ -337,7 +364,7 @@ export function useNotebookChat({
         }
       }
     },
-    [noteId, chatId]
+    [noteId, chatId, userId]
   );
 
   // Reset + initial load whenever the target chat changes or the panel opens.
@@ -482,10 +509,12 @@ export function useNotebookChat({
   const send = useCallback(
     async (text: string, generation?: GenerationRequest): Promise<SendOutcome> => {
       if (noteId == null || chatId == null) return { ok: false, reason: 'error' };
+      if (!researchAiJobs.reserve(userId)) return { ok: false, reason: 'busy' };
       const epoch = epochRef.current;
       setPendingSend({ text, executionId: null });
       try {
         const response = await NotebookChatService.sendMessage(noteId, chatId, text, generation);
+        researchAiJobs.track(userId, { noteId, chatId, executionId: response.execution_id });
         if (epoch === epochRef.current) {
           setPendingSend({ text, executionId: response.execution_id });
           fetchChat('live');
@@ -509,9 +538,11 @@ export function useNotebookChat({
           }
         }
         return outcome;
+      } finally {
+        researchAiJobs.release(userId);
       }
     },
-    [noteId, chatId, fetchChat]
+    [noteId, chatId, fetchChat, userId]
   );
 
   const cancel = useCallback(async () => {
@@ -581,6 +612,8 @@ export function useNotebookChatList(
   noteId: string | number | null,
   enabled: boolean
 ): UseNotebookChatListResult {
+  const { user } = useUser();
+  const userId = String(user?.id ?? '');
   const [chats, setChats] = useState<NotebookChatListItem[]>([]);
   const [access, setAccess] = useState<ChatListAccess>('loading');
   const seqRef = useRef(0);
@@ -594,6 +627,10 @@ export function useNotebookChatList(
     try {
       const items = await NotebookChatService.listChats(noteId);
       if (seq !== seqRef.current) return;
+      for (const item of items) {
+        if (item.has_active_turn)
+          researchAiJobs.track(userId, { noteId, chatId: item.id, executionId: null });
+      }
       setChats(items);
       setAccess('ok');
     } catch (err) {
@@ -605,7 +642,7 @@ export function useNotebookChatList(
         setAccess((prev) => (prev === 'ok' ? 'ok' : 'error'));
       }
     }
-  }, [noteId]);
+  }, [noteId, userId]);
 
   useEffect(() => {
     seqRef.current += 1;

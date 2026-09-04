@@ -7,7 +7,7 @@ import { useReconnectingSocket, type SocketStatus } from './useReconnectingSocke
 
 /**
  * Server-defined close codes that mean reconnecting is pointless for this
- * chat: unauthenticated (4401), not editor/moderator (4403), chat/note not
+ * chat: unauthenticated (4401), access denied (4403), chat/note not
  * found or not yours (4404). REST polling remains the fallback, and the REST
  * layer surfaces the matching access error to the UI.
  */

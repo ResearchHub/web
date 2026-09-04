@@ -101,7 +101,8 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // so the turn reads the same before and after it finishes.
   const expanded = userExpanded ?? true;
 
-  const failed = execution.status === 'FAILED' || execution.status === 'INTERRUPTED';
+  const limited = execution.error?.code === 'usage_limit_exceeded';
+  const failed = limited || execution.status === 'FAILED' || execution.status === 'INTERRUPTED';
   const cancelled = execution.status === 'CANCELLED';
 
   const summary = summarizeActivity(activity);
@@ -192,7 +193,11 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           )}
         >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span>{execution.error?.message ?? 'Something went wrong.'}</span>
+          <span>
+            {limited
+              ? 'Daily AI usage limit reached. This run has stopped. Check the usage meter for the reset time.'
+              : (execution.error?.message ?? 'Something went wrong.')}
+          </span>
         </div>
       )}
 
@@ -204,7 +209,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           )}
         >
           <Ban className="h-3.5 w-3.5" aria-hidden="true" />
-          Stopped
+          Stopped. Another request may be unavailable briefly while cancellation finishes.
         </div>
       )}
     </div>

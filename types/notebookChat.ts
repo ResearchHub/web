@@ -126,6 +126,7 @@ export interface ExecutionPhase {
 
 export interface ChatExecutionError {
   code: string;
+  retryable?: boolean;
   /** User-safe copy — render verbatim, never invent detail. */
   message: string;
 }

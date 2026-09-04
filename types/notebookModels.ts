@@ -57,6 +57,7 @@ export interface AgentModel {
   readonly label: string;
   readonly description: string;
   readonly provider: string;
+  readonly allowed: boolean;
   readonly capabilities: AgentModelCapabilities;
 }
 
@@ -89,12 +90,13 @@ export interface GenerationRequest extends GenerationOptions {
 
 /** Raw catalog response — `capabilities` arrives as open-ended strings. */
 export interface AgentModelCatalogResponse {
-  default?: string;
+  default?: string | null;
   models?: Array<{
     ref?: string;
     label?: string;
     description?: string;
     provider?: string;
+    allowed?: boolean;
     capabilities?: {
       effort?: string[];
       thinking?: string[];
@@ -137,6 +139,7 @@ export function toAgentModelCatalog(response: AgentModelCatalogResponse): AgentM
       label: model.label?.trim() || modelIdOf(model.ref),
       description: model.description ?? '',
       provider: model.provider || providerOf(model.ref),
+      allowed: model.allowed === true,
       capabilities: {
         effort: (model.capabilities?.effort ?? []).filter(isEffortLevel),
         thinking: (model.capabilities?.thinking ?? []).filter(isThinkingMode),
@@ -163,6 +166,7 @@ export function unknownModel(ref: string): AgentModel {
     label: modelIdOf(ref) || ref,
     description: '',
     provider: providerOf(ref),
+    allowed: false,
     capabilities: { effort: [], thinking: [], temperature: false },
   };
 }

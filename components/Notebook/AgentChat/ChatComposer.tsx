@@ -7,6 +7,8 @@ import { MAX_CHAT_MESSAGE_LENGTH } from '@/types/notebookChat';
 
 export interface ComposerNotice {
   tone: 'warning' | 'error';
+  kind?: 'limit';
+  resetsAt?: string;
   text: string;
 }
 

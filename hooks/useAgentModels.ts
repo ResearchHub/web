@@ -1,64 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useUser } from '@/contexts/UserContext';
 import { AgentModelService } from '@/services/agentModel.service';
+import { chatErrorStatus } from '@/services/notebookChat.service';
 import type { AgentModelCatalog } from '@/types/notebookModels';
 
-/**
- * `loading` until the first fetch settles; `unavailable` for every failure —
- * the gate, a network blip, a backend without the endpoint. All of them mean
- * the same thing to the UI: no picker, and turns run on the server's default.
- */
-export type AgentModelsStatus = 'loading' | 'ok' | 'unavailable';
+export type AgentModelsStatus = 'loading' | 'ok' | 'unavailable' | 'unauthorized';
 
 export interface UseAgentModelsResult {
   readonly status: AgentModelsStatus;
   readonly catalog: AgentModelCatalog | null;
+  readonly refresh: () => Promise<void>;
 }
 
-// The catalog is per-deployment, not per-note or per-user-action: one fetch
-// serves every panel this session. Only successes are cached, so a transient
-// failure is retried by the next mount rather than disabling the picker for
-// the rest of the session.
-let cachedCatalog: AgentModelCatalog | null = null;
-let inFlight: Promise<AgentModelCatalog> | null = null;
-
-function loadCatalog(): Promise<AgentModelCatalog> {
-  if (cachedCatalog) return Promise.resolve(cachedCatalog);
-  inFlight ??= AgentModelService.listModels()
-    .then((catalog) => {
-      cachedCatalog = catalog;
-      return catalog;
-    })
-    .finally(() => {
-      inFlight = null;
-    });
-  return inFlight;
-}
-
-/** The models this user may select. Fetched once, when something needs it. */
+/** Eligibility is user-specific and can change. Revalidate on every panel open. */
 export function useAgentModels(enabled: boolean): UseAgentModelsResult {
-  const [result, setResult] = useState<UseAgentModelsResult>(() =>
-    cachedCatalog ? { status: 'ok', catalog: cachedCatalog } : { status: 'loading', catalog: null }
-  );
+  const { user } = useUser();
+  const userId = user?.id;
+  const sequence = useRef(0);
+  const [result, setResult] = useState<{
+    userId: typeof userId;
+    status: AgentModelsStatus;
+    catalog: AgentModelCatalog | null;
+  }>({ userId, status: 'loading', catalog: null });
+
+  const refresh = useCallback(async () => {
+    const seq = ++sequence.current;
+    setResult({ userId, status: 'loading', catalog: null });
+    if (userId == null) return;
+    try {
+      const catalog = await AgentModelService.listModels();
+      if (seq === sequence.current) setResult({ userId, status: 'ok', catalog });
+    } catch (error) {
+      if (seq !== sequence.current) return;
+      const status = chatErrorStatus(error);
+      setResult({
+        userId,
+        status: status === 401 || status === 403 ? 'unauthorized' : 'unavailable',
+        catalog: null,
+      });
+    }
+  }, [userId]);
 
   useEffect(() => {
-    if (!enabled || result.catalog != null) return;
-    let cancelled = false;
-    loadCatalog().then(
-      (catalog) => {
-        if (!cancelled) setResult({ status: 'ok', catalog });
-      },
-      () => {
-        // Deliberately terminal for this mount: the deps can't change back, so
-        // a failing endpoint is asked once, not once per render.
-        if (!cancelled) setResult({ status: 'unavailable', catalog: null });
-      }
-    );
+    if (enabled) void refresh();
     return () => {
-      cancelled = true;
+      sequence.current += 1;
     };
-  }, [enabled, result.catalog]);
+  }, [enabled, refresh]);
 
-  return result;
+  return {
+    ...(result.userId === userId ? result : { status: 'loading' as const, catalog: null }),
+    refresh,
+  };
 }
