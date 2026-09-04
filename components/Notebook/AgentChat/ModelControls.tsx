@@ -10,6 +10,7 @@ import {
   clampTemperature,
   EFFORT_LABELS,
   formatTemperature,
+  formatModelMultiplier,
   summarizeGenerationOptions,
   TEMPERATURE_MAX,
   TEMPERATURE_MIN,
@@ -33,6 +34,7 @@ interface ModelControlsProps {
   readonly onSelectModel: (ref: string) => void;
   readonly onChangeOptions: (options: GenerationOptions) => void;
   readonly disabled: boolean;
+  readonly multiplierExplanation: string;
 }
 
 type OpenMenu = 'model' | 'effort' | null;
@@ -59,6 +61,7 @@ export function ModelControls({
   onSelectModel,
   onChangeOptions,
   disabled,
+  multiplierExplanation,
 }: ModelControlsProps) {
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,7 +122,7 @@ export function ModelControls({
         {model.label}
       </ControlButton>
 
-      {hasEffortMenu && (
+      {hasEffortMenu && model.allowed && (
         <ControlButton
           onClick={() => toggle('effort')}
           open={openMenu === 'effort'}
@@ -133,20 +136,23 @@ export function ModelControls({
         </ControlButton>
       )}
 
-      {openMenu === 'model' && (
+      {openMenu === 'model' && !disabled && !pinned && (
         <Menu label="Assistant model">
           <div className="max-h-64 overflow-y-auto p-1">
-            {models.map((option) => (
-              <ModelRow
-                key={option.ref}
-                model={option}
-                selected={option.ref === model.ref}
-                onSelect={() => {
-                  setOpenMenu(null);
-                  onSelectModel(option.ref);
-                }}
-              />
-            ))}
+            {models
+              .filter((option) => option.allowed)
+              .map((option) => (
+                <ModelRow
+                  key={option.ref}
+                  model={option}
+                  selected={option.ref === model.ref}
+                  multiplierExplanation={multiplierExplanation}
+                  onSelect={() => {
+                    setOpenMenu(null);
+                    onSelectModel(option.ref);
+                  }}
+                />
+              ))}
             {models.length === 0 && (
               <p className="px-3 py-2 text-sm text-gray-500">No models are available.</p>
             )}
@@ -154,7 +160,7 @@ export function ModelControls({
         </Menu>
       )}
 
-      {openMenu === 'effort' && (
+      {openMenu === 'effort' && !disabled && model.allowed && (
         <Menu label="Effort">
           <div className="space-y-3 px-3 py-3">
             {effortLevels.length > 0 && (
@@ -291,7 +297,9 @@ function ModelRow({
   model,
   selected,
   onSelect,
+  multiplierExplanation,
 }: {
+  readonly multiplierExplanation: string;
   readonly model: AgentModel;
   readonly selected: boolean;
   readonly onSelect: () => void;
@@ -299,6 +307,7 @@ function ModelRow({
   return (
     <button
       type="button"
+      disabled={!model.allowed}
       onClick={onSelect}
       aria-current={selected}
       className={cn(
@@ -321,6 +330,9 @@ function ModelRow({
             {model.description}
           </span>
         )}
+      </span>
+      <span className="shrink-0 text-xs tabular-nums text-gray-500" title={multiplierExplanation}>
+        {formatModelMultiplier(model.multiplier)}
       </span>
     </button>
   );

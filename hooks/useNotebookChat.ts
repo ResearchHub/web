@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { debounce, type DebouncedFunc } from 'lodash-es';
 import {
   NotebookChatService,
-  chatErrorDetail,
+  chatErrorBody,
+  sendFailureOutcome,
+  type SendOutcome,
   chatErrorStatus,
 } from '@/services/notebookChat.service';
 import { useNotebookChatSocket, type ChatSocketStatus } from '@/hooks/useNotebookChatSocket';
@@ -21,6 +23,8 @@ import {
   type NotebookChat,
   type NotebookChatListItem,
 } from '@/types/notebookChat';
+import { useResearchAI } from '@/hooks/useResearchAI';
+import { canSelectAIModel } from '@/types/researchAI';
 import type { GenerationRequest } from '@/types/notebookModels';
 
 /** Fallback poll cadence while a turn runs; the socket nudge usually wins. */
@@ -40,31 +44,7 @@ const STREAM_CHAR_CAPS: Record<ChatStreamDelta['type'], number> = {
 
 export type ChatAccess = 'loading' | 'ok' | 'not_found' | 'unauthorized' | 'error';
 
-export type SendOutcome =
-  | { ok: true }
-  | {
-      ok: false;
-      reason: 'busy' | 'invalid' | 'not_found' | 'unauthorized' | 'error';
-      detail?: string;
-    };
-
-/** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
-function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
-  const detail = chatErrorDetail(err);
-  switch (chatErrorStatus(err)) {
-    case 409:
-      return { ok: false, reason: 'busy', detail };
-    case 400:
-      return { ok: false, reason: 'invalid', detail };
-    case 401:
-    case 403:
-      return { ok: false, reason: 'unauthorized', detail };
-    case 404:
-      return { ok: false, reason: 'not_found', detail };
-    default:
-      return { ok: false, reason: 'error', detail };
-  }
-}
+export type { SendOutcome } from '@/services/notebookChat.service';
 
 export interface PendingSend {
   text: string;
@@ -281,6 +261,8 @@ export function useNotebookChat({
   enabled,
   initialChat = null,
 }: UseNotebookChatOptions): UseNotebookChatResult {
+  const { refreshBudget, refreshCatalog, recordLimit, getSnapshot, isSubmissionBlocked } =
+    useResearchAI();
   const [chat, setChat] = useState<NotebookChat | null>(null);
   const [access, setAccess] = useState<ChatAccess>('loading');
   const [pendingSend, setPendingSend] = useState<PendingSend | null>(null);
@@ -316,6 +298,19 @@ export function useNotebookChat({
       try {
         const data = await NotebookChatService.getChat(noteId, chatId, { live });
         if (seq !== seqRef.current) return;
+        const previous = chatRef.current;
+        const settled = data.executions.filter(
+          (execution) =>
+            !isActiveExecutionStatus(execution.status) &&
+            previous?.executions.find((cached) => cached.id === execution.id)?.status !==
+              execution.status
+        );
+        for (const execution of settled) {
+          if (execution.error?.code === 'usage_limit_exceeded') {
+            recordLimit(undefined, execution.finished_at ?? execution.started_at);
+          }
+        }
+        if (settled.length > 0) void refreshBudget(true);
         setChat((prev) => {
           const merged = mergeLiveChat(live ? prev : null, data);
           chatRef.current = merged;
@@ -337,7 +332,7 @@ export function useNotebookChat({
         }
       }
     },
-    [noteId, chatId]
+    [noteId, chatId, refreshBudget, recordLimit]
   );
 
   // Reset + initial load whenever the target chat changes or the panel opens.
@@ -408,12 +403,13 @@ export function useNotebookChat({
     const timer = setInterval(() => {
       if (inFlight) return;
       inFlight = true;
+      void refreshBudget();
       fetchChat('live').finally(() => {
         inFlight = false;
       });
     }, POLL_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [enabled, access, isBusy, isFinishing, fetchChat]);
+  }, [enabled, access, isBusy, isFinishing, fetchChat, refreshBudget]);
 
   // Debounced lifecycle nudge / stream-gap repair → live refetch.
   const nudgeRef = useRef<DebouncedFunc<() => void> | null>(null);
@@ -447,6 +443,7 @@ export function useNotebookChat({
     (event: ChatSocketEvent) => {
       if (event.conversation_id !== chatId) return;
       if (!isChatStreamSocketEvent(event)) {
+        void refreshBudget(['turn_finished', 'turn_failed', 'turn_cancelled'].includes(event.kind));
         nudgeRef.current?.();
         return;
       }
@@ -463,7 +460,7 @@ export function useNotebookChat({
         setChat(applied.chat);
       }
     },
-    [chatId, repairStream]
+    [chatId, repairStream, refreshBudget]
   );
 
   const handleSocketReconnect = useCallback(() => {
@@ -482,10 +479,17 @@ export function useNotebookChat({
   const send = useCallback(
     async (text: string, generation?: GenerationRequest): Promise<SendOutcome> => {
       if (noteId == null || chatId == null) return { ok: false, reason: 'error' };
+      if (getSnapshot().budget?.tier === 'blocked') return { ok: false, reason: 'unauthorized' };
+      if (isSubmissionBlocked()) return { ok: false, reason: 'usage_limit' };
       const epoch = epochRef.current;
       setPendingSend({ text, executionId: null });
       try {
-        const response = await NotebookChatService.sendMessage(noteId, chatId, text, generation);
+        const response = await NotebookChatService.sendMessage(
+          noteId,
+          chatId,
+          text,
+          canSelectAIModel(getSnapshot().budget?.tier) ? generation : undefined
+        );
         if (epoch === epochRef.current) {
           setPendingSend({ text, executionId: response.execution_id });
           fetchChat('live');
@@ -493,12 +497,15 @@ export function useNotebookChat({
         return { ok: true };
       } catch (err) {
         const outcome = sendFailureOutcome(err);
+        if (outcome.reason === 'usage_limit') recordLimit(chatErrorBody(err));
+        else void refreshBudget(true);
+        if (outcome.reason === 'model_not_allowed') void refreshCatalog();
         // The outcome is still reported either way, but a continuation for a
         // chat that is no longer selected must not mutate the current one.
         if (epoch === epochRef.current) {
           setPendingSend(null);
           // Raced an active turn — refetch so the busy state renders truthfully.
-          if (outcome.reason === 'busy') fetchChat('live');
+          if (outcome.reason === 'busy' || outcome.reason === 'account_busy') fetchChat('live');
           if (outcome.reason === 'not_found') setAccess('not_found');
           // Session expired or permission revoked mid-chat: mirror what a
           // failed GET does so the access gate reacts instead of the composer
@@ -511,7 +518,16 @@ export function useNotebookChat({
         return outcome;
       }
     },
-    [noteId, chatId, fetchChat]
+    [
+      noteId,
+      chatId,
+      fetchChat,
+      refreshBudget,
+      refreshCatalog,
+      recordLimit,
+      getSnapshot,
+      isSubmissionBlocked,
+    ]
   );
 
   const cancel = useCallback(async () => {
@@ -523,8 +539,9 @@ export function useNotebookChat({
     } catch {
       // Fall through: the refetch below renders whatever actually happened.
     }
+    void refreshBudget(true);
     if (epoch === epochRef.current) fetchChat('live');
-  }, [noteId, chatId, fetchChat]);
+  }, [noteId, chatId, fetchChat, refreshBudget]);
 
   const rename = useCallback(
     async (title: string): Promise<boolean> => {
