@@ -7,7 +7,6 @@ import { WS_ROUTES } from '@/services/websocket';
 import { transformNotification } from '@/types/notification';
 import { Button } from '@/components/ui/Button';
 import { Info, ArrowLeft, Check, ChevronDown } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 import { Input } from '@/components/ui/form/Input';
 import { Spinner } from '@/components/Editor/components/ui/Spinner';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
@@ -136,13 +135,6 @@ export function AddPublicationsForm({
     }
   };
 
-  const handleDoThisLater = () => {
-    onDoThisLater?.();
-    toast.success('Visit the "Publications" tab on your profile to resume', {
-      duration: 5000,
-    });
-  };
-
   const handleAddPublications = async () => {
     setStep('LOADING');
     try {
@@ -200,7 +192,7 @@ export function AddPublicationsForm({
 
           <div className="flex justify-between items-center mt-8">
             {allowDoThisLater && (
-              <Button variant="ghost" onClick={handleDoThisLater} className="text-primary">
+              <Button variant="ghost" onClick={onDoThisLater} className="text-primary">
                 Do this later
               </Button>
             )}
