@@ -27,11 +27,11 @@ export default function VerificationBanner({ onClose, onMenuClose }: Verificatio
           <ul className="space-y-0.5 text-xs text-gray-600 mb-2">
             <li className="flex items-center">
               <span className="mr-1.5">✓</span>
-              Auto sync all of your papers
+              Get a verified badge
             </li>
             <li className="flex items-center">
               <span className="mr-1.5">✓</span>
-              Get a verified badge
+              Faster withdrawal limits
             </li>
             <li className="flex items-center">
               <span className="mr-1.5">✓</span>
