@@ -118,7 +118,9 @@ test('tiers and catalog permissions are authoritative; fractions are not rounded
   assert.equal(models.formatModelMultiplier('3.75'), '3.75×');
   assert.equal(models.formatModelMultiplier('0.001'), '<0.01×');
   assert.equal(models.formatModelMultiplier(null), 'Pricing unavailable');
-  assert.equal(budgetTypes.formatCredits('0.00010'), '0.0001');
+  assert.equal(budgetTypes.formatCredits('0.00010'), '0.00');
+  assert.equal(budgetTypes.formatCredits('12345.6'), '12,345.60');
+  assert.equal(budgetTypes.formatCredits('250'), '250.00');
   assert.match(models.modelMultiplierExplanation(catalog), /relative to Baseline/);
   assert.deepEqual(
     models.normalizeGenerationOptions(catalog.models[0], {
@@ -141,7 +143,7 @@ test('meter shows fractional credits, daily cap exhaustion, local reset and unli
       })
     );
   assert.match(render(budget()), /248.35 credits remaining/);
-  assert.match(render(budget()), /250 daily credits/);
+  assert.match(render(budget()), /250\.00 daily credits/);
   assert.match(render(budget()), /Resets at/);
   const capped = render(budget({ turns_used: 10 }));
   assert.match(capped, /Daily AI usage limit reached/);

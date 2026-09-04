@@ -42,9 +42,12 @@ export function canSelectAIModel(tier: ResearchAIBudget['tier'] | undefined): bo
   return tier === 'invited' || tier === 'privileged';
 }
 
-/** Keep the API's fractional precision, including balances smaller than 0.01. */
+/** Display credits with comma grouping and exactly two decimal places. */
 export function formatCredits(value: string): string {
-  return value.includes('.') ? value.replace(/0+$/, '').replace(/\.$/, '') : value;
+  return Number(value).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 export function formatBudgetReset(resetsAt: string): string {
