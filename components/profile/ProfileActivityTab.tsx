@@ -68,6 +68,11 @@ export function ProfileActivityTab({
   userId,
   children,
 }: ProfileActivityTabProps) {
+  let activityContent = children;
+  if (activePill === 'proposals') {
+    activityContent = userId ? <ProposalsContent userId={userId} /> : <ProposalsEmptyState />;
+  }
+
   return (
     <div>
       <div className="mb-4">
@@ -78,15 +83,7 @@ export function ProfileActivityTab({
           size="sm"
         />
       </div>
-      {activePill === 'proposals' ? (
-        userId ? (
-          <ProposalsContent userId={userId} />
-        ) : (
-          <ProposalsEmptyState />
-        )
-      ) : (
-        children
-      )}
+      {activityContent}
     </div>
   );
 }
