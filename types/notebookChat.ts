@@ -152,7 +152,7 @@ export interface ChatExecution {
   /** Heartbeat, stamped on every durable write. */
   last_activity_at: string | null;
   iterations: number;
-  max_iterations: number;
+  max_iterations: number | null;
   /** True while the turn succeeded but its answer hasn't landed in `messages` yet. */
   assistant_message_pending: boolean;
   error: ChatExecutionError | null;
