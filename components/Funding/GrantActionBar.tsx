@@ -33,7 +33,6 @@ export function GrantActionBar({ work, className }: GrantActionBarProps) {
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: 'POST',
-    relatedDocumentTopics: work.topics,
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,
   });

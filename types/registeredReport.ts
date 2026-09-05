@@ -4,7 +4,6 @@ import {
   type PeerReview,
   type Work,
 } from './work';
-import { transformTopic, type Topic } from './topic';
 
 export type RegisteredReportStage = 'grant' | 'proposal' | 'registered_report';
 
@@ -18,7 +17,6 @@ export interface RegisteredReportTrackerStep {
 
 export interface RegisteredReportProposalDetails {
   peerReviews: PeerReview[];
-  topics: Topic[];
 }
 
 export type RegisteredReportWork = Work & {
@@ -63,15 +61,7 @@ type RawProposalReview = {
   created_date?: string | null;
 };
 
-type RawProposalTopic = {
-  id: number;
-  name?: string | null;
-  slug?: string | null;
-  namespace?: Topic['namespace'];
-};
-
 type RawProposal = {
-  hubs?: RawProposalTopic[];
   peer_reviews?: RawProposalReview[];
 };
 
@@ -175,12 +165,6 @@ function transformProposalReview(raw: RawProposalReview): PeerReview | null {
   });
 }
 
-function transformProposalTopic(raw: RawProposalTopic): Topic | null {
-  if (!raw.slug) return null;
-
-  return transformTopic({ ...raw, id: raw.id, name: raw.name || raw.slug });
-}
-
 function transformProposalDetails(
   raw?: RawProposal | null
 ): RegisteredReportProposalDetails | null {
@@ -190,9 +174,6 @@ function transformProposalDetails(
     peerReviews: (raw.peer_reviews ?? [])
       .map(transformProposalReview)
       .filter((review): review is PeerReview => review !== null),
-    topics: (raw.hubs ?? [])
-      .map(transformProposalTopic)
-      .filter((topic): topic is Topic => topic !== null),
   };
 }
 

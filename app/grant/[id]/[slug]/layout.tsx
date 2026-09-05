@@ -35,8 +35,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: work.updatedDate,
       expirationTime: work.note?.post?.grant?.endDate,
       authors: work.authors.map((a) => a.authorProfile.fullName),
-      section: work.topics[0]?.name,
-      tags: work.topics.map((t) => t.name),
     });
   } catch {
     return {};

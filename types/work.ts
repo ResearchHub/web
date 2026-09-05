@@ -96,7 +96,7 @@ export interface Work {
   journal?: Journal;
   category?: Topic;
   subcategory?: Topic;
-  topics: Topic[];
+  topics?: Topic[];
   formats: FormatType[];
   license?: string;
   pdfCopyrightAllowsDisplay?: boolean;
@@ -318,21 +318,6 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     abstract: stripHtml(raw.abstract || raw.renderable_text || ''),
     doi: raw.doi,
     journal: transformJournal(raw),
-    topics: Array.isArray(raw.hubs)
-      ? raw.hubs.map((hub: Hub) => ({
-          id: hub.id,
-          name: hub.name || '',
-          slug: hub.slug,
-        }))
-      : raw.hub
-        ? [
-            {
-              id: raw.hub.id || 0,
-              name: raw.hub.name || '',
-              slug: raw.hub.slug,
-            },
-          ]
-        : [],
     formats: raw.file
       ? [...(raw.formats || []), { type: 'PDF', url: raw.file, internalUrl: raw.file }]
       : raw.pdf_url
@@ -417,6 +402,21 @@ export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
   contentType: 'paper',
   journal: transformJournal(raw),
+  topics: Array.isArray(raw.hubs)
+    ? raw.hubs.map((hub: Hub) => ({
+        id: hub.id,
+        name: hub.name || '',
+        slug: hub.slug,
+      }))
+    : raw.hub
+      ? [
+          {
+            id: raw.hub.id || 0,
+            name: raw.hub.name || '',
+            slug: raw.hub.slug,
+          },
+        ]
+      : [],
   category: raw.category ? transformTopic(raw.category) : undefined,
   subcategory: raw.subcategory ? transformTopic(raw.subcategory) : undefined,
 }));

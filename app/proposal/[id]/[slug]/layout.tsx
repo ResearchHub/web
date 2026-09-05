@@ -35,8 +35,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         publishedTime: work.publishedDate || work.createdDate,
         modifiedTime: work.updatedDate,
         authors: work.authors.map((a) => a.authorProfile.fullName),
-        section: work.topics[0]?.name,
-        tags: work.topics.map((t) => t.name),
       }),
       // Tokenized URL — private proposal, keep it out of search indexes.
       ...(shareToken ? { robots: { index: false, follow: false } } : {}),

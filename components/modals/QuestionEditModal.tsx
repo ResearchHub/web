@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
-import { CommentContent } from '@/components/Comment/lib/types';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { HubsSelector, Hub } from '@/components/Paper/forms/HubsSelector';
 import { Work } from '@/types/work';
 import { PostService } from '@/services/post.service';
 import { toast } from 'react-hot-toast';
@@ -29,19 +27,6 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
   const [title, setTitle] = useState(work.title);
   const [plainText, setPlainText] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>('');
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
-
-  // Initialize hubs from work topics
-  useEffect(() => {
-    if (work.topics && work.topics.length > 0) {
-      const hubs = work.topics.map((topic) => ({
-        id: topic.id.toString(),
-        name: topic.name,
-        slug: topic.slug || '',
-      }));
-      setSelectedHubs(hubs);
-    }
-  }, [work.topics]);
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -52,11 +37,6 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
     // For editing existing questions, we don't require plainText if it hasn't been changed
     // The content is already stored in work.previewContent
 
-    if (selectedHubs.length === 0) {
-      toast.error('Please select at least one topic');
-      return;
-    }
-
     withVerification(async () => {
       setIsSaving(true);
       try {
@@ -66,7 +46,6 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
           document_type: work.contentType === 'preregistration' ? 'PREREGISTRATION' : 'QUESTION',
           full_src: htmlContent || work.previewContent || '',
           renderable_text: plainText || work.title || '',
-          hubs: selectedHubs.map((h) => Number(h.id)),
           title: title,
         };
 
@@ -136,16 +115,6 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
               setPlainText(plainTextValue);
               setHtmlContent(htmlValue);
             }}
-          />
-        </div>
-
-        {/* Topics */}
-        <div>
-          <HubsSelector
-            selectedHubs={selectedHubs}
-            onChange={setSelectedHubs}
-            error={null}
-            hideSelectedItems={true}
           />
         </div>
       </div>

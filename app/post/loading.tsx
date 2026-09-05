@@ -6,7 +6,7 @@ export default function PostLoading() {
   return (
     <PageLayout
       topBanner={<WorkHeaderSkeleton tabCount={4} />}
-      rightSidebar={<WorkRightSidebarSkeleton />}
+      rightSidebar={<WorkRightSidebarSkeleton showTopics={false} />}
     >
       <WorkSkeleton showPdf={false} />
     </PageLayout>
