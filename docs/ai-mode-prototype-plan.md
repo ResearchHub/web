@@ -3,6 +3,12 @@
 > **Status:** implemented. The prototype lives in `components/AIMode/`, mounted from
 > `components/providers/ClientProviders.tsx` with the top-bar entry point in
 > `app/layouts/topbar/TopBarUserControls.tsx`. The §8 checklist below reflects what shipped.
+>
+> **Revised by [`ai-mode-v2-spec.md`](./ai-mode-v2-spec.md):** the single-document side panel
+> and the inline guardrails block described here were replaced by a tabbed panel over three
+> grant-owned documents (RFP, Judgment, Org profile), a transcript timeline, activity traces,
+> citation chips and composer/message polish. Read that spec first for anything about the third
+> column.
 
 ---
 

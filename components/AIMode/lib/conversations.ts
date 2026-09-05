@@ -1,23 +1,25 @@
-import { DEFAULT_GUARDRAILS } from './script';
-import type { AIConversation, ChatMessage, MessageBlock, QuickReply } from './types';
+import { createId } from './ids';
+import type {
+  ActivityStep,
+  AIConversation,
+  Attachment,
+  ChatMessage,
+  MessageBlock,
+  QuickReply,
+} from './types';
 
-let idCounter = 0;
+export { createId } from './ids';
 
-/**
- * Ids only need to be unique within a session; `crypto.randomUUID` isn't
- * available in every browser the demo may run on.
- */
-export const createId = (prefix: string) => {
-  idCounter += 1;
-  return `${prefix}-${Date.now().toString(36)}-${idCounter}`;
-};
-
-export const createUserMessage = (content: string): ChatMessage => ({
+export const createUserMessage = (
+  content: string,
+  attachments: Attachment[] = []
+): ChatMessage => ({
   id: createId('msg'),
   role: 'user',
   blocks: [{ kind: 'text', content }],
   quickReplies: [],
   status: 'complete',
+  attachments,
   revealedBlocks: 1,
   createdAt: Date.now(),
 });
@@ -26,12 +28,16 @@ interface AssistantMessageOptions {
   blocks: MessageBlock[];
   quickReplies?: QuickReply[];
   thinkingLabel?: string;
+  activity?: ActivityStep[];
+  stageId?: string;
 }
 
 export const createAssistantMessage = ({
   blocks,
   quickReplies = [],
   thinkingLabel,
+  activity,
+  stageId,
 }: AssistantMessageOptions): ChatMessage => ({
   id: createId('msg'),
   role: 'assistant',
@@ -39,6 +45,8 @@ export const createAssistantMessage = ({
   quickReplies,
   status: 'thinking',
   thinkingLabel,
+  activity,
+  stageId,
   revealedBlocks: 0,
   createdAt: Date.now(),
 });
@@ -50,10 +58,7 @@ export const createConversation = (): AIConversation => ({
   track: null,
   stageId: null,
   messages: [],
-  documentOpen: false,
-  revealedSections: [],
-  guardrails: { ...DEFAULT_GUARDRAILS },
-  guardrailsConfirmed: false,
-  fundedAmountUsd: null,
+  grantId: null,
+  panel: { open: false, tab: 'org' },
   updatedAt: Date.now(),
 });

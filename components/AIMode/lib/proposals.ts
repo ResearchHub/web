@@ -3,7 +3,7 @@ import proposalFeedFixture from './fixtures/proposalFeed.json';
 import type {
   Allocation,
   AllocationOutcome,
-  GuardrailConfig,
+  JudgmentPolicy,
   ProposalMedia,
   ProposalRecord,
   ProposalReviewer,
@@ -194,14 +194,14 @@ export const rankProposals = (records: ProposalRecord[]): ProposalRecord[] =>
  * limit, and only if the whole award still fits in the remaining budget — a
  * part-funded protocol is not a smaller version of the same experiment.
  */
-export const computeAllocations = (guardrails: GuardrailConfig): AllocationOutcome => {
+export const computeAllocations = (policy: JudgmentPolicy): AllocationOutcome => {
   const ranked = rankProposals(PROPOSALS);
 
-  let remaining = guardrails.totalBudgetUsd;
+  let remaining = policy.totalBudgetUsd;
 
   const allocations: Allocation[] = ranked.map((proposal) => {
-    const clearsBar = proposal.reviewScore >= guardrails.minReviewScore;
-    const award = Math.min(proposal.requestedUsd, guardrails.maxPerProposalUsd);
+    const clearsBar = proposal.reviewScore >= policy.minReviewScore;
+    const award = Math.min(proposal.requestedUsd, policy.maxPerProposalUsd);
     const fits = award <= remaining;
     const amountUsd = clearsBar && fits ? award : 0;
 
@@ -226,6 +226,6 @@ export const computeAllocations = (guardrails: GuardrailConfig): AllocationOutco
     funded,
     held,
     totalAllocatedUsd,
-    unallocatedUsd: guardrails.totalBudgetUsd - totalAllocatedUsd,
+    unallocatedUsd: policy.totalBudgetUsd - totalAllocatedUsd,
   };
 };

@@ -1,23 +1,19 @@
 import { ACCEPTED_EXPERT_COUNT, INVITED_EXPERTS, PEER_REVIEWERS } from './experts';
 import { GRANT } from './grantData';
 import { ALL_PROPOSAL_POST_IDS, PROPOSALS, computeAllocations } from './proposals';
-import type { AIModeTrack, GuardrailConfig, MessageBlock, QuickReply } from './types';
-
-/**
- * Delegated by default. The funder in this run is being shown AI-managed
- * disbursement deliberately, so the guardrails step opens on it rather than
- * making the delegated path something he has to remember to click.
- */
-export const DEFAULT_GUARDRAILS: GuardrailConfig = {
-  mode: 'ai',
-  minReviewScore: 3.5,
-  maxPerProposalUsd: 300_000,
-  totalBudgetUsd: GRANT.amountUsd,
-  notifyBeforeDisbursing: true,
-};
+import type {
+  ActivityStep,
+  AIModeTrack,
+  DocumentTab,
+  GrantRecord,
+  JudgmentPolicy,
+  MessageBlock,
+  QuickReply,
+  TimelineStepId,
+} from './types';
 
 export interface ScriptContext {
-  guardrails: GuardrailConfig;
+  policy: JudgmentPolicy;
   /** Demo control: when false, the delegation step is skipped entirely. */
   aiDelegationEnabled: boolean;
 }
@@ -27,6 +23,11 @@ export interface ScriptStage {
   /** Copy shown during the indeterminate beat before text starts revealing. */
   thinkingLabel: string;
   thinkingMs: number;
+  /**
+   * Work the assistant is seen doing during the thinking beat, tool-call
+   * style. Steps land evenly across `thinkingMs` and persist collapsed.
+   */
+  activity?: ActivityStep[];
   build: (context: ScriptContext) => MessageBlock[];
   quickReplies?: QuickReply[];
   /** Stage entered on the next user input. `null` ends the branch. */
@@ -37,10 +38,15 @@ export interface ScriptStage {
    * ask permission to continue between every section.
    */
   autoAdvanceMs?: number;
-  /** Set when this turn should open the document panel. */
-  openDocument?: boolean;
+  /**
+   * Opens the side panel on this document when the turn starts revealing. A
+   * grant is created for the conversation if it has none yet.
+   */
+  openPanel?: DocumentTab;
   /** RFP sections drafted by this turn. */
   revealSections?: string[];
+  /** Applied to the conversation's grant when the turn starts revealing. */
+  grantPatch?: (grant: GrantRecord) => Partial<GrantRecord>;
   /** Conversation title applied on entering the stage. */
   title?: string;
   /** Sidebar subtitle describing where the conversation now sits. */
@@ -60,6 +66,12 @@ const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.sl
 const lowerFirst = (value: string) => value.charAt(0).toLowerCase() + value.slice(1);
 
 const text = (content: string): MessageBlock => ({ kind: 'text', content });
+/** `step` is the one now in progress; pass `complete` once the last one is done. */
+const timeline = (step: TimelineStepId, complete = false): MessageBlock => ({
+  kind: 'timeline',
+  step,
+  complete,
+});
 
 /** The claim nobody proposed against, and the reason budget is held back. */
 const UNPROPOSED_CLAIM = 'VASO-C021';
@@ -130,8 +142,26 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:ingest',
     title: 'Muscle Knots as Vascular States RFP',
     subtitle: 'Reading the case file',
-    thinkingLabel: 'Reading the case file, its claim ladder and its evidence ledger',
-    thinkingMs: 3200,
+    thinkingLabel: 'Reading the case file',
+    thinkingMs: 4200,
+    activity: [
+      {
+        icon: 'read',
+        label: 'Reading VASO-001 end to end',
+        detail: 'Claim ladder, evidence ledger, change history',
+      },
+      {
+        icon: 'search',
+        label: 'Mapping the claim ladder',
+        detail: '14 claims · 4 unresolved · 1 grade-D audit',
+      },
+      {
+        icon: 'check',
+        label: "Checking Aletheia's funding profile",
+        detail: '3 programs · $150K–$600K · preregistration required',
+      },
+    ],
+    openPanel: 'org',
     build: () => [
       text(
         [
@@ -139,6 +169,7 @@ const STAGES: ScriptStage[] = [
           'The question is whether muscle knots are **maintained vascular states** — smooth muscle held in the latch-bridge state, throttling local flow — rather than damaged tissue. And, further up, whether vascular tension works as a memory element that participates in mental life.',
           'What makes it fundable is that your own assessment marks it **unresolved rather than promising**, and locates the weakness precisely. The case has an inverted ladder: the mechanism rung is textbook physiology, but the observation rung underneath it is proponent testimony, and the grade-D audit confirms nobody has ever imaged a single release event. Fourteen claims, and only four of them are unresolved. Those four are the only places where money changes anything.',
           "The part I'd underline: the cheapest study in your agenda is the one that decides the most. Elastography and Doppler over a palpated knot during breath-assisted release — existing clinical instruments, one lab, one year. Everything above the bottom rung is waiting on it.",
+          "I also read [[org:history|your funding profile]]. Three programs so far, all mechanistic, $150K to $600K each, every one a preregistration, and one of them a published null. This case fits that pattern exactly, and I'll draft to it.",
           'What is your budget?',
         ].join('\n\n')
       ),
@@ -151,7 +182,19 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:plan',
     subtitle: 'Structuring the program',
     thinkingLabel: 'Reconciling your research agenda against the evidence ledger',
-    thinkingMs: 2400,
+    thinkingMs: 3000,
+    activity: [
+      {
+        icon: 'read',
+        label: 'Reconciling the research agenda against the ledger',
+        detail: '7 study designs · 4 unresolved claims',
+      },
+      {
+        icon: 'search',
+        label: 'Checking the change history',
+        detail: 'VASO-R007 executed as VASO-S001 · R004 amended',
+      },
+    ],
     build: () => [
       text(
         [
@@ -172,13 +215,20 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:draft-open',
     subtitle: 'Drafting the RFP',
     thinkingLabel: 'Drafting the RFP',
-    thinkingMs: 1500,
-    openDocument: true,
+    thinkingMs: 1800,
+    activity: [
+      {
+        icon: 'write',
+        label: 'Writing the title and context',
+        detail: 'Leading with the inverted ladder',
+      },
+    ],
+    openPanel: 'rfp',
     revealSections: ['title', 'context'],
     build: () => [
       text(
         [
-          "Drafting now — it's building on the right. I'll narrate as I go.",
+          "Drafting now — [[rfp:context|it's building on the right]]. I'll narrate as I go.",
           'Title and context are in. The context section leads with the inverted ladder rather than with the hypothesis, because a reviewer needs to know what is weak before they can judge whether a proposal fixes it. I also kept your circularity point — that there is little evidence partly because nobody has been paid to look — since that is the argument for this RFP existing at all.',
         ].join('\n\n')
       ),
@@ -190,12 +240,20 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:draft-claims',
     subtitle: 'Drafting the RFP',
     thinkingLabel: 'Writing the claims section',
-    thinkingMs: 1900,
+    thinkingMs: 2200,
+    activity: [
+      {
+        icon: 'write',
+        label: 'Quoting the four claims with their status',
+        detail: 'C004 · C020 · C021 · C022',
+      },
+      { icon: 'write', label: 'Writing the objective', detail: 'Null results as expected outputs' },
+    ],
     revealSections: ['claims', 'objective'],
     build: () => [
       text(
         [
-          'The claims section is the spine of the document. Each of the four is quoted verbatim with its current status, what is in scope for it, and — for C020 — the specific reason the mechanism is strained, so nobody proposes a study that walks into the arteriole problem unaware.',
+          '[[rfp:claims|The claims section]] is the spine of the document. Each of the four is quoted verbatim with its current status, what is in scope for it, and — for C020 — the specific reason the mechanism is strained, so nobody proposes a study that walks into the arteriole problem unaware.',
           'A proposal must name **exactly one** claim and state in advance what result would count against it. That single requirement does most of the filtering work, and it does it before review rather than during.',
           'The objective section makes null results an expected output and says the award is not contingent on the direction of the finding. Proposals designed only to confirm will read as weaker against that language.',
         ].join('\n\n')
@@ -211,12 +269,19 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:draft-gaps',
     subtitle: 'Needs issuer, budget and eligibility',
     thinkingLabel: 'Checking what I still need',
-    thinkingMs: 1300,
+    thinkingMs: 1600,
+    activity: [
+      {
+        icon: 'check',
+        label: 'Checking the draft against your standing conditions',
+        detail: 'Issuer, budget and eligibility still open',
+      },
+    ],
     build: () => [
       text(
         [
           "Four sections down. Three left, and I can't write any of them without you — they're the ones that commit you to something. Rather than ask you three questions, here's what I'd put, so you only have to correct me.",
-          `- **Issuer.** Aletheia, with the RFP citing ${GRANT.caseId} as the source. Your name is already on the case file, so an anonymous RFP would be the odd choice.\n- **Budget.** ${formatUsd(GRANT.amountUsd)}, awarded against each applicant's stated budget rather than a flat figure, with indicative ranges by study type. Your keystone experiment should not receive a quarter of a million dollars because the cap allowed it.\n- **Eligibility.** Open to faculty, postdocs, PhD students and independent researchers with instrument access — with one hard condition, which is that the application *is* a preregistration on ResearchHub.`,
+          `- **Issuer.** Aletheia, with the RFP citing ${GRANT.caseId} as the source. Your name is already on the case file, so an anonymous RFP would be the odd choice.\n- **Budget.** ${formatUsd(GRANT.amountUsd)}, awarded against each applicant's stated budget rather than a flat figure, with indicative ranges by study type. Your keystone experiment should not receive a quarter of a million dollars because the cap allowed it.\n- **Eligibility.** Open to faculty, postdocs, PhD students and independent researchers with instrument access — with one hard condition, which is that the application *is* a preregistration on ResearchHub — already [[org:review|a condition on every program you run]].`,
           "That last one is the only place I'd push back if you wanted it looser. On a question where examiner reliability is itself disputed, criteria frozen at submission are what stop the next decade being another unresolvable argument. It is also the thing your own change history does — freezing the design before the data exists — so applicants would be held to the standard you already hold yourself to.",
           'Correct anything, or tell me to write it.',
         ].join('\n\n')
@@ -232,13 +297,20 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:details',
     subtitle: 'RFP drafted, awaiting funding',
     thinkingLabel: 'Writing the back half',
-    thinkingMs: 1700,
+    thinkingMs: 2000,
+    activity: [
+      {
+        icon: 'write',
+        label: 'Writing eligibility, budget and evaluation',
+        detail: 'Indicative ranges from your funding history',
+      },
+    ],
     revealSections: ['eligibility', 'budget', 'evaluation'],
     build: () => [
       text(
         [
           "That's the complete RFP. Three things worth knowing about how I wrote the back half:",
-          `- **Eligibility** makes the application a preregistration, so you read the protocol before the work happens rather than after.\n- **Budget** commits ${formatUsd(GRANT.amountUsd)} and states explicitly that budget is held in reserve for claims that haven't attracted a credible proposal yet.\n- **Evaluation** sets a peer-review bar of 3.5 out of 5, *holds* anything below it rather than declining it, and commits to reporting reviewer disagreement rather than averaging it away.`,
+          `- **[[rfp:eligibility|Eligibility]]** makes the application a preregistration, so you read the protocol before the work happens rather than after.\n- **[[rfp:budget|Budget]]** commits ${formatUsd(GRANT.amountUsd)} and states explicitly that budget is held in reserve for claims that haven't attracted a credible proposal yet.\n- **[[rfp:evaluation|Evaluation]]** sets a peer-review bar of 3.5 out of 5, *holds* anything below it rather than declining it, and commits to reporting reviewer disagreement rather than averaging it away.`,
           'The last clause matters more than it looks. If two reviewers split hard on the same proposal, publishing both and naming the split is the only version of this that survives contact with a contested question.',
           'Ready to fund it?',
         ].join('\n\n')
@@ -263,19 +335,32 @@ const STAGES: ScriptStage[] = [
   },
   {
     id: 'rfp:guardrails',
-    subtitle: 'Setting spending guardrails',
+    subtitle: 'Setting judgment rules',
     thinkingLabel: 'Confirming the payment',
-    thinkingMs: 1200,
+    thinkingMs: 1600,
+    activity: [
+      {
+        icon: 'money',
+        label: 'Confirming the payment',
+        detail: `${formatUsd(GRANT.amountUsd)} committed`,
+      },
+      {
+        icon: 'write',
+        label: "Drafting judgment rules from Aletheia's defaults",
+        detail: '3.5 review bar · $300K per proposal',
+      },
+    ],
+    openPanel: 'judgment',
     skipWhen: ({ aiDelegationEnabled }) => !aiDelegationEnabled,
     build: () => [
       text(
         [
           `Payment confirmed. ${formatUsd(GRANT.amountUsd)} is committed to this program.`,
-          'Now the part that actually saves you time: how do you want it spent?',
-          'I can disburse on your behalf to proposals that clear a peer-review bar you set, or I can surface reviewed proposals with a recommendation and let you release every dollar yourself.',
+          "Now the part that actually saves you time: how do you want it spent? I've written [[judgment:policy|your judgment rules]] on the right, from Aletheia's defaults — I disburse to anything that clears a 3.5 review bar, at what the applicant asked for and never more than $300K, and hold the rest for you.",
+          "Adjust anything there and confirm it. If you'd rather keep the trigger yourself, switch it to [[judgment:mode|self-managed]] and I'll recommend instead of disburse.",
         ].join('\n\n')
       ),
-      { kind: 'guardrails' },
+      { kind: 'judgment_prompt' },
     ],
     next: 'rfp:policy',
   },
@@ -284,14 +369,14 @@ const STAGES: ScriptStage[] = [
     subtitle: 'Policy set, ready to publish',
     thinkingLabel: 'Writing the policy back',
     thinkingMs: 1100,
-    build: ({ guardrails, aiDelegationEnabled }) =>
-      guardrails.mode === 'ai'
+    build: ({ policy, aiDelegationEnabled }) =>
+      policy.mode === 'ai'
         ? [
             text(
               [
-                'Locked in. To say it back plainly:',
-                `I'll fund up to **${formatUsd(guardrails.maxPerProposalUsd)} per proposal** — at what the applicant actually asked for, not the cap — for anything averaging **${guardrails.minReviewScore.toFixed(1)} or above** across its peer reviews, out of ${formatUsd(guardrails.totalBudgetUsd)}. Anything below that bar I hold for your review rather than declining it.${
-                  guardrails.notifyBeforeDisbursing
+                'Locked in, and written into [[judgment:policy|your judgment document]]. To say it back plainly:',
+                `I'll fund up to **${formatUsd(policy.maxPerProposalUsd)} per proposal** — at what the applicant actually asked for, not the cap — for anything averaging **${policy.minReviewScore.toFixed(1)} or above** across its peer reviews, out of ${formatUsd(policy.totalBudgetUsd)}. Anything below that bar I hold for your review rather than declining it.${
+                  policy.notifyBeforeDisbursing
                     ? " I'll notify you before each disbursement."
                     : " I won't interrupt you for each disbursement — you'll see them in the summary."
                 }`,
@@ -308,7 +393,7 @@ const STAGES: ScriptStage[] = [
                 aiDelegationEnabled
                   ? 'Understood — you keep the trigger.'
                   : `Payment confirmed. ${formatUsd(GRANT.amountUsd)} is committed, and you keep the trigger on every dollar of it.`,
-                `I'll review incoming proposals against a **${guardrails.minReviewScore.toFixed(1)}** bar and bring you a recommendation for each, but nothing moves until you release it. The ${formatUsd(guardrails.totalBudgetUsd)} stays where it is until you say so.`,
+                `I'll review incoming proposals against a **${policy.minReviewScore.toFixed(1)}** bar and bring you a recommendation for each, but nothing moves until you release it. The ${formatUsd(policy.totalBudgetUsd)} stays where it is until you say so — that's now [[judgment:policy|your judgment document]].`,
                 "I'll publish the RFP and start recruiting reviewers.",
               ].join('\n\n')
             ),
@@ -320,10 +405,24 @@ const STAGES: ScriptStage[] = [
     id: 'rfp:live',
     subtitle: 'RFP is live',
     thinkingLabel: 'Publishing the RFP',
-    thinkingMs: 1400,
+    thinkingMs: 2400,
+    activity: [
+      {
+        icon: 'send',
+        label: 'Publishing the RFP on ResearchHub',
+        detail: 'Live · accepting proposals',
+      },
+      {
+        icon: 'people',
+        label: 'Recruiting reviewers per claim',
+        detail: '4 claims · 6 reviewers approached',
+      },
+    ],
+    grantPatch: (grant) => ({ rfp: { ...grant.rfp, status: 'published' } }),
     build: () => [
       text('The RFP is live and accepting proposals.'),
       { kind: 'rfp_live', title: GRANT.title },
+      timeline('experts'),
       text(
         "Your case file has been circulating, and the keystone experiment is cheap enough that a lab with an elastography rig can say yes to it quickly. I'd expect proposals within days. I'll have them peer reviewed before I bring them to you."
       ),
@@ -360,11 +459,24 @@ const STAGES: ScriptStage[] = [
     title: 'Muscle Knots as Vascular States RFP',
     subtitle: 'Reviewers recruited',
     thinkingLabel: 'Checking the RFP',
-    thinkingMs: 1600,
+    thinkingMs: 2600,
+    activity: [
+      {
+        icon: 'search',
+        label: 'Checking the RFP for activity',
+        detail: 'No proposals yet · outreach in progress',
+      },
+      {
+        icon: 'people',
+        label: 'Reviewing invitations sent',
+        detail: `${INVITED_EXPERTS.length} invited · ${ACCEPTED_EXPERT_COUNT} accepted`,
+      },
+    ],
     build: () => [
+      timeline('proposals'),
       text(
         [
-          `Your RFP is live, and rather than wait for it to be found I went looking. I invited **${countWord(INVITED_EXPERTS.length)} experts to submit a proposal**, one cluster per claim, and **${countWord(ACCEPTED_EXPERT_COUNT)} have accepted**.`,
+          `Your RFP is live, and rather than wait for it to be found I went looking. I invited **${countWord(INVITED_EXPERTS.length)} experts to submit a proposal**, [[rfp:claims|one cluster per claim]], and **${countWord(ACCEPTED_EXPERT_COUNT)} have accepted**.`,
           'I selected on instrument access rather than on prestige. For the keystone claim that means labs that already have an ultrafast elastography rig and a Doppler probe on the same machine, because the study is only cheap for someone who does not have to buy anything. For the contemplative claim it means someone who reads classical Tibetan, which is a much smaller list than it sounds.',
         ].join('\n\n')
       ),
@@ -380,7 +492,19 @@ const STAGES: ScriptStage[] = [
     id: 'updates:proposals',
     subtitle: 'Four proposals in peer review',
     thinkingLabel: 'Checking for new submissions',
-    thinkingMs: 1700,
+    thinkingMs: 2600,
+    activity: [
+      {
+        icon: 'search',
+        label: 'Checking for new submissions',
+        detail: `${PROPOSALS.length} preregistrations received`,
+      },
+      {
+        icon: 'check',
+        label: 'Matching each proposal to its claim',
+        detail: '3 of 4 claims covered',
+      },
+    ],
     build: () => {
       const byClaim = new Map<string, number>();
       PROPOSALS.forEach((proposal) => {
@@ -388,6 +512,7 @@ const STAGES: ScriptStage[] = [
       });
 
       return [
+        timeline('review'),
         text(
           [
             `All ${countWord(ACCEPTED_EXPERT_COUNT)} experts who accepted have submitted, every proposal a preregistration, and between them they cover three of the four claims.`,
@@ -407,10 +532,22 @@ const STAGES: ScriptStage[] = [
     id: 'updates:reviews',
     subtitle: 'Peer review complete',
     thinkingLabel: 'Reading the peer reviews',
-    thinkingMs: 1900,
-    build: ({ guardrails }) => {
-      const outcome = computeAllocations(guardrails);
-      const bar = guardrails.minReviewScore.toFixed(1);
+    thinkingMs: 2800,
+    activity: [
+      {
+        icon: 'read',
+        label: 'Reading every filed review',
+        detail: `${PEER_REVIEWERS.length} reviewers · AI review on 3 of 4`,
+      },
+      {
+        icon: 'search',
+        label: 'Looking for reviewer disagreement',
+        detail: 'One material split, on the census',
+      },
+    ],
+    build: ({ policy }) => {
+      const outcome = computeAllocations(policy);
+      const bar = policy.minReviewScore.toFixed(1);
       const total = outcome.allocations.length;
       const shortOfBar = outcome.allocations.filter(
         (allocation) => allocation.heldReason === 'score'
@@ -434,18 +571,19 @@ const STAGES: ScriptStage[] = [
             : '';
 
       return [
+        timeline('allocated'),
         text(
           `Peer review closed. ${sentenceCase(countWord(PEER_REVIEWERS.length))} reviewers, plus AI review on three of the four, and every proposal came back with a written assessment scoped to the claim it targets. Here they are in full, strongest first.`
         ),
         { kind: 'peer_reviews', postIds: ALL_PROPOSAL_POST_IDS, heading: 'Peer reviews' },
         text(
           [
-            "Before the numbers: the census has a **real split** on it, and your RFP commits me to showing you rather than averaging it. The AI review scored it 5. Kirchmayr scored it 3, and her objection is not about quality — it's that a burden-versus-age atlas built on blinded palpation may be measuring examiner expectations rather than tissue, because inter-examiner reliability for tender points has never been established.",
+            "Before the numbers: the census has a **real split** on it, and [[rfp:evaluation|your RFP commits me]] to showing you rather than averaging it. The AI review scored it 5. Kirchmayr scored it 3, and her objection is not about quality — it's that a burden-versus-age atlas built on blinded palpation may be measuring examiner expectations rather than tissue, because inter-examiner reliability for tender points has never been established.",
             "I think she's right, and I think the fix she names is cheap: gate the main cohort behind a reliability substudy with a prespecified threshold below which the study reports a null on reliability and stops. That amendment makes the census informative either way, which it currently isn't.",
             `${verdict}${exception}`,
-            guardrails.mode === 'ai'
-              ? `Want me to put the ${formatUsd(guardrails.totalBudgetUsd)} to work under your policy?`
-              : `Want to see what I'd do with the ${formatUsd(guardrails.totalBudgetUsd)}? Nothing moves until you release it.`,
+            policy.mode === 'ai'
+              ? `Want me to put the ${formatUsd(policy.totalBudgetUsd)} to work under [[judgment:policy|your policy]]?`
+              : `Want to see what I'd do with the ${formatUsd(policy.totalBudgetUsd)}? Nothing moves until you release it.`,
           ].join('\n\n')
         ),
       ];
@@ -457,16 +595,25 @@ const STAGES: ScriptStage[] = [
     id: 'updates:funding',
     subtitle: 'Funds allocated',
     thinkingLabel: 'Allocating against your policy',
-    thinkingMs: 2000,
-    build: ({ guardrails }) => {
-      const outcome = computeAllocations(guardrails);
+    thinkingMs: 3000,
+    activity: [
+      {
+        icon: 'check',
+        label: 'Scoring each proposal against the review bar',
+        detail: 'Bar, cap and budget applied in order',
+      },
+      { icon: 'money', label: 'Moving funds', detail: 'Per-claim, at the amount requested' },
+    ],
+    build: ({ policy }) => {
+      const outcome = computeAllocations(policy);
       const heldOnScore = outcome.held.find((allocation) => allocation.heldReason === 'score');
 
       const blocks: MessageBlock[] = [
+        timeline('allocated', true),
         text(
-          guardrails.mode === 'ai'
-            ? "Done. Here's every dollar, the claim it was spent against, and the reason it moved."
-            : "Here's what I'd do. Nothing has moved, since you kept the trigger."
+          policy.mode === 'ai'
+            ? "Done, under [[judgment:policy|your policy]]. Here's every dollar, the claim it was spent against, and the reason it moved."
+            : "Here's what I'd do under [[judgment:policy|your policy]]. Nothing has moved, since you kept the trigger."
         ),
         { kind: 'allocations' },
       ];
@@ -503,14 +650,14 @@ const STAGES: ScriptStage[] = [
     subtitle: 'Allocation complete',
     thinkingLabel: 'Updating the policy',
     thinkingMs: 900,
-    build: ({ guardrails }) => {
-      const outcome = computeAllocations(guardrails);
+    build: ({ policy }) => {
+      const outcome = computeAllocations(policy);
 
       return [
         text(
           [
             `Noted. I'll approach labs with optical-access preparations directly rather than waiting for ${UNPROPOSED_CLAIM} to attract a proposal on its own, and bring you anyone credible before committing anything.`,
-            `For the record: ${formatUsd(guardrails.totalBudgetUsd)} committed, ${formatUsd(outcome.totalAllocatedUsd)} allocated across ${countWord(outcome.funded.length)} ${outcome.funded.length === 1 ? 'proposal' : 'proposals'}, ${countWord(outcome.held.length)} held, ${formatUsd(outcome.unallocatedUsd)} reserved, all against the ${guardrails.minReviewScore.toFixed(1)} bar you set.`,
+            `For the record: ${formatUsd(policy.totalBudgetUsd)} committed, ${formatUsd(outcome.totalAllocatedUsd)} allocated across ${countWord(outcome.funded.length)} ${outcome.funded.length === 1 ? 'proposal' : 'proposals'}, ${countWord(outcome.held.length)} held, ${formatUsd(outcome.unallocatedUsd)} reserved, all against the ${policy.minReviewScore.toFixed(1)} bar you set.`,
             'Every dollar traces back to a peer-review score you can read yourself, against a named claim in your own case file. If C004 comes back negative, you will have spent the cheapest money in the program to retire the hypothesis — which is the outcome your ledger is set up to record.',
           ].join('\n\n')
         ),

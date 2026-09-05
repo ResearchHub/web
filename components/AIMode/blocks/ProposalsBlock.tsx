@@ -20,7 +20,7 @@ export const ProposalsBlock = ({ postIds, heading }: ProposalsBlockProps) => {
   if (entries.length === 0) return null;
 
   return (
-    <div className="mt-4">
+    <div>
       {heading && (
         <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
           {heading}

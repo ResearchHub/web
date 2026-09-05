@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import { RotateCcw, Sparkles, X } from 'lucide-react';
 import { useAIMode } from './lib/AIModeContext';
 import { ChatPanel } from './panels/ChatPanel';
@@ -17,7 +18,7 @@ import { DocumentPanel } from './panels/DocumentPanel';
 const SURFACE_BACKGROUND = 'linear-gradient(180deg, #f8f9fa 0%, #f1f2f4 100%)';
 
 export const AIModeOverlay = () => {
-  const { activeConversation, actions } = useAIMode();
+  const { activeConversation, activeGrant, actions } = useAIMode();
   const pathname = usePathname();
 
   // The overlay never navigates itself, so a pathname change means the funder
@@ -31,7 +32,9 @@ export const AIModeOverlay = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      // A control inside the overlay that consumed Escape (the composer's
+      // command menu, a modal) has first claim on it.
+      if (event.key === 'Escape' && !event.defaultPrevented) {
         actions.close();
       }
     };
@@ -48,7 +51,8 @@ export const AIModeOverlay = () => {
     };
   }, []);
 
-  const isDocumentOpen = !!activeConversation?.documentOpen;
+  // The panel needs both a request to be open and a program to show.
+  const isPanelOpen = !!activeConversation?.panel.open && !!activeGrant;
 
   return (
     // Below BaseModal (9999) and Tooltip (10000) so real ResearchHub modals and
@@ -95,14 +99,25 @@ export const AIModeOverlay = () => {
 
         <ChatPanel />
 
-        {isDocumentOpen && (
-          <div className="hidden w-[42%] min-w-[380px] max-w-[640px] tablet:!block">
-            <DocumentPanel
-              revealedSections={activeConversation.revealedSections}
-              onClose={() => actions.setDocumentOpen(false)}
-            />
-          </div>
-        )}
+        <AnimatePresence initial={false}>
+          {isPanelOpen && activeGrant && activeConversation && (
+            <motion.div
+              key="document-panel"
+              initial={{ x: 32, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 32, opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="hidden w-[42%] min-w-[380px] max-w-[640px] tablet:!block"
+            >
+              <DocumentPanel
+                grant={activeGrant}
+                tab={activeConversation.panel.tab}
+                onTabChange={(tab) => actions.setPanel(true, tab)}
+                onClose={() => actions.setPanel(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="hidden tablet:!block">
           <DemoControls />

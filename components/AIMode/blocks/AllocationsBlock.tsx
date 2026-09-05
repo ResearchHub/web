@@ -5,7 +5,7 @@ import { Check, PauseCircle, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
 import { computeAllocations, getProposalMedia } from '../lib/proposals';
-import type { Allocation, GuardrailConfig } from '../lib/types';
+import type { Allocation, JudgmentPolicy } from '../lib/types';
 
 const formatUsd = (amount: number) => `$${amount.toLocaleString('en-US')}`;
 
@@ -89,7 +89,7 @@ const AllocationRow = ({ allocation, minReviewScore }: AllocationRowProps) => {
 };
 
 interface AllocationsBlockProps {
-  readonly guardrails: GuardrailConfig;
+  readonly policy: JudgmentPolicy;
 }
 
 /**
@@ -97,14 +97,14 @@ interface AllocationsBlockProps {
  * rather than hardcoded, so the summary always reconciles with the controls the
  * funder actually set.
  */
-export const AllocationsBlock = ({ guardrails }: AllocationsBlockProps) => {
-  const outcome = computeAllocations(guardrails);
+export const AllocationsBlock = ({ policy }: AllocationsBlockProps) => {
+  const outcome = computeAllocations(policy);
 
   return (
-    <div className="mt-4 max-w-[620px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="max-w-[620px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-gray-200 bg-gray-50 px-4 py-3 text-sm">
         <span className="font-semibold text-gray-900">
-          {formatUsd(guardrails.totalBudgetUsd)} committed
+          {formatUsd(policy.totalBudgetUsd)} committed
         </span>
         <span className="text-gray-300">·</span>
         <span className="font-semibold text-gray-900">
@@ -127,7 +127,7 @@ export const AllocationsBlock = ({ guardrails }: AllocationsBlockProps) => {
           <AllocationRow
             key={allocation.proposal.postId}
             allocation={allocation}
-            minReviewScore={guardrails.minReviewScore}
+            minReviewScore={policy.minReviewScore}
           />
         ))}
       </div>

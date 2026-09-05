@@ -1,124 +1,170 @@
 'use client';
 
-import { useMemo } from 'react';
-import MarkdownIt from 'markdown-it';
-import sanitizeHtml from 'sanitize-html';
-import { Check, Loader2, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Building2, FileText, Scale, X, type LucideIcon } from 'lucide-react';
+import {
+  JudgmentDocument,
+  OrgProfileCard,
+  RfpDocument,
+  type DocumentTab,
+  type JudgmentSectionId,
+  type OrgSectionId,
+} from '@/components/Funding/documents';
 import { cn } from '@/utils/styles';
-import { GRANT, RFP_SECTIONS } from '../lib/grantData';
+import { useAIMode } from '../lib/AIModeContext';
+import { RFP_SECTIONS } from '../lib/grantData';
+import { getOrgProfile } from '../lib/grants';
+import type { GrantRecord } from '../lib/types';
 
-const md = new MarkdownIt({ html: false, linkify: true, breaks: false });
+interface TabSpec {
+  id: DocumentTab;
+  label: string;
+  icon: LucideIcon;
+  badge: (grant: GrantRecord) => { label: string; tone: 'neutral' | 'live' | 'active' } | null;
+}
 
-/**
- * Document typography, matching the editor's ProseMirror styles
- * (`components/Editor/styles/partials/typography.css`) so the drafted RFP reads
- * like a ResearchHub document rather than a chat message.
- */
-const DOCUMENT_PROSE = cn(
-  'text-[15px] leading-relaxed text-gray-800',
-  '[&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
-  '[&_strong]:font-semibold [&_strong]:text-gray-900',
-  '[&_em]:italic'
-);
+const TABS: TabSpec[] = [
+  {
+    id: 'rfp',
+    label: 'RFP',
+    icon: FileText,
+    badge: (grant) => {
+      if (grant.rfp.status === 'published') return { label: 'Live', tone: 'live' };
+      const drafted = grant.rfp.revealedSections.length;
+      if (drafted === 0) return null;
+      if (drafted < RFP_SECTIONS.length) {
+        return { label: `${drafted}/${RFP_SECTIONS.length}`, tone: 'neutral' };
+      }
+      return null;
+    },
+  },
+  {
+    id: 'judgment',
+    label: 'Judgment',
+    icon: Scale,
+    badge: () => null,
+  },
+  { id: 'org', label: 'About', icon: Building2, badge: () => null },
+];
 
-const DocumentMarkdown = ({ content }: { readonly content: string }) => {
-  const html = useMemo(
-    () =>
-      sanitizeHtml(md.render(content), {
-        allowedTags: ['p', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a'],
-        allowedAttributes: { a: ['href'] },
-      }),
-    [content]
-  );
-
-  return (
-    <div
-      className={DOCUMENT_PROSE}
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-};
+const BADGE_TONE = {
+  neutral: 'bg-gray-100 text-gray-500',
+  live: 'bg-emerald-100 text-emerald-700',
+  active: 'bg-emerald-100 text-emerald-700',
+} as const;
 
 interface DocumentPanelProps {
-  readonly revealedSections: string[];
+  readonly grant: GrantRecord;
+  readonly tab: DocumentTab;
+  readonly onTabChange: (tab: DocumentTab) => void;
   readonly onClose: () => void;
 }
 
-export const DocumentPanel = ({ revealedSections, onClose }: DocumentPanelProps) => {
-  const revealed = new Set(revealedSections);
-  const nextPendingIndex = RFP_SECTIONS.findIndex((section) => !revealed.has(section.id));
+/**
+ * The third column: the documents behind the program, one at a time. The
+ * widgets themselves are pure (`components/Funding/documents`); this panel is
+ * what binds them to the conversation's grant and to citation highlights.
+ */
+export const DocumentPanel = ({ grant, tab, onTabChange, onClose }: DocumentPanelProps) => {
+  const { highlight, actions } = useAIMode();
+  const org = getOrgProfile(grant.orgId);
+  const activeHighlight = highlight?.tab === tab ? highlight : null;
 
   return (
-    <div className="flex h-full w-full flex-col border-l border-gray-200">
-      <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-gray-900">Request for proposals</div>
-          <div className="text-xs text-gray-500">
-            {revealed.size} of {RFP_SECTIONS.length} sections drafted
-          </div>
+    <div className="flex h-full w-full flex-col border-l border-gray-200 bg-gray-50/60">
+      <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1" role="tablist">
+          {TABS.map((spec) => {
+            const isActive = spec.id === tab;
+            const badge = spec.badge(grant);
+            const Icon = spec.icon;
+
+            return (
+              <button
+                key={spec.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => onTabChange(spec.id)}
+                className={cn(
+                  'relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
+                  isActive ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="ai-mode-document-tab"
+                    className="absolute inset-0 rounded-lg bg-white shadow-sm ring-1 ring-gray-200"
+                    transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                  />
+                )}
+                <Icon className={cn('relative h-3.5 w-3.5', isActive ? 'text-primary-600' : '')} />
+                <span className="relative">{spec.label}</span>
+                {badge && (
+                  <span
+                    className={cn(
+                      'relative rounded px-1 py-px text-[10px] font-semibold',
+                      BADGE_TONE[badge.tone]
+                    )}
+                  >
+                    {badge.label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close document"
-          className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          aria-label="Close documents"
+          className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200/70 hover:text-gray-900"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
-        <div className="mx-auto max-w-[640px] rounded-xl border border-gray-200 bg-white px-9 py-10 shadow-sm">
-          <div className="mb-1 text-xs font-medium uppercase tracking-wider text-gray-400">
-            {GRANT.organization} · ${GRANT.amountUsd.toLocaleString('en-US')}
-          </div>
-
-          {RFP_SECTIONS.map((section, index) => {
-            if (revealed.has(section.id)) {
-              return (
-                <section key={section.id} className="animate-fadeIn">
-                  {section.id === 'title' ? (
-                    <h1 className="mb-6 mt-2 text-3xl font-bold leading-tight tracking-tight text-gray-900">
-                      {GRANT.title}
-                    </h1>
-                  ) : (
-                    <h2 className="mb-3 mt-10 text-2xl font-bold tracking-tight text-gray-900">
-                      {section.heading}
-                    </h2>
-                  )}
-                  <DocumentMarkdown content={section.body} />
-                </section>
-              );
-            }
-
-            // Placeholders make the document visibly incomplete, so the funder
-            // can see it assembling rather than just growing.
-            return (
-              <div
-                key={section.id}
-                className={cn(
-                  'mt-8 flex items-center gap-2 text-sm',
-                  index === nextPendingIndex ? 'text-primary-600' : 'text-gray-300'
-                )}
-              >
-                {index === nextPendingIndex ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-                )}
-                {section.heading}
-              </div>
-            );
-          })}
-
-          {revealed.size === RFP_SECTIONS.length && (
-            <div className="mt-10 flex items-center gap-1.5 border-t border-gray-100 pt-4 text-xs font-medium text-emerald-600">
-              <Check className="h-3.5 w-3.5" />
-              Draft complete
-            </div>
+        {/* Keyed on the tab so a switch re-mounts and fades the card in. No
+            exit animation: the next document should never wait on the last. */}
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.16, ease: 'easeOut' }}
+          className="mx-auto max-w-[640px] rounded-xl border border-gray-200 bg-white px-9 py-10 shadow-sm"
+        >
+          {tab === 'rfp' && (
+            <RfpDocument
+              title={grant.title}
+              organization={org.name}
+              amountUsd={grant.amountUsd}
+              sections={RFP_SECTIONS}
+              revealedSectionIds={grant.rfp.revealedSections}
+              status={grant.rfp.status === 'published' ? 'published' : undefined}
+              highlightSectionId={activeHighlight?.sectionId ?? null}
+              highlightKey={activeHighlight?.key ?? null}
+            />
           )}
-        </div>
+          {tab === 'judgment' && (
+            <JudgmentDocument
+              policy={grant.judgment.policy}
+              orgName={org.name}
+              confirmed={grant.judgment.confirmed}
+              onChange={actions.updateJudgment}
+              onConfirm={actions.confirmJudgment}
+              highlightSectionId={(activeHighlight?.sectionId as JudgmentSectionId | null) ?? null}
+              highlightKey={activeHighlight?.key ?? null}
+            />
+          )}
+          {tab === 'org' && (
+            <OrgProfileCard
+              profile={org}
+              highlightSectionId={(activeHighlight?.sectionId as OrgSectionId | null) ?? null}
+              highlightKey={activeHighlight?.key ?? null}
+            />
+          )}
+        </motion.div>
       </div>
     </div>
   );

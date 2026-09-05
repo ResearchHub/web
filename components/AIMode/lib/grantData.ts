@@ -1,4 +1,4 @@
-import type { RfpSection } from './types';
+import type { RfpSection } from '@/components/Funding/documents/types';
 
 /**
  * The RFP the assistant drafts in the demo, built from Aletheia's published case

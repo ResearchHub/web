@@ -17,7 +17,7 @@ export const QuickReplies = ({ replies, disabled, onSelect }: QuickRepliesProps)
   if (replies.length === 0) return null;
 
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
+    <div className="mt-5 flex flex-wrap gap-2">
       {replies.map((reply) => (
         <button
           key={reply.id}

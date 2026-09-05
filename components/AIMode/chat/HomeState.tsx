@@ -1,12 +1,13 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Megaphone, PenLine } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { useAIMode } from '../lib/AIModeContext';
+import { ORG_PROFILE } from '../lib/orgProfile';
 import type { AIModeTrack } from '../lib/types';
-import { Composer } from './Composer';
+import { Composer, type SlashCommand } from './Composer';
 
 const ICON_CLASS = 'h-[18px] w-[18px] text-gray-700';
 
@@ -53,9 +54,41 @@ interface HomeStateProps {
 export const HomeState = ({ firstName }: HomeStateProps) => {
   const { actions } = useAIMode();
 
+  const commands: SlashCommand[] = [
+    {
+      id: 'rfp',
+      label: 'Open an RFP',
+      description: 'Draft and fund a call for proposals',
+      icon: Megaphone,
+      run: () => actions.startTrack('rfp'),
+    },
+    {
+      id: 'proposal',
+      label: 'Draft a proposal',
+      description: 'Write a preregistration',
+      icon: PenLine,
+      run: () => actions.startTrack('proposal'),
+    },
+    {
+      id: 'updates',
+      label: 'Get updates',
+      description: 'Check on funded work',
+      icon: Bell,
+      run: () => actions.startTrack('updates'),
+    },
+  ];
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 pb-16">
       <div className="w-full max-w-[620px]">
+        <div className="mb-5 flex justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-1 pr-3 text-xs font-medium text-gray-600 shadow-sm">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-indigo-700 text-[10px] font-bold text-white">
+              {ORG_PROFILE.name.charAt(0)}
+            </span>
+            Funding as {ORG_PROFILE.name}
+          </span>
+        </div>
         <h1 className="text-center text-[28px] font-medium tracking-tight text-gray-900">
           {firstName ? `What should we fund, ${firstName}?` : 'What should we fund?'}
         </h1>
@@ -66,9 +99,10 @@ export const HomeState = ({ firstName }: HomeStateProps) => {
         <Composer
           autoFocus
           disabled={false}
-          onSend={(value) => actions.sendMessage(value)}
-          placeholder="Paste a case file, a paper, a thread — or just describe it…"
+          onSend={(value, attachments) => actions.sendMessage(value, { attachments })}
+          placeholder="Paste a case file, a paper, a thread — or type / for commands…"
           className="mt-7"
+          commands={commands}
         />
 
         <div className="mt-4 grid gap-2.5 min-[560px]:grid-cols-3">

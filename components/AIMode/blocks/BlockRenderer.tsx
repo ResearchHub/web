@@ -2,14 +2,16 @@
 
 import { useEffect, useRef } from 'react';
 import { StreamingText } from '../chat/StreamingText';
-import type { AIConversation, MessageBlock } from '../lib/types';
+import type { Citation } from '../lib/citations';
+import type { GrantRecord, MessageBlock } from '../lib/types';
 import { AllocationsBlock } from './AllocationsBlock';
 import { ExpertsBlock } from './ExpertsBlock';
-import { GuardrailsBlock } from './GuardrailsBlock';
+import { JudgmentPromptBlock } from './JudgmentPromptBlock';
 import { PaymentBlock } from './PaymentBlock';
 import { PeerReviewsBlock } from './PeerReviewsBlock';
 import { ProposalsBlock } from './ProposalsBlock';
 import { RfpLiveBlock } from './RfpLiveBlock';
+import { TimelineBlock } from './TimelineBlock';
 
 /** Beat between a rich block mounting and the next block being released. */
 const BLOCK_SETTLE_MS = 320;
@@ -42,15 +44,19 @@ interface BlockRendererProps {
   /** True when this block is the one currently being revealed. */
   readonly animate: boolean;
   readonly onDone: () => void;
-  readonly conversation: AIConversation;
+  /** The program behind the conversation; blocks that need one render nothing without it. */
+  readonly grant: GrantRecord | null;
+  readonly onCite: (citation: Citation) => void;
 }
 
-export const BlockRenderer = ({ block, animate, onDone, conversation }: BlockRendererProps) => {
+export const BlockRenderer = ({ block, animate, onDone, grant, onCite }: BlockRendererProps) => {
   useAdvanceAfterMount(animate && block.kind !== 'text', onDone);
 
   switch (block.kind) {
     case 'text':
-      return <StreamingText content={block.content} animate={animate} onDone={onDone} />;
+      return (
+        <StreamingText content={block.content} animate={animate} onDone={onDone} onCite={onCite} />
+      );
     case 'proposals':
       return <ProposalsBlock postIds={block.postIds} heading={block.heading} />;
     case 'experts':
@@ -59,22 +65,16 @@ export const BlockRenderer = ({ block, animate, onDone, conversation }: BlockRen
       return <PeerReviewsBlock postIds={block.postIds} heading={block.heading} />;
     case 'payment':
       return (
-        <PaymentBlock
-          amountUsd={block.amountUsd}
-          confirmed={conversation.fundedAmountUsd !== null}
-        />
+        <PaymentBlock amountUsd={block.amountUsd} confirmed={grant?.fundedAmountUsd != null} />
       );
-    case 'guardrails':
-      return (
-        <GuardrailsBlock
-          guardrails={conversation.guardrails}
-          confirmed={conversation.guardrailsConfirmed}
-        />
-      );
+    case 'judgment_prompt':
+      return <JudgmentPromptBlock grant={grant} />;
     case 'allocations':
-      return <AllocationsBlock guardrails={conversation.guardrails} />;
+      return grant ? <AllocationsBlock policy={grant.judgment.policy} /> : null;
     case 'rfp_live':
       return <RfpLiveBlock title={block.title} />;
+    case 'timeline':
+      return <TimelineBlock step={block.step} complete={block.complete} />;
     default:
       return null;
   }

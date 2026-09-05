@@ -50,7 +50,7 @@ export const PaymentBlock = ({ amountUsd, confirmed }: PaymentBlockProps) => {
 
   if (confirmed) {
     return (
-      <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2.5 text-sm font-medium text-green-700">
+      <div className="inline-flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2.5 text-sm font-medium text-green-700">
         <Check className="h-4 w-4" />
         {amountDisplay} committed
       </div>
@@ -110,7 +110,7 @@ export const PaymentBlock = ({ amountUsd, confirmed }: PaymentBlockProps) => {
   ];
 
   return (
-    <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
       <div className="mb-2.5 flex items-baseline justify-between px-0.5">
         <span className="text-xs font-medium text-gray-500">Select a payment method</span>
         <span className="text-sm font-semibold tracking-tight text-gray-900">{amountDisplay}</span>

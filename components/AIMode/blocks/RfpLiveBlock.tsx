@@ -14,7 +14,7 @@ interface RfpLiveBlockProps {
  */
 export const RfpLiveBlock = ({ title }: RfpLiveBlockProps) => {
   return (
-    <div className="mt-4 flex max-w-[520px] items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+    <div className="flex max-w-[520px] items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
       <CircleCheck className="h-8 w-8 shrink-0 text-emerald-600" />
       <div className="min-w-0 flex-1">
         <div className="text-[15px] font-semibold text-gray-900">{title}</div>

@@ -1,9 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, type MouseEvent } from 'react';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
 import { cn } from '@/utils/styles';
+import {
+  CITE_SCHEME,
+  citationsToMarkdown,
+  parseCitationHref,
+  type Citation,
+} from '../lib/citations';
 
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 
@@ -25,9 +31,11 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     'hr',
     'blockquote',
   ],
-  allowedAttributes: { a: ['href', 'title', 'target', 'rel'] },
-  allowedSchemes: ['http', 'https', 'mailto'],
+  allowedAttributes: { a: ['href', 'title', 'target', 'rel', 'class'] },
+  allowedSchemes: ['http', 'https', 'mailto', CITE_SCHEME],
 };
+
+const CITE_CLASS = 'ai-cite';
 
 /**
  * Element styles follow the notebook's `MarkdownMessage`, at the larger type
@@ -46,20 +54,47 @@ const MARKDOWN_STYLES = cn(
   '[&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[14px]',
   '[&_a]:text-primary-600 [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-primary-700',
   '[&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700',
-  '[&_hr]:my-5 [&_hr]:border-gray-200'
+  '[&_hr]:my-5 [&_hr]:border-gray-200',
+  // Citation chips: a document reference the funder can click straight into.
+  '[&_.ai-cite]:mx-0.5 [&_.ai-cite]:inline-flex [&_.ai-cite]:items-baseline [&_.ai-cite]:rounded-md',
+  '[&_.ai-cite]:border [&_.ai-cite]:border-primary-200 [&_.ai-cite]:bg-primary-50 [&_.ai-cite]:px-1.5 [&_.ai-cite]:py-[1px]',
+  '[&_.ai-cite]:text-[14px] [&_.ai-cite]:font-medium [&_.ai-cite]:leading-[1.45] [&_.ai-cite]:text-primary-700 [&_.ai-cite]:no-underline',
+  '[&_.ai-cite]:transition-colors [&_.ai-cite:hover]:border-primary-300 [&_.ai-cite:hover]:bg-primary-100 [&_.ai-cite:hover]:text-primary-800',
+  '[&_strong_.ai-cite]:font-semibold'
 );
+
+const renderMarkdown = (content: string) => {
+  const html = sanitizeHtml(md.render(citationsToMarkdown(content)), SANITIZE_OPTIONS);
+  // Class the chips after sanitising so the stylesheet can find them without
+  // the markdown pass needing to know about them.
+  return html.replace(/<a href="cite:\/\//g, `<a class="${CITE_CLASS}" href="cite://`);
+};
 
 interface AssistantMarkdownProps {
   readonly content: string;
   readonly className?: string;
+  /** Receives clicks on citation chips; other links behave as links. */
+  readonly onCite?: (citation: Citation) => void;
 }
 
-export const AssistantMarkdown = ({ content, className }: AssistantMarkdownProps) => {
-  const html = useMemo(() => sanitizeHtml(md.render(content), SANITIZE_OPTIONS), [content]);
+export const AssistantMarkdown = ({ content, className, onCite }: AssistantMarkdownProps) => {
+  const html = useMemo(() => renderMarkdown(content), [content]);
+
+  const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+    const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>(`a.${CITE_CLASS}`);
+    if (!anchor) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const citation = parseCitationHref(anchor.getAttribute('href') ?? '');
+    if (citation) onCite?.(citation);
+  };
 
   return (
     <div
       className={cn(MARKDOWN_STYLES, className)}
+      onClick={handleClick}
       // eslint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: html }}
     />

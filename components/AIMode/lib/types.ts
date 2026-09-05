@@ -4,6 +4,23 @@
  * survives a reload mid-run.
  */
 
+import type {
+  DocumentTab,
+  JudgmentPolicy,
+  RfpStatus,
+  TimelineStepId,
+} from '@/components/Funding/documents/types';
+
+export type {
+  DocumentTab,
+  JudgmentMode,
+  JudgmentPolicy,
+  OrgProfile,
+  RfpSection,
+  RfpStatus,
+  TimelineStepId,
+} from '@/components/Funding/documents/types';
+
 export type AIModeTrack = 'rfp' | 'proposal' | 'updates';
 
 /**
@@ -17,9 +34,10 @@ export type MessageBlock =
   | { kind: 'experts'; heading?: string }
   | { kind: 'peer_reviews'; postIds: number[]; heading?: string }
   | { kind: 'payment'; amountUsd: number }
-  | { kind: 'guardrails' }
+  | { kind: 'judgment_prompt' }
   | { kind: 'allocations' }
-  | { kind: 'rfp_live'; title: string };
+  | { kind: 'rfp_live'; title: string }
+  | { kind: 'timeline'; step: TimelineStepId; complete?: boolean };
 
 export type MessageBlockKind = MessageBlock['kind'];
 
@@ -37,6 +55,31 @@ export interface QuickReply {
  */
 export type MessageStatus = 'thinking' | 'streaming' | 'complete';
 
+export type ActivityIcon = 'read' | 'search' | 'check' | 'write' | 'send' | 'people' | 'money';
+
+/**
+ * One step of the work the assistant did before answering, shown tool-call
+ * style above the turn. Persisted with the message so the trail survives a
+ * reload, collapsed.
+ */
+export interface ActivityStep {
+  label: string;
+  /** Result line, e.g. "14 claims, 4 unresolved". */
+  detail?: string;
+  icon?: ActivityIcon;
+}
+
+/** Something the funder attached to a message: a dropped file or a pasted link. */
+export interface Attachment {
+  id: string;
+  kind: 'file' | 'link';
+  name: string;
+  /** Link href, or a size label for a file. */
+  meta?: string;
+}
+
+export type MessageFeedback = 'up' | 'down';
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -44,19 +87,41 @@ export interface ChatMessage {
   quickReplies: QuickReply[];
   status: MessageStatus;
   thinkingLabel?: string;
+  activity?: ActivityStep[];
+  attachments?: Attachment[];
+  /** Assistant turns: the stage that produced them, so a turn can be re-run. */
+  stageId?: string;
+  feedback?: MessageFeedback;
   revealedBlocks: number;
   createdAt: number;
 }
 
-export type GuardrailMode = 'ai' | 'self';
+/**
+ * A funding program and the documents behind it. Conversations point at a
+ * grant rather than owning documents, so the RFP drafted in one thread is the
+ * same RFP the updates thread reports on.
+ */
+export interface GrantRecord {
+  id: string;
+  orgId: string;
+  title: string;
+  amountUsd: number;
+  rfp: {
+    /** Ids of RFP sections drafted so far, in order. */
+    revealedSections: string[];
+    status: RfpStatus;
+  };
+  judgment: {
+    policy: JudgmentPolicy;
+    confirmed: boolean;
+  };
+  fundedAmountUsd: number | null;
+  updatedAt: number;
+}
 
-export interface GuardrailConfig {
-  mode: GuardrailMode;
-  /** Proposals must average at least this peer-review score to be funded. */
-  minReviewScore: number;
-  maxPerProposalUsd: number;
-  totalBudgetUsd: number;
-  notifyBeforeDisbursing: boolean;
+export interface PanelState {
+  open: boolean;
+  tab: DocumentTab;
 }
 
 export interface AIConversation {
@@ -68,20 +133,10 @@ export interface AIConversation {
   /** Current node in the script machine; `null` before a track is chosen. */
   stageId: string | null;
   messages: ChatMessage[];
-  documentOpen: boolean;
-  /** Ids of RFP sections that have been drafted so far, in order. */
-  revealedSections: string[];
-  guardrails: GuardrailConfig;
-  guardrailsConfirmed: boolean;
-  fundedAmountUsd: number | null;
+  /** The program this conversation is about, once there is one. */
+  grantId: string | null;
+  panel: PanelState;
   updatedAt: number;
-}
-
-export interface RfpSection {
-  id: string;
-  heading: string;
-  /** Markdown body. */
-  body: string;
 }
 
 /**

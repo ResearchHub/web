@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { FileText } from 'lucide-react';
+import { Bell, Building2, FileText, Megaphone, PenLine, Scale } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/utils/styles';
-import { Composer } from '../chat/Composer';
+import { Composer, type SlashCommand } from '../chat/Composer';
 import { HomeState } from '../chat/HomeState';
 import { Transcript } from '../chat/Transcript';
 import { useAIMode } from '../lib/AIModeContext';
@@ -12,7 +12,7 @@ import { RFP_SECTIONS } from '../lib/grantData';
 import type { QuickReply } from '../lib/types';
 
 export const ChatPanel = () => {
-  const { activeConversation, isBusy, actions } = useAIMode();
+  const { activeConversation, activeGrant, isBusy, composerDraft, actions } = useAIMode();
   const { user } = useUser();
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -38,7 +38,58 @@ export const ChatPanel = () => {
     actions.sendMessage(reply.label, reply.goTo ? { goTo: reply.goTo } : undefined);
   };
 
-  const hasDocumentContent = (activeConversation?.revealedSections.length ?? 0) > 0;
+  const commands: SlashCommand[] = [
+    ...(activeGrant
+      ? [
+          {
+            id: 'show-rfp',
+            label: 'Show the RFP',
+            description: 'Open the document panel',
+            icon: FileText,
+            run: () => actions.openDocument('rfp'),
+          },
+          {
+            id: 'show-judgment',
+            label: 'Show judgment rules',
+            description: 'How funds are allocated',
+            icon: Scale,
+            run: () => actions.openDocument('judgment', 'policy'),
+          },
+          {
+            id: 'show-org',
+            label: 'Show About',
+            description: 'Who is funding this',
+            icon: Building2,
+            run: () => actions.openDocument('org'),
+          },
+        ]
+      : []),
+    {
+      id: 'rfp',
+      label: 'Open an RFP',
+      description: 'Draft and fund a call for proposals',
+      icon: Megaphone,
+      run: () => actions.startTrack('rfp'),
+    },
+    {
+      id: 'proposal',
+      label: 'Draft a proposal',
+      description: 'Write a preregistration',
+      icon: PenLine,
+      run: () => actions.startTrack('proposal'),
+    },
+    {
+      id: 'updates',
+      label: 'Get updates',
+      description: 'Check on funded work',
+      icon: Bell,
+      run: () => actions.startTrack('updates'),
+    },
+  ];
+
+  const isPanelOpen = !!activeConversation?.panel.open;
+  const draftedCount = activeGrant?.rfp.revealedSections.length ?? 0;
+  const isDrafting = !!activeGrant && draftedCount > 0 && draftedCount < RFP_SECTIONS.length;
 
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col">
@@ -47,17 +98,33 @@ export const ChatPanel = () => {
           {activeConversation?.title ?? 'New conversation'}
         </div>
 
-        {hasDocumentContent && !activeConversation?.documentOpen && (
+        {activeGrant && !isPanelOpen && (
           <button
             type="button"
-            onClick={() => actions.setDocumentOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            onClick={() => actions.setPanel(true)}
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white py-1.5 pl-2.5 pr-3 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
-            <FileText className="h-3.5 w-3.5" />
-            RFP draft
-            <span className="text-gray-400">
-              {activeConversation?.revealedSections.length}/{RFP_SECTIONS.length}
+            <span className="flex items-center -space-x-1">
+              {[FileText, Scale, Building2].map((Icon, index) => (
+                <span
+                  key={index}
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 ring-2 ring-white"
+                >
+                  <Icon className="h-3 w-3 text-gray-600" />
+                </span>
+              ))}
             </span>
+            Documents
+            {isDrafting && (
+              <span className="text-gray-400">
+                {draftedCount}/{RFP_SECTIONS.length}
+              </span>
+            )}
+            {activeGrant.rfp.status === 'published' && (
+              <span className="rounded bg-emerald-100 px-1 py-px text-[10px] font-semibold text-emerald-700">
+                Live
+              </span>
+            )}
           </button>
         )}
       </div>
@@ -73,7 +140,7 @@ export const ChatPanel = () => {
             }}
             className="min-h-0 flex-1 overflow-y-auto px-5 py-4"
           >
-            <div className={cn('mx-auto w-full', 'max-w-[720px]')}>
+            <div className={cn('mx-auto w-full', 'max-w-[760px]')}>
               <Transcript
                 conversation={activeConversation}
                 onQuickReply={handleQuickReply}
@@ -82,13 +149,23 @@ export const ChatPanel = () => {
             </div>
           </div>
 
-          <div className="px-5 pb-5 pt-1">
-            <div className="mx-auto w-full max-w-[720px]">
+          <div className="px-5 pb-3 pt-1">
+            <div className="mx-auto w-full max-w-[760px]">
               <Composer
                 disabled={isBusy}
-                onSend={(value) => actions.sendMessage(value)}
-                placeholder={isBusy ? 'Thinking…' : 'Reply, or pick a suggestion above…'}
+                isGenerating={isBusy}
+                onStop={actions.stopGeneration}
+                onSend={(value, attachments) => actions.sendMessage(value, { attachments })}
+                placeholder={
+                  isBusy ? 'Thinking…' : 'Reply, pick a suggestion, or type / for commands…'
+                }
+                draft={composerDraft}
+                onDraftConsumed={actions.clearComposerDraft}
+                commands={commands}
               />
+              <div className="mt-2 text-center text-[11px] text-gray-400">
+                AI Mode can make mistakes. Every dollar it moves is traceable to a peer review.
+              </div>
             </div>
           </div>
         </>

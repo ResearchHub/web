@@ -24,3 +24,18 @@ depict no real person; the researchers and reviewers in this demo are invented.
 - Author: Sangye Gyamtso
 - License: Public domain
 
+
+## grant-placebo.jpg
+- Source: File:Breakfast with pills.jpg
+- Author: Anders Sandberg from Oxford, UK
+- License: CC BY 2.0
+
+## grant-vagal.jpg
+- Source: File:Anatomy of Anterior Vagus Nerve Diagram.jpg
+- Author: Dr. Swapnil Banerjee
+- License: CC BY-SA 4.0
+
+## grant-brownfat.jpg
+- Source: File:Brown fat cell.jpg
+- Author: https://www.scientificanimations.com/
+- License: CC BY-SA 4.0

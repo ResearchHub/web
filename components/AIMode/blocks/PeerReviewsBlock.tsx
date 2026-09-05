@@ -90,7 +90,7 @@ export const PeerReviewsBlock = ({ postIds, heading }: PeerReviewsBlockProps) =>
   if (proposals.length === 0) return null;
 
   return (
-    <div className="mt-4 max-w-[620px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="max-w-[620px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-3.5 py-2.5">
         <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
           {heading ?? 'Peer reviews'}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { stripPartialCitation, type Citation } from '../lib/citations';
 import { AssistantMarkdown } from './AssistantMarkdown';
 
 /** Roughly how long a turn should take to type out, regardless of length. */
@@ -12,6 +13,7 @@ interface StreamingTextProps {
   /** When false the text is already history and renders in full immediately. */
   readonly animate: boolean;
   readonly onDone: () => void;
+  readonly onCite?: (citation: Citation) => void;
 }
 
 /**
@@ -19,13 +21,19 @@ interface StreamingTextProps {
  * mount whatever block comes next. Markdown is re-parsed on each tick against
  * the partial string, which keeps emphasis and lists from flashing raw syntax.
  */
-export const StreamingText = ({ content, animate, onDone }: StreamingTextProps) => {
+export const StreamingText = ({ content, animate, onDone, onCite }: StreamingTextProps) => {
   const [visibleChars, setVisibleChars] = useState(animate ? 0 : content.length);
 
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
   const hasReportedRef = useRef(!animate);
+
+  // A turn stopped early is marked complete from outside; the text has to
+  // catch up with it rather than stay frozen mid-sentence.
+  useEffect(() => {
+    if (!animate) setVisibleChars(content.length);
+  }, [animate, content.length]);
 
   useEffect(() => {
     if (!animate) return;
@@ -47,6 +55,7 @@ export const StreamingText = ({ content, animate, onDone }: StreamingTextProps) 
   }, [visibleChars, content.length]);
 
   const isTyping = visibleChars < content.length;
+  const visible = isTyping ? stripPartialCitation(content.slice(0, visibleChars)) : content;
 
   return (
     // Clicking finishes the turn immediately, so a live demo never has to wait
@@ -55,7 +64,7 @@ export const StreamingText = ({ content, animate, onDone }: StreamingTextProps) 
       onClick={isTyping ? () => setVisibleChars(content.length) : undefined}
       className={isTyping ? 'cursor-pointer' : undefined}
     >
-      <AssistantMarkdown content={content.slice(0, visibleChars)} />
+      <AssistantMarkdown content={visible} onCite={onCite} />
     </div>
   );
 };
