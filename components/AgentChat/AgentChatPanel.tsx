@@ -23,8 +23,8 @@ import type { GenerationRequest } from '@/types/notebookModels';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
-import { belowMobileTopBar } from '../mobileChromeOffsets';
-import { NoteReviewControls } from '../NoteReview/NoteReviewControls';
+import { belowMobileTopBar } from '@/components/Notebook/mobileChromeOffsets';
+import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { ChatComposer, type ComposerNotice } from './ChatComposer';
 import { ChatPicker } from './ChatPicker';
 import { ChatPresets } from './ChatPresets';
@@ -36,7 +36,7 @@ import {
   beginNoteDiffReview,
   endNoteDiffReview,
   resolveNoteDiffReview,
-} from '../NoteReview/noteDiffOverlay';
+} from '@/components/Notebook/NoteReview/noteDiffOverlay';
 
 type PanelTab = 'chat' | 'sources';
 
