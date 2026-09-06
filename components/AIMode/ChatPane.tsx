@@ -185,26 +185,34 @@ function EmptyState({
         </div>
       </div>
 
-      <div className="flex w-full max-w-md flex-col gap-2">
+      <div className="flex w-full max-w-lg flex-col gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
           Starting points · fills in the box below for you to edit
         </p>
-        {AI_MODE_STARTER_PROMPTS.map((prompt) => (
-          <button
-            key={prompt.title}
-            type="button"
-            onClick={() => onSelectStarter(prompt.message)}
-            disabled={disabled}
-            className={cn(
-              'w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-left text-sm font-medium text-gray-700 transition-colors',
-              'hover:border-primary-200 hover:bg-primary-50 hover:text-gray-900',
-              'focus:outline-none focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500',
-              'disabled:cursor-not-allowed disabled:opacity-60'
-            )}
-          >
-            {prompt.title}
-          </button>
-        ))}
+        <div className="grid grid-cols-1 gap-2 tablet:!grid-cols-2">
+          {AI_MODE_STARTER_PROMPTS.map((prompt) => (
+            <button
+              key={prompt.id}
+              type="button"
+              onClick={() => onSelectStarter(prompt.message)}
+              disabled={disabled}
+              className={cn(
+                'flex w-full items-start gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-left transition-colors',
+                'hover:border-primary-200 hover:bg-primary-50',
+                'focus:outline-none focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500',
+                'disabled:cursor-not-allowed disabled:opacity-60'
+              )}
+            >
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
+                <prompt.icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-gray-800">{prompt.title}</span>
+                <span className="block text-xs text-gray-500">{prompt.description}</span>
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
