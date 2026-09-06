@@ -15,8 +15,6 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
-import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
-import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import type { VerificationModalContext } from '@/contexts/VerificationContext';
 
@@ -41,7 +39,6 @@ export function VerifyIdentityModal({
   context = null,
 }: VerifyIdentityModalProps) {
   const [currentStep, setCurrentStep] = useState<VerificationStep>(initialStep);
-  const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
   const isPublishContext = context === 'publish';
@@ -49,7 +46,6 @@ export function VerifyIdentityModal({
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(context === 'publish' ? 'IDENTITY' : initialStep);
-      setPublicationsSubstep('DOI');
     }
   }, [isOpen, initialStep, context]);
 

@@ -5,9 +5,14 @@ import { Dialog } from '@headlessui/react';
 import { ArrowLeft, ArrowRight, File, FileText, Globe, Lock, Upload, Users, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
+import dynamic from 'next/dynamic';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
-import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 import { cn } from '@/utils/styles';
+
+const DocumentUploadStep = dynamic(
+  () => import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
+  { ssr: false }
+);
 
 export type ProposalCreationMethod = 'template' | 'upload' | 'blank';
 
