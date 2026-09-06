@@ -8,7 +8,9 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sprout, Star } from 'lucide-react';
+import { Sparkles, Sprout, Star } from 'lucide-react';
+import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
+import { AI_MODE_NAME } from '@/components/AIMode/copy';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { cn } from '@/utils/styles';
 
@@ -30,6 +32,8 @@ interface NavigationItem {
   isLucideStar?: boolean;
   isLucideSprout?: boolean;
   isHome?: boolean;
+  /** Toggles the AI Mode overlay in place instead of navigating. */
+  isAIMode?: boolean;
 }
 
 interface NavigationProps {
@@ -103,11 +107,16 @@ export const Navigation: React.FC<NavigationProps> = ({
       isLucideSprout: true,
       description: 'Learn about the ResearchHub Endowment',
     },
+    {
+      label: AI_MODE_NAME,
+      href: '#',
+      isAIMode: true,
+      requiresAuth: true,
+      description: 'Chat with the research assistant',
+    },
   ];
 
-  const getButtonStyles = (path: string, isHome?: boolean) => {
-    const isActive = isPathActive(path, isHome);
-
+  const getButtonStyles = (isActive: boolean) => {
     return cn(
       'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-medium transition-colors',
       forceMinimize
@@ -149,8 +158,9 @@ export const Navigation: React.FC<NavigationProps> = ({
   }> = ({ item, onUnimplementedFeature }) => {
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
-    const buttonStyles = getButtonStyles(item.href, item.isHome);
-    const isActive = isPathActive(item.href, item.isHome);
+    const aiMode = useOptionalAIMode();
+    const isActive = item.isAIMode ? Boolean(aiMode?.isOpen) : isPathActive(item.href, item.isHome);
+    const buttonStyles = getButtonStyles(isActive);
 
     const iconColor = isActive ? '#3971ff' : '#404040';
 
@@ -185,6 +195,40 @@ export const Navigation: React.FC<NavigationProps> = ({
     const textContainerClass = forceMinimize
       ? 'hidden'
       : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
+
+    if (item.isAIMode) {
+      // Same row as the links, but it is a toggle: the overlay opens in place
+      // and the URL only gains a query param. The icon carries a soft tint so
+      // it reads as a mode rather than a destination.
+      return (
+        <button
+          type="button"
+          onClick={() => executeAuthenticatedAction(() => aiMode?.toggle())}
+          className={buttonStyles}
+          aria-pressed={isActive}
+          title={item.description}
+        >
+          <div className={iconContainerClass}>
+            <span
+              className={cn(
+                'flex h-[26px] w-[26px] items-center justify-center rounded-md transition-colors',
+                isActive ? 'bg-primary-100' : 'bg-primary-50'
+              )}
+            >
+              <Sparkles
+                size={17}
+                color={isActive ? '#3971ff' : '#404040'}
+                strokeWidth={2}
+                fill={isActive ? '#3971ff' : 'none'}
+              />
+            </span>
+          </div>
+          <div className={textContainerClass}>
+            <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
+          </div>
+        </button>
+      );
+    }
 
     return (
       <Link
