@@ -1,13 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Dialog } from '@headlessui/react';
 import { ArrowLeft, ArrowRight, File, FileText, Globe, Lock, Upload, Users, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
-import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 import { cn } from '@/utils/styles';
+
+// TipTap/convert must not load with the global layout (PublishMenu → this modal).
+// Eager import of DocumentUploadStep pulls ExtensionKit + prosemirror-tables and
+// can throw "Duplicate use of selection JSON ID cell" in production chunking.
+const DocumentUploadStep = dynamic(
+  () =>
+    import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
+  { ssr: false }
+);
 
 export type ProposalCreationMethod = 'template' | 'upload' | 'blank';
 

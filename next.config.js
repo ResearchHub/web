@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -236,7 +238,19 @@ const nextConfig = {
   turbopack: {
     resolveAlias: {
       '@': __dirname,
+      // Keep a single ProseMirror instance so CellSelection's Selection.jsonID("cell")
+      // registration does not run twice across production chunks.
+      'prosemirror-tables': './node_modules/prosemirror-tables',
+      'prosemirror-state': './node_modules/prosemirror-state',
     },
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'prosemirror-tables': path.resolve(__dirname, 'node_modules/prosemirror-tables'),
+      'prosemirror-state': path.resolve(__dirname, 'node_modules/prosemirror-state'),
+    };
+    return config;
   },
   experimental: {
     scrollRestoration: true,

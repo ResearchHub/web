@@ -2,21 +2,30 @@
 
 import { ChevronRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
-import {
-  OpenFundingOpportunityModal,
-  type FundingOpportunityCreationMethod,
-} from '@/components/Funding/OpenFundingOpportunityModal';
-import {
-  OpenProposalModal,
-  type ProposalCreationMethod,
-} from '@/components/Funding/OpenProposalModal';
+import type { FundingOpportunityCreationMethod } from '@/components/Funding/OpenFundingOpportunityModal';
+import type { ProposalCreationMethod } from '@/components/Funding/OpenProposalModal';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
+
+const OpenFundingOpportunityModal = dynamic(
+  () =>
+    import('@/components/Funding/OpenFundingOpportunityModal').then(
+      (mod) => mod.OpenFundingOpportunityModal
+    ),
+  { ssr: false }
+);
+
+const OpenProposalModal = dynamic(
+  () =>
+    import('@/components/Funding/OpenProposalModal').then((mod) => mod.OpenProposalModal),
+  { ssr: false }
+);
 
 interface PublishMenuProps {
   forceMinimize?: boolean;

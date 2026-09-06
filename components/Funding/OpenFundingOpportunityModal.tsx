@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Dialog } from '@headlessui/react';
 import {
@@ -19,8 +20,16 @@ import { Button, buttonVariants } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
-import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 import { cn } from '@/utils/styles';
+
+// TipTap/convert must not load with the global layout (PublishMenu → this modal).
+// Eager import of DocumentUploadStep pulls ExtensionKit + prosemirror-tables and
+// can throw "Duplicate use of selection JSON ID cell" in production chunking.
+const DocumentUploadStep = dynamic(
+  () =>
+    import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
+  { ssr: false }
+);
 
 export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
 
