@@ -1,12 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { FileText, Sparkles, X } from 'lucide-react';
+import { cn } from '@/utils/styles';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAIMode } from './AIModeContext';
 import { ChatPane } from './ChatPane';
 import { ConversationList } from './ConversationList';
+import { DocumentPane } from './DocumentPane';
 import { useAIModeChat } from './useAIModeChat';
+import { useAIModeDocument } from './useAIModeDocument';
 import { AI_MODE_NAME } from './copy';
 
 /**
@@ -41,6 +45,25 @@ export function AIModeOverlay() {
   // Below the tablet breakpoint the list lives in a bottom drawer.
   const [listDrawerOpen, setListDrawerOpen] = useState(false);
   const closeListDrawer = useCallback(() => setListDrawerOpen(false), []);
+
+  const doc = useAIModeDocument({
+    note: state.note,
+    chat: state.chat.chat,
+    latestExecution: state.chat.latestExecution,
+  });
+
+  // The document pane opens by itself the moment a conversation gains a note
+  // and stays closed until then. The user can close it and reopen it from the
+  // chat header. Below the tablet breakpoint the same content is a drawer.
+  const noteId = state.note?.id ?? null;
+  const [documentOpen, setDocumentOpen] = useState(false);
+  useEffect(() => {
+    setDocumentOpen(noteId != null);
+  }, [noteId]);
+  const closeDocument = useCallback(() => setDocumentOpen(false), []);
+  const showDocument = noteId != null && documentOpen;
+  // Tailwind's `tablet` breakpoint; the drawer only exists below it.
+  const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
 
   // Esc closes, unless something inside already claimed it (a menu, a modal
   // that portals outside the overlay).
@@ -115,22 +138,48 @@ export function AIModeOverlay() {
           {conversationList}
         </aside>
         <main className="flex min-w-0 flex-1 flex-col">
-          <ChatPane state={state} onOpenConversations={() => setListDrawerOpen(true)} />
+          <ChatPane
+            state={state}
+            onOpenConversations={() => setListDrawerOpen(true)}
+            headerActions={
+              noteId != null && (
+                <button
+                  type="button"
+                  onClick={() => setDocumentOpen((open) => !open)}
+                  aria-pressed={showDocument}
+                  className={cn(
+                    'inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
+                    showDocument
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  )}
+                >
+                  <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden tablet:!inline">Document</span>
+                </button>
+              )
+            }
+          />
         </main>
-        <aside className="hidden w-[42%] min-w-[380px] max-w-[640px] shrink-0 flex-col border-l border-gray-200 bg-white tablet:!flex">
-          <PanePlaceholder label="Document" />
-        </aside>
+        {showDocument && (
+          <aside className="hidden w-[42%] min-w-[380px] max-w-[640px] shrink-0 flex-col border-l border-gray-200 bg-white tablet:!flex">
+            <DocumentPane document={doc} onClose={closeDocument} />
+          </aside>
+        )}
       </div>
 
       <SwipeableDrawer isOpen={listDrawerOpen} onClose={closeListDrawer} height="70vh">
         {conversationList}
       </SwipeableDrawer>
+      <SwipeableDrawer
+        isOpen={showDocument && isBelowTablet}
+        onClose={closeDocument}
+        height="85vh"
+        showCloseButton={false}
+        className="tablet:!hidden"
+      >
+        <DocumentPane document={doc} onClose={closeDocument} className="-mx-4 -mt-2" />
+      </SwipeableDrawer>
     </div>
-  );
-}
-
-function PanePlaceholder({ label }: { readonly label: string }) {
-  return (
-    <div className="flex h-full items-center justify-center text-sm text-gray-400">{label}</div>
   );
 }
