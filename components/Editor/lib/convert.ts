@@ -5,7 +5,6 @@ import type { AnyExtension } from '@tiptap/core';
 import { UndoRedo } from '@tiptap/extensions';
 import { Import } from '@tiptap-pro/extension-import';
 
-import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 
 /**
@@ -126,6 +125,8 @@ export const importDocumentToTiptap = async (
   }
 
   const token = await fetchConvertToken();
+
+  const { ExtensionKit } = await import('@/components/Editor/extensions/extension-kit');
 
   // The headless import editor uses the *default* Document node (which
   // accepts `block+`) rather than the live editor's `heading block+` custom
