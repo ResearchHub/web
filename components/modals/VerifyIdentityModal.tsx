@@ -32,12 +32,10 @@ type VerificationStep =
   | 'IDENTITY'
   | 'IDENTITY_VERIFIED_SUCCESSFULLY'
   | 'IDENTITY_CANNOT_BE_VERIFIED'
-  | 'PUBLICATIONS'
   | 'SUCCESS';
 
 const stepperSteps = [
   { id: 'IDENTITY', label: 'Verify Identity' },
-  { id: 'PUBLICATIONS', label: 'Publication History' },
   { id: 'SUCCESS', label: 'View Rewards' },
 ];
 
@@ -64,12 +62,7 @@ export function VerifyIdentityModal({
     if (currentStep === 'INTRO') {
       setCurrentStep('IDENTITY');
     } else if (currentStep === 'IDENTITY') {
-      setCurrentStep('PUBLICATIONS');
-    } else if (currentStep === 'PUBLICATIONS') {
-      // Send verification request via WebSocket
-      if (user?.id) {
-        // Placeholder for WebSocket sendMessage
-      }
+      setCurrentStep('SUCCESS');
     } else if (currentStep === 'SUCCESS') {
       onClose();
       if (context !== 'publish') {
@@ -237,7 +230,7 @@ export function VerifyIdentityModal({
               </p>
             </div>
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={() => setCurrentStep('PUBLICATIONS')} className="w-full">
+              <Button onClick={() => setCurrentStep('SUCCESS')} className="w-full">
                 Next: View rewards on my publications
               </Button>
               <Button
@@ -282,7 +275,7 @@ export function VerifyIdentityModal({
           </div>
         );
 
-      case 'PUBLICATIONS':
+      case 'SUCCESS':
         return (
           <div className="p-6">
             {publicationsSubstep === 'DOI' && (
