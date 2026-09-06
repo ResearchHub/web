@@ -48,7 +48,6 @@ export function AIModeOverlay() {
 
   const doc = useAIModeDocument({
     note: state.note,
-    chat: state.chat.chat,
     latestExecution: state.chat.latestExecution,
   });
 
@@ -161,9 +160,11 @@ export function AIModeOverlay() {
             }
           />
         </main>
-        {showDocument && (
-          <aside className="hidden w-[42%] min-w-[380px] max-w-[640px] shrink-0 flex-col border-l border-gray-200 bg-white tablet:!flex">
-            <DocumentPane document={doc} onClose={closeDocument} />
+        {/* One editor per note at a time: the pane mounts in the column above
+            the tablet breakpoint and in the drawer below it, never both. */}
+        {showDocument && !isBelowTablet && (
+          <aside className="flex w-[42%] min-w-[380px] max-w-[640px] shrink-0 flex-col border-l border-gray-200 bg-white">
+            <DocumentPane document={doc} chat={state.chat.chat} onClose={closeDocument} />
           </aside>
         )}
       </div>
@@ -178,8 +179,14 @@ export function AIModeOverlay() {
         showCloseButton={false}
         className="tablet:!hidden"
       >
-        {showDocument && (
-          <DocumentPane document={doc} onClose={closeDocument} className="-mx-4 -mt-2" />
+        {showDocument && isBelowTablet && (
+          <DocumentPane
+            document={doc}
+            chat={state.chat.chat}
+            onClose={closeDocument}
+            readOnly
+            className="-mx-4 -mt-2"
+          />
         )}
       </SwipeableDrawer>
     </div>

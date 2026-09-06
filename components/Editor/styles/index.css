@@ -42,6 +42,12 @@
   @apply px-4 py-3;
 }
 
+/* The AI Mode document card supplies its own padding; keep only the left
+   gutter the block drag handle needs. */
+.ai-mode-document .ProseMirror {
+  @apply max-w-none py-2 pl-10 pr-0;
+}
+
 [data-theme='slash-command'] {
   width: 1000vw;
 }

@@ -1,32 +1,122 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { Editor } from '@tiptap/react';
 import { ExternalLink, FileText, X } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
+import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
+import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
+import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDiffOverlay';
+import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
+import { useUpdateNote } from '@/hooks/useNote';
+import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
+import type { NotebookChat } from '@/types/notebookChat';
 import { cn } from '@/utils/styles';
 import type { AIModeDocument } from './useAIModeDocument';
 
+/** Level 1 and 2 headings are sections; deeper ones are their subdivisions. */
+const SECTION_HEADING_LEVELS = new Set([1, 2]);
+
+function countSections(editor: Editor | null): number {
+  if (editor == null || editor.isDestroyed) return 0;
+  let count = 0;
+  editor.state.doc.forEach((node) => {
+    if (node.type.name === 'heading' && SECTION_HEADING_LEVELS.has(node.attrs.level ?? 1)) {
+      count += 1;
+    }
+  });
+  return count;
+}
+
+/** Live heading count of the editor's document. */
+function useSectionCount(editor: Editor | null): number {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (editor == null) {
+      setCount(0);
+      return;
+    }
+    const update = () => setCount(countSections(editor));
+    update();
+    editor.on('update', update);
+    return () => {
+      editor.off('update', update);
+    };
+  }, [editor]);
+  return count;
+}
+
 interface DocumentPaneProps {
   readonly document: AIModeDocument;
+  /** The open chat, whose activity is one of the review's version signals. */
+  readonly chat: NotebookChat | null;
   readonly onClose: () => void;
+  /** Never editable — the mobile drawer. */
+  readonly readOnly?: boolean;
   readonly className?: string;
 }
 
 /**
- * The right pane: the note the assistant is composing. Settled content
- * renders read-only in the real editor; while a section is being written the
- * streaming prose is appended below it, and when a turn runs with no draft
- * an in-progress row says what the assistant is doing instead of leaving the
- * page frozen.
+ * The right pane: the note the assistant is composing, in the real editor.
+ * Each version the assistant writes is spliced into the editor as an in-note
+ * review (highlighted insertions, struck removals, accept/reject), exactly as
+ * in the notebook. The user can edit once the turn has settled; edits
+ * autosave. While a section is being written the streaming prose is appended
+ * below the editor, and a turn with no draft shows an in-progress row so the
+ * page never sits frozen.
  */
-export function DocumentPane({ document, onClose, className }: DocumentPaneProps) {
-  const { note, content, loading, error, status, draftText, phaseLabel, sectionCount } = document;
+export function DocumentPane({
+  document,
+  chat,
+  onClose,
+  readOnly = false,
+  className,
+}: DocumentPaneProps) {
+  const { note, content, loading, error, status, draftText, phaseLabel } = document;
+  const noteId = note?.id ?? null;
   const title = content?.title?.trim() || note?.title?.trim() || 'Document';
   const writing = status === 'drafting' || status === 'working';
 
+  // ---- the editor, its autosave, and the assistant-version review ----
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const { saveDetailsSoon } = useNoteDetailsSaver(noteId ?? undefined);
+  const [, updateNote, saveNoteNow] = useUpdateNote(noteId ?? undefined, {
+    saveTitle: (nextTitle) => saveDetailsSoon({ title: nextTitle }),
+    // Mid-review the editor holds a merged document; saves must persist it
+    // without the struck (pending-removal) ranges.
+    docToPersist: (instance) => noteDiffPersistableDoc(instance) ?? instance.state.doc,
+  });
+  const persistEditorState = useCallback(async () => {
+    if (!editor || editor.isDestroyed) return false;
+    return saveNoteNow(editor);
+  }, [editor, saveNoteNow]);
+
+  const loadedNote = useMemo(
+    () => (content && noteId != null ? { id: noteId, versionId: content.versionId } : null),
+    [content, noteId]
+  );
+  const review = useNoteAgentReview({
+    noteId,
+    editor,
+    loadedNote,
+    chat,
+    onPersistEditorState: persistEditorState,
+  });
+
+  // Editable only once the turn has settled: typing while the assistant is
+  // mid-edit would make its next edit_note stale and the review jumpy.
+  const editable = !readOnly && !writing;
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    if (editor.isEditable !== editable) editor.setEditable(editable);
+  }, [editor, editable]);
+
+  const sectionCount = useSectionCount(editor) + (draftText != null ? 1 : 0);
+
   return (
-    <div className={cn('flex h-full min-h-0 flex-col bg-gray-50/60', className)}>
+    <div className={cn('relative flex h-full min-h-0 flex-col bg-gray-50/60', className)}>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3">
         <FileText className="h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800" title={title}>
@@ -65,37 +155,55 @@ export function DocumentPane({ document, onClose, className }: DocumentPaneProps
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4 tablet:!p-5">
+        <NoteReviewBanner review={review} className="mx-auto mb-3 max-w-[640px]" />
+
         {error && content == null ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <p className="text-sm text-gray-600">{error}</p>
-            <Button variant="outlined" size="sm" onClick={document.refetch}>
+            <Button variant="outlined" size="sm" onClick={document.reload}>
               Try again
             </Button>
           </div>
-        ) : loading && content == null ? (
+        ) : loading || content == null ? (
           <div className="flex justify-center py-16">
             <Loader size="md" className="text-primary-500" />
           </div>
         ) : (
-          <article className="mx-auto max-w-[640px] rounded-xl border border-gray-200 bg-white px-6 py-7 shadow-sm tablet:!px-9 tablet:!py-9">
-            {content?.contentJson && content.versionId > 0 ? (
-              <BlockEditorClientWrapper
-                key={content.versionId}
-                contentJson={content.contentJson}
-                editable={false}
-              />
-            ) : status === 'drafting' ? null : (
+          <article className="ai-mode-document mx-auto max-w-[640px] rounded-xl border border-gray-200 bg-white px-6 py-7 shadow-sm tablet:!px-9 tablet:!py-9">
+            {content.versionId === 0 && status !== 'drafting' && review.review == null && (
               <EmptyDocument label={phaseLabel} active={status === 'working'} />
             )}
 
+            {/* Mounted once per note: the editor's content prop is only read on
+                creation, and later versions arrive through the review. */}
+            <BlockEditorClientWrapper
+              key={noteId ?? 'none'}
+              content={content.content}
+              contentJson={content.contentJson}
+              editable={!readOnly}
+              autofocus={false}
+              onUpdate={readOnly ? undefined : updateNote}
+              setEditor={setEditor}
+            />
+
             {status === 'drafting' && draftText && <DraftSection text={draftText} />}
 
-            {status === 'working' && content != null && content.versionId > 0 && (
+            {status === 'working' && content.versionId > 0 && (
               <InProgressRow label={phaseLabel ?? 'Working'} />
             )}
           </article>
         )}
       </div>
+
+      {review.review && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
+          <NoteReviewControls
+            changeCount={review.review.changeCount}
+            onAccept={review.accept}
+            onReject={review.reject}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -112,7 +220,7 @@ function EmptyDocument({
   readonly active: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 py-10 text-center">
+    <div className="mb-4 flex flex-col items-center gap-2 rounded-lg bg-gray-50 px-4 py-5 text-center">
       {active ? (
         <>
           <Loader size="sm" className="text-primary-500" />
@@ -120,7 +228,9 @@ function EmptyDocument({
           {label && <p className="text-xs text-gray-500">{label}</p>}
         </>
       ) : (
-        <p className="text-sm text-gray-500">Nothing has been written to this document yet.</p>
+        <p className="text-sm text-gray-500">
+          Nothing has been written here yet. You can start typing, or ask the assistant.
+        </p>
       )}
     </div>
   );
