@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useEditor } from '@tiptap/react';
 import type { AnyExtension, Editor } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
@@ -29,6 +28,7 @@ export const useBlockEditor = ({
   onUpdate,
   customClass,
   includeTitle = false,
+  autofocus = editable,
 }: {
   aiToken?: string;
   userId?: string;
@@ -39,13 +39,15 @@ export const useBlockEditor = ({
   onUpdate?: (editor: Editor) => void;
   customClass?: string;
   includeTitle?: boolean;
+  /** Focus the editor on mount. Defaults to editable; false when another control owns focus. */
+  autofocus?: boolean;
 }) => {
   const editor = useEditor(
     {
       editable,
       immediatelyRender: false,
       shouldRerenderOnTransaction: false,
-      autofocus: editable,
+      autofocus,
       extensions: [
         ...ExtensionKit({
           customDocument: editable ? CustomDocument : undefined,
@@ -108,12 +110,6 @@ export const useBlockEditor = ({
     },
     [content, contentJson, editable, customClass, includeTitle]
   );
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && editor) {
-      window.editor = editor;
-    }
-  }, [editor]);
 
   return { editor };
 };

@@ -29,7 +29,7 @@ export const useTextmenuStates = (editor: Editor) => {
 
   const shouldShow = useCallback(
     ({ view, from }: ShouldShowProps) => {
-      if (!view || editor.view.dragging) {
+      if (!view || editor.view.dragging || !editor.isEditable) {
         return false;
       }
 
