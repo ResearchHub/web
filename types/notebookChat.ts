@@ -183,12 +183,23 @@ export interface ChatMessage {
   execution_id: number | null;
 }
 
+/** A note the assistant surface created from a chat. */
+export interface ChatNoteRef {
+  id: number;
+  title: string;
+}
+
 export interface NotebookChat {
   conversation_id: number;
   title: string | null;
   messages: ChatMessage[];
   /** Ordered oldest → newest. */
   executions: ChatExecution[];
+  /**
+   * Assistant surface only: notes this chat created via `create_note`,
+   * oldest first. Absent on the notebook surface, which is scoped to a note.
+   */
+  notes?: ChatNoteRef[];
 }
 
 export interface NotebookChatListItem {

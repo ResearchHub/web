@@ -2,11 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { debounce, type DebouncedFunc } from 'lodash-es';
-import {
-  NotebookChatService,
-  chatErrorDetail,
-  chatErrorStatus,
-} from '@/services/notebookChat.service';
+import { chatErrorDetail, chatErrorStatus } from '@/services/notebookChat.service';
+import type { ChatTransport } from '@/services/chatTransport';
 import { useNotebookChatSocket, type ChatSocketStatus } from '@/hooks/useNotebookChatSocket';
 import {
   isChatStreamSocketEvent,
@@ -234,7 +231,12 @@ export function applyStreamEvent(
 }
 
 interface UseNotebookChatOptions {
-  noteId: string | number | null;
+  /**
+   * The surface the chat lives on (notebook note, or the research assistant).
+   * Must be referentially stable across renders — a new transport resets the
+   * hook exactly like a chat switch does.
+   */
+  transport: ChatTransport | null;
   chatId: number | null;
   /** False while the panel is closed — suspends fetching, polling, and the socket. */
   enabled: boolean;
@@ -276,7 +278,7 @@ export interface UseNotebookChatResult {
  * reconnects, and any detected sequence gap repair from REST.
  */
 export function useNotebookChat({
-  noteId,
+  transport,
   chatId,
   enabled,
   initialChat = null,
@@ -308,13 +310,13 @@ export function useNotebookChat({
 
   const fetchChat = useCallback(
     async (mode: 'full' | 'live') => {
-      if (noteId == null || chatId == null) return;
+      if (transport == null || chatId == null) return;
       // A live fetch may omit activity we're expected to already hold — only
       // safe when we actually hold a cached copy to merge over.
       const live = mode === 'live' && chatRef.current != null;
       const seq = ++seqRef.current;
       try {
-        const data = await NotebookChatService.getChat(noteId, chatId, { live });
+        const data = await transport.getChat(chatId, { live });
         if (seq !== seqRef.current) return;
         setChat((prev) => {
           const merged = mergeLiveChat(live ? prev : null, data);
@@ -337,7 +339,7 @@ export function useNotebookChat({
         }
       }
     },
-    [noteId, chatId]
+    [transport, chatId]
   );
 
   // Reset + initial load whenever the target chat changes or the panel opens.
@@ -346,7 +348,7 @@ export function useNotebookChat({
     epochRef.current += 1; // …and any pending send/cancel/rename continuation
     streamRepairRef.current = 'idle';
     setPendingSend(null);
-    if (!enabled || noteId == null || chatId == null) {
+    if (!enabled || transport == null || chatId == null) {
       setChat(null);
       setAccess('loading');
       return;
@@ -361,7 +363,7 @@ export function useNotebookChat({
     setAccess('loading');
     fetchChat('full');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteId, chatId, enabled, fetchChat]);
+  }, [transport, chatId, enabled, fetchChat]);
 
   const latestExecution = useMemo(
     () => (chat && chat.executions.length > 0 ? chat.executions[chat.executions.length - 1] : null),
@@ -471,7 +473,7 @@ export function useNotebookChat({
   }, [fetchChat]);
 
   const socketStatus = useNotebookChatSocket({
-    noteId,
+    transport,
     chatId,
     // "Connect after the chat exists": wait for the first successful GET.
     enabled: enabled && access === 'ok',
@@ -481,11 +483,11 @@ export function useNotebookChat({
 
   const send = useCallback(
     async (text: string, generation?: GenerationRequest): Promise<SendOutcome> => {
-      if (noteId == null || chatId == null) return { ok: false, reason: 'error' };
+      if (transport == null || chatId == null) return { ok: false, reason: 'error' };
       const epoch = epochRef.current;
       setPendingSend({ text, executionId: null });
       try {
-        const response = await NotebookChatService.sendMessage(noteId, chatId, text, generation);
+        const response = await transport.sendMessage(chatId, text, generation);
         if (epoch === epochRef.current) {
           setPendingSend({ text, executionId: response.execution_id });
           fetchChat('live');
@@ -511,27 +513,27 @@ export function useNotebookChat({
         return outcome;
       }
     },
-    [noteId, chatId, fetchChat]
+    [transport, chatId, fetchChat]
   );
 
   const cancel = useCallback(async () => {
-    if (noteId == null || chatId == null) return;
+    if (transport == null || chatId == null) return;
     const epoch = epochRef.current;
     try {
       // Idempotent by design — "nothing was running" resolves, not throws.
-      await NotebookChatService.cancelTurn(noteId, chatId);
+      await transport.cancelTurn(chatId);
     } catch {
       // Fall through: the refetch below renders whatever actually happened.
     }
     if (epoch === epochRef.current) fetchChat('live');
-  }, [noteId, chatId, fetchChat]);
+  }, [transport, chatId, fetchChat]);
 
   const rename = useCallback(
     async (title: string): Promise<boolean> => {
-      if (noteId == null || chatId == null) return false;
+      if (transport == null || chatId == null) return false;
       const epoch = epochRef.current;
       try {
-        const response = await NotebookChatService.renameChat(noteId, chatId, title);
+        const response = await transport.renameChat(chatId, title);
         if (epoch === epochRef.current) {
           setChat((prev) => (prev ? { ...prev, title: response.title } : prev));
         }
@@ -540,7 +542,7 @@ export function useNotebookChat({
         return false;
       }
     },
-    [noteId, chatId]
+    [transport, chatId]
   );
 
   const refetch = useCallback(() => {
@@ -578,7 +580,7 @@ export interface UseNotebookChatListResult {
  * authoritative and the UI entry point simply disappears.
  */
 export function useNotebookChatList(
-  noteId: string | number | null,
+  transport: ChatTransport | null,
   enabled: boolean
 ): UseNotebookChatListResult {
   const [chats, setChats] = useState<NotebookChatListItem[]>([]);
@@ -589,10 +591,10 @@ export function useNotebookChatList(
   const epochRef = useRef(0);
 
   const refresh = useCallback(async () => {
-    if (noteId == null) return;
+    if (transport == null) return;
     const seq = ++seqRef.current;
     try {
-      const items = await NotebookChatService.listChats(noteId);
+      const items = await transport.listChats();
       if (seq !== seqRef.current) return;
       setChats(items);
       setAccess('ok');
@@ -605,24 +607,24 @@ export function useNotebookChatList(
         setAccess((prev) => (prev === 'ok' ? 'ok' : 'error'));
       }
     }
-  }, [noteId]);
+  }, [transport]);
 
   useEffect(() => {
     seqRef.current += 1;
     epochRef.current += 1;
     setChats([]);
     setAccess('loading');
-    if (enabled && noteId != null) {
+    if (enabled && transport != null) {
       refresh();
     }
-  }, [noteId, enabled, refresh]);
+  }, [transport, enabled, refresh]);
 
   const createChat = useCallback(
     async (title?: string): Promise<NotebookChat | null> => {
-      if (noteId == null) return null;
+      if (transport == null) return null;
       const epoch = epochRef.current;
       try {
-        const chat = await NotebookChatService.createChat(noteId, title);
+        const chat = await transport.createChat(title);
         if (epoch === epochRef.current) refresh();
         return chat;
       } catch (err) {
@@ -633,7 +635,7 @@ export function useNotebookChatList(
         return null;
       }
     },
-    [noteId, refresh]
+    [transport, refresh]
   );
 
   return { chats, access, refresh, createChat };

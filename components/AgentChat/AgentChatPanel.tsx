@@ -9,6 +9,7 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
+import { notebookChatTransport } from '@/services/chatTransport';
 import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
@@ -249,7 +250,10 @@ export function AgentChatPanel({
   );
   const promoBannerVisible = promoStatus === 'checked' && !promoDismissed;
 
-  const list = useNotebookChatList(noteId, open);
+  // One transport per note: the hooks reset on its identity, so it is built
+  // once per note rather than per render.
+  const transport = useMemo(() => notebookChatTransport(noteId), [noteId]);
+  const list = useNotebookChatList(transport, open);
   // Null is the new-chat screen, and it is where a page visit starts: the
   // assistant opens on its own opening moves rather than dropping the reader
   // into the middle of whatever they last asked. Earlier chats stay one click
@@ -263,7 +267,7 @@ export function AgentChatPanel({
   // note version socket below reports agent edits from any chat, and
   // reopening (or reselecting) refetches the transcript.
   const chatState = useNotebookChat({
-    noteId,
+    transport,
     chatId: selectedChatId,
     enabled: open,
     initialChat,

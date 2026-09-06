@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { WS_ROUTES } from '@/services/websocket';
+import type { ChatTransport } from '@/services/chatTransport';
 import { isChatSocketEvent, type ChatSocketEvent } from '@/types/notebookChat';
 import { useReconnectingSocket, type SocketStatus } from './useReconnectingSocket';
 
@@ -16,7 +16,8 @@ const FATAL_CLOSE_CODES: ReadonlySet<number> = new Set([4401, 4403, 4404]);
 export type ChatSocketStatus = SocketStatus;
 
 interface UseNotebookChatSocketOptions {
-  noteId: string | number | null;
+  /** The surface the chat lives on; null while there is nothing to connect to. */
+  transport: ChatTransport | null;
   chatId: string | number | null;
   /** Connect only while the chat exists and is open on screen. */
   enabled: boolean;
@@ -31,15 +32,15 @@ interface UseNotebookChatSocketOptions {
 
 /** One WebSocket per open chat for lifecycle nudges and transient output. */
 export function useNotebookChatSocket({
-  noteId,
+  transport,
   chatId,
   enabled,
   onEvent,
   onReconnect,
 }: UseNotebookChatSocketOptions): ChatSocketStatus {
   const url = useMemo(
-    () => (noteId != null && chatId != null ? WS_ROUTES.NOTEBOOK_CHAT(noteId, chatId) : null),
-    [noteId, chatId]
+    () => (transport != null && chatId != null ? transport.socketUrl(chatId) : null),
+    [transport, chatId]
   );
 
   return useReconnectingSocket({
