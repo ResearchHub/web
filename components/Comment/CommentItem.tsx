@@ -312,7 +312,7 @@ export const CommentItem = ({
 
         {/* If we're replying, show the reply editor */}
         {isReplying && !readOnly && (
-          <div className="mt-4 border-t pt-4 px-4 pb-4">
+          <div className="mt-4 border-t pt-4 px-4 pb-4" data-testid="comment-reply-editor">
             <h4 className="text-sm font-medium mb-2">Your reply:</h4>
             <CommentEditor
               onSubmit={handleReply}
@@ -328,7 +328,7 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="mt-4" id={`comment-${comment.id}`}>
+    <div className="mt-4" id={`comment-${comment.id}`} data-testid="comment-item">
       {/* Debug information for comment ID */}
       {showDebugInfo && (
         <div className="bg-gray-100 p-2 mb-2 rounded-md border border-gray-300">

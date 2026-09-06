@@ -63,7 +63,10 @@ export const CommentEmptyState = ({
     );
 
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div
+      className="flex flex-col items-center justify-center py-12 text-center"
+      data-testid="comment-empty-state"
+    >
       <div className="mb-4 rounded-full bg-gray-100 p-3">{icon}</div>
       <h3 className="mb-2 text-lg font-medium text-gray-900">{message}</h3>
       <p className="text-sm text-gray-500">{description}</p>
