@@ -2,16 +2,7 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import {
-  X,
-  Check,
-  AlertTriangle,
-  BadgeCheck,
-  Users,
-  GraduationCap,
-  TrendingUp,
-  CircleDollarSign,
-} from 'lucide-react';
+import { X, Check, AlertTriangle, BadgeCheck, Users, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
@@ -29,8 +20,7 @@ type VerificationStep =
   | 'INTRO'
   | 'IDENTITY'
   | 'IDENTITY_VERIFIED_SUCCESSFULLY'
-  | 'IDENTITY_CANNOT_BE_VERIFIED'
-  | 'SUCCESS';
+  | 'IDENTITY_CANNOT_BE_VERIFIED';
 
 export function VerifyIdentityModal({
   isOpen,
@@ -202,7 +192,7 @@ export function VerifyIdentityModal({
             </div>
           );
         }
-        // General flow: continue to publications step
+        // General flow: verification complete
         return (
           <div className="space-y-6 text-center p-6 flex flex-col justify-between min-h-[400px]">
             <div>
@@ -253,25 +243,6 @@ export function VerifyIdentityModal({
               <Button onClick={onClose} className="w-[200px] mx-auto mt-5">
                 Close
               </Button>
-            </div>
-          </div>
-        );
-
-      case 'SUCCESS':
-        return (
-          <div className="space-y-6 text-center p-6">
-            <div className="flex justify-center">
-              <div className="bg-green-100 p-4 rounded-full">
-                <BadgeCheck className="h-8 w-8 text-green-600" />
-              </div>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900">Verification Successful!</h3>
-            <p className="text-gray-600">
-              Your identity has been verified. You can now claim your publications and earn
-              ResearchCoin for your contributions.
-            </p>
-            <div className="flex justify-center">
-              <Button onClick={handleNext}>View My Profile</Button>
             </div>
           </div>
         );
