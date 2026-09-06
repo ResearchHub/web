@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -238,8 +238,6 @@ const nextConfig = {
   turbopack: {
     resolveAlias: {
       '@': __dirname,
-      // Keep a single ProseMirror instance so CellSelection's Selection.jsonID("cell")
-      // registration does not run twice across production chunks.
       'prosemirror-tables': './node_modules/prosemirror-tables',
       'prosemirror-state': './node_modules/prosemirror-state',
     },

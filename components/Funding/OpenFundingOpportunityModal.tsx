@@ -22,12 +22,8 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
 import { cn } from '@/utils/styles';
 
-// TipTap/convert must not load with the global layout (PublishMenu → this modal).
-// Eager import of DocumentUploadStep pulls ExtensionKit + prosemirror-tables and
-// can throw "Duplicate use of selection JSON ID cell" in production chunking.
 const DocumentUploadStep = dynamic(
-  () =>
-    import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
+  () => import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
   { ssr: false }
 );
 
