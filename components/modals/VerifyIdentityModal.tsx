@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
 import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
-import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import type { VerificationModalContext } from '@/contexts/VerificationContext';
 
@@ -33,11 +32,6 @@ type VerificationStep =
   | 'IDENTITY_VERIFIED_SUCCESSFULLY'
   | 'IDENTITY_CANNOT_BE_VERIFIED'
   | 'SUCCESS';
-
-const stepperSteps = [
-  { id: 'IDENTITY', label: 'Verify Identity' },
-  { id: 'SUCCESS', label: 'View Rewards' },
-];
 
 export function VerifyIdentityModal({
   isOpen,
@@ -417,13 +411,6 @@ export function VerifyIdentityModal({
                       >
                         <X className="h-5 w-5" />
                       </Button>
-                    </div>
-                  )}
-
-                  {/* Progress stepper */}
-                  {['PUBLICATIONS', 'SUCCESS'].includes(currentStep) && (
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <ProgressStepper steps={stepperSteps} currentStep={currentStep} />
                     </div>
                   )}
 
