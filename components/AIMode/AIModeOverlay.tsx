@@ -178,7 +178,9 @@ export function AIModeOverlay() {
         showCloseButton={false}
         className="tablet:!hidden"
       >
-        <DocumentPane document={doc} onClose={closeDocument} className="-mx-4 -mt-2" />
+        {showDocument && (
+          <DocumentPane document={doc} onClose={closeDocument} className="-mx-4 -mt-2" />
+        )}
       </SwipeableDrawer>
     </div>
   );

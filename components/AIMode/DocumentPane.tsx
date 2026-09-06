@@ -85,7 +85,7 @@ export function DocumentPane({ document, onClose, className }: DocumentPaneProps
                 editable={false}
               />
             ) : status === 'drafting' ? null : (
-              <EmptyDocument label={phaseLabel} />
+              <EmptyDocument label={phaseLabel} active={status === 'working'} />
             )}
 
             {status === 'drafting' && draftText && <DraftSection text={draftText} />}
@@ -100,12 +100,28 @@ export function DocumentPane({ document, onClose, className }: DocumentPaneProps
   );
 }
 
-function EmptyDocument({ label }: { readonly label: string | null }) {
+/**
+ * The note exists but has no version yet. Spins only while a turn is
+ * running; a settled conversation that never wrote anything says so plainly.
+ */
+function EmptyDocument({
+  label,
+  active,
+}: {
+  readonly label: string | null;
+  readonly active: boolean;
+}) {
   return (
     <div className="flex flex-col items-center gap-3 py-10 text-center">
-      <Loader size="sm" className="text-primary-500" />
-      <p className="text-sm font-medium text-gray-700">Starting the document…</p>
-      {label && <p className="text-xs text-gray-500">{label}</p>}
+      {active ? (
+        <>
+          <Loader size="sm" className="text-primary-500" />
+          <p className="text-sm font-medium text-gray-700">Starting the document…</p>
+          {label && <p className="text-xs text-gray-500">{label}</p>}
+        </>
+      ) : (
+        <p className="text-sm text-gray-500">Nothing has been written to this document yet.</p>
+      )}
     </div>
   );
 }
