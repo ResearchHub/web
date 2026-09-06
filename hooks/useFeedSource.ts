@@ -35,7 +35,7 @@ import { FeedSource } from '@/types/analytics';
  * - /topic/ai/latest → source: 'topic', tab: 'latest'
  * - /fund/needs-funding → source: 'fund', tab: 'needs-funding'
  * - /author/153397 → source: 'author', tab: 'contributions'
- * - /author/153397?tab=publications → source: 'author', tab: 'publications'
+ * - /author/153397?tab=peer-reviews → source: 'author', tab: 'peer-reviews'
  * - /list/123 → source: 'list', tab: '123'
  * - /search?q=ai → source: 'search', tab: 'search'
  */
