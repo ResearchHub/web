@@ -25,8 +25,6 @@ import {
   type ActivityPillId,
 } from '@/components/profile/ProfileActivityTab';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
-import { useAuthorPublications } from '@/hooks/usePublications';
-import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import {
@@ -52,7 +50,6 @@ function AuthorProfileError({ error }: { error: string }) {
 
 const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   contributions: 'ALL',
-  publications: 'ARTICLE',
   'peer-reviews': 'REVIEW',
   comments: 'CONVERSATION',
   bounties: 'BOUNTY',
@@ -118,59 +115,6 @@ function AuthorTabContent({
     currentTab === 'comments'
       ? allContributions.filter((contribution) => !contribution.item?.review?.score)
       : allContributions;
-
-  const {
-    publications,
-    isLoading: isPublicationsLoading,
-    error: publicationsError,
-    hasMore: hasMorePublications,
-    loadMore: loadMorePublications,
-    isLoadingMore: isLoadingMorePublications,
-    restoredFeedEntries: restoredPublicationsEntries,
-    restoredScrollPosition: restoredPublicationsScrollPosition,
-    lastClickedEntryId: lastClickedPublicationsEntryId,
-  } = useAuthorPublications({
-    authorId,
-    activeTab: currentTab,
-  });
-
-  if (currentTab === 'publications') {
-    if (publicationsError) {
-      return <div>Error: {publicationsError.message}</div>;
-    }
-
-    const entries =
-      restoredPublicationsEntries ||
-      publications
-        .map((publication) => {
-          try {
-            return transformPublicationToFeedEntry(publication);
-          } catch (error) {
-            console.warn('[Publication] Could not parse publication', error);
-            return null;
-          }
-        })
-        .filter((entry): entry is FeedEntry => !!entry);
-
-    return (
-      <FeedContent
-        entries={isPending ? [] : entries}
-        isLoading={isPending || isPublicationsLoading}
-        hasMore={hasMorePublications}
-        loadMore={loadMorePublications}
-        showBountyFooter={false}
-        hideActions={true}
-        isLoadingMore={isLoadingMorePublications}
-        noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
-        maxLength={150}
-        activeTab={currentTab}
-        restoredScrollPosition={restoredPublicationsScrollPosition}
-        lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
-        shouldRenderBountyAsComment={true}
-        wideContent
-      />
-    );
-  }
 
   if (contributionsError) {
     return <div>Error: {contributionsError.message}</div>;
@@ -359,7 +303,9 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     }
 
     if (activeGroup === 'activity') {
-      const activePill: ActivityPillId = isActivityPill(currentTab) ? currentTab : 'publications';
+      const activePill: ActivityPillId = isActivityPill(currentTab)
+        ? currentTab
+        : ACTIVITY_PILLS[0].id;
       return (
         <ProfileActivityTab activePill={activePill} onPillChange={setTab} userId={author.userId}>
           <AuthorTabContent
