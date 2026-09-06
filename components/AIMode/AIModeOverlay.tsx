@@ -1,8 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Sparkles, X } from 'lucide-react';
+import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAIMode } from './AIModeContext';
+import { ChatPane } from './ChatPane';
+import { ConversationList } from './ConversationList';
+import { useAIModeChat } from './useAIModeChat';
 import { AI_MODE_NAME } from './copy';
 
 /**
@@ -33,6 +37,10 @@ function isForeignDialogOpen(): boolean {
  */
 export function AIModeOverlay() {
   const { close } = useAIMode();
+  const state = useAIModeChat();
+  // Below the tablet breakpoint the list lives in a bottom drawer.
+  const [listDrawerOpen, setListDrawerOpen] = useState(false);
+  const closeListDrawer = useCallback(() => setListDrawerOpen(false), []);
 
   // Esc closes, unless something inside already claimed it (a menu, a modal
   // that portals outside the overlay).
@@ -54,6 +62,27 @@ export function AIModeOverlay() {
       document.body.style.overflow = previous;
     };
   }, []);
+
+  const conversationList = (
+    <ConversationList
+      chats={state.list.chats}
+      access={state.list.access}
+      accessDetail={state.list.accessDetail}
+      activeChatId={state.chatId}
+      activeTitle={state.chat.chat?.title ?? null}
+      notesByChat={state.notesByChat}
+      onSelect={(chatId) => {
+        state.selectChat(chatId);
+        closeListDrawer();
+      }}
+      onNew={() => {
+        state.startNewChat();
+        closeListDrawer();
+      }}
+      onRename={state.rename}
+      onRetry={state.list.refresh}
+    />
+  );
 
   return (
     <div
@@ -83,15 +112,19 @@ export function AIModeOverlay() {
 
       <div className="relative flex min-h-0 flex-1">
         <aside className="hidden w-[264px] shrink-0 flex-col border-r border-gray-200 bg-white tablet:!flex">
-          <PanePlaceholder label="Conversations" />
+          {conversationList}
         </aside>
         <main className="flex min-w-0 flex-1 flex-col">
-          <PanePlaceholder label="Chat" />
+          <ChatPane state={state} onOpenConversations={() => setListDrawerOpen(true)} />
         </main>
         <aside className="hidden w-[42%] min-w-[380px] max-w-[640px] shrink-0 flex-col border-l border-gray-200 bg-white tablet:!flex">
           <PanePlaceholder label="Document" />
         </aside>
       </div>
+
+      <SwipeableDrawer isOpen={listDrawerOpen} onClose={closeListDrawer} height="70vh">
+        {conversationList}
+      </SwipeableDrawer>
     </div>
   );
 }

@@ -10,6 +10,19 @@ import { ID } from '@/types/root';
 
 const BASE_PATH = '/api/research_ai/assistant/chats/';
 
+/** `GET /api/research_ai/usage-budget/` — the user's daily Research AI budget. */
+export interface UsageBudget {
+  tier: string;
+  daily_budget: string;
+  spent_today: string;
+  remaining: string;
+  turns_used: number;
+  turn_cap: number;
+  /** ISO timestamp of the next daily reset. */
+  resets_at: string;
+  credits?: { daily_limit: number; used: number; remaining: number };
+}
+
 /**
  * REST layer for the research assistant chat — the notebook chat without a
  * note. Same representation and semantics as {@link NotebookChatService};
@@ -51,5 +64,9 @@ export class AssistantChatService {
 
   static async cancelTurn(chatId: ID): Promise<CancelTurnResponse> {
     return ApiClient.post<CancelTurnResponse>(`${BASE_PATH}${chatId}/cancel/`);
+  }
+
+  static async getUsageBudget(): Promise<UsageBudget> {
+    return ApiClient.get<UsageBudget>('/api/research_ai/usage-budget/');
   }
 }

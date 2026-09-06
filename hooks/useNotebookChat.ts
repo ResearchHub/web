@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { debounce, type DebouncedFunc } from 'lodash-es';
-import { chatErrorDetail, chatErrorStatus } from '@/services/notebookChat.service';
+import { chatErrorBody, chatErrorDetail, chatErrorStatus } from '@/services/notebookChat.service';
 import type { ChatTransport } from '@/services/chatTransport';
 import { useNotebookChatSocket, type ChatSocketStatus } from '@/hooks/useNotebookChatSocket';
 import {
@@ -41,25 +41,35 @@ export type SendOutcome =
   | { ok: true }
   | {
       ok: false;
-      reason: 'busy' | 'invalid' | 'not_found' | 'unauthorized' | 'error';
+      /** `limit` is a 429: the user's daily Research AI budget is spent. */
+      reason: 'busy' | 'invalid' | 'not_found' | 'unauthorized' | 'limit' | 'error';
       detail?: string;
+      /** Machine code from the error body, e.g. `usage_work_in_progress`. */
+      code?: string;
+      /** The raw error body, for fields beyond `detail` (a 429's budget status). */
+      body?: Record<string, unknown>;
     };
 
 /** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
 function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
   const detail = chatErrorDetail(err);
+  const body = chatErrorBody(err);
+  const code = typeof body?.code === 'string' ? body.code : undefined;
+  const extra = { detail, code, body };
   switch (chatErrorStatus(err)) {
     case 409:
-      return { ok: false, reason: 'busy', detail };
+      return { ok: false, reason: 'busy', ...extra };
     case 400:
-      return { ok: false, reason: 'invalid', detail };
+      return { ok: false, reason: 'invalid', ...extra };
     case 401:
     case 403:
-      return { ok: false, reason: 'unauthorized', detail };
+      return { ok: false, reason: 'unauthorized', ...extra };
     case 404:
-      return { ok: false, reason: 'not_found', detail };
+      return { ok: false, reason: 'not_found', ...extra };
+    case 429:
+      return { ok: false, reason: 'limit', ...extra };
     default:
-      return { ok: false, reason: 'error', detail };
+      return { ok: false, reason: 'error', ...extra };
   }
 }
 
@@ -570,6 +580,8 @@ export type ChatListAccess = 'loading' | 'ok' | 'hidden' | 'error';
 export interface UseNotebookChatListResult {
   chats: NotebookChatListItem[];
   access: ChatListAccess;
+  /** The server's `detail` copy behind a `hidden` or `error` access state. */
+  accessDetail: string | null;
   refresh: () => Promise<void>;
   createChat: (title?: string) => Promise<NotebookChat | null>;
 }
@@ -585,6 +597,7 @@ export function useNotebookChatList(
 ): UseNotebookChatListResult {
   const [chats, setChats] = useState<NotebookChatListItem[]>([]);
   const [access, setAccess] = useState<ChatListAccess>('loading');
+  const [accessDetail, setAccessDetail] = useState<string | null>(null);
   const seqRef = useRef(0);
   // Same stale-continuation guard as the chat hook: a createChat bound to a
   // previous note must not refresh (or hide) the current note's listing.
@@ -598,9 +611,11 @@ export function useNotebookChatList(
       if (seq !== seqRef.current) return;
       setChats(items);
       setAccess('ok');
+      setAccessDetail(null);
     } catch (err) {
       if (seq !== seqRef.current) return;
       const status = chatErrorStatus(err);
+      setAccessDetail(chatErrorDetail(err) ?? null);
       if (status === 401 || status === 403 || status === 404) {
         setAccess('hidden');
       } else {
@@ -614,6 +629,7 @@ export function useNotebookChatList(
     epochRef.current += 1;
     setChats([]);
     setAccess('loading');
+    setAccessDetail(null);
     if (enabled && transport != null) {
       refresh();
     }
@@ -638,5 +654,5 @@ export function useNotebookChatList(
     [transport, refresh]
   );
 
-  return { chats, access, refresh, createChat };
+  return { chats, access, accessDetail, refresh, createChat };
 }

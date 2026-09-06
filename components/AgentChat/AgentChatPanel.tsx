@@ -66,6 +66,11 @@ function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice
       return { tone: 'error', text: 'This chat is no longer available.' };
     case 'unauthorized':
       return { tone: 'error', text: 'You no longer have access to the assistant.' };
+    case 'limit':
+      return {
+        tone: 'warning',
+        text: outcome.detail ?? 'You’ve used today’s assistant budget. Try again after it resets.',
+      };
     default:
       return { tone: 'error', text: 'Something went wrong — your message wasn’t sent.' };
   }

@@ -87,6 +87,14 @@ export function chatErrorStatus(error: unknown): number | undefined {
   return error instanceof ApiError ? error.status : undefined;
 }
 
+/** The parsed error body of a thrown service error, if there was one. */
+export function chatErrorBody(error: unknown): Record<string, unknown> | undefined {
+  if (error instanceof ApiError && error.errors != null && typeof error.errors === 'object') {
+    return error.errors as unknown as Record<string, unknown>;
+  }
+  return undefined;
+}
+
 /**
  * User-facing detail from a DRF error response (`{"detail": "..."}`), e.g. the
  * 409 "assistant is still working" copy. Falls back to the generic message.
