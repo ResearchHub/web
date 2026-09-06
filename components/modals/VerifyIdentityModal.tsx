@@ -32,14 +32,7 @@ type VerificationStep =
   | 'IDENTITY'
   | 'IDENTITY_VERIFIED_SUCCESSFULLY'
   | 'IDENTITY_CANNOT_BE_VERIFIED'
-  | 'PUBLICATIONS'
   | 'SUCCESS';
-
-const stepperSteps = [
-  { id: 'IDENTITY', label: 'Verify Identity' },
-  { id: 'PUBLICATIONS', label: 'Publication History' },
-  { id: 'SUCCESS', label: 'View Rewards' },
-];
 
 export function VerifyIdentityModal({
   isOpen,
@@ -63,18 +56,6 @@ export function VerifyIdentityModal({
   const handleNext = () => {
     if (currentStep === 'INTRO') {
       setCurrentStep('IDENTITY');
-    } else if (currentStep === 'IDENTITY') {
-      setCurrentStep('PUBLICATIONS');
-    } else if (currentStep === 'PUBLICATIONS') {
-      // Send verification request via WebSocket
-      if (user?.id) {
-        // Placeholder for WebSocket sendMessage
-      }
-    } else if (currentStep === 'SUCCESS') {
-      onClose();
-      if (context !== 'publish') {
-        navigateToAuthorProfile(user?.authorProfile?.id, false);
-      }
     }
   };
 
@@ -84,6 +65,11 @@ export function VerifyIdentityModal({
     } else {
       setCurrentStep('IDENTITY_CANNOT_BE_VERIFIED');
     }
+  };
+
+  const handleViewProfile = () => {
+    onClose();
+    navigateToAuthorProfile(user?.authorProfile?.id, false);
   };
 
   const renderStepContent = () => {
@@ -237,18 +223,11 @@ export function VerifyIdentityModal({
               </p>
             </div>
             <div className="flex flex-col space-y-4 mt-6">
-              <Button onClick={() => setCurrentStep('PUBLICATIONS')} className="w-full">
-                Next: View rewards on my publications
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  onClose();
-                  navigateToAuthorProfile(user?.authorProfile?.id, false);
-                }}
-                className="w-full"
-              >
+              <Button onClick={handleViewProfile} className="w-full">
                 View my profile
+              </Button>
+              <Button variant="ghost" onClick={onClose} className="w-full">
+                Done
               </Button>
             </div>
           </div>
@@ -282,7 +261,7 @@ export function VerifyIdentityModal({
           </div>
         );
 
-      case 'PUBLICATIONS':
+      case 'SUCCESS':
         return (
           <div className="p-6">
             {publicationsSubstep === 'DOI' && (
@@ -424,13 +403,6 @@ export function VerifyIdentityModal({
                       >
                         <X className="h-5 w-5" />
                       </Button>
-                    </div>
-                  )}
-
-                  {/* Progress stepper */}
-                  {['PUBLICATIONS', 'SUCCESS'].includes(currentStep) && (
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <ProgressStepper steps={stepperSteps} currentStep={currentStep} />
                     </div>
                   )}
 
