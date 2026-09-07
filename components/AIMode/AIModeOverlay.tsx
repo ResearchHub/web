@@ -14,6 +14,9 @@ import { useAIModeChat } from './useAIModeChat';
 import { useAIModeDocument } from './useAIModeDocument';
 import { AI_MODE_NAME } from './copy';
 
+/** Above the overlay (9500), below BaseModal (9999). */
+const AI_MODE_DRAWER_Z_INDEX = 9600;
+
 /**
  * A modal that portals outside the overlay (BaseModal, a drawer) is showing.
  * Closed drawers stay mounted off-screen with `role="dialog"`, so presence in
@@ -202,7 +205,14 @@ export function AIModeOverlay() {
         )}
       </div>
 
-      <SwipeableDrawer isOpen={listDrawerOpen} onClose={closeListDrawer} height="70vh">
+      {/* Drawers portal to the body, so they need to stack above this overlay
+          (z-9500) while staying under BaseModal (9999). */}
+      <SwipeableDrawer
+        isOpen={listDrawerOpen}
+        onClose={closeListDrawer}
+        height="70vh"
+        zIndex={AI_MODE_DRAWER_Z_INDEX}
+      >
         {conversationList}
       </SwipeableDrawer>
       <SwipeableDrawer
@@ -211,6 +221,7 @@ export function AIModeOverlay() {
         height="85vh"
         showCloseButton={false}
         className="tablet:!hidden"
+        zIndex={AI_MODE_DRAWER_Z_INDEX}
       >
         {showDocument && isBelowTablet && (
           <DocumentPane
