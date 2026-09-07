@@ -22,7 +22,10 @@ const SECTION_HEADING_LEVELS = new Set([1, 2]);
 function countSections(editor: Editor | null): number {
   if (editor == null || editor.isDestroyed) return 0;
   let count = 0;
-  editor.state.doc.forEach((node) => {
+  // Mid-review the live document also holds the struck (pending-removal)
+  // ranges; count what accepting would keep.
+  const doc = noteDiffPersistableDoc(editor) ?? editor.state.doc;
+  doc.forEach((node) => {
     if (
       node.type.name === 'heading' &&
       SECTION_HEADING_LEVELS.has(node.attrs.level ?? 1) &&
