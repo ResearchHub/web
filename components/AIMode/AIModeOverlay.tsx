@@ -200,6 +200,7 @@ export function AIModeOverlay() {
         closeListDrawer();
       }}
       onRename={state.rename}
+      onDelete={state.deleteChat}
       onRetry={state.list.refresh}
     />
   );
@@ -280,7 +281,7 @@ export function AIModeOverlay() {
         {showDocument && !isBelowTablet && (
           <aside
             style={{ width: documentWidth.width }}
-            className="relative flex shrink-0 flex-col border-l border-gray-200 bg-white"
+            className="relative flex shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white"
           >
             <ResizeHandle
               label="Resize document"

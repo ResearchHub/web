@@ -9,6 +9,7 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
 import { notebookChatTransport } from '@/services/chatTransport';
 import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
+import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { isRfpNote } from '@/types/note';
 import {
@@ -423,27 +424,14 @@ export function AgentChatPanel({
   }, [selectedChatId, noteId]);
 
   // ---- transcript auto-scroll ----
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const nearBottomRef = useRef(true);
-
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
-  };
-
+  const { scrollRef, handleScroll, follow } = useJumpToLatest<HTMLDivElement>({
+    resetKey: selectedChatId,
+  });
   useEffect(() => {
-    nearBottomRef.current = true;
-  }, [selectedChatId]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
     // The sources list shares this scroller; pinning it to the bottom on every
     // transcript update would yank the citation the user is reading.
-    if (el && nearBottomRef.current && activeTab === 'chat') {
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [chatState.chat, chatState.pendingSend, activeTab]);
+    if (activeTab === 'chat') follow();
+  }, [chatState.chat, chatState.pendingSend, activeTab, follow]);
 
   // ---- derived composer state ----
   // Sending before the catalog lands would run the turn on the server default

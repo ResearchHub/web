@@ -1,18 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { MoreHorizontal, Pencil, Plus } from 'lucide-react';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
 import { formatTimeAgo } from '@/utils/date';
 import { cn } from '@/utils/styles';
-import {
-  MAX_CHAT_TITLE_LENGTH,
-  type ChatNoteRef,
-  type NotebookChatListItem,
-} from '@/types/notebookChat';
+import type { NotebookChatListItem } from '@/types/notebookChat';
 import type { ChatListAccess } from '@/hooks/useNotebookChat';
+import { ConversationMenu } from './ConversationMenu';
+import { ConversationTitleField } from './ConversationTitleField';
 
 const UNTITLED = 'Untitled conversation';
 
@@ -26,6 +23,7 @@ interface ConversationListProps {
   readonly onSelect: (chatId: number) => void;
   readonly onNew: () => void;
   readonly onRename: (chatId: number, title: string) => Promise<boolean>;
+  readonly onDelete: (chatId: number) => Promise<boolean>;
   readonly onRetry: () => void;
 }
 
@@ -43,6 +41,7 @@ export function ConversationList({
   onSelect,
   onNew,
   onRename,
+  onDelete,
   onRetry,
 }: ConversationListProps) {
   const [renamingId, setRenamingId] = useState<number | null>(null);
@@ -110,6 +109,7 @@ export function ConversationList({
                 if (!next || next === (title ?? '')) return;
                 await onRename(item.id, next);
               }}
+              onDelete={() => onDelete(item.id)}
             />
           );
         })}
@@ -127,6 +127,7 @@ interface ConversationRowProps {
   readonly onStartRename: () => void;
   readonly onCancelRename: () => void;
   readonly onCommitRename: (value: string) => void;
+  readonly onDelete: () => void;
 }
 
 function ConversationRow({
@@ -138,20 +139,24 @@ function ConversationRow({
   onStartRename,
   onCancelRename,
   onCommitRename,
+  onDelete,
 }: ConversationRowProps) {
   return (
     <div
       className={cn(
-        'group relative mb-1 rounded-lg transition-colors',
-        isActive ? 'bg-white shadow-sm ring-1 ring-gray-200' : 'hover:bg-gray-100'
+        'group relative mb-0.5 rounded-lg transition-colors',
+        isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
       )}
     >
       {renaming ? (
-        <RenameField
-          initialValue={item.title ?? ''}
-          onCommit={onCommitRename}
-          onCancel={onCancelRename}
-        />
+        <div className="px-2 py-1.5">
+          <ConversationTitleField
+            initialValue={item.title ?? ''}
+            onCommit={onCommitRename}
+            onCancel={onCancelRename}
+            className="text-[13px]"
+          />
+        </div>
       ) : (
         <button
           type="button"
@@ -160,7 +165,7 @@ function ConversationRow({
           className="w-full px-3 py-2 pr-9 text-left"
         >
           <div className="flex items-center gap-1.5">
-            <span className="min-w-0 truncate text-sm font-medium text-gray-900">{title}</span>
+            <span className="min-w-0 truncate text-[13px] font-medium text-gray-800">{title}</span>
             {item.has_active_turn && (
               <Loader size="sm" className="!h-3 !w-3 shrink-0 text-primary-500" />
             )}
@@ -176,69 +181,9 @@ function ConversationRow({
             isActive && 'opacity-100'
           )}
         >
-          <BaseMenu
-            align="end"
-            trigger={
-              <button
-                type="button"
-                aria-label="Conversation options"
-                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-gray-200/70 hover:text-gray-700"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            }
-          >
-            <BaseMenuItem onSelect={onStartRename} className="gap-2 text-gray-700">
-              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-              Rename
-            </BaseMenuItem>
-          </BaseMenu>
+          <ConversationMenu title={title} onRename={onStartRename} onDelete={onDelete} />
         </div>
       )}
-    </div>
-  );
-}
-
-function RenameField({
-  initialValue,
-  onCommit,
-  onCancel,
-}: {
-  readonly initialValue: string;
-  readonly onCommit: (value: string) => void;
-  readonly onCancel: () => void;
-}) {
-  const [value, setValue] = useState(initialValue);
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      onCommit(value);
-    } else if (event.key === 'Escape') {
-      // Claimed here so the overlay's own Esc handler doesn't close it.
-      event.preventDefault();
-      event.stopPropagation();
-      onCancel();
-    }
-  };
-
-  return (
-    <div className="px-2 py-2">
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        onKeyDown={handleKeyDown}
-        onBlur={() => onCommit(value)}
-        maxLength={MAX_CHAT_TITLE_LENGTH}
-        aria-label="Conversation title"
-        className="w-full rounded-md border border-primary-300 bg-white px-2 py-1 text-sm text-gray-900 outline-none ring-2 ring-primary-100"
-      />
     </div>
   );
 }

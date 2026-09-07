@@ -42,10 +42,11 @@
   @apply px-4 py-3;
 }
 
-/* The AI Mode document card supplies its own padding; keep only the left
-   gutter the block drag handle needs. */
+/* The AI Mode document pane supplies its own padding; the editor keeps the
+   64px left gutter the block "+" and drag handle render into, so they stay
+   inside the pane instead of floating over the chat. */
 .ai-mode-document .ProseMirror {
-  @apply max-w-none py-2 pl-10 pr-0;
+  @apply max-w-none py-2 pl-16 pr-0;
 }
 
 [data-theme='slash-command'] {

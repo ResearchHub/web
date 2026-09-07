@@ -91,6 +91,8 @@ export interface AIModeChatState {
   readonly stop: () => Promise<void>;
   /** Rename any conversation, open or not. */
   readonly rename: (chatId: number, title: string) => Promise<boolean>;
+  /** Delete any conversation; deleting the open one lands on the new-conversation screen. */
+  readonly deleteChat: (chatId: number) => Promise<boolean>;
   readonly selectChat: (chatId: number | null) => void;
   readonly startNewChat: () => void;
   /** The first note of every conversation whose detail this session has loaded. */
@@ -290,6 +292,22 @@ export function useAIModeChat(): AIModeChatState {
     [chat, transport, refreshList]
   );
 
+  const deleteChat = useCallback(
+    async (target: number): Promise<boolean> => {
+      if (!transport.deleteChat) return false;
+      try {
+        await transport.deleteChat(target);
+      } catch {
+        return false;
+      }
+      draftsRef.current.delete(String(target));
+      if (targetRef.current === target) selectChat(null);
+      refreshList();
+      return true;
+    },
+    [transport, selectChat, refreshList]
+  );
+
   const clearNotice = useCallback(() => setNotice(null), []);
 
   // Surface the budget reset time on a 429 even when the body lacked it.
@@ -337,6 +355,7 @@ export function useAIModeChat(): AIModeChatState {
     send,
     stop,
     rename,
+    deleteChat,
     selectChat,
     startNewChat,
     notesByChat,

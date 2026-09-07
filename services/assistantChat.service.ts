@@ -66,6 +66,11 @@ export class AssistantChatService {
     return ApiClient.post<CancelTurnResponse>(`${BASE_PATH}${chatId}/cancel/`);
   }
 
+  /** Deletes the conversation and its messages; notes it created are kept. */
+  static async deleteChat(chatId: ID): Promise<void> {
+    await ApiClient.deleteNoContent(`${BASE_PATH}${chatId}/`);
+  }
+
   static async getUsageBudget(): Promise<UsageBudget> {
     return ApiClient.get<UsageBudget>('/api/research_ai/usage-budget/');
   }

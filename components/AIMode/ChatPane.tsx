@@ -1,19 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Menu } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
+import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
+import { useJumpToLatest } from '@/hooks/useJumpToLatest';
+import { ConversationMenu } from './ConversationMenu';
+import { ConversationTitleField } from './ConversationTitleField';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from './useAIModeChat';
 import { AI_MODE_EMPTY_HEADING, AI_MODE_EMPTY_SUBHEADING, AI_MODE_STARTER_PROMPTS } from './copy';
-
-/** How close to the bottom the transcript has to be for new content to pull it down. */
-const NEAR_BOTTOM_PX = 90;
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
@@ -42,23 +43,18 @@ export function ChatPane({
 
   // ---- transcript auto-scroll ----
   // Follows new content while the reader is at the bottom; never yanks the
-  // view down once they have scrolled up to re-read.
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const nearBottomRef = useRef(true);
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;
-  };
+  // view down once they have scrolled up, and offers a jump back instead.
+  const { scrollRef, handleScroll, isAtBottom, jumpToLatest, follow } =
+    useJumpToLatest<HTMLDivElement>({ resetKey: chatId });
   useEffect(() => {
-    nearBottomRef.current = true;
+    follow();
+  }, [chat.chat, chat.pendingSend, follow]);
+
+  // ---- title: inline rename from the header menu ----
+  const [renaming, setRenaming] = useState(false);
+  useEffect(() => {
+    setRenaming(false);
   }, [chatId]);
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el && nearBottomRef.current) {
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [chat.chat, chat.pendingSend]);
 
   const applyStarter = useCallback(
     (message: string) => {
@@ -99,52 +95,81 @@ export function ChatPane({
             <Menu className="h-4 w-4" />
           </button>
         )}
-        <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{title}</h1>
+        {renaming && chatId != null ? (
+          <ConversationTitleField
+            initialValue={chat.chat?.title ?? ''}
+            className="max-w-md flex-1"
+            onCancel={() => setRenaming(false)}
+            onCommit={(value) => {
+              setRenaming(false);
+              const next = value.trim();
+              if (next && next !== (chat.chat?.title ?? '')) state.rename(chatId, next);
+            }}
+          />
+        ) : (
+          <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{title}</h1>
+        )}
+        {chatId != null && !renaming && (
+          <ConversationMenu
+            title={title}
+            onRename={() => setRenaming(true)}
+            onDelete={() => state.deleteChat(chatId)}
+          />
+        )}
         {headerActions}
       </header>
 
-      <div ref={scrollRef} onScroll={handleScroll} className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
-          {listBlocked ? (
-            <AccessBlocked detail={list.accessDetail} />
-          ) : chatId == null ? (
-            <EmptyState onSelectStarter={applyStarter} disabled={composerBusy} />
-          ) : chat.access === 'loading' && chat.chat == null ? (
-            <div className="flex justify-center py-16">
-              <Loader size="md" className="text-primary-500" />
-            </div>
-          ) : chat.access === 'not_found' ? (
-            <p className="py-16 text-center text-sm text-gray-600">
-              This conversation is no longer available.
-            </p>
-          ) : chat.access === 'unauthorized' ? (
-            <AccessBlocked detail={null} />
-          ) : chat.access === 'error' && chat.chat == null ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <p className="text-sm text-gray-600">Couldn’t load this conversation.</p>
-              <Button variant="outlined" size="sm" onClick={chat.refetch}>
-                Try again
-              </Button>
-            </div>
-          ) : chat.chat ? (
-            <>
-              <ChatTranscript
-                chat={chat.chat}
-                pendingSend={chat.pendingSend}
-                renderExecutionExtra={
-                  documentCard && documentCardExecutionId != null
-                    ? (execution) =>
-                        execution.id === documentCardExecutionId ? (
-                          <div className="pt-1">{documentCard}</div>
-                        ) : null
-                    : undefined
-                }
-              />
-              {documentCard && documentCardExecutionId == null && (
-                <div className="mt-5">{documentCard}</div>
-              )}
-            </>
-          ) : null}
+      <div className="relative min-h-0 flex-1">
+        <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto">
+          <div className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
+            {listBlocked ? (
+              <AccessBlocked detail={list.accessDetail} />
+            ) : chatId == null ? (
+              <EmptyState onSelectStarter={applyStarter} disabled={composerBusy} />
+            ) : chat.access === 'loading' && chat.chat == null ? (
+              <div className="flex justify-center py-16">
+                <Loader size="md" className="text-primary-500" />
+              </div>
+            ) : chat.access === 'not_found' ? (
+              <p className="py-16 text-center text-sm text-gray-600">
+                This conversation is no longer available.
+              </p>
+            ) : chat.access === 'unauthorized' ? (
+              <AccessBlocked detail={null} />
+            ) : chat.access === 'error' && chat.chat == null ? (
+              <div className="flex flex-col items-center gap-3 py-16 text-center">
+                <p className="text-sm text-gray-600">Couldn’t load this conversation.</p>
+                <Button variant="outlined" size="sm" onClick={chat.refetch}>
+                  Try again
+                </Button>
+              </div>
+            ) : chat.chat ? (
+              <>
+                <ChatTranscript
+                  chat={chat.chat}
+                  pendingSend={chat.pendingSend}
+                  renderExecutionExtra={
+                    documentCard && documentCardExecutionId != null
+                      ? (execution) =>
+                          execution.id === documentCardExecutionId ? (
+                            <div className="pt-1">{documentCard}</div>
+                          ) : null
+                      : undefined
+                  }
+                />
+                {documentCard && documentCardExecutionId == null && (
+                  <div className="mt-5">{documentCard}</div>
+                )}
+              </>
+            ) : null}
+          </div>
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
+          <JumpToLatestButton
+            visible={!isAtBottom}
+            onClick={jumpToLatest}
+            className="pointer-events-auto"
+          />
         </div>
       </div>
 
