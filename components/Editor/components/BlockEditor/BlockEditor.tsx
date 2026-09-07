@@ -23,6 +23,8 @@ export interface BlockEditorProps {
   autofocus?: boolean;
   /** Live read-only toggle that keeps the editor instance (see useBlockEditor). */
   locked?: boolean;
+  /** Require a leading heading when editable (default true; see useBlockEditor). */
+  requireTitle?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
@@ -34,6 +36,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   editable = true,
   autofocus,
   locked,
+  requireTitle,
 }) => {
   const menuContainerRef = useRef(null);
 
@@ -44,6 +47,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     editable,
     autofocus,
     locked,
+    requireTitle,
   });
 
   useEffect(() => {

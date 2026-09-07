@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { FileText, MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Loader } from '@/components/ui/Loader';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +23,6 @@ interface ConversationListProps {
   readonly activeChatId: number | null;
   /** Live title of the open chat — fresher than the listing after renames and derives. */
   readonly activeTitle: string | null;
-  readonly notesByChat: ReadonlyMap<number, ChatNoteRef>;
   readonly onSelect: (chatId: number) => void;
   readonly onNew: () => void;
   readonly onRename: (chatId: number, title: string) => Promise<boolean>;
@@ -41,7 +40,6 @@ export function ConversationList({
   accessDetail,
   activeChatId,
   activeTitle,
-  notesByChat,
   onSelect,
   onNew,
   onRename,
@@ -96,14 +94,12 @@ export function ConversationList({
         {chats.map((item) => {
           const isActive = item.id === activeChatId;
           const title = (isActive ? activeTitle : null) ?? item.title;
-          const note = notesByChat.get(item.id);
           return (
             <ConversationRow
               key={item.id}
               item={item}
               title={title?.trim() || UNTITLED}
               isActive={isActive}
-              note={note ?? null}
               renaming={renamingId === item.id}
               onSelect={() => onSelect(item.id)}
               onStartRename={() => setRenamingId(item.id)}
@@ -126,7 +122,6 @@ interface ConversationRowProps {
   readonly item: NotebookChatListItem;
   readonly title: string;
   readonly isActive: boolean;
-  readonly note: ChatNoteRef | null;
   readonly renaming: boolean;
   readonly onSelect: () => void;
   readonly onStartRename: () => void;
@@ -138,7 +133,6 @@ function ConversationRow({
   item,
   title,
   isActive,
-  note,
   renaming,
   onSelect,
   onStartRename,
@@ -163,7 +157,7 @@ function ConversationRow({
           type="button"
           onClick={onSelect}
           aria-current={isActive ? 'true' : undefined}
-          className="w-full px-3 py-2.5 pr-9 text-left"
+          className="w-full px-3 py-2 pr-9 text-left"
         >
           <div className="flex items-center gap-1.5">
             <span className="min-w-0 truncate text-sm font-medium text-gray-900">{title}</span>
@@ -171,21 +165,7 @@ function ConversationRow({
               <Loader size="sm" className="!h-3 !w-3 shrink-0 text-primary-500" />
             )}
           </div>
-          {item.last_message_preview && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">{item.last_message_preview}</p>
-          )}
-          <div className="mt-1.5 flex items-center justify-between gap-2">
-            <span className="text-[11px] text-gray-400">{formatTimeAgo(item.updated_date)}</span>
-            {note && (
-              <span
-                className="inline-flex min-w-0 shrink items-center gap-1 rounded-full bg-primary-50 px-1.5 py-px text-[10px] font-semibold text-primary-700 ring-1 ring-primary-200"
-                title={note.title}
-              >
-                <FileText className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
-                <span className="truncate">Document</span>
-              </span>
-            )}
-          </div>
+          <p className="mt-0.5 text-[11px] text-gray-400">{formatTimeAgo(item.updated_date)}</p>
         </button>
       )}
 

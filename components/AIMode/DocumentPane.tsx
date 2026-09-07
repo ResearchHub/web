@@ -202,6 +202,7 @@ export function DocumentPane({
               contentJson={content.contentJson}
               editable={!readOnly}
               locked={locked}
+              requireTitle={false}
               autofocus={false}
               onUpdate={readOnly ? undefined : handleEditorUpdate}
               setEditor={setEditor}

@@ -151,7 +151,6 @@ export function AIModeOverlay() {
       accessDetail={state.list.accessDetail}
       activeChatId={state.chatId}
       activeTitle={state.chat.chat?.title ?? null}
-      notesByChat={state.notesByChat}
       onSelect={(chatId) => {
         state.selectChat(chatId);
         closeListDrawer();
@@ -197,7 +196,7 @@ export function AIModeOverlay() {
         <aside className="hidden w-[264px] shrink-0 flex-col border-r border-gray-200 bg-white tablet:!flex">
           {conversationList}
         </aside>
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-w-[360px] flex-1 flex-col">
           <ChatPane
             state={state}
             onOpenConversations={() => setListDrawerOpen(true)}
@@ -224,9 +223,11 @@ export function AIModeOverlay() {
           />
         </main>
         {/* One editor per note at a time: the pane mounts in the column above
-            the tablet breakpoint and in the drawer below it, never both. */}
+            the tablet breakpoint and in the drawer below it, never both. Once
+            the document exists it is the point, so it takes the larger share
+            and the chat narrows to a column beside it. */}
         {showDocument && !isBelowTablet && (
-          <aside className="flex w-[42%] min-w-[380px] max-w-[640px] shrink-0 flex-col border-l border-gray-200 bg-white">
+          <aside className="flex w-[58%] min-w-[520px] max-w-[980px] shrink-0 flex-col border-l border-gray-200 bg-white">
             <DocumentPane document={doc} chat={state.chat.chat} onClose={closeDocument} />
           </aside>
         )}

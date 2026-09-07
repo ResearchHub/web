@@ -31,6 +31,7 @@ export const useBlockEditor = ({
   includeTitle = false,
   autofocus = editable,
   locked = false,
+  requireTitle = true,
 }: {
   aiToken?: string;
   userId?: string;
@@ -50,6 +51,12 @@ export const useBlockEditor = ({
    * tiptap's own option re-application can't flip it back.
    */
   locked?: boolean;
+  /**
+   * Editable documents must start with a heading (the note's title). Off for
+   * documents another writer composes — an assistant's note may open with a
+   * paragraph, and a schema that forbids it throws on load.
+   */
+  requireTitle?: boolean;
 }) => {
   const isEditable = editable && !locked;
   const editor = useEditor(
@@ -60,7 +67,7 @@ export const useBlockEditor = ({
       autofocus,
       extensions: [
         ...ExtensionKit({
-          customDocument: editable ? CustomDocument : undefined,
+          customDocument: editable && requireTitle ? CustomDocument : undefined,
           placeholderConfig: {
             includeChildren: true,
             showOnlyCurrent: false,
