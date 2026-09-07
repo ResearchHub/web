@@ -23,7 +23,11 @@ function countSections(editor: Editor | null): number {
   if (editor == null || editor.isDestroyed) return 0;
   let count = 0;
   editor.state.doc.forEach((node) => {
-    if (node.type.name === 'heading' && SECTION_HEADING_LEVELS.has(node.attrs.level ?? 1)) {
+    if (
+      node.type.name === 'heading' &&
+      SECTION_HEADING_LEVELS.has(node.attrs.level ?? 1) &&
+      node.textContent.trim().length > 0
+    ) {
       count += 1;
     }
   });
@@ -107,11 +111,7 @@ export function DocumentPane({
 
   // Editable only once the turn has settled: typing while the assistant is
   // mid-edit would make its next edit_note stale and the review jumpy.
-  const editable = !readOnly && !writing;
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) return;
-    if (editor.isEditable !== editable) editor.setEditable(editable);
-  }, [editor, editable]);
+  const locked = writing;
 
   const sectionCount = useSectionCount(editor) + (draftText != null ? 1 : 0);
 
@@ -170,8 +170,11 @@ export function DocumentPane({
           </div>
         ) : (
           <article className="ai-mode-document mx-auto max-w-[640px] rounded-xl border border-gray-200 bg-white px-6 py-7 shadow-sm tablet:!px-9 tablet:!py-9">
-            {content.versionId === 0 && status !== 'drafting' && review.review == null && (
-              <EmptyDocument label={phaseLabel} active={status === 'working'} />
+            {status === 'empty' && review.review == null && (
+              <EmptyDocument label={phaseLabel} active={false} />
+            )}
+            {status === 'working' && !document.hasWrittenVersion && (
+              <EmptyDocument label={phaseLabel} active />
             )}
 
             {/* Mounted once per note: the editor's content prop is only read on
@@ -181,6 +184,7 @@ export function DocumentPane({
               content={content.content}
               contentJson={content.contentJson}
               editable={!readOnly}
+              locked={locked}
               autofocus={false}
               onUpdate={readOnly ? undefined : updateNote}
               setEditor={setEditor}
@@ -188,7 +192,7 @@ export function DocumentPane({
 
             {status === 'drafting' && draftText && <DraftSection text={draftText} />}
 
-            {status === 'working' && content.versionId > 0 && (
+            {status === 'working' && document.hasWrittenVersion && (
               <InProgressRow label={phaseLabel ?? 'Working'} />
             )}
           </article>
@@ -245,10 +249,10 @@ function DraftSection({ text }: { readonly text: string }) {
       aria-label="Section being written"
       className="prose prose-sm prose-neutral mt-6 max-w-none border-t border-dashed border-primary-200 pt-5"
     >
-      <p className="!mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-primary-600">
+      <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-primary-600">
         <Loader size="sm" className="!h-2.5 !w-2.5" />
         Writing
-      </p>
+      </div>
       {paragraphs.map((paragraph, index) => (
         <p key={index} className="whitespace-pre-wrap">
           {paragraph}

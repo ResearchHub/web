@@ -21,6 +21,8 @@ export interface BlockEditorProps {
   setEditor?: (editor: Editor | null) => void;
   /** Focus the editor on mount. Defaults to `editable`. */
   autofocus?: boolean;
+  /** Live read-only toggle that keeps the editor instance (see useBlockEditor). */
+  locked?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
@@ -31,6 +33,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   isLoading = false,
   editable = true,
   autofocus,
+  locked,
 }) => {
   const menuContainerRef = useRef(null);
 
@@ -40,6 +43,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     onUpdate,
     editable,
     autofocus,
+    locked,
   });
 
   useEffect(() => {

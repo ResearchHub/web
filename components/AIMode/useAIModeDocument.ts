@@ -7,6 +7,7 @@ import {
   isActiveExecutionStatus,
   type ChatExecution,
   type ChatNoteRef,
+  type NotebookChat,
 } from '@/types/notebookChat';
 
 export type DocumentStatus =
@@ -32,6 +33,11 @@ export interface AIModeDocument {
   readonly loading: boolean;
   readonly error: string | null;
   readonly status: DocumentStatus;
+  /**
+   * The assistant has written at least one version: the loaded note had one,
+   * or the chat's activity reports a succeeded edit_note since.
+   */
+  readonly hasWrittenVersion: boolean;
   /** Prose of the `edit_note` call being composed, paragraphs split by blank lines. */
   readonly draftText: string | null;
   /** What the assistant is doing, for the in-progress row when there is no draft. */
@@ -43,7 +49,18 @@ export interface AIModeDocument {
 
 interface UseAIModeDocumentOptions {
   readonly note: ChatNoteRef | null;
+  readonly chat: NotebookChat | null;
   readonly latestExecution: ChatExecution | null;
+}
+
+/** Any succeeded `edit_note` in the chat carries the version it produced. */
+function chatHasEditedNote(chat: NotebookChat | null): boolean {
+  return (chat?.executions ?? []).some((execution) =>
+    (execution.activity ?? []).some(
+      (item) =>
+        item.type === 'tool_call' && item.status === 'succeeded' && item.note_version_id != null
+    )
+  );
 }
 
 /** The `edit_note` draft the active turn is composing, if any. */
@@ -67,6 +84,7 @@ function currentEditDraft(execution: ChatExecution | null): string | null {
  */
 export function useAIModeDocument({
   note,
+  chat,
   latestExecution,
 }: UseAIModeDocumentOptions): AIModeDocument {
   const noteId = note?.id ?? null;
@@ -105,13 +123,15 @@ export function useAIModeDocument({
   const turnActive = latestExecution != null && isActiveExecutionStatus(latestExecution.status);
   const phaseLabel = turnActive ? (latestExecution?.phase?.label ?? null) : null;
 
+  const hasWrittenVersion = (content != null && content.versionId > 0) || chatHasEditedNote(chat);
+
   const status: DocumentStatus = useMemo(() => {
     if (noteId == null) return 'absent';
     if (draftText != null) return 'drafting';
     if (turnActive) return 'working';
-    if (content != null && content.versionId === 0) return 'empty';
+    if (content != null && !hasWrittenVersion) return 'empty';
     return 'settled';
-  }, [noteId, draftText, turnActive, content]);
+  }, [noteId, draftText, turnActive, content, hasWrittenVersion]);
 
   const notebookHref = useMemo(() => {
     const slug = content?.organization?.slug;
@@ -124,6 +144,7 @@ export function useAIModeDocument({
     loading,
     error,
     status,
+    hasWrittenVersion,
     draftText,
     phaseLabel,
     notebookHref,

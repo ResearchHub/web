@@ -52,6 +52,7 @@ export function AIModeOverlay() {
 
   const doc = useAIModeDocument({
     note: state.note,
+    chat: state.chat.chat,
     latestExecution: state.chat.latestExecution,
   });
 

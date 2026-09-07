@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useEditor } from '@tiptap/react';
 import type { AnyExtension, Editor } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
@@ -29,6 +30,7 @@ export const useBlockEditor = ({
   customClass,
   includeTitle = false,
   autofocus = editable,
+  locked = false,
 }: {
   aiToken?: string;
   userId?: string;
@@ -41,10 +43,18 @@ export const useBlockEditor = ({
   includeTitle?: boolean;
   /** Focus the editor on mount. Defaults to editable; false when another control owns focus. */
   autofocus?: boolean;
+  /**
+   * Temporarily read-only without recreating the editor: `editable` picks
+   * the extension set and is a creation-time choice, while this toggles
+   * live (e.g. while an assistant is mid-edit). Goes into the options so
+   * tiptap's own option re-application can't flip it back.
+   */
+  locked?: boolean;
 }) => {
+  const isEditable = editable && !locked;
   const editor = useEditor(
     {
-      editable,
+      editable: isEditable,
       immediatelyRender: false,
       shouldRerenderOnTransaction: false,
       autofocus,
@@ -110,6 +120,12 @@ export const useBlockEditor = ({
     },
     [content, contentJson, editable, customClass, includeTitle]
   );
+
+  useEffect(() => {
+    if (editor && !editor.isDestroyed && editor.isEditable !== isEditable) {
+      editor.setEditable(isEditable);
+    }
+  }, [editor, isEditable]);
 
   return { editor };
 };
