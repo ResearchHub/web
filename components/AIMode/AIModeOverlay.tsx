@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FileText, Sparkles, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { useAIMode } from './AIModeContext';
 import { ChatPane } from './ChatPane';
 import { ConversationList } from './ConversationList';
@@ -17,6 +19,14 @@ import { AI_MODE_NAME } from './copy';
 
 /** Above the overlay (9500), below BaseModal (9999). */
 const AI_MODE_DRAWER_Z_INDEX = 9600;
+
+const LIST_MIN_WIDTH = 200;
+const LIST_MAX_WIDTH = 440;
+const LIST_DEFAULT_WIDTH = 264;
+const CHAT_MIN_WIDTH = 360;
+const DOCUMENT_MIN_WIDTH = 420;
+/** Share of the viewport the document opens at before the user drags it. */
+const DOCUMENT_DEFAULT_SHARE = 0.55;
 
 /**
  * A modal that portals outside the overlay (BaseModal, a drawer) is showing.
@@ -59,6 +69,36 @@ export function AIModeOverlay() {
 
   // Tailwind's `tablet` breakpoint; the drawer only exists below it.
   const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
+
+  // ---- pane widths, claude.ai style: both side panes drag, the chat takes the rest ----
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === 'undefined' ? 1440 : window.innerWidth
+  );
+  useEffect(() => {
+    const update = () => setViewportWidth(window.innerWidth);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  const listWidth = useResizableWidth({
+    storageKey: 'ai-mode:list-width',
+    min: LIST_MIN_WIDTH,
+    max: LIST_MAX_WIDTH,
+    defaultWidth: LIST_DEFAULT_WIDTH,
+    anchor: 'left',
+  });
+  // The document may grow until the chat is down to its minimum column.
+  const documentMaxWidth = Math.max(
+    DOCUMENT_MIN_WIDTH,
+    viewportWidth - listWidth.width - CHAT_MIN_WIDTH
+  );
+  const documentWidth = useResizableWidth({
+    storageKey: 'ai-mode:document-width',
+    min: DOCUMENT_MIN_WIDTH,
+    max: documentMaxWidth,
+    defaultWidth: (width) => width * DOCUMENT_DEFAULT_SHARE,
+    anchor: 'right',
+  });
   const isBelowTabletRef = useRef(isBelowTablet);
   isBelowTabletRef.current = isBelowTablet;
 
@@ -193,10 +233,23 @@ export function AIModeOverlay() {
       </header>
 
       <div className="relative flex min-h-0 flex-1">
-        <aside className="hidden w-[264px] shrink-0 flex-col border-r border-gray-200 bg-white tablet:!flex">
+        <aside
+          style={{ width: listWidth.width }}
+          className="relative hidden shrink-0 flex-col border-r border-gray-200 bg-white tablet:!flex"
+        >
           {conversationList}
+          <ResizeHandle
+            label="Resize conversations"
+            side="right"
+            value={listWidth.width}
+            min={LIST_MIN_WIDTH}
+            max={LIST_MAX_WIDTH}
+            isResizing={listWidth.isResizing}
+            onStart={listWidth.startResize}
+            onNudge={listWidth.nudgeWidth}
+          />
         </aside>
-        <main className="flex min-w-[360px] flex-1 flex-col">
+        <main className="flex min-w-0 flex-1 flex-col">
           <ChatPane
             state={state}
             onOpenConversations={() => setListDrawerOpen(true)}
@@ -223,11 +276,22 @@ export function AIModeOverlay() {
           />
         </main>
         {/* One editor per note at a time: the pane mounts in the column above
-            the tablet breakpoint and in the drawer below it, never both. Once
-            the document exists it is the point, so it takes the larger share
-            and the chat narrows to a column beside it. */}
+            the tablet breakpoint and in the drawer below it, never both. */}
         {showDocument && !isBelowTablet && (
-          <aside className="flex w-[58%] min-w-[520px] max-w-[980px] shrink-0 flex-col border-l border-gray-200 bg-white">
+          <aside
+            style={{ width: documentWidth.width }}
+            className="relative flex shrink-0 flex-col border-l border-gray-200 bg-white"
+          >
+            <ResizeHandle
+              label="Resize document"
+              side="left"
+              value={documentWidth.width}
+              min={DOCUMENT_MIN_WIDTH}
+              max={documentMaxWidth}
+              isResizing={documentWidth.isResizing}
+              onStart={documentWidth.startResize}
+              onNudge={documentWidth.nudgeWidth}
+            />
             <DocumentPane document={doc} chat={state.chat.chat} onClose={closeDocument} />
           </aside>
         )}

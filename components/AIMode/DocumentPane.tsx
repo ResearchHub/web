@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { ExternalLink, FileText, X } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
@@ -11,7 +11,6 @@ import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgen
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { useUpdateNote } from '@/hooks/useNote';
-import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import type { NotebookChat } from '@/types/notebookChat';
 import { cn } from '@/utils/styles';
 import type { AIModeDocument } from './useAIModeDocument';
@@ -88,21 +87,28 @@ export function DocumentPane({
 
   // ---- the editor, its autosave, and the assistant-version review ----
   const [editor, setEditor] = useState<Editor | null>(null);
-  const { saveDetailsSoon } = useNoteDetailsSaver(noteId ?? undefined);
+  // The assistant names the note when it creates it; unlike the notebook,
+  // the document's first heading is a section, not the title, so saves here
+  // never derive a title from it.
   const [, updateNote, saveNoteNow] = useUpdateNote(noteId ?? undefined, {
-    saveTitle: (nextTitle) => saveDetailsSoon({ title: nextTitle }),
     // Mid-review the editor holds a merged document; saves must persist it
     // without the struck (pending-removal) ranges.
     docToPersist: (instance) => noteDiffPersistableDoc(instance) ?? instance.state.doc,
   });
-  // A brand-new note has no version yet, and mounting the editor on it
-  // dispatches a document-changing transaction of its own (UniqueID stamps
-  // the schema's empty heading). Saving that would give the note an
-  // editor-authored first version and make the assistant's first edit_note
-  // stale. Nothing of the user's exists to save until they type.
+  // Creating the editor dispatches document-changing transactions of its own
+  // (UniqueID stamps ids onto the assistant's blocks, which carry none) and
+  // those arrive here before the instance has even been handed over via
+  // setEditor. Saving them would write an editor-authored version the user
+  // never made — on a brand-new note that also makes the assistant's first
+  // edit_note stale. Only updates to the editor we hold are the user's.
+  const editorRef = useRef<Editor | null>(null);
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
   const hasWrittenVersion = document.hasWrittenVersion;
   const handleEditorUpdate = useCallback(
     (instance: Editor) => {
+      if (editorRef.current !== instance) return;
       if (!hasWrittenVersion && instance.state.doc.textContent.trim().length === 0) return;
       updateNote(instance);
     },
@@ -133,7 +139,7 @@ export function DocumentPane({
   const sectionCount = useSectionCount(editor) + (draftText != null ? 1 : 0);
 
   return (
-    <div className={cn('relative flex h-full min-h-0 flex-col bg-gray-50/60', className)}>
+    <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3">
         <FileText className="h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800" title={title}>
@@ -171,8 +177,9 @@ export function DocumentPane({
         </button>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 tablet:!p-5">
-        <NoteReviewBanner review={review} className="mx-auto mb-3 max-w-[640px]" />
+      {/* The document is the pane: no gutter, no card, just the page. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <NoteReviewBanner review={review} className="mx-6 mt-4" />
 
         {error && content == null ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
@@ -186,7 +193,7 @@ export function DocumentPane({
             <Loader size="md" className="text-primary-500" />
           </div>
         ) : (
-          <article className="ai-mode-document mx-auto max-w-[640px] rounded-xl border border-gray-200 bg-white px-6 py-7 shadow-sm tablet:!px-9 tablet:!py-9">
+          <article className="ai-mode-document mx-auto w-full max-w-[860px] px-5 py-6 tablet:!px-8 tablet:!py-8">
             {status === 'empty' && review.review == null && (
               <EmptyDocument label={phaseLabel} active={false} />
             )}
