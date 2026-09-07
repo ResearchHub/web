@@ -123,7 +123,8 @@ export const useBlockEditor = ({
 
   useEffect(() => {
     if (editor && !editor.isDestroyed && editor.isEditable !== isEditable) {
-      editor.setEditable(isEditable);
+      // Not a content change: emitting `update` here would trigger a save.
+      editor.setEditable(isEditable, false);
     }
   }, [editor, isEditable]);
 

@@ -95,6 +95,20 @@ export function DocumentPane({
     // without the struck (pending-removal) ranges.
     docToPersist: (instance) => noteDiffPersistableDoc(instance) ?? instance.state.doc,
   });
+  // A brand-new note has no version yet, and mounting the editor on it
+  // dispatches a document-changing transaction of its own (UniqueID stamps
+  // the schema's empty heading). Saving that would give the note an
+  // editor-authored first version and make the assistant's first edit_note
+  // stale. Nothing of the user's exists to save until they type.
+  const hasWrittenVersion = document.hasWrittenVersion;
+  const handleEditorUpdate = useCallback(
+    (instance: Editor) => {
+      if (!hasWrittenVersion && instance.state.doc.textContent.trim().length === 0) return;
+      updateNote(instance);
+    },
+    [hasWrittenVersion, updateNote]
+  );
+
   const persistEditorState = useCallback(async () => {
     if (!editor || editor.isDestroyed) return false;
     return saveNoteNow(editor);
@@ -189,7 +203,7 @@ export function DocumentPane({
               editable={!readOnly}
               locked={locked}
               autofocus={false}
-              onUpdate={readOnly ? undefined : updateNote}
+              onUpdate={readOnly ? undefined : handleEditorUpdate}
               setEditor={setEditor}
             />
 
