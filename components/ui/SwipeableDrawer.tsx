@@ -55,6 +55,13 @@ interface SwipeableDrawerProps {
    * @default 1000
    */
   zIndex?: number;
+
+  /**
+   * Where the drawer portals to. Defaults to the body; a modal layer that
+   * inerts the rest of the page passes its own root so the drawer stays
+   * inside the live subtree.
+   */
+  container?: HTMLElement | null;
 }
 
 /**
@@ -71,6 +78,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   className = '',
   swipeThreshold = 50,
   zIndex = 1000,
+  container,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -202,8 +210,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
     </>
   );
 
-  // Use createPortal to mount drawer to body
-  return createPortal(drawerContent, document.body);
+  return createPortal(drawerContent, container ?? document.body);
 };
 
 export default SwipeableDrawer;

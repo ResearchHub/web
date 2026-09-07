@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FileText, Sparkles, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -111,6 +112,29 @@ export function AIModeOverlay() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [close]);
 
+  // A real modal: the overlay portals to the body and everything else at
+  // the top level goes inert while it is open, so nothing behind it — a
+  // notebook editor that autofocuses late, say — can take focus or keys.
+  // Layers that mount later (menus, tooltips, modals) append after and stay
+  // live; the overlay's own drawers render inside it.
+  const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!rootEl) return;
+    rootEl.focus();
+    const inerted: Element[] = [];
+    for (const child of Array.from(document.body.children)) {
+      if (child === rootEl || child.tagName === 'SCRIPT' || child.tagName === 'NEXTJS-PORTAL') {
+        continue;
+      }
+      if (child.hasAttribute('inert')) continue;
+      child.setAttribute('inert', '');
+      inerted.push(child);
+    }
+    return () => {
+      for (const child of inerted) child.removeAttribute('inert');
+    };
+  }, [rootEl]);
+
   // Lock the page behind the overlay.
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -141,13 +165,15 @@ export function AIModeOverlay() {
     />
   );
 
-  return (
+  return createPortal(
     <div
       id="ai-mode-overlay"
+      ref={setRootEl}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label={AI_MODE_NAME}
-      className="fixed inset-0 z-[9500] flex flex-col bg-gray-50"
+      className="fixed inset-0 z-[9500] flex flex-col bg-gray-50 outline-none"
     >
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
         <div className="flex items-center gap-2">
@@ -213,6 +239,7 @@ export function AIModeOverlay() {
         onClose={closeListDrawer}
         height="70vh"
         zIndex={AI_MODE_DRAWER_Z_INDEX}
+        container={rootEl}
       >
         {conversationList}
       </SwipeableDrawer>
@@ -223,6 +250,7 @@ export function AIModeOverlay() {
         showCloseButton={false}
         className="tablet:!hidden"
         zIndex={AI_MODE_DRAWER_Z_INDEX}
+        container={rootEl}
       >
         {showDocument && isBelowTablet && (
           <DocumentPane
@@ -234,6 +262,7 @@ export function AIModeOverlay() {
           />
         )}
       </SwipeableDrawer>
-    </div>
+    </div>,
+    document.body
   );
 }
