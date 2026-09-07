@@ -58,6 +58,9 @@ export interface ChatToolCallActivity {
   detail?: string | null;
   /** Present only on a succeeded `edit_note`: the note version the agent produced. */
   note_version_id?: number | null;
+  /** Present only on a succeeded `create_note` (assistant surface): the note it made. */
+  note_id?: number | null;
+  note_title?: string | null;
   /** Citations (≤5), only on success. */
   sources?: ChatActivitySource[] | null;
 }

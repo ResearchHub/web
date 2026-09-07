@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, Sparkles, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -8,6 +8,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAIMode } from './AIModeContext';
 import { ChatPane } from './ChatPane';
 import { ConversationList } from './ConversationList';
+import { DocumentCard } from './DocumentCard';
 import { DocumentPane } from './DocumentPane';
 import { useAIModeChat } from './useAIModeChat';
 import { useAIModeDocument } from './useAIModeDocument';
@@ -51,18 +52,48 @@ export function AIModeOverlay() {
     latestExecution: state.chat.latestExecution,
   });
 
-  // The document pane opens by itself the moment a conversation gains a note
-  // and stays closed until then. The user can close it and reopen it from the
-  // chat header. Below the tablet breakpoint the same content is a drawer.
+  // Tailwind's `tablet` breakpoint; the drawer only exists below it.
+  const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
+  const isBelowTabletRef = useRef(isBelowTablet);
+  isBelowTabletRef.current = isBelowTablet;
+
+  // On desktop the document pane opens by itself the moment a conversation
+  // gains a note. On mobile it never opens by itself — the card in the
+  // transcript is the way in, and it opens a drawer. Either way the user can
+  // close it and reopen it from the card or the chat header.
   const noteId = state.note?.id ?? null;
   const [documentOpen, setDocumentOpen] = useState(false);
   useEffect(() => {
-    setDocumentOpen(noteId != null);
+    setDocumentOpen(noteId != null && !isBelowTabletRef.current);
   }, [noteId]);
+  const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
-  // Tailwind's `tablet` breakpoint; the drawer only exists below it.
-  const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
+
+  // The turn that created the document, for seating its card in the transcript.
+  const documentCardExecutionId = useMemo(() => {
+    if (noteId == null) return null;
+    for (const execution of state.chat.chat?.executions ?? []) {
+      const created = (execution.activity ?? []).some(
+        (item) =>
+          item.type === 'tool_call' &&
+          item.tool === 'create_note' &&
+          item.status === 'succeeded' &&
+          item.note_id === noteId
+      );
+      if (created) return execution.id;
+    }
+    return null;
+  }, [noteId, state.chat.chat]);
+  const documentCard =
+    noteId != null ? (
+      <DocumentCard
+        title={doc.content?.title?.trim() || state.note?.title?.trim() || 'Document'}
+        status={doc.status}
+        open={showDocument}
+        onOpen={openDocument}
+      />
+    ) : null;
 
   // Esc closes, unless something inside already claimed it (a menu, a modal
   // that portals outside the overlay).
@@ -140,6 +171,8 @@ export function AIModeOverlay() {
           <ChatPane
             state={state}
             onOpenConversations={() => setListDrawerOpen(true)}
+            documentCard={documentCard}
+            documentCardExecutionId={documentCardExecutionId}
             headerActions={
               noteId != null && (
                 <button

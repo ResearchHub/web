@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useMemo } from 'react';
+import { Fragment, useMemo, type ReactNode } from 'react';
 import type { ChatExecution, ChatMessage, NotebookChat } from '@/types/notebookChat';
 import type { PendingSend } from '@/hooks/useNotebookChat';
 import { MarkdownMessage } from './MarkdownMessage';
@@ -157,9 +157,15 @@ function AssistantBubble({ content }: { readonly content: string }) {
 interface ChatTranscriptProps {
   readonly chat: NotebookChat;
   readonly pendingSend: PendingSend | null;
+  /**
+   * Extra content for a turn, rendered after its answer — a host-specific
+   * card for something the turn produced (AI Mode's document). A slot so the
+   * transcript stays ignorant of what a turn can make.
+   */
+  readonly renderExecutionExtra?: (execution: ChatExecution) => ReactNode;
 }
 
-export function ChatTranscript({ chat, pendingSend }: ChatTranscriptProps) {
+export function ChatTranscript({ chat, pendingSend, renderExecutionExtra }: ChatTranscriptProps) {
   const entries = useMemo(() => buildTranscript(chat, pendingSend), [chat, pendingSend]);
 
   return (
@@ -188,6 +194,7 @@ export function ChatTranscript({ chat, pendingSend }: ChatTranscriptProps) {
               <div key={entry.key} className="space-y-3">
                 <ExecutionProgress execution={entry.execution} />
                 {entry.answer && <AssistantBubble content={entry.answer.content} />}
+                {renderExecutionExtra?.(entry.execution)}
               </div>
             );
           case 'assistant':

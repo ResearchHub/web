@@ -21,10 +21,22 @@ interface ChatPaneProps {
   readonly headerActions?: ReactNode;
   /** Below the tablet breakpoint the list is a drawer; this opens it. */
   readonly onOpenConversations?: () => void;
+  /**
+   * The document's card, and the turn it belongs under. With no matching
+   * turn (activity not loaded for it) the card trails the transcript instead.
+   */
+  readonly documentCard?: ReactNode;
+  readonly documentCardExecutionId?: number | null;
 }
 
 /** The middle pane: transcript, live progress, and the composer. */
-export function ChatPane({ state, headerActions, onOpenConversations }: ChatPaneProps) {
+export function ChatPane({
+  state,
+  headerActions,
+  onOpenConversations,
+  documentCard,
+  documentCardExecutionId,
+}: ChatPaneProps) {
   const { chatId, list, chat, modelSelection, draft, setDraft, notice, creatingChat } = state;
   const composerRef = useRef<HTMLTextAreaElement>(null);
 
@@ -115,7 +127,23 @@ export function ChatPane({ state, headerActions, onOpenConversations }: ChatPane
               </Button>
             </div>
           ) : chat.chat ? (
-            <ChatTranscript chat={chat.chat} pendingSend={chat.pendingSend} />
+            <>
+              <ChatTranscript
+                chat={chat.chat}
+                pendingSend={chat.pendingSend}
+                renderExecutionExtra={
+                  documentCard && documentCardExecutionId != null
+                    ? (execution) =>
+                        execution.id === documentCardExecutionId ? (
+                          <div className="pt-1">{documentCard}</div>
+                        ) : null
+                    : undefined
+                }
+              />
+              {documentCard && documentCardExecutionId == null && (
+                <div className="mt-5">{documentCard}</div>
+              )}
+            </>
           ) : null}
         </div>
       </div>
