@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import dynamic from 'next/dynamic';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 /** `?ai=1` opens the overlay; `?ai=1&aiChat=<id>` selects a conversation. */
 export const AI_MODE_OPEN_PARAM = 'ai';
@@ -70,7 +70,6 @@ const AIModeOverlay = dynamic(
  * never opens it pays nothing.
  */
 export function AIModeProvider({ children }: { readonly children: ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
   const [state, setState] = useState<AIModeUrlState>({ isOpen: false, chatId: null });
   // Closing drops the chat from the URL; reopening from the sidebar in the same
@@ -82,31 +81,32 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
 
-  const navigate = useCallback(
-    (next: AIModeUrlState) => {
-      // Event-handler only, so window is available; keeps every unrelated
-      // query param the page already carries.
-      const params = new URLSearchParams(window.location.search);
-      if (next.isOpen) {
-        params.set(AI_MODE_OPEN_PARAM, '1');
-      } else {
-        params.delete(AI_MODE_OPEN_PARAM);
-      }
-      if (next.isOpen && next.chatId != null) {
-        params.set(AI_MODE_CHAT_PARAM, String(next.chatId));
-      } else {
-        params.delete(AI_MODE_CHAT_PARAM);
-      }
-      const query = params.toString();
-      const hash = window.location.hash;
-      router.replace(`${pathnameRef.current}${query ? `?${query}` : ''}${hash}`, {
-        scroll: false,
-      });
-      // Reflect immediately rather than waiting for the router round-trip.
-      setState(next);
-    },
-    [router]
-  );
+  const navigate = useCallback((next: AIModeUrlState) => {
+    // Event-handler only, so window is available; keeps every unrelated
+    // query param the page already carries.
+    const params = new URLSearchParams(window.location.search);
+    if (next.isOpen) {
+      params.set(AI_MODE_OPEN_PARAM, '1');
+    } else {
+      params.delete(AI_MODE_OPEN_PARAM);
+    }
+    if (next.isOpen && next.chatId != null) {
+      params.set(AI_MODE_CHAT_PARAM, String(next.chatId));
+    } else {
+      params.delete(AI_MODE_CHAT_PARAM);
+    }
+    const query = params.toString();
+    const hash = window.location.hash;
+    // Native history, not router.replace: the app router keeps
+    // useSearchParams in sync with it, and unlike a router navigation it
+    // neither re-fetches nor re-renders the page behind the overlay.
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${pathnameRef.current}${query ? `?${query}` : ''}${hash}`
+    );
+    setState(next);
+  }, []);
 
   const open = useCallback(() => {
     navigate({ isOpen: true, chatId: lastChatIdRef.current });
