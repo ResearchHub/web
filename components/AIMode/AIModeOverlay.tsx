@@ -190,7 +190,7 @@ export function AIModeOverlay() {
       access={state.list.access}
       accessDetail={state.list.accessDetail}
       activeChatId={state.chatId}
-      activeTitle={state.chat.chat?.title ?? null}
+      titleFor={state.titleFor}
       onSelect={(chatId) => {
         state.selectChat(chatId);
         closeListDrawer();

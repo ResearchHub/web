@@ -18,8 +18,8 @@ interface ConversationListProps {
   readonly access: ChatListAccess;
   readonly accessDetail: string | null;
   readonly activeChatId: number | null;
-  /** Live title of the open chat — fresher than the listing after renames and derives. */
-  readonly activeTitle: string | null;
+  /** Resolves a row's title, showing a rename before the server confirms it. */
+  readonly titleFor: (chatId: number, fallback: string | null) => string | null;
   readonly onSelect: (chatId: number) => void;
   readonly onNew: () => void;
   readonly onRename: (chatId: number, title: string) => Promise<boolean>;
@@ -37,7 +37,7 @@ export function ConversationList({
   access,
   accessDetail,
   activeChatId,
-  activeTitle,
+  titleFor,
   onSelect,
   onNew,
   onRename,
@@ -92,7 +92,7 @@ export function ConversationList({
 
         {chats.map((item) => {
           const isActive = item.id === activeChatId;
-          const title = (isActive ? activeTitle : null) ?? item.title;
+          const title = titleFor(item.id, item.title);
           return (
             <ConversationRow
               key={item.id}
@@ -151,7 +151,7 @@ function ConversationRow({
       {renaming ? (
         <div className="px-2 py-1.5">
           <ConversationTitleField
-            initialValue={item.title ?? ''}
+            initialValue={title === UNTITLED ? '' : title}
             onCommit={onCommitRename}
             onCancel={onCancelRename}
             className="text-[13px]"

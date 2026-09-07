@@ -99,6 +99,11 @@ export interface AIModeChatState {
   readonly notesByChat: ReadonlyMap<number, ChatNoteRef>;
   /** The active conversation's document, if it has one. */
   readonly note: ChatNoteRef | null;
+  /**
+   * The title to show for a conversation: a rename the user just made, shown
+   * before the server confirms it, else the given fallback.
+   */
+  readonly titleFor: (chatId: number, fallback: string | null) => string | null;
 }
 
 /**
@@ -211,6 +216,9 @@ export function useAIModeChat(): AIModeChatState {
     setNotice(null);
     const target = targetRef.current;
     const generation = modelSelection.request;
+    // The box empties the moment the user sends, as the message is already
+    // theirs; it only comes back if the send fails and they need to retry.
+    setDraft('');
 
     if (chatId == null) {
       const creationSeq = ++creationSeqRef.current;
@@ -219,6 +227,7 @@ export function useAIModeChat(): AIModeChatState {
       if (creationSeqRef.current === creationSeq) setCreatingChat(false);
       if (!isCurrentTarget(target)) return;
       if (!created) {
+        setDraft(text);
         setNotice({
           tone: 'error',
           text: list.accessDetail ?? 'Couldn’t start a conversation. Please try again.',
@@ -233,13 +242,8 @@ export function useAIModeChat(): AIModeChatState {
     }
 
     const outcome = await chat.send(text, generation);
-    if (outcome.ok) {
-      if (isCurrentTarget(target)) {
-        setDraft('');
-      } else {
-        draftsRef.current.delete(String(target));
-      }
-    } else if (isCurrentTarget(target)) {
+    if (!outcome.ok && isCurrentTarget(target)) {
+      setDraft(text);
       setNotice(noticeFromOutcome(outcome));
     }
   }, [
@@ -273,23 +277,52 @@ export function useAIModeChat(): AIModeChatState {
 
   const stop = chat.cancel;
 
+  // ---- renames, shown before the server confirms them ----
+  // A rename is the user's own words; making them wait for the PATCH just
+  // flashes the old title back at them. The override shows at once and is
+  // dropped when the listing catches up, or rolled back if the save fails.
+  const [pendingTitles, setPendingTitles] = useState<Map<number, string>>(() => new Map());
+  const setPendingTitle = useCallback((target: number, title: string | null) => {
+    setPendingTitles((prev) => {
+      if (title == null ? !prev.has(target) : prev.get(target) === title) return prev;
+      const next = new Map(prev);
+      if (title == null) next.delete(target);
+      else next.set(target, title);
+      return next;
+    });
+  }, []);
+  useEffect(() => {
+    // Retire each override once the listing shows the confirmed title.
+    for (const item of list.chats) {
+      const pending = pendingTitles.get(item.id);
+      if (pending != null && item.title === pending) setPendingTitle(item.id, null);
+    }
+  }, [list.chats, pendingTitles, setPendingTitle]);
+  const titleFor = useCallback(
+    (target: number, fallback: string | null) => pendingTitles.get(target) ?? fallback,
+    [pendingTitles]
+  );
+
   const rename = useCallback(
     async (target: number, title: string): Promise<boolean> => {
+      setPendingTitle(target, title);
+      let renamed: boolean;
       if (target === targetRef.current) {
         // The open chat's hook keeps its own copy of the title in sync.
-        const renamed = await chat.rename(title);
-        if (renamed) refreshList();
-        return renamed;
+        renamed = await chat.rename(title);
+      } else {
+        try {
+          await transport.renameChat(target, title);
+          renamed = true;
+        } catch {
+          renamed = false;
+        }
       }
-      try {
-        await transport.renameChat(target, title);
-        refreshList();
-        return true;
-      } catch {
-        return false;
-      }
+      if (renamed) refreshList();
+      else setPendingTitle(target, null);
+      return renamed;
     },
-    [chat, transport, refreshList]
+    [chat, transport, refreshList, setPendingTitle]
   );
 
   const deleteChat = useCallback(
@@ -360,5 +393,6 @@ export function useAIModeChat(): AIModeChatState {
     startNewChat,
     notesByChat,
     note,
+    titleFor,
   };
 }

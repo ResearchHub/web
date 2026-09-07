@@ -77,10 +77,9 @@ export function ChatPane({
   // Stop must only be offered when there is a turn to cancel server-side.
   const canStop = chat.latestExecution != null && chat.isBusy && chat.pendingSend == null;
 
+  const currentTitle = chatId == null ? null : state.titleFor(chatId, chat.chat?.title ?? null);
   const title =
-    chatId == null
-      ? 'New conversation'
-      : (chat.chat?.title?.trim() ?? '') || 'Untitled conversation';
+    chatId == null ? 'New conversation' : (currentTitle?.trim() ?? '') || 'Untitled conversation';
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -97,13 +96,13 @@ export function ChatPane({
         )}
         {renaming && chatId != null ? (
           <ConversationTitleField
-            initialValue={chat.chat?.title ?? ''}
+            initialValue={currentTitle ?? ''}
             className="max-w-md flex-1"
             onCancel={() => setRenaming(false)}
             onCommit={(value) => {
               setRenaming(false);
               const next = value.trim();
-              if (next && next !== (chat.chat?.title ?? '')) state.rename(chatId, next);
+              if (next && next !== (currentTitle ?? '')) state.rename(chatId, next);
             }}
           />
         ) : (
