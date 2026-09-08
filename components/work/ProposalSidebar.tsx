@@ -3,7 +3,6 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { getShareToken } from '@/lib/shareToken/server';
 import { FundraiseSection } from './components/FundraiseSection';
 import { FundingOpportunitySection } from './components/FundingOpportunitySection';
-import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
 import { PeerReviewsSection } from './components/PeerReviewsSection';
@@ -46,7 +45,6 @@ export const ProposalSidebar = async ({ work, metadata }: ProposalSidebarProps) 
       )}
       {work.linkedGrant && <FundingOpportunitySection grant={work.linkedGrant} />}
       {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
-      <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>
   );

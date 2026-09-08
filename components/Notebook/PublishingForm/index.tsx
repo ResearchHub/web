@@ -6,7 +6,6 @@ import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
 import { ContactsSection } from './components/ContactsSection';
-import { TopicsSection } from './components/TopicsSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
@@ -100,7 +99,6 @@ const getButtonText = ({
 const FORM_DEFAULTS = {
   authors: [],
   contacts: [],
-  topics: [],
   rewardFunders: false,
   nftSupply: '1000',
   budget: '',
@@ -171,12 +169,6 @@ const populateFromPost = (post: any, setValue: (name: any, value: any) => void) 
   if (post.image) {
     setValue('coverImage', { file: null, url: post.image });
   }
-  if (post.topics?.length > 0) {
-    setValue(
-      'topics',
-      post.topics.map((t: any) => ({ value: t.id.toString(), label: t.name }))
-    );
-  }
   if (post.authors?.length > 0) {
     setValue(
       'authors',
@@ -198,12 +190,6 @@ const populateFormFromNoteDetails = (
 ) => {
   if (note.image || note.previewImage) {
     setValue('coverImage', { file: null, key: note.image, url: note.previewImage });
-  }
-  if (note.topics?.length) {
-    setValue(
-      'topics',
-      note.topics.map((topic) => ({ value: topic.id.toString(), label: topic.name }))
-    );
   }
   if (note.authors?.length) {
     setValue(
@@ -242,20 +228,13 @@ const populateFormFromNoteDetails = (
   }
 };
 
-/** Fills the gaps a Registered Report's proposal covers, which are ids without labels. */
+/** Fills the author gap from a Registered Report's proposal. */
 const populateRegisteredReportPrefill = (
   note: NoteWithContent,
   getValues: (name: any) => any,
   setValue: (name: any, value: any) => void
 ) => {
-  const { topicIds = [], authorIds = [] } = note.registeredReportPrefill ?? {};
-
-  if (topicIds.length > 0 && getValues('topics').length === 0) {
-    setValue(
-      'topics',
-      topicIds.map((id) => ({ value: id.toString(), label: `Topic ${id}` }))
-    );
-  }
+  const { authorIds = [] } = note.registeredReportPrefill ?? {};
 
   if (authorIds.length > 0 && getValues('authors').length === 0) {
     setValue(
@@ -283,8 +262,6 @@ const buildNoteDetailsUpdate = (
       return { image: values.coverImage?.key ?? '', previewImage: values.coverImage?.url ?? '' };
     case 'authors':
       return { authorIds: mapOptionsToIds(values.authors) };
-    case 'topics':
-      return { hubIds: mapOptionsToIds(values.topics) };
     case 'contacts':
       return isGrant ? { grantSettings: { contactIds: mapOptionsToIds(values.contacts) } } : null;
     case 'organization':
@@ -684,7 +661,6 @@ export function PublishingForm({
           fullJSON,
           fullSrc: html || '',
           assignDOI: !formData.workId,
-          topics: formData.topics.map((topic) => topic.value),
           authors: mapOptionsToIds(formData.authors),
           contacts: mapOptionsToIds(formData.contacts),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
@@ -840,7 +816,6 @@ export function PublishingForm({
                   </>
                 )}
                 {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
-                <TopicsSection />
                 {note.post?.doi && (
                   <div className="py-3 px-6 space-y-6">
                     <DOISection doi={note.post.doi} />

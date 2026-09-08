@@ -103,26 +103,6 @@ test('a new proposal can be drafted from an RFP and published', async ({ page })
 
   await page.getByTestId('notebook-add-details').click();
 
-  // Topics, funding goal and cover image are all required by the form's
-  // schema. Authors are not filled here: the form adds the current user on
-  // its own for a new proposal.
-  //
-  // The topic lookup is scoped to its own section on purpose. Unscoped,
-  // `option` also matches the currency <select> in the sidebar, whose RSC and
-  // USD entries carry the same role and can win the race for `.first()`.
-  const topics = page.getByTestId('topics-section');
-  await topics.getByPlaceholder('Search topics...').fill('bio');
-  const firstTopic = topics.getByRole('option').first();
-  await expect(firstTopic).toBeVisible();
-  const topicName = (await firstTopic.innerText()).trim();
-  await firstTopic.click();
-
-  // The list stays open on select, so it is dismissed first: the remaining
-  // copy of the label is then the chip for the chosen topic, which is what
-  // shows the selection actually registered rather than silently missing.
-  await page.keyboard.press('Escape');
-  await expect(topics.getByText(topicName, { exact: true })).toBeVisible();
-
   await page.getByTestId('funding-goal-input').fill('1000');
 
   await page.getByTestId('cover-image-input').setInputFiles({

@@ -10,7 +10,7 @@ export function useWorkVote(work: Work) {
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
-    relatedDocumentTopics: work.topics,
+    relatedDocumentTopics: work.contentType === 'paper' ? work.topics : undefined,
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,
   });

@@ -6,7 +6,7 @@ export default function QuestionLoading() {
   return (
     <PageLayout
       topBanner={<WorkHeaderSkeleton tabCount={3} />}
-      rightSidebar={<WorkRightSidebarSkeleton />}
+      rightSidebar={<WorkRightSidebarSkeleton showTopics={false} />}
     >
       <WorkSkeleton showPdf={false} />
     </PageLayout>
