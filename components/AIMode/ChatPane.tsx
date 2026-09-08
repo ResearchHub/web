@@ -10,7 +10,7 @@ import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { ConversationMenu } from './ConversationMenu';
 import { ConversationTitleField } from './ConversationTitleField';
 import { Button } from '@/components/ui/Button';
-import { Loader } from '@/components/ui/Loader';
+import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from './useAIModeChat';
@@ -77,7 +77,14 @@ export function ChatPane({
   // Stop must only be offered when there is a turn to cancel server-side.
   const canStop = chat.latestExecution != null && chat.isBusy && chat.pendingSend == null;
 
-  const currentTitle = chatId == null ? null : state.titleFor(chatId, chat.chat?.title ?? null);
+  // The listing usually knows the title before the chat itself has loaded,
+  // so a refresh doesn't flash "Untitled" while the transcript is fetched.
+  const listedTitle =
+    chatId == null ? null : (list.chats.find((item) => item.id === chatId)?.title ?? null);
+  const currentTitle =
+    chatId == null ? null : state.titleFor(chatId, chat.chat?.title ?? listedTitle);
+  const titleLoading =
+    chatId != null && currentTitle == null && (chat.chat == null || list.access === 'loading');
   const title =
     chatId == null ? 'New conversation' : (currentTitle?.trim() ?? '') || 'Untitled conversation';
 
@@ -105,6 +112,10 @@ export function ChatPane({
               if (next && next !== (currentTitle ?? '')) state.rename(chatId, next);
             }}
           />
+        ) : titleLoading ? (
+          <div className="flex min-w-0 flex-1 items-center" aria-busy="true">
+            <div className="h-3.5 w-56 max-w-full animate-pulse rounded bg-gray-100" />
+          </div>
         ) : (
           <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{title}</h1>
         )}
@@ -126,9 +137,7 @@ export function ChatPane({
             ) : chatId == null ? (
               <EmptyState onSelectStarter={applyStarter} disabled={composerBusy} />
             ) : chat.access === 'loading' && chat.chat == null ? (
-              <div className="flex justify-center py-16">
-                <Loader size="md" className="text-primary-500" />
-              </div>
+              <ChatTranscriptSkeleton />
             ) : chat.access === 'not_found' ? (
               <p className="py-16 text-center text-sm text-gray-600">
                 This conversation is no longer available.
@@ -143,7 +152,7 @@ export function ChatPane({
                 </Button>
               </div>
             ) : chat.chat ? (
-              <>
+              <div className="animate-in fade-in duration-300">
                 <ChatTranscript
                   chat={chat.chat}
                   pendingSend={chat.pendingSend}
@@ -159,7 +168,7 @@ export function ChatPane({
                 {documentCard && documentCardExecutionId == null && (
                   <div className="mt-5">{documentCard}</div>
                 )}
-              </>
+              </div>
             ) : null}
           </div>
         </div>
@@ -184,6 +193,7 @@ export function ChatPane({
             canStop={canStop}
             disabled={composerDisabled}
             notice={notice}
+            className="border-t-0"
             placeholder="Describe what you want to work on…"
             toolbar={
               <ModelControls

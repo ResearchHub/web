@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
-import { ExternalLink, FileText, X } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
@@ -10,55 +9,20 @@ import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDif
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
+import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { NotebookChat } from '@/types/notebookChat';
 import { cn } from '@/utils/styles';
 import type { AIModeDocument } from './useAIModeDocument';
 
-/** Level 1 and 2 headings are sections; deeper ones are their subdivisions. */
-const SECTION_HEADING_LEVELS = new Set([1, 2]);
-
-function countSections(editor: Editor | null): number {
-  if (editor == null || editor.isDestroyed) return 0;
-  let count = 0;
-  // Mid-review the live document also holds the struck (pending-removal)
-  // ranges; count what accepting would keep.
-  const doc = noteDiffPersistableDoc(editor) ?? editor.state.doc;
-  doc.forEach((node) => {
-    if (
-      node.type.name === 'heading' &&
-      SECTION_HEADING_LEVELS.has(node.attrs.level ?? 1) &&
-      node.textContent.trim().length > 0
-    ) {
-      count += 1;
-    }
-  });
-  return count;
-}
-
-/** Live heading count of the editor's document. */
-function useSectionCount(editor: Editor | null): number {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (editor == null) {
-      setCount(0);
-      return;
-    }
-    const update = () => setCount(countSections(editor));
-    update();
-    editor.on('update', update);
-    return () => {
-      editor.off('update', update);
-    };
-  }, [editor]);
-  return count;
-}
+/** The page column: shared by the skeleton and the document so they line up. */
+const DOCUMENT_PAGE_CLASS =
+  'ai-mode-document mx-auto w-full max-w-[860px] px-5 py-6 tablet:!px-8 tablet:!py-8';
 
 interface DocumentPaneProps {
   readonly document: AIModeDocument;
   /** The open chat, whose activity is one of the review's version signals. */
   readonly chat: NotebookChat | null;
-  readonly onClose: () => void;
   /** Never editable — the mobile drawer. */
   readonly readOnly?: boolean;
   readonly className?: string;
@@ -73,16 +37,9 @@ interface DocumentPaneProps {
  * below the editor, and a turn with no draft shows an in-progress row so the
  * page never sits frozen.
  */
-export function DocumentPane({
-  document,
-  chat,
-  onClose,
-  readOnly = false,
-  className,
-}: DocumentPaneProps) {
+export function DocumentPane({ document, chat, readOnly = false, className }: DocumentPaneProps) {
   const { note, content, loading, error, status, draftText, phaseLabel } = document;
   const noteId = note?.id ?? null;
-  const title = content?.title?.trim() || note?.title?.trim() || 'Document';
   const writing = status === 'drafting' || status === 'working';
 
   // ---- the editor, its autosave, and the assistant-version review ----
@@ -105,14 +62,26 @@ export function DocumentPane({
   useEffect(() => {
     editorRef.current = editor;
   }, [editor]);
-  const hasWrittenVersion = document.hasWrittenVersion;
+  // The editor came up empty for a note that has text: the content didn't
+  // survive the load (a parse the schema rejected, say — tiptap falls back
+  // to an empty document with only a console warning). Treat it as a failed
+  // load rather than an empty document, or the first autosave would write
+  // that emptiness over the real note.
+  const loadedText = content?.plainText?.trim() ?? '';
+  const editorLostContent =
+    editor != null && loadedText.length > 0 && editor.state.doc.textContent.trim().length === 0;
+
   const handleEditorUpdate = useCallback(
     (instance: Editor) => {
       if (editorRef.current !== instance) return;
-      if (!hasWrittenVersion && instance.state.doc.textContent.trim().length === 0) return;
+      // An empty document is never a save this surface should make: not on a
+      // fresh note (the assistant's first edit_note would go stale), and not
+      // on a written one (it would erase it). Clearing everything on purpose
+      // is the notebook's job.
+      if (instance.state.doc.textContent.trim().length === 0) return;
       updateNote(instance);
     },
-    [hasWrittenVersion, updateNote]
+    [updateNote]
   );
 
   const persistEditorState = useCallback(async () => {
@@ -134,49 +103,10 @@ export function DocumentPane({
 
   // Editable only once the turn has settled: typing while the assistant is
   // mid-edit would make its next edit_note stale and the review jumpy.
-  const locked = writing;
-
-  const sectionCount = useSectionCount(editor) + (draftText != null ? 1 : 0);
+  const locked = writing || editorLostContent;
 
   return (
     <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3">
-        <FileText className="h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
-        <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800" title={title}>
-          {title}
-        </h2>
-        {sectionCount > 0 && (
-          <span
-            className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-px text-[11px] font-semibold',
-              writing ? 'bg-primary-50 text-primary-700' : 'bg-gray-100 text-gray-600'
-            )}
-          >
-            {writing && <Loader size="sm" className="!h-2.5 !w-2.5 text-primary-500" />}
-            {sectionCount} {sectionCount === 1 ? 'section' : 'sections'}
-          </span>
-        )}
-        {document.notebookHref && (
-          <a
-            href={document.notebookHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          >
-            Open in notebook
-            <ExternalLink className="h-3 w-3" aria-hidden="true" />
-          </a>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close document"
-          className="shrink-0 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </header>
-
       {/* The document is the pane: no gutter, no card, just the page. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <NoteReviewBanner review={review} className="mx-6 mt-4" />
@@ -189,11 +119,17 @@ export function DocumentPane({
             </Button>
           </div>
         ) : loading || content == null ? (
-          <div className="flex justify-center py-16">
-            <Loader size="md" className="text-primary-500" />
+          <div className={DOCUMENT_PAGE_CLASS}>
+            <DocumentPaneSkeleton />
           </div>
         ) : (
-          <article className="ai-mode-document mx-auto w-full max-w-[860px] px-5 py-6 tablet:!px-8 tablet:!py-8">
+          <article className={cn(DOCUMENT_PAGE_CLASS, 'animate-in fade-in duration-300')}>
+            {editorLostContent && (
+              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                This document couldn’t be displayed here. Open it in the notebook to view it;
+                nothing has been changed.
+              </div>
+            )}
             {status === 'empty' && review.review == null && (
               <EmptyDocument label={phaseLabel} active={false} />
             )}

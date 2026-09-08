@@ -38,6 +38,8 @@ interface ChatComposerProps {
    * what is being configured and owns only where it sits.
    */
   readonly toolbar?: ReactNode;
+  /** Extra classes for the outer wrapper — a host can drop the top border it already draws. */
+  readonly className?: string;
 }
 
 const COUNTER_THRESHOLD = MAX_CHAT_MESSAGE_LENGTH - 1000;
@@ -58,6 +60,7 @@ export function ChatComposer({
   placeholder = 'Ask the assistant…',
   textareaRef,
   toolbar,
+  className,
 }: ChatComposerProps) {
   // Grow with content up to ~6 lines, then scroll.
   useEffect(() => {
@@ -77,7 +80,7 @@ export function ChatComposer({
   };
 
   return (
-    <div className="border-t border-gray-100 bg-white px-3 pb-3 pt-2">
+    <div className={cn('border-t border-gray-100 bg-white px-3 pb-3 pt-2', className)}>
       {notice && (
         // <output> carries an implicit status role (polite live region).
         <output

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
+import { ConversationListSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { Button } from '@/components/ui/Button';
 import { formatTimeAgo } from '@/utils/date';
 import { cn } from '@/utils/styles';
@@ -63,11 +64,7 @@ export function ConversationList({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
-        {access === 'loading' && (
-          <div className="flex justify-center py-6">
-            <Loader size="sm" className="text-primary-500" />
-          </div>
-        )}
+        {access === 'loading' && <ConversationListSkeleton />}
 
         {access === 'hidden' && (
           <p className="px-3 py-2 text-xs leading-relaxed text-red-600">

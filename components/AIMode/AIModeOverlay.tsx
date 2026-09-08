@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FileText, Sparkles, X } from 'lucide-react';
+import { PanelRight, Sparkles, X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -262,15 +262,16 @@ export function AIModeOverlay() {
                   type="button"
                   onClick={() => setDocumentOpen((open) => !open)}
                   aria-pressed={showDocument}
+                  aria-label={showDocument ? 'Hide document' : 'Show document'}
+                  title={showDocument ? 'Hide document' : 'Show document'}
                   className={cn(
-                    'inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
+                    'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-colors',
                     showDocument
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   )}
                 >
-                  <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span className="hidden tablet:!inline">Document</span>
+                  <PanelRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               )
             }
@@ -293,7 +294,7 @@ export function AIModeOverlay() {
               onStart={documentWidth.startResize}
               onNudge={documentWidth.nudgeWidth}
             />
-            <DocumentPane document={doc} chat={state.chat.chat} onClose={closeDocument} />
+            <DocumentPane document={doc} chat={state.chat.chat} />
           </aside>
         )}
       </div>
@@ -313,19 +314,12 @@ export function AIModeOverlay() {
         isOpen={showDocument && isBelowTablet}
         onClose={closeDocument}
         height="85vh"
-        showCloseButton={false}
         className="tablet:!hidden"
         zIndex={AI_MODE_DRAWER_Z_INDEX}
         container={rootEl}
       >
         {showDocument && isBelowTablet && (
-          <DocumentPane
-            document={doc}
-            chat={state.chat.chat}
-            onClose={closeDocument}
-            readOnly
-            className="-mx-4 -mt-2"
-          />
+          <DocumentPane document={doc} chat={state.chat.chat} readOnly className="-mx-4 -mt-2" />
         )}
       </SwipeableDrawer>
     </div>,
