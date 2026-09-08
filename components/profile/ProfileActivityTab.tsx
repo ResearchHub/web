@@ -8,7 +8,6 @@ export const ACTIVITY_PILLS = [
   { id: 'proposals', label: 'Proposals' },
   { id: 'peer-reviews', label: 'Peer Reviews' },
   { id: 'comments', label: 'Comments' },
-  { id: 'bounties', label: 'Bounties' },
 ];
 
 export type ActivityPillId = (typeof ACTIVITY_PILLS)[number]['id'];
@@ -60,7 +59,7 @@ function ProposalsContent({ userId }: { userId: number }) {
 /**
  * Activity tab — thin wrapper rendering the pill bar + whatever feed the
  * parent decided to render for the active pill. Proposals is rendered
- * internally since it uses a different data source than the contributions feed.
+ * internally since it uses a different data source than the activity feed.
  */
 export function ProfileActivityTab({
   activePill,

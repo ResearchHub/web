@@ -2,7 +2,7 @@ import { ApiClient } from './client';
 import {
   ActivityService,
   type ActivityResult,
-  type GetUserActivityParams,
+  type GetActorActivityParams,
 } from './activity.service';
 import { FunderOverview, transformFunderOverview } from '@/types/funder';
 
@@ -20,7 +20,7 @@ export class FunderService {
    */
   static async getActivity(
     userId: number,
-    options?: GetUserActivityParams
+    options?: GetActorActivityParams
   ): Promise<ActivityResult> {
     return ActivityService.getUserActivity(userId, options);
   }

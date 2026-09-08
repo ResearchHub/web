@@ -6,12 +6,11 @@ import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
-import { useContributions } from '@/hooks/useContributions';
-import { ContributionType } from '@/services/contribution.service';
-import { transformContributionToFeedEntry } from '@/types/contribution';
-import { FeedEntry } from '@/types/feed';
-import { FeedContent } from '@/components/Feed/FeedContent';
-import { SearchEmpty } from '@/components/ui/SearchEmpty';
+import { ActivityFeedList, ActivityRow } from '@/components/Activity';
+import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.utils';
+import { useActivityFeed } from '@/hooks/useActivityFeed';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
+import { ActivityCommentType } from '@/services/activity.service';
 import { ModerationTab } from '@/components/profile/ModerationTab';
 import { ModerationPreview } from '@/components/profile/ModerationPreview';
 import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
@@ -48,11 +47,19 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
-  contributions: 'ALL',
-  'peer-reviews': 'REVIEW',
-  comments: 'CONVERSATION',
-  bounties: 'BOUNTY',
+interface ActivityFilters {
+  contentType: string;
+  commentTypes: readonly ActivityCommentType[];
+}
+
+/**
+ * Narrows the author's activity to a single pill. Defined once at module scope so
+ * the filters keep a stable identity across renders and never restart the feed.
+ * The Overview tab has no entry: it shows everything the author did.
+ */
+const TAB_TO_ACTIVITY_FILTERS: Record<string, ActivityFilters> = {
+  'peer-reviews': { contentType: 'RHCOMMENTMODEL', commentTypes: ['REVIEW', 'PEER_REVIEW'] },
+  comments: { contentType: 'RHCOMMENTMODEL', commentTypes: ['GENERIC_COMMENT', 'ANSWER'] },
 };
 
 type TabGroupId = 'overview' | 'funding' | 'activity' | 'moderation';
@@ -93,45 +100,33 @@ function AuthorTabContent({
   currentTab: string;
   isPending: boolean;
 }) {
-  const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
-
+  const filters = TAB_TO_ACTIVITY_FILTERS[currentTab];
   const {
-    contributions: allContributions,
-    isLoading: isContributionsLoading,
-    error: contributionsError,
-    hasMore: hasMoreContributions,
-    loadMore: loadMoreContributions,
-    isLoadingMore: isLoadingMoreContributions,
-    restoredFeedEntries: restoredContributionsEntries,
-    restoredScrollPosition: restoredContributionsScrollPosition,
-    lastClickedEntryId: lastClickedContributionsEntryId,
-  } = useContributions({
-    contribution_type: contributionType,
-    author_id: authorId,
-    activeTab: currentTab,
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    page,
+    loadMore,
+    feedKey,
+    restoredScrollPosition,
+    lastClickedEntryId,
+  } = useActivityFeed({
+    authorId,
+    contentType: filters?.contentType,
+    commentTypes: filters?.commentTypes,
   });
 
-  const contributions =
-    currentTab === 'comments'
-      ? allContributions.filter((contribution) => !contribution.item?.review?.score)
-      : allContributions;
+  useFeedScrollTracking({
+    feedKey,
+    entries,
+    hasMore,
+    page,
+    restoredScrollPosition,
+    lastClickedEntryId: lastClickedEntryId ?? undefined,
+  });
 
-  if (contributionsError) {
-    return <div>Error: {contributionsError.message}</div>;
-  }
-
-  const entries =
-    restoredContributionsEntries ||
-    contributions
-      .map((contribution) => {
-        try {
-          return transformContributionToFeedEntry({ contribution, contributionType });
-        } catch (error) {
-          console.error('[Contribution] Could not transform contribution', error);
-          return null;
-        }
-      })
-      .filter((entry): entry is FeedEntry => !!entry);
+  const rows = isPending ? [] : groupActivityRows(entries);
 
   return (
     <div>
@@ -140,25 +135,17 @@ function AuthorTabContent({
           <PinnedFundraise userId={userId} compact={true} />
         </div>
       )}
-      <FeedContent
-        entries={isPending ? [] : entries}
-        isLoading={isPending || isContributionsLoading}
-        hasMore={hasMoreContributions}
-        loadMore={loadMoreContributions}
-        showBountyFooter={false}
-        hideActions={true}
-        isLoadingMore={isLoadingMoreContributions}
-        noEntriesElement={
-          <SearchEmpty title="No author activity found in this section." className="mb-10" />
-        }
-        maxLength={150}
-        showReadMoreCTA={true}
-        activeTab={currentTab}
-        restoredScrollPosition={restoredContributionsScrollPosition}
-        lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
-        shouldRenderBountyAsComment={true}
-        wideContent
-      />
+      <ActivityFeedList
+        isLoading={isPending || isLoading}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        isEmpty={entries.length === 0}
+      >
+        {rows.map((row) => (
+          <ActivityRow key={row.key} row={row} />
+        ))}
+      </ActivityFeedList>
     </div>
   );
 }
