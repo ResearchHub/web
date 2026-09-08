@@ -14,6 +14,8 @@ import { ConversationList } from './ConversationList';
 import { DocumentCard } from './DocumentCard';
 import { DocumentPane } from './DocumentPane';
 import { useAIModeChat } from './useAIModeChat';
+import type { NotebookTab } from '@/components/Notebook/NotebookTabs';
+import type { PublishingDefaultArticleType } from '@/contexts/PublishingHostContext';
 import { useAIModeDocument } from './useAIModeDocument';
 import { AI_MODE_NAME } from './copy';
 
@@ -25,6 +27,8 @@ const LIST_MAX_WIDTH = 440;
 const LIST_DEFAULT_WIDTH = 264;
 const CHAT_MIN_WIDTH = 360;
 const DOCUMENT_MIN_WIDTH = 420;
+/** The details form needs more room than the document: authors, image, funding fields. */
+const DETAILS_MIN_WIDTH = 560;
 /** Share of the viewport the document opens at before the user drags it. */
 const DOCUMENT_DEFAULT_SHARE = 0.55;
 
@@ -87,14 +91,17 @@ export function AIModeOverlay() {
     defaultWidth: LIST_DEFAULT_WIDTH,
     anchor: 'left',
   });
+  // Document or details in the right pane; details wants a wider floor.
+  const [documentTab, setDocumentTab] = useState<NotebookTab>('document');
+  const documentMinWidth = documentTab === 'details' ? DETAILS_MIN_WIDTH : DOCUMENT_MIN_WIDTH;
   // The document may grow until the chat is down to its minimum column.
   const documentMaxWidth = Math.max(
-    DOCUMENT_MIN_WIDTH,
+    documentMinWidth,
     viewportWidth - listWidth.width - CHAT_MIN_WIDTH
   );
   const documentWidth = useResizableWidth({
     storageKey: 'ai-mode:document-width',
-    min: DOCUMENT_MIN_WIDTH,
+    min: documentMinWidth,
     max: documentMaxWidth,
     defaultWidth: (width) => width * DOCUMENT_DEFAULT_SHARE,
     anchor: 'right',
@@ -110,7 +117,18 @@ export function AIModeOverlay() {
   const [documentOpen, setDocumentOpen] = useState(false);
   useEffect(() => {
     setDocumentOpen(noteId != null && !isBelowTabletRef.current);
+    setDocumentTab('document');
   }, [noteId]);
+
+  // What the conversation set out to write, from its opening message, so the
+  // details form preselects the matching work type for a note that has none.
+  const defaultArticleType = useMemo<PublishingDefaultArticleType | null>(() => {
+    const opening = state.chat.chat?.messages.find((message) => message.role === 'user')?.content;
+    if (!opening) return null;
+    if (/request for proposals|\bRFP\b/i.test(opening)) return 'grant';
+    if (/proposal/i.test(opening)) return 'preregistration';
+    return null;
+  }, [state.chat.chat?.messages]);
   const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
@@ -288,13 +306,19 @@ export function AIModeOverlay() {
               label="Resize document"
               side="left"
               value={documentWidth.width}
-              min={DOCUMENT_MIN_WIDTH}
+              min={documentMinWidth}
               max={documentMaxWidth}
               isResizing={documentWidth.isResizing}
               onStart={documentWidth.startResize}
               onNudge={documentWidth.nudgeWidth}
             />
-            <DocumentPane document={doc} chat={state.chat.chat} />
+            <DocumentPane
+              document={doc}
+              chat={state.chat.chat}
+              tab={documentTab}
+              onTabChange={setDocumentTab}
+              defaultArticleType={defaultArticleType}
+            />
           </aside>
         )}
       </div>
@@ -319,7 +343,15 @@ export function AIModeOverlay() {
         container={rootEl}
       >
         {showDocument && isBelowTablet && (
-          <DocumentPane document={doc} chat={state.chat.chat} readOnly className="-mx-4 -mt-2" />
+          <DocumentPane
+            document={doc}
+            chat={state.chat.chat}
+            tab={documentTab}
+            onTabChange={setDocumentTab}
+            defaultArticleType={defaultArticleType}
+            readOnly
+            className="-mx-4 -mt-2"
+          />
         )}
       </SwipeableDrawer>
     </div>,

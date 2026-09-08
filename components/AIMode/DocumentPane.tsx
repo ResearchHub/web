@@ -4,6 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
+import { NotebookTabs, type NotebookTab } from '@/components/Notebook/NotebookTabs';
+import { PublishingForm } from '@/components/Notebook/PublishingForm';
+import {
+  PublishingHostProvider,
+  type PublishingDefaultArticleType,
+  type PublishingHost,
+} from '@/contexts/PublishingHostContext';
+import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDiffOverlay';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
@@ -23,6 +31,11 @@ interface DocumentPaneProps {
   readonly document: AIModeDocument;
   /** The open chat, whose activity is one of the review's version signals. */
   readonly chat: NotebookChat | null;
+  /** Document, or the publishing details form. */
+  readonly tab: NotebookTab;
+  readonly onTabChange: (tab: NotebookTab) => void;
+  /** Work type to preselect in the details form for a note without one. */
+  readonly defaultArticleType?: PublishingDefaultArticleType | null;
   /** Never editable — the mobile drawer. */
   readonly readOnly?: boolean;
   readonly className?: string;
@@ -37,7 +50,15 @@ interface DocumentPaneProps {
  * below the editor, and a turn with no draft shows an in-progress row so the
  * page never sits frozen.
  */
-export function DocumentPane({ document, chat, readOnly = false, className }: DocumentPaneProps) {
+export function DocumentPane({
+  document,
+  chat,
+  tab,
+  onTabChange,
+  defaultArticleType = null,
+  readOnly = false,
+  className,
+}: DocumentPaneProps) {
   const { note, content, loading, error, status, draftText, phaseLabel } = document;
   const noteId = note?.id ?? null;
   const writing = status === 'drafting' || status === 'working';
@@ -84,6 +105,22 @@ export function DocumentPane({ document, chat, readOnly = false, className }: Do
     [updateNote]
   );
 
+  // The details form is the notebook's own, hosted here: it reads the note,
+  // the live editor and the note's single details writer through the host
+  // seam rather than the notebook context.
+  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId ?? undefined);
+  const publishingHost = useMemo<PublishingHost>(
+    () => ({
+      note: content,
+      editor,
+      isLoading: loading,
+      saveDetailsSoon,
+      saveDetailsNow,
+      defaultArticleType,
+    }),
+    [content, editor, loading, saveDetailsSoon, saveDetailsNow, defaultArticleType]
+  );
+
   const persistEditorState = useCallback(async () => {
     if (!editor || editor.isDestroyed) return false;
     return saveNoteNow(editor);
@@ -107,8 +144,14 @@ export function DocumentPane({ document, chat, readOnly = false, className }: Do
 
   return (
     <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
-      {/* The document is the pane: no gutter, no card, just the page. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex h-12 shrink-0 items-center border-b border-gray-200 px-3">
+        <NotebookTabs active={tab} onChange={onTabChange} labels={{ details: 'Publish' }} />
+      </div>
+
+      {/* The document is the pane: no gutter, no card, just the page. The
+          editor stays mounted behind the details tab — it holds the review
+          and autosave state, and the form publishes from it. */}
+      <div className={cn('min-h-0 flex-1 overflow-y-auto', tab !== 'document' && 'hidden')}>
         <NoteReviewBanner review={review} className="mx-6 mt-4" />
 
         {error && content == null ? (
@@ -160,7 +203,15 @@ export function DocumentPane({ document, chat, readOnly = false, className }: Do
         )}
       </div>
 
-      {review.review && (
+      {tab === 'details' && (
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+          <PublishingHostProvider value={publishingHost}>
+            <PublishingForm />
+          </PublishingHostProvider>
+        </div>
+      )}
+
+      {review.review && tab === 'document' && (
         <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
           <NoteReviewControls
             changeCount={review.review.changeCount}
