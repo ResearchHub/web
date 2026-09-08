@@ -254,7 +254,7 @@ export function AIModeOverlay() {
       <div className="relative flex min-h-0 flex-1">
         <aside
           style={{ width: listWidth.width }}
-          className="relative hidden shrink-0 flex-col border-r border-gray-200 bg-white tablet:!flex"
+          className="relative hidden shrink-0 flex-col border-r border-gray-200 bg-gray-100 tablet:!flex"
         >
           {conversationList}
           <ResizeHandle

@@ -1,66 +1,59 @@
-import type { ComponentType } from 'react';
-import { HandCoins, Megaphone, PenLine, Telescope } from 'lucide-react';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import {
+  faBullhorn,
+  faFileSignature,
+  faMagnifyingGlassDollar,
+} from '@fortawesome/pro-light-svg-icons';
 
 /**
  * User-facing copy for AI Mode, in one place so the product name and the
  * empty-state wording can change without touching components.
  */
-export const AI_MODE_NAME = 'Assistant';
+export const AI_MODE_NAME = 'ResearchHub AI';
 
-export const AI_MODE_EMPTY_HEADING = 'What do you want to work on?';
-
-export const AI_MODE_EMPTY_SUBHEADING =
-  'Describe what you need. The assistant will ask a few questions, then write it up as a document you keep in your notebook.';
+/** Greeting on the new-conversation screen; the name is filled in at render. */
+export const aiModeGreeting = (firstName: string | null | undefined): string =>
+  firstName?.trim() ? `Welcome, ${firstName.trim()}` : 'Welcome';
 
 export interface StarterPrompt {
   readonly id: string;
   readonly title: string;
   readonly description: string;
-  readonly icon: ComponentType<{ className?: string }>;
-  /** Loaded into the composer as an editable starting point, never sent as-is. */
+  /** Same icon family as the sidebar's Publish menu. */
+  readonly icon: IconDefinition;
+  /** Sent as the conversation's first message when the card is picked. */
   readonly message: string;
 }
 
 /**
- * Static starter prompts for the empty state. They only prefill the composer;
- * the backend does not supply suggestions. The two writing prompts mirror the
- * notebook's own presets: a funder drafting a request for proposals, and a
- * researcher drafting a proposal. Placeholder wording, to be replaced by
- * product copy.
+ * Starter cards for the new-conversation screen. Picking one starts the
+ * conversation with its message; the backend does not supply suggestions.
+ * Titles and subtext mirror the sidebar's Publish menu.
  */
 export const AI_MODE_STARTER_PROMPTS: readonly StarterPrompt[] = [
   {
     id: 'draft-rfp',
-    title: 'Draft a request for proposals',
+    title: 'Draft a Request for Proposal',
     description: 'Fund specific research you care about',
-    icon: Megaphone,
+    icon: faBullhorn,
     message:
       'Help me draft a request for proposals. Ask me for anything you still need to know about ' +
       'the work I want to fund, then create a note and write the RFP into it.',
   },
   {
     id: 'draft-proposal',
-    title: 'Draft a proposal',
+    title: 'Draft a Research Proposal',
     description: 'Raise money for your research',
-    icon: PenLine,
+    icon: faFileSignature,
     message:
       'Help me draft a research proposal. Ask me for anything you still need to know about the ' +
       'work, then create a note and write the proposal into it, starting with three hypotheses.',
   },
   {
-    id: 'research',
-    title: 'Help me research',
-    description: 'Cited overview of the literature',
-    icon: Telescope,
-    message:
-      'Help me research a topic. Search the web and the scholarly literature for the most ' +
-      'relevant work and summarise what I should know, with sources. The topic is ',
-  },
-  {
     id: 'funding',
     title: 'Find me funding',
     description: 'Open RFPs that fit your work',
-    icon: HandCoins,
+    icon: faMagnifyingGlassDollar,
     message:
       'Find open RFPs I could apply to based on my expertise, and tell me why each one is a match.',
   },

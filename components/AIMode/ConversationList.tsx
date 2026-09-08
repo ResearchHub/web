@@ -142,7 +142,7 @@ function ConversationRow({
     <div
       className={cn(
         'group relative mb-0.5 rounded-lg transition-colors',
-        isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+        isActive ? 'bg-gray-200/70' : 'hover:bg-gray-200/40'
       )}
     >
       {renaming ? (

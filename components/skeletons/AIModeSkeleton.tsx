@@ -2,14 +2,15 @@ import React from 'react';
 
 /** Placeholder rows for the AI Mode conversation list: a title and a timestamp. */
 export const ConversationListSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => (
+  // One step darker than the other skeletons: the list sits on gray-100.
   <div className="space-y-1 px-1" aria-hidden="true">
     {Array.from({ length: count }).map((_, index) => (
       <div key={index} className="space-y-1.5 px-3 py-2">
         <div
-          className="h-3.5 animate-pulse rounded bg-gray-100"
+          className="h-3.5 animate-pulse rounded bg-gray-200"
           style={{ width: `${70 + ((index * 17) % 25)}%` }}
         />
-        <div className="h-2.5 w-16 animate-pulse rounded bg-gray-100" />
+        <div className="h-2.5 w-16 animate-pulse rounded bg-gray-200" />
       </div>
     ))}
   </div>

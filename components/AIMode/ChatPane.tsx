@@ -14,7 +14,9 @@ import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from './useAIModeChat';
-import { AI_MODE_EMPTY_HEADING, AI_MODE_EMPTY_SUBHEADING, AI_MODE_STARTER_PROMPTS } from './copy';
+import { aiModeGreeting, AI_MODE_STARTER_PROMPTS } from './copy';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useUser } from '@/contexts/UserContext';
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
@@ -56,16 +58,15 @@ export function ChatPane({
     setRenaming(false);
   }, [chatId]);
 
-  const applyStarter = useCallback(
+  // A starter card is a complete first message: send it and start the
+  // conversation rather than leaving it in the box to be sent by hand.
+  const { user } = useUser();
+  const startFromCard = useCallback(
     (message: string) => {
       state.clearNotice();
-      setDraft(message);
-      const textarea = composerRef.current;
-      if (!textarea) return;
-      textarea.focus();
-      textarea.setSelectionRange(message.length, message.length);
+      void state.sendText(message);
     },
-    [state, setDraft]
+    [state]
   );
 
   const listBlocked = list.access === 'hidden';
@@ -87,6 +88,33 @@ export function ChatPane({
     chatId != null && currentTitle == null && (chat.chat == null || list.access === 'loading');
   const title =
     chatId == null ? 'New conversation' : (currentTitle?.trim() ?? '') || 'Untitled conversation';
+
+  const composer = (
+    <ChatComposer
+      textareaRef={composerRef}
+      value={draft}
+      onChange={setDraft}
+      onSend={state.send}
+      onStop={state.stop}
+      busy={composerBusy}
+      canStop={canStop}
+      disabled={composerDisabled}
+      notice={notice}
+      className="border-t-0 bg-gray-50"
+      placeholder="Describe what you want to work on…"
+      toolbar={
+        <ModelControls
+          models={modelSelection.models}
+          model={modelSelection.model}
+          pinned={modelSelection.pinned}
+          options={modelSelection.options}
+          onSelectModel={modelSelection.selectModel}
+          onChangeOptions={modelSelection.setOptions}
+          disabled={composerDisabled}
+        />
+      }
+    />
+  );
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -135,7 +163,12 @@ export function ChatPane({
             {listBlocked ? (
               <AccessBlocked detail={list.accessDetail} />
             ) : chatId == null ? (
-              <EmptyState onSelectStarter={applyStarter} disabled={composerBusy} />
+              <EmptyState
+                composer={composer}
+                greeting={aiModeGreeting(user?.firstName)}
+                onSelectStarter={startFromCard}
+                disabled={composerBusy}
+              />
             ) : chat.access === 'loading' && chat.chat == null ? (
               <ChatTranscriptSkeleton />
             ) : chat.access === 'not_found' ? (
@@ -181,34 +214,15 @@ export function ChatPane({
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-gray-200 bg-white">
-        <div className={cn('mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5')}>
-          <ChatComposer
-            textareaRef={composerRef}
-            value={draft}
-            onChange={setDraft}
-            onSend={state.send}
-            onStop={state.stop}
-            busy={composerBusy}
-            canStop={canStop}
-            disabled={composerDisabled}
-            notice={notice}
-            className="border-t-0"
-            placeholder="Describe what you want to work on…"
-            toolbar={
-              <ModelControls
-                models={modelSelection.models}
-                model={modelSelection.model}
-                pinned={modelSelection.pinned}
-                options={modelSelection.options}
-                onSelectModel={modelSelection.selectModel}
-                onChangeOptions={modelSelection.setOptions}
-                disabled={composerDisabled}
-              />
-            }
-          />
+      {/* A conversation keeps the composer docked at the bottom; the
+          new-conversation screen seats it in the middle with the starters. */}
+      {chatId != null && (
+        <div className="shrink-0 border-t border-gray-200 bg-gray-50">
+          <div className={cn('mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5')}>
+            {composer}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -225,56 +239,51 @@ function AccessBlocked({ detail }: { readonly detail: string | null }) {
 }
 
 function EmptyState({
+  composer,
+  greeting,
   onSelectStarter,
   disabled,
 }: {
+  readonly composer: ReactNode;
+  readonly greeting: string;
   readonly onSelectStarter: (message: string) => void;
   readonly disabled: boolean;
 }) {
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 text-center">
-      <div className="flex flex-col items-center gap-3">
+    <div className="flex min-h-[60vh] flex-col justify-center gap-6">
+      <div className="flex flex-col items-center gap-4 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
           <Logo size={34} noText />
         </div>
-        <div>
-          <h2 className="font-serif text-xl tracking-tight text-gray-900">
-            {AI_MODE_EMPTY_HEADING}
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-500">
-            {AI_MODE_EMPTY_SUBHEADING}
-          </p>
-        </div>
+        <h2 className="font-serif text-3xl tracking-tight text-gray-900">{greeting}</h2>
       </div>
 
-      <div className="flex w-full max-w-lg flex-col gap-2">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-          Starting points · fills in the box below for you to edit
-        </p>
-        <div className="grid grid-cols-1 gap-2 tablet:!grid-cols-2">
-          {AI_MODE_STARTER_PROMPTS.map((prompt) => (
-            <button
-              key={prompt.id}
-              type="button"
-              onClick={() => onSelectStarter(prompt.message)}
-              disabled={disabled}
-              className={cn(
-                'flex w-full items-start gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-left transition-colors',
-                'hover:border-primary-200 hover:bg-primary-50',
-                'focus:outline-none focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500',
-                'disabled:cursor-not-allowed disabled:opacity-60'
-              )}
-            >
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
-                <prompt.icon className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-medium text-gray-800">{prompt.title}</span>
-                <span className="block text-xs text-gray-500">{prompt.description}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+      <div className="-mx-3">{composer}</div>
+
+      {/* Picking a card starts the conversation with its message. */}
+      <div className="grid grid-cols-1 gap-3 tablet:!grid-cols-3">
+        {AI_MODE_STARTER_PROMPTS.map((prompt) => (
+          <button
+            key={prompt.id}
+            type="button"
+            onClick={() => onSelectStarter(prompt.message)}
+            disabled={disabled}
+            className={cn(
+              'group flex h-full min-h-[120px] flex-col items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white px-3 py-4 text-center transition-colors',
+              'hover:border-primary-200 hover:bg-primary-50',
+              'focus:outline-none focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500',
+              'disabled:cursor-not-allowed disabled:opacity-60'
+            )}
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 transition-colors group-hover:bg-white">
+              <FontAwesomeIcon icon={prompt.icon} className="h-[18px] w-[18px] text-gray-700" />
+            </span>
+            <span className="text-sm font-semibold tracking-[0.01em] text-gray-900">
+              {prompt.title}
+            </span>
+            <span className="text-xs text-gray-600">{prompt.description}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

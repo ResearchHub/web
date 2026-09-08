@@ -88,6 +88,8 @@ export interface AIModeChatState {
   /** A brand-new chat is being created for the first message. */
   readonly creatingChat: boolean;
   readonly send: () => Promise<void>;
+  /** Send given text as the user's message — a starter card, sent as-is. */
+  readonly sendText: (text: string) => Promise<void>;
   readonly stop: () => Promise<void>;
   /** Rename any conversation, open or not. */
   readonly rename: (chatId: number, title: string) => Promise<boolean>;
@@ -210,52 +212,48 @@ export function useAIModeChat(): AIModeChatState {
   targetRef.current = chatId;
   const isCurrentTarget = useCallback((target: number | null) => targetRef.current === target, []);
 
-  const send = useCallback(async () => {
-    const text = draft.trim();
-    if (!text) return;
-    setNotice(null);
-    const target = targetRef.current;
-    const generation = modelSelection.request;
-    // The box empties the moment the user sends, as the message is already
-    // theirs; it only comes back if the send fails and they need to retry.
-    setDraft('');
+  const sendText = useCallback(
+    async (rawText: string) => {
+      const text = rawText.trim();
+      if (!text) return;
+      setNotice(null);
+      const target = targetRef.current;
+      const generation = modelSelection.request;
+      // The box empties the moment the user sends, as the message is already
+      // theirs; it only comes back if the send fails and they need to retry.
+      setDraft('');
 
-    if (chatId == null) {
-      const creationSeq = ++creationSeqRef.current;
-      setCreatingChat(true);
-      const created = await list.createChat();
-      if (creationSeqRef.current === creationSeq) setCreatingChat(false);
-      if (!isCurrentTarget(target)) return;
-      if (!created) {
-        setDraft(text);
-        setNotice({
-          tone: 'error',
-          text: list.accessDetail ?? 'Couldn’t start a conversation. Please try again.',
-        });
+      if (chatId == null) {
+        const creationSeq = ++creationSeqRef.current;
+        setCreatingChat(true);
+        const created = await list.createChat();
+        if (creationSeqRef.current === creationSeq) setCreatingChat(false);
+        if (!isCurrentTarget(target)) return;
+        if (!created) {
+          setDraft(text);
+          setNotice({
+            tone: 'error',
+            text: list.accessDetail ?? 'Couldn’t start a conversation. Please try again.',
+          });
+          return;
+        }
+        draftsRef.current.delete('new');
+        setInitialChat(created);
+        selectChatInUrl(created.conversation_id);
+        setQueuedMessage({ text, generation });
         return;
       }
-      draftsRef.current.delete('new');
-      setInitialChat(created);
-      selectChatInUrl(created.conversation_id);
-      setQueuedMessage({ text, generation });
-      return;
-    }
 
-    const outcome = await chat.send(text, generation);
-    if (!outcome.ok && isCurrentTarget(target)) {
-      setDraft(text);
-      setNotice(noticeFromOutcome(outcome));
-    }
-  }, [
-    draft,
-    chatId,
-    list,
-    chat,
-    modelSelection.request,
-    setDraft,
-    isCurrentTarget,
-    selectChatInUrl,
-  ]);
+      const outcome = await chat.send(text, generation);
+      if (!outcome.ok && isCurrentTarget(target)) {
+        setDraft(text);
+        setNotice(noticeFromOutcome(outcome));
+      }
+    },
+    [chatId, list, chat, modelSelection.request, setDraft, isCurrentTarget, selectChatInUrl]
+  );
+
+  const send = useCallback(() => sendText(draft), [sendText, draft]);
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chat.send;
@@ -386,6 +384,7 @@ export function useAIModeChat(): AIModeChatState {
     clearNotice,
     creatingChat,
     send,
+    sendText,
     stop,
     rename,
     deleteChat,
