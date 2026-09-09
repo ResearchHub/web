@@ -298,10 +298,9 @@ function ContributeToFundraiseModalInner({
         const { stripe, cardElement } = stripeContext;
 
         // Step 1: Create payment intent with amount and fundraise ID (backend adds fees and handles contribution)
-        const { clientSecret } = await PaymentService.createPaymentIntent(
-          amountInRsc,
-          fundraise.id
-        );
+        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, {
+          fundraiseId: fundraise.id,
+        });
 
         // Step 2: Confirm payment with Stripe
         const { error: stripeError, paymentIntent: stripePaymentIntent } =
