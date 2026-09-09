@@ -134,7 +134,7 @@ export default function Signup({
 
         <button
           type="submit"
-          disabled={isLoading || (!!TURNSTILE_SITEKEY && !turnstileToken)}
+          disabled={isLoading}
           className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
           data-testid="auth-signup-submit"
         >
