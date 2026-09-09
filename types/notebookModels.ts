@@ -192,17 +192,19 @@ export function availableEffortLevels(
 }
 
 /**
- * Existing chats do not expose their saved effort. Only offer thinking modes
- * compatible with every possible saved level; omission lets the provider
- * resolve thinking from the inherited effort without a contradictory flag.
+ * Existing chats keep their latest saved effort. For legacy chats without a
+ * recorded value, only offer modes compatible with every possible level.
  */
-export function availableThinkingModes(model: AgentModel, effortPinned: boolean): ThinkingMode[] {
+export function availableThinkingModes(
+  model: AgentModel,
+  effortPinned: boolean,
+  pinnedEffort: EffortLevel | null = null
+): ThinkingMode[] {
+  const efforts = pinnedEffort == null ? model.capabilities.effort : [pinnedEffort];
   return model.capabilities.thinking.filter(
     (thinking) =>
       !effortPinned ||
-      model.capabilities.effort.every((effort) =>
-        availableEffortLevels(model, thinking).includes(effort)
-      )
+      efforts.every((effort) => availableEffortLevels(model, thinking).includes(effort))
   );
 }
 
@@ -239,25 +241,26 @@ export function formatTemperature(value: number): string {
  *
  * Callers keep the user's raw choices and normalize on the way out, so an
  * effort a model can't take comes back when they return to one that can.
+ * A pinned effort is restored verbatim for display; callers omit it on sends.
  */
 export function normalizeGenerationOptions(
   model: AgentModel,
   options: GenerationOptions,
-  effortPinned = false
+  effortPinned = false,
+  pinnedEffort: EffortLevel | null = null
 ): GenerationOptions {
   const thinking =
     options.thinking != null &&
-    availableThinkingModes(model, effortPinned).includes(options.thinking)
+    availableThinkingModes(model, effortPinned, pinnedEffort).includes(options.thinking)
       ? options.thinking
       : undefined;
   // On a new OpenRouter chat, explicitly pair thinking off with no effort.
   // Otherwise the backend snapshots its default effort, which may reason.
   const requestedEffort =
     model.provider === OPENROUTER && thinking === 'disabled' ? 'none' : options.effort;
-  const effort =
-    !effortPinned &&
-    requestedEffort != null &&
-    availableEffortLevels(model, thinking).includes(requestedEffort)
+  const effort = effortPinned
+    ? (pinnedEffort ?? undefined)
+    : requestedEffort != null && availableEffortLevels(model, thinking).includes(requestedEffort)
       ? requestedEffort
       : undefined;
   const temperature =

@@ -83,7 +83,9 @@ export function ModelControls({
   // A single mode is not a choice: models that always reason take no toggle,
   // they just reason.
   const thinkingModes =
-    model.capabilities.thinking.length > 1 ? availableThinkingModes(model, effortPinned) : [];
+    model.capabilities.thinking.length > 1
+      ? availableThinkingModes(model, effortPinned, options.effort ?? null)
+      : [];
   const thinkingRestricted =
     effortPinned &&
     thinkingModes.length < model.capabilities.thinking.length &&
@@ -93,9 +95,13 @@ export function ModelControls({
   // would otherwise read as a control that went missing on its own.
   const temperatureNeedsThinkingOff =
     !showTemperature && model.capabilities.temperature && thinkingModes.includes('disabled');
-  const hasEffort = model.capabilities.effort.length > 0;
+  const hasEffort = model.capabilities.effort.length > 0 || options.effort != null;
   const hasEffortMenu = hasEffort || thinkingModes.length > 0 || showTemperature;
   const effortLocked = effortPinned && hasEffort;
+  const lockedEffortLabel = options.effort ? EFFORT_LABELS[options.effort] : 'Locked effort';
+  const lockedEffortDescription = options.effort
+    ? `${EFFORT_LABELS[options.effort]} effort is locked for this chat. Start a new chat to change it.`
+    : 'Effort is locked for this chat. Start a new chat to change it.';
 
   const toggle = (menu: Exclude<OpenMenu, null>) =>
     setOpenMenu((current) => (current === menu ? null : menu));
@@ -134,7 +140,7 @@ export function ModelControls({
           disabled={disabled}
           title={
             effortLocked
-              ? 'Effort is locked for this chat. Start a new chat to change it.'
+              ? lockedEffortDescription
               : summarizeGenerationOptions(options).join(' · ') || 'Model defaults'
           }
           icon={
@@ -144,10 +150,10 @@ export function ModelControls({
               <Gauge className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
             )
           }
-          srLabel="Effort:"
+          srLabel={effortLocked ? 'Effort, locked for this chat:' : 'Effort:'}
           className="max-w-[140px]"
         >
-          {effortLocked ? 'Locked effort' : effortButtonLabel(options)}
+          {effortLocked ? lockedEffortLabel : effortButtonLabel(options)}
         </ControlButton>
       )}
 
@@ -176,9 +182,7 @@ export function ModelControls({
         <Menu label="Effort">
           <div className="space-y-3 px-3 py-3">
             {effortLocked ? (
-              <p className="text-xs leading-snug text-gray-500">
-                Effort is locked for this chat. Start a new chat to change it.
-              </p>
+              <p className="text-xs leading-snug text-gray-500">{lockedEffortDescription}</p>
             ) : (
               effortLevels.length > 0 && (
                 <OptionPills

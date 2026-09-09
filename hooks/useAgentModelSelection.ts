@@ -7,6 +7,7 @@ import {
   normalizeGenerationOptions,
   unknownModel,
   type AgentModel,
+  type EffortLevel,
   type GenerationOptions,
   type GenerationRequest,
 } from '@/types/notebookModels';
@@ -46,6 +47,8 @@ export interface UseAgentModelSelectionOptions {
   readonly pinnedRef: string | null;
   /** Any recorded turn locks effort, including legacy turns without a model. */
   readonly effortPinned: boolean;
+  /** Latest execution's saved effort. Null means the server did not record it. */
+  readonly pinnedEffort: EffortLevel | null;
 }
 
 export interface AgentModelSelection {
@@ -56,7 +59,7 @@ export interface AgentModelSelection {
   /** The open chat has already committed to a model. */
   readonly pinned: boolean;
   readonly effortPinned: boolean;
-  /** The user's controls, narrowed to what {@link model} actually accepts. */
+  /** Compatible controls, including the chat's saved effort for display. */
   readonly options: GenerationOptions;
   readonly selectModel: (ref: string) => void;
   /** Patch: pass a field as `undefined` to hand it back to the server. */
@@ -78,6 +81,7 @@ export function useAgentModelSelection({
   enabled,
   pinnedRef,
   effortPinned,
+  pinnedEffort,
 }: UseAgentModelSelectionOptions): AgentModelSelection {
   const { status, catalog } = useAgentModels(enabled);
   const [preference, setPreference] = useState<StoredPreference>({});
@@ -115,8 +119,8 @@ export function useAgentModelSelection({
   }, [catalog, models, pinnedRef, preference.ref]);
 
   const options = useMemo(
-    () => (model ? normalizeGenerationOptions(model, preference, effortPinned) : {}),
-    [model, preference, effortPinned]
+    () => (model ? normalizeGenerationOptions(model, preference, effortPinned, pinnedEffort) : {}),
+    [model, preference, effortPinned, pinnedEffort]
   );
 
   const selectModel = useCallback(
@@ -138,10 +142,15 @@ export function useAgentModelSelection({
 
   const request = useMemo<GenerationRequest>(() => {
     if (model == null) return {};
-    // Naming the pinned model again would be accepted, but only while nothing
-    // raced us. Leaving it out lets the server answer from its own record.
-    return { ...(pinnedRef == null && { model: model.ref }), ...options };
-  }, [model, options, pinnedRef]);
+    // Saved effort is shown in the controls, but never sent again. Omitting
+    // pinned values lets the server inherit its own record even if it changed
+    // since this client last fetched the chat.
+    const { effort, ...perTurn } = options;
+    return {
+      ...(pinnedRef == null && { model: model.ref }),
+      ...(effortPinned ? perTurn : options),
+    };
+  }, [model, options, pinnedRef, effortPinned]);
 
   return {
     status,

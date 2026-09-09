@@ -282,6 +282,7 @@ export function AgentChatPanel({
     enabled: open,
     pinnedRef: chatState.pinnedModelRef,
     effortPinned: chatState.latestExecution != null,
+    pinnedEffort: chatState.latestExecution?.effort ?? null,
   });
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
