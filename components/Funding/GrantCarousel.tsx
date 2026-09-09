@@ -3,6 +3,7 @@
 import { FC, useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
+import { getGrantBadgeAmount } from '@/types/grant';
 import { Carousel } from '@/components/ui/Carousel';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
@@ -80,6 +81,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
 
   const hasFetchedProposals = hasBeenVisible && (entries.length > 0 || !isLoading);
   const showSkeleton = !hasFetchedProposals;
+  const badgeUsd = getGrantBadgeAmount(grantData).usd;
 
   return (
     <section ref={sectionRef} className={cn('py-5', className)}>
@@ -90,7 +92,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
             {getShortTitle(content.grant.shortTitle, content.title)}
           </h2>
         </Link>
-        {grantData.amount?.usd && (
+        {badgeUsd > 0 && (
           <span
             className={cn(
               'inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold font-mono',
@@ -99,7 +101,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
                 : 'bg-green-50 border border-green-200 text-green-700'
             )}
           >
-            {formatCompactUSD(grantData.amount.usd)} pool
+            {formatCompactUSD(badgeUsd)} pool
           </span>
         )}
       </div>

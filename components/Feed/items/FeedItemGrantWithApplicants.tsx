@@ -16,6 +16,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
+import { getGrantBadgeAmount } from '@/types/grant';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -149,9 +150,8 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
     slug: content.slug,
   });
 
-  const budgetAmount = showUSD
-    ? Math.round(grant.amount?.usd || 0)
-    : Math.round(grant.amount?.rsc || 0);
+  const badgeAmount = getGrantBadgeAmount(grant);
+  const budgetAmount = showUSD ? Math.round(badgeAmount.usd) : Math.round(badgeAmount.rsc);
 
   const allProposals = grant.applicants?.filter((a) => a.fundraise) ?? [];
   const shown = expanded ? allProposals : allProposals.slice(0, VISIBLE_PROPOSALS);
