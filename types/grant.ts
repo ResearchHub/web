@@ -40,6 +40,60 @@ export interface GrantAmount {
   formatted: string;
 }
 
+/** Status of an RFP community funding pool (separate from proposal fundraises). */
+export type FundingPoolStatus = 'OPEN' | 'CLOSED';
+
+export interface FundingPoolAmount {
+  usd: number;
+  rsc: number;
+}
+
+/**
+ * Community escrow pot on an RFP. Do not treat as a Fundraise — proposal
+ * crowdfunding stays on nested applications[].fundraise.
+ */
+export interface FundingPool {
+  id: number;
+  status: FundingPoolStatus;
+  amountHolding: FundingPoolAmount;
+  amountDistributed: FundingPoolAmount;
+  amountRaised: FundingPoolAmount;
+}
+
+function parseFundingPoolAmount(raw: unknown): FundingPoolAmount {
+  const amount = raw as { usd?: unknown; rsc?: unknown } | null | undefined;
+  return {
+    usd: Number(amount?.usd ?? 0) || 0,
+    // BE may send RSC as a decimal string (e.g. "20.0").
+    rsc: Number(amount?.rsc ?? 0) || 0,
+  };
+}
+
+export function transformFundingPool(raw: any): FundingPool {
+  return {
+    id: raw.id,
+    status: raw.status as FundingPoolStatus,
+    amountHolding: parseFundingPoolAmount(raw.amount_holding),
+    amountDistributed: parseFundingPoolAmount(raw.amount_distributed),
+    amountRaised: parseFundingPoolAmount(raw.amount_raised),
+  };
+}
+
+/**
+ * Badge total = grant.amount + pool amount_raised when present.
+ * If pool is null/absent (new grants before ensure, or slim feed), returns grant.amount only.
+ */
+export function getGrantBadgeAmount(grant: {
+  amount: Pick<GrantAmount, 'usd' | 'rsc'>;
+  fundingPool?: FundingPool | null;
+}): { usd: number; rsc: number } {
+  const raised = grant.fundingPool?.amountRaised;
+  return {
+    usd: (grant.amount.usd ?? 0) + (raised?.usd ?? 0),
+    rsc: (grant.amount.rsc ?? 0) + (raised?.rsc ?? 0),
+  };
+}
+
 /** The Request for Proposal a notebook draft is answering, as its card draws it. */
 export interface SelectedGrantDetails {
   id: string;
@@ -77,6 +131,8 @@ export interface Grant {
   endDate: string;
   contacts: Contact[];
   applicationVisibility: GrantApplicationVisibility;
+  /** Null until ensure / create; slim feed serializers may omit the field entirely. */
+  fundingPool: FundingPool | null;
   applicants?: AuthorProfile[];
   reviewedBy?: {
     id: ID;
@@ -112,6 +168,7 @@ export const transformGrant = createTransformer<any, Grant>((raw) => ({
     ? raw.contacts.map((contact: any) => transformContact(contact))
     : undefined,
   applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
+  fundingPool: raw.funding_pool ? transformFundingPool(raw.funding_pool) : null,
   applicants: Array.isArray(raw.applications)
     ? raw.applications.map((application: any) => transformAuthorProfile(application.applicant))
     : undefined,
