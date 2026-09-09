@@ -37,14 +37,22 @@ export default function Signup({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileInstance>(null);
   const fullNameInputRef = useAutoFocus<HTMLInputElement>(true);
   const { referralCode, clearReferralCode } = useReferral();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+
     if (!fullName) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    if (TURNSTILE_SITEKEY && !turnstileToken) {
+      setTurnstileError('Please complete the verification.');
       return;
     }
 
@@ -125,16 +133,27 @@ export default function Signup({
             <Turnstile
               ref={turnstileRef}
               siteKey={TURNSTILE_SITEKEY}
-              onSuccess={setTurnstileToken}
+              onSuccess={(token) => {
+                setTurnstileToken(token);
+                setTurnstileError(null);
+              }}
               onExpire={() => setTurnstileToken(null)}
-              onError={() => setTurnstileToken(null)}
+              onError={() => {
+                setTurnstileToken(null);
+                setTurnstileError('Verification failed. Please try again.');
+              }}
             />
+            {turnstileError && (
+              <p role="alert" className="mt-2 text-sm text-red-700">
+                {turnstileError}
+              </p>
+            )}
           </div>
         )}
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || (!!TURNSTILE_SITEKEY && !turnstileToken)}
           className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
           data-testid="auth-signup-submit"
         >
