@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AuthService } from '@/services/auth.service';
 import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
@@ -9,6 +9,8 @@ import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useReferral } from '@/contexts/ReferralContext';
 import AnalyticsService from '@/services/analytics.service';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
+import { TURNSTILE_SITEKEY } from '@/config/constants';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -34,6 +36,8 @@ export default function Signup({
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const fullNameInputRef = useAutoFocus<HTMLInputElement>(true);
   const { referralCode, clearReferralCode } = useReferral();
 
@@ -56,6 +60,7 @@ export default function Signup({
         first_name: firstName,
         last_name: lastName,
         referral_code: referralCode || undefined,
+        turnstile_token: turnstileToken || undefined,
       };
 
       await AuthService.register(registrationData);
@@ -65,6 +70,8 @@ export default function Signup({
       onVerify();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
     } finally {
       setIsLoading(false);
     }
@@ -112,6 +119,18 @@ export default function Signup({
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
+
+        {TURNSTILE_SITEKEY && (
+          <div className="mb-4">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={TURNSTILE_SITEKEY}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+            />
+          </div>
+        )}
 
         <button
           type="submit"
