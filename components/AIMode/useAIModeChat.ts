@@ -93,8 +93,16 @@ export interface AIModeChatState {
   readonly stop: () => Promise<void>;
   /** Rename any conversation, open or not. */
   readonly rename: (chatId: number, title: string) => Promise<boolean>;
-  /** Delete any conversation; deleting the open one lands on the new-conversation screen. */
-  readonly deleteChat: (chatId: number) => Promise<boolean>;
+  /**
+   * Delete any conversation, optionally with the notes it created; deleting
+   * the open one lands on the new-conversation screen.
+   */
+  readonly deleteChat: (chatId: number, options?: { deleteNotes?: boolean }) => Promise<boolean>;
+  /**
+   * The notes a conversation created, for the delete confirmation: the open
+   * chat's from what is loaded, any other's from one detail fetch.
+   */
+  readonly notesForChat: (chatId: number) => Promise<ChatNoteRef[]>;
   readonly selectChat: (chatId: number | null) => void;
   readonly startNewChat: () => void;
   /** The first note of every conversation whose detail this session has loaded. */
@@ -120,6 +128,8 @@ export function useAIModeChat(): AIModeChatState {
   const list = useNotebookChatList(transport, true);
   const [initialChat, setInitialChat] = useState<NotebookChat | null>(null);
   const chat = useNotebookChat({ transport, chatId, enabled: true, initialChat });
+  const chatRef = useRef(chat.chat);
+  chatRef.current = chat.chat;
   const modelSelection = useAgentModelSelection({
     enabled: true,
     pinnedRef: chat.pinnedModelRef,
@@ -323,11 +333,25 @@ export function useAIModeChat(): AIModeChatState {
     [chat, transport, refreshList, setPendingTitle]
   );
 
+  const notesForChat = useCallback(
+    async (target: number): Promise<ChatNoteRef[]> => {
+      if (target === targetRef.current && chatRef.current?.conversation_id === target) {
+        return chatRef.current.notes ?? [];
+      }
+      try {
+        return (await transport.getChat(target)).notes ?? [];
+      } catch {
+        return [];
+      }
+    },
+    [transport]
+  );
+
   const deleteChat = useCallback(
-    async (target: number): Promise<boolean> => {
+    async (target: number, options?: { deleteNotes?: boolean }): Promise<boolean> => {
       if (!transport.deleteChat) return false;
       try {
-        await transport.deleteChat(target);
+        await transport.deleteChat(target, options);
       } catch {
         return false;
       }
@@ -388,6 +412,7 @@ export function useAIModeChat(): AIModeChatState {
     stop,
     rename,
     deleteChat,
+    notesForChat,
     selectChat,
     startNewChat,
     notesByChat,

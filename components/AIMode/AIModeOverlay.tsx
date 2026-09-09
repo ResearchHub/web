@@ -219,6 +219,7 @@ export function AIModeOverlay() {
       }}
       onRename={state.rename}
       onDelete={state.deleteChat}
+      loadNotes={state.notesForChat}
       onRetry={state.list.refresh}
     />
   );

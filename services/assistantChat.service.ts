@@ -66,9 +66,13 @@ export class AssistantChatService {
     return ApiClient.post<CancelTurnResponse>(`${BASE_PATH}${chatId}/cancel/`);
   }
 
-  /** Deletes the conversation and its messages; notes it created are kept. */
-  static async deleteChat(chatId: ID): Promise<void> {
-    await ApiClient.deleteNoContent(`${BASE_PATH}${chatId}/`);
+  /**
+   * Deletes the conversation and its messages. Notes it created are kept
+   * unless `deleteNotes` asks for them too (the notebook's soft delete).
+   */
+  static async deleteChat(chatId: ID, options?: { deleteNotes?: boolean }): Promise<void> {
+    const suffix = options?.deleteNotes ? '?delete_notes=true' : '';
+    await ApiClient.deleteNoContent(`${BASE_PATH}${chatId}/${suffix}`);
   }
 
   static async getUsageBudget(): Promise<UsageBudget> {

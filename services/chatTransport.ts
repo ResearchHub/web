@@ -35,7 +35,7 @@ export interface ChatTransport {
   cancelTurn(chatId: ChatId): Promise<CancelTurnResponse>;
   socketUrl(chatId: ChatId): string;
   /** Absent on surfaces whose backend has no delete endpoint (the notebook). */
-  deleteChat?(chatId: ChatId): Promise<void>;
+  deleteChat?(chatId: ChatId, options?: { deleteNotes?: boolean }): Promise<void>;
 }
 
 export function notebookChatTransport(noteId: ChatId): ChatTransport {
@@ -63,6 +63,6 @@ export function assistantChatTransport(): ChatTransport {
     renameChat: (chatId, title) => AssistantChatService.renameChat(chatId, title),
     cancelTurn: (chatId) => AssistantChatService.cancelTurn(chatId),
     socketUrl: (chatId) => WS_ROUTES.ASSISTANT_CHAT(chatId),
-    deleteChat: (chatId) => AssistantChatService.deleteChat(chatId),
+    deleteChat: (chatId, options) => AssistantChatService.deleteChat(chatId, options),
   };
 }

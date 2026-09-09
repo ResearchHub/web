@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import type { ChatNoteRef } from '@/types/notebookChat';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
@@ -10,8 +11,10 @@ import { cn } from '@/utils/styles';
 interface ConversationMenuProps {
   readonly title: string;
   readonly onRename: () => void;
-  /** Called only after the user confirms. */
-  readonly onDelete: () => void;
+  /** Called only after the user confirms, with whether to delete the notes too. */
+  readonly onDelete: (options: { deleteNotes: boolean }) => void;
+  /** The notes the conversation created; offered for deletion when any exist. */
+  readonly loadNotes?: () => Promise<ChatNoteRef[]>;
   readonly className?: string;
 }
 
@@ -20,8 +23,36 @@ interface ConversationMenuProps {
  * confirmation. Shared by the sidebar rows and the chat header so the two
  * places offer exactly the same actions.
  */
-export function ConversationMenu({ title, onRename, onDelete, className }: ConversationMenuProps) {
+export function ConversationMenu({
+  title,
+  onRename,
+  onDelete,
+  loadNotes,
+  className,
+}: ConversationMenuProps) {
   const [confirming, setConfirming] = useState(false);
+  // The notes are looked up when the dialog opens, so a row whose detail was
+  // never loaded still gets the offer — and only the offer when there is
+  // something to delete. Off by default: the note is the user's work.
+  const [notes, setNotes] = useState<ChatNoteRef[] | null>(null);
+  const [deleteNotes, setDeleteNotes] = useState(false);
+  useEffect(() => {
+    if (!confirming) return;
+    setNotes(null);
+    setDeleteNotes(false);
+    let cancelled = false;
+    (loadNotes ? loadNotes() : Promise.resolve([]))
+      .then((loaded) => {
+        if (!cancelled) setNotes(loaded);
+      })
+      .catch(() => {
+        if (!cancelled) setNotes([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [confirming, loadNotes]);
+  const noteTitle = notes?.[0]?.title?.trim();
 
   return (
     <>
@@ -69,7 +100,7 @@ export function ConversationMenu({ title, onRename, onDelete, className }: Conve
               className="bg-red-600 text-white hover:bg-red-700"
               onClick={() => {
                 setConfirming(false);
-                onDelete();
+                onDelete({ deleteNotes: deleteNotes && (notes?.length ?? 0) > 0 });
               }}
             >
               Delete
@@ -77,10 +108,24 @@ export function ConversationMenu({ title, onRename, onDelete, className }: Conve
           </div>
         }
       >
-        <p className="text-sm text-gray-600">
-          “{title}” and its messages will be deleted. Any document it created stays in your
-          notebook.
-        </p>
+        <p className="text-sm text-gray-600">“{title}” and its messages will be deleted.</p>
+        {notes && notes.length > 0 ? (
+          <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={deleteNotes}
+              onChange={(event) => setDeleteNotes(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-primary-600"
+            />
+            <span>
+              Also delete the document it created
+              {noteTitle ? <span className="text-gray-500">, “{noteTitle}”</span> : null}. Otherwise
+              it stays in your notebook.
+            </span>
+          </label>
+        ) : notes == null && loadNotes ? (
+          <p className="mt-3 text-xs text-gray-400">Checking for a document…</p>
+        ) : null}
       </BaseModal>
     </>
   );

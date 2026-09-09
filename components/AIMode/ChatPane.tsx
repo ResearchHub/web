@@ -151,7 +151,8 @@ export function ChatPane({
           <ConversationMenu
             title={title}
             onRename={() => setRenaming(true)}
-            onDelete={() => state.deleteChat(chatId)}
+            onDelete={(options) => state.deleteChat(chatId, options)}
+            loadNotes={() => state.notesForChat(chatId)}
           />
         )}
         {headerActions}

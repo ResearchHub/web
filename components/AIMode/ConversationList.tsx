@@ -7,7 +7,7 @@ import { ConversationListSkeleton } from '@/components/skeletons/AIModeSkeleton'
 import { Button } from '@/components/ui/Button';
 import { formatTimeAgo } from '@/utils/date';
 import { cn } from '@/utils/styles';
-import type { NotebookChatListItem } from '@/types/notebookChat';
+import type { ChatNoteRef, NotebookChatListItem } from '@/types/notebookChat';
 import type { ChatListAccess } from '@/hooks/useNotebookChat';
 import { ConversationMenu } from './ConversationMenu';
 import { ConversationTitleField } from './ConversationTitleField';
@@ -24,7 +24,8 @@ interface ConversationListProps {
   readonly onSelect: (chatId: number) => void;
   readonly onNew: () => void;
   readonly onRename: (chatId: number, title: string) => Promise<boolean>;
-  readonly onDelete: (chatId: number) => Promise<boolean>;
+  readonly onDelete: (chatId: number, options: { deleteNotes: boolean }) => Promise<boolean>;
+  readonly loadNotes: (chatId: number) => Promise<ChatNoteRef[]>;
   readonly onRetry: () => void;
 }
 
@@ -43,6 +44,7 @@ export function ConversationList({
   onNew,
   onRename,
   onDelete,
+  loadNotes,
   onRetry,
 }: ConversationListProps) {
   const [renamingId, setRenamingId] = useState<number | null>(null);
@@ -106,7 +108,8 @@ export function ConversationList({
                 if (!next || next === (title ?? '')) return;
                 await onRename(item.id, next);
               }}
-              onDelete={() => onDelete(item.id)}
+              onDelete={(options) => onDelete(item.id, options)}
+              loadNotes={() => loadNotes(item.id)}
             />
           );
         })}
@@ -124,7 +127,8 @@ interface ConversationRowProps {
   readonly onStartRename: () => void;
   readonly onCancelRename: () => void;
   readonly onCommitRename: (value: string) => void;
-  readonly onDelete: () => void;
+  readonly onDelete: (options: { deleteNotes: boolean }) => void;
+  readonly loadNotes: () => Promise<ChatNoteRef[]>;
 }
 
 function ConversationRow({
@@ -137,6 +141,7 @@ function ConversationRow({
   onCancelRename,
   onCommitRename,
   onDelete,
+  loadNotes,
 }: ConversationRowProps) {
   return (
     <div
@@ -178,7 +183,12 @@ function ConversationRow({
             isActive && 'opacity-100'
           )}
         >
-          <ConversationMenu title={title} onRename={onStartRename} onDelete={onDelete} />
+          <ConversationMenu
+            title={title}
+            onRename={onStartRename}
+            onDelete={onDelete}
+            loadNotes={loadNotes}
+          />
         </div>
       )}
     </div>
