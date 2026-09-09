@@ -22,7 +22,6 @@ interface WorkHeaderGrantProps {
   work: Work;
   metadata: WorkMetadata;
   amountUsd?: number;
-  grantAmountUsd?: number;
   grantId?: string;
   isActive?: boolean;
   isPending?: boolean;
@@ -38,7 +37,6 @@ export function WorkHeaderGrant({
   work,
   metadata,
   amountUsd,
-  grantAmountUsd,
   grantId,
   isActive = true,
   isPending = false,
@@ -230,7 +228,6 @@ export function WorkHeaderGrant({
           onClose={() => setIsContributeModalOpen(false)}
           onContributeSuccess={handleContributeSuccess}
           fundingPool={fundingPool}
-          grantAmount={{ usd: grantAmountUsd ?? amountUsd ?? 0 }}
           proposalTitle={grantTitle}
         />
       )}
