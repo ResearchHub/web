@@ -281,6 +281,8 @@ export function AgentChatPanel({
   const modelSelection = useAgentModelSelection({
     enabled: open,
     pinnedRef: chatState.pinnedModelRef,
+    effortPinned: chatState.latestExecution != null,
+    pinnedEffort: chatState.latestExecution?.effort ?? null,
   });
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
@@ -1212,10 +1214,11 @@ export function AgentChatPanel({
             models={modelSelection.models}
             model={modelSelection.model}
             pinned={modelSelection.pinned}
+            effortPinned={modelSelection.effortPinned}
             options={modelSelection.options}
             onSelectModel={modelSelection.selectModel}
             onChangeOptions={modelSelection.setOptions}
-            disabled={composerDisabled}
+            disabled={composerDisabled || composerBusy}
           />
         }
       />

@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/Slider';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import {
   availableEffortLevels,
+  availableThinkingModes,
   clampTemperature,
   EFFORT_LABELS,
   formatTemperature,
@@ -29,6 +30,7 @@ interface ModelControlsProps {
   readonly model: AgentModel | null;
   /** The open chat is committed to its model — the picker locks shut. */
   readonly pinned: boolean;
+  readonly effortPinned: boolean;
   readonly options: GenerationOptions;
   readonly onSelectModel: (ref: string) => void;
   readonly onChangeOptions: (options: GenerationOptions) => void;
@@ -40,10 +42,8 @@ type OpenMenu = 'model' | 'effort' | null;
 /**
  * The composer's two dropdowns: which model answers, and how hard it works.
  *
- * They are separate because they lock separately. A conversation keeps the
- * model its first turn ran on, so the model picker shuts for good once a turn
- * has run; effort, thinking and temperature are re-read on every message, so
- * they stay open for the life of the chat.
+ * Model and effort lock after the first turn. The effort menu still offers
+ * independent thinking and temperature controls where the model allows them.
  *
  * The effort menu holds all three, temperature included — they are one
  * decision about how much work a turn does, and only the controls the model
@@ -55,6 +55,7 @@ export function ModelControls({
   models,
   model,
   pinned,
+  effortPinned,
   options,
   onSelectModel,
   onChangeOptions,
@@ -81,13 +82,26 @@ export function ModelControls({
   const effortLevels = availableEffortLevels(model, options.thinking);
   // A single mode is not a choice: models that always reason take no toggle,
   // they just reason.
-  const thinkingModes = model.capabilities.thinking.length > 1 ? model.capabilities.thinking : [];
+  const thinkingModes =
+    model.capabilities.thinking.length > 1
+      ? availableThinkingModes(model, effortPinned, options.effort ?? null)
+      : [];
+  const thinkingRestricted =
+    effortPinned &&
+    thinkingModes.length < model.capabilities.thinking.length &&
+    model.capabilities.thinking.length > 1;
   const showTemperature = temperatureAvailable(model, options.thinking);
   // Claude refuses sampling params to a model that is still reasoning, which
   // would otherwise read as a control that went missing on its own.
   const temperatureNeedsThinkingOff =
     !showTemperature && model.capabilities.temperature && thinkingModes.includes('disabled');
-  const hasEffortMenu = effortLevels.length > 0 || thinkingModes.length > 0 || showTemperature;
+  const hasEffort = model.capabilities.effort.length > 0 || options.effort != null;
+  const hasEffortMenu = hasEffort || thinkingModes.length > 0 || showTemperature;
+  const effortLocked = effortPinned && hasEffort;
+  const lockedEffortLabel = options.effort ? EFFORT_LABELS[options.effort] : 'Locked effort';
+  const lockedEffortDescription = options.effort
+    ? `${EFFORT_LABELS[options.effort]} effort is locked for this chat. Start a new chat to change it.`
+    : 'Effort is locked for this chat. Start a new chat to change it.';
 
   const toggle = (menu: Exclude<OpenMenu, null>) =>
     setOpenMenu((current) => (current === menu ? null : menu));
@@ -124,16 +138,26 @@ export function ModelControls({
           onClick={() => toggle('effort')}
           open={openMenu === 'effort'}
           disabled={disabled}
-          title={summarizeGenerationOptions(options).join(' · ') || 'Model defaults'}
-          icon={<Gauge className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />}
-          srLabel="Effort:"
+          title={
+            effortLocked
+              ? lockedEffortDescription
+              : summarizeGenerationOptions(options).join(' · ') || 'Model defaults'
+          }
+          icon={
+            effortLocked ? (
+              <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
+            ) : (
+              <Gauge className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+            )
+          }
+          srLabel={effortLocked ? 'Effort, locked for this chat:' : 'Effort:'}
           className="max-w-[140px]"
         >
-          {effortButtonLabel(options)}
+          {effortLocked ? lockedEffortLabel : effortButtonLabel(options)}
         </ControlButton>
       )}
 
-      {openMenu === 'model' && (
+      {openMenu === 'model' && !disabled && !pinned && (
         <Menu label="Assistant model">
           <div className="max-h-64 overflow-y-auto p-1">
             {models.map((option) => (
@@ -154,19 +178,30 @@ export function ModelControls({
         </Menu>
       )}
 
-      {openMenu === 'effort' && (
+      {openMenu === 'effort' && !disabled && (
         <Menu label="Effort">
           <div className="space-y-3 px-3 py-3">
-            {effortLevels.length > 0 && (
-              <OptionPills
-                label="Effort"
-                value={options.effort}
-                choices={effortLevels.map((level) => ({
-                  value: level,
-                  label: EFFORT_LABELS[level],
-                }))}
-                onChange={(effort) => onChangeOptions({ effort })}
-              />
+            {effortLocked ? (
+              <p className="text-xs leading-snug text-gray-500">{lockedEffortDescription}</p>
+            ) : (
+              effortLevels.length > 0 && (
+                <OptionPills
+                  label="Effort"
+                  value={options.effort}
+                  choices={effortLevels.map((level) => ({
+                    value: level,
+                    label: EFFORT_LABELS[level],
+                  }))}
+                  onChange={(effort) => onChangeOptions({ effort })}
+                />
+              )
+            )}
+
+            {thinkingRestricted && (
+              <p className="text-[11px] leading-snug text-gray-500">
+                Thinking options are limited by this chat's locked effort. Start a new chat for all
+                options.
+              </p>
             )}
 
             {thinkingModes.length > 0 && (

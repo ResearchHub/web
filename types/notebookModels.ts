@@ -68,9 +68,9 @@ export interface AgentModelCatalog {
 }
 
 /**
- * Per-turn model controls. Every field is optional and an omitted one means
- * "whatever the server is configured to do", which is the resting state of
- * the picker — nothing is sent until the user asks for it.
+ * Model controls. Effort is chosen on the first turn and inherited thereafter;
+ * thinking and temperature remain per-turn. Omitted fields use server defaults
+ * on a new chat, and omitted effort preserves an existing chat's saved value.
  */
 export interface GenerationOptions {
   readonly effort?: EffortLevel;
@@ -192,6 +192,23 @@ export function availableEffortLevels(
 }
 
 /**
+ * Existing chats keep their latest saved effort. For legacy chats without a
+ * recorded value, only offer modes compatible with every possible level.
+ */
+export function availableThinkingModes(
+  model: AgentModel,
+  effortPinned: boolean,
+  pinnedEffort: EffortLevel | null = null
+): ThinkingMode[] {
+  const efforts = pinnedEffort == null ? model.capabilities.effort : [pinnedEffort];
+  return model.capabilities.thinking.filter(
+    (thinking) =>
+      !effortPinned ||
+      efforts.every((effort) => availableEffortLevels(model, thinking).includes(effort))
+  );
+}
+
+/**
  * Whether a temperature may accompany `thinking`. Claude Platform rejects
  * sampling params on any model that reasons unless reasoning is explicitly
  * turned off — leaving thinking unset is not enough for it.
@@ -224,18 +241,27 @@ export function formatTemperature(value: number): string {
  *
  * Callers keep the user's raw choices and normalize on the way out, so an
  * effort a model can't take comes back when they return to one that can.
+ * A pinned effort is restored verbatim for display; callers omit it on sends.
  */
 export function normalizeGenerationOptions(
   model: AgentModel,
-  options: GenerationOptions
+  options: GenerationOptions,
+  effortPinned = false,
+  pinnedEffort: EffortLevel | null = null
 ): GenerationOptions {
   const thinking =
-    options.thinking != null && model.capabilities.thinking.includes(options.thinking)
+    options.thinking != null &&
+    availableThinkingModes(model, effortPinned, pinnedEffort).includes(options.thinking)
       ? options.thinking
       : undefined;
-  const effort =
-    options.effort != null && availableEffortLevels(model, thinking).includes(options.effort)
-      ? options.effort
+  // On a new OpenRouter chat, explicitly pair thinking off with no effort.
+  // Otherwise the backend snapshots its default effort, which may reason.
+  const requestedEffort =
+    model.provider === OPENROUTER && thinking === 'disabled' ? 'none' : options.effort;
+  const effort = effortPinned
+    ? (pinnedEffort ?? undefined)
+    : requestedEffort != null && availableEffortLevels(model, thinking).includes(requestedEffort)
+      ? requestedEffort
       : undefined;
   const temperature =
     options.temperature != null && temperatureAvailable(model, thinking)

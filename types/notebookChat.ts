@@ -8,6 +8,8 @@
  * against the backend contract.
  */
 
+import type { EffortLevel } from './notebookModels';
+
 export type ExecutionStatus =
   | 'PENDING'
   | 'RUNNING'
@@ -141,6 +143,8 @@ export interface ChatExecution {
    * every later turn on it runs, and cannot be changed.
    */
   model: string;
+  /** Saved effort for this turn; null on legacy turns, omitted by older backends. */
+  effort?: EffortLevel | null;
   /** The user message that started this turn. */
   trigger_message_id: number | null;
   retry_of_id: number | null;
