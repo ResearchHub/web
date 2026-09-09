@@ -49,9 +49,9 @@ export class NotebookChatService {
    * running (one turn per chat), 400 for empty/oversized messages.
    *
    * `generation` carries the model and its controls; every field is optional
-   * and an omitted one runs the server's configured default. `model` is only
-   * honoured on a conversation's first turn — naming a different one later is
-   * a 400, so send it only while the conversation is still unpinned.
+   * and defaults are resolved server-side. `model` and `effort` are fixed on
+   * the first turn; omit them on later turns to inherit the saved values.
+   * Attempting to change either returns 400.
    */
   static async sendMessage(
     noteId: ID,

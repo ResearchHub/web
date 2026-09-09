@@ -68,9 +68,9 @@ export interface AgentModelCatalog {
 }
 
 /**
- * Per-turn model controls. Every field is optional and an omitted one means
- * "whatever the server is configured to do", which is the resting state of
- * the picker — nothing is sent until the user asks for it.
+ * Model controls. Effort is chosen on the first turn and inherited thereafter;
+ * thinking and temperature remain per-turn. Omitted fields use server defaults
+ * on a new chat, and omitted effort preserves an existing chat's saved value.
  */
 export interface GenerationOptions {
   readonly effort?: EffortLevel;
@@ -192,6 +192,21 @@ export function availableEffortLevels(
 }
 
 /**
+ * Existing chats do not expose their saved effort. Only offer thinking modes
+ * compatible with every possible saved level; omission lets the provider
+ * resolve thinking from the inherited effort without a contradictory flag.
+ */
+export function availableThinkingModes(model: AgentModel, effortPinned: boolean): ThinkingMode[] {
+  return model.capabilities.thinking.filter(
+    (thinking) =>
+      !effortPinned ||
+      model.capabilities.effort.every((effort) =>
+        availableEffortLevels(model, thinking).includes(effort)
+      )
+  );
+}
+
+/**
  * Whether a temperature may accompany `thinking`. Claude Platform rejects
  * sampling params on any model that reasons unless reasoning is explicitly
  * turned off — leaving thinking unset is not enough for it.
@@ -227,15 +242,23 @@ export function formatTemperature(value: number): string {
  */
 export function normalizeGenerationOptions(
   model: AgentModel,
-  options: GenerationOptions
+  options: GenerationOptions,
+  effortPinned = false
 ): GenerationOptions {
   const thinking =
-    options.thinking != null && model.capabilities.thinking.includes(options.thinking)
+    options.thinking != null &&
+    availableThinkingModes(model, effortPinned).includes(options.thinking)
       ? options.thinking
       : undefined;
+  // On a new OpenRouter chat, explicitly pair thinking off with no effort.
+  // Otherwise the backend snapshots its default effort, which may reason.
+  const requestedEffort =
+    model.provider === OPENROUTER && thinking === 'disabled' ? 'none' : options.effort;
   const effort =
-    options.effort != null && availableEffortLevels(model, thinking).includes(options.effort)
-      ? options.effort
+    !effortPinned &&
+    requestedEffort != null &&
+    availableEffortLevels(model, thinking).includes(requestedEffort)
+      ? requestedEffort
       : undefined;
   const temperature =
     options.temperature != null && temperatureAvailable(model, thinking)

@@ -44,6 +44,8 @@ export interface UseAgentModelSelectionOptions {
    * model for life, so this — when set — outranks the user's standing choice.
    */
   readonly pinnedRef: string | null;
+  /** Any recorded turn locks effort, including legacy turns without a model. */
+  readonly effortPinned: boolean;
 }
 
 export interface AgentModelSelection {
@@ -53,6 +55,7 @@ export interface AgentModelSelection {
   readonly model: AgentModel | null;
   /** The open chat has already committed to a model. */
   readonly pinned: boolean;
+  readonly effortPinned: boolean;
   /** The user's controls, narrowed to what {@link model} actually accepts. */
   readonly options: GenerationOptions;
   readonly selectModel: (ref: string) => void;
@@ -67,13 +70,14 @@ export interface AgentModelSelection {
  *
  * The model choice is a browser-level preference — the last one picked is the
  * one a new chat starts on — while a chat already under way reports its own
- * pin, which wins. The generation controls stay per-turn either way: the
- * server re-reads them on every message, so effort and thinking remain live
- * even on a chat whose model is settled.
+ * pin, which wins. Effort is also fixed after the first turn. Existing chats
+ * omit it so the server inherits its saved value, regardless of this browser's
+ * preference. Independent thinking and temperature controls remain per-turn.
  */
 export function useAgentModelSelection({
   enabled,
   pinnedRef,
+  effortPinned,
 }: UseAgentModelSelectionOptions): AgentModelSelection {
   const { status, catalog } = useAgentModels(enabled);
   const [preference, setPreference] = useState<StoredPreference>({});
@@ -111,17 +115,26 @@ export function useAgentModelSelection({
   }, [catalog, models, pinnedRef, preference.ref]);
 
   const options = useMemo(
-    () => (model ? normalizeGenerationOptions(model, preference) : {}),
-    [model, preference]
+    () => (model ? normalizeGenerationOptions(model, preference, effortPinned) : {}),
+    [model, preference, effortPinned]
   );
 
-  const selectModel = useCallback((ref: string) => {
-    setPreference((current) => ({ ...current, ref }));
-  }, []);
+  const selectModel = useCallback(
+    (ref: string) => {
+      if (pinnedRef != null) return;
+      setPreference((current) => ({ ...current, ref }));
+    },
+    [pinnedRef]
+  );
 
-  const setOptions = useCallback((next: GenerationOptions) => {
-    setPreference((current) => ({ ...current, ...next }));
-  }, []);
+  const setOptions = useCallback(
+    (next: GenerationOptions) => {
+      // Locked controls must not overwrite the preference for the next new chat.
+      const { effort, ...perTurn } = next;
+      setPreference((current) => ({ ...current, ...(effortPinned ? perTurn : next) }));
+    },
+    [effortPinned]
+  );
 
   const request = useMemo<GenerationRequest>(() => {
     if (model == null) return {};
@@ -135,6 +148,7 @@ export function useAgentModelSelection({
     models,
     model,
     pinned: pinnedRef != null,
+    effortPinned,
     options,
     selectModel,
     setOptions,
