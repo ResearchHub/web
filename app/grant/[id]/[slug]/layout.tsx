@@ -67,7 +67,13 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
-    <GrantTabProvider defaultTab="details" grantId={grantId}>
+    <GrantTabProvider
+      defaultTab="details"
+      grantId={grantId}
+      fundingPool={grant?.fundingPool ?? null}
+      applications={grant?.applications ?? []}
+      grantCreatedByUserId={grant?.createdBy?.id ?? null}
+    >
       <PageLayout
         fundraiseGrantId={grantId ? Number(grantId) : undefined}
         topBanner={
@@ -82,6 +88,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
             fundingPool={grant?.fundingPool ?? null}
+            grantCreatedByUserId={grant?.createdBy?.id ?? null}
             preTitle={
               <RegisteredReportRouteTrackerLoader
                 currentStage="grant"

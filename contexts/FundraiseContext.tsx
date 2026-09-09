@@ -44,6 +44,8 @@ interface FundraiseContextValue {
 
   /** Call once from the consuming component to trigger the initial fetch. */
   activate: () => void;
+  /** Refetch the current proposals page (e.g. after pool allocate updates raised). */
+  refresh: () => Promise<void>;
 
   restoredScrollPosition: number | null;
   lastClickedEntryId: string | null;
@@ -212,6 +214,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       setSortBy,
       isGrantScoped,
       activate,
+      refresh: fetchProposals,
       restoredScrollPosition,
       lastClickedEntryId,
       restorationTab,
@@ -230,6 +233,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       sortBy,
       isGrantScoped,
       activate,
+      fetchProposals,
       restoredScrollPosition,
       lastClickedEntryId,
       restorationTab,

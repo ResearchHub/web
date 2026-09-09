@@ -11,7 +11,10 @@ import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalToolt
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
+import { useUser } from '@/contexts/UserContext';
 import type { FundingPool, GrantApplicationVisibility } from '@/types/grant';
+import { formatRSC } from '@/utils/number';
+import { ID } from '@/types/root';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 
@@ -26,6 +29,7 @@ interface WorkHeaderGrantProps {
   organization?: string;
   applicationVisibility?: GrantApplicationVisibility;
   fundingPool?: FundingPool | null;
+  grantCreatedByUserId?: ID | null;
   className?: string;
   preTitle?: ReactNode;
 }
@@ -40,20 +44,32 @@ export function WorkHeaderGrant({
   isPending = false,
   organization,
   applicationVisibility,
-  fundingPool = null,
+  fundingPool: fundingPoolProp = null,
+  grantCreatedByUserId = null,
   className,
   preTitle,
 }: WorkHeaderGrantProps) {
   const router = useRouter();
+  const { user } = useUser();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
-  const { activeTab, setActiveTab, activity } = useGrantTab();
+  const { activeTab, setActiveTab, activity, fundingPool: contextPool } = useGrantTab();
   const { proposalCount } = useFundraises();
+
+  const fundingPool = contextPool ?? fundingPoolProp;
 
   const handleTabChange = useCallback(
     (tabId: string) => setActiveTab(tabId as GrantBannerTab),
     [setActiveTab]
   );
+
+  const isGrantCreator =
+    user?.id != null &&
+    grantCreatedByUserId != null &&
+    Number(user.id) === Number(grantCreatedByUserId);
+  const canManagePool = isGrantCreator || !!user?.isModerator;
+  const showPoolHolding =
+    canManagePool && fundingPool?.status === 'OPEN' && (fundingPool.amountHolding.rsc ?? 0) >= 0;
 
   const eyebrow = (
     <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
@@ -103,6 +119,27 @@ export function WorkHeaderGrant({
             </Button>
           </SubmitProposalTooltip>
         </div>
+        {showPoolHolding && fundingPool && (
+          <div
+            data-testid="grant-pool-holding"
+            className="hidden sm:flex items-center justify-center gap-x-3 text-xs text-gray-500"
+          >
+            <span>
+              Pool holding{' '}
+              <span className="font-mono font-medium text-gray-700 tabular-nums">
+                {formatRSC({ amount: fundingPool.amountHolding.rsc, decimalPlaces: 2 })} RSC
+              </span>
+            </span>
+            {(fundingPool.amountDistributed.rsc ?? 0) > 0 && (
+              <span>
+                Distributed{' '}
+                <span className="font-mono text-gray-600 tabular-nums">
+                  {formatRSC({ amount: fundingPool.amountDistributed.rsc, decimalPlaces: 2 })} RSC
+                </span>
+              </span>
+            )}
+          </div>
+        )}
         {requiresPrivateApplications && (
           <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
             <Lock className="h-3 w-3 shrink-0" />
