@@ -24,7 +24,6 @@ import {
   type ActivityPillId,
 } from '@/components/profile/ProfileActivityTab';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
-import PinnedFundraise from './components/PinnedFundraise';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import {
   ProfileHeroBanner,
@@ -91,12 +90,10 @@ const MODERATION_TAB = {
 
 function AuthorTabContent({
   authorId,
-  userId,
   currentTab,
   isPending,
 }: {
   authorId: number;
-  userId?: number;
   currentTab: string;
   isPending: boolean;
 }) {
@@ -129,24 +126,17 @@ function AuthorTabContent({
   const rows = isPending ? [] : groupActivityRows(entries);
 
   return (
-    <div>
-      {currentTab === 'contributions' && userId && (
-        <div className="mb-6">
-          <PinnedFundraise userId={userId} compact={true} />
-        </div>
-      )}
-      <ActivityFeedList
-        isLoading={isPending || isLoading}
-        isLoadingMore={isLoadingMore}
-        hasMore={hasMore}
-        loadMore={loadMore}
-        isEmpty={entries.length === 0}
-      >
-        {rows.map((row) => (
-          <ActivityRow key={row.key} row={row} />
-        ))}
-      </ActivityFeedList>
-    </div>
+    <ActivityFeedList
+      isLoading={isPending || isLoading}
+      isLoadingMore={isLoadingMore}
+      hasMore={hasMore}
+      loadMore={loadMore}
+      isEmpty={entries.length === 0}
+    >
+      {rows.map((row) => (
+        <ActivityRow key={row.key} row={row} />
+      ))}
+    </ActivityFeedList>
   );
 }
 
@@ -295,24 +285,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
         : ACTIVITY_PILLS[0].id;
       return (
         <ProfileActivityTab activePill={activePill} onPillChange={setTab} userId={author.userId}>
-          <AuthorTabContent
-            authorId={author.id}
-            userId={author.userId}
-            currentTab={activePill}
-            isPending={isPending}
-          />
+          <AuthorTabContent authorId={author.id} currentTab={activePill} isPending={isPending} />
         </ProfileActivityTab>
       );
     }
 
     // Overview (default)
     return (
-      <AuthorTabContent
-        authorId={author.id}
-        userId={author.userId}
-        currentTab="contributions"
-        isPending={isPending}
-      />
+      <AuthorTabContent authorId={author.id} currentTab="contributions" isPending={isPending} />
     );
   };
 
