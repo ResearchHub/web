@@ -131,7 +131,7 @@ export interface Grant {
   endDate: string;
   contacts: Contact[];
   applicationVisibility: GrantApplicationVisibility;
-  /** Null until ensure / create; slim feed serializers may omit the field entirely. */
+  /** Null when omitted (slim feed) or not yet backfilled; BE creates pools on grant create. */
   fundingPool: FundingPool | null;
   applicants?: AuthorProfile[];
   reviewedBy?: {

@@ -25,8 +25,8 @@ import {
   PAYMENT_PROCESSING_FEE,
   METHODS_WITH_PROCESSING_FEE,
 } from './lib/constants';
-import { ID } from '@/types/root';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import type { PaymentIntentTarget } from '@/services/payment.service';
 
 interface PaymentStepProps {
   /** Amount in RSC (before fees) */
@@ -39,8 +39,8 @@ interface PaymentStepProps {
   rscBalance: number;
   /** User's funding credits balance (excludes promotional RSC) */
   fundingCreditsBalance?: number;
-  /** Fundraise ID for payment request button */
-  fundraiseId: ID;
+  /** Fundraise or funding pool target for Apple Pay / Google Pay */
+  paymentTarget: PaymentIntentTarget;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
   walletAvailability: WalletAvailability;
   /** Whether the fundraise has a non-profit org (shows Endaoment option) */
@@ -71,7 +71,7 @@ export function PaymentStep({
   amountDisplay,
   rscBalance,
   fundingCreditsBalance = 0,
-  fundraiseId,
+  paymentTarget,
   walletAvailability,
   hasNonprofit = false,
   isProcessing = false,
@@ -176,13 +176,15 @@ export function PaymentStep({
       // Track payment method selection
       if (method) {
         AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED, {
-          fundraise_id: fundraiseId,
+          ...('fundingPoolId' in paymentTarget
+            ? { funding_pool_id: paymentTarget.fundingPoolId }
+            : { fundraise_id: paymentTarget.fundraiseId }),
           payment_method: method,
           amount_usd: amountInUsd,
         });
       }
     },
-    [fundraiseId, amountInUsd]
+    [paymentTarget, amountInUsd]
   );
 
   // Dummy handlers for PaymentWidget (we handle the action in this component)
@@ -324,7 +326,7 @@ export function PaymentStep({
             <PaymentRequestButton
               amountCents={Math.round(totalDueUsd * 100)}
               amountInRsc={amountInRsc}
-              fundraiseId={fundraiseId}
+              paymentTarget={paymentTarget}
               label="Fund Research"
               unavailableText={
                 selectedMethod === 'apple_pay'

@@ -73,11 +73,13 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             work={work}
             metadata={metadata}
             amountUsd={grant?.amount?.usd}
+            grantAmountUsd={grant?.amount?.usd}
             grantId={grantId?.toString()}
             isActive={isActive}
             isPending={isPending}
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
+            fundingPool={grant?.fundingPool ?? null}
             preTitle={
               <RegisteredReportRouteTrackerLoader
                 currentStage="grant"
