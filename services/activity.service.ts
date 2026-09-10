@@ -23,7 +23,7 @@ export interface GetActivityParams {
   disableCache?: boolean;
 }
 
-export interface GetUserActivityParams {
+export interface GetActorActivityParams {
   page?: number;
   pageSize?: number;
   contentType?: string;
@@ -82,20 +82,31 @@ export class ActivityService {
     return this.fetchActivity(url);
   }
 
-  static async getUserActivity(
-    userId: number,
-    params?: GetUserActivityParams
+  /** Activity of a single actor, identified either by user id or by author id. */
+  private static fetchActorActivity(
+    endpoint: string,
+    actor: Record<string, string>,
+    params?: GetActorActivityParams
   ): Promise<ActivityResult> {
     const pageSize = params?.pageSize ?? this.DEFAULT_PAGE_SIZE;
-    const queryParams = new URLSearchParams({
-      user_id: userId.toString(),
-      page_size: pageSize.toString(),
-    });
+    const queryParams = new URLSearchParams({ ...actor, page_size: pageSize.toString() });
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.contentType) queryParams.append('content_type', params.contentType);
     params?.commentTypes?.forEach((commentType) => queryParams.append('comment_type', commentType));
     if (params?.scope) queryParams.append('scope', params.scope);
 
-    return this.fetchActivity(`${this.BASE_PATH}/user_activity/?${queryParams.toString()}`);
+    return this.fetchActivity(`${this.BASE_PATH}/${endpoint}/?${queryParams.toString()}`);
+  }
+
+  static getUserActivity(userId: number, params?: GetActorActivityParams): Promise<ActivityResult> {
+    return this.fetchActorActivity('user_activity', { user_id: userId.toString() }, params);
+  }
+
+  /** `authorId` is an author profile id, not a user id. */
+  static getAuthorActivity(
+    authorId: number,
+    params?: GetActorActivityParams
+  ): Promise<ActivityResult> {
+    return this.fetchActorActivity('author_activity', { author_id: authorId.toString() }, params);
   }
 }

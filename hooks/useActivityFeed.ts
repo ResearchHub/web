@@ -2,12 +2,17 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { FeedEntry } from '@/types/feed';
-import { ActivityService, ActivityScope } from '@/services/activity.service';
+import { ActivityService, ActivityCommentType, ActivityScope } from '@/services/activity.service';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 
 interface UseActivityFeedOptions {
+  /** Author profile id, to read one author's activity instead of the site-wide feed. */
+  authorId?: number;
+  contentType?: string;
+  /** Pass a stable reference: a new array on every render restarts the feed. */
+  commentTypes?: readonly ActivityCommentType[];
   scope?: ActivityScope;
   grantId?: number | string;
   disableCache?: boolean;
@@ -15,6 +20,9 @@ interface UseActivityFeedOptions {
 }
 
 export function useActivityFeed({
+  authorId,
+  contentType,
+  commentTypes,
   scope,
   grantId,
   disableCache = false,
@@ -48,6 +56,19 @@ export function useActivityFeed({
   // changes (scope / grantId) still refetch.
   const skipNextFetchRef = useRef(hasRestoredEntries);
 
+  const fetchPage = useCallback(
+    (pageNumber: number) =>
+      authorId
+        ? ActivityService.getAuthorActivity(authorId, {
+            page: pageNumber,
+            contentType,
+            commentTypes,
+            scope,
+          })
+        : ActivityService.getActivity({ page: pageNumber, scope, grantId, disableCache }),
+    [authorId, contentType, commentTypes, scope, grantId, disableCache]
+  );
+
   const fetchInitial = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
@@ -55,12 +76,7 @@ export function useActivityFeed({
     setPage(1);
 
     try {
-      const result = await ActivityService.getActivity({
-        page: 1,
-        scope,
-        grantId,
-        disableCache,
-      });
+      const result = await fetchPage(1);
       setEntries(result.entries);
       setHasMore(result.hasMore);
       setCount(result.count);
@@ -69,7 +85,7 @@ export function useActivityFeed({
     } finally {
       setIsLoading(false);
     }
-  }, [scope, grantId, disableCache]);
+  }, [fetchPage]);
 
   useEffect(() => {
     if (enabled === false) return;
@@ -87,12 +103,7 @@ export function useActivityFeed({
     const nextPage = pageRef.current + 1;
 
     try {
-      const result = await ActivityService.getActivity({
-        page: nextPage,
-        scope,
-        grantId,
-        disableCache,
-      });
+      const result = await fetchPage(nextPage);
       setEntries((prev) => {
         const next = [...prev, ...result.entries];
         setCount(next.length);
@@ -106,7 +117,7 @@ export function useActivityFeed({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore, scope, grantId, disableCache]);
+  }, [isLoading, isLoadingMore, hasMore, fetchPage]);
 
   return {
     entries,

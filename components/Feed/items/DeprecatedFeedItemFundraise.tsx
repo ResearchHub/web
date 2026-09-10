@@ -18,7 +18,7 @@ import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { Pin, ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -36,7 +36,6 @@ interface FeedItemFundraiseProps {
   showHeader?: boolean;
   maxLength?: number;
   customActionText?: string;
-  isPinnedFundraise?: boolean;
   onFeedItemClick?: () => void;
   showBountyInfo?: boolean;
 }
@@ -49,7 +48,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   showHeader = true,
   maxLength,
   customActionText,
-  isPinnedFundraise = false,
   onFeedItemClick,
   showBountyInfo,
 }) => {
@@ -137,12 +135,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           ) : undefined
         }
       >
-        {isPinnedFundraise && (
-          <div className="absolute top-3 right-3 z-10 pointer-events-none">
-            <Pin className="w-4 h-4 text-blue-600" />
-          </div>
-        )}
-
         {/* Mobile image */}
         {imageUrl && (
           <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
