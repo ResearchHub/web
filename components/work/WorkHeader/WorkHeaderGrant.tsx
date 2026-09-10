@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState, useCallback } from 'react';
 import { ArrowUpFromLine, Coins, Lock } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
@@ -12,11 +12,23 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { useUser } from '@/contexts/UserContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { FundingPool, GrantApplicationVisibility } from '@/types/grant';
-import { formatRSC } from '@/utils/number';
+import { formatCurrency } from '@/utils/currency';
 import { ID } from '@/types/root';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
+
+const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
+
+function formatPoolAmount(amount: { usd: number; rsc: number }, showUSD: boolean): string {
+  return formatCurrency({
+    amount: showUSD ? amount.usd : amount.rsc,
+    showUSD,
+    exchangeRate: 1,
+    skipConversion: true,
+  });
+}
 
 interface WorkHeaderGrantProps {
   work: Work;
@@ -48,7 +60,12 @@ export function WorkHeaderGrant({
   preTitle,
 }: WorkHeaderGrantProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUser();
+  const { showUSD } = useCurrencyPreference();
+  const isRfpFundingPoolEnabled =
+    searchParams.get(RFP_FUNDING_POOL_PARAM) === 'true' ||
+    searchParams.get(RFP_FUNDING_POOL_PARAM) === '1';
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity, fundingPool: contextPool } = useGrantTab();
@@ -67,14 +84,18 @@ export function WorkHeaderGrant({
     Number(user.id) === Number(grantCreatedByUserId);
   const canManagePool = isGrantCreator || !!user?.isModerator;
   const showPoolHolding =
-    canManagePool && fundingPool?.status === 'OPEN' && (fundingPool.amountHolding.rsc ?? 0) >= 0;
+    isRfpFundingPoolEnabled &&
+    canManagePool &&
+    fundingPool?.status === 'OPEN' &&
+    (fundingPool.amountHolding.rsc ?? 0) >= 0;
 
   const eyebrow = (
     <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
   );
 
   const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
-  const canContributeToPool = !!grantId && isActive && fundingPool?.status === 'OPEN';
+  const canContributeToPool =
+    isRfpFundingPoolEnabled && !!grantId && isActive && fundingPool?.status === 'OPEN';
 
   const handleContributeSuccess = useCallback(() => {
     setIsContributeModalOpen(false);
@@ -125,14 +146,14 @@ export function WorkHeaderGrant({
             <span>
               Pool holding{' '}
               <span className="font-mono font-medium text-gray-700 tabular-nums">
-                {formatRSC({ amount: fundingPool.amountHolding.rsc, decimalPlaces: 2 })} RSC
+                {formatPoolAmount(fundingPool.amountHolding, showUSD)}
               </span>
             </span>
             {(fundingPool.amountDistributed.rsc ?? 0) > 0 && (
               <span>
                 Distributed{' '}
                 <span className="font-mono text-gray-600 tabular-nums">
-                  {formatRSC({ amount: fundingPool.amountDistributed.rsc, decimalPlaces: 2 })} RSC
+                  {formatPoolAmount(fundingPool.amountDistributed, showUSD)}
                 </span>
               </span>
             )}
@@ -221,7 +242,7 @@ export function WorkHeaderGrant({
         }
       />
 
-      {fundingPool?.status === 'OPEN' && (
+      {isRfpFundingPoolEnabled && fundingPool?.status === 'OPEN' && (
         <ContributeToFundraiseModal
           mode="fundingPool"
           isOpen={isContributeModalOpen}

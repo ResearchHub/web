@@ -9,6 +9,7 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Fundraise } from '@/types/funding';
 import { FundingPool } from '@/types/grant';
 import { Work } from '@/types/work';
@@ -30,6 +31,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
+import { formatCurrency } from '@/utils/currency';
 
 import AuthContent from '@/components/Auth/AuthContent';
 
@@ -138,6 +140,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
+  const { showUSD } = useCurrencyPreference();
   const isMobile = useIsMobile();
   // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
   // and EIN-search round trips on every open.
@@ -448,6 +451,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
 
   // Calculate amounts in USD for display.
   const poolRaisedUsd = fundingPool?.amountRaised.usd ?? 0;
+  const poolRaisedRsc = fundingPool?.amountRaised.rsc ?? 0;
   const currentAmountUsd = isPoolMode
     ? poolRaisedUsd
     : (progressOverride?.currentAmountUsd ?? fundraise?.amountRaised?.usd ?? 0);
@@ -636,11 +640,16 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                 />
               </div>
 
-              {isPoolMode && poolRaisedUsd > 0 && (
+              {isPoolMode && (showUSD ? poolRaisedUsd : poolRaisedRsc) > 0 && (
                 <p className="text-sm text-gray-600">
                   Raised so far{' '}
                   <span className="font-mono font-medium text-gray-900 tabular-nums">
-                    {formatUsd(poolRaisedUsd)}
+                    {formatCurrency({
+                      amount: showUSD ? poolRaisedUsd : poolRaisedRsc,
+                      showUSD,
+                      exchangeRate: 1,
+                      skipConversion: true,
+                    })}
                   </span>
                 </p>
               )}

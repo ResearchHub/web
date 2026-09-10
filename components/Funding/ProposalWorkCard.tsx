@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Coins } from 'lucide-react';
 import {
   ActivityTimestamp,
@@ -28,6 +28,8 @@ import { formatCurrency } from '@/utils/currency';
 import type { FeedEntry } from '@/types/feed';
 import type { Fundraise } from '@/types/funding';
 import type { FundingPool } from '@/types/grant';
+
+const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
 
 interface ProposalWorkCardProps {
   entry: FeedEntry;
@@ -72,6 +74,10 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   const { updateLastClickedEntryId } = useNavigation();
   const { user } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRfpFundingPoolEnabled =
+    searchParams.get(RFP_FUNDING_POOL_PARAM) === 'true' ||
+    searchParams.get(RFP_FUNDING_POOL_PARAM) === '1';
   const { isGrantScoped, refresh: refreshProposals } = useFundraises();
   const grantAllocate = useGrantAllocateContext();
 
@@ -92,6 +98,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   const canManagePool = isGrantCreator || !!user?.isModerator;
 
   const canAllocate =
+    isRfpFundingPoolEnabled &&
     isGrantScoped &&
     canManagePool &&
     fundingPool?.status === 'OPEN' &&

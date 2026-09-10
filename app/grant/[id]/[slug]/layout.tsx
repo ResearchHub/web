@@ -59,10 +59,10 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const grant = work.note?.post?.grant;
   const grantId = grant?.id ?? undefined;
   const grantTitle = grant?.shortTitle || work.title;
+  const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
   const isPending = grant?.status === 'PENDING';
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
-  const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
 
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
