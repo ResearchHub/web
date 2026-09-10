@@ -1,10 +1,12 @@
 'use client';
 
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
-import { Check, ChevronDown, Gauge, Lock, Sparkles } from 'lucide-react';
+import { Check, Gauge, Lock, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Slider } from '@/components/ui/Slider';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { ChoicePills } from '@/components/ui/ChoicePills';
+import { FieldLabel } from '@/components/ui/FieldLabel';
+import { MenuTrigger } from '@/components/ui/MenuTrigger';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import {
   availableEffortLevels,
@@ -21,9 +23,7 @@ import {
   temperatureAvailable,
   THINKING_LABELS,
   type AgentModel,
-  type EffortLevel,
   type GenerationOptions,
-  type ThinkingMode,
 } from '@/types/agentModels';
 
 interface ModelControlsProps {
@@ -107,7 +107,7 @@ export function ModelControls({
         disabled={disabled || pinned}
         className={cn(PANEL_WIDTH, 'rounded-xl shadow-xl')}
         trigger={
-          <ControlButton
+          <MenuTrigger
             disabled={disabled || pinned}
             title={
               pinned
@@ -125,7 +125,7 @@ export function ModelControls({
             className="max-w-[180px]"
           >
             {model.label}
-          </ControlButton>
+          </MenuTrigger>
         }
       >
         <div className="max-h-64 overflow-y-auto" role="group" aria-label="Assistant model">
@@ -147,7 +147,7 @@ export function ModelControls({
       {hasEffortMenu && model.allowed && (
         <Popover>
           <PopoverTrigger asChild>
-            <ControlButton
+            <MenuTrigger
               disabled={disabled}
               title={
                 effortLocked
@@ -165,15 +165,16 @@ export function ModelControls({
               className="max-w-[140px]"
             >
               {effortLocked ? lockedEffortLabel : effortButtonLabel(options)}
-            </ControlButton>
+            </MenuTrigger>
           </PopoverTrigger>
           <PopoverContent aria-label="Effort" className={cn(PANEL_WIDTH, 'space-y-3 shadow-xl')}>
             {effortLocked ? (
               <p className="text-xs leading-snug text-gray-500">{lockedEffortDescription}</p>
             ) : (
               effortLevels.length > 0 && (
-                <OptionPills
+                <ChoicePills
                   label="Effort"
+                  unsetLabel="Auto"
                   value={options.effort}
                   choices={effortLevels.map((level) => ({
                     value: level,
@@ -192,8 +193,9 @@ export function ModelControls({
             )}
 
             {thinkingModes.length > 0 && (
-              <OptionPills
+              <ChoicePills
                 label="Extended thinking"
+                unsetLabel="Auto"
                 value={options.thinking}
                 choices={thinkingModes.map((mode) => ({
                   value: mode,
@@ -232,45 +234,6 @@ function effortButtonLabel(options: GenerationOptions): string {
   if (options.temperature != null) return `Temp ${formatTemperature(options.temperature)}`;
   return 'Auto';
 }
-
-interface ControlButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  readonly icon: ReactNode;
-  readonly srLabel: string;
-}
-
-/**
- * The compact trigger chip: icon, label, chevron. Forwards its ref and spreads
- * the rest of its props so a Radix trigger can drive it (`asChild`); the
- * chevron turns on the `data-state` Radix stamps on an open trigger.
- */
-const ControlButton = forwardRef<HTMLButtonElement, ControlButtonProps>(function ControlButton(
-  { icon, srLabel, className, children, ...props },
-  ref
-) {
-  return (
-    <button
-      ref={ref}
-      type="button"
-      {...props}
-      className={cn(
-        'group flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium',
-        'text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent',
-        'data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900',
-        className
-      )}
-    >
-      {icon}
-      <span className="sr-only">{srLabel}</span>
-      <span className="truncate">{children}</span>
-      <ChevronDown
-        className="h-3 w-3 shrink-0 text-gray-400 transition-transform group-data-[state=open]:rotate-180"
-        aria-hidden="true"
-      />
-    </button>
-  );
-});
 
 function ModelRow({
   model,
@@ -316,90 +279,6 @@ function ModelRow({
 }
 
 /**
- * A labelled row of single-choice pills, always led by "Auto" — leaving a
- * control alone is the common case and has to be reachable again once set.
- *
- * One line, always. The widest case the catalog produces — seven effort
- * levels — fits at the panel's width; a narrower viewport scrolls the row
- * rather than wrapping it into an orphan.
- */
-function OptionPills<T extends EffortLevel | ThinkingMode>({
-  label,
-  value,
-  choices,
-  hint,
-  onChange,
-}: {
-  readonly label: string;
-  readonly value: T | undefined;
-  readonly choices: ReadonlyArray<{ value: T; label: string }>;
-  readonly hint?: ReactNode;
-  readonly onChange: (value: T | undefined) => void;
-}) {
-  const items: ReadonlyArray<{ value: T | undefined; label: string }> = [
-    { value: undefined, label: 'Auto' },
-    ...choices,
-  ];
-
-  return (
-    <div>
-      <FieldLabel>{label}</FieldLabel>
-      {/* w-max so the pills keep their natural size and the row scrolls past
-          the edge rather than compressing them. */}
-      <div className="scrollbar-hide overflow-x-auto" role="group" aria-label={label}>
-        <div className="flex w-max gap-[3px]">
-          {items.map((item) => (
-            <Pill
-              key={item.label}
-              selected={value === item.value}
-              onClick={() => onChange(item.value)}
-            >
-              {item.label}
-            </Pill>
-          ))}
-        </div>
-      </div>
-      {hint && <p className="mt-1.5 text-[11px] leading-snug text-gray-500">{hint}</p>}
-    </div>
-  );
-}
-
-function FieldLabel({ children }: { readonly children: ReactNode }) {
-  return (
-    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-      {children}
-    </p>
-  );
-}
-
-function Pill({
-  selected,
-  onClick,
-  children,
-}: {
-  readonly selected: boolean;
-  readonly onClick: () => void;
-  readonly children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={cn(
-        'shrink-0 whitespace-nowrap rounded-md border px-1.5 py-1 text-[11px] font-medium transition-colors',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-        selected
-          ? 'border-primary-400 bg-primary-50 text-primary-700'
-          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
  * Temperature parks mid-range while unset, reading "Auto": the server's own
  * default isn't published, so the slider shows a neutral position rather than
  * claiming a number nobody chose. The first drag commits one.
@@ -414,7 +293,7 @@ function TemperatureControl({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <FieldLabel>Temperature</FieldLabel>
+        <FieldLabel className="mb-0">Temperature</FieldLabel>
         {value == null ? (
           <span className="text-[11px] text-gray-400">Auto</span>
         ) : (

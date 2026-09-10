@@ -2,7 +2,7 @@
 
 import { FC, useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import * as Popover from '@radix-ui/react-popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import { Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/Switch';
 import { cn } from '@/utils/styles';
@@ -43,8 +43,8 @@ export const ActivityCacheBypassControl: FC<ActivityCacheBypassControlProps> = (
   );
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
-      <Popover.Trigger asChild>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
         <button
           type="button"
           title="Feed cache options"
@@ -59,22 +59,16 @@ export const ActivityCacheBypassControl: FC<ActivityCacheBypassControlProps> = (
         >
           <Shield className="h-[18px] w-[18px]" />
         </button>
-      </Popover.Trigger>
+      </PopoverTrigger>
 
-      <Popover.Portal>
-        <Popover.Content
-          align="end"
-          sideOffset={8}
-          className="z-[100000] w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-900">Bypass cache</p>
-            </div>
-            <Switch checked={bypassActive} onCheckedChange={setBypass} className="shrink-0" />
+      <PopoverContent align="end" sideOffset={8} className="w-64">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-gray-900">Bypass cache</p>
           </div>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+          <Switch checked={bypassActive} onCheckedChange={setBypass} className="shrink-0" />
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
