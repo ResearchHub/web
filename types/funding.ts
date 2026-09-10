@@ -152,7 +152,6 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
 }
 
 export interface Application {
-  /** GrantApplication id — required for funding-pool distribute (`application_id`). */
   id: number;
   profile: AuthorProfile;
   preregistrationPostId?: number;
