@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { debounce, type DebouncedFunc } from 'lodash-es';
 import { chatErrorBody, chatErrorDetail, chatErrorStatus } from '@/services/notebookChat.service';
 import type { ChatTransport } from '@/services/chatTransport';
-import { useNotebookChatSocket, type ChatSocketStatus } from '@/hooks/useNotebookChatSocket';
+import { useAgentChatSocket, type ChatSocketStatus } from '@/hooks/useAgentChatSocket';
 import {
   isChatStreamSocketEvent,
   isActiveExecutionStatus,
@@ -15,10 +15,10 @@ import {
   type ChatStreamSocketEvent,
   type ExecutionPhase,
   type ChatSocketEvent,
-  type NotebookChat,
-  type NotebookChatListItem,
-} from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+  type AgentChat,
+  type AgentChatListItem,
+} from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 
 /** Fallback poll cadence while a turn runs; the socket nudge usually wins. */
 const POLL_INTERVAL_MS = 5000;
@@ -109,7 +109,7 @@ function newerCachedStream(
  * that used no tools) replaces it. Streams keep whichever of the cached and
  * server copies is newer, per {@link newerCachedStream}.
  */
-function mergeLiveChat(prev: NotebookChat | null, next: NotebookChat): NotebookChat {
+function mergeLiveChat(prev: AgentChat | null, next: AgentChat): AgentChat {
   const cachedExecutions = new Map<number, ChatExecution>(
     (prev?.executions ?? []).map((execution) => [execution.id, execution])
   );
@@ -130,7 +130,7 @@ function mergeLiveChat(prev: NotebookChat | null, next: NotebookChat): NotebookC
 }
 
 interface ApplyStreamEventResult {
-  chat: NotebookChat | null;
+  chat: AgentChat | null;
   needsRepair: boolean;
 }
 
@@ -183,7 +183,7 @@ function appendStreamDeltas(
  * missing batch is never guessed and instead asks REST for its checkpoint.
  */
 export function applyStreamEvent(
-  chat: NotebookChat | null,
+  chat: AgentChat | null,
   event: ChatStreamSocketEvent
 ): ApplyStreamEventResult {
   if (chat?.conversation_id !== event.conversation_id) {
@@ -240,7 +240,7 @@ export function applyStreamEvent(
   return { chat: { ...chat, executions }, needsRepair: false };
 }
 
-interface UseNotebookChatOptions {
+interface UseAgentChatOptions {
   /**
    * The surface the chat lives on (notebook note, or the research assistant).
    * Must be referentially stable across renders — a new transport resets the
@@ -254,11 +254,11 @@ interface UseNotebookChatOptions {
    * Seed data for a chat we just created via POST (its full representation) —
    * saves a redundant GET and makes the composer usable immediately.
    */
-  initialChat?: NotebookChat | null;
+  initialChat?: AgentChat | null;
 }
 
-export interface UseNotebookChatResult {
-  chat: NotebookChat | null;
+export interface UseAgentChatResult {
+  chat: AgentChat | null;
   access: ChatAccess;
   /** Newest execution (executions are ordered oldest → newest). */
   latestExecution: ChatExecution | null;
@@ -287,13 +287,13 @@ export interface UseNotebookChatResult {
  * trigger a live refetch; sequenced stream events append immediately. Polling,
  * reconnects, and any detected sequence gap repair from REST.
  */
-export function useNotebookChat({
+export function useAgentChat({
   transport,
   chatId,
   enabled,
   initialChat = null,
-}: UseNotebookChatOptions): UseNotebookChatResult {
-  const [chat, setChat] = useState<NotebookChat | null>(null);
+}: UseAgentChatOptions): UseAgentChatResult {
+  const [chat, setChat] = useState<AgentChat | null>(null);
   const [access, setAccess] = useState<ChatAccess>('loading');
   const [pendingSend, setPendingSend] = useState<PendingSend | null>(null);
 
@@ -311,7 +311,7 @@ export function useNotebookChat({
   // revert to the empty creation state with no poll/socket path to recover.
   const seededChatIdRef = useRef<number | null>(null);
   // Mirror of `chat` for non-reactive reads inside fetchChat.
-  const chatRef = useRef<NotebookChat | null>(null);
+  const chatRef = useRef<AgentChat | null>(null);
   // A sequence gap can produce more gap frames while its recovery GET runs.
   // Keep one repair in flight; a gap seen mid-flight queues exactly one more,
   // since the running GET may have been snapshotted before that frame.
@@ -482,7 +482,7 @@ export function useNotebookChat({
     fetchChat('live');
   }, [fetchChat]);
 
-  const socketStatus = useNotebookChatSocket({
+  const socketStatus = useAgentChatSocket({
     transport,
     chatId,
     // "Connect after the chat exists": wait for the first successful GET.
@@ -577,13 +577,13 @@ export function useNotebookChat({
 
 export type ChatListAccess = 'loading' | 'ok' | 'hidden' | 'error';
 
-export interface UseNotebookChatListResult {
-  chats: NotebookChatListItem[];
+export interface UseAgentChatListResult {
+  chats: AgentChatListItem[];
   access: ChatListAccess;
   /** The server's `detail` copy behind a `hidden` or `error` access state. */
   accessDetail: string | null;
   refresh: () => Promise<void>;
-  createChat: (title?: string) => Promise<NotebookChat | null>;
+  createChat: (title?: string) => Promise<AgentChat | null>;
 }
 
 /**
@@ -591,11 +591,11 @@ export interface UseNotebookChatListResult {
  * full chat fetches. 401/403/404 collapse to `hidden`: the server-side gate is
  * authoritative and the UI entry point simply disappears.
  */
-export function useNotebookChatList(
+export function useAgentChatList(
   transport: ChatTransport | null,
   enabled: boolean
-): UseNotebookChatListResult {
-  const [chats, setChats] = useState<NotebookChatListItem[]>([]);
+): UseAgentChatListResult {
+  const [chats, setChats] = useState<AgentChatListItem[]>([]);
   const [access, setAccess] = useState<ChatListAccess>('loading');
   const [accessDetail, setAccessDetail] = useState<string | null>(null);
   const seqRef = useRef(0);
@@ -636,7 +636,7 @@ export function useNotebookChatList(
   }, [transport, enabled, refresh]);
 
   const createChat = useCallback(
-    async (title?: string): Promise<NotebookChat | null> => {
+    async (title?: string): Promise<AgentChat | null> => {
       if (transport == null) return null;
       const epoch = epochRef.current;
       try {

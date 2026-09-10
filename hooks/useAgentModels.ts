@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { AgentModelService } from '@/services/agentModel.service';
-import type { AgentModelCatalog } from '@/types/notebookModels';
+import type { AgentModelCatalog } from '@/types/agentModels';
 
 /**
  * `loading` until the first fetch settles; `unavailable` for every failure —

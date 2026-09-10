@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import type { ChatNoteRef } from '@/types/notebookChat';
+import type { ChatNoteRef } from '@/types/agentChat';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';

@@ -7,8 +7,8 @@ import {
   isActiveExecutionStatus,
   type ChatExecution,
   type ChatNoteRef,
-  type NotebookChat,
-} from '@/types/notebookChat';
+  type AgentChat,
+} from '@/types/agentChat';
 
 export type DocumentStatus =
   /** No note on this conversation: the pane has nothing to show. */
@@ -49,12 +49,12 @@ export interface AIModeDocument {
 
 interface UseAIModeDocumentOptions {
   readonly note: ChatNoteRef | null;
-  readonly chat: NotebookChat | null;
+  readonly chat: AgentChat | null;
   readonly latestExecution: ChatExecution | null;
 }
 
 /** Any succeeded `edit_note` in the chat carries the version it produced. */
-function chatHasEditedNote(chat: NotebookChat | null): boolean {
+function chatHasEditedNote(chat: AgentChat | null): boolean {
   return (chat?.executions ?? []).some((execution) =>
     (execution.activity ?? []).some(
       (item) =>

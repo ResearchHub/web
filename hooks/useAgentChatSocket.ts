@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { ChatTransport } from '@/services/chatTransport';
-import { isChatSocketEvent, type ChatSocketEvent } from '@/types/notebookChat';
+import { isChatSocketEvent, type ChatSocketEvent } from '@/types/agentChat';
 import { useReconnectingSocket, type SocketStatus } from './useReconnectingSocket';
 
 /**
@@ -15,7 +15,7 @@ const FATAL_CLOSE_CODES: ReadonlySet<number> = new Set([4401, 4403, 4404]);
 
 export type ChatSocketStatus = SocketStatus;
 
-interface UseNotebookChatSocketOptions {
+interface UseAgentChatSocketOptions {
   /** The surface the chat lives on; null while there is nothing to connect to. */
   transport: ChatTransport | null;
   chatId: string | number | null;
@@ -31,13 +31,13 @@ interface UseNotebookChatSocketOptions {
 }
 
 /** One WebSocket per open chat for lifecycle nudges and transient output. */
-export function useNotebookChatSocket({
+export function useAgentChatSocket({
   transport,
   chatId,
   enabled,
   onEvent,
   onReconnect,
-}: UseNotebookChatSocketOptions): ChatSocketStatus {
+}: UseAgentChatSocketOptions): ChatSocketStatus {
   const url = useMemo(
     () => (transport != null && chatId != null ? transport.socketUrl(chatId) : null),
     [transport, chatId]

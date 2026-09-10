@@ -6,18 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useNotebookChat, useNotebookChatList, type SendOutcome } from '@/hooks/useNotebookChat';
+import { useAgentChat, useAgentChatList, type SendOutcome } from '@/hooks/useAgentChat';
 import { notebookChatTransport } from '@/services/chatTransport';
 import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { isRfpNote } from '@/types/note';
-import {
-  isActiveExecutionStatus,
-  MAX_CHAT_TITLE_LENGTH,
-  type NotebookChat,
-} from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+import { isActiveExecutionStatus, MAX_CHAT_TITLE_LENGTH, type AgentChat } from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
@@ -25,12 +21,12 @@ import { belowMobileTopBar } from '@/components/Notebook/mobileChromeOffsets';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
-import { ChatComposer, type ComposerNotice } from './ChatComposer';
-import { ChatPicker } from './ChatPicker';
-import { ChatPresets } from './ChatPresets';
-import { ChatSources, collectChatSources } from './ChatSources';
-import { ChatTranscript } from './ChatTranscript';
-import { ModelControls } from './ModelControls';
+import { ChatComposer, type ComposerNotice } from '@/components/AgentChat/ChatComposer';
+import { ChatPicker } from '@/components/AgentChat/ChatPicker';
+import { ChatPresets } from '@/components/AgentChat/ChatPresets';
+import { ChatSources, collectChatSources } from '@/components/AgentChat/ChatSources';
+import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
+import { ModelControls } from '@/components/AgentChat/ModelControls';
 import { Logo } from '@/components/ui/Logo';
 
 type PanelTab = 'chat' | 'sources';
@@ -151,20 +147,20 @@ export function AgentChatPanel({
   // One transport per note: the hooks reset on its identity, so it is built
   // once per note rather than per render.
   const transport = useMemo(() => notebookChatTransport(noteId), [noteId]);
-  const list = useNotebookChatList(transport, open);
+  const list = useAgentChatList(transport, open);
   // Null is the new-chat screen, and it is where a page visit starts: the
   // assistant opens on its own opening moves rather than dropping the reader
   // into the middle of whatever they last asked. Earlier chats stay one click
   // away in the picker, and a selection survives closing the panel — only a
   // fresh visit or a note switch resets it.
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
-  const [initialChat, setInitialChat] = useState<NotebookChat | null>(null);
+  const [initialChat, setInitialChat] = useState<AgentChat | null>(null);
 
   // Network activity is gated on `open`. No keep-alive is needed for turns
   // that finish while the panel is closed or another chat is selected: the
   // note version socket below reports agent edits from any chat, and
   // reopening (or reselecting) refetches the transcript.
-  const chatState = useNotebookChat({
+  const chatState = useAgentChat({
     transport,
     chatId: selectedChatId,
     enabled: open,

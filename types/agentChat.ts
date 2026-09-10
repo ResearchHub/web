@@ -1,5 +1,6 @@
 /**
- * Types for the notebook AI assistant chat (`/api/research_ai/notebook/...`).
+ * Types for the agent chat surfaces: the notebook chat (`/api/research_ai/notebook/...`)
+ * and the research assistant (`/api/research_ai/assistant/...`), which share one wire format.
  *
  * These mirror the wire format verbatim (snake_case) rather than going through
  * a camelCase transformer: the client's refetch/merge logic depends on subtle
@@ -163,7 +164,7 @@ export interface ChatExecution {
    * Ordered feed of what the agent did. On `?activity=live` fetches the key is
    * OMITTED for executions the server knows the client already holds settled —
    * absent means "unchanged, keep your cached copy" while `[]` legitimately
-   * means "no tools used". The merge in useNotebookChat normalizes this so
+   * means "no tools used". The merge in useAgentChat normalizes this so
    * consumers can rely on the field being present.
    */
   activity?: ChatActivityItem[];
@@ -192,7 +193,7 @@ export interface ChatNoteRef {
   title: string;
 }
 
-export interface NotebookChat {
+export interface AgentChat {
   conversation_id: number;
   title: string | null;
   messages: ChatMessage[];
@@ -205,7 +206,7 @@ export interface NotebookChat {
   notes?: ChatNoteRef[];
 }
 
-export interface NotebookChatListItem {
+export interface AgentChatListItem {
   id: number;
   title: string | null;
   created_date: string;

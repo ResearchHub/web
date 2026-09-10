@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
 import { cn } from '@/utils/styles';
+import { useTextReveal } from '@/hooks/useTextReveal';
 
 // html:false makes markdown-it escape raw HTML in the source; the sanitize
 // pass below is defense in depth over the generated markup.
@@ -66,7 +67,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
  * descendant arbitrary variants instead of `prose`.
  */
 const MARKDOWN_STYLES = cn(
-  'text-sm leading-relaxed text-gray-800 break-words',
+  'text-md leading-relaxed text-gray-800 break-words',
   '[&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
   '[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5',
   '[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5',
@@ -93,11 +94,24 @@ const MARKDOWN_STYLES = cn(
 interface MarkdownMessageProps {
   readonly content: string;
   readonly className?: string;
+  /**
+   * Type the text out a few characters per frame under this key (see
+   * useTextReveal); null or absent renders it whole. `revealCarryTo` mirrors
+   * the progress to another key, for the component that continues this text.
+   */
+  readonly revealKey?: string | null;
+  readonly revealCarryTo?: string;
 }
 
 /** Renders assistant Markdown (sanitized) for chat bubbles. */
-export function MarkdownMessage({ content, className }: MarkdownMessageProps) {
-  const html = useMemo(() => sanitizeHtml(md.render(content), SANITIZE_OPTIONS), [content]);
+export function MarkdownMessage({
+  content,
+  className,
+  revealKey = null,
+  revealCarryTo,
+}: MarkdownMessageProps) {
+  const shown = useTextReveal(content, revealKey, revealCarryTo);
+  const html = useMemo(() => sanitizeHtml(md.render(shown), SANITIZE_OPTIONS), [shown]);
 
   return (
     <div

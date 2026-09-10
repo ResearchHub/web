@@ -51,6 +51,16 @@ export function ChatPane({
   useEffect(() => {
     follow();
   }, [chat.chat, chat.pendingSend, follow]);
+  // Text types out over many frames without the chat changing, so follow the
+  // content's own growth too.
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => follow());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [follow, chatId]);
 
   // ---- title: inline rename from the header menu ----
   const [renaming, setRenaming] = useState(false);
@@ -160,7 +170,7 @@ export function ChatPane({
 
       <div className="relative min-h-0 flex-1">
         <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto">
-          <div className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
+          <div ref={contentRef} className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
             {listBlocked ? (
               <AccessBlocked detail={list.accessDetail} />
             ) : chatId == null ? (

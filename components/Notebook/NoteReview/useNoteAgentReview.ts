@@ -6,11 +6,11 @@ import { DOMParser as ProseMirrorDOMParser, type Node as ProseMirrorNode } from 
 import { useNoteVersionSocket } from '@/hooks/useNoteVersionSocket';
 import { NoteService } from '@/services/note.service';
 import { NOTE_VERSION_CREATED } from '@/types/note';
-import type { NotebookChat } from '@/types/notebookChat';
+import type { AgentChat } from '@/types/agentChat';
 import { beginNoteDiffReview, endNoteDiffReview, resolveNoteDiffReview } from './noteDiffOverlay';
 
 /** Highest note version produced by a succeeded edit_note in one chat. */
-function maxAgentNoteVersion(chat: NotebookChat | null): number | null {
+function maxAgentNoteVersion(chat: AgentChat | null): number | null {
   let max: number | null = null;
   for (const execution of chat?.executions ?? []) {
     for (const item of execution.activity ?? []) {
@@ -131,7 +131,7 @@ export interface UseNoteAgentReviewOptions {
    * The open chat, if any: its activity carries `note_version_id` on
    * succeeded `edit_note` calls, a belt-and-braces signal beside the socket.
    */
-  readonly chat: NotebookChat | null;
+  readonly chat: AgentChat | null;
   /**
    * Persist the editor's current document as a new server version, now, and
    * resolve with whether it reached the server. Needed when the user chose

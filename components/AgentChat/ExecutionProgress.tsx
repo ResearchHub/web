@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, Ban, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { answerRevealKey, markRevealable } from '@/hooks/useTextReveal';
 import {
   isActiveExecutionStatus,
   type ChatFeedItem,
   type ChatExecution,
   type ChatStreamItem,
   type ChatToolCallActivity,
-} from '@/types/notebookChat';
+} from '@/types/agentChat';
 import {
   ActivityFeed,
   carriesSweep,
@@ -96,6 +97,11 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
   // until publication so we never render "done" with no answer bubble.
   const finishing = execution.status === 'SUCCEEDED' && execution.assistant_message_pending;
   const live = active || finishing;
+  // A turn watched live gets its answer typed out when it lands, even one
+  // that streamed no narration first; turns loaded from history do not.
+  useEffect(() => {
+    if (live) markRevealable(answerRevealKey(execution.id));
+  }, [live, execution.id]);
   // Settling a turn used to collapse it, which swapped the feed for a flat list
   // of aggregated links — the same sources in a different shape. Stay expanded
   // so the turn reads the same before and after it finishes.
@@ -158,6 +164,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
         <ActivityFeed
           items={activity}
           streamingItemId={streamingItemId}
+          executionId={execution.id}
           className={cn(showsSummaryRow && 'mt-3')}
         />
       )}

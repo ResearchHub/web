@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
-import type { NotebookChat } from '@/types/notebookChat';
+import type { AgentChat } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
 import type { AIModeDocument } from './useAIModeDocument';
 
@@ -30,7 +30,7 @@ const DOCUMENT_PAGE_CLASS =
 interface DocumentPaneProps {
   readonly document: AIModeDocument;
   /** The open chat, whose activity is one of the review's version signals. */
-  readonly chat: NotebookChat | null;
+  readonly chat: AgentChat | null;
   /** Document, or the publishing details form. */
   readonly tab: NotebookTab;
   readonly onTabChange: (tab: NotebookTab) => void;

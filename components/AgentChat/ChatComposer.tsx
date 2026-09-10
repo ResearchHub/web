@@ -3,7 +3,7 @@
 import { useEffect, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { ArrowUp, Square } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { MAX_CHAT_MESSAGE_LENGTH } from '@/types/notebookChat';
+import { MAX_CHAT_MESSAGE_LENGTH } from '@/types/agentChat';
 
 export interface ComposerNotice {
   tone: 'warning' | 'error';
@@ -99,7 +99,7 @@ export function ChatComposer({
       <div
         className={cn(
           'relative rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all',
-          'focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500',
+          'focus-within:border-gray-400',
           disabled && 'opacity-60'
         )}
       >
@@ -113,7 +113,7 @@ export function ChatComposer({
           disabled={disabled}
           placeholder={placeholder}
           aria-label="Message the assistant"
-          className="block max-h-40 min-h-[24px] w-full resize-none bg-transparent text-sm text-gray-800 placeholder:text-gray-500 focus:outline-none disabled:cursor-not-allowed"
+          className="block max-h-40 min-h-[24px] w-full resize-none bg-transparent text-md text-gray-800 placeholder:text-gray-500 focus:outline-none disabled:cursor-not-allowed"
         />
         <div className="mt-1.5 flex items-center gap-2">
           <div className="min-w-0 flex-1">{toolbar}</div>

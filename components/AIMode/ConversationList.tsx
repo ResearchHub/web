@@ -7,15 +7,15 @@ import { ConversationListSkeleton } from '@/components/skeletons/AIModeSkeleton'
 import { Button } from '@/components/ui/Button';
 import { formatTimeAgo } from '@/utils/date';
 import { cn } from '@/utils/styles';
-import type { ChatNoteRef, NotebookChatListItem } from '@/types/notebookChat';
-import type { ChatListAccess } from '@/hooks/useNotebookChat';
+import type { ChatNoteRef, AgentChatListItem } from '@/types/agentChat';
+import type { ChatListAccess } from '@/hooks/useAgentChat';
 import { ConversationMenu } from './ConversationMenu';
 import { ConversationTitleField } from './ConversationTitleField';
 
 const UNTITLED = 'Untitled conversation';
 
 interface ConversationListProps {
-  readonly chats: NotebookChatListItem[];
+  readonly chats: AgentChatListItem[];
   readonly access: ChatListAccess;
   readonly accessDetail: string | null;
   readonly activeChatId: number | null;
@@ -119,7 +119,7 @@ export function ConversationList({
 }
 
 interface ConversationRowProps {
-  readonly item: NotebookChatListItem;
+  readonly item: AgentChatListItem;
   readonly title: string;
   readonly isActive: boolean;
   readonly renaming: boolean;

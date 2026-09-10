@@ -3,11 +3,11 @@ import { NotebookChatService } from './notebookChat.service';
 import { WS_ROUTES } from './websocket';
 import type {
   CancelTurnResponse,
-  NotebookChat,
-  NotebookChatListItem,
+  AgentChat,
+  AgentChatListItem,
   SendMessageResponse,
-} from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+} from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 
 type ChatId = string | number;
 
@@ -23,9 +23,9 @@ type ChatId = string | number;
 export interface ChatTransport {
   /** Identifies the surface + scope; the hooks key their resets on it. */
   readonly key: string;
-  listChats(): Promise<NotebookChatListItem[]>;
-  createChat(title?: string): Promise<NotebookChat>;
-  getChat(chatId: ChatId, options?: { live?: boolean }): Promise<NotebookChat>;
+  listChats(): Promise<AgentChatListItem[]>;
+  createChat(title?: string): Promise<AgentChat>;
+  getChat(chatId: ChatId, options?: { live?: boolean }): Promise<AgentChat>;
   sendMessage(
     chatId: ChatId,
     message: string,

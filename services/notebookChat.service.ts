@@ -2,11 +2,11 @@ import { ApiClient } from './client';
 import { ApiError } from './types';
 import type {
   CancelTurnResponse,
-  NotebookChat,
-  NotebookChatListItem,
+  AgentChat,
+  AgentChatListItem,
   SendMessageResponse,
-} from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+} from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 import { ID } from '@/types/root';
 
 /**
@@ -16,7 +16,7 @@ import { ID } from '@/types/root';
  * client to refetch. All reads go through {@link getChat}; pass `live: true`
  * for every poll/nudge refetch after the initial load so the server can omit
  * settled activity feeds (see the `activity` merge semantics in
- * `types/notebookChat.ts`).
+ * `types/agentChat.ts`).
  */
 export class NotebookChatService {
   private static basePath(noteId: ID): string {
@@ -24,23 +24,19 @@ export class NotebookChatService {
   }
 
   /** Cheap listing projection for the picker — never fetch full chats to build the list. */
-  static async listChats(noteId: ID): Promise<NotebookChatListItem[]> {
-    const response = await ApiClient.get<{ chats: NotebookChatListItem[] }>(this.basePath(noteId));
+  static async listChats(noteId: ID): Promise<AgentChatListItem[]> {
+    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(this.basePath(noteId));
     return response.chats ?? [];
   }
 
   /** A chat created without a title is auto-named from its first message. */
-  static async createChat(noteId: ID, title?: string): Promise<NotebookChat> {
-    return ApiClient.post<NotebookChat>(this.basePath(noteId), title ? { title } : {});
+  static async createChat(noteId: ID, title?: string): Promise<AgentChat> {
+    return ApiClient.post<AgentChat>(this.basePath(noteId), title ? { title } : {});
   }
 
-  static async getChat(
-    noteId: ID,
-    chatId: ID,
-    options?: { live?: boolean }
-  ): Promise<NotebookChat> {
+  static async getChat(noteId: ID, chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {
     const suffix = options?.live ? '?activity=live' : '';
-    return ApiClient.get<NotebookChat>(`${this.basePath(noteId)}${chatId}/${suffix}`);
+    return ApiClient.get<AgentChat>(`${this.basePath(noteId)}${chatId}/${suffix}`);
   }
 
   /**

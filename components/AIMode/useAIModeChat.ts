@@ -5,15 +5,15 @@ import { useAIMode } from './AIModeContext';
 import { assistantChatTransport } from '@/services/chatTransport';
 import { AssistantChatService } from '@/services/assistantChat.service';
 import {
-  useNotebookChat,
-  useNotebookChatList,
+  useAgentChat,
+  useAgentChatList,
   type SendOutcome,
-  type UseNotebookChatListResult,
-  type UseNotebookChatResult,
-} from '@/hooks/useNotebookChat';
+  type UseAgentChatListResult,
+  type UseAgentChatResult,
+} from '@/hooks/useAgentChat';
 import { useAgentModelSelection, type AgentModelSelection } from '@/hooks/useAgentModelSelection';
-import type { ChatNoteRef, NotebookChat } from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+import type { ChatNoteRef, AgentChat } from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 import type { ComposerNotice } from '@/components/AgentChat/ChatComposer';
 
 /** Matches the chat hook's own poll cadence, so a background turn's spinner clears as fast as the open one. */
@@ -78,8 +78,8 @@ function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice
 
 export interface AIModeChatState {
   readonly chatId: number | null;
-  readonly list: UseNotebookChatListResult;
-  readonly chat: UseNotebookChatResult;
+  readonly list: UseAgentChatListResult;
+  readonly chat: UseAgentChatResult;
   readonly modelSelection: AgentModelSelection;
   readonly draft: string;
   readonly setDraft: (value: string) => void;
@@ -125,9 +125,9 @@ export function useAIModeChat(): AIModeChatState {
   const { chatId, selectChat: selectChatInUrl } = useAIMode();
   const transport = useMemo(() => assistantChatTransport(), []);
 
-  const list = useNotebookChatList(transport, true);
-  const [initialChat, setInitialChat] = useState<NotebookChat | null>(null);
-  const chat = useNotebookChat({ transport, chatId, enabled: true, initialChat });
+  const list = useAgentChatList(transport, true);
+  const [initialChat, setInitialChat] = useState<AgentChat | null>(null);
+  const chat = useAgentChat({ transport, chatId, enabled: true, initialChat });
   const chatRef = useRef(chat.chat);
   chatRef.current = chat.chat;
   const modelSelection = useAgentModelSelection({

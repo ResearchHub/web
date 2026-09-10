@@ -21,7 +21,7 @@ import {
   type EffortLevel,
   type GenerationOptions,
   type ThinkingMode,
-} from '@/types/notebookModels';
+} from '@/types/agentModels';
 
 interface ModelControlsProps {
   readonly models: AgentModel[];

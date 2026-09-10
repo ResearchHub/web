@@ -1,7 +1,7 @@
 'use client';
 
 import { ExternalLink, Globe } from 'lucide-react';
-import type { ChatActivitySource, NotebookChat } from '@/types/notebookChat';
+import type { ChatActivitySource, AgentChat } from '@/types/agentChat';
 import { collectSources, hostnameOf } from './ActivityFeed';
 
 /**
@@ -10,7 +10,7 @@ import { collectSources, hostnameOf } from './ActivityFeed';
  * — the transcript already carries the sources, they're just buried per tool
  * call, which makes them hard to use once a chat runs long.
  */
-export function collectChatSources(chat: NotebookChat | null): ChatActivitySource[] {
+export function collectChatSources(chat: AgentChat | null): ChatActivitySource[] {
   const byUrl = new Map<string, ChatActivitySource>();
   for (const execution of chat?.executions ?? []) {
     for (const source of collectSources(execution.activity ?? [])) {

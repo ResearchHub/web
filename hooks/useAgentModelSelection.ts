@@ -9,9 +9,9 @@ import {
   type AgentModel,
   type GenerationOptions,
   type GenerationRequest,
-} from '@/types/notebookModels';
+} from '@/types/agentModels';
 
-const STORAGE_KEY = 'notebook:agent-model';
+const STORAGE_KEY = 'agent-chat:model';
 
 /** Stable empty list so consumers can depend on `models` by identity. */
 const NO_MODELS: AgentModel[] = [];

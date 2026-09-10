@@ -2,7 +2,7 @@
  * Types for the agent model catalog (`GET /api/research_ai/models/`) and the
  * per-turn generation controls a selected model accepts.
  *
- * Wire shapes stay snake_case-free but verbatim, like `types/notebookChat.ts`.
+ * Wire shapes stay snake_case-free but verbatim, like `types/agentChat.ts`.
  *
  * The catalog says *what* each model accepts (its `capabilities`); the rules
  * below say which *combinations* the backend will take. They mirror

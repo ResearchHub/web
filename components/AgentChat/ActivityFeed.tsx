@@ -22,12 +22,13 @@ import {
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { MarkdownMessage } from './MarkdownMessage';
+import { answerRevealKey, isRevealable, narrationRevealKey } from '@/hooks/useTextReveal';
 import type {
   ActivityCallStatus,
   ChatFeedItem,
   ChatActivitySource,
   ChatToolCallActivity,
-} from '@/types/notebookChat';
+} from '@/types/agentChat';
 
 /**
  * Icons for the tools we know about today. The backend adds tools without
@@ -349,16 +350,29 @@ export function carriesSweep(item: ChatFeedItem): boolean {
 function ActivityItemBody({
   item,
   streaming,
+  executionId,
 }: {
   readonly item: ChatFeedItem;
   readonly streaming: boolean;
+  readonly executionId?: number;
 }) {
   if (item.type === 'narration') {
     // Same renderer as the answer bubble, so the live narration preview and
-    // the settled message it becomes read as one continuous surface.
+    // the settled message it becomes read as one continuous surface. Streamed
+    // narration types out, and its progress carries over to the answer so the
+    // settled bubble finishes the text rather than starting it again.
+    const itemId = 'id' in item && typeof item.id === 'string' ? item.id : null;
+    const key =
+      executionId != null && itemId != null ? narrationRevealKey(executionId, itemId) : null;
+    const reveals = key != null && (streaming || isRevealable(key));
     return (
       <div className="pl-6">
-        <MarkdownMessage content={item.text} className="text-gray-500" />
+        <MarkdownMessage
+          content={item.text}
+          className="text-gray-500"
+          revealKey={reveals ? key : null}
+          revealCarryTo={reveals && executionId != null ? answerRevealKey(executionId) : undefined}
+        />
       </div>
     );
   }
@@ -374,7 +388,7 @@ function ActivityItemBody({
         text={item.text}
         streaming={streaming}
         className="text-gray-500 hover:text-gray-700 [--shine:theme(colors.gray.500)]"
-        bodyClassName="italic text-gray-500"
+        bodyClassName="text-sm italic text-gray-500"
       />
     );
   }
@@ -388,7 +402,7 @@ function ActivityItemBody({
         streaming={streaming}
         icon={TOOL_ICONS[item.tool] ?? Wrench}
         className="text-gray-800 hover:text-gray-600 [--shine:theme(colors.gray.800)]"
-        bodyClassName="text-gray-500"
+        bodyClassName="text-sm text-gray-500"
       />
     );
   }
@@ -402,6 +416,8 @@ interface ActivityFeedProps {
   readonly items: ChatFeedItem[];
   /** Stream id of the item currently receiving deltas, while the turn is live. */
   readonly streamingItemId?: string;
+  /** The turn these items belong to; keys the typed-out reveal of its narration. */
+  readonly executionId?: number;
   readonly className?: string;
 }
 
@@ -409,7 +425,12 @@ interface ActivityFeedProps {
  * The ordered account of what the agent did during a turn: narration prose
  * between tool calls, and one row per tool call with status + citations.
  */
-export function ActivityFeed({ items, streamingItemId, className }: ActivityFeedProps) {
+export function ActivityFeed({
+  items,
+  streamingItemId,
+  executionId,
+  className,
+}: ActivityFeedProps) {
   const rows = items.filter(drawsAsRow);
   if (rows.length === 0) return null;
 
@@ -422,7 +443,11 @@ export function ActivityFeed({ items, streamingItemId, className }: ActivityFeed
           // making their fallback index stable within the settled activity list.
           // eslint-disable-next-line react/no-array-index-key
           <li key={id ?? index} className="text-sm leading-relaxed">
-            <ActivityItemBody item={item} streaming={id != null && id === streamingItemId} />
+            <ActivityItemBody
+              item={item}
+              streaming={id != null && id === streamingItemId}
+              executionId={executionId}
+            />
           </li>
         );
       })}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { MAX_CHAT_TITLE_LENGTH } from '@/types/notebookChat';
+import { MAX_CHAT_TITLE_LENGTH } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
 
 interface ConversationTitleFieldProps {

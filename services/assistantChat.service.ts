@@ -1,11 +1,11 @@
 import { ApiClient } from './client';
 import type {
   CancelTurnResponse,
-  NotebookChat,
-  NotebookChatListItem,
+  AgentChat,
+  AgentChatListItem,
   SendMessageResponse,
-} from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+} from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 import { ID } from '@/types/root';
 
 const BASE_PATH = '/api/research_ai/assistant/chats/';
@@ -30,18 +30,18 @@ export interface UsageBudget {
  * adds to a chat (the documents the agent created from it).
  */
 export class AssistantChatService {
-  static async listChats(): Promise<NotebookChatListItem[]> {
-    const response = await ApiClient.get<{ chats: NotebookChatListItem[] }>(BASE_PATH);
+  static async listChats(): Promise<AgentChatListItem[]> {
+    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(BASE_PATH);
     return response.chats ?? [];
   }
 
-  static async createChat(title?: string): Promise<NotebookChat> {
-    return ApiClient.post<NotebookChat>(BASE_PATH, title ? { title } : {});
+  static async createChat(title?: string): Promise<AgentChat> {
+    return ApiClient.post<AgentChat>(BASE_PATH, title ? { title } : {});
   }
 
-  static async getChat(chatId: ID, options?: { live?: boolean }): Promise<NotebookChat> {
+  static async getChat(chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {
     const suffix = options?.live ? '?activity=live' : '';
-    return ApiClient.get<NotebookChat>(`${BASE_PATH}${chatId}/${suffix}`);
+    return ApiClient.get<AgentChat>(`${BASE_PATH}${chatId}/${suffix}`);
   }
 
   static async sendMessage(

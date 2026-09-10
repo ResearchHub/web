@@ -6,10 +6,10 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import { formatTimeAgo } from '@/utils/date';
-import type { NotebookChatListItem } from '@/types/notebookChat';
+import type { AgentChatListItem } from '@/types/agentChat';
 
 interface ChatPickerProps {
-  readonly chats: NotebookChatListItem[];
+  readonly chats: AgentChatListItem[];
   readonly activeChatId: number | null;
   /** Live title of the open chat — fresher than the listing after renames/derives. */
   readonly activeTitle: string | null;

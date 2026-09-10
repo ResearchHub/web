@@ -1,9 +1,10 @@
 'use client';
 
 import { Fragment, useMemo, type ReactNode } from 'react';
-import type { ChatExecution, ChatMessage, NotebookChat } from '@/types/notebookChat';
-import type { PendingSend } from '@/hooks/useNotebookChat';
+import type { ChatExecution, ChatMessage, AgentChat } from '@/types/agentChat';
+import type { PendingSend } from '@/hooks/useAgentChat';
 import { MarkdownMessage } from './MarkdownMessage';
+import { answerRevealKey, isRevealable } from '@/hooks/useTextReveal';
 import { ExecutionProgress } from './ExecutionProgress';
 import { PendingThinkingRow } from './ActivityFeed';
 
@@ -89,7 +90,7 @@ function pushAssistantEntry(build: TranscriptBuild, message: ChatMessage): void 
  * missing, and user messages whose turn failed. Everything present renders;
  * nothing double-renders.
  */
-function buildTranscript(chat: NotebookChat, pendingSend: PendingSend | null): TranscriptEntry[] {
+function buildTranscript(chat: AgentChat, pendingSend: PendingSend | null): TranscriptEntry[] {
   const messages = [...chat.messages].sort((a, b) => a.sequence - b.sequence);
   const build: TranscriptBuild = {
     entries: [],
@@ -133,7 +134,7 @@ function buildTranscript(chat: NotebookChat, pendingSend: PendingSend | null): T
 function UserBubble({ text }: { readonly text: string }) {
   return (
     <div className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-sm text-gray-800">
+      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-md text-gray-800">
         {text}
       </div>
     </div>
@@ -146,16 +147,23 @@ function UserBubble({ text }: { readonly text: string }) {
  * boxed column. Only the user's turns are chrome-wrapped, so the transcript
  * still parses at a glance.
  */
-function AssistantBubble({ content }: { readonly content: string }) {
+function AssistantBubble({
+  content,
+  revealKey = null,
+}: {
+  readonly content: string;
+  /** Types the answer out when the turn was watched live; see useTextReveal. */
+  readonly revealKey?: string | null;
+}) {
   return (
     <div className="px-0.5">
-      <MarkdownMessage content={content} />
+      <MarkdownMessage content={content} revealKey={revealKey} />
     </div>
   );
 }
 
 interface ChatTranscriptProps {
-  readonly chat: NotebookChat;
+  readonly chat: AgentChat;
   readonly pendingSend: PendingSend | null;
   /**
    * Extra content for a turn, rendered after its answer — a host-specific
@@ -193,7 +201,16 @@ export function ChatTranscript({ chat, pendingSend, renderExecutionExtra }: Chat
             return (
               <div key={entry.key} className="space-y-3">
                 <ExecutionProgress execution={entry.execution} />
-                {entry.answer && <AssistantBubble content={entry.answer.content} />}
+                {entry.answer && (
+                  <AssistantBubble
+                    content={entry.answer.content}
+                    revealKey={
+                      isRevealable(answerRevealKey(entry.execution.id))
+                        ? answerRevealKey(entry.execution.id)
+                        : null
+                    }
+                  />
+                )}
                 {renderExecutionExtra?.(entry.execution)}
               </div>
             );
