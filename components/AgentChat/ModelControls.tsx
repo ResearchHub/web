@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Check, ChevronDown, Gauge, Lock, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Slider } from '@/components/ui/Slider';
-import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import {
   availableEffortLevels,
   availableThinkingModes,
@@ -39,19 +40,27 @@ interface ModelControlsProps {
   readonly multiplierExplanation: string;
 }
 
-type OpenMenu = 'model' | 'effort' | null;
+/**
+ * Widest the panels go. Set by the widest row the catalog produces — seven
+ * effort pills — plus a little slack, since the row scrolls rather than
+ * wraps and a few pixels short would clip the last pill rather than move it.
+ * Never wider than the viewport allows.
+ */
+const PANEL_WIDTH = 'w-[360px] max-w-[calc(100vw-1rem)]';
 
 /**
- * The composer's two dropdowns: which model answers, and how hard it works.
+ * The composer's two controls: which model answers, and how hard it works.
  *
- * Model and effort lock after the first turn. The effort menu still offers
+ * Model and effort lock after the first turn. The effort panel still offers
  * independent thinking and temperature controls where the model allows them.
  *
- * The effort menu holds all three, temperature included — they are one
- * decision about how much work a turn does, and only the controls the model
- * can actually honor are drawn, in combinations it will accept. The backend
- * refuses a temperature sent to a reasoning model, so that slider is simply
- * absent until thinking is off.
+ * The model picker is a menu (`BaseMenu`): one choice, closes on pick. The
+ * effort panel is a popover: it holds all three controls, temperature
+ * included — they are one decision about how much work a turn does — and the
+ * user adjusts them in place, so it must not close on each click. Only the
+ * controls the model can actually honor are drawn, in combinations it will
+ * accept. The backend refuses a temperature sent to a reasoning model, so
+ * that slider is simply absent until thinking is off.
  */
 export function ModelControls({
   models,
@@ -64,22 +73,6 @@ export function ModelControls({
   disabled,
   multiplierExplanation,
 }: ModelControlsProps) {
-  const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  useOutsidePointerDown(containerRef, () => setOpenMenu(null), openMenu != null);
-
-  // Escape closes the open menu. Bound to the document rather than the wrapper
-  // so the wrapper stays a plain layout div — and so it still fires once focus
-  // has left the menu.
-  useEffect(() => {
-    if (openMenu == null) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpenMenu(null);
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [openMenu]);
-
   if (!model) return null;
 
   const effortLevels = availableEffortLevels(model, options.thinking);
@@ -105,88 +98,76 @@ export function ModelControls({
   const lockedEffortDescription = options.effort
     ? `${EFFORT_LABELS[options.effort]} effort is locked for this chat. Start a new chat to change it.`
     : 'Effort is locked for this chat. Start a new chat to change it.';
-
-  const toggle = (menu: Exclude<OpenMenu, null>) =>
-    setOpenMenu((current) => (current === menu ? null : menu));
+  const allowedModels = models.filter((option) => option.allowed);
 
   return (
-    // Deliberately not positioned: both menus open against the composer box
-    // (see ChatComposer), which is wider than this row and wider still than
-    // either button — anchored to a button they would run off the panel.
-    <div ref={containerRef} className="flex items-center gap-1">
-      <ControlButton
-        onClick={() => toggle('model')}
-        open={openMenu === 'model'}
+    <div className="flex items-center gap-1">
+      <BaseMenu
+        align="start"
         disabled={disabled || pinned}
-        title={
-          pinned
-            ? `${model.label} — locked for this chat. Start a new chat to switch models.`
-            : model.label
+        className={cn(PANEL_WIDTH, 'rounded-xl shadow-xl')}
+        trigger={
+          <ControlButton
+            disabled={disabled || pinned}
+            title={
+              pinned
+                ? `${model.label} — locked for this chat. Start a new chat to switch models.`
+                : model.label
+            }
+            icon={
+              pinned ? (
+                <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+              )
+            }
+            srLabel={pinned ? 'Assistant model, locked for this chat:' : 'Assistant model:'}
+            className="max-w-[180px]"
+          >
+            {model.label}
+          </ControlButton>
         }
-        icon={
-          pinned ? (
-            <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
-          ) : (
-            <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary-500" aria-hidden="true" />
-          )
-        }
-        srLabel={pinned ? 'Assistant model, locked for this chat:' : 'Assistant model:'}
-        className="max-w-[180px]"
       >
-        {model.label}
-      </ControlButton>
+        <div className="max-h-64 overflow-y-auto" role="group" aria-label="Assistant model">
+          {allowedModels.map((option) => (
+            <ModelRow
+              key={option.ref}
+              model={option}
+              selected={option.ref === model.ref}
+              multiplierExplanation={multiplierExplanation}
+              onSelect={() => onSelectModel(option.ref)}
+            />
+          ))}
+          {allowedModels.length === 0 && (
+            <p className="px-3 py-2 text-sm text-gray-500">No models are available.</p>
+          )}
+        </div>
+      </BaseMenu>
 
       {hasEffortMenu && model.allowed && (
-        <ControlButton
-          onClick={() => toggle('effort')}
-          open={openMenu === 'effort'}
-          disabled={disabled}
-          title={
-            effortLocked
-              ? lockedEffortDescription
-              : summarizeGenerationOptions(options).join(' · ') || 'Model defaults'
-          }
-          icon={
-            effortLocked ? (
-              <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
-            ) : (
-              <Gauge className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-            )
-          }
-          srLabel={effortLocked ? 'Effort, locked for this chat:' : 'Effort:'}
-          className="max-w-[140px]"
-        >
-          {effortLocked ? lockedEffortLabel : effortButtonLabel(options)}
-        </ControlButton>
-      )}
-
-      {openMenu === 'model' && !disabled && !pinned && (
-        <Menu label="Assistant model">
-          <div className="max-h-64 overflow-y-auto p-1">
-            {models
-              .filter((option) => option.allowed)
-              .map((option) => (
-                <ModelRow
-                  key={option.ref}
-                  model={option}
-                  selected={option.ref === model.ref}
-                  multiplierExplanation={multiplierExplanation}
-                  onSelect={() => {
-                    setOpenMenu(null);
-                    onSelectModel(option.ref);
-                  }}
-                />
-              ))}
-            {models.length === 0 && (
-              <p className="px-3 py-2 text-sm text-gray-500">No models are available.</p>
-            )}
-          </div>
-        </Menu>
-      )}
-
-      {openMenu === 'effort' && !disabled && model.allowed && (
-        <Menu label="Effort">
-          <div className="space-y-3 px-3 py-3">
+        <Popover>
+          <PopoverTrigger asChild>
+            <ControlButton
+              disabled={disabled}
+              title={
+                effortLocked
+                  ? lockedEffortDescription
+                  : summarizeGenerationOptions(options).join(' · ') || 'Model defaults'
+              }
+              icon={
+                effortLocked ? (
+                  <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
+                ) : (
+                  <Gauge className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+                )
+              }
+              srLabel={effortLocked ? 'Effort, locked for this chat:' : 'Effort:'}
+              className="max-w-[140px]"
+            >
+              {effortLocked ? lockedEffortLabel : effortButtonLabel(options)}
+            </ControlButton>
+          </PopoverTrigger>
+          <PopoverContent aria-label="Effort" className={cn(PANEL_WIDTH, 'space-y-3 shadow-xl')}>
             {effortLocked ? (
               <p className="text-xs leading-snug text-gray-500">{lockedEffortDescription}</p>
             ) : (
@@ -233,8 +214,8 @@ export function ModelControls({
                 onChange={(temperature) => onChangeOptions({ temperature })}
               />
             )}
-          </div>
-        </Menu>
+          </PopoverContent>
+        </Popover>
       )}
     </div>
   );
@@ -252,39 +233,31 @@ function effortButtonLabel(options: GenerationOptions): string {
   return 'Auto';
 }
 
-function ControlButton({
-  onClick,
-  open,
-  disabled,
-  title,
-  icon,
-  srLabel,
-  className,
-  children,
-}: {
-  readonly onClick: () => void;
-  readonly open: boolean;
-  readonly disabled: boolean;
-  readonly title: string;
+interface ControlButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly icon: ReactNode;
   readonly srLabel: string;
-  readonly className?: string;
-  readonly children: ReactNode;
-}) {
+}
+
+/**
+ * The compact trigger chip: icon, label, chevron. Forwards its ref and spreads
+ * the rest of its props so a Radix trigger can drive it (`asChild`); the
+ * chevron turns on the `data-state` Radix stamps on an open trigger.
+ */
+const ControlButton = forwardRef<HTMLButtonElement, ControlButtonProps>(function ControlButton(
+  { icon, srLabel, className, children, ...props },
+  ref
+) {
   return (
     <button
+      ref={ref}
       type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-haspopup="dialog"
-      aria-expanded={open}
-      title={title}
+      {...props}
       className={cn(
-        'flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium',
+        'group flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium',
         'text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
         'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent',
-        open && 'bg-gray-100 text-gray-900',
+        'data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900',
         className
       )}
     >
@@ -292,41 +265,12 @@ function ControlButton({
       <span className="sr-only">{srLabel}</span>
       <span className="truncate">{children}</span>
       <ChevronDown
-        className={cn('h-3 w-3 shrink-0 text-gray-400 transition-transform', open && 'rotate-180')}
+        className="h-3 w-3 shrink-0 text-gray-400 transition-transform group-data-[state=open]:rotate-180"
         aria-hidden="true"
       />
     </button>
   );
-}
-
-/**
- * Widest the menus go. Set by the widest row the catalog produces — seven
- * effort pills — plus a little slack, since the row scrolls rather than
- * wraps and a few pixels short would clip the last pill rather than move it.
- */
-const MAX_MENU_WIDTH = 'max-w-[360px]';
-
-/**
- * Opens upward against the composer box it is positioned against: the
- * composer sits at the bottom of the panel, and the action row alone is too
- * narrow to seat that row of pills. Never wider than the box, so a panel
- * dragged narrower takes the menus with it.
- */
-function Menu({ label, children }: { readonly label: string; readonly children: ReactNode }) {
-  return (
-    <div
-      role="dialog"
-      aria-label={label}
-      className={cn(
-        'animate-in absolute bottom-full left-0 z-20 mb-2 w-full overflow-hidden',
-        'rounded-xl border border-gray-200 bg-white shadow-xl',
-        MAX_MENU_WIDTH
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+});
 
 function ModelRow({
   model,
@@ -340,15 +284,13 @@ function ModelRow({
   readonly onSelect: () => void;
 }) {
   return (
-    <button
-      type="button"
-      disabled={!model.allowed}
-      onClick={onSelect}
+    <BaseMenuItem
+      onSelect={onSelect}
       aria-current={selected}
       className={cn(
-        'flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition-colors',
-        'hover:bg-gray-50 focus:outline-none focus-visible:bg-gray-50',
-        selected && 'bg-primary-50/60 hover:bg-primary-50/60'
+        'cursor-pointer items-start gap-2 rounded-lg px-2 py-2',
+        'focus:bg-gray-50 data-[highlighted]:bg-gray-50',
+        selected && 'bg-primary-50/60 focus:bg-primary-50/60 data-[highlighted]:bg-primary-50/60'
       )}
     >
       <Check
@@ -369,7 +311,7 @@ function ModelRow({
       <span className="shrink-0 text-xs tabular-nums text-gray-500" title={multiplierExplanation}>
         {formatModelMultiplier(model.multiplier)}
       </span>
-    </button>
+    </BaseMenuItem>
   );
 }
 
@@ -378,8 +320,8 @@ function ModelRow({
  * control alone is the common case and has to be reachable again once set.
  *
  * One line, always. The widest case the catalog produces — seven effort
- * levels — fits at the panel's default width; drag the panel narrower than
- * that and the row scrolls rather than wrapping into an orphan.
+ * levels — fits at the panel's width; a narrower viewport scrolls the row
+ * rather than wrapping it into an orphan.
  */
 function OptionPills<T extends EffortLevel | ThinkingMode>({
   label,
@@ -401,9 +343,7 @@ function OptionPills<T extends EffortLevel | ThinkingMode>({
 
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-        {label}
-      </p>
+      <FieldLabel>{label}</FieldLabel>
       {/* w-max so the pills keep their natural size and the row scrolls past
           the edge rather than compressing them. */}
       <div className="scrollbar-hide overflow-x-auto" role="group" aria-label={label}>
@@ -421,6 +361,14 @@ function OptionPills<T extends EffortLevel | ThinkingMode>({
       </div>
       {hint && <p className="mt-1.5 text-[11px] leading-snug text-gray-500">{hint}</p>}
     </div>
+  );
+}
+
+function FieldLabel({ children }: { readonly children: ReactNode }) {
+  return (
+    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+      {children}
+    </p>
   );
 }
 
@@ -466,9 +414,7 @@ function TemperatureControl({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-          Temperature
-        </p>
+        <FieldLabel>Temperature</FieldLabel>
         {value == null ? (
           <span className="text-[11px] text-gray-400">Auto</span>
         ) : (
