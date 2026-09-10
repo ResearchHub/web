@@ -10,19 +10,11 @@ import { ActivityFeedList, ActivityRow } from '@/components/Activity';
 import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.utils';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
-import { ActivityCommentType } from '@/services/activity.service';
 import { ModerationTab } from '@/components/profile/ModerationTab';
 import { ModerationPreview } from '@/components/profile/ModerationPreview';
 import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
 import { ProfileStatsStrip } from '@/components/profile/ProfileStatsStrip';
 import ProfileAchievements from '@/components/profile/ProfileAchievements';
-import { ProfileFundingTab, isFundingPill } from '@/components/profile/ProfileFundingTab';
-import {
-  ProfileActivityTab,
-  ACTIVITY_PILLS,
-  isActivityPill,
-  type ActivityPillId,
-} from '@/components/profile/ProfileActivityTab';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import {
@@ -46,40 +38,9 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-interface ActivityFilters {
-  contentType: string;
-  commentTypes: readonly ActivityCommentType[];
-}
+type AuthorTab = 'overview' | 'moderation';
 
-/**
- * Narrows the author's activity to a single pill. Defined once at module scope so
- * the filters keep a stable identity across renders and never restart the feed.
- * The Overview tab has no entry: it shows everything the author did.
- */
-const TAB_TO_ACTIVITY_FILTERS: Record<string, ActivityFilters> = {
-  'peer-reviews': { contentType: 'RHCOMMENTMODEL', commentTypes: ['REVIEW', 'PEER_REVIEW'] },
-  comments: { contentType: 'RHCOMMENTMODEL', commentTypes: ['GENERIC_COMMENT', 'ANSWER'] },
-};
-
-type TabGroupId = 'overview' | 'funding' | 'activity' | 'moderation';
-
-const TOP_LEVEL_TABS: Array<{ id: TabGroupId; label: string }> = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'funding', label: 'Funding' },
-  { id: 'activity', label: 'Activity' },
-];
-
-/**
- * Resolve a tab id (either a group id or a pill id from within a group) to its
- * top-level group. The url stores a single `tab` param which may be either.
- */
-function getTabGroup(tabId: string): TabGroupId {
-  if (tabId === 'overview' || tabId === 'contributions') return 'overview';
-  if (tabId === 'funding' || isFundingPill(tabId)) return 'funding';
-  if (tabId === 'activity' || isActivityPill(tabId)) return 'activity';
-  if (tabId === 'moderation') return 'moderation';
-  return 'overview';
-}
+const OVERVIEW_TAB = { id: 'overview', label: 'Overview' };
 
 const MODERATION_TAB = {
   id: 'moderation',
@@ -88,16 +49,12 @@ const MODERATION_TAB = {
   iconClassName: 'w-4 h-4',
 };
 
-function AuthorTabContent({
-  authorId,
-  currentTab,
-  isPending,
-}: {
-  authorId: number;
-  currentTab: string;
-  isPending: boolean;
-}) {
-  const filters = TAB_TO_ACTIVITY_FILTERS[currentTab];
+/** Overview answers to its legacy `contributions` token so existing links stay valid. */
+function resolveAuthorTab(tab: string): AuthorTab {
+  return tab === 'moderation' ? 'moderation' : 'overview';
+}
+
+function AuthorActivityFeed({ authorId }: { authorId: number }) {
   const {
     entries,
     isLoading,
@@ -108,11 +65,7 @@ function AuthorTabContent({
     feedKey,
     restoredScrollPosition,
     lastClickedEntryId,
-  } = useActivityFeed({
-    authorId,
-    contentType: filters?.contentType,
-    commentTypes: filters?.commentTypes,
-  });
+  } = useActivityFeed({ authorId });
 
   useFeedScrollTracking({
     feedKey,
@@ -123,11 +76,11 @@ function AuthorTabContent({
     lastClickedEntryId: lastClickedEntryId ?? undefined,
   });
 
-  const rows = isPending ? [] : groupActivityRows(entries);
+  const rows = groupActivityRows(entries);
 
   return (
     <ActivityFeedList
-      isLoading={isPending || isLoading}
+      isLoading={isLoading}
       isLoadingMore={isLoadingMore}
       hasMore={hasMore}
       loadMore={loadMore}
@@ -153,7 +106,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   // Tab state â€” lifted here so the tab bar can live in the hero banner
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const urlTab = searchParams.get('tab') || 'contributions';
   const [pendingTab, setPendingTab] = useState<string | null>(null);
 
@@ -163,63 +116,34 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     }
   }, [urlTab, pendingTab]);
 
-  const currentTab = pendingTab ?? urlTab;
+  const activeTab = resolveAuthorTab(pendingTab ?? urlTab);
 
-  const setTab = (tabId: string) => {
-    setPendingTab(tabId);
+  const changeTab = (tabId: string) => {
+    const nextTab = tabId === 'moderation' ? 'moderation' : 'contributions';
+    setPendingTab(nextTab);
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
-      params.set('tab', tabId);
+      params.set('tab', nextTab);
       router.replace(`/author/${authorId}?${params.toString()}`, { scroll: false });
     });
   };
 
-  const activeGroup = getTabGroup(currentTab);
-
-  /**
-   * Top-level tab clicks: jump to the group's landing state. For Activity this
-   * means its first pill; for Funding it's the group token (`funding`) which
-   * lets `ProfileFundingTab` decide the default pill based on fetched data.
-   */
-  const handleTopTabChange = (groupId: string) => {
-    switch (groupId) {
-      case 'overview':
-        setTab('contributions');
-        break;
-      case 'funding':
-        setTab('funding');
-        break;
-      case 'activity':
-        setTab(ACTIVITY_PILLS[0].id);
-        break;
-      case 'moderation':
-        setTab('moderation');
-        break;
-    }
-  };
-
   const canModerate = !!(currentUser?.moderator || isHubEditor) && !!user?.authorProfile?.userId;
-  const viewingOwnProfile = !!(
+  const isOwnProfile = !!(
     currentUser?.authorProfile?.id && user?.authorProfile?.id === currentUser.authorProfile.id
   );
-  const canViewFunding = viewingOwnProfile || !!currentUser?.moderator;
-  const tabs = [
-    TOP_LEVEL_TABS[0],
-    ...(canViewFunding ? [TOP_LEVEL_TABS[1]] : []),
-    TOP_LEVEL_TABS[2],
-    ...(canModerate ? [MODERATION_TAB] : []),
-  ];
+  const tabs = canModerate ? [OVERVIEW_TAB, MODERATION_TAB] : [OVERVIEW_TAB];
 
   const tabsReady = !isLoading && !isUserLoading && !!user?.authorProfile;
   const tabBar = tabsReady ? (
-    <Tabs tabs={tabs} activeTab={activeGroup} onTabChange={handleTopTabChange} variant="primary" />
+    <Tabs tabs={tabs} activeTab={activeTab} onTabChange={changeTab} variant="primary" />
   ) : undefined;
 
   const profileLoading = isLoading || isUserLoading;
 
   const topBanner = (() => {
     if (profileLoading) {
-      return <ProfileHeroBannerSkeleton />;
+      return <ProfileHeroBannerSkeleton tabCount={1} />;
     }
     if (error || userError || !user?.authorProfile) return undefined;
     return (
@@ -233,7 +157,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
 
   const author = user?.authorProfile;
   const profileError = error || userError;
-  const isOwnProfile = viewingOwnProfile;
 
   const sidebarContent = (
     <div className="flex flex-col gap-4">
@@ -265,7 +188,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     }
     if (!author) return null;
 
-    if (activeGroup === 'moderation' && canModerate) {
+    if (activeTab === 'moderation' && canModerate) {
       return (
         <ModerationTab
           userId={author.userId!.toString()}
@@ -275,29 +198,11 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       );
     }
 
-    if (activeGroup === 'funding' && canViewFunding && author.userId) {
-      return <ProfileFundingTab userId={author.userId} />;
-    }
-
-    if (activeGroup === 'activity') {
-      const activePill: ActivityPillId = isActivityPill(currentTab)
-        ? currentTab
-        : ACTIVITY_PILLS[0].id;
-      return (
-        <ProfileActivityTab activePill={activePill} onPillChange={setTab} userId={author.userId}>
-          <AuthorTabContent authorId={author.id} currentTab={activePill} isPending={isPending} />
-        </ProfileActivityTab>
-      );
-    }
-
-    // Overview (default)
-    return (
-      <AuthorTabContent authorId={author.id} currentTab="contributions" isPending={isPending} />
-    );
+    return <AuthorActivityFeed authorId={author.id} />;
   };
 
   // Compact mobile header shown inside the Overview tab only, to avoid filler
-  // space on other tabs at narrow widths. Tablet+ uses the full `sidebarContent`.
+  // space on the Moderation tab at narrow widths. Tablet+ uses the full `sidebarContent`.
   const hasAnyStats =
     !!summaryStats &&
     (summaryStats.worksCount > 0 ||
@@ -335,7 +240,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           <div className="w-full hidden tablet:block sidebar-profile:hidden">{sidebarContent}</div>
         )}
         <div className="flex-1 min-w-0 w-full">
-          {activeGroup === 'overview' && mobileOverviewHeader}
+          {activeTab === 'overview' && mobileOverviewHeader}
           {renderMain()}
         </div>
         <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
