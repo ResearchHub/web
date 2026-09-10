@@ -75,7 +75,6 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             work={work}
             metadata={metadata}
             amountUsd={badgeAmountUsd}
-            grantAmountUsd={grant?.amount?.usd}
             grantId={grantId?.toString()}
             isActive={isActive}
             isPending={isPending}

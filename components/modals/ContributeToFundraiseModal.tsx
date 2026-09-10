@@ -46,9 +46,8 @@ interface ContributeModalCommonProps {
   /** Replaces the `proposalTitle` subtitle. */
   headerSubtitle?: string;
   /**
-   * Progress figures to show instead of the target's own. Pooled campaigns
-   * contribute to one fundraise but present the pool's totals, since that's
-   * the goal the funder is actually backing.
+   * Progress figures to show instead of the fundraise's own (e.g. app/pool campaigns).
+   * Ignored in fundingPool mode — the RFP pool is unbounded extra money with no goal.
    */
   progressOverride?: { currentAmountUsd: number; goalAmountUsd: number };
   /**
@@ -72,12 +71,10 @@ export type ContributeToFundraiseModalProps = ContributeModalCommonProps &
         mode?: 'fundraise';
         fundraise: Fundraise;
         fundingPool?: never;
-        grantAmount?: never;
       }
     | {
         mode: 'fundingPool';
         fundingPool: FundingPool;
-        grantAmount: { usd: number };
         fundraise?: never;
       }
   );
@@ -136,7 +133,6 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const isPoolMode = props.mode === 'fundingPool';
   const fundraise = !isPoolMode ? props.fundraise : undefined;
   const fundingPool = isPoolMode ? props.fundingPool : undefined;
-  const grantAmount = isPoolMode ? props.grantAmount : undefined;
   // DAF is never offered for RFP funding pools.
   const allowDafPayment = isPoolMode ? false : (props.allowDafPayment ?? true);
 
@@ -451,15 +447,16 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     setIsSliderControlled(false); // Quick buttons set scaled visual mode
   }, []);
 
-  // Calculate amounts in USD for display
+  // Calculate amounts in USD for display.
+  const poolRaisedUsd = fundingPool?.amountRaised.usd ?? 0;
   const currentAmountUsd = isPoolMode
-    ? (progressOverride?.currentAmountUsd ?? fundingPool?.amountRaised.usd ?? 0)
+    ? poolRaisedUsd
     : (progressOverride?.currentAmountUsd ?? fundraise?.amountRaised?.usd ?? 0);
   const goalAmountUsd = isPoolMode
-    ? (progressOverride?.goalAmountUsd ?? grantAmount?.usd ?? 0)
+    ? 0
     : (progressOverride?.goalAmountUsd ?? fundraise?.goalAmount?.usd ?? 0);
   const remainingGoalUsd = Math.max(0, goalAmountUsd - currentAmountUsd);
-  const quickAmountCeilingUsd = isPoolMode && remainingGoalUsd <= 0 ? 10000 : remainingGoalUsd;
+  const quickAmountCeilingUsd = isPoolMode ? 10000 : remainingGoalUsd;
 
   const handleBack = useCallback(() => {
     if (currentView === 'payment' || currentView === 'auth') {
@@ -636,12 +633,21 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                   selectedAmount={selectedQuickAmount}
                   onAmountSelect={handleQuickAmountSelect}
                   remainingGoalUsd={quickAmountCeilingUsd}
-                  showRemaining={!isPoolMode || remainingGoalUsd > 0}
+                  showRemaining={!isPoolMode}
                 />
               </div>
 
-              {/* Funding Impact Preview with Slider */}
-              {goalAmountUsd > 0 && (
+              {isPoolMode && poolRaisedUsd > 0 && (
+                <p className="text-sm text-gray-600">
+                  Raised so far{' '}
+                  <span className="font-mono font-medium text-gray-900 tabular-nums">
+                    {formatUsd(poolRaisedUsd)}
+                  </span>
+                </p>
+              )}
+
+              {/* Goal progress + slider — proposal fundraises only (pool has no goal). */}
+              {!isPoolMode && goalAmountUsd > 0 && (
                 <FundingImpactPreview
                   currentAmountUsd={currentAmountUsd}
                   goalAmountUsd={goalAmountUsd}
@@ -658,7 +664,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                     setAmountError(undefined);
                     setIsSliderControlled(true); // Slider sets linear visual mode
                   }}
-                  authors={isPoolMode ? undefined : work?.authors.map((a) => a.authorProfile)}
+                  authors={work?.authors.map((a) => a.authorProfile)}
                 />
               )}
             </div>
