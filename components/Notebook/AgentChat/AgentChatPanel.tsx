@@ -370,6 +370,22 @@ export function AgentChatPanel({
   }, [noteId]);
 
   // ---- server-side access gate ----
+  const [deniedNoteId, setDeniedNoteId] = useState<string | null>(null);
+  const accessNoteRef = useRef(noteId);
+  useEffect(() => {
+    if (accessNoteRef.current !== noteId) {
+      accessNoteRef.current = noteId;
+      setDeniedNoteId(null);
+      // The chat hooks reset after a note switch; their current access values
+      // can still belong to the previous note on this render.
+      return;
+    }
+    if (list.access === 'hidden' || chatState.access === 'unauthorized') {
+      setDeniedNoteId(noteId);
+    }
+  }, [noteId, list.access, chatState.access]);
+  const accessDenied = deniedNoteId === noteId;
+
   useEffect(() => {
     // Leave a visible restriction until the user closes the panel. A blocked
     // account keeps the entry point so its unavailable state remains reachable.
@@ -377,18 +393,11 @@ export function AgentChatPanel({
       !open &&
       researchAI.budgetStatus !== 'loading' &&
       researchAI.budget?.tier !== 'blocked' &&
-      (list.access === 'hidden' || chatState.access === 'unauthorized')
+      accessDenied
     ) {
       onUnavailable();
     }
-  }, [
-    open,
-    list.access,
-    chatState.access,
-    onUnavailable,
-    researchAI.budgetStatus,
-    researchAI.budget?.tier,
-  ]);
+  }, [open, accessDenied, onUnavailable, researchAI.budgetStatus, researchAI.budget?.tier]);
 
   // ---- keep the listing fresh as the open chat evolves ----
   // Derived titles land after the first turn, previews/spinners change as
@@ -987,8 +996,8 @@ export function AgentChatPanel({
   const turnActive =
     chatState.latestExecution != null && isActiveExecutionStatus(chatState.latestExecution.status);
   const canStop = turnActive || chatState.pendingSend?.executionId != null;
-  const composerDisabled =
-    selectedChatId == null ? list.access !== 'ok' : chatState.access !== 'ok';
+  const chatAccessible = selectedChatId == null ? list.access === 'ok' : chatState.access === 'ok';
+  const composerDisabled = accessDenied || !chatAccessible;
 
   const emptyState = (
     <EmptyState
@@ -1002,16 +1011,14 @@ export function AgentChatPanel({
   const renderBody = () => {
     if (
       researchAI.budget?.tier === 'blocked' ||
+      accessDenied ||
       list.access === 'hidden' ||
       chatState.access === 'unauthorized'
     ) {
       return (
-        <div
-          role="status"
-          className="flex h-full items-center justify-center px-6 text-center text-sm text-gray-600"
-        >
+        <output className="flex h-full items-center justify-center px-6 text-center text-sm text-gray-600">
           You do not have access to the research assistant for this notebook.
-        </div>
+        </output>
       );
     }
     if (selectedChatId == null) {
@@ -1278,7 +1285,7 @@ export function AgentChatPanel({
               }}
             />
             {hasModelSelection && researchAI.catalog === null && (
-              <p role="status" className="mt-1 text-[11px] text-amber-700">
+              <output className="mt-1 block text-[11px] text-amber-700">
                 {researchAI.catalogStatus === 'loading'
                   ? 'Loading available AI models…'
                   : 'Couldn’t load available AI models.'}
@@ -1293,7 +1300,7 @@ export function AgentChatPanel({
                     Retry
                   </button>
                 )}
-              </p>
+              </output>
             )}
           </>
         }

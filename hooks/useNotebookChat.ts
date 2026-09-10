@@ -476,6 +476,31 @@ export function useNotebookChat({
     onReconnect: handleSocketReconnect,
   });
 
+  const handleSendFailure = useCallback(
+    (err: unknown, epoch: number): SendOutcome => {
+      const outcome = sendFailureOutcome(err);
+      if (outcome.reason === 'usage_limit') recordLimit(chatErrorBody(err));
+      else void refreshBudget(true);
+      if (outcome.reason === 'model_not_allowed') void refreshCatalog(true);
+
+      // Refresh account allowances even after switching chats, but only update
+      // the transcript and access state for the chat that sent the message.
+      if (epoch !== epochRef.current) return outcome;
+      setPendingSend(null);
+      // Raced an active turn — refetch so the busy state renders truthfully.
+      if (outcome.reason === 'busy' || outcome.reason === 'account_busy') fetchChat('live');
+      if (outcome.reason === 'not_found') setAccess('not_found');
+      // Session expired or permission revoked mid-chat: mirror a failed GET
+      // so the access gate reacts instead of showing generic composer errors.
+      if (outcome.reason === 'unauthorized') {
+        setChat(null);
+        setAccess('unauthorized');
+      }
+      return outcome;
+    },
+    [fetchChat, refreshBudget, refreshCatalog, recordLimit]
+  );
+
   const send = useCallback(
     async (text: string, generation?: GenerationRequest): Promise<SendOutcome> => {
       if (noteId == null || chatId == null) return { ok: false, reason: 'error' };
@@ -496,38 +521,10 @@ export function useNotebookChat({
         }
         return { ok: true };
       } catch (err) {
-        const outcome = sendFailureOutcome(err);
-        if (outcome.reason === 'usage_limit') recordLimit(chatErrorBody(err));
-        else void refreshBudget(true);
-        if (outcome.reason === 'model_not_allowed') void refreshCatalog(true);
-        // The outcome is still reported either way, but a continuation for a
-        // chat that is no longer selected must not mutate the current one.
-        if (epoch === epochRef.current) {
-          setPendingSend(null);
-          // Raced an active turn — refetch so the busy state renders truthfully.
-          if (outcome.reason === 'busy' || outcome.reason === 'account_busy') fetchChat('live');
-          if (outcome.reason === 'not_found') setAccess('not_found');
-          // Session expired or permission revoked mid-chat: mirror what a
-          // failed GET does so the access gate reacts instead of the composer
-          // showing generic errors forever.
-          if (outcome.reason === 'unauthorized') {
-            setChat(null);
-            setAccess('unauthorized');
-          }
-        }
-        return outcome;
+        return handleSendFailure(err, epoch);
       }
     },
-    [
-      noteId,
-      chatId,
-      fetchChat,
-      refreshBudget,
-      refreshCatalog,
-      recordLimit,
-      getSnapshot,
-      isSubmissionBlocked,
-    ]
+    [noteId, chatId, fetchChat, handleSendFailure, getSnapshot, isSubmissionBlocked]
   );
 
   const cancel = useCallback(async () => {

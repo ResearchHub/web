@@ -131,7 +131,7 @@ export function useAgentModelSelection({
   );
 
   const request = useMemo<GenerationRequest>(() => {
-    if (!canSelect || model == null || !model.allowed) return {};
+    if (!canSelect || !model?.allowed) return {};
     const { effort, ...perTurn } = options;
     return {
       ...(!locked && { model: model.ref }),

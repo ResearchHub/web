@@ -319,5 +319,6 @@ export function modelMultiplierExplanation(catalog: AgentModelCatalog | null): s
     ? (findModel(catalog?.models ?? [], pricing.multiplier_base_model)?.label ??
       modelIdOf(pricing.multiplier_base_model))
     : null;
-  return `Estimated credit usage${baseline ? ` relative to ${baseline}` : ''}. Actual usage varies with input and output length, caching, and searches.`;
+  const comparison = baseline ? ` relative to ${baseline}` : '';
+  return `Estimated credit usage${comparison}. Actual usage varies with input and output length, caching, and searches.`;
 }
