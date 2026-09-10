@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useState, useCallback } from 'react';
+import { type ReactNode, useState, useCallback, useEffect } from 'react';
 import { ArrowUpFromLine, Coins, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
@@ -69,12 +69,80 @@ export function WorkHeaderGrant({
   const showPoolHolding =
     canManagePool && fundingPool?.status === 'OPEN' && (fundingPool.amountHolding.rsc ?? 0) >= 0;
 
+  const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
+  const hasGrantId = !!grantId;
+  const poolStatus = fundingPool?.status ?? null;
+  const canContributeToPool = hasGrantId && isActive && poolStatus === 'OPEN';
+
+  // TEMP staging debug — remove after funding-pool contribute is verified on stg
+  useEffect(() => {
+    const grant = work.note?.post?.grant;
+    const reasons: string[] = [];
+    if (!hasGrantId) reasons.push('missing grantId');
+    if (!isActive) reasons.push(`grant not active (isActive=${isActive}, isPending=${isPending})`);
+    if (!fundingPool) reasons.push('fundingPool is null/undefined (serializer omitted or no pool)');
+    else if (poolStatus !== 'OPEN') reasons.push(`fundingPool.status is "${poolStatus}" (need OPEN)`);
+
+    console.log('[RFP funding pool debug]', {
+      grant,
+      grantId,
+      isActive,
+      isPending,
+      amountUsd,
+      grantCreatedByUserId,
+      fundingPoolProp,
+      contextPool,
+      fundingPool,
+      poolStatus,
+      applicationsCount: grant?.applications?.length ?? 0,
+      applications: grant?.applications,
+      contribute: {
+        canContributeToPool,
+        willRenderButton: canContributeToPool,
+        willMountModal: poolStatus === 'OPEN',
+        gates: {
+          hasGrantId,
+          isActive,
+          poolStatusIsOpen: poolStatus === 'OPEN',
+        },
+        blockedReasons: canContributeToPool ? [] : reasons,
+      },
+      allocateOwnerHints: {
+        isGrantCreator,
+        isModerator: !!user?.isModerator,
+        canManagePool,
+        showPoolHolding,
+        holdingRsc: fundingPool?.amountHolding?.rsc,
+      },
+    });
+
+    if (!canContributeToPool) {
+      console.warn('[RFP Contribute] button hidden because:', reasons.join('; ') || 'unknown');
+    } else {
+      console.info('[RFP Contribute] button should render');
+    }
+  }, [
+    work,
+    grantId,
+    hasGrantId,
+    isActive,
+    isPending,
+    amountUsd,
+    grantCreatedByUserId,
+    fundingPoolProp,
+    contextPool,
+    fundingPool,
+    poolStatus,
+    canContributeToPool,
+    isGrantCreator,
+    user?.isModerator,
+    canManagePool,
+    showPoolHolding,
+  ]);
+
   const eyebrow = (
     <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
   );
-
-  const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
-  const canContributeToPool = !!grantId && isActive && fundingPool?.status === 'OPEN';
 
   const handleContributeSuccess = useCallback(() => {
     setIsContributeModalOpen(false);

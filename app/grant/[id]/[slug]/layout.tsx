@@ -64,6 +64,21 @@ export default async function GrantSlugLayout({ params, children }: Props) {
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
   const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
 
+  // TEMP staging debug — also appears in server/runtime logs for SSR
+  console.log('[RFP funding pool debug][server layout]', {
+    postId: work.id,
+    grant,
+    grantId,
+    isActive,
+    isPending,
+    badgeAmountUsd,
+    fundingPool: grant?.fundingPool ?? null,
+    applicationsCount: grant?.applications?.length ?? 0,
+    createdByUserId: grant?.createdBy?.id ?? null,
+    noteHasPost: !!work.note?.post,
+    noteHasGrant: !!grant,
+  });
+
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
