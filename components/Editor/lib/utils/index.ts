@@ -10,7 +10,3 @@ export function randomElement<T>(array: Array<T>): T {
 }
 
 export * from './cssVar';
-export * from './dragHandle';
-export * from './getRenderContainer';
-export * from './isCustomNodeSelected';
-export * from './isTextSelected';

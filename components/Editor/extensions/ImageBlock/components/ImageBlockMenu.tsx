@@ -7,7 +7,7 @@ import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { ImageBlockWidth } from './ImageBlockWidth';
 import { MenuProps } from '@/components/Editor/components/menus/types';
-import { getRenderContainer } from '@/components/Editor/lib/utils';
+import { getRenderContainer } from '@/components/Editor/lib/utils/getRenderContainer';
 
 export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);

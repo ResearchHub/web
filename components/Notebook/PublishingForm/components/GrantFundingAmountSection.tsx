@@ -15,6 +15,7 @@ export function GrantFundingAmountSection() {
       <SectionHeader icon={DollarSign}>Funding Amount</SectionHeader>
       <div className="mt-2">
         <Input
+          data-testid="grant-amount-input"
           {...register('budget')}
           placeholder="10,000"
           type="text"

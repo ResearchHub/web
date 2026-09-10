@@ -15,6 +15,7 @@ export function getWorkMetadata({
   const title = `${work.title}${titleSuffix ? ` - ${titleSuffix}` : ''}`;
   const previewText = stripHtml(work.previewContent || '').substring(0, 155);
   const description = work.abstract || previewText || work.title;
+  const topics = work.contentType === 'paper' ? work.topics : undefined;
 
   const structuredData = generateDocumentStructuredData({
     ...work,
@@ -32,8 +33,8 @@ export function getWorkMetadata({
     publishedTime: work.publishedDate || work.createdDate,
     modifiedTime: work.updatedDate,
     authors: work.authors?.map((a) => a.authorProfile?.fullName) || [],
-    section: work.topics?.[0]?.name,
-    tags: work.topics?.map((t) => t.name) || [],
+    section: topics?.[0]?.name,
+    tags: topics?.map((topic) => topic.name),
   });
 
   return {

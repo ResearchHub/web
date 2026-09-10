@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAIMode } from './AIModeContext';
 import { assistantChatTransport } from '@/services/chatTransport';
-import { AssistantChatService } from '@/services/assistantChat.service';
 import {
   useAgentChat,
   useAgentChatList,
@@ -12,6 +11,8 @@ import {
   type UseAgentChatResult,
 } from '@/hooks/useAgentChat';
 import { useAgentModelSelection, type AgentModelSelection } from '@/hooks/useAgentModelSelection';
+import { useResearchAI } from '@/hooks/useResearchAI';
+import { canSelectAIModel, formatBudgetReset } from '@/types/researchAI';
 import type { ChatNoteRef, AgentChat } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
 import type { ComposerNotice } from '@/components/AgentChat/ChatComposer';
@@ -24,41 +25,41 @@ interface QueuedMessage {
   generation: GenerationRequest;
 }
 
-function formatResetTime(iso: unknown): string | null {
-  if (typeof iso !== 'string') return null;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
-
 /**
  * Composer copy for a failed send. Server `detail` is rendered verbatim
- * wherever it exists; the fallbacks only cover bodies without one.
+ * wherever it exists; the fallbacks only cover bodies without one. A spent
+ * budget names its reset time when the allowance store knows it.
  */
-function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice {
+function noticeFromOutcome(
+  outcome: SendOutcome & { ok: false },
+  budgetResetsAt: string | null
+): ComposerNotice {
   switch (outcome.reason) {
+    case 'account_busy':
+      return {
+        tone: 'warning',
+        text:
+          outcome.detail ??
+          'Another assistant task of yours is still running elsewhere. Wait for it to finish, then try again.',
+      };
     case 'busy':
-      if (outcome.code === 'usage_work_in_progress') {
-        return {
-          tone: 'warning',
-          text:
-            outcome.detail ??
-            'Another assistant task of yours is still running elsewhere. Wait for it to finish, then try again.',
-        };
-      }
       return {
         tone: 'warning',
         text: outcome.detail ?? 'The assistant is still working on a previous message.',
       };
-    case 'limit': {
-      const resetsAt = formatResetTime(outcome.body?.resets_at);
+    case 'usage_limit':
       return {
         tone: 'warning',
-        text: resetsAt
-          ? `You’ve used today’s assistant budget. It resets at ${resetsAt}.`
+        text: budgetResetsAt
+          ? `You’ve used today’s assistant budget. It resets at ${formatBudgetReset(budgetResetsAt)}.`
           : (outcome.detail ?? 'You’ve used today’s assistant budget. Try again after it resets.'),
       };
-    }
+    case 'model_not_allowed':
+      return {
+        tone: 'error',
+        text:
+          outcome.detail ?? 'That model isn’t available to you. Pick another one and try again.',
+      };
     case 'invalid':
       return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
     case 'not_found':
@@ -87,6 +88,11 @@ export interface AIModeChatState {
   readonly clearNotice: () => void;
   /** A brand-new chat is being created for the first message. */
   readonly creatingChat: boolean;
+  /**
+   * Sending would be refused: the allowance is unknown or spent, or a tier
+   * that picks its model has no catalog yet to pick from.
+   */
+  readonly sendBlocked: boolean;
   readonly send: () => Promise<void>;
   /** Send given text as the user's message — a starter card, sent as-is. */
   readonly sendText: (text: string) => Promise<void>;
@@ -130,10 +136,36 @@ export function useAIModeChat(): AIModeChatState {
   const chat = useAgentChat({ transport, chatId, enabled: true, initialChat });
   const chatRef = useRef(chat.chat);
   chatRef.current = chat.chat;
+  // User-wide allowances and the model catalog load with the overlay; the
+  // selection hook reads them from the same store rather than fetching again.
+  const researchAI = useResearchAI(true);
+  const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
   const modelSelection = useAgentModelSelection({
-    enabled: true,
+    enabled: false,
+    canSelect: hasModelSelection && researchAI.catalog !== null,
+    conversationKey: `assistant:${chatId ?? 'new'}`,
+    locked:
+      (chat.chat?.executions.length ?? 0) > 0 ||
+      (chat.chat?.messages.length ?? 0) > 0 ||
+      chat.pendingSend !== null,
     pinnedRef: chat.pinnedModelRef,
+    effortPinned: chat.latestExecution != null,
+    pinnedEffort: chat.latestExecution?.effort ?? null,
   });
+  // A selectable tier must never submit its first turn without an authoritative
+  // model; cached budget and catalog data stay usable through refresh failures.
+  const sendBlocked =
+    researchAI.budget === null ||
+    researchAI.isSubmissionBlocked() ||
+    (hasModelSelection && modelSelection.model === null);
+  const getBudgetSnapshot = researchAI.getSnapshot;
+  const failureNotice = useCallback(
+    (outcome: SendOutcome & { ok: false }): ComposerNotice => {
+      const snapshot = getBudgetSnapshot();
+      return noticeFromOutcome(outcome, snapshot.budget?.resets_at ?? snapshot.limitResetAt);
+    },
+    [getBudgetSnapshot]
+  );
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
@@ -248,6 +280,8 @@ export function useAIModeChat(): AIModeChatState {
           return;
         }
         draftsRef.current.delete('new');
+        // A rejected first attempt must retry with the same model and settings.
+        modelSelection.adoptConversation(`assistant:${created.conversation_id}`, generation);
         setInitialChat(created);
         selectChatInUrl(created.conversation_id);
         setQueuedMessage({ text, generation });
@@ -257,10 +291,20 @@ export function useAIModeChat(): AIModeChatState {
       const outcome = await chat.send(text, generation);
       if (!outcome.ok && isCurrentTarget(target)) {
         setDraft(text);
-        setNotice(noticeFromOutcome(outcome));
+        setNotice(failureNotice(outcome));
       }
     },
-    [chatId, list, chat, modelSelection.request, setDraft, isCurrentTarget, selectChatInUrl]
+    [
+      chatId,
+      list,
+      chat,
+      modelSelection.request,
+      modelSelection.adoptConversation,
+      setDraft,
+      isCurrentTarget,
+      selectChatInUrl,
+      failureNotice,
+    ]
   );
 
   const send = useCallback(() => sendText(draft), [sendText, draft]);
@@ -275,13 +319,13 @@ export function useAIModeChat(): AIModeChatState {
     sendToChat(text, generation).then((outcome) => {
       if (outcome.ok) return;
       if (isCurrentTarget(target)) {
-        setNotice(noticeFromOutcome(outcome));
+        setNotice(failureNotice(outcome));
         setDraft(text);
       } else {
         draftsRef.current.set(String(target), text);
       }
     });
-  }, [queuedMessage, chatId, chat.access, sendToChat, setDraft, isCurrentTarget]);
+  }, [queuedMessage, chatId, chat.access, sendToChat, setDraft, isCurrentTarget, failureNotice]);
 
   const stop = chat.cancel;
 
@@ -365,32 +409,22 @@ export function useAIModeChat(): AIModeChatState {
 
   const clearNotice = useCallback(() => setNotice(null), []);
 
-  // Surface the budget reset time on a 429 even when the body lacked it.
+  // A spent-budget notice raised before the allowance store had a reset time
+  // picks it up once the store's post-429 refresh lands.
+  const budgetResetsAt = researchAI.budget?.resets_at ?? researchAI.limitResetAt ?? null;
   useEffect(() => {
-    if (
-      notice?.tone !== 'warning' ||
-      !notice.text.includes('budget') ||
-      notice.text.includes('resets at')
-    ) {
-      return;
-    }
-    let cancelled = false;
-    AssistantChatService.getUsageBudget()
-      .then((budget) => {
-        const resetsAt = formatResetTime(budget.resets_at);
-        if (cancelled || !resetsAt) return;
-        setNotice({
-          tone: 'warning',
-          text: `You’ve used today’s assistant budget. It resets at ${resetsAt}.`,
-        });
-      })
-      .catch(() => {
-        // The notice already says the budget is spent; the reset time is a bonus.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [notice]);
+    if (!budgetResetsAt) return;
+    setNotice((current) =>
+      current?.tone === 'warning' &&
+      current.text.includes('budget') &&
+      !current.text.includes('resets at')
+        ? {
+            tone: 'warning',
+            text: `You’ve used today’s assistant budget. It resets at ${formatBudgetReset(budgetResetsAt)}.`,
+          }
+        : current
+    );
+  }, [budgetResetsAt]);
 
   const note = useMemo(() => {
     if (chatId == null) return null;
@@ -407,6 +441,7 @@ export function useAIModeChat(): AIModeChatState {
     notice,
     clearNotice,
     creatingChat,
+    sendBlocked,
     send,
     sendText,
     stop,

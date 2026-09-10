@@ -25,6 +25,8 @@ interface ChatComposerProps {
   readonly canStop: boolean;
   /** Hard-disable everything (chat unavailable). */
   readonly disabled: boolean;
+  readonly sendDisabled?: boolean;
+  readonly footer?: ReactNode;
   readonly notice: ComposerNotice | null;
   readonly placeholder?: string;
   /**
@@ -56,6 +58,8 @@ export function ChatComposer({
   busy,
   canStop,
   disabled,
+  sendDisabled = false,
+  footer,
   notice,
   placeholder = 'Ask the assistant…',
   textareaRef,
@@ -70,7 +74,7 @@ export function ChatComposer({
     textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
   }, [value]);
 
-  const canSend = !disabled && !busy && value.trim().length > 0;
+  const canSend = !disabled && !sendDisabled && !busy && value.trim().length > 0;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -146,6 +150,7 @@ export function ChatComposer({
           )}
         </div>
       </div>
+      {footer}
       {value.length >= COUNTER_THRESHOLD && (
         <p className="mt-1 text-right text-[11px] text-gray-400">
           {value.length.toLocaleString()} / {MAX_CHAT_MESSAGE_LENGTH.toLocaleString()}

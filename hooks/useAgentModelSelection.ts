@@ -4,104 +4,94 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAgentModels, type AgentModelsStatus } from '@/hooks/useAgentModels';
 import {
   findModel,
+  modelMultiplierExplanation,
   normalizeGenerationOptions,
   unknownModel,
   type AgentModel,
+  type EffortLevel,
   type GenerationOptions,
   type GenerationRequest,
 } from '@/types/agentModels';
 
-const STORAGE_KEY = 'agent-chat:model';
-
 /** Stable empty list so consumers can depend on `models` by identity. */
 const NO_MODELS: AgentModel[] = [];
-
-/**
- * The user's raw choices, kept exactly as they made them. Values a given
- * model can't take are dropped on the way out rather than on the way in, so
- * an effort survives a detour through a model that doesn't offer it.
- */
 interface StoredPreference extends GenerationOptions {
   ref?: string;
 }
 
-function readPreference(): StoredPreference {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const parsed: unknown = JSON.parse(raw);
-    return parsed != null && typeof parsed === 'object' ? (parsed as StoredPreference) : {};
-  } catch {
-    // Unparseable, or storage denied — fall back to the server's defaults.
-    return {};
-  }
-}
-
 export interface UseAgentModelSelectionOptions {
   readonly enabled: boolean;
+  readonly canSelect: boolean;
+  readonly conversationKey: string;
+  readonly locked: boolean;
   /**
    * The model the open chat's first turn ran on. A conversation keeps its
-   * model for life, so this — when set — outranks the user's standing choice.
+   * model for life, so this — when set — outranks the new-chat default.
    */
   readonly pinnedRef: string | null;
+  /** Any recorded turn locks effort, including legacy turns without a model. */
+  readonly effortPinned: boolean;
+  /** Latest execution's saved effort. Null means the server did not record it. */
+  readonly pinnedEffort: EffortLevel | null;
 }
 
 export interface AgentModelSelection {
   readonly status: AgentModelsStatus;
+  readonly multiplierExplanation: string;
   readonly models: AgentModel[];
   /** The model the next turn runs on, or null while there is no catalog. */
   readonly model: AgentModel | null;
   /** The open chat has already committed to a model. */
   readonly pinned: boolean;
-  /** The user's controls, narrowed to what {@link model} actually accepts. */
+  readonly effortPinned: boolean;
+  /** Compatible controls, including the chat's saved effort for display. */
   readonly options: GenerationOptions;
   readonly selectModel: (ref: string) => void;
   /** Patch: pass a field as `undefined` to hand it back to the server. */
   readonly setOptions: (options: GenerationOptions) => void;
+  /** Carry the first send's choices onto the conversation the server just created. */
+  readonly adoptConversation: (key: string, generation: GenerationRequest) => void;
   /** Generation fields for a send, ready to spread into the request body. */
   readonly request: GenerationRequest;
 }
 
 /**
- * Which model the next turn runs on, and how.
- *
- * The model choice is a browser-level preference — the last one picked is the
- * one a new chat starts on — while a chat already under way reports its own
- * pin, which wins. The generation controls stay per-turn either way: the
- * server re-reads them on every message, so effort and thinking remain live
- * even on a chat whose model is settled.
+ * New chats start with the API default and keep choices only for that chat.
+ * Model and effort lock after the first turn; thinking and temperature remain
+ * configurable when the saved model/effort combination supports them.
  */
 export function useAgentModelSelection({
   enabled,
+  canSelect,
+  conversationKey,
+  locked,
   pinnedRef,
+  effortPinned,
+  pinnedEffort,
 }: UseAgentModelSelectionOptions): AgentModelSelection {
   const { status, catalog } = useAgentModels(enabled);
-  const [preference, setPreference] = useState<StoredPreference>({});
-  const [hydrated, setHydrated] = useState(false);
-
-  // Read after mount, never during initialization: localStorage is unavailable
-  // on the server and a differing first client render would hydrate-mismatch.
+  const [choice, setChoice] = useState<{ key: string; preference: StoredPreference }>({
+    key: conversationKey,
+    preference: {},
+  });
+  const preference = choice.key === conversationKey ? choice.preference : {};
   useEffect(() => {
-    setPreference(readPreference());
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preference));
-    } catch {
-      // A blocked or full store just means the choice lasts this session.
-    }
-  }, [hydrated, preference]);
-
-  const models = catalog?.models ?? NO_MODELS;
+    // Creation already transferred the captured choices to the assigned ID.
+    // Only an ordinary chat switch should reset this hook's selection.
+    setChoice((current) =>
+      current.key === conversationKey ? current : { key: conversationKey, preference: {} }
+    );
+  }, [conversationKey]);
+  const models = useMemo(
+    () => catalog?.models.filter((model) => model.allowed) ?? NO_MODELS,
+    [catalog]
+  );
 
   const model = useMemo(() => {
     if (catalog == null) return null;
     // A pinned ref is named even when the catalog no longer carries it, so a
     // chat on a retired model still says what it is running.
-    if (pinnedRef) return findModel(models, pinnedRef) ?? unknownModel(pinnedRef);
+    if (pinnedRef) return findModel(catalog.models, pinnedRef) ?? unknownModel(pinnedRef);
     return (
       findModel(models, preference.ref ?? null) ??
       findModel(models, catalog.default) ??
@@ -111,33 +101,61 @@ export function useAgentModelSelection({
   }, [catalog, models, pinnedRef, preference.ref]);
 
   const options = useMemo(
-    () => (model ? normalizeGenerationOptions(model, preference) : {}),
-    [model, preference]
+    () => (model ? normalizeGenerationOptions(model, preference, effortPinned, pinnedEffort) : {}),
+    [model, preference, effortPinned, pinnedEffort]
   );
 
-  const selectModel = useCallback((ref: string) => {
-    setPreference((current) => ({ ...current, ref }));
-  }, []);
+  const selectModel = useCallback(
+    (ref: string) => {
+      if (!canSelect || locked || !models.some((model) => model.ref === ref)) return;
+      setChoice((current) => ({
+        key: conversationKey,
+        preference: { ...(current.key === conversationKey ? current.preference : {}), ref },
+      }));
+    },
+    [canSelect, locked, models, conversationKey]
+  );
 
-  const setOptions = useCallback((next: GenerationOptions) => {
-    setPreference((current) => ({ ...current, ...next }));
-  }, []);
+  const setOptions = useCallback(
+    (next: GenerationOptions) => {
+      if (!canSelect) return;
+      // A saved effort stays visible, but must never overwrite this chat's
+      // choice or leak into its later requests.
+      const { effort, ...perTurn } = next;
+      const patch = effortPinned ? perTurn : next;
+      setChoice((current) => ({
+        key: conversationKey,
+        preference: { ...(current.key === conversationKey ? current.preference : {}), ...patch },
+      }));
+    },
+    [canSelect, conversationKey, effortPinned]
+  );
 
   const request = useMemo<GenerationRequest>(() => {
-    if (model == null) return {};
-    // Naming the pinned model again would be accepted, but only while nothing
-    // raced us. Leaving it out lets the server answer from its own record.
-    return { ...(pinnedRef == null && { model: model.ref }), ...options };
-  }, [model, options, pinnedRef]);
+    if (!canSelect || !model?.allowed) return {};
+    const { effort, ...perTurn } = options;
+    return {
+      ...(!locked && { model: model.ref }),
+      ...(effortPinned ? perTurn : options),
+    };
+  }, [canSelect, model, options, locked, effortPinned]);
+
+  const adoptConversation = useCallback((key: string, generation: GenerationRequest) => {
+    const { model: ref, ...options } = generation;
+    setChoice({ key, preference: { ref, ...options } });
+  }, []);
 
   return {
     status,
+    multiplierExplanation: modelMultiplierExplanation(catalog),
     models,
     model,
-    pinned: pinnedRef != null,
+    pinned: locked,
+    effortPinned,
     options,
     selectModel,
     setOptions,
+    adoptConversation,
     request,
   };
 }

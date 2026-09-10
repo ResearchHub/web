@@ -2,7 +2,7 @@
  * Types for the agent model catalog (`GET /api/research_ai/models/`) and the
  * per-turn generation controls a selected model accepts.
  *
- * Wire shapes stay snake_case-free but verbatim, like `types/agentChat.ts`.
+ * Wire shapes stay snake_case and verbatim, like `types/agentChat.ts`.
  *
  * The catalog says *what* each model accepts (its `capabilities`); the rules
  * below say which *combinations* the backend will take. They mirror
@@ -58,9 +58,18 @@ export interface AgentModel {
   readonly description: string;
   readonly provider: string;
   readonly capabilities: AgentModelCapabilities;
+  readonly allowed: boolean;
+  readonly multiplier: string | null;
+}
+
+export interface CreditPricing {
+  readonly multiplier_base_model: string;
+  readonly multiplier_basis: string;
+  readonly multiplier_is_estimate: boolean;
 }
 
 export interface AgentModelCatalog {
+  readonly credit_pricing?: CreditPricing;
   /** The ref that runs when a request names no model. */
   readonly default: string;
   /** Server-ordered: strongest first within each family. */
@@ -68,9 +77,9 @@ export interface AgentModelCatalog {
 }
 
 /**
- * Per-turn model controls. Every field is optional and an omitted one means
- * "whatever the server is configured to do", which is the resting state of
- * the picker — nothing is sent until the user asks for it.
+ * Model controls. Effort is chosen on the first turn and inherited thereafter;
+ * thinking and temperature remain per-turn. Omitted fields use server defaults
+ * on a new chat, and omitted effort preserves an existing chat's saved value.
  */
 export interface GenerationOptions {
   readonly effort?: EffortLevel;
@@ -89,9 +98,12 @@ export interface GenerationRequest extends GenerationOptions {
 
 /** Raw catalog response — `capabilities` arrives as open-ended strings. */
 export interface AgentModelCatalogResponse {
-  default?: string;
+  default?: string | null;
+  credit_pricing?: CreditPricing;
   models?: Array<{
     ref?: string;
+    allowed?: boolean;
+    multiplier?: string | null;
     label?: string;
     description?: string;
     provider?: string;
@@ -134,6 +146,8 @@ export function toAgentModelCatalog(response: AgentModelCatalogResponse): AgentM
     if (!model?.ref) continue;
     models.push({
       ref: model.ref,
+      allowed: model.allowed === true,
+      multiplier: model.multiplier ?? null,
       label: model.label?.trim() || modelIdOf(model.ref),
       description: model.description ?? '',
       provider: model.provider || providerOf(model.ref),
@@ -144,7 +158,7 @@ export function toAgentModelCatalog(response: AgentModelCatalogResponse): AgentM
       },
     });
   }
-  return { default: response.default ?? '', models };
+  return { default: response.default ?? '', models, credit_pricing: response.credit_pricing };
 }
 
 export function findModel(models: AgentModel[], ref: string | null): AgentModel | null {
@@ -160,6 +174,8 @@ export function findModel(models: AgentModel[], ref: string | null): AgentModel 
 export function unknownModel(ref: string): AgentModel {
   return {
     ref,
+    allowed: false,
+    multiplier: null,
     label: modelIdOf(ref) || ref,
     description: '',
     provider: providerOf(ref),
@@ -189,6 +205,23 @@ export function availableEffortLevels(
     levels = levels.filter((level) => level !== 'xhigh' && level !== 'max');
   }
   return levels;
+}
+
+/**
+ * Existing chats keep their latest saved effort. For legacy chats without a
+ * recorded value, only offer modes compatible with every possible level.
+ */
+export function availableThinkingModes(
+  model: AgentModel,
+  effortPinned: boolean,
+  pinnedEffort: EffortLevel | null = null
+): ThinkingMode[] {
+  const efforts = pinnedEffort == null ? model.capabilities.effort : [pinnedEffort];
+  return model.capabilities.thinking.filter(
+    (thinking) =>
+      !effortPinned ||
+      efforts.every((effort) => availableEffortLevels(model, thinking).includes(effort))
+  );
 }
 
 /**
@@ -224,18 +257,27 @@ export function formatTemperature(value: number): string {
  *
  * Callers keep the user's raw choices and normalize on the way out, so an
  * effort a model can't take comes back when they return to one that can.
+ * A pinned effort is restored verbatim for display; callers omit it on sends.
  */
 export function normalizeGenerationOptions(
   model: AgentModel,
-  options: GenerationOptions
+  options: GenerationOptions,
+  effortPinned = false,
+  pinnedEffort: EffortLevel | null = null
 ): GenerationOptions {
   const thinking =
-    options.thinking != null && model.capabilities.thinking.includes(options.thinking)
+    options.thinking != null &&
+    availableThinkingModes(model, effortPinned, pinnedEffort).includes(options.thinking)
       ? options.thinking
       : undefined;
-  const effort =
-    options.effort != null && availableEffortLevels(model, thinking).includes(options.effort)
-      ? options.effort
+  // On a new OpenRouter chat, explicitly pair thinking off with no effort.
+  // Otherwise the backend snapshots its default effort, which may reason.
+  const requestedEffort =
+    model.provider === OPENROUTER && thinking === 'disabled' ? 'none' : options.effort;
+  const effort = effortPinned
+    ? (pinnedEffort ?? undefined)
+    : requestedEffort != null && availableEffortLevels(model, thinking).includes(requestedEffort)
+      ? requestedEffort
       : undefined;
   const temperature =
     options.temperature != null && temperatureAvailable(model, thinking)
@@ -258,4 +300,25 @@ export function summarizeGenerationOptions(options: GenerationOptions): string[]
   if (options.thinking) parts.push(`Thinking ${THINKING_LABELS[options.thinking].toLowerCase()}`);
   if (options.temperature != null) parts.push(`Temp ${formatTemperature(options.temperature)}`);
   return parts;
+}
+
+/** Comparisons, never a per-message charge. Null pricing is not free. */
+export function formatModelMultiplier(value: string | null): string {
+  if (value === null || !Number.isFinite(Number(value)) || Number(value) <= 0) {
+    return 'Pricing unavailable';
+  }
+  const multiplier = Number(value);
+  return multiplier < 0.01
+    ? '<0.01×'
+    : `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(multiplier)}×`;
+}
+
+export function modelMultiplierExplanation(catalog: AgentModelCatalog | null): string {
+  const pricing = catalog?.credit_pricing;
+  const baseline = pricing
+    ? (findModel(catalog?.models ?? [], pricing.multiplier_base_model)?.label ??
+      modelIdOf(pricing.multiplier_base_model))
+    : null;
+  const comparison = baseline ? ` relative to ${baseline}` : '';
+  return `Estimated credit usage${comparison}. Actual usage varies with input and output length, caching, and searches.`;
 }

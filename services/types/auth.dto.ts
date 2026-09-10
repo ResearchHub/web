@@ -55,6 +55,7 @@ export interface RegisterApiRequest {
   first_name: string;
   last_name: string;
   referral_code?: string;
+  turnstile_token?: string;
 }
 
 export interface CheckAccountApiResponse {

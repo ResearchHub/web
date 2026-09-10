@@ -109,6 +109,7 @@ export function ChatPane({
       busy={composerBusy}
       canStop={canStop}
       disabled={composerDisabled}
+      sendDisabled={state.sendBlocked}
       notice={notice}
       className="border-t-0 bg-gray-50"
       placeholder="Describe what you want to work on…"
@@ -117,10 +118,12 @@ export function ChatPane({
           models={modelSelection.models}
           model={modelSelection.model}
           pinned={modelSelection.pinned}
+          effortPinned={modelSelection.effortPinned}
           options={modelSelection.options}
           onSelectModel={modelSelection.selectModel}
           onChangeOptions={modelSelection.setOptions}
           disabled={composerDisabled}
+          multiplierExplanation={modelSelection.multiplierExplanation}
         />
       }
     />

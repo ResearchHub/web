@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -375,7 +376,7 @@ function ContributeToFundraiseModalInner({
       if (paymentMethod === 'credit_card') {
         setError('We had an issue processing your credit card. Choose a different payment method.');
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(extractApiErrorMessage(err, 'Something went wrong. Please try again.'));
       }
     } finally {
       setIsContributing(false);

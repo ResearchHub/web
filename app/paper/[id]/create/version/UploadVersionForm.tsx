@@ -51,7 +51,7 @@ export default function UploadVersionForm({
     }))
   );
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>(() => {
-    const sourceTopics = metadata?.topics ?? initialPaper.topics;
+    const sourceTopics = metadata?.topics ?? initialPaper.topics ?? [];
     return sourceTopics.map((topic) => ({
       id: topic.id,
       name: topic.name,

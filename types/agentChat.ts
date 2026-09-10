@@ -9,6 +9,8 @@
  * against the backend contract.
  */
 
+import type { EffortLevel } from './agentModels';
+
 export type ExecutionStatus =
   | 'PENDING'
   | 'RUNNING'
@@ -145,6 +147,8 @@ export interface ChatExecution {
    * every later turn on it runs, and cannot be changed.
    */
   model: string;
+  /** Saved effort for this turn; null on legacy turns, omitted by older backends. */
+  effort?: EffortLevel | null;
   /** The user message that started this turn. */
   trigger_message_id: number | null;
   retry_of_id: number | null;
@@ -156,7 +160,7 @@ export interface ChatExecution {
   /** Heartbeat, stamped on every durable write. */
   last_activity_at: string | null;
   iterations: number;
-  max_iterations: number;
+  max_iterations: number | null;
   /** True while the turn succeeded but its answer hasn't landed in `messages` yet. */
   assistant_message_pending: boolean;
   error: ChatExecutionError | null;

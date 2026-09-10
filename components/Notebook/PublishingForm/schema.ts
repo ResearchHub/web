@@ -42,7 +42,6 @@ export const publishingFormSchema = z
     }),
     authors: z.array(optionSchema),
     contacts: z.array(optionSchema),
-    topics: z.array(optionSchema),
     budget: z.string().optional(),
     rewardFunders: z.boolean(),
     nftArt: z.any().nullable(),
@@ -70,10 +69,6 @@ export const publishingFormSchema = z
     isPublic: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.topics.length === 0) {
-      addIssue(ctx, 'topics', 'At least one topic is required');
-    }
-
     if (data.articleType === 'grant') {
       if (data.contacts.length === 0) {
         addIssue(ctx, 'contacts', 'At least one contact is required for grants');

@@ -18,9 +18,14 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import dynamic from 'next/dynamic';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
-import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 import { cn } from '@/utils/styles';
+
+const DocumentUploadStep = dynamic(
+  () => import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
+  { ssr: false }
+);
 
 export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
 
