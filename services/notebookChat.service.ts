@@ -93,9 +93,77 @@ export function chatErrorStatus(error: unknown): number | undefined {
  */
 export function chatErrorDetail(error: unknown): string | undefined {
   if (error instanceof ApiError) {
-    const detail = (error.errors as Record<string, unknown> | undefined)?.detail;
+    const fields = error.errors as Record<string, unknown> | undefined;
+    const detail = fields?.detail;
     if (typeof detail === 'string' && detail.length > 0) return detail;
+    if (fields) {
+      const messages = Object.entries(fields).flatMap(([field, value]) =>
+        Array.isArray(value)
+          ? value
+              .filter((entry): entry is string => typeof entry === 'string')
+              .map((entry) => `${field}: ${entry}`)
+          : []
+      );
+      if (messages.length) return messages.join(' ');
+    }
     return error.message;
   }
   return error instanceof Error ? error.message : undefined;
+}
+
+export function chatErrorCode(error: unknown): string | undefined {
+  const code = chatErrorBody(error)?.code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+export function chatErrorBody(error: unknown): Record<string, unknown> | undefined {
+  return error instanceof ApiError
+    ? (error.errors as Record<string, unknown> | undefined)
+    : undefined;
+}
+
+export type SendOutcome =
+  | { ok: true }
+  | {
+      ok: false;
+      reason:
+        | 'usage_limit'
+        | 'account_busy'
+        | 'model_not_allowed'
+        | 'busy'
+        | 'invalid'
+        | 'not_found'
+        | 'unauthorized'
+        | 'error';
+      detail?: string;
+    };
+
+/** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
+export function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
+  const detail = chatErrorDetail(err);
+  const code = chatErrorCode(err);
+  switch (chatErrorStatus(err)) {
+    case 429:
+      return code === 'usage_limit_exceeded'
+        ? { ok: false, reason: 'usage_limit', detail: 'Daily AI usage limit reached.' }
+        : { ok: false, reason: 'error', detail };
+
+    case 409:
+      return code === 'usage_work_in_progress'
+        ? { ok: false, reason: 'account_busy', detail: 'Another AI request is still running.' }
+        : { ok: false, reason: 'busy', detail: 'This conversation already has an active turn.' };
+    case 400:
+      return {
+        ok: false,
+        reason: code === 'model_not_allowed' ? 'model_not_allowed' : 'invalid',
+        detail,
+      };
+    case 401:
+    case 403:
+      return { ok: false, reason: 'unauthorized', detail };
+    case 404:
+      return { ok: false, reason: 'not_found', detail };
+    default:
+      return { ok: false, reason: 'error', detail };
+  }
 }

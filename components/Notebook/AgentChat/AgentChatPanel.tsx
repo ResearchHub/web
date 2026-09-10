@@ -30,6 +30,9 @@ import { ChatPicker } from './ChatPicker';
 import { ChatPresets } from './ChatPresets';
 import { ChatSources, collectChatSources } from './ChatSources';
 import { ChatTranscript } from './ChatTranscript';
+import { CreditMeter } from './CreditMeter';
+import { useResearchAI } from '@/hooks/useResearchAI';
+import { canSelectAIModel } from '@/types/researchAI';
 import { ModelControls } from './ModelControls';
 import { Logo } from '@/components/ui/Logo';
 import {
@@ -52,13 +55,18 @@ interface QueuedMessage {
 /** Pixels per arrow key press while the resize divider has focus. */
 const RESIZE_KEY_STEP = 24;
 
-function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice {
+function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice | null {
   switch (outcome.reason) {
+    case 'usage_limit':
+      // The shared meter owns this notice, including when the allowance resets.
+      return null;
+    case 'account_busy':
     case 'busy':
       return {
         tone: 'warning',
         text: outcome.detail ?? 'The assistant is still working on a previous message.',
       };
+    case 'model_not_allowed':
     case 'invalid':
       return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
     case 'not_found':
@@ -220,8 +228,8 @@ interface AgentChatPanelProps {
 /**
  * The notebook AI assistant panel: chat picker, transcript with live turn
  * progress, and composer. Stays mounted while the notebook is open so chat
- * selection and drafts survive closing the panel; all network activity is
- * gated on `open`.
+ * selection and drafts survive closing the panel. Chat requests are gated on
+ * `open`; user-wide allowances load with the notebook.
  */
 export function AgentChatPanel({
   noteId,
@@ -237,6 +245,10 @@ export function AgentChatPanel({
   onReviewChange,
 }: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
+  // This panel stays mounted even when closed: load allowances on notebook open.
+  const researchAI = useResearchAI(true);
+  const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
+  const canSelectModel = hasModelSelection && researchAI.catalog !== null;
   // Decide which writing preset the empty chat screen offers, and what it
   // calls the document: the notebook holds RFPs as well as proposals.
   const noteIsEmpty = useEditorIsEmpty(editor);
@@ -277,13 +289,25 @@ export function AgentChatPanel({
   // ---- model selection ----
   // The catalog loads with the panel. A chat that has already run a turn is
   // locked to the model it started on, and reports it here; until then the
-  // browser-level preference decides.
+  // API default decides.
   const modelSelection = useAgentModelSelection({
-    enabled: open,
+    enabled: false,
+    canSelect: canSelectModel,
+    conversationKey: `${noteId}:${selectedChatId ?? 'new'}`,
+    locked:
+      (chatState.chat?.executions.length ?? 0) > 0 ||
+      (chatState.chat?.messages.length ?? 0) > 0 ||
+      chatState.pendingSend !== null,
     pinnedRef: chatState.pinnedModelRef,
     effortPinned: chatState.latestExecution != null,
     pinnedEffort: chatState.latestExecution?.effort ?? null,
   });
+  // A selectable tier must never submit its first turn without an authoritative
+  // model. Cached budget and catalog data remain usable through refresh failures.
+  const budgetSendDisabled =
+    researchAI.budget === null ||
+    researchAI.isSubmissionBlocked() ||
+    (hasModelSelection && modelSelection.model === null);
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
@@ -345,11 +369,34 @@ export function AgentChatPanel({
   }, [noteId]);
 
   // ---- server-side access gate ----
+  const [deniedNoteId, setDeniedNoteId] = useState<string | null>(null);
+  const accessNoteRef = useRef(noteId);
   useEffect(() => {
+    if (accessNoteRef.current !== noteId) {
+      accessNoteRef.current = noteId;
+      setDeniedNoteId(null);
+      // The chat hooks reset after a note switch; their current access values
+      // can still belong to the previous note on this render.
+      return;
+    }
     if (list.access === 'hidden' || chatState.access === 'unauthorized') {
+      setDeniedNoteId(noteId);
+    }
+  }, [noteId, list.access, chatState.access]);
+  const accessDenied = deniedNoteId === noteId;
+
+  useEffect(() => {
+    // Leave a visible restriction until the user closes the panel. A blocked
+    // account keeps the entry point so its unavailable state remains reachable.
+    if (
+      !open &&
+      researchAI.budgetStatus !== 'loading' &&
+      researchAI.budget?.tier !== 'blocked' &&
+      accessDenied
+    ) {
       onUnavailable();
     }
-  }, [list.access, chatState.access, onUnavailable]);
+  }, [open, accessDenied, onUnavailable, researchAI.budgetStatus, researchAI.budget?.tier]);
 
   // ---- keep the listing fresh as the open chat evolves ----
   // Derived titles land after the first turn, previews/spinners change as
@@ -386,7 +433,7 @@ export function AgentChatPanel({
 
   const handleSend = useCallback(async () => {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
     setNotice(null);
     const target = targetRef.current;
     // Captured before the awaits: the turn runs on what was selected when the
@@ -411,6 +458,8 @@ export function AgentChatPanel({
         return;
       }
       draftsRef.current.delete('new');
+      // A rejected first attempt must retry with the same model and settings.
+      modelSelection.adoptConversation(`${noteId}:${created.conversation_id}`, generation);
       setInitialChat(created);
       setSelectedChatId(created.conversation_id);
       setQueuedMessage({ text, generation });
@@ -435,8 +484,13 @@ export function AgentChatPanel({
     list,
     chatState,
     modelSelection.request,
+    modelSelection.adoptConversation,
+    noteId,
     updateDraft,
     isCurrentTarget,
+    budgetSendDisabled,
+    creatingChat,
+    queuedMessage,
   ]);
 
   // Fire the queued first message once the freshly created chat is live.
@@ -928,24 +982,21 @@ export function AgentChatPanel({
 
   // ---- derived composer state ----
   // Sending before the catalog lands would run the turn on the server default
-  // and pin the conversation to it, silently losing the user's chosen model
-  // with no way back. Busy rather than disabled: the draft stays editable, only
-  // send waits. A catalog that fails resolves to `unavailable`, which sends on
-  // the server default by design.
+  // and pin the conversation to it. Keep the draft editable while send waits.
   const composerBusy =
     chatState.isBusy ||
     chatState.isFinishing ||
     creatingChat ||
     queuedMessage != null ||
-    modelSelection.status === 'loading';
+    (canSelectModel && modelSelection.status === 'loading');
   // Stop is only offered once something cancellable exists server-side. While
   // the message POST is still in flight or the chat is being created, cancel
   // would no-op and the turn would start anyway.
   const turnActive =
     chatState.latestExecution != null && isActiveExecutionStatus(chatState.latestExecution.status);
   const canStop = turnActive || chatState.pendingSend?.executionId != null;
-  const composerDisabled =
-    selectedChatId == null ? list.access !== 'ok' : chatState.access !== 'ok';
+  const chatAccessible = selectedChatId == null ? list.access === 'ok' : chatState.access === 'ok';
+  const composerDisabled = accessDenied || !chatAccessible;
 
   const emptyState = (
     <EmptyState
@@ -957,6 +1008,18 @@ export function AgentChatPanel({
   );
 
   const renderBody = () => {
+    if (
+      researchAI.budget?.tier === 'blocked' ||
+      accessDenied ||
+      list.access === 'hidden' ||
+      chatState.access === 'unauthorized'
+    ) {
+      return (
+        <output className="flex h-full items-center justify-center px-6 text-center text-sm text-gray-600">
+          You do not have access to the research assistant for this notebook.
+        </output>
+      );
+    }
     if (selectedChatId == null) {
       if (list.access === 'loading') return <CenteredLoader />;
       if (list.access === 'error') {
@@ -1208,18 +1271,52 @@ export function AgentChatPanel({
         busy={composerBusy}
         canStop={canStop}
         disabled={composerDisabled}
+        sendDisabled={budgetSendDisabled}
         notice={notice}
+        footer={
+          <>
+            <CreditMeter
+              budget={researchAI.budget}
+              budgetStatus={researchAI.budgetStatus}
+              limitResetAt={researchAI.limitResetAt}
+              onRefresh={() => {
+                void researchAI.refreshBudget(true);
+              }}
+            />
+            {hasModelSelection && researchAI.catalog === null && (
+              <output className="mt-1 block text-[11px] text-amber-700">
+                {researchAI.catalogStatus === 'loading'
+                  ? 'Loading available AI models…'
+                  : 'Couldn’t load available AI models.'}
+                {researchAI.catalogStatus === 'unavailable' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void researchAI.refreshCatalog(true);
+                    }}
+                    className="ml-2 underline"
+                  >
+                    Retry
+                  </button>
+                )}
+              </output>
+            )}
+          </>
+        }
         toolbar={
-          <ModelControls
-            models={modelSelection.models}
-            model={modelSelection.model}
-            pinned={modelSelection.pinned}
-            effortPinned={modelSelection.effortPinned}
-            options={modelSelection.options}
-            onSelectModel={modelSelection.selectModel}
-            onChangeOptions={modelSelection.setOptions}
-            disabled={composerDisabled || composerBusy}
-          />
+          canSelectModel && (
+            <ModelControls
+              models={modelSelection.models}
+              model={modelSelection.model}
+              pinned={modelSelection.pinned}
+              effortPinned={modelSelection.effortPinned}
+              options={modelSelection.options}
+              onSelectModel={modelSelection.selectModel}
+              onChangeOptions={modelSelection.setOptions}
+              disabled={composerDisabled || composerBusy || budgetSendDisabled}
+              multiplierExplanation={modelSelection.multiplierExplanation}
+            />
+          )
         }
       />
     </aside>
