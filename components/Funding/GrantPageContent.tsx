@@ -39,10 +39,6 @@ export function useGrantTab() {
   return ctx;
 }
 
-/**
- * Optional allocate helpers — safe outside GrantTabProvider (e.g. global /fund feed).
- * Returns null when not on an RFP page.
- */
 export function useGrantAllocateContext(): GrantTabContextValue | null {
   return useContext(GrantTabContext);
 }

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/form/Input';
 import { FundingPoolService } from '@/services/funding-pool.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import type { FundingPool } from '@/types/grant';
-import { formatRSC } from '@/utils/number';
+import { formatRSC, validatePositiveDecimal } from '@/utils/number';
 import { ID } from '@/types/root';
 
 interface AllocateFundingPoolModalProps {
@@ -45,25 +45,26 @@ export function AllocateFundingPoolModal({
     setIsSubmitting(false);
   }, [isOpen, fundingPool.id, applicationId]);
 
-  const parseAmount = useCallback((value: string): number => {
-    const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : NaN;
-  }, []);
+  const validateAmount = useCallback(
+    (value: string) =>
+      validatePositiveDecimal(value, {
+        max: holdingRsc,
+        maxError: `Cannot exceed ${formatRSC({ amount: holdingRsc, decimalPlaces: 2 })} RSC holding`,
+      }),
+    [holdingRsc]
+  );
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value;
     setAmountInput(next);
-    setAmountError(undefined);
 
-    if (!next.trim()) return;
-    const amount = parseAmount(next);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setAmountError('Enter a positive amount');
+    if (!next.trim()) {
+      setAmountError(undefined);
       return;
     }
-    if (amount > holdingRsc) {
-      setAmountError(`Cannot exceed ${formatRSC({ amount: holdingRsc, decimalPlaces: 2 })} RSC holding`);
-    }
+
+    const { error } = validateAmount(next);
+    setAmountError(error);
   };
 
   const handleAllocateMax = () => {
@@ -72,13 +73,9 @@ export function AllocateFundingPoolModal({
   };
 
   const handleSubmit = async () => {
-    const amount = parseAmount(amountInput);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setAmountError('Enter a positive amount');
-      return;
-    }
-    if (amount > holdingRsc) {
-      setAmountError(`Cannot exceed ${formatRSC({ amount: holdingRsc, decimalPlaces: 2 })} RSC holding`);
+    const { amount, error } = validateAmount(amountInput);
+    if (error || !Number.isFinite(amount)) {
+      setAmountError(error ?? 'Enter a valid positive amount');
       return;
     }
 
@@ -98,9 +95,16 @@ export function AllocateFundingPoolModal({
     }
   };
 
-  const amount = parseAmount(amountInput);
+  const { amount, error: parsedError } = amountInput.trim()
+    ? validateAmount(amountInput)
+    : { amount: NaN, error: undefined };
   const canSubmit =
-    Number.isFinite(amount) && amount > 0 && amount <= holdingRsc && !isSubmitting && !amountError;
+    Number.isFinite(amount) &&
+    amount > 0 &&
+    amount <= holdingRsc &&
+    !isSubmitting &&
+    !amountError &&
+    !parsedError;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Allocate to proposal">
