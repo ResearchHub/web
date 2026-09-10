@@ -48,6 +48,8 @@ export interface AgentModelSelection {
   readonly selectModel: (ref: string) => void;
   /** Patch: pass a field as `undefined` to hand it back to the server. */
   readonly setOptions: (options: GenerationOptions) => void;
+  /** Carry the first send's choices onto the conversation the server just created. */
+  readonly adoptConversation: (key: string, generation: GenerationRequest) => void;
   /** Generation fields for a send, ready to spread into the request body. */
   readonly request: GenerationRequest;
 }
@@ -73,7 +75,11 @@ export function useAgentModelSelection({
   });
   const preference = choice.key === conversationKey ? choice.preference : {};
   useEffect(() => {
-    setChoice({ key: conversationKey, preference: {} });
+    // Creation already transferred the captured choices to the assigned ID.
+    // Only an ordinary chat switch should reset this hook's selection.
+    setChoice((current) =>
+      current.key === conversationKey ? current : { key: conversationKey, preference: {} }
+    );
   }, [conversationKey]);
   const models = useMemo(
     () => catalog?.models.filter((model) => model.allowed) ?? NO_MODELS,
@@ -133,6 +139,11 @@ export function useAgentModelSelection({
     };
   }, [canSelect, model, options, locked, effortPinned]);
 
+  const adoptConversation = useCallback((key: string, generation: GenerationRequest) => {
+    const { model: ref, ...options } = generation;
+    setChoice({ key, preference: { ref, ...options } });
+  }, []);
+
   return {
     status,
     multiplierExplanation: modelMultiplierExplanation(catalog),
@@ -143,6 +154,7 @@ export function useAgentModelSelection({
     options,
     selectModel,
     setOptions,
+    adoptConversation,
     request,
   };
 }

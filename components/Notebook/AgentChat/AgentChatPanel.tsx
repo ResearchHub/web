@@ -450,6 +450,8 @@ export function AgentChatPanel({
         return;
       }
       draftsRef.current.delete('new');
+      // A rejected first attempt must retry with the same model and settings.
+      modelSelection.adoptConversation(`${noteId}:${created.conversation_id}`, generation);
       setInitialChat(created);
       setSelectedChatId(created.conversation_id);
       setQueuedMessage({ text, generation });
@@ -474,6 +476,8 @@ export function AgentChatPanel({
     list,
     chatState,
     modelSelection.request,
+    modelSelection.adoptConversation,
+    noteId,
     updateDraft,
     isCurrentTarget,
     budgetSendDisabled,
