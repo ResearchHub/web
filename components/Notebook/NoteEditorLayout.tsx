@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import { Button } from '@/components/ui/Button';
 
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
@@ -142,9 +143,8 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   const isChangelog = isChangelogNote(note);
   const isChangelogAccessDenied = isChangelog && !user?.isModerator;
 
-  const isHubEditorOrModerator = Boolean(user?.moderator) || (user?.editorOfHubs?.length ?? 0) > 0;
   const showAgentChat =
-    isHubEditorOrModerator &&
+    isHubEditorOrModerator(user) &&
     !agentChatUnavailable &&
     // Changelogs are moderator-only: the page renders Note Not Found in place
     // of the document, so the assistant must not mount over it.

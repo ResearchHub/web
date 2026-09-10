@@ -12,6 +12,8 @@ import { Sparkles, Sprout, Star } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AI_MODE_NAME } from '@/components/AIMode/copy';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
+import { useUser } from '@/contexts/UserContext';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import { cn } from '@/utils/styles';
 
 interface NavIcon {
@@ -66,6 +68,10 @@ export const Navigation: React.FC<NavigationProps> = ({
   onUnimplementedFeature,
   forceMinimize = false,
 }) => {
+  const { user } = useUser();
+  // The assistant is gated server-side to moderators and hub editors; nobody
+  // else gets a door to a room they cannot enter.
+  const canUseAssistant = isHubEditorOrModerator(user);
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
@@ -276,9 +282,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       )}
     >
       <div className="space-y-2">
-        {navigationItems.map((item) => (
-          <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
-        ))}
+        {navigationItems
+          .filter((item) => !item.isAIMode || canUseAssistant)
+          .map((item) => (
+            <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
+          ))}
       </div>
     </nav>
   );

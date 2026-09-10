@@ -51,8 +51,9 @@ const PANEL_WIDTH = 'w-[360px] max-w-[calc(100vw-1rem)]';
 /**
  * The composer's two controls: which model answers, and how hard it works.
  *
- * Model and effort lock after the first turn. The effort panel still offers
- * independent thinking and temperature controls where the model allows them.
+ * Model and effort lock after the first turn. Once effort is locked the
+ * panel only says so: thinking and temperature depend on the effort the chat
+ * runs at, and offering them under a lock reads as a control that half works.
  *
  * The model picker is a menu (`BaseMenu`): one choice, closes on pick. The
  * effort panel is a popover: it holds all three controls, temperature
@@ -82,10 +83,6 @@ export function ModelControls({
     model.capabilities.thinking.length > 1
       ? availableThinkingModes(model, effortPinned, options.effort ?? null)
       : [];
-  const thinkingRestricted =
-    effortPinned &&
-    thinkingModes.length < model.capabilities.thinking.length &&
-    model.capabilities.thinking.length > 1;
   const showTemperature = temperatureAvailable(model, options.thinking);
   // Claude refuses sampling params to a model that is still reasoning, which
   // would otherwise read as a control that went missing on its own.
@@ -168,31 +165,24 @@ export function ModelControls({
             </MenuTrigger>
           </PopoverTrigger>
           <PopoverContent aria-label="Effort" className={cn(PANEL_WIDTH, 'space-y-3 shadow-xl')}>
-            {effortLocked ? (
-              <p className="text-xs leading-snug text-gray-500">{lockedEffortDescription}</p>
-            ) : (
-              effortLevels.length > 0 && (
-                <ChoicePills
-                  label="Effort"
-                  unsetLabel="Auto"
-                  value={options.effort}
-                  choices={effortLevels.map((level) => ({
-                    value: level,
-                    label: EFFORT_LABELS[level],
-                  }))}
-                  onChange={(effort) => onChangeOptions({ effort })}
-                />
-              )
+            {effortLocked && (
+              <p className="text-sm leading-snug text-gray-500">{lockedEffortDescription}</p>
             )}
 
-            {thinkingRestricted && (
-              <p className="text-[11px] leading-snug text-gray-500">
-                Thinking options are limited by this chat's locked effort. Start a new chat for all
-                options.
-              </p>
+            {!effortLocked && effortLevels.length > 0 && (
+              <ChoicePills
+                label="Effort"
+                unsetLabel="Auto"
+                value={options.effort}
+                choices={effortLevels.map((level) => ({
+                  value: level,
+                  label: EFFORT_LABELS[level],
+                }))}
+                onChange={(effort) => onChangeOptions({ effort })}
+              />
             )}
 
-            {thinkingModes.length > 0 && (
+            {!effortLocked && thinkingModes.length > 0 && (
               <ChoicePills
                 label="Extended thinking"
                 unsetLabel="Auto"
@@ -210,7 +200,7 @@ export function ModelControls({
               />
             )}
 
-            {showTemperature && (
+            {!effortLocked && showTemperature && (
               <TemperatureControl
                 value={options.temperature}
                 onChange={(temperature) => onChangeOptions({ temperature })}
