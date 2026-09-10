@@ -270,7 +270,6 @@ export interface FeedGrantContent extends BaseFeedContent {
     currency: string;
     createdBy: AuthorProfile;
     applicants: Application[];
-    /** Present when the serializer includes it; slim grant_feed omits this. */
     fundingPool: FundingPool | null;
   };
   organization?: string;

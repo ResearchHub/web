@@ -41,7 +41,6 @@ export interface GrantAmount {
   formatted: string;
 }
 
-/** Status of an RFP community funding pool (separate from proposal fundraises). */
 export type FundingPoolStatus = 'OPEN' | 'CLOSED';
 
 export interface FundingPoolAmount {
@@ -49,10 +48,6 @@ export interface FundingPoolAmount {
   rsc: number;
 }
 
-/**
- * Community escrow pot on an RFP. Do not treat as a Fundraise — proposal
- * crowdfunding stays on nested applications[].fundraise.
- */
 export interface FundingPool {
   id: number;
   status: FundingPoolStatus;
@@ -65,7 +60,6 @@ function parseFundingPoolAmount(raw: unknown): FundingPoolAmount {
   const amount = raw as { usd?: unknown; rsc?: unknown } | null | undefined;
   return {
     usd: Number(amount?.usd ?? 0) || 0,
-    // BE may send RSC as a decimal string (e.g. "20.0").
     rsc: Number(amount?.rsc ?? 0) || 0,
   };
 }
@@ -82,7 +76,6 @@ export function transformFundingPool(raw: any): FundingPool {
 
 /**
  * Badge total = grant.amount + pool amount_raised when present.
- * If pool is null/absent (new grants before ensure, or slim feed), returns grant.amount only.
  */
 export function getGrantBadgeAmount(grant: {
   amount: Pick<GrantAmount, 'usd' | 'rsc'>;
@@ -141,7 +134,6 @@ export interface Grant {
   endDate: string;
   contacts: Contact[];
   applicationVisibility: GrantApplicationVisibility;
-  /** Null when omitted (slim feed) or not yet backfilled; BE creates pools on grant create. */
   fundingPool: FundingPool | null;
   applicants?: AuthorProfile[];
   applications?: Application[];

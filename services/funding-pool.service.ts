@@ -15,7 +15,6 @@ export interface DistributeFundingPoolParams {
 
 /**
  * Service for RFP community FundingPool APIs.
- * Distinct from FundraiseService — proposal crowdfunding stays on /api/fundraise/.
  */
 export class FundingPoolService {
   private static readonly POOL_BASE_PATH = '/api/funding_pool';
@@ -47,7 +46,7 @@ export class FundingPoolService {
    * Allocate pool holdings into an open proposal fundraise via its grant application.
    *
    * @param poolId - Funding pool id
-   * @param params - RSC amount and application id (not post/fundraise id)
+   * @param params - RSC amount and application id
    * @returns The updated funding pool
    */
   static async distribute(poolId: ID, params: DistributeFundingPoolParams): Promise<FundingPool> {
