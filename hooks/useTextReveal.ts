@@ -22,7 +22,6 @@ const FRAME_MS = 16;
 export const answerRevealKey = (executionId: number): string => `execution:${executionId}/answer`;
 export const narrationRevealKey = (executionId: number, itemId: string): string =>
   `execution:${executionId}/narration/${itemId}`;
-export const starterRevealKey = (starterId: string): string => `starter:${starterId}`;
 
 /** Register a key as revealing from zero, unless it already has progress. */
 export function markRevealable(key: string): void {
@@ -31,10 +30,6 @@ export function markRevealable(key: string): void {
 
 export function isRevealable(key: string): boolean {
   return progress.has(key);
-}
-
-export function forgetReveal(key: string): void {
-  progress.delete(key);
 }
 
 /**
