@@ -185,6 +185,8 @@ export default function Login({
           <div className="relative mb-4">
             <input
               type={showPassword ? 'text' : 'password'}
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
