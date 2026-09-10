@@ -247,8 +247,7 @@ export function AgentChatPanel({
   const { editor, currentNote } = useNotebookContext();
   // This panel stays mounted even when closed: load allowances on notebook open.
   const researchAI = useResearchAI(true);
-  const hasModelSelection =
-    canSelectAIModel(researchAI.budget?.tier) && researchAI.budgetStatus === 'ok';
+  const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
   const canSelectModel = hasModelSelection && researchAI.catalog !== null;
   // Decide which writing preset the empty chat screen offers, and what it
   // calls the document: the notebook holds RFPs as well as proposals.
@@ -304,9 +303,9 @@ export function AgentChatPanel({
     pinnedEffort: chatState.latestExecution?.effort ?? null,
   });
   // A selectable tier must never submit its first turn without an authoritative
-  // model. A cached catalog remains usable through a transient refresh failure.
+  // model. Cached budget and catalog data remain usable through refresh failures.
   const budgetSendDisabled =
-    researchAI.budgetStatus !== 'ok' ||
+    researchAI.budget === null ||
     researchAI.isSubmissionBlocked() ||
     (hasModelSelection && modelSelection.model === null);
 
