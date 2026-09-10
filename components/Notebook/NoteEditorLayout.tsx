@@ -111,7 +111,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
 
-  // ---- AI assistant chat (gated to hub editors and moderators) ----
+  // ---- AI assistant chat ----
   const [isAgentChatOpen, setIsAgentChatOpen] = useState(false);
   // Flipped when the server denies access (the gate can change server-side);
   // hides the entry point while this note is open.
@@ -142,9 +142,8 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   const isChangelog = isChangelogNote(note);
   const isChangelogAccessDenied = isChangelog && !user?.isModerator;
 
-  const isHubEditorOrModerator = Boolean(user?.moderator) || (user?.editorOfHubs?.length ?? 0) > 0;
   const showAgentChat =
-    isHubEditorOrModerator &&
+    Boolean(user) &&
     !agentChatUnavailable &&
     // Changelogs are moderator-only: the page renders Note Not Found in place
     // of the document, so the assistant must not mount over it.
