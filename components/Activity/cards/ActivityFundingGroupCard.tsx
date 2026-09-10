@@ -60,19 +60,7 @@ const FunderName: FC<{ funder: AuthorProfile }> = ({ funder }) => {
   );
 };
 
-const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }> = ({
-  funders,
-  contributionCount,
-}) => {
-  if (funders.length === 1) {
-    return (
-      <>
-        <FunderName funder={funders[0]} />
-        <span className="text-gray-500">{` funded this proposal ${contributionCount} times`}</span>
-      </>
-    );
-  }
-
+const FunderSummary: FC<{ funders: AuthorProfile[] }> = ({ funders }) => {
   const named = funders.slice(0, MAX_NAMED_FUNDERS);
   const remaining = funders.length - named.length;
 
@@ -92,7 +80,7 @@ const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }>
       {remaining > 0 && (
         <span className="text-gray-500">{` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}</span>
       )}
-      <span className="text-gray-500"> funded this proposal for</span>
+      <span className="text-gray-500"> funded this proposal.</span>
     </>
   );
 };
@@ -102,7 +90,7 @@ const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }>
  * a funder facepile, the summed contribution, and one work card.
  */
 export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ row }) => {
-  const { entries, latestEntry, work, funders, contributionCount, totals } = row;
+  const { entries, latestEntry, work, funders, totals } = row;
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { updateLastClickedEntryId } = useNavigation();
@@ -141,7 +129,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
         </div>
 
         <div className="min-w-0 flex-1 pt-1 text-sm leading-6">
-          <FunderSummary funders={funders} contributionCount={contributionCount} />{' '}
+          <FunderSummary funders={funders} />{' '}
           <ContributionAmount contribution={total} className="align-middle" />
         </div>
       </div>

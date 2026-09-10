@@ -102,6 +102,8 @@ export default function Signup({
       <form onSubmit={handleSignup}>
         <input
           type="text"
+          name="name"
+          autoComplete="name"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           placeholder="Full name (e.g. John Smith)"
@@ -113,6 +115,8 @@ export default function Signup({
         <div className="relative mb-4">
           <input
             type={showPassword ? 'text' : 'password'}
+            name="new-password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
