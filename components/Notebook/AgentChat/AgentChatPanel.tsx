@@ -247,9 +247,9 @@ export function AgentChatPanel({
   const { editor, currentNote } = useNotebookContext();
   // This panel stays mounted even when closed: load allowances on notebook open.
   const researchAI = useResearchAI(true);
-  const canSelectModel =
+  const hasModelSelection =
     canSelectAIModel(researchAI.budget?.tier) && researchAI.budgetStatus === 'ok';
-  const budgetSendDisabled = researchAI.budgetStatus !== 'ok' || researchAI.isSubmissionBlocked();
+  const canSelectModel = hasModelSelection && researchAI.catalog !== null;
   // Decide which writing preset the empty chat screen offers, and what it
   // calls the document: the notebook holds RFPs as well as proposals.
   const noteIsEmpty = useEditorIsEmpty(editor);
@@ -303,6 +303,12 @@ export function AgentChatPanel({
     effortPinned: chatState.latestExecution != null,
     pinnedEffort: chatState.latestExecution?.effort ?? null,
   });
+  // A selectable tier must never submit its first turn without an authoritative
+  // model. A cached catalog remains usable through a transient refresh failure.
+  const budgetSendDisabled =
+    researchAI.budgetStatus !== 'ok' ||
+    researchAI.isSubmissionBlocked() ||
+    (hasModelSelection && modelSelection.model === null);
 
   // ---- drafts (per chat, surviving switches and failed sends) ----
   const draftsRef = useRef(new Map<string, string>());
@@ -1258,14 +1264,34 @@ export function AgentChatPanel({
         sendDisabled={budgetSendDisabled}
         notice={notice}
         footer={
-          <CreditMeter
-            budget={researchAI.budget}
-            budgetStatus={researchAI.budgetStatus}
-            limitResetAt={researchAI.limitResetAt}
-            onRefresh={() => {
-              void researchAI.refreshBudget(true);
-            }}
-          />
+          <>
+            <CreditMeter
+              budget={researchAI.budget}
+              budgetStatus={researchAI.budgetStatus}
+              limitResetAt={researchAI.limitResetAt}
+              onRefresh={() => {
+                void researchAI.refreshBudget(true);
+              }}
+            />
+            {hasModelSelection && researchAI.catalog === null && (
+              <p role="status" className="mt-1 text-[11px] text-amber-700">
+                {researchAI.catalogStatus === 'loading'
+                  ? 'Loading available AI models…'
+                  : 'Couldn’t load available AI models.'}
+                {researchAI.catalogStatus === 'unavailable' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void researchAI.refreshCatalog(true);
+                    }}
+                    className="ml-2 underline"
+                  >
+                    Retry
+                  </button>
+                )}
+              </p>
+            )}
+          </>
         }
         toolbar={
           canSelectModel && (

@@ -258,25 +258,59 @@ test('opening an old failed turn does not block today, and cancellation refresh 
   assert.equal(store.getSnapshot().budget.credits.remaining, '248.35');
 });
 
-test('budget failure keeps the recorded balance and catalog refresh removes withdrawn choices', async () => {
-  let fail = false;
+test('transient failures retain the recorded budget and last successful catalog', async () => {
+  let failBudget = false;
+  let failCatalog = false;
   let available = catalog;
   const store = createResearchAIStore({
     budget: async () => {
-      if (fail) throw Error('offline');
+      if (failBudget) throw Error('offline');
       return budget();
     },
-    catalog: async () => available,
+    catalog: async () => {
+      if (failCatalog) throw Error('offline');
+      return available;
+    },
   });
   await store.refreshBudget();
-  fail = true;
+  failBudget = true;
   await store.refreshBudget(true);
   assert.equal(store.getSnapshot().budgetStatus, 'unavailable');
   assert.equal(store.getSnapshot().budget.credits.remaining, '248.35');
   await store.refreshCatalog();
+  failCatalog = true;
+  await store.refreshCatalog();
+  assert.equal(store.getSnapshot().catalogStatus, 'unavailable');
+  assert.equal(store.getSnapshot().catalog.models[0].ref, catalog.models[0].ref);
+  failCatalog = false;
   available = { ...catalog, models: [] };
   await store.refreshCatalog();
   assert.equal(store.getSnapshot().catalog.models.length, 0);
+});
+
+test('an authoritative catalog refresh queues behind an active fetch', async () => {
+  let resolveFirst;
+  let calls = 0;
+  const withdrawn = { ...catalog, models: catalog.models.slice(1) };
+  const store = createResearchAIStore({
+    budget: async () => budget(),
+    catalog: () => {
+      calls += 1;
+      if (calls === 1) {
+        return new Promise((resolve) => {
+          resolveFirst = resolve;
+        });
+      }
+      return Promise.resolve(withdrawn);
+    },
+  });
+  const pending = store.refreshCatalog();
+  store.refreshCatalog(true);
+  resolveFirst(catalog);
+  await pending;
+  await flush();
+  assert.equal(calls, 2);
+  assert.deepEqual(store.getSnapshot().catalog.models, withdrawn.models);
 });
 
 test('errors preserve structured codes, top-level budgets and ordinary field validation', () => {

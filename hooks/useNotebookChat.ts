@@ -499,7 +499,7 @@ export function useNotebookChat({
         const outcome = sendFailureOutcome(err);
         if (outcome.reason === 'usage_limit') recordLimit(chatErrorBody(err));
         else void refreshBudget(true);
-        if (outcome.reason === 'model_not_allowed') void refreshCatalog();
+        if (outcome.reason === 'model_not_allowed') void refreshCatalog(true);
         // The outcome is still reported either way, but a continuation for a
         // chat that is no longer selected must not mutate the current one.
         if (epoch === epochRef.current) {

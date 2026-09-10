@@ -28,6 +28,7 @@ export function createResearchAIStore(loaders: {
   let budgetFlight: Promise<void> | null = null;
   let catalogFlight: Promise<void> | null = null;
   let budgetQueued = false;
+  let catalogQueued = false;
   let budgetRevision = 0;
   let lastBudgetFetch = 0;
 
@@ -75,14 +76,25 @@ export function createResearchAIStore(loaders: {
     return budgetFlight;
   };
 
-  const refreshCatalog = (): Promise<void> => {
-    if (catalogFlight) return catalogFlight;
+  const refreshCatalog = (force = false): Promise<void> => {
+    if (catalogFlight) {
+      // A model rejection can arrive after the active GET was snapshotted.
+      // Queue one authoritative follow-up rather than accepting stale access.
+      if (force) catalogQueued = true;
+      return catalogFlight;
+    }
     catalogFlight = loaders
       .catalog()
       .then((catalog) => update({ catalog, catalogStatus: 'ok' }))
-      .catch(() => update({ catalog: null, catalogStatus: 'unavailable' }))
+      // Keep the last successful catalog through transient failures so an
+      // already-selected model cannot silently turn into the server default.
+      .catch(() => update({ catalogStatus: 'unavailable' }))
       .finally(() => {
         catalogFlight = null;
+        if (catalogQueued) {
+          catalogQueued = false;
+          void refreshCatalog(true);
+        }
       });
     return catalogFlight;
   };
