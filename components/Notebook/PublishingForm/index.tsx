@@ -909,7 +909,6 @@ export function PublishingForm({
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
-          zIndex={100}
         />
       )}
     </FormProvider>
