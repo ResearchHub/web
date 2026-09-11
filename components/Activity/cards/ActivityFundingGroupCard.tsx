@@ -105,7 +105,7 @@ const FunderSummary: FC<{
  * a funder facepile, the summed contribution, and one work card.
  */
 export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ row }) => {
-  const { entries, latestEntry, work, funders, contributionCount, totals } = row;
+  const { entries, latestEntry, work, funders, totals } = row;
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { updateLastClickedEntryId } = useNavigation();
@@ -114,6 +114,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
   const presentation = getWorkCardPresentation(latestEntry, work, { showUSD, exchangeRate });
   const total = toPreferredTotal(totals, showUSD, exchangeRate);
   const isRfp = work.documentType === 'funding_request';
+  const contributionCount = entries.length;
 
   const avatarItems = funders.map((funder) => ({
     src: funder.profileImage || '',

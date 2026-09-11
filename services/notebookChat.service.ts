@@ -2,11 +2,11 @@ import { ApiClient } from './client';
 import { ApiError } from './types';
 import type {
   CancelTurnResponse,
-  NotebookChat,
-  NotebookChatListItem,
+  AgentChat,
+  AgentChatListItem,
   SendMessageResponse,
-} from '@/types/notebookChat';
-import type { GenerationRequest } from '@/types/notebookModels';
+} from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
 import { ID } from '@/types/root';
 
 /**
@@ -16,7 +16,7 @@ import { ID } from '@/types/root';
  * client to refetch. All reads go through {@link getChat}; pass `live: true`
  * for every poll/nudge refetch after the initial load so the server can omit
  * settled activity feeds (see the `activity` merge semantics in
- * `types/notebookChat.ts`).
+ * `types/agentChat.ts`).
  */
 export class NotebookChatService {
   private static basePath(noteId: ID): string {
@@ -24,23 +24,19 @@ export class NotebookChatService {
   }
 
   /** Cheap listing projection for the picker — never fetch full chats to build the list. */
-  static async listChats(noteId: ID): Promise<NotebookChatListItem[]> {
-    const response = await ApiClient.get<{ chats: NotebookChatListItem[] }>(this.basePath(noteId));
+  static async listChats(noteId: ID): Promise<AgentChatListItem[]> {
+    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(this.basePath(noteId));
     return response.chats ?? [];
   }
 
   /** A chat created without a title is auto-named from its first message. */
-  static async createChat(noteId: ID, title?: string): Promise<NotebookChat> {
-    return ApiClient.post<NotebookChat>(this.basePath(noteId), title ? { title } : {});
+  static async createChat(noteId: ID, title?: string): Promise<AgentChat> {
+    return ApiClient.post<AgentChat>(this.basePath(noteId), title ? { title } : {});
   }
 
-  static async getChat(
-    noteId: ID,
-    chatId: ID,
-    options?: { live?: boolean }
-  ): Promise<NotebookChat> {
+  static async getChat(noteId: ID, chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {
     const suffix = options?.live ? '?activity=live' : '';
-    return ApiClient.get<NotebookChat>(`${this.basePath(noteId)}${chatId}/${suffix}`);
+    return ApiClient.get<AgentChat>(`${this.basePath(noteId)}${chatId}/${suffix}`);
   }
 
   /**
@@ -93,9 +89,77 @@ export function chatErrorStatus(error: unknown): number | undefined {
  */
 export function chatErrorDetail(error: unknown): string | undefined {
   if (error instanceof ApiError) {
-    const detail = (error.errors as Record<string, unknown> | undefined)?.detail;
+    const fields = error.errors as Record<string, unknown> | undefined;
+    const detail = fields?.detail;
     if (typeof detail === 'string' && detail.length > 0) return detail;
+    if (fields) {
+      const messages = Object.entries(fields).flatMap(([field, value]) =>
+        Array.isArray(value)
+          ? value
+              .filter((entry): entry is string => typeof entry === 'string')
+              .map((entry) => `${field}: ${entry}`)
+          : []
+      );
+      if (messages.length) return messages.join(' ');
+    }
     return error.message;
   }
   return error instanceof Error ? error.message : undefined;
+}
+
+export function chatErrorCode(error: unknown): string | undefined {
+  const code = chatErrorBody(error)?.code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+export function chatErrorBody(error: unknown): Record<string, unknown> | undefined {
+  return error instanceof ApiError
+    ? (error.errors as Record<string, unknown> | undefined)
+    : undefined;
+}
+
+export type SendOutcome =
+  | { ok: true }
+  | {
+      ok: false;
+      reason:
+        | 'usage_limit'
+        | 'account_busy'
+        | 'model_not_allowed'
+        | 'busy'
+        | 'invalid'
+        | 'not_found'
+        | 'unauthorized'
+        | 'error';
+      detail?: string;
+    };
+
+/** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
+export function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: false }> {
+  const detail = chatErrorDetail(err);
+  const code = chatErrorCode(err);
+  switch (chatErrorStatus(err)) {
+    case 429:
+      return code === 'usage_limit_exceeded'
+        ? { ok: false, reason: 'usage_limit', detail: 'Daily AI usage limit reached.' }
+        : { ok: false, reason: 'error', detail };
+
+    case 409:
+      return code === 'usage_work_in_progress'
+        ? { ok: false, reason: 'account_busy', detail: 'Another AI request is still running.' }
+        : { ok: false, reason: 'busy', detail: 'This conversation already has an active turn.' };
+    case 400:
+      return {
+        ok: false,
+        reason: code === 'model_not_allowed' ? 'model_not_allowed' : 'invalid',
+        detail,
+      };
+    case 401:
+    case 403:
+      return { ok: false, reason: 'unauthorized', detail };
+    case 404:
+      return { ok: false, reason: 'not_found', detail };
+    default:
+      return { ok: false, reason: 'error', detail };
+  }
 }

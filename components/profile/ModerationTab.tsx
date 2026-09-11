@@ -10,6 +10,7 @@ import { useUser } from '@/contexts/UserContext';
 import { formatTimestamp } from '@/utils/date';
 import { snakeCaseToTitleCase } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
+import { FieldLabel } from '@/components/ui/FieldLabel';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { DetailValue } from '@/components/ui/CopyableText';
@@ -281,9 +282,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
         <div className={cn('px-5 py-4', isModerator && 'border-t border-black/5 mt-4')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                Details
-              </span>
+              <FieldLabel as="span">Details</FieldLabel>
               <div className="flex flex-col gap-2 mt-2 text-sm">
                 {detailItems.map((item) => (
                   <div key={item.label} className="flex items-center gap-1.5 min-w-0">
@@ -300,9 +299,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
 
             {isModerator && insights.length > 0 && (
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Insights
-                </span>
+                <FieldLabel as="span">Insights</FieldLabel>
                 <div className="flex flex-col gap-2 mt-2">
                   {insights.map((insight) => (
                     <div

@@ -64,7 +64,8 @@ export function ConfirmPublishModal({
   isUpdate,
   variant = 'default',
   documentLabel,
-  zIndex = 100,
+  // Matches BaseModal: above the AI Mode overlay (9500), which hosts the publishing form.
+  zIndex = 9999,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);

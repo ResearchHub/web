@@ -20,7 +20,6 @@ import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BountyInfo } from '../Bounty/BountyInfo';
-import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -65,7 +64,6 @@ export interface BadgeSectionProps {
 // Title component interface
 export interface TitleSectionProps {
   title: string;
-  highlightedTitle?: string;
   className?: string;
   href?: string;
   onClick?: () => void;
@@ -74,7 +72,6 @@ export interface TitleSectionProps {
 // Content component interface
 export interface ContentSectionProps {
   content: string;
-  highlightedContent?: string;
   maxLength?: number;
   className?: string;
 }
@@ -136,28 +133,13 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   );
 };
 
-export const TitleSection: FC<TitleSectionProps> = ({
-  title,
-  highlightedTitle,
-  className,
-  href,
-  onClick,
-}) => {
+export const TitleSection: FC<TitleSectionProps> = ({ title, className, href, onClick }) => {
   const titleStyles = cn(
     'text-md md:!text-lg font-semibold text-gray-900 mb-1 hover:underline',
     className
   );
 
-  const content = highlightedTitle ? (
-    <h2
-      className={titleStyles}
-      dangerouslySetInnerHTML={{
-        __html: sanitizeHighlightHtml(highlightedTitle),
-      }}
-    />
-  ) : (
-    <h2 className={titleStyles}>{title}</h2>
-  );
+  const content = <h2 className={titleStyles}>{title}</h2>;
 
   if (href) {
     return (
@@ -172,7 +154,6 @@ export const TitleSection: FC<TitleSectionProps> = ({
 
 export const ContentSection: FC<ContentSectionProps> = ({
   content,
-  highlightedContent,
   className,
   maxLength = 200,
 }) => {
@@ -183,19 +164,6 @@ export const ContentSection: FC<ContentSectionProps> = ({
     e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
-
-  // If we have highlighted HTML, render it (already truncated by backend)
-  if (highlightedContent) {
-    return (
-      <div className={cn('text-sm text-gray-700', className)}>
-        <p
-          dangerouslySetInnerHTML={{
-            __html: sanitizeHighlightHtml(highlightedContent),
-          }}
-        />
-      </div>
-    );
-  }
 
   // Default: render truncated plain text
   return (

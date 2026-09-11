@@ -18,27 +18,6 @@ const rfpTitle = () => `Smoke test RFP, please ignore ${randomUUID().slice(0, 8)
 
 const isPostUpsert = (url: string) => new URL(url).pathname === '/api/researchhubpost/';
 
-/**
- * Picks the first topic matching a query. Scoped to its own section on
- * purpose: unscoped, `option` also matches the currency select in the sidebar,
- * whose entries carry the same role and can win the race for `.first()`.
- */
-async function selectFirstTopic(page: Page) {
-  const topics = page.getByTestId('topics-section');
-  await topics.getByPlaceholder('Search topics...').fill('bio');
-
-  const firstTopic = topics.getByRole('option').first();
-  await expect(firstTopic).toBeVisible();
-  const topicName = (await firstTopic.innerText()).trim();
-  await firstTopic.click();
-
-  // The list stays open on select, so it is dismissed first: the remaining
-  // copy of the label is then the chip for the chosen topic, which is what
-  // shows the selection registered rather than silently missing.
-  await page.keyboard.press('Escape');
-  await expect(topics.getByText(topicName, { exact: true })).toBeVisible();
-}
-
 /** Fills in the confirm dialog and publishes, returning the upsert response. */
 async function confirmPublish(page: Page, title: string) {
   const titleField = page.getByTestId('confirm-publish-title');
@@ -104,11 +83,10 @@ test('a new RFP can be drafted in the notebook and published', async ({ page }) 
 
   await page.getByTestId('notebook-add-details').click();
 
-  // Topics, a short description and a funding amount are what the schema
-  // demands of a grant. Contacts are required too but deliberately not filled:
-  // the form seeds them with the current user, and asserting the publish
-  // payload carries one covers that without driving a user search.
-  await selectFirstTopic(page);
+  // A short description and a funding amount are what the schema demands of
+  // a grant. Contacts are required too but deliberately not filled: the form
+  // seeds them with the current user, and asserting the publish payload
+  // carries one covers that without driving a user search.
   await page
     .getByTestId('grant-description-input')
     .fill('Smoke test RFP. Please ignore — created by the automated smoke suite.');
