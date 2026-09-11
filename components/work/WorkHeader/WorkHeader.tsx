@@ -51,6 +51,8 @@ interface WorkHeaderProps {
   reviewsTabUrl?: string;
   primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
+  /** Top-align title and CTA column; use when the CTA is a tall panel. */
+  alignTop?: boolean;
   grantModalProps?: {
     isApplyToGrantModalOpen: boolean;
     onCloseApplyToGrantModal: () => void;
@@ -73,6 +75,7 @@ export function WorkHeader({
   reviewsTabUrl: reviewsTabUrlOverride,
   primaryAction,
   hideVoteWidget = false,
+  alignTop = false,
   grantModalProps,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -256,6 +259,7 @@ export function WorkHeader({
         actions={actionBar}
         cta={primaryAction}
         className={className}
+        alignTop={alignTop}
       >
         <div className="mt-3 sm:mt-4">
           <div className="min-w-0">{resolvedTabs}</div>

@@ -13,11 +13,13 @@ import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPage
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { useUser } from '@/contexts/UserContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import type { FundingPool, GrantApplicationVisibility } from '@/types/grant';
+import type { FundingPool, FundingPoolAmount, GrantApplicationVisibility } from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
 import { ID } from '@/types/root';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
+import { GrantFundingPoolWidget } from './GrantFundingPoolWidget';
+import { PendingReviewBadge } from './PendingReviewBadge';
 
 const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
 
@@ -34,6 +36,8 @@ interface WorkHeaderGrantProps {
   work: Work;
   metadata: WorkMetadata;
   amountUsd?: number;
+  /** The grant's own amount, before any community contributions. */
+  grantAmount?: FundingPoolAmount | null;
   grantId?: string;
   isActive?: boolean;
   isPending?: boolean;
@@ -49,6 +53,7 @@ export function WorkHeaderGrant({
   work,
   metadata,
   amountUsd,
+  grantAmount = null,
   grantId,
   isActive = true,
   isPending = false,
@@ -68,7 +73,13 @@ export function WorkHeaderGrant({
     searchParams.get(RFP_FUNDING_POOL_PARAM) === '1';
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
-  const { activeTab, setActiveTab, activity, fundingPool: contextPool } = useGrantTab();
+  const {
+    activeTab,
+    setActiveTab,
+    activity,
+    fundingPool: contextPool,
+    setFundingPool,
+  } = useGrantTab();
   const { proposalCount } = useFundraises();
 
   const fundingPool = contextPool ?? fundingPoolProp;
@@ -83,24 +94,31 @@ export function WorkHeaderGrant({
     grantCreatedByUserId != null &&
     Number(user.id) === Number(grantCreatedByUserId);
   const canManagePool = isGrantCreator || !!user?.isModerator;
-  const showPoolHolding =
-    isRfpFundingPoolEnabled &&
-    canManagePool &&
-    fundingPool?.status === 'OPEN' &&
-    (fundingPool.amountHolding.rsc ?? 0) >= 0;
 
-  const eyebrow = (
+  // The pool widget replaces the amount eyebrow and the bare Contribute button
+  // whenever the flag is on and the grant has a pool, open or closed.
+  const showPoolWidget = isRfpFundingPoolEnabled && !!fundingPool && !!grantAmount;
+  const isPoolOpen = !!grantId && isActive && fundingPool?.status === 'OPEN';
+
+  const eyebrow = showPoolWidget ? (
+    isPending ? (
+      <PendingReviewBadge />
+    ) : null
+  ) : (
     <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
   );
 
   const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
-  const canContributeToPool =
-    isRfpFundingPoolEnabled && !!grantId && isActive && fundingPool?.status === 'OPEN';
+  const canContributeToPool = isRfpFundingPoolEnabled && isPoolOpen;
 
-  const handleContributeSuccess = useCallback(() => {
-    setIsContributeModalOpen(false);
-    router.refresh();
-  }, [router]);
+  const handleContributeSuccess = useCallback(
+    (updatedPool?: FundingPool) => {
+      setIsContributeModalOpen(false);
+      if (updatedPool) setFundingPool(updatedPool);
+      router.refresh();
+    },
+    [router, setFundingPool]
+  );
 
   const subtitle = organization ? (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -109,8 +127,55 @@ export function WorkHeaderGrant({
     </div>
   ) : undefined;
 
-  const primaryAction =
+  const submitProposalButton =
     grantId && isActive ? (
+      <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
+        <Button
+          data-testid="grant-submit-proposal"
+          variant="default"
+          size="lg"
+          onClick={() => setIsApplyModalOpen(true)}
+          className="gap-2 w-full sm:flex-1 max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+        >
+          Submit Proposal
+          <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+        </Button>
+      </SubmitProposalTooltip>
+    ) : null;
+
+  const privateApplicationsNote = requiresPrivateApplications ? (
+    <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
+      <Lock className="h-3 w-3 shrink-0" />
+      <span>Your proposal will be submitted privately</span>
+    </div>
+  ) : null;
+
+  const showLegacyPoolHolding =
+    !showPoolWidget &&
+    isRfpFundingPoolEnabled &&
+    canManagePool &&
+    fundingPool?.status === 'OPEN' &&
+    (fundingPool.amountHolding.rsc ?? 0) >= 0;
+
+  let primaryAction: ReactNode;
+  if (showPoolWidget && fundingPool && grantAmount) {
+    primaryAction = (
+      <div className="flex w-full flex-col sm:w-[304px]">
+        <GrantFundingPoolWidget
+          organization={organization ?? ''}
+          grantAmount={grantAmount}
+          fundingPool={fundingPool}
+          isOpen={isPoolOpen}
+          canApply={!!grantId && isActive}
+          applicationVisibility={applicationVisibility}
+          canManagePool={canManagePool}
+          onApply={() => setIsApplyModalOpen(true)}
+          onContribute={() => setIsContributeModalOpen(true)}
+        />
+      </div>
+    );
+  } else if (grantId && isActive) {
+    primaryAction = (
       <>
         <div className="flex flex-col sm:flex-row gap-2 w-full">
           {canContributeToPool && (
@@ -125,20 +190,9 @@ export function WorkHeaderGrant({
               Contribute
             </Button>
           )}
-          <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
-            <Button
-              data-testid="grant-submit-proposal"
-              variant="default"
-              size="lg"
-              onClick={() => setIsApplyModalOpen(true)}
-              className="gap-2 w-full sm:flex-1 max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
-            >
-              Submit Proposal
-              <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-          </SubmitProposalTooltip>
+          {submitProposalButton}
         </div>
-        {showPoolHolding && fundingPool && (
+        {showLegacyPoolHolding && fundingPool && (
           <div
             data-testid="grant-pool-holding"
             className="hidden sm:flex items-center justify-center gap-x-3 text-xs text-gray-500"
@@ -159,14 +213,10 @@ export function WorkHeaderGrant({
             )}
           </div>
         )}
-        {requiresPrivateApplications && (
-          <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
-            <Lock className="h-3 w-3 shrink-0" />
-            <span>Your proposal will be submitted privately</span>
-          </div>
-        )}
+        {privateApplicationsNote}
       </>
-    ) : undefined;
+    );
+  }
 
   const activityCount = activity.count;
   const activityCountLabel =
@@ -230,6 +280,7 @@ export function WorkHeaderGrant({
         tabs={tabs}
         primaryAction={primaryAction}
         hideVoteWidget
+        alignTop={showPoolWidget}
         grantModalProps={
           grantId
             ? {
