@@ -6,6 +6,7 @@ import type { NoteWithContent } from '@/types/note';
 import {
   isActiveExecutionStatus,
   type ChatExecution,
+  type ChatToolDraftActivity,
   type ChatNoteRef,
   type AgentChat,
 } from '@/types/agentChat';
@@ -40,6 +41,7 @@ export interface AIModeDocument {
   readonly hasWrittenVersion: boolean;
   /** Prose of the `edit_note` call being composed, paragraphs split by blank lines. */
   readonly draftText: string | null;
+  readonly draftMarkdown: string | null;
   /** What the assistant is doing, for the in-progress row when there is no draft. */
   readonly phaseLabel: string | null;
   /** Deep link to the note in the notebook, once its organization is known. */
@@ -64,13 +66,13 @@ function chatHasEditedNote(chat: AgentChat | null): boolean {
 }
 
 /** The `edit_note` draft the active turn is composing, if any. */
-function currentEditDraft(execution: ChatExecution | null): string | null {
+function currentEditDraft(execution: ChatExecution | null): ChatToolDraftActivity | null {
   if (execution == null || !isActiveExecutionStatus(execution.status)) return null;
   const items = execution.stream?.items ?? [];
   for (let index = items.length - 1; index >= 0; index -= 1) {
     const item = items[index];
     if (item.type === 'tool_draft' && item.tool === 'edit_note') {
-      return item.text.length > 0 ? item.text : null;
+      return item;
     }
   }
   return null;
@@ -119,7 +121,9 @@ export function useAIModeDocument({
     if (noteId != null) fetchNote();
   }, [noteId, fetchNote]);
 
-  const draftText = currentEditDraft(latestExecution);
+  const draft = currentEditDraft(latestExecution);
+  const draftText = draft?.text || null;
+  const draftMarkdown = typeof draft?.markdown === 'string' ? draft.markdown : null;
   const turnActive = latestExecution != null && isActiveExecutionStatus(latestExecution.status);
   const phaseLabel = turnActive ? (latestExecution?.phase?.label ?? null) : null;
 
@@ -146,6 +150,7 @@ export function useAIModeDocument({
     status,
     hasWrittenVersion,
     draftText,
+    draftMarkdown,
     phaseLabel,
     notebookHref,
     reload: fetchNote,
