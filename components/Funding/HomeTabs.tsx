@@ -4,6 +4,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
 import { useUser } from '@/contexts/UserContext';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import { ActivityCacheBypassControl } from '@/components/Activity/ActivityCacheBypassControl';
 import { IncludePrivateProposalsControl } from '@/components/Funding/IncludePrivateProposalsControl';
 
@@ -12,7 +13,7 @@ export function HomeTabs() {
   const tabsSentinelRef = useContentTabsVisibilitySentinel(true);
   const { user } = useUser();
 
-  const canUsePrivilegedFeedControls = !!user?.isModerator || !!user?.authorProfile?.isHubEditor;
+  const canUsePrivilegedFeedControls = isHubEditorOrModerator(user);
 
   const rightContent = !canUsePrivilegedFeedControls ? undefined : activeTab === 'activity' ? (
     <ActivityCacheBypassControl />

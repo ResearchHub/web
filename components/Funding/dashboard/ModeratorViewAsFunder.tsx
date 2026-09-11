@@ -2,7 +2,7 @@
 
 import { FC, useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import * as Popover from '@radix-ui/react-popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import { Shield, X } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import {
@@ -48,7 +48,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
   );
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       {userIdParam ? (
         // Two sibling buttons rather than a nested one: the chip as a whole
         // reopens the picker, the X exits the override.
@@ -58,7 +58,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
             className
           )}
         >
-          <Popover.Trigger asChild>
+          <PopoverTrigger asChild>
             <button type="button" className="inline-flex items-center gap-1.5 text-sm">
               <Shield className="h-4 w-4 flex-shrink-0" />
               {selected?.value === userIdParam && (
@@ -66,7 +66,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
               )}
               <span className="max-w-[140px] truncate font-medium">{label}</span>
             </button>
-          </Popover.Trigger>
+          </PopoverTrigger>
           <button
             type="button"
             onClick={() => applyUserId(null)}
@@ -77,7 +77,7 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
           </button>
         </div>
       ) : (
-        <Popover.Trigger asChild>
+        <PopoverTrigger asChild>
           <button
             type="button"
             title="View as funder (moderator)"
@@ -89,25 +89,19 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
           >
             <Shield className="h-[18px] w-[18px]" />
           </button>
-        </Popover.Trigger>
+        </PopoverTrigger>
       )}
 
-      <Popover.Portal>
-        {/* No overflow clipping: the combobox renders its results absolutely
+      {/* No overflow clipping: the combobox renders its results absolutely
             positioned inside this panel. */}
-        <Popover.Content
-          align="end"
-          sideOffset={8}
-          className="z-[100000] w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
-        >
-          <p className="mb-2 text-xs font-medium text-gray-500">View dashboard as another funder</p>
-          <SearchableUserSingleSelect
-            value={selected}
-            onChange={applyUserId}
-            placeholder="Search for a funder..."
-          />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+      <PopoverContent align="end" sideOffset={8} className="w-72">
+        <p className="mb-2 text-xs font-medium text-gray-500">View dashboard as another funder</p>
+        <SearchableUserSingleSelect
+          value={selected}
+          onChange={applyUserId}
+          placeholder="Search for a funder..."
+        />
+      </PopoverContent>
+    </Popover>
   );
 };

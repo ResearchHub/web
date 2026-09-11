@@ -3,7 +3,7 @@ import {
   toAgentModelCatalog,
   type AgentModelCatalog,
   type AgentModelCatalogResponse,
-} from '@/types/notebookModels';
+} from '@/types/agentModels';
 
 /**
  * The user-selectable model catalog, shared by every agent workflow that

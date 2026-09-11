@@ -5,11 +5,9 @@ import { cn } from '@/utils/styles';
 import { truncateText } from '@/utils/stringUtils';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
-import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
 
 export interface FeedItemAbstractSectionProps {
   content: string;
-  highlightedContent?: string;
   maxLength?: number;
   className?: string;
   mobileLabel?: string;
@@ -19,7 +17,6 @@ export interface FeedItemAbstractSectionProps {
 
 export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
   content,
-  highlightedContent,
   maxLength = 300,
   className,
   mobileLabel = 'Read abstract',
@@ -48,50 +45,6 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
   };
 
   if (!content) return null;
-
-  // If we have highlighted HTML, render it (search results)
-  if (highlightedContent) {
-    return (
-      <div className={className}>
-        {/* Desktop: Show content directly */}
-        <div className="hidden md:!block text-sm text-gray-700 leading-relaxed">
-          <p
-            dangerouslySetInnerHTML={{
-              __html: sanitizeHighlightHtml(highlightedContent),
-            }}
-          />
-        </div>
-
-        {/* Mobile: Show toggle CTA */}
-        <div className="md:!hidden">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={handleMobileToggle}
-            className="flex items-center gap-1 text-blue-600 p-0 h-auto text-sm font-medium hover:text-blue-700"
-          >
-            {isMobileExpanded ? 'Hide abstract' : mobileLabel}
-            <ChevronDown
-              size={14}
-              className={cn(
-                'transition-transform duration-200',
-                isMobileExpanded && 'transform rotate-180'
-              )}
-            />
-          </Button>
-          {isMobileExpanded && (
-            <div className="mt-2 text-sm text-gray-700 leading-relaxed">
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHighlightHtml(highlightedContent),
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   // Default: render plain text with truncation
   return (
