@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
+import { ExternalLink } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { NotebookTabs, type NotebookTab } from '@/components/Notebook/NotebookTabs';
@@ -142,10 +143,26 @@ export function DocumentPane({
   // mid-edit would make its next edit_note stale and the review jumpy.
   const locked = writing || editorLostContent;
 
+  // The assistant is writing the first version: nothing to show in the
+  // editor yet, so the whole pane becomes the progress screen.
+  const startingDocument =
+    status === 'working' && !document.hasWrittenVersion && review.review == null;
+
   return (
     <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
-      <div className="flex h-12 shrink-0 items-center border-b border-gray-200 px-3">
+      <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-gray-200 px-3">
         <NotebookTabs active={tab} onChange={onTabChange} labels={{ details: 'Publish' }} />
+        {document.notebookHref && (
+          <a
+            href={document.notebookHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            Open in notebook
+          </a>
+        )}
       </div>
 
       {/* The document is the pane: no gutter, no card, just the page. The
@@ -165,6 +182,8 @@ export function DocumentPane({
           <div className={DOCUMENT_PAGE_CLASS}>
             <DocumentPaneSkeleton />
           </div>
+        ) : startingDocument ? (
+          <StartingDocument label={phaseLabel} />
         ) : (
           <article className={cn(DOCUMENT_PAGE_CLASS, 'animate-in fade-in duration-300')}>
             {editorLostContent && (
@@ -173,12 +192,7 @@ export function DocumentPane({
                 nothing has been changed.
               </div>
             )}
-            {status === 'empty' && review.review == null && (
-              <EmptyDocument label={phaseLabel} active={false} />
-            )}
-            {status === 'working' && !document.hasWrittenVersion && (
-              <EmptyDocument label={phaseLabel} active />
-            )}
+            {status === 'empty' && review.review == null && <EmptyDocument />}
 
             {/* Mounted once per note: the editor's content prop is only read on
                 creation, and later versions arrive through the review. */}
@@ -225,29 +239,30 @@ export function DocumentPane({
 }
 
 /**
- * The note exists but has no version yet. Spins only while a turn is
- * running; a settled conversation that never wrote anything says so plainly.
+ * The assistant is writing the first version. Fills the pane: there is no
+ * document to sit beside yet, so the progress state is the page.
  */
-function EmptyDocument({
-  label,
-  active,
-}: {
-  readonly label: string | null;
-  readonly active: boolean;
-}) {
+function StartingDocument({ label }: { readonly label: string | null }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 bg-gray-50 px-6 text-center"
+    >
+      <Loader size="md" className="text-primary-500" />
+      <p className="text-base font-semibold text-gray-800">Starting the document…</p>
+      {label && <p className="text-sm text-gray-500">{label}</p>}
+    </div>
+  );
+}
+
+/** The note exists, the turn has settled, and nothing was ever written. */
+function EmptyDocument() {
   return (
     <div className="mb-4 flex flex-col items-center gap-2 rounded-lg bg-gray-50 px-4 py-5 text-center">
-      {active ? (
-        <>
-          <Loader size="sm" className="text-primary-500" />
-          <p className="text-sm font-medium text-gray-700">Starting the document…</p>
-          {label && <p className="text-xs text-gray-500">{label}</p>}
-        </>
-      ) : (
-        <p className="text-sm text-gray-500">
-          Nothing has been written here yet. You can start typing, or ask the assistant.
-        </p>
-      )}
+      <p className="text-sm text-gray-500">
+        Nothing has been written here yet. You can start typing, or ask the assistant.
+      </p>
     </div>
   );
 }

@@ -51,9 +51,9 @@ const PANEL_WIDTH = 'w-[360px] max-w-[calc(100vw-1rem)]';
 /**
  * The composer's two controls: which model answers, and how hard it works.
  *
- * Model and effort lock after the first turn. Once effort is locked the
- * panel only says so: thinking and temperature depend on the effort the chat
- * runs at, and offering them under a lock reads as a control that half works.
+ * Model and effort lock after the first turn: both triggers go disabled and
+ * show a lock, the same way. Thinking and temperature depend on the effort
+ * the chat runs at, so they lock with it rather than half working.
  *
  * The model picker is a menu (`BaseMenu`): one choice, closes on pick. The
  * effort panel is a popover: it holds all three controls, temperature
@@ -91,10 +91,9 @@ export function ModelControls({
   const hasEffort = model.capabilities.effort.length > 0 || options.effort != null;
   const hasEffortMenu = hasEffort || thinkingModes.length > 0 || showTemperature;
   const effortLocked = effortPinned && hasEffort;
-  const lockedEffortLabel = options.effort ? EFFORT_LABELS[options.effort] : 'Locked effort';
   const lockedEffortDescription = options.effort
-    ? `${EFFORT_LABELS[options.effort]} effort is locked for this chat. Start a new chat to change it.`
-    : 'Effort is locked for this chat. Start a new chat to change it.';
+    ? `${EFFORT_LABELS[options.effort]} effort — locked for this chat. Start a new chat to change it.`
+    : 'Effort — locked for this chat. Start a new chat to change it.';
   const allowedModels = models.filter((option) => option.allowed);
 
   return (
@@ -145,7 +144,7 @@ export function ModelControls({
         <Popover>
           <PopoverTrigger asChild>
             <MenuTrigger
-              disabled={disabled}
+              disabled={disabled || effortLocked}
               title={
                 effortLocked
                   ? lockedEffortDescription
@@ -161,14 +160,10 @@ export function ModelControls({
               srLabel={effortLocked ? 'Effort, locked for this chat:' : 'Effort:'}
               className="max-w-[140px]"
             >
-              {effortLocked ? lockedEffortLabel : effortButtonLabel(options)}
+              {effortLocked ? 'Effort' : effortButtonLabel(options)}
             </MenuTrigger>
           </PopoverTrigger>
           <PopoverContent aria-label="Effort" className={cn(PANEL_WIDTH, 'space-y-3 shadow-xl')}>
-            {effortLocked && (
-              <p className="text-sm leading-snug text-gray-500">{lockedEffortDescription}</p>
-            )}
-
             {!effortLocked && effortLevels.length > 0 && (
               <ChoicePills
                 label="Effort"
