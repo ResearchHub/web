@@ -11,8 +11,9 @@ import {
   type EffortLevel,
   type GenerationOptions,
   type GenerationRequest,
-} from '@/types/notebookModels';
+} from '@/types/agentModels';
 
+/** Stable empty list so consumers can depend on `models` by identity. */
 const NO_MODELS: AgentModel[] = [];
 interface StoredPreference extends GenerationOptions {
   ref?: string;

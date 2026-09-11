@@ -1,4 +1,4 @@
-import type { AgentModelCatalog } from '@/types/notebookModels';
+import type { AgentModelCatalog } from '@/types/agentModels';
 import { isBudgetExhausted, isResearchAIBudget, type ResearchAIBudget } from '@/types/researchAI';
 
 export interface ResearchAIState {

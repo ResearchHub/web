@@ -1,7 +1,7 @@
 'use client';
 
 import { useResearchAI } from '@/hooks/useResearchAI';
-import type { AgentModelCatalog } from '@/types/notebookModels';
+import type { AgentModelCatalog } from '@/types/agentModels';
 
 export type AgentModelsStatus = 'loading' | 'ok' | 'unavailable';
 export interface UseAgentModelsResult {

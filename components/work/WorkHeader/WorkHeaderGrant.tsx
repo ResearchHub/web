@@ -130,9 +130,7 @@ export function WorkHeaderGrant({
     },
   ];
 
-  const tabs = (
-    <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />
-  );
+  const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
 
   return (
     <WorkHeader

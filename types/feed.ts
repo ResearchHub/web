@@ -462,11 +462,6 @@ export interface FeedEntry {
   associatedGrants?: AssociatedGrant[];
   activityAction?: ActivityAction;
   journalPostIds?: JournalPostIds;
-  searchMetadata?: {
-    highlightedTitle?: string;
-    highlightedSnippet?: string;
-    matchedField?: string;
-  };
 }
 
 export interface Nonprofit {

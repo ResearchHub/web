@@ -18,7 +18,6 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Star } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
-import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { buildWorkUrl } from '@/utils/url';
 
 interface FeedItemPostProps {
@@ -29,7 +28,6 @@ interface FeedItemPostProps {
   maxLength?: number;
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
-  highlights?: Highlight[];
   showHeader?: boolean;
   showBountyInfo?: boolean;
   footer?: ReactNode;
@@ -47,16 +45,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   maxLength,
   onFeedItemClick,
   onAbstractExpanded,
-  highlights,
   showBountyInfo,
   footer,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
-
-  // Extract highlighted fields from highlights prop
-  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
-  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Convert authors to the format expected by AuthorList
   const authors =
@@ -121,12 +114,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection
-              title={post.title}
-              highlightedTitle={highlightedTitle}
-              href={postPageUrl}
-              onClick={onFeedItemClick}
-            />
+            <TitleSection title={post.title} href={postPageUrl} onClick={onFeedItemClick} />
 
             <MetadataSection>
               <div className="flex items-center flex-wrap text-sm">
@@ -167,7 +155,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             {/* Content Section - handles both desktop and mobile */}
             <FeedItemAbstractSection
               content={post.textPreview}
-              highlightedContent={highlightedSnippet}
               maxLength={maxLength}
               mobileLabel="Read more"
               onAbstractExpanded={onAbstractExpanded}
