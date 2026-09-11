@@ -22,11 +22,6 @@ import { DeprecatedFeedItemBounty } from './items/DeprecatedFeedItemBounty';
 import { buildWorkUrl } from '@/utils/url';
 import { ContentType } from '@/types/work';
 
-export interface Highlight {
-  field: string;
-  value: string;
-}
-
 interface FeedEntryItemProps {
   entry: FeedEntry;
   index: number;
@@ -43,7 +38,6 @@ interface FeedEntryItemProps {
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
   shouldRenderBountyAsComment?: boolean;
-  highlights?: Highlight[];
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
 }
@@ -65,7 +59,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   unregisterVisibleItem,
   getVisibleItems,
   shouldRenderBountyAsComment = false,
-  highlights,
   abstractCollapsedByDefault,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
@@ -234,7 +227,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               maxLength={maxLength}
               onFeedItemClick={handleFeedItemClick}
               onAbstractExpanded={handleAbstractExpanded}
-              highlights={highlights}
               showBountyInfo={showBountyInfo}
             />
           );
@@ -263,7 +255,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               maxLength={maxLength}
               onFeedItemClick={handleFeedItemClick}
               onAbstractExpanded={handleAbstractExpanded}
-              highlights={highlights}
               showBountyInfo={showBountyInfo}
               abstractCollapsedByDefault={abstractCollapsedByDefault}
             />

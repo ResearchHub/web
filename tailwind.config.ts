@@ -30,6 +30,10 @@ export default {
         wide: '1200px',
         '3xl': '1600px',
       },
+      fontSize: {
+        // Between sm (14px) and base (16px): chat prose.
+        md: ['0.9375rem', { lineHeight: '1.375rem' }],
+      },
       fontWeight: {
         medium: '500',
         large: '550',

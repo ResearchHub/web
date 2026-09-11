@@ -42,8 +42,6 @@ export interface ActivityFundingGroupRow {
   work: ActivityWork;
   /** Distinct funders, in the order they appear in the feed. */
   funders: AuthorProfile[];
-  /** Exceeds `funders.length` when someone contributed more than once. */
-  contributionCount: number;
   totals: ActivityFundingTotals;
 }
 
@@ -195,7 +193,6 @@ function toFundingGroupRow(groupMembers: GroupCandidate[]): ActivityFundingGroup
     latestEntry: latest.entry,
     work: latest.work,
     funders,
-    contributionCount: groupMembers.length,
     totals,
   };
 }

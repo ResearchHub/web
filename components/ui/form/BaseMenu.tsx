@@ -117,3 +117,34 @@ export const BaseMenuItem = ({
     </DropdownMenu.Item>
   );
 };
+
+export const BaseMenuRadioGroup = DropdownMenu.RadioGroup;
+
+/**
+ * A single-choice row: radio ring, dot while checked. Radix keeps the checked
+ * state and closes the menu on pick; the group above it takes the value.
+ */
+export const BaseMenuRadioItem = ({
+  children,
+  className,
+  ...props
+}: DropdownMenu.DropdownMenuRadioItemProps) => {
+  return (
+    <DropdownMenu.RadioItem
+      className={cn(
+        'group relative flex cursor-pointer select-none items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-800 outline-none transition-colors',
+        'focus:bg-gray-50 data-[highlighted]:bg-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      {...props}
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition-colors group-data-[state=checked]:border-primary-500"
+      >
+        <DropdownMenu.ItemIndicator className="h-2 w-2 rounded-full bg-primary-500" />
+      </span>
+      {children}
+    </DropdownMenu.RadioItem>
+  );
+};
