@@ -60,15 +60,18 @@ const FunderName: FC<{ funder: AuthorProfile }> = ({ funder }) => {
   );
 };
 
-const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }> = ({
-  funders,
-  contributionCount,
-}) => {
+const FunderSummary: FC<{
+  funders: AuthorProfile[];
+  contributionCount: number;
+  isRfp: boolean;
+}> = ({ funders, contributionCount, isRfp }) => {
+  const targetLabel = isRfp ? 'RFP' : 'proposal';
+
   if (funders.length === 1) {
     return (
       <>
         <FunderName funder={funders[0]} />
-        <span className="text-gray-500">{` funded this proposal ${contributionCount} times`}</span>
+        <span className="text-gray-500">{` funded this ${targetLabel} ${contributionCount} times`}</span>
       </>
     );
   }
@@ -92,7 +95,7 @@ const FunderSummary: FC<{ funders: AuthorProfile[]; contributionCount: number }>
       {remaining > 0 && (
         <span className="text-gray-500">{` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}</span>
       )}
-      <span className="text-gray-500"> funded this proposal for</span>
+      <span className="text-gray-500">{` funded this ${targetLabel} for`}</span>
     </>
   );
 };
@@ -110,6 +113,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
   const latestEntryId = String(latestEntry.id);
   const presentation = getWorkCardPresentation(latestEntry, work, { showUSD, exchangeRate });
   const total = toPreferredTotal(totals, showUSD, exchangeRate);
+  const isRfp = work.documentType === 'funding_request';
 
   const avatarItems = funders.map((funder) => ({
     src: funder.profileImage || '',
@@ -141,7 +145,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
         </div>
 
         <div className="min-w-0 flex-1 pt-1 text-sm leading-6">
-          <FunderSummary funders={funders} contributionCount={contributionCount} />{' '}
+          <FunderSummary funders={funders} contributionCount={contributionCount} isRfp={isRfp} />{' '}
           <ContributionAmount contribution={total} className="align-middle" />
         </div>
       </div>

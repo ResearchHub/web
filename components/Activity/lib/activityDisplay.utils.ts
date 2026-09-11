@@ -90,6 +90,13 @@ function getFundingActivityMessage(content: FeedFundingActivityContent): Activit
   };
 }
 
+export function isFundingPoolContribution(entry: FeedEntry): boolean {
+  if (entry.contentType !== 'PURCHASE' && entry.contentType !== 'USDFUNDRAISECONTRIBUTION') {
+    return false;
+  }
+  return entry.relatedWork?.contentType === 'funding_request';
+}
+
 function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   const actor = entry.content.createdBy;
 
@@ -129,7 +136,10 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return { actor, verb: 'funded proposal for' };
+    return {
+      actor,
+      verb: isFundingPoolContribution(entry) ? 'contributed to RFP' : 'funded proposal for',
+    };
   }
 
   return {

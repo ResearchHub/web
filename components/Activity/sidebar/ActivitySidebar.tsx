@@ -5,14 +5,22 @@ import { Activity, Reply } from 'lucide-react';
 import { ActivityCardCompact } from '../cards/ActivityCardCompact';
 import type { FeedEntry } from '@/types/feed';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { ID } from '@/types/root';
 
 interface ActivitySidebarProps {
   topSection?: ReactNode;
   entries?: FeedEntry[];
   grantTitle?: string;
+  /** Post id of the page being viewed — hides same-document title links. */
+  currentDocumentId?: ID;
 }
 
-export const ActivitySidebar: FC<ActivitySidebarProps> = ({ topSection, entries, grantTitle }) => {
+export const ActivitySidebar: FC<ActivitySidebarProps> = ({
+  topSection,
+  entries,
+  grantTitle,
+  currentDocumentId,
+}) => {
   const hasEntries = entries && entries.length > 0;
 
   return (
@@ -45,7 +53,11 @@ export const ActivitySidebar: FC<ActivitySidebarProps> = ({ topSection, entries,
       ) : (
         <div className="divide-y divide-gray-200">
           {entries.map((entry) => (
-            <ActivityCardCompact key={entry.id} entry={entry} />
+            <ActivityCardCompact
+              key={entry.id}
+              entry={entry}
+              currentDocumentId={currentDocumentId}
+            />
           ))}
         </div>
       )}

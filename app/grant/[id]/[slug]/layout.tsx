@@ -99,7 +99,11 @@ export default async function GrantSlugLayout({ params, children }: Props) {
         }
         rightSidebar={
           <Suspense fallback={<ActivitySidebarSkeleton />}>
-            <ActivitySidebarServer grantId={grantId} grantTitle={grantTitle} />
+            <ActivitySidebarServer
+              grantId={grantId}
+              grantTitle={grantTitle}
+              currentDocumentId={work.id}
+            />
           </Suspense>
         }
       >
