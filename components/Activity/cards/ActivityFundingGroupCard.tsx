@@ -63,7 +63,7 @@ const FunderName: FC<{ funder: AuthorProfile }> = ({ funder }) => {
 const FunderSummary: FC<{ funders: AuthorProfile[]; isRfp: boolean }> = ({ funders, isRfp }) => {
   const named = funders.slice(0, MAX_NAMED_FUNDERS);
   const remaining = funders.length - named.length;
-  const action = isRfp ? ' contributed to this RFP.' : ' funded this proposal.';
+  const action = isRfp ? ' contributed to RFP' : ' funded this proposal.';
 
   return (
     <>

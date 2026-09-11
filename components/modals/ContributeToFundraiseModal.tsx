@@ -38,7 +38,12 @@ import AuthContent from '@/components/Auth/AuthContent';
 interface ContributeModalCommonProps {
   isOpen: boolean;
   onClose: () => void;
-  onContributeSuccess?: () => void;
+  /**
+   * Called after a contribution lands. In fundingPool mode, RSC and credit
+   * contributions pass back the pool the API returned so the page can update
+   * without a refetch; card and wallet payments settle server-side and pass nothing.
+   */
+  onContributeSuccess?: (updatedPool?: FundingPool) => void;
   /** Title of the proposal / RFP being funded */
   proposalTitle?: string;
   /** Work object containing author information (proposal fundraise only) */
@@ -153,12 +158,12 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     (isPoolMode
       ? 'Your contribution has been added to the RFP funding pool.'
       : 'Your contribution has been successfully added to the fundraise.');
-  const [amountUsd, setAmountUsd] = useState(100);
+  const [amountUsd, setAmountUsd] = useState(1000);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
-  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
+  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(1000);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
 
   // Store Stripe context for credit card payments
@@ -317,11 +322,13 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       setIsContributing(true);
       setError(null);
 
+      let updatedPool: FundingPool | undefined;
+
       if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
         // The backend draws from funding credits only when that payment method
         // is selected. Otherwise it draws from available and promotional RSC.
         if (isPoolMode && fundingPool) {
-          await FundingPoolService.createContribution(fundingPool.id, {
+          updatedPool = await FundingPoolService.createContribution(fundingPool.id, {
             amount: amountInRsc,
             useCredits: paymentMethod === 'funding_credits',
           });
@@ -419,7 +426,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       refreshUser?.();
 
       if (onContributeSuccess) {
-        onContributeSuccess();
+        onContributeSuccess(updatedPool);
       }
 
       handleClose();
@@ -549,7 +556,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     ]
   );
 
-  const defaultTitle = isPoolMode ? 'Contribute to RFP' : 'Fund Proposal';
+  const defaultTitle = isPoolMode ? 'Add to the funding pool' : 'Fund Proposal';
 
   // Get title based on current view
   const getTitle = () => {
@@ -627,7 +634,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                   onChange={handleAmountChange}
                   icon={<DollarSign className="h-5 w-5 text-gray-500" />}
                   error={amountError}
-                  label="Funding amount"
+                  label="Amount in USD"
                   className="text-lg"
                 />
 
