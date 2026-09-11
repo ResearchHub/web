@@ -60,9 +60,10 @@ const FunderName: FC<{ funder: AuthorProfile }> = ({ funder }) => {
   );
 };
 
-const FunderSummary: FC<{ funders: AuthorProfile[] }> = ({ funders }) => {
+const FunderSummary: FC<{ funders: AuthorProfile[]; isRfp: boolean }> = ({ funders, isRfp }) => {
   const named = funders.slice(0, MAX_NAMED_FUNDERS);
   const remaining = funders.length - named.length;
+  const action = isRfp ? ' contributed to this RFP.' : ' funded this proposal.';
 
   return (
     <>
@@ -80,7 +81,7 @@ const FunderSummary: FC<{ funders: AuthorProfile[] }> = ({ funders }) => {
       {remaining > 0 && (
         <span className="text-gray-500">{` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}</span>
       )}
-      <span className="text-gray-500"> funded this proposal.</span>
+      <span className="text-gray-500">{action}</span>
     </>
   );
 };
@@ -98,6 +99,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
   const latestEntryId = String(latestEntry.id);
   const presentation = getWorkCardPresentation(latestEntry, work, { showUSD, exchangeRate });
   const total = toPreferredTotal(totals, showUSD, exchangeRate);
+  const isRfp = work.documentType === 'funding_request';
 
   const avatarItems = funders.map((funder) => ({
     src: funder.profileImage || '',
@@ -129,7 +131,7 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
         </div>
 
         <div className="min-w-0 flex-1 pt-1 text-sm leading-6">
-          <FunderSummary funders={funders} />{' '}
+          <FunderSummary funders={funders} isRfp={isRfp} />{' '}
           <ContributionAmount contribution={total} className="align-middle" />
         </div>
       </div>

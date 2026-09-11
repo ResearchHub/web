@@ -59,15 +59,21 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const grant = work.note?.post?.grant;
   const grantId = grant?.id ?? undefined;
   const grantTitle = grant?.shortTitle || work.title;
+  const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
   const isPending = grant?.status === 'PENDING';
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
-  const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
 
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
-    <GrantTabProvider defaultTab="details" grantId={grantId}>
+    <GrantTabProvider
+      defaultTab="details"
+      grantId={grantId}
+      fundingPool={grant?.fundingPool ?? null}
+      applications={grant?.applications ?? []}
+      grantCreatedByUserId={grant?.createdBy?.id ?? null}
+    >
       <PageLayout
         fundraiseGrantId={grantId ? Number(grantId) : undefined}
         topBanner={
@@ -81,6 +87,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
             fundingPool={grant?.fundingPool ?? null}
+            grantCreatedByUserId={grant?.createdBy?.id ?? null}
             preTitle={
               <RegisteredReportRouteTrackerLoader
                 currentStage="grant"
@@ -92,7 +99,11 @@ export default async function GrantSlugLayout({ params, children }: Props) {
         }
         rightSidebar={
           <Suspense fallback={<ActivitySidebarSkeleton />}>
-            <ActivitySidebarServer grantId={grantId} grantTitle={grantTitle} />
+            <ActivitySidebarServer
+              grantId={grantId}
+              grantTitle={grantTitle}
+              currentDocumentId={work.id}
+            />
           </Suspense>
         }
       >
