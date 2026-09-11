@@ -126,7 +126,13 @@ function phaseForDelta(delta: ChatStreamDelta | undefined): ExecutionPhase {
 function newStreamItem(delta: ChatStreamDelta, maximum: number): ChatStreamItem {
   const base = { id: delta.id, text: delta.delta.slice(0, maximum), at: delta.at };
   return delta.type === 'tool_draft'
-    ? { ...base, type: 'tool_draft', tool: delta.tool, label: delta.label }
+    ? {
+        ...base,
+        type: 'tool_draft',
+        tool: delta.tool,
+        label: delta.label,
+        blocks: Array.isArray(delta.blocks) ? delta.blocks : undefined,
+      }
     : { ...base, type: delta.type };
 }
 
@@ -143,6 +149,13 @@ function appendStreamDeltas(
       items.push(newStreamItem(delta, maximum));
     } else if (existing.type === delta.type) {
       existing.text = `${existing.text}${delta.delta}`.slice(0, maximum);
+      if (
+        existing.type === 'tool_draft' &&
+        delta.type === 'tool_draft' &&
+        Array.isArray(delta.blocks)
+      ) {
+        existing.blocks = delta.blocks;
+      }
     } else {
       // An id changing type indicates an incompatible/corrupt frame. Recover
       // from the server checkpoint instead of combining unlike content.

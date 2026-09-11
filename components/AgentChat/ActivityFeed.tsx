@@ -215,6 +215,7 @@ function StreamedTextRow({
   label,
   text,
   streaming,
+  autoExpand = true,
   className,
   bodyClassName,
   icon: Icon,
@@ -222,13 +223,14 @@ function StreamedTextRow({
   readonly label: string;
   readonly text: string;
   readonly streaming: boolean;
+  readonly autoExpand?: boolean;
   readonly className: string;
   readonly bodyClassName?: string;
   readonly icon?: ComponentType<{ className?: string }>;
 }) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
   const hasText = text.length > 0;
-  const expanded = hasText && (userExpanded ?? streaming);
+  const expanded = hasText && (userExpanded ?? (streaming && autoExpand));
   // Settled rows re-render on every stream delta; strip once per text value.
   const preview = useMemo(() => stripMarkdown(text), [text]);
 
@@ -400,6 +402,7 @@ function ActivityItemBody({
         label={humanizeLabel(item.label)}
         text={item.text}
         streaming={streaming}
+        autoExpand={false}
         icon={TOOL_ICONS[item.tool] ?? Wrench}
         className="text-gray-800 hover:text-gray-600 [--shine:theme(colors.gray.800)]"
         bodyClassName="text-sm text-gray-500"
