@@ -12,6 +12,7 @@ import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { getGrantBadgeAmount } from '@/types/grant';
 
 interface Props {
   params: Promise<{
@@ -58,6 +59,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const grant = work.note?.post?.grant;
   const grantId = grant?.id ?? undefined;
   const grantTitle = grant?.shortTitle || work.title;
+  const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
   const isPending = grant?.status === 'PENDING';
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
@@ -65,19 +67,27 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
-    <GrantTabProvider defaultTab="details" grantId={grantId}>
+    <GrantTabProvider
+      defaultTab="details"
+      grantId={grantId}
+      fundingPool={grant?.fundingPool ?? null}
+      applications={grant?.applications ?? []}
+      grantCreatedByUserId={grant?.createdBy?.id ?? null}
+    >
       <PageLayout
         fundraiseGrantId={grantId ? Number(grantId) : undefined}
         topBanner={
           <WorkHeaderGrant
             work={work}
             metadata={metadata}
-            amountUsd={grant?.amount?.usd}
+            amountUsd={badgeAmountUsd}
             grantId={grantId?.toString()}
             isActive={isActive}
             isPending={isPending}
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
+            fundingPool={grant?.fundingPool ?? null}
+            grantCreatedByUserId={grant?.createdBy?.id ?? null}
             preTitle={
               <RegisteredReportRouteTrackerLoader
                 currentStage="grant"
@@ -89,7 +99,11 @@ export default async function GrantSlugLayout({ params, children }: Props) {
         }
         rightSidebar={
           <Suspense fallback={<ActivitySidebarSkeleton />}>
-            <ActivitySidebarServer grantId={grantId} grantTitle={grantTitle} />
+            <ActivitySidebarServer
+              grantId={grantId}
+              grantTitle={grantTitle}
+              currentDocumentId={work.id}
+            />
           </Suspense>
         }
       >

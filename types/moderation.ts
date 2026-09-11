@@ -2,7 +2,7 @@ import { createTransformer } from './transformer';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { transformApplication } from '@/types/funding';
 import { FeedEntry, FeedGrantContent, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
-import type { GrantStatus } from '@/types/grant';
+import { transformFundingPool, type GrantStatus } from '@/types/grant';
 import { transformTopic } from '@/types/topic';
 import { stripHtml } from '@/utils/stringUtils';
 
@@ -119,6 +119,7 @@ export const transformPendingGrantToFeedEntry = (entry: RawApiFeedEntry): FeedEn
       shortTitle: grant.short_title || '',
       createdBy,
       applicants: (grant.applications || []).map(transformApplication),
+      fundingPool: grant.funding_pool ? transformFundingPool(grant.funding_pool) : null,
     },
     organization: grant.organization || '',
     grantAmount: grant.amount || {},

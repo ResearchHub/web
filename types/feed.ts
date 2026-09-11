@@ -20,7 +20,7 @@ import { UserVoteType } from './reaction';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
-import { GrantStatus } from './grant';
+import { FundingPool, GrantStatus, transformFundingPool } from './grant';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -270,6 +270,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     currency: string;
     createdBy: AuthorProfile;
     applicants: Application[];
+    fundingPool: FundingPool | null;
   };
   organization?: string;
   grantAmount?: {
@@ -1115,6 +1116,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 ? transformAuthorProfile(content_object.grant.created_by)
                 : transformAuthorProfile(author),
               applicants: (content_object.grant.applications || []).map(transformApplication),
+              fundingPool: content_object.grant.funding_pool
+                ? transformFundingPool(content_object.grant.funding_pool)
+                : null,
             },
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},

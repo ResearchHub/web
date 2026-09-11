@@ -2,6 +2,7 @@ import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { Contact, transformContact } from './note';
+import type { Application } from './funding';
 
 export type GrantStatus = 'OPEN' | 'CLOSED' | 'PENDING' | 'DECLINED' | 'COMPLETED';
 
@@ -38,6 +39,62 @@ export interface GrantAmount {
   usd: number;
   rsc: number;
   formatted: string;
+}
+
+export type FundingPoolStatus = 'OPEN' | 'CLOSED';
+
+export interface FundingPoolAmount {
+  usd: number;
+  rsc: number;
+}
+
+export interface FundingPool {
+  id: number;
+  status: FundingPoolStatus;
+  amountHolding: FundingPoolAmount;
+  amountDistributed: FundingPoolAmount;
+  amountRaised: FundingPoolAmount;
+}
+
+function parseFundingPoolAmount(raw: unknown): FundingPoolAmount {
+  const amount = raw as { usd?: unknown; rsc?: unknown } | null | undefined;
+  return {
+    usd: Number(amount?.usd ?? 0) || 0,
+    rsc: Number(amount?.rsc ?? 0) || 0,
+  };
+}
+
+export function transformFundingPool(raw: any): FundingPool {
+  return {
+    id: raw.id,
+    status: raw.status as FundingPoolStatus,
+    amountHolding: parseFundingPoolAmount(raw.amount_holding),
+    amountDistributed: parseFundingPoolAmount(raw.amount_distributed),
+    amountRaised: parseFundingPoolAmount(raw.amount_raised),
+  };
+}
+
+/**
+ * Badge total = grant.amount + pool amount_raised when present.
+ */
+export function getGrantBadgeAmount(grant: {
+  amount: Pick<GrantAmount, 'usd' | 'rsc'>;
+  fundingPool?: FundingPool | null;
+}): { usd: number; rsc: number } {
+  const raised = grant.fundingPool?.amountRaised;
+  return {
+    usd: (grant.amount.usd ?? 0) + (raised?.usd ?? 0),
+    rsc: (grant.amount.rsc ?? 0) + (raised?.rsc ?? 0),
+  };
+}
+
+export function findGrantApplicationIdForPost(
+  applications: Application[] | undefined,
+  postId: number | string
+): number | undefined {
+  const numericPostId = Number(postId);
+  if (!Number.isFinite(numericPostId)) return undefined;
+  return applications?.find((app) => app.preregistrationPostId === numericPostId)?.id;
 }
 
 /** The Request for Proposal a notebook draft is answering, as its card draws it. */
@@ -77,7 +134,9 @@ export interface Grant {
   endDate: string;
   contacts: Contact[];
   applicationVisibility: GrantApplicationVisibility;
+  fundingPool: FundingPool | null;
   applicants?: AuthorProfile[];
+  applications?: Application[];
   reviewedBy?: {
     id: ID;
     authorProfile: AuthorProfile;
@@ -88,41 +147,51 @@ export interface Grant {
   declineReason?: string;
 }
 
-export const transformGrant = createTransformer<any, Grant>((raw) => ({
-  id: raw.id,
-  createdBy: {
-    id: raw.created_by.id,
-    authorProfile: transformAuthorProfile(raw.created_by.author_profile),
-    firstName: raw.created_by.first_name,
-    lastName: raw.created_by.last_name,
-  },
-  amount: {
-    usd: raw.amount.usd,
-    rsc: raw.amount.rsc,
-    formatted: raw.amount.formatted,
-  },
-  currency: raw.currency as Currency,
-  organization: raw.organization,
-  description: raw.description,
-  shortTitle: raw.short_title || '',
-  status: raw.status as GrantStatus,
-  startDate: raw.start_date,
-  endDate: raw.end_date,
-  contacts: Array.isArray(raw.contacts)
-    ? raw.contacts.map((contact: any) => transformContact(contact))
-    : undefined,
-  applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
-  applicants: Array.isArray(raw.applications)
-    ? raw.applications.map((application: any) => transformAuthorProfile(application.applicant))
-    : undefined,
-  reviewedBy: raw.reviewed_by
-    ? {
-        id: raw.reviewed_by.id,
-        authorProfile: transformAuthorProfile(raw.reviewed_by.author_profile),
-        firstName: raw.reviewed_by.first_name,
-        lastName: raw.reviewed_by.last_name,
-      }
-    : undefined,
-  reviewedDate: raw.reviewed_date ?? undefined,
-  declineReason: raw.decline_reason ?? undefined,
-}));
+export const transformGrant = createTransformer<any, Grant>((raw) => {
+  const applications: Application[] | undefined = Array.isArray(raw.applications)
+    ? raw.applications.map((application: any) => ({
+        id: application.id,
+        profile: transformAuthorProfile(application.applicant),
+        preregistrationPostId: application.preregistration_post_id ?? undefined,
+      }))
+    : undefined;
+
+  return {
+    id: raw.id,
+    createdBy: {
+      id: raw.created_by.id,
+      authorProfile: transformAuthorProfile(raw.created_by.author_profile),
+      firstName: raw.created_by.first_name,
+      lastName: raw.created_by.last_name,
+    },
+    amount: {
+      usd: raw.amount.usd,
+      rsc: raw.amount.rsc,
+      formatted: raw.amount.formatted,
+    },
+    currency: raw.currency as Currency,
+    organization: raw.organization,
+    description: raw.description,
+    shortTitle: raw.short_title || '',
+    status: raw.status as GrantStatus,
+    startDate: raw.start_date,
+    endDate: raw.end_date,
+    contacts: Array.isArray(raw.contacts)
+      ? raw.contacts.map((contact: any) => transformContact(contact))
+      : undefined,
+    applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
+    fundingPool: raw.funding_pool ? transformFundingPool(raw.funding_pool) : null,
+    applications,
+    applicants: applications?.map((application) => application.profile),
+    reviewedBy: raw.reviewed_by
+      ? {
+          id: raw.reviewed_by.id,
+          authorProfile: transformAuthorProfile(raw.reviewed_by.author_profile),
+          firstName: raw.reviewed_by.first_name,
+          lastName: raw.reviewed_by.last_name,
+        }
+      : undefined,
+    reviewedDate: raw.reviewed_date ?? undefined,
+    declineReason: raw.decline_reason ?? undefined,
+  };
+});
