@@ -204,8 +204,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     if (item.isAIMode) {
       // Same row as the links, but it is a toggle: the overlay opens in place
-      // and the URL only gains a query param. The icon carries a soft tint so
-      // it reads as a mode rather than a destination.
+      // and the URL only gains a query param.
       return (
         <button
           type="button"
@@ -215,19 +214,12 @@ export const Navigation: React.FC<NavigationProps> = ({
           title={item.description}
         >
           <div className={iconContainerClass}>
-            <span
-              className={cn(
-                'flex h-[26px] w-[26px] items-center justify-center rounded-md transition-colors',
-                isActive ? 'bg-primary-100' : 'bg-primary-50'
-              )}
-            >
-              <Sparkles
-                size={17}
-                color={isActive ? '#3971ff' : '#404040'}
-                strokeWidth={2}
-                fill={isActive ? '#3971ff' : 'none'}
-              />
-            </span>
+            <Sparkles
+              size={22}
+              color={iconColor}
+              strokeWidth={2}
+              fill={isActive ? iconColor : 'none'}
+            />
           </div>
           <div className={textContainerClass}>
             <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
