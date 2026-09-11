@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import type { Stripe, StripeCardElement } from '@stripe/stripe-js';
-import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { CreditCard, Lock } from 'lucide-react';
 import { StripeProvider } from './StripeProvider';
@@ -16,15 +15,11 @@ export interface StripePaymentContext {
   cardElement: StripeCardElement;
 }
 
+/**
+ * Card entry only: the parent confirms the payment through the Stripe context
+ * handed back by `onStripeReady`.
+ */
 interface CreditCardFormProps {
-  /** Amount to display in the pay button */
-  amountDisplay: string;
-  /** Whether the form is submitting */
-  isSubmitting?: boolean;
-  /** Called when form is submitted (placeholder - not functional yet) */
-  onSubmit?: () => void;
-  /** Hide the submit button (when used inline with external submit) */
-  hideSubmitButton?: boolean;
   /** Called when card completeness state changes */
   onCardComplete?: (isComplete: boolean) => void;
   /** Called when Stripe context is ready, providing access for payment confirmation */
@@ -34,17 +29,7 @@ interface CreditCardFormProps {
 /**
  * Placeholder form shown when Stripe is not configured.
  */
-function CreditCardFormPlaceholder({
-  amountDisplay,
-  hideSubmitButton = false,
-  onCardComplete,
-  onStripeReady,
-}: {
-  amountDisplay: string;
-  hideSubmitButton?: boolean;
-  onCardComplete?: (isComplete: boolean) => void;
-  onStripeReady?: (context: StripePaymentContext | null) => void;
-}) {
+function CreditCardFormPlaceholder({ onCardComplete, onStripeReady }: CreditCardFormProps) {
   // Card is never complete in placeholder mode
   useEffect(() => {
     onCardComplete?.(false);
@@ -77,13 +62,6 @@ function CreditCardFormPlaceholder({
       <Alert variant="info">
         Credit card payments are not yet available. Please use ResearchCoin for now.
       </Alert>
-
-      {/* Disabled Submit Button */}
-      {!hideSubmitButton && (
-        <Button type="button" variant="default" disabled className="w-full h-12 text-base">
-          Pay {amountDisplay}
-        </Button>
-      )}
     </div>
   );
 }
@@ -91,14 +69,7 @@ function CreditCardFormPlaceholder({
 /**
  * Actual Stripe form - only rendered when wrapped in Elements provider.
  */
-function StripeCardForm({
-  amountDisplay,
-  isSubmitting = false,
-  onSubmit,
-  hideSubmitButton = false,
-  onCardComplete,
-  onStripeReady,
-}: CreditCardFormProps) {
+function StripeCardForm({ onCardComplete, onStripeReady }: CreditCardFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [cardError, setCardError] = useState<string | null>(null);
@@ -121,22 +92,8 @@ function StripeCardForm({
     }
   }, [stripe, elements, onStripeReady]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    // Placeholder - actual payment processing will be implemented
-    // when backend endpoint is ready
-    onSubmit?.();
-  };
-
-  const stripeReady = stripe && elements;
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-4">
       {/* Card Element Container */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">Card details</label>
@@ -177,19 +134,7 @@ function StripeCardForm({
         <Lock className="h-3 w-3" />
         <span>Secured by Stripe. We never store your card details.</span>
       </div>
-
-      {/* Submit Button */}
-      {!hideSubmitButton && (
-        <Button
-          type="submit"
-          variant="default"
-          disabled={!stripeReady || !cardComplete || isSubmitting}
-          className="w-full h-12 text-base"
-        >
-          {isSubmitting ? 'Processing...' : `Pay ${amountDisplay}`}
-        </Button>
-      )}
-    </form>
+    </div>
   );
 }
 
@@ -203,14 +148,7 @@ const STRIPE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 export function CreditCardForm(props: CreditCardFormProps) {
   // If no Stripe key, show placeholder without attempting to use Stripe hooks
   if (!STRIPE_KEY) {
-    return (
-      <CreditCardFormPlaceholder
-        amountDisplay={props.amountDisplay}
-        hideSubmitButton={props.hideSubmitButton}
-        onCardComplete={props.onCardComplete}
-        onStripeReady={props.onStripeReady}
-      />
-    );
+    return <CreditCardFormPlaceholder {...props} />;
   }
 
   // Wrap with Stripe provider only when key is available

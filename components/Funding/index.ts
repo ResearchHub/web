@@ -25,5 +25,10 @@ export {
   usePaymentMethod,
   usePaymentCalculations,
   useWalletAvailability,
+  useUsdAmount,
   type WalletAvailability,
+  paymentTargetAnalyticsProps,
+  getPaymentFunnelEvents,
+  confirmCardPayment,
+  CARD_PAYMENT_ERROR_MESSAGE,
 } from './lib';

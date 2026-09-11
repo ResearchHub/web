@@ -4,9 +4,9 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { FundingPoolService } from '@/services/funding-pool.service';
-import { PaymentService, type PaymentIntentTarget } from '@/services/payment.service';
+import type { PaymentIntentTarget } from '@/services/payment.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import AnalyticsService from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -20,6 +20,11 @@ import {
   QuickAmountSelector,
   StripeProvider,
   useWalletAvailability,
+  useUsdAmount,
+  confirmCardPayment,
+  getPaymentFunnelEvents,
+  paymentTargetAnalyticsProps,
+  CARD_PAYMENT_ERROR_MESSAGE,
   type PaymentMethodType,
   type StripePaymentContext,
 } from '@/components/Funding';
@@ -153,12 +158,21 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     (isPoolMode
       ? 'Your contribution has been added to the RFP funding pool.'
       : 'Your contribution has been successfully added to the fundraise.');
-  const [amountUsd, setAmountUsd] = useState(100);
+  const minAmountUsd = 1;
+  const {
+    amountUsd,
+    inputValue: amountInputValue,
+    amountError,
+    selectedQuickAmount,
+    isValid: isAmountValid,
+    handleInputChange,
+    selectQuickAmount,
+    setAmount,
+    reset: resetAmount,
+  } = useUsdAmount({ minAmount: minAmountUsd, maxAmount: maxAmountUsd, noun: 'contribution' });
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
-  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
 
   // Store Stripe context for credit card payments
@@ -171,12 +185,11 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     return { fundraiseId: fundraise!.id };
   }, [isPoolMode, fundingPool, fundraise]);
 
-  const analyticsTarget = useMemo(() => {
-    if (isPoolMode && fundingPool) {
-      return { funding_pool_id: fundingPool.id };
-    }
-    return { fundraise_id: fundraise!.id };
-  }, [isPoolMode, fundingPool, fundraise]);
+  const analyticsTarget = useMemo(
+    () => paymentTargetAnalyticsProps(paymentTarget),
+    [paymentTarget]
+  );
+  const funnelEvents = getPaymentFunnelEvents(paymentTarget);
 
   // Handle Stripe context updates from CreditCardForm
   const handleStripeReady = useCallback((context: StripePaymentContext | null) => {
@@ -194,55 +207,16 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   // Get amount in RSC (derived from USD amount)
   const amountInRsc = usdToRsc(amountUsd);
 
-  const minAmountUsd = 1;
-
-  // Format helpers
-  const formatUsd = (amount: number) => {
-    return `$${amount.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
   // Handlers
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(rawValue);
-
-    if (!isNaN(numValue)) {
-      setAmountUsd(numValue);
-      setSelectedQuickAmount(null);
-      setIsSliderControlled(false); // Input sets scaled visual mode
-
-      if (numValue < minAmountUsd) {
-        setAmountError(`Minimum contribution is $${minAmountUsd}`);
-      } else if (maxAmountUsd != null && numValue > maxAmountUsd) {
-        setAmountError(
-          `Maximum contribution is $${maxAmountUsd.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-          })}`
-        );
-      } else {
-        setAmountError(undefined);
-      }
-    } else {
-      setAmountUsd(0);
-      setAmountError('Please enter a valid amount');
-    }
-  };
-
-  const getFormattedInputValue = () => {
-    if (amountUsd === 0) return '';
-    return amountUsd.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
+    handleInputChange(e);
+    setIsSliderControlled(false); // Input sets scaled visual mode
   };
 
   // Track when modal/drawer opens
   useEffect(() => {
     if (isOpen) {
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT_STEP, {
+      AnalyticsService.logEvent(funnelEvents.amountStep, {
         ...analyticsTarget,
         amount_usd: amountUsd,
         amount_rsc: amountInRsc,
@@ -257,40 +231,38 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       setCurrentView('auth');
     } else {
       // Track funnel step: user reached payment step
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
+      AnalyticsService.logEvent(funnelEvents.paymentStep, {
         ...analyticsTarget,
         amount_usd: amountUsd,
         amount_rsc: amountInRsc,
       });
       setCurrentView('payment');
     }
-  }, [user, analyticsTarget, amountUsd, amountInRsc]);
+  }, [user, funnelEvents, analyticsTarget, amountUsd, amountInRsc]);
 
   const handleAuthSuccess = useCallback(async () => {
-    AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
+    AnalyticsService.logEvent(funnelEvents.paymentStep, {
       ...analyticsTarget,
       amount_usd: amountUsd,
       amount_rsc: amountInRsc,
     });
     refreshUser?.();
     setCurrentView('payment');
-  }, [analyticsTarget, amountUsd, amountInRsc, refreshUser]);
+  }, [funnelEvents, analyticsTarget, amountUsd, amountInRsc, refreshUser]);
 
   const handleClose = useCallback(() => {
     setCurrentView('funding');
-    setSelectedQuickAmount(100);
-    setAmountUsd(100);
+    resetAmount();
     setError(null);
-    setAmountError(undefined);
     setIsSliderControlled(false);
     onClose();
-  }, [onClose]);
+  }, [onClose, resetAmount]);
 
   const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
       if (amountUsd < minAmountUsd) {
         setError(`Minimum contribution is $${minAmountUsd}`);
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+        AnalyticsService.logEvent(funnelEvents.error, {
           ...analyticsTarget,
           payment_method: paymentMethod,
           error_type: 'validation',
@@ -305,7 +277,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
             maximumFractionDigits: 0,
           })}`
         );
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+        AnalyticsService.logEvent(funnelEvents.error, {
           ...analyticsTarget,
           payment_method: paymentMethod,
           error_type: 'validation',
@@ -335,15 +307,10 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         }
         toast.success(contributionSuccessMessage);
       } else if (paymentMethod === 'credit_card') {
-        // Credit card payment flow:
-        // 1. Create payment intent (backend adds fees)
-        // 2. Confirm payment with Stripe
-        // 3. On success, create contribution
-
         const stripeContext = stripeContextRef.current;
         if (!stripeContext) {
           setError('Payment form is not ready. Please try again.');
-          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          AnalyticsService.logEvent(funnelEvents.error, {
             ...analyticsTarget,
             payment_method: paymentMethod,
             error_type: 'stripe',
@@ -353,51 +320,20 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
           return;
         }
 
-        const { stripe, cardElement } = stripeContext;
-
-        // Step 1: Create payment intent (backend adds fees and handles contribution)
-        const { clientSecret } = await PaymentService.createPaymentIntent(
-          amountInRsc,
-          paymentTarget
-        );
-
-        // Step 2: Confirm payment with Stripe
-        const { error: stripeError, paymentIntent: stripePaymentIntent } =
-          await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-              card: cardElement,
-            },
-          });
-
-        if (stripeError) {
-          setError(
-            'We had an issue processing your credit card. Choose a different payment method.'
-          );
-          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+        // The backend adds fees to the intent and contributes on its webhook.
+        const result = await confirmCardPayment(stripeContext, amountInRsc, paymentTarget);
+        if (!result.ok) {
+          setError(CARD_PAYMENT_ERROR_MESSAGE);
+          AnalyticsService.logEvent(funnelEvents.error, {
             ...analyticsTarget,
             payment_method: paymentMethod,
             error_type: 'stripe',
-            error_message: 'Card payment failed',
+            error_message: result.reason,
           });
           setIsContributing(false);
           return;
         }
 
-        if (stripePaymentIntent?.status !== 'succeeded') {
-          setError(
-            'We had an issue processing your credit card. Choose a different payment method.'
-          );
-          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-            ...analyticsTarget,
-            payment_method: paymentMethod,
-            error_type: 'stripe',
-            error_message: 'Payment not succeeded',
-          });
-          setIsContributing(false);
-          return;
-        }
-
-        // Payment succeeded - backend handles contribution automatically
         toast.success(contributionSuccessMessage);
       } else if (paymentMethod === 'paypal') {
         // PayPal not yet implemented
@@ -408,7 +344,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       // Note: apple_pay and google_pay are handled by PaymentRequestButton
 
       // Track successful payment
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+      AnalyticsService.logEvent(funnelEvents.successful, {
         ...analyticsTarget,
         payment_method: paymentMethod,
         amount_usd: amountUsd,
@@ -425,14 +361,14 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       handleClose();
     } catch (err) {
       console.error('Failed to contribute:', err);
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+      AnalyticsService.logEvent(funnelEvents.error, {
         ...analyticsTarget,
         payment_method: paymentMethod,
         error_type: 'api',
         error_message: 'Request failed',
       });
       if (paymentMethod === 'credit_card') {
-        setError('We had an issue processing your credit card. Choose a different payment method.');
+        setError(CARD_PAYMENT_ERROR_MESSAGE);
       } else {
         setError(extractApiErrorMessage(err, 'Something went wrong. Please try again.'));
       }
@@ -442,12 +378,13 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   };
 
   // Handle quick amount selection
-  const handleQuickAmountSelect = useCallback((amount: number) => {
-    setSelectedQuickAmount(amount);
-    setAmountUsd(amount);
-    setAmountError(undefined);
-    setIsSliderControlled(false); // Quick buttons set scaled visual mode
-  }, []);
+  const handleQuickAmountSelect = useCallback(
+    (amount: number) => {
+      selectQuickAmount(amount);
+      setIsSliderControlled(false); // Quick buttons set scaled visual mode
+    },
+    [selectQuickAmount]
+  );
 
   // Calculate amounts in USD for display.
   const poolRaisedUsd = fundingPool?.amountRaised.usd ?? 0;
@@ -482,7 +419,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         );
 
         // Track successful payment
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+        AnalyticsService.logEvent(funnelEvents.successful, {
           ...analyticsTarget,
           payment_method: 'endaoment',
           amount_usd: amountUsd,
@@ -497,7 +434,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         handleClose();
       } catch (err) {
         console.error('Failed to contribute via Endaoment:', err);
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+        AnalyticsService.logEvent(funnelEvents.error, {
           ...analyticsTarget,
           payment_method: 'endaoment',
           error_type: 'api',
@@ -510,6 +447,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     },
     [
       fundraise,
+      funnelEvents,
       analyticsTarget,
       amountUsd,
       amountInRsc,
@@ -524,7 +462,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const handlePaymentRequestSuccess = useCallback(
     (paymentMethod?: 'apple_pay' | 'google_pay') => {
       // Track successful payment
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+      AnalyticsService.logEvent(funnelEvents.successful, {
         ...analyticsTarget,
         payment_method: paymentMethod || 'payment_request',
         amount_usd: amountUsd,
@@ -539,6 +477,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       handleClose();
     },
     [
+      funnelEvents,
       analyticsTarget,
       amountUsd,
       amountInRsc,
@@ -573,11 +512,6 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     return undefined;
   };
 
-  // Get amount display for payment widget
-  const getAmountDisplay = () => {
-    return formatUsd(amountUsd);
-  };
-
   // Render content based on current view
   const renderContent = () => {
     switch (currentView) {
@@ -586,7 +520,6 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
           <PaymentStep
             amountInRsc={amountInRsc}
             amountInUsd={amountUsd}
-            amountDisplay={getAmountDisplay()}
             rscBalance={rscBalance}
             fundingCreditsBalance={fundingCreditsBalance}
             paymentTarget={paymentTarget}
@@ -623,7 +556,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                   type="text"
                   inputMode="decimal"
                   autoComplete="off"
-                  value={getFormattedInputValue()}
+                  value={amountInputValue}
                   onChange={handleAmountChange}
                   icon={<DollarSign className="h-5 w-5 text-gray-500" />}
                   error={amountError}
@@ -662,14 +595,8 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                   previewAmountUsd={amountUsd}
                   isSliderControlled={isSliderControlled}
                   onAmountChange={(amount) => {
-                    setAmountUsd(amount);
                     // Auto-select "Remaining" button if slider is at the end
-                    if (amount === Math.round(remainingGoalUsd)) {
-                      setSelectedQuickAmount(amount);
-                    } else {
-                      setSelectedQuickAmount(null);
-                    }
-                    setAmountError(undefined);
+                    setAmount(amount, amount === Math.round(remainingGoalUsd) ? amount : null);
                     setIsSliderControlled(true); // Slider sets linear visual mode
                   }}
                   authors={work?.authors.map((a) => a.authorProfile)}
@@ -682,7 +609,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
               <Button
                 type="button"
                 variant="default"
-                disabled={amountUsd < minAmountUsd || !!amountError}
+                disabled={!isAmountValid}
                 className="w-full h-12 text-base"
                 onClick={handleContinueToPayment}
               >

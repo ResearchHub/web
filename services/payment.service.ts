@@ -30,9 +30,27 @@ export interface PaymentIntentResponse {
   stripeAmountCents: number;
 }
 
+/**
+ * What a Stripe payment is for. Every payment buys funding credits; the first
+ * two variants additionally spend them on a fundraise or RFP pool once the
+ * payment settles, while `fundingCredits` leaves them in the user's balance.
+ */
 export type PaymentIntentTarget =
-  | { fundraiseId: ID; fundingPoolId?: never }
-  | { fundingPoolId: ID; fundraiseId?: never };
+  | { fundraiseId: ID; fundingPoolId?: never; fundingCredits?: never }
+  | { fundingPoolId: ID; fundraiseId?: never; fundingCredits?: never }
+  | { fundingCredits: true; fundraiseId?: never; fundingPoolId?: never };
+
+/** Cash converted to funding credits with no contribution attached. */
+export const FUNDING_CREDITS_TARGET: PaymentIntentTarget = { fundingCredits: true };
+
+/** Backend `purpose` for a credits-only purchase; contributions use the default. */
+const FUNDING_CREDITS_PURCHASE_PURPOSE = 'FUNDING_CREDITS_PURCHASE';
+
+function toApiTargetFields(target: PaymentIntentTarget) {
+  if (target.fundingCredits) return { purpose: FUNDING_CREDITS_PURCHASE_PURPOSE };
+  if (target.fundingPoolId != null) return { funding_pool_id: target.fundingPoolId };
+  return { fundraise_id: target.fundraiseId };
+}
 
 /**
  * Service for handling payment-related API calls.
@@ -41,24 +59,22 @@ export class PaymentService {
   private static readonly BASE_PATH = '/api/payment';
 
   /**
-   * Creates a payment intent for purchasing RSC and contributing to a fundraise
-   * or funding pool. The backend adds fees and handles the contribution.
+   * Creates a payment intent for purchasing funding credits, optionally
+   * contributing them to a fundraise or funding pool. The backend adds fees
+   * and handles the contribution.
    *
    * @param amount The RSC amount to purchase (without fees)
-   * @param target Exactly one of fundraiseId or fundingPoolId
+   * @param target What the purchase is for
    * @returns Promise containing the Stripe client secret and payment details
    */
   static async createPaymentIntent(
     amount: number,
     target: PaymentIntentTarget
   ): Promise<PaymentIntentResponse> {
-    const hasFundingPool = 'fundingPoolId' in target;
     const body = {
       amount: roundRscAmount(amount),
       currency: 'RSC' as const,
-      ...(hasFundingPool
-        ? { funding_pool_id: target.fundingPoolId }
-        : { fundraise_id: target.fundraiseId }),
+      ...toApiTargetFields(target),
     };
 
     const response = await ApiClient.post<PaymentIntentApiResponse>(

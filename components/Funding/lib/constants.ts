@@ -11,6 +11,14 @@ export const PLATFORM_FEE_PERCENTAGE_RSC = 7;
 export const PLATFORM_FEE_PERCENTAGE_CARD = 9;
 
 /**
+ * Platform fee when buying funding credits outright. The card rate above is
+ * this purchase fee plus the RSC contribution fee; a credits purchase has no
+ * contribution attached, so that part is charged when the credits are spent.
+ */
+export const PLATFORM_FEE_PERCENTAGE_FUNDING_CREDITS_PURCHASE =
+  PLATFORM_FEE_PERCENTAGE_CARD - PLATFORM_FEE_PERCENTAGE_RSC;
+
+/**
  * Payment processing fee for non-RSC payment methods.
  * This covers credit card processing costs.
  */

@@ -30,6 +30,13 @@ export const LogEvent = {
   FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED: 'fundraise_contribution_payment_method_selected',
   FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL: 'fundraise_contribution_payment_successful',
   FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR: 'fundraise_contribution_payment_error',
+  // Funding credits purchase funnel events (Add funds → Cash)
+  FUNDING_CREDITS_PURCHASE_AMOUNT_STEP: 'funding_credits_purchase_amount_step',
+  FUNDING_CREDITS_PURCHASE_PAYMENT_STEP: 'funding_credits_purchase_payment_step',
+  FUNDING_CREDITS_PURCHASE_PAYMENT_METHOD_SELECTED:
+    'funding_credits_purchase_payment_method_selected',
+  FUNDING_CREDITS_PURCHASE_PAYMENT_SUCCESSFUL: 'funding_credits_purchase_payment_successful',
+  FUNDING_CREDITS_PURCHASE_PAYMENT_ERROR: 'funding_credits_purchase_payment_error',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];

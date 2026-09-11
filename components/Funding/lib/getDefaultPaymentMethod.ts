@@ -13,22 +13,23 @@ import { type WalletAvailability } from './useWalletAvailability';
  * 5. Credit Card - fallback
  *
  * Returns `null` when wallet availability is still being checked and neither
- * RSC-based method can cover the amount.
+ * RSC-based method can cover the amount. `hiddenMethods` are never chosen.
  */
 export function getDefaultPaymentMethod(
   rscBalance: number,
   fundingCreditsBalance: number,
   amountInRsc: number,
   platformFeePercent: number,
-  walletAvailability: WalletAvailability
+  walletAvailability: WalletAvailability,
+  hiddenMethods: PaymentMethodType[] = []
 ): PaymentMethodType | null {
   const rscAmountWithFees = amountInRsc * (1 + platformFeePercent / 100);
 
-  if (fundingCreditsBalance >= rscAmountWithFees) {
+  if (!hiddenMethods.includes('funding_credits') && fundingCreditsBalance >= rscAmountWithFees) {
     return 'funding_credits';
   }
 
-  if (rscBalance >= rscAmountWithFees) {
+  if (!hiddenMethods.includes('rsc') && rscBalance >= rscAmountWithFees) {
     return 'rsc';
   }
 

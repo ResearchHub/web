@@ -15,6 +15,8 @@ import type { EndaomentFund } from '@/services/endaoment.service';
 import {
   usePaymentCalculations,
   getDefaultPaymentMethod,
+  getPaymentFunnelEvents,
+  paymentTargetAnalyticsProps,
   type PaymentMethodType,
   type WalletAvailability,
 } from './lib';
@@ -22,24 +24,26 @@ import type { StripePaymentContext } from './CreditCardForm';
 import {
   PAYMENT_FEES,
   PLATFORM_FEE_PERCENTAGE_RSC,
+  PLATFORM_FEE_PERCENTAGE_FUNDING_CREDITS_PURCHASE,
   PAYMENT_PROCESSING_FEE,
   METHODS_WITH_PROCESSING_FEE,
+  RSC_PAYMENT_METHODS,
 } from './lib/constants';
-import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import AnalyticsService from '@/services/analytics.service';
 import type { PaymentIntentTarget } from '@/services/payment.service';
+
+const NO_HIDDEN_METHODS: PaymentMethodType[] = [];
 
 interface PaymentStepProps {
   /** Amount in RSC (before fees) */
   amountInRsc: number;
   /** Amount in USD */
   amountInUsd: number;
-  /** Amount display string */
-  amountDisplay: string;
   /** User's RSC balance available for funding (available + promotional) */
-  rscBalance: number;
+  rscBalance?: number;
   /** User's funding credits balance (excludes promotional RSC) */
   fundingCreditsBalance?: number;
-  /** Fundraise or funding pool target for Apple Pay / Google Pay */
+  /** What the payment is for; a funding credits purchase offers card and wallets only */
   paymentTarget: PaymentIntentTarget;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
   walletAvailability: WalletAvailability;
@@ -68,8 +72,7 @@ interface PaymentStepProps {
 export function PaymentStep({
   amountInRsc,
   amountInUsd,
-  amountDisplay,
-  rscBalance,
+  rscBalance = 0,
   fundingCreditsBalance = 0,
   paymentTarget,
   walletAvailability,
@@ -81,6 +84,12 @@ export function PaymentStep({
   onEndaomentPaymentConfirm,
   onStripeReady,
 }: PaymentStepProps) {
+  // Buying credits with credits (or RSC) makes no sense, so those sources are
+  // withheld and only Stripe-backed methods remain.
+  const isCreditsPurchase = Boolean(paymentTarget.fundingCredits);
+  const hiddenMethods = isCreditsPurchase ? RSC_PAYMENT_METHODS : NO_HIDDEN_METHODS;
+  const funnelEvents = getPaymentFunnelEvents(paymentTarget);
+
   const defaultPaymentMethod = useMemo(
     () =>
       getDefaultPaymentMethod(
@@ -88,9 +97,10 @@ export function PaymentStep({
         fundingCreditsBalance,
         amountInRsc,
         PLATFORM_FEE_PERCENTAGE_RSC,
-        walletAvailability
+        walletAvailability,
+        hiddenMethods
       ),
-    [rscBalance, fundingCreditsBalance, amountInRsc, walletAvailability]
+    [rscBalance, fundingCreditsBalance, amountInRsc, walletAvailability, hiddenMethods]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
@@ -117,12 +127,19 @@ export function PaymentStep({
   });
 
   // Calculate fees in USD - fees are ADDED on top of user's input
-  // Fee percentage depends on the selected payment method
-  const currentFeePercentage =
-    selectedMethod && selectedMethod in PAYMENT_FEES
+  // Fee percentage depends on the selected payment method, except that a
+  // credits purchase defers the contribution part of the fee until spending.
+  const currentFeePercentage = isCreditsPurchase
+    ? PLATFORM_FEE_PERCENTAGE_FUNDING_CREDITS_PURCHASE
+    : selectedMethod && selectedMethod in PAYMENT_FEES
       ? PAYMENT_FEES[selectedMethod as keyof typeof PAYMENT_FEES]
       : PLATFORM_FEE_PERCENTAGE_RSC;
   const platformFeeUsd = amountInUsd * (currentFeePercentage / 100);
+  // Rows at 0% are dropped rather than shown as a zero line.
+  const platformFeeBreakdown = [
+    { label: 'ResearchHub Inc', percentage: currentFeePercentage - 2 },
+    { label: 'ResearchHub Foundation', percentage: 2 },
+  ].filter((row) => row.percentage > 0);
 
   // Payment processing fee only for non-RSC methods
   const hasProcessingFee = selectedMethod && METHODS_WITH_PROCESSING_FEE.includes(selectedMethod);
@@ -175,22 +192,15 @@ export function PaymentStep({
       }
       // Track payment method selection
       if (method) {
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED, {
-          ...('fundingPoolId' in paymentTarget
-            ? { funding_pool_id: paymentTarget.fundingPoolId }
-            : { fundraise_id: paymentTarget.fundraiseId }),
+        AnalyticsService.logEvent(funnelEvents.methodSelected, {
+          ...paymentTargetAnalyticsProps(paymentTarget),
           payment_method: method,
           amount_usd: amountInUsd,
         });
       }
     },
-    [paymentTarget, amountInUsd]
+    [paymentTarget, funnelEvents, amountInUsd]
   );
-
-  // Dummy handlers for PaymentWidget (we handle the action in this component)
-  const handlePreviewTransaction = useCallback(() => {
-    // No-op - we use the confirm button below instead
-  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -198,20 +208,17 @@ export function PaymentStep({
       <div className="space-y-6 flex-1">
         {/* Payment Method Selector */}
         <PaymentWidget
-          amountInRsc={amountInRsc}
           amountInUsd={amountInUsd}
-          amountDisplay={amountDisplay}
           rscBalance={rscBalance}
           fundingCreditsBalance={fundingCreditsBalance}
-          onPreviewTransaction={handlePreviewTransaction}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}
           onEndaomentFundSelected={setSelectedEndaomentFund}
           onStripeReady={onStripeReady}
-          hideButton
           walletAvailability={walletAvailability}
           hasNonprofit={hasNonprofit}
+          hiddenMethods={hiddenMethods}
         />
 
         {/* Receipt-style line items */}
@@ -219,9 +226,11 @@ export function PaymentStep({
           <div className="space-y-4">
             {/* Line items */}
             <div className="space-y-1">
-              {/* Funding contribution (amount going to fundraise) */}
+              {/* The amount that reaches the fundraise, or the user's credits balance */}
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-sm text-gray-600">Funding contribution</span>
+                <span className="text-sm text-gray-600">
+                  {isCreditsPurchase ? 'Funding credits' : 'Funding contribution'}
+                </span>
                 <span className="text-sm text-gray-900">{formatUsd(amountInUsd)}</span>
               </div>
 
@@ -242,16 +251,15 @@ export function PaymentStep({
 
                         {/* Fee breakdown */}
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">ResearchHub Inc</span>
-                            <span className="font-medium text-gray-800">
-                              {currentFeePercentage - 2}%
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">ResearchHub Foundation</span>
-                            <span className="font-medium text-gray-800">2%</span>
-                          </div>
+                          {platformFeeBreakdown.map((row) => (
+                            <div
+                              key={row.label}
+                              className="flex items-center justify-between text-sm"
+                            >
+                              <span className="text-gray-600">{row.label}</span>
+                              <span className="font-medium text-gray-800">{row.percentage}%</span>
+                            </div>
+                          ))}
                         </div>
 
                         {/* Footer note */}
@@ -300,6 +308,14 @@ export function PaymentStep({
               </div>
             </div>
 
+            {isCreditsPurchase && (
+              <p className="text-xs text-gray-500">
+                Credits are added to your funding power as ResearchCoin and can be spent on any
+                proposal. The usual {PLATFORM_FEE_PERCENTAGE_RSC}% platform fee applies when you
+                spend them.
+              </p>
+            )}
+
             {/* Insufficient balance alert for RSC */}
             {isRscInsufficientBalance && <InsufficientBalanceAlert />}
 
@@ -327,7 +343,7 @@ export function PaymentStep({
               amountCents={Math.round(totalDueUsd * 100)}
               amountInRsc={amountInRsc}
               paymentTarget={paymentTarget}
-              label="Fund Research"
+              label={isCreditsPurchase ? 'Funding credits' : 'Fund Research'}
               unavailableText={
                 selectedMethod === 'apple_pay'
                   ? 'Apple Pay not available on this device'

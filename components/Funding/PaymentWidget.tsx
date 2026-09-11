@@ -5,12 +5,10 @@ import { CreditCard, Plus, Minus, Check, Info } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import {
   usePaymentMethod,
-  usePaymentCalculations,
   HIDDEN_PAYMENT_METHODS,
   type PaymentMethodType,
   type WalletAvailability,
@@ -32,22 +30,12 @@ interface PaymentOption {
 }
 
 interface PaymentWidgetProps {
-  /** Amount in RSC for payment calculations */
-  amountInRsc: number;
   /** Amount in USD for DAF account comparison */
   amountInUsd: number;
-  /** Amount display string (e.g., "$100.00") */
-  amountDisplay: string;
   /** User's RSC balance available for funding (available + promotional) */
   rscBalance: number;
   /** User's funding credits balance (excludes promotional RSC) */
   fundingCreditsBalance?: number;
-  /** Called when user clicks "Preview Payment" (for payment methods with preview) */
-  onPreviewTransaction: (paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>) => void;
-  /** Called when user clicks "Login to Endaoment" */
-  onEndaomentLogin?: () => void;
-  /** Whether the CTA button should be disabled */
-  isButtonDisabled?: boolean;
   /** Initial/controlled selected payment method */
   selectedPaymentMethod?: PaymentMethodType | null;
   /** Callback when payment method changes (for lifting state) */
@@ -58,12 +46,12 @@ interface PaymentWidgetProps {
   onEndaomentFundSelected?: (fund: EndaomentFund | null) => void;
   /** Callback when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
-  /** Whether to hide the CTA button (when used inside PaymentStep) */
-  hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
   /** Whether the fundraise has a non-profit org attached */
   hasNonprofit?: boolean;
+  /** Methods this checkout never offers, on top of the globally hidden ones */
+  hiddenMethods?: PaymentMethodType[];
 }
 
 /**
@@ -72,22 +60,17 @@ interface PaymentWidgetProps {
  * CC form appears below widget when Credit Card is selected.
  */
 export function PaymentWidget({
-  amountInRsc,
   amountInUsd,
-  amountDisplay,
   rscBalance,
   fundingCreditsBalance = 0,
-  onPreviewTransaction,
-  onEndaomentLogin,
-  isButtonDisabled = false,
   selectedPaymentMethod,
   onPaymentMethodChange,
   onCreditCardCompleteChange,
   onEndaomentFundSelected,
   onStripeReady,
-  hideButton = false,
   walletAvailability,
   hasNonprofit = false,
+  hiddenMethods = [],
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -100,22 +83,6 @@ export function PaymentWidget({
 
   // State for selected DAF fund (Endaoment)
   const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
-
-  // State for credit card completeness
-  const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
-
-  // Handler for credit card completeness that also notifies parent
-  const handleCreditCardComplete = (isComplete: boolean) => {
-    setIsCreditCardComplete(isComplete);
-    onCreditCardCompleteChange?.(isComplete);
-  };
-
-  // Calculate if RSC balance is insufficient (only when RSC is selected)
-  const { insufficientBalance } = usePaymentCalculations({
-    amountInRsc,
-    rscBalance,
-    paymentMethod: 'rsc', // Always calculate for RSC to check balance
-  });
 
   // Preselect the DAF with highest balance
   useEffect(() => {
@@ -212,7 +179,9 @@ export function PaymentWidget({
   // - While still checking, hide both wallet options to avoid showing
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
-    if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (HIDDEN_PAYMENT_METHODS.includes(option.id) || hiddenMethods.includes(option.id)) {
+      return false;
+    }
     if (option.id === 'funding_credits') {
       return fundingCreditsBalance > 0;
     }
@@ -232,54 +201,6 @@ export function PaymentWidget({
 
   // Get the selected payment option details
   const selectedOption = paymentOptions.find((opt) => opt.id === selectedMethod);
-
-  // Check if RSC is selected and balance is insufficient
-  const isRscInsufficientBalance = selectedMethod === 'rsc' && insufficientBalance;
-
-  // Determine CTA button text and action based on selected method
-  const getButtonConfig = (): {
-    text: string;
-    onClick: () => void;
-    disabled: boolean;
-    icon?: React.ReactNode;
-  } => {
-    switch (selectedMethod) {
-      case 'rsc':
-        return {
-          text: 'Preview Payment',
-          onClick: () => onPreviewTransaction('rsc'),
-          disabled: isButtonDisabled || isRscInsufficientBalance,
-        };
-      case 'credit_card':
-        return {
-          text: 'Preview Payment',
-          onClick: () => onPreviewTransaction(selectedMethod),
-          disabled: isButtonDisabled || !isCreditCardComplete,
-        };
-      case 'apple_pay':
-      case 'google_pay':
-      case 'paypal':
-        return {
-          text: 'Preview Payment',
-          onClick: () => onPreviewTransaction(selectedMethod),
-          disabled: isButtonDisabled,
-        };
-      case 'endaoment':
-        return {
-          text: 'Preview Payment',
-          onClick: () => onEndaomentLogin?.(),
-          disabled: isButtonDisabled || !onEndaomentLogin || !selectedDafAccountId,
-        };
-      default:
-        return {
-          text: 'Preview Payment',
-          onClick: () => {},
-          disabled: true,
-        };
-    }
-  };
-
-  const buttonConfig = getButtonConfig();
 
   return (
     <div className="space-y-4">
@@ -387,10 +308,7 @@ export function PaymentWidget({
       {selectedMethod === 'credit_card' && !isExpanded && (
         <div className="animate-in slide-in-from-top-2 duration-200">
           <CreditCardForm
-            amountDisplay={amountDisplay}
-            isSubmitting={false}
-            hideSubmitButton
-            onCardComplete={handleCreditCardComplete}
+            onCardComplete={onCreditCardCompleteChange}
             onStripeReady={onStripeReady}
           />
         </div>
@@ -418,20 +336,6 @@ export function PaymentWidget({
             </button>
           </div>
         </div>
-      )}
-
-      {/* CTA Button - hidden when used inside PaymentStep */}
-      {!hideButton && (
-        <Button
-          type="button"
-          variant="default"
-          disabled={buttonConfig.disabled}
-          className="w-full h-12 text-base"
-          onClick={buttonConfig.onClick}
-        >
-          {buttonConfig.icon && <span className="mr-2 flex items-center">{buttonConfig.icon}</span>}
-          {buttonConfig.text}
-        </Button>
       )}
     </div>
   );
