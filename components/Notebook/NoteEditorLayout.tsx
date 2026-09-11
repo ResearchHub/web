@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { isHubEditorOrModerator } from '@/utils/permissions';
 import { Button } from '@/components/ui/Button';
 
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
@@ -112,7 +111,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     searchParams?.get('tab') === 'details' ? 'details' : 'document'
   );
 
-  // ---- AI assistant chat (gated to hub editors and moderators) ----
+  // ---- AI assistant chat ----
   const [isAgentChatOpen, setIsAgentChatOpen] = useState(false);
   // Flipped when the server denies access (the gate can change server-side);
   // hides the entry point while this note is open.
@@ -144,7 +143,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   const isChangelogAccessDenied = isChangelog && !user?.isModerator;
 
   const showAgentChat =
-    isHubEditorOrModerator(user) &&
+    Boolean(user) &&
     !agentChatUnavailable &&
     // Changelogs are moderator-only: the page renders Note Not Found in place
     // of the document, so the assistant must not mount over it.
