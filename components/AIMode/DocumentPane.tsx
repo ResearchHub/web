@@ -18,7 +18,7 @@ import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDif
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
-import { MarkdownMessage } from '@/components/AgentChat/MarkdownMessage';
+import { DraftBlockPreview } from './DraftBlockPreview';
 import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
@@ -61,7 +61,7 @@ export function DocumentPane({
   readOnly = false,
   className,
 }: DocumentPaneProps) {
-  const { note, content, loading, error, status, draftText, draftMarkdown, phaseLabel } = document;
+  const { note, content, loading, error, status, draftText, draftBlocks, phaseLabel } = document;
   const noteId = note?.id ?? null;
   const writing = status === 'drafting' || status === 'working';
 
@@ -214,7 +214,9 @@ export function DocumentPane({
             {status === 'drafting' && draftText && (
               <DraftSection
                 text={draftText}
-                markdown={draftMarkdown}
+                blocks={draftBlocks}
+                editor={editor}
+                key={document.draftKey}
                 hasSavedContent={document.hasWrittenVersion}
               />
             )}
@@ -279,11 +281,13 @@ function EmptyDocument() {
 /** The section being written, appended below the settled content. */
 function DraftSection({
   text,
-  markdown,
+  blocks,
+  editor,
   hasSavedContent,
 }: {
   readonly text: string;
-  readonly markdown: string | null;
+  readonly blocks: AIModeDocument['draftBlocks'];
+  readonly editor: Editor | null;
   readonly hasSavedContent: boolean;
 }) {
   return (
@@ -301,23 +305,7 @@ function DraftSection({
           Preview updates live
         </span>
       </div>
-      {markdown != null ? (
-        <MarkdownMessage
-          content={markdown}
-          className="!text-base !leading-[1.8] text-gray-800 [&_p]:!my-4 [&_h1]:!font-sans [&_h1]:!text-2xl [&_h1]:!font-semibold [&_h1]:!leading-tight [&_h1]:!mb-6 [&_h2]:!font-sans [&_h2]:!text-xl [&_h2]:!font-semibold [&_h2]:!mt-8 [&_h2]:!mb-3 [&_h3]:!font-sans [&_h3]:!text-base [&_h3]:!font-semibold [&_h3]:!mt-6 [&_h3]:!mb-2 [&_ul]:!my-4 [&_ol]:!my-4 [&_li]:!my-2"
-        />
-      ) : (
-        <div className="text-base leading-[1.8] text-gray-800">
-          {text
-            .split(/\n{2,}/)
-            .filter(Boolean)
-            .map((paragraph, index) => (
-              <p key={index} className="mb-4 whitespace-pre-wrap">
-                {paragraph}
-              </p>
-            ))}
-        </div>
-      )}
+      <DraftBlockPreview blocks={blocks} editor={editor} fallbackText={text} />
     </section>
   );
 }

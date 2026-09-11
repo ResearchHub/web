@@ -131,7 +131,7 @@ function newStreamItem(delta: ChatStreamDelta, maximum: number): ChatStreamItem 
         type: 'tool_draft',
         tool: delta.tool,
         label: delta.label,
-        markdown: typeof delta.markdown === 'string' ? delta.markdown.slice(0, maximum) : undefined,
+        blocks: Array.isArray(delta.blocks) ? delta.blocks : undefined,
       }
     : { ...base, type: delta.type };
 }
@@ -152,9 +152,9 @@ function appendStreamDeltas(
       if (
         existing.type === 'tool_draft' &&
         delta.type === 'tool_draft' &&
-        typeof delta.markdown === 'string'
+        Array.isArray(delta.blocks)
       ) {
-        existing.markdown = delta.markdown.slice(0, maximum);
+        existing.blocks = delta.blocks;
       }
     } else {
       // An id changing type indicates an incompatible/corrupt frame. Recover

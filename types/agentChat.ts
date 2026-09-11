@@ -9,6 +9,8 @@
  * against the backend contract.
  */
 
+import type { JSONContent } from '@tiptap/core';
+
 import type { EffortLevel } from './agentModels';
 
 export type ExecutionStatus =
@@ -80,7 +82,7 @@ export interface ChatToolCallActivity {
 export interface ChatToolDraftActivity {
   type: 'tool_draft';
   /** Complete formatted preview snapshot; replaces itself on each frame. */
-  markdown?: string;
+  blocks?: JSONContent[];
   /**
    * The prose extracted from the arguments so far. Empty for tools whose
    * arguments aren't prose — a search query is written in an instant, so only
@@ -256,7 +258,7 @@ export type ChatStreamDelta =
   | (ChatStreamDeltaBase & {
       type: 'tool_draft';
       /** Complete formatted preview snapshot, not an appended delta. */
-      markdown?: string;
+      blocks?: JSONContent[];
       /** Machine name; empty when the provider skipped the block-start event. */
       tool: string;
       /** Human copy supplied by the backend; always rendered verbatim. */
