@@ -23,10 +23,13 @@ function feedRequest(pathname: string, ordering: string) {
   };
 }
 
-/** Opens a feed's sort dropdown and picks an option by its visible label. */
+/**
+ * Opens a feed's sort menu and picks an option by its visible label. The menu
+ * is a Radix dropdown whose choices are radio items, hence the role.
+ */
 async function selectSort(page: Page, label: string) {
   await page.getByTestId('feed-sort-trigger').click();
-  await page.getByRole('option', { name: label }).click();
+  await page.getByRole('menuitemradio', { name: label }).click();
 }
 
 test('the RFP feed renders results from the API', async ({ page }) => {
