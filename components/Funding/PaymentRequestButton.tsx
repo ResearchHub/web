@@ -104,7 +104,9 @@ function PaymentRequestButtonInner({
 
       try {
         // Create payment intent on our backend
-        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, fundraiseId);
+        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, {
+          fundraiseId,
+        });
 
         // Confirm the payment with the payment method from Apple Pay/Google Pay
         const { error: confirmError, paymentIntent } = await stripe!.confirmCardPayment(
