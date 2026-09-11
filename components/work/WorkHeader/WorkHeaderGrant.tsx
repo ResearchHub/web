@@ -1,15 +1,17 @@
 'use client';
 
 import { type ReactNode, useState, useCallback } from 'react';
-import { ArrowUpFromLine, Lock } from 'lucide-react';
+import { ArrowUpFromLine, Coins, Lock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
-import type { GrantApplicationVisibility } from '@/types/grant';
+import type { FundingPool, GrantApplicationVisibility } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 
@@ -22,6 +24,7 @@ interface WorkHeaderGrantProps {
   isPending?: boolean;
   organization?: string;
   applicationVisibility?: GrantApplicationVisibility;
+  fundingPool?: FundingPool | null;
   className?: string;
   preTitle?: ReactNode;
 }
@@ -35,10 +38,13 @@ export function WorkHeaderGrant({
   isPending = false,
   organization,
   applicationVisibility,
+  fundingPool = null,
   className,
   preTitle,
 }: WorkHeaderGrantProps) {
+  const router = useRouter();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { activeTab, setActiveTab, activity } = useGrantTab();
   const { proposalCount } = useFundraises();
 
@@ -52,6 +58,12 @@ export function WorkHeaderGrant({
   );
 
   const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
+  const canContributeToPool = !!grantId && isActive && fundingPool?.status === 'OPEN';
+
+  const handleContributeSuccess = useCallback(() => {
+    setIsContributeModalOpen(false);
+    router.refresh();
+  }, [router]);
 
   const subtitle = organization ? (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -63,18 +75,32 @@ export function WorkHeaderGrant({
   const primaryAction =
     grantId && isActive ? (
       <>
-        <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
-          <Button
-            data-testid="grant-submit-proposal"
-            variant="default"
-            size="lg"
-            onClick={() => setIsApplyModalOpen(true)}
-            className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
-          >
-            Submit Proposal
-            <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
-        </SubmitProposalTooltip>
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
+          {canContributeToPool && (
+            <Button
+              data-testid="grant-contribute"
+              variant="outlined"
+              size="lg"
+              onClick={() => setIsContributeModalOpen(true)}
+              className="gap-2 w-full sm:flex-1 max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+            >
+              <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
+              Contribute
+            </Button>
+          )}
+          <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
+            <Button
+              data-testid="grant-submit-proposal"
+              variant="default"
+              size="lg"
+              onClick={() => setIsApplyModalOpen(true)}
+              className="gap-2 w-full sm:flex-1 max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+            >
+              Submit Proposal
+              <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+            </Button>
+          </SubmitProposalTooltip>
+        </div>
         {requiresPrivateApplications && (
           <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
             <Lock className="h-3 w-3 shrink-0" />
@@ -132,27 +158,42 @@ export function WorkHeaderGrant({
 
   const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
 
+  const grantTitle = work.note?.post?.grant?.shortTitle || work.title;
+
   return (
-    <WorkHeader
-      work={work}
-      metadata={metadata}
-      className={className}
-      eyebrow={eyebrow}
-      preTitle={preTitle}
-      subtitle={subtitle}
-      tabs={tabs}
-      primaryAction={primaryAction}
-      hideVoteWidget
-      grantModalProps={
-        grantId
-          ? {
-              isApplyToGrantModalOpen: isApplyModalOpen,
-              onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
-              grantId,
-              grantApplicationVisibility: applicationVisibility,
-            }
-          : undefined
-      }
-    />
+    <>
+      <WorkHeader
+        work={work}
+        metadata={metadata}
+        className={className}
+        eyebrow={eyebrow}
+        preTitle={preTitle}
+        subtitle={subtitle}
+        tabs={tabs}
+        primaryAction={primaryAction}
+        hideVoteWidget
+        grantModalProps={
+          grantId
+            ? {
+                isApplyToGrantModalOpen: isApplyModalOpen,
+                onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
+                grantId,
+                grantApplicationVisibility: applicationVisibility,
+              }
+            : undefined
+        }
+      />
+
+      {fundingPool?.status === 'OPEN' && (
+        <ContributeToFundraiseModal
+          mode="fundingPool"
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={handleContributeSuccess}
+          fundingPool={fundingPool}
+          proposalTitle={grantTitle}
+        />
+      )}
+    </>
   );
 }

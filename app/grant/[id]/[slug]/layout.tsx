@@ -12,6 +12,7 @@ import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { getGrantBadgeAmount } from '@/types/grant';
 
 interface Props {
   params: Promise<{
@@ -61,6 +62,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const isPending = grant?.status === 'PENDING';
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
+  const badgeAmountUsd = grant ? getGrantBadgeAmount(grant).usd : undefined;
 
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
@@ -72,12 +74,13 @@ export default async function GrantSlugLayout({ params, children }: Props) {
           <WorkHeaderGrant
             work={work}
             metadata={metadata}
-            amountUsd={grant?.amount?.usd}
+            amountUsd={badgeAmountUsd}
             grantId={grantId?.toString()}
             isActive={isActive}
             isPending={isPending}
             organization={grant?.organization}
             applicationVisibility={grant?.applicationVisibility}
+            fundingPool={grant?.fundingPool ?? null}
             preTitle={
               <RegisteredReportRouteTrackerLoader
                 currentStage="grant"
