@@ -2,7 +2,7 @@
 
 import { BountyFeedItem } from '@/components/Bounty/BountyFeedItem';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { FeedSortDropdown } from '@/components/Feed/FeedSortDropdown';
+import { SortMenu } from '@/components/ui/SortMenu';
 import { useBounties } from '@/hooks/useBounties';
 
 const SORT_OPTIONS = [
@@ -34,7 +34,7 @@ export function ReviewsPageContent() {
       ordering={sort}
       filters={
         <div className="mb-2 mt-2 flex items-center justify-end sm:mt-4">
-          <FeedSortDropdown options={SORT_OPTIONS} value={sort} onChange={handleSortChange} />
+          <SortMenu options={SORT_OPTIONS} value={sort} onChange={handleSortChange} />
         </div>
       }
       skeletonVariant="proposalWork"

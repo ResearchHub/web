@@ -8,9 +8,11 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from 'react';
 import { NoteService } from '@/services/note.service';
 import { OrganizationService } from '@/services/organization.service';
+import { PublishingHostProvider, type PublishingHost } from '@/contexts/PublishingHostContext';
 import type { Note, NoteWithContent } from '@/types/note';
 import type { ID } from '@/types/root';
 import type { OrganizationUsers } from '@/types/organization';
@@ -335,7 +337,18 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     activeNoteId,
   };
 
-  return <NotebookContext.Provider value={value}>{children}</NotebookContext.Provider>;
+  // The publishing form reads a narrow host rather than this whole context,
+  // so the AI Mode document pane can host it too.
+  const publishingHost = useMemo<PublishingHost>(
+    () => ({ note: currentNote, editor, isLoading, saveDetailsSoon, saveDetailsNow }),
+    [currentNote, editor, isLoading, saveDetailsSoon, saveDetailsNow]
+  );
+
+  return (
+    <NotebookContext.Provider value={value}>
+      <PublishingHostProvider value={publishingHost}>{children}</PublishingHostProvider>
+    </NotebookContext.Provider>
+  );
 }
 
 export function useNotebookContext() {

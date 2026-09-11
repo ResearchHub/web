@@ -6,7 +6,7 @@ import { SearchSuggestions } from './SearchSuggestions';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
 import type { EntityType } from '@/types/search';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
@@ -23,19 +23,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const hasPrefetchedRef = useRef(false);
-  const navigatingToSearchRef = useRef(false);
-
-  const prefetchSearchRoute = () => {
-    if (!hasPrefetchedRef.current) {
-      try {
-        router.prefetch('/search');
-        hasPrefetchedRef.current = true;
-      } catch {}
-    }
-  };
 
   // Get search suggestions
   const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions({
@@ -51,7 +38,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         inputRef.current?.focus();
         inputRef.current?.select();
       }, 100);
-      prefetchSearchRoute();
     }
   }, [isOpen]);
 
@@ -90,31 +76,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     }
   };
 
-  // Reset query when modal closes (but preserve if navigating to search page)
+  // A fresh query each time the modal opens.
   useEffect(() => {
-    if (!isOpen) {
-      if (!navigatingToSearchRef.current) {
-        setQuery('');
-      }
-      navigatingToSearchRef.current = false;
-    }
+    if (!isOpen) setQuery('');
   }, [isOpen]);
-
-  // Restore query from URL when modal opens on search page
-  useEffect(() => {
-    if (isOpen) {
-      if (pathname === '/search') {
-        const urlQuery = searchParams.get('q');
-        if (urlQuery) {
-          setQuery(urlQuery);
-        } else {
-          setQuery('');
-        }
-      } else if (!navigatingToSearchRef.current) {
-        setQuery('');
-      }
-    }
-  }, [isOpen, pathname, searchParams]);
 
   // Detect OS for keyboard shortcut display
   const isMac = typeof window !== 'undefined' && navigator.userAgent.toUpperCase().includes('MAC');
@@ -160,16 +125,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             }}
             onFocus={() => {
               setIsFocused(true);
-              prefetchSearchRoute();
               inputRef.current?.select();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.shiftKey && query.trim()) {
-                e.preventDefault();
-                navigatingToSearchRef.current = true;
-                router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
-                onClose();
-              }
             }}
           />
           {query && (
@@ -205,25 +161,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           </div>
         )}
       </div>
-
-      {/* Show All Results Button - appears when user has typed a search query */}
-      {/* Hide for now as functionality is in progress */}
-      {/* {query.trim().length >= 2 && !loading && (
-        <div className="border-t border-gray-200 py-4 bg-white">
-          <Button
-            variant="ghost"
-            className="w-full justify-center text-primary-700 hover:text-primary-900 hover:bg-gray-100"
-            onClick={() => {
-              navigatingToSearchRef.current = true;
-              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-              onClose();
-            }}
-          >
-            <span>Show all results</span>
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-      )} */}
     </BaseModal>
   );
 }
