@@ -7,6 +7,7 @@ import {
 } from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
 import { toOptionalNumber } from '@/utils/number';
+import { getGrantBadgeAmount } from '@/types/grant';
 import type {
   ActivityAction,
   FeedBountyContent,
@@ -104,7 +105,7 @@ function resolveWorkTab(entry: FeedEntry, workContentType?: ContentType): Activi
 
 function resolveActivityBodySlot(
   activityAction?: ActivityAction,
-  work?: Pick<ActivityWork, 'fundraise' | 'grant' | 'bounty'>,
+  work?: Pick<ActivityWork, 'documentType' | 'fundraise' | 'grant' | 'bounty'>,
   options?: { isReview?: boolean }
 ): ActivityBodySlot {
   if (activityAction === 'bounty_opened' || activityAction === 'bounty_contributed') {
@@ -112,6 +113,9 @@ function resolveActivityBodySlot(
   }
   if (activityAction === 'grant_opened') {
     return work?.grant ? 'grant' : 'default';
+  }
+  if (work?.grant && work.documentType === 'funding_request') {
+    return 'grant';
   }
   if (
     activityAction === 'tip_review' ||
@@ -230,17 +234,21 @@ function presentGrant(
   exchangeRate: number
 ): WorkCardPresentation {
   const stats: WorkCardStat[] = [];
+  const badge = getGrantBadgeAmount({
+    amount: { usd: grant.amount.usd, rsc: grant.amount.rsc ?? 0 },
+    fundingPool: grant.fundingPool,
+  });
   let budgetAmount: number | null = null;
   let skipConversion = showUSD;
 
   if (showUSD) {
-    if (grant.amount.usd > 0) {
-      budgetAmount = grant.amount.usd;
+    if (badge.usd > 0) {
+      budgetAmount = badge.usd;
     }
-  } else if (grant.amount.rsc != null && grant.amount.rsc > 0) {
-    budgetAmount = grant.amount.rsc;
-  } else if (grant.amount.usd > 0 && exchangeRate > 0) {
-    budgetAmount = grant.amount.usd / exchangeRate;
+  } else if (badge.rsc > 0) {
+    budgetAmount = badge.rsc;
+  } else if (badge.usd > 0 && exchangeRate > 0) {
+    budgetAmount = badge.usd / exchangeRate;
     skipConversion = true;
   }
 
@@ -312,6 +320,7 @@ function grantSummaryFromFeedGrant(content: FeedGrantContent): WorkGrantSummary 
     status: grant.status,
     organization: grant.organization,
     amount: { usd: grant.amount.usd, rsc: grant.amount.rsc ?? null },
+    fundingPool: grant.fundingPool ?? null,
     numApplicants: grant.applicants?.length ?? 0,
     endDate: grant.endDate,
   };

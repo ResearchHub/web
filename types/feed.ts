@@ -638,6 +638,7 @@ function transformActivityRelatedWorkGrant(rawGrant: unknown): WorkGrantSummary 
     amount?: { usd?: number; rsc?: number | null };
     application_count?: number;
     end_date?: string | null;
+    funding_pool?: unknown;
   };
 
   if (typeof grant.amount !== 'object' || grant.amount === null) {
@@ -651,6 +652,7 @@ function transformActivityRelatedWorkGrant(rawGrant: unknown): WorkGrantSummary 
       usd: grant.amount.usd ?? 0,
       rsc: grant.amount.rsc ?? null,
     },
+    fundingPool: grant.funding_pool ? transformFundingPool(grant.funding_pool) : null,
     numApplicants: grant.application_count ?? 0,
     endDate: grant.end_date ?? undefined,
   };
