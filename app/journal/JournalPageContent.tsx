@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { FeedSortDropdown } from '@/components/Feed/FeedSortDropdown';
+import { SortMenu } from '@/components/ui/SortMenu';
 import { useFeed } from '@/hooks/useFeed';
 import { JournalV2FeedEntryItem } from '@/components/Journal/JournalV2FeedEntryItem';
 
@@ -56,7 +56,7 @@ export function JournalPageContent() {
       loadMore={loadMore}
       filters={
         <div className="mb-2 mt-2 flex items-center justify-end sm:mt-4">
-          <FeedSortDropdown
+          <SortMenu
             options={JOURNAL_SORT_OPTIONS}
             value={journalSort}
             onChange={(sort) => changeJournalSort(getJournalSort(sort))}

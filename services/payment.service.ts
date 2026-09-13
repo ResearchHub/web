@@ -30,6 +30,10 @@ export interface PaymentIntentResponse {
   stripeAmountCents: number;
 }
 
+export type PaymentIntentTarget =
+  | { fundraiseId: ID; fundingPoolId?: never }
+  | { fundingPoolId: ID; fundraiseId?: never };
+
 /**
  * Service for handling payment-related API calls.
  */
@@ -37,27 +41,31 @@ export class PaymentService {
   private static readonly BASE_PATH = '/api/payment';
 
   /**
-   * Creates a payment intent for purchasing RSC and contributing to a fundraise.
-   * The backend will add fees to the amount and handle the contribution.
+   * Creates a payment intent for purchasing RSC and contributing to a fundraise
+   * or funding pool. The backend adds fees and handles the contribution.
    *
    * @param amount The RSC amount to purchase (without fees)
-   * @param fundraiseId The ID of the fundraise to contribute to
+   * @param target Exactly one of fundraiseId or fundingPoolId
    * @returns Promise containing the Stripe client secret and payment details
    */
   static async createPaymentIntent(
     amount: number,
-    fundraiseId: ID
+    target: PaymentIntentTarget
   ): Promise<PaymentIntentResponse> {
+    const hasFundingPool = 'fundingPoolId' in target;
+    const body = {
+      amount: roundRscAmount(amount),
+      currency: 'RSC' as const,
+      ...(hasFundingPool
+        ? { funding_pool_id: target.fundingPoolId }
+        : { fundraise_id: target.fundraiseId }),
+    };
+
     const response = await ApiClient.post<PaymentIntentApiResponse>(
       `${this.BASE_PATH}/payment-intent/`,
-      {
-        amount: roundRscAmount(amount),
-        currency: 'RSC',
-        fundraise_id: fundraiseId,
-      }
+      body
     );
 
-    // Transform snake_case to camelCase
     return {
       clientSecret: response.client_secret,
       paymentIntentId: response.payment_intent_id,

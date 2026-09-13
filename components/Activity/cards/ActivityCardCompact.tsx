@@ -18,20 +18,42 @@ import {
   getReviewEarning,
   getReviewScore,
 } from '../lib/activityDisplay.utils';
-import { getActivityBounty, shouldShowAuthorBadge } from '../lib/activityWork.utils';
+import {
+  getActivityBounty,
+  getActivityWork,
+  shouldShowAuthorBadge,
+} from '../lib/activityWork.utils';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { FeedEntry } from '@/types/feed';
+import { ID } from '@/types/root';
 
 interface ActivityCardCompactProps {
   entry: FeedEntry;
+  currentDocumentId?: ID;
+}
+
+function isEntryAboutDocument(entry: FeedEntry, documentId: ID): boolean {
+  const targetId = Number(documentId);
+  if (!Number.isFinite(targetId)) return false;
+
+  const work = getActivityWork(entry);
+  if (work?.id != null && Number(work.id) === targetId) return true;
+
+  if (entry.relatedWork?.id != null && Number(entry.relatedWork.id) === targetId) return true;
+
+  const contentId = entry.content?.id;
+  return contentId != null && Number(contentId) === targetId;
 }
 
 /** Compact activity row used in the activity sidebar. */
-export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => {
+export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry, currentDocumentId }) => {
   const { title, href } = getEntryMeta(entry);
 
   if (!title) return null;
+
+  /** When the entry's work is this post, hide the title link (already on that page). */
+  const hideTitle = currentDocumentId != null && isEntryAboutDocument(entry, currentDocumentId);
 
   const message = getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
@@ -118,7 +140,9 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({ entry }) => 
             className="text-sm leading-5"
             isAuthor={shouldShowAuthorBadge(entry, message.actor.id)}
           />
-          <span className="mt-1 block text-sm leading-tight line-clamp-2">{titleEl}</span>
+          {!hideTitle && (
+            <span className="mt-1 block text-sm leading-tight line-clamp-2">{titleEl}</span>
+          )}
           <Tooltip content={new Date(entry.timestamp).toLocaleString()}>
             <span className="mt-1 block w-fit cursor-default text-xs text-gray-400">
               {formatTimeAgo(entry.timestamp)}

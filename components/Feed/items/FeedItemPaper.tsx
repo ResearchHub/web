@@ -19,7 +19,6 @@ import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Star } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
-import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { buildWorkUrl } from '@/utils/url';
 
 interface FeedItemPaperProps {
@@ -30,7 +29,6 @@ interface FeedItemPaperProps {
   maxLength?: number;
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
-  highlights?: Highlight[];
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
 }
@@ -46,7 +44,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   maxLength,
   onFeedItemClick,
   onAbstractExpanded,
-  highlights,
   showBountyInfo,
   abstractCollapsedByDefault,
 }) => {
@@ -55,9 +52,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
 
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
-  // Extract highlighted fields from highlights prop
-  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
-  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Use provided href or create default paper page URL
   const paperPageUrl =
@@ -161,12 +155,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         leftContent={null}
       />
 
-      <TitleSection
-        title={paper.title}
-        highlightedTitle={highlightedTitle}
-        href={paperPageUrl}
-        onClick={onFeedItemClick}
-      />
+      <TitleSection title={paper.title} href={paperPageUrl} onClick={onFeedItemClick} />
 
       {/* Authors and Date */}
       <MetadataSection className="mb-1">
@@ -220,7 +209,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
 
       <FeedItemAbstractSection
         content={paper.textPreview}
-        highlightedContent={highlightedSnippet}
         maxLength={maxLength}
         className="mt-3"
         onAbstractExpanded={onAbstractExpanded}

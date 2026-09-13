@@ -12,7 +12,8 @@ interface ModalProps {
 export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
+      {/* Matches BaseModal: above the AI Mode overlay (9500), which hosts the publishing form. */}
+      <Dialog as="div" className="relative z-[9999]" onClose={onClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"

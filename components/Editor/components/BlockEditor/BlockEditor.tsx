@@ -19,6 +19,12 @@ export interface BlockEditorProps {
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
   setEditor?: (editor: Editor | null) => void;
+  /** Focus the editor on mount. Defaults to `editable`. */
+  autofocus?: boolean;
+  /** Live read-only toggle that keeps the editor instance (see useBlockEditor). */
+  locked?: boolean;
+  /** Require a leading heading when editable (default true; see useBlockEditor). */
+  requireTitle?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
@@ -28,6 +34,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   setEditor,
   isLoading = false,
   editable = true,
+  autofocus,
+  locked,
+  requireTitle,
 }) => {
   const menuContainerRef = useRef(null);
 
@@ -36,6 +45,9 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     contentJson,
     onUpdate,
     editable,
+    autofocus,
+    locked,
+    requireTitle,
   });
 
   useEffect(() => {

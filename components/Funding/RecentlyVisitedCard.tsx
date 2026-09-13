@@ -7,6 +7,7 @@ import { buildWorkUrl } from '@/utils/url';
 import { SearchSuggestion } from '@/types/search';
 import { ContentType } from '@/types/work';
 import { cn } from '@/utils/styles';
+import { FieldLabel } from '@/components/ui/FieldLabel';
 
 const WORK_TYPE_LABELS: Record<string, string> = {
   paper: 'Paper',
@@ -136,9 +137,7 @@ export function RecentlyVisitedCard({ pages, clear, className }: RecentlyVisited
   return (
     <aside className={cn('w-[250px]', className)}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-          Recently visited
-        </p>
+        <FieldLabel className="tracking-wider">Recently visited</FieldLabel>
         <button
           type="button"
           onClick={clear}

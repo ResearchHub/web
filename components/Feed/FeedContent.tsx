@@ -2,11 +2,10 @@
 
 import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
-import { usePathname } from 'next/navigation';
 import { FeedItemSkeleton, FeedSkeletonVariant } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
-import { FeedEntryItem, Highlight } from './FeedEntryItem';
+import { FeedEntryItem } from './FeedEntryItem';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
 import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
@@ -95,7 +94,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   wideContent = false,
   skeletonVariant,
 }) => {
-  const pathname = usePathname();
   const tabsSentinelRef = useContentTabsVisibilitySentinel(!!tabs);
 
   const { ref: loadMoreRef, inView } = useInView({
@@ -104,7 +102,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   });
 
   const { feedKey } = useFeedStateRestoration({
-    activeTab: pathname === '/search' ? undefined : activeTab,
+    activeTab,
     shouldRestore: () => false,
   });
 
@@ -148,20 +146,6 @@ export const FeedContent: FC<FeedContentProps> = ({
             displayEntries.map((entry, index) => {
               const contentToInsert = insertContent?.find((item) => item.index === index);
 
-              // Extract highlights from searchMetadata if present
-              const highlights: Highlight[] = [];
-              if (entry.searchMetadata) {
-                if (entry.searchMetadata.highlightedTitle) {
-                  highlights.push({ field: 'title', value: entry.searchMetadata.highlightedTitle });
-                }
-                if (entry.searchMetadata.highlightedSnippet) {
-                  highlights.push({
-                    field: 'snippet',
-                    value: entry.searchMetadata.highlightedSnippet,
-                  });
-                }
-              }
-
               const feedItem = renderEntry ? (
                 renderEntry({
                   entry,
@@ -175,7 +159,6 @@ export const FeedContent: FC<FeedContentProps> = ({
                 <FeedEntryItem
                   showPostHeaders={showPostHeaders}
                   showBountyInfo={showBountyInfo}
-                  highlights={highlights}
                   shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                   entry={entry}
                   index={index}

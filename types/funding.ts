@@ -152,6 +152,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
 }
 
 export interface Application {
+  id: number;
   profile: AuthorProfile;
   preregistrationPostId?: number;
   fundraise?: ApplicationFundraise;
@@ -161,6 +162,7 @@ export interface Application {
 
 export function transformApplication(raw: any): Application {
   return {
+    id: raw.id,
     profile: transformAuthorProfile(raw.applicant),
     preregistrationPostId: raw.preregistration_post_id ?? undefined,
     keyInsight: transformKeyInsight(raw.key_insight),

@@ -20,6 +20,8 @@ interface QuickAmountSelectorProps {
   onAmountSelect: (amount: number) => void;
   /** Remaining goal amount in USD */
   remainingGoalUsd: number;
+  /** Hide the Remaining button (e.g. unbounded RFP pool contributions) */
+  showRemaining?: boolean;
   /** Optional class name */
   className?: string;
 }
@@ -32,6 +34,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
   selectedAmount,
   onAmountSelect,
   remainingGoalUsd,
+  showRemaining = true,
   className,
 }) => {
   const handleAmountClick = useCallback(
@@ -79,7 +82,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
       ))}
 
       {/* Remaining button */}
-      {remainingGoalUsd > 0 && (
+      {showRemaining && remainingGoalUsd > 0 && (
         <button
           type="button"
           onClick={handleFundRemaining}

@@ -18,7 +18,6 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture } from '@/utils/date';
-import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -31,7 +30,6 @@ interface FeedItemGrantProps {
   showHeader?: boolean;
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
-  highlights?: Highlight[];
   footer?: ReactNode;
 }
 
@@ -45,7 +43,6 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
-  highlights,
   footer,
 }) => {
   const router = useRouter();

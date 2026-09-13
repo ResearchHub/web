@@ -2,7 +2,7 @@
 
 import { FC, useCallback, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import * as Popover from '@radix-ui/react-popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import { Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/Switch';
 import { cn } from '@/utils/styles';
@@ -51,8 +51,8 @@ export const IncludePrivateProposalsControl: FC<IncludePrivateProposalsControlPr
   );
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
-      <Popover.Trigger asChild>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
         <button
           type="button"
           title="Private proposal options"
@@ -67,27 +67,21 @@ export const IncludePrivateProposalsControl: FC<IncludePrivateProposalsControlPr
         >
           <Shield className="h-[18px] w-[18px]" />
         </button>
-      </Popover.Trigger>
+      </PopoverTrigger>
 
-      <Popover.Portal>
-        <Popover.Content
-          align="end"
-          sideOffset={8}
-          className="z-[100000] w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-900">Show private proposals</p>
-            </div>
-            <Switch
-              checked={includePrivate}
-              onCheckedChange={setIncludePrivate}
-              disabled={locked}
-              className="shrink-0"
-            />
+      <PopoverContent align="end" sideOffset={8} className="w-64">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-gray-900">Show private proposals</p>
           </div>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+          <Switch
+            checked={includePrivate}
+            onCheckedChange={setIncludePrivate}
+            disabled={locked}
+            className="shrink-0"
+          />
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

@@ -5,6 +5,8 @@ export const WS_ROUTES = {
   NOTEBOOK_CHAT: (noteId: string | number, chatId: string | number) =>
     `${getWebSocketBaseUrl()}/notebook/notes/${noteId}/chats/${chatId}/`,
   NOTE_VERSIONS: (noteId: string | number) => `${getWebSocketBaseUrl()}/notebook/notes/${noteId}/`,
+  ASSISTANT_CHAT: (chatId: string | number) =>
+    `${getWebSocketBaseUrl()}/assistant/chats/${chatId}/`,
 };
 
 function getWebSocketBaseUrl(): string {

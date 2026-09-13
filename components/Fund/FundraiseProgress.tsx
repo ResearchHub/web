@@ -3,7 +3,7 @@
 import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
-import { Clock } from 'lucide-react';
+import { Clock, Coins } from 'lucide-react';
 import { formatDeadline, formatExactTime } from '@/utils/date';
 import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import type { Fundraise } from '@/types/funding';
@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
-import { Icon } from '../ui/icons';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
@@ -257,7 +256,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               )}
               onClick={handleContributeClick}
             >
-              <Icon name="giveRSC" size={18} color="white" />
+              <Coins className="w-[18px] h-[18px]" />
               Fund proposal
             </Button>
           ) : onDetailsClick ? (

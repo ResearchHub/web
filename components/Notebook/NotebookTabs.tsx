@@ -8,6 +8,8 @@ export type NotebookTab = 'document' | 'details';
 interface NotebookTabsProps {
   active: NotebookTab;
   onChange: (tab: NotebookTab) => void;
+  /** Per-step label overrides — AI Mode calls the details step "Publish". */
+  labels?: Partial<Record<NotebookTab, string>>;
 }
 
 const STEPS: { id: NotebookTab; label: string; dataTour?: string }[] = [
@@ -18,7 +20,7 @@ const STEPS: { id: NotebookTab; label: string; dataTour?: string }[] = [
 /** Linear two-step flow shown in the notebook top bar. It reads as a sequence
  *  (Document → Details) rather than parallel tabs, so the progression toward
  *  publishing is visually explicit. */
-export function NotebookTabs({ active, onChange }: NotebookTabsProps) {
+export function NotebookTabs({ active, onChange, labels }: NotebookTabsProps) {
   const activeIndex = STEPS.findIndex((step) => step.id === active);
 
   return (
@@ -27,7 +29,7 @@ export function NotebookTabs({ active, onChange }: NotebookTabsProps) {
         <div key={step.id} className="flex items-center gap-1.5">
           <Step
             index={index}
-            label={step.label}
+            label={labels?.[step.id] ?? step.label}
             state={
               index === activeIndex ? 'current' : index < activeIndex ? 'complete' : 'upcoming'
             }

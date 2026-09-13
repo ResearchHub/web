@@ -29,6 +29,9 @@ export const useBlockEditor = ({
   onUpdate,
   customClass,
   includeTitle = false,
+  autofocus = editable,
+  locked = false,
+  requireTitle = true,
 }: {
   aiToken?: string;
   userId?: string;
@@ -39,16 +42,32 @@ export const useBlockEditor = ({
   onUpdate?: (editor: Editor) => void;
   customClass?: string;
   includeTitle?: boolean;
+  /** Focus the editor on mount. Defaults to editable; false when another control owns focus. */
+  autofocus?: boolean;
+  /**
+   * Temporarily read-only without recreating the editor: `editable` picks
+   * the extension set and is a creation-time choice, while this toggles
+   * live (e.g. while an assistant is mid-edit). Goes into the options so
+   * tiptap's own option re-application can't flip it back.
+   */
+  locked?: boolean;
+  /**
+   * Editable documents must start with a heading (the note's title). Off for
+   * documents another writer composes — an assistant's note may open with a
+   * paragraph, and a schema that forbids it throws on load.
+   */
+  requireTitle?: boolean;
 }) => {
+  const isEditable = editable && !locked;
   const editor = useEditor(
     {
-      editable,
+      editable: isEditable,
       immediatelyRender: false,
       shouldRerenderOnTransaction: false,
-      autofocus: editable,
+      autofocus,
       extensions: [
         ...ExtensionKit({
-          customDocument: editable ? CustomDocument : undefined,
+          customDocument: editable && requireTitle ? CustomDocument : undefined,
           placeholderConfig: {
             includeChildren: true,
             showOnlyCurrent: false,
@@ -110,10 +129,11 @@ export const useBlockEditor = ({
   );
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && editor) {
-      window.editor = editor;
+    if (editor && !editor.isDestroyed && editor.isEditable !== isEditable) {
+      // Not a content change: emitting `update` here would trigger a save.
+      editor.setEditable(isEditable, false);
     }
-  }, [editor]);
+  }, [editor, isEditable]);
 
   return { editor };
 };

@@ -1,11 +1,10 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
-import { Globe2, Link2 } from 'lucide-react';
+import { Coins, Globe2, Link2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/icons';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
@@ -119,7 +118,7 @@ export function WorkHeaderProposal({
         onClick={() => setIsFundModalOpen(true)}
         className="hidden tablet:flex gap-2"
       >
-        <Icon name="giveRSC" size={20} color="white" />
+        <Coins className="w-5 h-5" />
         Fund Proposal
       </Button>
     ) : undefined;

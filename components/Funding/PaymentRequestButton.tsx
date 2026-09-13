@@ -5,16 +5,15 @@ import { PaymentRequestButtonElement, useStripe } from '@stripe/react-stripe-js'
 import type { PaymentRequest, PaymentRequestPaymentMethodEvent } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/Button';
 import { StripeProvider } from './StripeProvider';
-import { PaymentService } from '@/services/payment.service';
-import { ID } from '@/types/root';
+import { PaymentService, type PaymentIntentTarget } from '@/services/payment.service';
 
 interface PaymentRequestButtonProps {
   /** Amount in cents */
   amountCents: number;
   /** Amount in RSC for creating payment intent */
   amountInRsc: number;
-  /** Fundraise ID for the contribution */
-  fundraiseId: ID;
+  /** Fundraise or funding pool target for the contribution */
+  paymentTarget: PaymentIntentTarget;
   /** Label shown in the payment sheet */
   label?: string;
   /** Button text to show when payment method is not available */
@@ -34,7 +33,7 @@ interface PaymentRequestButtonProps {
 function PaymentRequestButtonInner({
   amountCents,
   amountInRsc,
-  fundraiseId,
+  paymentTarget,
   label = 'Fund Research',
   unavailableText = 'Not available on this device',
   onSuccess,
@@ -104,7 +103,10 @@ function PaymentRequestButtonInner({
 
       try {
         // Create payment intent on our backend
-        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, fundraiseId);
+        const { clientSecret } = await PaymentService.createPaymentIntent(
+          amountInRsc,
+          paymentTarget
+        );
 
         // Confirm the payment with the payment method from Apple Pay/Google Pay
         const { error: confirmError, paymentIntent } = await stripe!.confirmCardPayment(
@@ -147,7 +149,7 @@ function PaymentRequestButtonInner({
     return () => {
       paymentRequest.off('paymentmethod', handlePaymentMethod);
     };
-  }, [paymentRequest, stripe, amountInRsc, fundraiseId, onSuccess, onError]);
+  }, [paymentRequest, stripe, amountInRsc, paymentTarget, onSuccess, onError]);
 
   // Still checking availability
   if (canMakePayment === null) {

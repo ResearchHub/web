@@ -4,7 +4,6 @@ import {
   faBookmark as faBookmarkLight,
   faCommentsQuestion,
   faGrid3 as faGrid3Light,
-  faMagnifyingGlass,
 } from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity, Settings } from 'lucide-react';
 import Image from 'next/image';
@@ -60,13 +59,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'My Funding',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p === '/search',
-    getInfo: () => ({
-      title: 'Search',
-      icon: <FontAwesomeIcon icon={faMagnifyingGlass} fontSize={24} color="#000" />,
     }),
   },
   {

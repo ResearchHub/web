@@ -250,3 +250,56 @@ export function formatCombinedBalanceSecondary({
     return exchangeRate > 0 ? formatUsdValue(totalRaw.toString(), exchangeRate) : '$0.00 USD';
   }
 }
+
+/**
+ * Parse a decimal amount from user input. Accepts optional thousand separators
+ * (`,` or spaces) and a `.` decimal; rejects trailing/leading junk that
+ * `Number.parseFloat` would ignore (e.g. `"1,000"` → `1000`, `"1abc"` → `NaN`).
+ */
+export function parseStrictDecimal(value: string): number {
+  const trimmed = value.trim();
+  if (!trimmed) return NaN;
+
+  // Drop grouping separators that formatRSC / locale display may use.
+  const normalized = trimmed.replace(/[,\u00A0\u202F\s]/g, '');
+
+  // Entire string must be a decimal — no partial parse of "1abc" or "1,000x".
+  if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(normalized)) {
+    return NaN;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+export interface ValidatePositiveDecimalOptions {
+  /** When set, amounts above this value fail validation. */
+  max?: number;
+  /** Error when amount exceeds `max`. */
+  maxError?: string;
+  /** Error when the value is missing, non-numeric, or ≤ 0. */
+  invalidError?: string;
+}
+
+/**
+ * Validate user-entered decimal input as a positive amount (optionally capped).
+ */
+export function validatePositiveDecimal(
+  value: string,
+  options: ValidatePositiveDecimalOptions = {}
+): { amount: number; error?: string } {
+  const {
+    max,
+    maxError = 'Amount exceeds the maximum',
+    invalidError = 'Enter a valid positive amount',
+  } = options;
+
+  const amount = parseStrictDecimal(value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { amount: NaN, error: invalidError };
+  }
+  if (max != null && amount > max) {
+    return { amount, error: maxError };
+  }
+  return { amount };
+}

@@ -32,7 +32,7 @@ import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSke
 import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
-import { useNotebookContext } from '@/contexts/NotebookContext';
+import { usePublishingHost } from '@/contexts/PublishingHostContext';
 import { useUser } from '@/contexts/UserContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
@@ -373,7 +373,7 @@ export function PublishingForm({
   onBountyClick,
   readOnly = false,
 }: Readonly<PublishingFormProps>) {
-  const { currentNote: note, editor, saveDetailsSoon, saveDetailsNow } = useNotebookContext();
+  const { note, editor, saveDetailsSoon, saveDetailsNow, defaultArticleType } = usePublishingHost();
   const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -407,7 +407,9 @@ export function PublishingForm({
 
       const articleType =
         (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
-        resolveArticleType(searchParams);
+        resolveArticleType(searchParams) ??
+        defaultArticleType ??
+        null;
 
       if (articleType) {
         methods.setValue('articleType', articleType);
@@ -907,7 +909,6 @@ export function PublishingForm({
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
-          zIndex={100}
         />
       )}
     </FormProvider>

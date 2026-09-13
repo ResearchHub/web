@@ -1,6 +1,8 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Coins } from 'lucide-react';
 import {
   ActivityTimestamp,
   ActivityWorkActions,
@@ -13,12 +15,21 @@ import {
   type WorkCardStat,
 } from '@/components/Activity/lib/activityWork.utils';
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
+import { AllocateFundingPoolModal } from '@/components/modals/AllocateFundingPoolModal';
+import { Button } from '@/components/ui/Button';
+import { useGrantAllocateContext } from '@/components/Funding/GrantPageContent';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useFundraises } from '@/contexts/FundraiseContext';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { useUser } from '@/contexts/UserContext';
+import { findGrantApplicationIdForPost } from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
 import type { FeedEntry } from '@/types/feed';
 import type { Fundraise } from '@/types/funding';
+import type { FundingPool } from '@/types/grant';
+
+const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
 
 interface ProposalWorkCardProps {
   entry: FeedEntry;
@@ -61,8 +72,48 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { updateLastClickedEntryId } = useNavigation();
+  const { user } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRfpFundingPoolEnabled =
+    searchParams.get(RFP_FUNDING_POOL_PARAM) === 'true' ||
+    searchParams.get(RFP_FUNDING_POOL_PARAM) === '1';
+  const { isGrantScoped, refresh: refreshProposals } = useFundraises();
+  const grantAllocate = useGrantAllocateContext();
+
+  const [isAllocateOpen, setIsAllocateOpen] = useState(false);
 
   const work = getActivityWork(entry);
+
+  const fundingPool = grantAllocate?.fundingPool ?? null;
+  const applicationId =
+    work && grantAllocate
+      ? findGrantApplicationIdForPost(grantAllocate.applications, work.id)
+      : undefined;
+
+  const isGrantCreator =
+    user?.id != null &&
+    grantAllocate?.grantCreatedByUserId != null &&
+    Number(user.id) === Number(grantAllocate.grantCreatedByUserId);
+  const canManagePool = isGrantCreator || !!user?.isModerator;
+
+  const canAllocate =
+    isRfpFundingPoolEnabled &&
+    isGrantScoped &&
+    canManagePool &&
+    fundingPool?.status === 'OPEN' &&
+    (fundingPool.amountHolding.rsc ?? 0) > 0 &&
+    work?.fundraise?.status === 'OPEN' &&
+    applicationId != null;
+
+  const handleAllocateSuccess = useCallback(
+    (updatedPool: FundingPool) => {
+      grantAllocate?.setFundingPool(updatedPool);
+      void refreshProposals();
+      router.refresh();
+    },
+    [grantAllocate, refreshProposals, router]
+  );
 
   if (!work) return null;
 
@@ -105,10 +156,41 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
           <ActivityWorkMetadata work={work} presentation={presentation} />
         </WorkPreviewCard.Metadata>
         <WorkPreviewCard.Actions>
-          <ActivityWorkActions entry={entry} work={work} />
+          <div className="flex items-center justify-between gap-2 w-full">
+            <div className="min-w-0 flex-1">
+              <ActivityWorkActions entry={entry} work={work} />
+            </div>
+            {canAllocate && (
+              <Button
+                data-testid="allocate-funding-pool"
+                variant="outlined"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsAllocateOpen(true);
+                }}
+              >
+                <Coins className="h-3.5 w-3.5" />
+                Allocate
+              </Button>
+            )}
+          </div>
         </WorkPreviewCard.Actions>
       </WorkPreviewCard>
       <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
+
+      {canAllocate && fundingPool && applicationId != null && (
+        <AllocateFundingPoolModal
+          isOpen={isAllocateOpen}
+          onClose={() => setIsAllocateOpen(false)}
+          fundingPool={fundingPool}
+          applicationId={applicationId}
+          proposalTitle={work.title}
+          onSuccess={handleAllocateSuccess}
+        />
+      )}
     </article>
   );
 };

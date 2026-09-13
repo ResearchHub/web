@@ -4,6 +4,7 @@ import { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
+import { getGrantBadgeAmount } from '@/types/grant';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
 import { Users } from 'lucide-react';
@@ -31,7 +32,7 @@ export const GrantCard: FC<GrantCardProps> = ({ entry, className }) => {
 
   const isClosed = grant.status === 'CLOSED';
   const applicantCount = grant.applicants?.length ?? 0;
-  const amount = grant.amount?.usd ?? 0;
+  const amount = getGrantBadgeAmount(grant).usd;
 
   return (
     <Link
