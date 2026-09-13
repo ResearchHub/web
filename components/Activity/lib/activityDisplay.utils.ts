@@ -142,6 +142,13 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
     };
   }
 
+  // Registered reports arrive as `post` entries; only the document type sets them apart,
+  // and it sits on the entry itself or on the work it relates to.
+  const postType = (entry.content as FeedPostContent).postType ?? entry.relatedWork?.postType;
+  if (entry.contentType === 'POST' && postType === 'REGISTERED_REPORT') {
+    return { actor, verb: 'published registered report' };
+  }
+
   return {
     actor,
     verb: DOC_ACTION_LABELS[entry.contentType] ?? 'contributed to',

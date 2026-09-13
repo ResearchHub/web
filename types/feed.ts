@@ -682,6 +682,7 @@ export function transformActivityRelatedWork(raw: any): Work | undefined {
     slug: raw.slug || '',
     title: stripHtml(raw.title || ''),
     contentType,
+    postType: raw.document_type, // contentType flattens registered reports into 'post'
     createdDate: raw.created_date || '',
     abstract: '',
     authors: Array.isArray(raw.authors)

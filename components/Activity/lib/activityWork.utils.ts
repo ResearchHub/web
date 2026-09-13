@@ -1,4 +1,5 @@
 import { buildWorkUrl } from '@/utils/url';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { getBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import {
   isGrantOpened,
@@ -29,6 +30,8 @@ export interface ActivityWork {
   href: string;
   imageUrl?: string;
   documentType: ContentType;
+  /** Raw document type, the only thing telling a registered report from a discussion. */
+  postType?: string;
   unifiedDocumentId?: number | null;
   fundraise?: Fundraise;
   grant?: WorkGrantSummary;
@@ -173,8 +176,29 @@ function resolveReviewScore(entry: FeedEntry, work: ActivityWork): number | null
   return null;
 }
 
+function isRegisteredReport(postType?: string): boolean {
+  return postType === 'REGISTERED_REPORT';
+}
+
+/**
+ * Registered reports are `post` documents, which `buildWorkUrl` has no route for. Their
+ * pages carry their own tabs, so a work tab is dropped, as `/post` does when redirecting.
+ */
+function buildActivityWorkHref(params: {
+  id: number;
+  slug?: string;
+  contentType: ContentType;
+  postType?: string;
+  tab?: ActivityWork['tab'];
+}): string {
+  return isRegisteredReport(params.postType)
+    ? buildRegisteredReportUrl(params.id, params.slug)
+    : buildWorkUrl(params);
+}
+
 /** Discussions are product updates written by the ResearchHub team. */
 function isDiscussion(work: ActivityWork): boolean {
+  if (isRegisteredReport(work.postType)) return false;
   return work.documentType === 'post' || work.documentType === 'discussion';
 }
 
@@ -393,14 +417,16 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
       id: post.id,
       slug: post.slug,
       title: post.title,
-      href: buildWorkUrl({
+      href: buildActivityWorkHref({
         id: post.id,
         slug: post.slug || undefined,
         contentType: documentType,
+        postType: post.postType,
         tab,
       }),
       imageUrl: post.previewImage,
       documentType,
+      postType: post.postType,
       unifiedDocumentId: toOptionalNumber(post.unifiedDocumentId),
       fundraise: post.fundraise,
       bounty,
@@ -467,14 +493,16 @@ function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
     id: related.id,
     slug: related.slug,
     title: related.title,
-    href: buildWorkUrl({
+    href: buildActivityWorkHref({
       id: related.id,
       slug: related.slug,
       contentType: documentType,
+      postType: related.postType,
       tab,
     }),
     imageUrl: related.image,
     documentType,
+    postType: related.postType,
     unifiedDocumentId: related.unifiedDocumentId,
     fundraise: related.fundraise,
     grant: related.grantSummary,
