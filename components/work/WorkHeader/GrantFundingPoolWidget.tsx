@@ -114,10 +114,7 @@ export function GrantFundingPoolWidget({
   const nothingToDo = !canApply && !isOpen;
 
   return (
-    <div
-      data-testid="grant-funding-pool"
-      className={cn('w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3', className)}
-    >
+    <div data-testid="grant-funding-pool" className={cn('w-full', className)}>
       <div className="flex items-baseline justify-between gap-3">
         <span className="flex items-center gap-1 text-xs text-gray-500">
           Funding pool
@@ -180,41 +177,41 @@ export function GrantFundingPoolWidget({
         )}
       </div>
 
-      {nothingToDo ? (
-        <p className="mt-3 text-center text-xs text-gray-500">This RFP is closed</p>
-      ) : (
-        <div className="mt-3 flex flex-col gap-2">
-          {canApply && (
-            <SubmitProposalTooltip
-              isPrivate={applicationVisibility === 'PRIVATE'}
-              wrapperClassName="w-full"
-            >
-              <Button
-                data-testid="grant-submit-proposal"
-                variant="default"
-                size="md"
-                onClick={onApply}
-                className="w-full gap-2"
-              >
-                Apply with proposal
-                <ArrowUpFromLine className="h-4 w-4" />
-              </Button>
-            </SubmitProposalTooltip>
-          )}
-          {isOpen && (
+      {/* The pool's own action sits directly under its figures; Apply is separated by a rule so it reads as a different task. */}
+      {isOpen && (
+        <Button
+          data-testid="grant-contribute"
+          variant="outlined"
+          size="md"
+          onClick={onContribute}
+          className="mt-2.5 w-full gap-2"
+        >
+          <Coins className="h-4 w-4" />
+          Add to pool
+        </Button>
+      )}
+
+      {canApply && (
+        <div className={cn('border-t border-gray-200 pt-2.5', isOpen ? 'mt-3' : 'mt-2.5')}>
+          <SubmitProposalTooltip
+            isPrivate={applicationVisibility === 'PRIVATE'}
+            wrapperClassName="w-full"
+          >
             <Button
-              data-testid="grant-contribute"
-              variant="outlined"
+              data-testid="grant-submit-proposal"
+              variant="default"
               size="md"
-              onClick={onContribute}
+              onClick={onApply}
               className="w-full gap-2"
             >
-              <Coins className="h-4 w-4" />
-              Add to the pool
+              Apply
+              <ArrowUpFromLine className="h-4 w-4" />
             </Button>
-          )}
+          </SubmitProposalTooltip>
         </div>
       )}
+
+      {nothingToDo && <p className="mt-3 text-center text-xs text-gray-500">This RFP is closed</p>}
     </div>
   );
 }
