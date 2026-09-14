@@ -1,5 +1,6 @@
 import { buildWorkUrl } from '@/utils/url';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
+import { getGrantBadgeAmount } from '@/types/grant';
 import type { CurrencyAmount } from '@/utils/currency';
 import type {
   FeedCommentContent,
@@ -367,7 +368,7 @@ export function getGrantAmount(entry: FeedEntry): ActivityGrantAmount | undefine
   if (entry.contentType !== 'GRANT') return undefined;
   const grant = (entry.content as FeedGrantContent).grant;
   if (!grant?.amount) return undefined;
-  return { usd: grant.amount.usd, rsc: grant.amount.rsc };
+  return getGrantBadgeAmount(grant);
 }
 
 export interface ActivityCommentPreview {

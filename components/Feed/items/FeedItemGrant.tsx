@@ -18,6 +18,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture } from '@/utils/date';
+import { getGrantBadgeAmount } from '@/types/grant';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -74,9 +75,8 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       authorId: profile.id || undefined,
     })) || [];
 
-  const budgetAmount = showUSD
-    ? Math.round(grant.grant?.amount?.usd || 0)
-    : Math.round(grant.grant?.amount?.rsc || 0);
+  const badgeAmount = grant.grant ? getGrantBadgeAmount(grant.grant) : { usd: 0, rsc: 0 };
+  const budgetAmount = showUSD ? Math.round(badgeAmount.usd) : Math.round(badgeAmount.rsc);
 
   return (
     <BaseFeedItem
