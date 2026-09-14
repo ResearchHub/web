@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { JSONContent } from '@tiptap/core';
 import { NoteService } from '@/services/note.service';
 import type { NoteWithContent } from '@/types/note';
 import {
   isActiveExecutionStatus,
   type ChatExecution,
+  type ChatStreamItem,
   type ChatNoteRef,
   type AgentChat,
 } from '@/types/agentChat';
@@ -40,6 +42,8 @@ export interface AIModeDocument {
   readonly hasWrittenVersion: boolean;
   /** Prose of the `edit_note` call being composed, paragraphs split by blank lines. */
   readonly draftText: string | null;
+  readonly draftBlocks: JSONContent[] | null;
+  readonly draftKey: string;
   /** What the assistant is doing, for the in-progress row when there is no draft. */
   readonly phaseLabel: string | null;
   /** Deep link to the note in the notebook, once its organization is known. */
@@ -64,13 +68,15 @@ function chatHasEditedNote(chat: AgentChat | null): boolean {
 }
 
 /** The `edit_note` draft the active turn is composing, if any. */
-function currentEditDraft(execution: ChatExecution | null): string | null {
+function currentEditDraft(
+  execution: ChatExecution | null
+): Extract<ChatStreamItem, { type: 'tool_draft' }> | null {
   if (execution == null || !isActiveExecutionStatus(execution.status)) return null;
   const items = execution.stream?.items ?? [];
   for (let index = items.length - 1; index >= 0; index -= 1) {
     const item = items[index];
     if (item.type === 'tool_draft' && item.tool === 'edit_note') {
-      return item.text.length > 0 ? item.text : null;
+      return item;
     }
   }
   return null;
@@ -119,7 +125,10 @@ export function useAIModeDocument({
     if (noteId != null) fetchNote();
   }, [noteId, fetchNote]);
 
-  const draftText = currentEditDraft(latestExecution);
+  const draft = currentEditDraft(latestExecution);
+  const draftText = draft?.text || null;
+  const draftBlocks = Array.isArray(draft?.blocks) ? draft.blocks : null;
+  const draftKey = `${latestExecution?.stream?.id}:${draft?.id}`;
   const turnActive = latestExecution != null && isActiveExecutionStatus(latestExecution.status);
   const phaseLabel = turnActive ? (latestExecution?.phase?.label ?? null) : null;
 
@@ -146,6 +155,8 @@ export function useAIModeDocument({
     status,
     hasWrittenVersion,
     draftText,
+    draftBlocks,
+    draftKey,
     phaseLabel,
     notebookHref,
     reload: fetchNote,

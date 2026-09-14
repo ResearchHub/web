@@ -18,6 +18,7 @@ import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDif
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
+import { DraftBlockPreview } from './DraftBlockPreview';
 import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
@@ -60,7 +61,7 @@ export function DocumentPane({
   readOnly = false,
   className,
 }: DocumentPaneProps) {
-  const { note, content, loading, error, status, draftText, phaseLabel } = document;
+  const { note, content, loading, error, status, draftText, draftBlocks, phaseLabel } = document;
   const noteId = note?.id ?? null;
   const writing = status === 'drafting' || status === 'working';
 
@@ -196,19 +197,29 @@ export function DocumentPane({
 
             {/* Mounted once per note: the editor's content prop is only read on
                 creation, and later versions arrive through the review. */}
-            <BlockEditorClientWrapper
-              key={noteId ?? 'none'}
-              content={content.content}
-              contentJson={content.contentJson}
-              editable={!readOnly}
-              locked={locked}
-              requireTitle={false}
-              autofocus={false}
-              onUpdate={readOnly ? undefined : handleEditorUpdate}
-              setEditor={setEditor}
-            />
+            <div className={writing && !document.hasWrittenVersion ? 'hidden' : undefined}>
+              <BlockEditorClientWrapper
+                key={noteId ?? 'none'}
+                content={content.content}
+                contentJson={content.contentJson}
+                editable={!readOnly}
+                locked={locked}
+                requireTitle={false}
+                autofocus={false}
+                onUpdate={readOnly ? undefined : handleEditorUpdate}
+                setEditor={setEditor}
+              />
+            </div>
 
-            {status === 'drafting' && draftText && <DraftSection text={draftText} />}
+            {status === 'drafting' && draftText && (
+              <DraftSection
+                text={draftText}
+                blocks={draftBlocks}
+                editor={editor}
+                key={document.draftKey}
+                hasSavedContent={document.hasWrittenVersion}
+              />
+            )}
 
             {status === 'working' && document.hasWrittenVersion && (
               <InProgressRow label={phaseLabel ?? 'Working'} />
@@ -268,26 +279,33 @@ function EmptyDocument() {
 }
 
 /** The section being written, appended below the settled content. */
-function DraftSection({ text }: { readonly text: string }) {
-  const paragraphs = text.split(/\n{2,}/).filter((paragraph) => paragraph.trim().length > 0);
+function DraftSection({
+  text,
+  blocks,
+  editor,
+  hasSavedContent,
+}: {
+  readonly text: string;
+  readonly blocks: AIModeDocument['draftBlocks'];
+  readonly editor: Editor | null;
+  readonly hasSavedContent: boolean;
+}) {
   return (
     <section
-      aria-live="polite"
       aria-label="Section being written"
-      className="prose prose-sm prose-neutral mt-6 max-w-none border-t border-dashed border-primary-200 pt-5"
+      className={cn(hasSavedContent && 'mt-8 border-t border-gray-100 pt-6')}
     >
-      <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-primary-600">
-        <Loader size="sm" className="!h-2.5 !w-2.5" />
-        Writing
+      <div role="status" className="mb-6 flex items-center gap-2 text-xs text-gray-500">
+        <Loader size="sm" className="!h-3 !w-3 text-primary-500" />
+        <span>
+          Drafting
+          <span className="mx-2 text-gray-300" aria-hidden="true">
+            ·
+          </span>
+          Preview updates live
+        </span>
       </div>
-      {paragraphs.map((paragraph, index) => (
-        <p key={index} className="whitespace-pre-wrap">
-          {paragraph}
-          {index === paragraphs.length - 1 && (
-            <span className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-primary-500" />
-          )}
-        </p>
-      ))}
+      <DraftBlockPreview blocks={blocks} editor={editor} fallbackText={text} />
     </section>
   );
 }
