@@ -12,6 +12,7 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import type { FundingPool } from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
 import { validatePositiveDecimal } from '@/utils/number';
+import { cn } from '@/utils/styles';
 import { ID } from '@/types/root';
 
 interface AllocateFundingPoolModalProps {
@@ -136,6 +137,7 @@ export function AllocateFundingPoolModal({
   const { amount: parsedDisplayAmount, error: parsedError } = amountInput.trim()
     ? validateAmount(amountInput)
     : { amount: NaN, error: undefined };
+  const hasFundsToAllocate = holdingDisplay > 0;
   const canSubmit =
     Number.isFinite(parsedDisplayAmount) &&
     parsedDisplayAmount > 0 &&
@@ -146,31 +148,54 @@ export function AllocateFundingPoolModal({
     !parsedError;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Allocate to proposal">
+    <Modal isOpen={isOpen} onClose={onClose} title="Allocate community contributions">
       <div className="space-y-4">
-        <p className="text-sm text-gray-600 line-clamp-2">{proposalTitle}</p>
+        <p className="text-sm text-gray-600">
+          Allocate community contributions towards this proposal{' '}
+          <span className="font-medium text-gray-900">{proposalTitle}</span>
+        </p>
 
-        <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2.5 text-sm">
-          <div className="flex justify-between items-center gap-3">
-            <span className="text-gray-500">Pool holding</span>
-            <span className="font-mono font-medium text-gray-900 tabular-nums">
-              {formatPoolAmount(fundingPool.amountHolding)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center gap-3 mt-1">
-            <span className="text-gray-500">Already distributed</span>
-            <span className="font-mono text-gray-700 tabular-nums">
-              {formatPoolAmount(fundingPool.amountDistributed)}
-            </span>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-3">
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-600">Total contribution by community</span>
+              <span className="font-mono tabular-nums text-gray-900">
+                {formatPoolAmount(fundingPool.amountRaised)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-gray-600">Already allocated to proposals</span>
+              <span className="font-mono tabular-nums text-gray-900">
+                {formatPoolAmount(fundingPool.amountDistributed)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-gray-200 pt-2">
+              <span className="font-medium text-gray-900">Available to allocate</span>
+              <span
+                className={cn(
+                  'font-mono font-semibold tabular-nums',
+                  hasFundsToAllocate ? 'text-green-600' : 'text-gray-400'
+                )}
+              >
+                {formatPoolAmount(fundingPool.amountHolding)}
+              </span>
+            </div>
           </div>
         </div>
+
+        {!hasFundsToAllocate && (
+          <p className="text-sm text-gray-500">
+            Every community contribution has already been allocated. Once the pool receives new
+            contributions, you can allocate them here.
+          </p>
+        )}
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label htmlFor="allocate-amount" className="text-sm font-medium text-gray-700">
-              Amount
+              Amount to allocate
             </label>
-            {holdingDisplay > 0 && (
+            {hasFundsToAllocate && (
               <button
                 type="button"
                 onClick={handleAllocateMax}
@@ -188,7 +213,11 @@ export function AllocateFundingPoolModal({
             placeholder="0.00"
             type="text"
             inputMode="decimal"
-            className={amountError ? 'border-red-500' : undefined}
+            disabled={!hasFundsToAllocate || isSubmitting}
+            className={cn(
+              amountError && 'border-red-500',
+              !hasFundsToAllocate && 'bg-gray-50 opacity-60'
+            )}
             rightElement={
               <div className="flex items-center gap-1 pr-3 text-gray-900">
                 <span className="font-medium">{currencyLabel}</span>

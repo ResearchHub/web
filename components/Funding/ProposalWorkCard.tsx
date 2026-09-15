@@ -91,11 +91,13 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
     Number(user.id) === Number(grantAllocate.grantCreatedByUserId);
   const canManagePool = isGrantCreator || !!user?.isModerator;
 
+  // The button stays visible once the viewer can manage an open pool, even when
+  // nothing is left to give — the modal explains the exhausted balance rather
+  // than the action silently disappearing.
   const canAllocate =
     isGrantScoped &&
     canManagePool &&
     fundingPool?.status === 'OPEN' &&
-    (fundingPool.amountHolding.rsc ?? 0) > 0 &&
     work?.fundraise?.status === 'OPEN' &&
     applicationId != null;
 
@@ -156,7 +158,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
             {canAllocate && (
               <Button
                 data-testid="allocate-funding-pool"
-                variant="outlined"
+                variant="dark"
                 size="sm"
                 className="shrink-0 gap-1.5"
                 onClick={(e) => {
