@@ -1,6 +1,8 @@
 'use client';
 
 import { Coins, FileUp, Info } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
@@ -12,6 +14,12 @@ import { cn } from '@/utils/styles';
 
 /** A first $100 against a $25K grant is a sliver; floor it so it shows on the bar. */
 const MIN_VISIBLE_PERCENT = 4;
+
+/** Faces shown before the stack collapses into a +N chip. Two is what the legend row fits. */
+const MAX_FACES = 2;
+
+/** Named backers in the hover breakdown, before it gets taller than the card. */
+const MAX_LISTED_BACKERS = 4;
 
 function formatAmount(amount: FundingPoolAmount, showUSD: boolean): string {
   return formatCurrency({
@@ -51,11 +59,17 @@ interface GrantFundingPoolWidgetProps {
 /**
  * One card for both audiences: researchers apply, funders add to the pool.
  * Sized and positioned by its parent to sit directly above the right sidebar.
- * Contribute is the loud CTA — solid primary, since shared links aim at
- * funders — while applying stays a same-size quiet outline, so the two
- * domains never read as one flow. The breakdown is a single fixed-height
- * line so the card matches the title block beside it; the full numbers live
- * in the info tooltip.
+ *
+ * The line under the bar is the bar's legend, one side per funding source:
+ * green for the funder, indigo for the community, whose share is drawn as
+ * backer faces rather than a plain swatch. It sits directly above Add to pool
+ * so the crowd reads as an invitation to join it. The exact split and the named
+ * top backers live in the info tooltip.
+ *
+ * Every row is fixed height so the card stays the height it was before the
+ * contributors landed: 202px with both buttons, 186px on mobile. Padding and
+ * button margins were shaved to pay for the taller avatar row; re-check that
+ * arithmetic before changing any spacing here.
  */
 export function GrantFundingPoolWidget({
   organization,
@@ -92,6 +106,13 @@ export function GrantFundingPoolWidget({
 
   const funderLabel = organization || 'The funder';
 
+  const backerCount = fundingPool.contributors.total;
+  const topBackers = fundingPool.contributors.top;
+  // Feeds ship the pool without contributors, so a pool can have money raised
+  // and no faces to show for it.
+  const hasFaces = backerCount > 0 && topBackers.length > 0;
+  const backerNoun = backerCount === 1 ? 'backer' : 'backers';
+
   const breakdownRow = (label: string, value: string, emphasis = false) => (
     <div className="flex items-center justify-between gap-4">
       <span className={emphasis ? 'text-gray-900' : 'text-gray-500'}>{label}</span>
@@ -106,11 +127,33 @@ export function GrantFundingPoolWidget({
       <p className="text-sm leading-snug text-gray-800">
         Community contributions are pooled and awarded to the strongest proposals by {funderLabel}.
       </p>
+      {hasFaces && (
+        <div className="space-y-1.5 border-t border-gray-200 pt-2">
+          <p className="font-medium text-gray-900">
+            {backerCount > MAX_LISTED_BACKERS
+              ? `Top backers of ${backerCount}`
+              : backerCount === 1
+                ? 'Backer'
+                : 'Backers'}
+          </p>
+          {topBackers.slice(0, MAX_LISTED_BACKERS).map((backer) => (
+            <div key={backer.id} className="flex items-center justify-between gap-3">
+              <span className="flex min-w-0 items-center gap-1.5">
+                <Avatar src={backer.profileImage} alt={backer.fullName} size="xxs" disableTooltip />
+                <span className="truncate text-gray-700">{backer.fullName}</span>
+              </span>
+              <span className="shrink-0 font-mono text-gray-900 tabular-nums">
+                {formatAmount(backer.totalContribution, showUSD)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="space-y-1 border-t border-gray-200 pt-2">
         {breakdownRow(funderLabel, formatAmount(grantAmount, showUSD))}
         {breakdownRow('Community', formatAmount(raised, showUSD))}
         {breakdownRow('Allocated to proposals', formatAmount(allocated, showUSD))}
-        {showHolding && breakdownRow('Ready to allocate', formatAmount(holding, showUSD), true)}
+        {showHolding && breakdownRow('Available to allocate', formatAmount(holding, showUSD), true)}
       </div>
     </div>
   );
@@ -124,7 +167,10 @@ export function GrantFundingPoolWidget({
     // page rule.
     <div
       data-testid="grant-funding-pool"
-      className={cn('w-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm', className)}
+      className={cn(
+        'w-full rounded-lg border border-gray-200 bg-white px-4 py-3.5 shadow-sm',
+        className
+      )}
     >
       <div className="flex items-baseline justify-between gap-3">
         <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
@@ -147,7 +193,7 @@ export function GrantFundingPoolWidget({
       </div>
 
       <div
-        className="mt-2 flex h-1.5 w-full overflow-hidden rounded bg-gray-100"
+        className="mt-1.5 flex h-1.5 w-full overflow-hidden rounded-full bg-gray-100"
         role="img"
         aria-label={`${Math.round(100 - rawCommunityPercent)}% from ${funderLabel}, ${Math.round(
           rawCommunityPercent
@@ -158,47 +204,80 @@ export function GrantFundingPoolWidget({
           style={{ width: `${100 - communityPercent}%` }}
         />
         <span
-          className="h-full bg-indigo-400 transition-all duration-300"
+          className="h-full bg-indigo-500 transition-all duration-300"
           style={{ width: `${communityPercent}%` }}
         />
       </div>
 
-      {/* Fixed-width labels ("Funder", "Community") so this line never wraps; the org name is in the subtitle beside it. */}
-      <div className="mt-1.5 flex h-4 items-center gap-3 whitespace-nowrap text-xs text-gray-500">
-        <span className="flex items-center gap-1.5" title={`${funderLabel}, original funder`}>
+      {/* Legend for the bar above: green is the funder, indigo is the community.
+          The backers' side spends its label budget on faces instead of the word
+          — the +N chip carries the indigo, so the pairing still reads — because
+          in RSC the two amounts alone take 123px of the 270px this row gets at
+          the narrowest card width. Fixed h-6, the height of one avatar, so the
+          card never grows as backers arrive. */}
+      <div
+        className="mt-2 flex h-6 items-center justify-between gap-2 text-xs"
+        data-testid="grant-funding-pool-legend"
+      >
+        <span className="flex shrink-0 items-center gap-1.5 text-gray-500">
           <span className="h-2 w-2 shrink-0 rounded-sm bg-green-600" aria-hidden="true" />
           Funder
-          <span className="font-mono text-gray-900 tabular-nums">
+          <span className="font-mono font-semibold text-gray-900 tabular-nums">
             {formatCompact(grantAmount, showUSD)}
           </span>
         </span>
-        {hasCommunityFunding && (
-          <span className="flex items-center gap-1.5" title="Community contributions">
-            <span className="h-2 w-2 rounded-sm bg-indigo-400" aria-hidden="true" />
-            Community
-            <span className="font-mono text-gray-900 tabular-nums">
+
+        <span className="flex min-w-0 items-center gap-2" data-testid="grant-funding-pool-backers">
+          {hasFaces ? (
+            <AvatarStack
+              className="shrink-0"
+              items={topBackers.slice(0, MAX_FACES).map((backer) => ({
+                src: backer.profileImage,
+                alt: backer.fullName,
+                tooltip: backer.fullName,
+                authorId: backer.authorProfileId,
+              }))}
+              size="xs"
+              maxItems={MAX_FACES}
+              spacing={-6}
+              showExtraCount
+              totalItemsCount={backerCount}
+              extraCountLabel={`${backerCount - MAX_FACES} more ${backerNoun}`}
+              extraCountClassName="bg-indigo-500"
+              extraCountLabelClassName="text-white"
+              showLabel={false}
+            />
+          ) : (
+            <span
+              className={cn(
+                'h-2 w-2 shrink-0 rounded-sm',
+                hasCommunityFunding ? 'bg-indigo-500' : 'bg-gray-200'
+              )}
+              aria-hidden="true"
+            />
+          )}
+          {hasCommunityFunding ? (
+            <span className="shrink-0 font-mono font-semibold text-indigo-600 tabular-nums">
               {formatCompact(raised, showUSD)}
             </span>
-          </span>
-        )}
-        {!hasCommunityFunding && !isOpen && (
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-sm bg-gray-200" aria-hidden="true" />
-            No community funding
-          </span>
-        )}
+          ) : (
+            <span className="min-w-0 truncate text-gray-500">
+              {isOpen ? 'Be the first to back' : 'No backers'}
+            </span>
+          )}
+        </span>
       </div>
 
-      {/* One loud CTA, one quiet one at the same size: solid-primary contribute
-          carries the card (shared links aim at funders), applying stays an
-          outline. Fill — not color or size — separates the two domains. */}
+      {/* Add to pool carries the card — these links get shared at funders, so it
+          stays the only filled control. Applying is the same size but outlined,
+          so the two domains never read as one flow. */}
       {isOpen && (
         <Button
           data-testid="grant-contribute"
           variant="default"
           size="lg"
           onClick={onContribute}
-          className="mt-2.5 w-full gap-2 max-sm:!h-10 max-sm:!px-4 max-sm:!text-sm"
+          className="mt-2 w-full gap-2 font-semibold shadow-sm max-sm:!h-10 max-sm:!px-4 max-sm:!text-sm"
         >
           <Coins className="h-5 w-5 max-sm:!h-4 max-sm:!w-4" />
           Add to pool
@@ -206,7 +285,7 @@ export function GrantFundingPoolWidget({
       )}
 
       {canApply && (
-        <div className="mt-2">
+        <div className="mt-1.5">
           <SubmitProposalTooltip
             isPrivate={applicationVisibility === 'PRIVATE'}
             wrapperClassName="w-full"
