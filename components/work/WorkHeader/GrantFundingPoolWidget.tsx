@@ -1,7 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Coins, FileUp, Info } from 'lucide-react';
-import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -18,7 +18,7 @@ const MIN_VISIBLE_PERCENT = 4;
 /** Faces shown before the stack collapses into a +N chip. Two is what the legend row fits. */
 const MAX_FACES = 2;
 
-/** Named backers in the hover breakdown, before it gets taller than the card. */
+/** Faces in the tooltip's backers row. */
 const MAX_LISTED_BACKERS = 4;
 
 function formatAmount(amount: FundingPoolAmount, showUSD: boolean): string {
@@ -113,45 +113,61 @@ export function GrantFundingPoolWidget({
   const hasFaces = backerCount > 0 && topBackers.length > 0;
   const backerNoun = backerCount === 1 ? 'backer' : 'backers';
 
-  const breakdownRow = (label: string, value: string, emphasis = false) => (
+  const breakdownRow = (label: ReactNode, value: string, emphasis = false) => (
     <div className="flex items-center justify-between gap-4">
-      <span className={emphasis ? 'text-gray-900' : 'text-gray-500'}>{label}</span>
-      <span className={cn('font-mono tabular-nums', emphasis ? 'text-gray-900' : 'text-gray-700')}>
+      <span
+        className={cn(
+          'flex min-w-0 items-center gap-1.5',
+          emphasis ? 'text-gray-900' : 'text-gray-500'
+        )}
+      >
+        {label}
+      </span>
+      <span
+        className={cn(
+          'shrink-0 font-mono tabular-nums',
+          emphasis ? 'text-gray-900' : 'text-gray-700'
+        )}
+      >
         {value}
       </span>
     </div>
   );
 
+  // The backers row carries their faces so the community share reads as
+  // people, not a line item. Only the top few are shown; the count is the label.
+  const backersLabel = (
+    <>
+      {hasFaces && (
+        <AvatarStack
+          className="shrink-0"
+          items={topBackers.slice(0, MAX_LISTED_BACKERS).map((backer) => ({
+            src: backer.profileImage,
+            alt: backer.fullName,
+            authorId: backer.authorProfileId,
+          }))}
+          size="xxs"
+          maxItems={MAX_LISTED_BACKERS}
+          spacing={-4}
+          showExtraCount={false}
+          showLabel={false}
+          disableTooltip
+        />
+      )}
+      <span className="truncate">
+        {backerCount > 0 ? `${backerCount} ${backerNoun}` : 'Backers'}
+      </span>
+    </>
+  );
+
+  // Leads with the two sources that make up the bar, then where the money has gone.
   const breakdown = (
     <div className="space-y-2 text-left text-xs">
-      <p className="text-sm leading-snug text-gray-800">
-        Community contributions are pooled and awarded to the strongest proposals by {funderLabel}.
-      </p>
-      {hasFaces && (
-        <div className="space-y-1.5 border-t border-gray-200 pt-2">
-          <p className="font-medium text-gray-900">
-            {backerCount > MAX_LISTED_BACKERS
-              ? `Top backers of ${backerCount}`
-              : backerCount === 1
-                ? 'Backer'
-                : 'Backers'}
-          </p>
-          {topBackers.slice(0, MAX_LISTED_BACKERS).map((backer) => (
-            <div key={backer.id} className="flex items-center justify-between gap-3">
-              <span className="flex min-w-0 items-center gap-1.5">
-                <Avatar src={backer.profileImage} alt={backer.fullName} size="xxs" disableTooltip />
-                <span className="truncate text-gray-700">{backer.fullName}</span>
-              </span>
-              <span className="shrink-0 font-mono text-gray-900 tabular-nums">
-                {formatAmount(backer.totalContribution, showUSD)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="space-y-1 border-t border-gray-200 pt-2">
+      <div className="space-y-1.5">
         {breakdownRow(funderLabel, formatAmount(grantAmount, showUSD))}
-        {breakdownRow('Community', formatAmount(raised, showUSD))}
+        {breakdownRow(backersLabel, formatAmount(raised, showUSD))}
+      </div>
+      <div className="space-y-1 border-t border-gray-200 pt-2">
         {breakdownRow('Allocated to proposals', formatAmount(allocated, showUSD))}
         {showHolding && breakdownRow('Available to allocate', formatAmount(holding, showUSD), true)}
       </div>
@@ -262,7 +278,7 @@ export function GrantFundingPoolWidget({
             </span>
           ) : (
             <span className="min-w-0 truncate text-gray-500">
-              {isOpen ? 'Be the first to back' : 'No backers'}
+              {isOpen ? 'Be the first backer' : 'No backers'}
             </span>
           )}
         </span>
