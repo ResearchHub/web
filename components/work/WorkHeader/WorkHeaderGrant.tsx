@@ -1,7 +1,10 @@
 'use client';
 
 import { type ReactNode, useState, useCallback } from 'react';
-import { ArrowUpFromLine, Coins, Lock } from 'lucide-react';
+import { Bell, Coins, FileText, FileUp, Lock } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFileSignature } from '@fortawesome/pro-light-svg-icons';
+import { faFileSignature as faFileSignatureSolid } from '@fortawesome/pro-solid-svg-icons';
 import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -119,7 +122,7 @@ export function WorkHeaderGrant({
           className="gap-2 w-full sm:flex-1 max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
         >
           Submit Proposal
-          <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+          <FileUp className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </SubmitProposalTooltip>
     ) : null;
@@ -180,11 +183,23 @@ export function WorkHeaderGrant({
     activityCount > 0 && activity.hasMore ? `${activityCount}+` : activityCount;
 
   const grantTabs = [
-    { id: 'details' as const, label: 'Details' },
+    {
+      id: 'details' as const,
+      label: (
+        <div className="flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          <span>Details</span>
+        </div>
+      ),
+    },
     {
       id: 'proposals' as const,
       label: (
         <div className="flex items-center">
+          <FontAwesomeIcon
+            icon={activeTab === 'proposals' ? faFileSignatureSolid : faFileSignature}
+            className="h-4 w-4 mr-2"
+          />
           <span>Proposals</span>
           {proposalCount > 0 && (
             <span
@@ -204,6 +219,7 @@ export function WorkHeaderGrant({
       id: 'activity' as const,
       label: (
         <div className="flex items-center">
+          <Bell className="h-4 w-4 mr-2" />
           <span>Updates</span>
           {activityCount > 0 && (
             <span

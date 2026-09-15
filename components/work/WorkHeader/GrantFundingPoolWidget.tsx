@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowUpFromLine, Coins, Info } from 'lucide-react';
+import { Coins, FileUp, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
@@ -218,7 +218,7 @@ export function GrantFundingPoolWidget({
               onClick={onApply}
               className="w-full gap-2 max-sm:!h-10 max-sm:!px-4 max-sm:!text-sm"
             >
-              <ArrowUpFromLine className="h-5 w-5 max-sm:!h-4 max-sm:!w-4" />
+              <FileUp className="h-5 w-5 max-sm:!h-4 max-sm:!w-4" />
               Submit proposal
             </Button>
           </SubmitProposalTooltip>
