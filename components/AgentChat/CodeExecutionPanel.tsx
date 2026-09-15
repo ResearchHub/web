@@ -4,6 +4,13 @@ import { useId, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ChatCodeExecution } from '@/types/agentChat';
 
+function previewLabel(hasCode: boolean, hasOutput: boolean): string {
+  if (hasCode && hasOutput) return 'Code and output';
+  if (hasCode) return 'Code';
+  if (hasOutput) return 'Output';
+  return 'Execution details';
+}
+
 function TextPreview({
   label,
   text,
@@ -18,7 +25,9 @@ function TextPreview({
       <p className="mb-1.5 text-xs font-medium text-gray-600">{label}</p>
       {/* Treat code and stdout as literal text, including HTML and Markdown. */}
       <pre
+        // Keyboard scrolling needs explicit focusability in browsers such as Safari.
         tabIndex={0}
+        role="region"
         aria-label={label}
         className="max-h-64 overflow-auto whitespace-pre rounded-md bg-gray-50 p-3 text-xs leading-relaxed text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       >
@@ -46,13 +55,7 @@ export function CodeExecutionPanel({
 
   if (!hasCode && !hasOutput && !hasReturnCode && !hasOutputCount) return null;
 
-  const label = hasCode
-    ? hasOutput
-      ? 'Code and output'
-      : 'Code'
-    : hasOutput
-      ? 'Output'
-      : 'Execution details';
+  const label = previewLabel(hasCode, hasOutput);
 
   return (
     <div className="mt-2">
