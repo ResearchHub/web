@@ -50,6 +50,19 @@ export interface ChatThinkingActivity {
   at: string;
 }
 
+/** Selected public previews only; raw provider payloads are never part of the feed. */
+export interface ChatCodeExecution {
+  /** Plain-text code or shell command, bounded by the backend to 12,000 characters. */
+  code?: string;
+  code_truncated?: boolean;
+  /** Readable stdout, bounded to 2,000 characters. Omitted for encrypted output. */
+  output?: string;
+  output_truncated?: boolean;
+  return_code?: number;
+  /** Number of output items; their private file identifiers are not exposed. */
+  output_count?: number;
+}
+
 export interface ChatToolCallActivity {
   type: 'tool_call';
   /** Machine name (e.g. `web_search`). Only used to pick an icon — new tools appear without notice. */
@@ -59,8 +72,10 @@ export interface ChatToolCallActivity {
   status: ActivityCallStatus;
   started_at: string | null;
   finished_at: string | null;
-  /** Optional query/name behind the call, ≤200 chars. */
+  /** Optional query/name behind the call or a public code execution outcome summary. */
   detail?: string | null;
+  /** Optional code execution preview, available on both assistant and notebook calls. */
+  code_execution?: ChatCodeExecution | null;
   /** Present only on a succeeded `edit_note`: the note version the agent produced. */
   note_version_id?: number | null;
   /** Present only on a succeeded `create_note` (assistant surface): the note it made. */
