@@ -50,8 +50,12 @@ interface GrantFundingPoolWidgetProps {
 
 /**
  * One card for both audiences: researchers apply, funders add to the pool.
- * The breakdown is a single fixed-height line so the card matches the title
- * block beside it; the full numbers live in the info tooltip.
+ * Sized and positioned by its parent to sit directly above the right sidebar.
+ * Contribute is the loud CTA — solid primary, since shared links aim at
+ * funders — while applying stays a same-size quiet outline, so the two
+ * domains never read as one flow. The breakdown is a single fixed-height
+ * line so the card matches the title block beside it; the full numbers live
+ * in the info tooltip.
  */
 export function GrantFundingPoolWidget({
   organization,
@@ -114,11 +118,18 @@ export function GrantFundingPoolWidget({
   const nothingToDo = !canApply && !isOpen;
 
   return (
-    <div data-testid="grant-funding-pool" className={cn('w-full', className)}>
+    // Raised white panel, matching the FundingPowerCard that sits above the
+    // sidebar rail — at lg+ this widget occupies that same column, and on
+    // mobile the card keeps the thin funding bar from reading as a stray
+    // page rule.
+    <div
+      data-testid="grant-funding-pool"
+      className={cn('w-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm', className)}
+    >
       <div className="flex items-baseline justify-between gap-3">
-        <span className="flex items-center gap-1 text-xs text-gray-500">
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
           Funding pool
-          {!isOpen && <span className="text-gray-400">· Closed</span>}
+          {!isOpen && <span className="font-normal text-gray-400">· Closed</span>}
           <Tooltip content={breakdown} position="bottom" width="w-64" wrapperClassName="!h-auto">
             <button
               type="button"
@@ -126,7 +137,7 @@ export function GrantFundingPoolWidget({
               aria-label="How the funding pool works"
               data-testid="grant-funding-pool-info"
             >
-              <Info className="h-3.5 w-3.5" />
+              <Info className="h-4 w-4" />
             </button>
           </Tooltip>
         </span>
@@ -161,7 +172,7 @@ export function GrantFundingPoolWidget({
             {formatCompact(grantAmount, showUSD)}
           </span>
         </span>
-        {hasCommunityFunding ? (
+        {hasCommunityFunding && (
           <span className="flex items-center gap-1.5" title="Community contributions">
             <span className="h-2 w-2 rounded-sm bg-indigo-400" aria-hidden="true" />
             Community
@@ -169,43 +180,46 @@ export function GrantFundingPoolWidget({
               {formatCompact(raised, showUSD)}
             </span>
           </span>
-        ) : (
+        )}
+        {!hasCommunityFunding && !isOpen && (
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-sm bg-gray-200" aria-hidden="true" />
-            {isOpen ? 'Be the first to add' : 'No community funding'}
+            No community funding
           </span>
         )}
       </div>
 
-      {/* The pool's own action sits directly under its figures; Apply is separated by a rule so it reads as a different task. */}
+      {/* One loud CTA, one quiet one at the same size: solid-primary contribute
+          carries the card (shared links aim at funders), applying stays an
+          outline. Fill — not color or size — separates the two domains. */}
       {isOpen && (
         <Button
           data-testid="grant-contribute"
-          variant="outlined"
-          size="md"
+          variant="default"
+          size="lg"
           onClick={onContribute}
-          className="mt-2.5 w-full gap-2"
+          className="mt-2.5 w-full gap-2 max-sm:!h-10 max-sm:!px-4 max-sm:!text-sm"
         >
-          <Coins className="h-4 w-4" />
+          <Coins className="h-5 w-5 max-sm:!h-4 max-sm:!w-4" />
           Add to pool
         </Button>
       )}
 
       {canApply && (
-        <div className={cn('border-t border-gray-200 pt-2.5', isOpen ? 'mt-3' : 'mt-2.5')}>
+        <div className="mt-2">
           <SubmitProposalTooltip
             isPrivate={applicationVisibility === 'PRIVATE'}
             wrapperClassName="w-full"
           >
             <Button
               data-testid="grant-submit-proposal"
-              variant="default"
-              size="md"
+              variant="outlined"
+              size="lg"
               onClick={onApply}
-              className="w-full gap-2"
+              className="w-full gap-2 max-sm:!h-10 max-sm:!px-4 max-sm:!text-sm"
             >
-              Apply
-              <ArrowUpFromLine className="h-4 w-4" />
+              <ArrowUpFromLine className="h-5 w-5 max-sm:!h-4 max-sm:!w-4" />
+              Submit proposal
             </Button>
           </SubmitProposalTooltip>
         </div>

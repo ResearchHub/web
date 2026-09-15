@@ -2,7 +2,9 @@
 
 import { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
+import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
@@ -56,6 +58,8 @@ function PageLayoutInner({
   wideRow = false,
 }: PageLayoutProps) {
   const isNarrow = contentWidth === 'narrow';
+  const pathname = usePathname() || '';
+  const isHomeTab = isHomeTabPath(pathname);
 
   const {
     scrollContainerRef,
@@ -104,7 +108,11 @@ function PageLayoutInner({
           ref={scrollContainerRef}
           className={cn(
             'flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain relative transition-all duration-150',
-            'page-layout-with-mobile-bottom-nav',
+            // The funding power bar only docks above the nav on the home tabs
+            // (see MobileBottomNav), so only those pages reserve room for it.
+            isHomeTab
+              ? 'page-layout-with-mobile-bottom-nav-and-funding-bar'
+              : 'page-layout-with-mobile-bottom-nav',
             'pt-[var(--top-bar-height)] mt-0',
             'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
             isPromoBannerVisible && 'page-layout-with-promo-banner'

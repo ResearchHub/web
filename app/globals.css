@@ -161,9 +161,16 @@ mark {
     padding-top: calc(56px + var(--top-bar-height)) !important;
   }
 
-  /* Reserve space for the fixed MobileBottomNav (h-16 + safe-area inset) plus
-     the funding power bar docked above it (3.75rem including its gutter). */
+  /* Reserve space for the fixed MobileBottomNav (h-16 + safe-area inset), so
+     the last of the page's content isn't stuck behind it. */
   .page-layout-with-mobile-bottom-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* As above, plus the funding power bar docked over the nav on the home tabs
+     (3.75rem including its gutter). Pages without that bar use the shorter
+     offset, or the unused space reads as a dead gap under the content. */
+  .page-layout-with-mobile-bottom-nav-and-funding-bar {
     padding-bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
   }
 }

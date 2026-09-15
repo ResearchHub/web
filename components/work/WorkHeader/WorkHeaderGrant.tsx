@@ -160,7 +160,11 @@ export function WorkHeaderGrant({
   let primaryAction: ReactNode;
   if (showPoolWidget && fundingPool && grantAmount) {
     primaryAction = (
-      <div className="flex w-full flex-col sm:w-[304px]">
+      // At lg+ the right sidebar appears, so the widget takes the sidebar's
+      // exact column: w-80 to match, and -mr-8 to cancel the header's px-8 so
+      // its right edge lands on the shared 1180px container edge like the
+      // sidebar's does. Below lg there is no sidebar to align to.
+      <div className="flex w-full flex-col sm:w-[304px] lg:!-mr-8 lg:!w-80">
         <GrantFundingPoolWidget
           organization={organization ?? ''}
           grantAmount={grantAmount}
