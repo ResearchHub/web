@@ -10,7 +10,7 @@ import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
-import type { GrantApplicationVisibility } from './grant';
+import type { FundingPool, GrantApplicationVisibility } from './grant';
 import { Fundraise, transformFundraise } from './funding';
 
 export interface PeerReview {
@@ -144,6 +144,7 @@ export interface WorkGrantSummary {
   status: string;
   organization: string;
   amount: { usd: number; rsc: number | null };
+  fundingPool?: FundingPool | null;
   numApplicants: number;
   endDate?: string;
 }

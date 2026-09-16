@@ -9,6 +9,8 @@
  * against the backend contract.
  */
 
+import type { JSONContent } from '@tiptap/core';
+
 import type { EffortLevel } from './agentModels';
 
 export type ExecutionStatus =
@@ -48,6 +50,19 @@ export interface ChatThinkingActivity {
   at: string;
 }
 
+/** Selected public previews only; raw provider payloads are never part of the feed. */
+export interface ChatCodeExecution {
+  /** Plain-text code or shell command, bounded by the backend to 12,000 characters. */
+  code?: string;
+  code_truncated?: boolean;
+  /** Readable stdout, bounded to 2,000 characters. Omitted for encrypted output. */
+  output?: string;
+  output_truncated?: boolean;
+  return_code?: number;
+  /** Number of output items; their private file identifiers are not exposed. */
+  output_count?: number;
+}
+
 export interface ChatToolCallActivity {
   type: 'tool_call';
   /** Machine name (e.g. `web_search`). Only used to pick an icon — new tools appear without notice. */
@@ -57,8 +72,10 @@ export interface ChatToolCallActivity {
   status: ActivityCallStatus;
   started_at: string | null;
   finished_at: string | null;
-  /** Optional query/name behind the call, ≤200 chars. */
+  /** Optional query/name behind the call or a public code execution outcome summary. */
   detail?: string | null;
+  /** Optional code execution preview, available on both assistant and notebook calls. */
+  code_execution?: ChatCodeExecution | null;
   /** Present only on a succeeded `edit_note`: the note version the agent produced. */
   note_version_id?: number | null;
   /** Present only on a succeeded `create_note` (assistant surface): the note it made. */
@@ -79,6 +96,8 @@ export interface ChatToolCallActivity {
  */
 export interface ChatToolDraftActivity {
   type: 'tool_draft';
+  /** Complete formatted preview snapshot; replaces itself on each frame. */
+  blocks?: JSONContent[];
   /**
    * The prose extracted from the arguments so far. Empty for tools whose
    * arguments aren't prose — a search query is written in an instant, so only
@@ -253,6 +272,8 @@ export type ChatStreamDelta =
   | (ChatStreamDeltaBase & { type: 'narration' | 'thinking' })
   | (ChatStreamDeltaBase & {
       type: 'tool_draft';
+      /** Complete formatted preview snapshot, not an appended delta. */
+      blocks?: JSONContent[];
       /** Machine name; empty when the provider skipped the block-start event. */
       tool: string;
       /** Human copy supplied by the backend; always rendered verbatim. */

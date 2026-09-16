@@ -14,7 +14,7 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+export const ASSISTANT_HTML_SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
     'p',
     'br',
@@ -48,6 +48,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedAttributes: {
     a: ['href', 'title', 'target', 'rel'],
     code: ['class'],
+    ol: ['start'],
     th: ['align'],
     td: ['align'],
   },
@@ -111,7 +112,10 @@ export function MarkdownMessage({
   revealCarryTo,
 }: MarkdownMessageProps) {
   const shown = useTextReveal(content, revealKey, revealCarryTo);
-  const html = useMemo(() => sanitizeHtml(md.render(shown), SANITIZE_OPTIONS), [shown]);
+  const html = useMemo(
+    () => sanitizeHtml(md.render(shown), ASSISTANT_HTML_SANITIZE_OPTIONS),
+    [shown]
+  );
 
   return (
     <div
