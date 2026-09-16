@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { ActivityCard } from './cards/ActivityCard';
-import { ActivityCommentGroupCard } from './cards/ActivityCommentGroupCard';
-import { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 import { ActivityFeedList } from './ActivityFeedList';
+import { ActivityRow } from './ActivityRow';
 import { groupActivityRows } from './lib/activityGrouping.utils';
 import { useActivityFeeds } from '@/contexts/ActivityFeedContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
@@ -58,16 +56,9 @@ export function ActivityPageContent() {
       loadMore={loadMore}
       isEmpty={entries.length === 0}
     >
-      {rows.map((row) => {
-        switch (row.kind) {
-          case 'funding-group':
-            return <ActivityFundingGroupCard key={row.key} row={row} />;
-          case 'comment-group':
-            return <ActivityCommentGroupCard key={row.key} row={row} />;
-          default:
-            return <ActivityCard key={row.key} entry={row.entry} />;
-        }
-      })}
+      {rows.map((row) => (
+        <ActivityRow key={row.key} row={row} />
+      ))}
     </ActivityFeedList>
   );
 }
