@@ -5,9 +5,7 @@ import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
-import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
-import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
 import type { FundingPool, GrantApplicationVisibility } from './grant';
@@ -74,10 +72,6 @@ export type DocumentVersion = {
 export interface FormatType {
   type: string;
   url: string;
-  /**
-   * This is a proxied URL for internal use (e.g., to avoid CORS issues when rendering PDFs).
-   */
-  internalUrl?: string;
 }
 
 export interface Work {
@@ -320,21 +314,10 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     doi: raw.doi,
     journal: transformJournal(raw),
     formats: raw.file
-      ? [...(raw.formats || []), { type: 'PDF', url: raw.file, internalUrl: raw.file }]
+      ? [...(raw.formats || []), { type: 'PDF', url: raw.file }]
       : raw.pdf_url
-        ? [
-            ...(raw.formats || []),
-            {
-              type: 'PDF',
-              url: raw.pdf_url,
-              internalUrl: ProxyService.generateProxyUrl(raw.pdf_url),
-            },
-          ]
-        : (raw.formats || []).map((format: FormatType) => ({
-            ...format,
-            internalUrl:
-              format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : undefined,
-          })),
+        ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
+        : raw.formats || [],
     license: raw.pdf_license,
     pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
     figures: raw.first_preview
