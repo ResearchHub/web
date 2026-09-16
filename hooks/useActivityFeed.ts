@@ -64,6 +64,7 @@ export function useActivityFeed({
             contentType,
             commentTypes,
             scope,
+            disableCache,
           })
         : ActivityService.getActivity({ page: pageNumber, scope, grantId, disableCache }),
     [authorId, contentType, commentTypes, scope, grantId, disableCache]

@@ -29,6 +29,7 @@ export interface GetActorActivityParams {
   contentType?: string;
   commentTypes?: readonly ActivityCommentType[];
   scope?: ActivityScope;
+  disableCache?: boolean;
 }
 
 export interface ActivityResult {
@@ -94,6 +95,7 @@ export class ActivityService {
     if (params?.contentType) queryParams.append('content_type', params.contentType);
     params?.commentTypes?.forEach((commentType) => queryParams.append('comment_type', commentType));
     if (params?.scope) queryParams.append('scope', params.scope);
+    if (params?.disableCache) queryParams.append('disable_cache', 'true');
 
     return this.fetchActivity(`${this.BASE_PATH}/${endpoint}/?${queryParams.toString()}`);
   }
