@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect, useState, useTransition } from 'react';
-import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
+import { useAuthorInfo } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
@@ -12,9 +12,6 @@ import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { ModerationTab } from '@/components/profile/ModerationTab';
 import { ModerationPreview } from '@/components/profile/ModerationPreview';
-import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
-import { ProfileStatsStrip } from '@/components/profile/ProfileStatsStrip';
-import ProfileAchievements from '@/components/profile/ProfileAchievements';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import {
@@ -100,8 +97,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   useOrcidCallback({ onSuccess: refreshUser });
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
-  const [{ achievements, isLoading: isAchievementsLoading }] = useAuthorAchievements(authorId);
-  const [{ summaryStats, isLoading: isSummaryStatsLoading }] = useAuthorSummaryStats(authorId);
 
   // Tab state â€” lifted here so the tab bar can live in the hero banner
   const searchParams = useSearchParams();
@@ -158,23 +153,10 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const author = user?.authorProfile;
   const profileError = error || userError;
 
-  const sidebarContent = (
+  const sidebarContent = author && (
     <div className="flex flex-col gap-4">
-      {author && (
-        <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
-      )}
-      <div className="bg-gray-50/80 rounded-xl p-4 flex flex-col gap-6">
-        {canModerate && author?.userId && <ModerationPreview userId={author.userId.toString()} />}
-        <div className="grid grid-cols-1 sm:grid-cols-2 sidebar-profile:grid-cols-1 gap-6">
-          <ProfileStatsCards
-            user={user}
-            achievements={achievements}
-            summaryStats={summaryStats}
-            isAchievementsLoading={profileLoading || isAchievementsLoading}
-            isSummaryStatsLoading={profileLoading || isSummaryStatsLoading}
-          />
-        </div>
-      </div>
+      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
+      {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
     </div>
   );
 
@@ -201,38 +183,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     return <AuthorActivityFeed authorId={author.id} />;
   };
 
-  // Compact mobile header shown inside the Overview tab only, to avoid filler
-  // space on the Moderation tab at narrow widths. Tablet+ uses the full `sidebarContent`.
-  const hasAnyStats =
-    !!summaryStats &&
-    (summaryStats.worksCount > 0 ||
-      summaryStats.citationCount > 0 ||
-      summaryStats.amountFunded > 0 ||
-      (user?.authorProfile?.hIndex ?? 0) > 0 ||
-      (user?.authorProfile?.i10Index ?? 0) > 0);
-  const mobileOverviewHeader = !profileError && author && (
-    <div className="tablet:hidden flex flex-col gap-4 mb-4">
-      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
-      {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
-      {hasAnyStats && summaryStats && user && (
-        <section>
-          <h3 className="text-md font-semibold text-gray-800 mb-2">Stats</h3>
-          <div className="rounded-lg border border-gray-200 p-4">
-            <ProfileStatsStrip summaryStats={summaryStats} profile={user} />
-          </div>
-        </section>
-      )}
-      {achievements.length > 0 && (
-        <section>
-          <h3 className="text-md font-semibold text-gray-800 mb-2">Achievements</h3>
-          <div className="rounded-lg border border-gray-200 p-4">
-            <ProfileAchievements achievements={achievements} isLoading={false} />
-          </div>
-        </section>
-      )}
-    </div>
-  );
-
   return (
     <PageLayout rightSidebar={null} topBanner={topBanner} className="tablet:!max-w-full">
       <div className="flex flex-col sidebar-profile:flex-row gap-6 items-start">
@@ -240,7 +190,11 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           <div className="w-full hidden tablet:block sidebar-profile:hidden">{sidebarContent}</div>
         )}
         <div className="flex-1 min-w-0 w-full">
-          {activeTab === 'overview' && mobileOverviewHeader}
+          {/* Narrow widths carry the sidebar in the Overview tab only, so it never
+              sits as filler above the Moderation tab. */}
+          {activeTab === 'overview' && !profileError && (
+            <div className="tablet:hidden mb-4">{sidebarContent}</div>
+          )}
           {renderMain()}
         </div>
         <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
