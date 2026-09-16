@@ -17,7 +17,7 @@ import type { GenerationRequest } from '@/types/agentModels';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
-import { belowMobileTopBar } from '@/components/Notebook/mobileChromeOffsets';
+import { belowMobileTopBar } from '@/components/Notebook/mobileBarOffsets';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';

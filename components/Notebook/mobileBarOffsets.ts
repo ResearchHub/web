@@ -1,6 +1,7 @@
 /**
- * Offsets that keep the notebook's fixed overlays clear of the app's mobile
- * chrome.
+ * Offsets that keep the notebook's fixed overlays clear of the app's own fixed
+ * bars on mobile — the bottom nav and the top bar, not anything browser- or
+ * device-specific.
  *
  * Below the `tablet` breakpoint the app frames the viewport with two fixed
  * bars the rest of the layout has to work around: MobileBottomNav across the
@@ -12,7 +13,9 @@
  *
  * globals.css reserves the same space for in-flow content
  * (`.page-layout-with-mobile-bottom-nav`, `.page-layout-with-promo-banner`);
- * fixed overlays sit outside the flow and have to carry their own.
+ * fixed overlays sit outside the flow and have to carry their own. The
+ * notebook never shows the funding power bar that the home tabs dock over the
+ * nav, so the nav's own height is the whole of the bottom offset here.
  *
  * Entries name the desktop offset they stand in for, so a call site reads as a
  * swap — `bottom-6` becomes `ABOVE_MOBILE_NAV.bottom6` — keeping the same gap

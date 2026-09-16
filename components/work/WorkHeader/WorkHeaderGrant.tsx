@@ -1,8 +1,11 @@
 'use client';
 
 import { type ReactNode, useState, useCallback } from 'react';
-import { ArrowUpFromLine, Coins, Lock } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Bell, Coins, FileText, FileUp, Lock } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFileSignature } from '@fortawesome/pro-light-svg-icons';
+import { faFileSignature as faFileSignatureSolid } from '@fortawesome/pro-solid-svg-icons';
+import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
@@ -12,25 +15,12 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { useUser } from '@/contexts/UserContext';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { FundingPool, FundingPoolAmount, GrantApplicationVisibility } from '@/types/grant';
-import { formatCurrency } from '@/utils/currency';
 import { ID } from '@/types/root';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 import { GrantFundingPoolWidget } from './GrantFundingPoolWidget';
 import { PendingReviewBadge } from './PendingReviewBadge';
-
-const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
-
-function formatPoolAmount(amount: { usd: number; rsc: number }, showUSD: boolean): string {
-  return formatCurrency({
-    amount: showUSD ? amount.usd : amount.rsc,
-    showUSD,
-    exchangeRate: 1,
-    skipConversion: true,
-  });
-}
 
 interface WorkHeaderGrantProps {
   work: Work;
@@ -65,12 +55,7 @@ export function WorkHeaderGrant({
   preTitle,
 }: WorkHeaderGrantProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useUser();
-  const { showUSD } = useCurrencyPreference();
-  const isRfpFundingPoolEnabled =
-    searchParams.get(RFP_FUNDING_POOL_PARAM) === 'true' ||
-    searchParams.get(RFP_FUNDING_POOL_PARAM) === '1';
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const {
@@ -96,8 +81,8 @@ export function WorkHeaderGrant({
   const canManagePool = isGrantCreator || !!user?.isModerator;
 
   // The pool widget replaces the amount eyebrow and the bare Contribute button
-  // whenever the flag is on and the grant has a pool, open or closed.
-  const showPoolWidget = isRfpFundingPoolEnabled && !!fundingPool && !!grantAmount;
+  // whenever the grant has a pool, open or closed.
+  const showPoolWidget = !!fundingPool && !!grantAmount;
   const isPoolOpen = !!grantId && isActive && fundingPool?.status === 'OPEN';
 
   const eyebrow = showPoolWidget ? (
@@ -109,7 +94,6 @@ export function WorkHeaderGrant({
   );
 
   const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
-  const canContributeToPool = isRfpFundingPoolEnabled && isPoolOpen;
 
   const handleContributeSuccess = useCallback(
     (updatedPool?: FundingPool) => {
@@ -138,7 +122,7 @@ export function WorkHeaderGrant({
           className="gap-2 w-full sm:flex-1 max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
         >
           Submit Proposal
-          <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+          <FileUp className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </SubmitProposalTooltip>
     ) : null;
@@ -150,17 +134,14 @@ export function WorkHeaderGrant({
     </div>
   ) : null;
 
-  const showLegacyPoolHolding =
-    !showPoolWidget &&
-    isRfpFundingPoolEnabled &&
-    canManagePool &&
-    fundingPool?.status === 'OPEN' &&
-    (fundingPool.amountHolding.rsc ?? 0) >= 0;
-
   let primaryAction: ReactNode;
   if (showPoolWidget && fundingPool && grantAmount) {
     primaryAction = (
-      <div className="flex w-full flex-col sm:w-[304px]">
+      // At lg+ the right sidebar appears, so the widget takes the sidebar's
+      // exact column: w-80 to match, and -mr-8 to cancel the header's px-8 so
+      // its right edge lands on the shared 1180px container edge like the
+      // sidebar's does. Below lg there is no sidebar to align to.
+      <div className="flex w-full flex-col sm:w-[304px] lg:!-mr-8 lg:!w-80">
         <GrantFundingPoolWidget
           organization={organization ?? ''}
           grantAmount={grantAmount}
@@ -172,13 +153,21 @@ export function WorkHeaderGrant({
           onApply={() => setIsApplyModalOpen(true)}
           onContribute={() => setIsContributeModalOpen(true)}
         />
+        {isPoolOpen && (
+          <p
+            className="mt-2 px-1 text-center text-xs leading-snug text-gray-500"
+            data-testid="grant-funding-pool-value-line"
+          >
+            Every dollar you add goes to the proposals. {organization || 'the funder'} picks.
+          </p>
+        )}
       </div>
     );
   } else if (grantId && isActive) {
     primaryAction = (
       <>
         <div className="flex flex-col sm:flex-row gap-2 w-full">
-          {canContributeToPool && (
+          {isPoolOpen && (
             <Button
               data-testid="grant-contribute"
               variant="outlined"
@@ -192,27 +181,6 @@ export function WorkHeaderGrant({
           )}
           {submitProposalButton}
         </div>
-        {showLegacyPoolHolding && fundingPool && (
-          <div
-            data-testid="grant-pool-holding"
-            className="hidden sm:flex items-center justify-center gap-x-3 text-xs text-gray-500"
-          >
-            <span>
-              Pool holding{' '}
-              <span className="font-mono font-medium text-gray-700 tabular-nums">
-                {formatPoolAmount(fundingPool.amountHolding, showUSD)}
-              </span>
-            </span>
-            {(fundingPool.amountDistributed.rsc ?? 0) > 0 && (
-              <span>
-                Distributed{' '}
-                <span className="font-mono text-gray-600 tabular-nums">
-                  {formatPoolAmount(fundingPool.amountDistributed, showUSD)}
-                </span>
-              </span>
-            )}
-          </div>
-        )}
         {privateApplicationsNote}
       </>
     );
@@ -223,11 +191,23 @@ export function WorkHeaderGrant({
     activityCount > 0 && activity.hasMore ? `${activityCount}+` : activityCount;
 
   const grantTabs = [
-    { id: 'details' as const, label: 'Details' },
+    {
+      id: 'details' as const,
+      label: (
+        <div className="flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          <span>Details</span>
+        </div>
+      ),
+    },
     {
       id: 'proposals' as const,
       label: (
         <div className="flex items-center">
+          <FontAwesomeIcon
+            icon={activeTab === 'proposals' ? faFileSignatureSolid : faFileSignature}
+            className="h-4 w-4 mr-2"
+          />
           <span>Proposals</span>
           {proposalCount > 0 && (
             <span
@@ -247,6 +227,7 @@ export function WorkHeaderGrant({
       id: 'activity' as const,
       label: (
         <div className="flex items-center">
+          <Bell className="h-4 w-4 mr-2" />
           <span>Updates</span>
           {activityCount > 0 && (
             <span
@@ -293,7 +274,7 @@ export function WorkHeaderGrant({
         }
       />
 
-      {isRfpFundingPoolEnabled && fundingPool?.status === 'OPEN' && (
+      {fundingPool?.status === 'OPEN' && (
         <ContributeToFundraiseModal
           mode="fundingPool"
           isOpen={isContributeModalOpen}

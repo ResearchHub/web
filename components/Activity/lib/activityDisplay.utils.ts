@@ -139,7 +139,9 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
     return {
       actor,
-      verb: isFundingPoolContribution(entry) ? 'contributed to RFP' : 'funded this proposal.',
+      verb: isFundingPoolContribution(entry)
+        ? 'contributed to the funding pool'
+        : 'funded this proposal.',
     };
   }
 

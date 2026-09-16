@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Coins } from 'lucide-react';
 import {
   ActivityTimestamp,
@@ -28,8 +28,6 @@ import { formatCurrency } from '@/utils/currency';
 import type { FeedEntry } from '@/types/feed';
 import type { Fundraise } from '@/types/funding';
 import type { FundingPool } from '@/types/grant';
-
-const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
 
 interface ProposalWorkCardProps {
   entry: FeedEntry;
@@ -74,10 +72,6 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   const { updateLastClickedEntryId } = useNavigation();
   const { user } = useUser();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isRfpFundingPoolEnabled =
-    searchParams.get(RFP_FUNDING_POOL_PARAM) === 'true' ||
-    searchParams.get(RFP_FUNDING_POOL_PARAM) === '1';
   const { isGrantScoped, refresh: refreshProposals } = useFundraises();
   const grantAllocate = useGrantAllocateContext();
 
@@ -97,12 +91,13 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
     Number(user.id) === Number(grantAllocate.grantCreatedByUserId);
   const canManagePool = isGrantCreator || !!user?.isModerator;
 
+  // The button stays visible once the viewer can manage an open pool, even when
+  // nothing is left to give — the modal explains the exhausted balance rather
+  // than the action silently disappearing.
   const canAllocate =
-    isRfpFundingPoolEnabled &&
     isGrantScoped &&
     canManagePool &&
     fundingPool?.status === 'OPEN' &&
-    (fundingPool.amountHolding.rsc ?? 0) > 0 &&
     work?.fundraise?.status === 'OPEN' &&
     applicationId != null;
 
@@ -163,7 +158,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
             {canAllocate && (
               <Button
                 data-testid="allocate-funding-pool"
-                variant="outlined"
+                variant="dark"
                 size="sm"
                 className="shrink-0 gap-1.5"
                 onClick={(e) => {
