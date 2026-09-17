@@ -258,15 +258,14 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
 }
 
 function pickLinkedGrantCreatedByUserId(g: any): number | null {
-  if (typeof g?.created_by === 'number') return g.created_by;
-  const rawId = g?.created_by?.user?.id ?? g?.created_by?.id;
+  const rawId = g?.created_by?.id;
   if (rawId == null || rawId === '') return null;
   const id = Number(rawId);
   return Number.isFinite(id) ? id : null;
 }
 
 function pickLinkedGrantApplicationId(g: any): number | null {
-  const candidates = [g?.application_id, g?.proposal?.application_id, g?.proposal?.id];
+  const candidates = [g?.application_id, g?.proposal?.application_id];
   for (const value of candidates) {
     if (value == null || value === '') continue;
     const id = Number(value);
