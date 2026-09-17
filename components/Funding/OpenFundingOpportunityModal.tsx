@@ -7,17 +7,15 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Award,
-  FileText,
+  File,
+  LayoutDashboard,
   Sparkles,
   Upload,
-  Users,
   X,
 } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { Button, buttonVariants } from '@/components/ui/Button';
-import Icon from '@/components/ui/icons/Icon';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { Button } from '@/components/ui/Button';
+import { FundingTimeline } from '@/components/Funding/FundingTimeline';
 import dynamic from 'next/dynamic';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
 import { cn } from '@/utils/styles';
@@ -35,50 +33,12 @@ interface OpenFundingOpportunityModalProps {
   onConfirm: (method: FundingOpportunityCreationMethod) => void;
   /**
    * Render a compact, single-column modal that jumps straight to the creation
-   * method picker — no benefits step and no decorative left rail. Used by entry
+   * method picker — no overview step and no decorative left rail. Used by entry
    * points (e.g. the notebook) where the user has already committed to opening
    * a funding opportunity.
    */
   minimal?: boolean;
 }
-
-interface Benefit {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  learnMoreHref?: string;
-}
-
-const BENEFITS: Benefit[] = [
-  {
-    id: 'scientists',
-    title: 'The best scientists within reach',
-    description:
-      'We source the best scientists in the world to apply for your request for proposal.',
-    icon: <Award className="h-[22px] w-[22px] text-rhBlue-600" />,
-    learnMoreHref: '/give',
-  },
-  {
-    id: 'turnaround',
-    title: 'Fastest turnaround',
-    description: 'Quality proposals and peer-reviews delivered in days, not months.',
-    icon: <Icon name="lightening" size={22} color="#2563eb" />,
-  },
-  {
-    id: 'community',
-    title: 'Community matching',
-    description: 'With our community, every dollar you put in is stretched further.',
-    icon: <Users className="h-[22px] w-[22px] text-rhBlue-600" />,
-  },
-  {
-    id: 'credits',
-    title: 'Use your Funding Credits',
-    description: 'Earned by holding ResearchCoin or peer reviewing.',
-    icon: <ResearchCoinIcon size={22} color="#2563eb" outlined />,
-    learnMoreHref: '/endowments',
-  },
-];
 
 interface CreationOption {
   id: FundingOpportunityCreationMethod;
@@ -89,10 +49,12 @@ interface CreationOption {
 
 const CREATION_OPTIONS: CreationOption[] = [
   {
+    // Opens the notebook on the RFP template; the label promises a fresh
+    // start rather than a template so the choice reads as "just begin".
     id: 'template',
-    title: 'From a template',
-    description: 'Start with our RFP template',
-    icon: <FileText className="h-[22px] w-[22px] text-rhBlue-600" />,
+    title: 'Start from scratch',
+    description: 'Open a new RFP in your notebook',
+    icon: <File className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
   {
     id: 'upload',
@@ -104,7 +66,7 @@ const CREATION_OPTIONS: CreationOption[] = [
 
 const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
 
-type Step = 'benefits' | 'method' | 'upload';
+type Step = 'overview' | 'method' | 'upload';
 
 export const OpenFundingOpportunityModal = ({
   isOpen,
@@ -112,7 +74,7 @@ export const OpenFundingOpportunityModal = ({
   onConfirm,
   minimal = false,
 }: OpenFundingOpportunityModalProps) => {
-  const initialStep: Step = minimal ? 'method' : 'benefits';
+  const initialStep: Step = minimal ? 'method' : 'overview';
   const [step, setStep] = useState<Step>(initialStep);
   const [pendingMethod, setPendingMethod] = useState<FundingOpportunityCreationMethod | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -152,9 +114,10 @@ export const OpenFundingOpportunityModal = ({
       )}
     >
       <div className="flex flex-col md:flex-row">
-        {/* Left gradient rail */}
+        {/* Left gradient rail: a full panel with the globe on desktop, a short
+            header band without it on phones. */}
         {!minimal && (
-          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
+          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-6 pb-6 pt-7 md:w-[340px] md:px-9 md:py-11">
             {/* Mobile close button (lives in the title section on small screens) */}
             <button
               type="button"
@@ -175,17 +138,17 @@ export const OpenFundingOpportunityModal = ({
               className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
               style={{ background: '#bcd2ff' }}
             />
-            <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="mb-4 flex h-[235px] w-[235px] items-center justify-center">
+            <div className="relative z-10 flex flex-col items-start pr-10 text-left md:items-center md:pr-0 md:text-center">
+              <div className="mb-4 hidden h-[235px] w-[235px] items-center justify-center md:flex">
                 <AnimatedGlobe size={235} />
               </div>
               <Dialog.Title
                 as="h2"
-                className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
+                className="text-2xl font-bold leading-[1.15] tracking-[-0.02em] text-gray-900 md:text-[28px] md:leading-[1.12]"
               >
                 Open a request for proposal
               </Dialog.Title>
-              <p className="mt-3 text-base leading-[1.5] text-gray-600">
+              <p className="mt-1.5 text-[15px] leading-[1.5] text-gray-600 md:mt-3 md:text-base">
                 The most efficient way to fund science.
               </p>
             </div>
@@ -203,51 +166,50 @@ export const OpenFundingOpportunityModal = ({
             <X className="h-4 w-4" />
           </button>
 
-          {step === 'benefits' ? (
+          {step === 'overview' ? (
             <>
-              <div className="mt-2 pr-10 md:mt-4">
-                <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
-                  Why fund on ResearchHub
+              <div className="pr-10 md:mt-2">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 md:text-2xl">
+                  How funding works
                 </h3>
+                <p className="mt-1 text-sm leading-[1.5] text-gray-500 md:mt-1.5">
+                  From your call for proposals to funded research.
+                </p>
               </div>
 
-              <div className="mt-6 flex flex-col gap-5">
-                {BENEFITS.map((benefit) => (
-                  <div key={benefit.id} className="flex items-start gap-4">
-                    <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
-                      {benefit.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-base font-semibold leading-[1.3] text-gray-900">
-                        {benefit.title}
-                      </div>
-                      <div className="mt-0.5 text-sm leading-[1.5] text-gray-500">
-                        {benefit.description}
-                      </div>
-                    </div>
+              <FundingTimeline className="mt-5 md:mt-6" />
+
+              <div className="mt-5 flex items-center gap-3.5 rounded-xl border border-rhBlue-200 bg-rhBlue-50 px-4 py-3.5">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-rhBlue-100 bg-white text-rhBlue-600">
+                  <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold leading-[1.3] text-gray-900">
+                    Track it all from your funder dashboard
                   </div>
-                ))}
+                  <div className="mt-0.5 text-[13px] leading-[1.5] text-gray-600">
+                    Proposals received, peer reviews, and payouts in one place.
+                  </div>
+                </div>
+                <Link
+                  href="/my-funding"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden flex-shrink-0 items-center gap-1 whitespace-nowrap text-[13px] font-semibold text-rhBlue-600 transition-colors hover:text-rhBlue-700 md:inline-flex"
+                >
+                  See it
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
               </div>
 
-              <div className="-mx-6 mt-8 border-t border-gray-200 px-6 pt-8 md:-mx-10 md:px-10">
-                <div className="flex items-center justify-end gap-3">
-                  <Link
-                    href="/give"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      buttonVariants({ variant: 'outlined' }),
-                      'h-[46px] px-5 text-sm font-semibold'
-                    )}
-                  >
-                    Learn more
-                  </Link>
+              <div className="-mx-6 mt-8 border-t border-gray-200 px-6 pt-5 md:-mx-10 md:px-10 md:pt-8">
+                <div className="flex justify-end">
                   <Button
                     variant="default"
                     onClick={() => setStep('method')}
-                    className="h-[46px] gap-2 px-5 text-sm font-semibold"
+                    className="h-[46px] w-full gap-2 px-5 text-sm font-semibold md:w-auto"
                   >
-                    Get Started
+                    Continue
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -258,7 +220,7 @@ export const OpenFundingOpportunityModal = ({
               {!minimal && (
                 <button
                   type="button"
-                  onClick={() => setStep('benefits')}
+                  onClick={() => setStep('overview')}
                   className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
                 >
                   <ArrowLeft className="h-4 w-4" />
