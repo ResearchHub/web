@@ -87,7 +87,7 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
                   <div className="bg-white rounded-lg shadow-sm border mb-6 relative">
                     {work.pdfCopyrightAllowsDisplay ? (
                       <DocumentViewer
-                        url={pdfFormat.internalUrl || pdfFormat.url}
+                        url={pdfFormat.url}
                         className="min-h-[800px]"
                         onPdfUnavailable={() => setPdfUnavailable(true)}
                       />

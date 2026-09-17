@@ -139,8 +139,17 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
     return {
       actor,
-      verb: isFundingPoolContribution(entry) ? 'contributed to RFP' : 'funded this proposal.',
+      verb: isFundingPoolContribution(entry)
+        ? 'contributed to the funding pool'
+        : 'funded this proposal.',
     };
+  }
+
+  // Registered reports arrive as `post` entries; only the document type sets them apart,
+  // and it sits on the entry itself or on the work it relates to.
+  const postType = (entry.content as FeedPostContent).postType ?? entry.relatedWork?.postType;
+  if (entry.contentType === 'POST' && postType === 'REGISTERED_REPORT') {
+    return { actor, verb: 'published registered report' };
   }
 
   return {

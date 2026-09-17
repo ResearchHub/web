@@ -48,12 +48,27 @@ export interface FundingPoolAmount {
   rsc: number;
 }
 
+/** One community contributor to a funding pool, ranked by total given. */
+export interface FundingPoolContributor {
+  id: number;
+  /** Author profile id, used to link the avatar to the author page. */
+  authorProfileId?: number;
+  fullName: string;
+  profileImage: string;
+  totalContribution: FundingPoolAmount;
+}
+
 export interface FundingPool {
   id: number;
   status: FundingPoolStatus;
   amountHolding: FundingPoolAmount;
   amountDistributed: FundingPoolAmount;
   amountRaised: FundingPoolAmount;
+  /** Top contributors plus the count of everyone who contributed. */
+  contributors: {
+    total: number;
+    top: FundingPoolContributor[];
+  };
 }
 
 function parseFundingPoolAmount(raw: unknown): FundingPoolAmount {
@@ -64,6 +79,19 @@ function parseFundingPoolAmount(raw: unknown): FundingPoolAmount {
   };
 }
 
+function transformFundingPoolContributor(raw: any): FundingPoolContributor {
+  const profile = raw.author_profile ?? {};
+  const firstName = raw.first_name ?? profile.first_name ?? '';
+  const lastName = raw.last_name ?? profile.last_name ?? '';
+  return {
+    id: raw.id,
+    authorProfileId: profile.id ?? undefined,
+    fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Contributor',
+    profileImage: profile.profile_image ?? '',
+    totalContribution: parseFundingPoolAmount(raw.total_contribution),
+  };
+}
+
 export function transformFundingPool(raw: any): FundingPool {
   return {
     id: raw.id,
@@ -71,6 +99,11 @@ export function transformFundingPool(raw: any): FundingPool {
     amountHolding: parseFundingPoolAmount(raw.amount_holding),
     amountDistributed: parseFundingPoolAmount(raw.amount_distributed),
     amountRaised: parseFundingPoolAmount(raw.amount_raised),
+    // Feeds ship the pool without contributors; only the RFP page asks for them.
+    contributors: {
+      total: raw.contributors?.total ?? 0,
+      top: (raw.contributors?.top ?? []).map(transformFundingPoolContributor),
+    },
   };
 }
 

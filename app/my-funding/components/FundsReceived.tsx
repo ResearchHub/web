@@ -5,16 +5,18 @@ import Link from 'next/link';
 import { EarnEarningsSummary } from '@/components/Earn/EarnEarningsSummary';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { buttonVariants } from '@/components/ui/Button';
-import { useContributions } from '@/hooks/useContributions';
+import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeed } from '@/hooks/useFeed';
-import { transformContributionToFeedEntry } from '@/types/contribution';
-import type { FeedEntry } from '@/types/feed';
+import type { ActivityCommentType } from '@/services/activity.service';
 import { cn } from '@/utils/styles';
 
 interface FundsReceivedProps {
   userId: number;
   authorId?: number;
 }
+
+/** Stable reference: a new array on every render would restart the activity feed. */
+const PEER_REVIEW_COMMENT_TYPES: readonly ActivityCommentType[] = ['REVIEW', 'PEER_REVIEW'];
 
 function EmptyState({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -76,44 +78,20 @@ function MyProposals({ userId }: Readonly<{ userId: number }>) {
 
 function PeerReviewFeed({ authorId }: Readonly<{ authorId: number }>) {
   const {
-    contributions,
+    entries,
     isLoading,
-    error: contributionsError,
     hasMore,
     loadMore,
     isLoadingMore,
-    restoredFeedEntries,
+    page,
+    restorationTab,
     restoredScrollPosition,
     lastClickedEntryId,
-  } = useContributions({
-    contribution_type: 'REVIEW',
-    author_id: authorId,
-    activeTab: 'peer-reviews',
+  } = useActivityFeed({
+    authorId,
+    contentType: 'RHCOMMENTMODEL',
+    commentTypes: PEER_REVIEW_COMMENT_TYPES,
   });
-
-  const entries =
-    restoredFeedEntries ||
-    contributions
-      .map((contribution) => {
-        try {
-          return transformContributionToFeedEntry({
-            contribution,
-            contributionType: 'REVIEW',
-          });
-        } catch (error) {
-          console.error('[Contribution] Could not transform contribution', error);
-          return null;
-        }
-      })
-      .filter((entry): entry is FeedEntry => !!entry);
-
-  if (contributionsError) {
-    return (
-      <p className="mt-4 text-sm text-red-600" role="alert">
-        Error: {contributionsError.message}
-      </p>
-    );
-  }
 
   return (
     <FeedContent
@@ -131,8 +109,9 @@ function PeerReviewFeed({ authorId }: Readonly<{ authorId: number }>) {
       }
       maxLength={150}
       showReadMoreCTA
-      activeTab="peer-reviews"
+      activeTab={restorationTab}
       restoredScrollPosition={restoredScrollPosition}
+      page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
       shouldRenderBountyAsComment
       wideContent
