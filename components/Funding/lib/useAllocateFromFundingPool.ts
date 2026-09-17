@@ -1,13 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
 import type { FundingPool } from '@/types/grant';
 import type { Work } from '@/types/work';
 import type { ID } from '@/types/root';
 import type { User } from '@/types/user';
-
-export const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
 
 export interface AllocateFromFundingPoolOption {
   fundingPool: FundingPool;
@@ -24,11 +21,6 @@ interface UseAllocateFromFundingPoolResult {
   allocateFromPool: AllocateFromFundingPoolOption | null;
 }
 
-function isRfpFundingPoolFlagEnabled(searchParams: URLSearchParams | null): boolean {
-  const value = searchParams?.get(RFP_FUNDING_POOL_PARAM);
-  return value === 'true' || value === '1';
-}
-
 /**
  * Reads allocate-from-pool eligibility from the proposal's `linkedGrant`
  * (`fundingPool`, `applicationId`, `createdByUserId` mapped from `grants[0]`).
@@ -38,15 +30,12 @@ export function useAllocateFromFundingPool({
   work,
   user,
 }: UseAllocateFromFundingPoolOptions): UseAllocateFromFundingPoolResult {
-  const searchParams = useSearchParams();
-  const isFlagEnabled = isRfpFundingPoolFlagEnabled(searchParams);
-
   const allocateFromPool = useMemo((): AllocateFromFundingPoolOption | null => {
     const linked = work?.linkedGrant;
     const fundingPool = linked?.fundingPool;
     const applicationId = linked?.applicationId;
 
-    if (!enabled || !isFlagEnabled || !user?.id || !linked || !fundingPool || applicationId == null) {
+    if (!enabled || !user?.id || !linked || !fundingPool || applicationId == null) {
       return null;
     }
 
@@ -61,7 +50,7 @@ export function useAllocateFromFundingPool({
     }
 
     return { fundingPool, applicationId };
-  }, [enabled, isFlagEnabled, work?.linkedGrant, user]);
+  }, [enabled, work?.linkedGrant, user]);
 
   return { allocateFromPool };
 }

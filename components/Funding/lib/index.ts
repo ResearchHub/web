@@ -15,6 +15,5 @@ export { useWalletAvailability, type WalletAvailability } from './useWalletAvail
 export { getDefaultPaymentMethod } from './getDefaultPaymentMethod';
 export {
   useAllocateFromFundingPool,
-  RFP_FUNDING_POOL_PARAM,
   type AllocateFromFundingPoolOption,
 } from './useAllocateFromFundingPool';
