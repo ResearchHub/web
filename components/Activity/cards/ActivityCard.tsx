@@ -13,6 +13,7 @@ import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
 import { getActivityHeaderMessage, getCommentPreview } from '../lib/activityDisplay.utils';
 import { getActivityWork, getWorkCardPresentation } from '../lib/activityWork.utils';
+import type { AuthorProfile } from '@/types/authorProfile';
 import type { FeedEntry } from '@/types/feed';
 import { cn } from '@/utils/styles';
 
@@ -20,12 +21,15 @@ interface ActivityCardProps {
   entry: FeedEntry;
   hideActions?: boolean;
   hideEntryDivider?: boolean;
+  /** Author whose profile the card sits on, credited ahead of a document's lead author. */
+  profileAuthor?: AuthorProfile;
 }
 
 export const ActivityCard: FC<ActivityCardProps> = ({
   entry,
   hideActions = false,
   hideEntryDivider = false,
+  profileAuthor,
 }) => {
   const work = getActivityWork(entry);
   const { showUSD } = useCurrencyPreference();
@@ -35,7 +39,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
   if (!work) return null;
 
   const entryId = String(entry.id);
-  const message = getActivityHeaderMessage(entry);
+  const message = getActivityHeaderMessage(entry, profileAuthor);
   const commentPreview = getCommentPreview(entry);
   const presentation = getWorkCardPresentation(entry, work, {
     showUSD,
@@ -70,7 +74,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
         </div>
 
         <div className="min-w-0 flex-1">
-          <ActivityCardHeader entry={entry} />
+          <ActivityCardHeader entry={entry} message={message} />
 
           {showComment && commentPreview && (
             <div className="mt-2">

@@ -168,11 +168,29 @@ export function isGrantOpened(entry: FeedEntry): boolean {
   return entry.activityAction === 'grant_opened' || entry.contentType === 'GRANT';
 }
 
-export function getActivityHeaderMessage(entry: FeedEntry): ActivityHeaderMessage {
+/** A document's own publication, which all of its authors share credit for. */
+function isDocumentPublication(entry: FeedEntry): boolean {
+  return entry.contentType in DOC_ACTION_LABELS;
+}
+
+/**
+ * `profileAuthor`, when given, is the author whose profile the entry appears on.
+ * Documents arrive credited to their lead bylined author, so a co-authored work
+ * would otherwise headline the same person on every author's profile.
+ */
+export function getActivityHeaderMessage(
+  entry: FeedEntry,
+  profileAuthor?: AuthorProfile
+): ActivityHeaderMessage {
   if (entry.contentType === 'FUNDINGACTIVITY') {
     return getFundingActivityMessage(entry.content as FeedFundingActivityContent);
   }
-  return getDefaultActivityMessage(entry);
+
+  const message = getDefaultActivityMessage(entry);
+  if (profileAuthor && isDocumentPublication(entry)) {
+    return { ...message, actor: profileAuthor };
+  }
+  return message;
 }
 
 export interface ActivityEntryMeta {

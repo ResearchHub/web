@@ -19,6 +19,7 @@ import {
   ProfileHeroBannerSkeleton,
 } from '@/components/profile/ProfileHeroBanner';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import type { AuthorProfile } from '@/types/authorProfile';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -51,7 +52,7 @@ function resolveAuthorTab(tab: string): AuthorTab {
   return tab === 'moderation' ? 'moderation' : 'overview';
 }
 
-function AuthorActivityFeed({ authorId }: { authorId: number }) {
+function AuthorActivityFeed({ author }: { author: AuthorProfile }) {
   const {
     entries,
     isLoading,
@@ -62,7 +63,7 @@ function AuthorActivityFeed({ authorId }: { authorId: number }) {
     feedKey,
     restoredScrollPosition,
     lastClickedEntryId,
-  } = useActivityFeed({ authorId });
+  } = useActivityFeed({ authorId: author.id });
 
   useFeedScrollTracking({
     feedKey,
@@ -84,7 +85,7 @@ function AuthorActivityFeed({ authorId }: { authorId: number }) {
       isEmpty={entries.length === 0}
     >
       {rows.map((row) => (
-        <ActivityRow key={row.key} row={row} />
+        <ActivityRow key={row.key} row={row} profileAuthor={author} />
       ))}
     </ActivityFeedList>
   );
@@ -180,7 +181,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       );
     }
 
-    return <AuthorActivityFeed authorId={author.id} />;
+    return <AuthorActivityFeed author={author} />;
   };
 
   return (
