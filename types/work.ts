@@ -10,7 +10,7 @@ import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
-import type { FundingPool, GrantApplicationVisibility } from './grant';
+import { transformFundingPool, type FundingPool, type GrantApplicationVisibility } from './grant';
 import { Fundraise, transformFundraise } from './funding';
 
 export interface PeerReview {
@@ -138,6 +138,9 @@ export interface LinkedGrant {
   applicationVisibility: GrantApplicationVisibility;
   imageUrl: string | null;
   applicantCount: number;
+  fundingPool?: FundingPool | null;
+  createdByUserId?: number | null;
+  applicationId?: number | null;
 }
 
 export interface WorkGrantSummary {
@@ -260,6 +263,24 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
   return apr ? transformProposalReview(apr) : null;
 }
 
+function pickLinkedGrantCreatedByUserId(g: any): number | null {
+  if (typeof g?.created_by === 'number') return g.created_by;
+  const rawId = g?.created_by?.user?.id ?? g?.created_by?.id;
+  if (rawId == null || rawId === '') return null;
+  const id = Number(rawId);
+  return Number.isFinite(id) ? id : null;
+}
+
+function pickLinkedGrantApplicationId(g: any): number | null {
+  const candidates = [g?.application_id, g?.proposal?.application_id, g?.proposal?.id];
+  for (const value of candidates) {
+    if (value == null || value === '') continue;
+    const id = Number(value);
+    if (Number.isFinite(id)) return id;
+  }
+  return null;
+}
+
 function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
   if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
   const g = raw.grants[0];
@@ -276,6 +297,9 @@ function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
     applicationVisibility: (g.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
     imageUrl: g.image_url ?? null,
     applicantCount: g.applicant_count ?? 0,
+    fundingPool: g.funding_pool ? transformFundingPool(g.funding_pool) : null,
+    createdByUserId: pickLinkedGrantCreatedByUserId(g),
+    applicationId: pickLinkedGrantApplicationId(g),
   };
 }
 

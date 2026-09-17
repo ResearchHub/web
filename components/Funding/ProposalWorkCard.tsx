@@ -23,13 +23,11 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useUser } from '@/contexts/UserContext';
-import { findGrantApplicationIdForPost } from '@/types/grant';
+import { findGrantApplicationIdForPost, type FundingPool } from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
 import type { FeedEntry } from '@/types/feed';
 import type { Fundraise } from '@/types/funding';
-import type { FundingPool } from '@/types/grant';
-
-const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
+import { RFP_FUNDING_POOL_PARAM } from '@/components/Funding/lib/useAllocateFromFundingPool';
 
 interface ProposalWorkCardProps {
   entry: FeedEntry;

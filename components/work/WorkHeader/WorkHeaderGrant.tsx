@@ -16,12 +16,11 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { FundingPool, FundingPoolAmount, GrantApplicationVisibility } from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
 import { ID } from '@/types/root';
+import { RFP_FUNDING_POOL_PARAM } from '@/components/Funding/lib/useAllocateFromFundingPool';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 import { GrantFundingPoolWidget } from './GrantFundingPoolWidget';
 import { PendingReviewBadge } from './PendingReviewBadge';
-
-const RFP_FUNDING_POOL_PARAM = 'rfpFundingPool';
 
 function formatPoolAmount(amount: { usd: number; rsc: number }, showUSD: boolean): string {
   return formatCurrency({

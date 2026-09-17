@@ -6,11 +6,12 @@ import { type WalletAvailability } from './useWalletAvailability';
  * actual wallet availability (from Stripe's canMakePayment check).
  *
  * Priority:
- * 1. Funding Credits — if the user's funding credits cover the contribution
- * 2. RSC - if available + promotional RSC covers the contribution
- * 3. Apple Pay - if available on this device
- * 4. Google Pay - if available on this device
- * 5. Credit Card - fallback
+ * 1. Funding pool — grant creators/mods allocating from RFP holdings (no fees)
+ * 2. Funding Credits — if the user's funding credits cover the contribution
+ * 3. RSC - if available + promotional RSC covers the contribution
+ * 4. Apple Pay - if available on this device
+ * 5. Google Pay - if available on this device
+ * 6. Credit Card - fallback
  *
  * Returns `null` when wallet availability is still being checked and neither
  * RSC-based method can cover the amount.
@@ -20,8 +21,13 @@ export function getDefaultPaymentMethod(
   fundingCreditsBalance: number,
   amountInRsc: number,
   platformFeePercent: number,
-  walletAvailability: WalletAvailability
+  walletAvailability: WalletAvailability,
+  fundingPoolHoldingRsc?: number | null
 ): PaymentMethodType | null {
+  if (fundingPoolHoldingRsc != null && fundingPoolHoldingRsc >= amountInRsc) {
+    return 'funding_pool';
+  }
+
   const rscAmountWithFees = amountInRsc * (1 + platformFeePercent / 100);
 
   if (fundingCreditsBalance >= rscAmountWithFees) {
