@@ -170,6 +170,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
       {/* Drawer */}
       <div
         ref={drawerRef}
+        inert={!isOpen}
         className={`fixed bottom-0 left-0 right-0 bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         } ${className}`}

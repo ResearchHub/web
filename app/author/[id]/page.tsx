@@ -6,6 +6,10 @@ import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
+import {
+  RadiatingDotTabIcon,
+  RadiatingDotTabIconActive,
+} from '@/components/ui/RadiatingDotTabIcon';
 import { ActivityFeedList, ActivityRow } from '@/components/Activity';
 import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.utils';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
@@ -15,9 +19,10 @@ import { ModerationPreview } from '@/components/profile/ModerationPreview';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import {
-  ProfileHeroBanner,
-  ProfileHeroBannerSkeleton,
-} from '@/components/profile/ProfileHeroBanner';
+  ProfileSidebar,
+  ProfileSidebarSkeleton,
+  ProfileTabsSkeleton,
+} from '@/components/profile/ProfileSidebar';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import type { AuthorProfile } from '@/types/authorProfile';
 
@@ -36,9 +41,15 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-type AuthorTab = 'overview' | 'moderation';
+type AuthorTab = 'activity' | 'moderation';
 
-const OVERVIEW_TAB = { id: 'overview', label: 'Overview' };
+const ACTIVITY_TAB = {
+  id: 'activity',
+  label: 'Activity',
+  icon: RadiatingDotTabIcon,
+  activeIcon: RadiatingDotTabIconActive,
+  iconClassName: 'w-[18px] h-[18px]',
+};
 
 const MODERATION_TAB = {
   id: 'moderation',
@@ -47,9 +58,9 @@ const MODERATION_TAB = {
   iconClassName: 'w-4 h-4',
 };
 
-/** Overview answers to its legacy `contributions` token so existing links stay valid. */
+/** Activity answers to its legacy `contributions` token so existing links stay valid. */
 function resolveAuthorTab(tab: string): AuthorTab {
-  return tab === 'moderation' ? 'moderation' : 'overview';
+  return tab === 'moderation' ? 'moderation' : 'activity';
 }
 
 function AuthorActivityFeed({ author }: { author: AuthorProfile }) {
@@ -99,11 +110,10 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   useOrcidCallback({ onSuccess: refreshUser });
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
 
-  // Tab state â€” lifted here so the tab bar can live in the hero banner
   const searchParams = useSearchParams();
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const urlTab = searchParams.get('tab') || 'contributions';
+  const urlTab = searchParams.get('tab') || 'activity';
   const [pendingTab, setPendingTab] = useState<string | null>(null);
 
   useEffect(() => {
@@ -115,7 +125,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const activeTab = resolveAuthorTab(pendingTab ?? urlTab);
 
   const changeTab = (tabId: string) => {
-    const nextTab = tabId === 'moderation' ? 'moderation' : 'contributions';
+    const nextTab = resolveAuthorTab(tabId);
     setPendingTab(nextTab);
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
@@ -128,38 +138,35 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const isOwnProfile = !!(
     currentUser?.authorProfile?.id && user?.authorProfile?.id === currentUser.authorProfile.id
   );
-  const tabs = canModerate ? [OVERVIEW_TAB, MODERATION_TAB] : [OVERVIEW_TAB];
+  const tabs = canModerate ? [ACTIVITY_TAB, MODERATION_TAB] : [ACTIVITY_TAB];
 
   const tabsReady = !isLoading && !isUserLoading && !!user?.authorProfile;
   const tabBar = tabsReady ? (
     <Tabs tabs={tabs} activeTab={activeTab} onTabChange={changeTab} variant="primary" />
-  ) : undefined;
+  ) : (
+    <ProfileTabsSkeleton count={1} />
+  );
 
   const profileLoading = isLoading || isUserLoading;
-
-  const topBanner = (() => {
-    if (profileLoading) {
-      return <ProfileHeroBannerSkeleton tabCount={1} />;
-    }
-    if (error || userError || !user?.authorProfile) return undefined;
-    return (
-      <ProfileHeroBanner
-        author={user.authorProfile}
-        refetchAuthorInfo={refetchAuthorInfo}
-        tabBar={tabBar}
-      />
-    );
-  })();
 
   const author = user?.authorProfile;
   const profileError = error || userError;
 
-  const sidebarContent = author && (
-    <div className="flex flex-col gap-4">
-      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
-      {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
-    </div>
-  );
+  const renderSidebar = () => {
+    if (profileError) return null;
+    if (profileLoading) return <ProfileSidebarSkeleton />;
+    if (!author) return null;
+
+    return (
+      <div className="flex flex-col gap-4">
+        <ProfileSidebar author={author} refetchAuthorInfo={refetchAuthorInfo} />
+        <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
+        {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
+      </div>
+    );
+  };
+
+  const sidebarContent = renderSidebar();
 
   const renderMain = () => {
     if (profileError) {
@@ -185,23 +192,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <PageLayout rightSidebar={null} topBanner={topBanner} className="tablet:!max-w-full">
-      <div className="flex flex-col sidebar-profile:flex-row gap-6 items-start">
-        {!profileError && (
-          <div className="w-full hidden tablet:block sidebar-profile:hidden">{sidebarContent}</div>
-        )}
-        <div className="flex-1 min-w-0 w-full">
-          {/* Narrow widths carry the sidebar in the Overview tab only, so it never
-              sits as filler above the Moderation tab. */}
-          {activeTab === 'overview' && !profileError && (
-            <div className="tablet:hidden mb-4">{sidebarContent}</div>
-          )}
-          {renderMain()}
+    <PageLayout contentWidth="narrow" rightSidebar={sidebarContent}>
+      {sidebarContent && (
+        <div className="mx-auto mb-6 max-w-72 lg:!hidden right-sidebar:!hidden">
+          {sidebarContent}
         </div>
-        <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
-          {!profileError && sidebarContent}
-        </aside>
-      </div>
+      )}
+      {!profileError && (profileLoading || author) && <div className="mb-6">{tabBar}</div>}
+      {renderMain()}
     </PageLayout>
   );
 }

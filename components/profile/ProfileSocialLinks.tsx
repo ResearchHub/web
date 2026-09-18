@@ -1,15 +1,67 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
+import { faBirthdayCake, faGraduationCap } from '@fortawesome/pro-light-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { AuthorProfile } from '@/types/authorProfile';
+import { specificTimeSince, MEMBERSHIP_JUST_JOINED } from '@/utils/date';
+import { ProfileEducation } from './ProfileEducation';
 
 interface ProfileSocialLinksProps {
-  author: AuthorProfile;
+  readonly author: AuthorProfile;
 }
 
 export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
+  const membershipDuration = author.createdDate && specificTimeSince(author.createdDate);
+  const membershipLabel =
+    membershipDuration &&
+    (membershipDuration === MEMBERSHIP_JUST_JOINED
+      ? 'Member just joined'
+      : `Member for ${membershipDuration}`);
+
   return (
-    <div className="flex gap-3 justify-start">
+    <div className="flex items-center gap-3 justify-center [&>*]:flex [&>*]:items-center">
+      {membershipLabel && (
+        <Tooltip content={membershipLabel} position="top" width="w-72" wrapperClassName="py-2">
+          <button
+            type="button"
+            aria-label={membershipLabel}
+            className="flex items-center text-gray-500 hover:text-gray-700"
+          >
+            <FontAwesomeIcon icon={faBirthdayCake} className="h-6 w-6" />
+          </button>
+        </Tooltip>
+      )}
+      {!!author.education?.length && (
+        <Tooltip
+          content={
+            <ProfileEducation
+              educations={author.education}
+              previewCount={author.education.length}
+            />
+          }
+          position="top"
+          width="w-72"
+          className="text-left"
+          wrapperClassName="py-2"
+        >
+          <button
+            type="button"
+            aria-label="Education"
+            className="flex items-center text-gray-500 hover:text-gray-700"
+          >
+            <FontAwesomeIcon icon={faGraduationCap} className="h-6 w-6" />
+          </button>
+        </Tooltip>
+      )}
+      <div className="py-2" title={author.isVerified ? undefined : 'Not verified'}>
+        <VerifiedBadge
+          size="lg"
+          showTooltip={author.isVerified}
+          className={author.isVerified ? undefined : 'cursor-not-allowed [&>svg]:text-gray-300'}
+        />
+      </div>
       <SocialIcon
         icon={<FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />}
         href={author.linkedin}
