@@ -11,12 +11,13 @@ import { specificTimeSince, MEMBERSHIP_JUST_JOINED } from '@/utils/date';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useUser } from '@/contexts/UserContext';
+import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
-import { ProfileEditButton } from './ProfileEditButton';
+import { ProfileActions } from './ProfileActions';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileEducation } from './ProfileEducation';
 import { ProfileEditModal } from './ProfileEditModal';
-import { DeleteAuthorButton } from './DeleteAuthorButton';
+import { ProfileModerationScore } from './ProfileModerationScore';
 import { cn } from '@/utils/styles';
 
 const PROFILE_TAB_WIDTHS = ['w-20', 'w-16', 'w-16', 'w-24'] as const;
@@ -48,6 +49,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
   const isModerator = !!currentUser?.isModerator;
   const isOrcidConnected = Boolean(author.isOrcidConnected);
+  const canManageProfile = isOwnProfile || isModerator;
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const description = author.description || '';
@@ -60,6 +62,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
     : { percent: 0, missing: [] };
 
   const { sync: syncAuthorship, isSyncing } = useSyncOrcid({ onSuccess: refetchAuthorInfo });
+  const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
 
   useEffect(() => {
     if (!isOwnProfile) setIsEditModalOpen(false);
@@ -72,7 +75,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
       <HeroHeader tabBar={tabBar}>
         <div className="flex flex-col sm:!flex-row gap-6">
           {/* Left column - Avatar */}
-          <div className="flex-shrink-0 flex justify-between items-start">
+          <div className="flex-shrink-0">
             <Avatar
               src={author.profileImage}
               alt={author.fullName}
@@ -83,22 +86,13 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
               missing={missing}
               showTooltip
             />
-            {isOwnProfile && (
-              <ProfileEditButton
-                isOrcidConnected={isOrcidConnected}
-                onEditClick={() => setIsEditModalOpen(true)}
-                onSyncClick={syncAuthorship}
-                isSyncing={isSyncing}
-                className="flex sm:!hidden items-center gap-2"
-              />
-            )}
           </div>
 
           {/* Right column - Content */}
           <div className="flex flex-col flex-1 min-w-0 gap-4">
-            {/* Header with name and edit button */}
-            <div className="flex flex-col sm:!flex-row justify-between items-start gap-4">
-              <div className="flex flex-col items-start">
+            {/* Header with name and profile actions */}
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex min-w-0 flex-col items-start">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-snug text-gray-900">
                     {author.fullName}
@@ -109,24 +103,25 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
                   <p className="text-sm sm:text-base text-gray-500 mt-1">{author.headline}</p>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                {isOwnProfile && (
-                  <ProfileEditButton
-                    isOrcidConnected={isOrcidConnected}
-                    onEditClick={() => setIsEditModalOpen(true)}
-                    onSyncClick={syncAuthorship}
-                    isSyncing={isSyncing}
-                    className="hidden sm:!flex items-center gap-2"
-                  />
-                )}
-                {isModerator && (
-                  <DeleteAuthorButton authorId={author.id} authorName={author.fullName} />
-                )}
-              </div>
+              {canManageProfile && (
+                <ProfileActions
+                  authorId={author.id}
+                  authorName={author.fullName}
+                  canEdit={isOwnProfile}
+                  canDelete={isModerator}
+                  isOrcidConnected={isOrcidConnected}
+                  onEditClick={() => setIsEditModalOpen(true)}
+                  onSyncClick={syncAuthorship}
+                  isSyncing={isSyncing}
+                />
+              )}
             </div>
 
             <div className="flex flex-col gap-1">
               <ProfileEducation educations={author.education ?? []} />
+              {isModerator && author.userId && (
+                <ProfileModerationScore userId={author.userId.toString()} />
+              )}
               {membershipDuration && (
                 <div className="flex items-baseline gap-2 text-gray-600">
                   <FontAwesomeIcon
@@ -158,7 +153,12 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
               </div>
             )}
 
-            <ProfileSocialLinks author={author} />
+            <ProfileSocialLinks
+              author={author}
+              isOwnProfile={isOwnProfile}
+              onConnectOrcid={connectOrcid}
+              isConnectingOrcid={isConnectingOrcid}
+            />
           </div>
         </div>
       </HeroHeader>

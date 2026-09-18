@@ -5,9 +5,19 @@ import { AuthorProfile } from '@/types/authorProfile';
 
 interface ProfileSocialLinksProps {
   author: AuthorProfile;
+  isOwnProfile: boolean;
+  onConnectOrcid: () => void;
+  isConnectingOrcid: boolean;
 }
 
-export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
+export function ProfileSocialLinks({
+  author,
+  isOwnProfile,
+  onConnectOrcid,
+  isConnectingOrcid,
+}: ProfileSocialLinksProps) {
+  const canConnectOrcid = isOwnProfile && !author.isOrcidConnected;
+
   return (
     <div className="flex gap-3 justify-start">
       <SocialIcon
@@ -26,16 +36,30 @@ export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
           author.googleScholar ? '[&>svg]:text-[#4285F4] [&>svg]:hover:text-[#21429F] px-0' : 'px-0'
         }
       />
-      <SocialIcon
-        icon={<FontAwesomeIcon icon={faOrcid} className="h-6 w-6" />}
-        href={author.isOrcidConnected ? author.orcidId : null}
-        label="ORCID"
-        className={
-          author.isOrcidConnected
-            ? '[&>svg]:text-orcid-500 [&>svg]:hover:text-orcid-600 px-0'
-            : 'px-0'
-        }
-      />
+      {canConnectOrcid ? (
+        <button
+          type="button"
+          onClick={onConnectOrcid}
+          disabled={isConnectingOrcid}
+          className="cursor-pointer px-0 py-2 text-gray-300 transition-colors hover:text-orcid-500 disabled:cursor-wait disabled:hover:text-gray-300"
+          aria-label={isConnectingOrcid ? 'Connecting ORCID' : 'Connect ORCID'}
+          aria-busy={isConnectingOrcid}
+          title={isConnectingOrcid ? 'Connecting ORCID' : 'Connect ORCID'}
+        >
+          <FontAwesomeIcon icon={faOrcid} className="h-6 w-6" />
+        </button>
+      ) : (
+        <SocialIcon
+          icon={<FontAwesomeIcon icon={faOrcid} className="h-6 w-6" />}
+          href={author.isOrcidConnected ? author.orcidId : null}
+          label="ORCID"
+          className={
+            author.isOrcidConnected
+              ? '[&>svg]:text-orcid-500 [&>svg]:hover:text-orcid-600 px-0'
+              : 'px-0'
+          }
+        />
+      )}
       <SocialIcon
         icon={<FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" />}
         href={author.twitter}

@@ -11,8 +11,6 @@ import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.ut
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { ModerationTab } from '@/components/profile/ModerationTab';
-import { ModerationPreview } from '@/components/profile/ModerationPreview';
-import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import {
   ProfileHeroBanner,
@@ -125,9 +123,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   };
 
   const canModerate = !!(currentUser?.moderator || isHubEditor) && !!user?.authorProfile?.userId;
-  const isOwnProfile = !!(
-    currentUser?.authorProfile?.id && user?.authorProfile?.id === currentUser.authorProfile.id
-  );
   const tabs = canModerate ? [OVERVIEW_TAB, MODERATION_TAB] : [OVERVIEW_TAB];
 
   const tabsReady = !isLoading && !isUserLoading && !!user?.authorProfile;
@@ -154,13 +149,6 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const author = user?.authorProfile;
   const profileError = error || userError;
 
-  const sidebarContent = author && (
-    <div className="flex flex-col gap-4">
-      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
-      {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
-    </div>
-  );
-
   const renderMain = () => {
     if (profileError) {
       const message = error || userError?.message || 'Unknown error';
@@ -185,23 +173,12 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <PageLayout rightSidebar={null} topBanner={topBanner} className="tablet:!max-w-full">
-      <div className="flex flex-col sidebar-profile:flex-row gap-6 items-start">
-        {!profileError && (
-          <div className="w-full hidden tablet:block sidebar-profile:hidden">{sidebarContent}</div>
-        )}
-        <div className="flex-1 min-w-0 w-full">
-          {/* Narrow widths carry the sidebar in the Overview tab only, so it never
-              sits as filler above the Moderation tab. */}
-          {activeTab === 'overview' && !profileError && (
-            <div className="tablet:hidden mb-4">{sidebarContent}</div>
-          )}
-          {renderMain()}
-        </div>
-        <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
-          {!profileError && sidebarContent}
-        </aside>
-      </div>
+    <PageLayout
+      rightSidebar={false}
+      topBanner={topBanner}
+      className="sidebar-profile:max-w-[calc(100%-19.5rem)] lg:max-w-[calc(100%-21.5rem)]"
+    >
+      {renderMain()}
     </PageLayout>
   );
 }
