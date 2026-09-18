@@ -20,7 +20,7 @@ import { cn } from '@/utils/styles';
 
 const PROFILE_TAB_WIDTHS = ['w-20', 'w-16', 'w-16', 'w-24'] as const;
 
-export function ProfileTabsSkeleton({ count = 3 }: { count?: number }) {
+export function ProfileTabsSkeleton({ count = 3 }: Readonly<{ count?: number }>) {
   return (
     <div className="flex items-center space-x-8 -mb-px animate-pulse">
       {Array.from({ length: count }, (_, i) => (
@@ -36,8 +36,8 @@ export function ProfileTabsSkeleton({ count = 3 }: { count?: number }) {
 }
 
 interface ProfileSidebarProps {
-  author: AuthorProfile;
-  refetchAuthorInfo: () => Promise<void>;
+  readonly author: AuthorProfile;
+  readonly refetchAuthorInfo: () => Promise<void>;
 }
 
 export function ProfileSidebar({ author, refetchAuthorInfo }: ProfileSidebarProps) {

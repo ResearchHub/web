@@ -152,15 +152,21 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const author = user?.authorProfile;
   const profileError = error || userError;
 
-  const sidebarContent = profileError ? null : profileLoading ? (
-    <ProfileSidebarSkeleton />
-  ) : author ? (
-    <div className="flex flex-col gap-4">
-      <ProfileSidebar author={author} refetchAuthorInfo={refetchAuthorInfo} />
-      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
-      {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
-    </div>
-  ) : null;
+  const renderSidebar = () => {
+    if (profileError) return null;
+    if (profileLoading) return <ProfileSidebarSkeleton />;
+    if (!author) return null;
+
+    return (
+      <div className="flex flex-col gap-4">
+        <ProfileSidebar author={author} refetchAuthorInfo={refetchAuthorInfo} />
+        <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
+        {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
+      </div>
+    );
+  };
+
+  const sidebarContent = renderSidebar();
 
   const renderMain = () => {
     if (profileError) {
