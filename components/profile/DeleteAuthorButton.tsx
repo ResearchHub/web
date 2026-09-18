@@ -32,13 +32,12 @@ export function DeleteAuthorButton({ authorId, authorName }: Readonly<DeleteAuth
     <>
       <Button
         variant="outlined"
-        size="sm"
-        className="text-red-600 border-red-200 hover:text-red-700 hover:bg-red-50"
+        className="px-3 text-[13px] whitespace-nowrap text-red-600 border-red-200 hover:text-red-700 hover:bg-red-50"
         onClick={() => setIsConfirmOpen(true)}
         disabled={isLoading}
       >
-        <Trash2 className="w-4 h-4 mr-1.5" />
-        {isLoading ? 'Deleting...' : 'Delete author'}
+        <Trash2 className="w-4 h-4 mr-2" />
+        {isLoading ? 'Deleting...' : 'Delete Author'}
       </Button>
 
       <ConfirmModal

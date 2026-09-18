@@ -1,6 +1,4 @@
 import { Button } from '@/components/ui/Button';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { MoreHorizontal } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -27,19 +25,15 @@ export function ProfileEditButton({
         Edit Profile
       </Button>
       {isOrcidConnected && (
-        <BaseMenu
-          trigger={
-            <Button variant="outlined" aria-label="More actions">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          }
-          align="end"
+        <Button
+          variant="outlined"
+          onClick={onSyncClick}
+          disabled={isSyncing}
+          className="order-last col-span-full"
         >
-          <BaseMenuItem onClick={onSyncClick} disabled={isSyncing}>
-            <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-2 text-orcid-500" />
-            {isSyncing ? 'Syncing...' : 'Sync ORCID'}
-          </BaseMenuItem>
-        </BaseMenu>
+          <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-2 text-orcid-500" />
+          {isSyncing ? 'Syncing...' : 'Sync ORCID'}
+        </Button>
       )}
     </div>
   );

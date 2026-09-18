@@ -15,14 +15,14 @@ import { FeedSource } from '@/types/analytics';
  * 2. Third path segment for topic pages (e.g., /topic/ai/popular → tab: 'popular')
  * 3. Second path segment for list pages (e.g., /list/123 → tab: '123')
  * 4. Second path segment for other pages (e.g., /topic/ai/popular)
- * 5. For author pages: default to 'contributions' when no query param
+ * 5. For author pages: default to 'activity' when no query param
  * 6. Default to 'unknown'
  *
  * Special handling:
  * - Root path (/) is treated as 'home' source
  * - Topic pages (/topic/slug/tab) use the third path segment as tab
  * - List pages (/list/[id]) use the second path segment (list ID) as tab
- * - Author pages (/author/[id]) default to 'contributions' tab when no query param
+ * - Author pages (/author/[id]) default to 'activity' tab when no query param
  *
  * URL Structure Examples:
  * - / → source: 'home', tab: 'unknown'
@@ -32,7 +32,7 @@ import { FeedSource } from '@/types/analytics';
  * - /topic/ai/popular → source: 'topic', tab: 'popular'
  * - /topic/ai/latest → source: 'topic', tab: 'latest'
  * - /fund/needs-funding → source: 'fund', tab: 'needs-funding'
- * - /author/153397 → source: 'author', tab: 'contributions'
+ * - /author/153397 → source: 'author', tab: 'activity'
  * - /list/123 → source: 'list', tab: '123'
  */
 
@@ -103,8 +103,8 @@ export function useFeedSource(): FeedSourceInfo {
     // For list pages, use the list ID (second path segment) as tab
     tab = pathTab;
   } else if (isAuthorTab) {
-    // For author pages, default to 'contributions' when no query param
-    tab = 'contributions';
+    // For author pages, default to 'activity' when no query param
+    tab = 'activity';
   } else if (pathTab && !isTopicTab && !isAuthorTab && !isListTab) {
     tab = pathTab;
   } else {

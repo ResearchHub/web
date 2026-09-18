@@ -9,7 +9,7 @@ interface ProfileSocialLinksProps {
 
 export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
   return (
-    <div className="flex gap-3 justify-start">
+    <div className="flex gap-3 justify-center">
       <SocialIcon
         icon={<FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />}
         href={author.linkedin}
