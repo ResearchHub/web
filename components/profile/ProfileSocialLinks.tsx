@@ -10,9 +10,9 @@ interface ProfileSocialLinksProps {
 
 export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
   return (
-    <div className="flex items-center gap-3 justify-center">
+    <div className="flex items-center gap-3 justify-center [&>*]:flex [&>*]:items-center">
       {author.isVerified && (
-        <div className="flex items-center py-2">
+        <div className="py-2">
           <VerifiedBadge size="lg" showTooltip />
         </div>
       )}
