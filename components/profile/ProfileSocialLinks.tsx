@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { AuthorProfile } from '@/types/authorProfile';
 
 interface ProfileSocialLinksProps {
@@ -9,7 +10,12 @@ interface ProfileSocialLinksProps {
 
 export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
   return (
-    <div className="flex gap-3 justify-center">
+    <div className="flex items-center gap-3 justify-center">
+      {author.isVerified && (
+        <div className="flex items-center py-2">
+          <VerifiedBadge size="lg" showTooltip />
+        </div>
+      )}
       <SocialIcon
         icon={<FontAwesomeIcon icon={faLinkedin} className="h-6 w-6" />}
         href={author.linkedin}

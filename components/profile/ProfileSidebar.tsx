@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
@@ -81,27 +80,20 @@ export function ProfileSidebar({ author, refetchAuthorInfo }: ProfileSidebarProp
           />
         </div>
 
-        <div className="flex min-w-0 items-start justify-center gap-2">
-          {author.isVerified && (
-            <div className="shrink-0 pt-1.5">
-              <VerifiedBadge showTooltip />
-            </div>
+        <h1
+          className="min-w-0 text-center text-2xl font-semibold tracking-tight leading-snug text-gray-900"
+          title={author.fullName}
+          aria-label={author.fullName}
+        >
+          {author.firstName || author.lastName ? (
+            <>
+              <span className="block truncate">{author.firstName}</span>
+              <span className="block truncate">{author.lastName}</span>
+            </>
+          ) : (
+            <span className="block truncate">{author.fullName}</span>
           )}
-          <h1
-            className="min-w-0 text-center text-2xl font-semibold tracking-tight leading-snug text-gray-900"
-            title={author.fullName}
-            aria-label={author.fullName}
-          >
-            {author.firstName || author.lastName ? (
-              <>
-                <span className="block truncate">{author.firstName}</span>
-                <span className="block truncate">{author.lastName}</span>
-              </>
-            ) : (
-              <span className="block truncate">{author.fullName}</span>
-            )}
-          </h1>
-        </div>
+        </h1>
 
         {author.headline && <p className="text-center text-sm text-gray-500">{author.headline}</p>}
 
