@@ -81,7 +81,12 @@ export function ProfileSidebar({ author, refetchAuthorInfo }: ProfileSidebarProp
           />
         </div>
 
-        <div className="flex min-w-0 items-center justify-center gap-2">
+        <div className="flex min-w-0 items-start justify-center gap-2">
+          {author.isVerified && (
+            <div className="shrink-0 pt-1.5">
+              <VerifiedBadge showTooltip />
+            </div>
+          )}
           <h1
             className="min-w-0 text-center text-2xl font-semibold tracking-tight leading-snug text-gray-900"
             title={author.fullName}
@@ -96,12 +101,9 @@ export function ProfileSidebar({ author, refetchAuthorInfo }: ProfileSidebarProp
               <span className="block truncate">{author.fullName}</span>
             )}
           </h1>
-          {author.isVerified && (
-            <div className="shrink-0">
-              <VerifiedBadge showTooltip />
-            </div>
-          )}
         </div>
+
+        {author.headline && <p className="text-center text-sm text-gray-500">{author.headline}</p>}
 
         {(isOwnProfile || isModerator) && (
           <div
@@ -124,8 +126,6 @@ export function ProfileSidebar({ author, refetchAuthorInfo }: ProfileSidebarProp
             )}
           </div>
         )}
-
-        {author.headline && <p className="text-center text-sm text-gray-500">{author.headline}</p>}
 
         <div className="flex flex-col gap-1 text-sm">
           <ProfileEducation educations={author.education ?? []} />
