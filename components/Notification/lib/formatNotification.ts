@@ -1,4 +1,5 @@
 import { type IconName } from '@/components/ui/icons/Icon';
+import { FOUNDATION_BOUNTY_FLAT_USD, FOUNDATION_USER_ID } from '@/config/constants';
 import { Notification } from '@/types/notification';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 import { buildWorkUrl } from '@/utils/url';
@@ -256,6 +257,25 @@ export function getRSCAmountFromNotification(notification: Notification): number
   return null;
 }
 
+const isFoundationPeerReviewBountyNotification = (notification: Notification): boolean => {
+  const bountyCreatorId = notification.extra?.bountyCreatorId;
+
+  return (
+    notification.type === 'BOUNTY_FOR_YOU' &&
+    notification.extra?.bounty_type?.toUpperCase() === 'REVIEW' &&
+    FOUNDATION_USER_ID !== null &&
+    bountyCreatorId?.toString() === FOUNDATION_USER_ID.toString()
+  );
+};
+
+export function getBountyForYouUsdOverride(notification: Notification): number | null {
+  if (isFoundationPeerReviewBountyNotification(notification)) {
+    return FOUNDATION_BOUNTY_FLAT_USD;
+  }
+
+  return null;
+}
+
 /** Matches formatted USD (`$1,234.56 USD`) or RSC (`1,234 RSC`) amounts in notification copy. */
 function notificationMessageIncludesAmount(message: string): boolean {
   return /\$[\d,]+(?:\.\d+)?\s*USD\b/.test(message) || /\b[\d,]+(?:\.\d+)?\s+RSC\b/.test(message);
@@ -418,7 +438,11 @@ export function formatNotificationMessage(
       const amount = notification.extra?.amount || '0';
       const bountyType = notification.extra?.bounty_type || '';
       const bountyTypeAction = getBountyTypeAction(bountyType);
-      const usdValue = formatUsdValue(amount, exchangeRate);
+      const usdAmount = getBountyForYouUsdOverride(notification);
+      const usdValue =
+        usdAmount !== null
+          ? `$${usdAmount.toLocaleString()} USD`
+          : formatUsdValue(amount, exchangeRate);
       return `Your expertise is needed! Earn ${usdValue} for ${bountyTypeAction} "${truncatedTitle}"`;
     }
 
