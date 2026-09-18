@@ -9,7 +9,6 @@ import { useUser } from '@/contexts/UserContext';
 import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
 import { ProfileActionsMenu } from './ProfileActionsMenu';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
-import { ProfileEducation } from './ProfileEducation';
 import { ProfileEditModal } from './ProfileEditModal';
 import { cn } from '@/utils/styles';
 
@@ -87,10 +86,6 @@ export function ProfileSidebar({ author, refetchAuthorInfo }: ProfileSidebarProp
         </h1>
 
         {author.headline && <p className="text-center text-sm text-gray-500">{author.headline}</p>}
-
-        <div className="text-sm empty:hidden">
-          <ProfileEducation educations={author.education ?? []} />
-        </div>
 
         {description && (
           <div className="text-sm">

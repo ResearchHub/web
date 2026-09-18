@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/Button';
 import { Education } from '@/types/authorProfile';
 
 interface ProfileEducationProps {
-  educations: Education[];
+  readonly educations: Education[];
+  readonly previewCount?: number;
 }
 
-export function ProfileEducation({ educations }: ProfileEducationProps) {
+export function ProfileEducation({ educations, previewCount = 2 }: ProfileEducationProps) {
   const [showAll, setShowAll] = useState(false);
 
   if (educations.length === 0) return null;
@@ -19,7 +20,7 @@ export function ProfileEducation({ educations }: ProfileEducationProps) {
   const primaryEducation = primaryIndex !== -1 ? educations[primaryIndex] : undefined;
   const otherEducations = educations.filter((_, idx) => idx !== primaryIndex);
   const allOrdered = [primaryEducation, ...otherEducations].filter(Boolean);
-  const displayed = showAll ? allOrdered : allOrdered.slice(0, 2);
+  const displayed = showAll ? allOrdered : allOrdered.slice(0, previewCount);
   const remainingCount = allOrdered.length - displayed.length;
 
   return (

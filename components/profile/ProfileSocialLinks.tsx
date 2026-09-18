@@ -1,11 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
-import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
+import { faBirthdayCake, faGraduationCap } from '@fortawesome/pro-light-svg-icons';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { AuthorProfile } from '@/types/authorProfile';
 import { specificTimeSince, MEMBERSHIP_JUST_JOINED } from '@/utils/date';
+import { ProfileEducation } from './ProfileEducation';
 
 interface ProfileSocialLinksProps {
   readonly author: AuthorProfile;
@@ -29,6 +30,28 @@ export function ProfileSocialLinks({ author }: ProfileSocialLinksProps) {
             className="flex items-center text-gray-500 hover:text-gray-700"
           >
             <FontAwesomeIcon icon={faBirthdayCake} className="h-6 w-6" />
+          </button>
+        </Tooltip>
+      )}
+      {!!author.education?.length && (
+        <Tooltip
+          content={
+            <ProfileEducation
+              educations={author.education}
+              previewCount={author.education.length}
+            />
+          }
+          position="top"
+          width="w-72"
+          className="text-left"
+          wrapperClassName="py-2"
+        >
+          <button
+            type="button"
+            aria-label="Education"
+            className="flex items-center text-gray-500 hover:text-gray-700"
+          >
+            <FontAwesomeIcon icon={faGraduationCap} className="h-6 w-6" />
           </button>
         </Tooltip>
       )}
