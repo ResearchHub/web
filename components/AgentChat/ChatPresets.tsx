@@ -1,7 +1,7 @@
 'use client';
 
 import type { ComponentType } from 'react';
-import { ClipboardCheck, HandCoins, Lightbulb, PenLine, SquarePen, Telescope } from 'lucide-react';
+import { ClipboardCheck, Lightbulb, PenLine, SquarePen, Telescope } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
 /** What kind of document the note is, which decides its opening moves. */
@@ -73,32 +73,6 @@ const BRAINSTORM_PROPOSAL: ChatPreset = {
   message:
     'Brainstorm with me on this proposal: alternative hypotheses, study designs, and angles I ' +
     'have not considered. Give me a short list to react to.',
-};
-
-/**
- * The funding search in a note-shaped and an author-shaped form. A written
- * note is the better brief, and an empty one is no brief at all, so the search
- * falls back to the person doing it. Only offered while no RFP is selected:
- * once one is, the question is answered.
- */
-const FUNDING_FROM_NOTE: ChatPreset = {
-  id: 'funding',
-  label: 'Find me funding',
-  chipLabel: 'Find funding',
-  description: 'Open RFPs that fit this work',
-  icon: HandCoins,
-  message:
-    'Find open RFPs I could apply to that fit this work, and tell me why each one is a match.',
-};
-
-const FUNDING_FROM_EXPERTISE: ChatPreset = {
-  id: 'funding',
-  label: 'Find me funding',
-  chipLabel: 'Find funding',
-  description: 'Open RFPs that fit your expertise',
-  icon: HandCoins,
-  message:
-    'Find open RFPs I could apply to based on my expertise, and tell me why each one is a match.',
 };
 
 // ---- RFPs: the side handing out money ----
@@ -191,13 +165,11 @@ export function chatPresetsFor({
 }: ChatPresetContext): ChatPreset[] {
   switch (noteKind) {
     case 'proposal': {
-      const presets = [
+      return [
         noteIsEmpty ? draftProposal(hasSelectedRfp) : strengthenProposal(hasSelectedRfp),
         ...(noteIsEmpty ? [] : [PEER_REVIEW_PROPOSAL]),
         BRAINSTORM_PROPOSAL,
       ];
-      if (!hasSelectedRfp) presets.push(noteIsEmpty ? FUNDING_FROM_EXPERTISE : FUNDING_FROM_NOTE);
-      return presets;
     }
     case 'rfp':
       return [
@@ -208,6 +180,39 @@ export function chatPresetsFor({
     default:
       return [noteIsEmpty ? RESEARCH_FROM_EXPERTISE : RESEARCH_FROM_NOTE];
   }
+}
+
+/**
+ * A preset as it is described wherever it is offered: its icon on a gray tile,
+ * as the Publish menu draws its entries, then its name and what it does. Shared
+ * by the panel's cards and the tooltips on the chips over the document, so the
+ * two can't drift apart.
+ */
+export function PresetSummary({
+  preset,
+  surface = 'white',
+}: {
+  /** A preset, or anything offered beside them that is described the same way. */
+  readonly preset: Pick<ChatPreset, 'icon' | 'label' | 'description'>;
+  /** What the summary sits on: the tile steps one shade darker to stay visible. */
+  readonly surface?: 'white' | 'gray';
+}) {
+  return (
+    <span className="flex items-center gap-3 text-left">
+      <span
+        className={cn(
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-700',
+          surface === 'gray' ? 'bg-gray-200' : 'bg-gray-100'
+        )}
+      >
+        <preset.icon className="h-[18px] w-[18px]" aria-hidden="true" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold text-gray-900">{preset.label}</span>
+        <span className="block text-xs leading-snug text-gray-600">{preset.description}</span>
+      </span>
+    </span>
+  );
 }
 
 interface ChatPresetsProps extends ChatPresetContext {
@@ -238,19 +243,13 @@ export function ChatPresets({
           onClick={() => onSelect(preset.message)}
           disabled={disabled}
           className={cn(
-            'flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5',
-            'text-left transition-colors hover:border-primary-200 hover:bg-primary-50',
+            'w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5',
+            'transition-colors hover:border-gray-300 hover:bg-gray-50',
             'focus:outline-none focus-visible:border-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500',
             'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-gray-200 disabled:hover:bg-white'
           )}
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
-            <preset.icon className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold text-gray-900">{preset.label}</span>
-            <span className="block text-xs text-gray-500">{preset.description}</span>
-          </span>
+          <PresetSummary preset={preset} />
         </button>
       ))}
     </div>

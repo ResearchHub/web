@@ -17,7 +17,12 @@
 
   /* Default Placeholder */
   & > .is-editor-empty::before {
-    content: 'Click here to start writing …';
+    content: 'Start writing...';
+  }
+
+  /* The title line already carries the empty-note placeholder */
+  & > h1:first-child ~ .is-editor-empty:not(.has-focus)::before {
+    content: none;
   }
 
   /* Blockquote Placeholder */

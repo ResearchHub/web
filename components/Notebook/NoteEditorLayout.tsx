@@ -31,6 +31,7 @@ import { NoteReviewControls } from './NoteReview/NoteReviewControls';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
+import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useAgentChatWidth } from '@/hooks/useAgentChatWidth';
 import { useUpdateNote } from '@/hooks/useNote';
@@ -123,7 +124,9 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   } = useNotebookContext();
 
   const { selectedOrg } = useOrganizationContext();
-  const { user, isLoading: isLoadingUser } = useUser();
+  const { user, isLoading: isLoadingUser, refreshUser } = useUser();
+  // ORCID's sign-in, started from the composer bar, comes back to this note.
+  useOrcidCallback({ onSuccess: refreshUser });
   const { mdAndUp, lgAndUp, xlAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
@@ -408,6 +411,9 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           // shrink below 64px (it hosts the editor's drag handle), so the
           // right side rises to meet it rather than the reverse.
           'p-0 lg:!p-8 lg:!px-16',
+          // The composer bar rests on the foot of the paper; the last lines of
+          // the note need room to scroll clear of it.
+          isComposerBarVisible && '!pb-40',
           isLegacyNote && 'opacity-70 blur-sm pointer-events-none select-none'
         )}
         showBanner={
@@ -474,33 +480,43 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           </div>
         )}
 
-        <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
         {/*
-         * The composer over the document, with the panel's opening moves as
-         * chips. In the note's own column rather than fixed to the viewport, so
-         * it shares the paper's edges exactly and follows them as the panel
-         * docks; sticky, so it stays in reach down a long note. Measured from
-         * the scroll area, which on phones already stops above the bottom nav.
+         * The document and the composer over it share one grid cell, so the bar
+         * rests on the paper's own foot instead of trailing below it on the
+         * canvas: the paper is what grows to hold it. In the note's column
+         * rather than fixed to the viewport, so it shares the paper's edges
+         * exactly and follows them as the panel docks; sticky, so it stays in
+         * reach down a long note. Measured from the scroll area, which on
+         * phones already stops above the bottom nav.
          */}
-        {isComposerBarVisible && (
-          <div className={cn('pointer-events-none sticky bottom-6 z-40 mt-4', composerBarInset)}>
-            {/* A soft fade under the bar, so the document's last lines read
-                through the chips instead of colliding with them. */}
+        <div className={cn('grid', showTabs && activeTab !== 'document' && 'hidden')}>
+          <div className="col-start-1 row-start-1 min-w-0">{renderEditor()}</div>
+          {isComposerBarVisible && (
             <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 -bottom-6 -top-10 bg-gradient-to-t from-white via-white/80 to-transparent"
-            />
-            <AssistantComposerBar
-              className="pointer-events-auto relative mx-auto w-full max-w-[720px]"
-              noteIsEmpty={noteIsEmpty}
-              noteKind={noteKind}
-              hasSelectedRfp={Boolean(note?.selectedGrant)}
-              onSubmit={handleBarSubmit}
-              collapsed={isComposerCollapsed}
-              onExpand={() => setComposerFoldChoice(false)}
-            />
-          </div>
-        )}
+              className={cn(
+                'pointer-events-none sticky bottom-0 z-40 col-start-1 row-start-1 self-end pb-6',
+                composerBarInset
+              )}
+            >
+              {/* A soft fade under the bar, so the document's last lines read
+                  through the chips instead of colliding with them. Rounded to
+                  the paper's corners, which it covers at the end of the note. */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 -top-10 bottom-0 rounded-b-lg bg-gradient-to-t from-white via-white/80 to-transparent"
+              />
+              <AssistantComposerBar
+                className="pointer-events-auto relative mx-auto w-full max-w-[720px]"
+                noteIsEmpty={noteIsEmpty}
+                noteKind={noteKind}
+                hasSelectedRfp={Boolean(note?.selectedGrant)}
+                onSubmit={handleBarSubmit}
+                collapsed={isComposerCollapsed}
+                onExpand={() => setComposerFoldChoice(false)}
+              />
+            </div>
+          )}
+        </div>
         {showTabs && (
           <div className={cn(activeTab !== 'details' && 'hidden')}>
             <PublishingForm readOnly={isPublishedRegisteredReport} />

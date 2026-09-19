@@ -103,7 +103,7 @@ export function ChatComposer({
       <div
         className={cn(
           'relative rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all',
-          'focus-within:border-gray-400',
+          'focus-within:border-primary-300 focus-within:ring-2 focus-within:ring-primary-100',
           disabled && 'opacity-60'
         )}
       >

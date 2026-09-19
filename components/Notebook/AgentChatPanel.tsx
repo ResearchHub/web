@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { Check, MessageSquarePlus, Pencil, X } from 'lucide-react';
+import { Check, MessageSquarePlus, Pencil, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
@@ -30,7 +30,7 @@ import { CreditMeter } from '@/components/AgentChat/CreditMeter';
 import { useResearchAI } from '@/hooks/useResearchAI';
 import { canSelectAIModel } from '@/types/researchAI';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
-import { Logo } from '@/components/ui/Logo';
+import { ResearcherProfileStatus } from '@/components/Notebook/ResearcherProfileStatus';
 
 type PanelTab = 'chat' | 'sources';
 
@@ -803,6 +803,7 @@ export function AgentChatPanel({
         notice={notice}
         footer={
           <>
+            <ResearcherProfileStatus className="mt-2" />
             <CreditMeter
               budget={researchAI.budget}
               budgetStatus={researchAI.budgetStatus}
@@ -929,13 +930,11 @@ function EmptyState({
   return (
     <div className="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50">
-          <Logo size={32} noText />
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+          <Sparkles className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <p className="flex items-center justify-center gap-1.5 font-serif text-lg tracking-tight text-gray-800">
-            Research assistant
-          </p>
+          <p className="text-lg font-semibold tracking-tight text-gray-900">Research assistant</p>
           <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
             Ask questions about this note, search the web and scholarly literature, or have the
             assistant edit the draft for you.

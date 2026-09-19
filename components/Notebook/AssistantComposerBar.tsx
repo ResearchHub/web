@@ -1,8 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type FormEvent,
+  type KeyboardEvent,
+} from 'react';
 import { ArrowUp, Sparkles } from 'lucide-react';
-import { chatPresetsFor, type ChatPresetContext } from '@/components/AgentChat/ChatPresets';
+import {
+  chatPresetsFor,
+  PresetSummary,
+  type ChatPresetContext,
+} from '@/components/AgentChat/ChatPresets';
+import { ResearcherProfileStatus } from '@/components/Notebook/ResearcherProfileStatus';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 
 /** Tallest the input grows before it scrolls, in px: about five lines. */
@@ -115,22 +128,12 @@ export function AssistantComposerBar({
         )}
       >
         {presets.map((preset) => (
-          <button
+          <BarChip
             key={preset.id}
-            type="button"
-            tabIndex={collapsed ? -1 : 0}
+            item={preset}
+            focusable={!collapsed}
             onClick={() => pick(preset.message)}
-            title={preset.label}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5',
-              'text-[13px] font-semibold text-gray-700 shadow-sm transition-colors',
-              'hover:border-gray-300 hover:bg-gray-200 hover:text-gray-900',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500'
-            )}
-          >
-            <preset.icon className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
-            {preset.chipLabel}
-          </button>
+          />
         ))}
       </div>
 
@@ -196,6 +199,58 @@ export function AssistantComposerBar({
           </>
         )}
       </form>
+
+      {/* Folded, the bar is one badge; the profile line returns with the input. */}
+      {!collapsed && inputMounted && (
+        <ResearcherProfileStatus className="pointer-events-auto mt-2" />
+      )}
     </div>
+  );
+}
+
+interface BarChipItem {
+  readonly icon: ComponentType<{ className?: string }>;
+  readonly label: string;
+  readonly chipLabel: string;
+  readonly description: string;
+}
+
+/** A chip over the input, with the full wording of what it does on hover. */
+function BarChip({
+  item,
+  focusable,
+  onClick,
+}: {
+  readonly item: BarChipItem;
+  readonly focusable: boolean;
+  readonly onClick: () => void;
+}) {
+  return (
+    <Tooltip
+      position="top"
+      width="w-72"
+      // Desktop only. A tap on a chip acts on it, so touch never opens the
+      // tooltip; and a narrow window has no room for it over the chips.
+      disableTouchClick
+      // Filled like the chips it hangs from, so the two read as one piece.
+      className="border-gray-200 bg-gray-100 max-md:hidden"
+      arrow
+      content={<PresetSummary preset={item} surface="gray" />}
+    >
+      <button
+        type="button"
+        tabIndex={focusable ? 0 : -1}
+        onClick={onClick}
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5',
+          'text-[13px] font-semibold text-gray-700 shadow-sm transition-colors',
+          'hover:border-gray-300 hover:bg-gray-200 hover:text-gray-900',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500'
+        )}
+      >
+        <item.icon className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
+        {item.chipLabel}
+      </button>
+    </Tooltip>
   );
 }

@@ -33,6 +33,8 @@ interface TooltipProps extends VariantProps<typeof tooltipContentVariants> {
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
   /** When true, disable the tap-to-open behavior on touch devices (tooltip won't show at all there). */
   disableTouchClick?: boolean;
+  /** Draw a small pointer from the tooltip to its trigger. */
+  arrow?: boolean;
   /**
    * When true, the tooltip closes as soon as the user clicks anywhere inside
    * its content. Useful for popover-style tooltips whose content contains
@@ -58,6 +60,7 @@ const TooltipContent = ({
   position = 'bottom',
   width = 'w-38',
   theme = 'light',
+  arrow = false,
   onMouseEnter,
   onMouseLeave,
   onContentClick,
@@ -69,12 +72,15 @@ const TooltipContent = ({
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string;
   theme?: VariantProps<typeof tooltipContentVariants>['theme'];
+  arrow?: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   onContentClick?: () => void;
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  // Where the arrow sits along the tooltip's edge, in px from its top/left.
+  const [arrowOffset, setArrowOffset] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   // Position the tooltip based on the trigger element
@@ -88,24 +94,27 @@ const TooltipContent = ({
 
     let top = 0;
     let left = 0;
+    // An arrow reaches most of the way across the usual gap; widen it so the
+    // tip stops short of the trigger instead of touching it.
+    const gap = arrow ? 14 : 8;
 
     // Calculate position based on specified position
     switch (position) {
       case 'top':
-        top = triggerRect.top - tooltipRect.height - 8;
+        top = triggerRect.top - tooltipRect.height - gap;
         left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
         break;
       case 'bottom':
-        top = triggerRect.bottom + 8;
+        top = triggerRect.bottom + gap;
         left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
         break;
       case 'left':
         top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
-        left = triggerRect.left - tooltipRect.width - 8;
+        left = triggerRect.left - tooltipRect.width - gap;
         break;
       case 'right':
         top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
-        left = triggerRect.right + 8;
+        left = triggerRect.right + gap;
         break;
     }
 
@@ -115,9 +124,18 @@ const TooltipContent = ({
     if (top < 10) top = 10;
     if (top + tooltipRect.height > windowHeight - 10) top = windowHeight - tooltipRect.height - 10;
 
+    // The tooltip may have been nudged to stay on screen, so the arrow aims at
+    // the trigger's centre rather than the tooltip's — kept off the corners.
+    const isVertical = position === 'top' || position === 'bottom';
+    const target = isVertical
+      ? triggerRect.left + triggerRect.width / 2 - left
+      : triggerRect.top + triggerRect.height / 2 - top;
+    const edgeLength = isVertical ? tooltipRect.width : tooltipRect.height;
+    setArrowOffset(Math.min(Math.max(target, 12), edgeLength - 12));
+
     setTooltipPosition({ top, left });
     setMounted(true);
-  }, [triggerRect, position]);
+  }, [triggerRect, position, arrow]);
 
   if (!triggerRect) return null;
 
@@ -149,6 +167,24 @@ const TooltipContent = ({
       onClick={onContentClick}
     >
       {content}
+      {arrow && (
+        // A rotated square that inherits the tooltip's fill and border, showing
+        // only the two edges that face the trigger.
+        <span
+          aria-hidden="true"
+          className={cn('absolute h-2.5 w-2.5 rotate-45 border-inherit bg-inherit', {
+            '-bottom-[6px] -ml-[5px] border-b border-r': position === 'top',
+            '-top-[6px] -ml-[5px] border-l border-t': position === 'bottom',
+            '-right-[6px] -mt-[5px] border-r border-t': position === 'left',
+            '-left-[6px] -mt-[5px] border-b border-l': position === 'right',
+          })}
+          style={
+            position === 'top' || position === 'bottom'
+              ? { left: `${arrowOffset}px` }
+              : { top: `${arrowOffset}px` }
+          }
+        />
+      )}
     </div>,
     document.body
   );
@@ -165,6 +201,7 @@ export function Tooltip({
   width = 'w-38',
   theme = 'light',
   disableTouchClick = false,
+  arrow = false,
   closeOnContentClick = false,
   wrapperAs = 'div',
 }: TooltipProps) {
@@ -273,6 +310,7 @@ export function Tooltip({
           position={position}
           width={width}
           theme={theme}
+          arrow={arrow}
           onMouseEnter={handleTooltipMouseEnter}
           onMouseLeave={handleTooltipMouseLeave}
           onContentClick={

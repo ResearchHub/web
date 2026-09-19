@@ -72,9 +72,10 @@ export const useBlockEditor = ({
             includeChildren: true,
             showOnlyCurrent: false,
             showOnlyWhenEditable: true,
-            placeholder: ({ node }) => {
+            placeholder: ({ editor, node }) => {
               if (node.type.name === 'heading') {
-                return 'Enter a title...';
+                // A blank note shows one prompt, on the title line.
+                return editor.isEmpty ? 'Start writing...' : 'Enter a title...';
               }
               return '';
             },
