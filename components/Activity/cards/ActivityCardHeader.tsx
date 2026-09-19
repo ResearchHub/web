@@ -18,6 +18,8 @@ import {
 } from '../lib/activityDisplay.utils';
 import { getActivityBounty, shouldShowAuthorBadge } from '../lib/activityWork.utils';
 import type { FeedEntry } from '@/types/feed';
+import type { AuthorProfile } from '@/types/authorProfile';
+import { cn } from '@/utils/styles';
 
 interface ActivityCardHeaderProps {
   entry: FeedEntry;
@@ -26,9 +28,10 @@ interface ActivityCardHeaderProps {
    * many entries it speaks for.
    */
   message: ActivityHeaderMessage;
+  authors?: AuthorProfile[];
 }
 
-export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message }) => {
+export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message, authors }) => {
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
   const reviewEarning = getReviewEarning(entry);
@@ -44,9 +47,10 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message
   const headline = isProposalSubmission(entry) ? message.actor.headline?.trim() : undefined;
 
   return (
-    <div className="mb-2.5 min-w-0 pt-1 text-sm leading-6">
+    <div className={cn('min-w-0 pt-1 text-sm leading-6', !authors && 'mb-2.5')}>
       <ActivityHeaderActionText
         message={message}
+        authors={authors}
         isAuthor={shouldShowAuthorBadge(entry, message.actor.id)}
       />
       {grantAmount && (

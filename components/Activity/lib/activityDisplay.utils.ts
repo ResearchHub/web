@@ -169,7 +169,7 @@ export function isGrantOpened(entry: FeedEntry): boolean {
 }
 
 /** A document's own publication, which all of its authors share credit for. */
-function isDocumentPublication(entry: FeedEntry): boolean {
+export function isDocumentPublication(entry: FeedEntry): boolean {
   return entry.contentType in DOC_ACTION_LABELS;
 }
 

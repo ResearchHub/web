@@ -7,11 +7,16 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { ActivityCardHeader } from './ActivityCardHeader';
+import { ActivityGroupHeader } from './ActivityGroupHeader';
 import { ActivityTimestamp } from './ActivityTimestamp';
 import { ActivityWorkActions } from '../work/ActivityWorkActions';
 import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
 import { WorkPreviewCard } from '../work/WorkPreviewCard';
-import { getActivityHeaderMessage, getCommentPreview } from '../lib/activityDisplay.utils';
+import {
+  getActivityHeaderMessage,
+  getCommentPreview,
+  isDocumentPublication,
+} from '../lib/activityDisplay.utils';
 import { getActivityWork, getWorkCardPresentation } from '../lib/activityWork.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { FeedEntry } from '@/types/feed';
@@ -40,6 +45,13 @@ export const ActivityCard: FC<ActivityCardProps> = ({
 
   const entryId = String(entry.id);
   const message = getActivityHeaderMessage(entry, profileAuthor);
+  let authors: AuthorProfile[] | undefined;
+  if (profileAuthor && isDocumentPublication(entry) && work.authors && work.authors.length > 1) {
+    authors = work.authors.some((author) => author.id === profileAuthor.id)
+      ? [profileAuthor, ...work.authors.filter((author) => author.id !== profileAuthor.id)]
+      : work.authors;
+  }
+  const header = <ActivityCardHeader entry={entry} message={message} authors={authors} />;
   const commentPreview = getCommentPreview(entry);
   const presentation = getWorkCardPresentation(entry, work, {
     showUSD,
@@ -61,20 +73,23 @@ export const ActivityCard: FC<ActivityCardProps> = ({
       data-entry-id={entryId}
       data-testid="activity-card"
     >
+      {authors && <ActivityGroupHeader authors={authors}>{header}</ActivityGroupHeader>}
       <div className="flex gap-2.5">
-        <div className="flex w-8 flex-shrink-0 flex-col items-center">
-          <div className="pt-0.5">
-            <Avatar
-              src={message.actor.profileImage}
-              alt={message.actor.fullName || 'User'}
-              size={32}
-              authorId={message.actor.id}
-            />
+        {!authors && (
+          <div className="flex w-8 flex-shrink-0 flex-col items-center">
+            <div className="pt-0.5">
+              <Avatar
+                src={message.actor.profileImage}
+                alt={message.actor.fullName || 'User'}
+                size={32}
+                authorId={message.actor.id}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="min-w-0 flex-1">
-          <ActivityCardHeader entry={entry} message={message} />
+        <div className={cn('min-w-0 flex-1', authors && 'tablet:ml-[42px]')}>
+          {!authors && header}
 
           {showComment && commentPreview && (
             <div className="mt-2">
@@ -89,7 +104,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
             </div>
           )}
 
-          <div className="mt-5 -ml-[42px] tablet:!ml-0">
+          <div className={cn('mt-5', !authors && '-ml-[42px] tablet:!ml-0')}>
             <WorkPreviewCard
               work={work}
               brand={presentation.brand}
