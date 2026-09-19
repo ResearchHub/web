@@ -49,9 +49,9 @@ interface CreationOption {
 
 const CREATION_OPTIONS: CreationOption[] = [
   {
-    // Opens the notebook on the RFP template; the label promises a fresh
-    // start rather than a template so the choice reads as "just begin".
-    id: 'template',
+    // A blank note rather than the template: the assistant drafts from
+    // nothing, and its first move on an empty note is exactly that.
+    id: 'blank',
     title: 'Start from scratch',
     description: 'Open a new RFP in your notebook',
     icon: <File className="h-[22px] w-[22px] text-rhBlue-600" />,

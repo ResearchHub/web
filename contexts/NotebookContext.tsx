@@ -14,6 +14,7 @@ import { NoteService } from '@/services/note.service';
 import { OrganizationService } from '@/services/organization.service';
 import { PublishingHostProvider, type PublishingHost } from '@/contexts/PublishingHostContext';
 import type { Note, NoteWithContent } from '@/types/note';
+import type { SelectedGrantDetails } from '@/types/grant';
 import type { ID } from '@/types/root';
 import type { OrganizationUsers } from '@/types/organization';
 import { useOrganizationContext } from './OrganizationContext';
@@ -45,6 +46,15 @@ interface NotebookContextType {
   noteError: Error | null;
   loadNote: (noteId: string) => Promise<void>;
   updateNoteTitle: (newTitle: string, noteId: ID) => void;
+
+  /**
+   * The RFP a proposal applies to, patched in place so the editor keeps its
+   * document. The in-note row and the details form both write it, and the
+   * assistant can set it from a chat turn, so all three read one field.
+   */
+  setCurrentNoteSelectedGrant: (grant: SelectedGrantDetails | null) => void;
+  /** Re-read just that field from the server, after the assistant changed it. */
+  refreshCurrentNoteSelectedGrant: () => Promise<void>;
 
   /**
    * The one writer for the current note's own fields. Shared so the editor's
@@ -263,6 +273,27 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     );
   }, []);
 
+  const setCurrentNoteSelectedGrant = useCallback((grant: SelectedGrantDetails | null) => {
+    setCurrentNote((prev) => (prev ? { ...prev, selectedGrant: grant } : prev));
+  }, []);
+
+  // Only the field is taken from the fresh copy: swapping the whole note would
+  // hand the editor a document that may be older than what is on screen.
+  const refreshCurrentNoteSelectedGrant = useCallback(async () => {
+    const noteId = lastLoadedNoteIdRef.current;
+    if (!noteId) return;
+    try {
+      const fresh = await NoteService.getNote(noteId);
+      setCurrentNote((prev) =>
+        prev && prev.id.toString() === noteId
+          ? { ...prev, selectedGrant: fresh.selectedGrant ?? null }
+          : prev
+      );
+    } catch {
+      // Best effort: the next full load of the note picks it up.
+    }
+  }, []);
+
   const refreshAll = useCallback(async () => {
     if (!selectedOrg?.slug || !selectedOrg?.id) return;
 
@@ -328,6 +359,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     noteError,
     loadNote,
     updateNoteTitle,
+    setCurrentNoteSelectedGrant,
+    refreshCurrentNoteSelectedGrant,
     saveDetailsSoon,
     saveDetailsNow,
     editor,
@@ -357,4 +390,12 @@ export function useNotebookContext() {
     throw new Error('useNotebookContext must be used within a NotebookProvider');
   }
   return context;
+}
+
+/**
+ * The context when inside the notebook, null elsewhere: the AI Mode document
+ * pane hosts the same publishing form without one.
+ */
+export function useOptionalNotebookContext() {
+  return useContext(NotebookContext);
 }

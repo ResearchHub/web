@@ -101,7 +101,7 @@ test('a new proposal can be drafted from an RFP and published', async ({ page })
   // itself rather than as the whole test running out of budget.
   await page.waitForURL(/\/notebook\/[^/]+\/\d+/, { timeout: 120_000 });
 
-  await page.getByTestId('notebook-add-details').click();
+  await page.getByTestId('notebook-tab-details').click();
 
   await page.getByTestId('funding-goal-input').fill('1000');
 
@@ -182,7 +182,7 @@ test("a published proposal's title can be edited", async ({ page }) => {
   // from the published post, so it already satisfies the schema. A validation
   // error here means the publish above wrote a proposal the form will not
   // accept back, not that editing is broken.
-  await page.getByTestId('notebook-add-details').click();
+  await page.getByTestId('notebook-tab-details').click();
   await page.getByTestId('publishing-form-submit').click();
 
   // The dialog distinguishes a republish from a first publish, which is the

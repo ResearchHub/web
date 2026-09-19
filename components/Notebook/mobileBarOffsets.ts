@@ -29,6 +29,11 @@ export const ABOVE_MOBILE_NAV = {
   bottom0: 'bottom-[calc(4rem_+_env(safe-area-inset-bottom,_0px))] tablet:bottom-0',
   bottom6: 'bottom-[calc(4rem_+_env(safe-area-inset-bottom,_0px)_+_1.5rem)] tablet:bottom-6',
   bottom24: 'bottom-[calc(4rem_+_env(safe-area-inset-bottom,_0px)_+_6rem)] tablet:bottom-24',
+  /** Above the assistant's composer bar, chips included (centred controls). */
+  bottom40: 'bottom-[calc(4rem_+_env(safe-area-inset-bottom,_0px)_+_10rem)] tablet:bottom-40',
+  /** Beside the composer bar's top edge, for a control in the corner. */
+  aboveComposer:
+    'bottom-[calc(4rem_+_env(safe-area-inset-bottom,_0px)_+_11rem)] tablet:bottom-[8.5rem]',
 } as const;
 
 /**
@@ -36,9 +41,14 @@ export const ABOVE_MOBILE_NAV = {
  * promo banner is currently showing — the banner only renders below `tablet`,
  * so the taller offset is mobile-only and the plain one is always correct
  * above that breakpoint.
+ *
+ * The bar's bottom border sits just past `--top-bar-height` (the variable is
+ * the title row; the border is drawn under it), so the offset adds that pixel:
+ * an overlay starting at the bare height covers the border, and the line
+ * across the top of the page stops dead at the overlay's edge.
  */
 export function belowMobileTopBar(promoBannerVisible: boolean): string {
   return promoBannerVisible
-    ? 'top-[calc(56px_+_var(--top-bar-height))] tablet:top-[var(--top-bar-height)]'
-    : 'top-[var(--top-bar-height)]';
+    ? 'top-[calc(56px_+_var(--top-bar-height)_+_1px)] tablet:top-[calc(var(--top-bar-height)_+_1px)]'
+    : 'top-[calc(var(--top-bar-height)_+_1px)]';
 }

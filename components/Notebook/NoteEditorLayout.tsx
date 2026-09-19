@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
@@ -17,7 +17,15 @@ import { PublishedStatusSection } from './PublishingForm/components/PublishedSta
 import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
 import { ABOVE_MOBILE_NAV } from './mobileBarOffsets';
-import { AgentChatPanel, type NoteReviewHandle } from '@/components/Notebook/AgentChatPanel';
+import {
+  AgentChatPanel,
+  type NoteReviewHandle,
+  type PendingAgentMessage,
+} from '@/components/Notebook/AgentChatPanel';
+import { AssistantComposerBar } from './AssistantComposerBar';
+import { AssistantToggleButton } from './AssistantToggleButton';
+import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
+import type { ChatPresetNoteKind } from '@/components/AgentChat/ChatPresets';
 import { noteDiffPersistableDoc } from './NoteReview/noteDiffOverlay';
 import { NoteReviewControls } from './NoteReview/NoteReviewControls';
 import { useNotebookContext } from '@/contexts/NotebookContext';
@@ -32,8 +40,10 @@ import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import {
   isChangelogNote,
+  isProposalNote,
   isPublishedRegisteredReportNote,
   isRegisteredReportNote,
+  isRfpNote,
 } from '@/types/note';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
@@ -44,6 +54,27 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
 const NEW_NOTE_PARAMS = ['newChangelog', 'newGrant', 'newFunding', 'template'];
+
+/** Per-browser memory of the assistant panel being put away on desktop. */
+const AGENT_CHAT_COLLAPSED_KEY = 'notebook:agent-chat-collapsed';
+
+function readAgentChatCollapsed(): boolean {
+  try {
+    return window.localStorage.getItem(AGENT_CHAT_COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeAgentChatCollapsed(collapsed: boolean) {
+  try {
+    if (collapsed) window.localStorage.setItem(AGENT_CHAT_COLLAPSED_KEY, '1');
+    else window.localStorage.removeItem(AGENT_CHAT_COLLAPSED_KEY);
+  } catch {
+    // Storage can be unavailable (private mode, blocked); the panel then
+    // simply opens again next time.
+  }
+}
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
@@ -93,7 +124,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
 
   const { selectedOrg } = useOrganizationContext();
   const { user, isLoading: isLoadingUser } = useUser();
-  const { lgAndUp, xlAndUp } = useScreenSize();
+  const { mdAndUp, lgAndUp, xlAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
   const topBarSlot = useTopBarSlot();
@@ -119,6 +150,33 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   // Active in-note review of an assistant version: the panel drives the
   // overlay, this layout renders the accept/restore controls over the note.
   const [agentReview, setAgentReview] = useState<NoteReviewHandle | null>(null);
+  // A message composed in the bar over the document, waiting for the panel
+  // to open and send it.
+  const [pendingAgentMessage, setPendingAgentMessage] = useState<PendingAgentMessage | null>(null);
+  const pendingMessageSeqRef = useRef(0);
+  // The bar folds into a badge once the person starts typing in the document
+  // and unfolds when they ask for it. Until they choose, phones start folded
+  // (the full bar would cover most of the screen) and larger viewports open.
+  const [composerFoldChoice, setComposerFoldChoice] = useState<boolean | null>(null);
+  const isComposerCollapsed = composerFoldChoice ?? mdAndUp !== true;
+  useEffect(() => {
+    setComposerFoldChoice(null);
+  }, [activeNoteId]);
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    const dom = editor.view.dom;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const typing =
+        event.key.length === 1 ||
+        event.key === 'Enter' ||
+        event.key === 'Backspace' ||
+        event.key === 'Delete';
+      if (typing) setComposerFoldChoice(true);
+    };
+    dom.addEventListener('keydown', handleKeyDown);
+    return () => dom.removeEventListener('keydown', handleKeyDown);
+  }, [editor]);
 
   const handleAgentChatUnavailable = useCallback(() => {
     setAgentChatUnavailable(true);
@@ -131,6 +189,48 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   useEffect(() => {
     setAgentChatUnavailable(false);
   }, [activeNoteId]);
+
+  // Desktop opens the assistant with every note: docked beside the document,
+  // it hides nothing the reader was looking at. Below the docking breakpoint
+  // it would cover the note, so it waits for the pill. A close is remembered
+  // per browser, so someone who put it away is not handed it back on the
+  // next note; the pill re-opens it and clears that memory.
+  const autoOpenedForNoteRef = useRef<typeof activeNoteId | null>(null);
+  useEffect(() => {
+    if (lgAndUp !== true || !activeNoteId) return;
+    if (autoOpenedForNoteRef.current === activeNoteId) return;
+    autoOpenedForNoteRef.current = activeNoteId;
+    if (readAgentChatCollapsed()) return;
+    setIsAgentChatOpen(true);
+  }, [activeNoteId, lgAndUp]);
+
+  const openAgentChat = useCallback(() => {
+    writeAgentChatCollapsed(false);
+    setIsAgentChatOpen(true);
+  }, []);
+  const closeAgentChat = useCallback(() => {
+    writeAgentChatCollapsed(true);
+    setIsAgentChatOpen(false);
+    setPendingAgentMessage(null);
+  }, []);
+
+  const handleBarSubmit = useCallback(
+    (text: string) => {
+      setPendingAgentMessage({ id: ++pendingMessageSeqRef.current, text });
+      openAgentChat();
+    },
+    [openAgentChat]
+  );
+  const handlePendingMessageHandled = useCallback((id: number) => {
+    setPendingAgentMessage((prev) => (prev && prev.id === id ? null : prev));
+  }, []);
+
+  const noteIsEmpty = useEditorIsEmpty(editor);
+  const noteKind: ChatPresetNoteKind = isRfpNote(note)
+    ? 'rfp'
+    : isProposalNote(note)
+      ? 'proposal'
+      : 'other';
 
   const {
     width: agentChatWidth,
@@ -154,14 +254,27 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
     isLegacyNote === false;
 
   // Docking splits the viewport: the panel takes its own column and the
-  // document gives up the same gutter. Below xl there isn't enough room left
-  // to keep the document readable, so the panel covers it as a sheet instead.
-  const isAgentChatDocked = showAgentChat && isAgentChatOpen && xlAndUp === true;
+  // document gives up the same gutter. Below lg (1024px) there isn't enough
+  // room left to keep the document readable, so the panel opens as a drawer
+  // over it instead.
+  const isAgentChatDocked = showAgentChat && isAgentChatOpen && lgAndUp === true;
   const isUndockedChatOpen = showAgentChat && isAgentChatOpen && !isAgentChatDocked;
 
   useEffect(() => {
     onAgentChatDockedChange?.(isAgentChatDocked);
   }, [isAgentChatDocked, onAgentChatDockedChange]);
+
+  // The drawer closes on Escape too, unless something inside already claimed
+  // the key (a menu, a modal that portals outside the panel).
+  useEffect(() => {
+    if (!isUndockedChatOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      closeAgentChat();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isUndockedChatOpen, closeAgentChat]);
 
   // Unmounting with the panel open would otherwise leave the container wide.
   useEffect(() => () => onAgentChatDockedChange?.(false), [onAgentChatDockedChange]);
@@ -175,6 +288,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   useEffect(() => {
     if (previousNoteId.current !== activeNoteId) {
       setActiveTab('document');
+      setPendingAgentMessage(null);
       previousNoteId.current = activeNoteId;
     }
   }, [activeNoteId]);
@@ -235,6 +349,19 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   }, [editor, saveNoteNow]);
 
   const showTabs = Boolean(note) && !isLegacyNote && !isChangelogAccessDenied;
+  // The composer over the document: there while the panel is closed, so the
+  // conversation has one input at a time; the panel's own takes over once open.
+  const isComposerBarVisible =
+    showAgentChat &&
+    Boolean(activeNoteId) &&
+    !isUndockedChatOpen &&
+    !isAgentChatOpen &&
+    (!showTabs || activeTab === 'document');
+  // The toggle sits in the document's bottom-right corner, on the bar's row.
+  // On a viewport under xl the column is narrow, so the bar draws in from
+  // both sides and the two never meet; phones instead lift the toggle above
+  // the bar, since there is no width to spare.
+  const composerBarInset = xlAndUp !== true ? 'px-4 tablet:!px-[6.5rem]' : 'px-4';
   const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
   const isEditorReadOnly =
     isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
@@ -332,25 +459,48 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
             )}
             <div className="flex items-center justify-between gap-2">
               <NotebookTabs active={activeTab} onChange={setActiveTab} />
-              <div className="flex items-center gap-2">
-                {activeTab === 'document' && (
-                  <Button
-                    data-testid="notebook-add-details"
-                    variant="outlined"
-                    size="sm"
-                    onClick={() => setActiveTab('details')}
-                    className="gap-1.5"
-                  >
-                    {isPublishedRegisteredReport ? 'View details' : 'Add details'}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              {activeTab === 'document' && (
+                <Button
+                  data-testid="notebook-next-publish"
+                  size="sm"
+                  onClick={() => setActiveTab('details')}
+                  className="gap-1.5"
+                >
+                  {isPublishedRegisteredReport ? 'View details' : 'Next: Publish'}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         )}
 
         <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
+        {/*
+         * The composer over the document, with the panel's opening moves as
+         * chips. In the note's own column rather than fixed to the viewport, so
+         * it shares the paper's edges exactly and follows them as the panel
+         * docks; sticky, so it stays in reach down a long note. Measured from
+         * the scroll area, which on phones already stops above the bottom nav.
+         */}
+        {isComposerBarVisible && (
+          <div className={cn('pointer-events-none sticky bottom-6 z-40 mt-4', composerBarInset)}>
+            {/* A soft fade under the bar, so the document's last lines read
+                through the chips instead of colliding with them. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 -bottom-6 -top-10 bg-gradient-to-t from-white via-white/80 to-transparent"
+            />
+            <AssistantComposerBar
+              className="pointer-events-auto relative mx-auto w-full max-w-[720px]"
+              noteIsEmpty={noteIsEmpty}
+              noteKind={noteKind}
+              hasSelectedRfp={Boolean(note?.selectedGrant)}
+              onSubmit={handleBarSubmit}
+              collapsed={isComposerCollapsed}
+              onExpand={() => setComposerFoldChoice(false)}
+            />
+          </div>
+        )}
         {showTabs && (
           <div className={cn(activeTab !== 'details' && 'hidden')}>
             <PublishingForm readOnly={isPublishedRegisteredReport} />
@@ -369,11 +519,8 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           style={{ paddingRight: isAgentChatDocked ? agentChatWidth : undefined }}
           className={cn(
             'pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4',
-            // Clear of the button that reopens the panel, which shares this
-            // corner while the panel is closed.
-            isAgentChatOpen
-              ? ABOVE_MOBILE_NAV.bottom6
-              : cn(ABOVE_MOBILE_NAV.bottom24, 'lg:!bottom-6')
+            // Above the composer bar while it shares the bottom of the document.
+            isComposerBarVisible ? ABOVE_MOBILE_NAV.bottom40 : ABOVE_MOBILE_NAV.bottom6
           )}
         >
           <NoteReviewControls
@@ -384,39 +531,44 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
         </div>
       )}
 
-      {/*
-       * Floats in the bottom-right corner, on the side the panel docks to.
-       * Below `tablet` it clears the 64px MobileBottomNav. It hides once open —
-       * the panel would cover it, and its close button is the way back.
-       */}
+      {/* The assistant's switch in the document's bottom-right corner, shown
+          while the panel is closed; on phones it climbs above the composer bar
+          whenever that is unfolded, since the bar then spans the width. */}
       {showAgentChat && activeNoteId && !isAgentChatOpen && (
-        <button
-          type="button"
-          onClick={() => setIsAgentChatOpen(true)}
-          aria-expanded={false}
-          className={cn(
-            'group fixed right-6 z-40 flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-primary-500 via-primary-600 to-indigo-600 py-2.5 pl-3.5 pr-4 text-sm font-medium text-white shadow-lg shadow-primary-500/25 transition-shadow hover:shadow-xl hover:shadow-primary-500/35',
-            ABOVE_MOBILE_NAV.bottom6
-          )}
-        >
-          {/* Highlight band that sweeps across on hover. */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent motion-safe:group-hover:animate-shimmer"
-          />
-          <Sparkles className="relative h-4 w-4 shrink-0" aria-hidden="true" />
-          <span className="relative whitespace-nowrap">Research assistant</span>
-        </button>
+        <AssistantToggleButton
+          onClick={openAgentChat}
+          className={
+            isComposerBarVisible && mdAndUp !== true && !isComposerCollapsed
+              ? ABOVE_MOBILE_NAV.aboveComposer
+              : ABOVE_MOBILE_NAV.bottom6
+          }
+          style={{
+            right: isAgentChatDocked ? agentChatWidth + 24 : 24,
+            transition: isAgentChatResizing ? undefined : 'right 200ms ease-out',
+          }}
+        />
+      )}
+
+      {/* Drawer backdrop: dims the note and closes on tap, as the app's other
+          drawers do. Docked, the panel is part of the page and needs none. */}
+      {isUndockedChatOpen && (
+        <div
+          aria-hidden="true"
+          onClick={closeAgentChat}
+          className="fixed inset-0 z-[105] bg-gray-900/25"
+        />
       )}
 
       {showAgentChat && activeNoteId && (
         <AgentChatPanel
           noteId={activeNoteId}
           open={isAgentChatOpen}
-          onClose={() => setIsAgentChatOpen(false)}
+          onClose={closeAgentChat}
           onUnavailable={handleAgentChatUnavailable}
           onPersistEditorState={handlePersistEditorState}
           onReviewChange={setAgentReview}
+          pendingMessage={pendingAgentMessage}
+          onPendingMessageHandled={handlePendingMessageHandled}
           docked={isAgentChatDocked}
           width={agentChatWidth}
           isResizing={isAgentChatResizing}

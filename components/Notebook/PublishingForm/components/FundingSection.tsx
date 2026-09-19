@@ -15,6 +15,7 @@ import { SelectFundingOpportunityModal } from '@/components/modals/SelectFunding
 import { formatCompactAmount } from '@/utils/currency';
 import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantDetails } from '@/types/grant';
 import { NoteService } from '@/services/note.service';
+import { useOptionalNotebookContext } from '@/contexts/NotebookContext';
 
 interface FundingSectionProps {
   note: Note;
@@ -25,9 +26,16 @@ const FEATURE_FLAG_NFT_REWARDS = false;
 function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
   const { watch, setValue } = useFormContext();
   const selectedGrant: SelectedGrantDetails | null = watch('selectedGrant');
+  // The note is the source of truth: the assistant can change the selection
+  // from a chat turn, and the panel reads it back for its presets.
+  const notebook = useOptionalNotebookContext();
   const workId = watch('workId');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSavingGrant, setIsSavingGrant] = useState(false);
+
+  useEffect(() => {
+    setValue('selectedGrant', note.selectedGrant ?? null);
+  }, [note.selectedGrant, setValue]);
 
   const saveSelectedGrant = async (grant: SelectedGrantDetails | null) => {
     setIsSavingGrant(true);
@@ -37,6 +45,7 @@ function FundingOpportunitySection({ note }: Readonly<FundingSectionProps>) {
         selectedGrantId: grant?.id ?? null,
       });
       setValue('selectedGrant', grant);
+      notebook?.setCurrentNoteSelectedGrant(grant);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update RFP');
     } finally {

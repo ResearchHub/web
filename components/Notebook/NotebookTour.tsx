@@ -27,9 +27,9 @@ const STEPS: TourStep[] = [
   },
   {
     selector: '[data-tour="notebook-publish"]',
-    title: 'Add details & publish',
+    title: 'Publish',
     description:
-      'Switch to the Details tab to set attributes of your document. Once it looks good, click the Publish button.',
+      'Switch to the Publish tab to set attributes of your document. Once it looks good, click the Publish button.',
     placement: 'bottom',
   },
 ];

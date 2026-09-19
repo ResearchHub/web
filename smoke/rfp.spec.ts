@@ -81,7 +81,7 @@ test('a new RFP can be drafted in the notebook and published', async ({ page }) 
   // the whole test running out of budget.
   await page.waitForURL(/\/notebook\/[^/]+\/\d+/, { timeout: 120_000 });
 
-  await page.getByTestId('notebook-add-details').click();
+  await page.getByTestId('notebook-tab-details').click();
 
   // A short description and a funding amount are what the schema demands of
   // a grant. Contacts are required too but deliberately not filled: the form
@@ -136,7 +136,7 @@ test("a published RFP's title can be edited", async ({ page }) => {
   // form from the published grant, so it already satisfies the schema. A
   // validation error here means the publish above wrote a grant the form will
   // not accept back, not that editing is broken.
-  await page.getByTestId('notebook-add-details').click();
+  await page.getByTestId('notebook-tab-details').click();
   await page.getByTestId('publishing-form-submit').click();
 
   // The dialog distinguishes a republish from a first publish, which is the

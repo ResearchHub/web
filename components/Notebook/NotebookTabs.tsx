@@ -8,17 +8,17 @@ export type NotebookTab = 'document' | 'details';
 interface NotebookTabsProps {
   active: NotebookTab;
   onChange: (tab: NotebookTab) => void;
-  /** Per-step label overrides — AI Mode calls the details step "Publish". */
+  /** Per-step label overrides. */
   labels?: Partial<Record<NotebookTab, string>>;
 }
 
 const STEPS: { id: NotebookTab; label: string; dataTour?: string }[] = [
   { id: 'document', label: 'Document' },
-  { id: 'details', label: 'Details', dataTour: 'notebook-publish' },
+  { id: 'details', label: 'Publish', dataTour: 'notebook-publish' },
 ];
 
 /** Linear two-step flow shown in the notebook top bar. It reads as a sequence
- *  (Document → Details) rather than parallel tabs, so the progression toward
+ *  (Document → Publish) rather than parallel tabs, so the progression toward
  *  publishing is visually explicit. */
 export function NotebookTabs({ active, onChange, labels }: NotebookTabsProps) {
   const activeIndex = STEPS.findIndex((step) => step.id === active);
@@ -35,6 +35,7 @@ export function NotebookTabs({ active, onChange, labels }: NotebookTabsProps) {
             }
             onClick={() => onChange(step.id)}
             dataTour={step.dataTour}
+            testId={`notebook-tab-${step.id}`}
           />
           {index < STEPS.length - 1 && (
             <ArrowRight className="h-4 w-4 shrink-0 text-gray-300" aria-hidden="true" />
@@ -53,18 +54,21 @@ function Step({
   state,
   onClick,
   dataTour,
+  testId,
 }: Readonly<{
   index: number;
   label: string;
   state: StepState;
   onClick: () => void;
   dataTour?: string;
+  testId?: string;
 }>) {
   return (
     <button
       type="button"
       onClick={onClick}
       data-tour={dataTour}
+      data-testid={testId}
       aria-current={state === 'current' ? 'step' : undefined}
       className={cn(
         'group inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition-colors',
@@ -76,15 +80,15 @@ function Step({
           'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors',
           state === 'current' && 'bg-primary-500 text-white',
           state === 'complete' && 'bg-primary-100 text-primary-700',
-          state === 'upcoming' && 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+          state === 'upcoming' && 'bg-gray-200 text-gray-700 group-hover:bg-gray-300'
         )}
       >
         {index + 1}
       </span>
       <span
         className={cn(
-          'text-sm font-medium transition-colors',
-          state === 'current' ? 'text-primary-700' : 'text-gray-500 group-hover:text-gray-700'
+          'text-sm font-semibold transition-colors',
+          state === 'current' ? 'text-primary-700' : 'text-gray-800 group-hover:text-gray-900'
         )}
       >
         {label}

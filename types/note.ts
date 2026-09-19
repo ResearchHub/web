@@ -428,6 +428,18 @@ export const isRfpNote = (note?: ClassifiableNote | null): boolean =>
   isGrantDocumentType(note?.post?.documentType) ||
   note?.post?.contentType === 'funding_request';
 
+const isPreregistrationDocumentType = (documentType?: string | null): boolean =>
+  documentType?.trim().toUpperCase() === 'PREREGISTRATION';
+
+/**
+ * A research proposal: the note answering an RFP, or seeking funding on its
+ * own, as opposed to the call itself. Reads the same signals as isRfpNote.
+ */
+export const isProposalNote = (note?: ClassifiableNote | null): boolean =>
+  isPreregistrationDocumentType(note?.documentType) ||
+  isPreregistrationDocumentType(note?.post?.documentType) ||
+  note?.post?.contentType === 'preregistration';
+
 /** Uses exact legacy IDs because ordinary preprints also used DISCUSSION before rollout. */
 export const isChangelogNote = (note?: ClassifiableChangelogNote | null): boolean => {
   if (!note || isRegisteredReportNote(note)) return false;

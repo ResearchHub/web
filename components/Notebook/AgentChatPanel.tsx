@@ -11,7 +11,7 @@ import { notebookChatTransport } from '@/services/chatTransport';
 import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
-import { isRfpNote } from '@/types/note';
+import { isProposalNote, isRfpNote } from '@/types/note';
 import { isActiveExecutionStatus, MAX_CHAT_TITLE_LENGTH, type AgentChat } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
@@ -23,7 +23,7 @@ import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBan
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
 import { ChatComposer, type ComposerNotice } from '@/components/AgentChat/ChatComposer';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
-import { ChatPresets } from '@/components/AgentChat/ChatPresets';
+import { ChatPresets, type ChatPresetNoteKind } from '@/components/AgentChat/ChatPresets';
 import { ChatSources, collectChatSources } from '@/components/AgentChat/ChatSources';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { CreditMeter } from '@/components/AgentChat/CreditMeter';
@@ -73,6 +73,12 @@ function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice
  * A running in-note review session, handed to the host so the accept/reject
  * controls can live on the note page rather than in the chat panel.
  */
+/** A message composed outside the panel, waiting for it to send. */
+export interface PendingAgentMessage {
+  readonly id: number;
+  readonly text: string;
+}
+
 export interface NoteReviewHandle {
   readonly changeCount: number;
   /** Keep the assistant's side: deletes the struck ranges, keeps the rest. */
@@ -100,7 +106,7 @@ interface AgentChatPanelProps {
   /**
    * Docked (desktop) mode: the panel takes `width` and the host reserves the
    * same gutter, so it sits beside the document instead of over it. Undocked,
-   * it covers the viewport as a sheet.
+   * it slides in as a drawer over the note.
    */
   readonly docked: boolean;
   readonly width: number;
@@ -113,6 +119,13 @@ interface AgentChatPanelProps {
    * controls over the note; null means no review is active.
    */
   readonly onReviewChange?: (review: NoteReviewHandle | null) => void;
+  /**
+   * A message composed outside the panel (the bar over the document). Sent
+   * as soon as the panel is open and its composer can take it; the host is
+   * told when, so it can drop it.
+   */
+  readonly pendingMessage?: PendingAgentMessage | null;
+  readonly onPendingMessageHandled?: (id: number) => void;
 }
 
 /**
@@ -133,8 +146,10 @@ export function AgentChatPanel({
   onResizeStart,
   onResizeNudge,
   onReviewChange,
+  pendingMessage = null,
+  onPendingMessageHandled,
 }: AgentChatPanelProps) {
-  const { editor, currentNote } = useNotebookContext();
+  const { editor, currentNote, refreshCurrentNoteSelectedGrant } = useNotebookContext();
   // This panel stays mounted even when closed: load allowances on notebook open.
   const researchAI = useResearchAI(true);
   const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
@@ -143,6 +158,12 @@ export function AgentChatPanel({
   // calls the document: the notebook holds RFPs as well as proposals.
   const noteIsEmpty = useEditorIsEmpty(editor);
   const noteIsRfp = isRfpNote(currentNote);
+  const noteKind: ChatPresetNoteKind = noteIsRfp
+    ? 'rfp'
+    : isProposalNote(currentNote)
+      ? 'proposal'
+      : 'other';
+  const selectedRfpTitle = currentNote?.selectedGrant?.shortTitle ?? null;
 
   // Mirrors PageLayout: the promo banner sits above the TopBar on mobile, and
   // this panel hangs from the bar's underside, so it has to know.
@@ -296,6 +317,22 @@ export function AgentChatPanel({
   // turns settle. Refresh only on actual transitions to avoid extra chatter.
   const latestStatus = chatState.latestExecution?.status ?? null;
   const chatTitle = chatState.chat?.title ?? null;
+
+  // The assistant can pick the RFP itself (set_selected_rfp): re-read the
+  // field when such a call succeeds so the in-note row and the presets follow.
+  const seenRfpCallsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const execution of chatState.chat?.executions ?? []) {
+      (execution.activity ?? []).forEach((item, index) => {
+        if (item.type !== 'tool_call') return;
+        if (item.tool !== 'set_selected_rfp' || item.status !== 'succeeded') return;
+        const key = `${execution.id}:${index}`;
+        if (seenRfpCallsRef.current.has(key)) return;
+        seenRfpCallsRef.current.add(key);
+        void refreshCurrentNoteSelectedGrant();
+      });
+    }
+  }, [chatState.chat?.executions, refreshCurrentNoteSelectedGrant]);
   const refreshList = list.refresh;
   const prevListSignalRef = useRef<{ status: string | null; title: string | null }>({
     status: null,
@@ -324,67 +361,70 @@ export function AgentChatPanel({
     []
   );
 
-  const handleSend = useCallback(async () => {
-    const text = draft.trim();
-    if (!text || budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
-    setNotice(null);
-    const target = targetRef.current;
-    // Captured before the awaits: the turn runs on what was selected when the
-    // user pressed send, not on whatever the picker says by the time it lands.
-    const generation = modelSelection.request;
+  const sendMessage = useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
+      if (!text || budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
+      setNotice(null);
+      const target = targetRef.current;
+      // Captured before the awaits: the turn runs on what was selected when the
+      // user pressed send, not on whatever the picker says by the time it lands.
+      const generation = modelSelection.request;
 
-    if (selectedChatId == null) {
-      // Default flow: create untitled, send the first message; the refetch
-      // after the turn brings the derived title.
-      const creationSeq = ++creationSeqRef.current;
-      setCreatingChat(true);
-      const created = await list.createChat();
-      // A newer creation may own the flag by now (the user moved to another
-      // note and started a chat there) — a stale settle must not unblock its
-      // composer while that creation is still in flight.
-      if (creationSeqRef.current === creationSeq) setCreatingChat(false);
-      // Switched note or picked an existing chat meanwhile — abandon the
-      // creation instead of yanking the selection to a stale chat.
-      if (!isCurrentTarget(target)) return;
-      if (!created) {
-        setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
+      if (selectedChatId == null) {
+        // Default flow: create untitled, send the first message; the refetch
+        // after the turn brings the derived title.
+        const creationSeq = ++creationSeqRef.current;
+        setCreatingChat(true);
+        const created = await list.createChat();
+        // A newer creation may own the flag by now (the user moved to another
+        // note and started a chat there) — a stale settle must not unblock its
+        // composer while that creation is still in flight.
+        if (creationSeqRef.current === creationSeq) setCreatingChat(false);
+        // Switched note or picked an existing chat meanwhile — abandon the
+        // creation instead of yanking the selection to a stale chat.
+        if (!isCurrentTarget(target)) return;
+        if (!created) {
+          setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
+          return;
+        }
+        draftsRef.current.delete('new');
+        // A rejected first attempt must retry with the same model and settings.
+        modelSelection.adoptConversation(`${noteId}:${created.conversation_id}`, generation);
+        setInitialChat(created);
+        setSelectedChatId(created.conversation_id);
+        setQueuedMessage({ text, generation });
         return;
       }
-      draftsRef.current.delete('new');
-      // A rejected first attempt must retry with the same model and settings.
-      modelSelection.adoptConversation(`${noteId}:${created.conversation_id}`, generation);
-      setInitialChat(created);
-      setSelectedChatId(created.conversation_id);
-      setQueuedMessage({ text, generation });
-      return;
-    }
 
-    const outcome = await chatState.send(text, generation);
-    if (outcome.ok) {
-      if (isCurrentTarget(target)) {
-        updateDraft('');
-      } else {
-        // Sent fine, but the user moved on — just retire the sent draft.
-        draftsRef.current.delete(String(target.chatId));
+      const outcome = await chatState.send(text, generation);
+      if (outcome.ok) {
+        if (isCurrentTarget(target)) {
+          updateDraft('');
+        } else {
+          // Sent fine, but the user moved on — just retire the sent draft.
+          draftsRef.current.delete(String(target.chatId));
+        }
+      } else if (isCurrentTarget(target)) {
+        // Keep the draft on any failure.
+        setNotice(noticeFromOutcome(outcome));
       }
-    } else if (isCurrentTarget(target)) {
-      // Keep the draft on any failure.
-      setNotice(noticeFromOutcome(outcome));
-    }
-  }, [
-    draft,
-    selectedChatId,
-    list,
-    chatState,
-    modelSelection.request,
-    modelSelection.adoptConversation,
-    noteId,
-    updateDraft,
-    isCurrentTarget,
-    budgetSendDisabled,
-    creatingChat,
-    queuedMessage,
-  ]);
+    },
+    [
+      selectedChatId,
+      list,
+      chatState,
+      modelSelection.request,
+      modelSelection.adoptConversation,
+      noteId,
+      updateDraft,
+      isCurrentTarget,
+      budgetSendDisabled,
+      creatingChat,
+      queuedMessage,
+    ]
+  );
+  const handleSend = useCallback(() => sendMessage(draft), [sendMessage, draft]);
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chatState.send;
@@ -498,10 +538,31 @@ export function AgentChatPanel({
   const chatAccessible = selectedChatId == null ? list.access === 'ok' : chatState.access === 'ok';
   const composerDisabled = accessDenied || !chatAccessible;
 
+  // A message from the bar over the document: sent once the panel is open
+  // and the composer is ready. Handled once per message, however many
+  // renders it takes for the composer to become ready.
+  const handledPendingRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!open || !pendingMessage || handledPendingRef.current === pendingMessage.id) return;
+    if (composerDisabled || composerBusy || budgetSendDisabled) return;
+    handledPendingRef.current = pendingMessage.id;
+    onPendingMessageHandled?.(pendingMessage.id);
+    void sendMessage(pendingMessage.text);
+  }, [
+    open,
+    pendingMessage,
+    composerDisabled,
+    composerBusy,
+    budgetSendDisabled,
+    sendMessage,
+    onPendingMessageHandled,
+  ]);
+
   const emptyState = (
     <EmptyState
       noteIsEmpty={noteIsEmpty}
-      noteIsRfp={noteIsRfp}
+      noteKind={noteKind}
+      selectedRfpTitle={selectedRfpTitle}
       onSelectPreset={applyPreset}
       presetsDisabled={composerDisabled}
     />
@@ -568,12 +629,14 @@ export function AgentChatPanel({
         // Above the mobile bottom nav (z-[100]), which would otherwise cover
         // the composer while the sheet is open.
         'fixed bottom-0 right-0 z-[110] flex flex-col border-l border-gray-200 bg-white',
-        'shadow-[-8px_0_28px_-16px_rgba(31,30,27,0.22)]',
-        // The header carries the only control that closes the panel, so the
-        // top edge has to clear the mobile top bar — and the promo banner
-        // above it — or the panel becomes a room with no door.
-        belowMobileTopBar(promoBannerVisible),
-        !docked && 'w-full',
+        // Docked, the white page beside it is separation enough; as a drawer
+        // it covers the note and keeps the shadow to read as a layer on top.
+        !docked && 'shadow-[-8px_0_28px_-16px_rgba(31,30,27,0.22)]',
+        // Docked, the panel hangs from the top bar's underside, clearing the
+        // promo banner above it on phones. As a drawer it takes the full
+        // height: a column's width on a tablet, the whole of a phone.
+        docked ? belowMobileTopBar(promoBannerVisible) : 'top-0',
+        !docked && 'w-full max-w-[440px]',
         // A transition during a drag lags the pointer.
         !isResizing && 'transition-transform duration-200 ease-out',
         open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
@@ -608,7 +671,7 @@ export function AgentChatPanel({
         </div>
       )}
 
-      <header className="flex items-center gap-1.5 border-b border-gray-100 px-3 py-2">
+      <header className="flex items-center gap-1.5 border-b border-gray-200 bg-white px-3 py-2">
         {renaming ? (
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <input
@@ -645,6 +708,7 @@ export function AgentChatPanel({
             activeChatId={selectedChatId}
             activeTitle={chatTitle}
             onSelect={switchChat}
+            onNew={() => switchChat(null)}
             onOpen={() => refreshList()}
             titleAction={
               selectedChatId != null ? (
@@ -665,11 +729,11 @@ export function AgentChatPanel({
           <button
             type="button"
             onClick={() => switchChat(null)}
-            title="New chat"
+            title="New conversation"
             className="rounded-md p-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
-            <span className="sr-only">New chat</span>
+            <span className="sr-only">New conversation</span>
           </button>
           <button
             type="button"
@@ -687,7 +751,7 @@ export function AgentChatPanel({
         <div
           role="tablist"
           aria-label="Assistant views"
-          className="flex items-center gap-1 border-b border-gray-100 px-3 py-1.5"
+          className="flex items-center gap-1 border-b border-gray-200 bg-white px-3 py-1.5"
         >
           <TabButton
             active={activeTab === 'chat'}
@@ -710,7 +774,7 @@ export function AgentChatPanel({
           note is beside the panel and keeps the floating copy (see
           NoteEditorLayout). */}
       {review && !docked && (
-        <div className="flex justify-center border-b border-gray-100 px-3 py-2">
+        <div className="flex justify-center border-b border-gray-200 bg-white px-3 py-2">
           <NoteReviewControls
             changeCount={review.changeCount}
             onAccept={acceptReview}
@@ -726,6 +790,7 @@ export function AgentChatPanel({
       <NoteReviewBanner review={noteReview} className="mx-3 mb-2" />
 
       <ChatComposer
+        className="border-gray-200"
         textareaRef={composerRef}
         value={draft}
         onChange={updateDraft}
@@ -850,12 +915,14 @@ function ErrorState({
 
 function EmptyState({
   noteIsEmpty,
-  noteIsRfp,
+  noteKind,
+  selectedRfpTitle,
   onSelectPreset,
   presetsDisabled,
 }: {
   readonly noteIsEmpty: boolean;
-  readonly noteIsRfp: boolean;
+  readonly noteKind: ChatPresetNoteKind;
+  readonly selectedRfpTitle: string | null;
   readonly onSelectPreset: (message: string) => void;
   readonly presetsDisabled: boolean;
 }) {
@@ -873,11 +940,23 @@ function EmptyState({
             Ask questions about this note, search the web and scholarly literature, or have the
             assistant edit the draft for you.
           </p>
+          {noteKind === 'proposal' && (
+            <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+              {selectedRfpTitle ? (
+                <>
+                  Applying to <span className="font-medium text-gray-700">{selectedRfpTitle}</span>
+                </>
+              ) : (
+                'No RFP selected yet. Pick one on the Details tab and the draft is tailored to it.'
+              )}
+            </p>
+          )}
         </div>
       </div>
       <ChatPresets
         noteIsEmpty={noteIsEmpty}
-        isRfp={noteIsRfp}
+        noteKind={noteKind}
+        hasSelectedRfp={selectedRfpTitle != null}
         onSelect={onSelectPreset}
         disabled={presetsDisabled}
       />

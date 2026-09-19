@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Plus } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { MenuTrigger } from '@/components/ui/MenuTrigger';
@@ -14,6 +15,8 @@ interface ChatPickerProps {
   /** Live title of the open chat — fresher than the listing after renames/derives. */
   readonly activeTitle: string | null;
   readonly onSelect: (chatId: number) => void;
+  /** Start a fresh conversation; always the first entry in the menu. */
+  readonly onNew: () => void;
   /** Fired when the dropdown opens — refresh the listing projection. */
   readonly onOpen: () => void;
   /**
@@ -25,28 +28,29 @@ interface ChatPickerProps {
 }
 
 /**
- * Header dropdown for switching between the note's chats. Built on the cheap
- * listing projection: title, preview, activity spinner — never full chats.
+ * Header dropdown for the note's conversations. Built on the cheap listing
+ * projection: title, preview, activity spinner — never full chats.
  *
- * Switching is all it does. Starting a chat lives on the header button beside
- * it, where it is one tap rather than two.
+ * The trigger always reads "Conversations" so it never looks like an action;
+ * the open conversation's title sits beside it. Opening the menu always
+ * offers "New conversation" first, as the same bordered button the assistant
+ * uses at the top of its own list, then the conversations.
  */
 export function ChatPicker({
   chats,
   activeChatId,
   activeTitle,
   onSelect,
+  onNew,
   onOpen,
   titleAction,
 }: ChatPickerProps) {
-  const currentLabel = activeChatId == null ? 'New chat' : activeTitle?.trim() || 'Untitled chat';
-
   return (
     // Claims the row so the header's panel actions stay pinned right, but
     // nothing inside grows: the picker and the title action sit together at
     // the left and the slack collects after them. Only a title long enough to
     // need the space takes it, truncating rather than shoving.
-    <div className="flex min-w-0 flex-1 items-center">
+    <div className="flex min-w-0 flex-1 items-center gap-2">
       <BaseMenu
         align="start"
         className="w-[320px] max-w-[calc(100vw-1rem)] rounded-lg"
@@ -54,15 +58,27 @@ export function ChatPicker({
           if (open) onOpen();
         }}
         trigger={
-          <MenuTrigger srLabel="Chat:" className="text-sm text-gray-800">
-            {currentLabel}
-          </MenuTrigger>
+          <MenuTrigger className="shrink-0 text-sm text-gray-800">Conversations</MenuTrigger>
         }
       >
-        {/* The listing is empty until the first chat is saved, and the menu
-            would otherwise open as a bare box. */}
+        <BaseMenuItem
+          onSelect={onNew}
+          className={cn(
+            'mb-1 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2',
+            'text-sm font-medium text-gray-900 shadow-sm focus:bg-gray-50 data-[highlighted]:bg-gray-50',
+            activeChatId == null &&
+              'border-primary-200 bg-primary-50 data-[highlighted]:bg-primary-50'
+          )}
+        >
+          <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+          New conversation
+        </BaseMenuItem>
+        <div role="separator" aria-orientation="horizontal" className="my-1 h-px bg-gray-100" />
+
+        {/* The listing is empty until the first conversation is saved, and
+            the menu would otherwise end on a bare divider. */}
         {chats.length === 0 && (
-          <p className="px-3 py-2 text-sm text-gray-500">No chats on this note yet.</p>
+          <p className="px-3 py-2 text-sm text-gray-500">No conversations on this note yet.</p>
         )}
 
         {chats.map((chat) => (
@@ -80,7 +96,7 @@ export function ChatPicker({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="min-w-0 truncate text-sm font-medium text-gray-800">
-                  {chat.title?.trim() || 'Untitled chat'}
+                  {chat.title?.trim() || 'Untitled conversation'}
                 </span>
                 {chat.has_active_turn && (
                   <Loader size="sm" className="!h-3 !w-3 shrink-0 text-primary-500" />
@@ -94,6 +110,15 @@ export function ChatPicker({
           </BaseMenuItem>
         ))}
       </BaseMenu>
+
+      {activeChatId != null && (
+        <>
+          <span aria-hidden="true" className="h-4 w-px shrink-0 bg-gray-200" />
+          <span className="min-w-0 truncate text-sm text-gray-600">
+            {activeTitle?.trim() || 'Untitled conversation'}
+          </span>
+        </>
+      )}
 
       {titleAction}
     </div>
