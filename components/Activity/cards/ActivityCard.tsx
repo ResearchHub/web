@@ -26,7 +26,7 @@ interface ActivityCardProps {
   entry: FeedEntry;
   hideActions?: boolean;
   hideEntryDivider?: boolean;
-  /** Author whose profile the card sits on, credited ahead of a document's lead author. */
+  /** Author whose profile the card appears on. */
   profileAuthor?: AuthorProfile;
 }
 
@@ -46,10 +46,8 @@ export const ActivityCard: FC<ActivityCardProps> = ({
   const entryId = String(entry.id);
   const message = getActivityHeaderMessage(entry, profileAuthor);
   let authors: AuthorProfile[] | undefined;
-  if (profileAuthor && isDocumentPublication(entry) && work.authors && work.authors.length > 1) {
-    authors = work.authors.some((author) => author.id === profileAuthor.id)
-      ? [profileAuthor, ...work.authors.filter((author) => author.id !== profileAuthor.id)]
-      : work.authors;
+  if (isDocumentPublication(entry) && work.authors && work.authors.length > 1) {
+    authors = work.authors;
   }
   const header = <ActivityCardHeader entry={entry} message={message} authors={authors} />;
   const commentPreview = getCommentPreview(entry);
