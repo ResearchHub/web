@@ -9,7 +9,6 @@ import { GrantFundingAmount } from '../amounts/GrantFundingAmount';
 import { ReviewScoreStars } from '../amounts/ReviewScoreStars';
 import {
   getActionIcon,
-  getActivityHeaderMessage,
   getContribution,
   getGrantAmount,
   getReviewEarning,
@@ -22,15 +21,14 @@ import type { FeedEntry } from '@/types/feed';
 
 interface ActivityCardHeaderProps {
   entry: FeedEntry;
-  /** Replaces the derived message, for rows that speak for several entries at once. */
-  message?: ActivityHeaderMessage;
+  /**
+   * Built by the caller, which alone knows whose profile the row sits on and how
+   * many entries it speaks for.
+   */
+  message: ActivityHeaderMessage;
 }
 
-export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({
-  entry,
-  message: messageOverride,
-}) => {
-  const message = messageOverride ?? getActivityHeaderMessage(entry);
+export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message }) => {
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
   const reviewEarning = getReviewEarning(entry);
