@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CreditCard, Plus, Minus, Check, Info } from 'lucide-react';
+import { CreditCard, Plus, Minus, Check, Coins } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -12,6 +12,7 @@ import {
   usePaymentMethod,
   usePaymentCalculations,
   HIDDEN_PAYMENT_METHODS,
+  type AllocateFromFundingPoolOption,
   type PaymentMethodType,
   type WalletAvailability,
 } from './lib';
@@ -42,6 +43,10 @@ interface PaymentWidgetProps {
   rscBalance: number;
   /** User's funding credits balance (excludes promotional RSC) */
   fundingCreditsBalance?: number;
+  /**
+   * When set, shows allocate-from-RFP-pool as a payment option for grant
+   */
+  allocateFromPool?: AllocateFromFundingPoolOption | null;
   /** Called when user clicks "Preview Payment" (for payment methods with preview) */
   onPreviewTransaction: (paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>) => void;
   /** Called when user clicks "Login to Endaoment" */
@@ -77,6 +82,7 @@ export function PaymentWidget({
   amountDisplay,
   rscBalance,
   fundingCreditsBalance = 0,
+  allocateFromPool = null,
   onPreviewTransaction,
   onEndaomentLogin,
   isButtonDisabled = false,
@@ -149,7 +155,16 @@ export function PaymentWidget({
     );
   };
 
+  const fundingPoolHoldingRsc = allocateFromPool?.fundingPool.amountHolding.rsc ?? 0;
+
   const paymentOptions: PaymentOption[] = [
+    {
+      id: 'funding_pool',
+      title: 'Funding pool',
+      description: renderRscBalance(fundingPoolHoldingRsc),
+      icon: <Coins className="h-[18px] w-[18px] text-primary-600" />,
+      badge: 'No fee',
+    },
     {
       id: 'funding_credits',
       title: 'Funding Credits',
@@ -204,6 +219,7 @@ export function PaymentWidget({
   ];
 
   // Filter payment methods based on actual device capabilities from Stripe.
+  // - Hide Funding pool unless the user can allocate from the linked RFP pool
   // - Hide Endaoment if the fundraise has no associated non-profit
   // - Hide Apple Pay if not available on this device
   // - Hide Google Pay if not available OR if Apple Pay is available
@@ -213,6 +229,9 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (option.id === 'funding_pool') {
+      return !!allocateFromPool && fundingPoolHoldingRsc > 0;
+    }
     if (option.id === 'funding_credits') {
       return fundingCreditsBalance > 0;
     }
@@ -244,10 +263,17 @@ export function PaymentWidget({
     icon?: React.ReactNode;
   } => {
     switch (selectedMethod) {
-      case 'rsc':
+      case 'funding_pool':
         return {
           text: 'Preview Payment',
-          onClick: () => onPreviewTransaction('rsc'),
+          onClick: () => onPreviewTransaction('funding_pool'),
+          disabled: isButtonDisabled || amountInRsc > fundingPoolHoldingRsc,
+        };
+      case 'rsc':
+      case 'funding_credits':
+        return {
+          text: 'Preview Payment',
+          onClick: () => onPreviewTransaction(selectedMethod),
           disabled: isButtonDisabled || isRscInsufficientBalance,
         };
       case 'credit_card':

@@ -13,3 +13,7 @@ export { useWalletAvailability, type WalletAvailability } from './useWalletAvail
 
 // Utilities
 export { getDefaultPaymentMethod } from './getDefaultPaymentMethod';
+export {
+  useAllocateFromFundingPool,
+  type AllocateFromFundingPoolOption,
+} from './useAllocateFromFundingPool';
