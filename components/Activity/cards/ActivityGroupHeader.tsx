@@ -10,7 +10,7 @@ const MAX_VISIBLE_AUTHORS = 3;
 const AUTHOR_AVATAR_SPACING = -14;
 const MAX_NAMED_AUTHORS = 2;
 
-function AuthorName({ author }: { author: AuthorProfile }) {
+function AuthorName({ author }: Readonly<{ author: AuthorProfile }>) {
   const name = author.fullName || 'Unknown';
 
   if (!author.id) {
@@ -26,7 +26,7 @@ function AuthorName({ author }: { author: AuthorProfile }) {
   );
 }
 
-export function ActivityAuthorSummary({ authors }: { authors: AuthorProfile[] }) {
+export function ActivityAuthorSummary({ authors }: Readonly<{ authors: AuthorProfile[] }>) {
   const named = authors.slice(0, MAX_NAMED_AUTHORS);
   const remaining = authors.length - named.length;
 
@@ -56,10 +56,10 @@ export function ActivityAuthorSummary({ authors }: { authors: AuthorProfile[] })
 export function ActivityGroupHeader({
   authors,
   children,
-}: {
+}: Readonly<{
   authors: AuthorProfile[];
   children: ReactNode;
-}) {
+}>) {
   const avatarItems = authors.map((author) => ({
     src: author.profileImage || '',
     alt: author.fullName || 'User',
