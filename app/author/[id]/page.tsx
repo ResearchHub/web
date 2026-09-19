@@ -6,6 +6,10 @@ import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
+import {
+  RadiatingDotTabIcon,
+  RadiatingDotTabIconActive,
+} from '@/components/ui/RadiatingDotTabIcon';
 import { ActivityFeedList, ActivityRow } from '@/components/Activity';
 import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.utils';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
@@ -34,9 +38,15 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-type AuthorTab = 'overview' | 'moderation';
+type AuthorTab = 'activity' | 'moderation';
 
-const OVERVIEW_TAB = { id: 'overview', label: 'Overview' };
+const ACTIVITY_TAB = {
+  id: 'activity',
+  label: 'Activity',
+  icon: RadiatingDotTabIcon,
+  activeIcon: RadiatingDotTabIconActive,
+  iconClassName: 'h-[18px] w-[18px]',
+};
 
 const MODERATION_TAB = {
   id: 'moderation',
@@ -45,9 +55,9 @@ const MODERATION_TAB = {
   iconClassName: 'w-4 h-4',
 };
 
-/** Overview answers to its legacy `contributions` token so existing links stay valid. */
+/** Unknown and legacy tab tokens resolve to Activity so existing links stay valid. */
 function resolveAuthorTab(tab: string): AuthorTab {
-  return tab === 'moderation' ? 'moderation' : 'overview';
+  return tab === 'moderation' ? 'moderation' : 'activity';
 }
 
 function AuthorActivityFeed({ author }: { author: AuthorProfile }) {
@@ -101,7 +111,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const searchParams = useSearchParams();
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const urlTab = searchParams.get('tab') || 'contributions';
+  const urlTab = searchParams.get('tab') || 'activity';
   const [pendingTab, setPendingTab] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,7 +123,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const activeTab = resolveAuthorTab(pendingTab ?? urlTab);
 
   const changeTab = (tabId: string) => {
-    const nextTab = tabId === 'moderation' ? 'moderation' : 'contributions';
+    const nextTab = tabId === 'moderation' ? 'moderation' : 'activity';
     setPendingTab(nextTab);
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
@@ -123,7 +133,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   };
 
   const canModerate = !!(currentUser?.moderator || isHubEditor) && !!user?.authorProfile?.userId;
-  const tabs = canModerate ? [OVERVIEW_TAB, MODERATION_TAB] : [OVERVIEW_TAB];
+  const tabs = canModerate ? [ACTIVITY_TAB, MODERATION_TAB] : [ACTIVITY_TAB];
 
   const tabsReady = !isLoading && !isUserLoading && !!user?.authorProfile;
   const tabBar = tabsReady ? (
@@ -173,11 +183,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <PageLayout
-      rightSidebar={false}
-      topBanner={topBanner}
-      className="sidebar-profile:max-w-[calc(100%-19.5rem)] lg:max-w-[calc(100%-21.5rem)]"
-    >
+    <PageLayout rightSidebar={false} topBanner={topBanner} contentWidth="narrow">
       {renderMain()}
     </PageLayout>
   );

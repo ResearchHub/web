@@ -72,7 +72,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
 
   return (
     <>
-      <HeroHeader tabBar={tabBar}>
+      <HeroHeader tabBar={tabBar} contentWidth="narrow">
         <div className="flex flex-col sm:!flex-row gap-6">
           {/* Left column - Avatar */}
           <div className="flex-shrink-0">
@@ -119,9 +119,6 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
 
             <div className="flex flex-col gap-1">
               <ProfileEducation educations={author.education ?? []} />
-              {isModerator && author.userId && (
-                <ProfileModerationScore userId={author.userId.toString()} />
-              )}
               {membershipDuration && (
                 <div className="flex items-baseline gap-2 text-gray-600">
                   <FontAwesomeIcon
@@ -134,6 +131,9 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
                       : `Member for ${membershipDuration}`}
                   </span>
                 </div>
+              )}
+              {isModerator && author.userId && (
+                <ProfileModerationScore userId={author.userId.toString()} />
               )}
             </div>
 
@@ -183,7 +183,7 @@ export function ProfileHeroBannerSkeleton({
   tabCount?: number;
 }) {
   return (
-    <HeroHeader tabBar={tabBar ?? <ProfileTabsSkeleton count={tabCount} />}>
+    <HeroHeader tabBar={tabBar ?? <ProfileTabsSkeleton count={tabCount} />} contentWidth="narrow">
       <div className="animate-pulse flex flex-col sm:!flex-row gap-6">
         <div className="flex-shrink-0">
           <div className="w-32 h-32 bg-gray-200 rounded-full ring-4 ring-white" />
