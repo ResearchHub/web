@@ -45,11 +45,11 @@ export const ActivityCard: FC<ActivityCardProps> = ({
 
   const entryId = String(entry.id);
   const message = getActivityHeaderMessage(entry, profileAuthor);
-  let authors: AuthorProfile[] | undefined;
+  let groupedAuthors: AuthorProfile[] | undefined;
   if (isDocumentPublication(entry) && work.authors && work.authors.length > 1) {
-    authors = work.authors;
+    groupedAuthors = work.authors;
   }
-  const header = <ActivityCardHeader entry={entry} message={message} authors={authors} />;
+  const header = <ActivityCardHeader entry={entry} message={message} authors={groupedAuthors} />;
   const commentPreview = getCommentPreview(entry);
   const presentation = getWorkCardPresentation(entry, work, {
     showUSD,
@@ -71,9 +71,11 @@ export const ActivityCard: FC<ActivityCardProps> = ({
       data-entry-id={entryId}
       data-testid="activity-card"
     >
-      {authors && <ActivityGroupHeader authors={authors}>{header}</ActivityGroupHeader>}
+      {groupedAuthors && (
+        <ActivityGroupHeader authors={groupedAuthors}>{header}</ActivityGroupHeader>
+      )}
       <div className="flex gap-2.5">
-        {!authors && (
+        {!groupedAuthors && (
           <div className="flex w-8 flex-shrink-0 flex-col items-center">
             <div className="pt-0.5">
               <Avatar
@@ -86,8 +88,8 @@ export const ActivityCard: FC<ActivityCardProps> = ({
           </div>
         )}
 
-        <div className={cn('min-w-0 flex-1', authors && 'tablet:ml-[42px]')}>
-          {!authors && header}
+        <div className={cn('min-w-0 flex-1', groupedAuthors && 'tablet:ml-[42px]')}>
+          {!groupedAuthors && header}
 
           {showComment && commentPreview && (
             <div className="mt-2">
@@ -102,7 +104,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
             </div>
           )}
 
-          <div className={cn('mt-5', !authors && '-ml-[42px] tablet:!ml-0')}>
+          <div className={cn('mt-5', !groupedAuthors && '-ml-[42px] tablet:!ml-0')}>
             <WorkPreviewCard
               work={work}
               brand={presentation.brand}

@@ -52,7 +52,6 @@ export function ActivityAuthorSummary({ authors }: Readonly<{ authors: AuthorPro
   );
 }
 
-/** Keep the avatar stack above the work card so it does not widen the card's indent. */
 export function ActivityGroupHeader({
   authors,
   children,
