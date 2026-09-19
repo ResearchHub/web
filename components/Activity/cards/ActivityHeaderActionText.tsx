@@ -6,9 +6,12 @@ import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { cn } from '@/utils/styles';
 import type { ActivityHeaderMessage } from '../lib/activityDisplay.utils';
+import type { AuthorProfile } from '@/types/authorProfile';
+import { ActivityAuthorSummary } from './ActivityGroupHeader';
 
 interface ActivityHeaderActionTextProps {
   message: ActivityHeaderMessage;
+  authors?: AuthorProfile[];
   className?: string;
   /** Author on its own line; verb/target on the line below. */
   stacked?: boolean;
@@ -55,12 +58,23 @@ function AuthorName({
 
 export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   message,
+  authors,
   className,
   stacked = false,
   trailing,
   isAuthor = false,
 }) => {
   const { actor, verb, target } = message;
+  const authorNames = authors ? (
+    <ActivityAuthorSummary authors={authors} />
+  ) : (
+    <AuthorName
+      id={actor.id}
+      profileUrl={actor.profileUrl}
+      fullName={actor.fullName}
+      showAuthorBadge={isAuthor}
+    />
+  );
 
   const action = (
     <>
@@ -83,14 +97,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   if (stacked) {
     return (
       <span className={cn('block', className)}>
-        <span className="block truncate">
-          <AuthorName
-            id={actor.id}
-            profileUrl={actor.profileUrl}
-            fullName={actor.fullName}
-            showAuthorBadge={isAuthor}
-          />
-        </span>
+        <span className="block truncate">{authorNames}</span>
         <span className="block">{action}</span>
       </span>
     );
@@ -98,12 +105,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
 
   return (
     <span className={className}>
-      <AuthorName
-        id={actor.id}
-        profileUrl={actor.profileUrl}
-        fullName={actor.fullName}
-        showAuthorBadge={isAuthor}
-      />
+      {authorNames}
       {action}
     </span>
   );
