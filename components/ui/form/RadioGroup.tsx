@@ -9,6 +9,8 @@ export interface RadioOption {
   label: string;
   description?: string;
   badge?: ReactNode;
+  /** Shown before the label. */
+  icon?: ReactNode;
 }
 
 export interface RadioGroupProps {
@@ -74,10 +76,12 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                         as="p"
                         className={cn(
                           'font-medium',
+                          option.icon && 'flex items-center gap-1.5',
                           isSm && 'text-sm',
                           checked ? 'text-primary-900' : 'text-gray-900'
                         )}
                       >
+                        {option.icon}
                         {option.label}
                       </Label>
                       {option.description && (

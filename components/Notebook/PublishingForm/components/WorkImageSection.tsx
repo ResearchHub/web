@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 import { PublishingFormData } from '../schema';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 

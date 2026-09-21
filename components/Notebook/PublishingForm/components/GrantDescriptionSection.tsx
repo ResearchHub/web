@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { FileText } from 'lucide-react';
 import { Textarea } from '@/components/ui/form/Textarea';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 
 export function GrantDescriptionSection() {
   const {

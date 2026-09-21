@@ -1,6 +1,6 @@
 import { Coins } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 
 interface ResearchCoinSectionProps {
   bountyAmount: number | null;

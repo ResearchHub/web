@@ -185,7 +185,6 @@ export function NotesMenu() {
         isOpen={isFundingOpportunityModalOpen}
         onClose={() => setIsFundingOpportunityModalOpen(false)}
         onConfirm={handleConfirmOpenGrant}
-        minimal
       />
 
       <OpenProposalModal

@@ -1,5 +1,5 @@
 import { Users } from 'lucide-react';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 import { useFormContext } from 'react-hook-form';
 import { getFieldErrorMessage } from '@/utils/form';
 import { SearchableUserSelect } from '@/components/ui/form/SearchableUserSelect';

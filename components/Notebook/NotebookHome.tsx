@@ -135,7 +135,6 @@ export function NotebookHome() {
         isOpen={isFundingOpportunityModalOpen}
         onClose={() => setIsFundingOpportunityModalOpen(false)}
         onConfirm={handleConfirmOpenGrant}
-        minimal
       />
 
       <OpenProposalModal

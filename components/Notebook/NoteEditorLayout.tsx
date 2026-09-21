@@ -11,8 +11,9 @@ import { NotePaperWrapper } from './NotePaperWrapper';
 import { NotePaperSkeleton } from './NotePaperSkeleton';
 import { NotebookHome } from './NotebookHome';
 import { NotebookTour } from './NotebookTour';
-import { NotebookTabs, type NotebookTab } from './NotebookTabs';
+import { NotebookTabs, getNotebookSteps, type NotebookTab } from './NotebookTabs';
 import { NotesMenu } from './NotesMenu';
+import { AiAllocationPanel } from './AiAllocation';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
@@ -352,6 +353,20 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   }, [editor, saveNoteNow]);
 
   const showTabs = Boolean(note) && !isLegacyNote && !isChangelogAccessDenied;
+  // A note made from the RFP entry points isn't typed as one until it has
+  // publishing details, so the creation params count too.
+  const isRfp =
+    isRfpNote(note) ||
+    searchParams?.get('newGrant') === 'true' ||
+    searchParams?.get('template') === 'grant';
+  const showAiTab = showTabs && isRfp && isFeatureEnabled(FeatureFlag.AiAllocation);
+  const steps = getNotebookSteps(showAiTab);
+  const nextStep = steps[steps.findIndex((step) => step.id === activeTab) + 1];
+
+  // The flag rides on the URL, so it can drop away while its tab is open.
+  useEffect(() => {
+    if (activeTab === 'ai' && !showAiTab) setActiveTab('document');
+  }, [activeTab, showAiTab]);
   // The composer over the document: there while the panel is closed, so the
   // conversation has one input at a time; the panel's own takes over once open.
   const isComposerBarVisible =
@@ -464,15 +479,15 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
               </div>
             )}
             <div className="flex items-center justify-between gap-2">
-              <NotebookTabs active={activeTab} onChange={setActiveTab} />
-              {activeTab === 'document' && (
+              <NotebookTabs active={activeTab} onChange={setActiveTab} showAi={showAiTab} />
+              {nextStep && (
                 <Button
-                  data-testid="notebook-next-publish"
+                  data-testid={`notebook-next-${nextStep.id === 'details' ? 'publish' : nextStep.id}`}
                   size="sm"
-                  onClick={() => setActiveTab('details')}
+                  onClick={() => setActiveTab(nextStep.id)}
                   className="gap-1.5"
                 >
-                  {isPublishedRegisteredReport ? 'View details' : 'Next: Publish'}
+                  {isPublishedRegisteredReport ? 'View details' : `Next: ${nextStep.label}`}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               )}
@@ -517,6 +532,11 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
             </div>
           )}
         </div>
+        {showAiTab && (
+          <div className={cn(activeTab !== 'ai' && 'hidden')}>
+            <AiAllocationPanel active={activeTab === 'ai'} />
+          </div>
+        )}
         {showTabs && (
           <div className={cn(activeTab !== 'details' && 'hidden')}>
             <PublishingForm readOnly={isPublishedRegisteredReport} />

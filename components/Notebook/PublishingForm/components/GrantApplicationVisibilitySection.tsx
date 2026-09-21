@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { Eye } from 'lucide-react';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 import { CommunityMatchTooltip } from '@/components/tooltips/CommunityMatchTooltip';
 
 const CommunityMatchBadge = () => (

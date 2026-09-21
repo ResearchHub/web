@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/form/Input';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 
 export function GrantFundingAmountSection() {
   const {

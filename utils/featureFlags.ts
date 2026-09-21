@@ -4,6 +4,7 @@
 
 export enum FeatureFlag {
   LegacyNoteBanner = 'legacyNoteBanner',
+  AiAllocation = 'aiAllocation',
 }
 
 function getLocalStorageFlag(key: FeatureFlag): boolean | undefined {
@@ -12,6 +13,15 @@ function getLocalStorageFlag(key: FeatureFlag): boolean | undefined {
   if (value === 'true') return true;
   if (value === 'false') return false;
   return undefined;
+}
+
+/**
+ * Whether the page URL carries `?{param}=true`. Lets an unreleased feature be
+ * previewed by link, without a deploy or a stored setting.
+ */
+function hasQueryParamFlag(param: string): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get(param) === 'true';
 }
 
 /**
@@ -73,6 +83,10 @@ export function isProduction(): boolean {
  */
 export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
   [FeatureFlag.LegacyNoteBanner]: () => true,
+  // Off unless the URL has `?ai=true`; `ff:aiAllocation` in localStorage keeps
+  // it on (or forces it off) across navigations that drop the query string.
+  [FeatureFlag.AiAllocation]: () =>
+    getLocalStorageFlag(FeatureFlag.AiAllocation) ?? hasQueryParamFlag('ai'),
 };
 
 /**

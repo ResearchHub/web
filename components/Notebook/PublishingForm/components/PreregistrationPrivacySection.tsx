@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { Lock, AlertTriangle } from 'lucide-react';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 
 const OPTIONS = [
   {

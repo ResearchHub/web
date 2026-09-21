@@ -117,8 +117,8 @@ export default function OrganizationPage() {
         handleStartFromTemplate(selectedGrantId);
       }
     } else if (isNewGrant) {
-      // "Upload a document" is handled inline in OpenFundingOpportunityModal;
-      // here we only create from template/blank.
+      // OpenFundingOpportunityModal sends `blank`; the smoke suite and older
+      // links still send `template`.
       createNoteWithContent(selectedOrg.slug, {
         template: grantSource === 'blank' ? BLANK_DOCUMENT : grantTemplate,
         queryParam: 'newGrant',

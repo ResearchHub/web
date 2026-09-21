@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { Calendar } from 'lucide-react';
 import { DatePicker } from '@/components/ui/form/DatePicker';
-import { SectionHeader } from './SectionHeader';
+import { SectionHeader } from '@/components/Notebook/SectionHeader';
 import { PublishingFormData } from '../schema';
 
 export function GrantApplicationDeadlineSection() {
