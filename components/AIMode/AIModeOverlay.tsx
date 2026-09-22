@@ -9,6 +9,7 @@ import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { layoutFor, useAIMode } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
+import { conversationTitleFor } from './chat/conversationTitle';
 import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
 import { useAIModeDocument } from './document/useAIModeDocument';
 import { AIModeHeader } from './shell/AIModeHeader';
@@ -92,22 +93,27 @@ export function AIModeOverlay() {
   isBelowTabletRef.current = isBelowTablet;
 
   // On desktop the document pane opens by itself the moment a conversation
-  // gains a note, and a document opened from the sidebar shows at once
-  // everywhere. Otherwise on mobile the card in the transcript is the way in,
-  // and it opens a drawer. Either way the user can close it and reopen it
-  // from the card or the chat header.
+  // gains a note, and a document that comes first shows at once everywhere.
+  // Otherwise on mobile the card in the transcript or the chat header is the
+  // way in, and it opens a drawer. Either way the user can close it and
+  // reopen it from there.
   const noteId = state.note?.id ?? null;
   const onDocument = target.kind === 'document';
   const [documentOpen, setDocumentOpen] = useState(false);
   useEffect(() => {
-    setDocumentOpen(noteId != null && (onDocument || !isBelowTabletRef.current));
+    setDocumentOpen(noteId != null && (layout === 'document' || !isBelowTabletRef.current));
     setDocumentView('document');
-  }, [noteId, onDocument]);
+  }, [noteId, layout]);
 
   const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
   const documentTitle = doc.content?.title?.trim() || state.note?.title?.trim() || 'Document';
+  // The top strip names what is open: the conversation when the chat is the
+  // main pane, the document when it is; nothing on the new-conversation screen.
+  const { title: conversationTitle } = conversationTitleFor(state);
+  const headerTitle =
+    layout === 'document' ? documentTitle : target.chatId != null ? conversationTitle : null;
 
   // The document column puts its publish controls up in the header, where
   // they read as the workspace's, not the pane's. It renders into this slot.
@@ -166,9 +172,9 @@ export function AIModeOverlay() {
       className="fixed inset-0 z-[9500] flex flex-col bg-gray-50 outline-none"
     >
       <AIModeHeader
-        documentTitle={showDocument ? documentTitle : null}
+        title={headerTitle}
         publishControlsRef={isBelowTablet ? undefined : setPublishControlsSlot}
-        onClose={close}
+        onBack={close}
       />
 
       <WorkspacePanes

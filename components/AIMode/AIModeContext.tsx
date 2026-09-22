@@ -17,29 +17,34 @@ import { usePathname, useSearchParams } from 'next/navigation';
 /**
  * `?ai=1` opens the workspace. `aiChat=<id>` selects a conversation;
  * `aiNote=<id>` opens a document, with `aiChat` then naming the chat on that
- * document.
+ * document. `aiView=chat` puts that chat, not the document, in the main pane
+ * (a conversation opened from the list); absent, the document comes first.
  */
 export const AI_MODE_OPEN_PARAM = 'ai';
 export const AI_MODE_CHAT_PARAM = 'aiChat';
 export const AI_MODE_NOTE_PARAM = 'aiNote';
+export const AI_MODE_VIEW_PARAM = 'aiView';
+
+/** Which pane is the main one; the other sits at a fixed width beside it. */
+export type WorkspaceLayout = 'chat' | 'document';
 
 /**
  * What the workspace is open on: one of the user's conversations (null = the
  * new-conversation screen), or a document with a chat scoped to it (null =
- * a chat not yet started).
+ * a chat not yet started). A document target remembers how it was reached:
+ * opened as a document it comes first, opened as a conversation its chat does.
  */
 export type WorkspaceTarget =
   | { readonly kind: 'conversation'; readonly chatId: number | null }
-  | { readonly kind: 'document'; readonly noteId: number; readonly chatId: number | null };
-
-/**
- * Which pane is the main one; the other sits at a fixed width beside it. A
- * document target puts the document first, a conversation the chat.
- */
-export type WorkspaceLayout = 'chat' | 'document';
+  | {
+      readonly kind: 'document';
+      readonly noteId: number;
+      readonly chatId: number | null;
+      readonly layout: WorkspaceLayout;
+    };
 
 export const layoutFor = (target: WorkspaceTarget): WorkspaceLayout =>
-  target.kind === 'document' ? 'document' : 'chat';
+  target.kind === 'document' ? target.layout : 'chat';
 
 interface AIModeUrlState {
   readonly isOpen: boolean;
@@ -74,25 +79,38 @@ function readUrlState(params: URLSearchParams): AIModeUrlState {
   if (params.get(AI_MODE_OPEN_PARAM) !== '1') return CLOSED;
   const chatId = parseId(params.get(AI_MODE_CHAT_PARAM));
   const noteId = parseId(params.get(AI_MODE_NOTE_PARAM));
+  const layout: WorkspaceLayout = params.get(AI_MODE_VIEW_PARAM) === 'chat' ? 'chat' : 'document';
   const target: WorkspaceTarget =
-    noteId != null ? { kind: 'document', noteId, chatId } : { kind: 'conversation', chatId };
+    noteId != null
+      ? { kind: 'document', noteId, chatId, layout }
+      : { kind: 'conversation', chatId };
   return { isOpen: true, target };
 }
 
 function writeUrlState(params: URLSearchParams, state: AIModeUrlState): void {
-  for (const key of [AI_MODE_OPEN_PARAM, AI_MODE_CHAT_PARAM, AI_MODE_NOTE_PARAM]) {
+  for (const key of [
+    AI_MODE_OPEN_PARAM,
+    AI_MODE_CHAT_PARAM,
+    AI_MODE_NOTE_PARAM,
+    AI_MODE_VIEW_PARAM,
+  ]) {
     params.delete(key);
   }
   if (!state.isOpen) return;
   params.set(AI_MODE_OPEN_PARAM, '1');
   if (state.target.chatId != null) params.set(AI_MODE_CHAT_PARAM, String(state.target.chatId));
-  if (state.target.kind === 'document') params.set(AI_MODE_NOTE_PARAM, String(state.target.noteId));
+  if (state.target.kind === 'document') {
+    params.set(AI_MODE_NOTE_PARAM, String(state.target.noteId));
+    if (state.target.layout === 'chat') params.set(AI_MODE_VIEW_PARAM, 'chat');
+  }
 }
 
 const sameTarget = (a: WorkspaceTarget, b: WorkspaceTarget): boolean =>
   a.kind === b.kind &&
   a.chatId === b.chatId &&
-  (a.kind !== 'document' || b.kind !== 'document' || a.noteId === b.noteId);
+  (a.kind !== 'document' ||
+    b.kind !== 'document' ||
+    (a.noteId === b.noteId && a.layout === b.layout));
 
 /**
  * Reads the overlay's URL state. Isolated behind Suspense because
@@ -105,15 +123,18 @@ function AIModeUrlSync({ onChange }: { readonly onChange: (state: AIModeUrlState
   const { isOpen, target } = readUrlState(searchParams);
   const { chatId } = target;
   const noteId = target.kind === 'document' ? target.noteId : null;
+  const layout = target.kind === 'document' ? target.layout : null;
   // Rebuilt from its parts so the effect runs on a change of state, not on
   // every render's fresh object.
   useEffect(() => {
     onChange({
       isOpen,
       target:
-        noteId != null ? { kind: 'document', noteId, chatId } : { kind: 'conversation', chatId },
+        noteId != null && layout != null
+          ? { kind: 'document', noteId, chatId, layout }
+          : { kind: 'conversation', chatId },
     });
-  }, [isOpen, chatId, noteId, onChange]);
+  }, [isOpen, chatId, noteId, layout, onChange]);
   return null;
 }
 
@@ -179,7 +200,8 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
     [selectTarget]
   );
   const selectDocument = useCallback(
-    (noteId: number) => selectTarget({ kind: 'document', noteId, chatId: null }),
+    (noteId: number) =>
+      selectTarget({ kind: 'document', noteId, chatId: null, layout: 'document' }),
     [selectTarget]
   );
 

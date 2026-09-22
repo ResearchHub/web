@@ -9,6 +9,7 @@ import { ModelControls } from '@/components/AgentChat/ModelControls';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { ConversationMenu } from '../sidebar/ConversationMenu';
 import { ConversationTitleField } from './ConversationTitleField';
+import { conversationTitleFor } from './conversationTitle';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
@@ -77,21 +78,8 @@ export function ChatPane({
   const composerDisabled =
     listBlocked || chatUnavailable || (chatId != null && chat.access === 'loading');
 
-  // The listing usually knows the title before the chat itself has loaded,
-  // so a refresh doesn't flash "Untitled" while the transcript is fetched.
-  const listedTitle =
-    chatId == null ? null : (list.chats.find((item) => item.id === chatId)?.title ?? null);
-  const currentTitle =
-    chatId == null ? null : state.titleFor(chatId, chat.chat?.title ?? listedTitle);
-  const titleLoading =
-    chatId != null && currentTitle == null && (chat.chat == null || list.access === 'loading');
+  const { currentTitle, title, loading: titleLoading } = conversationTitleFor(state);
   const onDocument = state.target.kind === 'document';
-  const title =
-    chatId == null
-      ? onDocument
-        ? 'New chat'
-        : 'New conversation'
-      : (currentTitle?.trim() ?? '') || 'Untitled conversation';
 
   const composer = (
     <ChatComposer
@@ -127,7 +115,8 @@ export function ChatPane({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3">
+      {/* No border or fill: the title and its controls float over the pane. */}
+      <header className="flex h-12 shrink-0 items-center gap-2 px-3">
         {onOpenConversations && (
           <button
             type="button"
