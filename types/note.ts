@@ -325,6 +325,9 @@ const isRegisteredReportDocumentType = (documentType?: string | null): boolean =
 const isGrantDocumentType = (documentType?: string | null): boolean =>
   documentType?.trim().toUpperCase() === 'GRANT';
 
+const isPreregistrationDocumentType = (documentType?: string | null): boolean =>
+  documentType?.trim().toUpperCase() === 'PREREGISTRATION';
+
 const serializeNoteJson = (value: unknown): string | undefined => {
   if (typeof value === 'string') return value;
   if (!value || typeof value !== 'object') return undefined;
@@ -427,6 +430,37 @@ export const isRfpNote = (note?: ClassifiableNote | null): boolean =>
   isGrantDocumentType(note?.documentType) ||
   isGrantDocumentType(note?.post?.documentType) ||
   note?.post?.contentType === 'funding_request';
+
+/** A research proposal — the researcher's ask, which may answer an RFP. */
+export const isProposalNote = (note?: ClassifiableNote | null): boolean =>
+  isPreregistrationDocumentType(note?.documentType) ||
+  isPreregistrationDocumentType(note?.post?.documentType) ||
+  note?.post?.contentType === 'preregistration';
+
+/**
+ * What a note is, for anything that shows notes by kind. A Registered Report
+ * comes first because it carries a proposal's type underneath; `preprint`
+ * is a note that was published as an ordinary post; `other` has no type
+ * yet. ChangeLogs need the note's date and stay with `isChangelogNote`.
+ */
+export type NoteKind = 'proposal' | 'rfp' | 'registered_report' | 'preprint' | 'other';
+
+export const getNoteKind = (note?: ClassifiableNote | null): NoteKind => {
+  if (!note) return 'other';
+  if (isRegisteredReportNote(note)) return 'registered_report';
+  if (isRfpNote(note)) return 'rfp';
+  if (isProposalNote(note)) return 'proposal';
+  if (note.documentType?.trim().toUpperCase() === 'DISCUSSION' || note.post) return 'preprint';
+  return 'other';
+};
+
+/** The kind's name as the editor shows it above the document. */
+export const NOTE_KIND_LABELS: Record<Exclude<NoteKind, 'other'>, string> = {
+  proposal: 'Proposal',
+  rfp: 'Request for Proposal',
+  registered_report: 'Registered Report',
+  preprint: 'Preprint',
+};
 
 /** Uses exact legacy IDs because ordinary preprints also used DISCUSSION before rollout. */
 export const isChangelogNote = (note?: ClassifiableChangelogNote | null): boolean => {

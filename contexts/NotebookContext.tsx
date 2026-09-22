@@ -18,6 +18,7 @@ import type { ID } from '@/types/root';
 import type { OrganizationUsers } from '@/types/organization';
 import { useOrganizationContext } from './OrganizationContext';
 import { useNoteDetailsSaver, type NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
+import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
 import { Editor } from '@tiptap/core';
 import { useParams } from 'next/navigation';
 
@@ -68,9 +69,6 @@ interface NotebookContextType {
 
 const NotebookContext = createContext<NotebookContextType | null>(null);
 
-const mergeNotesById = (notes: Note[], otherNotes: Note[]): Note[] =>
-  Array.from(new Map([...notes, ...otherNotes].map((note) => [note.id, note])).values());
-
 interface NotebookProviderProps {
   readonly children: ReactNode;
   readonly noteId?: string;
@@ -82,13 +80,9 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
 
-  // Notes list state
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [isLoadingNotes, setIsLoadingNotes] = useState(true);
-  const [isLoadingMoreNotes, setIsLoadingMoreNotes] = useState(false);
-  const [notesError, setNotesError] = useState<Error | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
-  const [nextPageUrls, setNextPageUrls] = useState<string[]>([]);
+  // The organization's notes, loaded as soon as the organization is known.
+  const notesList = useOrganizationNotes(selectedOrg?.slug, { waiting: isLoadingOrg });
+  const { setNotes, refresh: refreshNotes } = notesList;
 
   // Organization users state
   const [users, setUsers] = useState<OrganizationUsers | null>(null);
@@ -105,40 +99,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   const [editor, setEditor] = useState<Editor | null>(null);
 
   const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(currentNote?.id);
-
-  const fetchNotes = useCallback(async (slug?: string) => {
-    if (!slug) {
-      setNotesError(new Error('No organization slug provided'));
-      return;
-    }
-
-    setIsLoadingNotes(true);
-    setIsLoadingMoreNotes(false);
-    setNotesError(null);
-    setNextPageUrls([]);
-
-    try {
-      const [organizationNotes, registeredReports] = await Promise.all([
-        NoteService.getOrganizationNotes(slug),
-        NoteService.getOrganizationNotes(slug, {
-          documentType: 'REGISTERED_REPORT',
-        }),
-      ]);
-      const mergedNotes = mergeNotesById(organizationNotes.results, registeredReports.results);
-
-      setNotes(mergedNotes);
-      setTotalCount(Math.max(organizationNotes.count, mergedNotes.length));
-      setNextPageUrls(
-        [organizationNotes.next, registeredReports.next].filter((url) => url !== null)
-      );
-    } catch (err) {
-      setNotesError(err instanceof Error ? err : new Error('Failed to load notes'));
-      setNotes([]);
-      setTotalCount(0);
-    } finally {
-      setIsLoadingNotes(false);
-    }
-  }, []);
 
   const fetchUsers = useCallback(async (orgId: string, silently = false) => {
     if (!silently) {
@@ -172,51 +132,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     },
     [selectedOrg?.id, fetchUsers]
   );
-
-  const refreshNotes = useCallback(async () => {
-    if (!selectedOrg?.slug) {
-      setNotesError(new Error('No organization slug provided'));
-      return;
-    }
-    await fetchNotes(selectedOrg.slug);
-  }, [selectedOrg?.slug, fetchNotes]);
-
-  const loadMoreNotes = () => {
-    if (isLoadingMoreNotes || nextPageUrls.length === 0) return;
-
-    setNotesError(null);
-    setIsLoadingMoreNotes(true);
-  };
-
-  useEffect(() => {
-    const slug = selectedOrg?.slug;
-    if (!slug || !isLoadingMoreNotes || nextPageUrls.length === 0) return;
-
-    let cancelled = false;
-
-    const fetchNextNotes = async () => {
-      try {
-        const nextPages = await Promise.all(
-          nextPageUrls.map((nextUrl) => NoteService.getOrganizationNotes(slug, { nextUrl }))
-        );
-        if (cancelled) return;
-
-        const newNotes = nextPages.flatMap((page) => page.results);
-        setNotes((currentNotes) => mergeNotesById(currentNotes, newNotes));
-        setNextPageUrls(nextPages.flatMap(({ next }) => (next ? [next] : [])));
-      } catch (err) {
-        if (cancelled) return;
-        setNotesError(err instanceof Error ? err : new Error('Failed to load more notes'));
-      } finally {
-        if (!cancelled) setIsLoadingMoreNotes(false);
-      }
-    };
-
-    void fetchNextNotes();
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoadingMoreNotes, nextPageUrls, selectedOrg?.slug]);
 
   const loadNote = useCallback(async (noteId: string) => {
     if (noteId === lastLoadedNoteIdRef.current) {
@@ -266,38 +181,30 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   const refreshAll = useCallback(async () => {
     if (!selectedOrg?.slug || !selectedOrg?.id) return;
 
-    const promises = [fetchNotes(selectedOrg.slug), fetchUsers(selectedOrg.id.toString())];
+    const promises = [refreshNotes(), fetchUsers(selectedOrg.id.toString())];
     if (activeNoteId) {
       promises.push(loadNote(activeNoteId));
     }
 
     await Promise.all(promises);
-  }, [selectedOrg?.slug, selectedOrg?.id, activeNoteId, fetchNotes, fetchUsers, loadNote]);
+  }, [selectedOrg?.slug, selectedOrg?.id, activeNoteId, refreshNotes, fetchUsers, loadNote]);
 
-  // Initial data loading when organization changes
+  // Users load when the organization changes; the notes list does the same on its own.
   useEffect(() => {
     if (isLoadingOrg) {
-      setIsLoadingNotes(true);
       setIsLoadingUsers(true);
       return;
     }
 
     if (!selectedOrg) {
-      setNotes([]);
-      setTotalCount(0);
-      setIsLoadingMoreNotes(false);
-      setNextPageUrls([]);
       setUsers(null);
-      setNotesError(null);
       setUsersError(null);
-      setIsLoadingNotes(false);
       setIsLoadingUsers(false);
       return;
     }
 
-    fetchNotes(selectedOrg.slug);
     fetchUsers(selectedOrg.id.toString());
-  }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
+  }, [selectedOrg?.id, isLoadingOrg, fetchUsers]);
 
   useEffect(() => {
     if (activeNoteId) {
@@ -306,19 +213,18 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   }, [activeNoteId, loadNote]);
 
   // Calculate overall loading state ignoring isLoadingNote
-  const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;
-  const hasMoreNotes = nextPageUrls.length > 0;
+  const isLoading = notesList.isLoading || isLoadingUsers || isLoadingOrg;
 
   const value = {
-    notes,
+    notes: notesList.notes,
     setNotes,
-    isLoadingNotes,
-    isLoadingMoreNotes,
-    notesError,
-    totalCount,
-    hasMoreNotes,
+    isLoadingNotes: notesList.isLoading,
+    isLoadingMoreNotes: notesList.isLoadingMore,
+    notesError: notesList.error,
+    totalCount: notesList.totalCount,
+    hasMoreNotes: notesList.hasMore,
     refreshNotes,
-    loadMoreNotes,
+    loadMoreNotes: notesList.loadMore,
     users,
     isLoadingUsers,
     usersError,
