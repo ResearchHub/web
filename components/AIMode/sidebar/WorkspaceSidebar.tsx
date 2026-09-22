@@ -5,7 +5,7 @@ import { useAIMode } from '../AIModeContext';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from '../useAIModeChat';
 import { ConversationsSection } from './ConversationsSection';
-import { DocumentsSection } from './DocumentsSection';
+import { DraftsSection } from './DraftsSection';
 
 interface WorkspaceSidebarProps {
   readonly state: AIModeChatState;
@@ -13,7 +13,7 @@ interface WorkspaceSidebarProps {
   readonly onNavigate?: () => void;
 }
 
-/** The left column: start a conversation, pick up one of your own, or open a document. */
+/** The left column: start a conversation, pick up one of your own, or open a draft. */
 export function WorkspaceSidebar({ state, onNavigate }: WorkspaceSidebarProps) {
   const { selectDocument } = useAIMode();
   const { target, chatId, list } = state;
@@ -57,7 +57,7 @@ export function WorkspaceSidebar({ state, onNavigate }: WorkspaceSidebarProps) {
 
         <div aria-hidden="true" className="mx-2 mt-2.5 h-px bg-gray-200" />
 
-        <DocumentsSection
+        <DraftsSection
           activeNoteId={
             target.kind === 'document' && target.layout === 'document' ? target.noteId : null
           }

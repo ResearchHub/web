@@ -417,8 +417,11 @@ export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean 
   isRegisteredReportDocumentType(note?.post?.documentType) ||
   note?.proposalId != null;
 
+/** A note that has been published: it carries the post it became. Anything else is a draft. */
+export const isPublishedNote = (note?: ClassifiableNote | null): boolean => Boolean(note?.post?.id);
+
 export const isPublishedRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
-  Boolean(note?.post?.id) && isRegisteredReportNote(note);
+  isPublishedNote(note) && isRegisteredReportNote(note);
 
 /**
  * A Request for Proposal — the funder's call for work, as opposed to the

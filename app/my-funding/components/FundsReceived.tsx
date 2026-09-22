@@ -1,8 +1,13 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
+import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { NoteDrafts } from '@/components/Funding/dashboard/NoteDrafts';
+import { PublishedFeedEntry } from '@/components/Funding/dashboard/PublishedFeedEntry';
+import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeed } from '@/hooks/useFeed';
 import type { ActivityCommentType } from '@/services/activity.service';
@@ -15,7 +20,9 @@ interface FundsReceivedProps {
 /** Stable reference: a new array on every render would restart the activity feed. */
 const PEER_REVIEW_COMMENT_TYPES: readonly ActivityCommentType[] = ['REVIEW', 'PEER_REVIEW'];
 
+/** The researcher's proposals, drafts first, then the published ones. */
 function MyProposals({ userId }: Readonly<{ userId: number }>) {
+  const { startNew } = useFundingDrafting();
   const {
     entries,
     isLoading,
@@ -33,26 +40,54 @@ function MyProposals({ userId }: Readonly<{ userId: number }>) {
 
   return (
     <section>
-      <h2 className="text-lg font-bold text-gray-900">My proposals</h2>
-      <FeedContent
-        entries={entries}
-        isLoading={isLoading}
-        hasMore={hasMore}
-        loadMore={loadMore}
-        activeTab="all"
-        restoredScrollPosition={restoredScrollPosition}
-        page={page}
-        lastClickedEntryId={lastClickedEntryId ?? undefined}
-        showGrantHeaders={false}
-        showPostHeaders={false}
-        showFundraiseHeaders={false}
-        hideActions
-        skeletonVariant="fundraise"
-        wideContent
-        noEntriesElement={
-          <DashboardEmptyState>You have no published proposals.</DashboardEmptyState>
+      <DashboardSectionHeader
+        title="My proposals"
+        action={
+          // Money coming in reads emerald, like the tab this section sits under.
+          <Button
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-600"
+            onClick={() => startNew('need_funding')}
+          >
+            <Plus size={14} />
+            New proposal
+          </Button>
         }
       />
+
+      <div className="space-y-4">
+        <NoteDrafts kind="proposal" />
+
+        <FeedContent
+          entries={entries}
+          isLoading={isLoading}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          activeTab="all"
+          restoredScrollPosition={restoredScrollPosition}
+          page={page}
+          lastClickedEntryId={lastClickedEntryId ?? undefined}
+          showGrantHeaders={false}
+          showPostHeaders={false}
+          showFundraiseHeaders={false}
+          hideActions
+          skeletonVariant="fundraise"
+          wideContent
+          renderEntry={({ entry, index, ordering, ...tracking }) => (
+            <PublishedFeedEntry
+              entry={entry}
+              index={index}
+              feedOrdering={ordering}
+              showGrantHeaders={false}
+              showPostHeaders={false}
+              showFundraiseHeaders={false}
+              hideActions
+              {...tracking}
+            />
+          )}
+          noEntriesElement={<DashboardEmptyState>You have no proposals yet.</DashboardEmptyState>}
+        />
+      </div>
     </section>
   );
 }

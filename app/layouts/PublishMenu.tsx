@@ -15,6 +15,8 @@ import {
   OpenProposalModal,
   type ProposalCreationMethod,
 } from '@/components/Funding/OpenProposalModal';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
+import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
 
@@ -22,7 +24,19 @@ interface PublishMenuProps {
   forceMinimize?: boolean;
 }
 
-const PUBLISH_MENU_SECTIONS = [
+interface PublishMenuItem {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly icon: React.ReactNode;
+  /** Which side of the money the item starts: an RFP funds, a proposal needs funding. */
+  readonly intent: FundingIntent;
+}
+
+const PUBLISH_MENU_SECTIONS: readonly {
+  readonly title: string;
+  readonly items: readonly PublishMenuItem[];
+}[] = [
   {
     title: 'Publish on ResearchHub',
     items: [
@@ -31,7 +45,7 @@ const PUBLISH_MENU_SECTIONS = [
         title: 'Request for Proposal',
         description: 'Fund specific research you care about',
         icon: <FontAwesomeIcon icon={faBullhorn} className="h-[18px] w-[18px] text-gray-700" />,
-        handler: 'handleOpenGrant',
+        intent: 'fund',
       },
       {
         id: 'request-funding',
@@ -40,11 +54,11 @@ const PUBLISH_MENU_SECTIONS = [
         icon: (
           <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-700" />
         ),
-        handler: 'handleFundResearch',
+        intent: 'need_funding',
       },
     ],
   },
-] as const;
+];
 
 interface MenuItemContentProps {
   icon: React.ReactNode;
@@ -69,25 +83,24 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
   );
 };
 
+/**
+ * The sidebar's Publish button: a Request for Proposal or a Proposal. For a
+ * user the workspace admits, either opens it straight onto a conversation
+ * for that side of the money; everyone else gets the notebook's opening
+ * modal and editor, as before.
+ */
 export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false }) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { inWorkspace, startNew } = useFundingDrafting();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
 
-  const handleFundResearch = () => {
-    setIsProposalModalOpen(true);
-  };
-
   const handleConfirmCreateProposal = (method: ProposalCreationMethod) => {
     setIsProposalModalOpen(false);
     router.push(`/notebook?newFunding=true&proposalSource=${method}`);
-  };
-
-  const handleOpenGrant = () => {
-    setIsFundingOpportunityModalOpen(true);
   };
 
   const handleConfirmOpenGrant = (method: FundingOpportunityCreationMethod) => {
@@ -95,15 +108,14 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false 
     router.push(`/notebook?newGrant=true&grantSource=${method}`);
   };
 
-  const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {
+  const handleMenuItemClick = (item: PublishMenuItem) => {
     executeAuthenticatedAction(() => {
-      switch (item.handler) {
-        case 'handleFundResearch':
-          handleFundResearch();
-          break;
-        case 'handleOpenGrant':
-          handleOpenGrant();
-          break;
+      if (inWorkspace) {
+        startNew(item.intent);
+      } else if (item.intent === 'fund') {
+        setIsFundingOpportunityModalOpen(true);
+      } else {
+        setIsProposalModalOpen(true);
       }
     });
 
