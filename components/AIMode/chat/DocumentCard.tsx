@@ -3,7 +3,7 @@
 import { FileText, Lock } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
-import type { DocumentStatus } from './useAIModeDocument';
+import type { DocumentStatus } from '../document/useAIModeDocument';
 
 interface DocumentCardProps {
   readonly title: string;

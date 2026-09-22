@@ -24,8 +24,8 @@ import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
-import { DetailBlockStrip } from './document/details/DetailBlockStrip';
-import { PublishControls } from './document/PublishControls';
+import { DetailBlockStrip } from './details/DetailBlockStrip';
+import { PublishControls } from './PublishControls';
 import type { AIModeDocument } from './useAIModeDocument';
 
 /** The document itself, or the full publishing details form. */

@@ -2,23 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { PanelRight, Sparkles, X } from 'lucide-react';
+import { PanelRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { ResizeHandle } from '@/components/ui/ResizeHandle';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { useAIMode } from './AIModeContext';
-import { ChatPane } from './ChatPane';
-import { ConversationList } from './ConversationList';
-import { DocumentCard } from './DocumentCard';
-import { DocumentPane, type DocumentPaneView } from './DocumentPane';
+import { ChatPane } from './chat/ChatPane';
+import { DocumentCard } from './chat/DocumentCard';
+import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
+import { useAIModeDocument } from './document/useAIModeDocument';
+import { AIModeHeader } from './shell/AIModeHeader';
+import { useModalOverlayBehavior } from './shell/useModalOverlayBehavior';
+import { WorkspacePanes } from './shell/WorkspacePanes';
+import { WorkspaceSidebar } from './sidebar/WorkspaceSidebar';
 import { useAIModeChat } from './useAIModeChat';
-import { useAIModeDocument } from './useAIModeDocument';
 import { AI_MODE_NAME } from './copy';
-
-/** Above the overlay (9500), below BaseModal (9999). */
-const AI_MODE_DRAWER_Z_INDEX = 9600;
 
 const LIST_MIN_WIDTH = 200;
 const LIST_MAX_WIDTH = 440;
@@ -31,35 +29,14 @@ const DETAILS_MIN_WIDTH = 560;
 const DOCUMENT_DEFAULT_SHARE = 0.55;
 
 /**
- * A modal that portals outside the overlay (BaseModal, a drawer) is showing.
- * Closed drawers stay mounted off-screen with `role="dialog"`, so presence in
- * the DOM is not enough — the box has to intersect the viewport.
- */
-function isForeignDialogOpen(): boolean {
-  const overlay = document.getElementById('ai-mode-overlay');
-  return Array.from(document.querySelectorAll('[role="dialog"]')).some((el) => {
-    if (overlay?.contains(el)) return false;
-    const rect = el.getBoundingClientRect();
-    return (
-      rect.width > 0 &&
-      rect.height > 0 &&
-      rect.bottom > 0 &&
-      rect.right > 0 &&
-      rect.top < window.innerHeight &&
-      rect.left < window.innerWidth
-    );
-  });
-}
-
-/**
- * The full-viewport shell: header, conversation list, chat, document. Sits
- * below BaseModal (9999) and Tooltip (10000) so real modals and tooltips
- * opened from inside it still render on top.
+ * The full-viewport workspace: header, sidebar, chat, document. Sits below
+ * BaseModal (9999) and Tooltip (10000) so real modals and tooltips opened
+ * from inside it still render on top.
  */
 export function AIModeOverlay() {
   const { close } = useAIMode();
   const state = useAIModeChat();
-  // Below the tablet breakpoint the list lives in a bottom drawer.
+  // Below the tablet breakpoint the sidebar lives in a bottom drawer.
   const [listDrawerOpen, setListDrawerOpen] = useState(false);
   const closeListDrawer = useCallback(() => setListDrawerOpen(false), []);
 
@@ -69,7 +46,7 @@ export function AIModeOverlay() {
     latestExecution: state.chat.latestExecution,
   });
 
-  // Tailwind's `tablet` breakpoint; the drawer only exists below it.
+  // Tailwind's `tablet` breakpoint; the drawers only exist below it.
   const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
 
   // ---- pane widths, claude.ai style: both side panes drag, the chat takes the rest ----
@@ -152,69 +129,19 @@ export function AIModeOverlay() {
       />
     ) : null;
 
-  // Esc closes, unless something inside already claimed it (a menu, a modal
-  // that portals outside the overlay).
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || event.defaultPrevented) return;
-      if (isForeignDialogOpen()) return;
-      close();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [close]);
-
-  // A real modal: the overlay portals to the body and everything else at
-  // the top level goes inert while it is open, so nothing behind it — a
-  // notebook editor that autofocuses late, say — can take focus or keys.
-  // Layers that mount later (menus, tooltips, modals) append after and stay
-  // live; the overlay's own drawers render inside it.
   const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (!rootEl) return;
-    rootEl.focus();
-    const inerted: Element[] = [];
-    for (const child of Array.from(document.body.children)) {
-      if (child === rootEl || child.tagName === 'SCRIPT' || child.tagName === 'NEXTJS-PORTAL') {
-        continue;
-      }
-      if (child.hasAttribute('inert')) continue;
-      child.setAttribute('inert', '');
-      inerted.push(child);
-    }
-    return () => {
-      for (const child of inerted) child.removeAttribute('inert');
-    };
-  }, [rootEl]);
+  useModalOverlayBehavior({ rootEl, onEscape: close });
 
-  // Lock the page behind the overlay.
-  useEffect(() => {
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, []);
-
-  const conversationList = (
-    <ConversationList
-      chats={state.list.chats}
-      access={state.list.access}
-      accessDetail={state.list.accessDetail}
-      activeChatId={state.chatId}
-      titleFor={state.titleFor}
-      onSelect={(chatId) => {
-        state.selectChat(chatId);
-        closeListDrawer();
-      }}
-      onNew={() => {
-        state.startNewChat();
-        closeListDrawer();
-      }}
-      onRename={state.rename}
-      onDelete={state.deleteChat}
-      loadNotes={state.notesForChat}
-      onRetry={state.list.refresh}
+  const documentPane = (presentation: 'pane' | 'drawer') => (
+    <DocumentPane
+      document={doc}
+      chat={state.chat.chat}
+      view={documentView}
+      onViewChange={setDocumentView}
+      presentation={presentation}
+      publishControlsSlot={presentation === 'pane' ? publishControlsSlot : null}
+      readOnly={presentation === 'drawer'}
+      className={presentation === 'drawer' ? '-mx-4 -mt-2' : undefined}
     />
   );
 
@@ -228,50 +155,23 @@ export function AIModeOverlay() {
       aria-label={AI_MODE_NAME}
       className="fixed inset-0 z-[9500] flex flex-col bg-gray-50 outline-none"
     >
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary-600" aria-hidden="true" />
-          <span className="text-sm font-semibold tracking-tight text-gray-900">{AI_MODE_NAME}</span>
-        </div>
-        <div className="flex min-w-0 items-center gap-3">
-          {showDocument && !isBelowTablet && (
-            <>
-              <span className="hidden max-w-[260px] truncate text-xs text-gray-600 lg:!inline">
-                {documentTitle}
-              </span>
-              <div ref={setPublishControlsSlot} className="flex items-center" />
-              <span aria-hidden="true" className="h-5 w-px bg-gray-200" />
-            </>
-          )}
-          <button
-            type="button"
-            onClick={close}
-            aria-label={`Close ${AI_MODE_NAME}`}
-            className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </header>
+      <AIModeHeader
+        documentTitle={showDocument ? documentTitle : null}
+        publishControlsRef={isBelowTablet ? undefined : setPublishControlsSlot}
+        onClose={close}
+      />
 
-      <div className="relative flex min-h-0 flex-1">
-        <aside
-          style={{ width: listWidth.width }}
-          className="relative hidden shrink-0 flex-col border-r border-gray-200 bg-gray-100 tablet:!flex"
-        >
-          {conversationList}
-          <ResizeHandle
-            label="Resize conversations"
-            side="right"
-            value={listWidth.width}
-            min={LIST_MIN_WIDTH}
-            max={LIST_MAX_WIDTH}
-            isResizing={listWidth.isResizing}
-            onStart={listWidth.startResize}
-            onNudge={listWidth.nudgeWidth}
-          />
-        </aside>
-        <main className="flex min-w-0 flex-1 flex-col">
+      <WorkspacePanes
+        layout="chat"
+        isBelowTablet={isBelowTablet}
+        sidebarWidth={{ ...listWidth, min: LIST_MIN_WIDTH, max: LIST_MAX_WIDTH }}
+        sideWidth={{ ...documentWidth, min: documentMinWidth, max: documentMaxWidth }}
+        listDrawerOpen={listDrawerOpen}
+        onCloseListDrawer={closeListDrawer}
+        onCloseDocumentDrawer={closeDocument}
+        container={rootEl}
+        sidebar={<WorkspaceSidebar state={state} onNavigate={closeListDrawer} />}
+        chat={
           <ChatPane
             state={state}
             onOpenConversations={() => setListDrawerOpen(true)}
@@ -297,66 +197,10 @@ export function AIModeOverlay() {
               )
             }
           />
-        </main>
-        {/* One editor per note at a time: the pane mounts in the column above
-            the tablet breakpoint and in the drawer below it, never both. */}
-        {showDocument && !isBelowTablet && (
-          <aside
-            style={{ width: documentWidth.width }}
-            className="relative flex shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white"
-          >
-            <ResizeHandle
-              label="Resize document"
-              side="left"
-              value={documentWidth.width}
-              min={documentMinWidth}
-              max={documentMaxWidth}
-              isResizing={documentWidth.isResizing}
-              onStart={documentWidth.startResize}
-              onNudge={documentWidth.nudgeWidth}
-            />
-            <DocumentPane
-              document={doc}
-              chat={state.chat.chat}
-              view={documentView}
-              onViewChange={setDocumentView}
-              publishControlsSlot={publishControlsSlot}
-            />
-          </aside>
-        )}
-      </div>
-
-      {/* Drawers portal to the body, so they need to stack above this overlay
-          (z-9500) while staying under BaseModal (9999). */}
-      <SwipeableDrawer
-        isOpen={listDrawerOpen}
-        onClose={closeListDrawer}
-        height="70vh"
-        zIndex={AI_MODE_DRAWER_Z_INDEX}
-        container={rootEl}
-      >
-        {conversationList}
-      </SwipeableDrawer>
-      <SwipeableDrawer
-        isOpen={showDocument && isBelowTablet}
-        onClose={closeDocument}
-        height="85vh"
-        className="tablet:!hidden"
-        zIndex={AI_MODE_DRAWER_Z_INDEX}
-        container={rootEl}
-      >
-        {showDocument && isBelowTablet && (
-          <DocumentPane
-            document={doc}
-            chat={state.chat.chat}
-            view={documentView}
-            onViewChange={setDocumentView}
-            presentation="drawer"
-            readOnly
-            className="-mx-4 -mt-2"
-          />
-        )}
-      </SwipeableDrawer>
+        }
+        document={showDocument ? documentPane('pane') : null}
+        documentDrawer={showDocument ? documentPane('drawer') : null}
+      />
     </div>,
     document.body
   );
