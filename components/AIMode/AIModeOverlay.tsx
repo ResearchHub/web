@@ -17,7 +17,7 @@ import { useModalOverlayBehavior } from './shell/useModalOverlayBehavior';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceSidebar } from './sidebar/WorkspaceSidebar';
 import { useAIModeChat } from './useAIModeChat';
-import { AI_MODE_NAME } from './copy';
+import { AI_MODE_NAME, NEW_CONVERSATION_TITLE } from './copy';
 
 const LIST_MIN_WIDTH = 200;
 const LIST_MAX_WIDTH = 440;
@@ -110,10 +110,14 @@ export function AIModeOverlay() {
   const showDocument = noteId != null && documentOpen;
   const documentTitle = doc.content?.title?.trim() || state.note?.title?.trim() || 'Document';
   // The top strip names what is open: the conversation when the chat is the
-  // main pane, the document when it is; nothing on the new-conversation screen.
+  // main pane, the document when it is, and the new-conversation screen as such.
   const { title: conversationTitle } = conversationTitleFor(state);
   const headerTitle =
-    layout === 'document' ? documentTitle : target.chatId != null ? conversationTitle : null;
+    layout === 'document'
+      ? documentTitle
+      : target.chatId != null
+        ? conversationTitle
+        : NEW_CONVERSATION_TITLE;
 
   // The document column puts its publish controls up in the header, where
   // they read as the workspace's, not the pane's. It renders into this slot.

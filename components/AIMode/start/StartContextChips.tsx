@@ -3,8 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogleScholar, faOrcid } from '@fortawesome/free-brands-svg-icons';
-import { Handshake, Plug, Plus, Target, X, type LucideIcon } from 'lucide-react';
-import { WHITE_GLOVE_BOOKING_URL } from '@/components/Funding/OpenFundingOpportunityModal';
+import { Plug, Plus, Target, X, type LucideIcon } from 'lucide-react';
 import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
 import { ProfileEditModal } from '@/components/profile/ProfileEditModal';
 import { useUser } from '@/contexts/UserContext';
@@ -29,24 +28,6 @@ export function StartContextChips({ selectedGrant, onSelectGrant }: StartContext
       <ProfileChip />
       <RfpChip selectedGrant={selectedGrant} onSelectGrant={onSelectGrant} />
     </div>
-  );
-}
-
-/** For a funder there is nothing to attach; the way to the team sits under the composer instead. */
-export function FundTeamLink() {
-  return (
-    <a
-      href={WHITE_GLOVE_BOOKING_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex min-h-11 items-center gap-2 px-1 text-sm text-gray-600"
-    >
-      <Handshake className="h-4 w-4 text-primary-700" aria-hidden="true" />
-      Prefer to talk it through?
-      <span className="font-semibold text-primary-700 underline underline-offset-[3px]">
-        Talk to the ResearchHub team
-      </span>
-    </a>
   );
 }
 
