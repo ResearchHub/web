@@ -37,9 +37,10 @@ export function AIModeOverlay() {
   const { close, layout, setLayout } = useAIMode();
   const state = useAIModeChat();
   const { target } = state;
-  // Below the tablet breakpoint the sidebar lives in a bottom drawer.
-  const [listDrawerOpen, setListDrawerOpen] = useState(false);
-  const closeListDrawer = useCallback(() => setListDrawerOpen(false), []);
+  // Below the tablet breakpoint the sidebar is a screen of its own, opened
+  // from the chat header.
+  const [listOpen, setListOpen] = useState(false);
+  const closeList = useCallback(() => setListOpen(false), []);
 
   const doc = useAIModeDocument({
     note: state.note,
@@ -175,15 +176,15 @@ export function AIModeOverlay() {
         isBelowTablet={isBelowTablet}
         sidebarWidth={{ ...listWidth, min: LIST_MIN_WIDTH, max: LIST_MAX_WIDTH }}
         sideWidth={{ ...sideWidth, min: sideMinWidth, max: sideMaxWidth }}
-        listDrawerOpen={listDrawerOpen}
-        onCloseListDrawer={closeListDrawer}
+        listOpen={listOpen}
+        onCloseList={closeList}
         onCloseDocumentDrawer={closeDocument}
         container={rootEl}
-        sidebar={<WorkspaceSidebar state={state} onNavigate={closeListDrawer} />}
+        sidebar={<WorkspaceSidebar state={state} onNavigate={closeList} />}
         chat={
           <ChatPane
             state={state}
-            onOpenConversations={() => setListDrawerOpen(true)}
+            onOpenConversations={() => setListOpen(true)}
             documentCard={documentCard}
             documentCardExecutionId={documentCardExecutionId}
             headerActions={
