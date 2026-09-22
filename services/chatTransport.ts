@@ -8,12 +8,19 @@ import type {
   SendMessageResponse,
 } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
 
 type ChatId = string | number;
 
-/** What a chat starts out knowing, before its first message. */
+/**
+ * What a chat starts out knowing, before its first message. The intent and
+ * the RFP are the assistant surface's; a note-scoped chat ignores them.
+ */
 export interface ChatCreateInit {
   readonly title?: string;
+  readonly intent?: FundingIntent;
+  /** The Request for Proposals a proposal this chat drafts will answer. */
+  readonly selectedGrantId?: ChatId | null;
 }
 
 /**
@@ -79,7 +86,7 @@ export function assistantChatTransport(): ChatTransport {
   return {
     key: 'assistant',
     listChats: () => AssistantChatService.listChats(),
-    createChat: (init) => AssistantChatService.createChat(init?.title),
+    createChat: (init) => AssistantChatService.createChat(init),
     getChat: (chatId, options) => AssistantChatService.getChat(chatId, options),
     sendMessage: (chatId, message, generation) =>
       AssistantChatService.sendMessage(chatId, message, generation),

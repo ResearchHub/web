@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
+import { FundingDirectionIcon } from '@/components/Funding/FundingDirectionIcon';
+import type { FundingDirection } from '@/components/Funding/fundingDirection';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowDownLeft, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundsGiven } from '@/components/Funding/dashboard/FundsGiven';
 import { ModeratorViewAsFunder } from '@/components/Funding/dashboard/ModeratorViewAsFunder';
@@ -17,12 +18,10 @@ type MyFundingTab = 'given' | 'received';
  * funds given, into it for funds received. The arrow inherits the tab's own
  * color so it picks up the active/inactive treatment for free.
  */
-function TabLabel({ icon: DirectionIcon, children }: { icon: LucideIcon; children: ReactNode }) {
+function TabLabel({ direction, children }: { direction: FundingDirection; children: ReactNode }) {
   return (
     <span className="flex items-center gap-2">
-      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
-        <DirectionIcon className="h-3.5 w-3.5" />
-      </span>
+      <FundingDirectionIcon direction={direction} colored={false} />
       {children}
     </span>
   );
@@ -31,12 +30,12 @@ function TabLabel({ icon: DirectionIcon, children }: { icon: LucideIcon; childre
 const MY_FUNDING_TABS = [
   {
     id: 'given',
-    label: <TabLabel icon={ArrowUpRight}>Funds given</TabLabel>,
+    label: <TabLabel direction="giving">Funds given</TabLabel>,
     href: '/my-funding?tab=given',
   },
   {
     id: 'received',
-    label: <TabLabel icon={ArrowDownLeft}>Funds received</TabLabel>,
+    label: <TabLabel direction="receiving">Funds received</TabLabel>,
     href: '/my-funding?tab=received',
     // Money coming in reads green, matching the emerald treatment the Fund
     // tabs already use for the inbound side.

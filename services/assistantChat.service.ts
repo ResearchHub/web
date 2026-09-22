@@ -7,6 +7,7 @@ import type {
 } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
 import { ID } from '@/types/root';
+import type { ChatCreateInit } from './chatTransport';
 
 const BASE_PATH = '/api/research_ai/assistant/chats/';
 
@@ -35,8 +36,12 @@ export class AssistantChatService {
     return response.chats ?? [];
   }
 
-  static async createChat(title?: string): Promise<AgentChat> {
-    return ApiClient.post<AgentChat>(BASE_PATH, title ? { title } : {});
+  static async createChat(init?: ChatCreateInit): Promise<AgentChat> {
+    return ApiClient.post<AgentChat>(BASE_PATH, {
+      ...(init?.title ? { title: init.title } : {}),
+      ...(init?.intent ? { intent: init.intent } : {}),
+      ...(init?.selectedGrantId != null ? { selected_grant: init.selectedGrantId } : {}),
+    });
   }
 
   static async getChat(chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {

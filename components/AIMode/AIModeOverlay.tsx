@@ -14,7 +14,6 @@ import { ConversationList } from './ConversationList';
 import { DocumentCard } from './DocumentCard';
 import { DocumentPane, type DocumentPaneView } from './DocumentPane';
 import { useAIModeChat } from './useAIModeChat';
-import type { PublishingDefaultArticleType } from '@/contexts/PublishingHostContext';
 import { useAIModeDocument } from './useAIModeDocument';
 import { AI_MODE_NAME } from './copy';
 
@@ -119,15 +118,6 @@ export function AIModeOverlay() {
     setDocumentView('document');
   }, [noteId]);
 
-  // What the conversation set out to write, from its opening message, so the
-  // details form preselects the matching work type for a note that has none.
-  const defaultArticleType = useMemo<PublishingDefaultArticleType | null>(() => {
-    const opening = state.chat.chat?.messages.find((message) => message.role === 'user')?.content;
-    if (!opening) return null;
-    if (/request for proposals|\bRFP\b/i.test(opening)) return 'grant';
-    if (/proposal/i.test(opening)) return 'preregistration';
-    return null;
-  }, [state.chat.chat?.messages]);
   const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
@@ -330,7 +320,6 @@ export function AIModeOverlay() {
               chat={state.chat.chat}
               view={documentView}
               onViewChange={setDocumentView}
-              defaultArticleType={defaultArticleType}
               publishControlsSlot={publishControlsSlot}
             />
           </aside>
@@ -362,7 +351,6 @@ export function AIModeOverlay() {
             chat={state.chat.chat}
             view={documentView}
             onViewChange={setDocumentView}
-            defaultArticleType={defaultArticleType}
             presentation="drawer"
             readOnly
             className="-mx-4 -mt-2"

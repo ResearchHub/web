@@ -7,6 +7,8 @@ interface ButtonGroupOption {
   value: string;
   label: ReactNode;
   badge?: string | number;
+  /** Extra classes while this option is the active one, e.g. its own colour. */
+  activeClassName?: string;
 }
 
 interface ButtonGroupProps {
@@ -90,8 +92,12 @@ export function ButtonGroup({
       {options.map((option) => (
         <button
           key={option.value}
+          type="button"
           onClick={() => onChange(option.value)}
-          className={buttonClasses(value === option.value)}
+          className={cn(
+            buttonClasses(value === option.value),
+            value === option.value && option.activeClassName
+          )}
         >
           {option.label}
           {option.badge !== undefined && option.badge !== 0 && (
