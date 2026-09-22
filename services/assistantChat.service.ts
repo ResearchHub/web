@@ -31,8 +31,11 @@ export interface UsageBudget {
  * adds to a chat (the documents the agent created from it).
  */
 export class AssistantChatService {
+  /** Every chat the user has, the notebook's included, each saying where it lives. */
   static async listChats(): Promise<AgentChatListItem[]> {
-    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(BASE_PATH);
+    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(
+      `${BASE_PATH}?include=notebook`
+    );
     return response.chats ?? [];
   }
 

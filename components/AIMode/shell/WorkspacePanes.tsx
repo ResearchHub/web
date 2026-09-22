@@ -5,14 +5,12 @@ import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import type { useResizableWidth } from '@/hooks/useResizableWidth';
 import { cn } from '@/utils/styles';
+import type { WorkspaceLayout } from '../AIModeContext';
 
 /** Above the overlay (9500), below BaseModal (9999). */
 const AI_MODE_DRAWER_Z_INDEX = 9600;
 
 type ResizableWidth = ReturnType<typeof useResizableWidth>;
-
-/** Which pane is the flexible main one; the other sits at a fixed width on the right. */
-export type WorkspaceLayout = 'chat' | 'document';
 
 interface WorkspacePanesProps {
   readonly layout: WorkspaceLayout;

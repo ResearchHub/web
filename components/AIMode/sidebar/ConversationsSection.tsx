@@ -23,7 +23,7 @@ interface ConversationsSectionProps {
   readonly activeChatId: number | null;
   /** Resolves a row's title, showing a rename before the server confirms it. */
   readonly titleFor: (chatId: number, fallback: string | null) => string | null;
-  readonly onSelect: (chatId: number) => void;
+  readonly onSelect: (item: AgentChatListItem) => void;
   readonly onRename: (chatId: number, title: string) => Promise<boolean>;
   readonly onDelete: (chatId: number, options: { deleteNotes: boolean }) => Promise<boolean>;
   readonly loadNotes: (chatId: number) => Promise<ChatNoteRef[]>;
@@ -92,7 +92,7 @@ export function ConversationsSection({
             title={title}
             meta={formatTimeAgo(item.updated_date)}
             isActive={isActive}
-            onSelect={() => onSelect(item.id)}
+            onSelect={() => onSelect(item)}
             titleAdornment={
               item.has_active_turn && (
                 <Loader size="sm" className="!h-3 !w-3 shrink-0 text-primary-500" />
