@@ -12,9 +12,8 @@ import { useAIMode } from './AIModeContext';
 import { ChatPane } from './ChatPane';
 import { ConversationList } from './ConversationList';
 import { DocumentCard } from './DocumentCard';
-import { DocumentPane } from './DocumentPane';
+import { DocumentPane, type DocumentPaneView } from './DocumentPane';
 import { useAIModeChat } from './useAIModeChat';
-import type { NotebookTab } from '@/components/Notebook/NotebookTabs';
 import type { PublishingDefaultArticleType } from '@/contexts/PublishingHostContext';
 import { useAIModeDocument } from './useAIModeDocument';
 import { AI_MODE_NAME } from './copy';
@@ -92,8 +91,8 @@ export function AIModeOverlay() {
     anchor: 'left',
   });
   // Document or details in the right pane; details wants a wider floor.
-  const [documentTab, setDocumentTab] = useState<NotebookTab>('document');
-  const documentMinWidth = documentTab === 'details' ? DETAILS_MIN_WIDTH : DOCUMENT_MIN_WIDTH;
+  const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
+  const documentMinWidth = documentView === 'details' ? DETAILS_MIN_WIDTH : DOCUMENT_MIN_WIDTH;
   // The document may grow until the chat is down to its minimum column.
   const documentMaxWidth = Math.max(
     documentMinWidth,
@@ -117,7 +116,7 @@ export function AIModeOverlay() {
   const [documentOpen, setDocumentOpen] = useState(false);
   useEffect(() => {
     setDocumentOpen(noteId != null && !isBelowTabletRef.current);
-    setDocumentTab('document');
+    setDocumentView('document');
   }, [noteId]);
 
   // What the conversation set out to write, from its opening message, so the
@@ -132,6 +131,11 @@ export function AIModeOverlay() {
   const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
+  const documentTitle = doc.content?.title?.trim() || state.note?.title?.trim() || 'Document';
+
+  // The document column puts its publish controls up in the header, where
+  // they read as the workspace's, not the pane's. It renders into this slot.
+  const [publishControlsSlot, setPublishControlsSlot] = useState<HTMLDivElement | null>(null);
 
   // The turn that created the document, for seating its card in the transcript.
   const documentCardExecutionId = useMemo(() => {
@@ -151,7 +155,7 @@ export function AIModeOverlay() {
   const documentCard =
     noteId != null ? (
       <DocumentCard
-        title={doc.content?.title?.trim() || state.note?.title?.trim() || 'Document'}
+        title={documentTitle}
         status={doc.status}
         open={showDocument}
         onOpen={openDocument}
@@ -239,8 +243,16 @@ export function AIModeOverlay() {
           <Sparkles className="h-4 w-4 text-primary-600" aria-hidden="true" />
           <span className="text-sm font-semibold tracking-tight text-gray-900">{AI_MODE_NAME}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="hidden text-xs text-gray-400 tablet:!inline">Esc to close</span>
+        <div className="flex min-w-0 items-center gap-3">
+          {showDocument && !isBelowTablet && (
+            <>
+              <span className="hidden max-w-[260px] truncate text-xs text-gray-600 lg:!inline">
+                {documentTitle}
+              </span>
+              <div ref={setPublishControlsSlot} className="flex items-center" />
+              <span aria-hidden="true" className="h-5 w-px bg-gray-200" />
+            </>
+          )}
           <button
             type="button"
             onClick={close}
@@ -316,9 +328,10 @@ export function AIModeOverlay() {
             <DocumentPane
               document={doc}
               chat={state.chat.chat}
-              tab={documentTab}
-              onTabChange={setDocumentTab}
+              view={documentView}
+              onViewChange={setDocumentView}
               defaultArticleType={defaultArticleType}
+              publishControlsSlot={publishControlsSlot}
             />
           </aside>
         )}
@@ -347,9 +360,10 @@ export function AIModeOverlay() {
           <DocumentPane
             document={doc}
             chat={state.chat.chat}
-            tab={documentTab}
-            onTabChange={setDocumentTab}
+            view={documentView}
+            onViewChange={setDocumentView}
             defaultArticleType={defaultArticleType}
+            presentation="drawer"
             readOnly
             className="-mx-4 -mt-2"
           />

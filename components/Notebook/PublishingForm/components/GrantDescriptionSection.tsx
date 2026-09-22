@@ -2,15 +2,17 @@ import { useFormContext } from 'react-hook-form';
 import { FileText } from 'lucide-react';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 
-export function GrantDescriptionSection() {
+export function GrantDescriptionSection({ className }: SectionProps) {
   const {
     register,
     formState: { errors },
   } = useFormContext();
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={FileText}>Short Description</SectionHeader>
       <div className="mt-2">
         <Textarea

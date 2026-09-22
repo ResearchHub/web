@@ -1,10 +1,12 @@
 import { Users } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 import { useFormContext } from 'react-hook-form';
 import { getFieldErrorMessage } from '@/utils/form';
 import { SearchableUserSelect } from '@/components/ui/form/SearchableUserSelect';
 
-export function AuthorsSection() {
+export function AuthorsSection({ className }: SectionProps) {
   const {
     watch,
     setValue,
@@ -14,7 +16,7 @@ export function AuthorsSection() {
   const authors = watch('authors') || [];
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={Users}>Authors</SectionHeader>
       <SearchableUserSelect
         value={authors}
