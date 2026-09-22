@@ -31,9 +31,10 @@ import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import {
+  getNoteKind,
   isChangelogNote,
   isPublishedRegisteredReportNote,
-  isRegisteredReportNote,
+  NOTE_KIND_LABELS,
 } from '@/types/note';
 
 // Persisted (per-user) flag so the guided tour auto-runs only once — the very
@@ -44,30 +45,6 @@ const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
 // Their presence means the user just created this note (vs. opening an existing
 // one), which is the only moment we want to auto-launch the tour.
 const NEW_NOTE_PARAMS = ['newChangelog', 'newGrant', 'newFunding', 'template'];
-
-// Friendly label for the note's work type, shown at the top-left of the doc.
-function getWorkTypeLabel(
-  documentType?: string | null,
-  contentType?: string | null,
-  isRegisteredReport?: boolean
-): string | undefined {
-  if (isRegisteredReport) {
-    return 'Registered Report';
-  }
-
-  switch (documentType) {
-    case 'GRANT':
-      return 'Request for Proposal';
-    case 'PREREGISTRATION':
-      return 'Proposal';
-    case 'DISCUSSION':
-      return 'Preprint';
-  }
-  if (contentType === 'funding_request') return 'Request for Proposal';
-  if (contentType === 'preregistration') return 'Proposal';
-  if (contentType) return 'Preprint';
-  return undefined;
-}
 
 interface NoteEditorLayoutProps {
   /**
@@ -238,9 +215,12 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
   const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
   const isEditorReadOnly =
     isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
+  const noteKind = getNoteKind(note);
   const workTypeLabel = isChangelog
     ? 'ChangeLog'
-    : getWorkTypeLabel(note?.documentType, note?.post?.contentType, isRegisteredReportNote(note));
+    : noteKind === 'other'
+      ? undefined
+      : NOTE_KIND_LABELS[noteKind];
 
   const renderEditor = () => {
     // No note is targeted (notebook home) — render the landing view directly so
