@@ -28,8 +28,11 @@ export function AIModeHeader({ title, publishControlsRef, onBack }: AIModeHeader
       <div className="flex min-w-0 items-center gap-2">
         <TopBarBackButton onClick={onBack} variant="mobile" label={backLabel} />
         <TopBarBackButton onClick={onBack} variant="desktop" label={backLabel} />
-        <BriefcaseBusiness className="h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
-        <span className="shrink-0 text-sm font-semibold tracking-tight text-gray-900">
+        <BriefcaseBusiness
+          className="h-[18px] w-[18px] shrink-0 text-gray-900"
+          aria-hidden="true"
+        />
+        <span className="shrink-0 text-base font-semibold tracking-tight text-gray-900">
           {AI_MODE_NAME}
         </span>
         {title != null && (

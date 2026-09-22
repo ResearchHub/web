@@ -27,6 +27,8 @@ interface ProfileEditModalProps {
   socialLinks?: readonly SocialLinkKey[];
   title?: string;
   description?: string;
+  /** Section headings inside the form; off when the modal's title and description cover it. */
+  showSectionTitles?: boolean;
   maxWidth?: string;
 }
 
@@ -40,6 +42,7 @@ export function ProfileEditModal({
   socialLinks,
   title = 'Edit Profile',
   description,
+  showSectionTitles = true,
   maxWidth = 'max-w-5xl',
 }: ProfileEditModalProps) {
   const formId = useId();
@@ -94,6 +97,7 @@ export function ProfileEditModal({
         socialLinks={socialLinks}
         showAvatar={wholeProfile}
         useAccordion={wholeProfile}
+        showSectionTitles={showSectionTitles}
       />
     </BaseModal>
   );

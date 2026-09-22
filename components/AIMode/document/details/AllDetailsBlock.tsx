@@ -34,10 +34,12 @@ export function AllDetailsBlock({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      style={{ width: ALL_DETAILS_BLOCK_WIDTH }}
+      style={{ minWidth: ALL_DETAILS_BLOCK_WIDTH }}
       className={cn(
-        'flex h-full shrink-0 flex-col justify-center px-2.5 text-left transition-colors',
-        active ? 'bg-primary-50 ring-[3px] ring-primary-100' : 'bg-gray-50 hover:bg-gray-100'
+        'flex h-full flex-1 flex-col justify-center px-2.5 text-left transition-colors',
+        active
+          ? 'relative z-10 bg-primary-50 outline outline-2 -outline-offset-2 outline-primary-400'
+          : 'bg-gray-50 hover:bg-gray-100'
       )}
     >
       <span className="flex items-center justify-between gap-1.5 whitespace-nowrap">

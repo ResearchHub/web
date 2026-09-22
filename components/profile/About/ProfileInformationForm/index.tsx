@@ -37,6 +37,8 @@ interface ProfileInformationFormProps {
   formId?: string;
   showAvatar?: boolean;
   useAccordion?: boolean;
+  /** Without an accordion, each section's heading; off when the host's own title already says it. */
+  showSectionTitles?: boolean;
   autoFocusField?: FormField;
 }
 
@@ -47,6 +49,7 @@ export function ProfileInformationForm({
   formId,
   showAvatar = true,
   useAccordion = false,
+  showSectionTitles = true,
   autoFocusField,
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
@@ -331,7 +334,7 @@ export function ProfileInformationForm({
         <div className="space-y-6">
           {sections.map((section) => (
             <div key={section.id}>
-              <div className="mb-4">{section.title}</div>
+              {showSectionTitles && <div className="mb-4">{section.title}</div>}
               {section.content}
             </div>
           ))}

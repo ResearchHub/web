@@ -57,7 +57,7 @@ export function DetailBlockStrip({ detailsOpen, onToggleDetails }: DetailBlockSt
     <div
       ref={ref}
       style={{ gap: GAP }}
-      className="flex h-16 shrink-0 items-center border-b border-gray-200 bg-white px-3"
+      className="flex h-16 shrink-0 items-center border-b border-gray-200 bg-white"
     >
       {note != null &&
         blocks

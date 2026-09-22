@@ -11,6 +11,7 @@ import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { BriefcaseBusiness, Sprout, Star } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AI_MODE_NAME } from '@/components/AIMode/copy';
+import { Badge } from '@/components/ui/Badge';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { useUser } from '@/contexts/UserContext';
 import { isHubEditorOrModerator } from '@/utils/permissions';
@@ -36,6 +37,8 @@ interface NavigationItem {
   isHome?: boolean;
   /** Toggles the AI Mode overlay in place instead of navigating. */
   isAIMode?: boolean;
+  /** A small pill after the label, e.g. "New" while a feature is fresh. */
+  badge?: string;
 }
 
 interface NavigationProps {
@@ -85,6 +88,14 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'View your funding activity',
     },
     {
+      label: AI_MODE_NAME,
+      href: '#',
+      isAIMode: true,
+      requiresAuth: true,
+      badge: 'New',
+      description: 'Draft proposals and RFPs with the assistant',
+    },
+    {
       label: 'Peer Review',
       href: '/peer-review',
       isLucideStar: true,
@@ -101,13 +112,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       href: '/endowment',
       isLucideSprout: true,
       description: 'Learn about the ResearchHub Endowment',
-    },
-    {
-      label: AI_MODE_NAME,
-      href: '#',
-      isAIMode: true,
-      requiresAuth: true,
-      description: 'Draft proposals and RFPs with the assistant',
     },
   ];
 
@@ -187,6 +191,17 @@ export const Navigation: React.FC<NavigationProps> = ({
       ? 'hidden'
       : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
 
+    const label = (
+      <span className="inline-flex min-w-0 items-center gap-2 truncate">
+        {item.label}
+        {item.badge && (
+          <Badge variant="primary" size="sm" className="font-semibold uppercase tracking-wide">
+            {item.badge}
+          </Badge>
+        )}
+      </span>
+    );
+
     if (item.isAIMode) {
       // Same row as the links, but no navigation: the workspace opens in
       // place on its new-conversation screen and the URL only gains a query
@@ -202,9 +217,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <div className={iconContainerClass}>
             <BriefcaseBusiness size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           </div>
-          <div className={textContainerClass}>
-            <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
-          </div>
+          <div className={textContainerClass}>{label}</div>
         </button>
       );
     }
@@ -239,9 +252,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             <div className="w-[26px] h-[26px]" />
           )}
         </div>
-        <div className={textContainerClass}>
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
-        </div>
+        <div className={textContainerClass}>{label}</div>
       </Link>
     );
   };
