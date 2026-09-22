@@ -91,4 +91,5 @@ export const publishingFormSchema = z
   });
 
 export type PublishingFormData = z.infer<typeof publishingFormSchema>;
+export type ArticleType = PublishingFormData['articleType'];
 export type SelectOption = z.infer<typeof optionSchema>;

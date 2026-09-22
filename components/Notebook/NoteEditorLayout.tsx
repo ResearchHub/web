@@ -14,7 +14,7 @@ import { NotebookTour } from './NotebookTour';
 import { NotebookTabs, type NotebookTab } from './NotebookTabs';
 import { NotesMenu } from './NotesMenu';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
-import { PublishingForm } from '@/components/Notebook/PublishingForm';
+import { PublishingForm, PublishingFormProvider } from '@/components/Notebook/PublishingForm';
 
 import { ABOVE_MOBILE_NAV } from './mobileBarOffsets';
 import { AgentChatPanel, type NoteReviewHandle } from '@/components/Notebook/AgentChatPanel';
@@ -353,7 +353,9 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
         <div className={cn(showTabs && activeTab !== 'document' && 'hidden')}>{renderEditor()}</div>
         {showTabs && (
           <div className={cn(activeTab !== 'details' && 'hidden')}>
-            <PublishingForm readOnly={isPublishedRegisteredReport} />
+            <PublishingFormProvider readOnly={isPublishedRegisteredReport}>
+              <PublishingForm />
+            </PublishingFormProvider>
           </div>
         )}
 

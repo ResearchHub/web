@@ -6,7 +6,7 @@ import { ExternalLink } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { NotebookTabs, type NotebookTab } from '@/components/Notebook/NotebookTabs';
-import { PublishingForm } from '@/components/Notebook/PublishingForm';
+import { PublishingForm, PublishingFormProvider } from '@/components/Notebook/PublishingForm';
 import {
   PublishingHostProvider,
   type PublishingDefaultArticleType,
@@ -231,7 +231,9 @@ export function DocumentPane({
       {tab === 'details' && (
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
           <PublishingHostProvider value={publishingHost}>
-            <PublishingForm />
+            <PublishingFormProvider>
+              <PublishingForm />
+            </PublishingFormProvider>
           </PublishingHostProvider>
         </div>
       )}
