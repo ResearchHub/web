@@ -13,7 +13,7 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { Sparkles, Sprout, Star } from 'lucide-react';
+import { BriefcaseBusiness, Sprout, Star } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { FundingPowerBar } from '@/components/Funding/FundingPowerBar';
 import { Icon } from '@/components/ui/icons';
@@ -26,6 +26,7 @@ import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { useUser } from '@/contexts/UserContext';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
+import { AI_MODE_NAME } from '@/components/AIMode/copy';
 import { isHubEditorOrModerator } from '@/utils/permissions';
 
 interface NavItem {
@@ -35,7 +36,7 @@ interface NavItem {
   isMore?: boolean;
   requiresAuth?: boolean;
   isHome?: boolean;
-  /** Toggles the AI Mode overlay in place instead of navigating. */
+  /** Opens the workspace in place, on its new-conversation screen, instead of navigating. */
   isAIMode?: boolean;
 }
 
@@ -43,7 +44,6 @@ interface NavItem {
 const moreNavItems: NavItem[] = [
   { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
-  { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
   { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
 ];
 
@@ -54,9 +54,6 @@ const isPathActive = (path: string, currentPath: string, isHome?: boolean): bool
   }
   if (path === '/my-funding') {
     return currentPath === '/my-funding';
-  }
-  if (path === '/notebook') {
-    return currentPath.startsWith('/notebook');
   }
   if (path === '/journal') {
     return currentPath.startsWith('/journal');
@@ -82,13 +79,13 @@ export const MobileBottomNav: React.FC = () => {
   const { user } = useUser();
   const aiMode = useOptionalAIMode();
 
-  // Moderators and hub editors, the only users the assistant admits, get it
+  // Moderators and hub editors, the only users the workspace admits, get it
   // in the bar where Peer Review sits for everyone else.
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: '/', iconKey: 'home', isHome: true },
     { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
     isHubEditorOrModerator(user)
-      ? { label: 'Assistant', iconKey: 'assistant', isAIMode: true }
+      ? { label: AI_MODE_NAME, iconKey: 'workspace', isAIMode: true }
       : { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
@@ -121,7 +118,7 @@ export const MobileBottomNav: React.FC = () => {
       return;
     }
     if (item.isAIMode) {
-      aiMode?.toggle();
+      aiMode?.selectChat(null);
       return;
     }
 
@@ -154,14 +151,9 @@ export const MobileBottomNav: React.FC = () => {
             color={iconColor}
           />
         );
-      case 'assistant':
+      case 'workspace':
         return (
-          <Sparkles
-            size={iconSize}
-            color={iconColor}
-            strokeWidth={isActive ? 2.25 : 2}
-            fill={isActive ? iconColor : 'none'}
-          />
+          <BriefcaseBusiness size={iconSize} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
         );
       case 'peer-review':
         return (
@@ -197,14 +189,6 @@ export const MobileBottomNav: React.FC = () => {
         return (
           <Icon
             name={isActive ? 'rhJournal2' : ('rhJournal1' as IconName)}
-            size={iconSize}
-            color={iconColor}
-          />
-        );
-      case 'notebook':
-        return (
-          <Icon
-            name={isActive ? 'notebookBold' : ('labNotebook2' as IconName)}
             size={iconSize}
             color={iconColor}
           />

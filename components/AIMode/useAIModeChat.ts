@@ -93,8 +93,8 @@ export function useAIModeChat(): AIModeChatState {
     (created: AgentChat) => {
       const current = targetRef.current;
       if (current.kind === 'document') {
-        // The chat stays on its document.
-        selectTarget({ kind: 'document', noteId: current.noteId, chatId: created.conversation_id });
+        // The chat stays on its document, laid out as it was.
+        selectTarget({ ...current, chatId: created.conversation_id });
         return;
       }
       // The RFP went with the conversation it was picked for.
@@ -120,7 +120,8 @@ export function useAIModeChat(): AIModeChatState {
   const selectConversation = useCallback(
     (item: AgentChatListItem) => {
       if (item.workflow === 'notebook_chat' && item.note) {
-        selectTarget({ kind: 'document', noteId: item.note.id, chatId: item.id });
+        // Opened as a conversation: the chat comes first, its document beside it.
+        selectTarget({ kind: 'document', noteId: item.note.id, chatId: item.id, layout: 'chat' });
       } else {
         selectChat(item.id);
       }
