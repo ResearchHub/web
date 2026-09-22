@@ -46,8 +46,8 @@ export interface ChatTransport {
   renameChat(chatId: ChatId, title: string): Promise<{ conversation_id: number; title: string }>;
   cancelTurn(chatId: ChatId): Promise<CancelTurnResponse>;
   socketUrl(chatId: ChatId): string;
-  /** Absent on surfaces whose backend has no delete endpoint (the notebook). */
-  deleteChat?(chatId: ChatId, options?: { deleteNotes?: boolean }): Promise<void>;
+  /** The notebook's chats keep their note: `deleteNotes` is the assistant surface's. */
+  deleteChat(chatId: ChatId, options?: { deleteNotes?: boolean }): Promise<void>;
 }
 
 const transports = new Map<string, ChatTransport>();
@@ -79,6 +79,7 @@ export function notebookChatTransport(noteId: ChatId): ChatTransport {
     renameChat: (chatId, title) => NotebookChatService.renameChat(noteId, chatId, title),
     cancelTurn: (chatId) => NotebookChatService.cancelTurn(noteId, chatId),
     socketUrl: (chatId) => WS_ROUTES.NOTEBOOK_CHAT(noteId, chatId),
+    deleteChat: (chatId) => NotebookChatService.deleteChat(noteId, chatId),
   };
 }
 
