@@ -9,7 +9,7 @@ import { AllDetailsBlock, ALL_DETAILS_BLOCK_WIDTH } from './AllDetailsBlock';
 import { DetailBlock, DETAIL_BLOCK_MIN_WIDTH } from './DetailBlock';
 import { detailBlocksFor } from './detailBlocks';
 
-const GAP = 8;
+const GAP = 0;
 
 interface DetailBlockStripProps {
   /** The full details form is showing instead of the document. */

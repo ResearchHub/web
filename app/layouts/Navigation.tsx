@@ -8,7 +8,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sparkles, Sprout, Star } from 'lucide-react';
+import { BriefcaseBusiness, Sprout, Star } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AI_MODE_NAME } from '@/components/AIMode/copy';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
@@ -21,7 +21,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'fund' | 'journal' | 'notebook' | 'home';
+type NavIconKey = 'fund' | 'journal' | 'home';
 
 interface NavigationItem {
   label: string;
@@ -56,10 +56,6 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   journal: {
     light: 'rhJournal1',
     solid: 'rhJournal2',
-  },
-  notebook: {
-    light: 'labNotebook2',
-    solid: 'notebookBold',
   },
 };
 
@@ -101,13 +97,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
-      label: 'Notebook',
-      href: '/notebook',
-      iconKey: 'notebook',
-      requiresAuth: true,
-      description: 'Access your research notebook',
-    },
-    {
       label: 'Endowment',
       href: '/endowment',
       isLucideSprout: true,
@@ -118,7 +107,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       href: '#',
       isAIMode: true,
       requiresAuth: true,
-      description: 'Chat with the research assistant',
+      description: 'Draft proposals and RFPs with the assistant',
     },
   ];
 
@@ -145,10 +134,6 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     if (path === '/my-funding') {
       return currentPath === '/my-funding';
-    }
-
-    if (path === '/notebook') {
-      return currentPath.startsWith('/notebook');
     }
 
     if (path === '/endowment') {
@@ -203,23 +188,19 @@ export const Navigation: React.FC<NavigationProps> = ({
       : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
 
     if (item.isAIMode) {
-      // Same row as the links, but it is a toggle: the overlay opens in place
-      // and the URL only gains a query param.
+      // Same row as the links, but no navigation: the workspace opens in
+      // place on its new-conversation screen and the URL only gains a query
+      // param.
       return (
         <button
           type="button"
-          onClick={() => executeAuthenticatedAction(() => aiMode?.toggle())}
+          onClick={() => executeAuthenticatedAction(() => aiMode?.selectChat(null))}
           className={buttonStyles}
           aria-pressed={isActive}
           title={item.description}
         >
           <div className={iconContainerClass}>
-            <Sparkles
-              size={22}
-              color={iconColor}
-              strokeWidth={2}
-              fill={isActive ? iconColor : 'none'}
-            />
+            <BriefcaseBusiness size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           </div>
           <div className={textContainerClass}>
             <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>

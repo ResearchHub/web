@@ -66,12 +66,12 @@ export function DetailBlock({ config, noteId, value, open, onOpenChange }: Detai
 
 const blockClass = (filled: boolean, open: boolean) =>
   cn(
-    'flex h-[46px] min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg border bg-white px-2.5 text-left transition-colors',
+    'flex min-w-0 flex-1 flex-col justify-center border-r h-full bg-white px-2.5 text-left transition-colors',
     open
       ? 'border-primary-400 bg-primary-50 ring-[3px] ring-primary-100'
       : filled
         ? 'border-gray-200 hover:bg-gray-50'
-        : 'border-dashed border-gray-300 hover:bg-gray-50'
+        : 'border-gray-300 hover:bg-gray-50'
   );
 
 function DetailBlockFace({

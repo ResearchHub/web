@@ -58,7 +58,9 @@ export function WorkspaceSidebar({ state, onNavigate }: WorkspaceSidebarProps) {
         <div aria-hidden="true" className="mx-2 mt-2.5 h-px bg-gray-200" />
 
         <DocumentsSection
-          activeNoteId={target.kind === 'document' ? target.noteId : null}
+          activeNoteId={
+            target.kind === 'document' && target.layout === 'document' ? target.noteId : null
+          }
           recentNoteId={target.kind === 'conversation' ? (state.note?.id ?? null) : null}
           onSelect={(noteId) => {
             selectDocument(noteId);

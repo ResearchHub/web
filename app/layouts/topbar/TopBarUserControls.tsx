@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import UserMenu from '@/components/menus/UserMenu';
 import type { User } from '@/types/user';
 import { TopBarSearchButton } from './TopBarSearchButton';
+import { TopBarWorkspaceButton } from './TopBarWorkspaceButton';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import { formatBadgeCount, formatRSC } from '@/utils/number';
 import { UserService } from '@/services/user.service';
 import { cn } from '@/lib/utils';
@@ -100,6 +102,9 @@ export const TopBarUserControls = ({
   return (
     <div className="hidden tablet:!flex items-center space-x-2 h-full">
       <TopBarSearchButton onClick={onSearchOpen} />
+
+      {/* The workspace's door here is gated like its nav item. */}
+      {user && isHubEditorOrModerator(user) && <TopBarWorkspaceButton />}
 
       {isLoading ? (
         <>

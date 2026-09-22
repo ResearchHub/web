@@ -17,7 +17,11 @@ interface AllDetailsBlockProps {
   readonly onClick: () => void;
 }
 
-/** The last block: the whole details form, and the way to any block that did not fit. */
+/**
+ * The last block: the whole details form, and the way to any block that did
+ * not fit. Same flat shape as the other blocks; the one before it draws the
+ * separator.
+ */
 export function AllDetailsBlock({
   done,
   total,
@@ -32,10 +36,8 @@ export function AllDetailsBlock({
       aria-pressed={active}
       style={{ width: ALL_DETAILS_BLOCK_WIDTH }}
       className={cn(
-        'flex h-[46px] shrink-0 flex-col justify-center gap-0.5 rounded-lg border px-2.5 text-left transition-colors',
-        active
-          ? 'border-primary-400 bg-primary-50 ring-[3px] ring-primary-100'
-          : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+        'flex h-full shrink-0 flex-col justify-center px-2.5 text-left transition-colors',
+        active ? 'bg-primary-50 ring-[3px] ring-primary-100' : 'bg-gray-50 hover:bg-gray-100'
       )}
     >
       <span className="flex items-center justify-between gap-1.5 whitespace-nowrap">
