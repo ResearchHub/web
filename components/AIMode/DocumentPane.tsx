@@ -12,11 +12,7 @@ import {
   usePublishingCompletion,
 } from '@/components/Notebook/PublishingForm';
 import { ButtonGroup } from '@/components/ui/ButtonGroup';
-import {
-  PublishingHostProvider,
-  type PublishingDefaultArticleType,
-  type PublishingHost,
-} from '@/contexts/PublishingHostContext';
+import { PublishingHostProvider, type PublishingHost } from '@/contexts/PublishingHostContext';
 import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDiffOverlay';
@@ -48,8 +44,6 @@ interface DocumentPaneProps {
   readonly chat: AgentChat | null;
   readonly view: DocumentPaneView;
   readonly onViewChange: (view: DocumentPaneView) => void;
-  /** Work type to preselect in the details form for a note without one. */
-  readonly defaultArticleType?: PublishingDefaultArticleType | null;
   /**
    * A column beside the chat, or the drawer below the tablet breakpoint. The
    * drawer trades the block strip for a Document | Details switch and keeps
@@ -80,7 +74,6 @@ export function DocumentPane({
   chat,
   view,
   onViewChange,
-  defaultArticleType = null,
   presentation = 'pane',
   publishControlsSlot = null,
   readOnly = false,
@@ -143,9 +136,8 @@ export function DocumentPane({
       isLoading: loading,
       saveDetailsSoon,
       saveDetailsNow,
-      defaultArticleType,
     }),
-    [content, editor, loading, saveDetailsSoon, saveDetailsNow, defaultArticleType]
+    [content, editor, loading, saveDetailsSoon, saveDetailsNow]
   );
 
   const persistEditorState = useCallback(async () => {
