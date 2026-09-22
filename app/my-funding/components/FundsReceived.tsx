@@ -1,14 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
-import { EarnEarningsSummary } from '@/components/Earn/EarnEarningsSummary';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { buttonVariants } from '@/components/ui/Button';
+import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeed } from '@/hooks/useFeed';
 import type { ActivityCommentType } from '@/services/activity.service';
-import { cn } from '@/utils/styles';
 
 interface FundsReceivedProps {
   userId: number;
@@ -17,14 +14,6 @@ interface FundsReceivedProps {
 
 /** Stable reference: a new array on every render would restart the activity feed. */
 const PEER_REVIEW_COMMENT_TYPES: readonly ActivityCommentType[] = ['REVIEW', 'PEER_REVIEW'];
-
-function EmptyState({ children }: Readonly<{ children: ReactNode }>) {
-  return (
-    <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-6 py-10 text-center">
-      {children}
-    </div>
-  );
-}
 
 function MyProposals({ userId }: Readonly<{ userId: number }>) {
   const {
@@ -61,15 +50,7 @@ function MyProposals({ userId }: Readonly<{ userId: number }>) {
         skeletonVariant="fundraise"
         wideContent
         noEntriesElement={
-          <EmptyState>
-            <p className="text-sm text-gray-600">You have no published proposals.</p>
-            <Link
-              href="/notebook?newFunding=true"
-              className={cn(buttonVariants({ size: 'sm' }), 'mt-4')}
-            >
-              Create a proposal
-            </Link>
-          </EmptyState>
+          <DashboardEmptyState>You have no published proposals.</DashboardEmptyState>
         }
       />
     </section>
@@ -103,9 +84,7 @@ function PeerReviewFeed({ authorId }: Readonly<{ authorId: number }>) {
       hideActions
       isLoadingMore={isLoadingMore}
       noEntriesElement={
-        <EmptyState>
-          <p className="text-sm text-gray-600">You have no published peer reviews.</p>
-        </EmptyState>
+        <DashboardEmptyState>You have no published peer reviews.</DashboardEmptyState>
       }
       maxLength={150}
       showReadMoreCTA
@@ -127,11 +106,9 @@ function PeerReviews({ authorId }: Readonly<{ authorId?: number }>) {
       <h2 className="text-lg font-bold text-gray-900">Peer reviews</h2>
       {!hasAuthorId ? (
         <div className="mt-4">
-          <EmptyState>
-            <p className="text-sm text-gray-600">
-              Complete your researcher profile to publish peer reviews.
-            </p>
-          </EmptyState>
+          <DashboardEmptyState>
+            Complete your researcher profile to publish peer reviews.
+          </DashboardEmptyState>
         </div>
       ) : (
         <PeerReviewFeed authorId={authorId} />
@@ -143,7 +120,6 @@ function PeerReviews({ authorId }: Readonly<{ authorId?: number }>) {
 export function FundsReceived({ userId, authorId }: Readonly<FundsReceivedProps>) {
   return (
     <div className="mb-6 space-y-8">
-      <EarnEarningsSummary />
       <MyProposals userId={userId} />
       <PeerReviews authorId={authorId} />
     </div>

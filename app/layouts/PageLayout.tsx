@@ -31,6 +31,11 @@ interface PageLayoutProps {
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
   rightSidebarAbove?: ReactNode;
+  /**
+   * With a card above it the gray rail normally sizes to its content; this
+   * keeps it stretched to the bottom of the column regardless.
+   */
+  rightSidebarFill?: boolean;
   fundraiseGrantId?: number;
   /**
    * `default` centers the page in a 1180px container and lets the main column
@@ -54,6 +59,7 @@ function PageLayoutInner({
   sidebarContentClassName,
   topBanner,
   rightSidebarAbove,
+  rightSidebarFill = false,
   contentWidth = 'default',
   wideRow = false,
 }: PageLayoutProps) {
@@ -144,6 +150,7 @@ function PageLayoutInner({
                 rightSidebar={rightSidebar}
                 contentClassName={sidebarContentClassName}
                 aboveSidebar={rightSidebarAbove}
+                fill={rightSidebarFill}
               />
             )}
           </div>

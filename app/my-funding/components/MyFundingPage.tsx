@@ -2,16 +2,31 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { FundingDirectionIcon } from '@/components/Funding/FundingDirectionIcon';
-import type { FundingDirection } from '@/components/Funding/fundingDirection';
+import type { FundingDirection, FundingIntent } from '@/components/Funding/fundingDirection';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { StartConversationBox } from '@/components/AIMode/start/StartConversationBox';
 import { FundsGiven } from '@/components/Funding/dashboard/FundsGiven';
+import {
+  parseViewedFunderId,
+  useFunderOverview,
+} from '@/components/Funding/dashboard/hooks/useFunderOverview';
 import { ModeratorViewAsFunder } from '@/components/Funding/dashboard/ModeratorViewAsFunder';
 import { Tabs } from '@/components/ui/Tabs';
 import { useUser } from '@/contexts/UserContext';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import { FundsReceived } from './FundsReceived';
+import { EarningsTotals } from '@/components/Funding/dashboard/EarningsTotals';
+import { FunderTotals } from '@/components/Funding/dashboard/FunderTotals';
+import { FundsGivenActivity, FundsReceivedActivity } from './MyFundingSidebar';
 
 type MyFundingTab = 'given' | 'received';
+
+/** Each tab is one side of the money: the composer under it starts a conversation for that side. */
+const TAB_INTENT: Record<MyFundingTab, FundingIntent> = {
+  given: 'fund',
+  received: 'need_funding',
+};
 
 /**
  * Tab label with the direction of the money in a circle: out of the wallet for
@@ -56,6 +71,15 @@ export function MyFundingPage() {
   const hasModeratorOverrideOnReceivedTab =
     activeTab === 'received' && isModerator && searchParams.has('user_id');
 
+  // A moderator may view another funder's page; everyone else sees their own.
+  const viewedUserId =
+    (isModerator ? parseViewedFunderId(searchParams.get('user_id')) : undefined) ?? user?.id;
+  const { overview, isLoading: isLoadingOverview } = useFunderOverview(
+    activeTab === 'given' ? viewedUserId : undefined
+  );
+  // The workspace is still rolling out; the composer shows to the same people as its nav item.
+  const canStartConversation = isHubEditorOrModerator(user);
+
   useEffect(() => {
     if (isLoadingUser) return;
 
@@ -71,10 +95,32 @@ export function MyFundingPage() {
     router.replace(`/my-funding?${params.toString()}`, { scroll: false });
   }, [hasModeratorOverrideOnReceivedTab, isLoadingUser, router, searchParams, user]);
 
-  if (isLoadingUser || !user || hasModeratorOverrideOnReceivedTab) return null;
+  if (isLoadingUser || !user || hasModeratorOverrideOnReceivedTab || viewedUserId == null) {
+    return null;
+  }
+
+  // The totals sit above the gray activity rail, where the funding power card
+  // sits on other pages; below `lg` the rail hides, so they lead the column.
+  const totals =
+    activeTab === 'given' ? (
+      <FunderTotals overview={overview} isLoading={isLoadingOverview} />
+    ) : (
+      <EarningsTotals />
+    );
 
   return (
-    <PageLayout contentWidth="narrow">
+    <PageLayout
+      contentWidth="narrow"
+      rightSidebarAbove={totals}
+      rightSidebarFill
+      rightSidebar={
+        activeTab === 'given' ? (
+          <FundsGivenActivity viewedUserId={viewedUserId} />
+        ) : (
+          <FundsReceivedActivity authorId={user.authorProfile?.id} />
+        )
+      }
+    >
       <Tabs
         tabs={MY_FUNDING_TABS}
         activeTab={activeTab}
@@ -82,9 +128,15 @@ export function MyFundingPage() {
         rightContent={isModerator && activeTab === 'given' ? <ModeratorViewAsFunder /> : undefined}
       />
 
+      <div className="mt-6 lg:!hidden">{totals}</div>
+
+      {canStartConversation && (
+        <StartConversationBox intent={TAB_INTENT[activeTab]} className="mt-6" />
+      )}
+
       <div className="mt-6">
         {activeTab === 'given' ? (
-          <FundsGiven userId={user.id} isModerator={isModerator} />
+          <FundsGiven viewedUserId={viewedUserId} overview={overview} />
         ) : (
           <FundsReceived userId={user.id} authorId={user.authorProfile?.id} />
         )}

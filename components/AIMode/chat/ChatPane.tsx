@@ -15,9 +15,14 @@ import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
 import { layoutFor } from '../AIModeContext';
 import type { AIModeChatState } from '../useAIModeChat';
-import { aiModeGreeting, INTENT_COPY } from '../copy';
+import { aiModeGreeting } from '../copy';
 import { StartContextChips } from '../start/StartContextChips';
-import { intentBoxClass } from '../start/IntentTabs';
+import {
+  START_COMPOSER_MIN_ROWS,
+  startComposerBoxClass,
+  startComposerPlaceholder,
+  startComposerSendClass,
+} from '../start/startComposer';
 import { StartScreen } from '../start/StartScreen';
 import { DocumentChatEmptyState } from './DocumentChatEmptyState';
 import { useUser } from '@/contexts/UserContext';
@@ -47,25 +52,30 @@ export function ChatPane({
   const { chatId, list, chat, modelSelection, draft, setDraft, notice, composerBusy, canStop } =
     state;
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const onDocument = state.target.kind === 'document';
+  // The new-conversation screen: white, untitled, the composer in the middle.
+  const onStart = chatId == null && !onDocument;
 
   // ---- transcript auto-scroll ----
   // Follows new content while the reader is at the bottom; never yanks the
   // view down once they have scrolled up, and offers a jump back instead.
+  // The start screen has no transcript to follow: on a phone it is taller
+  // than the viewport, and following would scroll the greeting away.
   const { scrollRef, handleScroll, isAtBottom, jumpToLatest, follow } =
     useJumpToLatest<HTMLDivElement>({ resetKey: chatId });
   useEffect(() => {
-    follow();
-  }, [chat.chat, chat.pendingSend, follow]);
+    if (!onStart) follow();
+  }, [chat.chat, chat.pendingSend, follow, onStart]);
   // Text types out over many frames without the chat changing, so follow the
   // content's own growth too.
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = contentRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
+    if (onStart || !el || typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(() => follow());
     observer.observe(el);
     return () => observer.disconnect();
-  }, [follow, chatId]);
+  }, [follow, chatId, onStart]);
 
   // ---- title: inline rename from the header menu ----
   const [renaming, setRenaming] = useState(false);
@@ -82,10 +92,6 @@ export function ChatPane({
     listBlocked || chatUnavailable || (chatId != null && chat.access === 'loading');
 
   const { currentTitle, title, loading: titleLoading } = conversationTitleFor(state);
-  const onDocument = state.target.kind === 'document';
-
-  // The new-conversation screen: white, untitled, the composer in the middle.
-  const onStart = chatId == null && !onDocument;
   // With the chat as the main pane the workspace's top strip already names
   // it, so the pane's own header carries only the controls.
   const chatIsMain = layoutFor(state.target) === 'chat';
@@ -118,21 +124,11 @@ export function ChatPane({
       sendDisabled={state.sendBlocked}
       notice={notice}
       className={cn('border-t-0', onStart ? 'bg-white pt-0' : 'bg-gray-50')}
-      boxClassName={
-        onStart
-          ? cn(
-              'rounded-2xl rounded-tl-none px-4 py-3 shadow-sm focus-within:shadow-md',
-              intentBoxClass(state.intent)
-            )
-          : undefined
-      }
-      minRows={onStart ? 3 : 1}
-      sendClassName={
-        onStart && state.intent === 'need_funding'
-          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-          : undefined
-      }
-      placeholder={onStart ? INTENT_COPY[state.intent].placeholder : undefined}
+      // The open intent tab merges into the box's top-left corner.
+      boxClassName={onStart ? startComposerBoxClass(state.intent, 'rounded-tl-none') : undefined}
+      minRows={onStart ? START_COMPOSER_MIN_ROWS : 1}
+      sendClassName={onStart ? startComposerSendClass(state.intent) : undefined}
+      placeholder={onStart ? startComposerPlaceholder(state.intent) : undefined}
       toolbar={
         // A researcher's context rides with the first message, like attachments.
         onStart && state.intent === 'need_funding' ? (
@@ -194,7 +190,14 @@ export function ChatPane({
 
       <div className="relative min-h-0 flex-1">
         <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto">
-          <div ref={contentRef} className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
+          <div
+            ref={contentRef}
+            className={cn(
+              'mx-auto w-full px-4 py-5 tablet:!px-6',
+              // The start screen seats the journey rail beside the composer.
+              onStart ? 'max-w-[1100px]' : 'max-w-[760px]'
+            )}
+          >
             {listBlocked ? (
               <AccessBlocked detail={list.accessDetail} />
             ) : chatId == null && onDocument ? (
