@@ -19,12 +19,15 @@ interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
   contentClassName?: string;
   aboveSidebar?: ReactNode;
+  /** Stretch the gray rail to the bottom of the column even with a card above it. */
+  fill?: boolean;
 }
 
 export function RightSidebarContainer({
   rightSidebar,
   contentClassName,
   aboveSidebar,
+  fill = false,
 }: RightSidebarContainerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   const isDefaultSidebar = typeof rightSidebar === 'boolean';
@@ -60,7 +63,8 @@ export function RightSidebarContainer({
             // of filling the column — otherwise a short or empty sidebar leaves
             // a tall empty rail hanging beneath that card. It still shrinks and
             // scrolls when the content is taller than the space available.
-            cardAboveSidebar ? 'flex-initial' : 'flex-1 h-full'
+            // A page can ask for the full column anyway.
+            cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
           )}
         >
           <div className={cn('h-full', contentClassName)}>

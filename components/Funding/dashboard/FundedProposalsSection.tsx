@@ -8,6 +8,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Avatar } from '@/components/ui/Avatar';
 import { buildWorkUrl } from '@/utils/url';
+import { DashboardEmptyState } from './DashboardEmptyState';
 
 interface FundedProposalsSectionProps {
   proposals: SupportedProposal[];
@@ -72,9 +73,7 @@ export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
-          <p className="text-sm text-gray-500">No proposals funded yet.</p>
-        </div>
+        <DashboardEmptyState>No proposals funded yet.</DashboardEmptyState>
       )}
     </div>
   );

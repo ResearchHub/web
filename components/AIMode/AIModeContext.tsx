@@ -13,6 +13,8 @@ import {
 } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useSearchParams } from 'next/navigation';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
+import type { SelectedGrantDetails } from '@/types/grant';
 
 /**
  * `?ai=1` opens the workspace. `aiChat=<id>` selects a conversation;
@@ -54,9 +56,25 @@ interface AIModeUrlState {
 const NEW_CONVERSATION: WorkspaceTarget = { kind: 'conversation', chatId: null };
 const CLOSED: AIModeUrlState = { isOpen: false, target: NEW_CONVERSATION };
 
+/**
+ * A conversation started from outside the workspace — the My Funding page's
+ * composer: what it is for, the first message, and for a researcher the RFP
+ * they mean to apply to. The workspace opens on the new-conversation screen
+ * and sends the message as soon as it mounts.
+ */
+export interface PendingStart {
+  readonly intent: FundingIntent;
+  readonly message: string;
+  readonly selectedGrant: SelectedGrantDetails | null;
+}
+
 export interface AIModeContextValue extends AIModeUrlState {
   /** Open on the last target, or the new-conversation screen. */
   open: () => void;
+  /** Open on a fresh conversation and send its first message. */
+  startConversation: (start: PendingStart) => void;
+  /** The start handed over by {@link startConversation}, once; null after. */
+  takePendingStart: () => PendingStart | null;
   close: () => void;
   toggle: () => void;
   /** Open on a target. */
@@ -205,6 +223,22 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
     [selectTarget]
   );
 
+  // Held until the workspace's chat hook mounts and asks for it, so the page
+  // that starts a conversation needs no chat state of its own.
+  const pendingStartRef = useRef<PendingStart | null>(null);
+  const startConversation = useCallback(
+    (start: PendingStart) => {
+      pendingStartRef.current = start;
+      selectTarget(NEW_CONVERSATION);
+    },
+    [selectTarget]
+  );
+  const takePendingStart = useCallback(() => {
+    const start = pendingStartRef.current;
+    pendingStartRef.current = null;
+    return start;
+  }, []);
+
   const stateRef = useRef(state);
   stateRef.current = state;
   const toggle = useCallback(() => {
@@ -213,8 +247,28 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
   }, [open, close]);
 
   const value = useMemo<AIModeContextValue>(
-    () => ({ ...state, open, close, toggle, selectTarget, selectChat, selectDocument }),
-    [state, open, close, toggle, selectTarget, selectChat, selectDocument]
+    () => ({
+      ...state,
+      open,
+      close,
+      toggle,
+      selectTarget,
+      selectChat,
+      selectDocument,
+      startConversation,
+      takePendingStart,
+    }),
+    [
+      state,
+      open,
+      close,
+      toggle,
+      selectTarget,
+      selectChat,
+      selectDocument,
+      startConversation,
+      takePendingStart,
+    ]
   );
 
   return (
