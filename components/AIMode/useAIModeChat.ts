@@ -60,7 +60,7 @@ export interface AIModeChatState extends ChatSession {
  * transport for a conversation and on the note's for a document.
  */
 export function useAIModeChat(): AIModeChatState {
-  const { target, layout, selectTarget, selectChat } = useAIMode();
+  const { target, selectTarget, selectChat } = useAIMode();
   const { chatId } = target;
   const targetNoteId = target.kind === 'document' ? target.noteId : null;
   const transport = getChatTransport({ noteId: targetNoteId });
@@ -89,17 +89,12 @@ export function useAIModeChat(): AIModeChatState {
 
   const targetRef = useRef(target);
   targetRef.current = target;
-  const layoutRef = useRef(layout);
-  layoutRef.current = layout;
   const onChatCreated = useCallback(
     (created: AgentChat) => {
       const current = targetRef.current;
       if (current.kind === 'document') {
-        // The chat stays on its document, in whatever layout the user had.
-        selectTarget(
-          { kind: 'document', noteId: current.noteId, chatId: created.conversation_id },
-          layoutRef.current
-        );
+        // The chat stays on its document.
+        selectTarget({ kind: 'document', noteId: current.noteId, chatId: created.conversation_id });
         return;
       }
       // The RFP went with the conversation it was picked for.
@@ -125,7 +120,7 @@ export function useAIModeChat(): AIModeChatState {
   const selectConversation = useCallback(
     (item: AgentChatListItem) => {
       if (item.workflow === 'notebook_chat' && item.note) {
-        selectTarget({ kind: 'document', noteId: item.note.id, chatId: item.id }, 'chat');
+        selectTarget({ kind: 'document', noteId: item.note.id, chatId: item.id });
       } else {
         selectChat(item.id);
       }

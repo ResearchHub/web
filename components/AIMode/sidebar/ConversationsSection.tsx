@@ -6,7 +6,6 @@ import { ConversationListSkeleton } from '@/components/skeletons/AIModeSkeleton'
 import { Button } from '@/components/ui/Button';
 import type { ChatListAccess } from '@/hooks/useAgentChat';
 import type { AgentChatListItem, ChatNoteRef } from '@/types/agentChat';
-import { formatTimeAgo } from '@/utils/date';
 import { ConversationTitleField } from '../chat/ConversationTitleField';
 import { ConversationMenu } from './ConversationMenu';
 import { SidebarGroupHeading } from './SidebarGroupHeading';
@@ -90,7 +89,6 @@ export function ConversationsSection({
           <SidebarRow
             key={item.id}
             title={title}
-            meta={formatTimeAgo(item.updated_date)}
             isActive={isActive}
             onSelect={() => onSelect(item)}
             titleAdornment={
