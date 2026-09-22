@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Editor } from '@tiptap/react';
-import { ExternalLink } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import {
@@ -30,9 +29,6 @@ import type { AIModeDocument } from './useAIModeDocument';
 
 /** The document itself, or the full publishing details form. */
 export type DocumentPaneView = 'document' | 'details';
-
-/** Room the "Open in notebook" button takes at the end of the block strip. */
-const NOTEBOOK_LINK_WIDTH = 30;
 
 /** The page column: shared by the skeleton and the document so they line up. */
 const DOCUMENT_PAGE_CLASS =
@@ -172,20 +168,6 @@ export function DocumentPane({
     [onViewChange, view]
   );
 
-  const notebookLink = document.notebookHref && (
-    <a
-      href={document.notebookHref}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Open in notebook"
-      title="Open in notebook"
-      style={{ width: NOTEBOOK_LINK_WIDTH }}
-      className="inline-flex h-[30px] shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-    >
-      <ExternalLink className="h-[15px] w-[15px]" aria-hidden="true" />
-    </a>
-  );
-
   return (
     <PublishingHostProvider value={publishingHost}>
       {/* The form lives as long as the note does, whichever view is showing:
@@ -195,12 +177,7 @@ export function DocumentPane({
       <PublishingFormProvider>
         <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
           {presentation === 'pane' ? (
-            <DetailBlockStrip
-              detailsOpen={view === 'details'}
-              onToggleDetails={toggleDetails}
-              trailing={notebookLink}
-              trailingWidth={document.notebookHref ? NOTEBOOK_LINK_WIDTH : 0}
-            />
+            <DetailBlockStrip detailsOpen={view === 'details'} onToggleDetails={toggleDetails} />
           ) : (
             <DrawerStrip view={view} onViewChange={onViewChange} onOpenDetails={openDetails} />
           )}

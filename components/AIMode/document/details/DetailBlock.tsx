@@ -88,10 +88,10 @@ function DetailBlockFace({
   const Icon = config.icon;
   return (
     <>
-      <span className="flex items-center justify-between gap-1.5">
+      <span className="flex items-center justify-between gap-1.5 whitespace-nowrap">
         <span
           className={cn(
-            'flex items-center gap-1.5 text-[11px] font-medium',
+            'flex min-w-0 items-center gap-1.5 truncate text-[11px] font-medium',
             open ? 'text-primary-700' : 'text-gray-600'
           )}
         >

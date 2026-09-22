@@ -5,8 +5,6 @@ import { cn } from '@/utils/styles';
 
 interface SidebarRowProps {
   readonly title: string;
-  /** The small line under the title: a time, a kind, a status. */
-  readonly meta: ReactNode;
   /** Something before the title — a document's kind, say. */
   readonly leading?: ReactNode;
   /** Beside the title, inside its line — a spinner for a running turn. */
@@ -22,7 +20,6 @@ interface SidebarRowProps {
 /** One entry in the workspace sidebar: a conversation, a document. */
 export function SidebarRow({
   title,
-  meta,
   leading,
   titleAdornment,
   menu,
@@ -50,14 +47,9 @@ export function SidebarRow({
           )}
         >
           {leading}
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-1.5">
-              <span className="min-w-0 truncate text-[13px] font-medium text-gray-800">
-                {title}
-              </span>
-              {titleAdornment}
-            </span>
-            <span className="mt-0.5 block text-[11px] text-gray-500">{meta}</span>
+          <span className="flex min-w-0 flex-1 items-center gap-1.5">
+            <span className="min-w-0 truncate text-[13px] font-medium text-gray-800">{title}</span>
+            {titleAdornment}
           </span>
         </button>
       )}
@@ -65,7 +57,7 @@ export function SidebarRow({
       {!editing && menu && (
         <div
           className={cn(
-            'absolute right-1.5 top-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100',
+            'absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100',
             isActive && 'opacity-100'
           )}
         >
