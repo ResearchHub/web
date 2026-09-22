@@ -7,14 +7,14 @@ import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
-import { ConversationMenu } from './ConversationMenu';
+import { ConversationMenu } from '../sidebar/ConversationMenu';
 import { ConversationTitleField } from './ConversationTitleField';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
-import type { AIModeChatState } from './useAIModeChat';
-import { aiModeGreeting, INTENT_COPY } from './copy';
-import { StartScreen } from './start/StartScreen';
+import type { AIModeChatState } from '../useAIModeChat';
+import { aiModeGreeting, INTENT_COPY } from '../copy';
+import { StartScreen } from '../start/StartScreen';
 import { useUser } from '@/contexts/UserContext';
 
 interface ChatPaneProps {
