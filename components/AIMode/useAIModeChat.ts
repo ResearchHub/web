@@ -6,7 +6,10 @@ import { getChatTransport } from '@/services/chatTransport';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
 import type { ChatNoticePolicy } from '@/components/AgentChat/chatNotices';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import type { ChatNoteRef, AgentChat } from '@/types/agentChat';
+import type { SelectedGrantDetails } from '@/types/grant';
+import { useFundingIntent } from './start/useFundingIntent';
 
 /** Matches the chat hook's own poll cadence, so a background turn's spinner clears as fast as the open one. */
 const LIST_POLL_INTERVAL_MS = 5000;
@@ -16,6 +19,12 @@ const NOTICES: ChatNoticePolicy = { noun: 'conversation', usageLimit: 'inline' }
 export interface AIModeChatState extends ChatSession {
   readonly chatId: number | null;
   readonly list: UseAgentChatListResult;
+  /** What the next conversation is for; sent with its creation. */
+  readonly intent: FundingIntent;
+  readonly setIntent: (intent: FundingIntent) => void;
+  /** The RFP the next conversation's proposal answers, chosen on the start screen. */
+  readonly selectedGrant: SelectedGrantDetails | null;
+  readonly setSelectedGrant: (grant: SelectedGrantDetails | null) => void;
   /** Rename any conversation, open or not. */
   readonly rename: (chatId: number, title: string) => Promise<boolean>;
   /**
@@ -53,8 +62,23 @@ export function useAIModeChat(): AIModeChatState {
 
   const list = useAgentChatList(transport, true);
   const refreshList = list.refresh;
+
+  // ---- what the next conversation starts out knowing ----
+  const [intent, setIntent] = useFundingIntent();
+  const [selectedGrant, setSelectedGrant] = useState<SelectedGrantDetails | null>(null);
+  const createInitRef = useRef({ intent, selectedGrant });
+  createInitRef.current = { intent, selectedGrant };
+  const getCreateInit = useCallback(() => {
+    const { intent: current, selectedGrant: grant } = createInitRef.current;
+    return { intent: current, selectedGrantId: grant?.id ?? null };
+  }, []);
+
   const onChatCreated = useCallback(
-    (created: AgentChat) => selectChatInUrl(created.conversation_id),
+    (created: AgentChat) => {
+      // The RFP went with the conversation it was picked for.
+      setSelectedGrant(null);
+      selectChatInUrl(created.conversation_id);
+    },
     [selectChatInUrl]
   );
   const session = useChatSession({
@@ -63,6 +87,7 @@ export function useAIModeChat(): AIModeChatState {
     enabled: true,
     onChatCreated,
     onListStale: refreshList,
+    getCreateInit,
     notices: NOTICES,
   });
   const { chat } = session;
@@ -191,6 +216,10 @@ export function useAIModeChat(): AIModeChatState {
     ...session,
     chatId,
     list,
+    intent,
+    setIntent,
+    selectedGrant,
+    setSelectedGrant,
     rename,
     deleteChat,
     notesForChat,

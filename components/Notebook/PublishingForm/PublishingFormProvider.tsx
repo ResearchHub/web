@@ -69,7 +69,7 @@ export function PublishingFormProvider({
   readOnly = false,
   children,
 }: PublishingFormProviderProps) {
-  const { note, editor, saveDetailsSoon, saveDetailsNow, defaultArticleType } = usePublishingHost();
+  const { note, editor, saveDetailsSoon, saveDetailsNow } = usePublishingHost();
   const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
 
@@ -100,7 +100,6 @@ export function PublishingFormProvider({
       const articleType =
         (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
         resolveArticleType(searchParams) ??
-        defaultArticleType ??
         null;
 
       if (articleType) {
