@@ -9,7 +9,7 @@ import {
   sendFailureOutcome,
   type SendOutcome,
 } from '@/services/notebookChat.service';
-import type { ChatTransport } from '@/services/chatTransport';
+import type { ChatCreateInit, ChatTransport } from '@/services/chatTransport';
 import { useAgentChatSocket, type ChatSocketStatus } from '@/hooks/useAgentChatSocket';
 import {
   isChatStreamSocketEvent,
@@ -603,7 +603,7 @@ export interface UseAgentChatListResult {
   /** The server's `detail` copy behind a `hidden` or `error` access state. */
   accessDetail: string | null;
   refresh: () => Promise<void>;
-  createChat: (title?: string) => Promise<AgentChat | null>;
+  createChat: (init?: ChatCreateInit) => Promise<AgentChat | null>;
 }
 
 /**
@@ -656,11 +656,11 @@ export function useAgentChatList(
   }, [transport, enabled, refresh]);
 
   const createChat = useCallback(
-    async (title?: string): Promise<AgentChat | null> => {
+    async (init?: ChatCreateInit): Promise<AgentChat | null> => {
       if (transport == null) return null;
       const epoch = epochRef.current;
       try {
-        const chat = await transport.createChat(title);
+        const chat = await transport.createChat(init);
         if (epoch === epochRef.current) refresh();
         return chat;
       } catch (err) {
