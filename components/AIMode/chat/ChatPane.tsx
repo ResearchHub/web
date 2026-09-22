@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Menu } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
@@ -132,10 +132,10 @@ export function ChatPane({
           <button
             type="button"
             onClick={onOpenConversations}
-            aria-label="Conversations"
+            aria-label="Show conversations and documents"
             className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 tablet:!hidden"
           >
-            <Menu className="h-4 w-4" />
+            <PanelLeft className="h-4 w-4" />
           </button>
         )}
         {renaming && chatId != null ? (

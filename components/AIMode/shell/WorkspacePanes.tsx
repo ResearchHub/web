@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { PanelLeft } from 'lucide-react';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import type { useResizableWidth } from '@/hooks/useResizableWidth';
@@ -23,8 +24,9 @@ interface WorkspacePanesProps {
   readonly isBelowTablet: boolean;
   readonly sidebarWidth: ResizableWidth & { readonly min: number; readonly max: number };
   readonly sideWidth: ResizableWidth & { readonly min: number; readonly max: number };
-  readonly listDrawerOpen: boolean;
-  readonly onCloseListDrawer: () => void;
+  /** Below the tablet breakpoint the sidebar is a screen of its own; this shows it. */
+  readonly listOpen: boolean;
+  readonly onCloseList: () => void;
   readonly onCloseDocumentDrawer: () => void;
   /** The overlay's root, which the drawers render inside so they stay live. */
   readonly container: HTMLElement | null;
@@ -35,7 +37,8 @@ interface WorkspacePanesProps {
  * their places in the tree whichever is the main pane — swapping them would
  * remount the editor and the transcript — and trade places on screen with
  * flex order. Both side panes drag; the main pane takes the rest. Below the
- * tablet breakpoint the sidebar and the document live in bottom drawers.
+ * tablet breakpoint the sidebar takes the whole screen when asked for and
+ * the document lives in a bottom drawer.
  */
 export function WorkspacePanes({
   layout,
@@ -46,8 +49,8 @@ export function WorkspacePanes({
   isBelowTablet,
   sidebarWidth,
   sideWidth,
-  listDrawerOpen,
-  onCloseListDrawer,
+  listOpen,
+  onCloseList,
   onCloseDocumentDrawer,
   container,
 }: WorkspacePanesProps) {
@@ -98,19 +101,32 @@ export function WorkspacePanes({
             {document}
           </aside>
         )}
+
+        {listOpen && isBelowTablet && (
+          <div
+            role="dialog"
+            aria-label="Conversations and documents"
+            className="absolute inset-0 z-10 flex flex-col bg-gray-100"
+          >
+            <div className="flex h-12 shrink-0 items-center gap-1 border-b border-gray-200 bg-white pl-0.5 pr-3">
+              <button
+                type="button"
+                onClick={onCloseList}
+                aria-label="Hide conversations and documents"
+                aria-pressed="true"
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-primary-700"
+              >
+                <PanelLeft className="h-[18px] w-[18px]" />
+              </button>
+              <h2 className="text-sm font-medium text-gray-800">Conversations and documents</h2>
+            </div>
+            <div className="min-h-0 flex-1">{sidebar}</div>
+          </div>
+        )}
       </div>
 
-      {/* Drawers portal to the body, so they need to stack above this overlay
-          (z-9500) while staying under BaseModal (9999). */}
-      <SwipeableDrawer
-        isOpen={listDrawerOpen}
-        onClose={onCloseListDrawer}
-        height="70vh"
-        zIndex={AI_MODE_DRAWER_Z_INDEX}
-        container={container}
-      >
-        {sidebar}
-      </SwipeableDrawer>
+      {/* The drawer portals to the body, so it needs to stack above this
+          overlay (z-9500) while staying under BaseModal (9999). */}
       <SwipeableDrawer
         isOpen={documentOpen && isBelowTablet}
         onClose={onCloseDocumentDrawer}
