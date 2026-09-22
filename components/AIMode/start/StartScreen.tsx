@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { INTENT_COPY } from '../copy';
-import { FundTeamLink } from './StartContextChips';
+import { ConciergeCard } from './ConciergeCard';
 import { StartJourney } from './StartJourney';
 
 interface StartScreenProps {
@@ -39,10 +39,8 @@ export function StartScreen({ greeting, intent, composer }: StartScreenProps) {
 
           <div className="-mx-3">{composer}</div>
 
-          {/* Both intents keep this row, so the box sits at the same height either way. */}
-          <div className="-mt-3 flex min-h-11 items-center">
-            {intent === 'fund' && <FundTeamLink />}
-          </div>
+          {/* A funder can talk it through instead; a researcher's context is in the box's chips. */}
+          {intent === 'fund' && <ConciergeCard className="-mt-2" />}
         </div>
 
         <StartJourney intent={intent} className="w-full shrink-0 wide:!w-[340px]" />
