@@ -2,8 +2,10 @@ import { useFormContext } from 'react-hook-form';
 import { DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/form/Input';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 
-export function GrantFundingAmountSection() {
+export function GrantFundingAmountSection({ className }: SectionProps) {
   const {
     register,
     setValue,
@@ -11,7 +13,7 @@ export function GrantFundingAmountSection() {
   } = useFormContext();
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={DollarSign}>Funding Amount</SectionHeader>
       <div className="mt-2">
         <Input

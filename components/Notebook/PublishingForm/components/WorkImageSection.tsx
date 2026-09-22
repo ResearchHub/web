@@ -3,6 +3,8 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 import { PublishingFormData } from '../schema';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 
@@ -12,7 +14,7 @@ const MAX_SIZE_MB = 10;
 const isValidFile = (file: unknown): file is File =>
   Boolean(file instanceof File && file.name && file.size > 0);
 
-export function WorkImageSection() {
+export function WorkImageSection({ className }: SectionProps) {
   const {
     control,
     getValues,
@@ -23,7 +25,7 @@ export function WorkImageSection() {
   const [, uploadAsset] = useAssetUpload();
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={ImageIcon}>Cover Image</SectionHeader>
       <Controller
         name="coverImage"

@@ -1,12 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Editor } from '@tiptap/react';
 import { ExternalLink } from 'lucide-react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
-import { NotebookTabs, type NotebookTab } from '@/components/Notebook/NotebookTabs';
-import { PublishingForm, PublishingFormProvider } from '@/components/Notebook/PublishingForm';
+import {
+  PublishingForm,
+  PublishingFormProvider,
+  usePublishingCompletion,
+} from '@/components/Notebook/PublishingForm';
+import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import {
   PublishingHostProvider,
   type PublishingDefaultArticleType,
@@ -23,7 +28,15 @@ import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
+import { DetailBlockStrip } from './document/details/DetailBlockStrip';
+import { PublishControls } from './document/PublishControls';
 import type { AIModeDocument } from './useAIModeDocument';
+
+/** The document itself, or the full publishing details form. */
+export type DocumentPaneView = 'document' | 'details';
+
+/** Room the "Open in notebook" button takes at the end of the block strip. */
+const NOTEBOOK_LINK_WIDTH = 30;
 
 /** The page column: shared by the skeleton and the document so they line up. */
 const DOCUMENT_PAGE_CLASS =
@@ -33,12 +46,22 @@ interface DocumentPaneProps {
   readonly document: AIModeDocument;
   /** The open chat, whose activity is one of the review's version signals. */
   readonly chat: AgentChat | null;
-  /** Document, or the publishing details form. */
-  readonly tab: NotebookTab;
-  readonly onTabChange: (tab: NotebookTab) => void;
+  readonly view: DocumentPaneView;
+  readonly onViewChange: (view: DocumentPaneView) => void;
   /** Work type to preselect in the details form for a note without one. */
   readonly defaultArticleType?: PublishingDefaultArticleType | null;
-  /** Never editable — the mobile drawer. */
+  /**
+   * A column beside the chat, or the drawer below the tablet breakpoint. The
+   * drawer trades the block strip for a Document | Details switch and keeps
+   * the publish controls with it.
+   */
+  readonly presentation?: 'pane' | 'drawer';
+  /**
+   * Where the pane places its publish controls when it is a column: an
+   * element in the workspace header. The drawer keeps them inline.
+   */
+  readonly publishControlsSlot?: HTMLElement | null;
+  /** The editor is never editable — the mobile drawer. */
   readonly readOnly?: boolean;
   readonly className?: string;
 }
@@ -55,9 +78,11 @@ interface DocumentPaneProps {
 export function DocumentPane({
   document,
   chat,
-  tab,
-  onTabChange,
+  view,
+  onViewChange,
   defaultArticleType = null,
+  presentation = 'pane',
+  publishControlsSlot = null,
   readOnly = false,
   className,
 }: DocumentPaneProps) {
@@ -149,104 +174,160 @@ export function DocumentPane({
   const startingDocument =
     status === 'working' && !document.hasWrittenVersion && review.review == null;
 
+  const openDetails = useCallback(() => onViewChange('details'), [onViewChange]);
+  const toggleDetails = useCallback(
+    () => onViewChange(view === 'details' ? 'document' : 'details'),
+    [onViewChange, view]
+  );
+
+  const notebookLink = document.notebookHref && (
+    <a
+      href={document.notebookHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open in notebook"
+      title="Open in notebook"
+      style={{ width: NOTEBOOK_LINK_WIDTH }}
+      className="inline-flex h-[30px] shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+    >
+      <ExternalLink className="h-[15px] w-[15px]" aria-hidden="true" />
+    </a>
+  );
+
   return (
-    <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
-      <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-gray-200 px-3">
-        <NotebookTabs active={tab} onChange={onTabChange} labels={{ details: 'Publish' }} />
-        {document.notebookHref && (
-          <a
-            href={document.notebookHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          >
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            Open in notebook
-          </a>
-        )}
-      </div>
+    <PublishingHostProvider value={publishingHost}>
+      {/* The form lives as long as the note does, whichever view is showing:
+          its values are the source of the detail blocks and the publish
+          controls, and remounting it would rehydrate from the note as it was
+          loaded, dropping edits saved since. */}
+      <PublishingFormProvider>
+        <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
+          {presentation === 'pane' ? (
+            <DetailBlockStrip
+              detailsOpen={view === 'details'}
+              onToggleDetails={toggleDetails}
+              trailing={notebookLink}
+              trailingWidth={document.notebookHref ? NOTEBOOK_LINK_WIDTH : 0}
+            />
+          ) : (
+            <DrawerStrip view={view} onViewChange={onViewChange} onOpenDetails={openDetails} />
+          )}
+          {presentation === 'pane' &&
+            publishControlsSlot &&
+            createPortal(<PublishControls onOpenDetails={openDetails} />, publishControlsSlot)}
 
-      {/* The document is the pane: no gutter, no card, just the page. The
-          editor stays mounted behind the details tab — it holds the review
+          {/* The document is the pane: no gutter, no card, just the page. The
+          editor stays mounted behind the details view — it holds the review
           and autosave state, and the form publishes from it. */}
-      <div className={cn('min-h-0 flex-1 overflow-y-auto', tab !== 'document' && 'hidden')}>
-        <NoteReviewBanner review={review} className="mx-6 mt-4" />
+          <div className={cn('min-h-0 flex-1 overflow-y-auto', view !== 'document' && 'hidden')}>
+            <NoteReviewBanner review={review} className="mx-6 mt-4" />
 
-        {error && content == null ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <p className="text-sm text-gray-600">{error}</p>
-            <Button variant="outlined" size="sm" onClick={document.reload}>
-              Try again
-            </Button>
-          </div>
-        ) : loading || content == null ? (
-          <div className={DOCUMENT_PAGE_CLASS}>
-            <DocumentPaneSkeleton />
-          </div>
-        ) : startingDocument ? (
-          <StartingDocument label={phaseLabel} />
-        ) : (
-          <article className={cn(DOCUMENT_PAGE_CLASS, 'animate-in fade-in duration-300')}>
-            {editorLostContent && (
-              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                This document couldn’t be displayed here. Open it in the notebook to view it;
-                nothing has been changed.
+            {error && content == null ? (
+              <div className="flex flex-col items-center gap-3 py-16 text-center">
+                <p className="text-sm text-gray-600">{error}</p>
+                <Button variant="outlined" size="sm" onClick={document.reload}>
+                  Try again
+                </Button>
               </div>
-            )}
-            {status === 'empty' && review.review == null && <EmptyDocument />}
+            ) : loading || content == null ? (
+              <div className={DOCUMENT_PAGE_CLASS}>
+                <DocumentPaneSkeleton />
+              </div>
+            ) : startingDocument ? (
+              <StartingDocument label={phaseLabel} />
+            ) : (
+              <article className={cn(DOCUMENT_PAGE_CLASS, 'animate-in fade-in duration-300')}>
+                {editorLostContent && (
+                  <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    This document couldn’t be displayed here. Open it in the notebook to view it;
+                    nothing has been changed.
+                  </div>
+                )}
+                {status === 'empty' && review.review == null && <EmptyDocument />}
 
-            {/* Mounted once per note: the editor's content prop is only read on
+                {/* Mounted once per note: the editor's content prop is only read on
                 creation, and later versions arrive through the review. */}
-            <div className={writing && !document.hasWrittenVersion ? 'hidden' : undefined}>
-              <BlockEditorClientWrapper
-                key={noteId ?? 'none'}
-                content={content.content}
-                contentJson={content.contentJson}
-                editable={!readOnly}
-                locked={locked}
-                requireTitle={false}
-                autofocus={false}
-                onUpdate={readOnly ? undefined : handleEditorUpdate}
-                setEditor={setEditor}
+                <div className={writing && !document.hasWrittenVersion ? 'hidden' : undefined}>
+                  <BlockEditorClientWrapper
+                    key={noteId ?? 'none'}
+                    content={content.content}
+                    contentJson={content.contentJson}
+                    editable={!readOnly}
+                    locked={locked}
+                    requireTitle={false}
+                    autofocus={false}
+                    onUpdate={readOnly ? undefined : handleEditorUpdate}
+                    setEditor={setEditor}
+                  />
+                </div>
+
+                {status === 'drafting' && draftText && (
+                  <DraftSection
+                    text={draftText}
+                    blocks={draftBlocks}
+                    editor={editor}
+                    key={document.draftKey}
+                    hasSavedContent={document.hasWrittenVersion}
+                  />
+                )}
+
+                {status === 'working' && document.hasWrittenVersion && (
+                  <InProgressRow label={phaseLabel ?? 'Working'} />
+                )}
+              </article>
+            )}
+          </div>
+
+          <div
+            className={cn(
+              'min-h-0 flex-1 overflow-y-auto px-6 py-6',
+              view !== 'details' && 'hidden'
+            )}
+          >
+            <PublishingForm showFooter={false} />
+          </div>
+
+          {review.review && view === 'document' && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
+              <NoteReviewControls
+                changeCount={review.review.changeCount}
+                onAccept={review.accept}
+                onReject={review.reject}
               />
             </div>
-
-            {status === 'drafting' && draftText && (
-              <DraftSection
-                text={draftText}
-                blocks={draftBlocks}
-                editor={editor}
-                key={document.draftKey}
-                hasSavedContent={document.hasWrittenVersion}
-              />
-            )}
-
-            {status === 'working' && document.hasWrittenVersion && (
-              <InProgressRow label={phaseLabel ?? 'Working'} />
-            )}
-          </article>
-        )}
-      </div>
-
-      {tab === 'details' && (
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-          <PublishingHostProvider value={publishingHost}>
-            <PublishingFormProvider>
-              <PublishingForm />
-            </PublishingFormProvider>
-          </PublishingHostProvider>
+          )}
         </div>
-      )}
+      </PublishingFormProvider>
+    </PublishingHostProvider>
+  );
+}
 
-      {review.review && tab === 'document' && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
-          <NoteReviewControls
-            changeCount={review.review.changeCount}
-            onAccept={review.accept}
-            onReject={review.reject}
-          />
-        </div>
-      )}
+/**
+ * The drawer's top row: a Document | Details switch, with how many required
+ * details are left on the Details side, and the publish controls.
+ */
+function DrawerStrip({
+  view,
+  onViewChange,
+  onOpenDetails,
+}: {
+  readonly view: DocumentPaneView;
+  readonly onViewChange: (view: DocumentPaneView) => void;
+  readonly onOpenDetails: () => void;
+}) {
+  const { remaining } = usePublishingCompletion();
+  return (
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-3 py-2">
+      <ButtonGroup
+        size="sm"
+        value={view}
+        onChange={(next) => onViewChange(next as DocumentPaneView)}
+        options={[
+          { value: 'document', label: 'Document' },
+          { value: 'details', label: 'Details', badge: remaining || undefined },
+        ]}
+      />
+      <PublishControls onOpenDetails={onOpenDetails} />
     </div>
   );
 }
