@@ -124,8 +124,7 @@ export function ChatPane({
       sendDisabled={state.sendBlocked}
       notice={notice}
       className={cn('border-t-0', onStart ? 'bg-white pt-0' : 'bg-gray-50')}
-      // The open intent tab merges into the box's top-left corner.
-      boxClassName={onStart ? startComposerBoxClass(state.intent, 'rounded-tl-none') : undefined}
+      boxClassName={onStart ? startComposerBoxClass(state.intent) : undefined}
       minRows={onStart ? START_COMPOSER_MIN_ROWS : 1}
       sendClassName={onStart ? startComposerSendClass(state.intent) : undefined}
       placeholder={onStart ? startComposerPlaceholder(state.intent) : undefined}
@@ -207,7 +206,6 @@ export function ChatPane({
                 composer={composer}
                 greeting={aiModeGreeting(user?.firstName)}
                 intent={state.intent}
-                onIntentChange={state.setIntent}
               />
             ) : chat.access === 'loading' && chat.chat == null ? (
               <ChatTranscriptSkeleton />
@@ -256,7 +254,7 @@ export function ChatPane({
 
       {/* A conversation keeps the composer docked at the bottom, as does a
           document's chat before it starts; the new-conversation screen seats
-          it in the middle with the intent toggle. */}
+          it in the middle. */}
       {(chatId != null || onDocument) && (
         <div className="shrink-0 border-t border-gray-200 bg-gray-50">
           <div className={cn('mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5')}>

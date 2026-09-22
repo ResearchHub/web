@@ -1,11 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
+import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
 import { FundedProposalsSection } from '@/components/Funding/dashboard/FundedProposalsSection';
+import { NoteDrafts } from '@/components/Funding/dashboard/NoteDrafts';
+import { PublishedFeedEntry } from '@/components/Funding/dashboard/PublishedFeedEntry';
+import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFeed } from '@/hooks/useFeed';
 import { FunderOverview } from '@/types/funder';
@@ -13,15 +16,18 @@ import { FunderOverview } from '@/types/funder';
 interface FundsGivenProps {
   /** The funder whose page this is: the user, or the one a moderator is viewing. */
   viewedUserId: number;
+  /** The user is looking at their own page, so their drafts belong on it. */
+  isOwnPage: boolean;
   overview: FunderOverview | null;
 }
 
 /**
- * The Funds given column: the funder's RFPs, then the proposals they backed.
- * Their totals and recent activity live in the page's sidebar.
+ * The Funds given column: the funder's RFPs, drafts first, then the
+ * proposals they backed. Their totals and recent activity live in the
+ * page's sidebar.
  */
-export function FundsGiven({ viewedUserId, overview }: Readonly<FundsGivenProps>) {
-  const router = useRouter();
+export function FundsGiven({ viewedUserId, isOwnPage, overview }: Readonly<FundsGivenProps>) {
+  const { startNew } = useFundingDrafting();
 
   const grantFeedOptions = useMemo(
     () => ({
@@ -41,44 +47,52 @@ export function FundsGiven({ viewedUserId, overview }: Readonly<FundsGivenProps>
 
   return (
     <>
-      <div>
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
-          <div className="flex items-baseline gap-2.5">
-            <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-              My Requests for Proposals
-            </h2>
-            {!isLoadingOpportunities && (
-              <span className="text-xs text-gray-500">{opportunities.length} active</span>
-            )}
-          </div>
-          {!isLoadingOpportunities && opportunities.length > 0 && (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={() => router.push('/notebook?newGrant=true')}
-            >
-              <Plus size={14} />
-              New RFP
-            </Button>
-          )}
-        </div>
-
-        <FeedContent
-          entries={opportunities}
-          isLoading={isLoadingOpportunities}
-          hasMore={hasMore}
-          loadMore={loadMore}
-          wideContent
-          skeletonVariant="grant"
-          showGrantApplyCta={false}
-          showGrantHeaders={false}
-          showPostHeaders={false}
-          showFundraiseHeaders={false}
-          noEntriesElement={
-            <DashboardEmptyState>You haven&apos;t created any RFPs yet.</DashboardEmptyState>
+      <section>
+        <DashboardSectionHeader
+          title="My Requests for Proposals"
+          meta={!isLoadingOpportunities && `${opportunities.length} active`}
+          action={
+            isOwnPage && (
+              <Button size="sm" onClick={() => startNew('fund')}>
+                <Plus size={14} />
+                New RFP
+              </Button>
+            )
           }
         />
-      </div>
+
+        <div className="space-y-4">
+          {isOwnPage && <NoteDrafts kind="rfp" />}
+
+          <FeedContent
+            entries={opportunities}
+            isLoading={isLoadingOpportunities}
+            hasMore={hasMore}
+            loadMore={loadMore}
+            wideContent
+            skeletonVariant="grant"
+            showGrantApplyCta={false}
+            showGrantHeaders={false}
+            showPostHeaders={false}
+            showFundraiseHeaders={false}
+            renderEntry={({ entry, index, ordering, ...tracking }) => (
+              <PublishedFeedEntry
+                entry={entry}
+                index={index}
+                feedOrdering={ordering}
+                showGrantApplyCta={false}
+                showGrantHeaders={false}
+                showPostHeaders={false}
+                showFundraiseHeaders={false}
+                {...tracking}
+              />
+            )}
+            noEntriesElement={
+              <DashboardEmptyState>You haven&apos;t created any RFPs yet.</DashboardEmptyState>
+            }
+          />
+        </div>
+      </section>
 
       {overview && (
         <FundedProposalsSection proposals={overview.supportedProposals} className="mt-8" />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useAIMode, type PendingStart, type WorkspaceTarget } from './AIModeContext';
+import { useAIMode, type WorkspaceTarget } from './AIModeContext';
 import { getChatTransport } from '@/services/chatTransport';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
@@ -21,9 +21,11 @@ export interface AIModeChatState extends ChatSession {
   readonly chatId: number | null;
   /** Every conversation the user has, the notebook's included. */
   readonly list: UseAgentChatListResult;
-  /** What the next conversation is for; sent with its creation. */
+  /**
+   * What the next conversation is for; sent with its creation. Set by the
+   * door the workspace was opened through, else the last one used.
+   */
   readonly intent: FundingIntent;
-  readonly setIntent: (intent: FundingIntent) => void;
   /** The RFP the next conversation's proposal answers, chosen on the start screen. */
   readonly selectedGrant: SelectedGrantDetails | null;
   readonly setSelectedGrant: (grant: SelectedGrantDetails | null) => void;
@@ -60,7 +62,7 @@ export interface AIModeChatState extends ChatSession {
  * transport for a conversation and on the note's for a document.
  */
 export function useAIModeChat(): AIModeChatState {
-  const { target, selectTarget, selectChat, takePendingStart } = useAIMode();
+  const { target, selectTarget, selectChat, takePendingIntent } = useAIMode();
   const { chatId } = target;
   const targetNoteId = target.kind === 'document' ? target.noteId : null;
   const transport = getChatTransport({ noteId: targetNoteId });
@@ -114,29 +116,14 @@ export function useAIModeChat(): AIModeChatState {
   });
   const { chat } = session;
 
-  // ---- a conversation started from outside the workspace ----
-  // The start is staged first so its intent and RFP have reached the create
-  // options before the message goes; the message waits in the box until the
-  // session can send it (the allowance and model catalog load with the
-  // workspace, and a send before they land is refused without a word).
-  const [stagedStart, setStagedStart] = useState<PendingStart | null>(null);
-  const { send: sendStaged, sendBlocked, composerBusy, setDraft: setStagedDraft } = session;
+  // ---- the door the workspace was opened through ----
+  // A Publish menu item or a New RFP / New proposal button opens it for one
+  // side of the money; the start screen takes that side rather than asking.
   useEffect(() => {
     if (target.kind !== 'conversation' || target.chatId != null) return;
-    const start = takePendingStart();
-    if (!start) return;
-    setIntent(start.intent);
-    setSelectedGrant(start.selectedGrant);
-    setStagedDraft(start.message);
-    setStagedStart(start);
-  }, [target, takePendingStart, setIntent, setStagedDraft]);
-  useEffect(() => {
-    if (!stagedStart || intent !== stagedStart.intent) return;
-    if (selectedGrant?.id !== stagedStart.selectedGrant?.id) return;
-    if (sendBlocked || composerBusy) return;
-    setStagedStart(null);
-    void sendStaged(stagedStart.message);
-  }, [stagedStart, intent, selectedGrant, sendBlocked, composerBusy, sendStaged]);
+    const pending = takePendingIntent();
+    if (pending) setIntent(pending);
+  }, [target, takePendingIntent, setIntent]);
   const chatRef = useRef(chat.chat);
   chatRef.current = chat.chat;
 
@@ -265,7 +252,6 @@ export function useAIModeChat(): AIModeChatState {
     chatId,
     list,
     intent,
-    setIntent,
     selectedGrant,
     setSelectedGrant,
     rename,

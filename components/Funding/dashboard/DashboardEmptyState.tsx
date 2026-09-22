@@ -3,7 +3,7 @@ import { cn } from '@/utils/styles';
 
 /**
  * A list on My Funding with nothing in it yet. Just the fact, no button: the
- * way to start something is the composer at the top of the page.
+ * way to start something is the button in the section's heading.
  */
 export const DashboardEmptyState: FC<{ children: ReactNode; className?: string }> = ({
   children,

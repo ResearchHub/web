@@ -2,10 +2,9 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { FundingDirectionIcon } from '@/components/Funding/FundingDirectionIcon';
-import type { FundingDirection, FundingIntent } from '@/components/Funding/fundingDirection';
+import type { FundingDirection } from '@/components/Funding/fundingDirection';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { StartConversationBox } from '@/components/AIMode/start/StartConversationBox';
 import { FundsGiven } from '@/components/Funding/dashboard/FundsGiven';
 import {
   parseViewedFunderId,
@@ -14,19 +13,12 @@ import {
 import { ModeratorViewAsFunder } from '@/components/Funding/dashboard/ModeratorViewAsFunder';
 import { Tabs } from '@/components/ui/Tabs';
 import { useUser } from '@/contexts/UserContext';
-import { isHubEditorOrModerator } from '@/utils/permissions';
 import { FundsReceived } from './FundsReceived';
 import { EarningsTotals } from '@/components/Funding/dashboard/EarningsTotals';
 import { FunderTotals } from '@/components/Funding/dashboard/FunderTotals';
 import { FundsGivenActivity, FundsReceivedActivity } from './MyFundingSidebar';
 
 type MyFundingTab = 'given' | 'received';
-
-/** Each tab is one side of the money: the composer under it starts a conversation for that side. */
-const TAB_INTENT: Record<MyFundingTab, FundingIntent> = {
-  given: 'fund',
-  received: 'need_funding',
-};
 
 /**
  * Tab label with the direction of the money in a circle: out of the wallet for
@@ -77,8 +69,6 @@ export function MyFundingPage() {
   const { overview, isLoading: isLoadingOverview } = useFunderOverview(
     activeTab === 'given' ? viewedUserId : undefined
   );
-  // The workspace is still rolling out; the composer shows to the same people as its nav item.
-  const canStartConversation = isHubEditorOrModerator(user);
 
   useEffect(() => {
     if (isLoadingUser) return;
@@ -130,13 +120,13 @@ export function MyFundingPage() {
 
       <div className="mt-6 lg:!hidden">{totals}</div>
 
-      {canStartConversation && (
-        <StartConversationBox intent={TAB_INTENT[activeTab]} className="mt-6" />
-      )}
-
       <div className="mt-6">
         {activeTab === 'given' ? (
-          <FundsGiven viewedUserId={viewedUserId} overview={overview} />
+          <FundsGiven
+            viewedUserId={viewedUserId}
+            isOwnPage={viewedUserId === user.id}
+            overview={overview}
+          />
         ) : (
           <FundsReceived userId={user.id} authorId={user.authorProfile?.id} />
         )}
