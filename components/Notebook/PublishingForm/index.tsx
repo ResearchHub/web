@@ -27,6 +27,8 @@ import type { PublishingFormData } from './schema';
 
 export { PublishingFormProvider, usePublishingController } from './PublishingFormProvider';
 export { PublishButton } from './PublishButton';
+export { PublishStatusPill } from './PublishStatusPill';
+export { usePublishingCompletion } from './completion';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 
@@ -35,6 +37,8 @@ const PUBLISHING_FORM_WORK_TYPES = getAvailableNotebookWorkTypes(false);
 interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
+  /** Off when the host places the publish button somewhere else. */
+  showFooter?: boolean;
 }
 
 /**
@@ -42,7 +46,11 @@ interface PublishingFormProps {
  * type needs, with the publish button in a sticky footer. Renders inside a
  * `PublishingFormProvider`, which holds the values and the publish flow.
  */
-export function PublishingForm({ bountyAmount, onBountyClick }: Readonly<PublishingFormProps>) {
+export function PublishingForm({
+  bountyAmount,
+  onBountyClick,
+  showFooter = true,
+}: Readonly<PublishingFormProps>) {
   const {
     note,
     readOnly,
@@ -156,13 +164,15 @@ export function PublishingForm({ bountyAmount, onBountyClick }: Readonly<Publish
         </fieldset>
       </div>
 
-      <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
-        <div className="mx-auto w-full max-w-2xl space-y-3">
-          {articleType === 'preregistration' && !workId && <PreregistrationPrivacyLockedAlert />}
-          {blockedMessage && <p className="text-sm text-red-600">{blockedMessage}</p>}
-          <PublishButton className="w-full" />
+      {showFooter && (
+        <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
+          <div className="mx-auto w-full max-w-2xl space-y-3">
+            {articleType === 'preregistration' && !workId && <PreregistrationPrivacyLockedAlert />}
+            {blockedMessage && <p className="text-sm text-red-600">{blockedMessage}</p>}
+            <PublishButton className="w-full" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
