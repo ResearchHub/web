@@ -34,8 +34,9 @@ const DOCUMENT_DEFAULT_SHARE = 0.55;
  * from inside it still render on top.
  */
 export function AIModeOverlay() {
-  const { close } = useAIMode();
+  const { close, layout, setLayout } = useAIMode();
   const state = useAIModeChat();
+  const { target } = state;
   // Below the tablet breakpoint the sidebar lives in a bottom drawer.
   const [listDrawerOpen, setListDrawerOpen] = useState(false);
   const closeListDrawer = useCallback(() => setListDrawerOpen(false), []);
@@ -66,18 +67,21 @@ export function AIModeOverlay() {
     defaultWidth: LIST_DEFAULT_WIDTH,
     anchor: 'left',
   });
-  // Document or details in the right pane; details wants a wider floor.
+  // Document or details in the document pane; details wants a wider floor.
   const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
   const documentMinWidth = documentView === 'details' ? DETAILS_MIN_WIDTH : DOCUMENT_MIN_WIDTH;
-  // The document may grow until the chat is down to its minimum column.
-  const documentMaxWidth = Math.max(
-    documentMinWidth,
-    viewportWidth - listWidth.width - CHAT_MIN_WIDTH
+  // The side pane is the document (chat first) or the chat (document first);
+  // it may grow until the main pane is down to its own minimum column.
+  const sideIsDocument = layout === 'chat';
+  const sideMinWidth = sideIsDocument ? documentMinWidth : CHAT_MIN_WIDTH;
+  const sideMaxWidth = Math.max(
+    sideMinWidth,
+    viewportWidth - listWidth.width - (sideIsDocument ? CHAT_MIN_WIDTH : DOCUMENT_MIN_WIDTH)
   );
-  const documentWidth = useResizableWidth({
+  const sideWidth = useResizableWidth({
     storageKey: 'ai-mode:document-width',
-    min: documentMinWidth,
-    max: documentMaxWidth,
+    min: sideMinWidth,
+    max: sideMaxWidth,
     defaultWidth: (width) => width * DOCUMENT_DEFAULT_SHARE,
     anchor: 'right',
   });
@@ -85,15 +89,17 @@ export function AIModeOverlay() {
   isBelowTabletRef.current = isBelowTablet;
 
   // On desktop the document pane opens by itself the moment a conversation
-  // gains a note. On mobile it never opens by itself — the card in the
-  // transcript is the way in, and it opens a drawer. Either way the user can
-  // close it and reopen it from the card or the chat header.
+  // gains a note, and a document opened from the sidebar shows at once
+  // everywhere. Otherwise on mobile the card in the transcript is the way in,
+  // and it opens a drawer. Either way the user can close it and reopen it
+  // from the card or the chat header.
   const noteId = state.note?.id ?? null;
+  const onDocument = target.kind === 'document';
   const [documentOpen, setDocumentOpen] = useState(false);
   useEffect(() => {
-    setDocumentOpen(noteId != null && !isBelowTabletRef.current);
+    setDocumentOpen(noteId != null && (onDocument || !isBelowTabletRef.current));
     setDocumentView('document');
-  }, [noteId]);
+  }, [noteId, onDocument]);
 
   const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
@@ -119,8 +125,9 @@ export function AIModeOverlay() {
     }
     return null;
   }, [noteId, state.chat.chat]);
+  // A document opened from the sidebar is the main pane; no card needed.
   const documentCard =
-    noteId != null ? (
+    noteId != null && !onDocument ? (
       <DocumentCard
         title={documentTitle}
         status={doc.status}
@@ -158,14 +165,16 @@ export function AIModeOverlay() {
       <AIModeHeader
         documentTitle={showDocument ? documentTitle : null}
         publishControlsRef={isBelowTablet ? undefined : setPublishControlsSlot}
+        layout={showDocument && !isBelowTablet ? layout : undefined}
+        onLayoutChange={setLayout}
         onClose={close}
       />
 
       <WorkspacePanes
-        layout="chat"
+        layout={layout}
         isBelowTablet={isBelowTablet}
         sidebarWidth={{ ...listWidth, min: LIST_MIN_WIDTH, max: LIST_MAX_WIDTH }}
-        sideWidth={{ ...documentWidth, min: documentMinWidth, max: documentMaxWidth }}
+        sideWidth={{ ...sideWidth, min: sideMinWidth, max: sideMaxWidth }}
         listDrawerOpen={listDrawerOpen}
         onCloseListDrawer={closeListDrawer}
         onCloseDocumentDrawer={closeDocument}

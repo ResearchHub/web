@@ -229,6 +229,9 @@ export interface AgentChat {
   notes?: ChatNoteRef[];
 }
 
+/** The surface a chat lives on: the assistant's own, or scoped to a notebook note. */
+export type ChatWorkflow = 'assistant_chat' | 'notebook_chat';
+
 export interface AgentChatListItem {
   id: number;
   title: string | null;
@@ -238,6 +241,15 @@ export interface AgentChatListItem {
   last_message_preview: string | null;
   /** True while a turn is queued/running — show a spinner in the picker. */
   has_active_turn: boolean;
+  /** Assistant listing only: which routes serve this chat. */
+  workflow?: ChatWorkflow;
+  /**
+   * Assistant listing only: the note a notebook chat is on, or the first note
+   * an assistant chat created; null for a chat with neither.
+   */
+  note?: ChatNoteRef | null;
+  /** Assistant listing only: what the chat was opened to do; blank on older chats. */
+  intent?: string;
 }
 
 export interface SendMessageResponse {

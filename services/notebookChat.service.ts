@@ -34,6 +34,10 @@ export class NotebookChatService {
     return ApiClient.post<AgentChat>(this.basePath(noteId), title ? { title } : {});
   }
 
+  static async deleteChat(noteId: ID, chatId: ID): Promise<void> {
+    await ApiClient.deleteNoContent(`${this.basePath(noteId)}${chatId}/`);
+  }
+
   static async getChat(noteId: ID, chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {
     const suffix = options?.live ? '?activity=live' : '';
     return ApiClient.get<AgentChat>(`${this.basePath(noteId)}${chatId}/${suffix}`);

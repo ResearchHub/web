@@ -15,6 +15,7 @@ import { cn } from '@/utils/styles';
 import type { AIModeChatState } from '../useAIModeChat';
 import { aiModeGreeting, INTENT_COPY } from '../copy';
 import { StartScreen } from '../start/StartScreen';
+import { DocumentChatEmptyState } from './DocumentChatEmptyState';
 import { useUser } from '@/contexts/UserContext';
 
 interface ChatPaneProps {
@@ -84,8 +85,13 @@ export function ChatPane({
     chatId == null ? null : state.titleFor(chatId, chat.chat?.title ?? listedTitle);
   const titleLoading =
     chatId != null && currentTitle == null && (chat.chat == null || list.access === 'loading');
+  const onDocument = state.target.kind === 'document';
   const title =
-    chatId == null ? 'New conversation' : (currentTitle?.trim() ?? '') || 'Untitled conversation';
+    chatId == null
+      ? onDocument
+        ? 'New chat'
+        : 'New conversation'
+      : (currentTitle?.trim() ?? '') || 'Untitled conversation';
 
   const composer = (
     <ChatComposer
@@ -100,7 +106,9 @@ export function ChatPane({
       sendDisabled={state.sendBlocked}
       notice={notice}
       className="border-t-0 bg-gray-50"
-      placeholder={chatId == null ? INTENT_COPY[state.intent].placeholder : undefined}
+      placeholder={
+        chatId == null && !onDocument ? INTENT_COPY[state.intent].placeholder : undefined
+      }
       toolbar={
         <ModelControls
           models={modelSelection.models}
@@ -164,6 +172,8 @@ export function ChatPane({
           <div ref={contentRef} className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
             {listBlocked ? (
               <AccessBlocked detail={list.accessDetail} />
+            ) : chatId == null && onDocument ? (
+              <DocumentChatEmptyState />
             ) : chatId == null ? (
               <StartScreen
                 composer={composer}
@@ -218,9 +228,10 @@ export function ChatPane({
         </div>
       </div>
 
-      {/* A conversation keeps the composer docked at the bottom; the
-          new-conversation screen seats it in the middle with the starters. */}
-      {chatId != null && (
+      {/* A conversation keeps the composer docked at the bottom, as does a
+          document's chat before it starts; the new-conversation screen seats
+          it in the middle with the intent toggle. */}
+      {(chatId != null || onDocument) && (
         <div className="shrink-0 border-t border-gray-200 bg-gray-50">
           <div className={cn('mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5')}>
             {composer}
