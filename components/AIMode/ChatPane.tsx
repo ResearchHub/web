@@ -40,7 +40,8 @@ export function ChatPane({
   documentCard,
   documentCardExecutionId,
 }: ChatPaneProps) {
-  const { chatId, list, chat, modelSelection, draft, setDraft, notice, creatingChat } = state;
+  const { chatId, list, chat, modelSelection, draft, setDraft, notice, composerBusy, canStop } =
+    state;
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const paneRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +76,7 @@ export function ChatPane({
   const startFromCard = useCallback(
     (message: string) => {
       state.clearNotice();
-      void state.sendText(message);
+      void state.send(message);
     },
     [state]
   );
@@ -85,9 +86,6 @@ export function ChatPane({
     chatId != null && (chat.access === 'not_found' || chat.access === 'unauthorized');
   const composerDisabled =
     listBlocked || chatUnavailable || (chatId != null && chat.access === 'loading');
-  const composerBusy = chat.isBusy || creatingChat;
-  // Stop must only be offered when there is a turn to cancel server-side.
-  const canStop = chat.latestExecution != null && chat.isBusy && chat.pendingSend == null;
 
   // The listing usually knows the title before the chat itself has loaded,
   // so a refresh doesn't flash "Untitled" while the transcript is fetched.
@@ -105,7 +103,7 @@ export function ChatPane({
       textareaRef={composerRef}
       value={draft}
       onChange={setDraft}
-      onSend={state.send}
+      onSend={() => void state.send()}
       onStop={state.stop}
       busy={composerBusy}
       canStop={canStop}
