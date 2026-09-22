@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
@@ -15,10 +15,6 @@ interface DetailBlockStripProps {
   /** The full details form is showing instead of the document. */
   readonly detailsOpen: boolean;
   readonly onToggleDetails: () => void;
-  /** Controls kept at the strip's end, after the blocks. */
-  readonly trailing?: ReactNode;
-  /** Width `trailing` takes, so the count of blocks that fit allows for it. */
-  readonly trailingWidth?: number;
 }
 
 /**
@@ -27,12 +23,7 @@ interface DetailBlockStripProps {
  * room fold into the last block, which opens the full form and says how
  * many it holds. One editor is open at a time.
  */
-export function DetailBlockStrip({
-  detailsOpen,
-  onToggleDetails,
-  trailing,
-  trailingWidth = 0,
-}: DetailBlockStripProps) {
+export function DetailBlockStrip({ detailsOpen, onToggleDetails }: DetailBlockStripProps) {
   const { note, articleType } = usePublishingController();
   const values = useWatch<PublishingFormData>() as PublishingFormData;
   const [openBlockId, setOpenBlockId] = useState<string | null>(null);
@@ -48,7 +39,7 @@ export function DetailBlockStrip({
     itemCount: blocks.length,
     minItemWidth: DETAIL_BLOCK_MIN_WIDTH,
     gap: GAP,
-    reservedWidth: ALL_DETAILS_BLOCK_WIDTH + GAP + (trailingWidth > 0 ? trailingWidth + GAP : 0),
+    reservedWidth: ALL_DETAILS_BLOCK_WIDTH + GAP,
   });
 
   // A field is mounted once: the full form and a block's editor never show
@@ -90,7 +81,6 @@ export function DetailBlockStrip({
           onClick={openDetails}
         />
       )}
-      {trailing}
     </div>
   );
 }

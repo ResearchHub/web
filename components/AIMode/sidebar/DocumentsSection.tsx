@@ -8,7 +8,7 @@ import { ConversationListSkeleton } from '@/components/skeletons/AIModeSkeleton'
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
-import { getNoteKind, isChangelogNote, NOTE_KIND_LABELS, type Note } from '@/types/note';
+import { getNoteKind, isChangelogNote, type Note } from '@/types/note';
 import { SidebarGroupHeading } from './SidebarGroupHeading';
 import { SidebarRow } from './SidebarRow';
 
@@ -90,20 +90,15 @@ export function DocumentsSection({ activeNoteId, recentNoteId, onSelect }: Docum
         <p className="px-3 py-2 text-xs text-gray-400">No documents yet.</p>
       )}
 
-      {rows.map((note) => {
-        const kind = getNoteKind(note);
-        const kindLabel = kind === 'other' ? 'Note' : NOTE_KIND_LABELS[kind];
-        return (
-          <SidebarRow
-            key={note.id}
-            title={note.title?.trim() || 'Untitled'}
-            meta={`${kindLabel} · ${note.post ? 'Published' : 'Draft'}`}
-            leading={<NoteKindIcon note={note} />}
-            isActive={note.id === activeNoteId}
-            onSelect={() => onSelect(note.id)}
-          />
-        );
-      })}
+      {rows.map((note) => (
+        <SidebarRow
+          key={note.id}
+          title={note.title?.trim() || 'Untitled'}
+          leading={<NoteKindIcon note={note} />}
+          isActive={note.id === activeNoteId}
+          onSelect={() => onSelect(note.id)}
+        />
+      ))}
 
       {notes.hasMore && (
         <button

@@ -6,7 +6,7 @@ import { PanelRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
-import { useAIMode } from './AIModeContext';
+import { layoutFor, useAIMode } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
 import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
@@ -34,9 +34,11 @@ const DOCUMENT_DEFAULT_SHARE = 0.55;
  * from inside it still render on top.
  */
 export function AIModeOverlay() {
-  const { close, layout, setLayout } = useAIMode();
+  const { close } = useAIMode();
   const state = useAIModeChat();
   const { target } = state;
+  // A document opened from the sidebar comes first; a conversation's document sits beside it.
+  const layout = layoutFor(target);
   // Below the tablet breakpoint the sidebar is a screen of its own, opened
   // from the chat header.
   const [listOpen, setListOpen] = useState(false);
@@ -166,8 +168,6 @@ export function AIModeOverlay() {
       <AIModeHeader
         documentTitle={showDocument ? documentTitle : null}
         publishControlsRef={isBelowTablet ? undefined : setPublishControlsSlot}
-        layout={showDocument && !isBelowTablet ? layout : undefined}
-        onLayoutChange={setLayout}
         onClose={close}
       />
 

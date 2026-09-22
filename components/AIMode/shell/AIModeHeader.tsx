@@ -1,8 +1,6 @@
 'use client';
 
-import { FileText, MessageSquare, Sparkles, X } from 'lucide-react';
-import { ButtonGroup } from '@/components/ui/ButtonGroup';
-import type { WorkspaceLayout } from '../AIModeContext';
+import { Sparkles, X } from 'lucide-react';
 import { AI_MODE_NAME } from '../copy';
 
 interface AIModeHeaderProps {
@@ -13,53 +11,16 @@ interface AIModeHeaderProps {
    * into. Absent below the tablet breakpoint, where the drawer keeps them.
    */
   readonly publishControlsRef?: (element: HTMLDivElement | null) => void;
-  /** Which pane is the main one; absent when there is nothing to swap. */
-  readonly layout?: WorkspaceLayout;
-  readonly onLayoutChange?: (layout: WorkspaceLayout) => void;
   readonly onClose: () => void;
 }
 
 /** The workspace's top strip: the name, the open document's publishing state, close. */
-export function AIModeHeader({
-  documentTitle,
-  publishControlsRef,
-  layout,
-  onLayoutChange,
-  onClose,
-}: AIModeHeaderProps) {
+export function AIModeHeader({ documentTitle, publishControlsRef, onClose }: AIModeHeaderProps) {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4">
       <div className="flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-primary-600" aria-hidden="true" />
         <span className="text-sm font-semibold tracking-tight text-gray-900">{AI_MODE_NAME}</span>
-        {layout && onLayoutChange && (
-          <ButtonGroup
-            size="sm"
-            className="ml-3 rounded-[9px]"
-            value={layout}
-            onChange={(next) => onLayoutChange(next as WorkspaceLayout)}
-            options={[
-              {
-                value: 'chat',
-                label: (
-                  <>
-                    <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
-                    Chat first
-                  </>
-                ),
-              },
-              {
-                value: 'document',
-                label: (
-                  <>
-                    <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-                    Document first
-                  </>
-                ),
-              },
-            ]}
-          />
-        )}
       </div>
       <div className="flex min-w-0 items-center gap-3">
         {documentTitle != null && publishControlsRef && (

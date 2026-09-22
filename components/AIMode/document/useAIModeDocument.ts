@@ -47,7 +47,6 @@ export interface AIModeDocument {
   /** What the assistant is doing, for the in-progress row when there is no draft. */
   readonly phaseLabel: string | null;
   /** Deep link to the note in the notebook, once its organization is known. */
-  readonly notebookHref: string | null;
   readonly reload: () => void;
 }
 
@@ -142,11 +141,6 @@ export function useAIModeDocument({
     return 'settled';
   }, [noteId, draftText, turnActive, content, hasWrittenVersion]);
 
-  const notebookHref = useMemo(() => {
-    const slug = content?.organization?.slug;
-    return slug && noteId != null ? `/notebook/${slug}/${noteId}` : null;
-  }, [content?.organization?.slug, noteId]);
-
   return {
     note,
     content,
@@ -158,7 +152,6 @@ export function useAIModeDocument({
     draftBlocks,
     draftKey,
     phaseLabel,
-    notebookHref,
     reload: fetchNote,
   };
 }
