@@ -92,17 +92,15 @@ export function SelectFundingOpportunityModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="flex flex-col gap-1">
-          <span className="text-lg font-medium text-gray-900">Request for Proposal</span>
-          <span className="text-sm text-gray-500">Apply to a specific RFP</span>
-        </div>
-      }
+      title="Select RFP to apply to"
       maxWidth="max-w-[600px]"
       padding="p-6"
       contentClassName="!pb-10"
     >
-      <div className="space-y-2">
+      {/* The panel sizes to its content on desktop, so ask for the panel's
+          full width from the start: the skeleton and the loaded list, with
+          its scrollbar, then share one width instead of the panel jumping. */}
+      <div className="w-[600px] max-w-full space-y-2">
         {grants.length === 0 && loading && <GrantCardSkeleton />}
 
         {grants.length === 0 && !loading && (

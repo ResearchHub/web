@@ -11,9 +11,6 @@ export function DocumentChatEmptyState() {
       <p className="max-w-[300px] text-[13px] leading-relaxed text-gray-600">
         The assistant can read this document and propose edits you accept or reject.
       </p>
-      <p className="text-xs text-gray-500">
-        Send a message and this chat is kept under Conversations.
-      </p>
     </div>
   );
 }

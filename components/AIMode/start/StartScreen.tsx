@@ -2,18 +2,18 @@
 
 import type { ReactNode } from 'react';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
-import { Logo } from '@/components/ui/Logo';
-import type { SelectedGrantDetails } from '@/types/grant';
-import { IntentCtas } from './IntentCtas';
-import { IntentToggle } from './IntentToggle';
+import { FundTeamLink } from './StartContextChips';
+import { IntentTabs } from './IntentTabs';
 
 interface StartScreenProps {
   readonly greeting: string;
   readonly intent: FundingIntent;
   readonly onIntentChange: (intent: FundingIntent) => void;
-  readonly selectedGrant: SelectedGrantDetails | null;
-  readonly onSelectGrant: (grant: SelectedGrantDetails | null) => void;
-  /** The composer, whose first message starts the conversation. */
+  /**
+   * The composer, whose first message starts the conversation. Its box sits
+   * right under the intent tabs and takes their colour; for a researcher it
+   * carries the profile and RFP chips in its toolbar.
+   */
   readonly composer: ReactNode;
 }
 
@@ -22,30 +22,20 @@ interface StartScreenProps {
  * to get yours funded, then describe it. The choice fixes what the assistant
  * will draft — an RFP or a proposal — before a word is typed.
  */
-export function StartScreen({
-  greeting,
-  intent,
-  onIntentChange,
-  selectedGrant,
-  onSelectGrant,
-  composer,
-}: StartScreenProps) {
+export function StartScreen({ greeting, intent, onIntentChange, composer }: StartScreenProps) {
   return (
     <div className="flex min-h-[60vh] flex-col justify-center gap-6">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
-          <Logo size={34} noText />
-        </div>
-        <h2 className="font-serif text-3xl tracking-tight text-gray-900">{greeting}</h2>
+      <h2 className="mb-2 text-center font-serif text-4xl tracking-tight text-gray-900">
+        {greeting}
+      </h2>
+
+      <div className="flex flex-col">
+        <IntentTabs value={intent} onChange={onIntentChange} />
+        <div className="-mx-3">{composer}</div>
       </div>
 
-      <div className="flex justify-center">
-        <IntentToggle value={intent} onChange={onIntentChange} />
-      </div>
-
-      <div className="-mx-3">{composer}</div>
-
-      <IntentCtas intent={intent} selectedGrant={selectedGrant} onSelectGrant={onSelectGrant} />
+      {/* Both intents keep this row, so switching never shifts the tabs and box. */}
+      <div className="flex min-h-11 justify-center">{intent === 'fund' && <FundTeamLink />}</div>
     </div>
   );
 }

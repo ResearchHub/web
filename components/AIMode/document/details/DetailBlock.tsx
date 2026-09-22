@@ -67,8 +67,10 @@ export function DetailBlock({ config, noteId, value, open, onOpenChange }: Detai
 const blockClass = (filled: boolean, open: boolean) =>
   cn(
     'flex min-w-0 flex-1 flex-col justify-center border-r h-full bg-white px-2.5 text-left transition-colors',
+    // The outline sits inside the block, so it is the same on every side
+    // whatever the neighbours' borders do.
     open
-      ? 'border-primary-400 bg-primary-50 ring-[3px] ring-primary-100'
+      ? 'relative z-10 border-primary-400 bg-primary-50 outline outline-2 -outline-offset-2 outline-primary-400'
       : filled
         ? 'border-gray-200 hover:bg-gray-50'
         : 'border-gray-300 hover:bg-gray-50'

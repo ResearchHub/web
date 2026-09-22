@@ -13,8 +13,11 @@ import { conversationTitleFor } from './conversationTitle';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
+import { layoutFor } from '../AIModeContext';
 import type { AIModeChatState } from '../useAIModeChat';
 import { aiModeGreeting, INTENT_COPY } from '../copy';
+import { StartContextChips } from '../start/StartContextChips';
+import { intentBoxClass } from '../start/IntentTabs';
 import { StartScreen } from '../start/StartScreen';
 import { DocumentChatEmptyState } from './DocumentChatEmptyState';
 import { useUser } from '@/contexts/UserContext';
@@ -81,40 +84,71 @@ export function ChatPane({
   const { currentTitle, title, loading: titleLoading } = conversationTitleFor(state);
   const onDocument = state.target.kind === 'document';
 
+  // The new-conversation screen: white, untitled, the composer in the middle.
+  const onStart = chatId == null && !onDocument;
+  // With the chat as the main pane the workspace's top strip already names
+  // it, so the pane's own header carries only the controls.
+  const chatIsMain = layoutFor(state.target) === 'chat';
+
+  const modelControls = (
+    <ModelControls
+      models={modelSelection.models}
+      model={modelSelection.model}
+      pinned={modelSelection.pinned}
+      effortPinned={modelSelection.effortPinned}
+      options={modelSelection.options}
+      onSelectModel={modelSelection.selectModel}
+      onChangeOptions={modelSelection.setOptions}
+      disabled={composerDisabled}
+      multiplierExplanation={modelSelection.multiplierExplanation}
+      showIcons={false}
+    />
+  );
+
   const composer = (
     <ChatComposer
       textareaRef={composerRef}
       value={draft}
       onChange={setDraft}
-      onSend={() => void state.send()}
+      onSend={state.send}
       onStop={state.stop}
       busy={composerBusy}
       canStop={canStop}
       disabled={composerDisabled}
       sendDisabled={state.sendBlocked}
       notice={notice}
-      className="border-t-0 bg-gray-50"
-      placeholder={
-        chatId == null && !onDocument ? INTENT_COPY[state.intent].placeholder : undefined
+      className={cn('border-t-0', onStart ? 'bg-white pt-0' : 'bg-gray-50')}
+      boxClassName={
+        onStart
+          ? cn(
+              'rounded-2xl rounded-tl-none px-4 py-3 shadow-sm focus-within:shadow-md',
+              intentBoxClass(state.intent)
+            )
+          : undefined
       }
+      minRows={onStart ? 3 : 1}
+      sendClassName={
+        onStart && state.intent === 'need_funding'
+          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+          : undefined
+      }
+      placeholder={onStart ? INTENT_COPY[state.intent].placeholder : undefined}
       toolbar={
-        <ModelControls
-          models={modelSelection.models}
-          model={modelSelection.model}
-          pinned={modelSelection.pinned}
-          effortPinned={modelSelection.effortPinned}
-          options={modelSelection.options}
-          onSelectModel={modelSelection.selectModel}
-          onChangeOptions={modelSelection.setOptions}
-          disabled={composerDisabled}
-          multiplierExplanation={modelSelection.multiplierExplanation}
-        />
+        // A researcher's context rides with the first message, like attachments.
+        onStart && state.intent === 'need_funding' ? (
+          <StartContextChips
+            selectedGrant={state.selectedGrant}
+            onSelectGrant={state.setSelectedGrant}
+          />
+        ) : undefined
       }
+      // The model and effort sit under the box, at its right, out of the message's way.
+      footer={<div className="mt-1.5 flex justify-end pr-0.5">{modelControls}</div>}
     />
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className={cn('flex h-full min-h-0 flex-col', onStart && 'bg-white')}>
       {/* No border or fill: the title and its controls float over the pane. */}
       <header className="flex h-12 shrink-0 items-center gap-2 px-3">
         {onOpenConversations && (
@@ -138,6 +172,8 @@ export function ChatPane({
               if (next && next !== (currentTitle ?? '')) state.rename(chatId, next);
             }}
           />
+        ) : chatIsMain ? (
+          <span className="flex-1" />
         ) : titleLoading ? (
           <div className="flex min-w-0 flex-1 items-center" aria-busy="true">
             <div className="h-3.5 w-56 max-w-full animate-pulse rounded bg-gray-100" />
@@ -169,8 +205,6 @@ export function ChatPane({
                 greeting={aiModeGreeting(user?.firstName)}
                 intent={state.intent}
                 onIntentChange={state.setIntent}
-                selectedGrant={state.selectedGrant}
-                onSelectGrant={state.setSelectedGrant}
               />
             ) : chat.access === 'loading' && chat.chat == null ? (
               <ChatTranscriptSkeleton />
