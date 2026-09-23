@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, FileText, Trash2 } from 'lucide-react';
+import { ArrowRight, FileText, MoreHorizontal, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { NoteStatusLine } from '@/components/Notebook/NoteStatus';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
@@ -209,15 +210,29 @@ export function FundingRows({
                   <RowFace row={row} />
                 </button>
                 {/* Beside the row, not inside it: a button cannot hold a button. */}
-                <button
-                  type="button"
-                  onClick={() => setDeleting(row)}
-                  aria-label={`Delete draft “${row.title}”`}
-                  title="Delete draft"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-600 group-hover:text-gray-500 group-hover:hover:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </button>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <BaseMenu
+                    align="end"
+                    trigger={
+                      <button
+                        type="button"
+                        aria-label={`Options for “${row.title}”`}
+                        title="Options"
+                        className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                      >
+                        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    }
+                  >
+                    <BaseMenuItem
+                      onSelect={() => setDeleting(row)}
+                      className="gap-2 text-red-600 focus:bg-red-50 focus:text-red-700"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Delete
+                    </BaseMenuItem>
+                  </BaseMenu>
+                </div>
               </>
             ) : (
               <Link href={row.href ?? '#'} className={rowClass(true)}>
