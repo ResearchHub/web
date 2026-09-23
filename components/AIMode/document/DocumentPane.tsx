@@ -13,6 +13,7 @@ import {
 import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { PublishingHostProvider, type PublishingHost } from '@/contexts/PublishingHostContext';
 import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
+import { useAIMode } from '../AIModeContext';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDiffOverlay';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
@@ -125,6 +126,9 @@ export function DocumentPane({
   // the live editor and the note's single details writer through the host
   // seam rather than the notebook context.
   const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId ?? undefined);
+  // Publishing leaves for the work's page; the workspace gets out of the way
+  // first, so the page is what the user sees arrive.
+  const { close: closeWorkspace } = useAIMode();
   const publishingHost = useMemo<PublishingHost>(
     () => ({
       note: content,
@@ -132,8 +136,9 @@ export function DocumentPane({
       isLoading: loading,
       saveDetailsSoon,
       saveDetailsNow,
+      onPublished: closeWorkspace,
     }),
-    [content, editor, loading, saveDetailsSoon, saveDetailsNow]
+    [content, editor, loading, saveDetailsSoon, saveDetailsNow, closeWorkspace]
   );
 
   const persistEditorState = useCallback(async () => {

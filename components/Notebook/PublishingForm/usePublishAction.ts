@@ -35,6 +35,8 @@ interface PublishActionOptions {
   readonly note: NoteWithContent | null;
   readonly editor: Editor | null;
   readonly saveDetailsNow: NoteDetailsSaver['saveDetailsNow'];
+  /** Runs once the work is published, right before the app leaves for its page. */
+  readonly onPublished?: () => void;
   readonly readOnly: boolean;
   readonly isNewPreprint: boolean;
   readonly isChangelog: boolean;
@@ -69,6 +71,7 @@ export function usePublishAction({
   note,
   editor,
   saveDetailsNow,
+  onPublished,
   readOnly,
   isNewPreprint,
   isChangelog,
@@ -326,6 +329,7 @@ export function usePublishAction({
         } else {
           toast.success(`${publishLabel} published successfully!`);
         }
+        onPublished?.();
         router.push(getWorkPath(formData.articleType, String(response.id), response.slug));
       } catch (error: unknown) {
         const fallback = 'Error publishing. Please try again.';
@@ -355,6 +359,7 @@ export function usePublishAction({
       canPublishChangelog,
       editor,
       saveDetailsNow,
+      onPublished,
       methods,
       uploadCoverImage,
       upsertPost,
