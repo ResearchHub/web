@@ -1,15 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, FileText } from 'lucide-react';
 import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { NoteStatusLine } from '@/components/Notebook/NoteStatus';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
 import type { FeedEntry, FeedGrantContent, FeedPostContent } from '@/types/feed';
 import { getNoteKind, isPublishedNote, type Note, type NoteKind } from '@/types/note';
+import { formatCurrency } from '@/utils/currency';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { cn } from '@/utils/styles';
@@ -33,47 +37,93 @@ interface FundingRowsProps {
 /** The rows shown before the list asks to be expanded. */
 const RECENT_COUNT = 4;
 
+/** An amount in both currencies, shown in whichever the user prefers. */
+interface Money {
+  readonly usd: number;
+  readonly rsc: number;
+}
+
 /** One row, whichever side of publishing it is on. */
 interface FundingRow {
   readonly key: string;
   readonly title: string;
   readonly published: boolean;
-  /** After the status: when it was edited or published. */
+  /** Published and still taking proposals or contributions. */
+  readonly active: boolean;
+  /** After the status: when it was edited or published, and a closed item's state. */
   readonly detail: string;
+  readonly image: string | null;
+  /** The money on it: an RFP's funding, a proposal's raised amount and goal. */
+  readonly money?: { readonly label: string; readonly amount: Money; readonly goal?: Money };
   /** A published item's page; a draft opens where the user drafts instead. */
   readonly href?: string;
   readonly note?: Note;
 }
 
-const publishedRow = (entry: FeedEntry, kind: FundingKind): FundingRow => {
+const STATE_LABEL: Record<string, string> = {
+  CLOSED: 'Closed',
+  COMPLETED: 'Completed',
+  DECLINED: 'Declined',
+  PENDING: 'Pending',
+};
+
+function publishedRow(entry: FeedEntry, kind: FundingKind): FundingRow {
   const content = entry.content as FeedPostContent | FeedGrantContent;
-  return {
+  const when = entry.timestamp ? formatTimeAgo(entry.timestamp) : '';
+  const base = {
     key: `published-${entry.id}`,
     title: content.title?.trim() || 'Untitled',
     published: true,
-    detail: entry.timestamp ? formatTimeAgo(entry.timestamp) : '',
+    image: content.previewImage ?? null,
     href: buildWorkUrl({
       id: content.id,
       slug: content.slug,
       contentType: kind === 'rfp' ? 'funding_request' : 'preregistration',
     }),
   };
-};
+
+  if ('grant' in content) {
+    const { grant } = content;
+    const active = grant.status === 'OPEN';
+    return {
+      ...base,
+      active,
+      detail: [active ? null : STATE_LABEL[grant.status], when].filter(Boolean).join(' · '),
+      money: { label: 'Funding', amount: grant.amount },
+    };
+  }
+
+  const fundraise = content.fundraise;
+  const active = fundraise?.status === 'OPEN';
+  return {
+    ...base,
+    active,
+    detail: [fundraise && !active ? STATE_LABEL[fundraise.status] : null, when]
+      .filter(Boolean)
+      .join(' · '),
+    money: fundraise
+      ? { label: 'Raised', amount: fundraise.amountRaised, goal: fundraise.goalAmount }
+      : undefined,
+  };
+}
 
 const draftRow = (note: Note): FundingRow => ({
   key: `draft-${note.id}`,
   title: note.title?.trim() || 'Untitled draft',
   published: false,
+  active: false,
   detail: `Edited ${formatTimeAgo(note.updatedDate)}`,
+  image: note.previewImage ?? note.image ?? null,
   note,
 });
 
 /**
  * A My Funding section's list: the user's RFPs or proposals as one kind of
- * row, drafts first and then the published ones, each with its title and
- * under it the status dot — amber draft, blue published — and a date. A
- * draft opens where the user drafts; a published row opens its page. Four
- * rows show before the list asks to be expanded.
+ * row — what is live first, then the drafts, then what has closed — each
+ * with its image, its title, under it the status dot (amber draft, blue
+ * published) and a date, and the money on it. A draft opens where the user
+ * drafts; a published row opens its page. Four rows show before the list
+ * asks to be expanded.
  */
 export function FundingRows({
   kind,
@@ -98,7 +148,12 @@ export function FundingRows({
           .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime())
           .map(draftRow)
       : [];
-    return [...drafts, ...entries.map((entry) => publishedRow(entry, kind))];
+    const published = entries.map((entry) => publishedRow(entry, kind));
+    return [
+      ...published.filter((row) => row.active),
+      ...drafts,
+      ...published.filter((row) => !row.active),
+    ];
   }, [includeDrafts, notes.notes, entries, kind]);
 
   // Either source still on its first load, with nothing to show for it yet.
@@ -124,11 +179,11 @@ export function FundingRows({
               onClick={() => openDraft(row.note as Note)}
               className={rowClass(false)}
             >
-              <RowFace row={row} action="Continue" />
+              <RowFace row={row} />
             </button>
           ) : (
             <Link href={row.href ?? '#'} className={rowClass(true)}>
-              <RowFace row={row} action="Open" />
+              <RowFace row={row} />
             </Link>
           )}
         </li>
@@ -172,20 +227,56 @@ const rowClass = (published: boolean) =>
       : 'border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50'
   );
 
-function RowFace({ row, action }: { readonly row: FundingRow; readonly action: string }) {
+function RowFace({ row }: { readonly row: FundingRow }) {
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+  const format = useCallback(
+    (money: Money) =>
+      formatCurrency({
+        amount: showUSD ? money.usd : money.rsc,
+        showUSD,
+        exchangeRate,
+        shorten: true,
+        skipConversion: true,
+      }),
+    [showUSD, exchangeRate]
+  );
+
   return (
     <>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-        <FileText className="h-4 w-4" aria-hidden="true" />
+      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 text-gray-600">
+        {row.image ? (
+          <Image src={row.image} alt="" fill className="object-cover" sizes="40px" />
+        ) : (
+          <FileText className="h-4 w-4" aria-hidden="true" />
+        )}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold text-gray-900">{row.title}</span>
         <NoteStatusLine published={row.published} detail={row.detail} className="mt-0.5" />
       </span>
-      <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-gray-500 transition-colors group-hover:text-gray-900">
-        {action}
-        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-      </span>
+      {row.money ? (
+        <span className="shrink-0 text-right">
+          {/* The same eyebrow treatment as the totals, so the label reads as a field name. */}
+          <span className="block whitespace-nowrap text-[11px] font-semibold uppercase leading-none tracking-wider text-gray-500">
+            {row.money.label}
+          </span>
+          <span className="mt-1.5 block whitespace-nowrap font-mono text-sm font-semibold leading-none text-gray-900">
+            {format(row.money.amount)}
+            {row.money.goal && (
+              <span className="font-sans text-xs font-normal text-gray-500">
+                {' '}
+                of {format(row.money.goal)}
+              </span>
+            )}
+          </span>
+        </span>
+      ) : (
+        <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-gray-500 transition-colors group-hover:text-gray-900">
+          {row.published ? 'Open' : 'Continue'}
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+      )}
     </>
   );
 }

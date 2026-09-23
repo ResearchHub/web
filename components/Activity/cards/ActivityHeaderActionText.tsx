@@ -26,28 +26,36 @@ function AuthorName({
   profileUrl,
   fullName,
   showAuthorBadge,
+  truncate = false,
 }: {
   id?: number;
   profileUrl: string;
   fullName?: string | null;
   showAuthorBadge?: boolean;
+  /**
+   * On a line of its own with no room to wrap: the name gives way with an
+   * ellipsis so the badge after it stays whole, instead of the badge being
+   * cut off at the edge.
+   */
+  truncate?: boolean;
 }) {
-  const name = <span className="font-medium text-gray-900">{fullName || 'Unknown'}</span>;
+  const wrapperClass = cn('inline-flex items-center', truncate && 'min-w-0 max-w-full');
+  const nameClass = cn('font-medium text-gray-900', truncate && 'min-w-0 truncate');
   const badge = showAuthorBadge ? <AuthorBadge size="sm" className="ml-1 shrink-0" /> : null;
 
   if (!id) {
     return (
-      <span className="inline-flex items-center">
-        {name}
+      <span className={wrapperClass}>
+        <span className={nameClass}>{fullName || 'Unknown'}</span>
         {badge}
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center">
+    <span className={wrapperClass}>
       <AuthorTooltip authorId={id} placement="bottom">
-        <Link href={profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
+        <Link href={profileUrl} className={cn(nameClass, 'hover:text-primary-600')}>
           {fullName || 'Unknown'}
         </Link>
       </AuthorTooltip>
@@ -73,6 +81,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
       profileUrl={actor.profileUrl}
       fullName={actor.fullName}
       showAuthorBadge={isAuthor}
+      truncate={stacked}
     />
   );
 
