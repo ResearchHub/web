@@ -6,7 +6,7 @@ import { AI_MODE_NAME } from '../copy';
 interface AIModeHeaderProps {
   /**
    * What is open: the conversation's title when the chat is the main pane,
-   * the document's when it is, "New conversation" on the start screen.
+   * the document's when it is, "New RFP" or "New proposal" on the start screen.
    */
   readonly title: string;
   /**
