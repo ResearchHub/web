@@ -33,23 +33,26 @@ const JOURNEYS: Record<FundingIntent, Journey> = {
   fund: {
     heading: 'How funding works',
     steps: [
-      { title: 'Publish your RFP', detail: 'Set the scope, budget, and deadline.' },
-      { title: 'Experts submit proposals', detail: 'We notify scientists who match your call.' },
-      { title: 'Open peer review', detail: 'Reviewers assess rigor and feasibility.' },
+      { title: 'Publish your RFP', detail: 'Set the scope, budget, and aim.' },
+      {
+        title: 'Researchers submit proposals',
+        detail: 'We notify scientists who match your call.',
+      },
+      { title: 'Peer review', detail: 'Reviewers assess rigor and feasibility.' },
       { title: 'Delegate the funds', detail: 'Choose which proposals get funded.' },
     ],
     note: { title: 'Track it from your funder dashboard', href: '/my-funding' },
   },
   need_funding: {
-    heading: 'How getting funded works',
+    heading: 'How funding works',
     steps: [
-      { title: 'Draft your proposal', detail: 'Aims, budget, and timeline, with the assistant.' },
+      { title: 'Draft your proposal', detail: 'Aims, budget, and timeline.' },
       {
         title: 'Apply to an RFP or open call',
         detail: "Answer a funder's call, or put it to the community.",
       },
-      { title: 'Open peer review', detail: 'Reviewers assess rigor and feasibility.' },
-      { title: 'Get funded', detail: 'Institutions and the community back it.' },
+      { title: 'Peer review', detail: 'Reviewers assess rigor and feasibility.' },
+      { title: 'Get funded', detail: 'Funders and community back your proposal.' },
     ],
   },
 };
