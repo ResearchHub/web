@@ -3,13 +3,10 @@
 import { useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
 import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
 import { FundedProposalsSection } from '@/components/Funding/dashboard/FundedProposalsSection';
-import { NoteDrafts } from '@/components/Funding/dashboard/NoteDrafts';
-import { PublishedFeedEntry } from '@/components/Funding/dashboard/PublishedFeedEntry';
+import { FundingRows } from '@/components/Funding/dashboard/FundingRows';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
-import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFeed } from '@/hooks/useFeed';
 import { FunderOverview } from '@/types/funder';
 
@@ -61,37 +58,15 @@ export function FundsGiven({ viewedUserId, isOwnPage, overview }: Readonly<Funds
           }
         />
 
-        <div className="space-y-4">
-          {isOwnPage && <NoteDrafts kind="rfp" />}
-
-          <FeedContent
-            entries={opportunities}
-            isLoading={isLoadingOpportunities}
-            hasMore={hasMore}
-            loadMore={loadMore}
-            wideContent
-            skeletonVariant="grant"
-            showGrantApplyCta={false}
-            showGrantHeaders={false}
-            showPostHeaders={false}
-            showFundraiseHeaders={false}
-            renderEntry={({ entry, index, ordering, ...tracking }) => (
-              <PublishedFeedEntry
-                entry={entry}
-                index={index}
-                feedOrdering={ordering}
-                showGrantApplyCta={false}
-                showGrantHeaders={false}
-                showPostHeaders={false}
-                showFundraiseHeaders={false}
-                {...tracking}
-              />
-            )}
-            noEntriesElement={
-              <DashboardEmptyState>You haven&apos;t created any RFPs yet.</DashboardEmptyState>
-            }
-          />
-        </div>
+        <FundingRows
+          kind="rfp"
+          entries={opportunities}
+          isLoading={isLoadingOpportunities}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          includeDrafts={isOwnPage}
+          emptyMessage="You haven't created any RFPs yet."
+        />
       </section>
 
       {overview && (
