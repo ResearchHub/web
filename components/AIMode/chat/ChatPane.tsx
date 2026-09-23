@@ -15,7 +15,7 @@ import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
 import { layoutFor } from '../AIModeContext';
 import type { AIModeChatState } from '../useAIModeChat';
-import { aiModeGreeting } from '../copy';
+import { AI_MODE_GREETING } from '../copy';
 import { StartContextChips } from '../start/StartContextChips';
 import {
   START_COMPOSER_MIN_ROWS,
@@ -25,7 +25,6 @@ import {
 } from '../start/startComposer';
 import { StartScreen } from '../start/StartScreen';
 import { DocumentChatEmptyState } from './DocumentChatEmptyState';
-import { useUser } from '@/contexts/UserContext';
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
@@ -89,8 +88,6 @@ export function ChatPane({
   useEffect(() => {
     if (onStart) composerRef.current?.focus();
   }, [onStart, chatId]);
-
-  const { user } = useUser();
 
   const listBlocked = list.access === 'hidden';
   const chatUnavailable =
@@ -211,11 +208,7 @@ export function ChatPane({
             ) : chatId == null && onDocument ? (
               <DocumentChatEmptyState />
             ) : chatId == null ? (
-              <StartScreen
-                composer={composer}
-                greeting={aiModeGreeting(user?.firstName)}
-                intent={state.intent}
-              />
+              <StartScreen composer={composer} greeting={AI_MODE_GREETING} intent={state.intent} />
             ) : chat.access === 'loading' && chat.chat == null ? (
               <ChatTranscriptSkeleton />
             ) : chat.access === 'not_found' ? (

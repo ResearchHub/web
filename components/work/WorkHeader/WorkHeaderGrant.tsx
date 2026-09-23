@@ -245,7 +245,16 @@ export function WorkHeaderGrant({
     },
   ];
 
-  const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
+  // Beside the pool widget the tabs sit on the header's own bottom edge, so
+  // their own rule would only double it.
+  const tabs = (
+    <Tabs
+      tabs={grantTabs}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      className={showPoolWidget ? '!border-b-0' : undefined}
+    />
+  );
 
   const grantTitle = work.note?.post?.grant?.shortTitle || work.title;
 
@@ -262,6 +271,9 @@ export function WorkHeaderGrant({
         primaryAction={primaryAction}
         hideVoteWidget
         alignTop={showPoolWidget}
+        // The pool widget is tall: the tabs fill the room under the title
+        // beside it, level with its footnote, instead of a row beneath both.
+        inlineTabs={showPoolWidget}
         grantModalProps={
           grantId
             ? {

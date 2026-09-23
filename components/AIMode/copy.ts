@@ -9,9 +9,8 @@ export const AI_MODE_NAME = 'Workspace';
 /** What the top strip calls the new-conversation screen, where a conversation's title would be. */
 export const NEW_CONVERSATION_TITLE = 'New conversation';
 
-/** Greeting on the new-conversation screen; the name is filled in at render. */
-export const aiModeGreeting = (firstName: string | null | undefined): string =>
-  firstName?.trim() ? `Welcome, ${firstName.trim()}` : 'Welcome';
+/** The heading of the new-conversation screen. */
+export const AI_MODE_GREETING = 'Let’s get started';
 
 /** The line under the greeting and what the composer asks for, per side of the money. */
 export const INTENT_COPY: Record<FundingIntent, { tagline: string; placeholder: string }> = {

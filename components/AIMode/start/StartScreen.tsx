@@ -5,6 +5,7 @@ import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { INTENT_COPY } from '../copy';
 import { ConciergeCard } from './ConciergeCard';
 import { StartJourney } from './StartJourney';
+import { VisibilityCard } from './VisibilityCard';
 
 interface StartScreenProps {
   readonly greeting: string;
@@ -39,14 +40,10 @@ export function StartScreen({ greeting, intent, composer }: StartScreenProps) {
 
           <div className="-mx-3">{composer}</div>
 
-          {/* Under the box: a funder can talk it through instead; a researcher
-              hears who will see the proposal (their context is in the box's chips). */}
+          {/* Under the box, one card each: a funder can talk it through instead;
+              a researcher hears who will see the proposal. */}
           {intent === 'fund' && <ConciergeCard className="-mt-2" />}
-          {intent === 'need_funding' && (
-            <p className="-mt-2 px-1 text-sm text-gray-500">
-              You control who sees your proposal: Public, or private to funder.
-            </p>
-          )}
+          {intent === 'need_funding' && <VisibilityCard className="-mt-2" />}
         </div>
 
         <StartJourney intent={intent} className="w-full shrink-0 wide:!w-[340px]" />
