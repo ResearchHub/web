@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
 import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
-import { NoteDrafts } from '@/components/Funding/dashboard/NoteDrafts';
-import { PublishedFeedEntry } from '@/components/Funding/dashboard/PublishedFeedEntry';
+import { FundingRows } from '@/components/Funding/dashboard/FundingRows';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeed } from '@/hooks/useFeed';
@@ -23,15 +22,7 @@ const PEER_REVIEW_COMMENT_TYPES: readonly ActivityCommentType[] = ['REVIEW', 'PE
 /** The researcher's proposals, drafts first, then the published ones. */
 function MyProposals({ userId }: Readonly<{ userId: number }>) {
   const { startNew } = useFundingDrafting();
-  const {
-    entries,
-    isLoading,
-    hasMore,
-    loadMore,
-    restoredScrollPosition,
-    page,
-    lastClickedEntryId,
-  } = useFeed('all', {
+  const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     endpoint: 'funding_feed',
     contentType: 'PREREGISTRATION',
     createdBy: userId,
@@ -55,39 +46,15 @@ function MyProposals({ userId }: Readonly<{ userId: number }>) {
         }
       />
 
-      <div className="space-y-4">
-        <NoteDrafts kind="proposal" />
-
-        <FeedContent
-          entries={entries}
-          isLoading={isLoading}
-          hasMore={hasMore}
-          loadMore={loadMore}
-          activeTab="all"
-          restoredScrollPosition={restoredScrollPosition}
-          page={page}
-          lastClickedEntryId={lastClickedEntryId ?? undefined}
-          showGrantHeaders={false}
-          showPostHeaders={false}
-          showFundraiseHeaders={false}
-          hideActions
-          skeletonVariant="fundraise"
-          wideContent
-          renderEntry={({ entry, index, ordering, ...tracking }) => (
-            <PublishedFeedEntry
-              entry={entry}
-              index={index}
-              feedOrdering={ordering}
-              showGrantHeaders={false}
-              showPostHeaders={false}
-              showFundraiseHeaders={false}
-              hideActions
-              {...tracking}
-            />
-          )}
-          noEntriesElement={<DashboardEmptyState>You have no proposals yet.</DashboardEmptyState>}
-        />
-      </div>
+      <FundingRows
+        kind="proposal"
+        entries={entries}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        includeDrafts
+        emptyMessage="You have no proposals yet."
+      />
     </section>
   );
 }

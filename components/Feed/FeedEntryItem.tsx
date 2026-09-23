@@ -40,11 +40,6 @@ interface FeedEntryItemProps {
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
-  /**
-   * The item keeps its distance from the one before it. A host that wraps
-   * each item and spaces them itself turns this off.
-   */
-  spaced?: boolean;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -53,7 +48,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   index,
   showBountyFooter = true,
   hideActions = false,
-  spaced = true,
   maxLength,
   showGrantHeaders = true,
   showFundraiseHeaders = true,
@@ -104,7 +98,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   }
 
   // Apply appropriate spacing based on position
-  const spacingClass = spaced && index !== 0 ? 'mt-8' : '';
+  const spacingClass = index !== 0 ? 'mt-8' : '';
 
   // Generate the appropriate href for this entry
   const generateHref = (entry: FeedEntry): string | undefined => {
