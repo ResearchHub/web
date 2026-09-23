@@ -1,3 +1,4 @@
+import { newConversationTitle } from '../copy';
 import type { AIModeChatState } from '../useAIModeChat';
 
 export interface ConversationTitle {
@@ -26,7 +27,7 @@ export function conversationTitleFor(state: AIModeChatState): ConversationTitle 
     chatId == null
       ? target.kind === 'document'
         ? 'New chat'
-        : 'New conversation'
+        : newConversationTitle(state.intent)
       : (currentTitle?.trim() ?? '') || 'Untitled conversation';
   return { currentTitle, title, loading };
 }

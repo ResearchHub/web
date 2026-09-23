@@ -3,6 +3,7 @@
 import { Plus } from 'lucide-react';
 import { useAIMode } from '../AIModeContext';
 import { cn } from '@/utils/styles';
+import { newConversationTitle } from '../copy';
 import type { AIModeChatState } from '../useAIModeChat';
 import { ConversationsSection } from './ConversationsSection';
 import { DraftsSection } from './DraftsSection';
@@ -34,7 +35,8 @@ export function WorkspaceSidebar({ state, onNavigate }: WorkspaceSidebarProps) {
           )}
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          New conversation
+          {/* Named for what the next conversation makes: the side of the money the user came in on. */}
+          {newConversationTitle(state.intent)}
         </button>
       </div>
 
