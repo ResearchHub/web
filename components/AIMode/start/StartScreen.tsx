@@ -39,8 +39,14 @@ export function StartScreen({ greeting, intent, composer }: StartScreenProps) {
 
           <div className="-mx-3">{composer}</div>
 
-          {/* A funder can talk it through instead; a researcher's context is in the box's chips. */}
+          {/* Under the box: a funder can talk it through instead; a researcher
+              hears who will see the proposal (their context is in the box's chips). */}
           {intent === 'fund' && <ConciergeCard className="-mt-2" />}
+          {intent === 'need_funding' && (
+            <p className="-mt-2 px-1 text-sm text-gray-500">
+              You control who sees your proposal: Public, or private to funder.
+            </p>
+          )}
         </div>
 
         <StartJourney intent={intent} className="w-full shrink-0 wide:!w-[340px]" />
