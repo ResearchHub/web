@@ -13,7 +13,7 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { BriefcaseBusiness, Sprout, Star } from 'lucide-react';
+import { Sprout, Star } from 'lucide-react';
 import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { FundingPowerBar } from '@/components/Funding/FundingPowerBar';
 import { Icon } from '@/components/ui/icons';
@@ -24,10 +24,6 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
-import { useUser } from '@/contexts/UserContext';
-import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
-import { AI_MODE_NAME } from '@/components/AIMode/copy';
-import { isHubEditorOrModerator } from '@/utils/permissions';
 
 interface NavItem {
   label: string;
@@ -36,8 +32,6 @@ interface NavItem {
   isMore?: boolean;
   requiresAuth?: boolean;
   isHome?: boolean;
-  /** Opens the workspace in place, on its new-conversation screen, instead of navigating. */
-  isAIMode?: boolean;
 }
 
 // Additional navigation items not in the bottom bar
@@ -76,17 +70,11 @@ export const MobileBottomNav: React.FC = () => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
-  const { user } = useUser();
-  const aiMode = useOptionalAIMode();
 
-  // Moderators and hub editors, the only users the workspace admits, get it
-  // in the bar where Peer Review sits for everyone else.
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: '/', iconKey: 'home', isHome: true },
     { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
-    isHubEditorOrModerator(user)
-      ? { label: AI_MODE_NAME, iconKey: 'workspace', isAIMode: true }
-      : { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
+    { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];
@@ -115,10 +103,6 @@ export const MobileBottomNav: React.FC = () => {
   const handleNavClick = (item: NavItem) => {
     if (item.isMore) {
       setIsMoreOpen(true);
-      return;
-    }
-    if (item.isAIMode) {
-      aiMode?.selectChat(null);
       return;
     }
 
@@ -150,10 +134,6 @@ export const MobileBottomNav: React.FC = () => {
             fontSize={iconSize}
             color={iconColor}
           />
-        );
-      case 'workspace':
-        return (
-          <BriefcaseBusiness size={iconSize} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
         );
       case 'peer-review':
         return (
@@ -248,11 +228,9 @@ export const MobileBottomNav: React.FC = () => {
           {mainNavItems.map((item) => {
             const isActive = item.isMore
               ? isMoreActive || isMoreOpen
-              : item.isAIMode
-                ? Boolean(aiMode?.isOpen)
-                : item.href
-                  ? isPathActive(item.href, pathname, item.isHome)
-                  : false;
+              : item.href
+                ? isPathActive(item.href, pathname, item.isHome)
+                : false;
 
             return (
               <button

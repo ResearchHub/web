@@ -17,6 +17,12 @@ export interface PublishingHost {
   readonly isLoading: boolean;
   readonly saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon'];
   readonly saveDetailsNow: NoteDetailsSaver['saveDetailsNow'];
+  /**
+   * The work was published and the app is about to leave for its page. A
+   * host that sits over the page — the workspace — steps aside here so the
+   * user watches the page arrive instead of a frozen "Redirecting…".
+   */
+  readonly onPublished?: () => void;
 }
 
 const PublishingHostContext = createContext<PublishingHost | null>(null);

@@ -1,38 +1,30 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
-import { FunderAuthorPostsSection } from '@/components/Funding/dashboard/FunderAuthorPostsSection';
+import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
 import { FundedProposalsSection } from '@/components/Funding/dashboard/FundedProposalsSection';
-import { FeedContent } from '@/components/Feed/FeedContent';
-import { FunderService } from '@/services/funder.service';
+import { FundingRows } from '@/components/Funding/dashboard/FundingRows';
+import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { useFeed } from '@/hooks/useFeed';
 import { FunderOverview } from '@/types/funder';
 
-function parseUserIdParam(userIdParam: string | null): number | undefined {
-  if (!userIdParam) return undefined;
-  const userId = Number(userIdParam);
-  return Number.isInteger(userId) && userId > 0 ? userId : undefined;
-}
-
 interface FundsGivenProps {
-  userId: number;
-  isModerator: boolean;
+  /** The funder whose page this is: the user, or the one a moderator is viewing. */
+  viewedUserId: number;
+  /** The user is looking at their own page, so their drafts belong on it. */
+  isOwnPage: boolean;
+  overview: FunderOverview | null;
 }
 
-export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const viewedUserId = isModerator
-    ? (parseUserIdParam(searchParams.get('user_id')) ?? userId)
-    : userId;
-
-  const [overview, setOverview] = useState<FunderOverview | null>(null);
-  const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+/**
+ * The Funds given column: the funder's RFPs, drafts first, then the
+ * proposals they backed. Their totals and recent activity live in the
+ * page's sidebar.
+ */
+export function FundsGiven({ viewedUserId, isOwnPage, overview }: Readonly<FundsGivenProps>) {
+  const { startNew } = useFundingDrafting();
 
   const grantFeedOptions = useMemo(
     () => ({
@@ -50,88 +42,32 @@ export function FundsGiven({ userId, isModerator }: Readonly<FundsGivenProps>) {
     loadMore,
   } = useFeed('all', grantFeedOptions);
 
-  useEffect(() => {
-    let cancelled = false;
-    setIsLoadingOverview(true);
-    FunderService.getFundingOverview(viewedUserId)
-      .then((data) => {
-        if (!cancelled) setOverview(data);
-      })
-      .catch(() => {
-        if (!cancelled) setOverview(null);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingOverview(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [viewedUserId]);
-
-  let overviewContent: ReactNode = null;
-  if (isLoadingOverview) {
-    overviewContent = (
-      <div className="h-[272px] tablet:h-[200px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
-    );
-  } else if (overview) {
-    overviewContent = <FunderHero overview={overview} />;
-  }
-
   return (
     <>
-      {overviewContent}
+      <section>
+        <DashboardSectionHeader
+          title="My RFPs"
+          meta={!isLoadingOpportunities && `${opportunities.length} active`}
+          action={
+            isOwnPage && (
+              <Button size="sm" onClick={() => startNew('fund')}>
+                <Plus size={14} />
+                New RFP
+              </Button>
+            )
+          }
+        />
 
-      <FunderAuthorPostsSection funderId={viewedUserId} className="mt-6" />
-
-      <div className="mt-6">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
-          <div className="flex items-baseline gap-2.5">
-            <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-              My Requests for Proposals
-            </h2>
-            {!isLoadingOpportunities && (
-              <span className="text-xs text-gray-500">{opportunities.length} active</span>
-            )}
-          </div>
-          {!isLoadingOpportunities && opportunities.length > 0 && (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={() => router.push('/notebook?newGrant=true')}
-            >
-              <Plus size={14} />
-              New RFP
-            </Button>
-          )}
-        </div>
-
-        <FeedContent
+        <FundingRows
+          kind="rfp"
           entries={opportunities}
           isLoading={isLoadingOpportunities}
           hasMore={hasMore}
           loadMore={loadMore}
-          wideContent
-          skeletonVariant="grant"
-          showGrantApplyCta={false}
-          showGrantHeaders={false}
-          showPostHeaders={false}
-          showFundraiseHeaders={false}
-          noEntriesElement={
-            <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
-              <p className="text-sm text-gray-500">You haven&apos;t created any RFPs yet.</p>
-              <Button
-                variant="outlined"
-                size="sm"
-                className="mt-4"
-                onClick={() => router.push('/notebook?newGrant=true')}
-              >
-                <Plus size={14} />
-                New RFP
-              </Button>
-            </div>
-          }
+          includeDrafts={isOwnPage}
+          emptyMessage="You haven't created any RFPs yet."
         />
-      </div>
+      </section>
 
       {overview && (
         <FundedProposalsSection proposals={overview.supportedProposals} className="mt-8" />

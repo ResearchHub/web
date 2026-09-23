@@ -21,7 +21,7 @@ export const AuthorBadge: FC<AuthorBadgeProps> = ({ size = 'md', className, show
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full bg-amber-50 px-2 py-1',
+        'flex items-center justify-center whitespace-nowrap rounded-full bg-amber-50 px-2 py-1',
         className
       )}
     >

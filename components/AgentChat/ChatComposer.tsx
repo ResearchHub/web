@@ -42,6 +42,12 @@ interface ChatComposerProps {
   readonly toolbar?: ReactNode;
   /** Extra classes for the outer wrapper — a host can drop the top border it already draws. */
   readonly className?: string;
+  /** Extra classes for the box itself: a host can round it more, pad it more, give it a shadow. */
+  readonly boxClassName?: string;
+  /** Lines the empty box shows; it still grows with the text from there. */
+  readonly minRows?: number;
+  /** Classes for the send button while a message can go, in place of the brand blue. */
+  readonly sendClassName?: string;
 }
 
 const COUNTER_THRESHOLD = MAX_CHAT_MESSAGE_LENGTH - 1000;
@@ -65,6 +71,9 @@ export function ChatComposer({
   textareaRef,
   toolbar,
   className,
+  boxClassName,
+  minRows = 1,
+  sendClassName,
 }: ChatComposerProps) {
   // Grow with content up to ~6 lines, then scroll.
   useEffect(() => {
@@ -104,7 +113,8 @@ export function ChatComposer({
         className={cn(
           'relative rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all',
           'focus-within:border-gray-400',
-          disabled && 'opacity-60'
+          disabled && 'opacity-60',
+          boxClassName
         )}
       >
         <textarea
@@ -112,7 +122,7 @@ export function ChatComposer({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
-          rows={1}
+          rows={minRows}
           maxLength={MAX_CHAT_MESSAGE_LENGTH}
           disabled={disabled}
           placeholder={placeholder}
@@ -140,7 +150,7 @@ export function ChatComposer({
               className={cn(
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors',
                 canSend
-                  ? 'bg-primary-500 text-white hover:bg-primary-600'
+                  ? (sendClassName ?? 'bg-primary-500 text-white hover:bg-primary-600')
                   : 'cursor-not-allowed bg-gray-100 text-gray-400'
               )}
             >

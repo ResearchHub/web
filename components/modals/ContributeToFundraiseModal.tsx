@@ -9,11 +9,10 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Fundraise } from '@/types/funding';
 import { FundingPool } from '@/types/grant';
 import { Work } from '@/types/work';
-import { ArrowLeft, MoveRight, DollarSign } from 'lucide-react';
+import { ArrowLeft, MoveRight, DollarSign, Coins } from 'lucide-react';
 import {
   PaymentStep,
   FundingImpactPreview,
@@ -31,7 +30,6 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
-import { formatCurrency } from '@/utils/currency';
 
 import AuthContent from '@/components/Auth/AuthContent';
 
@@ -145,7 +143,6 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
-  const { showUSD } = useCurrencyPreference();
   const isMobile = useIsMobile();
   // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
   // and EIN-search round trips on every open.
@@ -458,7 +455,6 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
 
   // Calculate amounts in USD for display.
   const poolRaisedUsd = fundingPool?.amountRaised.usd ?? 0;
-  const poolRaisedRsc = fundingPool?.amountRaised.rsc ?? 0;
   const currentAmountUsd = isPoolMode
     ? poolRaisedUsd
     : (progressOverride?.currentAmountUsd ?? fundraise?.amountRaised?.usd ?? 0);
@@ -647,18 +643,15 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                 />
               </div>
 
-              {isPoolMode && (showUSD ? poolRaisedUsd : poolRaisedRsc) > 0 && (
-                <p className="text-sm text-gray-600">
-                  Raised so far{' '}
-                  <span className="font-mono font-medium text-gray-900 tabular-nums">
-                    {formatCurrency({
-                      amount: showUSD ? poolRaisedUsd : poolRaisedRsc,
-                      showUSD,
-                      exchangeRate: 1,
-                      skipConversion: true,
-                    })}
-                  </span>
-                </p>
+              {/* What a pool contribution does, under the amount. */}
+              {isPoolMode && (
+                <div className="flex gap-3 rounded-lg border border-primary-100 bg-primary-50 px-4 py-3 text-sm leading-snug text-primary-900">
+                  <Coins className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
+                  <p>
+                    Adding to the funding pool increases the funder’s funding budget and allows more
+                    funds to be allocated towards the best research proposals.
+                  </p>
+                </div>
               )}
 
               {/* Goal progress + slider — proposal fundraises only (pool has no goal). */}

@@ -8,12 +8,8 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { BriefcaseBusiness, Sprout, Star } from 'lucide-react';
-import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
-import { AI_MODE_NAME } from '@/components/AIMode/copy';
+import { Sprout, Star } from 'lucide-react';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
-import { useUser } from '@/contexts/UserContext';
-import { isHubEditorOrModerator } from '@/utils/permissions';
 import { cn } from '@/utils/styles';
 
 interface NavIcon {
@@ -34,8 +30,6 @@ interface NavigationItem {
   isLucideStar?: boolean;
   isLucideSprout?: boolean;
   isHome?: boolean;
-  /** Toggles the AI Mode overlay in place instead of navigating. */
-  isAIMode?: boolean;
 }
 
 interface NavigationProps {
@@ -64,10 +58,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   onUnimplementedFeature,
   forceMinimize = false,
 }) => {
-  const { user } = useUser();
-  // The assistant is gated server-side to moderators and hub editors; nobody
-  // else gets a door to a room they cannot enter.
-  const canUseAssistant = isHubEditorOrModerator(user);
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
@@ -101,13 +91,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       href: '/endowment',
       isLucideSprout: true,
       description: 'Learn about the ResearchHub Endowment',
-    },
-    {
-      label: AI_MODE_NAME,
-      href: '#',
-      isAIMode: true,
-      requiresAuth: true,
-      description: 'Draft proposals and RFPs with the assistant',
     },
   ];
 
@@ -149,8 +132,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   }> = ({ item, onUnimplementedFeature }) => {
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
-    const aiMode = useOptionalAIMode();
-    const isActive = item.isAIMode ? Boolean(aiMode?.isOpen) : isPathActive(item.href, item.isHome);
+    const isActive = isPathActive(item.href, item.isHome);
     const buttonStyles = getButtonStyles(isActive);
 
     const iconColor = isActive ? '#3971ff' : '#404040';
@@ -187,27 +169,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       ? 'hidden'
       : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
 
-    if (item.isAIMode) {
-      // Same row as the links, but no navigation: the workspace opens in
-      // place on its new-conversation screen and the URL only gains a query
-      // param.
-      return (
-        <button
-          type="button"
-          onClick={() => executeAuthenticatedAction(() => aiMode?.selectChat(null))}
-          className={buttonStyles}
-          aria-pressed={isActive}
-          title={item.description}
-        >
-          <div className={iconContainerClass}>
-            <BriefcaseBusiness size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
-          </div>
-          <div className={textContainerClass}>
-            <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
-          </div>
-        </button>
-      );
-    }
+    const label = <span className="min-w-0 truncate">{item.label}</span>;
 
     return (
       <Link
@@ -239,9 +201,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             <div className="w-[26px] h-[26px]" />
           )}
         </div>
-        <div className={textContainerClass}>
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
-        </div>
+        <div className={textContainerClass}>{label}</div>
       </Link>
     );
   };
@@ -255,11 +215,9 @@ export const Navigation: React.FC<NavigationProps> = ({
       )}
     >
       <div className="space-y-2">
-        {navigationItems
-          .filter((item) => !item.isAIMode || canUseAssistant)
-          .map((item) => (
-            <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
-          ))}
+        {navigationItems.map((item) => (
+          <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
+        ))}
       </div>
     </nav>
   );

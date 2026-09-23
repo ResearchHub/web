@@ -1,16 +1,14 @@
 'use client';
 
-import { BriefcaseBusiness } from 'lucide-react';
 import { TopBarBackButton } from '@/app/layouts/topbar/TopBarBackButton';
 import { AI_MODE_NAME } from '../copy';
 
 interface AIModeHeaderProps {
   /**
-   * What is open, beside the name: the conversation's title when the chat is
-   * the main pane, the document's when it is; null on the new-conversation
-   * screen.
+   * What is open: the conversation's title when the chat is the main pane,
+   * the document's when it is, "New RFP" or "New proposal" on the start screen.
    */
-  readonly title: string | null;
+  readonly title: string;
   /**
    * Receives the element the document pane renders its publish controls
    * into. Absent below the tablet breakpoint, where the drawer keeps them.
@@ -20,7 +18,7 @@ interface AIModeHeaderProps {
   readonly onBack: () => void;
 }
 
-/** The workspace's top strip: the way back, the name, what is open, and the open document's publishing state. */
+/** The workspace's top strip: the way back, what is open, and the open document's publishing state. */
 export function AIModeHeader({ title, publishControlsRef, onBack }: AIModeHeaderProps) {
   const backLabel = `Leave ${AI_MODE_NAME}`;
   return (
@@ -28,16 +26,9 @@ export function AIModeHeader({ title, publishControlsRef, onBack }: AIModeHeader
       <div className="flex min-w-0 items-center gap-2">
         <TopBarBackButton onClick={onBack} variant="mobile" label={backLabel} />
         <TopBarBackButton onClick={onBack} variant="desktop" label={backLabel} />
-        <BriefcaseBusiness className="h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
-        <span className="shrink-0 text-sm font-semibold tracking-tight text-gray-900">
-          {AI_MODE_NAME}
-        </span>
-        {title != null && (
-          <>
-            <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-gray-200" />
-            <span className="min-w-0 max-w-[320px] truncate text-sm text-gray-700">{title}</span>
-          </>
-        )}
+        <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-gray-900">
+          {title}
+        </h1>
       </div>
       {publishControlsRef && (
         <div ref={publishControlsRef} className="flex shrink-0 items-center" />

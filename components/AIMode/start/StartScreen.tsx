@@ -2,50 +2,52 @@
 
 import type { ReactNode } from 'react';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
-import { Logo } from '@/components/ui/Logo';
-import type { SelectedGrantDetails } from '@/types/grant';
-import { IntentCtas } from './IntentCtas';
-import { IntentToggle } from './IntentToggle';
+import { INTENT_COPY } from '../copy';
+import { ConciergeCard } from './ConciergeCard';
+import { StartJourney } from './StartJourney';
+import { VisibilityCard } from './VisibilityCard';
 
 interface StartScreenProps {
   readonly greeting: string;
+  /**
+   * Which side of the money this conversation is on, decided by the door the
+   * user came through: the composer's colour, wording and chips follow it.
+   */
   readonly intent: FundingIntent;
-  readonly onIntentChange: (intent: FundingIntent) => void;
-  readonly selectedGrant: SelectedGrantDetails | null;
-  readonly onSelectGrant: (grant: SelectedGrantDetails | null) => void;
-  /** The composer, whose first message starts the conversation. */
+  /**
+   * The composer, whose first message starts the conversation. For a
+   * researcher it carries the profile and RFP chips in its toolbar.
+   */
   readonly composer: ReactNode;
 }
 
 /**
- * The new-conversation screen: say whether you are here to fund research or
- * to get yours funded, then describe it. The choice fixes what the assistant
- * will draft — an RFP or a proposal — before a word is typed.
+ * The new-conversation screen: describe the research you want to fund, or
+ * the research you need funding for. What the assistant will draft — an RFP
+ * or a proposal — was settled by the way in, before a word is typed. Beside
+ * the composer, the road from this conversation to funded science.
  */
-export function StartScreen({
-  greeting,
-  intent,
-  onIntentChange,
-  selectedGrant,
-  onSelectGrant,
-  composer,
-}: StartScreenProps) {
+export function StartScreen({ greeting, intent, composer }: StartScreenProps) {
   return (
-    <div className="flex min-h-[60vh] flex-col justify-center gap-6">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
-          <Logo size={34} noText />
+    <div className="flex min-h-[60vh] flex-col justify-center">
+      {/* Side by side once the pane is wide enough; the rail drops under the composer before that. */}
+      <div className="flex flex-col gap-2 wide:!flex-row wide:!items-center wide:!gap-10">
+        <div className="flex min-w-0 flex-1 flex-col gap-5">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-serif text-4xl tracking-tight text-gray-900">{greeting}</h2>
+            <p className="text-[15px] text-gray-500">{INTENT_COPY[intent].tagline}</p>
+          </div>
+
+          <div className="-mx-3">{composer}</div>
+
+          {/* Under the box, one card each: a funder can talk it through instead;
+              a researcher hears who will see the proposal. */}
+          {intent === 'fund' && <ConciergeCard className="-mt-2" />}
+          {intent === 'need_funding' && <VisibilityCard className="-mt-2" />}
         </div>
-        <h2 className="font-serif text-3xl tracking-tight text-gray-900">{greeting}</h2>
+
+        <StartJourney intent={intent} className="w-full shrink-0 wide:!w-[340px]" />
       </div>
-
-      <div className="flex justify-center">
-        <IntentToggle value={intent} onChange={onIntentChange} />
-      </div>
-
-      <div className="-mx-3">{composer}</div>
-
-      <IntentCtas intent={intent} selectedGrant={selectedGrant} onSelectGrant={onSelectGrant} />
     </div>
   );
 }

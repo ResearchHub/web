@@ -6,18 +6,24 @@ import type { FundingIntent } from '@/components/Funding/fundingDirection';
  */
 export const AI_MODE_NAME = 'Workspace';
 
-/** Greeting on the new-conversation screen; the name is filled in at render. */
-export const aiModeGreeting = (firstName: string | null | undefined): string =>
-  firstName?.trim() ? `Welcome, ${firstName.trim()}` : 'Welcome';
+/**
+ * What the new-conversation screen is called, in the top strip and on the
+ * sidebar's button: named for what it will produce, not for the chat.
+ */
+export const newConversationTitle = (intent: FundingIntent): string =>
+  intent === 'fund' ? 'New RFP' : 'New proposal';
 
-/** What the intent toggle calls each side, and what the composer asks for. */
-export const INTENT_COPY: Record<FundingIntent, { label: string; placeholder: string }> = {
+/** The heading of the new-conversation screen. */
+export const AI_MODE_GREETING = 'Let’s get started';
+
+/** The line under the greeting and what the composer asks for, per side of the money. */
+export const INTENT_COPY: Record<FundingIntent, { tagline: string; placeholder: string }> = {
   fund: {
-    label: 'I want to fund',
+    tagline: 'The most efficient way to fund science.',
     placeholder: 'Describe the research you want to fund…',
   },
   need_funding: {
-    label: 'I need funding',
+    tagline: 'Turn your proposal into funded science.',
     placeholder: 'Describe the research you need funding for…',
   },
 };

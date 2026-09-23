@@ -13,6 +13,7 @@ import {
 } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useSearchParams } from 'next/navigation';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
 
 /**
  * `?ai=1` opens the workspace. `aiChat=<id>` selects a conversation;
@@ -57,6 +58,15 @@ const CLOSED: AIModeUrlState = { isOpen: false, target: NEW_CONVERSATION };
 export interface AIModeContextValue extends AIModeUrlState {
   /** Open on the last target, or the new-conversation screen. */
   open: () => void;
+  /**
+   * Open on a fresh conversation for one side of the money. The door the
+   * user came through — a Publish menu item, a New RFP or New proposal
+   * button — says what the assistant will draft, so the start screen
+   * does not ask.
+   */
+  openFor: (intent: FundingIntent) => void;
+  /** The intent handed over by {@link openFor}, once; null after. */
+  takePendingIntent: () => FundingIntent | null;
   close: () => void;
   toggle: () => void;
   /** Open on a target. */
@@ -205,6 +215,22 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
     [selectTarget]
   );
 
+  // Held until the workspace's chat hook mounts and asks for it, so the door
+  // that opens a conversation needs no chat state of its own.
+  const pendingIntentRef = useRef<FundingIntent | null>(null);
+  const openFor = useCallback(
+    (intent: FundingIntent) => {
+      pendingIntentRef.current = intent;
+      selectTarget(NEW_CONVERSATION);
+    },
+    [selectTarget]
+  );
+  const takePendingIntent = useCallback(() => {
+    const intent = pendingIntentRef.current;
+    pendingIntentRef.current = null;
+    return intent;
+  }, []);
+
   const stateRef = useRef(state);
   stateRef.current = state;
   const toggle = useCallback(() => {
@@ -213,8 +239,28 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
   }, [open, close]);
 
   const value = useMemo<AIModeContextValue>(
-    () => ({ ...state, open, close, toggle, selectTarget, selectChat, selectDocument }),
-    [state, open, close, toggle, selectTarget, selectChat, selectDocument]
+    () => ({
+      ...state,
+      open,
+      close,
+      toggle,
+      selectTarget,
+      selectChat,
+      selectDocument,
+      openFor,
+      takePendingIntent,
+    }),
+    [
+      state,
+      open,
+      close,
+      toggle,
+      selectTarget,
+      selectChat,
+      selectDocument,
+      openFor,
+      takePendingIntent,
+    ]
   );
 
   return (

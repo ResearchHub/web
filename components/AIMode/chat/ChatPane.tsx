@@ -13,11 +13,18 @@ import { conversationTitleFor } from './conversationTitle';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
+import { layoutFor } from '../AIModeContext';
 import type { AIModeChatState } from '../useAIModeChat';
-import { aiModeGreeting, INTENT_COPY } from '../copy';
+import { AI_MODE_GREETING } from '../copy';
+import { StartContextChips } from '../start/StartContextChips';
+import {
+  START_COMPOSER_MIN_ROWS,
+  startComposerBoxClass,
+  startComposerPlaceholder,
+  startComposerSendClass,
+} from '../start/startComposer';
 import { StartScreen } from '../start/StartScreen';
 import { DocumentChatEmptyState } from './DocumentChatEmptyState';
-import { useUser } from '@/contexts/UserContext';
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
@@ -44,25 +51,30 @@ export function ChatPane({
   const { chatId, list, chat, modelSelection, draft, setDraft, notice, composerBusy, canStop } =
     state;
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const onDocument = state.target.kind === 'document';
+  // The new-conversation screen: white, untitled, the composer in the middle.
+  const onStart = chatId == null && !onDocument;
 
   // ---- transcript auto-scroll ----
   // Follows new content while the reader is at the bottom; never yanks the
   // view down once they have scrolled up, and offers a jump back instead.
+  // The start screen has no transcript to follow: on a phone it is taller
+  // than the viewport, and following would scroll the greeting away.
   const { scrollRef, handleScroll, isAtBottom, jumpToLatest, follow } =
     useJumpToLatest<HTMLDivElement>({ resetKey: chatId });
   useEffect(() => {
-    follow();
-  }, [chat.chat, chat.pendingSend, follow]);
+    if (!onStart) follow();
+  }, [chat.chat, chat.pendingSend, follow, onStart]);
   // Text types out over many frames without the chat changing, so follow the
   // content's own growth too.
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = contentRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
+    if (onStart || !el || typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(() => follow());
     observer.observe(el);
     return () => observer.disconnect();
-  }, [follow, chatId]);
+  }, [follow, chatId, onStart]);
 
   // ---- title: inline rename from the header menu ----
   const [renaming, setRenaming] = useState(false);
@@ -70,7 +82,11 @@ export function ChatPane({
     setRenaming(false);
   }, [chatId]);
 
-  const { user } = useUser();
+  // The new-conversation screen is there to be typed into: the caret is in
+  // the box the moment it opens, whichever door it opened from.
+  useEffect(() => {
+    if (onStart) composerRef.current?.focus();
+  }, [onStart, chatId]);
 
   const listBlocked = list.access === 'hidden';
   const chatUnavailable =
@@ -79,42 +95,58 @@ export function ChatPane({
     listBlocked || chatUnavailable || (chatId != null && chat.access === 'loading');
 
   const { currentTitle, title, loading: titleLoading } = conversationTitleFor(state);
-  const onDocument = state.target.kind === 'document';
+  // With the chat as the main pane the workspace's top strip already names
+  // it, so the pane's own header carries only the controls.
+  const chatIsMain = layoutFor(state.target) === 'chat';
+
+  const modelControls = (
+    <ModelControls
+      models={modelSelection.models}
+      model={modelSelection.model}
+      pinned={modelSelection.pinned}
+      effortPinned={modelSelection.effortPinned}
+      options={modelSelection.options}
+      onSelectModel={modelSelection.selectModel}
+      onChangeOptions={modelSelection.setOptions}
+      disabled={composerDisabled}
+      multiplierExplanation={modelSelection.multiplierExplanation}
+      showIcons={false}
+    />
+  );
 
   const composer = (
     <ChatComposer
       textareaRef={composerRef}
       value={draft}
       onChange={setDraft}
-      onSend={() => void state.send()}
+      onSend={state.send}
       onStop={state.stop}
       busy={composerBusy}
       canStop={canStop}
       disabled={composerDisabled}
       sendDisabled={state.sendBlocked}
       notice={notice}
-      className="border-t-0 bg-gray-50"
-      placeholder={
-        chatId == null && !onDocument ? INTENT_COPY[state.intent].placeholder : undefined
-      }
+      className={cn('border-t-0', onStart ? 'bg-white pt-0' : 'bg-gray-50')}
+      boxClassName={onStart ? startComposerBoxClass(state.intent) : undefined}
+      minRows={onStart ? START_COMPOSER_MIN_ROWS : 1}
+      sendClassName={onStart ? startComposerSendClass(state.intent) : undefined}
+      placeholder={onStart ? startComposerPlaceholder(state.intent) : undefined}
       toolbar={
-        <ModelControls
-          models={modelSelection.models}
-          model={modelSelection.model}
-          pinned={modelSelection.pinned}
-          effortPinned={modelSelection.effortPinned}
-          options={modelSelection.options}
-          onSelectModel={modelSelection.selectModel}
-          onChangeOptions={modelSelection.setOptions}
-          disabled={composerDisabled}
-          multiplierExplanation={modelSelection.multiplierExplanation}
-        />
+        // A researcher's context rides with the first message, like attachments.
+        onStart && state.intent === 'need_funding' ? (
+          <StartContextChips
+            selectedGrant={state.selectedGrant}
+            onSelectGrant={state.setSelectedGrant}
+          />
+        ) : undefined
       }
+      // The model and effort sit under the box, at its right, out of the message's way.
+      footer={<div className="mt-1.5 flex justify-end pr-0.5">{modelControls}</div>}
     />
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className={cn('flex h-full min-h-0 flex-col', onStart && 'bg-white')}>
       {/* No border or fill: the title and its controls float over the pane. */}
       <header className="flex h-12 shrink-0 items-center gap-2 px-3">
         {onOpenConversations && (
@@ -138,6 +170,8 @@ export function ChatPane({
               if (next && next !== (currentTitle ?? '')) state.rename(chatId, next);
             }}
           />
+        ) : chatIsMain ? (
+          <span className="flex-1" />
         ) : titleLoading ? (
           <div className="flex min-w-0 flex-1 items-center" aria-busy="true">
             <div className="h-3.5 w-56 max-w-full animate-pulse rounded bg-gray-100" />
@@ -158,20 +192,20 @@ export function ChatPane({
 
       <div className="relative min-h-0 flex-1">
         <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto">
-          <div ref={contentRef} className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
+          <div
+            ref={contentRef}
+            className={cn(
+              'mx-auto w-full px-4 py-5 tablet:!px-6',
+              // The start screen seats the journey rail beside the composer.
+              onStart ? 'max-w-[1100px]' : 'max-w-[760px]'
+            )}
+          >
             {listBlocked ? (
               <AccessBlocked detail={list.accessDetail} />
             ) : chatId == null && onDocument ? (
               <DocumentChatEmptyState />
             ) : chatId == null ? (
-              <StartScreen
-                composer={composer}
-                greeting={aiModeGreeting(user?.firstName)}
-                intent={state.intent}
-                onIntentChange={state.setIntent}
-                selectedGrant={state.selectedGrant}
-                onSelectGrant={state.setSelectedGrant}
-              />
+              <StartScreen composer={composer} greeting={AI_MODE_GREETING} intent={state.intent} />
             ) : chat.access === 'loading' && chat.chat == null ? (
               <ChatTranscriptSkeleton />
             ) : chat.access === 'not_found' ? (
@@ -219,7 +253,7 @@ export function ChatPane({
 
       {/* A conversation keeps the composer docked at the bottom, as does a
           document's chat before it starts; the new-conversation screen seats
-          it in the middle with the intent toggle. */}
+          it in the middle. */}
       {(chatId != null || onDocument) && (
         <div className="shrink-0 border-t border-gray-200 bg-gray-50">
           <div className={cn('mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5')}>

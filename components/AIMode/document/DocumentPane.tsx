@@ -13,6 +13,7 @@ import {
 import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { PublishingHostProvider, type PublishingHost } from '@/contexts/PublishingHostContext';
 import { useNoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
+import { useAIMode } from '../AIModeContext';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { noteDiffPersistableDoc } from '@/components/Notebook/NoteReview/noteDiffOverlay';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
@@ -125,6 +126,9 @@ export function DocumentPane({
   // the live editor and the note's single details writer through the host
   // seam rather than the notebook context.
   const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId ?? undefined);
+  // Publishing leaves for the work's page; the workspace gets out of the way
+  // first, so the page is what the user sees arrive.
+  const { close: closeWorkspace } = useAIMode();
   const publishingHost = useMemo<PublishingHost>(
     () => ({
       note: content,
@@ -132,8 +136,9 @@ export function DocumentPane({
       isLoading: loading,
       saveDetailsSoon,
       saveDetailsNow,
+      onPublished: closeWorkspace,
     }),
-    [content, editor, loading, saveDetailsSoon, saveDetailsNow]
+    [content, editor, loading, saveDetailsSoon, saveDetailsNow, closeWorkspace]
   );
 
   const persistEditorState = useCallback(async () => {
@@ -247,14 +252,16 @@ export function DocumentPane({
             )}
           </div>
 
-          <div
-            className={cn(
-              'min-h-0 flex-1 overflow-y-auto px-6 py-6',
-              view !== 'details' && 'hidden'
-            )}
-          >
-            <PublishingForm showFooter={false} />
-          </div>
+          {/* Mounted only while showing: a block's popover registers the same
+              field, and two inputs on one name leave the form reading and
+              writing through whichever attached last — keystrokes in the
+              popover would land in, or be overwritten from, the hidden copy.
+              The values live in the provider, so nothing is lost by unmounting. */}
+          {view === 'details' && (
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+              <PublishingForm showFooter={false} />
+            </div>
+          )}
 
           {review.review && view === 'document' && (
             <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
@@ -349,13 +356,7 @@ function DraftSection({
     >
       <div role="status" className="mb-6 flex items-center gap-2 text-xs text-gray-500">
         <Loader size="sm" className="!h-3 !w-3 text-primary-500" />
-        <span>
-          Drafting
-          <span className="mx-2 text-gray-300" aria-hidden="true">
-            ·
-          </span>
-          Preview updates live
-        </span>
+        <span>Drafting</span>
       </div>
       <DraftBlockPreview blocks={blocks} editor={editor} fallbackText={text} />
     </section>

@@ -21,9 +21,11 @@ export interface AIModeChatState extends ChatSession {
   readonly chatId: number | null;
   /** Every conversation the user has, the notebook's included. */
   readonly list: UseAgentChatListResult;
-  /** What the next conversation is for; sent with its creation. */
+  /**
+   * What the next conversation is for; sent with its creation. Set by the
+   * door the workspace was opened through, else the last one used.
+   */
   readonly intent: FundingIntent;
-  readonly setIntent: (intent: FundingIntent) => void;
   /** The RFP the next conversation's proposal answers, chosen on the start screen. */
   readonly selectedGrant: SelectedGrantDetails | null;
   readonly setSelectedGrant: (grant: SelectedGrantDetails | null) => void;
@@ -60,7 +62,7 @@ export interface AIModeChatState extends ChatSession {
  * transport for a conversation and on the note's for a document.
  */
 export function useAIModeChat(): AIModeChatState {
-  const { target, selectTarget, selectChat } = useAIMode();
+  const { target, selectTarget, selectChat, takePendingIntent } = useAIMode();
   const { chatId } = target;
   const targetNoteId = target.kind === 'document' ? target.noteId : null;
   const transport = getChatTransport({ noteId: targetNoteId });
@@ -113,6 +115,15 @@ export function useAIModeChat(): AIModeChatState {
     notices: NOTICES,
   });
   const { chat } = session;
+
+  // ---- the door the workspace was opened through ----
+  // A Publish menu item or a New RFP / New proposal button opens it for one
+  // side of the money; the start screen takes that side rather than asking.
+  useEffect(() => {
+    if (target.kind !== 'conversation' || target.chatId != null) return;
+    const pending = takePendingIntent();
+    if (pending) setIntent(pending);
+  }, [target, takePendingIntent, setIntent]);
   const chatRef = useRef(chat.chat);
   chatRef.current = chat.chat;
 
@@ -241,7 +252,6 @@ export function useAIModeChat(): AIModeChatState {
     chatId,
     list,
     intent,
-    setIntent,
     selectedGrant,
     setSelectedGrant,
     rename,
