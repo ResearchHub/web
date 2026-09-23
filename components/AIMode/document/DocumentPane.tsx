@@ -247,14 +247,16 @@ export function DocumentPane({
             )}
           </div>
 
-          <div
-            className={cn(
-              'min-h-0 flex-1 overflow-y-auto px-6 py-6',
-              view !== 'details' && 'hidden'
-            )}
-          >
-            <PublishingForm showFooter={false} />
-          </div>
+          {/* Mounted only while showing: a block's popover registers the same
+              field, and two inputs on one name leave the form reading and
+              writing through whichever attached last — keystrokes in the
+              popover would land in, or be overwritten from, the hidden copy.
+              The values live in the provider, so nothing is lost by unmounting. */}
+          {view === 'details' && (
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+              <PublishingForm showFooter={false} />
+            </div>
+          )}
 
           {review.review && view === 'document' && (
             <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">

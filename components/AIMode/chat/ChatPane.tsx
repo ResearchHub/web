@@ -83,6 +83,12 @@ export function ChatPane({
     setRenaming(false);
   }, [chatId]);
 
+  // The new-conversation screen is there to be typed into: the caret is in
+  // the box the moment it opens, whichever door it opened from.
+  useEffect(() => {
+    if (onStart) composerRef.current?.focus();
+  }, [onStart, chatId]);
+
   const { user } = useUser();
 
   const listBlocked = list.access === 'hidden';
