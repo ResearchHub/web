@@ -356,13 +356,7 @@ function DraftSection({
     >
       <div role="status" className="mb-6 flex items-center gap-2 text-xs text-gray-500">
         <Loader size="sm" className="!h-3 !w-3 text-primary-500" />
-        <span>
-          Drafting
-          <span className="mx-2 text-gray-300" aria-hidden="true">
-            ·
-          </span>
-          Preview updates live
-        </span>
+        <span>Drafting</span>
       </div>
       <DraftBlockPreview blocks={blocks} editor={editor} fallbackText={text} />
     </section>
