@@ -23,6 +23,7 @@ import {
   EXPERTISE_LEVEL_ALL,
 } from '@/services/expertFinder.service';
 import {
+  EXPERT_COUNT_OPTIONS,
   expertFinderFormSchema,
   type ExpertFinderFormValues,
   type ExpertCountOption,
@@ -36,6 +37,13 @@ import { ExpertSearchResult } from '@/types/expertFinder';
 
 const DEFAULT_URL_PLACEHOLDER = 'e.g., https://researchhub.com/paper/123/...';
 const INITIAL_EXPERT_COUNT: ExpertCountOption = 10;
+
+function toExpertCountOption(value: unknown): ExpertCountOption {
+  const n = Number(value);
+  return (EXPERT_COUNT_OPTIONS as readonly number[]).includes(n)
+    ? (n as ExpertCountOption)
+    : INITIAL_EXPERT_COUNT;
+}
 
 function getAvailableInputTypes(work: Work | null): InputType[] {
   if (work?.contentType === 'paper') {
@@ -157,7 +165,7 @@ export function ExpertFinderForm() {
       setSelectedSearchId(search?.searchId ?? null);
       if (!search) return;
       const config = search.config as Record<string, unknown>;
-      const expertCount = (config.expert_count as number) ?? INITIAL_EXPERT_COUNT;
+      const expertCount = toExpertCountOption(config.expert_count);
       const rawLevel = config.expertise_level;
       let expertiseLevel: ExpertiseLevel[];
       if (Array.isArray(rawLevel)) {
