@@ -1,16 +1,20 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, FileText } from 'lucide-react';
+import { ArrowRight, FileText, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { DashboardEmptyState } from '@/components/Funding/dashboard/DashboardEmptyState';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { NoteStatusLine } from '@/components/Notebook/NoteStatus';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { Button } from '@/components/ui/Button';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
+import { NoteService } from '@/services/note.service';
 import type { FeedEntry, FeedGrantContent, FeedPostContent } from '@/types/feed';
 import { getNoteKind, isPublishedNote, type Note, type NoteKind } from '@/types/note';
 import { formatCurrency } from '@/utils/currency';
@@ -122,8 +126,8 @@ const draftRow = (note: Note): FundingRow => ({
  * row — what is live first, then the drafts, then what has closed — each
  * with its image, its title, under it the status dot (amber draft, blue
  * published) and a date, and the money on it. A draft opens where the user
- * drafts; a published row opens its page. Four rows show before the list
- * asks to be expanded.
+ * drafts and can be deleted from its row; a published row opens its page.
+ * Four rows show before the list asks to be expanded.
  */
 export function FundingRows({
   kind,
@@ -141,6 +145,15 @@ export function FundingRows({
   const { openDraft } = useFundingDrafting();
   const [showAll, setShowAll] = useState(false);
 
+  // Both sources arrive at their own pace; showing one before the other
+  // would lay the list out twice. Nothing renders until the first load of
+  // each is in, and later loads (a refresh after a delete) keep the rows.
+  const loadingFirst = isLoading || (includeDrafts && notes.isLoading);
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!loadingFirst) setSettled(true);
+  }, [loadingFirst]);
+
   const rows = useMemo<FundingRow[]>(() => {
     const drafts = includeDrafts
       ? notes.notes
@@ -156,65 +169,121 @@ export function FundingRows({
     ];
   }, [includeDrafts, notes.notes, entries, kind]);
 
-  // Either source still on its first load, with nothing to show for it yet.
-  const pending =
-    (isLoading && entries.length === 0) ||
-    (includeDrafts && notes.isLoading && notes.notes.length === 0);
+  // ---- deleting a draft, behind a confirmation ----
+  const [deleting, setDeleting] = useState<FundingRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { refresh } = notes;
+  const deleteDraft = useCallback(async () => {
+    const note = deleting?.note;
+    if (!note) return;
+    setIsDeleting(true);
+    try {
+      await NoteService.deleteNote(note.id);
+      setDeleting(null);
+      await refresh();
+    } catch {
+      toast.error('Couldn’t delete the draft. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deleting, refresh]);
 
-  if (rows.length === 0) {
-    if (pending) return <RowsSkeleton />;
-    return <DashboardEmptyState>{emptyMessage}</DashboardEmptyState>;
-  }
+  if (!settled) return <RowsSkeleton />;
+  if (rows.length === 0) return <DashboardEmptyState>{emptyMessage}</DashboardEmptyState>;
 
   const shown = showAll ? rows : rows.slice(0, RECENT_COUNT);
   const hiddenCount = rows.length - shown.length;
 
   return (
-    <ul className="space-y-3">
-      {shown.map((row) => (
-        <li key={row.key}>
-          {row.note ? (
+    <>
+      <ul className="space-y-3">
+        {shown.map((row) => (
+          <li key={row.key} className="group relative">
+            {row.note ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => openDraft(row.note as Note)}
+                  className={cn(rowClass(false), 'pr-12')}
+                >
+                  <RowFace row={row} />
+                </button>
+                {/* Beside the row, not inside it: a button cannot hold a button. */}
+                <button
+                  type="button"
+                  onClick={() => setDeleting(row)}
+                  aria-label={`Delete draft “${row.title}”`}
+                  title="Delete draft"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-600 group-hover:text-gray-500 group-hover:hover:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </>
+            ) : (
+              <Link href={row.href ?? '#'} className={rowClass(true)}>
+                <RowFace row={row} />
+              </Link>
+            )}
+          </li>
+        ))}
+
+        {hiddenCount > 0 && (
+          <li className="!mt-2">
             <button
               type="button"
-              onClick={() => openDraft(row.note as Note)}
-              className={rowClass(false)}
+              onClick={() => setShowAll(true)}
+              className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
             >
-              <RowFace row={row} />
+              Show {hiddenCount} more
             </button>
-          ) : (
-            <Link href={row.href ?? '#'} className={rowClass(true)}>
-              <RowFace row={row} />
-            </Link>
-          )}
-        </li>
-      ))}
+          </li>
+        )}
 
-      {pending && <li className="h-16 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />}
+        {showAll && hasMore && (
+          <li className="!mt-2">
+            <button
+              type="button"
+              onClick={loadMore}
+              className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              Load more
+            </button>
+          </li>
+        )}
+      </ul>
 
-      {hiddenCount > 0 && (
-        <li className="!mt-2">
-          <button
-            type="button"
-            onClick={() => setShowAll(true)}
-            className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          >
-            Show {hiddenCount} more
-          </button>
-        </li>
-      )}
-
-      {showAll && hasMore && (
-        <li className="!mt-2">
-          <button
-            type="button"
-            onClick={loadMore}
-            className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          >
-            Load more
-          </button>
-        </li>
-      )}
-    </ul>
+      <BaseModal
+        isOpen={deleting != null}
+        onClose={() => (isDeleting ? undefined : setDeleting(null))}
+        title="Delete draft?"
+        size="sm"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={() => setDeleting(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={() => void deleteDraft()}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-gray-600">
+          “{deleting?.title}” will be deleted, along with anything written in it. This cannot be
+          undone.
+        </p>
+      </BaseModal>
+    </>
   );
 }
 

@@ -2,7 +2,15 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { GraduationCap, Scale, Users, FileText, type LucideIcon } from 'lucide-react';
+import {
+  FlaskConical,
+  GraduationCap,
+  HandCoins,
+  Scale,
+  Users,
+  FileText,
+  type LucideIcon,
+} from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 
 type ConfirmPublishVariant = 'default' | 'rfp';
@@ -44,12 +52,14 @@ const GUIDELINES: Record<ConfirmPublishVariant, GuidelineConfig> = {
     ],
   },
   rfp: {
-    heading: 'Guidelines for Request for Proposals',
+    heading: 'Guidelines for Requests for Proposals',
     items: [
-      { icon: GraduationCap, text: 'Stick to academically appropriate topics' },
-      { icon: Scale, text: 'Clearly describe the scope and expectations for proposals' },
-      { icon: Users, text: 'Be transparent about funding amounts and timelines' },
-      { icon: FileText, text: 'Include evaluation criteria for submitted proposals' },
+      {
+        icon: HandCoins,
+        text: 'Only create an RFP if you intend to distribute the stated funding amount.',
+      },
+      { icon: FileText, text: 'Describe the scope and expectations of your RFP clearly.' },
+      { icon: FlaskConical, text: 'Stick to truth-seeking science.' },
     ],
   },
 };
