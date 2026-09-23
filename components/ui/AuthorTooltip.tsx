@@ -373,7 +373,8 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   return (
     <div
       ref={tooltipWrapperRef}
-      className="relative inline-flex items-center"
+      // min-w-0 so a name inside can truncate when the line around it is tight.
+      className="relative inline-flex min-w-0 max-w-full items-center"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
