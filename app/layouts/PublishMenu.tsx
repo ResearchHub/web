@@ -2,7 +2,8 @@
 
 import { ChevronRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { FundingDirectionIcon } from '@/components/Funding/FundingDirectionIcon';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -39,18 +40,11 @@ const PUBLISH_MENU_SECTIONS: readonly {
   {
     title: 'Publish on ResearchHub',
     items: [
-      // The two sides of the money, in the arrows My Funding uses for them.
       {
         id: 'give-funding',
         title: 'Request for Proposal',
         description: 'Fund specific research you care about',
-        icon: (
-          <FundingDirectionIcon
-            direction="giving"
-            className="h-9 w-9"
-            iconClassName="h-[18px] w-[18px]"
-          />
-        ),
+        icon: <FontAwesomeIcon icon={faBullhorn} className="h-[18px] w-[18px] text-gray-700" />,
         intent: 'fund',
       },
       {
@@ -58,11 +52,7 @@ const PUBLISH_MENU_SECTIONS: readonly {
         title: 'Proposal',
         description: 'Raise money for your research',
         icon: (
-          <FundingDirectionIcon
-            direction="receiving"
-            className="h-9 w-9"
-            iconClassName="h-[18px] w-[18px]"
-          />
+          <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-700" />
         ),
         intent: 'need_funding',
       },
@@ -79,7 +69,11 @@ interface MenuItemContentProps {
 const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, description }) => {
   return (
     <div className="relative flex w-full items-center gap-3 pr-6">
-      <div className="flex-shrink-0">{icon}</div>
+      <div className="flex-shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 transition-colors duration-150 group-hover:bg-gray-50">
+          {icon}
+        </div>
+      </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold tracking-[0.01em] text-gray-900">{title}</div>
         <div className="text-xs text-gray-600">{description}</div>

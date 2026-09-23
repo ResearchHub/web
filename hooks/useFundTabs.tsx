@@ -2,12 +2,25 @@
 
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FundingDirectionIcon } from '@/components/Funding/FundingDirectionIcon';
+import { type LucideIcon, type LucideProps } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
+import {
+  faBullhorn as faBullhornSolid,
+  faFileSignature as faFileSignatureSolid,
+} from '@fortawesome/pro-solid-svg-icons';
 import {
   RadiatingDotTabIcon,
   RadiatingDotTabIconActive,
 } from '@/components/ui/RadiatingDotTabIcon';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+
+function faTabIcon(icon: IconDefinition) {
+  return function FaTabIcon({ className }: LucideProps) {
+    return <FontAwesomeIcon icon={icon} className={className} />;
+  } as LucideIcon;
+}
 
 export type FundTab = 'activity' | 'fund' | 'proposals';
 
@@ -30,29 +43,27 @@ export const FUND_TABS = [
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
-  // Money out and money in, in the arrows My Funding uses for the same two
-  // sides: the circle stays grey and the arrow takes the tab's own colour.
   {
     id: 'fund' as const,
     label: (
-      <span className="flex items-center gap-2">
-        <FundingDirectionIcon direction="giving" colored={false} />
-        RFPs
-      </span>
+      <>
+        <span className="">RFPs</span>
+      </>
     ),
     href: '/fund',
+    icon: faTabIcon(faBullhorn),
+    activeIcon: faTabIcon(faBullhornSolid),
+    iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
   {
     id: 'proposals' as const,
-    label: (
-      <span className="flex items-center gap-2">
-        <FundingDirectionIcon direction="receiving" colored={false} />
-        Proposals
-      </span>
-    ),
+    label: 'Proposals',
     href: '/fund/proposals',
+    icon: faTabIcon(faFileSignature),
+    activeIcon: faTabIcon(faFileSignatureSolid),
+    iconClassName: TAB_ICON_CLASS_NAME,
     activeClassName: TAB_ACTIVE_CLASS_NAME,
     scroll: false,
   },
