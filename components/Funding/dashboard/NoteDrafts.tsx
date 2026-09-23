@@ -17,12 +17,13 @@ interface NoteDraftsProps {
 }
 
 /** The most recent drafts shown before the list asks to be expanded, so the published work stays in reach. */
-const RECENT_COUNT = 5;
+const RECENT_COUNT = 4;
 
 /**
  * The user's unpublished RFPs or proposals, listed ahead of the published
- * ones in a My Funding section: each a row under the draft's amber line,
- * opening where the user drafts. Renders nothing while there are none.
+ * ones in a My Funding section: each a row carrying its title and, under
+ * it, the draft's amber dot and when it was last edited. A row opens the
+ * draft where the user drafts. Renders nothing while there are none.
  */
 export function NoteDrafts({ kind, className }: NoteDraftsProps) {
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
@@ -43,24 +44,26 @@ export function NoteDrafts({ kind, className }: NoteDraftsProps) {
   if (drafts.length === 0) return null;
 
   return (
-    <ul className={cn('space-y-8', className)}>
+    <ul className={cn('space-y-3', className)}>
       {shown.map((note) => (
         <li key={note.id}>
-          <NoteStatusLine
-            published={false}
-            detail={`Edited ${formatTimeAgo(note.updatedDate)}`}
-            className="mb-2"
-          />
           <button
             type="button"
             onClick={() => openDraft(note)}
             className="group flex w-full items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-white px-4 py-3 text-left transition-colors hover:border-gray-400 hover:bg-gray-50"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
               <FileText className="h-4 w-4" aria-hidden="true" />
             </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
-              {note.title?.trim() || 'Untitled draft'}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-gray-900">
+                {note.title?.trim() || 'Untitled draft'}
+              </span>
+              <NoteStatusLine
+                published={false}
+                detail={`Edited ${formatTimeAgo(note.updatedDate)}`}
+                className="mt-0.5"
+              />
             </span>
             <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-gray-500 transition-colors group-hover:text-gray-900">
               Continue
@@ -70,7 +73,7 @@ export function NoteDrafts({ kind, className }: NoteDraftsProps) {
         </li>
       ))}
       {hiddenCount > 0 && (
-        <li className="!mt-4">
+        <li className="!mt-2">
           <button
             type="button"
             onClick={() => setShowAll(true)}

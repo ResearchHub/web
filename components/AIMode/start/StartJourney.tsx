@@ -135,9 +135,8 @@ interface StartJourneyProps {
 /**
  * The rail beside the composer: a four-step timeline with this conversation
  * as step one. Hollow dots for what is to come, a radiating one for now, and
- * connectors that stop short of the dots, the way a timeline reads. Under
- * it, one more thing to know: a link when there is somewhere to go, plain
- * text when there is not.
+ * one connector running dot to dot. Under it, one more thing to know: a
+ * link when there is somewhere to go, plain text when there is not.
  */
 export function StartJourney({ intent, className }: StartJourneyProps) {
   const journey = JOURNEYS[intent];
@@ -171,7 +170,7 @@ export function StartJourney({ intent, className }: StartJourneyProps) {
                     className="h-2.5 w-2.5 shrink-0 rounded-full border-[1.5px] border-gray-300 bg-white"
                   />
                 )}
-                {!last && <span aria-hidden="true" className="my-2.5 w-px flex-1 bg-gray-200" />}
+                {!last && <span aria-hidden="true" className="w-px flex-1 bg-gray-200" />}
               </div>
               <div className={cn('flex min-w-0 flex-col gap-0.5', !last && 'pb-4')}>
                 <span
