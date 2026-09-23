@@ -7,11 +7,13 @@ import {
   type AddExpertPayload,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
+  type FindMoreExpertsPayload,
   type PatchExpertPayload,
   type UpdateGeneratedEmailPayload,
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { ApiError } from '@/services/types/api';
 import type {
   ExpertResult,
   ExpertSearchCreated,
@@ -271,6 +273,58 @@ export function useCreateExpertSearch(): UseCreateExpertSearchReturn {
   );
 
   return [{ created, isLoading, error }, createSearch];
+}
+
+// ── useFindMoreExperts ───────────────────────────────────────────────────────
+
+interface UseFindMoreExpertsState {
+  isLoading: boolean;
+  error: string | null;
+  alreadyRunning: boolean;
+}
+
+type FindMoreExpertsFn = (
+  searchId: number | string,
+  payload?: FindMoreExpertsPayload
+) => Promise<ExpertSearchCreated>;
+type UseFindMoreExpertsReturn = [UseFindMoreExpertsState, FindMoreExpertsFn];
+
+/**
+ * Request additional experts for an existing search.
+ * Callers should treat alreadyRunning (409) by refreshing search status.
+ */
+export function useFindMoreExperts(): UseFindMoreExpertsReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [alreadyRunning, setAlreadyRunning] = useState(false);
+
+  const findMore = useCallback(
+    async (
+      searchId: number | string,
+      payload?: FindMoreExpertsPayload
+    ): Promise<ExpertSearchCreated> => {
+      setIsLoading(true);
+      setError(null);
+      setAlreadyRunning(false);
+      try {
+        return await ExpertFinderService.findMoreExperts(searchId, payload);
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 409) {
+          setAlreadyRunning(true);
+          setError(extractApiErrorMessage(err, 'Search is already running'));
+          throw err;
+        }
+        const message = extractApiErrorMessage(err, 'Failed to find more experts');
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error, alreadyRunning }, findMore];
 }
 
 // ── usePatchExpert ────────────────────────────────────────────────────────────
