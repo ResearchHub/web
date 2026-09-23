@@ -13,7 +13,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Fundraise } from '@/types/funding';
 import { FundingPool } from '@/types/grant';
 import { Work } from '@/types/work';
-import { ArrowLeft, MoveRight, DollarSign } from 'lucide-react';
+import { ArrowLeft, MoveRight, DollarSign, Info } from 'lucide-react';
 import {
   PaymentStep,
   FundingImpactPreview,
@@ -624,6 +624,17 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
           <div className="flex flex-col h-full">
             {/* Content area */}
             <div className="space-y-10 flex-1">
+              {/* What a pool contribution does, before the amount is chosen. */}
+              {isPoolMode && (
+                <div className="flex gap-3 rounded-lg border border-primary-100 bg-primary-50 px-4 py-3 text-sm leading-snug text-primary-900">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
+                  <p>
+                    Adding to the funding pool increases the funder’s funding budget and allows more
+                    funds to be allocated towards the best research proposals.
+                  </p>
+                </div>
+              )}
+
               {/* Amount Input + Quick Amount Selector grouped together */}
               <div className="space-y-3">
                 <Input

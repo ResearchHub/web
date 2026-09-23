@@ -155,7 +155,9 @@ export function WorkHeaderGrant({
         />
         {isPoolOpen && (
           <p
-            className="mt-2 px-1 text-center text-xs leading-snug text-gray-500"
+            // Bottom margin: the footnote is the header's lowest line, and
+            // without it sits right on the header's rule.
+            className="mb-3 mt-2 px-1 text-center text-xs leading-snug text-gray-500"
             data-testid="grant-funding-pool-value-line"
           >
             Every dollar you add goes to the proposals. {organization || 'the funder'} picks.
