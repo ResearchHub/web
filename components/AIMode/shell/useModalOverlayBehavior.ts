@@ -51,7 +51,9 @@ export function useModalOverlayBehavior({ rootEl, onEscape }: ModalOverlayBehavi
 
   useEffect(() => {
     if (!rootEl) return;
-    rootEl.focus();
+    // Something inside may already have taken focus — the start screen's
+    // composer — and keeps it; the root is only the fallback.
+    if (!rootEl.contains(document.activeElement)) rootEl.focus();
     const inerted: Element[] = [];
     for (const child of Array.from(document.body.children)) {
       if (child === rootEl || child.tagName === 'SCRIPT' || child.tagName === 'NEXTJS-PORTAL') {

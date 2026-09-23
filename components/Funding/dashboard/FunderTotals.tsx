@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -102,7 +102,13 @@ export const FunderTotals: FC<FunderTotalsProps> = ({ overview, isLoading, class
             }
             onShowAll={() => setIsInstitutionsOpen(true)}
           >
-            <InstitutionChips institutions={overview?.supportedInstitutions ?? []} />
+            {/* The count is the row's label; the names wait in the modal. */}
+            <span
+              aria-hidden="true"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors group-hover:bg-gray-200"
+            >
+              <Building2 className="h-3.5 w-3.5" />
+            </span>
           </TotalsRow>
         )}
       </FundingTotalsCard>
@@ -120,24 +126,6 @@ export const FunderTotals: FC<FunderTotalsProps> = ({ overview, isLoading, class
     </>
   );
 };
-
-const MAX_VISIBLE_INSTITUTIONS = 2;
-
-const InstitutionChips: FC<{ institutions: SupportedInstitution[] }> = ({ institutions }) => (
-  // One row: the chips truncate rather than wrap, so long names can't stack.
-  <span className="flex min-w-0 items-center gap-1">
-    {institutions.slice(0, MAX_VISIBLE_INSTITUTIONS).map((inst) => (
-      <span
-        key={inst.id}
-        className="max-w-[96px] truncate rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-700 transition-colors group-hover:border-gray-300 group-hover:bg-gray-100"
-        title={inst.name}
-      >
-        {inst.name}
-      </span>
-    ))}
-    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-  </span>
-);
 
 const ScientistsModal: FC<{
   isOpen: boolean;
