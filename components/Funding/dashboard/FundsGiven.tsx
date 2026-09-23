@@ -46,7 +46,7 @@ export function FundsGiven({ viewedUserId, isOwnPage, overview }: Readonly<Funds
     <>
       <section>
         <DashboardSectionHeader
-          title="My Requests for Proposals"
+          title="My RFPs"
           meta={!isLoadingOpportunities && `${opportunities.length} active`}
           action={
             isOwnPage && (

@@ -1,40 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  ArrowUpRight,
-  ClipboardCheck,
-  HandCoins,
-  LayoutDashboard,
-  Lock,
-  Megaphone,
-  PenLine,
-  Target,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { cn } from '@/utils/styles';
 
 interface JourneyStep {
-  readonly icon: LucideIcon;
   readonly title: string;
   readonly detail: string;
 }
 
 interface JourneyNote {
-  readonly icon: LucideIcon;
   readonly title: string;
-  /** Somewhere to go, when there is one. */
-  readonly href?: string;
+  readonly href: string;
 }
 
 interface Journey {
   readonly heading: string;
   /** The first step is this conversation; the rest follow from it. */
   readonly steps: readonly JourneyStep[];
-  readonly note: JourneyNote;
+  /** Somewhere to go from here, when there is one. */
+  readonly note?: JourneyNote;
 }
 
 /**
@@ -46,84 +33,40 @@ const JOURNEYS: Record<FundingIntent, Journey> = {
   fund: {
     heading: 'How funding works',
     steps: [
-      {
-        icon: Megaphone,
-        title: 'Publish your RFP',
-        detail: 'Set the scope, budget, and deadline.',
-      },
-      {
-        icon: Users,
-        title: 'Experts submit proposals',
-        detail: 'We notify scientists who match your call.',
-      },
-      {
-        icon: ClipboardCheck,
-        title: 'Open peer review',
-        detail: 'Reviewers assess rigor and feasibility.',
-      },
-      {
-        icon: HandCoins,
-        title: 'Delegate the funds',
-        detail: 'Choose which proposals get funded.',
-      },
+      { title: 'Publish your RFP', detail: 'Set the scope, budget, and deadline.' },
+      { title: 'Experts submit proposals', detail: 'We notify scientists who match your call.' },
+      { title: 'Open peer review', detail: 'Reviewers assess rigor and feasibility.' },
+      { title: 'Delegate the funds', detail: 'Choose which proposals get funded.' },
     ],
-    note: {
-      icon: LayoutDashboard,
-      title: 'Track it from your funder dashboard',
-      href: '/my-funding',
-    },
+    note: { title: 'Track it from your funder dashboard', href: '/my-funding' },
   },
   need_funding: {
     heading: 'How getting funded works',
     steps: [
+      { title: 'Draft your proposal', detail: 'Aims, budget, and timeline, with the assistant.' },
       {
-        icon: PenLine,
-        title: 'Draft your proposal',
-        detail: 'Aims, budget, and timeline, with the assistant.',
-      },
-      {
-        icon: Target,
         title: 'Apply to an RFP or open call',
         detail: "Answer a funder's call, or put it to the community.",
       },
-      {
-        icon: ClipboardCheck,
-        title: 'Open peer review',
-        detail: 'Reviewers assess rigor and feasibility.',
-      },
-      {
-        icon: HandCoins,
-        title: 'Get funded',
-        detail: 'Institutions and the community back it.',
-      },
+      { title: 'Open peer review', detail: 'Reviewers assess rigor and feasibility.' },
+      { title: 'Get funded', detail: 'Institutions and the community back it.' },
     ],
-    note: {
-      icon: Lock,
-      title: 'Stay in control: public, or funders only',
-    },
   },
 };
 
 const ACCENT: Record<
   FundingIntent,
-  {
-    readonly dot: string;
-    readonly icon: string;
-    readonly note: string;
-    readonly noteIcon: string;
-  }
+  { readonly dot: string; readonly note: string; readonly noteArrow: string }
 > = {
   fund: {
     dot: 'bg-primary-600',
-    icon: 'text-primary-700',
     note: 'border-primary-200 bg-primary-50 hover:bg-primary-100',
-    noteIcon: 'text-primary-700',
+    noteArrow: 'text-primary-700',
   },
   need_funding: {
     dot: 'bg-emerald-600',
-    icon: 'text-emerald-700',
     note: 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100',
-    noteIcon: 'text-emerald-700',
+    noteArrow: 'text-emerald-700',
   },
 };
 
@@ -135,13 +78,12 @@ interface StartJourneyProps {
 /**
  * The rail beside the composer: a four-step timeline with this conversation
  * as step one. Hollow dots for what is to come, a radiating one for now, and
- * one connector running dot to dot. Under it, one more thing to know: a
- * link when there is somewhere to go, plain text when there is not.
+ * one connector running dot to dot; words only, no icons. Under it, for a
+ * funder, the way to their dashboard.
  */
 export function StartJourney({ intent, className }: StartJourneyProps) {
   const journey = JOURNEYS[intent];
   const accent = ACCENT[intent];
-  const NoteIcon = journey.note.icon;
 
   return (
     <aside
@@ -156,7 +98,6 @@ export function StartJourney({ intent, className }: StartJourneyProps) {
       </h3>
       <ol className="flex flex-col">
         {journey.steps.map((step, index) => {
-          const Icon = step.icon;
           const current = index === 0;
           const last = index === journey.steps.length - 1;
           return (
@@ -175,14 +116,10 @@ export function StartJourney({ intent, className }: StartJourneyProps) {
               <div className={cn('flex min-w-0 flex-col gap-0.5', !last && 'pb-4')}>
                 <span
                   className={cn(
-                    'flex items-center gap-1.5 text-[13px] font-semibold',
+                    'text-[13px] font-semibold',
                     current ? 'text-gray-900' : 'text-gray-700'
                   )}
                 >
-                  <Icon
-                    className={cn('h-4 w-4 shrink-0', current ? accent.icon : 'text-gray-500')}
-                    aria-hidden="true"
-                  />
                   {step.title}
                   {current && <span className="sr-only">(this conversation)</span>}
                 </span>
@@ -192,7 +129,7 @@ export function StartJourney({ intent, className }: StartJourneyProps) {
           );
         })}
       </ol>
-      {journey.note.href ? (
+      {journey.note && (
         <Link
           href={journey.note.href}
           className={cn(
@@ -200,23 +137,14 @@ export function StartJourney({ intent, className }: StartJourneyProps) {
             accent.note
           )}
         >
-          <NoteIcon
-            className={cn('h-[18px] w-[18px] shrink-0', accent.noteIcon)}
-            aria-hidden="true"
-          />
           <span className="min-w-0 flex-1 text-xs font-semibold text-gray-900">
             {journey.note.title}
           </span>
           <ArrowUpRight
-            className={cn('h-3.5 w-3.5 shrink-0', accent.noteIcon)}
+            className={cn('h-3.5 w-3.5 shrink-0', accent.noteArrow)}
             aria-hidden="true"
           />
         </Link>
-      ) : (
-        <p className="flex items-center gap-2 px-0.5 text-xs text-gray-500">
-          <NoteIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-          {journey.note.title}
-        </p>
       )}
     </aside>
   );
