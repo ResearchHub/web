@@ -89,9 +89,9 @@ export async function generateSitemaps() {
 export default async function sitemap({
   id,
 }: {
-  id: number | string;
+  id: Promise<string> | string;
 }): Promise<MetadataRoute.Sitemap> {
-  const sitemapId = Number(id);
+  const sitemapId = Number(await id);
   if (sitemapId === 0) return STATIC_ROUTES;
   if (sitemapId === 1)
     return buildSlugSitemap(
