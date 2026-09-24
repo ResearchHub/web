@@ -16,13 +16,7 @@ export default async function PeerReviewPage() {
     <PageLayout contentWidth="narrow">
       <section className="sr-only">
         <p>
-          ResearchHub offers two ways to earn ResearchCoin in one place. You can hold ResearchCoin
-          to earn daily yield through the ResearchHub Endowment, where your balance accrues funding
-          credits used to fund science, or you can complete paid peer reviews on papers and
-          proposals that need expert evaluation.
-        </p>
-        <p>
-          "ResearchHub compensates researchers for peer-reviewing scientific preprints. Unlike
+          ResearchHub compensates researchers for peer-reviewing scientific preprints. Unlike
           traditional academic peer review, which is typically unpaid and can take months, reviews
           on ResearchHub are paid $150 each after quality check from established researchers, with
           turn-around times of around 10 days.
