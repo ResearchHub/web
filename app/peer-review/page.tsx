@@ -5,8 +5,9 @@ import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ReviewsPageContent } from './ReviewsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Earn ResearchCoin',
-  description: 'Earn ResearchCoin by holding it for yield or peer-reviewing science.',
+  title: 'Peer Review',
+  description:
+    'Browse open peer-review bounties and earn ResearchCoin for reviewing scientific papers and research proposals.',
   url: '/peer-review',
 });
 
