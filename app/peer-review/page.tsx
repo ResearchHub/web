@@ -5,8 +5,9 @@ import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ReviewsPageContent } from './ReviewsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
-  title: 'Earn ResearchCoin',
-  description: 'Earn ResearchCoin by holding it for yield or peer-reviewing science.',
+  title: 'Peer Review',
+  description:
+    'Browse open peer-review bounties and earn ResearchCoin for reviewing scientific research proposals.',
   url: '/peer-review',
 });
 
@@ -15,23 +16,17 @@ export default async function PeerReviewPage() {
     <PageLayout contentWidth="narrow">
       <section className="sr-only">
         <p>
-          ResearchHub offers two ways to earn ResearchCoin in one place. You can hold ResearchCoin
-          to earn daily yield through the ResearchHub Endowment, where your balance accrues funding
-          credits used to fund science, or you can complete paid peer reviews on papers and
-          proposals that need expert evaluation.
-        </p>
-        <p>
-          "ResearchHub compensates researchers for peer-reviewing scientific preprints. Unlike
+          ResearchHub compensates researchers for peer-reviewing scientific proposals. Unlike
           traditional academic peer review, which is typically unpaid and can take months, reviews
           on ResearchHub are paid $150 each after quality check from established researchers, with
           turn-around times of around 10 days.
         </p>
         <p>
-          Browse open peer-review bounties below to find papers or proposals in your field of
-          expertise. Each listing includes the paper, reward amount, and submission deadline. When
-          you find a match, submit a structured review following our peer review guidelines. Reviews
-          are evaluated by the requesting author or our editorial team, and approved submissions
-          receive compensation promptly.
+          Browse open peer-review bounties below to find proposals in your field of expertise. Each
+          listing includes the proposal, reward amount, and submission deadline. When you find a
+          match, submit a structured review following our peer review guidelines. Reviews are
+          evaluated by the requesting author or our editorial team, and approved submissions receive
+          compensation promptly.
         </p>
         <p>
           Quality peer review is essential to the scientific process, and we believe reviewers

@@ -12,6 +12,7 @@ interface HeroHeaderProps {
   children?: React.ReactNode;
   tabBar?: React.ReactNode;
   className?: string;
+  contentWidth?: 'default' | 'narrow';
   /**
    * Top-align the title/subtitle with the CTA column instead of vertically
    * centering them. Use when the CTA can vary in height (e.g. it contains a
@@ -30,15 +31,18 @@ export function HeroHeader({
   children,
   tabBar,
   className,
+  contentWidth = 'default',
   alignTop = false,
 }: HeroHeaderProps) {
   const hasHeader = title || eyebrow || preTitle || subtitle || actions || cta;
+  const contentMaxWidth = contentWidth === 'narrow' ? 'max-w-[1012px]' : 'max-w-[1180px]';
 
   return (
     <div className={cn('w-full bg-gray-50/80', !tabBar && 'border-b border-gray-200', className)}>
       <div
         className={cn(
-          'max-w-[1180px] mx-auto px-4 tablet:!px-8',
+          contentMaxWidth,
+          'mx-auto px-4 tablet:!px-8',
           children || tabBar ? 'pt-6' : 'py-6'
         )}
       >
@@ -85,7 +89,7 @@ export function HeroHeader({
 
       {tabBar && (
         <div className="w-full border-b border-gray-200 mt-6">
-          <div className="max-w-[1180px] mx-auto px-4 tablet:!px-8">{tabBar}</div>
+          <div className={cn(contentMaxWidth, 'mx-auto px-4 tablet:!px-8')}>{tabBar}</div>
         </div>
       )}
     </div>
