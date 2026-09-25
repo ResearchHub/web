@@ -485,9 +485,19 @@ export function formatNotificationMessage(
 
     // Fundraising notifications
     case 'FUNDRAISE_CONTRIBUTION':
+      // Stored notifications may contain only the contributor's first name.
       return (
-        stripHtml(notification.body.map((segment) => segment.value).join('')) ||
-        `${userName} submitted a contribution to your proposal "${truncatedTitle}"`
+        stripHtml(
+          notification.body
+            .map((segment, index) =>
+              index === 0 &&
+              segment.type === 'link' &&
+              (actionUser?.firstName || actionUser?.lastName)
+                ? actionUser.fullName
+                : segment.value
+            )
+            .join('')
+        ) || `${userName} submitted a contribution to your proposal "${truncatedTitle}"`
       );
 
     case 'FUNDRAISE_PAYOUT':
