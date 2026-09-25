@@ -259,9 +259,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
           <Loader2 className="h-5 w-5 animate-spin text-primary-600 shrink-0" aria-hidden />
           <p className="text-sm text-gray-600 min-w-0 flex-1">
             Finding experts…
-            {searchDetail.expertResults.length > 0
-              ? ' Existing experts stay visible while new ones are found.'
-              : ' This can take a bit of time.'}
+            {' This can take a bit of time.'}
           </p>
           <Button
             variant="secondary"
