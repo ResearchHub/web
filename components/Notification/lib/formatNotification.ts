@@ -127,6 +127,11 @@ const NOTIFICATION_TYPE_MAP = {
     useAvatar: false,
     title: 'Funding payout',
   },
+  FUNDRAISE_CONTRIBUTION: {
+    icon: 'fund',
+    useAvatar: true,
+    title: 'New contribution',
+  },
   RSC_SUPPORT_ON_DIS: {
     icon: 'fund',
     useAvatar: true,
@@ -262,7 +267,11 @@ function notificationMessageIncludesAmount(message: string): boolean {
 }
 
 export function getRSCAmountForBadge(notification: Notification, message: string): number | null {
-  if (notification.type === 'FUNDING_CREDITS_REMINDER') {
+  // Contribution copy already includes its amount in the original currency (USD or RSC).
+  if (
+    notification.type === 'FUNDING_CREDITS_REMINDER' ||
+    notification.type === 'FUNDRAISE_CONTRIBUTION'
+  ) {
     return null;
   }
 
@@ -475,6 +484,12 @@ export function formatNotificationMessage(
       return `${userName} supported your work "${truncatedTitle}" with RSC`;
 
     // Fundraising notifications
+    case 'FUNDRAISE_CONTRIBUTION':
+      return (
+        stripHtml(notification.body.map((segment) => segment.value).join('')) ||
+        `${userName} submitted a contribution to your proposal "${truncatedTitle}"`
+      );
+
     case 'FUNDRAISE_PAYOUT':
       return 'Your fundraising payout has been processed';
 
