@@ -4,19 +4,23 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, RefreshCw, Download, Mail, UserPlus, MoreVertical } from 'lucide-react';
+import { Loader2, RefreshCw, Download, Mail, UserPlus, MoreVertical, Search } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { cn } from '@/utils/styles';
-import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
+import { useExpertSearchDetail, useFindMoreExperts } from '@/hooks/useExpertFinder';
+import { ApiError } from '@/services/types/api';
+import { type FindMoreExpertsPayload } from '@/services/expertFinder.service';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
+import { FindMoreExpertsModal } from './FindMoreExpertsModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
 import type { ExpertResult } from '@/types/expertFinder';
@@ -76,13 +80,21 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
 
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
+  const [{ isLoading: isFindMoreSubmitting, error: findMoreError }, findMore] =
+    useFindMoreExperts();
+
   const [showAddExpertModal, setShowAddExpertModal] = useState(false);
+  const [showFindMoreModal, setShowFindMoreModal] = useState(false);
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
   const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
+
+  const isInProgress =
+    searchDetail != null &&
+    (searchDetail.status === 'pending' || searchDetail.status === 'processing');
 
   const toggleSelection = useCallback((index: number) => {
     setSelectedIndices((prev) => {
@@ -113,12 +125,27 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     setSelectedIndices(new Set());
   }, []);
 
+  const handleFindMoreSubmit = useCallback(
+    async (payload: FindMoreExpertsPayload) => {
+      try {
+        await findMore(searchId, payload);
+        setShowFindMoreModal(false);
+        await refetch();
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 409) {
+          toast.error('Search is already running');
+          setShowFindMoreModal(false);
+          await refetch();
+          return;
+        }
+        // Modal surfaces findMoreError from the hook
+      }
+    },
+    [findMore, searchId, refetch]
+  );
+
   const expertResultsTabHref = pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined;
   const outreachTabHref = pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined;
-
-  const isInProgress =
-    searchDetail != null &&
-    (searchDetail.status === 'pending' || searchDetail.status === 'processing');
 
   if (isLoading && !searchDetail) {
     return <SearchDetailSkeleton activeTab={tab} />;
@@ -144,14 +171,35 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     return null;
   }
 
-  const displayedExpertTotal =
-    searchDetail.status === 'completed'
-      ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
-      : searchDetail.expertResults.length;
+  const displayedExpertTotal = Math.max(
+    searchDetail.expertCount,
+    searchDetail.expertResults.length
+  );
+
+  const statusAllowsFindMore =
+    searchDetail.status === 'completed' || searchDetail.status === 'failed';
+  const canFindMore = statusAllowsFindMore && !isInProgress;
+
+  const showCompletedResults =
+    searchDetail.status === 'completed' ||
+    (searchDetail.status === 'failed' && searchDetail.expertResults.length > 0) ||
+    (isInProgress && searchDetail.expertResults.length > 0);
 
   // Proposal drafts / proposal invitations only apply to searches linked to a
   // grant (funding round) document.
   const isGrantLinked = searchDetail.work?.contentType === 'funding_request';
+
+  const findMoreButton = canFindMore ? (
+    <Button
+      variant="outlined"
+      size="sm"
+      className="gap-2"
+      onClick={() => setShowFindMoreModal(true)}
+    >
+      <Search className="h-4 w-4" aria-hidden />
+      Find more experts
+    </Button>
+  ) : null;
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -188,10 +236,49 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               </p>
             </div>
           </Alert>
+          {canFindMore && searchDetail.expertResults.length === 0 ? (
+            <div className="flex flex-wrap items-center gap-2">{findMoreButton}</div>
+          ) : null}
         </div>
       )}
 
-      {searchDetail.status === 'completed' && (
+      {searchDetail.status === 'completed' && searchDetail.errorMessage.trim() !== '' && (
+        <Alert variant="warning">
+          <div>
+            <p className="font-semibold mb-1">Find more did not finish cleanly</p>
+            <p className="font-normal text-sm whitespace-pre-wrap">{searchDetail.errorMessage}</p>
+            <p className="font-normal text-sm mt-2 text-amber-900/80">
+              Existing experts from this search are still available below.
+            </p>
+          </div>
+        </Alert>
+      )}
+
+      {isInProgress && (
+        <div className="flex flex-wrap items-center gap-3" aria-live="polite">
+          <Loader2 className="h-5 w-5 animate-spin text-primary-600 shrink-0" aria-hidden />
+          <p className="text-sm text-gray-600 min-w-0 flex-1">
+            Finding experts…
+            {' This can take a bit of time.'}
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            onClick={() => void refetch()}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
+            ) : (
+              <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
+            )}
+            <span>{isLoading ? 'Refreshing…' : 'Refresh'}</span>
+          </Button>
+        </div>
+      )}
+
+      {showCompletedResults && (
         <>
           <Tabs
             tabs={[
@@ -257,6 +344,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    {findMoreButton}
                     <Button
                       variant="default"
                       size="sm"
@@ -299,7 +387,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
           ) : tab === TAB_EXPERT_RESULTS ? (
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600 space-y-3">
               <p>No experts found for this search.</p>
-              <div className="flex justify-center">
+              <div className="flex flex-wrap justify-center gap-2">
+                {findMoreButton}
                 <SearchActionsMenu
                   reportPdfUrl={searchDetail.reportPdfUrl}
                   reportCsvUrl={searchDetail.reportCsvUrl}
@@ -317,6 +406,14 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         searchId={searchId}
         onSuccess={refetch}
       />
+      <FindMoreExpertsModal
+        isOpen={showFindMoreModal}
+        onClose={() => setShowFindMoreModal(false)}
+        initialAdditionalContext={searchDetail.additionalContext}
+        isSubmitting={isFindMoreSubmitting}
+        error={findMoreError}
+        onSubmit={handleFindMoreSubmit}
+      />
       <GenerateEmailModal
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}
@@ -332,28 +429,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         generation={generatePayload}
         onDone={handleProgressDone}
       />
-
-      {isInProgress && (
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-gray-500">
-            Re-check status when the search has had time to complete.
-          </p>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            onClick={refetch}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
-            ) : (
-              <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
-            )}
-            <span>{isLoading ? 'Refreshing…' : 'Refresh'}</span>
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
