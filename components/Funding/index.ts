@@ -26,4 +26,6 @@ export {
   usePaymentCalculations,
   useWalletAvailability,
   type WalletAvailability,
+  useAllocateFromFundingPool,
+  type AllocateFromFundingPoolOption,
 } from './lib';

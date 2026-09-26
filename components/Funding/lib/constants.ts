@@ -39,10 +39,12 @@ export const RSC_PAYMENT_METHODS: PaymentMethodType[] = ['rsc', 'funding_credits
 /**
  * Per-method platform fee percentages.
  * RSC payments have a lower fee; credit card / wallet methods have a higher fee.
+ * Allocating from an RFP funding pool has no platform fee.
  */
 export const PAYMENT_FEES = {
   rsc: PLATFORM_FEE_PERCENTAGE_RSC,
   funding_credits: PLATFORM_FEE_PERCENTAGE_RSC,
+  funding_pool: 0,
   credit_card: PLATFORM_FEE_PERCENTAGE_CARD,
   apple_pay: PLATFORM_FEE_PERCENTAGE_CARD,
   google_pay: PLATFORM_FEE_PERCENTAGE_CARD,
@@ -56,6 +58,7 @@ export const PAYMENT_FEES = {
 export type PaymentMethodType =
   | 'rsc'
   | 'funding_credits'
+  | 'funding_pool'
   | 'credit_card'
   | 'endaoment'
   | 'apple_pay'
@@ -74,6 +77,7 @@ export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['paypal'];
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodType, string> = {
   rsc: 'ResearchCoin',
   funding_credits: 'Funding Credits',
+  funding_pool: 'Funding pool',
   credit_card: 'Credit Card',
   endaoment: 'Endaoment',
   apple_pay: 'Apple Pay',
