@@ -4,7 +4,7 @@ import { useTextmenuCommands } from './hooks/useTextmenuCommands';
 import { useTextmenuStates } from './hooks/useTextmenuStates';
 import { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
-import { memo, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Surface } from '@/components/Editor/components/ui/Surface';
 import { ColorPicker } from '@/components/Editor/components/panels';
@@ -14,6 +14,10 @@ import { useTextmenuContentTypes } from './hooks/useTextmenuContentTypes';
 import { ContentTypePicker } from './components/ContentTypePicker';
 import { AIDropdown } from './components/AIDropdown';
 import { EditLinkPopover } from './components/EditLinkPopover';
+import { useTextMenuScrollSync } from './hooks/useTextMenuScrollSync';
+import { getVisibleSelectionRect } from '@/components/Editor/lib/utils/getVisibleSelectionRect';
+
+const TEXT_MENU_PLUGIN_KEY = 'textMenu';
 
 // We memorize the button so each button is not rerendered
 // on every editor state change
@@ -39,19 +43,26 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
     () => ({
       placement: 'top-start' as const,
       strategy: 'fixed' as const,
-      // Matches the v2 popper config: keep the menu inside the viewport with
-      // 8px padding, but never flip it below the selection.
+      // Never flip below the selection. Cross-axis shifting pins the menu to
+      // the top of the viewport when the selection starts above it; the
+      // padding accounts for the 8px offset applied after the shift.
       flip: false,
-      shift: { padding: 8 },
+      shift: { padding: 16, crossAxis: true },
+      hide: { strategy: 'referenceHidden' as const },
     }),
     []
   );
 
+  const getReferencedVirtualElement = useCallback(() => getVisibleSelectionRect(editor), [editor]);
+
+  useTextMenuScrollSync(editor, TEXT_MENU_PLUGIN_KEY);
+
   return (
     <BubbleMenu
       options={bubbleMenuOptions}
+      getReferencedVirtualElement={getReferencedVirtualElement}
       editor={editor}
-      pluginKey="textMenu"
+      pluginKey={TEXT_MENU_PLUGIN_KEY}
       shouldShow={states.shouldShow}
       updateDelay={200}
     >
