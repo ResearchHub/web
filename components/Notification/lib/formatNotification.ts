@@ -132,6 +132,11 @@ const NOTIFICATION_TYPE_MAP = {
     useAvatar: true,
     title: 'New contribution',
   },
+  FUNDING_POOL_CONTRIBUTION: {
+    icon: 'fund',
+    useAvatar: true,
+    title: 'New contribution',
+  },
   RSC_SUPPORT_ON_DIS: {
     icon: 'fund',
     useAvatar: true,
@@ -485,6 +490,7 @@ export function formatNotificationMessage(
 
     // Fundraising notifications
     case 'FUNDRAISE_CONTRIBUTION':
+    case 'FUNDING_POOL_CONTRIBUTION':
       // Stored notifications may contain only the contributor's first name.
       return (
         stripHtml(
@@ -497,7 +503,8 @@ export function formatNotificationMessage(
                 : segment.value
             )
             .join('')
-        ) || `${userName} submitted a contribution to your proposal "${truncatedTitle}"`
+        ) ||
+        `${userName} submitted a contribution to your ${type === 'FUNDRAISE_CONTRIBUTION' ? 'proposal' : 'RFP'} "${truncatedTitle}"`
       );
 
     case 'FUNDRAISE_PAYOUT':
