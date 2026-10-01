@@ -272,10 +272,11 @@ function notificationMessageIncludesAmount(message: string): boolean {
 }
 
 export function getRSCAmountForBadge(notification: Notification, message: string): number | null {
-  // Contribution copy already includes its amount in the original currency (USD or RSC).
+  // Credits reminder copy already includes its amount; contribution notifications omit it.
   if (
     notification.type === 'FUNDING_CREDITS_REMINDER' ||
-    notification.type === 'FUNDRAISE_CONTRIBUTION'
+    notification.type === 'FUNDRAISE_CONTRIBUTION' ||
+    notification.type === 'FUNDING_POOL_CONTRIBUTION'
   ) {
     return null;
   }
@@ -491,21 +492,7 @@ export function formatNotificationMessage(
     // Fundraising notifications
     case 'FUNDRAISE_CONTRIBUTION':
     case 'FUNDING_POOL_CONTRIBUTION':
-      // Stored notifications may contain only the contributor's first name.
-      return (
-        stripHtml(
-          notification.body
-            .map((segment, index) =>
-              index === 0 &&
-              segment.type === 'link' &&
-              (actionUser?.firstName || actionUser?.lastName)
-                ? actionUser.fullName
-                : segment.value
-            )
-            .join('')
-        ) ||
-        `${userName} submitted a contribution to your ${type === 'FUNDRAISE_CONTRIBUTION' ? 'proposal' : 'RFP'} "${truncatedTitle}"`
-      );
+      return `${userName} submitted a contribution to your ${type === 'FUNDRAISE_CONTRIBUTION' ? 'proposal' : 'RFP'} "${truncatedTitle}"`;
 
     case 'FUNDRAISE_PAYOUT':
       return 'Your fundraising payout has been processed';
