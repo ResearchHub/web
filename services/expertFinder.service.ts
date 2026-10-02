@@ -95,6 +95,16 @@ export interface ExpertSearchCreatePayload {
   additional_context?: string;
 }
 
+/** POST body for find-more on an existing search (all fields optional). */
+export interface FindMoreExpertsPayload {
+  expert_count?: number;
+  additional_context?: string;
+}
+
+/** Allowed `expert_count` values for create and find-more (API: 5–25). */
+export const EXPERT_COUNT_OPTIONS = [5, 10, 25] as const;
+export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
+
 /** PATCH body for canonical expert (wire format, snake_case). */
 export type PatchExpertPayload = Partial<{
   honorific: string;
@@ -213,6 +223,26 @@ export class ExpertFinderService {
     const raw = await ApiClient.post<Record<string, unknown>>(
       `${this.BASE_PATH}/searches/`,
       payload
+    );
+    return transformExpertSearchCreateResponse(raw);
+  }
+
+  /**
+   * Request additional experts for an existing search (appended when done).
+   * POST /api/research_ai/expert-finder/searches/:searchId/find-more/
+   */
+  static async findMoreExperts(
+    searchId: number | string,
+    payload?: FindMoreExpertsPayload
+  ): Promise<ExpertSearchCreated> {
+    const body: Record<string, unknown> = {};
+    if (payload?.expert_count != null) body.expert_count = payload.expert_count;
+    if (payload && 'additional_context' in payload) {
+      body.additional_context = payload.additional_context ?? '';
+    }
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/${searchId}/find-more/`,
+      body
     );
     return transformExpertSearchCreateResponse(raw);
   }

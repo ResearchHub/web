@@ -1,15 +1,17 @@
 import { z } from 'zod';
 import {
   ExpertiseLevel,
+  EXPERT_COUNT_OPTIONS,
   EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
   InputType,
   Region,
+  type ExpertCountOption,
 } from '@/services/expertFinder.service';
 
 const INPUT_TYPES: InputType[] = ['abstract', 'pdf', 'full_content'];
 
-export const EXPERT_COUNT_OPTIONS = [5, 10, 25, 50, 100] as const;
-export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
+export { EXPERT_COUNT_OPTIONS };
+export type { ExpertCountOption };
 
 export const DEFAULT_STATE = 'All States';
 
@@ -31,7 +33,14 @@ export const REGION_VALUES: [Region, ...Region[]] = [
 ];
 
 export const advancedConfigSchema = z.object({
-  expertCount: z.number().default(25),
+  expertCount: z
+    .number()
+    .refine(
+      (n): n is ExpertCountOption => (EXPERT_COUNT_OPTIONS as readonly number[]).includes(n),
+      {
+        message: `Must be ${EXPERT_COUNT_OPTIONS.join(', ')}`,
+      }
+    ),
   expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
   region: z.enum(REGION_VALUES),
   state: z.string(),

@@ -22,7 +22,13 @@ import {
   ExpertFinderService,
   EXPERTISE_LEVEL_ALL,
 } from '@/services/expertFinder.service';
-import { expertFinderFormSchema, type ExpertFinderFormValues, DEFAULT_STATE } from '../schema';
+import {
+  EXPERT_COUNT_OPTIONS,
+  expertFinderFormSchema,
+  type ExpertFinderFormValues,
+  type ExpertCountOption,
+  DEFAULT_STATE,
+} from '../schema';
 import { AdvancedConfig } from './AdvancedConfig';
 import { SearchSubmissionProgress } from './SearchSubmissionProgress';
 import { WorkPreviewCard } from './WorkPreviewCard';
@@ -30,6 +36,14 @@ import type { Work } from '@/types/work';
 import { ExpertSearchResult } from '@/types/expertFinder';
 
 const DEFAULT_URL_PLACEHOLDER = 'e.g., https://researchhub.com/paper/123/...';
+const INITIAL_EXPERT_COUNT: ExpertCountOption = 10;
+
+function toExpertCountOption(value: unknown): ExpertCountOption {
+  const n = Number(value);
+  return (EXPERT_COUNT_OPTIONS as readonly number[]).includes(n)
+    ? (n as ExpertCountOption)
+    : INITIAL_EXPERT_COUNT;
+}
 
 function getAvailableInputTypes(work: Work | null): InputType[] {
   if (work?.contentType === 'paper') {
@@ -45,7 +59,7 @@ const defaultValues: ExpertFinderFormValues = {
   url: '',
   additionalContext: '',
   advanced: {
-    expertCount: 25,
+    expertCount: INITIAL_EXPERT_COUNT,
     expertiseLevel: [],
     region: DEFAULT_REGION,
     state: DEFAULT_STATE,
@@ -151,7 +165,7 @@ export function ExpertFinderForm() {
       setSelectedSearchId(search?.searchId ?? null);
       if (!search) return;
       const config = search.config as Record<string, unknown>;
-      const expertCount = (config.expert_count as number) ?? 25;
+      const expertCount = toExpertCountOption(config.expert_count);
       const rawLevel = config.expertise_level;
       let expertiseLevel: ExpertiseLevel[];
       if (Array.isArray(rawLevel)) {

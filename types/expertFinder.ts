@@ -183,12 +183,29 @@ export interface ExpertSearchListResponse {
   offset: number;
 }
 
-/** Result of creating an expert search. */
+/** Result of creating an expert search (or find-more). */
 export interface ExpertSearchCreated {
   searchId: number;
   status: SearchStatus;
   message: string;
   sseUrl: string | null;
+  expertCount?: number;
+  append?: boolean;
+}
+
+const SEARCH_STATUSES: readonly SearchStatus[] = ['pending', 'processing', 'completed', 'failed'];
+
+/** Normalize API status (often uppercase) to client SearchStatus. */
+export function normalizeSearchStatus(
+  raw: unknown,
+  fallback: SearchStatus = 'pending'
+): SearchStatus {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  return (SEARCH_STATUSES as readonly string[]).includes(value)
+    ? (value as SearchStatus)
+    : fallback;
 }
 
 /** SSE progress event. */
@@ -377,7 +394,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
     inputType: raw.input_type ?? 'abstract',
     config: raw.config ?? {},
     llmModel: raw.llm_model ?? '',
-    status: raw.status ?? 'pending',
+    status: normalizeSearchStatus(raw.status),
     progress: raw.progress ?? 0,
     currentStep: raw.current_step ?? '',
     expertResults,
@@ -401,7 +418,7 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     searchId: raw.search_id ?? 0,
     name: raw.name ?? '',
     query: raw.query ?? '',
-    status: raw.status ?? 'pending',
+    status: normalizeSearchStatus(raw.status),
     expertCount: raw.expert_count ?? 0,
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
@@ -410,23 +427,41 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
 );
 
 export const transformExpertSearchCreateResponse = createTransformer<any, ExpertSearchCreated>(
-  (raw) => ({
-    searchId: raw.search_id ?? 0,
-    status: raw.status ?? 'pending',
-    message: raw.message ?? '',
-    sseUrl: raw.sse_url ?? null,
-  })
+  (raw) => {
+    const expertCountRaw = raw.expert_count;
+    const expertCount =
+      expertCountRaw != null && Number.isFinite(Number(expertCountRaw))
+        ? Number(expertCountRaw)
+        : undefined;
+    return {
+      searchId: raw.search_id ?? 0,
+      status: normalizeSearchStatus(raw.status),
+      message: raw.message ?? '',
+      sseUrl: raw.sse_url ?? null,
+      ...(expertCount !== undefined ? { expertCount } : {}),
+      ...(typeof raw.append === 'boolean' ? { append: raw.append } : {}),
+    };
+  }
 );
 
 export const transformExpertSearchProgressEvent = createTransformer<any, ExpertSearchProgress>(
-  (raw) => ({
-    status: raw.status ?? 'pending',
-    progress: raw.progress,
-    currentStep: raw.current_step,
-    taskType: raw.task_type,
-    taskId: raw.task_id,
-    error: raw.error,
-  })
+  (raw) => {
+    const rawStatus = raw.status;
+    const status =
+      rawStatus == null || rawStatus === ''
+        ? 'pending'
+        : String(rawStatus).trim().toLowerCase() === 'connected'
+          ? 'connected'
+          : normalizeSearchStatus(rawStatus);
+    return {
+      status,
+      progress: raw.progress,
+      currentStep: raw.current_step,
+      taskType: raw.task_type,
+      taskId: raw.task_id,
+      error: raw.error,
+    };
+  }
 );
 
 // ── Generated emails ─────────────────────────────────
