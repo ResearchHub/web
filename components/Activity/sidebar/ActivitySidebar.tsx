@@ -5,11 +5,13 @@ import { Activity, Reply } from 'lucide-react';
 import { ActivityCardCompact } from '../cards/ActivityCardCompact';
 import type { FeedEntry } from '@/types/feed';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ID } from '@/types/root';
 
 interface ActivitySidebarProps {
   topSection?: ReactNode;
   entries?: FeedEntry[];
+  error?: boolean;
   grantTitle?: string;
   /** Post id of the page being viewed — hides same-document title links. */
   currentDocumentId?: ID;
@@ -18,10 +20,12 @@ interface ActivitySidebarProps {
 export const ActivitySidebar: FC<ActivitySidebarProps> = ({
   topSection,
   entries,
+  error = false,
   grantTitle,
   currentDocumentId,
 }) => {
-  const hasEntries = entries && entries.length > 0;
+  const activityEntries = entries ?? [];
+  const hasEntries = activityEntries.length > 0;
 
   return (
     <div data-activity-sidebar className="h-full">
@@ -33,7 +37,14 @@ export const ActivitySidebar: FC<ActivitySidebarProps> = ({
       )}
 
       <div className="mb-6">
-        <SidebarHeader title="Recent Activity" />
+        <SidebarHeader
+          title={
+            <span className="flex items-center gap-2">
+              <RadiatingDot color="bg-blue-500" size="sm" ring className="ml-0.5" />
+              <span>Recent Activity</span>
+            </span>
+          }
+        />
         {grantTitle && (
           <div className="flex items-start gap-1.5 mt-1">
             <Reply className="w-4 h-4 text-gray-400 rotate-180 flex-shrink-0" />
@@ -42,7 +53,15 @@ export const ActivitySidebar: FC<ActivitySidebarProps> = ({
         )}
       </div>
 
-      {!hasEntries ? (
+      {error && (
+        <div
+          role="alert"
+          className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+        >
+          Activity data failed to load. Refresh to try again.
+        </div>
+      )}
+      {!hasEntries && !error ? (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
             <Activity size={24} className="text-gray-400" />
@@ -52,7 +71,7 @@ export const ActivitySidebar: FC<ActivitySidebarProps> = ({
         </div>
       ) : (
         <div className="divide-y divide-gray-200">
-          {entries.map((entry) => (
+          {activityEntries.map((entry) => (
             <ActivityCardCompact
               key={entry.id}
               entry={entry}

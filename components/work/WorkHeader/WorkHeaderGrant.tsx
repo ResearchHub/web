@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useState, useCallback } from 'react';
-import { Bell, Coins, FileText, FileUp, Lock } from 'lucide-react';
+import { Coins, FileText, FileUp, Lock } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { faFileSignature as faFileSignatureSolid } from '@fortawesome/pro-solid-svg-icons';
@@ -21,6 +21,10 @@ import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 import { GrantFundingPoolWidget } from './GrantFundingPoolWidget';
 import { PendingReviewBadge } from './PendingReviewBadge';
+import {
+  RadiatingDotTabIcon,
+  RadiatingDotTabIconActive,
+} from '@/components/ui/RadiatingDotTabIcon';
 
 interface WorkHeaderGrantProps {
   work: Work;
@@ -229,8 +233,7 @@ export function WorkHeaderGrant({
       id: 'activity' as const,
       label: (
         <div className="flex items-center">
-          <Bell className="h-4 w-4 mr-2" />
-          <span>Updates</span>
+          <span>Activity</span>
           {activityCount > 0 && (
             <span
               className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
@@ -244,6 +247,9 @@ export function WorkHeaderGrant({
           )}
         </div>
       ),
+      icon: RadiatingDotTabIcon,
+      activeIcon: RadiatingDotTabIconActive,
+      iconClassName: 'h-[18px] w-[18px]',
     },
   ];
 
