@@ -616,15 +616,29 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
 
 // ── Mailbox / Gmail connection (app-level, camelCase) ────────────────────────
 
-/** Wire `status` values from GET/POST mailbox endpoints. */
-export type MailboxStatusValue = 'ok' | 'needs_reauth' | 'disconnected' | (string & {});
+/**
+ * Wire `status` values from GET/POST/DELETE mailbox endpoints.
+ * BE: `active` | `needs_reauth` | `revoked` | null. Legacy `ok` treated as active.
+ */
+export type MailboxStatusValue =
+  | 'active'
+  | 'ok'
+  | 'needs_reauth'
+  | 'revoked'
+  | 'disconnected'
+  | (string & {});
 
-/** Current Gmail mailbox connection for Expert Finder outreach. */
+/** Current Gmail mailbox connection + daily send usage for Expert Finder outreach. */
 export interface MailboxStatus {
   connected: boolean;
   email: string | null;
-  status: MailboxStatusValue;
+  status: MailboxStatusValue | null;
   lastError: string | null;
+  dailyCap: number;
+  sentToday: number;
+  queuedToday: number;
+  remainingToday: number;
+  resetsAt: string | null;
 }
 
 /** OAuth client config for building the Google authorize URL on the FE. */
@@ -644,16 +658,48 @@ function parseMailboxScopes(raw: unknown): string[] {
   return [];
 }
 
-export const transformMailboxStatus = createTransformer<any, MailboxStatus>((raw) => ({
-  connected: Boolean(raw?.connected),
-  email:
-    raw?.email != null && String(raw.email).trim() !== '' ? String(raw.email).trim() : null,
-  status: (raw?.status as MailboxStatusValue) ?? (raw?.connected ? 'ok' : 'disconnected'),
-  lastError:
-    raw?.last_error != null && String(raw.last_error).trim() !== ''
-      ? String(raw.last_error).trim()
-      : null,
-}));
+function parseNonNegativeInt(raw: unknown, fallback = 0): number {
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  return Math.floor(n);
+}
+
+export const transformMailboxStatus = createTransformer<any, MailboxStatus>((raw) => {
+  const connected = Boolean(raw?.connected);
+  const dailyCap = parseNonNegativeInt(raw?.daily_cap, 20);
+  const sentToday = parseNonNegativeInt(raw?.sent_today, 0);
+  const queuedToday = parseNonNegativeInt(raw?.queued_today, 0);
+  const remainingFromPayload =
+    raw?.remaining_today != null ? parseNonNegativeInt(raw.remaining_today, 0) : null;
+  const remainingToday =
+    remainingFromPayload != null
+      ? remainingFromPayload
+      : Math.max(0, dailyCap - (sentToday + queuedToday));
+
+  return {
+    connected,
+    email:
+      raw?.email != null && String(raw.email).trim() !== '' ? String(raw.email).trim() : null,
+    status:
+      raw?.status != null && String(raw.status).trim() !== ''
+        ? (String(raw.status).trim() as MailboxStatusValue)
+        : connected
+          ? 'active'
+          : null,
+    lastError:
+      raw?.last_error != null && String(raw.last_error).trim() !== ''
+        ? String(raw.last_error).trim()
+        : null,
+    dailyCap,
+    sentToday,
+    queuedToday,
+    remainingToday,
+    resetsAt:
+      raw?.resets_at != null && String(raw.resets_at).trim() !== ''
+        ? String(raw.resets_at).trim()
+        : null,
+  };
+});
 
 export const transformMailboxConnectConfig = createTransformer<any, MailboxConnectConfig>(
   (raw) => ({

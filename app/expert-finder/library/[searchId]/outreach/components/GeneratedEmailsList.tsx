@@ -9,18 +9,30 @@ import {
   parsePageQueryParam,
 } from '@/app/expert-finder/lib/paginationParams';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Eye, Loader2, Mail, Send, Trash2 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { ExpertFinderService } from '@/services/expertFinder.service';
-import { useGeneratedEmails } from '@/hooks/useExpertFinder';
+import {
+  useGeneratedEmails,
+  useMailboxStatus,
+  usePreviewEmails,
+  useSendEmails,
+} from '@/hooks/useExpertFinder';
+import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { OutreachTable, OUTREACH_TABLE_COLUMNS } from './OutreachTable';
 import { OutreachMobileCard } from './OutreachMobileCard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
+import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfirmationModal';
+import {
+  getOutreachSendErrorMessage,
+  isGmailConnectRequiredError,
+} from '@/app/expert-finder/lib/outreachSendErrors';
+import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { toast } from 'react-hot-toast';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { isGeneratedEmailDraftLike } from '@/app/expert-finder/lib/generatedEmailStatus';
@@ -34,6 +46,8 @@ const DEFAULT_EMPTY_MESSAGE = (
     </p>
   </>
 );
+
+type SendModalMode = 'send' | 'preview' | null;
 
 export interface GeneratedEmailsListProps {
   /** When provided, only emails for this search are shown */
@@ -63,6 +77,12 @@ export function GeneratedEmailsList({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false);
+  const [sendModalMode, setSendModalMode] = useState<SendModalMode>(null);
+
+  const [{ status: mailboxStatus, isLoading: isMailboxLoading }] = useMailboxStatus();
+  const [{ isLoading: isSending }, sendEmails] = useSendEmails();
+  const [{ isLoading: isPreviewing }, previewEmails] = usePreviewEmails();
+  const { replyTo, setReplyTo } = useOutreachReplyTo();
 
   const offset = (pageFromUrl - 1) * pageSize;
   const [{ emails, pagination, isLoading, error }, refetch] = useGeneratedEmails({
@@ -110,7 +130,28 @@ export function GeneratedEmailsList({
     [emails, selectedIds]
   );
 
-  const canBulkDeleteDrafts = selectedDraftIdsOnPage.length > 0 && !bulkDeleteBusy;
+  const selectedSendableDraftIds = useMemo(
+    () =>
+      emails
+        .filter(
+          (e) =>
+            selectedIds.has(e.id) &&
+            isGeneratedEmailDraftLike(e.status) &&
+            Boolean(e.expertEmail?.trim())
+        )
+        .map((e) => e.id),
+    [emails, selectedIds]
+  );
+
+  const mailboxReady =
+    mailboxStatus?.connected === true && mailboxStatus.status !== 'needs_reauth';
+  const mailboxNeedsReauth = mailboxStatus?.status === 'needs_reauth';
+  const remainingToday = mailboxStatus?.remainingToday;
+
+  const isSendBusy = isSending || isPreviewing;
+  const canBulkDeleteDrafts = selectedDraftIdsOnPage.length > 0 && !bulkDeleteBusy && !isSendBusy;
+  const canBulkSend =
+    mailboxReady && selectedSendableDraftIds.length > 0 && !isSendBusy && !bulkDeleteBusy;
 
   const handleSelectionChange = useCallback((ids: Set<number>) => {
     setSelectedIds(ids);
@@ -179,6 +220,55 @@ export function GeneratedEmailsList({
     }
   }, [selectedDraftIdsOnPage, handleBulkListRefresh]);
 
+  const handleBulkSendConfirm = useCallback(async () => {
+    if (!sendModalMode || selectedSendableDraftIds.length === 0) return;
+    const replyValidation = parseAndValidateReplyToInput(replyTo);
+    if (!replyValidation.valid) {
+      toast.error(replyValidation.error);
+      return;
+    }
+
+    try {
+      const payload = {
+        generated_email_ids: selectedSendableDraftIds,
+        reply_to: replyValidation.emails,
+      };
+      if (sendModalMode === 'preview') {
+        const result = await previewEmails(payload);
+        toast.success(
+          result.sent > 0 ? `Preview sent (${result.sent})` : 'Preview sent to your inbox'
+        );
+      } else {
+        const result = await sendEmails(payload);
+        toast.success(
+          result.sent > 0
+            ? `Queued ${result.sent} outreach email(s)`
+            : `Queued ${selectedSendableDraftIds.length} outreach email(s)`
+        );
+        await handleBulkListRefresh();
+      }
+      setSendModalMode(null);
+    } catch (e) {
+      const message = getOutreachSendErrorMessage(
+        e,
+        sendModalMode === 'preview' ? 'Failed to send preview email' : 'Failed to send emails'
+      );
+      toast.error(message);
+      if (isGmailConnectRequiredError(e)) {
+        setSendModalMode(null);
+        router.push('/expert-finder/settings');
+      }
+    }
+  }, [
+    sendModalMode,
+    selectedSendableDraftIds,
+    replyTo,
+    previewEmails,
+    sendEmails,
+    handleBulkListRefresh,
+    router,
+  ]);
+
   if (error) {
     return (
       <div className="mb-4">
@@ -203,6 +293,10 @@ export function GeneratedEmailsList({
     return <div className="px-6 py-12 text-center">{emptyMessage}</div>;
   }
 
+  const showBulkActions = selectedIds.size > 0;
+  const showConnectNudge =
+    showBulkActions && selectedSendableDraftIds.length > 0 && !mailboxReady && !isMailboxLoading;
+
   return (
     <>
       <div className="mb-4 space-y-2">
@@ -226,22 +320,78 @@ export function GeneratedEmailsList({
               </Button>
             )}
             <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
+            {showBulkActions && selectedDraftIdsOnPage.length > 0 && (
+              <span className="text-sm text-gray-500">
+                ({selectedSendableDraftIds.length} draft
+                {selectedSendableDraftIds.length === 1 ? '' : 's'} sendable)
+              </span>
+            )}
           </div>
-          {selectedIds.size > 0 ? (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-2"
-              disabled={!canBulkDeleteDrafts}
-              onClick={() => setShowBulkDeleteConfirm(true)}
-            >
-              {bulkDeleteBusy ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              ) : (
-                <Trash2 className="h-4 w-4" aria-hidden />
-              )}
-              Delete
-            </Button>
+          {showBulkActions ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {mailboxReady ? (
+                <>
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    className="gap-2"
+                    disabled={!canBulkSend}
+                    onClick={() => setSendModalMode('preview')}
+                  >
+                    {isPreviewing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    ) : (
+                      <Eye className="h-4 w-4" aria-hidden />
+                    )}
+                    Send preview
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    disabled={!canBulkSend}
+                    title={
+                      mailboxStatus?.email
+                        ? `Send from ${mailboxStatus.email}`
+                        : 'Send via connected Gmail'
+                    }
+                    onClick={() => setSendModalMode('send')}
+                  >
+                    {isSending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    ) : (
+                      <Send className="h-4 w-4" aria-hidden />
+                    )}
+                    Send
+                  </Button>
+                </>
+              ) : showConnectNudge ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                  disabled={isMailboxLoading}
+                  onClick={() => router.push('/expert-finder/settings')}
+                >
+                  <Mail className="h-4 w-4" aria-hidden />
+                  {mailboxNeedsReauth ? 'Reconnect Gmail' : 'Connect Gmail'}
+                </Button>
+              ) : null}
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2"
+                disabled={!canBulkDeleteDrafts}
+                onClick={() => setShowBulkDeleteConfirm(true)}
+              >
+                {bulkDeleteBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                )}
+                Delete
+              </Button>
+            </div>
           ) : null}
         </div>
       </div>
@@ -292,6 +442,63 @@ export function GeneratedEmailsList({
           </div>
         </div>
       )}
+
+      <SendConfirmationModal
+        isOpen={sendModalMode != null}
+        onClose={() => !isSendBusy && setSendModalMode(null)}
+        isSubmitting={isSendBusy}
+        title={
+          sendModalMode === 'preview'
+            ? `Send preview for ${selectedSendableDraftIds.length} draft(s)?`
+            : `Send ${selectedSendableDraftIds.length} outreach email(s)?`
+        }
+        description={
+          sendModalMode === 'preview' ? (
+            <p>
+              We&apos;ll send copies to your inbox so you can review formatting before contacting
+              experts.
+              {mailboxStatus?.email ? (
+                <>
+                  {' '}
+                  From: <span className="font-medium text-gray-900">{mailboxStatus.email}</span>.
+                </>
+              ) : null}
+            </p>
+          ) : (
+            <p>
+              This queues send from your connected Gmail
+              {mailboxStatus?.email ? (
+                <>
+                  {' '}
+                  (<span className="font-medium text-gray-900">{mailboxStatus.email}</span>)
+                </>
+              ) : null}
+              . Experts who reply will use the Reply To addresses below.
+              {typeof remainingToday === 'number' ? (
+                <>
+                  {' '}
+                  You have <span className="font-medium text-gray-900">{remainingToday}</span> send
+                  {remainingToday === 1 ? '' : 's'} left today.
+                </>
+              ) : null}
+            </p>
+          )
+        }
+        replyTo={replyTo}
+        onReplyToChange={setReplyTo}
+        onConfirm={() => void handleBulkSendConfirm()}
+        confirmLabel={
+          sendModalMode === 'preview' ? 'Send preview' : `Send ${selectedSendableDraftIds.length}`
+        }
+        submittingLabel={sendModalMode === 'preview' ? 'Sending preview…' : 'Sending…'}
+        confirmIcon={
+          sendModalMode === 'preview' ? (
+            <Eye className="h-4 w-4" aria-hidden />
+          ) : (
+            <Send className="h-4 w-4" aria-hidden />
+          )
+        }
+      />
 
       <ConfirmationModal
         isOpen={showBulkDeleteConfirm}
