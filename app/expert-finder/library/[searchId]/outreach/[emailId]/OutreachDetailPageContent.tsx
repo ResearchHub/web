@@ -14,6 +14,7 @@ import {
   ExternalLink,
   MoreVertical,
   Octagon,
+  FileText,
   Send,
   Eye,
 } from 'lucide-react';
@@ -97,6 +98,7 @@ export function OutreachDetailPageContent({
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showMarkDraftConfirm, setShowMarkDraftConfirm] = useState(false);
   const [showMarkSentConfirm, setShowMarkSentConfirm] = useState(false);
   const [markSentChannels, setMarkSentChannels] = useState<OutreachChannel[]>([]);
   const [showChannelConfirm, setShowChannelConfirm] = useState(false);
@@ -322,6 +324,21 @@ export function OutreachDetailPageContent({
     }
   };
 
+  const handleMarkDraft = async () => {
+    if (!emailId) return;
+    setActionError(null);
+    try {
+      await updateEmail(emailId, {
+        status: 'draft',
+      });
+      setShowMarkDraftConfirm(false);
+      refetch();
+      toast.success('Marked as draft.');
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Failed to mark as draft');
+    }
+  };
+
   if (isLoading && !email) {
     return <OutreachDetailSkeleton />;
   }
@@ -344,6 +361,7 @@ export function OutreachDetailPageContent({
 
   const isClosed = isGeneratedEmailClosed(email.status);
   const isSent = email.status === 'sent';
+  const isSendingStatus = email.status === 'sending';
   const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
   const showOutreachMoreMenu = !isClosed;
@@ -494,6 +512,17 @@ export function OutreachDetailPageContent({
                   >
                     <Mail className="h-4 w-4 mr-2 shrink-0 text-amber-600" aria-hidden />
                     <span>{isSent ? 'Update channels' : 'Mark as sent'}</span>
+                  </BaseMenuItem>
+                )}
+                {isSendingStatus && (
+                  <BaseMenuItem
+                    disabled={isUpdating}
+                    onSelect={() => {
+                      setShowMarkDraftConfirm(true);
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+                    <span>Mark as draft</span>
                   </BaseMenuItem>
                 )}
                 {!isSent && (
@@ -787,6 +816,17 @@ export function OutreachDetailPageContent({
           ))}
         </fieldset>
       </ConfirmationModal>
+
+      <ConfirmationModal
+        isOpen={showMarkDraftConfirm}
+        onClose={() => setShowMarkDraftConfirm(false)}
+        title="Mark as draft?"
+        description="Returns this outreach to draft so you can send it again."
+        descriptionClassName="mb-3"
+        confirmLabel="Mark as draft"
+        isConfirming={isUpdating}
+        onConfirm={() => void handleMarkDraft()}
+      />
 
       <ConfirmationModal
         isOpen={showCloseConfirm}
