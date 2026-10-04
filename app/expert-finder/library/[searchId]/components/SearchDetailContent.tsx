@@ -1,15 +1,25 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, RefreshCw, Download, Mail, UserPlus, MoreVertical } from 'lucide-react';
+import {
+  Loader2,
+  RefreshCw,
+  Download,
+  Mail,
+  MailCheck,
+  MailX,
+  UserPlus,
+  MoreVertical,
+} from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
 import { SearchDetailHeader } from './SearchDetailHeader';
@@ -19,7 +29,7 @@ import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
-import type { ExpertResult } from '@/types/expertFinder';
+import { expertHasOutreachHistory, type ExpertResult } from '@/types/expertFinder';
 
 export interface SearchDetailContentProps {
   searchId: string;
@@ -79,6 +89,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const [showAddExpertModal, setShowAddExpertModal] = useState(false);
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const [hideContacted, setHideContacted] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
@@ -112,6 +123,38 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const handleProgressDone = useCallback(() => {
     setSelectedIndices(new Set());
   }, []);
+
+  const expertResults = searchDetail?.expertResults ?? [];
+
+  const visibleExpertEntries = useMemo(
+    () =>
+      expertResults
+        .map((expert, index) => ({ expert, index }))
+        .filter(({ expert }) => !hideContacted || !expertHasOutreachHistory(expert)),
+    [expertResults, hideContacted]
+  );
+
+  const contactedExpertCount = useMemo(
+    () => expertResults.filter(expertHasOutreachHistory).length,
+    [expertResults]
+  );
+
+  const toggleHideContacted = useCallback(() => {
+    setHideContacted((prev) => {
+      const next = !prev;
+      if (next) {
+        setSelectedIndices((selected) => {
+          const pruned = new Set<number>();
+          selected.forEach((index) => {
+            const expert = expertResults[index];
+            if (expert && !expertHasOutreachHistory(expert)) pruned.add(index);
+          });
+          return pruned;
+        });
+      }
+      return next;
+    });
+  }, [expertResults]);
 
   const expertResultsTabHref = pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined;
   const outreachTabHref = pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined;
@@ -149,6 +192,13 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
       ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
       : searchDetail.expertResults.length;
 
+  const visibleIndices = visibleExpertEntries.map(({ index }) => index);
+  const allVisibleSelected =
+    visibleIndices.length > 0 && visibleIndices.every((index) => selectedIndices.has(index));
+  const resultsCountLabel = hideContacted
+    ? `${visibleExpertEntries.length} of ${displayedExpertTotal}`
+    : String(displayedExpertTotal);
+
   // Proposal drafts / proposal invitations only apply to searches linked to a
   // grant (funding round) document.
   const isGrantLinked = searchDetail.work?.contentType === 'funding_request';
@@ -182,10 +232,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                   Step: {searchDetail.currentStep}
                 </p>
               ) : null}
-              <p className="font-normal text-sm mt-2 text-red-900/80">
-                If the model output did not match the required table format, validation errors will
-                appear above.
-              </p>
             </div>
           </Alert>
         </div>
@@ -230,11 +276,11 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
             <section>
               <div className="mb-4 space-y-2">
                 <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-                  Results ({displayedExpertTotal})
+                  Results ({resultsCountLabel})
                 </h2>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    {selectedIndices.size === searchDetail.expertResults.length ? (
+                    {allVisibleSelected ? (
                       <Button
                         variant="outlined"
                         size="sm"
@@ -246,10 +292,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       <Button
                         variant="outlined"
                         size="sm"
-                        onClick={() =>
-                          setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
-                        }
-                        disabled={searchDetail.expertResults.length === 0}
+                        onClick={() => setSelectedIndices(new Set(visibleIndices))}
+                        disabled={visibleIndices.length === 0}
                       >
                         Select all
                       </Button>
@@ -272,6 +316,41 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       <Mail className="h-4 w-4" aria-hidden />
                       Generate outreach
                     </Button>
+                    {contactedExpertCount > 0 ? (
+                      <Tooltip
+                        content={
+                          hideContacted
+                            ? 'Showing experts without prior outreach'
+                            : 'Hide experts already contacted'
+                        }
+                        position="top"
+                        wrapperClassName="inline-flex shrink-0"
+                      >
+                        <button
+                          type="button"
+                          aria-pressed={hideContacted}
+                          aria-label={
+                            hideContacted
+                              ? 'Show experts already contacted'
+                              : 'Hide experts already contacted'
+                          }
+                          onClick={toggleHideContacted}
+                          className={cn(
+                            'inline-flex h-8 w-8 items-center justify-center rounded-lg border shadow-sm transition-colors',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+                            hideContacted
+                              ? 'border-primary-600 bg-primary-50 text-primary-700 hover:bg-primary-100'
+                              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                          )}
+                        >
+                          {hideContacted ? (
+                            <MailX className="h-4 w-4" aria-hidden />
+                          ) : (
+                            <MailCheck className="h-4 w-4" aria-hidden />
+                          )}
+                        </button>
+                      </Tooltip>
+                    ) : null}
                     <SearchActionsMenu
                       reportPdfUrl={searchDetail.reportPdfUrl}
                       reportCsvUrl={searchDetail.reportCsvUrl}
@@ -280,21 +359,34 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
-                {searchDetail.expertResults.map((expert, index) => (
-                  <ExpertResultCard
-                    key={expert.expertId != null ? `expert-${expert.expertId}` : `idx-${index}`}
-                    expert={expert}
-                    index={index}
-                    selected={selectedIndices.has(index)}
-                    onToggleSelect={toggleSelection}
-                    onGenerateEmail={(expert) => openGenerateForExperts([expert])}
-                    searchId={searchId}
-                    onSuccess={refetch}
-                    proposalDraftsEnabled={isGrantLinked}
-                  />
-                ))}
-              </div>
+              {visibleExpertEntries.length === 0 ? (
+                <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600">
+                  <p>All experts on this list already have outreach.</p>
+                  <button
+                    type="button"
+                    className="mt-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                    onClick={toggleHideContacted}
+                  >
+                    Show contacted experts
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
+                  {visibleExpertEntries.map(({ expert, index }) => (
+                    <ExpertResultCard
+                      key={expert.expertId != null ? `expert-${expert.expertId}` : `idx-${index}`}
+                      expert={expert}
+                      index={index}
+                      selected={selectedIndices.has(index)}
+                      onToggleSelect={toggleSelection}
+                      onGenerateEmail={(expert) => openGenerateForExperts([expert])}
+                      searchId={searchId}
+                      onSuccess={refetch}
+                      proposalDraftsEnabled={isGrantLinked}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
           ) : tab === TAB_EXPERT_RESULTS ? (
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600 space-y-3">

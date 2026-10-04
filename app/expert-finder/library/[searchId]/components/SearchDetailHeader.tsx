@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { Fragment } from 'react';
 import { SearchStatus } from '@/app/expert-finder/library/components/SearchStatus';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { formatTimestamp } from '@/utils/date';
 import type { ExpertSearchResult } from '@/types/expertFinder';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
+import { getSearchConfigLineItems } from '@/app/expert-finder/lib/searchConfigDisplay';
 
 interface SearchDetailHeaderProps {
   search: ExpertSearchResult;
@@ -14,6 +16,7 @@ interface SearchDetailHeaderProps {
 export function SearchDetailHeader({ search }: SearchDetailHeaderProps) {
   const createdBy = search.createdBy?.author;
   const authorId = createdBy?.id;
+  const configItems = getSearchConfigLineItems(search);
 
   return (
     <>
@@ -42,6 +45,18 @@ export function SearchDetailHeader({ search }: SearchDetailHeaderProps) {
           </>
         )}
       </div>
+      {configItems.length > 0 && (
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-600">
+          {configItems.map((item, index) => (
+            <Fragment key={item.label}>
+              {index > 0 ? <span className="text-gray-400">•</span> : null}
+              <span>
+                <span className="text-gray-500">{item.label}:</span> {item.value}
+              </span>
+            </Fragment>
+          ))}
+        </p>
+      )}
       {search.work && <RelatedWorkCard work={search.work} size="sm" />}
       {search.additionalContext.trim() !== '' && (
         <section
