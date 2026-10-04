@@ -27,6 +27,8 @@ const MobileBottomNav = dynamic(
 interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
+  /** Align a custom sidebar with the main column's padded content. */
+  rightSidebarTopOffset?: 'default' | 'aligned';
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
@@ -55,6 +57,7 @@ interface PageLayoutProps {
 function PageLayoutInner({
   children,
   rightSidebar = true,
+  rightSidebarTopOffset = 'default',
   className,
   sidebarContentClassName,
   topBanner,
@@ -148,6 +151,7 @@ function PageLayoutInner({
             {rightSidebar && (
               <RightSidebarContainer
                 rightSidebar={rightSidebar}
+                topOffset={rightSidebarTopOffset}
                 contentClassName={sidebarContentClassName}
                 aboveSidebar={rightSidebarAbove}
                 fill={rightSidebarFill}

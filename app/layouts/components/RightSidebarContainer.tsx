@@ -18,6 +18,8 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
   contentClassName?: string;
+  /** Align a custom sidebar's panel with the main column's padded content. */
+  topOffset?: 'default' | 'aligned';
   aboveSidebar?: ReactNode;
   /** Stretch the gray rail to the bottom of the column even with a card above it. */
   fill?: boolean;
@@ -26,6 +28,7 @@ interface RightSidebarContainerProps {
 export function RightSidebarContainer({
   rightSidebar,
   contentClassName,
+  topOffset = 'default',
   aboveSidebar,
   fill = false,
 }: RightSidebarContainerProps) {
@@ -43,7 +46,8 @@ export function RightSidebarContainer({
     <>
       <div
         className={cn(
-          'sticky z-30 mt-10',
+          'sticky z-30',
+          topOffset === 'aligned' ? 'mt-6' : 'mt-10',
           // When a card sits above the gray rail, keep a gap under the top bar
           // once sticky kicks in. Other pages keep top-0 so their sidebar
           // position is unchanged.

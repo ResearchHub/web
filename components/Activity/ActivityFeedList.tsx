@@ -11,6 +11,7 @@ interface ActivityFeedListProps {
   loadMore: () => void | Promise<void>;
   isEmpty: boolean;
   skeletonCount?: number;
+  emptyState?: ReactNode;
   children: ReactNode;
 }
 
@@ -25,6 +26,7 @@ export function ActivityFeedList({
   loadMore,
   isEmpty,
   skeletonCount = 6,
+  emptyState,
   children,
 }: ActivityFeedListProps) {
   const { ref: sentinelRef } = useInView({
@@ -44,11 +46,14 @@ export function ActivityFeedList({
       {(isLoading || isLoadingMore) &&
         [...Array(skeletonCount)].map((_, i) => <ActivityCardSkeleton key={i} />)}
 
-      {!isLoading && !isLoadingMore && isEmpty && (
-        <div className="py-12 text-center">
-          <p className="text-gray-500">No activity found</p>
-        </div>
-      )}
+      {!isLoading &&
+        !isLoadingMore &&
+        isEmpty &&
+        (emptyState ?? (
+          <div className="py-12 text-center">
+            <p className="text-gray-500">No activity found</p>
+          </div>
+        ))}
 
       {!isLoading && !isLoadingMore && hasMore && <div ref={sentinelRef} className="h-10" />}
     </div>

@@ -2,22 +2,31 @@
 
 import { FC, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { SupportedProposal } from '@/types/funder';
-import { formatCurrency } from '@/utils/currency';
+import { Avatar } from '@/components/ui/Avatar';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { Avatar } from '@/components/ui/Avatar';
+import { SupportedProposal } from '@/types/funder';
+import { formatCurrency } from '@/utils/currency';
 import { buildWorkUrl } from '@/utils/url';
-import { DashboardEmptyState } from './DashboardEmptyState';
 
-interface FundedProposalsSectionProps {
+interface MyFundingFundedProposalsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   proposals: SupportedProposal[];
-  className?: string;
+  /** The funder is the one looking, so the list is theirs to call "yours". */
+  isOwnPage: boolean;
 }
 
-export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
+/**
+ * The proposals behind a funder's "N proposals funded": who wrote each one
+ * and how much of the funder's money went to it, the largest first.
+ */
+export const MyFundingFundedProposalsModal: FC<MyFundingFundedProposalsModalProps> = ({
+  isOpen,
+  onClose,
   proposals,
-  className,
+  isOwnPage,
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -51,31 +60,30 @@ export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
   const totalUsd = proposals.reduce((sum, p) => sum + p.fundedAmount.usd, 0);
 
   return (
-    <div className={className}>
-      <div className="mb-4 flex items-baseline gap-2.5">
-        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Proposals you funded</h2>
-        {proposals.length > 0 && (
-          <span className="text-xs text-gray-500">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="xl"
+      title={
+        <span className="flex flex-col gap-0.5">
+          <span>{isOwnPage ? 'Proposals you funded' : 'Proposals funded'}</span>
+          <span className="text-xs font-normal text-gray-500">
             {proposals.length} {proposals.length === 1 ? 'proposal' : 'proposals'} ·{' '}
             {fmt(totalRsc, totalUsd)} given
           </span>
-        )}
+        </span>
+      }
+    >
+      <div className="space-y-2">
+        {ranked.map((proposal) => (
+          <ProposalRow
+            key={proposal.id}
+            proposal={proposal}
+            amount={fmt(proposal.fundedAmount.rsc, proposal.fundedAmount.usd)}
+          />
+        ))}
       </div>
-
-      {ranked.length > 0 ? (
-        <div className="space-y-2">
-          {ranked.map((proposal) => (
-            <ProposalRow
-              key={proposal.id}
-              proposal={proposal}
-              amount={fmt(proposal.fundedAmount.rsc, proposal.fundedAmount.usd)}
-            />
-          ))}
-        </div>
-      ) : (
-        <DashboardEmptyState>No proposals funded yet.</DashboardEmptyState>
-      )}
-    </div>
+    </BaseModal>
   );
 };
 
@@ -110,7 +118,7 @@ const ProposalRow: FC<ProposalRowProps> = ({ proposal, amount }) => {
         </div>
       </div>
       <div className="flex-shrink-0 text-right">
-        {/* Same eyebrow treatment as the hero KPIs, so the label reads as a
+        {/* Same eyebrow treatment as the totals, so the label reads as a
             field name rather than part of the proposal's own metadata. */}
         <div className="whitespace-nowrap text-[11px] font-semibold uppercase leading-none tracking-wider text-gray-500">
           Amount funded

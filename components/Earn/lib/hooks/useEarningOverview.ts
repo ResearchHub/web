@@ -27,7 +27,10 @@ export function useEarningOverview(userId: number | undefined) {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err : new Error('Failed to fetch earning overview'));
+          const nextError =
+            err instanceof Error ? err : new Error('Failed to fetch earning overview');
+          console.error('Failed to fetch earning overview:', nextError);
+          setError(nextError);
           setOverview(null);
         }
       } finally {

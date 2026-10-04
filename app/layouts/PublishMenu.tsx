@@ -3,8 +3,8 @@
 import { ChevronRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { FUNDING_KIND_ICON } from '@/components/Funding/fundingKind';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import {
@@ -44,7 +44,12 @@ const PUBLISH_MENU_SECTIONS: readonly {
         id: 'give-funding',
         title: 'Request for Proposal',
         description: 'Fund specific research you care about',
-        icon: <FontAwesomeIcon icon={faBullhorn} className="h-[18px] w-[18px] text-gray-700" />,
+        icon: (
+          <FontAwesomeIcon
+            icon={FUNDING_KIND_ICON.rfp}
+            className="h-[18px] w-[18px] text-gray-700"
+          />
+        ),
         intent: 'fund',
       },
       {
@@ -52,7 +57,10 @@ const PUBLISH_MENU_SECTIONS: readonly {
         title: 'Proposal',
         description: 'Raise money for your research',
         icon: (
-          <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-700" />
+          <FontAwesomeIcon
+            icon={FUNDING_KIND_ICON.proposal}
+            className="h-[18px] w-[18px] text-gray-700"
+          />
         ),
         intent: 'need_funding',
       },
