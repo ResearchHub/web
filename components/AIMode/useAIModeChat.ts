@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useAIMode, type WorkspaceTarget } from './AIModeContext';
+import { useAIMode } from './AIModeContext';
+import type { WorkspaceTarget } from './workspaceUrl';
 import { getChatTransport } from '@/services/chatTransport';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
@@ -22,8 +23,8 @@ export interface AIModeChatState extends ChatSession {
   /** Every conversation the user has, the notebook's included. */
   readonly list: UseAgentChatListResult;
   /**
-   * What the next conversation is for; sent with its creation. Set by the
-   * door the workspace was opened through, else the last one used.
+   * What the next conversation is for; sent with its creation. Named by the
+   * URL the door led to (`?new=rfp`), else the last one used.
    */
   readonly intent: FundingIntent;
   /** The RFP the next conversation's proposal answers, chosen on the start screen. */
@@ -44,7 +45,6 @@ export interface AIModeChatState extends ChatSession {
   readonly notesForChat: (chatId: number) => Promise<ChatNoteRef[]>;
   /** Open a listed conversation where it lives: on its own, or on its document. */
   readonly selectConversation: (item: AgentChatListItem) => void;
-  readonly startNewChat: () => void;
   /** The document the open target is about, if it has one. */
   readonly note: ChatNoteRef | null;
   /**
@@ -62,7 +62,7 @@ export interface AIModeChatState extends ChatSession {
  * transport for a conversation and on the note's for a document.
  */
 export function useAIModeChat(): AIModeChatState {
-  const { target, selectTarget, selectChat, takePendingIntent } = useAIMode();
+  const { target, selectTarget, selectChat } = useAIMode();
   const { chatId } = target;
   const targetNoteId = target.kind === 'document' ? target.noteId : null;
   const transport = getChatTransport({ noteId: targetNoteId });
@@ -80,7 +80,16 @@ export function useAIModeChat(): AIModeChatState {
   }, []);
 
   // ---- what the next conversation starts out knowing ----
-  const [intent, setIntent] = useFundingIntent();
+  // A Publish menu item or a New RFP / New proposal button leads to the
+  // new-conversation screen for one side of the money; the URL says which,
+  // so the screen does not ask and a reload keeps it. It becomes the side
+  // remembered for a bare `/workspace`.
+  const [rememberedIntent, rememberIntent] = useFundingIntent();
+  const urlIntent = target.kind === 'conversation' ? (target.intent ?? null) : null;
+  useEffect(() => {
+    if (urlIntent) rememberIntent(urlIntent);
+  }, [urlIntent, rememberIntent]);
+  const intent = urlIntent ?? rememberedIntent;
   const [selectedGrant, setSelectedGrant] = useState<SelectedGrantDetails | null>(null);
   const createInitRef = useRef({ intent, selectedGrant });
   createInitRef.current = { intent, selectedGrant };
@@ -117,14 +126,6 @@ export function useAIModeChat(): AIModeChatState {
   const { chat } = session;
   const clearAttachments = session.attachments.clear;
 
-  // ---- the door the workspace was opened through ----
-  // A Publish menu item or a New RFP / New proposal button opens it for one
-  // side of the money; the start screen takes that side rather than asking.
-  useEffect(() => {
-    if (target.kind !== 'conversation' || target.chatId != null) return;
-    const pending = takePendingIntent();
-    if (pending) setIntent(pending);
-  }, [target, takePendingIntent, setIntent]);
   const chatRef = useRef(chat.chat);
   chatRef.current = chat.chat;
 
@@ -140,7 +141,6 @@ export function useAIModeChat(): AIModeChatState {
     },
     [selectTarget, selectChat]
   );
-  const startNewChat = useCallback(() => selectChat(null), [selectChat]);
 
   // ---- keep the listing fresh ----
   // The session refreshes it as the open chat's turns settle; poll while any
@@ -260,7 +260,6 @@ export function useAIModeChat(): AIModeChatState {
     deleteChat,
     notesForChat,
     selectConversation,
-    startNewChat,
     note,
     titleFor,
   };

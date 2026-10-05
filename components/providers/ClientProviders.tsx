@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { Session } from 'next-auth';
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
@@ -26,7 +26,7 @@ import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
-import { AIModeProvider } from '@/components/AIMode/AIModeContext';
+import { LegacyAIModeRedirect } from '@/components/AIMode/LegacyAIModeRedirect';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -59,9 +59,12 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                       <UserListsProvider>
                                         <LeaderboardProvider>
                                           <DismissedFeaturesProvider>
-                                            <AIModeProvider>
-                                              <FollowProvider>{children}</FollowProvider>
-                                            </AIModeProvider>
+                                            <FollowProvider>{children}</FollowProvider>
+                                            {/* Behind Suspense: it reads the URL's
+                                                search params. */}
+                                            <Suspense fallback={null}>
+                                              <LegacyAIModeRedirect />
+                                            </Suspense>
                                             <FeatureNotifications />
                                           </DismissedFeaturesProvider>
                                         </LeaderboardProvider>

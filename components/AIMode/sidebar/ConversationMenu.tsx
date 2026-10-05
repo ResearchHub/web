@@ -84,7 +84,6 @@ export function ConversationMenu({
         </BaseMenuItem>
       </BaseMenu>
 
-      {/* BaseModal, not Modal: it stacks at 9999, above the AI Mode overlay. */}
       <BaseModal
         isOpen={confirming}
         onClose={() => setConfirming(false)}

@@ -12,6 +12,7 @@ import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
+import { AI_MODE_NAME } from '@/components/AIMode/copy';
 
 export interface PageInfo {
   title: string;
@@ -60,6 +61,12 @@ const ROUTE_RULES: RouteRule[] = [
       title: 'My Funding',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
+  },
+  {
+    // Not a root navigation page, so the top bar gives it the back arrow:
+    // that arrow is the way out of the workspace.
+    match: (p) => p === '/workspace',
+    getInfo: () => ({ title: AI_MODE_NAME }),
   },
   {
     match: (p) => p === '/notifications',

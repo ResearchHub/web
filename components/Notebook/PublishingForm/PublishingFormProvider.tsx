@@ -69,7 +69,7 @@ export function PublishingFormProvider({
   readOnly = false,
   children,
 }: PublishingFormProviderProps) {
-  const { note, editor, saveDetailsSoon, saveDetailsNow, onPublished } = usePublishingHost();
+  const { note, editor, saveDetailsSoon, saveDetailsNow } = usePublishingHost();
   const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
 
@@ -172,7 +172,6 @@ export function PublishingFormProvider({
     note,
     editor,
     saveDetailsNow,
-    onPublished,
     readOnly,
     isNewPreprint,
     isChangelog,

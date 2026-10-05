@@ -13,9 +13,16 @@ import { FundingPowerRailButton } from '@/components/Funding/FundingPowerRailBut
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
+  /**
+   * Takes the place of the nav items, the footer links and the funding power
+   * button: a page whose own lists belong in this column. Hidden while the
+   * column is the icon rail, where the page shows them some other way; pass
+   * null to keep the area empty.
+   */
+  content?: React.ReactNode;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false, content }) => {
   const pathname = usePathname();
 
   const handleUnimplementedFeature = (featureName: string) => {
@@ -40,6 +47,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
 
   // Create minimized classes based on either responsive design or forced minimization
   const minimizeClass = forceMinimize ? 'minimized-sidebar' : '';
+  const hasContent = content !== undefined;
 
   return (
     <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
@@ -62,23 +70,33 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
         <PublishMenu forceMinimize={forceMinimize} />
       </div>
 
-      <Navigation
-        currentPath={pathname || ''}
-        onUnimplementedFeature={handleUnimplementedFeature}
-        forceMinimize={forceMinimize}
-      />
+      {hasContent ? (
+        <div
+          className={`mt-3 min-h-0 flex-1 ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+        >
+          {content}
+        </div>
+      ) : (
+        <>
+          <Navigation
+            currentPath={pathname || ''}
+            onUnimplementedFeature={handleUnimplementedFeature}
+            forceMinimize={forceMinimize}
+          />
 
-      {/* Navigation above is flex-1, so this sits at the bottom of the column.
-          Only covers 768px to the right sidebar's breakpoint: below that the
-          bar is docked over the mobile bottom nav, and above it the funding
-          power card is in the right sidebar. */}
-      <div className={`px-2 pb-3 ${forceMinimize ? '!block' : 'hidden tablet:max-lg:!block'}`}>
-        <FundingPowerRailButton />
-      </div>
+          {/* Navigation above is flex-1, so this sits at the bottom of the column.
+              Only covers 768px to the right sidebar's breakpoint: below that the
+              bar is docked over the mobile bottom nav, and above it the funding
+              power card is in the right sidebar. */}
+          <div className={`px-2 pb-3 ${forceMinimize ? '!block' : 'hidden tablet:max-lg:!block'}`}>
+            <FundingPowerRailButton />
+          </div>
 
-      <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
-        <FooterLinks />
-      </div>
+          <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
+            <FooterLinks />
+          </div>
+        </>
+      )}
     </div>
   );
 };

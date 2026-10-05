@@ -1,27 +1,24 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { PanelRight } from 'lucide-react';
+import { PageLayout } from '@/app/layouts/PageLayout';
 import { cn } from '@/utils/styles';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
-import { layoutFor, useAIMode } from './AIModeContext';
+import { AIModeProvider } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
 import { conversationTitleFor } from './chat/conversationTitle';
 import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
 import { useAIModeDocument } from './document/useAIModeDocument';
 import { AIModeHeader } from './shell/AIModeHeader';
-import { useModalOverlayBehavior } from './shell/useModalOverlayBehavior';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceSidebar } from './sidebar/WorkspaceSidebar';
 import { useAIModeChat } from './useAIModeChat';
-import { AI_MODE_NAME, newConversationTitle } from './copy';
+import { newConversationTitle } from './copy';
+import { layoutFor } from './workspaceUrl';
 
-const LIST_MIN_WIDTH = 200;
-const LIST_MAX_WIDTH = 440;
-const LIST_DEFAULT_WIDTH = 264;
 const CHAT_MIN_WIDTH = 360;
 const DOCUMENT_MIN_WIDTH = 420;
 /** The details form needs more room than the document: authors, image, funding fields. */
@@ -29,21 +26,54 @@ const DETAILS_MIN_WIDTH = 560;
 /** Share of the viewport the document opens at before the user drags it. */
 const DOCUMENT_DEFAULT_SHARE = 0.55;
 
+/** An element's width as it resizes; the viewport's until it has mounted. */
+function useElementWidth(element: HTMLElement | null): number {
+  const [width, setWidth] = useState(() =>
+    typeof window === 'undefined' ? 1440 : window.innerWidth
+  );
+  useEffect(() => {
+    if (!element) return;
+    const update = () => setWidth(Math.round(element.getBoundingClientRect().width));
+    update();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [element]);
+  return width;
+}
+
 /**
- * The full-viewport workspace: header, sidebar, chat, document. Sits below
- * BaseModal (9999) and Tooltip (10000) so real modals and tooltips opened
- * from inside it still render on top.
+ * The `/workspace` page: the app's shell with the user's conversations and
+ * drafts in the left column where the nav items normally are, and the chat
+ * and the document filling the rest. What it is open on lives in the URL.
  */
-export function AIModeOverlay() {
-  const { close } = useAIMode();
+export function WorkspacePage() {
+  return (
+    <AIModeProvider>
+      <Workspace />
+    </AIModeProvider>
+  );
+}
+
+function Workspace() {
   const state = useAIModeChat();
   const { target } = state;
   // A document opened from the sidebar comes first; a conversation's document sits beside it.
   const layout = layoutFor(target);
-  // Below the tablet breakpoint the sidebar is a screen of its own, opened
-  // from the chat header.
+
+  // The lists sit in the app's left column from the width at which it stops
+  // being an icon rail (Tailwind's `sidebar-compact`). Below that they wait
+  // behind a button: a panel over the panes, or on a phone a screen of their own.
+  const listsInColumn = useMediaQuery('(min-width: 1240px)') === true;
+  // Tailwind's `tablet` breakpoint; the strip and the side-by-side panes only exist from it up.
+  const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
   const [listOpen, setListOpen] = useState(false);
   const closeList = useCallback(() => setListOpen(false), []);
+  const toggleList = useCallback(() => setListOpen((open) => !open), []);
+  useEffect(() => {
+    if (listsInColumn) setListOpen(false);
+  }, [listsInColumn]);
 
   const doc = useAIModeDocument({
     note: state.note,
@@ -51,26 +81,9 @@ export function AIModeOverlay() {
     latestExecution: state.chat.latestExecution,
   });
 
-  // Tailwind's `tablet` breakpoint; the drawers only exist below it.
-  const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
-
-  // ---- pane widths, claude.ai style: both side panes drag, the chat takes the rest ----
-  const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window === 'undefined' ? 1440 : window.innerWidth
-  );
-  useEffect(() => {
-    const update = () => setViewportWidth(window.innerWidth);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
-  const listWidth = useResizableWidth({
-    storageKey: 'ai-mode:list-width',
-    min: LIST_MIN_WIDTH,
-    max: LIST_MAX_WIDTH,
-    defaultWidth: LIST_DEFAULT_WIDTH,
-    anchor: 'left',
-  });
+  // ---- pane widths: the side pane drags, the main pane takes the rest ----
+  const [panesEl, setPanesEl] = useState<HTMLDivElement | null>(null);
+  const panesWidth = useElementWidth(panesEl);
   // Document or details in the document pane; details wants a wider floor.
   const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
   const documentMinWidth = documentView === 'details' ? DETAILS_MIN_WIDTH : DOCUMENT_MIN_WIDTH;
@@ -80,7 +93,7 @@ export function AIModeOverlay() {
   const sideMinWidth = sideIsDocument ? documentMinWidth : CHAT_MIN_WIDTH;
   const sideMaxWidth = Math.max(
     sideMinWidth,
-    viewportWidth - listWidth.width - (sideIsDocument ? CHAT_MIN_WIDTH : DOCUMENT_MIN_WIDTH)
+    panesWidth - (sideIsDocument ? CHAT_MIN_WIDTH : DOCUMENT_MIN_WIDTH)
   );
   const sideWidth = useResizableWidth({
     storageKey: 'ai-mode:document-width',
@@ -109,9 +122,9 @@ export function AIModeOverlay() {
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
   const documentTitle = doc.content?.title?.trim() || state.note?.title?.trim() || 'Document';
-  // The top strip names what is open: the conversation when the chat is the
-  // main pane, the document when it is, and the new-conversation screen by
-  // what it is for — an RFP or a proposal.
+  // The strip names what is open: the conversation when the chat is the main
+  // pane, the document when it is, and the new-conversation screen by what it
+  // is for — an RFP or a proposal.
   const { title: conversationTitle } = conversationTitleFor(state);
   const headerTitle =
     layout === 'document'
@@ -120,7 +133,7 @@ export function AIModeOverlay() {
         ? conversationTitle
         : newConversationTitle(state.intent);
 
-  // The document column puts its publish controls up in the header, where
+  // The document column puts its publish controls up in the strip, where
   // they read as the workspace's, not the pane's. It renders into this slot.
   const [publishControlsSlot, setPublishControlsSlot] = useState<HTMLDivElement | null>(null);
 
@@ -150,9 +163,6 @@ export function AIModeOverlay() {
       />
     ) : null;
 
-  const [rootEl, setRootEl] = useState<HTMLDivElement | null>(null);
-  useModalOverlayBehavior({ rootEl, onEscape: close });
-
   const documentPane = (presentation: 'pane' | 'drawer') => (
     <DocumentPane
       document={doc}
@@ -166,63 +176,68 @@ export function AIModeOverlay() {
     />
   );
 
-  return createPortal(
-    <div
-      id="ai-mode-overlay"
-      ref={setRootEl}
-      tabIndex={-1}
-      role="dialog"
-      aria-modal="true"
-      aria-label={AI_MODE_NAME}
-      className="fixed inset-0 z-[9500] flex flex-col bg-gray-50 outline-none"
+  return (
+    <PageLayout
+      fullBleed
+      leftSidebarContent={
+        listsInColumn ? (
+          <div className="workspace-fade-in h-full">
+            <WorkspaceSidebar state={state} />
+          </div>
+        ) : null
+      }
     >
-      <AIModeHeader
-        title={headerTitle}
-        publishControlsRef={isBelowTablet ? undefined : setPublishControlsSlot}
-        onBack={close}
-      />
-
-      <WorkspacePanes
-        layout={layout}
-        isBelowTablet={isBelowTablet}
-        sidebarWidth={{ ...listWidth, min: LIST_MIN_WIDTH, max: LIST_MAX_WIDTH }}
-        sideWidth={{ ...sideWidth, min: sideMinWidth, max: sideMaxWidth }}
-        listOpen={listOpen}
-        onCloseList={closeList}
-        onCloseDocumentDrawer={closeDocument}
-        container={rootEl}
-        sidebar={<WorkspaceSidebar state={state} onNavigate={closeList} />}
-        chat={
-          <ChatPane
-            state={state}
-            onOpenConversations={() => setListOpen(true)}
-            documentCard={documentCard}
-            documentCardExecutionId={documentCardExecutionId}
-            headerActions={
-              noteId != null && (
-                <button
-                  type="button"
-                  onClick={() => setDocumentOpen((open) => !open)}
-                  aria-pressed={showDocument}
-                  aria-label={showDocument ? 'Hide document' : 'Show document'}
-                  title={showDocument ? 'Hide document' : 'Show document'}
-                  className={cn(
-                    'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-colors',
-                    showDocument
-                      ? 'bg-primary-50 text-primary-700 hover:bg-primary-100'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                  )}
-                >
-                  <PanelRight className="h-4 w-4" aria-hidden="true" />
-                </button>
-              )
-            }
+      <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
+        {!isBelowTablet && (
+          <AIModeHeader
+            title={headerTitle}
+            publishControlsRef={setPublishControlsSlot}
+            listOpen={listOpen}
+            onToggleList={listsInColumn ? undefined : toggleList}
           />
-        }
-        document={showDocument ? documentPane('pane') : null}
-        documentDrawer={showDocument ? documentPane('drawer') : null}
-      />
-    </div>,
-    document.body
+        )}
+
+        <WorkspacePanes
+          layout={layout}
+          isBelowTablet={isBelowTablet}
+          sideWidth={{ ...sideWidth, min: sideMinWidth, max: sideMaxWidth }}
+          lists={listsInColumn ? null : <WorkspaceSidebar state={state} onNavigate={closeList} />}
+          listOpen={listOpen}
+          onCloseList={closeList}
+          onCloseDocumentDrawer={closeDocument}
+          chat={
+            <ChatPane
+              state={state}
+              // From the tablet breakpoint up the strip names the chat when it is the main pane.
+              showTitle={isBelowTablet || layout !== 'chat'}
+              onOpenConversations={() => setListOpen(true)}
+              documentCard={documentCard}
+              documentCardExecutionId={documentCardExecutionId}
+              headerActions={
+                noteId != null && (
+                  <button
+                    type="button"
+                    onClick={() => setDocumentOpen((open) => !open)}
+                    aria-pressed={showDocument}
+                    aria-label={showDocument ? 'Hide document' : 'Show document'}
+                    title={showDocument ? 'Hide document' : 'Show document'}
+                    className={cn(
+                      'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-colors',
+                      showDocument
+                        ? 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    )}
+                  >
+                    <PanelRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )
+              }
+            />
+          }
+          document={showDocument ? documentPane('pane') : null}
+          documentDrawer={showDocument ? documentPane('drawer') : null}
+        />
+      </div>
+    </PageLayout>
   );
 }

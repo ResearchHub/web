@@ -22,6 +22,8 @@ import { useState } from 'react';
 
 interface PublishMenuProps {
   forceMinimize?: boolean;
+  /** Runs once an item is picked, for a host that should then get out of the way. */
+  onItemSelected?: () => void;
 }
 
 interface PublishMenuItem {
@@ -93,11 +95,14 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
 
 /**
  * The sidebar's Publish button: a Request for Proposal or a Proposal. For a
- * user the workspace admits, either opens it straight onto a conversation
- * for that side of the money; everyone else gets the notebook's opening
- * modal and editor, as before.
+ * user the workspace admits, either leads straight to a new conversation
+ * there for that side of the money; everyone else gets the notebook's
+ * opening modal and editor, as before.
  */
-export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false }) => {
+export const PublishMenu: React.FC<PublishMenuProps> = ({
+  forceMinimize = false,
+  onItemSelected,
+}) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { inWorkspace, startNew } = useFundingDrafting();
@@ -131,6 +136,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false 
     if (smAndDown) {
       setIsMobileDrawerOpen(false);
     }
+    onItemSelected?.();
   };
 
   // Regular trigger for standard mode

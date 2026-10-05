@@ -5,9 +5,11 @@ import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
+  /** Replaces the nav items in the column; see `LeftSidebar`. */
+  content?: React.ReactNode;
 }
 
-export function LeftSidebarContainer({ isOpen }: LeftSidebarContainerProps) {
+export function LeftSidebarContainer({ isOpen, content }: LeftSidebarContainerProps) {
   return (
     <div
       className={cn(
@@ -24,7 +26,7 @@ export function LeftSidebarContainer({ isOpen }: LeftSidebarContainerProps) {
         isOpen ? '!translate-x-0' : '!-translate-x-full'
       )}
     >
-      <LeftSidebar />
+      <LeftSidebar content={content} />
     </div>
   );
 }

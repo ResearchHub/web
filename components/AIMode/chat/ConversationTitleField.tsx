@@ -13,7 +13,8 @@ interface ConversationTitleFieldProps {
 
 /**
  * Inline title editor: Enter or blur commits, Escape cancels. Escape is
- * claimed here so the overlay's own Esc handler doesn't close it.
+ * claimed here so nothing around the field — the lists' panel, a menu — also
+ * acts on it.
  */
 export function ConversationTitleField({
   initialValue,

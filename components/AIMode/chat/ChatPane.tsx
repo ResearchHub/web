@@ -13,7 +13,6 @@ import { conversationTitleFor } from './conversationTitle';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
-import { layoutFor } from '../AIModeContext';
 import type { AIModeChatState } from '../useAIModeChat';
 import { AI_MODE_GREETING } from '../copy';
 import { StartContextChips } from '../start/StartContextChips';
@@ -28,6 +27,11 @@ import { DocumentChatEmptyState } from './DocumentChatEmptyState';
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
+  /**
+   * Whether the pane's header names the chat. Not where the workspace's strip
+   * above already does: the chat as the main pane, from the tablet breakpoint up.
+   */
+  readonly showTitle: boolean;
   /** Header controls seated right of the title — the document toggle. */
   readonly headerActions?: ReactNode;
   /** Below the tablet breakpoint the list is a drawer; this opens it. */
@@ -43,6 +47,7 @@ interface ChatPaneProps {
 /** The middle pane: transcript, live progress, and the composer. */
 export function ChatPane({
   state,
+  showTitle,
   headerActions,
   onOpenConversations,
   documentCard,
@@ -96,9 +101,6 @@ export function ChatPane({
     listBlocked || chatUnavailable || (chatId != null && chat.access === 'loading');
 
   const { currentTitle, title, loading: titleLoading } = conversationTitleFor(state);
-  // With the chat as the main pane the workspace's top strip already names
-  // it, so the pane's own header carries only the controls.
-  const chatIsMain = layoutFor(state.target) === 'chat';
 
   const modelControls = (
     <ModelControls
@@ -173,7 +175,8 @@ export function ChatPane({
               if (next && next !== (currentTitle ?? '')) state.rename(chatId, next);
             }}
           />
-        ) : chatIsMain ? (
+        ) : !showTitle ? (
+          // The strip names it; the header carries only the controls.
           <span className="flex-1" />
         ) : titleLoading ? (
           <div className="flex min-w-0 flex-1 items-center" aria-busy="true">

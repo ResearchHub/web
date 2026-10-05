@@ -48,6 +48,7 @@ export const config = {
   matcher: [
     '/notebook/:path*',
     '/notebook/api/:path*',
+    '/workspace',
     '/referral',
     '/lists',
     '/list/:path*',

@@ -26,7 +26,7 @@ function DraftIcon({ note }: { readonly note: Note }) {
       <FileText className="h-4 w-4" aria-hidden="true" />
       <NoteStatusDot
         published={isPublishedNote(note)}
-        className="absolute -bottom-px -right-px ring-2 ring-gray-100"
+        className="absolute -bottom-px -right-px ring-2 ring-white"
       />
     </span>
   );
