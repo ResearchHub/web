@@ -11,6 +11,12 @@ import {
   type UseAgentChatResult,
 } from '@/hooks/useAgentChat';
 import { useAgentModelSelection, type AgentModelSelection } from '@/hooks/useAgentModelSelection';
+import {
+  UNSENT,
+  useChatAttachments,
+  type ChatAttachments,
+  type HeldAttachments,
+} from '@/hooks/useChatAttachments';
 import { useResearchAI } from '@/hooks/useResearchAI';
 import { canSelectAIModel, formatBudgetReset } from '@/types/researchAI';
 import type { ChatNoteRef, AgentChat } from '@/types/agentChat';
@@ -23,6 +29,7 @@ const LIST_POLL_INTERVAL_MS = 5000;
 interface QueuedMessage {
   text: string;
   generation: GenerationRequest;
+  held: HeldAttachments;
 }
 
 /**
@@ -84,6 +91,8 @@ export interface AIModeChatState {
   readonly modelSelection: AgentModelSelection;
   readonly draft: string;
   readonly setDraft: (value: string) => void;
+  /** The open chat's unsent files, kept per chat like its draft. */
+  readonly attachments: ChatAttachments;
   readonly notice: ComposerNotice | null;
   readonly clearNotice: () => void;
   /** A brand-new chat is being created for the first message. */
@@ -192,6 +201,8 @@ export function useAIModeChat(): AIModeChatState {
     setNotice(null);
   }, [draftKey]);
 
+  const attachments = useChatAttachments({ scope: transport.key, chatId, chat: chat.chat });
+
   // ---- selection ----
   const selectChat = useCallback(
     (next: number | null) => {
@@ -257,10 +268,11 @@ export function useAIModeChat(): AIModeChatState {
   const sendText = useCallback(
     async (rawText: string) => {
       const text = rawText.trim();
-      if (!text) return;
+      if (!text || !attachments.ready) return;
       setNotice(null);
       const target = targetRef.current;
       const generation = modelSelection.request;
+      const held = attachments.hold();
       // The box empties the moment the user sends, as the message is already
       // theirs; it only comes back if the send fails and they need to retry.
       setDraft('');
@@ -270,8 +282,12 @@ export function useAIModeChat(): AIModeChatState {
         setCreatingChat(true);
         const created = await list.createChat();
         if (creationSeqRef.current === creationSeq) setCreatingChat(false);
-        if (!isCurrentTarget(target)) return;
+        if (!isCurrentTarget(target)) {
+          attachments.settle(held, UNSENT);
+          return;
+        }
         if (!created) {
+          attachments.settle(held, UNSENT);
           setDraft(text);
           setNotice({
             tone: 'error',
@@ -284,11 +300,16 @@ export function useAIModeChat(): AIModeChatState {
         modelSelection.adoptConversation(`assistant:${created.conversation_id}`, generation);
         setInitialChat(created);
         selectChatInUrl(created.conversation_id);
-        setQueuedMessage({ text, generation });
+        setQueuedMessage({
+          text,
+          generation,
+          held: attachments.adopt(held, created.conversation_id),
+        });
         return;
       }
 
-      const outcome = await chat.send(text, generation);
+      const outcome = await chat.send(text, generation, held.files);
+      attachments.settle(held, outcome);
       if (!outcome.ok && isCurrentTarget(target)) {
         setDraft(text);
         setNotice(failureNotice(outcome));
@@ -304,6 +325,7 @@ export function useAIModeChat(): AIModeChatState {
       isCurrentTarget,
       selectChatInUrl,
       failureNotice,
+      attachments,
     ]
   );
 
@@ -311,12 +333,14 @@ export function useAIModeChat(): AIModeChatState {
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chat.send;
+  const settleAttachments = attachments.settle;
   useEffect(() => {
     if (queuedMessage == null || chatId == null || chat.access !== 'ok') return;
-    const { text, generation } = queuedMessage;
+    const { text, generation, held } = queuedMessage;
     const target = targetRef.current;
     setQueuedMessage(null);
-    sendToChat(text, generation).then((outcome) => {
+    sendToChat(text, generation, held.files).then((outcome) => {
+      settleAttachments(held, outcome);
       if (outcome.ok) return;
       if (isCurrentTarget(target)) {
         setNotice(failureNotice(outcome));
@@ -325,7 +349,16 @@ export function useAIModeChat(): AIModeChatState {
         draftsRef.current.set(String(target), text);
       }
     });
-  }, [queuedMessage, chatId, chat.access, sendToChat, setDraft, isCurrentTarget, failureNotice]);
+  }, [
+    queuedMessage,
+    chatId,
+    chat.access,
+    sendToChat,
+    settleAttachments,
+    setDraft,
+    isCurrentTarget,
+    failureNotice,
+  ]);
 
   const stop = chat.cancel;
 
@@ -391,6 +424,7 @@ export function useAIModeChat(): AIModeChatState {
     [transport]
   );
 
+  const clearAttachments = attachments.clear;
   const deleteChat = useCallback(
     async (target: number, options?: { deleteNotes?: boolean }): Promise<boolean> => {
       if (!transport.deleteChat) return false;
@@ -400,11 +434,12 @@ export function useAIModeChat(): AIModeChatState {
         return false;
       }
       draftsRef.current.delete(String(target));
+      clearAttachments(target);
       if (targetRef.current === target) selectChat(null);
       refreshList();
       return true;
     },
-    [transport, selectChat, refreshList]
+    [transport, selectChat, refreshList, clearAttachments]
   );
 
   const clearNotice = useCallback(() => setNotice(null), []);
@@ -438,6 +473,7 @@ export function useAIModeChat(): AIModeChatState {
     modelSelection,
     draft,
     setDraft,
+    attachments,
     notice,
     clearNotice,
     creatingChat,

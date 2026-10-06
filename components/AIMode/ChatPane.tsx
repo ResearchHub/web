@@ -42,6 +42,7 @@ export function ChatPane({
 }: ChatPaneProps) {
   const { chatId, list, chat, modelSelection, draft, setDraft, notice, creatingChat } = state;
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const paneRef = useRef<HTMLDivElement>(null);
 
   // ---- transcript auto-scroll ----
   // Follows new content while the reader is at the bottom; never yanks the
@@ -111,6 +112,9 @@ export function ChatPane({
       disabled={composerDisabled}
       sendDisabled={state.sendBlocked}
       notice={notice}
+      attachments={state.attachments}
+      dropTargetRef={paneRef}
+      modelAcceptsImages={modelSelection.acceptsImages}
       className="border-t-0 bg-gray-50"
       placeholder="Describe what you want to work on…"
       toolbar={
@@ -130,7 +134,7 @@ export function ChatPane({
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div ref={paneRef} className="flex h-full min-h-0 flex-col">
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3">
         {onOpenConversations && (
           <button
@@ -181,7 +185,7 @@ export function ChatPane({
                 composer={composer}
                 greeting={aiModeGreeting(user?.firstName)}
                 onSelectStarter={startFromCard}
-                disabled={composerBusy}
+                disabled={composerBusy || !state.attachments.ready}
               />
             ) : chat.access === 'loading' && chat.chat == null ? (
               <ChatTranscriptSkeleton />

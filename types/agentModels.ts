@@ -58,6 +58,8 @@ export interface AgentModel {
   readonly description: string;
   readonly provider: string;
   readonly capabilities: AgentModelCapabilities;
+  /** Takes image input; absent when the backend does not say. */
+  readonly vision?: boolean;
   readonly allowed: boolean;
   readonly multiplier: string | null;
 }
@@ -112,6 +114,7 @@ export interface AgentModelCatalogResponse {
       thinking?: string[];
       temperature?: boolean;
     };
+    vision?: boolean;
   }>;
 }
 
@@ -156,6 +159,7 @@ export function toAgentModelCatalog(response: AgentModelCatalogResponse): AgentM
         thinking: (model.capabilities?.thinking ?? []).filter(isThinkingMode),
         temperature: model.capabilities?.temperature === true,
       },
+      ...(typeof model.vision === 'boolean' && { vision: model.vision }),
     });
   }
   return { default: response.default ?? '', models, credit_pricing: response.credit_pricing };

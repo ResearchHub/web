@@ -53,6 +53,8 @@ export interface AgentModelSelection {
   readonly adoptConversation: (key: string, generation: GenerationRequest) => void;
   /** Generation fields for a send, ready to spread into the request body. */
   readonly request: GenerationRequest;
+  /** Whether the next turn's model takes images; undefined when the catalog cannot say. */
+  readonly acceptsImages: boolean | undefined;
 }
 
 /**
@@ -140,6 +142,14 @@ export function useAgentModelSelection({
     };
   }, [canSelect, model, options, locked, effortPinned]);
 
+  const acceptsImages = useMemo(() => {
+    if (pinnedRef || (canSelect && model?.allowed)) return model?.vision;
+    // A turn is recorded but its model is not known yet.
+    if (locked) return undefined;
+    // Nothing is sent, so the server's default runs.
+    return findModel(catalog?.models ?? [], catalog?.default ?? null)?.vision;
+  }, [pinnedRef, canSelect, model, locked, catalog]);
+
   const adoptConversation = useCallback((key: string, generation: GenerationRequest) => {
     const { model: ref, ...options } = generation;
     setChoice({ key, preference: { ref, ...options } });
@@ -157,5 +167,6 @@ export function useAgentModelSelection({
     setOptions,
     adoptConversation,
     request,
+    acceptsImages,
   };
 }
