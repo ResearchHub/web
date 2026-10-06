@@ -80,6 +80,7 @@ function Workspace() {
     chat: state.chat.chat,
     latestExecution,
     assistantWorking: turnActive || state.anyTurnActive,
+    messagePending: state.messagePending,
   });
 
   // ---- the document's width: it drags, the chat takes the rest ----

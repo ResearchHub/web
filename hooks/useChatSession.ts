@@ -74,6 +74,11 @@ export interface ChatSession {
   /** A brand-new chat is being created for the first message. */
   readonly creatingChat: boolean;
   /**
+   * A message is on its way and its turn has not shown up yet: its chat is
+   * being created, it waits for that chat to open, or it is being posted.
+   */
+  readonly messagePending: boolean;
+  /**
    * Sending would be refused: the allowance is unknown or spent, or a tier
    * that picks its model has no catalog yet to pick from.
    */
@@ -385,6 +390,7 @@ export function useChatSession({
     notice,
     clearNotice,
     creatingChat,
+    messagePending: creatingChat || queuedMessage != null || chat.pendingSend !== null,
     sendBlocked,
     composerBusy,
     canStop,

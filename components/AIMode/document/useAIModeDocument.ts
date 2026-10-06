@@ -19,7 +19,10 @@ export type DocumentStatus =
   | 'empty'
   /** A turn is running and the model is composing an `edit_note` right now. */
   | 'drafting'
-  /** A turn is running with no draft streaming (other providers, or between edits). */
+  /**
+   * A turn is running with no draft streaming (other providers, or between
+   * edits), or a message to the assistant is on its way.
+   */
   | 'working'
   /** No turn running: content only. */
   | 'settled';
@@ -50,6 +53,11 @@ export interface AIModeDocument {
   readonly error: string | null;
   /** The note does not exist (any more). */
   readonly missing: boolean;
+  /**
+   * The assistant is about to write the first version: a message is on its
+   * way or a turn is running, and nothing is written or being written yet.
+   */
+  readonly starting: boolean;
   readonly status: DocumentStatus;
   /**
    * The assistant has written at least one version: the loaded note had one,
@@ -72,6 +80,8 @@ interface UseAIModeDocumentOptions {
   readonly latestExecution: ChatExecution | null;
   /** The assistant has a turn running on this document, in any of its chats. */
   readonly assistantWorking: boolean;
+  /** A message to the assistant is on its way from this chat, its turn not yet started. */
+  readonly messagePending: boolean;
 }
 
 /** Any succeeded `edit_note` in the chat carries the version it produced. */
@@ -110,6 +120,7 @@ export function useAIModeDocument({
   chat,
   latestExecution,
   assistantWorking,
+  messagePending,
 }: UseAIModeDocumentOptions): AIModeDocument {
   const noteId = note?.id ?? null;
   const [loadedContent, setContent] = useState<NoteWithContent | null>(null);
@@ -213,13 +224,26 @@ export function useAIModeDocument({
     ''
   ).trim();
 
+  // A sent message counts as work from the moment it leaves: the turn it
+  // starts takes a moment to show up, and the document must not read as
+  // idle (or empty) in between.
+  const working = turnActive || messagePending;
   const status: DocumentStatus = useMemo(() => {
     if (noteId == null) return 'absent';
     if (draftText != null) return 'drafting';
-    if (turnActive) return 'working';
+    if (working) return 'working';
     if (content != null && !hasWrittenVersion) return 'empty';
     return 'settled';
-  }, [noteId, draftText, turnActive, content, hasWrittenVersion]);
+  }, [noteId, draftText, working, content, hasWrittenVersion]);
+
+  // Before the note has loaded, only a message sent from here says it is
+  // about to be written: a turn found running on a document just opened may
+  // be editing one that already has text.
+  const starting =
+    noteId != null &&
+    draftText == null &&
+    !hasWrittenVersion &&
+    (content == null ? messagePending : working);
 
   return {
     note,
@@ -232,6 +256,7 @@ export function useAIModeDocument({
     error,
     missing,
     status,
+    starting,
     hasWrittenVersion,
     draftText,
     draftBlocks,

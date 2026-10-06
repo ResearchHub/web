@@ -163,10 +163,10 @@ export function DocumentPane({
   // mid-edit would make its next edit_note stale and the review jumpy.
   const locked = writing || editorLostContent;
 
-  // The assistant is writing the first version: nothing to show in the
-  // editor yet, so the whole pane becomes the progress screen.
-  const startingDocument =
-    status === 'working' && !document.hasWrittenVersion && review.review == null;
+  // The assistant is about to write the first version: nothing to show in
+  // the editor yet, so the whole pane is the progress screen from the moment
+  // the message is sent, even before the note has loaded.
+  const startingDocument = document.starting && review.review == null;
 
   const openDetails = useCallback(() => onViewChange('details'), [onViewChange]);
 
@@ -270,12 +270,12 @@ export function DocumentPane({
                   Try again
                 </Button>
               </div>
+            ) : startingDocument ? (
+              <StartingDocument label={phaseLabel} />
             ) : loading || content == null ? (
               <div className={DOCUMENT_PAGE_CLASS}>
                 <DocumentPaneSkeleton />
               </div>
-            ) : startingDocument ? (
-              <StartingDocument label={phaseLabel} />
             ) : (
               <article
                 className={cn(
