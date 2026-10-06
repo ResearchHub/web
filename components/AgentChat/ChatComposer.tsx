@@ -4,11 +4,13 @@ import {
   useEffect,
   useRef,
   type ChangeEvent,
+  type ClipboardEvent,
   type KeyboardEvent,
   type ReactNode,
   type RefObject,
 } from 'react';
 import { ArrowUp, Paperclip, Square } from 'lucide-react';
+import { pastedFiles } from '@/utils/pastedFiles';
 import { cn } from '@/utils/styles';
 import type { ChatAttachments } from '@/hooks/useChatAttachments';
 import { useFileDrop } from '@/hooks/useFileDrop';
@@ -117,6 +119,15 @@ export function ChatComposer({
     textareaRef.current?.focus();
   };
 
+  const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!addFiles) return;
+    const pasted = pastedFiles(event.clipboardData);
+    // Anything else, text above all, is left for the browser to paste.
+    if (pasted.length === 0) return;
+    event.preventDefault();
+    addFiles(pasted);
+  };
+
   const handleRemoveFile = (key: string) => {
     attachments?.remove(key);
     // The chip's button is gone; keep focus in the composer.
@@ -166,6 +177,7 @@ export function ChatComposer({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           rows={1}
           maxLength={MAX_CHAT_MESSAGE_LENGTH}
           disabled={disabled}
