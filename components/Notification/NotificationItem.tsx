@@ -95,10 +95,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     );
 
   const titleRow = (
-    <div className="flex min-w-0 items-center gap-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
       <h3
         className={cn(
-          'min-w-0 truncate text-gray-900',
+          'min-w-0 break-words text-gray-900',
           isUnread ? 'text-base font-bold' : 'text-[15px] font-semibold'
         )}
       >
@@ -152,9 +152,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         <div className="flex min-w-0 flex-1 gap-4 p-4">
           {visual}
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
               {titleRow}
-              <span className="mt-1 flex flex-shrink-0 items-center gap-2 text-xs text-gray-400">
+              <span className="flex flex-shrink-0 items-center gap-2 text-xs text-gray-400">
                 <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />
                 {timeAgo}
               </span>
@@ -178,22 +178,25 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-4 p-4 transition-colors',
+        'flex items-start gap-4 p-4 transition-colors',
         hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
       )}
       onClick={handleClick}
     >
       {visual}
-      <div className="min-w-0 flex-1">
-        {titleRow}
-        <p className="mt-0.5 text-sm leading-snug text-gray-500">
-          {description}
-          {learnMore}
-        </p>
+      {/* The time sits beside the text when there's room and wraps below it on narrow screens. */}
+      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="min-w-0 flex-1 basis-64">
+          {titleRow}
+          <p className="mt-0.5 text-sm leading-snug text-gray-500">
+            {description}
+            {learnMore}
+          </p>
+        </div>
+        <span className="flex-shrink-0 text-xs text-gray-400">{timeAgo}</span>
       </div>
-      <span className="flex-shrink-0 text-xs text-gray-400">{timeAgo}</span>
       {hasNavigationUrl ? (
-        <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" aria-hidden />
+        <ChevronRight className="h-4 w-4 flex-shrink-0 self-center text-gray-300" aria-hidden />
       ) : (
         <span className="w-4 flex-shrink-0" aria-hidden />
       )}
