@@ -19,8 +19,8 @@ function namedFile(line: string): string {
 export function pastedFiles(clipboard: DataTransfer): File[] {
   const files = Array.from(clipboard.files);
   if (files.length === 0) return [];
-  const types = Array.from(clipboard.types);
-  if (types.includes('text/html') || types.includes('text/rtf')) return [];
+  const types = new Set(clipboard.types);
+  if (types.has('text/html') || types.has('text/rtf')) return [];
 
   // File managers add the copied files' names as plain text, sometimes without the extension.
   const names = new Set<string>();
