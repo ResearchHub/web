@@ -114,7 +114,6 @@ export function ChatPane({
       notice={notice}
       attachments={state.attachments}
       dropTargetRef={paneRef}
-      modelAcceptsImages={modelSelection.acceptsImages}
       className="border-t-0 bg-gray-50"
       placeholder="Describe what you want to work on…"
       toolbar={

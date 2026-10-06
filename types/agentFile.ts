@@ -115,29 +115,18 @@ export function describeAgentFile(
   return `${kind} · ${file.page_count.toLocaleString()} ${file.page_count === 1 ? 'page' : 'pages'}`;
 }
 
-/** A PDF none of whose pages gave any text; false while the count is unknown. */
-export function hasNoReadableText(
-  file: Pick<AgentFile, 'page_count' | 'pages_without_text'>
-): boolean {
-  return (
-    file.page_count != null &&
-    file.page_count > 0 &&
-    file.pages_without_text != null &&
-    file.pages_without_text >= file.page_count
-  );
-}
-
 /** What the assistant will not get from a processed file. */
 export function agentFileCaveats(
   file: Pick<AgentFile, 'page_count' | 'pages_without_text' | 'text_truncated'>
 ): string[] {
   const caveats: string[] = [];
+  // A null count is unknown, not zero.
   const unread = file.pages_without_text ?? 0;
-  if (hasNoReadableText(file)) {
-    caveats.push('No readable text found');
-  } else if (file.page_count != null && unread > 0) {
+  if (file.page_count != null && unread > 0) {
     caveats.push(
-      `${unread.toLocaleString()} of ${file.page_count.toLocaleString()} pages have no readable text`
+      unread >= file.page_count
+        ? 'No readable text found'
+        : `${unread.toLocaleString()} of ${file.page_count.toLocaleString()} pages have no readable text`
     );
   }
   if (file.text_truncated) caveats.push('Too long to read in full');

@@ -57,8 +57,6 @@ interface ChatComposerProps {
   readonly attachments?: Pick<ChatAttachments, 'items' | 'notice' | 'ready' | 'add' | 'remove'>;
   /** What takes file drops for this composer: the whole pane, say. Itself by default. */
   readonly dropTargetRef?: RefObject<HTMLElement | null>;
-  /** Whether the chat's model takes images; left undefined when unknown. */
-  readonly modelAcceptsImages?: boolean;
 }
 
 const COUNTER_THRESHOLD = MAX_CHAT_MESSAGE_LENGTH - 1000;
@@ -86,7 +84,6 @@ export function ChatComposer({
   className,
   attachments,
   dropTargetRef,
-  modelAcceptsImages,
 }: ChatComposerProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -162,11 +159,7 @@ export function ChatComposer({
           </div>
         )}
         {attachments && (
-          <ComposerAttachmentList
-            items={attachments.items}
-            onRemove={handleRemoveFile}
-            modelAcceptsImages={modelAcceptsImages}
-          />
+          <ComposerAttachmentList items={attachments.items} onRemove={handleRemoveFile} />
         )}
         <textarea
           ref={textareaRef}

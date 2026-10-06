@@ -772,7 +772,6 @@ export function AgentChatPanel({
         notice={notice}
         attachments={attachments}
         dropTargetRef={panelRef}
-        modelAcceptsImages={modelSelection.acceptsImages}
         footer={
           <>
             <CreditMeter
