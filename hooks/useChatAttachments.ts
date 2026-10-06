@@ -98,7 +98,7 @@ export function useChatAttachments({
   }, [store, bucket]);
 
   const [refusal, setRefusal] = useState<{ bucket: string; text: string } | null>(null);
-  const notice = refusal != null && refusal.bucket === bucket ? refusal.text : null;
+  const notice = refusal?.bucket === bucket ? refusal.text : null;
 
   const sentCount = useMemo(
     () =>

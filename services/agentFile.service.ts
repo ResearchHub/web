@@ -119,7 +119,7 @@ export class AgentFileService {
 
 /** DRF words a throttle as "Expected available in N seconds." */
 function throttleMessage(detail: string | undefined): string {
-  const seconds = Number(/(\d+) seconds?/.exec(detail ?? '')?.[1]);
+  const seconds = Number(/\b(\d{1,9}) second/.exec(detail ?? '')?.[1]);
   if (!Number.isFinite(seconds)) return detail ?? 'Too many uploads. Try again later.';
   const wait =
     seconds < 90

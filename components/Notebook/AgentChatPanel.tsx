@@ -417,7 +417,7 @@ export function AgentChatPanel({
     const { text, generation, held } = queuedMessage;
     const target = targetRef.current;
     setQueuedMessage(null);
-    sendToChat(text, generation, held.files).then((outcome) => {
+    void sendToChat(text, generation, held.files).then((outcome) => {
       settleAttachments(held, outcome);
       if (outcome.ok) return;
       if (isCurrentTarget(target)) {

@@ -165,6 +165,20 @@ export function createChatAttachmentsStore({
     files.deleteFile(fileId).catch(() => undefined);
   };
 
+  /** One status read: the file, why it can no longer be had, or null to read again. */
+  const readStatus = async (fileId: number): Promise<AgentFile | { gone: string } | null> => {
+    try {
+      return await files.getFile(fileId);
+    } catch (error) {
+      const status = chatErrorStatus(error);
+      if (status === 404) return { gone: FILE_GONE };
+      if (status === 401 || status === 403) {
+        return { gone: agentFileErrorMessage(error, PROCESSING_FAILED) };
+      }
+      return null;
+    }
+  };
+
   const poll = async (key: string, fileId: number) => {
     if (polling.has(key)) return;
     polling.add(key);
@@ -175,23 +189,14 @@ export function createChatAttachmentsStore({
         const item = locate(key)?.[1];
         if (!item) return;
         if (!item.slow && Date.now() - startedAt > SLOW_AFTER_MS) patch(key, { slow: true });
-        let file: AgentFile;
-        try {
-          file = await files.getFile(fileId);
-        } catch (error) {
-          const status = chatErrorStatus(error);
-          if (status === 404) {
-            patch(key, { phase: 'failed', error: FILE_GONE });
-            return;
-          }
-          if (status === 401 || status === 403) {
-            patch(key, { phase: 'failed', error: agentFileErrorMessage(error, PROCESSING_FAILED) });
-            return;
-          }
-          continue;
+        const read = await readStatus(fileId);
+        if (read == null) continue;
+        if ('gone' in read) {
+          patch(key, { phase: 'failed', error: read.gone });
+          return;
         }
-        if (!patch(key, serverState(file))) return;
-        if (file.status === 'READY' || file.status === 'FAILED') return;
+        if (!patch(key, serverState(read))) return;
+        if (read.status === 'READY' || read.status === 'FAILED') return;
       }
     } finally {
       polling.delete(key);
@@ -355,9 +360,10 @@ export function createChatAttachmentsStore({
         accepted.push(file);
       }
       if (accepted.length > 0) {
-        const items = accepted.map(
-          (file): ComposerAttachment => ({
-            key: `local-${(sequence += 1)}`,
+        const items = accepted.map((file): ComposerAttachment => {
+          sequence += 1;
+          return {
+            key: `local-${sequence}`,
             filename: file.name,
             sizeBytes: file.size,
             phase: 'uploading',
@@ -366,8 +372,8 @@ export function createChatAttachmentsStore({
             file: null,
             error: null,
             sending: false,
-          })
-        );
+          };
+        });
         write(bucket, [...current, ...items]);
         items.forEach((item, index) => void upload(item.key, accepted[index]));
       }

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { AlertCircle, AlertTriangle, ExternalLink, FileText, X } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
-import { Progress } from '@/components/ui/Progress';
 import { AgentFileService, agentFileErrorMessage } from '@/services/agentFile.service';
 import type { ComposerAttachment } from '@/store/chatAttachments';
 import { cn } from '@/utils/styles';
@@ -93,16 +92,12 @@ function ComposerAttachmentChip({
           <span className="block break-words text-gray-600">{caveats.join(' · ')}</span>
         )}
         {item.phase === 'uploading' && (
-          <div
-            role="progressbar"
+          <progress
+            value={percent}
+            max={100}
             aria-label={`Uploading ${item.filename}`}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={percent}
-            className="mt-1 min-w-[120px]"
-          >
-            <Progress value={percent} size="xs" variant="primary" />
-          </div>
+            className="mt-1 block h-1.5 w-full min-w-[120px] appearance-none overflow-hidden rounded-lg bg-gray-200 [&::-moz-progress-bar]:bg-primary-600 [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:bg-primary-600"
+          />
         )}
       </span>
       <button
