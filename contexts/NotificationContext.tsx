@@ -9,6 +9,7 @@ interface NotificationContextType {
   notificationData: NotificationListResponse;
   loading: boolean;
   error: string | null;
+  loadMoreError: string | null;
   unreadCount: number;
   isLoadingMore: boolean;
   refreshUnreadCount: () => Promise<void>;
@@ -22,6 +23,7 @@ const NotificationContext = createContext<NotificationContextType>({
   notificationData: { results: [], count: 0, next: null, previous: null },
   loading: true,
   error: null,
+  loadMoreError: null,
   unreadCount: 0,
   isLoadingMore: false,
   refreshUnreadCount: async () => {},
@@ -40,12 +42,14 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setLoadMoreError(null);
     try {
       const response = await NotificationService.getNotifications();
       setNotificationData(response);
@@ -61,6 +65,7 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
     if (!notificationData.next || loading || isLoadingMore) return;
     try {
       setIsLoadingMore(true);
+      setLoadMoreError(null);
       const response = await NotificationService.getNotificationsByUrl(notificationData.next);
 
       setNotificationData((prev) => ({
@@ -68,7 +73,7 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
         results: [...prev.results, ...response.results],
       }));
     } catch (err) {
-      setError('Failed to load more notifications');
+      setLoadMoreError('Failed to load more notifications');
       console.error(err);
     } finally {
       setIsLoadingMore(false);
@@ -112,6 +117,7 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
         notificationData,
         loading,
         error,
+        loadMoreError,
         unreadCount,
         isLoadingMore,
         refreshUnreadCount,
@@ -136,6 +142,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           notificationData: { results: [], count: 0, next: null, previous: null },
           loading: false,
           error: null,
+          loadMoreError: null,
           unreadCount: 0,
           isLoadingMore: false,
           refreshUnreadCount: async () => {},

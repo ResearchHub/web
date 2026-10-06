@@ -5,7 +5,6 @@ import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationList } from '@/components/Notification/NotificationList';
-import { NotificationSkeletonList } from '@/components/skeletons/NotificationSkeleton';
 
 export default function NotificationsPage() {
   const {
@@ -13,6 +12,7 @@ export default function NotificationsPage() {
     loading,
     isLoadingMore,
     error,
+    loadMoreError,
     fetchNotifications,
     fetchNextPage,
     markAllAsRead,
@@ -41,11 +41,17 @@ export default function NotificationsPage() {
   return (
     <PageLayout rightSidebar={true} contentWidth="narrow" className="lg:mt-4">
       <h1 className="sr-only">Notifications</h1>
-      <NotificationList notifications={notificationData.results} loading={loading} error={error} />
+      <NotificationList
+        notifications={notificationData.results}
+        loading={loading}
+        error={error}
+        isLoadingMore={isLoadingMore}
+        hasMore={!!notificationData.next}
+        loadMoreError={loadMoreError}
+        onRetryLoadMore={fetchNextPage}
+      />
 
-      {isLoadingMore && <NotificationSkeletonList count={5} />}
-
-      {!loading && !isLoadingMore && notificationData.next && (
+      {!loading && !isLoadingMore && !loadMoreError && notificationData.next && (
         <div ref={sentinelRef} className="h-10" aria-hidden="true" />
       )}
     </PageLayout>
