@@ -11,6 +11,7 @@
 
 import type { JSONContent } from '@tiptap/core';
 
+import type { AgentFile } from './agentFile';
 import type { EffortLevel } from './agentModels';
 
 export type ExecutionStatus =
@@ -208,6 +209,8 @@ export interface ChatMessage {
   content: string;
   /** For assistant messages: the execution that produced this answer. */
   execution_id: number | null;
+  /** Files sent with the message; absent on backends that predate them. */
+  attachments?: AgentFile[];
 }
 
 /** A note the assistant surface created from a chat. */

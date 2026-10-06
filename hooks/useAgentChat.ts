@@ -26,6 +26,7 @@ import {
 } from '@/types/agentChat';
 import { useResearchAI } from '@/hooks/useResearchAI';
 import { canSelectAIModel } from '@/types/researchAI';
+import type { AgentFile } from '@/types/agentFile';
 import type { GenerationRequest } from '@/types/agentModels';
 
 /** Fallback poll cadence while a turn runs; the socket nudge usually wins. */
@@ -49,6 +50,8 @@ export type { SendOutcome } from '@/services/notebookChat.service';
 
 export interface PendingSend {
   text: string;
+  /** Files going out with the message, shown on its optimistic echo. */
+  attachments: AgentFile[];
   /** Set once the POST 202s; cleared when the execution shows up in a refetch. */
   executionId: number | null;
 }
@@ -262,7 +265,11 @@ export interface UseAgentChatResult {
    * a different one is refused.
    */
   pinnedModelRef: string | null;
-  send: (text: string, generation?: GenerationRequest) => Promise<SendOutcome>;
+  send: (
+    text: string,
+    generation?: GenerationRequest,
+    attachments?: AgentFile[]
+  ) => Promise<SendOutcome>;
   cancel: () => Promise<void>;
   rename: (title: string) => Promise<boolean>;
   refetch: () => void;
@@ -521,20 +528,25 @@ export function useAgentChat({
   );
 
   const send = useCallback(
-    async (text: string, generation?: GenerationRequest): Promise<SendOutcome> => {
+    async (
+      text: string,
+      generation?: GenerationRequest,
+      attachments: AgentFile[] = []
+    ): Promise<SendOutcome> => {
       if (transport == null || chatId == null) return { ok: false, reason: 'error' };
       if (getSnapshot().budget?.tier === 'blocked') return { ok: false, reason: 'unauthorized' };
       if (isSubmissionBlocked()) return { ok: false, reason: 'usage_limit' };
       const epoch = epochRef.current;
-      setPendingSend({ text, executionId: null });
+      setPendingSend({ text, attachments, executionId: null });
       try {
         const response = await transport.sendMessage(
           chatId,
           text,
-          canSelectAIModel(getSnapshot().budget?.tier) ? generation : undefined
+          canSelectAIModel(getSnapshot().budget?.tier) ? generation : undefined,
+          attachments.map((file) => file.id)
         );
         if (epoch === epochRef.current) {
-          setPendingSend({ text, executionId: response.execution_id });
+          setPendingSend({ text, attachments, executionId: response.execution_id });
           fetchChat('live');
         }
         return { ok: true };

@@ -48,16 +48,21 @@ export class NotebookChatService {
    * and defaults are resolved server-side. `model` and `effort` are fixed on
    * the first turn; omit them on later turns to inherit the saved values.
    * Attempting to change either returns 400.
+   *
+   * `fileIds` are the user's processed uploads. One that cannot be sent
+   * refuses the whole message with a 400 and its `code`; nothing is recorded.
    */
   static async sendMessage(
     noteId: ID,
     chatId: ID,
     message: string,
-    generation?: GenerationRequest
+    generation?: GenerationRequest,
+    fileIds: number[] = []
   ): Promise<SendMessageResponse> {
     return ApiClient.post<SendMessageResponse>(`${this.basePath(noteId)}${chatId}/messages/`, {
       message,
       ...generation,
+      ...(fileIds.length > 0 && { file_ids: fileIds }),
     });
   }
 
@@ -132,6 +137,8 @@ export type SendOutcome =
         | 'unauthorized'
         | 'error';
       detail?: string;
+      /** The server's machine code for a refused message, e.g. `attachment_not_ready`. */
+      code?: string;
     };
 
 /** Maps a failed send POST to its outcome; the state side-effects stay in `send`. */
@@ -153,6 +160,7 @@ export function sendFailureOutcome(err: unknown): Extract<SendOutcome, { ok: fal
         ok: false,
         reason: code === 'model_not_allowed' ? 'model_not_allowed' : 'invalid',
         detail,
+        code,
       };
     case 401:
     case 403:
