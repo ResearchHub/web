@@ -74,8 +74,8 @@ export function NotificationList({
               <NotificationItem key={notification.id} notification={notification} />
             ))}
             {isLoadingMore &&
-              [...Array(LOADING_SKELETON_COUNT)].map((_, index) => (
-                <NotificationSkeleton key={index} />
+              Array.from({ length: LOADING_SKELETON_COUNT }).map((_, skeletonIndex) => (
+                <NotificationSkeleton key={'notification-skeleton-' + skeletonIndex} />
               ))}
             {loadMoreError && !isLoadingMore && (
               <div className="flex items-center justify-between gap-4 bg-gray-50 px-4 py-3 text-sm">
