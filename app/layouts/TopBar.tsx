@@ -48,8 +48,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   // default breadcrumb.
   const topBarSlot = useTopBarSlot();
   const leftSlot = topBarSlot?.leftSlot;
+  // Or keep the back arrow and name what the page has open instead of the page.
+  const openTitle = topBarSlot?.title ?? null;
+  const leading = topBarSlot?.leading;
 
-  const pageInfo = getPageInfo(pathname);
+  const routePageInfo = getPageInfo(pathname);
+  const pageInfo =
+    routePageInfo && openTitle != null ? { ...routePageInfo, title: openTitle } : routePageInfo;
   const showBackButton = pageInfo && !isRootNavigationPage(pathname);
 
   const profilePercent = useCallback(() => {
@@ -105,10 +110,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
 
+                {leading}
+
                 {pageInfo && (
                   <TopBarBreadcrumb
                     pageInfo={showTopBarFundTabs ? { ...pageInfo, title: 'Fund' } : pageInfo}
                     variant="desktop"
+                    truncateTitle={openTitle != null}
+                    size={openTitle != null ? 'md' : 'lg'}
                   />
                 )}
               </>

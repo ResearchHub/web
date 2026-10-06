@@ -40,6 +40,20 @@ interface PublishActionOptions {
   readonly isChangelog: boolean;
   readonly canPublishChangelog: boolean;
   readonly canPublishRegisteredReport: boolean;
+  /**
+   * The title is the document's first heading, so the one confirmed is
+   * written back into it. Off for a host that keeps the title outside the
+   * document: there the first heading is a section and is left alone.
+   */
+  readonly titleInDocument: boolean;
+  /**
+   * The host shows its own confirmation, which is where whatever is still
+   * missing gets filled in and where a nonprofit is chosen. A request to
+   * publish then opens it straight away, without the validation that names
+   * each missing field in a toast; the work is validated when that
+   * confirmation is confirmed, and the nonprofit is the host's to confirm.
+   */
+  readonly hostConfirms: boolean;
 }
 
 export interface PublishAction {
@@ -74,6 +88,8 @@ export function usePublishAction({
   isChangelog,
   canPublishChangelog,
   canPublishRegisteredReport,
+  titleInDocument,
+  hostConfirms,
 }: PublishActionOptions): PublishAction {
   const router = useRouter();
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation>(null);
@@ -95,6 +111,11 @@ export function usePublishAction({
 
     if (!canPublishRegisteredReport) {
       toast.error(REGISTERED_REPORT_MODERATOR_MESSAGE);
+      return;
+    }
+
+    if (hostConfirms) {
+      setPendingConfirmation('publish');
       return;
     }
 
@@ -131,7 +152,7 @@ export function usePublishAction({
     }
 
     setPendingConfirmation(selectedNonprofit ? 'nonprofit' : 'publish');
-  }, [readOnly, isNewPreprint, canPublishRegisteredReport, methods]);
+  }, [readOnly, isNewPreprint, canPublishRegisteredReport, methods, hostConfirms]);
 
   const uploadCoverImage = useCallback(
     async (formData: PublishingFormData): Promise<string | null | false> => {
@@ -210,7 +231,11 @@ export function usePublishAction({
       }
 
       try {
-        setDocumentTitle(editor, editedTitle);
+        // The host's confirmation holds its own Publish back until the work
+        // is complete; this is the same check, where it cannot be skipped.
+        if (hostConfirms && !(await methods.trigger())) return;
+
+        if (titleInDocument) setDocumentTitle(editor, editedTitle);
 
         // Drain the queue now: publishing supersedes the draft, and the API
         // rejects Details on a published note.
@@ -353,6 +378,8 @@ export function usePublishAction({
       note,
       isNewPreprint,
       canPublishChangelog,
+      hostConfirms,
+      titleInDocument,
       editor,
       saveDetailsNow,
       methods,

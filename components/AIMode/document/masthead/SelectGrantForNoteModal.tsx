@@ -3,7 +3,7 @@
 import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
 import { useSelectedGrant } from '@/components/Notebook/PublishingForm/useSelectedGrant';
 
-/** A modal a detail block opens for the note it belongs to. */
+/** A modal a masthead widget opens for the note it belongs to. */
 export interface NoteModalProps {
   readonly noteId: number;
   readonly isOpen: boolean;

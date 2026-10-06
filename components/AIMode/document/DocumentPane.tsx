@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { Editor } from '@tiptap/react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
+import { setDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import {
   PublishingForm,
@@ -23,11 +23,13 @@ import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
-import { DetailBlockStrip } from './details/DetailBlockStrip';
+import { Masthead } from './masthead/Masthead';
 import { PublishControls } from './PublishControls';
+import { PublishDialog } from './PublishDialog';
+import { PublishPill } from './PublishPill';
 import type { AIModeDocument } from './useAIModeDocument';
 
-/** The document itself, or the full publishing details form. */
+/** The document itself, or the full publishing details form the phone's drawer still has. */
 export type DocumentPaneView = 'document' | 'details';
 
 /** The page column: shared by the skeleton and the document so they line up. */
@@ -38,26 +40,24 @@ interface DocumentPaneProps {
   readonly document: AIModeDocument;
   /** The open chat, whose activity is one of the review's version signals. */
   readonly chat: AgentChat | null;
+  /** Which of the drawer's two views is showing; the column only has the document. */
   readonly view: DocumentPaneView;
   readonly onViewChange: (view: DocumentPaneView) => void;
   /**
    * A column beside the chat, or the drawer below the tablet breakpoint. The
-   * drawer trades the block strip for a Document | Details switch and keeps
-   * the publish controls with it.
+   * column is only the document: its publishing details head it and a
+   * Publish button floats over it. The drawer has not been redesigned yet,
+   * and keeps a Document | Details switch with its publish controls.
    */
   readonly presentation?: 'pane' | 'drawer';
-  /**
-   * Where the pane places its publish controls when it is a column: an
-   * element in the workspace's strip. The drawer keeps them inline.
-   */
-  readonly publishControlsSlot?: HTMLElement | null;
   /** The editor is never editable — the mobile drawer. */
   readonly readOnly?: boolean;
   readonly className?: string;
 }
 
 /**
- * The right pane: the note the assistant is composing, in the real editor.
+ * The document pane: the note the assistant is composing, in the real editor,
+ * under a masthead that holds what it needs before it can be published.
  * Each version the assistant writes is spliced into the editor as an in-note
  * review (highlighted insertions, struck removals, accept/reject), exactly as
  * in the notebook. The user can edit once the turn has settled; edits
@@ -71,13 +71,15 @@ export function DocumentPane({
   view,
   onViewChange,
   presentation = 'pane',
-  publishControlsSlot = null,
   readOnly = false,
   className,
 }: DocumentPaneProps) {
   const { note, content, loading, error, status, draftText, draftBlocks, phaseLabel } = document;
   const noteId = note?.id ?? null;
   const writing = status === 'drafting' || status === 'working';
+  const isPane = presentation === 'pane';
+  // The column has no details view; a drawer left on Details must not hide it.
+  const showingDocument = isPane || view === 'document';
 
   // ---- the editor, its autosave, and the assistant-version review ----
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -163,32 +165,87 @@ export function DocumentPane({
     status === 'working' && !document.hasWrittenVersion && review.review == null;
 
   const openDetails = useCallback(() => onViewChange('details'), [onViewChange]);
-  const toggleDetails = useCallback(
-    () => onViewChange(view === 'details' ? 'document' : 'details'),
-    [onViewChange, view]
+
+  // The note's title heads the document and is what it is published under.
+  // It is the note's own field, not the document's first heading, which here
+  // is a section; it saves through the note's details writer.
+  const title = document.title;
+
+  // A draft made in the notebook is the exception: its body opens with the
+  // title as a top-level heading, which is where the notebook reads the
+  // title from. The masthead already shows it and the published page drops
+  // that heading, so it is hidden here, and a rename is written into it too
+  // so the two cannot drift apart.
+  const [leadingHeading, setLeadingHeading] = useState<string | null>(null);
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) {
+      setLeadingHeading(null);
+      return undefined;
+    }
+    const read = () => {
+      const first = editor.state.doc.firstChild;
+      const isTitleHeading = first?.type.name === 'heading' && first.attrs.level === 1;
+      setLeadingHeading(isTitleHeading ? first.textContent.trim() : null);
+    };
+    read();
+    editor.on('update', read);
+    return () => {
+      editor.off('update', read);
+    };
+  }, [editor]);
+  const bodyOpensWithTitle = title !== '' && leadingHeading === title;
+  const reviewing = review.review != null;
+
+  const renameDocument = document.rename;
+  const rename = useCallback(
+    (next: string) => {
+      renameDocument(next);
+      // Not under the assistant's hands: a write there would make its edit stale.
+      const writeHeading =
+        bodyOpensWithTitle && editor != null && !editor.isDestroyed && !locked && !reviewing;
+      if (!writeHeading) {
+        saveDetailsSoon({ title: next });
+        return;
+      }
+      // The document goes out first and the title only once it has landed.
+      // The API takes them on separate routes, and a title that arrives
+      // while a version is being written leaves the note pointing at the
+      // version before it.
+      setDocumentTitle(editor, next);
+      void saveNoteNow(editor).finally(() => saveDetailsSoon({ title: next }));
+    },
+    [bodyOpensWithTitle, editor, locked, reviewing, renameDocument, saveDetailsSoon, saveNoteNow]
   );
+
+  // The bottom-centre spot is the assistant's first: while it writes, and
+  // while its changes wait to be accepted or rejected, there is no Publish.
+  const showPublish =
+    isPane &&
+    content != null &&
+    !loading &&
+    !writing &&
+    review.review == null &&
+    !editorLostContent;
 
   return (
     <PublishingHostProvider value={publishingHost}>
       {/* The form lives as long as the note does, whichever view is showing:
-          its values are the source of the detail blocks and the publish
-          controls, and remounting it would rehydrate from the note as it was
-          loaded, dropping edits saved since. */}
-      <PublishingFormProvider>
+          its values are the source of the masthead and the publish controls,
+          and remounting it would rehydrate from the note as it was loaded,
+          dropping edits saved since. */}
+      <PublishingFormProvider
+        publishTitle={title}
+        publishConfirmation={isPane ? <PublishDialog title={title} onRename={rename} /> : undefined}
+      >
         <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
-          {presentation === 'pane' ? (
-            <DetailBlockStrip detailsOpen={view === 'details'} onToggleDetails={toggleDetails} />
-          ) : (
+          {!isPane && (
             <DrawerStrip view={view} onViewChange={onViewChange} onOpenDetails={openDetails} />
           )}
-          {presentation === 'pane' &&
-            publishControlsSlot &&
-            createPortal(<PublishControls onOpenDetails={openDetails} />, publishControlsSlot)}
 
           {/* The document is the pane: no gutter, no card, just the page. The
-          editor stays mounted behind the details view — it holds the review
-          and autosave state, and the form publishes from it. */}
-          <div className={cn('min-h-0 flex-1 overflow-y-auto', view !== 'document' && 'hidden')}>
+          editor stays mounted behind the drawer's details view — it holds the
+          review and autosave state, and the form publishes from it. */}
+          <div className={cn('min-h-0 flex-1 overflow-y-auto', !showingDocument && 'hidden')}>
             <NoteReviewBanner review={review} className="mx-6 mt-4" />
 
             {error && content == null ? (
@@ -205,7 +262,15 @@ export function DocumentPane({
             ) : startingDocument ? (
               <StartingDocument label={phaseLabel} />
             ) : (
-              <article className={cn(DOCUMENT_PAGE_CLASS, 'animate-in fade-in duration-300')}>
+              <article
+                className={cn(
+                  DOCUMENT_PAGE_CLASS,
+                  'animate-in fade-in duration-300',
+                  // Room for the last lines to scroll clear of the floating button.
+                  isPane && '!pb-28'
+                )}
+              >
+                <Masthead title={title} onRename={rename} readOnly={!isPane} />
                 {editorLostContent && (
                   <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                     This document couldn’t be displayed here. Open it in the notebook to view it;
@@ -216,7 +281,12 @@ export function DocumentPane({
 
                 {/* Mounted once per note: the editor's content prop is only read on
                 creation, and later versions arrive through the review. */}
-                <div className={writing && !document.hasWrittenVersion ? 'hidden' : undefined}>
+                <div
+                  className={cn(
+                    writing && !document.hasWrittenVersion && 'hidden',
+                    bodyOpensWithTitle && '[&_.ProseMirror>h1:first-of-type]:hidden'
+                  )}
+                >
                   <BlockEditorClientWrapper
                     key={noteId ?? 'none'}
                     content={content.content}
@@ -247,18 +317,18 @@ export function DocumentPane({
             )}
           </div>
 
-          {/* Mounted only while showing: a block's popover registers the same
-              field, and two inputs on one name leave the form reading and
-              writing through whichever attached last — keystrokes in the
-              popover would land in, or be overwritten from, the hidden copy.
-              The values live in the provider, so nothing is lost by unmounting. */}
-          {view === 'details' && (
+          {/* The drawer's full form, mounted only while showing: two inputs
+              registered on one field leave the form reading and writing
+              through whichever attached last, and keystrokes go missing. The
+              masthead beside it is read-only there for the same reason. The
+              values live in the provider, so nothing is lost by unmounting. */}
+          {!isPane && view === 'details' && (
             <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
               <PublishingForm showFooter={false} />
             </div>
           )}
 
-          {review.review && view === 'document' && (
+          {review.review && showingDocument && (
             <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
               <NoteReviewControls
                 changeCount={review.review.changeCount}
@@ -267,6 +337,8 @@ export function DocumentPane({
               />
             </div>
           )}
+
+          {showPublish && <PublishPill />}
         </div>
       </PublishingFormProvider>
     </PublishingHostProvider>

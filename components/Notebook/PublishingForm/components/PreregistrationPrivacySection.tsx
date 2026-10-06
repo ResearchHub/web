@@ -16,7 +16,8 @@ const OPTIONS = [
   },
 ];
 
-function useIsLockedPrivate() {
+/** The chosen RFP only takes private proposals, so the proposal cannot be public. */
+export function useIsLockedPrivate() {
   const { watch } = useFormContext();
   const selectedGrant = watch('selectedGrant');
   return selectedGrant?.applicationVisibility === 'PRIVATE';

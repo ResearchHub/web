@@ -55,6 +55,20 @@ const PublishingControllerContext = createContext<PublishingController | null>(n
 
 interface PublishingFormProviderProps {
   readonly readOnly?: boolean;
+  /**
+   * The title the work is published under, for a host that keeps it outside
+   * the document (the workspace shows the note's own title above the text).
+   * Without it the title is the document's first heading, which the
+   * confirmation edits in place: the notebook.
+   */
+  readonly publishTitle?: string;
+  /**
+   * The host's own publish confirmation, shown in place of the notebook's
+   * dialog as soon as publishing is asked for. Nothing is validated first:
+   * it reads the form and the flow from `usePublishingController()`, shows
+   * what is still missing, and is where a nonprofit is chosen and confirmed.
+   */
+  readonly publishConfirmation?: ReactNode;
   readonly children: ReactNode;
 }
 
@@ -67,6 +81,8 @@ interface PublishingFormProviderProps {
  */
 export function PublishingFormProvider({
   readOnly = false,
+  publishTitle,
+  publishConfirmation,
   children,
 }: PublishingFormProviderProps) {
   const { note, editor, saveDetailsSoon, saveDetailsNow } = usePublishingHost();
@@ -177,6 +193,8 @@ export function PublishingFormProvider({
     isChangelog,
     canPublishChangelog,
     canPublishRegisteredReport,
+    titleInDocument: publishTitle === undefined,
+    hostConfirms: publishConfirmation !== undefined,
   });
 
   const canPublish =
@@ -227,22 +245,28 @@ export function PublishingFormProvider({
           />
         )}
 
-        {action.pendingConfirmation === 'publish' && (
-          <ConfirmPublishModal
-            isOpen
-            onClose={action.dismissConfirmation}
-            onConfirm={action.confirmPublish}
-            title={
-              getDocumentTitleFromEditor(editor) ||
-              (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research')
-            }
-            isPublishing={action.isPublishing}
-            isUpdate={Boolean(workId)}
-            onTitleChange={(title) => setDocumentTitle(editor, title)}
-            variant={articleType === 'grant' ? 'rfp' : 'default'}
-            documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
-          />
-        )}
+        {action.pendingConfirmation === 'publish' &&
+          (publishConfirmation !== undefined ? (
+            publishConfirmation
+          ) : (
+            <ConfirmPublishModal
+              isOpen
+              onClose={action.dismissConfirmation}
+              onConfirm={action.confirmPublish}
+              title={
+                publishTitle ??
+                (getDocumentTitleFromEditor(editor) ||
+                  (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research'))
+              }
+              isPublishing={action.isPublishing}
+              isUpdate={Boolean(workId)}
+              onTitleChange={
+                publishTitle === undefined ? (title) => setDocumentTitle(editor, title) : undefined
+              }
+              variant={articleType === 'grant' ? 'rfp' : 'default'}
+              documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
+            />
+          ))}
       </FormProvider>
     </PublishingControllerContext.Provider>
   );

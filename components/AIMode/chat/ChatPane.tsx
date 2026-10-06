@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeftOpen } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
@@ -28,8 +28,8 @@ import { DocumentChatEmptyState } from './DocumentChatEmptyState';
 interface ChatPaneProps {
   readonly state: AIModeChatState;
   /**
-   * Whether the pane's header names the chat. Not where the workspace's strip
-   * above already does: the chat as the main pane, from the tablet breakpoint up.
+   * Whether the pane's header names the chat. Not when the chat is the main
+   * pane: the app's top bar already names it there, at every width.
    */
   readonly showTitle: boolean;
   /** Header controls seated right of the title — the document toggle. */
@@ -161,7 +161,7 @@ export function ChatPane({
             aria-label="Show conversations and documents"
             className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 tablet:!hidden"
           >
-            <PanelLeft className="h-4 w-4" />
+            <PanelLeftOpen className="h-4 w-4" />
           </button>
         )}
         {renaming && chatId != null ? (
@@ -176,7 +176,7 @@ export function ChatPane({
             }}
           />
         ) : !showTitle ? (
-          // The strip names it; the header carries only the controls.
+          // The top bar names it; the header carries only the controls.
           <span className="flex-1" />
         ) : titleLoading ? (
           <div className="flex min-w-0 flex-1 items-center" aria-busy="true">

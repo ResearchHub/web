@@ -32,6 +32,13 @@ export interface AIModeDocument {
    * reach the editor through the review, not through a reload here.
    */
   readonly content: NoteWithContent | null;
+  /**
+   * The note's title as it stands: what it loaded with, or what the user has
+   * renamed it to since. Empty while it is not known yet.
+   */
+  readonly title: string;
+  /** Shows a new title at once. Saving it is the caller's, through the note's details writer. */
+  readonly rename: (title: string) => void;
   readonly loading: boolean;
   readonly error: string | null;
   readonly status: DocumentStatus;
@@ -96,6 +103,9 @@ export function useAIModeDocument({
   const [content, setContent] = useState<NoteWithContent | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Kept beside the loaded note rather than written into it: the editor and
+  // the review are seeded from that object and must not see it change.
+  const [renamed, setRenamed] = useState<{ noteId: number; title: string } | null>(null);
   const seqRef = useRef(0);
 
   const fetchNote = useCallback(async () => {
@@ -133,6 +143,19 @@ export function useAIModeDocument({
 
   const hasWrittenVersion = (content != null && content.versionId > 0) || chatHasEditedNote(chat);
 
+  const rename = useCallback(
+    (title: string) => {
+      if (noteId != null) setRenamed({ noteId, title });
+    },
+    [noteId]
+  );
+  const title = (
+    (renamed?.noteId === noteId ? renamed?.title : null) ??
+    content?.title ??
+    note?.title ??
+    ''
+  ).trim();
+
   const status: DocumentStatus = useMemo(() => {
     if (noteId == null) return 'absent';
     if (draftText != null) return 'drafting';
@@ -144,6 +167,8 @@ export function useAIModeDocument({
   return {
     note,
     content,
+    title,
+    rename,
     loading,
     error,
     status,

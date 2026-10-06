@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeftOpen } from 'lucide-react';
 import { PublishMenu } from '@/app/layouts/PublishMenu';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -97,7 +97,7 @@ export function WorkspacePanes({
                 aria-pressed="true"
                 className="flex h-11 w-11 items-center justify-center rounded-lg text-primary-700"
               >
-                <PanelLeft className="h-[18px] w-[18px]" />
+                <PanelLeftOpen className="h-[18px] w-[18px]" />
               </button>
               <h2 className="text-sm font-medium text-gray-800">Conversations and documents</h2>
             </div>
@@ -111,7 +111,7 @@ export function WorkspacePanes({
 
         {/* Between the tablet breakpoint and the width at which the left
             column holds the lists, they slide over the panes from its edge.
-            The strip's button, which stays clear of the scrim, also closes it. */}
+            The top bar's button, which stays clear of the scrim, also closes it. */}
         {showLists && !isBelowTablet && (
           <>
             <div

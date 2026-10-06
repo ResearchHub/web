@@ -6,12 +6,15 @@ interface TopBarBreadcrumbProps {
   variant: 'mobile' | 'desktop';
   /** Ellipsize a long title so sibling controls (e.g. sticky tab pills) stay visible. */
   truncateTitle?: boolean;
+  /** `lg` (26px) for a page's own name; `md` (20px) for the longer title of what a page has open. */
+  size?: 'lg' | 'md';
 }
 
 export const TopBarBreadcrumb = ({
   pageInfo,
   variant,
   truncateTitle = false,
+  size = 'lg',
 }: TopBarBreadcrumbProps) => {
   const isMobile = variant === 'mobile';
 
@@ -26,7 +29,11 @@ export const TopBarBreadcrumb = ({
         truncateTitle ? 'min-w-0 truncate' : 'flex-shrink-0'
       );
 
-  const titleStyle = isMobile ? undefined : { fontSize: '26px', letterSpacing: '-0.5px' };
+  const desktopTitleStyle =
+    size === 'md'
+      ? { fontSize: '20px', letterSpacing: '-0.3px' }
+      : { fontSize: '26px', letterSpacing: '-0.5px' };
+  const titleStyle = isMobile ? undefined : desktopTitleStyle;
 
   return (
     <div className={containerClass}>

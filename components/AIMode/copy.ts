@@ -7,9 +7,8 @@ import type { FundingIntent } from '@/components/Funding/fundingDirection';
 export const AI_MODE_NAME = 'Workspace';
 
 /**
- * What the new-conversation screen is called, in the workspace's strip and
- * on a phone in the chat's header: named for what it will produce, not for
- * the chat.
+ * What the new-conversation screen is called, in the app's top bar: named
+ * for what it will produce, not for the chat.
  */
 export const newConversationTitle = (intent: FundingIntent): string =>
   intent === 'fund' ? 'New RFP' : 'New proposal';

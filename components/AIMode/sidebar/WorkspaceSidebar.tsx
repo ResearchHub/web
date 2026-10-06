@@ -7,6 +7,8 @@ import { DraftsSection } from './DraftsSection';
 
 interface WorkspaceSidebarProps {
   readonly state: AIModeChatState;
+  /** The document that is open and its title as it stands, for the Drafts row to follow a rename. */
+  readonly openNote?: { readonly id: number; readonly title: string } | null;
   /** Runs after any choice that should put a drawer away. */
   readonly onNavigate?: () => void;
 }
@@ -16,7 +18,7 @@ interface WorkspaceSidebarProps {
  * conversation of your own, or open a draft. Starting a new one is the
  * Publish button above them.
  */
-export function WorkspaceSidebar({ state, onNavigate }: WorkspaceSidebarProps) {
+export function WorkspaceSidebar({ state, openNote = null, onNavigate }: WorkspaceSidebarProps) {
   const { selectDocument } = useAIMode();
   const { target, chatId, list } = state;
   // The workspace does not admit this user: the reason stands alone, without
@@ -51,6 +53,7 @@ export function WorkspaceSidebar({ state, onNavigate }: WorkspaceSidebarProps) {
                 target.kind === 'document' && target.layout === 'document' ? target.noteId : null
               }
               recentNoteId={target.kind === 'conversation' ? (state.note?.id ?? null) : null}
+              openNote={openNote}
               onSelect={(noteId) => {
                 selectDocument(noteId);
                 onNavigate?.();

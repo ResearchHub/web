@@ -16,6 +16,8 @@ interface DraftsSectionProps {
   readonly activeNoteId: number | null;
   /** A note the open conversation just created; the list fetches again to show it. */
   readonly recentNoteId: number | null;
+  /** The open document and its title as it stands; its row follows a rename. */
+  readonly openNote?: { readonly id: number; readonly title: string } | null;
   readonly onSelect: (noteId: number) => void;
 }
 
@@ -37,7 +39,12 @@ function DraftIcon({ note }: { readonly note: Note }) {
  * open, newest first, published or not. Opening one puts the document in
  * the main pane with a fresh chat beside it.
  */
-export function DraftsSection({ activeNoteId, recentNoteId, onSelect }: DraftsSectionProps) {
+export function DraftsSection({
+  activeNoteId,
+  recentNoteId,
+  openNote = null,
+  onSelect,
+}: DraftsSectionProps) {
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const { user } = useUser();
   const notes = useOrganizationNotes(selectedOrg?.slug, { waiting: isLoadingOrg });
@@ -65,6 +72,20 @@ export function DraftsSection({ activeNoteId, recentNoteId, onSelect }: DraftsSe
     // Refetch once per new note, not on every list change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recentNoteId, known]);
+
+  // The open document was renamed in its masthead: its row says so at once,
+  // and keeps saying so after another document is opened.
+  const { setNotes } = notes;
+  const openNoteId = openNote?.id ?? null;
+  const openNoteTitle = openNote?.title ?? '';
+  useEffect(() => {
+    if (openNoteId == null || !openNoteTitle) return;
+    setNotes((current) =>
+      current.some((note) => note.id === openNoteId && note.title !== openNoteTitle)
+        ? current.map((note) => (note.id === openNoteId ? { ...note, title: openNoteTitle } : note))
+        : current
+    );
+  }, [openNoteId, openNoteTitle, setNotes, notes.notes]);
 
   return (
     <section aria-label="Drafts">

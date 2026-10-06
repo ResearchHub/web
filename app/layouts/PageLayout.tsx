@@ -133,15 +133,10 @@ function PageLayoutInner({
             {children}
           </div>
         ) : (
-          /* Scrollable content area.
-             Mobile: top padding clears the fixed top bar (needed so content
-             can scroll under the hide-on-scroll bar).
-             Tablet+: top margin instead, so the scrollport starts below the bar.
-             When the EndowmentPromoBanner is visible above the TopBar on mobile
-             we add extra top padding to clear the banner + topbar stack.
-             The banner itself is hidden at >= 768px (tablet:!hidden) so the
-             offset is reset by the inner media query below.
-             Bottom padding on mobile clears the fixed MobileBottomNav. */
+          /* The scrollport. Padding clears the fixed top bar on phones, where it
+             hides on scroll; a margin does from the tablet breakpoint up. The
+             `page-layout-*` classes reserve room for the promo banner and the
+             bottom nav where those show. */
           <div
             ref={scrollContainerRef}
             className={cn(

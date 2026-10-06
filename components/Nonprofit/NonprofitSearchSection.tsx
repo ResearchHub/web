@@ -216,7 +216,7 @@ function NonprofitSearchSectionInner({
 
       {/* Nonprofit Info Dialog */}
       <Transition show={showInfoDialog && !!selectedInfoNonprofit} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowInfoDialog(false)}>
+        <Dialog as="div" className="relative z-[10000]" onClose={() => setShowInfoDialog(false)}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity duration-200"
@@ -330,7 +330,7 @@ function NonprofitSearchSectionInner({
 
       {/* Endaoment Info Dialog */}
       <Transition show={showEndaomentInfo} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowEndaomentInfo(false)}>
+        <Dialog as="div" className="relative z-[10000]" onClose={() => setShowEndaomentInfo(false)}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity duration-200"

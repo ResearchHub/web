@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PanelRight } from 'lucide-react';
+import { PanelRightOpen } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { cn } from '@/utils/styles';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -12,8 +12,8 @@ import { DocumentCard } from './chat/DocumentCard';
 import { conversationTitleFor } from './chat/conversationTitle';
 import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
 import { useAIModeDocument } from './document/useAIModeDocument';
-import { AIModeHeader } from './shell/AIModeHeader';
 import { WorkspacePanes } from './shell/WorkspacePanes';
+import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
 import { WorkspaceSidebar } from './sidebar/WorkspaceSidebar';
 import { useAIModeChat } from './useAIModeChat';
 import { newConversationTitle } from './copy';
@@ -21,8 +21,6 @@ import { layoutFor } from './workspaceUrl';
 
 const CHAT_MIN_WIDTH = 360;
 const DOCUMENT_MIN_WIDTH = 420;
-/** The details form needs more room than the document: authors, image, funding fields. */
-const DETAILS_MIN_WIDTH = 560;
 /** Share of the viewport the document opens at before the user drags it. */
 const DOCUMENT_DEFAULT_SHARE = 0.55;
 
@@ -66,7 +64,7 @@ function Workspace() {
   // being an icon rail (Tailwind's `sidebar-compact`). Below that they wait
   // behind a button: a panel over the panes, or on a phone a screen of their own.
   const listsInColumn = useMediaQuery('(min-width: 1240px)') === true;
-  // Tailwind's `tablet` breakpoint; the strip and the side-by-side panes only exist from it up.
+  // Tailwind's `tablet` breakpoint; the side-by-side panes only exist from it up.
   const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
   const [listOpen, setListOpen] = useState(false);
   const closeList = useCallback(() => setListOpen(false), []);
@@ -84,13 +82,12 @@ function Workspace() {
   // ---- pane widths: the side pane drags, the main pane takes the rest ----
   const [panesEl, setPanesEl] = useState<HTMLDivElement | null>(null);
   const panesWidth = useElementWidth(panesEl);
-  // Document or details in the document pane; details wants a wider floor.
+  // Document or details in the phone's drawer; the column only shows the document.
   const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
-  const documentMinWidth = documentView === 'details' ? DETAILS_MIN_WIDTH : DOCUMENT_MIN_WIDTH;
   // The side pane is the document (chat first) or the chat (document first);
   // it may grow until the main pane is down to its own minimum column.
   const sideIsDocument = layout === 'chat';
-  const sideMinWidth = sideIsDocument ? documentMinWidth : CHAT_MIN_WIDTH;
+  const sideMinWidth = sideIsDocument ? DOCUMENT_MIN_WIDTH : CHAT_MIN_WIDTH;
   const sideMaxWidth = Math.max(
     sideMinWidth,
     panesWidth - (sideIsDocument ? CHAT_MIN_WIDTH : DOCUMENT_MIN_WIDTH)
@@ -121,10 +118,16 @@ function Workspace() {
   const openDocument = useCallback(() => setDocumentOpen(true), []);
   const closeDocument = useCallback(() => setDocumentOpen(false), []);
   const showDocument = noteId != null && documentOpen;
-  const documentTitle = doc.content?.title?.trim() || state.note?.title?.trim() || 'Document';
-  // The strip names what is open: the conversation when the chat is the main
-  // pane, the document when it is, and the new-conversation screen by what it
-  // is for — an RFP or a proposal.
+  // The Drafts list follows the open document's title as it is renamed.
+  const docTitle = doc.title;
+  const openNote = useMemo(
+    () => (noteId != null && docTitle ? { id: noteId, title: docTitle } : null),
+    [noteId, docTitle]
+  );
+  const documentTitle = doc.title || 'Document';
+  // The top bar names what is open: the conversation when the chat is the
+  // main pane, the document when it is, and the new-conversation screen by
+  // what it is for — an RFP or a proposal.
   const { title: conversationTitle } = conversationTitleFor(state);
   const headerTitle =
     layout === 'document'
@@ -132,10 +135,6 @@ function Workspace() {
       : target.chatId != null
         ? conversationTitle
         : newConversationTitle(state.intent);
-
-  // The document column puts its publish controls up in the strip, where
-  // they read as the workspace's, not the pane's. It renders into this slot.
-  const [publishControlsSlot, setPublishControlsSlot] = useState<HTMLDivElement | null>(null);
 
   // The turn that created the document, for seating its card in the transcript.
   const documentCardExecutionId = useMemo(() => {
@@ -170,7 +169,6 @@ function Workspace() {
       view={documentView}
       onViewChange={setDocumentView}
       presentation={presentation}
-      publishControlsSlot={presentation === 'pane' ? publishControlsSlot : null}
       readOnly={presentation === 'drawer'}
       className={presentation === 'drawer' ? '-mx-4 -mt-2' : undefined}
     />
@@ -182,34 +180,35 @@ function Workspace() {
       leftSidebarContent={
         listsInColumn ? (
           <div className="workspace-fade-in h-full">
-            <WorkspaceSidebar state={state} />
+            <WorkspaceSidebar state={state} openNote={openNote} />
           </div>
         ) : null
       }
     >
       <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
-        {!isBelowTablet && (
-          <AIModeHeader
-            title={headerTitle}
-            publishControlsRef={setPublishControlsSlot}
-            listOpen={listOpen}
-            onToggleList={listsInColumn ? undefined : toggleList}
-          />
-        )}
+        <WorkspaceTopBar
+          title={headerTitle}
+          listOpen={listOpen}
+          onToggleList={listsInColumn || isBelowTablet ? undefined : toggleList}
+        />
 
         <WorkspacePanes
           layout={layout}
           isBelowTablet={isBelowTablet}
           sideWidth={{ ...sideWidth, min: sideMinWidth, max: sideMaxWidth }}
-          lists={listsInColumn ? null : <WorkspaceSidebar state={state} onNavigate={closeList} />}
+          lists={
+            listsInColumn ? null : (
+              <WorkspaceSidebar state={state} openNote={openNote} onNavigate={closeList} />
+            )
+          }
           listOpen={listOpen}
           onCloseList={closeList}
           onCloseDocumentDrawer={closeDocument}
           chat={
             <ChatPane
               state={state}
-              // From the tablet breakpoint up the strip names the chat when it is the main pane.
-              showTitle={isBelowTablet || layout !== 'chat'}
+              // The top bar names the chat when it is the main pane.
+              showTitle={layout !== 'chat'}
               onOpenConversations={() => setListOpen(true)}
               documentCard={documentCard}
               documentCardExecutionId={documentCardExecutionId}
@@ -228,7 +227,7 @@ function Workspace() {
                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                     )}
                   >
-                    <PanelRight className="h-4 w-4" aria-hidden="true" />
+                    <PanelRightOpen className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )
               }

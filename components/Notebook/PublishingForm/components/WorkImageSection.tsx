@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { cn } from '@/utils/styles';
 import type { SectionProps } from './SectionProps';
 import { PublishingFormData } from '../schema';
-import { useAssetUpload } from '@/hooks/useAssetUpload';
-
-const ACCEPT = ['image/jpeg', 'image/png'];
-const MAX_SIZE_MB = 10;
+import {
+  COVER_IMAGE_ACCEPT,
+  COVER_IMAGE_MAX_MB,
+  coverImageFileError,
+  useCoverImageUpload,
+} from '../useCoverImageUpload';
 
 const isValidFile = (file: unknown): file is File =>
   Boolean(file instanceof File && file.name && file.size > 0);
@@ -17,12 +18,11 @@ const isValidFile = (file: unknown): file is File =>
 export function WorkImageSection({ className }: SectionProps) {
   const {
     control,
-    getValues,
     formState: { errors },
   } = useFormContext<PublishingFormData>();
 
   const [error, setError] = useState<string | null>(null);
-  const [, uploadAsset] = useAssetUpload();
+  const coverImage = useCoverImageUpload();
 
   return (
     <div className={cn('py-3 px-6', className)}>
@@ -39,30 +39,13 @@ export function WorkImageSection({ className }: SectionProps) {
               file={file}
               existingUrl={existingUrl}
               error={error || (errors.coverImage?.message as string) || null}
-              onSelect={async (selected) => {
+              onSelect={(selected) => {
                 setError(null);
-                const previousCover = field.value ?? null;
-                // Show the pick right away, then swap in what the server stored.
-                field.onChange({ file: selected, key: null, url: null });
-
-                const uploaded = await uploadAsset(selected, 'post').catch((uploadError) => {
-                  console.error('Error uploading cover image:', uploadError);
-                  return null;
-                });
-
-                // Ignore this upload if its selection was removed or replaced while it ran.
-                if (getValues('coverImage')?.file !== selected) return;
-
-                if (!uploaded) {
-                  field.onChange(previousCover);
-                  toast.error('Failed to upload image. Please try again.');
-                  return;
-                }
-                field.onChange({ file: null, key: uploaded.objectKey, url: uploaded.absoluteUrl });
+                void coverImage.select(selected);
               }}
               onRemove={() => {
                 setError(null);
-                field.onChange(null);
+                coverImage.remove();
               }}
               onError={setError}
             />
@@ -109,12 +92,9 @@ function CoverImageControl({
     const picked = e.target.files?.[0];
     e.target.value = ''; // allow re-selecting the same file
     if (!picked) return;
-    if (!ACCEPT.includes(picked.type)) {
-      onError('Only JPG or PNG files are accepted');
-      return;
-    }
-    if (picked.size > MAX_SIZE_MB * 1024 * 1024) {
-      onError(`Image must be under ${MAX_SIZE_MB}MB`);
+    const fileError = coverImageFileError(picked);
+    if (fileError) {
+      onError(fileError);
       return;
     }
     onSelect(picked);
@@ -153,7 +133,7 @@ function CoverImageControl({
             Add cover image
           </button>
           {!error && (
-            <p className="mt-1 text-xs text-gray-500">JPG or PNG · up to {MAX_SIZE_MB}MB</p>
+            <p className="mt-1 text-xs text-gray-500">JPG or PNG · up to {COVER_IMAGE_MAX_MB}MB</p>
           )}
         </>
       )}
@@ -162,7 +142,7 @@ function CoverImageControl({
         data-testid="cover-image-input"
         ref={inputRef}
         type="file"
-        accept={ACCEPT.join(',')}
+        accept={COVER_IMAGE_ACCEPT.join(',')}
         onChange={handleChange}
         className="hidden"
       />

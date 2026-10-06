@@ -12,7 +12,8 @@ const CommunityMatchBadge = () => (
   </CommunityMatchTooltip>
 );
 
-const OPTIONS = [
+/** How an RFP lets its applicants submit; shared with the workspace's publish dialog. */
+export const GRANT_APPLICATION_VISIBILITY_OPTIONS = [
   {
     value: 'OPTIONAL',
     label: 'Applicant chooses',
@@ -41,7 +42,7 @@ export function GrantApplicationVisibilitySection() {
       <p className="mb-2 text-sm text-gray-500">Choose how applicants submit proposals</p>
       <div className="mt-2">
         <RadioGroup
-          options={OPTIONS}
+          options={GRANT_APPLICATION_VISIBILITY_OPTIONS}
           value={value}
           onChange={(next) => setValue('applicationVisibility', next, { shouldValidate: true })}
           size="sm"
