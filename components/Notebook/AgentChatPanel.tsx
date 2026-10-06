@@ -23,13 +23,12 @@ import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgen
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import type { ChatNoticePolicy } from '@/components/AgentChat/chatNotices';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
-import { ChatPresets } from '@/components/AgentChat/ChatPresets';
+import { ChatEmptyState } from '@/components/AgentChat/ChatEmptyState';
 import { ChatSources, collectChatSources } from '@/components/AgentChat/ChatSources';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { CreditMeter } from '@/components/AgentChat/CreditMeter';
 import { canSelectAIModel } from '@/types/researchAI';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
-import { Logo } from '@/components/ui/Logo';
 
 type PanelTab = 'chat' | 'sources';
 
@@ -302,7 +301,7 @@ export function AgentChatPanel({
   const composerDisabled = accessDenied || !chatAccessible;
 
   const emptyState = (
-    <EmptyState
+    <ChatEmptyState
       noteIsEmpty={noteIsEmpty}
       noteIsRfp={noteIsRfp}
       onSelectPreset={applyPreset}
@@ -650,43 +649,6 @@ function ErrorState({
       <Button variant="outlined" size="sm" onClick={onRetry}>
         Try again
       </Button>
-    </div>
-  );
-}
-
-function EmptyState({
-  noteIsEmpty,
-  noteIsRfp,
-  onSelectPreset,
-  presetsDisabled,
-}: {
-  readonly noteIsEmpty: boolean;
-  readonly noteIsRfp: boolean;
-  readonly onSelectPreset: (message: string) => void;
-  readonly presetsDisabled: boolean;
-}) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50">
-          <Logo size={32} noText />
-        </div>
-        <div>
-          <p className="flex items-center justify-center gap-1.5 font-serif text-lg tracking-tight text-gray-800">
-            Research assistant
-          </p>
-          <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
-            Ask questions about this note, search the web and scholarly literature, or have the
-            assistant edit the draft for you.
-          </p>
-        </div>
-      </div>
-      <ChatPresets
-        noteIsEmpty={noteIsEmpty}
-        isRfp={noteIsRfp}
-        onSelect={onSelectPreset}
-        disabled={presetsDisabled}
-      />
     </div>
   );
 }

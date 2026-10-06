@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { MAX_CHAT_TITLE_LENGTH } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
 
-interface ConversationTitleFieldProps {
+interface ChatTitleFieldProps {
   readonly initialValue: string;
   readonly onCommit: (value: string) => void;
   readonly onCancel: () => void;
@@ -12,16 +12,16 @@ interface ConversationTitleFieldProps {
 }
 
 /**
- * Inline title editor: Enter or blur commits, Escape cancels. Escape is
- * claimed here so nothing around the field — the lists' panel, a menu — also
- * acts on it.
+ * Inline title editor for a chat: Enter or blur commits, Escape cancels.
+ * Escape is claimed here so nothing around the field — an overlay, a menu —
+ * also acts on it.
  */
-export function ConversationTitleField({
+export function ChatTitleField({
   initialValue,
   onCommit,
   onCancel,
   className,
-}: ConversationTitleFieldProps) {
+}: ChatTitleFieldProps) {
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -48,7 +48,7 @@ export function ConversationTitleField({
       onKeyDown={handleKeyDown}
       onBlur={() => onCommit(value)}
       maxLength={MAX_CHAT_TITLE_LENGTH}
-      aria-label="Conversation title"
+      aria-label="Chat title"
       className={cn(
         'w-full min-w-0 rounded-md border border-primary-300 bg-white px-2 py-1 text-sm text-gray-900 outline-none ring-2 ring-primary-100',
         className

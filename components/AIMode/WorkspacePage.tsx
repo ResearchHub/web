@@ -1,23 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PanelRightOpen } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { cn } from '@/utils/styles';
+import { SidebarDocuments } from '@/app/layouts/components/SidebarDocuments';
+import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
+import { isActiveExecutionStatus } from '@/types/agentChat';
+import { isRfpNote } from '@/types/note';
+import { cn } from '@/utils/styles';
 import { AIModeProvider } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
-import { DocumentCard } from './chat/DocumentCard';
-import { conversationTitleFor } from './chat/conversationTitle';
+import { newDraftTitle } from './copy';
 import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
 import { useAIModeDocument } from './document/useAIModeDocument';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
-import { WorkspaceSidebar } from './sidebar/WorkspaceSidebar';
 import { useAIModeChat } from './useAIModeChat';
-import { newConversationTitle } from './copy';
-import { layoutFor } from './workspaceUrl';
 
 const CHAT_MIN_WIDTH = 360;
 const DOCUMENT_MIN_WIDTH = 420;
@@ -42,9 +42,9 @@ function useElementWidth(element: HTMLElement | null): number {
 }
 
 /**
- * The `/workspace` page: the app's shell with the user's conversations and
- * drafts in the left column where the nav items normally are, and the chat
- * and the document filling the rest. What it is open on lives in the URL.
+ * The `/workspace` page: the app's shell, with the chat and, beside it on
+ * the right, the document it is about. The user's documents are in the
+ * app's left sidebar, as on every page. What it is open on lives in the URL.
  */
 export function WorkspacePage() {
   return (
@@ -56,116 +56,92 @@ export function WorkspacePage() {
 
 function Workspace() {
   const state = useAIModeChat();
-  const { target } = state;
-  // A document opened from the sidebar comes first; a conversation's document sits beside it.
-  const layout = layoutFor(target);
+  const { target, note } = state;
 
-  // The lists sit in the app's left column from the width at which it stops
-  // being an icon rail (Tailwind's `sidebar-compact`). Below that they wait
-  // behind a button: a panel over the panes, or on a phone a screen of their own.
+  // The left column holds the user's documents from the width at which it
+  // stops being an icon rail (Tailwind's `sidebar-compact`). Below that they
+  // wait behind a button, in a panel over the panes: the top bar's, or on a
+  // phone (where the app has no left column at all) the chat header's.
   const listsInColumn = useMediaQuery('(min-width: 1240px)') === true;
   // Tailwind's `tablet` breakpoint; the side-by-side panes only exist from it up.
-  const isBelowTablet = useMediaQuery('(max-width: 767px)') === true;
-  const [listOpen, setListOpen] = useState(false);
-  const closeList = useCallback(() => setListOpen(false), []);
-  const toggleList = useCallback(() => setListOpen((open) => !open), []);
+  const phoneQuery = useMediaQuery('(max-width: 767px)');
+  const isBelowTablet = phoneQuery === true;
+  const [documentsOpen, setDocumentsOpen] = useState(false);
+  const closeDocuments = useCallback(() => setDocumentsOpen(false), []);
+  const toggleDocuments = useCallback(() => setDocumentsOpen((open) => !open), []);
   useEffect(() => {
-    if (listsInColumn) setListOpen(false);
+    if (listsInColumn) setDocumentsOpen(false);
   }, [listsInColumn]);
 
+  const latestExecution = state.chat.latestExecution;
+  const turnActive = latestExecution != null && isActiveExecutionStatus(latestExecution.status);
   const doc = useAIModeDocument({
-    note: state.note,
+    note,
     chat: state.chat.chat,
-    latestExecution: state.chat.latestExecution,
+    latestExecution,
+    assistantWorking: turnActive || state.anyTurnActive,
   });
 
-  // ---- pane widths: the side pane drags, the main pane takes the rest ----
+  // ---- the document's width: it drags, the chat takes the rest ----
   const [panesEl, setPanesEl] = useState<HTMLDivElement | null>(null);
   const panesWidth = useElementWidth(panesEl);
-  // Document or details in the phone's drawer; the column only shows the document.
-  const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
-  // The side pane is the document (chat first) or the chat (document first);
-  // it may grow until the main pane is down to its own minimum column.
-  const sideIsDocument = layout === 'chat';
-  const sideMinWidth = sideIsDocument ? DOCUMENT_MIN_WIDTH : CHAT_MIN_WIDTH;
-  const sideMaxWidth = Math.max(
-    sideMinWidth,
-    panesWidth - (sideIsDocument ? CHAT_MIN_WIDTH : DOCUMENT_MIN_WIDTH)
-  );
-  const sideWidth = useResizableWidth({
+  const documentMaxWidth = Math.max(DOCUMENT_MIN_WIDTH, panesWidth - CHAT_MIN_WIDTH);
+  const documentWidth = useResizableWidth({
     storageKey: 'ai-mode:document-width',
-    min: sideMinWidth,
-    max: sideMaxWidth,
+    min: DOCUMENT_MIN_WIDTH,
+    max: documentMaxWidth,
     defaultWidth: (width) => width * DOCUMENT_DEFAULT_SHARE,
     anchor: 'right',
   });
-  const isBelowTabletRef = useRef(isBelowTablet);
-  isBelowTabletRef.current = isBelowTablet;
+  // Document or details in the phone's drawer; the column only shows the document.
+  const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
 
-  // On desktop the document pane opens by itself the moment a conversation
-  // gains a note, and a document that comes first shows at once everywhere.
-  // Otherwise on mobile the card in the transcript or the chat header is the
-  // way in, and it opens a drawer. Either way the user can close it and
-  // reopen it from there.
-  const noteId = state.note?.id ?? null;
-  const onDocument = target.kind === 'document';
-  const [documentOpen, setDocumentOpen] = useState(false);
-  useEffect(() => {
-    setDocumentOpen(noteId != null && (layout === 'document' || !isBelowTabletRef.current));
-    setDocumentView('document');
-  }, [noteId, layout]);
-
-  const openDocument = useCallback(() => setDocumentOpen(true), []);
-  const closeDocument = useCallback(() => setDocumentOpen(false), []);
-  const showDocument = noteId != null && documentOpen;
-  // The Drafts list follows the open document's title as it is renamed.
-  const docTitle = doc.title;
-  const openNote = useMemo(
-    () => (noteId != null && docTitle ? { id: noteId, title: docTitle } : null),
-    [noteId, docTitle]
+  // On desktop the document shows beside its chat as soon as it is open; on
+  // a phone the chat header's toggle opens it in a drawer. Either way the
+  // user can hide it and bring it back from there; that choice holds for
+  // the document it was made on. Until the width is known, nothing opens.
+  const noteId = note?.id ?? null;
+  const [documentChoice, setDocumentChoice] = useState<{
+    readonly noteId: number;
+    readonly open: boolean;
+  } | null>(null);
+  const documentOpen =
+    documentChoice != null && documentChoice.noteId === noteId
+      ? documentChoice.open
+      : phoneQuery === false;
+  const setDocumentOpen = useCallback(
+    (open: boolean) => {
+      if (noteId != null) setDocumentChoice({ noteId, open });
+    },
+    [noteId]
   );
-  const documentTitle = doc.title || 'Document';
-  // The top bar names what is open: the conversation when the chat is the
-  // main pane, the document when it is, and the new-conversation screen by
-  // what it is for — an RFP or a proposal.
-  const { title: conversationTitle } = conversationTitleFor(state);
-  const headerTitle =
-    layout === 'document'
-      ? documentTitle
-      : target.chatId != null
-        ? conversationTitle
-        : newConversationTitle(state.intent);
+  useEffect(() => {
+    setDocumentView('document');
+  }, [noteId]);
+  const closeDocument = useCallback(() => setDocumentOpen(false), [setDocumentOpen]);
+  const showDocument = noteId != null && documentOpen && !doc.missing;
 
-  // The turn that created the document, for seating its card in the transcript.
-  const documentCardExecutionId = useMemo(() => {
-    if (noteId == null) return null;
-    for (const execution of state.chat.chat?.executions ?? []) {
-      const created = (execution.activity ?? []).some(
-        (item) =>
-          item.type === 'tool_call' &&
-          item.tool === 'create_note' &&
-          item.status === 'succeeded' &&
-          item.note_id === noteId
-      );
-      if (created) return execution.id;
-    }
-    return null;
-  }, [noteId, state.chat.chat]);
-  // A document opened from the sidebar is the main pane; no card needed.
-  const documentCard =
-    noteId != null && !onDocument ? (
-      <DocumentCard
-        title={documentTitle}
-        status={doc.status}
-        open={showDocument}
-        onOpen={openDocument}
-      />
-    ) : null;
+  // The sidebar's row follows the open document: a rename in the masthead,
+  // a name the assistant gave it, the latest edit.
+  const { patch } = useFundingDocuments();
+  const { title: docTitle, updatedDate: docUpdatedDate } = doc;
+  useEffect(() => {
+    if (noteId == null || !docTitle) return;
+    patch(
+      noteId,
+      docUpdatedDate ? { title: docTitle, updatedDate: docUpdatedDate } : { title: docTitle }
+    );
+  }, [noteId, docTitle, docUpdatedDate, patch]);
+
+  // The top bar names what is open: the document, or on the start screen
+  // what it will produce — an RFP or a proposal.
+  const headerTitle = target.kind === 'new' ? newDraftTitle(state.intent) : doc.title || 'Untitled';
 
   const documentPane = (presentation: 'pane' | 'drawer') => (
     <DocumentPane
       document={doc}
       chat={state.chat.chat}
+      assistantWorking={state.anyTurnActive}
       view={documentView}
       onViewChange={setDocumentView}
       presentation={presentation}
@@ -175,53 +151,40 @@ function Workspace() {
   );
 
   return (
-    <PageLayout
-      fullBleed
-      leftSidebarContent={
-        listsInColumn ? (
-          <div className="workspace-fade-in h-full">
-            <WorkspaceSidebar state={state} openNote={openNote} />
-          </div>
-        ) : null
-      }
-    >
+    <PageLayout fullBleed>
       <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
         <WorkspaceTopBar
           title={headerTitle}
-          listOpen={listOpen}
-          onToggleList={listsInColumn || isBelowTablet ? undefined : toggleList}
+          listOpen={documentsOpen}
+          onToggleList={listsInColumn || isBelowTablet ? undefined : toggleDocuments}
         />
 
         <WorkspacePanes
-          layout={layout}
           isBelowTablet={isBelowTablet}
-          sideWidth={{ ...sideWidth, min: sideMinWidth, max: sideMaxWidth }}
-          lists={
-            listsInColumn ? null : (
-              <WorkspaceSidebar state={state} openNote={openNote} onNavigate={closeList} />
-            )
+          documentWidth={{ ...documentWidth, min: DOCUMENT_MIN_WIDTH, max: documentMaxWidth }}
+          documents={
+            listsInColumn ? null : <SidebarDocuments divider={false} onNavigate={closeDocuments} />
           }
-          listOpen={listOpen}
-          onCloseList={closeList}
+          documentsOpen={documentsOpen}
+          onCloseDocuments={closeDocuments}
           onCloseDocumentDrawer={closeDocument}
           chat={
             <ChatPane
               state={state}
-              // The top bar names the chat when it is the main pane.
-              showTitle={layout !== 'chat'}
-              onOpenConversations={() => setListOpen(true)}
-              documentCard={documentCard}
-              documentCardExecutionId={documentCardExecutionId}
+              documentIsRfp={isRfpNote(doc.content)}
+              documentIsEmpty={doc.status === 'empty'}
+              documentMissing={doc.missing}
+              onOpenDocuments={isBelowTablet ? () => setDocumentsOpen(true) : undefined}
               headerActions={
                 noteId != null && (
                   <button
                     type="button"
-                    onClick={() => setDocumentOpen((open) => !open)}
+                    onClick={() => setDocumentOpen(!showDocument)}
                     aria-pressed={showDocument}
                     aria-label={showDocument ? 'Hide document' : 'Show document'}
                     title={showDocument ? 'Hide document' : 'Show document'}
                     className={cn(
-                      'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-colors',
+                      'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg transition-colors',
                       showDocument
                         ? 'bg-primary-50 text-primary-700 hover:bg-primary-100'
                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'

@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { PanelLeftOpen } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import { History, PanelLeftOpen } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
+import { ChatEmptyState } from '@/components/AgentChat/ChatEmptyState';
+import { ChatPicker } from '@/components/AgentChat/ChatPicker';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
-import { ConversationMenu } from '../sidebar/ConversationMenu';
-import { ConversationTitleField } from './ConversationTitleField';
-import { conversationTitleFor } from './conversationTitle';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { cn } from '@/utils/styles';
@@ -23,43 +23,52 @@ import {
   startComposerSendClass,
 } from '../start/startComposer';
 import { StartScreen } from '../start/StartScreen';
-import { DocumentChatEmptyState } from './DocumentChatEmptyState';
+import { ChatMenu } from './ChatMenu';
+import { ChatTitleField } from './ChatTitleField';
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
-  /**
-   * Whether the pane's header names the chat. Not when the chat is the main
-   * pane: the app's top bar already names it there, at every width.
-   */
-  readonly showTitle: boolean;
-  /** Header controls seated right of the title — the document toggle. */
+  /** Header controls at its right end: the document toggle. */
   readonly headerActions?: ReactNode;
-  /** Below the tablet breakpoint the list is a drawer; this opens it. */
-  readonly onOpenConversations?: () => void;
-  /**
-   * The document's card, and the turn it belongs under. With no matching
-   * turn (activity not loaded for it) the card trails the transcript instead.
-   */
-  readonly documentCard?: ReactNode;
-  readonly documentCardExecutionId?: number | null;
+  /** What the open document is, for a new chat's suggestions. */
+  readonly documentIsRfp: boolean;
+  /** Nothing is written in the open document yet, for a new chat's suggestions. */
+  readonly documentIsEmpty: boolean;
+  /** The open document no longer exists. */
+  readonly documentMissing: boolean;
+  /** On a phone, which has no left column, this opens the user's documents. */
+  readonly onOpenDocuments?: () => void;
 }
 
-/** The middle pane: transcript, live progress, and the composer. */
+/**
+ * The chat: on a document, its header (the chat's title, History, its menu
+ * and the document toggle), the transcript and the composer; on the screen
+ * that starts a new draft, the composer in the middle of the page.
+ */
 export function ChatPane({
   state,
-  showTitle,
   headerActions,
-  onOpenConversations,
-  documentCard,
-  documentCardExecutionId,
+  documentIsRfp,
+  documentIsEmpty,
+  documentMissing,
+  onOpenDocuments,
 }: ChatPaneProps) {
-  const { chatId, list, chat, modelSelection, draft, setDraft, notice, composerBusy, canStop } =
-    state;
+  const {
+    chatId,
+    list,
+    listReady,
+    chat,
+    modelSelection,
+    draft,
+    setDraft,
+    notice,
+    composerBusy,
+    canStop,
+  } = state;
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const paneRef = useRef<HTMLDivElement>(null);
-  const onDocument = state.target.kind === 'document';
-  // The new-conversation screen: white, untitled, the composer in the middle.
-  const onStart = chatId == null && !onDocument;
+  const onStart = state.target.kind === 'new';
+  const resolving = state.resolvingChat;
 
   // ---- transcript auto-scroll ----
   // Follows new content while the reader is at the bottom; never yanks the
@@ -88,19 +97,46 @@ export function ChatPane({
     setRenaming(false);
   }, [chatId]);
 
-  // The new-conversation screen is there to be typed into: the caret is in
-  // the box the moment it opens, whichever door it opened from.
+  // The start screen is there to be typed into: the caret is in the box the
+  // moment it opens, whichever door it opened from.
   useEffect(() => {
     if (onStart) composerRef.current?.focus();
-  }, [onStart, chatId]);
+  }, [onStart]);
 
-  const listBlocked = list.access === 'hidden';
+  /**
+   * A suggestion loads the composer rather than sending: its message is a
+   * starting point the user finishes. Focus follows the text so the caret is
+   * already waiting at the end of it.
+   */
+  const { clearNotice } = state;
+  const applyPreset = useCallback(
+    (message: string) => {
+      clearNotice();
+      setDraft(message);
+      const textarea = composerRef.current;
+      if (!textarea) return;
+      textarea.focus();
+      textarea.setSelectionRange(message.length, message.length);
+    },
+    [clearNotice, setDraft]
+  );
+
+  const aiBlocked = state.researchAI.budget?.tier === 'blocked';
+  const listBlocked = listReady && list.access === 'hidden';
+  const listFailed = listReady && list.access === 'error';
   const chatUnavailable =
     chatId != null && (chat.access === 'not_found' || chat.access === 'unauthorized');
   const composerDisabled =
-    listBlocked || chatUnavailable || (chatId != null && chat.access === 'loading');
+    aiBlocked ||
+    documentMissing ||
+    listBlocked ||
+    resolving ||
+    chatUnavailable ||
+    (chatId != null && chat.access === 'loading');
 
-  const { currentTitle, title, loading: titleLoading } = conversationTitleFor(state);
+  const title = chatId == null ? 'New chat' : state.chatTitle?.trim() || 'Untitled chat';
+  const titleLoading =
+    resolving || (chatId != null && state.chatTitle == null && chat.chat == null);
 
   const modelControls = (
     <ModelControls
@@ -122,7 +158,8 @@ export function ChatPane({
       textareaRef={composerRef}
       value={draft}
       onChange={setDraft}
-      onSend={state.send}
+      // Not the handler itself: the button would hand it its click event as the text.
+      onSend={() => void state.send()}
       onStop={state.stop}
       busy={composerBusy}
       canStop={canStop}
@@ -150,102 +187,151 @@ export function ChatPane({
     />
   );
 
+  const body = (): ReactNode => {
+    if (aiBlocked) return <AccessBlocked detail={null} />;
+    if (onStart) {
+      return <StartScreen composer={composer} greeting={AI_MODE_GREETING} intent={state.intent} />;
+    }
+    if (documentMissing) {
+      return (
+        <div className="flex flex-col items-center gap-3 py-16 text-center">
+          <p className="text-sm text-gray-600">This document is no longer available.</p>
+          <Link
+            href="/my-funding"
+            className="text-sm font-medium text-primary-600 hover:text-primary-700"
+          >
+            Go to My Funding
+          </Link>
+        </div>
+      );
+    }
+    if (listBlocked) return <AccessBlocked detail={list.accessDetail} />;
+    if (resolving) {
+      // Never the new-chat state while the most recent chat is being found:
+      // it would read as the chat having gone.
+      return listFailed ? (
+        <RetryState message="Couldn’t load this document’s chats." onRetry={list.refresh} />
+      ) : (
+        <ChatTranscriptSkeleton />
+      );
+    }
+    const emptyState = (
+      <div className="flex min-h-[50vh] flex-col justify-center">
+        <ChatEmptyState
+          noteIsEmpty={documentIsEmpty}
+          noteIsRfp={documentIsRfp}
+          onSelectPreset={applyPreset}
+          presetsDisabled={composerDisabled}
+          noun="document"
+        />
+      </div>
+    );
+    if (chatId == null) return emptyState;
+    switch (chat.access) {
+      case 'unauthorized':
+        return <AccessBlocked detail={null} />;
+      case 'error':
+        if (chat.chat == null) {
+          return <RetryState message="Couldn’t load this chat." onRetry={chat.refetch} />;
+        }
+        break;
+      case 'loading':
+      case 'not_found':
+        // A chat that is gone hands over to the document's most recent one.
+        if (chat.chat == null) return <ChatTranscriptSkeleton />;
+        break;
+    }
+    if (!chat.chat) return null;
+    const isEmpty =
+      chat.chat.messages.length === 0 && chat.chat.executions.length === 0 && !chat.pendingSend;
+    if (isEmpty) return emptyState;
+    return (
+      <div className="animate-in fade-in duration-300">
+        <ChatTranscript chat={chat.chat} pendingSend={chat.pendingSend} />
+      </div>
+    );
+  };
+
   return (
     <div ref={paneRef} className={cn('flex h-full min-h-0 flex-col', onStart && 'bg-white')}>
-      {/* No border or fill: the title and its controls float over the pane. */}
-      <header className="flex h-12 shrink-0 items-center gap-2 px-3">
-        {onOpenConversations && (
-          <button
-            type="button"
-            onClick={onOpenConversations}
-            aria-label="Show conversations and documents"
-            className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 tablet:!hidden"
-          >
-            <PanelLeftOpen className="h-4 w-4" />
-          </button>
-        )}
-        {renaming && chatId != null ? (
-          <ConversationTitleField
-            initialValue={currentTitle ?? ''}
-            className="max-w-md flex-1"
-            onCancel={() => setRenaming(false)}
-            onCommit={(value) => {
-              setRenaming(false);
-              const next = value.trim();
-              if (next && next !== (currentTitle ?? '')) state.rename(chatId, next);
-            }}
-          />
-        ) : !showTitle ? (
-          // The top bar names it; the header carries only the controls.
-          <span className="flex-1" />
-        ) : titleLoading ? (
-          <div className="flex min-w-0 flex-1 items-center" aria-busy="true">
-            <div className="h-3.5 w-56 max-w-full animate-pulse rounded bg-gray-100" />
-          </div>
-        ) : (
-          <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">{title}</h1>
-        )}
-        {chatId != null && !renaming && (
-          <ConversationMenu
-            title={title}
-            onRename={() => setRenaming(true)}
-            onDelete={(options) => state.deleteChat(chatId, options)}
-            loadNotes={() => state.notesForChat(chatId)}
-          />
-        )}
-        {headerActions}
-      </header>
+      {/* No border or fill: the title and its controls float over the pane.
+          The start screen has no chat yet, so no header. */}
+      {!onStart && !documentMissing && (
+        <header
+          className={cn(
+            'flex h-12 shrink-0 items-center gap-1 pr-2.5',
+            onOpenDocuments ? 'pl-2' : 'pl-5'
+          )}
+        >
+          {onOpenDocuments && (
+            <button
+              type="button"
+              onClick={onOpenDocuments}
+              aria-label="Show documents"
+              title="Show documents"
+              className="mr-1 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+          {renaming && chatId != null ? (
+            <ChatTitleField
+              initialValue={state.chatTitle ?? ''}
+              className="max-w-md flex-1"
+              onCancel={() => setRenaming(false)}
+              onCommit={(value) => {
+                setRenaming(false);
+                const next = value.trim();
+                if (next && next !== (state.chatTitle ?? '')) void state.rename(next);
+              }}
+            />
+          ) : titleLoading ? (
+            <div className="flex min-w-0 flex-1 items-center" aria-busy="true">
+              <div className="h-3.5 w-48 max-w-full animate-pulse rounded bg-gray-100" />
+            </div>
+          ) : (
+            <h2 className="min-w-0 flex-1 truncate text-[13px] font-medium text-gray-700">
+              {title}
+            </h2>
+          )}
+
+          {!listBlocked && (
+            <ChatPicker
+              chats={listReady ? list.chats : []}
+              activeChatId={chatId}
+              activeTitle={state.chatTitle}
+              onSelect={(id) => state.openChat(id)}
+              onOpen={() => void list.refresh()}
+              onNewChat={() => state.openChat('new')}
+              failed={listFailed}
+              className="flex-none"
+              trigger={
+                <button
+                  type="button"
+                  aria-label="Chat history"
+                  title="Chat history"
+                  className="flex h-[30px] w-[30px] items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900"
+                >
+                  <History className="h-4 w-4" aria-hidden="true" />
+                </button>
+              }
+            />
+          )}
+          {chatId != null && !renaming && (
+            <ChatMenu
+              title={title}
+              onRename={() => setRenaming(true)}
+              onDelete={() => void state.deleteChat(chatId)}
+            />
+          )}
+          {headerActions}
+        </header>
+      )}
 
       <div className="relative min-h-0 flex-1">
         <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto">
-          <div
-            ref={contentRef}
-            className={cn(
-              'mx-auto w-full px-4 py-5 tablet:!px-6',
-              // The start screen seats the journey rail beside the composer.
-              onStart ? 'max-w-[1100px]' : 'max-w-[760px]'
-            )}
-          >
-            {listBlocked ? (
-              <AccessBlocked detail={list.accessDetail} />
-            ) : chatId == null && onDocument ? (
-              <DocumentChatEmptyState />
-            ) : chatId == null ? (
-              <StartScreen composer={composer} greeting={AI_MODE_GREETING} intent={state.intent} />
-            ) : chat.access === 'loading' && chat.chat == null ? (
-              <ChatTranscriptSkeleton />
-            ) : chat.access === 'not_found' ? (
-              <p className="py-16 text-center text-sm text-gray-600">
-                This conversation is no longer available.
-              </p>
-            ) : chat.access === 'unauthorized' ? (
-              <AccessBlocked detail={null} />
-            ) : chat.access === 'error' && chat.chat == null ? (
-              <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <p className="text-sm text-gray-600">Couldn’t load this conversation.</p>
-                <Button variant="outlined" size="sm" onClick={chat.refetch}>
-                  Try again
-                </Button>
-              </div>
-            ) : chat.chat ? (
-              <div className="animate-in fade-in duration-300">
-                <ChatTranscript
-                  chat={chat.chat}
-                  pendingSend={chat.pendingSend}
-                  renderExecutionExtra={
-                    documentCard && documentCardExecutionId != null
-                      ? (execution) =>
-                          execution.id === documentCardExecutionId ? (
-                            <div className="pt-1">{documentCard}</div>
-                          ) : null
-                      : undefined
-                  }
-                />
-                {documentCard && documentCardExecutionId == null && (
-                  <div className="mt-5">{documentCard}</div>
-                )}
-              </div>
-            ) : null}
+          <div ref={contentRef} className="mx-auto w-full max-w-[760px] px-4 py-5 tablet:!px-6">
+            {body()}
           </div>
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
@@ -257,16 +343,30 @@ export function ChatPane({
         </div>
       </div>
 
-      {/* A conversation keeps the composer docked at the bottom, as does a
-          document's chat before it starts; the new-conversation screen seats
-          it in the middle. */}
-      {(chatId != null || onDocument) && (
+      {/* A document's chat keeps the composer docked at the bottom; the start
+          screen seats it in the middle. */}
+      {!onStart && !documentMissing && (
         <div className="shrink-0 border-t border-gray-200 bg-gray-50">
-          <div className={cn('mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5')}>
-            {composer}
-          </div>
+          <div className="mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5">{composer}</div>
         </div>
       )}
+    </div>
+  );
+}
+
+function RetryState({
+  message,
+  onRetry,
+}: {
+  readonly message: string;
+  readonly onRetry: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-16 text-center">
+      <p className="text-sm text-gray-600">{message}</p>
+      <Button variant="outlined" size="sm" onClick={onRetry}>
+        Try again
+      </Button>
     </div>
   );
 }

@@ -53,11 +53,6 @@ interface PageLayoutProps {
    */
   wideRow?: boolean;
   /**
-   * Shown in the left column in place of the nav items: a page whose own
-   * lists live there. See `LeftSidebar`'s `content`.
-   */
-  leftSidebarContent?: ReactNode;
-  /**
    * The page is an app surface, not a document: it fills the area beside the
    * left column and under the top bar edge to edge and manages its own
    * scrolling. No page container, padding, right sidebar or mobile bottom nav.
@@ -76,7 +71,6 @@ function PageLayoutInner({
   rightSidebarFill = false,
   contentWidth = 'default',
   wideRow = false,
-  leftSidebarContent,
   fullBleed = false,
 }: PageLayoutProps) {
   const isNarrow = contentWidth === 'narrow';
@@ -115,7 +109,7 @@ function PageLayoutInner({
 
         <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
-        <LeftSidebarContainer isOpen={isLeftSidebarOpen} content={leftSidebarContent} />
+        <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
 
         {fullBleed ? (
           // Offset from the fixed top bar exactly as the scrollport below is,

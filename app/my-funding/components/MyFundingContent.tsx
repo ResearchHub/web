@@ -29,7 +29,7 @@ interface MyFundingContentProps {
  * column, as it does on an RFP page.
  */
 export function MyFundingContent({ viewedUserId, isOwnPage, authorId }: MyFundingContentProps) {
-  const { published, drafts, isSettled, error, hasMore, loadMore, refreshDrafts } =
+  const { published, drafts, draftCount, isSettled, error, hasMore, loadMore } =
     useMyFundingDocuments({
       viewedUserId,
       isOwnPage,
@@ -56,7 +56,9 @@ export function MyFundingContent({ viewedUserId, isOwnPage, authorId }: MyFundin
   return (
     <div className="mb-6 space-y-8">
       {error && <MyFundingDataError />}
-      {drafts.length > 0 && <DraftCarousel drafts={drafts} onDeleted={refreshDrafts} />}
+      {drafts.length > 0 && (
+        <DraftCarousel drafts={drafts} count={Math.max(draftCount, drafts.length)} />
+      )}
       <PublishedRows
         documents={published}
         hasMore={hasMore}

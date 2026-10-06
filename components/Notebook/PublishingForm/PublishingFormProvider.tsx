@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -69,7 +69,24 @@ interface PublishingFormProviderProps {
    * what is still missing, and is where a nonprofit is chosen and confirmed.
    */
   readonly publishConfirmation?: ReactNode;
+  /**
+   * The note as the server has it now, fetched again after something other
+   * than this form changed it (the assistant filling in an RFP's details).
+   * The details that changed there since the form loaded are applied to the
+   * form; nothing is saved back, and fields the server did not change keep
+   * whatever the user has typed.
+   */
+  readonly refreshedNote?: NoteWithContent | null;
   readonly children: ReactNode;
+}
+
+/** The form values a note's saved details fill in, by field. */
+function noteDetailValues(note: NoteWithContent): Map<string, unknown> {
+  const values = new Map<string, unknown>();
+  populateFormFromNoteDetails(note, (name: string, value: unknown) => {
+    values.set(name, value);
+  });
+  return values;
 }
 
 /**
@@ -83,6 +100,7 @@ export function PublishingFormProvider({
   readOnly = false,
   publishTitle,
   publishConfirmation,
+  refreshedNote,
   children,
 }: PublishingFormProviderProps) {
   const { note, editor, saveDetailsSoon, saveDetailsNow } = usePublishingHost();
@@ -97,10 +115,15 @@ export function PublishingFormProvider({
 
   const noteId = note?.id;
   const isPublished = Boolean(note?.post);
+  // The details as last read from the server, and whether the form is being
+  // brought up to date with them (which is not the user's edit to save).
+  const serverDetailsRef = useRef<Map<string, unknown> | null>(null);
+  const applyingServerRef = useRef(false);
 
   useEffect(() => {
     if (!note) return;
 
+    serverDetailsRef.current = noteDetailValues(note);
     methods.reset(FORM_DEFAULTS);
     const isRegisteredReport = isRegisteredReportNote(note);
 
@@ -148,7 +171,7 @@ export function PublishingFormProvider({
     if (!noteId || isPublished) return;
 
     const subscription = methods.watch((_values, { name }) => {
-      if (!name) return;
+      if (!name || applyingServerRef.current) return;
 
       const values = methods.getValues();
       if (name === 'selectedNonprofit') {
@@ -162,6 +185,22 @@ export function PublishingFormProvider({
 
     return () => subscription.unsubscribe();
   }, [noteId, isPublished, methods, saveDetailsSoon]);
+
+  useEffect(() => {
+    if (!refreshedNote || refreshedNote.id !== noteId || isPublished) return;
+    const next = noteDetailValues(refreshedNote);
+    const before = serverDetailsRef.current ?? new Map<string, unknown>();
+    applyingServerRef.current = true;
+    try {
+      next.forEach((value, name) => {
+        if (JSON.stringify(before.get(name)) === JSON.stringify(value)) return;
+        methods.setValue(name as keyof PublishingFormData, value as never);
+      });
+    } finally {
+      applyingServerRef.current = false;
+    }
+    serverDetailsRef.current = next;
+  }, [refreshedNote, noteId, isPublished, methods]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');

@@ -5,11 +5,11 @@ import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
-  /** Replaces the nav items in the column; see `LeftSidebar`. */
-  content?: React.ReactNode;
+  /** Closes the phone's menu; see `LeftSidebar`'s `onNavigate`. */
+  onClose?: () => void;
 }
 
-export function LeftSidebarContainer({ isOpen, content }: LeftSidebarContainerProps) {
+export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerProps) {
   return (
     <div
       className={cn(
@@ -26,7 +26,7 @@ export function LeftSidebarContainer({ isOpen, content }: LeftSidebarContainerPr
         isOpen ? '!translate-x-0' : '!-translate-x-full'
       )}
     >
-      <LeftSidebar content={content} />
+      <LeftSidebar onNavigate={onClose} />
     </div>
   );
 }

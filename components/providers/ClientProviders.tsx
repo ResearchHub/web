@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, Suspense } from 'react';
+import { ReactNode } from 'react';
 import { Session } from 'next-auth';
 import NextAuthProvider from '@/components/providers/NextAuthProvider';
 import ToasterProvider from '@/components/providers/ToasterProvider';
@@ -26,7 +26,7 @@ import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
-import { LegacyAIModeRedirect } from '@/components/AIMode/LegacyAIModeRedirect';
+import { FundingDocumentsProvider } from '@/contexts/FundingDocumentsContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -56,19 +56,19 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                 <FundingPowerProvider>
                                   <NotificationProvider>
                                     <OrganizationProvider>
-                                      <UserListsProvider>
-                                        <LeaderboardProvider>
-                                          <DismissedFeaturesProvider>
-                                            <FollowProvider>{children}</FollowProvider>
-                                            {/* Behind Suspense: it reads the URL's
-                                                search params. */}
-                                            <Suspense fallback={null}>
-                                              <LegacyAIModeRedirect />
-                                            </Suspense>
-                                            <FeatureNotifications />
-                                          </DismissedFeaturesProvider>
-                                        </LeaderboardProvider>
-                                      </UserListsProvider>
+                                      {/* Above the layouts: every page's left
+                                          sidebar lists these documents, and
+                                          navigating must not fetch them again. */}
+                                      <FundingDocumentsProvider>
+                                        <UserListsProvider>
+                                          <LeaderboardProvider>
+                                            <DismissedFeaturesProvider>
+                                              <FollowProvider>{children}</FollowProvider>
+                                              <FeatureNotifications />
+                                            </DismissedFeaturesProvider>
+                                          </LeaderboardProvider>
+                                        </UserListsProvider>
+                                      </FundingDocumentsProvider>
                                     </OrganizationProvider>
                                   </NotificationProvider>
                                 </FundingPowerProvider>

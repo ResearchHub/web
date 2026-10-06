@@ -7,6 +7,7 @@ import {
   readWorkspaceTarget,
   sameTarget,
   workspaceHref,
+  type DocumentChat,
   type WorkspaceTarget,
 } from './workspaceUrl';
 
@@ -14,17 +15,15 @@ export interface AIModeContextValue {
   /** What the workspace is open on, as the URL says. */
   readonly target: WorkspaceTarget;
   selectTarget: (target: WorkspaceTarget) => void;
-  /** Select a conversation (null = the new-conversation screen). */
-  selectChat: (chatId: number | null) => void;
-  /** Open a document with a fresh chat beside it. */
-  selectDocument: (noteId: number) => void;
+  /** Open a document, on its most recent chat unless another is named. */
+  selectDocument: (noteId: number, chat?: DocumentChat) => void;
 }
 
 const AIModeContext = createContext<AIModeContextValue | null>(null);
 
 /**
  * Owns what the workspace page is open on. It lives in the URL, so a reload
- * or a shared link lands on the same conversation or document.
+ * or a shared link lands on the same document and chat.
  *
  * Mounted by the `/workspace` page, not globally: the doors elsewhere in the
  * app are plain links built with `workspaceHref`. Reads the URL with
@@ -42,23 +41,19 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
   const selectTarget = useCallback((next: WorkspaceTarget) => {
     if (sameTarget(next, targetRef.current)) return;
     // Replaced, not pushed: the workspace is one history entry however many
-    // conversations are opened in it, so Back leaves in a single step. Native
+    // documents and chats are opened in it, so Back leaves in a single step. Native
     // history with no state of our own, which the app router picks up and
     // feeds back through useSearchParams without fetching anything.
     window.history.replaceState(null, '', `${workspaceHref(next)}${window.location.hash}`);
   }, []);
-  const selectChat = useCallback(
-    (chatId: number | null) => selectTarget({ kind: 'conversation', chatId }),
-    [selectTarget]
-  );
   const selectDocument = useCallback(
-    (noteId: number) => selectTarget(documentTarget(noteId)),
+    (noteId: number, chat?: DocumentChat) => selectTarget(documentTarget(noteId, chat)),
     [selectTarget]
   );
 
   const value = useMemo<AIModeContextValue>(
-    () => ({ target, selectTarget, selectChat, selectDocument }),
-    [target, selectTarget, selectChat, selectDocument]
+    () => ({ target, selectTarget, selectDocument }),
+    [target, selectTarget, selectDocument]
   );
 
   return <AIModeContext.Provider value={value}>{children}</AIModeContext.Provider>;

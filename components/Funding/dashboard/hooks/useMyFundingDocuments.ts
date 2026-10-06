@@ -1,12 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { useFeed } from '@/hooks/useFeed';
-import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
 import { FUNDING_KIND_LABEL, type FundingKind } from '@/components/Funding/fundingKind';
 import type { FeedEntry, FeedGrantContent, FeedPostContent } from '@/types/feed';
-import { getNoteKind, isPublishedNote, type Note, type NoteKind } from '@/types/note';
+import { getNoteKind, type Note, type NoteKind } from '@/types/note';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 
@@ -115,6 +114,8 @@ const draftDocument = (note: Note, kind: FundingKind): DraftDocument => ({
   note,
 });
 
+const DRAFTS_ERROR = new Error('Couldn’t load your drafts.');
+
 const isFundingKind = (kind: NoteKind): kind is FundingKind =>
   kind === 'rfp' || kind === 'proposal';
 
@@ -134,6 +135,8 @@ export interface MyFundingDocuments {
   readonly published: PublishedDocument[];
   /** Unpublished RFPs and proposals, the latest edit first. */
   readonly drafts: DraftDocument[];
+  /** How many drafts there are, which can be more than are loaded. */
+  readonly draftCount: number;
   /**
    * Both feeds and the notes have finished their first load. Each arrives at
    * its own pace, and showing one before the others would lay the page out
@@ -144,8 +147,6 @@ export interface MyFundingDocuments {
   /** Either feed has another page. */
   readonly hasMore: boolean;
   readonly loadMore: () => void;
-  /** Read the notes again, after a draft is deleted. */
-  readonly refreshDrafts: () => Promise<void>;
 }
 
 /**
@@ -159,7 +160,8 @@ export function useMyFundingDocuments({
   viewedUserId,
   isOwnPage,
 }: UseMyFundingDocumentsOptions): MyFundingDocuments {
-  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
+  // The user's own drafts, as the sidebar lists them.
+  const ownDocuments = useFundingDocuments();
 
   const rfpFeedOptions = useMemo(
     () => ({ endpoint: 'grant_feed' as const, contentType: 'GRANT', createdBy: viewedUserId }),
@@ -177,14 +179,12 @@ export function useMyFundingDocuments({
   );
   const rfpFeed = useFeed('all', rfpFeedOptions);
   const proposalFeed = useFeed('all', proposalFeedOptions);
-  const notes = useOrganizationNotes(isOwnPage ? selectedOrg?.slug : null, {
-    waiting: isOwnPage && isLoadingOrg,
-  });
+  const notesLoading = ownDocuments.status === 'loading';
+  const notesError = ownDocuments.status === 'error' ? DRAFTS_ERROR : null;
 
   // A feed that is switched off never leaves its loading state, so only the
   // sources this page reads are waited for.
-  const loadingFirst =
-    rfpFeed.isLoading || (isOwnPage && (proposalFeed.isLoading || notes.isLoading));
+  const loadingFirst = rfpFeed.isLoading || (isOwnPage && (proposalFeed.isLoading || notesLoading));
   const [isSettled, setIsSettled] = useState(false);
   useEffect(() => {
     if (!loadingFirst) setIsSettled(true);
@@ -204,20 +204,14 @@ export function useMyFundingDocuments({
 
   const drafts = useMemo<DraftDocument[]>(() => {
     if (!isOwnPage) return [];
-    return notes.notes
-      .filter((note) => !note.isRemoved && !isPublishedNote(note))
-      .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime())
-      .flatMap((note) => {
-        const kind = getNoteKind(note);
-        return isFundingKind(kind) ? [draftDocument(note, kind)] : [];
-      });
-  }, [isOwnPage, notes.notes]);
+    return ownDocuments.drafts.flatMap((note) => {
+      const kind = getNoteKind(note);
+      return isFundingKind(kind) ? [draftDocument(note, kind)] : [];
+    });
+  }, [isOwnPage, ownDocuments.drafts]);
 
   const proposalsHaveMore = isOwnPage && proposalFeed.hasMore;
-  const error = rfpFeed.error ?? (isOwnPage ? (proposalFeed.error ?? notes.error) : null);
-  useEffect(() => {
-    if (notes.error) console.error('Failed to load My Funding drafts:', notes.error);
-  }, [notes.error]);
+  const error = rfpFeed.error ?? (isOwnPage ? (proposalFeed.error ?? notesError) : null);
   const loadMore = useCallback(() => {
     if (rfpFeed.hasMore) rfpFeed.loadMore();
     if (proposalsHaveMore) proposalFeed.loadMore();
@@ -226,10 +220,10 @@ export function useMyFundingDocuments({
   return {
     published,
     drafts,
+    draftCount: isOwnPage ? ownDocuments.draftCount : 0,
     isSettled,
     error,
     hasMore: rfpFeed.hasMore || proposalsHaveMore,
     loadMore,
-    refreshDrafts: notes.refresh,
   };
 }

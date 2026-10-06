@@ -612,6 +612,11 @@ export type ChatListAccess = 'loading' | 'ok' | 'hidden' | 'error';
 export interface UseAgentChatListResult {
   chats: AgentChatListItem[];
   access: ChatListAccess;
+  /**
+   * The transport whose listing `chats` is: right after the transport
+   * changes, for one render, the previous one's rows are still here.
+   */
+  scopeKey: string | null;
   /** The server's `detail` copy behind a `hidden` or `error` access state. */
   accessDetail: string | null;
   refresh: () => Promise<void>;
@@ -630,6 +635,7 @@ export function useAgentChatList(
   const [chats, setChats] = useState<AgentChatListItem[]>([]);
   const [access, setAccess] = useState<ChatListAccess>('loading');
   const [accessDetail, setAccessDetail] = useState<string | null>(null);
+  const [scopeKey, setScopeKey] = useState<string | null>(null);
   const seqRef = useRef(0);
   // Same stale-continuation guard as the chat hook: a createChat bound to a
   // previous note must not refresh (or hide) the current note's listing.
@@ -642,6 +648,7 @@ export function useAgentChatList(
       const items = await transport.listChats();
       if (seq !== seqRef.current) return;
       setChats(items);
+      setScopeKey(transport.key);
       setAccess('ok');
       setAccessDetail(null);
     } catch (err) {
@@ -660,6 +667,7 @@ export function useAgentChatList(
     seqRef.current += 1;
     epochRef.current += 1;
     setChats([]);
+    setScopeKey(null);
     setAccess('loading');
     setAccessDetail(null);
     if (enabled && transport != null) {
@@ -686,5 +694,5 @@ export function useAgentChatList(
     [transport, refresh]
   );
 
-  return { chats, access, accessDetail, refresh, createChat };
+  return { chats, access, scopeKey, accessDetail, refresh, createChat };
 }

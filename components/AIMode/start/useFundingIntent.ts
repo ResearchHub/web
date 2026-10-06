@@ -11,9 +11,9 @@ const isIntent = (value: unknown): value is FundingIntent =>
   value === 'fund' || value === 'need_funding';
 
 /**
- * The side of the fund / need-funding toggle a new conversation starts on:
- * whichever the user picked last, remembered per browser. Read after mount,
- * so the server and the first client render agree.
+ * The side of the money a new draft starts on: whichever the user picked
+ * last, remembered per browser. Read after mount, so the server and the
+ * first client render agree.
  */
 export function useFundingIntent(): [FundingIntent, (intent: FundingIntent) => void] {
   const [intent, setIntentState] = useState<FundingIntent>(DEFAULT_INTENT);

@@ -1,163 +1,101 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { PanelLeftOpen } from 'lucide-react';
-import { PublishMenu } from '@/app/layouts/PublishMenu';
 import { ResizeHandle } from '@/components/ui/ResizeHandle';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import type { useResizableWidth } from '@/hooks/useResizableWidth';
-import { cn } from '@/utils/styles';
-import type { WorkspaceLayout } from '../workspaceUrl';
 
 type ResizableWidth = ReturnType<typeof useResizableWidth>;
 
 interface WorkspacePanesProps {
-  readonly layout: WorkspaceLayout;
   readonly chat: ReactNode;
-  /** The document column; null while no document is open. */
+  /** The document column; null while no document is open or it is hidden. */
   readonly document: ReactNode | null;
   /** The document as the drawer shows it below the tablet breakpoint. */
   readonly documentDrawer: ReactNode | null;
   readonly isBelowTablet: boolean;
-  readonly sideWidth: ResizableWidth & { readonly min: number; readonly max: number };
+  readonly documentWidth: ResizableWidth & { readonly min: number; readonly max: number };
   /**
-   * The conversations and drafts, for the widths at which the app's left
-   * column has no room for them; null once it holds them.
+   * The user's documents, for the widths at which the app's left column is an
+   * icon rail, or absent on a phone; null when they are in it.
    */
-  readonly lists: ReactNode | null;
-  /** Shows the lists: a panel over the panes, or below the tablet breakpoint the whole screen. */
-  readonly listOpen: boolean;
-  readonly onCloseList: () => void;
+  readonly documents: ReactNode | null;
+  /** Shows the documents in a panel over the panes. */
+  readonly documentsOpen: boolean;
+  readonly onCloseDocuments: () => void;
   readonly onCloseDocumentDrawer: () => void;
 }
 
 /**
- * The chat and the document, side by side. They keep their places in the
- * tree whichever is the main pane — swapping them would remount the editor
- * and the transcript — and trade places on screen with flex order. The side
- * pane drags; the main pane takes the rest. Below the tablet breakpoint the
- * document lives in a bottom drawer. Where the app's left column cannot hold
- * the lists they open over the panes.
+ * The chat, and the document beside it on the right. The document's column
+ * drags; the chat takes the rest. Below the tablet breakpoint the document
+ * lives in a bottom drawer. Where the app's left column is an icon rail, the
+ * user's documents open over the panes.
  */
 export function WorkspacePanes({
-  layout,
   chat,
   document,
   documentDrawer,
   isBelowTablet,
-  sideWidth,
-  lists,
-  listOpen,
-  onCloseList,
+  documentWidth,
+  documents,
+  documentsOpen,
+  onCloseDocuments,
   onCloseDocumentDrawer,
 }: WorkspacePanesProps) {
-  const documentOpen = document != null;
-  // With no document beside it there is nothing to trade places with: the chat fills the space.
-  const chatIsMain = layout === 'chat' || !documentOpen || isBelowTablet;
-  const showLists = lists != null && listOpen;
+  const documentShown = document != null;
 
   return (
     <>
       <div className="relative flex min-h-0 flex-1">
-        <main
-          style={chatIsMain ? undefined : { width: sideWidth.width }}
-          className={cn(
-            'relative flex min-w-0 flex-col',
-            chatIsMain ? 'order-1 flex-1' : 'order-2 shrink-0 border-l border-gray-200'
-          )}
-        >
-          {!chatIsMain && <SideResizeHandle label="Resize chat" width={sideWidth} />}
-          {chat}
-        </main>
+        <main className="relative flex min-w-0 flex-1 flex-col">{chat}</main>
 
-        {documentOpen && !isBelowTablet && (
+        {documentShown && !isBelowTablet && (
           <aside
-            style={chatIsMain ? { width: sideWidth.width } : undefined}
-            className={cn(
-              'relative flex min-w-0 flex-col overflow-hidden bg-white',
-              chatIsMain ? 'order-2 shrink-0 border-l border-gray-200' : 'order-1 flex-1'
-            )}
+            style={{ width: documentWidth.width }}
+            className="relative flex min-w-0 shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white"
           >
-            {chatIsMain && <SideResizeHandle label="Resize document" width={sideWidth} />}
+            <ResizeHandle
+              label="Resize document"
+              side="left"
+              value={documentWidth.width}
+              min={documentWidth.min}
+              max={documentWidth.max}
+              isResizing={documentWidth.isResizing}
+              onStart={documentWidth.startResize}
+              onNudge={documentWidth.nudgeWidth}
+            />
             {document}
           </aside>
         )}
 
-        {showLists && isBelowTablet && (
-          <div
-            role="dialog"
-            aria-label="Conversations and documents"
-            className="absolute inset-0 z-10 flex flex-col bg-white"
-          >
-            <div className="flex h-12 shrink-0 items-center gap-1 border-b border-gray-200 pl-0.5 pr-3">
-              <button
-                type="button"
-                onClick={onCloseList}
-                aria-label="Hide conversations and documents"
-                aria-pressed="true"
-                className="flex h-11 w-11 items-center justify-center rounded-lg text-primary-700"
-              >
-                <PanelLeftOpen className="h-[18px] w-[18px]" />
-              </button>
-              <h2 className="text-sm font-medium text-gray-800">Conversations and documents</h2>
-            </div>
-            {/* A phone has no left column, so the way to start something new leads the lists. */}
-            <div className="px-3 pt-3">
-              <PublishMenu onItemSelected={onCloseList} />
-            </div>
-            <div className="min-h-0 flex-1">{lists}</div>
-          </div>
-        )}
-
-        {/* Between the tablet breakpoint and the width at which the left
-            column holds the lists, they slide over the panes from its edge.
-            The top bar's button, which stays clear of the scrim, also closes it. */}
-        {showLists && !isBelowTablet && (
+        {/* Below the width at which the left column holds them, the
+            documents slide over the panes from its edge. */}
+        {documents != null && documentsOpen && (
           <>
             <div
               aria-hidden="true"
-              onClick={onCloseList}
+              onClick={onCloseDocuments}
               className="workspace-fade-in absolute inset-0 z-10 bg-gray-900/20"
             />
             <aside
-              aria-label="Conversations and documents"
-              className="workspace-fade-in absolute inset-y-0 left-0 z-20 flex w-[240px] flex-col border-r border-gray-200 bg-white pt-1 shadow-xl"
+              aria-label="Your documents"
+              className="workspace-fade-in absolute inset-y-0 left-0 z-20 flex w-[240px] flex-col overflow-y-auto border-r border-gray-200 bg-white shadow-xl"
             >
-              {lists}
+              {documents}
             </aside>
           </>
         )}
       </div>
 
       <SwipeableDrawer
-        isOpen={documentOpen && isBelowTablet}
+        isOpen={documentShown && isBelowTablet}
         onClose={onCloseDocumentDrawer}
         height="85vh"
         className="tablet:!hidden"
       >
-        {documentOpen && isBelowTablet && documentDrawer}
+        {documentShown && isBelowTablet && documentDrawer}
       </SwipeableDrawer>
     </>
-  );
-}
-
-function SideResizeHandle({
-  label,
-  width,
-}: {
-  readonly label: string;
-  readonly width: WorkspacePanesProps['sideWidth'];
-}) {
-  return (
-    <ResizeHandle
-      label={label}
-      side="left"
-      value={width.width}
-      min={width.min}
-      max={width.max}
-      isResizing={width.isResizing}
-      onStart={width.startResize}
-      onNudge={width.nudgeWidth}
-    />
   );
 }

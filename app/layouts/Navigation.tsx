@@ -36,6 +36,8 @@ interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
   forceMinimize?: boolean;
+  /** A parent scrolls the nav along with what follows it, so it neither grows nor scrolls itself. */
+  inScrollArea?: boolean;
 }
 
 const navIconMap: Record<NavIconKey, NavIcon> = {
@@ -57,6 +59,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   currentPath,
   onUnimplementedFeature,
   forceMinimize = false,
+  inScrollArea = false,
 }) => {
   const navigationItems: NavigationItem[] = [
     {
@@ -210,7 +213,8 @@ export const Navigation: React.FC<NavigationProps> = ({
     <nav
       aria-label="Primary navigation"
       className={cn(
-        'flex-1 overflow-y-auto px-3 pt-6',
+        'px-3 pt-6',
+        !inScrollArea && 'flex-1 overflow-y-auto',
         forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'
       )}
     >

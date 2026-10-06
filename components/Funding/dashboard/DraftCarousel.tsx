@@ -14,13 +14,14 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Carousel } from '@/components/ui/Carousel';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { NoteService } from '@/services/note.service';
 
 interface DraftCarouselProps {
   /** The latest edit first. */
   readonly drafts: DraftDocument[];
-  /** Read the drafts again, once one has been deleted. */
-  readonly onDeleted: () => Promise<void>;
+  /** How many drafts there are, which can be more than are loaded. */
+  readonly count: number;
 }
 
 /**
@@ -29,8 +30,9 @@ interface DraftCarouselProps {
  * A draft's card is dashed, still being drawn; it opens where the user
  * drafts, and can be deleted from the menu in its corner.
  */
-export function DraftCarousel({ drafts, onDeleted }: DraftCarouselProps) {
+export function DraftCarousel({ drafts, count }: DraftCarouselProps) {
   const { openDraft } = useFundingDrafting();
+  const { remove } = useFundingDocuments();
 
   // ---- deleting a draft, behind a confirmation ----
   const [deleting, setDeleting] = useState<DraftDocument | null>(null);
@@ -41,19 +43,19 @@ export function DraftCarousel({ drafts, onDeleted }: DraftCarouselProps) {
     try {
       await NoteService.deleteNote(deleting.note.id);
       setDeleting(null);
-      await onDeleted();
+      remove(deleting.note.id);
     } catch {
       toast.error('Couldn’t delete the draft. Please try again.');
     } finally {
       setIsDeleting(false);
     }
-  }, [deleting, onDeleted]);
+  }, [deleting, remove]);
 
   return (
     <section>
       <DashboardSectionHeader
         title="Continue where you left off"
-        meta={`${drafts.length} ${drafts.length === 1 ? 'draft' : 'drafts'}`}
+        meta={`${count} ${count === 1 ? 'draft' : 'drafts'}`}
       />
 
       {/* The carousel pads its own track; the margin takes that back from the heading. */}

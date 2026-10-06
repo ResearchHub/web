@@ -3,7 +3,7 @@ import { cn } from '@/utils/styles';
 import { INTENT_COPY } from '../copy';
 
 /**
- * How the composer looks when it starts a conversation: roomier than the
+ * How the composer looks when it starts a new draft: roomier than the
  * in-chat one, shadowed, its border and send button in the intent's colour —
  * blue when the user is here to fund, emerald when they need funding.
  */

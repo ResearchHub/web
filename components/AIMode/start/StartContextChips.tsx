@@ -12,7 +12,7 @@ import { formatCompactAmount } from '@/utils/currency';
 import { cn } from '@/utils/styles';
 
 interface StartContextChipsProps {
-  /** The RFP the user means to apply to, chosen before the conversation exists. */
+  /** The RFP the user means to apply to, chosen before the draft exists. */
   readonly selectedGrant: SelectedGrantDetails | null;
   readonly onSelectGrant: (grant: SelectedGrantDetails | null) => void;
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { setDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
+import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import {
   PublishingForm,
@@ -40,6 +41,8 @@ interface DocumentPaneProps {
   readonly document: AIModeDocument;
   /** The open chat, whose activity is one of the review's version signals. */
   readonly chat: AgentChat | null;
+  /** The assistant has a turn running on this document in one of its other chats. */
+  readonly assistantWorking?: boolean;
   /** Which of the drawer's two views is showing; the column only has the document. */
   readonly view: DocumentPaneView;
   readonly onViewChange: (view: DocumentPaneView) => void;
@@ -68,6 +71,7 @@ interface DocumentPaneProps {
 export function DocumentPane({
   document,
   chat,
+  assistantWorking = false,
   view,
   onViewChange,
   presentation = 'pane',
@@ -236,8 +240,19 @@ export function DocumentPane({
       <PublishingFormProvider
         publishTitle={title}
         publishConfirmation={isPane ? <PublishDialog title={title} onRename={rename} /> : undefined}
+        refreshedNote={document.details}
       >
         <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
+          {/* Above the content, so it does not scroll: flashing while the
+              assistant works on the document, still while its changes wait
+              to be accepted or rejected. The drawer's top row has no room;
+              the chat beside it shows the work there. */}
+          {isPane && (writing || assistantWorking || reviewing) && (
+            <AssistantActivityDot
+              state={writing || assistantWorking ? 'working' : 'review'}
+              className="absolute right-4 top-4 z-10"
+            />
+          )}
           {!isPane && (
             <DrawerStrip view={view} onViewChange={onViewChange} onOpenDetails={openDetails} />
           )}

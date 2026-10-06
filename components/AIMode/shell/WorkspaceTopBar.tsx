@@ -6,15 +6,12 @@ import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { cn } from '@/utils/styles';
 
 interface WorkspaceTopBarProps {
-  /**
-   * What is open: the conversation's title when the chat is the main pane,
-   * the document's when it is, "New RFP" or "New proposal" on the start screen.
-   */
+  /** What is open: the document's title, or "New RFP" or "New proposal" on the start screen. */
   readonly title: string;
   /**
-   * Shows or hides the conversations and drafts while the app's left column
-   * is an icon rail with no room for them; absent once the column holds
-   * them, and on a phone, where the chat's header has the button.
+   * Shows or hides the user's documents while the app's left column is an
+   * icon rail with no room for them; absent once the column holds them, and
+   * on a phone, where the ☰ menu has them.
    */
   readonly onToggleList?: () => void;
   readonly listOpen?: boolean;
@@ -38,9 +35,7 @@ export function WorkspaceTopBar({ title, onToggleList, listOpen = false }: Works
 
   const listButton = useMemo(() => {
     if (!onToggleList) return null;
-    const label = listOpen
-      ? 'Hide conversations and documents'
-      : 'Show conversations and documents';
+    const label = listOpen ? 'Hide documents' : 'Show documents';
     return (
       <button
         type="button"

@@ -49,6 +49,13 @@ export interface UseChatSessionOptions {
   readonly onListStale?: () => void;
   /** Extra fields for the chat the first message creates. */
   readonly getCreateInit?: () => ChatCreateInit | undefined;
+  /**
+   * Where the first message's chat is created, when that is not `transport`:
+   * a surface whose chats live on something the first message brings into
+   * being (the workspace creates the document first). Its failures are the
+   * creation's. Without it the chat is created on `transport`.
+   */
+  readonly transportForNewChat?: () => Promise<ChatTransport>;
   readonly notices: ChatNoticePolicy;
 }
 
@@ -96,6 +103,7 @@ export function useChatSession({
   onChatCreated,
   onListStale,
   getCreateInit,
+  transportForNewChat,
   notices,
 }: UseChatSessionOptions): ChatSession {
   const sessionKey = sessionKeyFor(transport, chatId);
@@ -226,8 +234,10 @@ export function useChatSession({
         setCreatingChat(true);
         let created: AgentChat | null = null;
         let failure: string | null = null;
+        let creationTransport = transport;
         try {
-          created = await transport.createChat(getCreateInit?.());
+          if (transportForNewChat) creationTransport = await transportForNewChat();
+          created = await creationTransport.createChat(getCreateInit?.());
         } catch (error) {
           failure = chatErrorDetail(error) ?? null;
         }
@@ -253,14 +263,16 @@ export function useChatSession({
         }
         draftsRef.current.delete(session);
         // A rejected first attempt must retry with the same model and settings.
-        const createdKey = sessionKeyFor(transport, created.conversation_id);
+        // Keyed by where the chat was created, which is where the surface opens
+        // it next, so the queued message and the model choice meet it there.
+        const createdKey = sessionKeyFor(creationTransport, created.conversation_id);
         modelSelection.adoptConversation(createdKey, generation);
         setCreatedChat(created);
         setQueuedMessage({
           sessionKey: createdKey,
           text,
           generation,
-          held: attachments.adopt(held, created.conversation_id),
+          held: attachments.adopt(held, created.conversation_id, creationTransport.key),
         });
         onChatCreated(created);
         return;
@@ -293,6 +305,7 @@ export function useChatSession({
       setDraft,
       isCurrentSession,
       getCreateInit,
+      transportForNewChat,
       onListStale,
       onChatCreated,
       notices.noun,

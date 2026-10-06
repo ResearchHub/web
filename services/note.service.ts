@@ -57,6 +57,8 @@ export interface UpdateNoteParams {
 export interface GetOrganizationNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
   documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION' | 'REGISTERED_REPORT';
+  /** Latest edit first; servers that don't know it keep their newest-created order. */
+  ordering?: '-updated_date';
   nextUrl?: string;
 }
 
@@ -162,6 +164,7 @@ export class NoteService {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
       if (params?.documentType) queryParams.append('type', params.documentType);
+      if (params?.ordering) queryParams.append('ordering', params.ordering);
       const qs = queryParams.toString();
 
       const url =

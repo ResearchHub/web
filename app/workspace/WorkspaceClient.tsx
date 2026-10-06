@@ -7,7 +7,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 /** The app's shell with the workspace's areas empty, until the workspace itself has loaded. */
 function WorkspaceShell() {
   return (
-    <PageLayout fullBleed leftSidebarContent={null}>
+    <PageLayout fullBleed>
       <div className="min-h-0 flex-1 bg-gray-50" />
     </PageLayout>
   );
