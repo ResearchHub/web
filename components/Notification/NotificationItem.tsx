@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { KeyboardEvent, ReactNode } from 'react';
 import { Notification } from '@/types/notification';
 import { formatTimeAgo } from '@/utils/date';
 import {
@@ -32,16 +32,18 @@ const TONE_STYLES: Record<NotificationTone, { bar: string; iconBg: string; iconC
   red: { bar: 'bg-rose-500', iconBg: 'bg-rose-50', iconColor: '#e11d48' },
 };
 
-/** Render quoted work titles in the message in a darker, medium weight. */
-function emphasizeQuoted(text: string): ReactNode[] {
-  return text.split(/("[^"]+")/).map((part, index) =>
-    index % 2 === 1 ? (
-      <span key={index} className="font-medium text-gray-900">
-        {part}
-      </span>
-    ) : (
-      part
-    )
+/** Render the quoted work title in the message in a darker, medium weight. */
+function emphasizeQuotedTitle(text: string): ReactNode {
+  const quotedTitle = /"[^"]+"/.exec(text);
+  if (!quotedTitle) return text;
+
+  const titleEnd = quotedTitle.index + quotedTitle[0].length;
+  return (
+    <>
+      {text.slice(0, quotedTitle.index)}
+      <span className="font-medium text-gray-900">{quotedTitle[0]}</span>
+      {text.slice(titleEnd)}
+    </>
   );
 }
 
@@ -49,7 +51,7 @@ interface NotificationItemProps {
   notification: Notification;
 }
 
-export function NotificationItem({ notification }: NotificationItemProps) {
+export function NotificationItem({ notification }: Readonly<NotificationItemProps>) {
   const router = useRouter();
   const notificationInfo = getNotificationInfo(notification);
   const { exchangeRate } = useExchangeRate();
@@ -59,7 +61,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
   const amount = getNotificationAmount(notification);
-  const tone = TONE_STYLES[getNotificationTone(notification)];
+  const toneStyles = TONE_STYLES[getNotificationTone(notification)];
   const timeAgo = formatTimeAgo(notification.createdDate.toISOString());
   const isUnread = !notification.read;
 
@@ -68,6 +70,17 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       router.push(formattedNavigationUrl);
     }
   };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Ignore Enter on nested controls (avatar, "Learn more") bubbling up to the item.
+    if (event.key === 'Enter' && event.target === event.currentTarget) {
+      handleClick();
+    }
+  };
+
+  const navigationProps = hasNavigationUrl
+    ? { role: 'link', tabIndex: 0, onClick: handleClick, onKeyDown: handleKeyDown }
+    : {};
 
   const visual =
     notification.type === 'FUNDING_CREDITS_REMINDER' ? (
@@ -87,10 +100,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       <div
         className={cn(
           'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
-          tone.iconBg
+          toneStyles.iconBg
         )}
       >
-        <Icon name={notificationInfo.icon} size={18} color={tone.iconColor} />
+        <Icon name={notificationInfo.icon} size={18} color={toneStyles.iconColor} />
       </div>
     );
 
@@ -146,9 +159,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           'flex overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition-shadow',
           hasNavigationUrl && 'cursor-pointer hover:shadow-md'
         )}
-        onClick={handleClick}
+        {...navigationProps}
       >
-        <div className={cn('w-1 flex-shrink-0', tone.bar)} aria-hidden />
+        <div className={cn('w-1 flex-shrink-0', toneStyles.bar)} aria-hidden />
         <div className="flex min-w-0 flex-1 gap-4 p-4">
           {visual}
           <div className="min-w-0 flex-1">
@@ -160,7 +173,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               </span>
             </div>
             <p className="mt-0.5 text-sm leading-snug text-gray-600">
-              {emphasizeQuoted(description)}
+              {emphasizeQuotedTitle(description)}
               {learnMore}
             </p>
             {hasNavigationUrl && (
@@ -181,7 +194,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         'flex items-start gap-4 p-4 transition-colors',
         hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
       )}
-      onClick={handleClick}
+      {...navigationProps}
     >
       {visual}
       {/* The time sits beside the text when there's room and wraps below it on narrow screens. */}

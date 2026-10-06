@@ -1,9 +1,5 @@
-import { cn } from '@/utils/styles';
-
 interface NotificationSkeletonListProps {
   count?: number;
-  /** Wrap the rows in the rounded list box. Turn off when rendering inside an existing box. */
-  framed?: boolean;
 }
 
 export function NotificationSkeleton() {
@@ -21,17 +17,9 @@ export function NotificationSkeleton() {
   );
 }
 
-export function NotificationSkeletonList({
-  count = 10,
-  framed = true,
-}: NotificationSkeletonListProps) {
+export function NotificationSkeletonList({ count = 10 }: Readonly<NotificationSkeletonListProps>) {
   return (
-    <div
-      className={cn(
-        'divide-y divide-gray-100',
-        framed && 'overflow-hidden rounded-xl bg-white ring-1 ring-gray-200'
-      )}
-    >
+    <div className="divide-y divide-gray-100 overflow-hidden rounded-xl bg-white ring-1 ring-gray-200">
       {Array.from({ length: count }, (_, index) => (
         <NotificationSkeleton key={`notification-skeleton-${index}`} />
       ))}
