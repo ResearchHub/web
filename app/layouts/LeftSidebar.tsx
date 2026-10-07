@@ -2,7 +2,6 @@
 
 import { AlertCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import toast from 'react-hot-toast';
 import { PublishMenu } from './PublishMenu';
@@ -11,6 +10,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
 import { FundingPowerRailButton } from '@/components/Funding/FundingPowerRailButton';
 import { SidebarDocuments } from './components/SidebarDocuments';
+import { SidebarHelpMenu } from './components/SidebarHelpMenu';
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
@@ -86,7 +86,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false,
       </div>
 
       <div className={forceMinimize ? '!hidden' : ''}>
-        <FooterLinks />
+        <SidebarHelpMenu />
       </div>
     </div>
   );
