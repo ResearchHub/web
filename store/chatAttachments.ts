@@ -112,7 +112,8 @@ export function createChatAttachmentsStore({
   const unresolved = readPersisted(storage);
   const restoring = new Set<string>();
   let limits = DEFAULT_AGENT_FILE_LIMITS;
-  // 'older' is a server without the limits route, which is asked once.
+  // 'current' once the server's limits are read. A message of files alone
+  // shipped with them, so it is not tried on any other.
   let server: 'unknown' | 'asking' | 'current' | 'older' = 'unknown';
   let sequence = 0;
   let written = '';
@@ -318,6 +319,8 @@ export function createChatAttachmentsStore({
     list,
 
     limits: () => limits,
+
+    takesFilesAlone: () => server === 'current',
 
     /** Read the server's limits; safe to call often. A server without the route is asked once. */
     loadLimits: async () => {

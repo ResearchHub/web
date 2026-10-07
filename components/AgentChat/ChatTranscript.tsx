@@ -148,11 +148,14 @@ function UserBubble({
   return (
     <div className="space-y-1.5">
       <MessageAttachments files={attachments} />
-      <div className="flex justify-end">
-        <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-md text-gray-800">
-          {text}
+      {/* A message of files alone has no text to draw. */}
+      {text && (
+        <div className="flex justify-end">
+          <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-md text-gray-800">
+            {text}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

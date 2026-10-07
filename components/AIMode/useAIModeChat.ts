@@ -268,7 +268,7 @@ export function useAIModeChat(): AIModeChatState {
   const sendText = useCallback(
     async (rawText: string) => {
       const text = rawText.trim();
-      if (!text || !attachments.ready) return;
+      if (!attachments.ready || (!text && !attachments.sendableAlone)) return;
       setNotice(null);
       const target = targetRef.current;
       const generation = modelSelection.request;

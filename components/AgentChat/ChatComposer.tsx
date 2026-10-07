@@ -56,7 +56,10 @@ interface ChatComposerProps {
   /** Extra classes for the outer wrapper — a host can drop the top border it already draws. */
   readonly className?: string;
   /** Files to send with the message; left out, the composer takes none. */
-  readonly attachments?: Pick<ChatAttachments, 'items' | 'notice' | 'ready' | 'add' | 'remove'>;
+  readonly attachments?: Pick<
+    ChatAttachments,
+    'items' | 'notice' | 'ready' | 'sendableAlone' | 'add' | 'remove'
+  >;
   /** What takes file drops for this composer: the whole pane, say. Itself by default. */
   readonly dropTargetRef?: RefObject<HTMLElement | null>;
 }
@@ -101,7 +104,8 @@ export function ChatComposer({
 
   // The server refuses the whole message if any of its files cannot be sent.
   const filesReady = attachments?.ready ?? true;
-  const canSend = !disabled && !sendDisabled && !busy && value.trim().length > 0 && filesReady;
+  const hasContent = value.trim().length > 0 || (attachments?.sendableAlone ?? false);
+  const canSend = !disabled && !sendDisabled && !busy && hasContent && filesReady;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {

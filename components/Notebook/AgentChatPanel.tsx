@@ -337,8 +337,8 @@ export function AgentChatPanel({
 
   const handleSend = useCallback(async () => {
     const text = draft.trim();
-    if (!text || budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
-    if (!attachments.ready) return;
+    if (budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
+    if (!attachments.ready || (!text && !attachments.sendableAlone)) return;
     setNotice(null);
     const target = targetRef.current;
     // Captured before the awaits: the turn runs on what was selected when the

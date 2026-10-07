@@ -58,6 +58,8 @@ export interface ChatAttachments {
   readonly notice: string | null;
   /** Nothing is still uploading, processing, or failed. */
   readonly ready: boolean;
+  /** The files can go out without text: there is one, all are ready, and the server takes it. */
+  readonly sendableAlone: boolean;
   readonly add: (files: File[]) => void;
   readonly remove: (key: string) => void;
   /** Take the ready files for a send; they leave the composer until `settle`. */
@@ -108,6 +110,12 @@ export function useChatAttachments({
     void store.loadLimits();
     void store.restore(bucket);
   }, [store, bucket]);
+
+  const takesFilesAlone = useSyncExternalStore(
+    store?.subscribe ?? subscribeToNothing,
+    () => store?.takesFilesAlone() ?? false,
+    () => false
+  );
 
   const [refusal, setRefusal] = useState<{ bucket: string; text: string } | null>(null);
   const notice = refusal?.bucket === bucket ? refusal.text : null;
@@ -191,5 +199,6 @@ export function useChatAttachments({
   );
 
   const ready = items.every((item) => item.phase === 'ready');
-  return { items, notice, ready, add, remove, hold, adopt, settle, clear };
+  const sendableAlone = takesFilesAlone && ready && items.length > 0;
+  return { items, notice, ready, sendableAlone, add, remove, hold, adopt, settle, clear };
 }
