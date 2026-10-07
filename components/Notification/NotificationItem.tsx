@@ -63,26 +63,27 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
     : {};
 
   const visual =
-    notification.type === 'FUNDING_CREDITS_REMINDER' ? (
-      // The coin's circle spans 12/14 of its viewBox; oversize it so the circle matches the 40px avatars.
-      <ResearchCoinIcon variant="green" size={46} outlined className="-m-[3px] flex-shrink-0" />
-    ) : notification.actionUser && notificationInfo.useAvatar ? (
+    notification.actionUser && notificationInfo.useAvatar ? (
       <Avatar
         className="flex-shrink-0"
         src={notification.actionUser?.authorProfile?.profileImage}
         alt={notification.actionUser?.fullName || 'User'}
-        size="md"
+        size="sm"
         authorId={notification.actionUser?.authorProfile?.id}
         onClick={(e) => e.stopPropagation()}
       />
     ) : (
       <div
         className={cn(
-          'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
+          'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
           toneStyles.iconBg
         )}
       >
-        <Icon name={notificationInfo.icon} size={18} color={toneStyles.iconColor} />
+        {notification.type === 'FUNDING_CREDITS_REMINDER' ? (
+          <ResearchCoinIcon variant="green" size={18} outlined />
+        ) : (
+          <Icon name={notificationInfo.icon} size={16} color={toneStyles.iconColor} />
+        )}
       </div>
     );
 
@@ -105,7 +106,7 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
     >
       <Button
         variant="ghost"
-        className="ml-1 inline h-auto w-auto cursor-help rounded-none p-0 text-xs font-medium text-gray-600"
+        className="h-auto w-auto cursor-help rounded-none p-0 text-xs font-medium text-gray-600"
         style={{ borderBottom: '1px dotted currentColor' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -142,8 +143,8 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
               <span className="font-semibold text-green-600">{message.amount}</span>
             )}
             {message.after}
-            {learnMore}
           </p>
+          {learnMore && <div className="mt-1">{learnMore}</div>}
         </div>
         <span className="flex-shrink-0 text-xs text-gray-400">{timeAgo}</span>
       </div>

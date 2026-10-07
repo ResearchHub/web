@@ -19,14 +19,10 @@ export default function NotificationsPage() {
   } = useNotifications();
 
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  useEffect(() => {
-    return () => {
-      markAllAsRead();
-    };
-  }, [markAllAsRead]);
+    fetchNotifications().then((loaded) => {
+      if (loaded) markAllAsRead();
+    });
+  }, [fetchNotifications, markAllAsRead]);
 
   const { ref: sentinelRef } = useInView({
     threshold: 0,

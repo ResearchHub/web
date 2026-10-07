@@ -13,7 +13,8 @@ interface NotificationContextType {
   unreadCount: number;
   isLoadingMore: boolean;
   refreshUnreadCount: () => Promise<void>;
-  fetchNotifications: () => Promise<void>;
+  /** Resolves to whether the first page loaded. */
+  fetchNotifications: () => Promise<boolean>;
   fetchNextPage: () => Promise<void>;
   markAllAsRead: () => Promise<void>;
   setIsLoadingMore: (isLoadingMore: boolean) => void;
@@ -27,7 +28,7 @@ const NotificationContext = createContext<NotificationContextType>({
   unreadCount: 0,
   isLoadingMore: false,
   refreshUnreadCount: async () => {},
-  fetchNotifications: async () => {},
+  fetchNotifications: async () => false,
   fetchNextPage: async () => {},
   markAllAsRead: async () => {},
   setIsLoadingMore: () => {},
@@ -53,9 +54,11 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
     try {
       const response = await NotificationService.getNotifications();
       setNotificationData(response);
+      return true;
     } catch (err) {
       setError('Failed to load notifications');
       console.error(err);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -93,18 +96,10 @@ function AuthenticatedNotificationProvider({ children }: { children: React.React
     refreshUnreadCount();
   }, []);
 
+  // Loaded notifications keep their read flags so the open list still marks what was new.
   const markAllAsRead = useCallback(async () => {
     try {
       await NotificationService.markAllAsRead();
-
-      setNotificationData((prev) => ({
-        ...prev,
-        results: prev.results.map((notification) => ({
-          ...notification,
-          read: true,
-        })),
-      }));
-
       setUnreadCount(0);
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
@@ -146,7 +141,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           unreadCount: 0,
           isLoadingMore: false,
           refreshUnreadCount: async () => {},
-          fetchNotifications: async () => {},
+          fetchNotifications: async () => false,
           fetchNextPage: async () => {},
           markAllAsRead: async () => {},
           setIsLoadingMore: () => {},
