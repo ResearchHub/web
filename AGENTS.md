@@ -9,6 +9,7 @@ Next.js frontend for ResearchHub. All data comes from the Django API in
   fails on a type error anywhere in the repo.
 - The Playwright smoke tests in `smoke/` are the only test suite. They run
   against a running environment (see `README.md`).
+- Add tests only when the user asks for them.
 
 ## Dependencies
 - `@tiptap-pro/*` and Font Awesome Pro install from private registries. Their
