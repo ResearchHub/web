@@ -1,10 +1,9 @@
-import { KeyboardEvent, ReactNode } from 'react';
+import { KeyboardEvent } from 'react';
 import { Notification } from '@/types/notification';
 import { formatTimeAgo } from '@/utils/date';
 import {
   formatNavigationUrl,
   formatNotificationMessage,
-  getNotificationActionLabel,
   getNotificationInfo,
   getNotificationTitle,
   getNotificationTone,
@@ -18,31 +17,16 @@ import { Button } from '@/components/ui/Button';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-const TONE_STYLES: Record<NotificationTone, { bar: string; iconBg: string; iconColor: string }> = {
-  blue: { bar: 'bg-primary-500', iconBg: 'bg-primary-50', iconColor: '#2563eb' },
-  green: { bar: 'bg-emerald-500', iconBg: 'bg-emerald-50', iconColor: '#059669' },
-  amber: { bar: 'bg-amber-500', iconBg: 'bg-amber-50', iconColor: '#d97706' },
-  violet: { bar: 'bg-violet-500', iconBg: 'bg-violet-50', iconColor: '#7c3aed' },
-  red: { bar: 'bg-rose-500', iconBg: 'bg-rose-50', iconColor: '#e11d48' },
+const TONE_STYLES: Record<NotificationTone, { iconBg: string; iconColor: string }> = {
+  blue: { iconBg: 'bg-primary-50', iconColor: '#2563eb' },
+  green: { iconBg: 'bg-emerald-50', iconColor: '#059669' },
+  amber: { iconBg: 'bg-amber-50', iconColor: '#d97706' },
+  violet: { iconBg: 'bg-violet-50', iconColor: '#7c3aed' },
+  red: { iconBg: 'bg-rose-50', iconColor: '#e11d48' },
 };
-
-/** Render the quoted work title in the message in a darker, medium weight. */
-function emphasizeQuotedTitle(text: string): ReactNode {
-  const quotedTitle = /"[^"]+"/.exec(text);
-  if (!quotedTitle) return text;
-
-  const titleEnd = quotedTitle.index + quotedTitle[0].length;
-  return (
-    <>
-      {text.slice(0, quotedTitle.index)}
-      <span className="font-medium text-gray-900">{quotedTitle[0]}</span>
-      {text.slice(titleEnd)}
-    </>
-  );
-}
 
 interface NotificationItemProps {
   notification: Notification;
@@ -80,9 +64,8 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
 
   const visual =
     notification.type === 'FUNDING_CREDITS_REMINDER' ? (
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center">
-        <ResearchCoinIcon variant="green" size={32} />
-      </div>
+      // The coin's circle spans 12/14 of its viewBox; oversize it so the circle matches the 40px avatars.
+      <ResearchCoinIcon variant="green" size={46} outlined className="-m-[3px] flex-shrink-0" />
     ) : notification.actionUser && notificationInfo.useAvatar ? (
       <Avatar
         className="flex-shrink-0"
@@ -104,22 +87,7 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
     );
 
   const titleRow = (
-    <h3
-      className={cn(
-        'min-w-0 break-words text-gray-900',
-        isUnread ? 'text-base font-bold' : 'text-[15px] font-semibold'
-      )}
-    >
-      {title}
-    </h3>
-  );
-
-  const renderMessage = (format: (text: string) => ReactNode) => (
-    <>
-      {format(message.before)}
-      {message.amount && <span className="font-semibold text-green-600">{message.amount}</span>}
-      {format(message.after)}
-    </>
+    <h3 className="min-w-0 break-words text-[15px] font-semibold text-gray-900">{title}</h3>
   );
 
   const learnMore = notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
@@ -146,57 +114,34 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
     </Tooltip>
   );
 
-  if (isUnread) {
-    return (
-      <div
-        className={cn(
-          'flex overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition-shadow',
-          hasNavigationUrl && 'cursor-pointer hover:shadow-md'
-        )}
-        {...navigationProps}
-      >
-        <div className={cn('w-1 flex-shrink-0', toneStyles.bar)} aria-hidden />
-        <div className="flex min-w-0 flex-1 gap-4 p-4">
-          {visual}
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
-              {titleRow}
-              <span className="flex flex-shrink-0 items-center gap-2 text-xs text-gray-400">
-                <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />
-                {timeAgo}
-              </span>
-            </div>
-            <p className="mt-0.5 text-sm leading-snug text-gray-600">
-              {renderMessage(emphasizeQuotedTitle)}
-              {learnMore}
-            </p>
-            {hasNavigationUrl && (
-              <span className="mt-2.5 inline-flex items-center gap-1 text-sm font-semibold text-primary-600">
-                {getNotificationActionLabel(notification)}
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className={cn(
-        'flex items-start gap-4 p-4 transition-colors',
+        'flex items-start gap-3 py-4 pl-2.5 pr-4 transition-colors',
         hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
       )}
       {...navigationProps}
     >
+      {/* Read rows keep the empty slot so every avatar lines up. */}
+      <span className="flex w-2 flex-shrink-0 self-center">
+        {isUnread && (
+          <>
+            <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />
+            <span className="sr-only">Unread</span>
+          </>
+        )}
+      </span>
       {visual}
       {/* The time sits beside the text when there's room and wraps below it on narrow screens. */}
-      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+      <div className="ml-1 flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <div className="min-w-0 flex-1 basis-64">
           {titleRow}
           <p className="mt-0.5 text-sm leading-snug text-gray-500">
-            {renderMessage((text) => text)}
+            {message.before}
+            {message.amount && (
+              <span className="font-semibold text-green-600">{message.amount}</span>
+            )}
+            {message.after}
             {learnMore}
           </p>
         </div>

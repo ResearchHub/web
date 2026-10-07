@@ -218,7 +218,7 @@ const DEFAULT_NOTIFICATION_INFO: NotificationTypeInfo = {
   title: 'Notification',
 };
 
-/** Color family a notification is drawn in: accent bar and icon tint. */
+/** Color family a notification's icon is tinted in. */
 export type NotificationTone = 'blue' | 'green' | 'amber' | 'violet' | 'red';
 
 const NOTIFICATION_TONE_BY_TYPE: Partial<
@@ -255,40 +255,6 @@ export function getNotificationTone(notification: Notification): NotificationTon
   return (
     NOTIFICATION_TONE_BY_TYPE[notification.type as keyof typeof NOTIFICATION_TYPE_MAP] ?? 'blue'
   );
-}
-
-/** Label for the call to action on unread notification cards, e.g. "View comment". */
-export function getNotificationActionLabel(notification: Notification): string {
-  switch (notification.type) {
-    case 'COMMENT':
-    case 'COMMENT_ON_COMMENT':
-    case 'COMMENT_ON_THREAD':
-    case 'REPLY_ON_THREAD':
-    case 'COMMENT_USER_MENTION':
-    case 'THREAD_ON_DOC':
-    case 'RSC_SUPPORT_ON_DIS':
-      return 'View comment';
-    case 'RSC_SUPPORT_ON_DOC':
-      return isPeerReviewTip(notification) ? 'View peer review' : 'View post';
-    case 'PROPOSAL_PEER_REVIEW':
-      return 'View peer review';
-    case 'PREREGISTRATION_UPDATE':
-      return 'View update';
-    case 'PREREGISTRATION_UPDATE_REMINDER':
-      return 'Post an update';
-    case 'GRANT_APPROVED':
-      return 'View RFP';
-    case 'GRANT_APPLICATION_SUBMITTED':
-      return 'View proposal';
-    case 'RSC_YIELD_OPT_IN':
-      return 'Start earning';
-    case 'FUNDING_CREDITS_REMINDER':
-      return 'Fund proposals';
-    case 'PUBLICATIONS_ADDED':
-      return 'View publications';
-    default:
-      return notification.work ? `View ${getWorkTypeLabel(notification.work.contentType)}` : 'View';
-  }
 }
 
 function formatTypeFallbackTitle(type: string): string {
