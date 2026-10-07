@@ -7,6 +7,7 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAgentChat, useAgentChatList, type SendOutcome } from '@/hooks/useAgentChat';
+import { UNSENT, useChatAttachments, type HeldAttachments } from '@/hooks/useChatAttachments';
 import { notebookChatTransport } from '@/services/chatTransport';
 import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
@@ -41,6 +42,7 @@ type PanelTab = 'chat' | 'sources';
 interface QueuedMessage {
   readonly text: string;
   readonly generation: GenerationRequest;
+  readonly held: HeldAttachments;
 }
 
 /** Pixels per arrow key press while the resize divider has focus. */
@@ -223,6 +225,14 @@ export function AgentChatPanel({
   );
 
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+
+  // ---- attachments (per chat, like the draft) ----
+  const attachments = useChatAttachments({
+    scope: transport.key,
+    chatId: selectedChatId,
+    chat: chatState.chat,
+  });
 
   /**
    * A preset loads the composer rather than sending: its message is a starting
@@ -255,6 +265,7 @@ export function AgentChatPanel({
     setSelectedChatId(null);
     setInitialChat(null);
     setNotice(null);
+    if (queuedMessage) attachments.settle(queuedMessage.held, UNSENT);
     setQueuedMessage(null);
     setCreatingChat(false);
     draftsRef.current.clear();
@@ -326,12 +337,14 @@ export function AgentChatPanel({
 
   const handleSend = useCallback(async () => {
     const text = draft.trim();
-    if (!text || budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
+    if (budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
+    if (!attachments.ready || (!text && !attachments.sendableAlone)) return;
     setNotice(null);
     const target = targetRef.current;
     // Captured before the awaits: the turn runs on what was selected when the
     // user pressed send, not on whatever the picker says by the time it lands.
     const generation = modelSelection.request;
+    const held = attachments.hold();
 
     if (selectedChatId == null) {
       // Default flow: create untitled, send the first message; the refetch
@@ -345,8 +358,12 @@ export function AgentChatPanel({
       if (creationSeqRef.current === creationSeq) setCreatingChat(false);
       // Switched note or picked an existing chat meanwhile — abandon the
       // creation instead of yanking the selection to a stale chat.
-      if (!isCurrentTarget(target)) return;
+      if (!isCurrentTarget(target)) {
+        attachments.settle(held, UNSENT);
+        return;
+      }
       if (!created) {
+        attachments.settle(held, UNSENT);
         setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
         return;
       }
@@ -355,11 +372,16 @@ export function AgentChatPanel({
       modelSelection.adoptConversation(`${noteId}:${created.conversation_id}`, generation);
       setInitialChat(created);
       setSelectedChatId(created.conversation_id);
-      setQueuedMessage({ text, generation });
+      setQueuedMessage({
+        text,
+        generation,
+        held: attachments.adopt(held, created.conversation_id),
+      });
       return;
     }
 
-    const outcome = await chatState.send(text, generation);
+    const outcome = await chatState.send(text, generation, held.files);
+    attachments.settle(held, outcome);
     if (outcome.ok) {
       if (isCurrentTarget(target)) {
         updateDraft('');
@@ -384,16 +406,19 @@ export function AgentChatPanel({
     budgetSendDisabled,
     creatingChat,
     queuedMessage,
+    attachments,
   ]);
 
   // Fire the queued first message once the freshly created chat is live.
   const sendToChat = chatState.send;
+  const settleAttachments = attachments.settle;
   useEffect(() => {
     if (queuedMessage == null || selectedChatId == null || chatState.access !== 'ok') return;
-    const { text, generation } = queuedMessage;
+    const { text, generation, held } = queuedMessage;
     const target = targetRef.current;
     setQueuedMessage(null);
-    sendToChat(text, generation).then((outcome) => {
+    void sendToChat(text, generation, held.files).then((outcome) => {
+      settleAttachments(held, outcome);
       if (outcome.ok) return;
       if (isCurrentTarget(target)) {
         setNotice(noticeFromOutcome(outcome));
@@ -403,7 +428,15 @@ export function AgentChatPanel({
         draftsRef.current.set(String(target.chatId), text);
       }
     });
-  }, [queuedMessage, selectedChatId, chatState.access, sendToChat, updateDraft, isCurrentTarget]);
+  }, [
+    queuedMessage,
+    selectedChatId,
+    chatState.access,
+    sendToChat,
+    settleAttachments,
+    updateDraft,
+    isCurrentTarget,
+  ]);
 
   // ---- rename ----
   const [renaming, setRenaming] = useState(false);
@@ -558,6 +591,7 @@ export function AgentChatPanel({
 
   return (
     <aside
+      ref={panelRef}
       aria-label="Research assistant"
       aria-hidden={!open}
       // Off-screen means out of the tab order too — pointer-events alone
@@ -736,6 +770,8 @@ export function AgentChatPanel({
         disabled={composerDisabled}
         sendDisabled={budgetSendDisabled}
         notice={notice}
+        attachments={attachments}
+        dropTargetRef={panelRef}
         footer={
           <>
             <CreditMeter

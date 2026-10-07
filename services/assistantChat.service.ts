@@ -47,11 +47,13 @@ export class AssistantChatService {
   static async sendMessage(
     chatId: ID,
     message: string,
-    generation?: GenerationRequest
+    generation?: GenerationRequest,
+    fileIds: number[] = []
   ): Promise<SendMessageResponse> {
     return ApiClient.post<SendMessageResponse>(`${BASE_PATH}${chatId}/messages/`, {
       message,
       ...generation,
+      ...(fileIds.length > 0 && { file_ids: fileIds }),
     });
   }
 

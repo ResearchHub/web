@@ -14,6 +14,12 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
+// Schemeless text links only behind "www.": linkify-it links any name.tld, and
+// file extensions such as .md, .py, .sh and .rs are country-code domains.
+const matchLinks = md.linkify.match.bind(md.linkify);
+md.linkify.match = (text) =>
+  matchLinks(text)?.filter((link) => link.schema !== '' || /^www\./i.test(link.raw)) ?? null;
+
 export const ASSISTANT_HTML_SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
     'p',
