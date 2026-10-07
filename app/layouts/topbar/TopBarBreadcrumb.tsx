@@ -8,6 +8,8 @@ interface TopBarBreadcrumbProps {
   truncateTitle?: boolean;
   /** `lg` (26px) for a page's own name; `md` (20px) for the longer title of what a page has open. */
   size?: 'lg' | 'md';
+  /** Stands in for the title where the bar is too narrow to hold it beside the search field. */
+  shortTitle?: string;
 }
 
 export const TopBarBreadcrumb = ({
@@ -15,6 +17,7 @@ export const TopBarBreadcrumb = ({
   variant,
   truncateTitle = false,
   size = 'lg',
+  shortTitle,
 }: TopBarBreadcrumbProps) => {
   const isMobile = variant === 'mobile';
 
@@ -23,7 +26,7 @@ export const TopBarBreadcrumb = ({
     : 'hidden tablet:!flex items-center min-w-0';
 
   const titleClass = isMobile
-    ? 'block min-w-0 truncate text-lg font-semibold leading-tight text-gray-900'
+    ? 'block min-w-0 truncate text-xl font-semibold leading-tight text-gray-900'
     : cn(
         'leading-tight font-semibold text-gray-900',
         truncateTitle ? 'min-w-0 truncate' : 'flex-shrink-0'
@@ -42,7 +45,19 @@ export const TopBarBreadcrumb = ({
       >
         {pageInfo.title ? (
           <span className={titleClass} style={titleStyle} title={pageInfo.title}>
-            {pageInfo.title}
+            {shortTitle && !isMobile ? (
+              <>
+                {/* The bar is as wide as the screen under 1240px, and 240px narrower past it. */}
+                <span className="hidden min-[1100px]:max-[1239px]:inline min-[1340px]:inline">
+                  {pageInfo.title}
+                </span>
+                <span className="inline min-[1100px]:max-[1239px]:hidden min-[1340px]:hidden">
+                  {shortTitle}
+                </span>
+              </>
+            ) : (
+              pageInfo.title
+            )}
           </span>
         ) : (
           pageInfo.icon && (

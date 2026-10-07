@@ -183,12 +183,6 @@ mark {
     padding-top: calc(56px + var(--top-bar-height)) !important;
   }
 
-  /* The menu hangs from the bottom of the same stack. */
-  .left-sidebar-with-promo-banner {
-    top: calc(56px + var(--top-bar-height)) !important;
-    height: calc(100vh - 56px - var(--top-bar-height)) !important;
-  }
-
   /* Reserve space for the fixed MobileBottomNav (h-16 + safe-area inset), so
      the last of the page's content isn't stuck behind it. */
   .page-layout-with-mobile-bottom-nav {

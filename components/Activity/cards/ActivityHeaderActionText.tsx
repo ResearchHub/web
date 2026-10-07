@@ -40,7 +40,7 @@ function AuthorName({
   truncate?: boolean;
 }) {
   const wrapperClass = cn('inline-flex items-center', truncate && 'min-w-0 max-w-full');
-  const nameClass = cn('font-medium text-gray-900', truncate && 'min-w-0 truncate');
+  const nameClass = cn('font-semibold text-gray-900', truncate && 'min-w-0 truncate');
   const badge = showAuthorBadge ? <AuthorBadge size="sm" className="ml-1 shrink-0" /> : null;
 
   if (!id) {
@@ -87,7 +87,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
 
   const action = (
     <>
-      <span className="text-gray-500">{stacked ? verb : ` ${verb}`}</span>
+      <span className="text-gray-900">{stacked ? verb : ` ${verb}`}</span>
       {target && (
         <>
           {' '}
@@ -96,7 +96,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
             profileUrl={target.author.profileUrl}
             fullName={target.author.fullName}
           />
-          {target.suffix && <span className="text-gray-500">{target.suffix}</span>}
+          {target.suffix && <span className="text-gray-900">{target.suffix}</span>}
         </>
       )}
       {trailing}

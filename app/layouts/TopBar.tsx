@@ -6,6 +6,7 @@ import { SearchModal } from '@/components/Search/SearchModal';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import Link from 'next/link';
 import { Menu } from 'lucide-react';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Tabs } from '@/components/ui/Tabs';
@@ -13,6 +14,7 @@ import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
+import { Icon } from '@/components/ui/icons';
 import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
@@ -100,6 +102,15 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
               <Menu className="h-6 w-6" aria-hidden="true" />
             </button>
 
+            {/* The sidebar holds the logo from 1240px up; narrower, it sits here. */}
+            <Link
+              href="/"
+              aria-label="ResearchHub home"
+              className="mr-2 flex shrink-0 items-center sidebar-compact:!hidden"
+            >
+              <Icon name="flaskFrame" size={32} color="#3971ff" />
+            </Link>
+
             {leftSlot ? (
               <div className="flex min-w-0 items-center">{leftSlot}</div>
             ) : (
@@ -118,6 +129,7 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
                 {pageInfo && (
                   <TopBarBreadcrumb
                     pageInfo={showTopBarFundTabs ? { ...pageInfo, title: 'Fund' } : pageInfo}
+                    shortTitle={isFundPage && !showTopBarFundTabs ? 'Fund Science' : undefined}
                     variant="desktop"
                     truncateTitle={openTitle != null}
                     size={openTitle != null ? 'md' : 'lg'}

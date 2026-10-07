@@ -83,7 +83,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
 
   // Mobile drawer content
   const mobileDrawerContent = (
-    <div className="space-y-2">
+    <div className="space-y-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
       {FUNDING_DRAFT_OPTIONS.map((item) => (
         <div
           key={item.id}
@@ -128,8 +128,13 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
           <SwipeableDrawer
             isOpen={isMobileDrawerOpen}
             onClose={() => setIsMobileDrawerOpen(false)}
-            height="60vh"
+            height="auto"
             showCloseButton={false}
+            header={
+              <h2 className="text-lg font-semibold text-gray-900">
+                What would you like to publish?
+              </h2>
+            }
           >
             {mobileDrawerContent}
           </SwipeableDrawer>

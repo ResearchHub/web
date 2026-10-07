@@ -47,7 +47,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message
   const headline = isProposalSubmission(entry) ? message.actor.headline?.trim() : undefined;
 
   return (
-    <div className={cn('min-w-0 pt-1 text-sm leading-6', !authors && 'mb-2.5')}>
+    <div className={cn('min-w-0 pt-1 text-[15px] leading-6', !authors && 'mb-2.5')}>
       <ActivityHeaderActionText
         message={message}
         authors={authors}
@@ -56,33 +56,25 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message
       {grantAmount && (
         <>
           {' '}
-          <GrantFundingAmount amount={grantAmount} className="align-middle" />
+          <GrantFundingAmount amount={grantAmount} />
         </>
       )}
       {contribution && (
         <>
           {' '}
-          <ContributionAmount
-            contribution={contribution}
-            showSign={!message.isEarning}
-            className="align-middle"
-          />
+          <ContributionAmount contribution={contribution} showSign={false} />
         </>
       )}
       {reviewEarning && (
         <>
           {' '}
-          <ContributionAmount
-            contribution={reviewEarning}
-            showSign={false}
-            className="align-middle"
-          />
+          <ContributionAmount contribution={reviewEarning} showSign={false} />
         </>
       )}
       {bounty && (
         <>
           {' '}
-          <BountyAmount bounty={bounty} className="align-middle" />
+          <BountyAmount bounty={bounty} />
         </>
       )}
       {reviewScore != null && reviewScore > 0 && (
@@ -91,7 +83,7 @@ export const ActivityCardHeader: FC<ActivityCardHeaderProps> = ({ entry, message
           <ReviewScoreStars score={reviewScore} size="sm" className="align-middle" />
         </>
       )}
-      {message.suffix && <span className="text-gray-500">{message.suffix}</span>}
+      {message.suffix && <span className="text-gray-900">{message.suffix}</span>}
       <ActivityActionIcon name={hasAmount ? null : actionIcon} />
       {headline && (
         <span className="block truncate text-xs leading-4 text-gray-500">{headline}</span>

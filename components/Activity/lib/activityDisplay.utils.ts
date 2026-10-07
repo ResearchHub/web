@@ -136,12 +136,9 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return {
-      actor,
-      verb: isFundingPoolContribution(entry)
-        ? 'contributed to the funding pool'
-        : 'funded this proposal.',
-    };
+    return isFundingPoolContribution(entry)
+      ? { actor, verb: 'contributed', suffix: ' to the funding pool' }
+      : { actor, verb: 'funded this proposal with' };
   }
 
   // Registered reports arrive as `post` entries; only the document type sets them apart,

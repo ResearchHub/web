@@ -109,26 +109,25 @@ function PageLayoutInner({
 
         <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
-        <LeftSidebarContainer
-          isOpen={isLeftSidebarOpen}
-          onClose={closeLeftSidebar}
-          withPromoBanner={isPromoBannerVisible}
-        />
+        <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
 
         {fullBleed ? (
           // Offset from the fixed top bar exactly as the scrollport below is,
           // but nothing here scrolls: the page lays out its own panes in the
-          // height that is left, so the top bar never hides on a phone.
+          // height that is left, so the top bar never hides on a phone. The bottom
+          // nav is the same bar as everywhere else, and its room is kept below.
           <div
             ref={scrollContainerRef}
             className={cn(
               'relative flex min-w-0 flex-1 flex-col overflow-hidden',
+              'page-layout-with-mobile-bottom-nav',
               'pt-[var(--top-bar-height)] mt-0',
               'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
               isPromoBannerVisible && 'page-layout-with-promo-banner'
             )}
           >
             {children}
+            <MobileBottomNav />
           </div>
         ) : (
           /* The scrollport. Padding clears the fixed top bar on phones, where it

@@ -14,12 +14,12 @@ function AuthorName({ author }: Readonly<{ author: AuthorProfile }>) {
   const name = author.fullName || 'Unknown';
 
   if (!author.id) {
-    return <span className="font-medium text-gray-900">{name}</span>;
+    return <span className="font-semibold text-gray-900">{name}</span>;
   }
 
   return (
     <AuthorTooltip authorId={author.id} placement="bottom">
-      <Link href={author.profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
+      <Link href={author.profileUrl} className="font-semibold text-gray-900 hover:text-primary-600">
         {name}
       </Link>
     </AuthorTooltip>
@@ -38,13 +38,13 @@ export function ActivityAuthorSummary({ authors }: Readonly<{ authors: AuthorPro
 
         return (
           <span key={`${author.id}-${index}`}>
-            {index > 0 && <span className="text-gray-500">{separator}</span>}
+            {index > 0 && <span className="text-gray-900">{separator}</span>}
             <AuthorName author={author} />
           </span>
         );
       })}
       {remaining > 0 && (
-        <span className="text-gray-500">
+        <span className="text-gray-900">
           {` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}
         </span>
       )}
