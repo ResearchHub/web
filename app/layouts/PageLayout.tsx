@@ -109,7 +109,11 @@ function PageLayoutInner({
 
         <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
-        <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
+        <LeftSidebarContainer
+          isOpen={isLeftSidebarOpen}
+          onClose={closeLeftSidebar}
+          withPromoBanner={isPromoBannerVisible}
+        />
 
         {fullBleed ? (
           // Offset from the fixed top bar exactly as the scrollport below is,

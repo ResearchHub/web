@@ -27,7 +27,6 @@ import type { PublishingFormData } from './schema';
 
 export { PublishingFormProvider, usePublishingController } from './PublishingFormProvider';
 export { PublishButton } from './PublishButton';
-export { PublishStatusPill } from './PublishStatusPill';
 export { usePublishingCompletion } from './completion';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;

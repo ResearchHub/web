@@ -1,6 +1,10 @@
 import { useFormContext } from 'react-hook-form';
 import { ChevronDown } from 'lucide-react';
 
+/** What a fundraise's duration means; shared with the workspace's publish dialog. */
+export const FUNDRAISE_DURATION_HELP =
+  'Your proposal will stop accepting contributions after this period.';
+
 const END_DATE_OPTIONS = [
   { value: '30', label: '30 days' },
   { value: '60', label: '60 days' },
@@ -34,9 +38,7 @@ export function EndDateSection() {
         </select>
         <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
       </div>
-      <p className="mt-1 text-xs text-gray-500">
-        Your proposal will stop accepting contributions after this period.
-      </p>
+      <p className="mt-1 text-xs text-gray-500">{FUNDRAISE_DURATION_HELP}</p>
     </div>
   );
 }

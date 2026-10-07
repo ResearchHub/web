@@ -20,12 +20,12 @@ export function TopBarContainer({
     <div
       data-top-bar-container
       className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
-        left-0 tablet:!left-[240px] tablet:sidebar-compact:!left-[240px] tablet:max-sidebar-compact:!left-[70px]
+        left-0 sidebar-compact:!left-[240px]
         transition-transform duration-300 ease-in-out tablet:!transform-none
         ${shouldHide ? '-translate-y-full' : 'translate-y-0'}`}
     >
       <EndowmentPromoBanner />
-      <TopBar onMenuClick={onMenuClick} />
+      <TopBar onMenuClick={onMenuClick} isMenuOpen={isLeftSidebarOpen} />
     </div>
   );
 }

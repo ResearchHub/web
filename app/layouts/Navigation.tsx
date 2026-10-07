@@ -38,6 +38,8 @@ interface NavigationProps {
   forceMinimize?: boolean;
   /** A parent scrolls the nav along with what follows it, so it neither grows nor scrolls itself. */
   inScrollArea?: boolean;
+  /** Runs once a link is followed: the menu holding the nav closes. */
+  onNavigate?: () => void;
 }
 
 const navIconMap: Record<NavIconKey, NavIcon> = {
@@ -60,6 +62,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   onUnimplementedFeature,
   forceMinimize = false,
   inScrollArea = false,
+  onNavigate,
 }) => {
   const navigationItems: NavigationItem[] = [
     {
@@ -100,9 +103,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const getButtonStyles = (isActive: boolean) => {
     return cn(
       'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-medium transition-colors',
-      forceMinimize
-        ? '!justify-center !px-2'
-        : 'tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2',
+      forceMinimize && '!justify-center !px-2',
       isActive
         ? 'bg-primary-50 font-semibold text-primary-600'
         : 'font-medium text-gray-700 hover:bg-gray-50'
@@ -156,21 +157,23 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       if (item.requiresAuth) {
         e.preventDefault();
-        executeAuthenticatedAction(() => router.push(item.href));
+        executeAuthenticatedAction(() => {
+          router.push(item.href);
+          onNavigate?.();
+        });
         return;
       }
+      onNavigate?.();
     };
 
     const isHomeIcon = item.isFontAwesome && item.iconKey === 'home';
 
     const iconContainerClass = cn(
       'flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center',
-      forceMinimize ? 'mr-0' : 'mr-3.5 tablet:max-sidebar-compact:!mr-0'
+      forceMinimize ? 'mr-0' : 'mr-3.5'
     );
 
-    const textContainerClass = forceMinimize
-      ? 'hidden'
-      : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
+    const textContainerClass = forceMinimize ? 'hidden' : 'flex w-full min-w-0 items-center';
 
     const label = <span className="min-w-0 truncate">{item.label}</span>;
 
@@ -215,7 +218,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       className={cn(
         'px-3 pt-6',
         !inScrollArea && 'flex-1 overflow-y-auto',
-        forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'
+        forceMinimize && '!px-2'
       )}
     >
       <div className="space-y-2">

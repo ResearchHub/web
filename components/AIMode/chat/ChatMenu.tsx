@@ -32,11 +32,11 @@ export function ChatMenu({ title, onRename, onDelete, className }: ChatMenuProps
             aria-label="Chat options"
             title="Chat options"
             className={cn(
-              'flex h-[30px] w-[30px] items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900',
+              'flex h-[34px] w-[34px] items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900',
               className
             )}
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontal className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
         }
       >

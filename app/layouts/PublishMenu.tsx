@@ -47,7 +47,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
   // Regular trigger for standard mode
   const standardTrigger = (
     <button
-      className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+      className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -62,10 +62,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     </button>
   );
 
-  // Compact trigger for minimized sidebar
+  // Compact trigger for a sidebar forced into the icon rail
   const compactTrigger = (
     <button
-      className={`${forceMinimize ? '' : 'hidden'} tablet:max-sidebar-compact:!flex items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto`}
+      className={`${forceMinimize ? 'flex' : 'hidden'} items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto`}
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();

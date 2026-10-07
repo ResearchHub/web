@@ -3,12 +3,16 @@
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { useFormContext } from 'react-hook-form';
-import { HelpCircle } from 'lucide-react';
 import { PublishGuidelines } from '@/components/modals/ConfirmPublishModal';
 import { NonprofitConfirmModal, NonprofitSearchSection } from '@/components/Nonprofit';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
-import { GRANT_APPLICATION_VISIBILITY_OPTIONS } from '@/components/Notebook/PublishingForm/components/GrantApplicationVisibilitySection';
+import { FUNDRAISE_DURATION_HELP } from '@/components/Notebook/PublishingForm/components/EndDateSection';
 import {
+  GRANT_APPLICATION_VISIBILITY_HELP,
+  GRANT_APPLICATION_VISIBILITY_OPTIONS,
+} from '@/components/Notebook/PublishingForm/components/GrantApplicationVisibilitySection';
+import {
+  PROPOSAL_VISIBILITY_OPTIONS,
   useIsLockedPrivate,
   useShowPrivateWarning,
 } from '@/components/Notebook/PublishingForm/components/PreregistrationPrivacySection';
@@ -17,7 +21,7 @@ import type { PublishingFormData } from '@/components/Notebook/PublishingForm/sc
 import { Button } from '@/components/ui/Button';
 import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { usePublishReadiness } from './masthead/usePublishReadiness';
 import { MissingDetails, RowButton } from './MissingDetails';
 
@@ -181,17 +185,31 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
   );
 }
 
-/** A setting with a default: its name at the left, its control at the right. */
-function SettingRow({
+/**
+ * A setting with a default: its name, a line on what it decides, and its
+ * choices, each saying what it means, as the notebook's Details tab has them.
+ */
+function SettingSection({
   label,
+  help,
+  action,
   children,
 }: {
   readonly label: ReactNode;
-  readonly children: ReactNode;
+  readonly help?: ReactNode;
+  /** A control at the right of the name, for a setting that is only offered. */
+  readonly action?: ReactNode;
+  readonly children?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="text-[13px] font-medium text-gray-700">{label}</div>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[13px] font-medium text-gray-700">{label}</div>
+          {help && <p className="mt-0.5 text-xs leading-snug text-gray-500">{help}</p>}
+        </div>
+        {action}
+      </div>
       {children}
     </div>
   );
@@ -201,6 +219,10 @@ function SettingRow({
 function SettingNote({ children }: { readonly children: ReactNode }) {
   return <p className="-mt-2 text-xs leading-snug text-gray-600">{children}</p>;
 }
+
+/** What a nonprofit does for a proposal, for the moment before one is added. */
+const NONPROFIT_HELP =
+  'A nonprofit, such as your university’s foundation, can receive the funds for you. Endaoment, a nonprofit community foundation, processes the donations and sends them on, so you never handle payments and donors can get a tax receipt.';
 
 /**
  * A new proposal's settings: who can see it, how long it stays open, and a
@@ -223,75 +245,51 @@ function ProposalSettings() {
 
   return (
     <>
-      <SettingRow label="Visibility">
-        {isLockedPrivate ? (
-          <span className="text-[13px] font-medium text-gray-900">Private to funder</span>
-        ) : (
-          <ButtonGroup
+      {isLockedPrivate ? (
+        <SettingSection
+          label="Visibility"
+          help="The RFP you are applying to only takes private proposals. Only the funder and vetted peer reviewers will be able to view yours."
+        />
+      ) : (
+        <SettingSection label="Visibility">
+          <RadioGroup
             size="sm"
+            options={PROPOSAL_VISIBILITY_OPTIONS}
             value={isPublic === false ? 'private' : 'public'}
             onChange={(next) => setValue('isPublic', next === 'public', { shouldValidate: true })}
-            options={[
-              { value: 'public', label: 'Public' },
-              { value: 'private', label: 'Private to funder' },
-            ]}
           />
-        )}
-      </SettingRow>
-      {isLockedPrivate && (
-        <SettingNote>
-          The RFP you are applying to only takes private proposals. Only funder and vetted
-          peer-reviewers will be able to view yours.
-        </SettingNote>
+        </SettingSection>
       )}
       {privateNeedsRfp && (
         <SettingNote>In order to submit a private proposal, you must select an RFP.</SettingNote>
       )}
 
-      <SettingRow label="Open for">
+      <SettingSection label="Open for" help={FUNDRAISE_DURATION_HELP}>
         <ButtonGroup
           size="sm"
+          className="self-start"
           value={days}
           onChange={(next) =>
             setValue('fundraiseEndDays', next as (typeof FUNDRAISE_DAYS)[number], {
               shouldDirty: true,
             })
           }
-          options={FUNDRAISE_DAYS.map((value) => ({
-            value,
-            label: value === days ? `${value} days` : value,
-          }))}
+          options={FUNDRAISE_DAYS.map((value) => ({ value, label: `${value} days` }))}
         />
-      </SettingRow>
+      </SettingSection>
 
       {nonprofitOpen ? (
         <NonprofitSearchSection />
       ) : (
-        <SettingRow
+        <SettingSection
           label={
-            <span className="flex items-center gap-1">
+            <>
               Nonprofit <span className="font-normal text-gray-500">optional</span>
-              <Tooltip
-                content="A nonprofit, such as your university’s foundation, can receive the funds for you. Endaoment, a nonprofit community foundation, processes the donations and sends them on, so you never handle payments and donors can get a tax receipt."
-                position="top"
-                width="w-72"
-                theme="dark"
-                wrapperAs="span"
-                wrapperClassName="inline-flex"
-              >
-                <span
-                  tabIndex={0}
-                  aria-label="About nonprofits"
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40"
-                >
-                  <HelpCircle className="h-4 w-4" aria-hidden="true" />
-                </span>
-              </Tooltip>
-            </span>
+            </>
           }
-        >
-          <RowButton onClick={() => setNonprofitOpen(true)}>Add</RowButton>
-        </SettingRow>
+          help={NONPROFIT_HELP}
+          action={<RowButton onClick={() => setNonprofitOpen(true)}>Add</RowButton>}
+        />
       )}
     </>
   );
@@ -301,31 +299,19 @@ function ProposalSettings() {
 function RfpSettings() {
   const { watch, setValue } = useFormContext<PublishingFormData>();
   const value = watch('applicationVisibility') ?? 'OPTIONAL';
-  const selected = GRANT_APPLICATION_VISIBILITY_OPTIONS.find((option) => option.value === value);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="text-[13px] font-medium text-gray-700">Application visibility</div>
-      <ButtonGroup
+    <SettingSection label="Application visibility" help={GRANT_APPLICATION_VISIBILITY_HELP}>
+      <RadioGroup
         size="sm"
-        className="self-start"
+        options={GRANT_APPLICATION_VISIBILITY_OPTIONS}
         value={value}
         onChange={(next) =>
           setValue('applicationVisibility', next as PublishingFormData['applicationVisibility'], {
             shouldValidate: true,
           })
         }
-        options={GRANT_APPLICATION_VISIBILITY_OPTIONS.map((option) => ({
-          value: option.value,
-          label: option.label,
-        }))}
       />
-      {selected && (
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs leading-snug text-gray-600">
-          {selected.description}
-          {selected.badge}
-        </p>
-      )}
-    </div>
+    </SettingSection>
   );
 }

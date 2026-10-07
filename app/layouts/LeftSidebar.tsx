@@ -15,8 +15,8 @@ import { SidebarDocuments } from './components/SidebarDocuments';
 interface LeftSidebarProps {
   forceMinimize?: boolean;
   /**
-   * Runs once a document or a new draft is picked: on a phone the column is a
-   * menu, and a pick that changes the workspace in place must still close it.
+   * Runs once something in it is picked: below 1240px the sidebar is a menu,
+   * and a pick that changes the page in place must still close it.
    */
   onNavigate?: () => void;
 }
@@ -49,39 +49,32 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false,
 
   return (
     <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
-      <div
-        className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'} pt-[10px]`}
-      >
-        <Link href="/">
-          <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden ml-1'}>
+      <div className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : ''} pt-[10px]`}>
+        <Link href="/" onClick={onNavigate}>
+          <div className={forceMinimize ? '!hidden' : 'ml-1'}>
             <Logo size={38} color="text-primary-600" />
           </div>
-          <div className={forceMinimize ? '!block' : 'hidden tablet:max-sidebar-compact:!block'}>
+          <div className={forceMinimize ? '!block' : 'hidden'}>
             <Icon name="flaskFrame" size={38} color="#3971ff" />
           </div>
         </Link>
       </div>
 
-      <div
-        className={`mt-6 px-3 ${forceMinimize ? '!flex !justify-center !px-2' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2'}`}
-      >
+      <div className={`mt-6 px-3 ${forceMinimize ? '!flex !justify-center !px-2' : ''}`}>
         <PublishMenu forceMinimize={forceMinimize} onItemSelected={onNavigate} />
       </div>
 
       {/* The nav and the user's documents scroll together, so a long list
-          never squeezes the nav. The documents hide while the column is the
-          icon rail; the workspace has its own way to them there. */}
+          never squeezes the nav. A forced icon rail has no room for them. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <Navigation
           currentPath={pathname || ''}
           onUnimplementedFeature={handleUnimplementedFeature}
           forceMinimize={forceMinimize}
           inScrollArea
-        />
-        <SidebarDocuments
           onNavigate={onNavigate}
-          className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}
         />
+        <SidebarDocuments onNavigate={onNavigate} className={forceMinimize ? '!hidden' : ''} />
       </div>
 
       {/* The scroll area above is flex-1, so this sits at the bottom of the column.
@@ -92,7 +85,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false,
         <FundingPowerRailButton />
       </div>
 
-      <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
+      <div className={forceMinimize ? '!hidden' : ''}>
         <FooterLinks />
       </div>
     </div>

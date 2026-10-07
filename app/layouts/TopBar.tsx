@@ -6,9 +6,8 @@ import { SearchModal } from '@/components/Search/SearchModal';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
-import Link from 'next/link';
+import { Menu } from 'lucide-react';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { Logo } from '@/components/ui/Logo';
 import { Tabs } from '@/components/ui/Tabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
@@ -22,10 +21,12 @@ import { TopBarBreadcrumb } from './topbar/TopBarBreadcrumb';
 import { TopBarUserControls } from './topbar/TopBarUserControls';
 
 interface TopBarProps {
+  /** Opens or closes the app's menu: the left sidebar, below the width at which it is a column. */
   onMenuClick: () => void;
+  readonly isMenuOpen?: boolean;
 }
 
-export function TopBar({ onMenuClick }: TopBarProps) {
+export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -50,7 +51,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const leftSlot = topBarSlot?.leftSlot;
   // Or keep the back arrow and name what the page has open instead of the page.
   const openTitle = topBarSlot?.title ?? null;
-  const leading = topBarSlot?.leading;
 
   const routePageInfo = getPageInfo(pathname);
   const pageInfo =
@@ -89,11 +89,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         <div className="relative flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
           {/* Left side */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
-            <Link href="/" className="block tablet:!hidden mr-2">
-              <div className="rounded-full bg-gray-100 flex items-center justify-center w-11 h-11">
-                <Logo noText size={36} className="mt-[-2px]" />
-              </div>
-            </Link>
+            {/* The left sidebar is a column from 1240px up; narrower, this opens it. */}
+            <button
+              type="button"
+              onClick={onMenuClick}
+              aria-expanded={isMenuOpen}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              className="-ml-2 mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 sidebar-compact:!hidden"
+            >
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            </button>
 
             {leftSlot ? (
               <div className="flex min-w-0 items-center">{leftSlot}</div>
@@ -109,8 +114,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 )}
 
                 {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
-
-                {leading}
 
                 {pageInfo && (
                   <TopBarBreadcrumb

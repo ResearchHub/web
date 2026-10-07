@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { History, PanelLeftOpen } from 'lucide-react';
+import { History } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatEmptyState } from '@/components/AgentChat/ChatEmptyState';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
@@ -36,8 +36,6 @@ interface ChatPaneProps {
   readonly documentIsEmpty: boolean;
   /** The open document no longer exists. */
   readonly documentMissing: boolean;
-  /** On a phone, which has no left column, this opens the user's documents. */
-  readonly onOpenDocuments?: () => void;
 }
 
 /**
@@ -51,7 +49,6 @@ export function ChatPane({
   documentIsRfp,
   documentIsEmpty,
   documentMissing,
-  onOpenDocuments,
 }: ChatPaneProps) {
   const {
     chatId,
@@ -257,23 +254,7 @@ export function ChatPane({
       {/* No border or fill: the title and its controls float over the pane.
           The start screen has no chat yet, so no header. */}
       {!onStart && !documentMissing && (
-        <header
-          className={cn(
-            'flex h-12 shrink-0 items-center gap-1 pr-2.5',
-            onOpenDocuments ? 'pl-2' : 'pl-5'
-          )}
-        >
-          {onOpenDocuments && (
-            <button
-              type="button"
-              onClick={onOpenDocuments}
-              aria-label="Show documents"
-              title="Show documents"
-              className="mr-1 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            >
-              <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
-            </button>
-          )}
+        <header className="flex h-12 shrink-0 items-center gap-1 pl-5 pr-2">
           {renaming && chatId != null ? (
             <ChatTitleField
               initialValue={state.chatTitle ?? ''}
@@ -310,9 +291,9 @@ export function ChatPane({
                   type="button"
                   aria-label="Chat history"
                   title="Chat history"
-                  className="flex h-[30px] w-[30px] items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900"
+                  className="flex h-[34px] w-[34px] items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900"
                 >
-                  <History className="h-4 w-4" aria-hidden="true" />
+                  <History className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
               }
             />

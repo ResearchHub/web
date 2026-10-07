@@ -19,8 +19,6 @@ const PUBLISHED_SHOWN = 5;
 interface SidebarDocumentsProps {
   /** Runs after any choice that should put a drawer or an overlay away. */
   readonly onNavigate?: () => void;
-  /** A rule above the first heading, setting the documents apart from the nav. */
-  readonly divider?: boolean;
   readonly className?: string;
 }
 
@@ -29,7 +27,7 @@ interface SidebarDocumentsProps {
  * still a draft, with a "+" to start another, and what has been published.
  * Each opens in the workspace; the one open there is highlighted.
  */
-export function SidebarDocuments({ onNavigate, divider = true, className }: SidebarDocumentsProps) {
+export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProps) {
   const { drafts, published, status, refresh } = useFundingDocuments();
   const { startNew, openDraft } = useFundingDrafting();
   const target = useOptionalAIMode()?.target;
@@ -61,11 +59,7 @@ export function SidebarDocuments({ onNavigate, divider = true, className }: Side
 
   return (
     <div className={cn('px-3 pb-3', className)}>
-      {divider ? (
-        <div aria-hidden="true" className="mx-2 mb-3 mt-3.5 h-px bg-gray-200" />
-      ) : (
-        <div className="h-3" />
-      )}
+      <div aria-hidden="true" className="mx-2 mb-3 mt-3.5 h-px bg-gray-200" />
 
       <section aria-label="Drafts">
         <SectionHeading

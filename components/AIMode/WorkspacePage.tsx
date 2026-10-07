@@ -1,19 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { PanelRightOpen } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { SidebarDocuments } from '@/app/layouts/components/SidebarDocuments';
 import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { isActiveExecutionStatus } from '@/types/agentChat';
-import { isRfpNote } from '@/types/note';
+import { isPublishedNote, isRfpNote } from '@/types/note';
 import { cn } from '@/utils/styles';
 import { AIModeProvider } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
 import { newDraftTitle } from './copy';
-import { DocumentPane, type DocumentPaneView } from './document/DocumentPane';
+import { DocumentPane } from './document/DocumentPane';
 import { useAIModeDocument } from './document/useAIModeDocument';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
@@ -58,20 +57,12 @@ function Workspace() {
   const state = useAIModeChat();
   const { target, note } = state;
 
-  // The left column holds the user's documents from the width at which it
-  // stops being an icon rail (Tailwind's `sidebar-compact`). Below that they
-  // wait behind a button, in a panel over the panes: the top bar's, or on a
-  // phone (where the app has no left column at all) the chat header's.
-  const listsInColumn = useMediaQuery('(min-width: 1240px)') === true;
+  // From Tailwind's `sidebar-compact` up the app's left column is there and
+  // the top bar has room for a document's title.
+  const isWide = useMediaQuery('(min-width: 1240px)') === true;
   // Tailwind's `tablet` breakpoint; the side-by-side panes only exist from it up.
   const phoneQuery = useMediaQuery('(max-width: 767px)');
   const isBelowTablet = phoneQuery === true;
-  const [documentsOpen, setDocumentsOpen] = useState(false);
-  const closeDocuments = useCallback(() => setDocumentsOpen(false), []);
-  const toggleDocuments = useCallback(() => setDocumentsOpen((open) => !open), []);
-  useEffect(() => {
-    if (listsInColumn) setDocumentsOpen(false);
-  }, [listsInColumn]);
 
   const latestExecution = state.chat.latestExecution;
   const turnActive = latestExecution != null && isActiveExecutionStatus(latestExecution.status);
@@ -94,8 +85,6 @@ function Workspace() {
     defaultWidth: (width) => width * DOCUMENT_DEFAULT_SHARE,
     anchor: 'right',
   });
-  // Document or details in the phone's drawer; the column only shows the document.
-  const [documentView, setDocumentView] = useState<DocumentPaneView>('document');
 
   // On desktop the document shows beside its chat as soon as it is open; on
   // a phone the chat header's toggle opens it in a drawer. Either way the
@@ -116,9 +105,6 @@ function Workspace() {
     },
     [noteId]
   );
-  useEffect(() => {
-    setDocumentView('document');
-  }, [noteId]);
   const closeDocument = useCallback(() => setDocumentOpen(false), [setDocumentOpen]);
   const showDocument = noteId != null && documentOpen && !doc.missing;
 
@@ -134,40 +120,36 @@ function Workspace() {
     );
   }, [noteId, docTitle, docUpdatedDate, patch]);
 
-  // The top bar names what is open: the document, or on the start screen
-  // what it will produce — an RFP or a proposal.
-  const headerTitle = target.kind === 'new' ? newDraftTitle(state.intent) : doc.title || 'Untitled';
+  // The top bar names what is open: on the start screen what it will
+  // produce — an RFP or a proposal — and on a document its title, or below
+  // the width at which a title stays readable just whether it is out yet.
+  const loadedNote = doc.details ?? doc.content;
+  const headerTitle =
+    target.kind === 'new'
+      ? newDraftTitle(state.intent)
+      : !isWide
+        ? isPublishedNote(loadedNote)
+          ? 'Published'
+          : 'Draft'
+        : doc.title || 'Untitled';
 
-  const documentPane = (presentation: 'pane' | 'drawer') => (
+  const documentPane = (inDrawer: boolean) => (
     <DocumentPane
       document={doc}
       chat={state.chat.chat}
       assistantWorking={state.anyTurnActive}
-      view={documentView}
-      onViewChange={setDocumentView}
-      presentation={presentation}
-      readOnly={presentation === 'drawer'}
-      className={presentation === 'drawer' ? '-mx-4 -mt-2' : undefined}
+      className={inDrawer ? '-mx-4 -mt-2' : undefined}
     />
   );
 
   return (
     <PageLayout fullBleed>
       <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
-        <WorkspaceTopBar
-          title={headerTitle}
-          listOpen={documentsOpen}
-          onToggleList={listsInColumn || isBelowTablet ? undefined : toggleDocuments}
-        />
+        <WorkspaceTopBar title={headerTitle} />
 
         <WorkspacePanes
           isBelowTablet={isBelowTablet}
           documentWidth={{ ...documentWidth, min: DOCUMENT_MIN_WIDTH, max: documentMaxWidth }}
-          documents={
-            listsInColumn ? null : <SidebarDocuments divider={false} onNavigate={closeDocuments} />
-          }
-          documentsOpen={documentsOpen}
-          onCloseDocuments={closeDocuments}
           onCloseDocumentDrawer={closeDocument}
           chat={
             <ChatPane
@@ -175,7 +157,6 @@ function Workspace() {
               documentIsRfp={isRfpNote(doc.content)}
               documentIsEmpty={doc.status === 'empty'}
               documentMissing={doc.missing}
-              onOpenDocuments={isBelowTablet ? () => setDocumentsOpen(true) : undefined}
               headerActions={
                 noteId != null && (
                   <button
@@ -185,20 +166,26 @@ function Workspace() {
                     aria-label={showDocument ? 'Hide document' : 'Show document'}
                     title={showDocument ? 'Hide document' : 'Show document'}
                     className={cn(
-                      'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg transition-colors',
+                      'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg transition-colors',
                       showDocument
                         ? 'bg-primary-50 text-primary-700 hover:bg-primary-100'
                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                     )}
                   >
-                    <PanelRightOpen className="h-4 w-4" aria-hidden="true" />
+                    {/* The chevron points where the document goes: away to the
+                        right while it shows, in from the right while hidden. */}
+                    {showDocument ? (
+                      <PanelRightClose className="h-[18px] w-[18px]" aria-hidden="true" />
+                    ) : (
+                      <PanelRightOpen className="h-[18px] w-[18px]" aria-hidden="true" />
+                    )}
                   </button>
                 )
               }
             />
           }
-          document={showDocument ? documentPane('pane') : null}
-          documentDrawer={showDocument ? documentPane('drawer') : null}
+          document={showDocument ? documentPane(false) : null}
+          documentDrawer={showDocument ? documentPane(true) : null}
         />
       </div>
     </PageLayout>

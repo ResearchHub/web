@@ -70,6 +70,23 @@ export default {
           '0%, 18%': { backgroundPosition: '100% 0' },
           '82%, 100%': { backgroundPosition: '0% 0' },
         },
+        // A paper plane leaving up and to the right, then coming back in from
+        // the lower left and settling with a small overshoot. Each leg has its
+        // own easing: it speeds up on the way out and slows on the way in.
+        'take-off': {
+          '0%': {
+            transform: 'translate(0, 0) scale(1)',
+            opacity: '1',
+            animationTimingFunction: 'cubic-bezier(0.55, 0, 1, 0.45)',
+          },
+          '38%': { transform: 'translate(160%, -160%) scale(0.6)', opacity: '0' },
+          '39%': {
+            transform: 'translate(-160%, 160%) scale(0.6)',
+            opacity: '0',
+            animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+          },
+          '100%': { transform: 'translate(0, 0) scale(1)', opacity: '1' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -80,6 +97,9 @@ export default {
         // Single sweep. `both` keeps the streak parked off-screen during the
         // delay instead of sitting mid-element until it starts.
         shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
+        // The same streak, answering a hover: no wait before it starts.
+        'shimmer-quick': 'shimmer 0.9s ease-out 0.05s both',
+        'take-off': 'take-off 0.8s both',
         'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
       },
       backgroundImage: {

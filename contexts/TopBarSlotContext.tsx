@@ -12,9 +12,6 @@ interface TopBarSlotContextValue {
    */
   title: string | null;
   setTitle: (title: string | null) => void;
-  /** A control seated between the back arrow and the title. */
-  leading: ReactNode;
-  setLeading: (node: ReactNode) => void;
 }
 
 const TopBarSlotContext = createContext<TopBarSlotContextValue | null>(null);
@@ -23,17 +20,13 @@ const TopBarSlotContext = createContext<TopBarSlotContextValue | null>(null);
  * Lets a page inject a custom element into the shared TopBar's left area (where
  * the breadcrumb normally renders). Used by the notebook to surface its
  * "Notebook" notes dropdown in the standard top bar, and by the workspace to
- * put the open document's or conversation's title there. Pages that don't set
+ * put the open document's title there. Pages that don't set
  * anything fall back to the default breadcrumb.
  */
 export function TopBarSlotProvider({ children }: { children: ReactNode }) {
   const [leftSlot, setLeftSlot] = useState<ReactNode>(null);
   const [title, setTitle] = useState<string | null>(null);
-  const [leading, setLeading] = useState<ReactNode>(null);
-  const value = useMemo(
-    () => ({ leftSlot, setLeftSlot, title, setTitle, leading, setLeading }),
-    [leftSlot, title, leading]
-  );
+  const value = useMemo(() => ({ leftSlot, setLeftSlot, title, setTitle }), [leftSlot, title]);
   return <TopBarSlotContext.Provider value={value}>{children}</TopBarSlotContext.Provider>;
 }
 
