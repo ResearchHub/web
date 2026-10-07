@@ -51,6 +51,11 @@ const CONTENT_TYPE_BY_EXTENSION: Record<string, string> = {
   '.csv': 'text/csv',
   '.tsv': 'text/tab-separated-values',
   '.tex': 'application/x-tex',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
 };
 
 const KIND_BY_CONTENT_TYPE: Record<string, string> = {
@@ -61,12 +66,16 @@ const KIND_BY_CONTENT_TYPE: Record<string, string> = {
   'text/csv': 'CSV file',
   'text/tab-separated-values': 'TSV file',
   'application/x-tex': 'LaTeX file',
+  'image/png': 'PNG image',
+  'image/jpeg': 'JPEG image',
+  'image/gif': 'GIF image',
+  'image/webp': 'WebP image',
 };
 
 export const AGENT_FILE_EXTENSIONS = Object.keys(CONTENT_TYPE_BY_EXTENSION);
 
 // The server's own wording for the same refusals.
-export const UNSUPPORTED_FILE_TYPE = `Upload a PDF, Word (.docx), or text file (${AGENT_FILE_EXTENSIONS.join(', ')}).`;
+export const UNSUPPORTED_FILE_TYPE = `Upload a PDF, Word (.docx), text, or image file (${AGENT_FILE_EXTENSIONS.join(', ')}).`;
 export const FILE_TOO_LARGE = `Files can be at most ${AGENT_FILE_LIMITS.maxFileBytes / (1024 * 1024)} MB.`;
 export const TOO_MANY_FILES_PER_MESSAGE = `A message can carry at most ${AGENT_FILE_LIMITS.maxFilesPerMessage} files.`;
 export const TOO_MANY_FILES_PER_CHAT = `A chat can hold at most ${AGENT_FILE_LIMITS.maxFilesPerChat} files. Start a new chat to attach more.`;

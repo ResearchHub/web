@@ -63,7 +63,7 @@ interface ChatComposerProps {
 
 const COUNTER_THRESHOLD = MAX_CHAT_MESSAGE_LENGTH - 1000;
 const FILE_INPUT_ACCEPT = AGENT_FILE_EXTENSIONS.join(',');
-const ATTACH_TITLE = `Attach files: PDF, Word, or text, up to ${AGENT_FILE_LIMITS.maxFileBytes / (1024 * 1024)} MB each`;
+const ATTACH_TITLE = `Attach files: PDF, Word, text, or images, up to ${AGENT_FILE_LIMITS.maxFileBytes / (1024 * 1024)} MB each`;
 
 /**
  * Message input. The draft is owned by the parent so it survives failed sends

@@ -19,7 +19,7 @@ function statusLine(item: ComposerAttachment): string {
       return item.file ? `Uploading ${Math.round(item.progress * 100)}%` : 'Starting upload…';
     case 'processing':
       return item.slow
-        ? 'Still reading. Scanned pages can take a couple of minutes.'
+        ? 'Still reading. Scans and images can take a couple of minutes.'
         : 'Reading file…';
     case 'failed':
       return item.error ?? 'This file could not be attached.';
