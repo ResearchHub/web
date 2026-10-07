@@ -4,12 +4,12 @@ import { ReactNode, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
-import { FundSidebar } from '@/components/Funding/FundSidebar';
+import { RecentlyVisited } from '@/components/RecentlyVisited/RecentlyVisited';
 import { FundingPowerCard } from '@/components/Funding/FundingPowerCard';
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
   if (typeof rightSidebar === 'boolean') {
-    return <FundSidebar />;
+    return <RecentlyVisited />;
   }
 
   return <>{rightSidebar}</>;

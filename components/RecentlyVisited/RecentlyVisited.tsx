@@ -6,7 +6,8 @@ import {
   useRecentlyVisited,
 } from './RecentlyVisitedCard';
 
-export function FundSidebar() {
+/** The default right sidebar's Recently visited section, once local history is readable. */
+export function RecentlyVisited() {
   const { pages, clear, isHydrated } = useRecentlyVisited();
 
   if (!isHydrated) {
