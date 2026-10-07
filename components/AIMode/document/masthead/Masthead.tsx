@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useWatch } from 'react-hook-form';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
@@ -9,7 +10,6 @@ import { AmountWidget } from './AmountWidget';
 import { ApplyingToWidget } from './ApplyingToWidget';
 import { CoverBanner, useCoverImagePicker } from './CoverImage';
 import { AddDetail } from './MastheadLine';
-import { MastheadTitle } from './MastheadTitle';
 import {
   detailValue,
   mastheadWidgetsFor,
@@ -18,34 +18,33 @@ import {
 } from './mastheadWidgets';
 import { PeopleWidget } from './PeopleWidget';
 import { TextWidget } from './TextWidget';
+import type { MastheadSlots } from './useMastheadSlots';
 
 const LINE_CLASS = 'flex flex-wrap items-center gap-x-5 text-sm text-gray-600';
 
 interface MastheadProps {
-  /** The note's title, which the work is published under. */
-  readonly title: string;
-  readonly onRename: (title: string) => void;
   /**
-   * What is set shows as it will be published, and nothing can be added or
-   * changed. The phone's drawer, whose Details form holds every field; a
-   * field must never have two inputs mounted at once.
+   * Where in the editor it renders: the cover above the document's title,
+   * the details right under it. Nothing renders until the editor has them.
    */
-  readonly readOnly?: boolean;
+  readonly slots: MastheadSlots | null;
 }
 
 /**
  * The publishing details as the head of the document, shaped like the header
  * the published page will have and no heavier: the cover image once there is
- * one, the title, the authors and the RFP each on a line of their own once
- * set, and one quiet line of the rest. A detail with a value is a label and
+ * one above the document's title; under the title, the authors and the RFP
+ * each on a line of their own once set, and one quiet line of the rest. The
+ * title itself is the document's first heading, edited in the document: there
+ * is only ever the one. A detail with a value is a label and
  * the value ("By Kobe Attias"), one without is its icon and what to do ("Add
  * cover"), and the one being edited is a small field in its place. Nothing here is ever marked as
  * missing: the publish dialog lists what is still empty.
  */
-export function Masthead({ title, onRename, readOnly = false }: MastheadProps) {
+export function Masthead({ slots }: MastheadProps) {
   const { note, articleType, readOnly: formReadOnly, isDeclined } = usePublishingController();
   const values = useWatch<PublishingFormData>() as PublishingFormData;
-  const canEdit = !readOnly && !formReadOnly && !isDeclined;
+  const canEdit = !formReadOnly && !isDeclined;
 
   // One editor at a time.
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -123,21 +122,12 @@ export function Masthead({ title, onRename, readOnly = false }: MastheadProps) {
     }
   };
 
-  return (
-    // Indented by the gutter the editor keeps for its block handles (see
-    // `.ai-mode-document .ProseMirror`), so the title and the text under it
-    // share a left edge.
-    <header className="mb-6 ml-16 flex flex-col gap-3 border-b border-gray-200 pb-5">
-      {coverConfig && cover.imageUrl && (
-        <CoverBanner
-          imageUrl={cover.imageUrl}
-          onChange={coverEditable ? cover.browse : undefined}
-          onRemove={coverEditable ? cover.remove : undefined}
-        />
-      )}
-      <MastheadTitle title={title} onRename={canEdit ? onRename : undefined} />
+  if (!slots) return null;
 
-      {/* The byline: its lines sit closer to each other than to the title. */}
+  const details = (
+    // A rule under the details sets them off from the body that follows.
+    <div className="mb-6 mt-3 flex flex-col gap-3 border-b border-gray-200 pb-5">
+      {/* The byline: its lines sit closer to each other than to anything else. */}
       {(ownLine.length > 0 || rowShows) && (
         <div className="flex flex-col gap-1.5">
           {ownLine.map((config) => (
@@ -167,6 +157,24 @@ export function Masthead({ title, onRename, readOnly = false }: MastheadProps) {
         </p>
       )}
       {coverEditable && <input {...cover.inputProps} />}
-    </header>
+    </div>
+  );
+
+  return (
+    <>
+      {coverConfig &&
+        cover.imageUrl &&
+        createPortal(
+          <div className="mb-4">
+            <CoverBanner
+              imageUrl={cover.imageUrl}
+              onChange={coverEditable ? cover.browse : undefined}
+              onRemove={coverEditable ? cover.remove : undefined}
+            />
+          </div>,
+          slots.cover
+        )}
+      {createPortal(details, slots.details)}
+    </>
   );
 }

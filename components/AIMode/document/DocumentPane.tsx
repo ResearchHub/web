@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
-import { setDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { PublishingFormProvider } from '@/components/Notebook/PublishingForm';
@@ -20,9 +19,11 @@ import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
 import { Masthead } from './masthead/Masthead';
+import { useMastheadSlots } from './masthead/useMastheadSlots';
 import { PublishDialog } from './PublishDialog';
 import { PublishPill } from './PublishPill';
 import type { AIModeDocument } from './useAIModeDocument';
+import { useDocumentTitle } from './useDocumentTitle';
 
 /** The page column: shared by the skeleton and the document so they line up. */
 const DOCUMENT_PAGE_CLASS =
@@ -60,14 +61,32 @@ export function DocumentPane({
   const writing = status === 'drafting' || status === 'working';
 
   // ---- the editor, its autosave, and the assistant-version review ----
-  const [editor, setEditor] = useState<Editor | null>(null);
-  // The assistant names the note when it creates it; unlike the notebook,
-  // the document's first heading is a section, not the title, so saves here
-  // never derive a title from it.
+  // The editor is held with the note it was made for. Switching documents
+  // leaves the previous one in state until the next editor is up; read as
+  // this note's, it would report the old document's heading as the new
+  // one's title and save into the wrong note. Until then there is none.
+  const [heldEditor, setHeldEditor] = useState<{
+    readonly editor: Editor | null;
+    readonly noteId: number | null;
+  }>({ editor: null, noteId: null });
+  const setEditor = useCallback(
+    (instance: Editor | null) => setHeldEditor({ editor: instance, noteId }),
+    [noteId]
+  );
+  const editor = heldEditor.noteId === noteId ? heldEditor.editor : null;
+  // The details form is the notebook's own, hosted here: it reads the note,
+  // the live editor and the note's single details writer through the host
+  // seam rather than the notebook context.
+  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId ?? undefined);
+  // A save whose heading changed brings the note's saved title along. The
+  // title hook that does it needs this save in turn, so it is reached
+  // through a ref, set where the hook is called below.
+  const syncAfterSaveRef = useRef(() => {});
   const [, updateNote, saveNoteNow] = useUpdateNote(noteId ?? undefined, {
     // Mid-review the editor holds a merged document; saves must persist it
     // without the struck (pending-removal) ranges.
     docToPersist: (instance) => noteDiffPersistableDoc(instance) ?? instance.state.doc,
+    saveTitle: () => syncAfterSaveRef.current(),
   });
   // Creating the editor dispatches document-changing transactions of its own
   // (UniqueID stamps ids onto the assistant's blocks, which carry none) and
@@ -101,10 +120,6 @@ export function DocumentPane({
     [updateNote]
   );
 
-  // The details form is the notebook's own, hosted here: it reads the note,
-  // the live editor and the note's single details writer through the host
-  // seam rather than the notebook context.
-  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId ?? undefined);
   const publishingHost = useMemo<PublishingHost>(
     () => ({
       note: content,
@@ -142,56 +157,26 @@ export function DocumentPane({
   // the message is sent, even before the note has loaded.
   const startingDocument = document.starting && review.review == null;
 
-  // The note's title heads the document and is what it is published under.
-  // It is the note's own field, not the document's first heading, which here
-  // is a section; it saves through the note's details writer.
-  const title = document.title;
-
-  // A draft made in the notebook is the exception: its body opens with the
-  // title as a top-level heading, which is where the notebook reads the
-  // title from. The masthead already shows it and the published page drops
-  // that heading, so it is hidden here, and a rename is written into it too
-  // so the two cannot drift apart.
-  const [leadingHeading, setLeadingHeading] = useState<string | null>(null);
-  useEffect(() => {
-    if (!editor || editor.isDestroyed) {
-      setLeadingHeading(null);
-      return undefined;
-    }
-    const read = () => {
-      const first = editor.state.doc.firstChild;
-      const isTitleHeading = first?.type.name === 'heading' && first.attrs.level === 1;
-      setLeadingHeading(isTitleHeading ? first.textContent.trim() : null);
-    };
-    read();
-    editor.on('update', read);
-    return () => {
-      editor.off('update', read);
-    };
-  }, [editor]);
-  const bodyOpensWithTitle = title !== '' && leadingHeading === title;
   const reviewing = review.review != null;
+  const mastheadSlots = useMastheadSlots(editor);
 
-  const renameDocument = document.rename;
-  const rename = useCallback(
-    (next: string) => {
-      renameDocument(next);
-      // Not under the assistant's hands: a write there would make its edit stale.
-      const writeHeading =
-        bodyOpensWithTitle && editor != null && !editor.isDestroyed && !locked && !reviewing;
-      if (!writeHeading) {
-        saveDetailsSoon({ title: next });
-        return;
-      }
-      // The document goes out first and the title only once it has landed.
-      // The API takes them on separate routes, and a title that arrives
-      // while a version is being written leaves the note pointing at the
-      // version before it.
-      setDocumentTitle(editor, next);
-      void saveNoteNow(editor).finally(() => saveDetailsSoon({ title: next }));
-    },
-    [bodyOpensWithTitle, editor, locked, reviewing, renameDocument, saveDetailsSoon, saveNoteNow]
-  );
+  // The document's one title: its first heading (see useDocumentTitle).
+  const { title, syncSavedTitle, syncAfterSave, writeTitle } = useDocumentTitle({
+    editor,
+    savedTitle: document.title,
+    showSavedTitle: document.rename,
+    reportHeading: document.setHeadingTitle,
+    saveDetailsSoon,
+    saveNoteNow,
+    locked,
+    reviewing,
+  });
+  syncAfterSaveRef.current = syncAfterSave;
+  const acceptReview = review.accept;
+  const accept = useCallback(() => {
+    acceptReview();
+    syncSavedTitle();
+  }, [acceptReview, syncSavedTitle]);
 
   // The bottom-centre spot is the assistant's first: while it writes, and
   // while its changes wait to be accepted or rejected, there is no Publish.
@@ -206,18 +191,21 @@ export function DocumentPane({
           dropping edits saved since. */}
       <PublishingFormProvider
         publishTitle={title}
-        publishConfirmation={<PublishDialog title={title} onRename={rename} />}
+        publishConfirmation={<PublishDialog title={title} onRename={writeTitle} />}
         refreshedNote={document.details}
       >
         <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
-          {/* Above the content, so it does not scroll: flashing while the
-              assistant works on the document, still while its changes wait
-              to be accepted or rejected. */}
-          {(writing || assistantWorking || reviewing) && (
-            <AssistantActivityDot
-              state={writing || assistantWorking ? 'working' : 'review'}
-              className="absolute right-4 top-4 z-10"
-            />
+          {/* Above the content, so it does not scroll: the one sign of the
+              assistant's work on the document, flashing and named while it
+              drafts, still while its changes wait to be accepted or rejected. */}
+          {(writing || assistantWorking) && (
+            <span className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-white/90 py-1 pl-1.5 pr-2.5 text-xs font-medium text-primary-700 backdrop-blur-sm">
+              <AssistantActivityDot state="working" />
+              Drafting
+            </span>
+          )}
+          {!writing && !assistantWorking && reviewing && (
+            <AssistantActivityDot state="review" className="absolute right-4 top-4 z-10" />
           )}
           {/* The document is the pane: no gutter, no card, just the page. */}
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -245,7 +233,7 @@ export function DocumentPane({
                   '!pb-28'
                 )}
               >
-                <Masthead title={title} onRename={rename} />
+                <Masthead slots={mastheadSlots} />
                 {editorLostContent && (
                   <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                     This document couldn’t be displayed here. Open it in the notebook to view it;
@@ -256,12 +244,7 @@ export function DocumentPane({
 
                 {/* Mounted once per note: the editor's content prop is only read on
                 creation, and later versions arrive through the review. */}
-                <div
-                  className={cn(
-                    writing && !document.hasWrittenVersion && 'hidden',
-                    bodyOpensWithTitle && '[&_.ProseMirror>h1:first-of-type]:hidden'
-                  )}
-                >
+                <div className={cn(writing && !document.hasWrittenVersion && 'hidden')}>
                   <BlockEditorClientWrapper
                     key={noteId ?? 'none'}
                     content={content.content}
@@ -296,7 +279,7 @@ export function DocumentPane({
             <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4">
               <NoteReviewControls
                 changeCount={review.review.changeCount}
-                onAccept={review.accept}
+                onAccept={accept}
                 onReject={review.reject}
               />
             </div>
@@ -355,10 +338,6 @@ function DraftSection({
       aria-label="Section being written"
       className={cn(hasSavedContent && 'mt-8 border-t border-gray-100 pt-6')}
     >
-      <div role="status" className="mb-6 flex items-center gap-2 text-xs text-gray-500">
-        <Loader size="sm" className="!h-3 !w-3 text-primary-500" />
-        <span>Drafting</span>
-      </div>
       <DraftBlockPreview blocks={blocks} editor={editor} fallbackText={text} />
     </section>
   );

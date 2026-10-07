@@ -11,6 +11,7 @@ import {
   type ChatNoteRef,
   type AgentChat,
 } from '@/types/agentChat';
+import { titleFromContentJson } from './masthead/title';
 
 export type DocumentStatus =
   /** No document is open: the pane has nothing to show. */
@@ -36,12 +37,23 @@ export interface AIModeDocument {
    */
   readonly content: NoteWithContent | null;
   /**
-   * The note's title as it stands: what it loaded with, or what the user has
-   * renamed it to since. Empty while it is not known yet.
+   * The note's saved title: what it loaded with, or what the document's
+   * heading has been saved as since. Empty while it is not known yet. Not
+   * what to show for the document; that is `displayTitle`.
    */
   readonly title: string;
   /** Shows a new title at once. Saving it is the caller's, through the note's details writer. */
   readonly rename: (title: string) => void;
+  /**
+   * The title to show for the document: its first heading, which is what
+   * gets published, as the open editor has it, or as the note loaded with
+   * it before the editor is up; the saved title when it has no heading.
+   * Display only; it reaches the saved `title` when the document next saves.
+   * Null until the note has loaded, so nothing stands in for it meanwhile.
+   */
+  readonly displayTitle: string | null;
+  /** The document pane reports its first heading here as it changes. */
+  readonly setHeadingTitle: (title: string | null) => void;
   /** When the note was last changed, as far as this pane knows. */
   readonly updatedDate: string | null;
   /**
@@ -217,12 +229,29 @@ export function useAIModeDocument({
     },
     [noteId]
   );
+  const [heading, setHeading] = useState<{ noteId: number; title: string | null } | null>(null);
+  const setHeadingTitle = useCallback(
+    (headingTitle: string | null) => {
+      if (noteId != null) setHeading({ noteId, title: headingTitle });
+    },
+    [noteId]
+  );
   const title = (
     (renamed?.noteId === noteId ? renamed?.title : null) ??
     content?.title ??
     note?.title ??
     ''
   ).trim();
+
+  const loadedHeading = useMemo(
+    () => titleFromContentJson(content?.contentJson),
+    [content?.contentJson]
+  );
+  const editorHeading = heading?.noteId === noteId ? heading : null;
+  const displayTitle =
+    content == null
+      ? null
+      : (editorHeading ? editorHeading.title : loadedHeading) || title || 'Untitled';
 
   // A sent message counts as work from the moment it leaves: the turn it
   // starts takes a moment to show up, and the document must not read as
@@ -250,6 +279,8 @@ export function useAIModeDocument({
     content,
     title,
     rename,
+    displayTitle,
+    setHeadingTitle,
     updatedDate: details?.updatedDate ?? content?.updatedDate ?? null,
     details,
     loading,

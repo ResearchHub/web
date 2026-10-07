@@ -7,12 +7,14 @@ interface SidebarRowProps {
   readonly title: string;
   /** Something before the title: a document's icon. */
   readonly leading?: ReactNode;
+  /** Something after the title: the assistant's activity dot. */
+  readonly trailing?: ReactNode;
   readonly isActive: boolean;
   readonly onSelect: () => void;
 }
 
 /** One entry in a list in the left sidebar: a document, say. */
-export function SidebarRow({ title, leading, isActive, onSelect }: SidebarRowProps) {
+export function SidebarRow({ title, leading, trailing, isActive, onSelect }: SidebarRowProps) {
   return (
     <button
       type="button"
@@ -27,6 +29,7 @@ export function SidebarRow({ title, leading, isActive, onSelect }: SidebarRowPro
     >
       {leading}
       <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-gray-800">{title}</span>
+      {trailing}
     </button>
   );
 }

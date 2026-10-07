@@ -1,10 +1,9 @@
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 
 /**
- * User-facing copy for the workspace, in one place so the product name and
- * the new-draft wording can change without touching components.
+ * User-facing copy for the workspace, in one place so the new-draft wording
+ * can change without touching components.
  */
-export const AI_MODE_NAME = 'Workspace';
 
 /**
  * What the new-draft screen is called, in the app's top bar: named for what

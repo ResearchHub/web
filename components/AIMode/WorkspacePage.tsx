@@ -7,13 +7,14 @@ import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { isActiveExecutionStatus } from '@/types/agentChat';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { isPublishedNote, isRfpNote } from '@/types/note';
 import { cn } from '@/utils/styles';
-import { AIModeProvider } from './AIModeContext';
+import { AIModeProvider, useAIMode } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
 import { newDraftTitle } from './copy';
 import { DocumentPane } from './document/DocumentPane';
-import { useAIModeDocument } from './document/useAIModeDocument';
+import { useAIModeDocument, type AIModeDocument } from './document/useAIModeDocument';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
 import { useAIModeChat } from './useAIModeChat';
@@ -38,6 +39,30 @@ function useElementWidth(element: HTMLElement | null): number {
     return () => observer.disconnect();
   }, [element]);
   return width;
+}
+
+/**
+ * What the top bar names: on the start screen what it will produce (an RFP
+ * or a proposal), and on a document its title as the document heads it, or,
+ * below the width at which a title stays readable, just whether it is out
+ * yet. '' is the bar's loading state: shown until the note has loaded, so
+ * nothing stands in for the real title first.
+ */
+function topBarTitle({
+  startingIntent,
+  doc,
+  isWide,
+}: {
+  readonly startingIntent: FundingIntent | null;
+  readonly doc: AIModeDocument;
+  readonly isWide: boolean;
+}): string {
+  if (startingIntent) return newDraftTitle(startingIntent);
+  const loadedNote = doc.details ?? doc.content;
+  if (doc.missing || (doc.error != null && loadedNote == null)) return 'Untitled';
+  if (loadedNote == null) return '';
+  if (!isWide) return isPublishedNote(loadedNote) ? 'Published' : 'Draft';
+  return doc.displayTitle ?? '';
 }
 
 /**
@@ -74,6 +99,18 @@ function Workspace() {
     messagePending: state.messagePending,
   });
 
+  // The sidebar marks the open document's row while the assistant works on
+  // it, as the document's own dot does.
+  const { setWorkingNoteId } = useAIMode();
+  const workingNoteId =
+    note != null && (doc.status === 'drafting' || doc.status === 'working' || state.anyTurnActive)
+      ? note.id
+      : null;
+  useEffect(() => {
+    setWorkingNoteId(workingNoteId);
+  }, [workingNoteId, setWorkingNoteId]);
+  useEffect(() => () => setWorkingNoteId(null), [setWorkingNoteId]);
+
   // ---- the document's width: it drags, the chat takes the rest ----
   const [panesEl, setPanesEl] = useState<HTMLDivElement | null>(null);
   const panesWidth = useElementWidth(panesEl);
@@ -108,8 +145,8 @@ function Workspace() {
   const closeDocument = useCallback(() => setDocumentOpen(false), [setDocumentOpen]);
   const showDocument = noteId != null && documentOpen && !doc.missing;
 
-  // The sidebar's row follows the open document: a rename in the masthead,
-  // a name the assistant gave it, the latest edit.
+  // The sidebar's row follows the open document's saved title (its heading
+  // once that has saved, or a name the assistant gave it) and latest edit.
   const { patch } = useFundingDocuments();
   const { title: docTitle, updatedDate: docUpdatedDate } = doc;
   useEffect(() => {
@@ -120,18 +157,11 @@ function Workspace() {
     );
   }, [noteId, docTitle, docUpdatedDate, patch]);
 
-  // The top bar names what is open: on the start screen what it will
-  // produce — an RFP or a proposal — and on a document its title, or below
-  // the width at which a title stays readable just whether it is out yet.
-  const loadedNote = doc.details ?? doc.content;
-  const headerTitle =
-    target.kind === 'new'
-      ? newDraftTitle(state.intent)
-      : !isWide
-        ? isPublishedNote(loadedNote)
-          ? 'Published'
-          : 'Draft'
-        : doc.title || 'Untitled';
+  const headerTitle = topBarTitle({
+    startingIntent: target.kind === 'new' ? state.intent : null,
+    doc,
+    isWide,
+  });
 
   const documentPane = (inDrawer: boolean) => (
     <DocumentPane

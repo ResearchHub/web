@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   documentTarget,
@@ -17,6 +25,13 @@ export interface AIModeContextValue {
   selectTarget: (target: WorkspaceTarget) => void;
   /** Open a document, on its most recent chat unless another is named. */
   selectDocument: (noteId: number, chat?: DocumentChat) => void;
+  /**
+   * The open document while the assistant works on it, for the sidebar's
+   * row. Only the open one is known without asking the server, so only it
+   * is marked.
+   */
+  readonly workingNoteId: number | null;
+  setWorkingNoteId: (noteId: number | null) => void;
 }
 
 const AIModeContext = createContext<AIModeContextValue | null>(null);
@@ -51,9 +66,11 @@ export function AIModeProvider({ children }: { readonly children: ReactNode }) {
     [selectTarget]
   );
 
+  const [workingNoteId, setWorkingNoteId] = useState<number | null>(null);
+
   const value = useMemo<AIModeContextValue>(
-    () => ({ target, selectTarget, selectDocument }),
-    [target, selectTarget, selectDocument]
+    () => ({ target, selectTarget, selectDocument, workingNoteId, setWorkingNoteId }),
+    [target, selectTarget, selectDocument, workingNoteId]
   );
 
   return <AIModeContext.Provider value={value}>{children}</AIModeContext.Provider>;

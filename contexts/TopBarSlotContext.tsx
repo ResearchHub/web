@@ -8,7 +8,9 @@ interface TopBarSlotContextValue {
   setLeftSlot: (node: ReactNode) => void;
   /**
    * Shown in place of the page's own title, beside the back arrow, which
-   * stays: a page that names what is open rather than itself.
+   * stays: a page that names what is open rather than itself. Null leaves
+   * the page's own title; '' means the page is still loading what it names,
+   * and the bar shows a placeholder (and no back arrow) until it does.
    */
   title: string | null;
   setTitle: (title: string | null) => void;

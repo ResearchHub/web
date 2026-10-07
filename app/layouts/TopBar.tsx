@@ -55,9 +55,13 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
   const openTitle = topBarSlot?.title ?? null;
 
   const routePageInfo = getPageInfo(pathname);
+  // '' from the page: it has not loaded what it names yet (see TopBarSlotContext).
   const pageInfo =
-    routePageInfo && openTitle != null ? { ...routePageInfo, title: openTitle } : routePageInfo;
-  const showBackButton = pageInfo && !isRootNavigationPage(pathname);
+    routePageInfo && openTitle != null
+      ? { ...routePageInfo, title: openTitle, loading: openTitle === '' }
+      : routePageInfo;
+  // Nothing of the title's row until it is known: the arrow would stand alone.
+  const showBackButton = pageInfo && !pageInfo.loading && !isRootNavigationPage(pathname);
 
   const profilePercent = useCallback(() => {
     if (!user) return 100;

@@ -9,7 +9,7 @@ import { cn } from '@/utils/styles';
 import { AmountEditor } from './masthead/AmountWidget';
 import { useCoverImagePicker } from './masthead/CoverImage';
 import { EDITING_FIELD_CLASS, EDITING_INPUT_CLASS } from './masthead/MastheadLine';
-import { MAX_TITLE_LENGTH, normalizeTitle } from './masthead/MastheadTitle';
+import { MAX_TITLE_LENGTH, normalizeTitle } from './masthead/title';
 import {
   detailValue,
   mastheadWidgetsFor,
@@ -41,7 +41,7 @@ export function MissingDetails({ readiness, title, onRename }: MissingDetailsPro
   const { articleType } = usePublishingController();
   const values = useWatch<PublishingFormData>() as PublishingFormData;
   const widgets = mastheadWidgetsFor(articleType);
-  const { missing, titleTooShort } = readiness;
+  const { missing, titleMissing, titleTooShort } = readiness;
 
   // What was missing when the dialog opened: the rows it keeps.
   const [rowIds] = useState<readonly string[]>(() => [
@@ -69,6 +69,7 @@ export function MissingDetails({ readiness, title, onRename }: MissingDetailsPro
       {rowIds.includes(TITLE_ROW) && (
         <TitleRow
           title={title}
+          missing={titleMissing}
           tooShort={titleTooShort}
           onRename={onRename}
           {...rowState(TITLE_ROW)}
@@ -107,7 +108,7 @@ const ROW_VALUE_CLASS =
 interface RowProps {
   readonly label: string;
   /** A second, quieter line under the label. */
-  readonly hint?: string;
+  readonly hint?: ReactNode;
   /** What sits at the row's right end: a button, a small field, or the value. */
   readonly control?: ReactNode;
   /** An editor too wide for the right end, on a line of its own under the label. */
@@ -235,24 +236,32 @@ function CoverRow({
   );
 }
 
-/** The title is never empty, only too short to publish under; it is edited here in full. */
+/**
+ * The document's title, when it has none or one too short to publish under:
+ * given or edited here in full, and written into the document's heading.
+ */
 function TitleRow({
   title,
+  missing,
   tooShort,
   onRename,
   editing,
   onEditingChange,
 }: RowEditing & {
   readonly title: string;
+  readonly missing: boolean;
   readonly tooShort: boolean;
   readonly onRename: (title: string) => void;
 }) {
   return (
     <Row
       label="Title"
-      hint={tooShort ? `At least ${MIN_PUBLISH_TITLE_LENGTH} characters` : undefined}
+      // The editor below says it all while it is open.
+      hint={editing ? undefined : <TitleHint title={title} missing={missing} tooShort={tooShort} />}
       control={
-        editing ? undefined : <RowButton onClick={() => onEditingChange(true)}>Edit</RowButton>
+        editing ? undefined : (
+          <RowButton onClick={() => onEditingChange(true)}>{missing ? 'Add' : 'Edit'}</RowButton>
+        )
       }
       below={
         editing ? (
@@ -261,6 +270,34 @@ function TitleRow({
       }
     />
   );
+}
+
+/** The title as it stands, and what it lacks: a short one is not missing, so it says how short. */
+function TitleHint({
+  title,
+  missing,
+  tooShort,
+}: {
+  readonly title: string;
+  readonly missing: boolean;
+  readonly tooShort: boolean;
+}) {
+  if (missing) return <>Your document needs a title</>;
+  return (
+    <>
+      <span className="block truncate text-gray-900">{title}</span>
+      {tooShort && (
+        <span className="block text-amber-700">Too short: {titleLength(title.length)}</span>
+      )}
+    </>
+  );
+}
+
+/** How a title's length stands against the minimum to publish under. */
+function titleLength(length: number): string {
+  return length < MIN_PUBLISH_TITLE_LENGTH
+    ? `${length} of at least ${MIN_PUBLISH_TITLE_LENGTH} characters`
+    : `${length} characters`;
 }
 
 function TitleEditor({
@@ -273,9 +310,10 @@ function TitleEditor({
   readonly onClose: () => void;
 }) {
   const [draft, setDraft] = useState(title);
-  const ref = useRef<HTMLSpanElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const next = normalizeTitle(draft);
+  const short = next.length < MIN_PUBLISH_TITLE_LENGTH;
   const commit = () => {
-    const next = normalizeTitle(draft);
     // A note is never left without a title.
     if (next && next !== title) onRename(next);
     onClose();
@@ -283,26 +321,51 @@ function TitleEditor({
   useLeaveToCommit(ref, commit);
 
   return (
-    <span ref={ref} className={cn(EDITING_FIELD_CLASS, 'h-9')}>
-      <input
-        autoFocus
-        type="text"
-        aria-label="Title"
-        maxLength={MAX_TITLE_LENGTH}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            commit();
-          } else if (event.key === 'Escape') {
-            // Handled here, so the dialog does not take it as its own and close.
-            event.preventDefault();
-            onClose();
-          }
-        }}
-        className={EDITING_INPUT_CLASS}
-      />
-    </span>
+    <div ref={ref} className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2">
+        <span className={cn(EDITING_FIELD_CLASS, 'h-9 min-w-0 flex-1')}>
+          <input
+            autoFocus
+            type="text"
+            aria-label="Title"
+            aria-describedby="publish-title-length"
+            placeholder="Add a title"
+            maxLength={MAX_TITLE_LENGTH}
+            enterKeyHint="done"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                commit();
+              } else if (event.key === 'Escape') {
+                // Handled here, so the dialog does not take it as its own and close.
+                event.preventDefault();
+                onClose();
+              }
+            }}
+            className={EDITING_INPUT_CLASS}
+          />
+        </span>
+        {/* Enter saves too, but a phone's keyboard may not offer it. */}
+        <button
+          type="button"
+          onClick={commit}
+          disabled={!next}
+          className="h-9 shrink-0 rounded-lg bg-primary-600 px-3.5 text-[13px] font-medium text-white transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
+        >
+          Save
+        </button>
+      </div>
+      {/* Counts as the user types, so they know when it is long enough
+          without having to save to find out. */}
+      <span
+        id="publish-title-length"
+        aria-live="polite"
+        className={cn('text-xs', next && short ? 'text-amber-700' : 'text-gray-500')}
+      >
+        {next ? titleLength(next.length) : `At least ${MIN_PUBLISH_TITLE_LENGTH} characters`}
+      </span>
+    </div>
   );
 }

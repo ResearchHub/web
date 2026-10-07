@@ -28,9 +28,9 @@ import { MissingDetails, RowButton } from './MissingDetails';
 const FUNDRAISE_DAYS = ['30', '60', '90'] as const;
 
 interface PublishDialogProps {
-  /** The note's title, from the masthead: what the work is published under. */
+  /** The document's first heading: what the work is published under. Empty when it has none. */
   readonly title: string;
-  /** Saves a new title, for when the one it has is too short to publish under. */
+  /** Writes a title into the heading, for when there is none or it is too short to publish under. */
   readonly onRename: (title: string) => void;
 }
 

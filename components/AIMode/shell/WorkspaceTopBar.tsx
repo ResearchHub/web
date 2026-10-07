@@ -4,7 +4,10 @@ import { useEffect } from 'react';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 
 interface WorkspaceTopBarProps {
-  /** What is open: the document, or "New RFP" or "New proposal" on the start screen. */
+  /**
+   * What is open: the document, or "New RFP" or "New proposal" on the start
+   * screen; '' while it is loading (see TopBarSlotContext).
+   */
   readonly title: string;
 }
 

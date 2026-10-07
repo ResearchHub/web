@@ -5,7 +5,9 @@ import type { PublishingFieldKey } from '@/components/Notebook/PublishingForm/co
 export interface PublishReadiness {
   /** The required details still missing, each once, in the schema's order. */
   readonly missing: readonly PublishingFieldKey[];
-  /** The title is shorter than a published work's may be. */
+  /** The document has no title: no heading opens it. */
+  readonly titleMissing: boolean;
+  /** The title is shorter than a published work's may be (an absent one included). */
   readonly titleTooShort: boolean;
   /** Nothing stands between the document and being published. */
   readonly ready: boolean;
@@ -18,6 +20,7 @@ export interface PublishReadiness {
  */
 export function usePublishReadiness(title: string): PublishReadiness {
   const { missing } = usePublishingCompletion();
+  const titleMissing = title.trim().length === 0;
   const titleTooShort = title.trim().length < MIN_PUBLISH_TITLE_LENGTH;
-  return { missing, titleTooShort, ready: missing.length === 0 && !titleTooShort };
+  return { missing, titleMissing, titleTooShort, ready: missing.length === 0 && !titleTooShort };
 }

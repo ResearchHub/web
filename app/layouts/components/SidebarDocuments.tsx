@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { FileText, MoveRight, Plus } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
+import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
 import { FundingDraftMenuItems } from '@/components/Funding/fundingDraftOptions';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
@@ -30,7 +31,9 @@ interface SidebarDocumentsProps {
 export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProps) {
   const { drafts, published, status, refresh } = useFundingDocuments();
   const { startNew, openDraft } = useFundingDrafting();
-  const target = useOptionalAIMode()?.target;
+  const aiMode = useOptionalAIMode();
+  const target = aiMode?.target;
+  const workingNoteId = aiMode?.workingNoteId ?? null;
   const activeNoteId = target?.kind === 'document' ? target.noteId : null;
 
   if (status === 'off') return null;
@@ -49,6 +52,11 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
           key={note.id}
           title={note.title?.trim() || 'Untitled'}
           leading={<FileText className="h-[15px] w-[15px] shrink-0 text-gray-500" aria-hidden />}
+          trailing={
+            note.id === workingNoteId ? (
+              <AssistantActivityDot state="working" className="shrink-0" />
+            ) : undefined
+          }
           isActive={note.id === activeNoteId}
           onSelect={() => open(note)}
         />

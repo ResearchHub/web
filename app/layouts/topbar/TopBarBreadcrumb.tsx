@@ -43,7 +43,16 @@ export const TopBarBreadcrumb = ({
       <div
         className={`${isMobile ? 'min-w-0 flex-1 overflow-hidden' : 'min-w-0'} flex items-center gap-1.5`}
       >
-        {pageInfo.title ? (
+        {pageInfo.loading ? (
+          <span
+            aria-busy="true"
+            aria-label="Loading"
+            className={cn(
+              'block h-5 animate-pulse rounded bg-gray-100',
+              isMobile ? 'w-32' : 'w-56'
+            )}
+          />
+        ) : pageInfo.title ? (
           <span className={titleClass} style={titleStyle} title={pageInfo.title}>
             {shortTitle && !isMobile ? (
               <>
