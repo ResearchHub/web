@@ -489,8 +489,22 @@ export interface NotificationMessage {
   after: string;
 }
 
-/** Marks where the amount goes in a message; message text can't otherwise contain it. */
-const AMOUNT_SLOT = '\u0000';
+/** The text on either side of the amount in a sentence that names it. */
+type AmountSentence = [before: string, after: string];
+
+function getUserName(notification: Notification): string {
+  return notification.actionUser?.fullName ?? 'A user';
+}
+
+function getTruncatedTitle(notification: Notification): string {
+  return truncateText(stripHtml(notification.work?.title || 'an item'), 60);
+}
+
+function formatAmount(amount: CurrencyAmount, exchangeRate: number, showUSD: boolean): string {
+  const formatted = formatCurrencyAmount({ ...amount, showUSD, exchangeRate, shorten: true });
+  const inUSD = exchangeRate > 0 && showUSD;
+  return inUSD ? formatted : `${formatted} RSC`;
+}
 
 /**
  * Build the notification message. Types whose sentence names the amount place it
@@ -502,73 +516,110 @@ export function formatNotificationMessage(
   showUSD: boolean = true
 ): NotificationMessage {
   const rawAmount = getNotificationAmount(notification);
-  const inUSD = exchangeRate > 0 && showUSD;
-  const amount = rawAmount
-    ? `${formatCurrencyAmount({ ...rawAmount, showUSD, exchangeRate, shorten: true })}${inUSD ? '' : ' RSC'}`
-    : null;
-
-  let text = buildMessageText(notification, exchangeRate, showUSD, !!amount);
-  if (amount && !text.includes(AMOUNT_SLOT)) {
-    text = `${text} for ${AMOUNT_SLOT}`;
+  const text = buildMessageText(notification, exchangeRate, showUSD);
+  if (!rawAmount) {
+    return { before: text, amount: null, after: '' };
   }
 
-  const [before, after = ''] = text.split(AMOUNT_SLOT);
+  const amount = formatAmount(rawAmount, exchangeRate, showUSD);
+  const [before, after] = buildAmountSentence(notification) ?? [`${text} for `, ''];
   return { before, amount, after };
+}
+
+function buildAmountSentence(notification: Notification): AmountSentence | null {
+  const userName = getUserName(notification);
+  const truncatedTitle = getTruncatedTitle(notification);
+
+  switch (notification.type) {
+    case 'RSC_WITHDRAWAL_COMPLETE':
+      return ['Your withdrawal of ', ' has been completed'];
+
+    case 'BOUNTY_PAYOUT':
+      return [`${userName} awarded you `, ` for your thread in "${truncatedTitle}"`];
+
+    case 'BOUNTY_FOR_YOU': {
+      const bountyTypeAction = getBountyTypeAction(notification.extra?.bounty_type || '');
+      return ['Your expertise is needed! Earn ', ` for ${bountyTypeAction} "${truncatedTitle}"`];
+    }
+
+    case 'BOUNTY_EXPIRING_SOON':
+    case 'BOUNTY_ASSESSMENT_EXPIRING_SOON':
+      return [
+        'Your ',
+        ` bounty on "${truncatedTitle}" is expiring soon! Please award the best answer`,
+      ];
+
+    case 'BOUNTY_ENTERED_ASSESSMENT':
+      return ['Your ', ` bounty on "${truncatedTitle}" has entered assessment`];
+
+    case 'BOUNTY_SOLUTION_IN_ASSESSMENT':
+      return ['Your solution to the ', ` bounty on "${truncatedTitle}" is in assessment`];
+
+    case 'BOUNTY_HUB_EXPIRING_SOON':
+      return ['A bounty of ', ` on "${truncatedTitle}" is expiring soon`];
+
+    case 'PAPER_CLAIM_PAYOUT':
+      return [`Your paper claim for "${truncatedTitle}" has been approved and you earned `, ''];
+
+    case 'FUNDRAISE_CONTRIBUTION':
+      return [`${userName} contributed `, ` to your proposal "${truncatedTitle}"`];
+
+    case 'FUNDING_POOL_CONTRIBUTION':
+      return [`${userName} contributed `, ` to your RFP "${truncatedTitle}"`];
+
+    case 'FUNDRAISE_PAYOUT':
+      return [
+        `Your fundraise for "${truncatedTitle}" has been fulfilled and `,
+        ' was paid out to you',
+      ];
+
+    default:
+      return null;
+  }
 }
 
 function buildMessageText(
   notification: Notification,
   exchangeRate: number,
-  showUSD: boolean,
-  hasAmount: boolean
+  showUSD: boolean
 ): string {
-  const { type, actionUser, work } = notification;
+  const { type, work } = notification;
 
-  const userName = actionUser ? actionUser.fullName : 'A user';
-  const truncatedTitle = truncateText(stripHtml(work?.title || 'an item'), 60).replace(
-    /\u0000/g,
-    ''
-  );
-  const bounty = hasAmount ? `${AMOUNT_SLOT} bounty` : 'bounty';
+  const userName = getUserName(notification);
+  const truncatedTitle = getTruncatedTitle(notification);
 
   switch (type) {
     // Financial notifications
     case 'RSC_WITHDRAWAL_COMPLETE':
-      return hasAmount
-        ? `Your withdrawal of ${AMOUNT_SLOT} has been completed`
-        : 'Your withdrawal has been completed';
+      return 'Your withdrawal has been completed';
 
     case 'BOUNTY_PAYOUT':
-      return `${userName} awarded you ${hasAmount ? AMOUNT_SLOT : 'a bounty'} for your thread in "${truncatedTitle}"`;
+      return `${userName} awarded you a bounty for your thread in "${truncatedTitle}"`;
 
     case 'BOUNTY_FOR_YOU': {
       const bountyType = notification.extra?.bounty_type || '';
       const bountyTypeAction = getBountyTypeAction(bountyType);
-      return `Your expertise is needed! Earn ${hasAmount ? AMOUNT_SLOT : 'a bounty'} for ${bountyTypeAction} "${truncatedTitle}"`;
+      return `Your expertise is needed! Earn a bounty for ${bountyTypeAction} "${truncatedTitle}"`;
     }
 
     case 'BOUNTY_EXPIRING_SOON':
-      return `Your ${bounty} on "${truncatedTitle}" is expiring soon! Please award the best answer`;
+      return `Your bounty on "${truncatedTitle}" is expiring soon! Please award the best answer`;
 
     case 'BOUNTY_ENTERED_ASSESSMENT':
-      return `Your ${bounty} on "${truncatedTitle}" has entered assessment`;
+      return `Your bounty on "${truncatedTitle}" has entered assessment`;
 
     case 'BOUNTY_ASSESSMENT_EXPIRING_SOON':
-      return `Your ${bounty} on "${truncatedTitle}" is expiring soon! Please award the best answer`;
+      return `Your bounty on "${truncatedTitle}" is expiring soon! Please award the best answer`;
 
     case 'BOUNTY_SOLUTION_IN_ASSESSMENT':
-      return `Your solution to the ${bounty} on "${truncatedTitle}" is in assessment`;
+      return `Your solution to the bounty on "${truncatedTitle}" is in assessment`;
 
     case 'BOUNTY_HUB_EXPIRING_SOON':
-      return hasAmount
-        ? `A bounty of ${AMOUNT_SLOT} on "${truncatedTitle}" is expiring soon`
-        : `A bounty on "${truncatedTitle}" is expiring soon`;
+      return `A bounty on "${truncatedTitle}" is expiring soon`;
 
     // Paper-related notifications
     case 'PAPER_CLAIM_PAYOUT':
-      return hasAmount
-        ? `Your paper claim for "${truncatedTitle}" has been approved and you earned ${AMOUNT_SLOT}`
-        : `Your paper claim for "${truncatedTitle}" has been approved`;
+      return `Your paper claim for "${truncatedTitle}" has been approved`;
 
     case 'PAPER_CLAIMED':
       return `Your paper claim for "${truncatedTitle}" has been submitted`;
@@ -609,17 +660,11 @@ function buildMessageText(
 
     // Fundraising notifications
     case 'FUNDRAISE_CONTRIBUTION':
-    case 'FUNDING_POOL_CONTRIBUTION': {
-      const target = type === 'FUNDRAISE_CONTRIBUTION' ? 'proposal' : 'RFP';
-      return hasAmount
-        ? `${userName} contributed ${AMOUNT_SLOT} to your ${target} "${truncatedTitle}"`
-        : `${userName} submitted a contribution to your ${target} "${truncatedTitle}"`;
-    }
+    case 'FUNDING_POOL_CONTRIBUTION':
+      return `${userName} submitted a contribution to your ${type === 'FUNDRAISE_CONTRIBUTION' ? 'proposal' : 'RFP'} "${truncatedTitle}"`;
 
     case 'FUNDRAISE_PAYOUT':
-      return hasAmount
-        ? `Your fundraise for "${truncatedTitle}" has been fulfilled and ${AMOUNT_SLOT} was paid out to you`
-        : `Your fundraise for "${truncatedTitle}" has been fulfilled and paid out to you`;
+      return `Your fundraise for "${truncatedTitle}" has been fulfilled and paid out to you`;
 
     // Moderation notifications
     case 'FLAGGED_CONTENT_VERDICT':
