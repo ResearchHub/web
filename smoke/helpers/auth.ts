@@ -25,6 +25,47 @@ export function uniqueEmail(): string {
 }
 
 /**
+ * Replaces Cloudflare's Turnstile script with one that passes immediately.
+ *
+ * The signup form keeps its submit button disabled until the widget reports a
+ * token, and the real widget exists to withhold one from an automated browser.
+ * The token issued here is made up, so this only belongs in a spec that also
+ * mocks the endpoint receiving it: Django would reject it.
+ *
+ * Harmless where NEXT_PUBLIC_TURNSTILE_SITEKEY is unset, since the form then
+ * renders no widget and never requests the script.
+ */
+export async function stubTurnstile(page: Page) {
+  await page.route(
+    (url) =>
+      url.hostname === 'challenges.cloudflare.com' && url.pathname === '/turnstile/v0/api.js',
+    async (route) => {
+      // The app names the function it wants called once the script is ready in
+      // the `onload` query parameter.
+      const onload = new URL(route.request().url()).searchParams.get('onload');
+
+      // `remove` has to exist as well as `render`: the widget calls it when
+      // the signup screen unmounts, which is exactly what a successful
+      // registration causes.
+      await route.fulfill({
+        contentType: 'text/javascript',
+        body: `
+          window.turnstile = {
+            render(container, params) {
+              setTimeout(() => params.callback('smoke-turnstile-token'));
+              return 'smoke-turnstile-widget';
+            },
+            reset() {},
+            remove() {},
+          };
+          window[${JSON.stringify(onload)}]?.();
+        `,
+      });
+    }
+  );
+}
+
+/**
  * Drives the two-step credential form, which is shared by the /auth/signin
  * route and the auth modal. The caller is responsible for opening it, so this
  * works for either entry point.
