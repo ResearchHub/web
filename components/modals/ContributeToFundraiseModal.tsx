@@ -20,6 +20,7 @@ import {
   QuickAmountSelector,
   StripeProvider,
   useWalletAvailability,
+  useAllocateFromFundingPool,
   type PaymentMethodType,
   type StripePaymentContext,
 } from '@/components/Funding';
@@ -147,6 +148,13 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const { exchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
   const isMobile = useIsMobile();
+
+  // Grant creators/mods can allocate from the linked RFP pool on proposal fundraises.
+  const { allocateFromPool } = useAllocateFromFundingPool({
+    enabled: isOpen && !isPoolMode && !!work?.linkedGrant,
+    work,
+    user,
+  });
   // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
   // and EIN-search round trips on every open.
   const { nonprofit } = useNonprofitByFundraiseId(
@@ -324,7 +332,32 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
 
       let updatedPool: FundingPool | undefined;
 
-      if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
+      if (paymentMethod === 'funding_pool') {
+        if (!allocateFromPool) {
+          setError('Funding pool is not available for allocation.');
+          setIsContributing(false);
+          return;
+        }
+
+        const holdingRsc = allocateFromPool.fundingPool.amountHolding.rsc;
+        if (amountInRsc > holdingRsc) {
+          setError('Amount exceeds the funding pool balance available to allocate.');
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            ...analyticsTarget,
+            payment_method: paymentMethod,
+            error_type: 'validation',
+            error_message: 'Amount exceeds funding pool holding',
+          });
+          setIsContributing(false);
+          return;
+        }
+
+        updatedPool = await FundingPoolService.distribute(allocateFromPool.fundingPool.id, {
+          amount: amountInRsc,
+          applicationId: allocateFromPool.applicationId,
+        });
+        toast.success('Allocated to proposal');
+      } else if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
         // The backend draws from funding credits only when that payment method
         // is selected. Otherwise it draws from available and promotional RSC.
         if (isPoolMode && fundingPool) {
@@ -596,6 +629,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
             amountDisplay={getAmountDisplay()}
             rscBalance={rscBalance}
             fundingCreditsBalance={fundingCreditsBalance}
+            allocateFromPool={allocateFromPool}
             paymentTarget={paymentTarget}
             isProcessing={isContributing}
             error={error}

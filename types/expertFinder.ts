@@ -339,6 +339,13 @@ export function outreachDocumentLabel(entry: ExpertEmailedOnOtherDocument): stri
   return `${entry.documentType || 'Document'} #${entry.id}`;
 }
 
+/** True if this expert already has outreach on this document or another. */
+export function expertHasOutreachHistory(expert: ExpertResult): boolean {
+  return (
+    Boolean(expert.emailedForCurrentDocument) || (expert.emailedOnOtherDocuments?.length ?? 0) > 0
+  );
+}
+
 export function transformExpertResult(raw: any): ExpertResult {
   const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
   const sources = sourcesRaw

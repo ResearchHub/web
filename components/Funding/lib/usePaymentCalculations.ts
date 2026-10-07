@@ -69,11 +69,14 @@ export function usePaymentCalculations({
 
   const totalAmountUsd = useMemo(() => rscToUsd(totalAmount), [rscToUsd, totalAmount]);
 
-  // Balance check (only relevant for RSC-based payments — caller passes the
-  // correct balance for the selected method).
+  // Balance check (RSC / credits / funding-pool holding — caller passes the
+  // balance that matches the selected method).
   const insufficientBalance = useMemo(
     () =>
-      (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') && rscBalance < totalAmount,
+      (paymentMethod === 'rsc' ||
+        paymentMethod === 'funding_credits' ||
+        paymentMethod === 'funding_pool') &&
+      rscBalance < totalAmount,
     [paymentMethod, rscBalance, totalAmount]
   );
 

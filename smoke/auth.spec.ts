@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { mockApiPost } from './helpers/api';
-import { logIn, smokeCredentials, submitCredentials, uniqueEmail } from './helpers/auth';
+import {
+  logIn,
+  smokeCredentials,
+  stubTurnstile,
+  submitCredentials,
+  uniqueEmail,
+} from './helpers/auth';
 
 test('a user can log in from the sign-in page', async ({ page }) => {
   await page.goto('/auth/signin');
@@ -72,6 +78,11 @@ test('a user can register a new account with an email address', async ({ page })
     status: 201,
     body: { id: 1 },
   });
+
+  // Stubbed because Turnstile never clears an automated browser, which would
+  // leave the submit button disabled. Safe here only because the register
+  // endpoint above is mocked too, so nothing verifies the token.
+  await stubTurnstile(page);
 
   const email = uniqueEmail();
   await page.goto('/');

@@ -26,6 +26,7 @@ import type { ExpertResult, ProposalDraft } from '@/types/expertFinder';
 import {
   buildExpertSearchHref,
   buildOutreachDocumentHref,
+  expertHasOutreachHistory,
   isProposalDraftActive,
   isProposalDraftComplete,
   outreachDocumentLabel,
@@ -216,8 +217,7 @@ export function ExpertResultCard({
   const showNotesToggle = notes.length > NOTES_READ_MORE_MIN_LENGTH || notesExpanded;
   const emailedForCurrentDocument = expert.emailedForCurrentDocument;
   const emailedOnOtherDocuments = expert.emailedOnOtherDocuments ?? [];
-  const hasOutreachHistory =
-    Boolean(emailedForCurrentDocument) || emailedOnOtherDocuments.length > 0;
+  const hasOutreachHistory = expertHasOutreachHistory(expert);
 
   return (
     <article

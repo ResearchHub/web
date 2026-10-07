@@ -15,6 +15,7 @@ import type { EndaomentFund } from '@/services/endaoment.service';
 import {
   usePaymentCalculations,
   getDefaultPaymentMethod,
+  type AllocateFromFundingPoolOption,
   type PaymentMethodType,
   type WalletAvailability,
 } from './lib';
@@ -39,6 +40,10 @@ interface PaymentStepProps {
   rscBalance: number;
   /** User's funding credits balance (excludes promotional RSC) */
   fundingCreditsBalance?: number;
+  /**
+   * When set, offers allocate-from-RFP-pool.
+   */
+  allocateFromPool?: AllocateFromFundingPoolOption | null;
   /** Fundraise or funding pool target for Apple Pay / Google Pay */
   paymentTarget: PaymentIntentTarget;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
@@ -71,6 +76,7 @@ export function PaymentStep({
   amountDisplay,
   rscBalance,
   fundingCreditsBalance = 0,
+  allocateFromPool = null,
   paymentTarget,
   walletAvailability,
   hasNonprofit = false,
@@ -81,6 +87,8 @@ export function PaymentStep({
   onEndaomentPaymentConfirm,
   onStripeReady,
 }: PaymentStepProps) {
+  const fundingPoolHoldingRsc = allocateFromPool?.fundingPool.amountHolding.rsc ?? null;
+
   const defaultPaymentMethod = useMemo(
     () =>
       getDefaultPaymentMethod(
@@ -88,32 +96,54 @@ export function PaymentStep({
         fundingCreditsBalance,
         amountInRsc,
         PLATFORM_FEE_PERCENTAGE_RSC,
-        walletAvailability
+        walletAvailability,
+        fundingPoolHoldingRsc
       ),
-    [rscBalance, fundingCreditsBalance, amountInRsc, walletAvailability]
+    [rscBalance, fundingCreditsBalance, amountInRsc, walletAvailability, fundingPoolHoldingRsc]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
     defaultPaymentMethod
   );
 
-  // When wallet availability resolves and no method is selected yet, apply the default
+  // When wallet availability / pool option resolves and no method is selected yet, apply the default
   useEffect(() => {
     if (selectedMethod === null && defaultPaymentMethod !== null) {
       setSelectedMethod(defaultPaymentMethod);
     }
   }, [defaultPaymentMethod, selectedMethod]);
+
+  useEffect(() => {
+    if (
+      allocateFromPool &&
+      fundingPoolHoldingRsc != null &&
+      fundingPoolHoldingRsc >= amountInRsc &&
+      selectedMethod !== 'funding_pool'
+    ) {
+      setSelectedMethod('funding_pool');
+    }
+  }, [allocateFromPool?.fundingPool.id, fundingPoolHoldingRsc]);
+
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
 
   // Balance check uses the balance that matches the selected method
-  // (available + promotional RSC for 'rsc', funding credits otherwise).
+  // (pool holding for funding_pool, funding credits, or available + promotional RSC).
   const balanceForSelectedMethod =
-    selectedMethod === 'funding_credits' ? fundingCreditsBalance : rscBalance;
+    selectedMethod === 'funding_pool'
+      ? (fundingPoolHoldingRsc ?? 0)
+      : selectedMethod === 'funding_credits'
+        ? fundingCreditsBalance
+        : rscBalance;
   const { insufficientBalance } = usePaymentCalculations({
     amountInRsc,
     rscBalance: balanceForSelectedMethod,
-    paymentMethod: selectedMethod === 'funding_credits' ? 'funding_credits' : 'rsc',
+    paymentMethod:
+      selectedMethod === 'funding_credits'
+        ? 'funding_credits'
+        : selectedMethod === 'funding_pool'
+          ? 'funding_pool'
+          : 'rsc',
   });
 
   // Calculate fees in USD - fees are ADDED on top of user's input
@@ -122,10 +152,12 @@ export function PaymentStep({
     selectedMethod && selectedMethod in PAYMENT_FEES
       ? PAYMENT_FEES[selectedMethod as keyof typeof PAYMENT_FEES]
       : PLATFORM_FEE_PERCENTAGE_RSC;
-  const platformFeeUsd = amountInUsd * (currentFeePercentage / 100);
+  const isFundingPoolMethod = selectedMethod === 'funding_pool';
+  const platformFeeUsd = isFundingPoolMethod ? 0 : amountInUsd * (currentFeePercentage / 100);
 
   // Payment processing fee only for non-RSC methods
-  const hasProcessingFee = selectedMethod && METHODS_WITH_PROCESSING_FEE.includes(selectedMethod);
+  const hasProcessingFee =
+    selectedMethod && !isFundingPoolMethod && METHODS_WITH_PROCESSING_FEE.includes(selectedMethod);
   const processingFeeUsd = hasProcessingFee
     ? amountInUsd * (PAYMENT_PROCESSING_FEE.percentage / 100) +
       PAYMENT_PROCESSING_FEE.fixedCents / 100
@@ -137,7 +169,10 @@ export function PaymentStep({
     `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const isRscInsufficientBalance =
-    (selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && insufficientBalance;
+    (selectedMethod === 'rsc' ||
+      selectedMethod === 'funding_credits' ||
+      selectedMethod === 'funding_pool') &&
+    insufficientBalance;
 
   // Check if selected Endaoment fund has insufficient balance
   const isEndaomentInsufficientBalance = Boolean(
@@ -203,6 +238,7 @@ export function PaymentStep({
           amountDisplay={amountDisplay}
           rscBalance={rscBalance}
           fundingCreditsBalance={fundingCreditsBalance}
+          allocateFromPool={allocateFromPool}
           onPreviewTransaction={handlePreviewTransaction}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
@@ -221,57 +257,63 @@ export function PaymentStep({
             <div className="space-y-1">
               {/* Funding contribution (amount going to fundraise) */}
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-sm text-gray-600">Funding contribution</span>
+                <span className="text-sm text-gray-600">
+                  {isFundingPoolMethod ? 'Allocation from pool' : 'Funding contribution'}
+                </span>
                 <span className="text-sm text-gray-900">{formatUsd(amountInUsd)}</span>
               </div>
 
-              {/* Platform fee with tooltip */}
-              <div className="py-1.5 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm text-gray-600">
-                    Platform fee ({currentFeePercentage}%)
-                  </span>
-                  <Tooltip
-                    content={
-                      <div className="text-left space-y-3 py-1">
-                        {/* Header with logo */}
-                        <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                          <Logo noText size={32} />
-                          <span className="text-base font-medium text-gray-800">Platform Fee</span>
-                        </div>
-
-                        {/* Fee breakdown */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">ResearchHub Inc</span>
-                            <span className="font-medium text-gray-800">
-                              {currentFeePercentage - 2}%
+              {/* Platform fee with tooltip — omitted for funding-pool allocate (0%). */}
+              {!isFundingPoolMethod && (
+                <div className="py-1.5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-gray-600">
+                      Platform fee ({currentFeePercentage}%)
+                    </span>
+                    <Tooltip
+                      content={
+                        <div className="text-left space-y-3 py-1">
+                          {/* Header with logo */}
+                          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                            <Logo noText size={32} />
+                            <span className="text-base font-medium text-gray-800">
+                              Platform Fee
                             </span>
                           </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">ResearchHub Foundation</span>
-                            <span className="font-medium text-gray-800">2%</span>
-                          </div>
-                        </div>
 
-                        {/* Footer note */}
-                        <p className="text-xs text-gray-600 pt-1 border-t border-gray-100">
-                          Supports open science infrastructure
-                        </p>
-                      </div>
-                    }
-                    width="w-64"
-                  >
-                    <Info className="h-4 w-4 text-gray-500 cursor-help" />
-                  </Tooltip>
-                  {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
-                    <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                      Lowest fee
-                    </span>
-                  )}
+                          {/* Fee breakdown */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">ResearchHub Inc</span>
+                              <span className="font-medium text-gray-800">
+                                {currentFeePercentage - 2}%
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">ResearchHub Foundation</span>
+                              <span className="font-medium text-gray-800">2%</span>
+                            </div>
+                          </div>
+
+                          {/* Footer note */}
+                          <p className="text-xs text-gray-600 pt-1 border-t border-gray-100">
+                            Supports open science infrastructure
+                          </p>
+                        </div>
+                      }
+                      width="w-64"
+                    >
+                      <Info className="h-4 w-4 text-gray-500 cursor-help" />
+                    </Tooltip>
+                    {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
+                      <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                        Lowest fee
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-600">{formatUsd(platformFeeUsd)}</span>
                 </div>
-                <span className="text-sm text-gray-600">{formatUsd(platformFeeUsd)}</span>
-              </div>
+              )}
 
               {/* Payment processing fee - only for non-RSC methods */}
               {hasProcessingFee && (
@@ -288,7 +330,9 @@ export function PaymentStep({
                 <span className="text-base font-semibold text-gray-900">Total Due</span>
                 <div className="flex flex-col items-end">
                   <span className="text-lg font-bold text-gray-900">{formatUsd(totalDueUsd)}</span>
-                  {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
+                  {(selectedMethod === 'rsc' ||
+                    selectedMethod === 'funding_credits' ||
+                    selectedMethod === 'funding_pool') && (
                     <span className="text-xs text-gray-500">
                       {(amountInRsc * (1 + currentFeePercentage / 100)).toLocaleString(undefined, {
                         maximumFractionDigits: 0,
@@ -300,8 +344,15 @@ export function PaymentStep({
               </div>
             </div>
 
-            {/* Insufficient balance alert for RSC */}
-            {isRscInsufficientBalance && <InsufficientBalanceAlert />}
+            {/* Insufficient balance alert for RSC / pool */}
+            {isRscInsufficientBalance &&
+              (isFundingPoolMethod ? (
+                <Alert variant="error">
+                  Amount exceeds the funding pool balance available to allocate.
+                </Alert>
+              ) : (
+                <InsufficientBalanceAlert />
+              ))}
 
             {/* Insufficient balance alert for Endaoment */}
             {isEndaomentInsufficientBalance && <EndaomentInsufficientFundsAlert />}
@@ -351,7 +402,11 @@ export function PaymentStep({
               className="w-full h-12 text-base"
               onClick={handleConfirm}
             >
-              {isProcessing ? 'Processing...' : 'Confirm & Pay'}
+              {isProcessing
+                ? 'Processing...'
+                : isFundingPoolMethod
+                  ? 'Confirm & Allocate'
+                  : 'Confirm & Pay'}
             </Button>
           )}
         </div>
