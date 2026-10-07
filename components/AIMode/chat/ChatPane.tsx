@@ -12,6 +12,7 @@ import { ModelControls } from '@/components/AgentChat/ModelControls';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
+import { canSelectAIModel } from '@/types/researchAI';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from '../useAIModeChat';
 import { AI_MODE_GREETING } from '../copy';
@@ -22,6 +23,7 @@ import {
   startComposerPlaceholder,
   startComposerSendClass,
 } from '../start/startComposer';
+import { StartPresets } from '../start/StartPresets';
 import { StartScreen } from '../start/StartScreen';
 import { ChatMenu } from './ChatMenu';
 import { ChatTitleField } from './ChatTitleField';
@@ -119,6 +121,7 @@ export function ChatPane({
   );
 
   const aiBlocked = state.researchAI.budget?.tier === 'blocked';
+  const canSelectModel = canSelectAIModel(state.researchAI.budget?.tier);
   const listBlocked = listReady && list.access === 'hidden';
   const listFailed = listReady && list.access === 'error';
   const chatUnavailable =
@@ -179,15 +182,35 @@ export function ChatPane({
           />
         ) : undefined
       }
-      // The model and effort sit under the box, at its right, out of the message's way.
-      footer={<div className="mt-1.5 flex justify-end pr-0.5">{modelControls}</div>}
+      // The model and effort sit under the box, at its right, out of the message's
+      // way, for those who may choose them; everyone else gets the API's default.
+      footer={
+        canSelectModel ? (
+          <div className="mt-1.5 flex justify-end pr-0.5">{modelControls}</div>
+        ) : undefined
+      }
     />
   );
 
   const body = (): ReactNode => {
     if (aiBlocked) return <AccessBlocked detail={null} />;
     if (onStart) {
-      return <StartScreen composer={composer} greeting={AI_MODE_GREETING} intent={state.intent} />;
+      return (
+        <StartScreen
+          composer={composer}
+          greeting={AI_MODE_GREETING}
+          intent={state.intent}
+          presets={
+            // A funder sees what to ask for; a researcher brings their own topic.
+            state.intent === 'fund' ? (
+              <StartPresets
+                onSelect={(message) => void state.send(message)}
+                disabled={composerDisabled || composerBusy || state.sendBlocked}
+              />
+            ) : undefined
+          }
+        />
+      );
     }
     if (documentMissing) {
       return (
