@@ -5,11 +5,9 @@ import {
   formatNavigationUrl,
   formatNotificationMessage,
   getNotificationActionLabel,
-  getNotificationAmount,
   getNotificationInfo,
   getNotificationTitle,
   getNotificationTone,
-  isEarningNotification,
   type NotificationTone,
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
@@ -17,7 +15,6 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
-import { ContributionAmount } from '@/components/Activity/amounts/ContributionAmount';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -57,10 +54,9 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
   const { exchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
   const title = getNotificationTitle(notification);
-  const description = formatNotificationMessage(notification, exchangeRate, showUSD);
+  const message = formatNotificationMessage(notification, exchangeRate, showUSD);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
-  const amount = getNotificationAmount(notification);
   const toneStyles = TONE_STYLES[getNotificationTone(notification)];
   const timeAgo = formatTimeAgo(notification.createdDate.toISOString());
   const isUnread = !notification.read;
@@ -108,24 +104,22 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
     );
 
   const titleRow = (
-    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-      <h3
-        className={cn(
-          'min-w-0 break-words text-gray-900',
-          isUnread ? 'text-base font-bold' : 'text-[15px] font-semibold'
-        )}
-      >
-        {title}
-      </h3>
-      {amount && (
-        <ContributionAmount
-          contribution={amount}
-          showSign={isEarningNotification(notification)}
-          size="sm"
-          className="shrink-0"
-        />
+    <h3
+      className={cn(
+        'min-w-0 break-words text-gray-900',
+        isUnread ? 'text-base font-bold' : 'text-[15px] font-semibold'
       )}
-    </div>
+    >
+      {title}
+    </h3>
+  );
+
+  const renderMessage = (format: (text: string) => ReactNode) => (
+    <>
+      {format(message.before)}
+      {message.amount && <span className="font-semibold text-green-700">{message.amount}</span>}
+      {format(message.after)}
+    </>
   );
 
   const learnMore = notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
@@ -173,7 +167,7 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
               </span>
             </div>
             <p className="mt-0.5 text-sm leading-snug text-gray-600">
-              {emphasizeQuotedTitle(description)}
+              {renderMessage(emphasizeQuotedTitle)}
               {learnMore}
             </p>
             {hasNavigationUrl && (
@@ -202,7 +196,7 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
         <div className="min-w-0 flex-1 basis-64">
           {titleRow}
           <p className="mt-0.5 text-sm leading-snug text-gray-500">
-            {description}
+            {renderMessage((text) => text)}
             {learnMore}
           </p>
         </div>
