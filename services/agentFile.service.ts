@@ -1,10 +1,10 @@
 import { ApiClient } from './client';
 import { chatErrorCode, chatErrorDetail, chatErrorStatus } from './notebookChat.service';
-import {
-  FILE_TOO_LARGE,
-  type AgentFile,
-  type AgentFileCreateResponse,
-  type AgentFileUpload,
+import type {
+  AgentFile,
+  AgentFileCreateResponse,
+  AgentFileLimits,
+  AgentFileUpload,
 } from '@/types/agentFile';
 
 export interface CreateAgentFileUploadParams {
@@ -31,7 +31,7 @@ export class AgentFileUploadError extends Error {
 }
 
 function storageRefusal(responseText: string): string {
-  if (responseText.includes('EntityTooLarge')) return FILE_TOO_LARGE;
+  if (responseText.includes('EntityTooLarge')) return 'This file is too large to upload.';
   if (/expired/i.test(responseText)) {
     return 'The upload took too long to start. Remove the file and attach it again.';
   }
@@ -93,6 +93,11 @@ export class AgentFileService {
       signal?.addEventListener('abort', () => request.abort(), { once: true });
       request.send(form);
     });
+  }
+
+  /** 404 on a backend that predates the route. */
+  static async getLimits(): Promise<AgentFileLimits> {
+    return ApiClient.get<AgentFileLimits>(`${this.BASE_PATH}limits/`);
   }
 
   /** Idempotent; 409 `upload_incomplete` while the object is not in the bucket yet. */

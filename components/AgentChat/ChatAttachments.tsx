@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AlertCircle, ExternalLink, FileText, X } from 'lucide-react';
 import { Loader } from '@/components/ui/Loader';
+import { useAgentFileLimits } from '@/hooks/useChatAttachments';
 import { AgentFileService, agentFileErrorMessage } from '@/services/agentFile.service';
 import type { ComposerAttachment } from '@/store/chatAttachments';
 import { cn } from '@/utils/styles';
@@ -11,9 +12,10 @@ import {
   describeAgentFile,
   formatFileSize,
   type AgentFile,
+  type AgentFileLimits,
 } from '@/types/agentFile';
 
-function statusLine(item: ComposerAttachment): string {
+function statusLine(item: ComposerAttachment, limits: AgentFileLimits): string {
   switch (item.phase) {
     case 'uploading':
       return item.file ? `Uploading ${Math.round(item.progress * 100)}%` : 'Starting upload…';
@@ -24,7 +26,10 @@ function statusLine(item: ComposerAttachment): string {
     case 'failed':
       return item.error ?? 'This file could not be attached.';
     default:
-      return [item.file ? describeAgentFile(item.file) : null, formatFileSize(item.sizeBytes)]
+      return [
+        item.file ? describeAgentFile(item.file, limits) : null,
+        formatFileSize(item.sizeBytes),
+      ]
         .filter(Boolean)
         .join(' · ');
   }
@@ -37,6 +42,7 @@ function ComposerAttachmentChip({
   readonly item: ComposerAttachment;
   readonly onRemove: (key: string) => void;
 }) {
+  const limits = useAgentFileLimits();
   const failed = item.phase === 'failed';
   const working = item.phase === 'uploading' || item.phase === 'processing';
   const percent = Math.round(item.progress * 100);
@@ -64,7 +70,7 @@ function ComposerAttachmentChip({
         <span
           className={cn('block', failed ? 'break-words text-red-700' : 'truncate text-gray-500')}
         >
-          {statusLine(item)}
+          {statusLine(item, limits)}
         </span>
         {caveats.length > 0 && (
           <span className="block break-words text-gray-600">{caveats.join(' · ')}</span>
@@ -128,6 +134,7 @@ export function ComposerAttachmentList({ items, onRemove }: ComposerAttachmentLi
 }
 
 function MessageAttachment({ file }: { readonly file: AgentFile }) {
+  const limits = useAgentFileLimits();
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -166,7 +173,7 @@ function MessageAttachment({ file }: { readonly file: AgentFile }) {
           <span className="sr-only">Open </span>
           <span className="block truncate text-sm font-medium text-gray-800">{file.filename}</span>
           <span className="block truncate text-xs text-gray-500">
-            {[describeAgentFile(file), ...agentFileCaveats(file)].join(' · ')}
+            {[describeAgentFile(file, limits), ...agentFileCaveats(file)].join(' · ')}
           </span>
         </span>
         <span className="flex h-4 w-4 shrink-0 items-center justify-center text-gray-400">

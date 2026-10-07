@@ -10,7 +10,7 @@ import {
   type ComposerAttachment,
 } from '@/store/chatAttachments';
 import type { AgentChat } from '@/types/agentChat';
-import type { AgentFile } from '@/types/agentFile';
+import { DEFAULT_AGENT_FILE_LIMITS, type AgentFile, type AgentFileLimits } from '@/types/agentFile';
 
 const NO_ATTACHMENTS: readonly ComposerAttachment[] = [];
 const subscribeToNothing = () => () => undefined;
@@ -29,6 +29,16 @@ function getStore(): ChatAttachmentsStore {
     sharedStore = createChatAttachmentsStore({ files: AgentFileService, storage });
   }
   return sharedStore;
+}
+
+/** The upload limits in effect: the server's once read, its defaults until then. */
+export function useAgentFileLimits(): AgentFileLimits {
+  const store = useMemo(() => (typeof window === 'undefined' ? null : getStore()), []);
+  return useSyncExternalStore(
+    store?.subscribe ?? subscribeToNothing,
+    () => store?.limits() ?? DEFAULT_AGENT_FILE_LIMITS,
+    () => DEFAULT_AGENT_FILE_LIMITS
+  );
 }
 
 /** For `settle` when a send never reached the server. */
@@ -94,7 +104,9 @@ export function useChatAttachments({
   const items = useMemo(() => all.filter((item) => !item.sending), [all]);
 
   useEffect(() => {
-    if (store && bucket) void store.restore(bucket);
+    if (!store || !bucket) return;
+    void store.loadLimits();
+    void store.restore(bucket);
   }, [store, bucket]);
 
   const [refusal, setRefusal] = useState<{ bucket: string; text: string } | null>(null);

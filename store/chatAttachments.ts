@@ -2,12 +2,13 @@ import { AgentFileUploadError, agentFileErrorMessage } from '@/services/agentFil
 import type { AgentFileService } from '@/services/agentFile.service';
 import { chatErrorCode, chatErrorStatus } from '@/services/notebookChat.service';
 import {
-  AGENT_FILE_LIMITS,
+  DEFAULT_AGENT_FILE_LIMITS,
   agentFileRefusal,
-  TOO_MANY_FILES_PER_CHAT,
-  TOO_MANY_FILES_PER_MESSAGE,
+  tooManyFilesPerChat,
+  tooManyFilesPerMessage,
   type AgentFile,
   type AgentFileCreateResponse,
+  type AgentFileLimits,
 } from '@/types/agentFile';
 
 export type AttachmentPhase = 'uploading' | 'processing' | 'ready' | 'failed';
@@ -31,7 +32,7 @@ export interface ComposerAttachment {
 
 type FileApi = Pick<
   typeof AgentFileService,
-  'createUpload' | 'uploadToStorage' | 'completeUpload' | 'getFile' | 'deleteFile'
+  'createUpload' | 'uploadToStorage' | 'completeUpload' | 'getFile' | 'deleteFile' | 'getLimits'
 >;
 
 const STORAGE_KEY = 'researchhub.chatAttachments.v1';
@@ -63,6 +64,16 @@ function readPersisted(storage: Pick<Storage, 'getItem'> | null): Map<string, nu
     // Unreadable storage only costs the restore.
   }
   return persisted;
+}
+
+/** Whether the checks can run on a limits response; one they cannot is as good as none. */
+function usable(limits: Partial<AgentFileLimits> | null): limits is AgentFileLimits {
+  return (
+    Array.isArray(limits?.supported_types) &&
+    [limits.max_file_bytes, limits.max_files_per_message, limits.max_files_per_conversation].every(
+      Number.isFinite
+    )
+  );
 }
 
 function serverState(
@@ -100,10 +111,14 @@ export function createChatAttachmentsStore({
   // Persisted ids not loaded into a bucket yet.
   const unresolved = readPersisted(storage);
   const restoring = new Set<string>();
+  let limits = DEFAULT_AGENT_FILE_LIMITS;
+  // 'older' is a server without the limits route, which is asked once.
+  let server: 'unknown' | 'asking' | 'current' | 'older' = 'unknown';
   let sequence = 0;
   let written = '';
 
   const list = (bucket: string) => buckets.get(bucket) ?? EMPTY;
+  const notify = () => listeners.forEach((listener) => listener());
 
   const persist = () => {
     const snapshot: Record<string, number[]> = {};
@@ -128,7 +143,7 @@ export function createChatAttachmentsStore({
     if (items.length > 0) buckets.set(bucket, items);
     else buckets.delete(bucket);
     persist();
-    listeners.forEach((listener) => listener());
+    notify();
   };
 
   const locate = (key: string): [string, ComposerAttachment] | null => {
@@ -302,6 +317,23 @@ export function createChatAttachmentsStore({
 
     list,
 
+    limits: () => limits,
+
+    /** Read the server's limits; safe to call often. A server without the route is asked once. */
+    loadLimits: async () => {
+      if (server !== 'unknown') return;
+      server = 'asking';
+      try {
+        const published = await files.getLimits();
+        if (!usable(published)) throw new Error('Unusable file limits');
+        limits = published;
+        server = 'current';
+        notify();
+      } catch (error) {
+        server = chatErrorStatus(error) === 404 ? 'older' : 'unknown';
+      }
+    },
+
     /** Load the files persisted for `bucket` before a reload; safe to call often. */
     restore: async (bucket: string) => {
       const ids = unresolved.get(bucket);
@@ -341,15 +373,15 @@ export function createChatAttachmentsStore({
     add: (bucket: string, picked: readonly File[], sentCount: number): string | null => {
       const current = list(bucket);
       let roomInMessage =
-        AGENT_FILE_LIMITS.maxFilesPerMessage - current.filter((item) => !item.sending).length;
-      let roomInChat = AGENT_FILE_LIMITS.maxFilesPerChat - sentCount - current.length;
+        limits.max_files_per_message - current.filter((item) => !item.sending).length;
+      let roomInChat = limits.max_files_per_conversation - sentCount - current.length;
       const accepted: File[] = [];
       const refused: string[] = [];
       const reasons = new Set<string>();
       for (const file of picked) {
-        let reason = agentFileRefusal(file);
-        if (reason == null && roomInMessage <= 0) reason = TOO_MANY_FILES_PER_MESSAGE;
-        if (reason == null && roomInChat <= 0) reason = TOO_MANY_FILES_PER_CHAT;
+        let reason = agentFileRefusal(file, limits);
+        if (reason == null && roomInMessage <= 0) reason = tooManyFilesPerMessage(limits);
+        if (reason == null && roomInChat <= 0) reason = tooManyFilesPerChat(limits);
         if (reason != null) {
           refused.push(file.name);
           reasons.add(reason);

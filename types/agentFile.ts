@@ -32,53 +32,64 @@ export interface AgentFileCreateResponse extends AgentFile {
   upload: AgentFileUpload;
 }
 
-/** Mirrors `agent_files/config.py`; the API does not publish its limits. */
-export const AGENT_FILE_LIMITS = {
-  maxFileBytes: 25 * 1024 * 1024,
-  maxFilesPerMessage: 5,
-  maxFilesPerChat: 20,
-} as const;
+/** One accepted extension, lowercase with its dot; `label` is a mid-sentence noun ("text file"). */
+export interface AgentFileType {
+  extension: string;
+  content_type: string;
+  label: string;
+}
+
+/** `GET files/limits/`: what the server checks before it takes an upload. */
+export interface AgentFileLimits {
+  max_file_bytes: number;
+  max_files_per_message: number;
+  max_files_per_conversation: number;
+  max_unsent_files: number;
+  supported_types: AgentFileType[];
+}
 
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-/** Mirrors `agent_files/extraction.py`. */
-const CONTENT_TYPE_BY_EXTENSION: Record<string, string> = {
-  '.pdf': 'application/pdf',
-  '.docx': DOCX,
-  '.txt': 'text/plain',
-  '.md': 'text/markdown',
-  '.markdown': 'text/markdown',
-  '.csv': 'text/csv',
-  '.tsv': 'text/tab-separated-values',
-  '.tex': 'application/x-tex',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
+/** The backend's defaults, in force until its limits are read and on a server that publishes none. */
+export const DEFAULT_AGENT_FILE_LIMITS: AgentFileLimits = {
+  max_file_bytes: 25 * 1024 * 1024,
+  max_files_per_message: 5,
+  max_files_per_conversation: 20,
+  max_unsent_files: 20,
+  supported_types: [
+    { extension: '.pdf', content_type: 'application/pdf', label: 'PDF' },
+    { extension: '.docx', content_type: DOCX, label: 'Word document' },
+    { extension: '.txt', content_type: 'text/plain', label: 'text file' },
+    { extension: '.md', content_type: 'text/markdown', label: 'Markdown file' },
+    { extension: '.markdown', content_type: 'text/markdown', label: 'Markdown file' },
+    { extension: '.csv', content_type: 'text/csv', label: 'CSV file' },
+    { extension: '.tsv', content_type: 'text/tab-separated-values', label: 'TSV file' },
+    { extension: '.tex', content_type: 'application/x-tex', label: 'LaTeX file' },
+    { extension: '.png', content_type: 'image/png', label: 'PNG image' },
+    { extension: '.jpg', content_type: 'image/jpeg', label: 'JPEG image' },
+    { extension: '.jpeg', content_type: 'image/jpeg', label: 'JPEG image' },
+    { extension: '.gif', content_type: 'image/gif', label: 'GIF image' },
+    { extension: '.webp', content_type: 'image/webp', label: 'WebP image' },
+  ],
 };
 
-const KIND_BY_CONTENT_TYPE: Record<string, string> = {
-  'application/pdf': 'PDF',
-  [DOCX]: 'Word document',
-  'text/plain': 'Text file',
-  'text/markdown': 'Markdown file',
-  'text/csv': 'CSV file',
-  'text/tab-separated-values': 'TSV file',
-  'application/x-tex': 'LaTeX file',
-  'image/png': 'PNG image',
-  'image/jpeg': 'JPEG image',
-  'image/gif': 'GIF image',
-  'image/webp': 'WebP image',
-};
+export const agentFileExtensions = (limits: AgentFileLimits): string[] =>
+  limits.supported_types.map((type) => type.extension);
 
-export const AGENT_FILE_EXTENSIONS = Object.keys(CONTENT_TYPE_BY_EXTENSION);
+/** Whole megabytes, rounded down as the server words it. */
+export const maxFileMegabytes = (limits: AgentFileLimits): number =>
+  Math.floor(limits.max_file_bytes / (1024 * 1024));
 
 // The server's own wording for the same refusals.
-export const UNSUPPORTED_FILE_TYPE = `Upload a PDF, Word (.docx), text, or image file (${AGENT_FILE_EXTENSIONS.join(', ')}).`;
-export const FILE_TOO_LARGE = `Files can be at most ${AGENT_FILE_LIMITS.maxFileBytes / (1024 * 1024)} MB.`;
-export const TOO_MANY_FILES_PER_MESSAGE = `A message can carry at most ${AGENT_FILE_LIMITS.maxFilesPerMessage} files.`;
-export const TOO_MANY_FILES_PER_CHAT = `A chat can hold at most ${AGENT_FILE_LIMITS.maxFilesPerChat} files. Start a new chat to attach more.`;
+export const EMPTY_FILE = 'Empty files cannot be attached.';
+export const unsupportedFileType = (limits: AgentFileLimits) =>
+  `Upload a PDF, Word (.docx), text, or image file (${agentFileExtensions(limits).join(', ')}).`;
+export const fileTooLarge = (limits: AgentFileLimits) =>
+  `Files can be at most ${maxFileMegabytes(limits)} MB.`;
+export const tooManyFilesPerMessage = (limits: AgentFileLimits) =>
+  `A message can carry at most ${limits.max_files_per_message} files.`;
+export const tooManyFilesPerChat = (limits: AgentFileLimits) =>
+  `A chat can hold at most ${limits.max_files_per_conversation} files. Start a new chat to attach more.`;
 
 function extensionOf(filename: string): string {
   const name = filename.replace(/^\.+/, '');
@@ -87,18 +98,18 @@ function extensionOf(filename: string): string {
 }
 
 /** Why the server would refuse this file, or null; it reads the MIME type only without an extension. */
-export function agentFileRefusal(file: {
-  readonly name: string;
-  readonly size: number;
-  readonly type: string;
-}): string | null {
+export function agentFileRefusal(
+  file: { readonly name: string; readonly size: number; readonly type: string },
+  limits: AgentFileLimits
+): string | null {
   const extension = extensionOf(file.name);
-  const supported = extension
-    ? extension in CONTENT_TYPE_BY_EXTENSION
-    : file.type.split(';')[0].trim().toLowerCase() in KIND_BY_CONTENT_TYPE;
-  if (!supported) return UNSUPPORTED_FILE_TYPE;
-  if (file.size === 0) return 'Empty files can’t be attached.';
-  if (file.size > AGENT_FILE_LIMITS.maxFileBytes) return FILE_TOO_LARGE;
+  const contentType = file.type.split(';')[0].trim().toLowerCase();
+  const supported = limits.supported_types.some((type) =>
+    extension ? type.extension === extension : type.content_type === contentType
+  );
+  if (!supported) return unsupportedFileType(limits);
+  if (file.size === 0) return EMPTY_FILE;
+  if (file.size > limits.max_file_bytes) return fileTooLarge(limits);
   return null;
 }
 
@@ -108,18 +119,25 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function agentFileKind(file: Pick<AgentFile, 'content_type' | 'filename'>): string {
-  const known = KIND_BY_CONTENT_TYPE[file.content_type];
-  if (known) return known;
+/** The file's kind, capitalised to open a line: "Text file". */
+export function agentFileKind(
+  file: Pick<AgentFile, 'content_type' | 'filename'>,
+  limits: AgentFileLimits
+): string {
+  const label = limits.supported_types.find(
+    (type) => type.content_type === file.content_type
+  )?.label;
+  if (label) return label.charAt(0).toUpperCase() + label.slice(1);
   const extension = extensionOf(file.filename);
   return extension.length > 1 ? `${extension.slice(1).toUpperCase()} file` : 'File';
 }
 
 /** "PDF · 12 pages". */
 export function describeAgentFile(
-  file: Pick<AgentFile, 'content_type' | 'filename' | 'page_count'>
+  file: Pick<AgentFile, 'content_type' | 'filename' | 'page_count'>,
+  limits: AgentFileLimits
 ): string {
-  const kind = agentFileKind(file);
+  const kind = agentFileKind(file, limits);
   if (file.page_count == null) return kind;
   return `${kind} · ${file.page_count.toLocaleString()} ${file.page_count === 1 ? 'page' : 'pages'}`;
 }

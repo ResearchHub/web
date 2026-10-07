@@ -12,10 +12,10 @@ import {
 import { ArrowUp, Paperclip, Square } from 'lucide-react';
 import { pastedFiles } from '@/utils/pastedFiles';
 import { cn } from '@/utils/styles';
-import type { ChatAttachments } from '@/hooks/useChatAttachments';
+import { useAgentFileLimits, type ChatAttachments } from '@/hooks/useChatAttachments';
 import { useFileDrop } from '@/hooks/useFileDrop';
 import { MAX_CHAT_MESSAGE_LENGTH } from '@/types/agentChat';
-import { AGENT_FILE_EXTENSIONS, AGENT_FILE_LIMITS } from '@/types/agentFile';
+import { agentFileExtensions, maxFileMegabytes } from '@/types/agentFile';
 import { ComposerAttachmentList } from './ChatAttachments';
 
 export interface ComposerNotice {
@@ -62,8 +62,6 @@ interface ChatComposerProps {
 }
 
 const COUNTER_THRESHOLD = MAX_CHAT_MESSAGE_LENGTH - 1000;
-const FILE_INPUT_ACCEPT = AGENT_FILE_EXTENSIONS.join(',');
-const ATTACH_TITLE = `Attach files: PDF, Word, text, or images, up to ${AGENT_FILE_LIMITS.maxFileBytes / (1024 * 1024)} MB each`;
 
 /**
  * Message input. The draft is owned by the parent so it survives failed sends
@@ -89,6 +87,7 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileLimits = useAgentFileLimits();
   const addFiles = attachments?.add ?? null;
   const dragging = useFileDrop(dropTargetRef ?? wrapperRef, disabled ? null : addFiles);
 
@@ -192,7 +191,7 @@ export function ChatComposer({
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept={FILE_INPUT_ACCEPT}
+                accept={agentFileExtensions(fileLimits).join(',')}
                 onChange={handleFilesPicked}
                 disabled={disabled}
                 tabIndex={-1}
@@ -203,7 +202,7 @@ export function ChatComposer({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled}
-                title={ATTACH_TITLE}
+                title={`Attach files: PDF, Word, text, or images, up to ${maxFileMegabytes(fileLimits)} MB each`}
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
               >
                 <Paperclip className="h-4 w-4" aria-hidden="true" />
