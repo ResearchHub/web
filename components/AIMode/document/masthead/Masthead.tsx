@@ -9,7 +9,7 @@ import { cn } from '@/utils/styles';
 import { AmountWidget } from './AmountWidget';
 import { ApplyingToWidget } from './ApplyingToWidget';
 import { CoverBanner, useCoverImagePicker } from './CoverImage';
-import { AddDetail } from './MastheadLine';
+import { AddDetail, DetailHint } from './MastheadLine';
 import {
   detailValue,
   mastheadWidgetsFor,
@@ -86,7 +86,7 @@ export function Masthead({ slots }: MastheadProps) {
   const rowShows =
     offersCover || rowWidgets.some((widget) => isEditable(widget) || hasValue(widget));
 
-  const renderDetail = (config: MastheadWidgetConfig) => {
+  const renderWidget = (config: MastheadWidgetConfig) => {
     const state = {
       config,
       editable: isEditable(config),
@@ -122,6 +122,18 @@ export function Masthead({ slots }: MastheadProps) {
     }
   };
 
+  // Each detail says what it is for on hover, with a sketch of how it
+  // shows on the published page; not while it is being edited.
+  const renderDetail = (config: MastheadWidgetConfig) => {
+    const widget = renderWidget(config);
+    if (widget == null || editingId === config.id) return widget;
+    return (
+      <DetailHint key={config.id} id={config.id} name={config.name} hint={config.hint}>
+        {widget}
+      </DetailHint>
+    );
+  };
+
   if (!slots) return null;
 
   const details = (
@@ -139,11 +151,13 @@ export function Masthead({ slots }: MastheadProps) {
             <div className={cn(LINE_CLASS, 'gap-y-1.5')}>
               {rowWidgets.map(renderDetail)}
               {offersCover && (
-                <AddDetail
-                  icon={coverConfig.icon}
-                  label={coverConfig.addLabel}
-                  onClick={cover.browse}
-                />
+                <DetailHint id={coverConfig.id} name={coverConfig.name} hint={coverConfig.hint}>
+                  <AddDetail
+                    icon={coverConfig.icon}
+                    label={coverConfig.addLabel}
+                    onClick={cover.browse}
+                  />
+                </DetailHint>
               )}
             </div>
           )}

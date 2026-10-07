@@ -38,6 +38,8 @@ export interface MastheadWidgetConfig {
   readonly addLabel: string;
   /** What leads the value once it is set: "By Kobe Attias". A cover or a paragraph has none. */
   readonly label: string;
+  /** What the detail is for, said on hover: what it means and where it shows. */
+  readonly hint: string;
   /** Gets a line to itself under the title, above the other details, when this holds. */
   readonly ownLineWhen?: (values: PublishingFormData) => boolean;
   /** The detail disappears when this holds. */
@@ -54,6 +56,7 @@ const COVER_IMAGE: MastheadWidgetConfig = {
   name: 'Cover image',
   addLabel: 'Add cover',
   label: 'Cover image',
+  hint: 'An image that represents this at a glance. It heads the published page and its card in the feed.',
 };
 
 const AUTHORS: MastheadWidgetConfig = {
@@ -64,6 +67,7 @@ const AUTHORS: MastheadWidgetConfig = {
   name: 'Authors',
   addLabel: 'Add authors',
   label: 'By',
+  hint: 'The people credited for this work, shown under its title once it is published.',
   // With none there is only the offer to add some, and that sits with the others.
   ownLineWhen: (values) => values.authors.length > 0,
 };
@@ -76,6 +80,7 @@ const FUNDING_GOAL: MastheadWidgetConfig = {
   name: 'Funding goal',
   addLabel: 'Set funding goal',
   label: 'Funding goal',
+  hint: 'How much you are raising for this work. It cannot be changed once the fundraise is open.',
   // A fundraise that is open keeps the goal it opened with.
   lockedWhen: (values) => Boolean(values.workId),
 };
@@ -88,6 +93,7 @@ const APPLYING_TO: MastheadWidgetConfig = {
   name: 'RFP',
   addLabel: 'Apply to an RFP',
   label: 'Applying to',
+  hint: 'The RFP this proposal answers. Its funder reviews it alongside the other applications.',
   // The offer sits among the other details; the answer gets its own line.
   ownLineWhen: (values) => values.selectedGrant != null,
   // The answer to a Request for Proposal cannot change once published.
@@ -102,6 +108,7 @@ const ORGANIZATION: MastheadWidgetConfig = {
   name: 'Organization',
   addLabel: 'Add organization',
   label: 'Offered by',
+  hint: 'The organization offering this funding, shown as “Offered by” on the RFP.',
 };
 
 const FUNDING_AMOUNT: MastheadWidgetConfig = {
@@ -112,6 +119,7 @@ const FUNDING_AMOUNT: MastheadWidgetConfig = {
   name: 'Funding amount',
   addLabel: 'Set funding amount',
   label: 'Funding amount',
+  hint: 'The total you are offering through this RFP, across the proposals you fund.',
 };
 
 const CONTACTS: MastheadWidgetConfig = {
@@ -122,6 +130,7 @@ const CONTACTS: MastheadWidgetConfig = {
   name: 'Contact',
   addLabel: 'Add contact',
   label: 'Contact',
+  hint: 'The main point of contact for this RFP: the person responsible for it, who hears when someone comments or submits a proposal.',
 };
 
 const SHORT_DESCRIPTION: MastheadWidgetConfig = {
@@ -132,6 +141,7 @@ const SHORT_DESCRIPTION: MastheadWidgetConfig = {
   name: 'Short description',
   addLabel: 'Add short description',
   label: 'Short description',
+  hint: 'A sentence or two on what this RFP funds, shown where it is listed before someone opens it.',
 };
 
 /**

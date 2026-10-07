@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react';
 import { X, type LucideIcon } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { DetailSketch } from './DetailSketch';
 import { cn } from '@/utils/styles';
 
 /** A detail being edited: a small field in the byline's place. The only blue in the masthead. */
@@ -91,5 +93,47 @@ export function DetailValue({
         </button>
       )}
     </span>
+  );
+}
+
+interface DetailHintProps {
+  /** The detail's widget id, which the sketch picks out. */
+  readonly id: string;
+  /** What the detail is called: the hint's heading. */
+  readonly name: string;
+  /** What it is for. */
+  readonly hint: string;
+  readonly children: ReactNode;
+}
+
+/**
+ * Says what a detail is for when it is hovered or focused, under it: a
+ * sketch of the published page with the detail picked out, its name, and a
+ * line on what it means. On a touch screen a tap edits the detail instead,
+ * so there the hint stays out of the way.
+ */
+export function DetailHint({ id, name, hint, children }: DetailHintProps) {
+  return (
+    <Tooltip
+      content={
+        <span className="flex flex-col gap-2">
+          <DetailSketch highlight={id} />
+          <span>
+            <span className="block font-semibold text-gray-900">{name}</span>
+            <span className="text-gray-600">{hint}</span>
+          </span>
+        </span>
+      }
+      position="bottom"
+      width="w-64"
+      delay={400}
+      hideDelay={0}
+      disableTouchClick
+      wrapperAs="span"
+      wrapperClassName="h-auto min-w-0 max-w-full"
+      className="p-2.5 text-left text-xs leading-relaxed"
+    >
+      {children}
+    </Tooltip>
   );
 }
