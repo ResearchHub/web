@@ -95,6 +95,12 @@ export class AgentFileService {
     });
   }
 
+  /** Every file the caller uploaded and has not sent, whichever chat or tab it waits in. */
+  static async listUnsent(): Promise<AgentFile[]> {
+    const response = await ApiClient.get<{ files: AgentFile[] }>(this.BASE_PATH);
+    return response.files ?? [];
+  }
+
   /** 404 on a backend that predates the route. */
   static async getLimits(): Promise<AgentFileLimits> {
     return ApiClient.get<AgentFileLimits>(`${this.BASE_PATH}limits/`);

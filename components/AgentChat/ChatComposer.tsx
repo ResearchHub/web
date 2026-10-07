@@ -58,7 +58,14 @@ interface ChatComposerProps {
   /** Files to send with the message; left out, the composer takes none. */
   readonly attachments?: Pick<
     ChatAttachments,
-    'items' | 'notice' | 'ready' | 'sendableAlone' | 'add' | 'remove'
+    | 'items'
+    | 'notice'
+    | 'ready'
+    | 'sendableAlone'
+    | 'waitingElsewhere'
+    | 'add'
+    | 'remove'
+    | 'makeRoom'
   >;
   /** What takes file drops for this composer: the whole pane, say. Itself by default. */
   readonly dropTargetRef?: RefObject<HTMLElement | null>;
@@ -106,6 +113,7 @@ export function ChatComposer({
   const filesReady = attachments?.ready ?? true;
   const hasContent = value.trim().length > 0 || (attachments?.sendableAlone ?? false);
   const canSend = !disabled && !sendDisabled && !busy && hasContent && filesReady;
+  const waitingElsewhere = attachments?.waitingElsewhere ?? 0;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -137,6 +145,11 @@ export function ChatComposer({
     textareaRef.current?.focus();
   };
 
+  const handleMakeRoom = () => {
+    attachments?.makeRoom();
+    textareaRef.current?.focus();
+  };
+
   return (
     <div
       ref={wrapperRef}
@@ -155,6 +168,16 @@ export function ChatComposer({
       )}
       {attachments?.notice && (
         <output className="mb-1.5 block text-xs text-red-600">{attachments.notice}</output>
+      )}
+      {waitingElsewhere > 0 && (
+        <output className="mb-1.5 block text-xs text-gray-600">
+          {waitingElsewhere === 1
+            ? '1 file is waiting to be sent in another chat or tab.'
+            : `${waitingElsewhere} files are waiting to be sent in other chats or tabs.`}
+          <button type="button" onClick={handleMakeRoom} className="ml-2 underline">
+            {waitingElsewhere === 1 ? 'Remove it' : 'Remove them'}
+          </button>
+        </output>
       )}
       {/* Two rows rather than one: the message sits above its own controls, so
           the toolbar can grow without the send button drifting off the text.

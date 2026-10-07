@@ -32,7 +32,13 @@ export interface ComposerAttachment {
 
 type FileApi = Pick<
   typeof AgentFileService,
-  'createUpload' | 'uploadToStorage' | 'completeUpload' | 'getFile' | 'deleteFile' | 'getLimits'
+  | 'createUpload'
+  | 'uploadToStorage'
+  | 'completeUpload'
+  | 'getFile'
+  | 'deleteFile'
+  | 'listUnsent'
+  | 'getLimits'
 >;
 
 const STORAGE_KEY = 'researchhub.chatAttachments.v1';
@@ -112,9 +118,14 @@ export function createChatAttachmentsStore({
   const unresolved = readPersisted(storage);
   const restoring = new Set<string>();
   let limits = DEFAULT_AGENT_FILE_LIMITS;
-  // 'current' once the server's limits are read. A message of files alone
-  // shipped with them, so it is not tried on any other.
+  // 'current' once the server's limits are read. The list of unsent files and a
+  // message of files alone shipped with them, so neither is tried on any other.
   let server: 'unknown' | 'asking' | 'current' | 'older' = 'unknown';
+  // Uploads refused for want of an unsent slot, kept to start again once there is room.
+  const crowdedOut = new Map<string, File>();
+  // The caller's unsent files, listed when such a refusal arrives.
+  let unsent: readonly AgentFile[] | null = null;
+  let listing = false;
   let sequence = 0;
   let written = '';
 
@@ -179,6 +190,33 @@ export function createChatAttachmentsStore({
 
   const discard = (fileId: number) => {
     files.deleteFile(fileId).catch(() => undefined);
+  };
+
+  /** List what holds the unsent slots; without the list the refusal stands as the server worded it. */
+  const survey = async () => {
+    if (server !== 'current' || listing) return;
+    listing = true;
+    try {
+      unsent = await files.listUnsent();
+    } catch {
+      unsent = null;
+    } finally {
+      listing = false;
+      notify();
+    }
+  };
+
+  /** Listed files holding a slot outside `bucket`, while an upload there waits for one. */
+  const outside = (bucket: string): AgentFile[] => {
+    if (unsent == null || !list(bucket).some((item) => crowdedOut.has(item.key))) return [];
+    const kept = new Set(unresolved.get(bucket));
+    for (const [owner, items] of buckets) {
+      for (const item of items) {
+        // A file going out with a message is unsent until the server takes it.
+        if (item.file && (owner === bucket || item.sending)) kept.add(item.file.id);
+      }
+    }
+    return unsent.filter((file) => file.status !== 'FAILED' && !kept.has(file.id));
   };
 
   /** One status read: the file, why it can no longer be had, or null to read again. */
@@ -251,10 +289,14 @@ export function createChatAttachmentsStore({
         contentType: source.type,
       });
     } catch (error) {
-      patch(key, {
+      const shown = patch(key, {
         phase: 'failed',
         error: agentFileErrorMessage(error, 'The upload could not be started.'),
       });
+      if (shown && chatErrorCode(error) === 'too_many_unsent_files') {
+        crowdedOut.set(key, source);
+        void survey();
+      }
       return;
     }
     const { upload: form, ...file } = created;
@@ -334,6 +376,33 @@ export function createChatAttachmentsStore({
         notify();
       } catch (error) {
         server = chatErrorStatus(error) === 404 ? 'older' : 'unknown';
+      }
+    },
+
+    outside,
+
+    /** Remove the unsent files outside `bucket`, then start the uploads that had no slot. */
+    makeRoom: async (bucket: string) => {
+      const targets = outside(bucket);
+      if (targets.length === 0) return;
+      unsent = null;
+      const ids = new Set(targets.map((file) => file.id));
+      for (const [other, pending] of [...unresolved]) {
+        const left = pending.filter((id) => !ids.has(id));
+        if (left.length > 0) unresolved.set(other, left);
+        else unresolved.delete(other);
+      }
+      for (const item of [...buckets.values()].flat()) {
+        if (item.file == null || !ids.has(item.file.id)) continue;
+        uploads.get(item.key)?.abort();
+        drop(item.key);
+      }
+      const waiting = [...crowdedOut];
+      crowdedOut.clear();
+      for (const [key] of waiting) patch(key, { phase: 'uploading', progress: 0, error: null });
+      await Promise.all(targets.map((file) => files.deleteFile(file.id).catch(() => undefined)));
+      for (const [key, source] of waiting) {
+        if (locate(key)) void upload(key, source);
       }
     },
 
@@ -425,6 +494,7 @@ export function createChatAttachmentsStore({
       const found = locate(key);
       if (!found) return;
       uploads.get(key)?.abort();
+      if (crowdedOut.delete(key) && crowdedOut.size === 0) unsent = null;
       drop(key);
       if (found[1].file) discard(found[1].file.id);
     },

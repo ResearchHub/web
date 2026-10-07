@@ -60,8 +60,12 @@ export interface ChatAttachments {
   readonly ready: boolean;
   /** The files can go out without text: there is one, all are ready, and the server takes it. */
   readonly sendableAlone: boolean;
+  /** Unsent files in other chats or tabs holding the slots an upload here was refused. */
+  readonly waitingElsewhere: number;
   readonly add: (files: File[]) => void;
   readonly remove: (key: string) => void;
+  /** Remove the files waiting elsewhere, then start the refused uploads. */
+  readonly makeRoom: () => void;
   /** Take the ready files for a send; they leave the composer until `settle`. */
   readonly hold: () => HeldAttachments;
   /** Move what was attached on the new-chat screen to the chat created for it. */
@@ -116,6 +120,11 @@ export function useChatAttachments({
     () => store?.takesFilesAlone() ?? false,
     () => false
   );
+  const waitingElsewhere = useSyncExternalStore(
+    store?.subscribe ?? subscribeToNothing,
+    () => (store && bucket ? store.outside(bucket).length : 0),
+    () => 0
+  );
 
   const [refusal, setRefusal] = useState<{ bucket: string; text: string } | null>(null);
   const notice = refusal?.bucket === bucket ? refusal.text : null;
@@ -144,6 +153,10 @@ export function useChatAttachments({
     },
     [store]
   );
+
+  const makeRoom = useCallback(() => {
+    if (store && bucket) void store.makeRoom(bucket);
+  }, [store, bucket]);
 
   // Holds not settled yet; a host that unmounts mid-send must not leave files hidden.
   const unsettledRef = useRef(new Set<HeldAttachments>());
@@ -200,5 +213,18 @@ export function useChatAttachments({
 
   const ready = items.every((item) => item.phase === 'ready');
   const sendableAlone = takesFilesAlone && ready && items.length > 0;
-  return { items, notice, ready, sendableAlone, add, remove, hold, adopt, settle, clear };
+  return {
+    items,
+    notice,
+    ready,
+    sendableAlone,
+    waitingElsewhere,
+    add,
+    remove,
+    makeRoom,
+    hold,
+    adopt,
+    settle,
+    clear,
+  };
 }
