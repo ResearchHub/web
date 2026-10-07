@@ -29,7 +29,8 @@ export interface ChatTransport {
   sendMessage(
     chatId: ChatId,
     message: string,
-    generation?: GenerationRequest
+    generation?: GenerationRequest,
+    fileIds?: number[]
   ): Promise<SendMessageResponse>;
   renameChat(chatId: ChatId, title: string): Promise<{ conversation_id: number; title: string }>;
   cancelTurn(chatId: ChatId): Promise<CancelTurnResponse>;
@@ -44,8 +45,8 @@ export function notebookChatTransport(noteId: ChatId): ChatTransport {
     listChats: () => NotebookChatService.listChats(noteId),
     createChat: (title) => NotebookChatService.createChat(noteId, title),
     getChat: (chatId, options) => NotebookChatService.getChat(noteId, chatId, options),
-    sendMessage: (chatId, message, generation) =>
-      NotebookChatService.sendMessage(noteId, chatId, message, generation),
+    sendMessage: (chatId, message, generation, fileIds) =>
+      NotebookChatService.sendMessage(noteId, chatId, message, generation, fileIds),
     renameChat: (chatId, title) => NotebookChatService.renameChat(noteId, chatId, title),
     cancelTurn: (chatId) => NotebookChatService.cancelTurn(noteId, chatId),
     socketUrl: (chatId) => WS_ROUTES.NOTEBOOK_CHAT(noteId, chatId),
@@ -58,8 +59,8 @@ export function assistantChatTransport(): ChatTransport {
     listChats: () => AssistantChatService.listChats(),
     createChat: (title) => AssistantChatService.createChat(title),
     getChat: (chatId, options) => AssistantChatService.getChat(chatId, options),
-    sendMessage: (chatId, message, generation) =>
-      AssistantChatService.sendMessage(chatId, message, generation),
+    sendMessage: (chatId, message, generation, fileIds) =>
+      AssistantChatService.sendMessage(chatId, message, generation, fileIds),
     renameChat: (chatId, title) => AssistantChatService.renameChat(chatId, title),
     cancelTurn: (chatId) => AssistantChatService.cancelTurn(chatId),
     socketUrl: (chatId) => WS_ROUTES.ASSISTANT_CHAT(chatId),

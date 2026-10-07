@@ -2,7 +2,9 @@
 
 import { Fragment, useMemo, type ReactNode } from 'react';
 import type { ChatExecution, ChatMessage, AgentChat } from '@/types/agentChat';
+import type { AgentFile } from '@/types/agentFile';
 import type { PendingSend } from '@/hooks/useAgentChat';
+import { MessageAttachments } from './ChatAttachments';
 import { MarkdownMessage } from './MarkdownMessage';
 import { answerRevealKey, isRevealable } from '@/hooks/useTextReveal';
 import { ExecutionProgress } from './ExecutionProgress';
@@ -12,7 +14,7 @@ type TranscriptEntry =
   | { key: string; kind: 'user'; message: ChatMessage }
   | { key: string; kind: 'execution'; execution: ChatExecution; answer: ChatMessage | null }
   | { key: string; kind: 'assistant'; message: ChatMessage }
-  | { key: string; kind: 'pending-user'; text: string };
+  | { key: string; kind: 'pending-user'; text: string; attachments: AgentFile[] };
 
 /** Shared working state threaded through the transcript-building helpers. */
 interface TranscriptBuild {
@@ -125,18 +127,35 @@ function buildTranscript(chat: AgentChat, pendingSend: PendingSend | null): Tran
     pendingExecutionId != null &&
     chat.executions.some((execution) => execution.id === pendingExecutionId);
   if (pendingSend && !echoRetired) {
-    build.entries.push({ key: 'pending-user', kind: 'pending-user', text: pendingSend.text });
+    build.entries.push({
+      key: 'pending-user',
+      kind: 'pending-user',
+      text: pendingSend.text,
+      attachments: pendingSend.attachments,
+    });
   }
 
   return build.entries;
 }
 
-function UserBubble({ text }: { readonly text: string }) {
+function UserBubble({
+  text,
+  attachments = [],
+}: {
+  readonly text: string;
+  readonly attachments?: AgentFile[];
+}) {
   return (
-    <div className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-md text-gray-800">
-        {text}
-      </div>
+    <div className="space-y-1.5">
+      <MessageAttachments files={attachments} />
+      {/* A message of files alone has no text to draw. */}
+      {text && (
+        <div className="flex justify-end">
+          <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gray-100 px-3.5 py-2 text-md text-gray-800">
+            {text}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -184,7 +203,13 @@ export function ChatTranscript({ chat, pendingSend, renderExecutionExtra }: Chat
       {entries.map((entry) => {
         switch (entry.kind) {
           case 'user':
-            return <UserBubble key={entry.key} text={entry.message.content} />;
+            return (
+              <UserBubble
+                key={entry.key}
+                text={entry.message.content}
+                attachments={entry.message.attachments}
+              />
+            );
           case 'pending-user':
             // Two siblings, not one wrapper: the echo stands in for a user
             // entry and the execution entry about to follow it, so it has to
@@ -193,7 +218,7 @@ export function ChatTranscript({ chat, pendingSend, renderExecutionExtra }: Chat
             // and the placeholder dropped 8px the moment the refetch landed.
             return (
               <Fragment key={entry.key}>
-                <UserBubble text={entry.text} />
+                <UserBubble text={entry.text} attachments={entry.attachments} />
                 <PendingThinkingRow />
               </Fragment>
             );
