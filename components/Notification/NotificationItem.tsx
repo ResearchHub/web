@@ -117,13 +117,13 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
   return (
     <div
       className={cn(
-        'flex items-start gap-3 py-4 pl-2.5 pr-4 transition-colors',
+        'flex items-center gap-3 py-4 pl-2.5 pr-4 transition-colors',
         hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
       )}
       {...navigationProps}
     >
       {/* Read rows keep the empty slot so every avatar lines up. */}
-      <span className="flex w-2 flex-shrink-0 self-center">
+      <span className="flex w-2 flex-shrink-0">
         {isUnread && (
           <>
             <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />
@@ -148,7 +148,7 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
         <span className="flex-shrink-0 text-xs text-gray-400">{timeAgo}</span>
       </div>
       {hasNavigationUrl ? (
-        <ChevronRight className="h-4 w-4 flex-shrink-0 self-center text-gray-300" aria-hidden />
+        <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" aria-hidden />
       ) : (
         <span className="w-4 flex-shrink-0" aria-hidden />
       )}
