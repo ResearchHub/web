@@ -11,6 +11,12 @@ function namedFile(line: string): string {
   }
 }
 
+/** Whether clipboard HTML holds any text: a browser's "Copy image" writes a bare <img> beside the image. */
+function hasText(html: string): boolean {
+  const { body } = new DOMParser().parseFromString(html, 'text/html');
+  return (body.textContent ?? '').trim() !== '';
+}
+
 /**
  * The files of a paste that carries nothing but files; none otherwise, so a
  * paste with text of its own is left to the browser and the image that Word or
@@ -20,7 +26,8 @@ export function pastedFiles(clipboard: DataTransfer): File[] {
   const files = Array.from(clipboard.files);
   if (files.length === 0) return [];
   const types = new Set(clipboard.types);
-  if (types.has('text/html') || types.has('text/rtf')) return [];
+  if (types.has('text/rtf')) return [];
+  if (types.has('text/html') && hasText(clipboard.getData('text/html'))) return [];
 
   // File managers add the copied files' names as plain text, sometimes without the extension.
   const names = new Set<string>();
