@@ -502,8 +502,9 @@ export function formatNotificationMessage(
   showUSD: boolean = true
 ): NotificationMessage {
   const rawAmount = getNotificationAmount(notification);
+  const inUSD = exchangeRate > 0 && showUSD;
   const amount = rawAmount
-    ? formatCurrencyAmount({ ...rawAmount, showUSD, exchangeRate, shorten: true })
+    ? `${formatCurrencyAmount({ ...rawAmount, showUSD, exchangeRate, shorten: true })}${inUSD ? '' : ' RSC'}`
     : null;
 
   let text = buildMessageText(notification, exchangeRate, showUSD, !!amount);

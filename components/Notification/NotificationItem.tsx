@@ -117,7 +117,7 @@ export function NotificationItem({ notification }: Readonly<NotificationItemProp
   const renderMessage = (format: (text: string) => ReactNode) => (
     <>
       {format(message.before)}
-      {message.amount && <span className="font-semibold text-green-700">{message.amount}</span>}
+      {message.amount && <span className="font-semibold text-green-600">{message.amount}</span>}
       {format(message.after)}
     </>
   );
