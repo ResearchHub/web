@@ -10,15 +10,18 @@ import { Textarea } from '@/components/ui/form/Textarea';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { cn } from '@/utils/styles';
 import {
-  EXPERT_COUNT_OPTIONS,
   EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
+  clampExpertCount,
+  getExpertCountOptions,
   type ExpertCountOption,
+  type ExpertSearchEngine,
   type FindMoreExpertsPayload,
 } from '@/services/expertFinder.service';
 
 export interface FindMoreExpertsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  engine: ExpertSearchEngine;
   initialAdditionalContext: string;
   isSubmitting: boolean;
   error: string | null;
@@ -30,21 +33,25 @@ const INITIAL_EXPERT_COUNT: ExpertCountOption = 10;
 export function FindMoreExpertsModal({
   isOpen,
   onClose,
+  engine,
   initialAdditionalContext,
   isSubmitting,
   error,
   onSubmit,
 }: Readonly<FindMoreExpertsModalProps>) {
-  const [expertCount, setExpertCount] = useState<ExpertCountOption>(INITIAL_EXPERT_COUNT);
+  const expertCountOptions = getExpertCountOptions(engine);
+  const [expertCount, setExpertCount] = useState<ExpertCountOption>(() =>
+    clampExpertCount(INITIAL_EXPERT_COUNT, engine)
+  );
   const [additionalContext, setAdditionalContext] = useState(initialAdditionalContext);
   const [countOpen, setCountOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setExpertCount(INITIAL_EXPERT_COUNT);
+    setExpertCount(clampExpertCount(INITIAL_EXPERT_COUNT, engine));
     setAdditionalContext(initialAdditionalContext);
     setCountOpen(false);
-  }, [isOpen, initialAdditionalContext]);
+  }, [isOpen, initialAdditionalContext, engine]);
 
   const handleSubmit = async () => {
     const payload: FindMoreExpertsPayload = { expert_count: expertCount };
@@ -86,7 +93,7 @@ export function FindMoreExpertsModal({
           onOpenChange={setCountOpen}
         >
           <div className="py-1 max-h-60 overflow-y-auto">
-            {EXPERT_COUNT_OPTIONS.map((option) => (
+            {expertCountOptions.map((option) => (
               <DropdownItem
                 key={option}
                 onClick={() => setExpertCount(option)}

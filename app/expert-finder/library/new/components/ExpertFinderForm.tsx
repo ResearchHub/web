@@ -21,9 +21,10 @@ import {
   EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
   ExpertFinderService,
   EXPERTISE_LEVEL_ALL,
+  clampExpertCount,
+  normalizeSearchEngine,
 } from '@/services/expertFinder.service';
 import {
-  EXPERT_COUNT_OPTIONS,
   expertFinderFormSchema,
   type ExpertFinderFormValues,
   type ExpertCountOption,
@@ -37,13 +38,6 @@ import { ExpertSearchResult } from '@/types/expertFinder';
 
 const DEFAULT_URL_PLACEHOLDER = 'e.g., https://researchhub.com/paper/123/...';
 const INITIAL_EXPERT_COUNT: ExpertCountOption = 10;
-
-function toExpertCountOption(value: unknown): ExpertCountOption {
-  const n = Number(value);
-  return (EXPERT_COUNT_OPTIONS as readonly number[]).includes(n)
-    ? (n as ExpertCountOption)
-    : INITIAL_EXPERT_COUNT;
-}
 
 function getAvailableInputTypes(work: Work | null): InputType[] {
   if (work?.contentType === 'paper') {
@@ -59,6 +53,7 @@ const defaultValues: ExpertFinderFormValues = {
   url: '',
   additionalContext: '',
   advanced: {
+    engine: 'advanced',
     expertCount: INITIAL_EXPERT_COUNT,
     expertiseLevel: [],
     region: DEFAULT_REGION,
@@ -165,7 +160,8 @@ export function ExpertFinderForm() {
       setSelectedSearchId(search?.searchId ?? null);
       if (!search) return;
       const config = search.config as Record<string, unknown>;
-      const expertCount = toExpertCountOption(config.expert_count);
+      const engine = normalizeSearchEngine(config.engine);
+      const expertCount = clampExpertCount(config.expert_count, engine);
       const rawLevel = config.expertise_level;
       let expertiseLevel: ExpertiseLevel[];
       if (Array.isArray(rawLevel)) {
@@ -186,6 +182,7 @@ export function ExpertFinderForm() {
         url: current.url,
         additionalContext: search.additionalContext ?? current.additionalContext,
         advanced: {
+          engine,
           expertCount,
           expertiseLevel,
           region,
@@ -226,6 +223,7 @@ export function ExpertFinderForm() {
         input_type: adv.inputType,
         config: {
           expert_count: adv.expertCount,
+          engine: adv.engine,
           expertise_level: adv.expertiseLevel,
           region: adv.region,
           state: adv.state,

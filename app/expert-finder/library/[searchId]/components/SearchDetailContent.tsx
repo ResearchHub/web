@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import {
+  getSearchEngine,
+  isContentFilteredError,
+} from '@/app/expert-finder/lib/searchEngine';
+import {
   Loader2,
   RefreshCw,
   Download,
@@ -19,13 +23,17 @@ import toast from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
+import { LoadingButton } from '@/components/ui/LoadingButton';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { useExpertSearchDetail, useFindMoreExperts } from '@/hooks/useExpertFinder';
 import { ApiError } from '@/services/types/api';
-import { type FindMoreExpertsPayload } from '@/services/expertFinder.service';
+import {
+  clampExpertCount,
+  type FindMoreExpertsPayload,
+} from '@/services/expertFinder.service';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
@@ -156,6 +164,22 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     [findMore, searchId, refetch]
   );
 
+  const handleRetryWithBasicEngine = useCallback(async () => {
+    if (!searchDetail) return;
+    const expertCount = clampExpertCount(searchDetail.config?.expert_count, 'basic');
+    try {
+      await findMore(searchId, { expert_count: expertCount, engine: 'basic' });
+      await refetch();
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.error('Search is already running');
+        await refetch();
+        return;
+      }
+      toast.error(err instanceof Error ? err.message : 'Failed to retry with Basic engine');
+    }
+  }, [searchDetail, findMore, searchId, refetch]);
+
   const expertResults = searchDetail?.expertResults ?? [];
 
   const visibleExpertEntries = useMemo(
@@ -220,9 +244,15 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     searchDetail.expertResults.length
   );
 
+  const searchEngine = getSearchEngine(searchDetail.config);
   const statusAllowsFindMore =
     searchDetail.status === 'completed' || searchDetail.status === 'failed';
   const canFindMore = statusAllowsFindMore && !isInProgress;
+  const showContentFilterRetry =
+    searchDetail.status === 'failed' &&
+    searchEngine === 'advanced' &&
+    (isContentFilteredError(searchDetail.errorMessage) ||
+      isContentFilteredError(searchDetail.currentStep));
 
   const showCompletedResults =
     searchDetail.status === 'completed' ||
@@ -268,12 +298,35 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
       <SearchDetailHeader search={searchDetail} />
 
-      {searchDetail.status === 'failed' && (
+      {searchDetail.status === 'failed' && showContentFilterRetry ? (
+        <Alert variant="warning">
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <p className="font-semibold">Advanced search was blocked</p>
+              <p className="font-normal">
+                A content filter stopped the Advanced engine. You can still find experts with the
+                Basic engine.
+              </p>
+            </div>
+            <LoadingButton
+              type="button"
+              variant="default"
+              size="sm"
+              isLoading={isFindMoreSubmitting}
+              onClick={() => void handleRetryWithBasicEngine()}
+            >
+              Continue with Basic engine
+            </LoadingButton>
+          </div>
+        </Alert>
+      ) : null}
+
+      {searchDetail.status === 'failed' && !showContentFilterRetry ? (
         <div className="space-y-3">
           <Alert variant="error">
             <div>
               <p className="font-semibold mb-1">Search failed</p>
-              <p className="font-normal">
+              <p className="font-normal whitespace-pre-wrap">
                 {searchDetail.errorMessage || 'An error occurred while running the search.'}
               </p>
               {searchDetail.currentStep ? (
@@ -287,7 +340,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
             <div className="flex flex-wrap items-center gap-2">{findMoreButton}</div>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       {searchDetail.status === 'completed' && searchDetail.errorMessage.trim() !== '' && (
         <Alert variant="warning">
@@ -502,6 +555,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
       <FindMoreExpertsModal
         isOpen={showFindMoreModal}
         onClose={() => setShowFindMoreModal(false)}
+        engine={searchEngine}
         initialAdditionalContext={searchDetail.additionalContext}
         isSubmitting={isFindMoreSubmitting}
         error={findMoreError}

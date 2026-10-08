@@ -5,6 +5,7 @@ import {
   type Region,
 } from '@/services/expertFinder.service';
 import type { ExpertSearchResult } from '@/types/expertFinder';
+import { getSearchEngine, getSearchEngineLabel } from '@/app/expert-finder/lib/searchEngine';
 
 export interface SearchConfigLineItem {
   label: string;
@@ -33,10 +34,15 @@ function formatRegion(raw: unknown): string | null {
   return getRegionLabel(region);
 }
 
-/** Expertise level and region from search config, for the detail meta line. */
+/** Engine, expertise level, and region from search config, for the detail meta line. */
 export function getSearchConfigLineItems(search: ExpertSearchResult): SearchConfigLineItem[] {
   const config = search.config ?? {};
   const items: SearchConfigLineItem[] = [];
+
+  items.push({
+    label: 'Engine',
+    value: getSearchEngineLabel(getSearchEngine(config)),
+  });
 
   items.push({ label: 'Expertise Level', value: formatExpertiseLevels(config.expertise_level) });
 

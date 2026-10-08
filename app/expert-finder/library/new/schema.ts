@@ -3,15 +3,18 @@ import {
   ExpertiseLevel,
   EXPERT_COUNT_OPTIONS,
   EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
+  EXPERT_SEARCH_ENGINES,
+  getExpertCountOptions,
   InputType,
   Region,
   type ExpertCountOption,
+  type ExpertSearchEngine,
 } from '@/services/expertFinder.service';
 
 const INPUT_TYPES: InputType[] = ['abstract', 'pdf', 'full_content'];
 
 export { EXPERT_COUNT_OPTIONS };
-export type { ExpertCountOption };
+export type { ExpertCountOption, ExpertSearchEngine };
 
 export const DEFAULT_STATE = 'All States';
 
@@ -32,21 +35,30 @@ export const REGION_VALUES: [Region, ...Region[]] = [
   'africa_mena',
 ];
 
-export const advancedConfigSchema = z.object({
-  expertCount: z
-    .number()
-    .refine(
-      (n): n is ExpertCountOption => (EXPERT_COUNT_OPTIONS as readonly number[]).includes(n),
-      {
-        message: `Must be ${EXPERT_COUNT_OPTIONS.join(', ')}`,
-      }
-    ),
-  expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
-  region: z.enum(REGION_VALUES),
-  state: z.string(),
-  inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
-  searchName: z.string().optional().default(''),
-});
+export const ENGINE_VALUES: [ExpertSearchEngine, ...ExpertSearchEngine[]] = [
+  ...EXPERT_SEARCH_ENGINES,
+];
+
+export const advancedConfigSchema = z
+  .object({
+    engine: z.enum(ENGINE_VALUES).default('advanced'),
+    expertCount: z.number(),
+    expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
+    region: z.enum(REGION_VALUES),
+    state: z.string(),
+    inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
+    searchName: z.string().optional().default(''),
+  })
+  .superRefine((data, ctx) => {
+    const options = getExpertCountOptions(data.engine);
+    if (!(options as readonly number[]).includes(data.expertCount)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Must be ${options.join(', ')}`,
+        path: ['expertCount'],
+      });
+    }
+  });
 
 export const DOCUMENT_REQUIRED_MESSAGE =
   'Document is required. Paste a ResearchHub URL and click the checkmark to select a document.';

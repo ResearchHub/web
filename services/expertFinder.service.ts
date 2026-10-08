@@ -82,12 +82,47 @@ export function getRegionLabel(value: Region): string {
   return REGION_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
 
+export type ExpertSearchEngine = 'advanced' | 'basic';
+
+export const EXPERT_SEARCH_ENGINES = ['advanced', 'basic'] as const;
+
+/** Allowed `expert_count` values by engine (advanced max 25, basic max 100). */
+export const EXPERT_COUNT_OPTIONS_BY_ENGINE = {
+  advanced: [5, 10, 25],
+  basic: [5, 10, 25, 50, 100],
+} as const;
+
+/** Union of all allowed expert counts across engines. */
+export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS_BY_ENGINE)['basic'][number];
+
+/** All allowed counts (basic set includes advanced). Prefer getExpertCountOptions(engine). */
+export const EXPERT_COUNT_OPTIONS = EXPERT_COUNT_OPTIONS_BY_ENGINE.basic;
+
+export function normalizeSearchEngine(raw: unknown): ExpertSearchEngine {
+  return raw === 'basic' ? 'basic' : 'advanced';
+}
+
+export function getExpertCountOptions(engine: ExpertSearchEngine): readonly ExpertCountOption[] {
+  return EXPERT_COUNT_OPTIONS_BY_ENGINE[engine];
+}
+
+/** Coerce a count into a valid option for the engine; default 10. */
+export function clampExpertCount(count: unknown, engine: ExpertSearchEngine): ExpertCountOption {
+  const options = getExpertCountOptions(engine);
+  const n = Number(count);
+  if ((options as readonly number[]).includes(n)) {
+    return n as ExpertCountOption;
+  }
+  return 10;
+}
+
 export interface ExpertSearchCreatePayload {
   unified_document_id: number;
   input_type: InputType;
   name?: string;
   config: {
     expert_count: number;
+    engine: ExpertSearchEngine;
     expertise_level: ExpertiseLevel[];
     region: Region;
     state: string;
@@ -95,15 +130,13 @@ export interface ExpertSearchCreatePayload {
   additional_context?: string;
 }
 
-/** POST body for find-more on an existing search (all fields optional). */
+/** POST body for find-more on an existing search. */
 export interface FindMoreExpertsPayload {
   expert_count?: number;
+  /** When set, this run uses it and updates config.engine. */
+  engine?: ExpertSearchEngine;
   additional_context?: string;
 }
-
-/** Allowed `expert_count` values for create and find-more (API: 5–25). */
-export const EXPERT_COUNT_OPTIONS = [5, 10, 25] as const;
-export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
 
 /** PATCH body for canonical expert (wire format, snake_case). */
 export type PatchExpertPayload = Partial<{
@@ -237,6 +270,7 @@ export class ExpertFinderService {
   ): Promise<ExpertSearchCreated> {
     const body: Record<string, unknown> = {};
     if (payload?.expert_count != null) body.expert_count = payload.expert_count;
+    if (payload?.engine != null) body.engine = payload.engine;
     if (payload && 'additional_context' in payload) {
       body.additional_context = payload.additional_context ?? '';
     }
