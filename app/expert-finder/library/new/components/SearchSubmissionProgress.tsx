@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Copy, Check, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Copy, Check, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { cn } from '@/utils/styles';
+import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { useExpertSearchProgress } from '@/hooks/useExpertSearchProgress';
 import { useFindMoreExperts } from '@/hooks/useExpertFinder';
 import { ExpertFinderService, clampExpertCount } from '@/services/expertFinder.service';
@@ -20,6 +21,7 @@ const SEARCH_DETAIL_PATH = '/expert-finder/library';
 
 interface SearchSubmissionProgressProps {
   searchId: number;
+  wsUrl?: string | null;
 }
 
 function getDetailPageUrl(searchId: number): string {
@@ -27,16 +29,30 @@ function getDetailPageUrl(searchId: number): string {
   return `${globalThis.window.location.origin}${SEARCH_DETAIL_PATH}/${searchId}`;
 }
 
-export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressProps) {
+export function SearchSubmissionProgress({
+  searchId,
+  wsUrl = null,
+}: SearchSubmissionProgressProps) {
   const router = useRouter();
-  const { status, error, currentStep } = useExpertSearchProgress(searchId);
   const [{ isLoading: isRetrying }, findMore] = useFindMoreExperts();
   const [isCopied, setIsCopied] = useState(false);
   const [failedDetail, setFailedDetail] = useState<ExpertSearchResult | null>(null);
   const detailUrl = getDetailPageUrl(searchId);
 
-  const inProgress =
-    status !== 'completed' && status !== 'failed' && status !== null && status !== undefined;
+  const handleTerminal = useCallback(
+    (event: { kind: 'search_finished' | 'search_failed'; status: string }) => {
+      if (event.kind === 'search_finished' && event.status !== 'failed') {
+        router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
+      }
+    },
+    [router, searchId]
+  );
+
+  const { status, error, currentStep, progress, expertsFound } = useExpertSearchProgress({
+    searchId,
+    wsUrl,
+    onTerminal: handleTerminal,
+  });
 
   useEffect(() => {
     if (status !== 'completed') return;
@@ -109,6 +125,8 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
     statusHeading = 'Search in progress';
   }
 
+  const showLiveStatus = status !== 'failed';
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">{statusHeading}</h3>
@@ -168,22 +186,15 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
             </Link>
           </div>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-3 mb-4">
-            <Loader2 className="h-6 w-6 animate-spin text-primary-600 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm text-gray-600">Finding experts… This can take a bit of time.</p>
-              {inProgress && currentStep ? (
-                <p className="text-sm text-gray-500 mt-1">
-                  <span className="font-medium text-gray-700">Progress:</span> {currentStep}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          {error ? <p className="text-sm text-red-600 mb-4">{error}</p> : null}
-        </>
-      )}
+      ) : showLiveStatus ? (
+        <ExpertSearchLiveStatus
+          className="mb-4"
+          progress={progress}
+          currentStep={currentStep}
+          status={status}
+          expertsFound={expertsFound}
+        />
+      ) : null}
 
       <p className="text-sm text-gray-500 mb-4">
         Feel free to close this window and check results later by visiting the search details page.

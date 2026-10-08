@@ -7,6 +7,8 @@ export const WS_ROUTES = {
   NOTE_VERSIONS: (noteId: string | number) => `${getWebSocketBaseUrl()}/notebook/notes/${noteId}/`,
   ASSISTANT_CHAT: (chatId: string | number) =>
     `${getWebSocketBaseUrl()}/assistant/chats/${chatId}/`,
+  EXPERT_FINDER_SEARCH: (searchId: string | number) =>
+    `${getWebSocketBaseUrl()}/expert-finder/searches/${searchId}/`,
 };
 
 function getWebSocketBaseUrl(): string {

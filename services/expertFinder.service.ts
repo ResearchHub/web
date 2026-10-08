@@ -341,19 +341,6 @@ export class ExpertFinderService {
   }
 
   /**
-   * Open an authenticated SSE stream for expert search progress.
-   *
-   * @param searchId – expert search id
-   * @param signal – optional AbortSignal to cancel the request
-   * @returns Response with response.body as ReadableStream (SSE)
-   */
-  static openProgressStream(searchId: number | string, signal?: AbortSignal): Promise<Response> {
-    return ApiClient.getStream(`${this.BASE_PATH}/progress/${searchId}/`, {
-      signal,
-    });
-  }
-
-  /**
    * Fetches a work by content type and document ID (for preview, etc.).
    *
    * @throws {Error} if the document cannot be fetched

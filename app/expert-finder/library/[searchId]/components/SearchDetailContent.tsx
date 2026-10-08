@@ -1,24 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import {
-  getSearchEngine,
-  isContentFilteredError,
-} from '@/app/expert-finder/lib/searchEngine';
-import {
-  Loader2,
-  RefreshCw,
-  Download,
-  Mail,
-  MailCheck,
-  MailX,
-  UserPlus,
-  MoreVertical,
-  Search,
-} from 'lucide-react';
+import { getSearchEngine, isContentFilteredError } from '@/app/expert-finder/lib/searchEngine';
+import { Download, Mail, MailCheck, MailX, UserPlus, MoreVertical, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -29,11 +17,14 @@ import { Tabs } from '@/components/ui/Tabs';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { useExpertSearchDetail, useFindMoreExperts } from '@/hooks/useExpertFinder';
-import { ApiError } from '@/services/types/api';
 import {
-  clampExpertCount,
-  type FindMoreExpertsPayload,
-} from '@/services/expertFinder.service';
+  clearExpertSearchAppendBaseline,
+  getExpertSearchAppendBaseline,
+  markExpertSearchAppendBaseline,
+  useExpertSearchProgress,
+} from '@/hooks/useExpertSearchProgress';
+import { ApiError } from '@/services/types/api';
+import { clampExpertCount, type FindMoreExpertsPayload } from '@/services/expertFinder.service';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
@@ -43,6 +34,17 @@ import { FindMoreExpertsModal } from './FindMoreExpertsModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
 import { expertHasOutreachHistory, type ExpertResult } from '@/types/expertFinder';
+
+function isFindMoreStep(step: string | null | undefined): boolean {
+  return /find(?:ing)? more/i.test(step ?? '');
+}
+
+function existingExpertsBaseline(detail: {
+  expertResults: { length: number };
+  expertCount: number;
+}): number {
+  return Math.max(detail.expertResults.length, detail.expertCount);
+}
 
 export interface SearchDetailContentProps {
   searchId: string;
@@ -104,6 +106,13 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
   const [showAddExpertModal, setShowAddExpertModal] = useState(false);
   const [showFindMoreModal, setShowFindMoreModal] = useState(false);
+  const [liveRunKey, setLiveRunKey] = useState(0);
+  const [liveExpertsBaseline, setLiveExpertsBaseline] = useState(() =>
+    getExpertSearchAppendBaseline(searchId)
+  );
+  const [appendLiveActive, setAppendLiveActive] = useState(
+    () => getExpertSearchAppendBaseline(searchId) > 0
+  );
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [hideContacted, setHideContacted] = useState(false);
@@ -112,9 +121,80 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
   const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
 
-  const isInProgress =
+  const serverInProgress =
     searchDetail != null &&
     (searchDetail.status === 'pending' || searchDetail.status === 'processing');
+  const isInProgress = appendLiveActive || serverInProgress;
+
+  const handleLiveTerminal = useCallback(() => {
+    setAppendLiveActive(false);
+    clearExpertSearchAppendBaseline(searchId);
+    void refetch();
+  }, [refetch, searchId]);
+
+  const beginAppendLiveRun = useCallback(() => {
+    const baseline = searchDetail ? existingExpertsBaseline(searchDetail) : 0;
+    markExpertSearchAppendBaseline(searchId, baseline);
+    setLiveExpertsBaseline(baseline);
+    setLiveRunKey((key) => key + 1);
+    setAppendLiveActive(true);
+  }, [searchDetail, searchId]);
+
+  // Recover append baseline after refresh / remount while find-more is still running.
+  useEffect(() => {
+    if (!serverInProgress || !searchDetail) return;
+    const stored = getExpertSearchAppendBaseline(searchId);
+    if (stored > 0) {
+      setLiveExpertsBaseline(stored);
+      setAppendLiveActive(true);
+      setLiveRunKey((key) => (key > 0 ? key : 1));
+      return;
+    }
+    if (isFindMoreStep(searchDetail.currentStep) && searchDetail.expertResults.length > 0) {
+      const baseline = existingExpertsBaseline(searchDetail);
+      markExpertSearchAppendBaseline(searchId, baseline);
+      setLiveExpertsBaseline(baseline);
+      setAppendLiveActive(true);
+      setLiveRunKey((key) => (key > 0 ? key : 1));
+    }
+  }, [serverInProgress, searchDetail, searchId]);
+
+  const isAppendLiveRun =
+    liveRunKey > 0 || liveExpertsBaseline > 0 || getExpertSearchAppendBaseline(searchId) > 0;
+
+  const liveSeed = useMemo(() => {
+    if (appendLiveActive && searchDetail?.status === 'completed') {
+      return {
+        status: 'processing' as const,
+        progress: 0,
+        currentStep: 'Finding more experts…',
+      };
+    }
+    if (!searchDetail) {
+      return appendLiveActive
+        ? { status: 'processing' as const, progress: 0, currentStep: 'Finding more experts…' }
+        : undefined;
+    }
+    return {
+      status: appendLiveActive ? 'processing' : searchDetail.status,
+      progress: searchDetail.progress,
+      currentStep: searchDetail.currentStep || (isAppendLiveRun ? 'Finding more experts…' : ''),
+    };
+  }, [searchDetail, isAppendLiveRun, appendLiveActive]);
+
+  const {
+    progress: liveProgress,
+    currentStep: liveCurrentStep,
+    status: liveStatus,
+    expertsFound: liveExpertsFound,
+  } = useExpertSearchProgress({
+    searchId,
+    enabled: isInProgress,
+    runKey: liveRunKey,
+    expertsBaseline: liveExpertsBaseline,
+    seed: liveSeed,
+    onTerminal: handleLiveTerminal,
+  });
 
   const toggleSelection = useCallback((index: number) => {
     setSelectedIndices((prev) => {
@@ -145,28 +225,38 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     setSelectedIndices(new Set());
   }, []);
 
+  const abortAppendLiveRun = useCallback(() => {
+    setAppendLiveActive(false);
+    setLiveExpertsBaseline(0);
+    clearExpertSearchAppendBaseline(searchId);
+  }, [searchId]);
+
   const handleFindMoreSubmit = useCallback(
     async (payload: FindMoreExpertsPayload) => {
+      beginAppendLiveRun();
       try {
         await findMore(searchId, payload);
         setShowFindMoreModal(false);
         await refetch();
       } catch (err: unknown) {
         if (err instanceof ApiError && err.status === 409) {
+          // Already running — keep live mode and sync status.
           toast.error('Search is already running');
           setShowFindMoreModal(false);
           await refetch();
           return;
         }
+        abortAppendLiveRun();
         // Modal surfaces findMoreError from the hook
       }
     },
-    [findMore, searchId, refetch]
+    [beginAppendLiveRun, abortAppendLiveRun, findMore, searchId, refetch]
   );
 
   const handleRetryWithBasicEngine = useCallback(async () => {
     if (!searchDetail) return;
     const expertCount = clampExpertCount(searchDetail.config?.expert_count, 'basic');
+    beginAppendLiveRun();
     try {
       await findMore(searchId, { expert_count: expertCount, engine: 'basic' });
       await refetch();
@@ -176,9 +266,10 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         await refetch();
         return;
       }
+      abortAppendLiveRun();
       toast.error(err instanceof Error ? err.message : 'Failed to retry with Basic engine');
     }
-  }, [searchDetail, findMore, searchId, refetch]);
+  }, [searchDetail, beginAppendLiveRun, abortAppendLiveRun, findMore, searchId, refetch]);
 
   const expertResults = searchDetail?.expertResults ?? [];
 
@@ -354,29 +445,18 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         </Alert>
       )}
 
-      {isInProgress && (
-        <div className="flex flex-wrap items-center gap-3" aria-live="polite">
-          <Loader2 className="h-5 w-5 animate-spin text-primary-600 shrink-0" aria-hidden />
-          <p className="text-sm text-gray-600 min-w-0 flex-1">
-            Finding experts…
-            {' This can take a bit of time.'}
-          </p>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            onClick={() => void refetch()}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
-            ) : (
-              <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
-            )}
-            <span>{isLoading ? 'Refreshing…' : 'Refresh'}</span>
-          </Button>
-        </div>
-      )}
+      {isInProgress ? (
+        <ExpertSearchLiveStatus
+          progress={liveProgress}
+          currentStep={
+            liveCurrentStep ||
+            (isAppendLiveRun ? 'Finding more experts…' : searchDetail.currentStep)
+          }
+          status={liveStatus ?? (appendLiveActive ? 'processing' : searchDetail.status)}
+          expertsFound={liveExpertsFound}
+          isAppendRun={isAppendLiveRun}
+        />
+      ) : null}
 
       {showCompletedResults && (
         <>

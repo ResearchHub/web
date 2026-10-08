@@ -68,6 +68,7 @@ export function ExpertFinderForm() {
   const searchParams = useSearchParams();
   const [{ error: submitError }, createSearch] = useCreateExpertSearch();
   const [createdSearchId, setCreatedSearchId] = useState<number | null>(null);
+  const [createdWsUrl, setCreatedWsUrl] = useState<string | null>(null);
   const [resolveError, setResolveError] = useState<string | null>(null);
   const [selectedSearchId, setSelectedSearchId] = useState<number | null>(null);
   const [isResolvingUrl, setIsResolvingUrl] = useState(false);
@@ -234,6 +235,7 @@ export function ExpertFinderForm() {
 
       const response = await createSearch(payload);
       setCreatedSearchId(response.searchId);
+      setCreatedWsUrl(response.wsUrl);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to start search. Please try again.';
@@ -242,7 +244,7 @@ export function ExpertFinderForm() {
   };
 
   if (createdSearchId !== null) {
-    return <SearchSubmissionProgress searchId={createdSearchId} />;
+    return <SearchSubmissionProgress searchId={createdSearchId} wsUrl={createdWsUrl} />;
   }
 
   const urlRegister = register('url');
