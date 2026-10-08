@@ -71,8 +71,10 @@ interface MyFundingHeroProps {
 export function MyFundingHero({ headline, line, covers, tabs }: MyFundingHeroProps) {
   return (
     <section aria-label="Your funding" className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-[1012px] px-4 pt-10 tablet:!px-8 sm:pt-16">
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mx-auto max-w-[1012px] px-4 pt-10 tablet:!px-8 sm:pt-12">
+        {/* From lg, as tall as the Journal and Peer Review heroes (350px with the
+            padding above): the headline centers in the room above the tabs. */}
+        <div className="lg:grid lg:min-h-[302px] lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-[1fr_auto]">
           <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:self-center">
             <h1 className={HEADLINE} style={DISPLAY_FONT}>
               {headline}
@@ -80,10 +82,10 @@ export function MyFundingHero({ headline, line, covers, tabs }: MyFundingHeroPro
             {line && <p className="mt-4 text-lg text-gray-600">{line}</p>}
           </div>
           {/* Pulled up by the header's top padding, so the deck centers on the whole header. */}
-          <div className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mr-6 lg:-mt-16 lg:flex lg:items-center lg:justify-end">
-            <CoverDeck covers={covers} size="hero" />
+          <div className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mr-6 lg:-mt-12 lg:flex lg:items-center lg:justify-end">
+            <CoverDeck covers={covers} />
           </div>
-          <div className="mt-8 min-w-0 sm:mt-12 lg:col-start-1 lg:row-start-2 lg:self-end">
+          <div className="mt-8 min-w-0 sm:mt-10 lg:col-start-1 lg:row-start-2 lg:self-end">
             {tabs}
           </div>
         </div>
@@ -104,8 +106,9 @@ interface MyFundingWelcomeHeroProps {
 export function MyFundingWelcomeHero({ line, actions }: MyFundingWelcomeHeroProps) {
   return (
     <section aria-label="My Funding" className="border-b border-gray-200 bg-gray-50">
-      <div className="mx-auto max-w-[1012px] px-4 py-12 tablet:!px-8 sm:py-16">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto max-w-[1012px] px-4 py-10 tablet:!px-8 sm:py-12">
+        {/* From lg, as tall as the Journal and Peer Review heroes. */}
+        <div className="flex flex-col gap-8 lg:min-h-[254px] lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 max-w-2xl">
             <h1 className={HEADLINE} style={DISPLAY_FONT}>
               Fund the <HeadlineAmount>science</HeadlineAmount> you care about, or get yours funded.
@@ -128,26 +131,16 @@ const FAN_POSITIONS = [
 
 /**
  * Up to three cards fanned like the Journal's issue cards. Wide screens only.
- * The deck is laid out at one size and scaled to fit where it sits: beside the
- * welcome's headline, or in the signed-in header's right-hand column.
+ * The deck is laid out at one size and scaled to sit beside a headline.
  */
-export const DECK_SIZE = {
-  full: { box: 'h-[260px] w-[364px]', scale: 'scale-[0.866]' },
-  hero: { box: 'h-[246px] w-[345px]', scale: 'scale-[0.82]' },
-} as const;
+export const DECK_SIZE = { box: 'h-[246px] w-[345px]', scale: 'scale-[0.82]' } as const;
 
-function CoverDeck({
-  covers,
-  size = 'full',
-}: {
-  readonly covers: readonly HeroCover[];
-  readonly size?: keyof typeof DECK_SIZE;
-}) {
+function CoverDeck({ covers }: { readonly covers: readonly HeroCover[] }) {
   const shown = covers.slice(0, 3);
   if (shown.length === 0) return null;
   // One card sits in the middle; two take the outer places.
   const places = shown.length === 1 ? [1] : shown.length === 2 ? [0, 2] : [0, 1, 2];
-  const { box, scale } = DECK_SIZE[size];
+  const { box, scale } = DECK_SIZE;
   return (
     <div aria-hidden="true" className={cn('relative hidden flex-shrink-0 lg:block', box)}>
       <div className={cn('absolute left-0 top-0 h-[300px] w-[420px] origin-top-left', scale)}>

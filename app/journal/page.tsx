@@ -37,7 +37,7 @@ const PIPELINE_STEPS = [
 ] as const;
 
 const JournalIssueCards = () => (
-  <div className="relative aspect-[3/4] w-[11.7rem] flex-shrink-0 sm:w-[13.5rem]">
+  <div className="relative aspect-[3/4] w-[11.7rem] flex-shrink-0">
     <div
       aria-hidden="true"
       className="absolute -inset-6 origin-bottom -rotate-[6deg] rounded-[2.5rem] bg-primary-500/25 blur-2xl"
@@ -83,7 +83,7 @@ const JournalIssueCards = () => (
 );
 
 const JournalTimeline = () => (
-  <div className="mt-8 w-full max-w-lg overflow-x-auto pb-1">
+  <div className="mt-6 w-full max-w-lg overflow-x-auto pb-1">
     <div className="grid grid-cols-2">
       {PIPELINE_STEPS.map((step, index) => {
         const isCurrent = step.href === null;
@@ -168,7 +168,7 @@ const MobileJournalDetails = () => (
 
 const JournalHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
-    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-16 tablet:!px-8 sm:py-20">
+    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-10 tablet:!px-8 sm:py-12">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           <h1
@@ -187,7 +187,8 @@ const JournalHero = () => (
           <JournalTimeline />
         </div>
 
-        <div className="flex justify-center lg:justify-end lg:pr-6">
+        {/* Wide screens only, and no taller than the text beside it, as on My Funding. */}
+        <div className="hidden lg:flex lg:justify-end lg:pr-6">
           <JournalIssueCards />
         </div>
       </div>
