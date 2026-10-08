@@ -304,6 +304,14 @@ export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProp
             <div className="flex-1" />
           )}
 
+          {/* This chat's menu, then History of the document's chats. */}
+          {chatId != null && !renaming && (
+            <ChatMenu
+              title={title}
+              onRename={() => setRenaming(true)}
+              onDelete={() => void state.deleteChat(chatId)}
+            />
+          )}
           {!listBlocked && (
             <ChatPicker
               chats={listReady ? list.chats : []}
@@ -324,13 +332,6 @@ export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProp
                   <History className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
               }
-            />
-          )}
-          {chatId != null && !renaming && (
-            <ChatMenu
-              title={title}
-              onRename={() => setRenaming(true)}
-              onDelete={() => void state.deleteChat(chatId)}
             />
           )}
           {headerActions}
