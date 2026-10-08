@@ -57,6 +57,11 @@ export default {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        // The same loop upward, for a list rendered twice over.
+        'feed-scroll': {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-50%)' },
+        },
         // Light streak sweeping across an element. The skew is baked in because
         // the animated transform would otherwise override a skew utility class.
         shimmer: {
@@ -94,6 +99,7 @@ export default {
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
         'logo-marquee': 'logo-marquee 32s linear infinite',
+        'feed-scroll': 'feed-scroll 26s linear infinite',
         // Single sweep. `both` keeps the streak parked off-screen during the
         // delay instead of sitting mid-element until it starts.
         shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
