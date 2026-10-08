@@ -177,7 +177,10 @@ export function MyFundingPage() {
     () => buildOwnProposals(documents.published, lastOwnUpdates(activity.entries, authorId), now),
     [documents.published, activity.entries, authorId, now]
   );
-  const ownFunders = useMemo(() => buildOwnFunders(ownProposals), [ownProposals]);
+  const ownFunders = useMemo(
+    () => buildOwnFunders(ownProposals, authorId),
+    [ownProposals, authorId]
+  );
   const upNext = useMemo(
     () =>
       buildUpNext({

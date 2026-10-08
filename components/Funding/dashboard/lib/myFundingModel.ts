@@ -383,10 +383,15 @@ export function lastOwnUpdates(
 }
 
 /** The people backing the user's own proposals, with how many proposals each backed. */
-export function buildOwnFunders(proposals: readonly OwnProposalModel[]): AuthorProfile[] {
+export function buildOwnFunders(
+  proposals: readonly OwnProposalModel[],
+  /** The proposals' author, who may have given to their own proposal but is not their own funder. */
+  selfAuthorId?: number
+): AuthorProfile[] {
   const seen = new Map<number, AuthorProfile>();
   for (const proposal of proposals) {
     for (const funder of proposal.funders) {
+      if (funder.id === selfAuthorId) continue;
       if (!seen.has(funder.id)) seen.set(funder.id, funder);
     }
   }
