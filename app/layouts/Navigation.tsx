@@ -8,12 +8,8 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sparkles, Sprout, Star } from 'lucide-react';
-import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
-import { AI_MODE_NAME } from '@/components/AIMode/copy';
+import { Sprout, Star } from 'lucide-react';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
-import { useUser } from '@/contexts/UserContext';
-import { isHubEditorOrModerator } from '@/utils/permissions';
 import { cn } from '@/utils/styles';
 
 interface NavIcon {
@@ -21,7 +17,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'fund' | 'journal' | 'notebook' | 'home';
+type NavIconKey = 'fund' | 'journal' | 'home';
 
 interface NavigationItem {
   label: string;
@@ -34,14 +30,16 @@ interface NavigationItem {
   isLucideStar?: boolean;
   isLucideSprout?: boolean;
   isHome?: boolean;
-  /** Toggles the AI Mode overlay in place instead of navigating. */
-  isAIMode?: boolean;
 }
 
 interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
   forceMinimize?: boolean;
+  /** A parent scrolls the nav along with what follows it, so it neither grows nor scrolls itself. */
+  inScrollArea?: boolean;
+  /** Runs once a link is followed: the menu holding the nav closes. */
+  onNavigate?: () => void;
 }
 
 const navIconMap: Record<NavIconKey, NavIcon> = {
@@ -57,21 +55,15 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
     light: 'rhJournal1',
     solid: 'rhJournal2',
   },
-  notebook: {
-    light: 'labNotebook2',
-    solid: 'notebookBold',
-  },
 };
 
 export const Navigation: React.FC<NavigationProps> = ({
   currentPath,
   onUnimplementedFeature,
   forceMinimize = false,
+  inScrollArea = false,
+  onNavigate,
 }) => {
-  const { user } = useUser();
-  // The assistant is gated server-side to moderators and hub editors; nobody
-  // else gets a door to a room they cannot enter.
-  const canUseAssistant = isHubEditorOrModerator(user);
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
@@ -101,33 +93,17 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
-      label: 'Notebook',
-      href: '/notebook',
-      iconKey: 'notebook',
-      requiresAuth: true,
-      description: 'Access your research notebook',
-    },
-    {
       label: 'Endowment',
       href: '/endowment',
       isLucideSprout: true,
       description: 'Learn about the ResearchHub Endowment',
-    },
-    {
-      label: AI_MODE_NAME,
-      href: '#',
-      isAIMode: true,
-      requiresAuth: true,
-      description: 'Chat with the research assistant',
     },
   ];
 
   const getButtonStyles = (isActive: boolean) => {
     return cn(
       'flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-medium transition-colors',
-      forceMinimize
-        ? '!justify-center !px-2'
-        : 'tablet:max-sidebar-compact:!justify-center tablet:max-sidebar-compact:!px-2',
+      forceMinimize && '!justify-center !px-2',
       isActive
         ? 'bg-primary-50 font-semibold text-primary-600'
         : 'font-medium text-gray-700 hover:bg-gray-50'
@@ -147,10 +123,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath === '/my-funding';
     }
 
-    if (path === '/notebook') {
-      return currentPath.startsWith('/notebook');
-    }
-
     if (path === '/endowment') {
       return currentPath.startsWith('/endowment');
     }
@@ -164,8 +136,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   }> = ({ item, onUnimplementedFeature }) => {
     const { executeAuthenticatedAction } = useAuthenticatedAction();
     const router = useRouter();
-    const aiMode = useOptionalAIMode();
-    const isActive = item.isAIMode ? Boolean(aiMode?.isOpen) : isPathActive(item.href, item.isHome);
+    const isActive = isPathActive(item.href, item.isHome);
     const buttonStyles = getButtonStyles(isActive);
 
     const iconColor = isActive ? '#3971ff' : '#404040';
@@ -186,47 +157,25 @@ export const Navigation: React.FC<NavigationProps> = ({
 
       if (item.requiresAuth) {
         e.preventDefault();
-        executeAuthenticatedAction(() => router.push(item.href));
+        executeAuthenticatedAction(() => {
+          router.push(item.href);
+          onNavigate?.();
+        });
         return;
       }
+      onNavigate?.();
     };
 
     const isHomeIcon = item.isFontAwesome && item.iconKey === 'home';
 
     const iconContainerClass = cn(
       'flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center',
-      forceMinimize ? 'mr-0' : 'mr-3.5 tablet:max-sidebar-compact:!mr-0'
+      forceMinimize ? 'mr-0' : 'mr-3.5'
     );
 
-    const textContainerClass = forceMinimize
-      ? 'hidden'
-      : 'flex w-full min-w-0 items-center tablet:max-sidebar-compact:!hidden';
+    const textContainerClass = forceMinimize ? 'hidden' : 'flex w-full min-w-0 items-center';
 
-    if (item.isAIMode) {
-      // Same row as the links, but it is a toggle: the overlay opens in place
-      // and the URL only gains a query param.
-      return (
-        <button
-          type="button"
-          onClick={() => executeAuthenticatedAction(() => aiMode?.toggle())}
-          className={buttonStyles}
-          aria-pressed={isActive}
-          title={item.description}
-        >
-          <div className={iconContainerClass}>
-            <Sparkles
-              size={22}
-              color={iconColor}
-              strokeWidth={2}
-              fill={isActive ? iconColor : 'none'}
-            />
-          </div>
-          <div className={textContainerClass}>
-            <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
-          </div>
-        </button>
-      );
-    }
+    const label = <span className="min-w-0 truncate">{item.label}</span>;
 
     return (
       <Link
@@ -258,9 +207,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             <div className="w-[26px] h-[26px]" />
           )}
         </div>
-        <div className={textContainerClass}>
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">{item.label}</span>
-        </div>
+        <div className={textContainerClass}>{label}</div>
       </Link>
     );
   };
@@ -269,16 +216,15 @@ export const Navigation: React.FC<NavigationProps> = ({
     <nav
       aria-label="Primary navigation"
       className={cn(
-        'flex-1 overflow-y-auto px-3 pt-6',
-        forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'
+        'px-3 pt-6',
+        !inScrollArea && 'flex-1 overflow-y-auto',
+        forceMinimize && '!px-2'
       )}
     >
       <div className="space-y-2">
-        {navigationItems
-          .filter((item) => !item.isAIMode || canUseAssistant)
-          .map((item) => (
-            <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
-          ))}
+        {navigationItems.map((item) => (
+          <NavLink key={item.label} item={item} onUnimplementedFeature={onUnimplementedFeature} />
+        ))}
       </div>
     </nav>
   );

@@ -9,6 +9,8 @@ import { cn } from '@/utils/styles';
 interface BaseMenuProps {
   children: ReactNode;
   trigger: ReactNode;
+  /** Which side of the trigger the menu opens on; below it unless there is no room. */
+  side?: 'top' | 'right' | 'bottom' | 'left';
   align?: 'start' | 'center' | 'end';
   className?: string;
   withOverlay?: boolean;
@@ -23,6 +25,7 @@ interface BaseMenuProps {
 export const BaseMenu: FC<BaseMenuProps> = ({
   children,
   trigger,
+  side,
   align = 'end',
   className,
   withOverlay = false,
@@ -80,6 +83,7 @@ export const BaseMenu: FC<BaseMenuProps> = ({
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
+            side={side}
             align={align}
             sideOffset={sideOffset}
             className={cn(

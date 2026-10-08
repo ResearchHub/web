@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useState, useCallback } from 'react';
-import { Bell, Coins, FileText, FileUp, Lock } from 'lucide-react';
+import { Coins, FileText, FileUp, Lock } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { faFileSignature as faFileSignatureSolid } from '@fortawesome/pro-solid-svg-icons';
@@ -21,6 +21,10 @@ import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 import { GrantFundingPoolWidget } from './GrantFundingPoolWidget';
 import { PendingReviewBadge } from './PendingReviewBadge';
+import {
+  RadiatingDotTabIcon,
+  RadiatingDotTabIconActive,
+} from '@/components/ui/RadiatingDotTabIcon';
 
 interface WorkHeaderGrantProps {
   work: Work;
@@ -155,7 +159,9 @@ export function WorkHeaderGrant({
         />
         {isPoolOpen && (
           <p
-            className="mt-2 px-1 text-center text-xs leading-snug text-gray-500"
+            // Bottom margin: the footnote is the header's lowest line, and
+            // without it sits right on the header's rule.
+            className="mb-3 mt-2 px-1 text-center text-xs leading-snug text-gray-500"
             data-testid="grant-funding-pool-value-line"
           >
             Every dollar you add goes to the proposals. {organization || 'the funder'} picks.
@@ -227,8 +233,7 @@ export function WorkHeaderGrant({
       id: 'activity' as const,
       label: (
         <div className="flex items-center">
-          <Bell className="h-4 w-4 mr-2" />
-          <span>Updates</span>
+          <span>Activity</span>
           {activityCount > 0 && (
             <span
               className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
@@ -242,10 +247,22 @@ export function WorkHeaderGrant({
           )}
         </div>
       ),
+      icon: RadiatingDotTabIcon,
+      activeIcon: RadiatingDotTabIconActive,
+      iconClassName: 'h-[18px] w-[18px]',
     },
   ];
 
-  const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
+  // Beside the pool widget the tabs sit on the header's own bottom edge, so
+  // their own rule would only double it.
+  const tabs = (
+    <Tabs
+      tabs={grantTabs}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      className={showPoolWidget ? '!border-b-0' : undefined}
+    />
+  );
 
   const grantTitle = work.note?.post?.grant?.shortTitle || work.title;
 
@@ -262,6 +279,9 @@ export function WorkHeaderGrant({
         primaryAction={primaryAction}
         hideVoteWidget
         alignTop={showPoolWidget}
+        // The pool widget is tall: the tabs fill the room under the title
+        // beside it, level with its footnote, instead of a row beneath both.
+        inlineTabs={showPoolWidget}
         grantModalProps={
           grantId
             ? {

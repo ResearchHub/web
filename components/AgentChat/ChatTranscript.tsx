@@ -190,9 +190,16 @@ interface ChatTranscriptProps {
    * transcript stays ignorant of what a turn can make.
    */
   readonly renderExecutionExtra?: (execution: ChatExecution) => ReactNode;
+  /** What to offer under a failed turn's error, inside its box (see ExecutionProgress). */
+  readonly renderFailureActions?: (execution: ChatExecution) => ReactNode;
 }
 
-export function ChatTranscript({ chat, pendingSend, renderExecutionExtra }: ChatTranscriptProps) {
+export function ChatTranscript({
+  chat,
+  pendingSend,
+  renderExecutionExtra,
+  renderFailureActions,
+}: ChatTranscriptProps) {
   const entries = useMemo(() => buildTranscript(chat, pendingSend), [chat, pendingSend]);
 
   return (
@@ -225,7 +232,10 @@ export function ChatTranscript({ chat, pendingSend, renderExecutionExtra }: Chat
           case 'execution':
             return (
               <div key={entry.key} className="space-y-3">
-                <ExecutionProgress execution={entry.execution} />
+                <ExecutionProgress
+                  execution={entry.execution}
+                  failureActions={renderFailureActions?.(entry.execution)}
+                />
                 {entry.answer && (
                   <AssistantBubble
                     content={entry.answer.content}

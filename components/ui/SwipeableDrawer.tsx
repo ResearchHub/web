@@ -1,7 +1,7 @@
 'use client';
 
 import { X as CloseIcon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface SwipeableDrawerProps {
@@ -48,20 +48,6 @@ interface SwipeableDrawerProps {
    * @default 50
    */
   swipeThreshold?: number;
-
-  /**
-   * Stacking level of the backdrop; the drawer sits one above it. Raise it
-   * when the drawer opens over a layer above the page (a full-screen overlay).
-   * @default 1000
-   */
-  zIndex?: number;
-
-  /**
-   * Where the drawer portals to. Defaults to the body; a modal layer that
-   * inerts the rest of the page passes its own root so the drawer stays
-   * inside the live subtree.
-   */
-  container?: HTMLElement | null;
 }
 
 /**
@@ -77,11 +63,8 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   showCloseButton = true,
   className = '',
   swipeThreshold = 50,
-  zIndex = 1000,
-  container,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -123,19 +106,10 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
     setTouchEnd(null);
   };
 
-  // Close the drawer when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (drawerRef.current && !drawerRef.current.contains(event.target as Node) && isOpen) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+  // A tap outside the drawer lands on the backdrop, which closes it. Not a
+  // document-wide listener: a dialog opened from inside the drawer renders in
+  // a portal outside it, and every tap in that dialog would close the drawer
+  // (and the dialog with it).
 
   // Handle ESC key press
   useEffect(() => {
@@ -159,21 +133,19 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/50 z-[1000] transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        style={{ zIndex }}
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Drawer */}
       <div
-        ref={drawerRef}
-        className={`fixed bottom-0 left-0 right-0 bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed bottom-0 left-0 right-0 z-[1001] bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         } ${className}`}
-        style={{ height, zIndex: zIndex + 1 }}
+        style={{ height }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -210,7 +182,8 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
     </>
   );
 
-  return createPortal(drawerContent, container ?? document.body);
+  // Use createPortal to mount drawer to body
+  return createPortal(drawerContent, document.body);
 };
 
 export default SwipeableDrawer;

@@ -2,10 +2,14 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { GraduationCap, Scale, Users, FileText, type LucideIcon } from 'lucide-react';
+import { Ban, FlaskConical, HandCoins, Users, FileText, type LucideIcon } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
+import { cn } from '@/utils/styles';
 
-type ConfirmPublishVariant = 'default' | 'rfp';
+export type ConfirmPublishVariant = 'default' | 'rfp';
+
+/** A work cannot be published under a shorter title. */
+export const MIN_PUBLISH_TITLE_LENGTH = 20;
 
 interface ConfirmPublishModalProps {
   isOpen: boolean;
@@ -30,29 +34,61 @@ interface GuidelineConfig {
   items: GuidelineItem[];
 }
 
-const GUIDELINES: Record<ConfirmPublishVariant, GuidelineConfig> = {
+/** What an author agrees to when publishing. */
+const PUBLISH_GUIDELINES: Record<ConfirmPublishVariant, GuidelineConfig> = {
   default: {
     heading: 'Guidelines for posts',
     items: [
-      { icon: GraduationCap, text: 'Stick to academically appropriate topics' },
-      {
-        icon: Scale,
-        text: 'Focus on presenting objective results and remain unbiased in your commentary',
-      },
+      { icon: FlaskConical, text: 'Stick to scientific topics' },
+      { icon: Ban, text: 'Don’t post illegal content or spam' },
       { icon: Users, text: 'Be respectful of differing opinions, viewpoints, and experiences' },
       { icon: FileText, text: 'Do not plagiarize any content, keep it original' },
     ],
   },
   rfp: {
-    heading: 'Guidelines for Request for Proposals',
+    heading: 'Guidelines for Requests for Proposals',
     items: [
-      { icon: GraduationCap, text: 'Stick to academically appropriate topics' },
-      { icon: Scale, text: 'Clearly describe the scope and expectations for proposals' },
-      { icon: Users, text: 'Be transparent about funding amounts and timelines' },
-      { icon: FileText, text: 'Include evaluation criteria for submitted proposals' },
+      {
+        icon: HandCoins,
+        text: 'Only create an RFP if you intend to distribute the stated funding amount.',
+      },
+      { icon: FileText, text: 'Describe the scope and expectations of your RFP clearly.' },
+      { icon: FlaskConical, text: 'Stick to truth-seeking science.' },
     ],
   },
 };
+
+interface PublishGuidelinesProps {
+  variant: ConfirmPublishVariant;
+  className?: string;
+  /** The icons' colour; the notebook's indigo unless told otherwise. */
+  iconClassName?: string;
+}
+
+/** The guidelines an author agrees to, as a gray box: a heading and the list. */
+export function PublishGuidelines({
+  variant,
+  className,
+  iconClassName = 'text-indigo-600',
+}: PublishGuidelinesProps) {
+  const guidelines = PUBLISH_GUIDELINES[variant];
+  return (
+    <div className={cn('rounded-lg bg-gray-50 p-4', className)}>
+      <h4 className="mb-3 text-sm font-medium text-gray-900">{guidelines.heading}</h4>
+      <ul className="space-y-3">
+        {guidelines.items.map((item) => (
+          <li key={item.text} className="flex items-start gap-2">
+            <item.icon
+              className={cn('mt-0.5 h-[18px] w-[18px] flex-shrink-0', iconClassName)}
+              strokeWidth={2}
+            />
+            <span className="text-sm text-gray-600">{item.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function ConfirmPublishModal({
   isOpen,
@@ -64,16 +100,15 @@ export function ConfirmPublishModal({
   isUpdate,
   variant = 'default',
   documentLabel,
-  // Matches BaseModal: above the AI Mode overlay (9500), which hosts the publishing form.
+  // Matches BaseModal.
   zIndex = 9999,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
 
-  const isTitleValid = title.trim().length >= 20;
+  const isTitleValid = title.trim().length >= MIN_PUBLISH_TITLE_LENGTH;
   const isPublishEnabled = isTitleValid && hasAgreed;
 
-  const guidelines = GUIDELINES[variant];
   const resolvedDocumentLabel =
     documentLabel ?? (variant === 'rfp' ? 'request for proposal' : 'research proposal');
 
@@ -127,20 +162,7 @@ export function ConfirmPublishModal({
                     placeholder="Enter title..."
                   />
 
-                  <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                    <h4 className="font-medium text-sm text-gray-900 mb-3">{guidelines.heading}</h4>
-                    <ul className="space-y-3">
-                      {guidelines.items.map((item) => (
-                        <li key={item.text} className="flex items-start gap-2">
-                          <item.icon
-                            className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                            strokeWidth={2}
-                          />
-                          <span className="text-sm text-gray-600">{item.text}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <PublishGuidelines variant={variant} className="mb-6" />
 
                   <div className="flex items-start gap-2 mb-6">
                     <Checkbox

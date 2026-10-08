@@ -1,7 +1,10 @@
+import 'cal-sans/index.css';
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { PeerReviewHero, PeerReviewHowItWorks } from './PeerReviewHero';
+import { MobilePeerReviewDetails, PeerReviewSidebar } from './PeerReviewSidebar';
 import { ReviewsPageContent } from './ReviewsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
@@ -13,7 +16,16 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default async function PeerReviewPage() {
   return (
-    <PageLayout contentWidth="narrow">
+    <PageLayout
+      topBanner={
+        <>
+          <PeerReviewHero />
+          <PeerReviewHowItWorks />
+        </>
+      }
+      rightSidebar={<PeerReviewSidebar />}
+      rightSidebarTopOffset="aligned"
+    >
       <section className="sr-only">
         <p>
           ResearchHub compensates researchers for peer-reviewing scientific proposals. Unlike
@@ -45,11 +57,11 @@ export default async function PeerReviewPage() {
           ways it can improve.
         </p>
       </section>
+      <MobilePeerReviewDetails />
       <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
         <RadiatingDot ring color="bg-orange-500" />
         Open peer-review bounties
       </h2>
-      <p className="text-sm text-gray-500 mt-0.5">Get paid to peer-review research proposals.</p>
       <ReviewsPageContent />
     </PageLayout>
   );

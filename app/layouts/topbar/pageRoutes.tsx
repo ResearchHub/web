@@ -16,6 +16,8 @@ import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
 export interface PageInfo {
   title: string;
   icon?: React.ReactNode;
+  /** The page names what it has open and has not yet: a placeholder stands in. */
+  loading?: boolean;
 }
 
 export const ROOT_NAVIGATION_PATHS = new Set([
@@ -60,6 +62,14 @@ const ROUTE_RULES: RouteRule[] = [
       title: 'My Funding',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
+  },
+  {
+    // Not a root navigation page, so the top bar gives it the back arrow:
+    // that arrow is the way out of the workspace. It always names what it has
+    // open (a document, or the draft it will start) rather than itself, so
+    // until it does, the title is a placeholder rather than "Workspace".
+    match: (p) => p === '/workspace',
+    getInfo: () => ({ title: '', loading: true }),
   },
   {
     match: (p) => p === '/notifications',

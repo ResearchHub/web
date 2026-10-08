@@ -2,17 +2,13 @@
 
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 import { initialContent } from '@/components/Editor/lib/data/initialContent';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
-import {
-  getDocumentTitle,
-  getTemplatePlainText,
-} from '@/components/Editor/lib/utils/documentTitle';
-import { useCreateNote, useNoteContent } from '@/hooks/useNote';
-import { NoteService } from '@/services/note.service';
+import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
+import { createFundingDraft } from '@/components/Funding/createFundingDraft';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { useUser } from '@/contexts/UserContext';
 import type { ID } from '@/types/root';
@@ -34,8 +30,7 @@ export default function OrganizationPage() {
   const { user, isLoading: isLoadingUser } = useUser();
   const isModerator = !!user?.isModerator;
 
-  const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
-  const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
 
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const isNewChangelog = searchParams.get('newChangelog') === 'true';
@@ -56,36 +51,28 @@ export default function OrganizationPage() {
       template: typeof proposalTemplate | typeof grantTemplate | typeof initialContent;
       queryParam?: string;
       queryValue?: string;
-      documentType?: string;
+      documentType: string;
       selectedGrantId?: Exclude<ID, null | undefined>;
     }
   ) => {
+    setIsCreatingNote(true);
     try {
-      const title = getDocumentTitle(template) || 'Untitled';
-      const newNote = await createNote({
-        organizationSlug: orgSlug,
-        title,
-        grouping: 'WORKSPACE',
+      const newNote = await createFundingDraft({
+        orgSlug,
+        title: getDocumentTitle(template) || 'Untitled',
         documentType,
+        grouping: 'WORKSPACE',
+        selectedGrantId,
+        template,
       });
 
-      if (newNote) {
-        if (selectedGrantId) {
-          await NoteService.updateNote({ noteId: newNote.id, selectedGrantId });
-        }
-
-        await updateNoteContent({
-          note: newNote.id,
-          fullJson: JSON.stringify(template),
-          plainText: getTemplatePlainText(template),
-        });
-
-        const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
-        refreshNotes();
-        router.replace(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
-      }
+      const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
+      refreshNotes();
+      router.replace(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
     } catch (err) {
       console.error('Failed to create note:', err);
+    } finally {
+      setIsCreatingNote(false);
     }
   };
 
@@ -156,5 +143,5 @@ export default function OrganizationPage() {
     return null;
   }
 
-  return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
+  return <NoteCreationPopover isOpen={isCreatingNote} />;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AlertCircle, Ban, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { answerRevealKey, markRevealable } from '@/hooks/useTextReveal';
@@ -68,6 +68,11 @@ function liveRowLabel(items: ChatFeedItem[], streamingItem: ChatStreamItem | und
 
 interface ExecutionProgressProps {
   readonly execution: ChatExecution;
+  /**
+   * Shown with a failed turn's error, inside its box: what the host offers
+   * to do about it (reword and resend, a new chat). Absent, the error stands alone.
+   */
+  readonly failureActions?: ReactNode;
 }
 
 /**
@@ -84,7 +89,7 @@ interface ExecutionProgressProps {
  * Failed turns render their user-safe `error.message`; cancelled turns render a
  * "Stopped" marker; both keep their partial feed.
  */
-export function ExecutionProgress({ execution }: ExecutionProgressProps) {
+export function ExecutionProgress({ execution, failureActions }: ExecutionProgressProps) {
   const [userExpanded, setUserExpanded] = useState<boolean | null>(null);
 
   // Durable activity is followed by the current provider iteration's
@@ -202,6 +207,7 @@ export function ExecutionProgress({ execution }: ExecutionProgressProps) {
           <span>{execution.error?.message ?? 'Something went wrong.'}</span>
         </div>
       )}
+      {failed && failureActions && <div className="mt-2.5 pl-[22px]">{failureActions}</div>}
 
       {cancelled && (
         <div

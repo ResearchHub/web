@@ -53,6 +53,8 @@ interface WorkHeaderProps {
   hideVoteWidget?: boolean;
   /** Top-align title and CTA column; use when the CTA is a tall panel. */
   alignTop?: boolean;
+  /** Keep the tabs in the title's column beside the CTA, rather than on a row beneath both. */
+  inlineTabs?: boolean;
   grantModalProps?: {
     isApplyToGrantModalOpen: boolean;
     onCloseApplyToGrantModal: () => void;
@@ -76,6 +78,7 @@ export function WorkHeader({
   primaryAction,
   hideVoteWidget = false,
   alignTop = false,
+  inlineTabs = false,
   grantModalProps,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -260,6 +263,7 @@ export function WorkHeader({
         cta={primaryAction}
         className={className}
         alignTop={alignTop}
+        inlineChildren={inlineTabs}
       >
         <div className="mt-3 sm:mt-4">
           <div className="min-w-0">{resolvedTabs}</div>

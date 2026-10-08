@@ -67,7 +67,7 @@ export function EndaomentInfoPopover({
 
   return (
     <div
-      className="endaoment-info-popover fixed z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-200"
+      className="endaoment-info-popover fixed z-[10000] w-96 bg-white rounded-lg shadow-xl border border-gray-200"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,

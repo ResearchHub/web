@@ -27,10 +27,17 @@ const MobileBottomNav = dynamic(
 interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
+  /** Align a custom sidebar with the main column's padded content. */
+  rightSidebarTopOffset?: 'default' | 'aligned';
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
   rightSidebarAbove?: ReactNode;
+  /**
+   * With a card above it the gray rail normally sizes to its content; this
+   * keeps it stretched to the bottom of the column regardless.
+   */
+  rightSidebarFill?: boolean;
   fundraiseGrantId?: number;
   /**
    * `default` centers the page in a 1180px container and lets the main column
@@ -45,17 +52,26 @@ interface PageLayoutProps {
    * of empty space beside the content.
    */
   wideRow?: boolean;
+  /**
+   * The page is an app surface, not a document: it fills the area beside the
+   * left column and under the top bar edge to edge and manages its own
+   * scrolling. No page container, padding, right sidebar or mobile bottom nav.
+   */
+  fullBleed?: boolean;
 }
 
 function PageLayoutInner({
   children,
   rightSidebar = true,
+  rightSidebarTopOffset = 'default',
   className,
   sidebarContentClassName,
   topBanner,
   rightSidebarAbove,
+  rightSidebarFill = false,
   contentWidth = 'default',
   wideRow = false,
+  fullBleed = false,
 }: PageLayoutProps) {
   const isNarrow = contentWidth === 'narrow';
   const pathname = usePathname() || '';
@@ -93,63 +109,84 @@ function PageLayoutInner({
 
         <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
-        <LeftSidebarContainer isOpen={isLeftSidebarOpen} />
+        <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
 
-        {/* Scrollable content area.
-            Mobile: top padding clears the fixed top bar (needed so content
-            can scroll under the hide-on-scroll bar).
-            Tablet+: top margin instead, so the scrollport starts below the bar.
-            When the EndowmentPromoBanner is visible above the TopBar on mobile
-            we add extra top padding to clear the banner + topbar stack.
-            The banner itself is hidden at >= 768px (tablet:!hidden) so the
-            offset is reset by the inner media query below.
-            Bottom padding on mobile clears the fixed MobileBottomNav. */}
-        <div
-          ref={scrollContainerRef}
-          className={cn(
-            'flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain relative transition-all duration-150',
-            // The funding power bar only docks above the nav on the home tabs
-            // (see MobileBottomNav), so only those pages reserve room for it.
-            isHomeTab
-              ? 'page-layout-with-mobile-bottom-nav-and-funding-bar'
-              : 'page-layout-with-mobile-bottom-nav',
-            'pt-[var(--top-bar-height)] mt-0',
-            'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
-            isPromoBannerVisible && 'page-layout-with-promo-banner'
-          )}
-        >
-          {topBanner && <div className="w-full">{topBanner}</div>}
-
+        {fullBleed ? (
+          // Offset from the fixed top bar exactly as the scrollport below is,
+          // but nothing here scrolls: the page lays out its own panes in the
+          // height that is left, so the top bar never hides on a phone. The bottom
+          // nav is the same bar as everywhere else, and its room is kept below.
           <div
+            ref={scrollContainerRef}
             className={cn(
-              'flex mx-auto w-full transition-[max-width] duration-200 ease-out',
-              wideRow ? 'max-w-none' : isNarrow ? 'max-w-[1012px]' : 'max-w-[1180px]'
+              'relative flex min-w-0 flex-1 flex-col overflow-hidden',
+              'page-layout-with-mobile-bottom-nav',
+              'pt-[var(--top-bar-height)] mt-0',
+              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
+              isPromoBannerVisible && 'page-layout-with-promo-banner'
             )}
           >
-            <main
+            {children}
+            <MobileBottomNav />
+          </div>
+        ) : (
+          /* The scrollport. Padding clears the fixed top bar on phones, where it
+             hides on scroll; a margin does from the tablet breakpoint up. The
+             `page-layout-*` classes reserve room for the promo banner and the
+             bottom nav where those show. */
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              'flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain relative transition-all duration-150',
+              // The funding power bar only docks above the nav on the home tabs
+              // (see MobileBottomNav), so only those pages reserve room for it.
+              isHomeTab
+                ? 'page-layout-with-mobile-bottom-nav-and-funding-bar'
+                : 'page-layout-with-mobile-bottom-nav',
+              'pt-[var(--top-bar-height)] mt-0',
+              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
+              isPromoBannerVisible && 'page-layout-with-promo-banner'
+            )}
+          >
+            {topBanner && <div className="w-full">{topBanner}</div>}
+
+            <div
               className={cn(
-                'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',
-                topBanner ? 'py-3 sm:py-6' : 'py-6'
+                'flex mx-auto w-full transition-[max-width] duration-200 ease-out',
+                wideRow ? 'max-w-none' : isNarrow ? 'max-w-[1012px]' : 'max-w-[1180px]'
               )}
             >
-              <div
-                className={cn('w-full max-w-full', isNarrow && 'tablet:!max-w-[860px]', className)}
+              <main
+                className={cn(
+                  'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',
+                  topBanner ? 'py-3 sm:py-6' : 'py-6'
+                )}
               >
-                {children}
-              </div>
-            </main>
+                <div
+                  className={cn(
+                    'w-full max-w-full',
+                    isNarrow && 'tablet:!max-w-[860px]',
+                    className
+                  )}
+                >
+                  {children}
+                </div>
+              </main>
 
-            {rightSidebar && (
-              <RightSidebarContainer
-                rightSidebar={rightSidebar}
-                contentClassName={sidebarContentClassName}
-                aboveSidebar={rightSidebarAbove}
-              />
-            )}
+              {rightSidebar && (
+                <RightSidebarContainer
+                  rightSidebar={rightSidebar}
+                  topOffset={rightSidebarTopOffset}
+                  contentClassName={sidebarContentClassName}
+                  aboveSidebar={rightSidebarAbove}
+                  fill={rightSidebarFill}
+                />
+              )}
+            </div>
+
+            <MobileBottomNav />
           </div>
-
-          <MobileBottomNav />
-        </div>
+        )}
       </div>
     </ScrollContainerProvider>
   );

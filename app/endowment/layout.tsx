@@ -19,10 +19,10 @@ export default function EndowmentLayout({ children }: Readonly<{ children: React
   return (
     <div className="flex min-h-screen bg-white">
       {/* The landing page keeps its own top bar and footer, so it stays outside
-          PageLayout; the nav rail is mounted directly to preserve continuity
-          with the rest of the app. Passing `isOpen={false}` leaves it
-          off-canvas below the tablet breakpoint, where there is no menu button
-          to reopen it. */}
+          PageLayout; the app's left column is mounted directly to preserve
+          continuity with the rest of the app. Passing `isOpen={false}` leaves
+          it off-canvas below 1240px, where this page has no menu button to
+          open it. */}
       <LeftSidebarContainer isOpen={false} />
       <main className="relative min-w-0 flex-1">{children}</main>
     </div>

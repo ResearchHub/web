@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
-import { CHANGELOG_STORAGE_KEY } from '@/constants/changelog';
 import { cn } from '@/utils/styles';
+import { useChangelogSeen } from './useChangelogSeen';
 
 interface ChangelogLinkProps {
   className?: string;
@@ -12,26 +11,16 @@ interface ChangelogLinkProps {
 
 /**
  * Renders the Changelog link with a "new entry" radiating-dot indicator that
- * persists per-user in localStorage. Centralizes the seen-state logic so
- * desktop and mobile surfaces stay in sync without duplicating it.
+ * persists per-user in localStorage (see useChangelogSeen, shared with the
+ * sidebar's help menu).
  */
 export const ChangelogLink: React.FC<ChangelogLinkProps> = ({ className }) => {
-  const [hasSeenChangelog, setHasSeenChangelog] = useState(true);
-
-  useEffect(() => {
-    const hasSeen = localStorage.getItem(CHANGELOG_STORAGE_KEY);
-    setHasSeenChangelog(!!hasSeen);
-  }, []);
-
-  const handleClick = () => {
-    localStorage.setItem(CHANGELOG_STORAGE_KEY, 'true');
-    setHasSeenChangelog(true);
-  };
+  const { hasSeen: hasSeenChangelog, markSeen } = useChangelogSeen();
 
   return (
     <Link
       href="/changelog"
-      onClick={handleClick}
+      onClick={markSeen}
       className={cn(
         'flex items-center gap-1',
         hasSeenChangelog ? 'hover:text-gray-700' : 'text-orange-500 hover:text-orange-600',

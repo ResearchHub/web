@@ -52,6 +52,9 @@ export default defineConfig([
   prettier,
   globalIgnores([
     'public/**',
+    'playwright-report/**',
+    'test-results/**',
+    'blob-report/**',
     '.next/**',
     'out/**',
     'build/**',

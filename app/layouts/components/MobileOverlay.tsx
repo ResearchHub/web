@@ -13,7 +13,7 @@ export function MobileOverlay({ show, visible, onClose }: MobileOverlayProps) {
     <div
       className={`fixed inset-0 bg-black ${
         visible ? 'opacity-50' : 'opacity-0'
-      } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out`}
+      } z-[120] sidebar-compact:!hidden transition-opacity duration-300 ease-in-out`}
       onClick={onClose}
     />
   );

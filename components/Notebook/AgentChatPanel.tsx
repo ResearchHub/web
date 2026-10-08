@@ -6,15 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useAgentChat, useAgentChatList, type SendOutcome } from '@/hooks/useAgentChat';
-import { UNSENT, useChatAttachments, type HeldAttachments } from '@/hooks/useChatAttachments';
-import { notebookChatTransport } from '@/services/chatTransport';
-import { useAgentModelSelection } from '@/hooks/useAgentModelSelection';
+import { useAgentChatList } from '@/hooks/useAgentChat';
+import { useChatSession } from '@/hooks/useChatSession';
+import { getChatTransport } from '@/services/chatTransport';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { isRfpNote } from '@/types/note';
-import { isActiveExecutionStatus, MAX_CHAT_TITLE_LENGTH, type AgentChat } from '@/types/agentChat';
-import type { GenerationRequest } from '@/types/agentModels';
+import { MAX_CHAT_TITLE_LENGTH, type AgentChat } from '@/types/agentChat';
 import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
@@ -22,54 +20,23 @@ import { belowMobileTopBar } from '@/components/Notebook/mobileBarOffsets';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
-import { ChatComposer, type ComposerNotice } from '@/components/AgentChat/ChatComposer';
+import { ChatComposer } from '@/components/AgentChat/ChatComposer';
+import type { ChatNoticePolicy } from '@/components/AgentChat/chatNotices';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
-import { ChatPresets } from '@/components/AgentChat/ChatPresets';
+import { ChatEmptyState } from '@/components/AgentChat/ChatEmptyState';
 import { ChatSources, collectChatSources } from '@/components/AgentChat/ChatSources';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { CreditMeter } from '@/components/AgentChat/CreditMeter';
-import { useResearchAI } from '@/hooks/useResearchAI';
 import { canSelectAIModel } from '@/types/researchAI';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
-import { Logo } from '@/components/ui/Logo';
 
 type PanelTab = 'chat' | 'sources';
-
-/**
- * A first message waiting on the chat it will start, holding the model choice
- * it was composed under so a later change can't retarget a send in flight.
- */
-interface QueuedMessage {
-  readonly text: string;
-  readonly generation: GenerationRequest;
-  readonly held: HeldAttachments;
-}
 
 /** Pixels per arrow key press while the resize divider has focus. */
 const RESIZE_KEY_STEP = 24;
 
-function noticeFromOutcome(outcome: SendOutcome & { ok: false }): ComposerNotice | null {
-  switch (outcome.reason) {
-    case 'usage_limit':
-      // The shared meter owns this notice, including when the allowance resets.
-      return null;
-    case 'account_busy':
-    case 'busy':
-      return {
-        tone: 'warning',
-        text: outcome.detail ?? 'The assistant is still working on a previous message.',
-      };
-    case 'model_not_allowed':
-    case 'invalid':
-      return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
-    case 'not_found':
-      return { tone: 'error', text: 'This chat is no longer available.' };
-    case 'unauthorized':
-      return { tone: 'error', text: 'You no longer have access to the assistant.' };
-    default:
-      return { tone: 'error', text: 'Something went wrong — your message wasn’t sent.' };
-  }
-}
+/** The meter beside the composer already says when the budget is spent. */
+const NOTICES: ChatNoticePolicy = { noun: 'chat', usageLimit: 'meter' };
 
 /**
  * A running in-note review session, handed to the host so the accept/reject
@@ -137,10 +104,6 @@ export function AgentChatPanel({
   onReviewChange,
 }: AgentChatPanelProps) {
   const { editor, currentNote } = useNotebookContext();
-  // This panel stays mounted even when closed: load allowances on notebook open.
-  const researchAI = useResearchAI(true);
-  const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
-  const canSelectModel = hasModelSelection && researchAI.catalog !== null;
   // Decide which writing preset the empty chat screen offers, and what it
   // calls the document: the notebook holds RFPs as well as proposals.
   const noteIsEmpty = useEditorIsEmpty(editor);
@@ -153,9 +116,8 @@ export function AgentChatPanel({
   );
   const promoBannerVisible = promoStatus === 'checked' && !promoDismissed;
 
-  // One transport per note: the hooks reset on its identity, so it is built
-  // once per note rather than per render.
-  const transport = useMemo(() => notebookChatTransport(noteId), [noteId]);
+  // One transport per note: the hooks reset on its identity.
+  const transport = getChatTransport({ noteId });
   const list = useAgentChatList(transport, open);
   // Null is the new-chat screen, and it is where a page visit starts: the
   // assistant opens on its own opening moves rather than dropping the reader
@@ -163,76 +125,46 @@ export function AgentChatPanel({
   // away in the picker, and a selection survives closing the panel — only a
   // fresh visit or a note switch resets it.
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
-  const [initialChat, setInitialChat] = useState<AgentChat | null>(null);
+  const switchChat = useCallback((nextChatId: number | null) => setSelectedChatId(nextChatId), []);
 
   // Network activity is gated on `open`. No keep-alive is needed for turns
   // that finish while the panel is closed or another chat is selected: the
   // note version socket below reports agent edits from any chat, and
   // reopening (or reselecting) refetches the transcript.
-  const chatState = useAgentChat({
+  const refreshList = list.refresh;
+  const onListStale = useCallback(() => {
+    if (open) refreshList();
+  }, [open, refreshList]);
+  const onChatCreated = useCallback((created: AgentChat) => {
+    setSelectedChatId(created.conversation_id);
+  }, []);
+  const session = useChatSession({
     transport,
     chatId: selectedChatId,
     enabled: open,
-    initialChat,
+    onChatCreated,
+    onListStale,
+    notices: NOTICES,
   });
-
-  const switchChat = useCallback((nextChatId: number | null) => {
-    setSelectedChatId(nextChatId);
-    setInitialChat(null);
-  }, []);
-
-  // ---- model selection ----
-  // The catalog loads with the panel. A chat that has already run a turn is
-  // locked to the model it started on, and reports it here; until then the
-  // API default decides.
-  const modelSelection = useAgentModelSelection({
-    enabled: false,
-    canSelect: canSelectModel,
-    conversationKey: `${noteId}:${selectedChatId ?? 'new'}`,
-    locked:
-      (chatState.chat?.executions.length ?? 0) > 0 ||
-      (chatState.chat?.messages.length ?? 0) > 0 ||
-      chatState.pendingSend !== null,
-    pinnedRef: chatState.pinnedModelRef,
-    effortPinned: chatState.latestExecution != null,
-    pinnedEffort: chatState.latestExecution?.effort ?? null,
-  });
-  // A selectable tier must never submit its first turn without an authoritative
-  // model. Cached budget and catalog data remain usable through refresh failures.
-  const budgetSendDisabled =
-    researchAI.budget === null ||
-    researchAI.isSubmissionBlocked() ||
-    (hasModelSelection && modelSelection.model === null);
-
-  // ---- drafts (per chat, surviving switches and failed sends) ----
-  const draftsRef = useRef(new Map<string, string>());
-  const draftKey = selectedChatId == null ? 'new' : String(selectedChatId);
-  const [draft, setDraft] = useState('');
-  const [notice, setNotice] = useState<ComposerNotice | null>(null);
-  /** First message for a chat we just created, sent once the chat is live. */
-  const [queuedMessage, setQueuedMessage] = useState<QueuedMessage | null>(null);
-  const [creatingChat, setCreatingChat] = useState(false);
-  /** Identity of the latest creation, so a stale settle can't clear its flag. */
-  const creationSeqRef = useRef(0);
-
-  /** Draft writes go through here so the per-chat map stays in sync. */
-  const updateDraft = useCallback(
-    (value: string) => {
-      draftsRef.current.set(draftKey, value);
-      setDraft(value);
-    },
-    [draftKey]
-  );
+  const {
+    chat: chatState,
+    modelSelection,
+    researchAI,
+    draft,
+    setDraft: updateDraft,
+    attachments,
+    notice,
+    clearNotice,
+    sendBlocked: budgetSendDisabled,
+    composerBusy,
+    canStop,
+    send,
+  } = session;
+  const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
+  const canSelectModel = hasModelSelection && researchAI.catalog !== null;
 
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const panelRef = useRef<HTMLElement>(null);
-
-  // ---- attachments (per chat, like the draft) ----
-  const attachments = useChatAttachments({
-    scope: transport.key,
-    chatId: selectedChatId,
-    chat: chatState.chat,
-  });
 
   /**
    * A preset loads the composer rather than sending: its message is a starting
@@ -242,34 +174,19 @@ export function AgentChatPanel({
    */
   const applyPreset = useCallback(
     (message: string) => {
-      setNotice(null);
+      clearNotice();
       updateDraft(message);
       const textarea = composerRef.current;
       if (!textarea) return;
       textarea.focus();
       textarea.setSelectionRange(message.length, message.length);
     },
-    [updateDraft]
+    [clearNotice, updateDraft]
   );
 
-  const prevDraftKeyRef = useRef(draftKey);
-  useEffect(() => {
-    if (prevDraftKeyRef.current === draftKey) return;
-    prevDraftKeyRef.current = draftKey;
-    setDraft(draftsRef.current.get(draftKey) ?? '');
-    setNotice(null);
-  }, [draftKey]);
-
-  // ---- reset everything when the note changes ----
+  // ---- a note switch starts on the new-chat screen ----
   useEffect(() => {
     setSelectedChatId(null);
-    setInitialChat(null);
-    setNotice(null);
-    if (queuedMessage) attachments.settle(queuedMessage.held, UNSENT);
-    setQueuedMessage(null);
-    setCreatingChat(false);
-    draftsRef.current.clear();
-    setDraft('');
   }, [noteId]);
 
   // ---- server-side access gate ----
@@ -302,142 +219,6 @@ export function AgentChatPanel({
     }
   }, [open, accessDenied, onUnavailable, researchAI.budgetStatus, researchAI.budget?.tier]);
 
-  // ---- keep the listing fresh as the open chat evolves ----
-  // Derived titles land after the first turn, previews/spinners change as
-  // turns settle. Refresh only on actual transitions to avoid extra chatter.
-  const latestStatus = chatState.latestExecution?.status ?? null;
-  const chatTitle = chatState.chat?.title ?? null;
-  const refreshList = list.refresh;
-  const prevListSignalRef = useRef<{ status: string | null; title: string | null }>({
-    status: null,
-    title: null,
-  });
-  useEffect(() => {
-    const prev = prevListSignalRef.current;
-    const changed = prev.status !== latestStatus || prev.title !== chatTitle;
-    prevListSignalRef.current = { status: latestStatus, title: chatTitle };
-    if (open && changed) refreshList();
-  }, [open, latestStatus, chatTitle, refreshList]);
-
-  // ---- sending ----
-  // Live mirror of the panel's target. Async continuations compare against it
-  // and discard results that raced a chat or note switch instead of applying
-  // them to the newly selected chat — the hook guards its own state the same
-  // way, but the returned outcomes surface here.
-  const targetRef = useRef<{ noteId: string; chatId: number | null }>({
-    noteId,
-    chatId: selectedChatId,
-  });
-  targetRef.current = { noteId, chatId: selectedChatId };
-  const isCurrentTarget = useCallback(
-    (target: { noteId: string; chatId: number | null }) =>
-      targetRef.current.noteId === target.noteId && targetRef.current.chatId === target.chatId,
-    []
-  );
-
-  const handleSend = useCallback(async () => {
-    const text = draft.trim();
-    if (budgetSendDisabled || chatState.isBusy || creatingChat || queuedMessage) return;
-    if (!attachments.ready || (!text && !attachments.sendableAlone)) return;
-    setNotice(null);
-    const target = targetRef.current;
-    // Captured before the awaits: the turn runs on what was selected when the
-    // user pressed send, not on whatever the picker says by the time it lands.
-    const generation = modelSelection.request;
-    const held = attachments.hold();
-
-    if (selectedChatId == null) {
-      // Default flow: create untitled, send the first message; the refetch
-      // after the turn brings the derived title.
-      const creationSeq = ++creationSeqRef.current;
-      setCreatingChat(true);
-      const created = await list.createChat();
-      // A newer creation may own the flag by now (the user moved to another
-      // note and started a chat there) — a stale settle must not unblock its
-      // composer while that creation is still in flight.
-      if (creationSeqRef.current === creationSeq) setCreatingChat(false);
-      // Switched note or picked an existing chat meanwhile — abandon the
-      // creation instead of yanking the selection to a stale chat.
-      if (!isCurrentTarget(target)) {
-        attachments.settle(held, UNSENT);
-        return;
-      }
-      if (!created) {
-        attachments.settle(held, UNSENT);
-        setNotice({ tone: 'error', text: 'Couldn’t start a chat. Please try again.' });
-        return;
-      }
-      draftsRef.current.delete('new');
-      // A rejected first attempt must retry with the same model and settings.
-      modelSelection.adoptConversation(`${noteId}:${created.conversation_id}`, generation);
-      setInitialChat(created);
-      setSelectedChatId(created.conversation_id);
-      setQueuedMessage({
-        text,
-        generation,
-        held: attachments.adopt(held, created.conversation_id),
-      });
-      return;
-    }
-
-    const outcome = await chatState.send(text, generation, held.files);
-    attachments.settle(held, outcome);
-    if (outcome.ok) {
-      if (isCurrentTarget(target)) {
-        updateDraft('');
-      } else {
-        // Sent fine, but the user moved on — just retire the sent draft.
-        draftsRef.current.delete(String(target.chatId));
-      }
-    } else if (isCurrentTarget(target)) {
-      // Keep the draft on any failure.
-      setNotice(noticeFromOutcome(outcome));
-    }
-  }, [
-    draft,
-    selectedChatId,
-    list,
-    chatState,
-    modelSelection.request,
-    modelSelection.adoptConversation,
-    noteId,
-    updateDraft,
-    isCurrentTarget,
-    budgetSendDisabled,
-    creatingChat,
-    queuedMessage,
-    attachments,
-  ]);
-
-  // Fire the queued first message once the freshly created chat is live.
-  const sendToChat = chatState.send;
-  const settleAttachments = attachments.settle;
-  useEffect(() => {
-    if (queuedMessage == null || selectedChatId == null || chatState.access !== 'ok') return;
-    const { text, generation, held } = queuedMessage;
-    const target = targetRef.current;
-    setQueuedMessage(null);
-    void sendToChat(text, generation, held.files).then((outcome) => {
-      settleAttachments(held, outcome);
-      if (outcome.ok) return;
-      if (isCurrentTarget(target)) {
-        setNotice(noticeFromOutcome(outcome));
-        updateDraft(text);
-      } else {
-        // Failed after a switch — keep the unsent text under its own chat.
-        draftsRef.current.set(String(target.chatId), text);
-      }
-    });
-  }, [
-    queuedMessage,
-    selectedChatId,
-    chatState.access,
-    sendToChat,
-    settleAttachments,
-    updateDraft,
-    isCurrentTarget,
-  ]);
-
   // ---- rename ----
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
@@ -448,15 +229,17 @@ export function AgentChatPanel({
     setRenaming(true);
   };
 
+  const sessionKeyRef = useRef(session.sessionKey);
+  sessionKeyRef.current = session.sessionKey;
   const commitRename = async () => {
     setRenaming(false);
     const title = renameValue.trim();
     if (!title || title === (chatState.chat?.title ?? '')) return;
-    const target = targetRef.current;
+    const key = session.sessionKey;
     const renamed = await chatState.rename(title);
     // A rename that raced a switch must not fire its note-bound refresh — the
     // stale fetch would outrank and replace the current note's listing.
-    if (renamed && isCurrentTarget(target)) refreshList();
+    if (renamed && sessionKeyRef.current === key) refreshList();
   };
 
   // A rename left open across a note switch would commit against whichever
@@ -514,25 +297,11 @@ export function AgentChatPanel({
   }, [chatState.chat, chatState.pendingSend, activeTab, follow]);
 
   // ---- derived composer state ----
-  // Sending before the catalog lands would run the turn on the server default
-  // and pin the conversation to it. Keep the draft editable while send waits.
-  const composerBusy =
-    chatState.isBusy ||
-    chatState.isFinishing ||
-    creatingChat ||
-    queuedMessage != null ||
-    (canSelectModel && modelSelection.status === 'loading');
-  // Stop is only offered once something cancellable exists server-side. While
-  // the message POST is still in flight or the chat is being created, cancel
-  // would no-op and the turn would start anyway.
-  const turnActive =
-    chatState.latestExecution != null && isActiveExecutionStatus(chatState.latestExecution.status);
-  const canStop = turnActive || chatState.pendingSend?.executionId != null;
   const chatAccessible = selectedChatId == null ? list.access === 'ok' : chatState.access === 'ok';
   const composerDisabled = accessDenied || !chatAccessible;
 
   const emptyState = (
-    <EmptyState
+    <ChatEmptyState
       noteIsEmpty={noteIsEmpty}
       noteIsRfp={noteIsRfp}
       onSelectPreset={applyPreset}
@@ -677,7 +446,7 @@ export function AgentChatPanel({
           <ChatPicker
             chats={list.chats}
             activeChatId={selectedChatId}
-            activeTitle={chatTitle}
+            activeTitle={chatState.chat?.title ?? null}
             onSelect={switchChat}
             onOpen={() => refreshList()}
             titleAction={
@@ -763,7 +532,7 @@ export function AgentChatPanel({
         textareaRef={composerRef}
         value={draft}
         onChange={updateDraft}
-        onSend={handleSend}
+        onSend={() => void send()}
         onStop={chatState.cancel}
         busy={composerBusy}
         canStop={canStop}
@@ -880,43 +649,6 @@ function ErrorState({
       <Button variant="outlined" size="sm" onClick={onRetry}>
         Try again
       </Button>
-    </div>
-  );
-}
-
-function EmptyState({
-  noteIsEmpty,
-  noteIsRfp,
-  onSelectPreset,
-  presetsDisabled,
-}: {
-  readonly noteIsEmpty: boolean;
-  readonly noteIsRfp: boolean;
-  readonly onSelectPreset: (message: string) => void;
-  readonly presetsDisabled: boolean;
-}) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50">
-          <Logo size={32} noText />
-        </div>
-        <div>
-          <p className="flex items-center justify-center gap-1.5 font-serif text-lg tracking-tight text-gray-800">
-            Research assistant
-          </p>
-          <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
-            Ask questions about this note, search the web and scholarly literature, or have the
-            assistant edit the draft for you.
-          </p>
-        </div>
-      </div>
-      <ChatPresets
-        noteIsEmpty={noteIsEmpty}
-        isRfp={noteIsRfp}
-        onSelect={onSelectPreset}
-        disabled={presetsDisabled}
-      />
     </div>
   );
 }

@@ -49,6 +49,29 @@
   @apply max-w-none py-2 pl-16 pr-0;
 }
 
+/* The document's title is its first heading; the cover slot sits before it,
+   so the editor's own first-child placeholder rule never matches. An empty
+   title, and the prompt standing in for a missing one, read "Add title"
+   (TITLE_PLACEHOLDER in components/AIMode/document/masthead/useMastheadSlots.ts). */
+.ai-mode-document .ProseMirror > .masthead-cover + h1.is-empty::before {
+  content: 'Add title';
+  color: #adb5bd;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* The title opens the page: the cover slot before it is not content, so it
+   keeps the margin the editor gives only a heading that follows another block. */
+.ai-mode-document .ProseMirror > .masthead-cover + h1,
+.ai-mode-document .ProseMirror > .masthead-cover + .masthead-add-title {
+  margin-top: 0;
+}
+
+.ai-mode-document .ProseMirror > .masthead-add-title {
+  @apply cursor-text text-gray-400 outline-none;
+}
+
 [data-theme='slash-command'] {
   width: 1000vw;
 }
