@@ -8,7 +8,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { isActiveExecutionStatus } from '@/types/agentChat';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
-import { isPublishedNote, isRfpNote } from '@/types/note';
+import { isPublishedNote } from '@/types/note';
 import { cn } from '@/utils/styles';
 import { AIModeProvider, useAIMode } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
@@ -184,8 +184,6 @@ function Workspace() {
           chat={
             <ChatPane
               state={state}
-              documentIsRfp={isRfpNote(doc.content)}
-              documentIsEmpty={doc.status === 'empty'}
               documentMissing={doc.missing}
               headerActions={
                 noteId != null && (

@@ -2,17 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { History } from 'lucide-react';
+import { History, Sparkles } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
-import { ChatEmptyState } from '@/components/AgentChat/ChatEmptyState';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
+import { RefusalActions } from '@/components/AgentChat/RefusalActions';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { canSelectAIModel } from '@/types/researchAI';
+import type { ChatExecution } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from '../useAIModeChat';
 import { AI_MODE_GREETING } from '../copy';
@@ -32,26 +33,16 @@ interface ChatPaneProps {
   readonly state: AIModeChatState;
   /** Header controls at its right end: the document toggle. */
   readonly headerActions?: ReactNode;
-  /** What the open document is, for a new chat's suggestions. */
-  readonly documentIsRfp: boolean;
-  /** Nothing is written in the open document yet, for a new chat's suggestions. */
-  readonly documentIsEmpty: boolean;
   /** The open document no longer exists. */
   readonly documentMissing: boolean;
 }
 
 /**
- * The chat: on a document, its header (the chat's title, History, its menu
+ * The chat: on a document, its header (History, the chat's menu
  * and the document toggle), the transcript and the composer; on the screen
  * that starts a new draft, the composer in the middle of the page.
  */
-export function ChatPane({
-  state,
-  headerActions,
-  documentIsRfp,
-  documentIsEmpty,
-  documentMissing,
-}: ChatPaneProps) {
+export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProps) {
   const {
     chatId,
     list,
@@ -103,9 +94,9 @@ export function ChatPane({
   }, [onStart]);
 
   /**
-   * A suggestion loads the composer rather than sending: its message is a
-   * starting point the user finishes. Focus follows the text so the caret is
-   * already waiting at the end of it.
+   * Loads the composer rather than sending: a suggestion is a starting point
+   * the user finishes, a refused message one they reword. Focus follows the
+   * text so the caret is already waiting at the end of it.
    */
   const { clearNotice } = state;
   const applyPreset = useCallback(
@@ -119,6 +110,23 @@ export function ChatPane({
     },
     [clearNotice, setDraft]
   );
+
+  // A refusal is about what was asked, so the same message would be refused
+  // again: the newest turn's offers a way to reword it, or a new chat.
+  const { openChat } = state;
+  const renderFailureActions = (execution: ChatExecution) => {
+    if (execution.error?.code !== 'content_refused') return null;
+    if (execution.id !== chat.latestExecution?.id) return null;
+    const refused = chat.chat?.messages.find(
+      (message) => message.id === execution.trigger_message_id
+    )?.content;
+    return (
+      <RefusalActions
+        onEditMessage={refused ? () => applyPreset(refused) : undefined}
+        onNewChat={() => openChat('new')}
+      />
+    );
+  };
 
   const aiBlocked = state.researchAI.budget?.tier === 'blocked';
   const canSelectModel = canSelectAIModel(state.researchAI.budget?.tier);
@@ -135,8 +143,6 @@ export function ChatPane({
     (chatId != null && chat.access === 'loading');
 
   const title = chatId == null ? 'New chat' : state.chatTitle?.trim() || 'Untitled chat';
-  const titleLoading =
-    resolving || (chatId != null && state.chatTitle == null && chat.chat == null);
 
   const modelControls = (
     <ModelControls
@@ -235,15 +241,15 @@ export function ChatPane({
         <ChatTranscriptSkeleton />
       );
     }
+    // A new chat says what the assistant can do in a line and leaves the
+    // rest to the composer: no heading, no suggestions to pick from.
     const emptyState = (
-      <div className="flex min-h-[50vh] flex-col justify-center">
-        <ChatEmptyState
-          noteIsEmpty={documentIsEmpty}
-          noteIsRfp={documentIsRfp}
-          onSelectPreset={applyPreset}
-          presetsDisabled={composerDisabled}
-          noun="document"
-        />
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-6">
+        <Sparkles className="h-8 w-8 text-primary-500" aria-hidden="true" />
+        <p className="max-w-xs text-center text-sm leading-relaxed text-gray-500">
+          The assistant can help draft this document, find research to support it, and answer your
+          questions along the way.
+        </p>
       </div>
     );
     if (chatId == null) return emptyState;
@@ -267,15 +273,20 @@ export function ChatPane({
     if (isEmpty) return emptyState;
     return (
       <div className="animate-in fade-in duration-300">
-        <ChatTranscript chat={chat.chat} pendingSend={chat.pendingSend} />
+        <ChatTranscript
+          chat={chat.chat}
+          pendingSend={chat.pendingSend}
+          renderFailureActions={renderFailureActions}
+        />
       </div>
     );
   };
 
   return (
     <div ref={paneRef} className={cn('flex h-full min-h-0 flex-col', onStart && 'bg-white')}>
-      {/* No border or fill: the title and its controls float over the pane.
-          The start screen has no chat yet, so no header. */}
+      {/* No border or fill: the controls float over the pane, at its right.
+          No title: the top bar already names the document, and History
+          names the chats. The start screen has no chat yet, so no header. */}
       {!onStart && !documentMissing && (
         <header className="flex h-12 shrink-0 items-center gap-1 pl-5 pr-2">
           {renaming && chatId != null ? (
@@ -289,14 +300,8 @@ export function ChatPane({
                 if (next && next !== (state.chatTitle ?? '')) void state.rename(next);
               }}
             />
-          ) : titleLoading ? (
-            <div className="flex min-w-0 flex-1 items-center" aria-busy="true">
-              <div className="h-3.5 w-48 max-w-full animate-pulse rounded bg-gray-100" />
-            </div>
           ) : (
-            <h2 className="min-w-0 flex-1 truncate text-[13px] font-medium text-gray-700">
-              {title}
-            </h2>
+            <div className="flex-1" />
           )}
 
           {!listBlocked && (

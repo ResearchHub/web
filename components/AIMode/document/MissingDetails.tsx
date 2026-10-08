@@ -83,7 +83,7 @@ export function MissingDetails({ readiness, title, onRename }: MissingDetailsPro
 }
 
 /** The small outlined button at a row's right end: "Add", "Edit", "Change". */
-export function RowButton({
+function RowButton({
   onClick,
   children,
 }: {

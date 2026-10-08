@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { Globe, Lock, User, type LucideIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { PublishGuidelines } from '@/components/modals/ConfirmPublishModal';
 import { NonprofitConfirmModal, NonprofitSearchSection } from '@/components/Nonprofit';
@@ -19,11 +20,19 @@ import {
 import { DEFAULT_FUNDRAISE_END_DAYS } from '@/components/Notebook/PublishingForm/formMapping';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
 import { Button } from '@/components/ui/Button';
-import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { RadioGroup } from '@/components/ui/form/RadioGroup';
+import { cn } from '@/utils/styles';
 import { usePublishReadiness } from './masthead/usePublishReadiness';
-import { MissingDetails, RowButton } from './MissingDetails';
+import { MissingDetails } from './MissingDetails';
+
+/** What each visibility looks like at a glance, for proposals and for an RFP's applications. */
+const VISIBILITY_ICONS: Record<string, LucideIcon> = {
+  public: Globe,
+  private: Lock,
+  OPTIONAL: User,
+  PUBLIC: Globe,
+  PRIVATE: Lock,
+};
 
 const FUNDRAISE_DAYS = ['30', '60', '90'] as const;
 
@@ -220,9 +229,74 @@ function SettingNote({ children }: { readonly children: ReactNode }) {
   return <p className="-mt-2 text-xs leading-snug text-gray-600">{children}</p>;
 }
 
-/** What a nonprofit does for a proposal, for the moment before one is added. */
-const NONPROFIT_HELP =
-  'A nonprofit, such as your university’s foundation, can receive the funds for you. Endaoment, a nonprofit community foundation, processes the donations and sends them on, so you never handle payments and donors can get a tax receipt.';
+interface Choice {
+  readonly value: string;
+  readonly label: string;
+  /** Leads the label: what the choice is at a glance (a globe for public, a lock for private). */
+  readonly icon?: LucideIcon;
+  /**
+   * What choosing it means, shown under the choices while it is the chosen
+   * one. Choices that speak for themselves ("30 days") have none.
+   */
+  readonly description?: ReactNode;
+}
+
+/**
+ * A setting's few choices side by side in one box, and under them, in the
+ * same box, what the chosen one means: the explanation reads as the
+ * switch's own, and the setting takes two lines rather than a card per choice.
+ * Without descriptions it is just the switch.
+ */
+function ChoiceBox({
+  label,
+  value,
+  choices,
+  onChange,
+}: {
+  /** Names the group for assistive technology; the section shows it visibly. */
+  readonly label: string;
+  readonly value: string;
+  readonly choices: readonly Choice[];
+  readonly onChange: (value: string) => void;
+}) {
+  const selected = choices.find((choice) => choice.value === value);
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200">
+      <div
+        role="radiogroup"
+        aria-label={label}
+        className="grid gap-0.5 bg-gray-100 p-0.5"
+        style={{ gridTemplateColumns: `repeat(${choices.length}, minmax(0, 1fr))` }}
+      >
+        {choices.map((choice) => {
+          const checked = choice.value === value;
+          const Icon = choice.icon;
+          return (
+            <button
+              key={choice.value}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              onClick={() => onChange(choice.value)}
+              className={cn(
+                'flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40',
+                checked ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              )}
+            >
+              {Icon && <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+              {choice.label}
+            </button>
+          );
+        })}
+      </div>
+      {selected?.description && (
+        <p aria-live="polite" className="px-3 py-2.5 text-xs leading-snug text-gray-600">
+          {selected.description}
+        </p>
+      )}
+    </div>
+  );
+}
 
 /**
  * A new proposal's settings: who can see it, how long it stays open, and a
@@ -236,7 +310,6 @@ function ProposalSettings() {
   const days = watch('fundraiseEndDays') ?? DEFAULT_FUNDRAISE_END_DAYS;
   const isLockedPrivate = useIsLockedPrivate();
   const privateNeedsRfp = useShowPrivateWarning();
-  const [nonprofitOpen, setNonprofitOpen] = useState(() => Boolean(watch('selectedNonprofit')));
   // The RFP may have been chosen since the form loaded, which is the only
   // other moment the lock is applied.
   useEffect(() => {
@@ -252,9 +325,12 @@ function ProposalSettings() {
         />
       ) : (
         <SettingSection label="Visibility">
-          <RadioGroup
-            size="sm"
-            options={PROPOSAL_VISIBILITY_OPTIONS}
+          <ChoiceBox
+            label="Visibility"
+            choices={PROPOSAL_VISIBILITY_OPTIONS.map((option) => ({
+              ...option,
+              icon: VISIBILITY_ICONS[option.value],
+            }))}
             value={isPublic === false ? 'private' : 'public'}
             onChange={(next) => setValue('isPublic', next === 'public', { shouldValidate: true })}
           />
@@ -265,32 +341,29 @@ function ProposalSettings() {
       )}
 
       <SettingSection label="Open for" help={FUNDRAISE_DURATION_HELP}>
-        <ButtonGroup
-          size="sm"
-          className="self-start"
+        <ChoiceBox
+          label="Open for"
           value={days}
           onChange={(next) =>
             setValue('fundraiseEndDays', next as (typeof FUNDRAISE_DAYS)[number], {
               shouldDirty: true,
             })
           }
-          options={FUNDRAISE_DAYS.map((value) => ({ value, label: `${value} days` }))}
+          choices={FUNDRAISE_DAYS.map((value) => ({ value, label: `${value} days` }))}
         />
       </SettingSection>
 
-      {nonprofitOpen ? (
-        <NonprofitSearchSection />
-      ) : (
-        <SettingSection
-          label={
-            <>
-              Nonprofit <span className="font-normal text-gray-500">optional</span>
-            </>
-          }
-          help={NONPROFIT_HELP}
-          action={<RowButton onClick={() => setNonprofitOpen(true)}>Add</RowButton>}
-        />
-      )}
+      {/* The search itself, not an offer to open it: finding the
+          foundation is the whole of the setting. */}
+      <SettingSection
+        label={
+          <>
+            Nonprofit <span className="font-normal text-gray-500">optional</span>
+          </>
+        }
+      >
+        <NonprofitSearchSection compact />
+      </SettingSection>
     </>
   );
 }
@@ -302,15 +375,31 @@ function RfpSettings() {
 
   return (
     <SettingSection label="Application visibility" help={GRANT_APPLICATION_VISIBILITY_HELP}>
-      <RadioGroup
-        size="sm"
-        options={GRANT_APPLICATION_VISIBILITY_OPTIONS}
+      <ChoiceBox
+        label="Application visibility"
         value={value}
         onChange={(next) =>
           setValue('applicationVisibility', next as PublishingFormData['applicationVisibility'], {
             shouldValidate: true,
           })
         }
+        choices={GRANT_APPLICATION_VISIBILITY_OPTIONS.map((option) => ({
+          value: option.value,
+          label: option.label,
+          icon: VISIBILITY_ICONS[option.value],
+          description:
+            option.value === 'PUBLIC' ? (
+              <>
+                {option.description}
+                <span className="mt-1 block text-emerald-700">
+                  Community match eligible: community members can co-fund public proposals, adding
+                  to your funding.
+                </span>
+              </>
+            ) : (
+              option.description
+            ),
+        }))}
       />
     </SettingSection>
   );
