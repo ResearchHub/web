@@ -338,7 +338,7 @@ export function MyFundingPage() {
 
   const hero = isEmpty ? (
     <MyFundingWelcomeHero
-      line="This page fills in as you take part: what you give, the RFPs you open, the proposals you write, and the scientists behind them."
+      line="This page fills in as you fund research, open RFPs, write proposals and review."
       actions={welcomeActions}
     />
   ) : !isSettled ? (
@@ -513,19 +513,19 @@ function heroCovers(
 function HeroSkeleton() {
   return (
     <div className="border-b border-gray-200 bg-gray-50" aria-hidden="true">
-      <div className="mx-auto max-w-[1012px] animate-pulse px-4 pt-10 tablet:!px-8 sm:pt-16">
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mx-auto max-w-[1012px] animate-pulse px-4 pt-10 tablet:!px-8 sm:pt-12">
+        <div className="lg:grid lg:min-h-[302px] lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-[1fr_auto]">
           <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:self-center">
             <div className="h-10 w-11/12 rounded-lg bg-gray-200 sm:h-12" />
             <div className="mt-2 h-10 w-2/3 rounded-lg bg-gray-200 sm:h-12" />
             <div className="mt-5 h-5 w-3/4 rounded bg-gray-200" />
           </div>
-          <div className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mr-6 lg:-mt-16 lg:flex lg:items-center lg:justify-end">
-            <div className={cn('flex items-center justify-center', DECK_SIZE.hero.box)}>
+          <div className="hidden lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:-mr-6 lg:-mt-12 lg:flex lg:items-center lg:justify-end">
+            <div className={cn('flex items-center justify-center', DECK_SIZE.box)}>
               <div className="h-[200px] w-[164px] -rotate-3 rounded-2xl bg-gray-200" />
             </div>
           </div>
-          <div className="mt-8 flex h-12 items-center gap-6 border-b border-gray-200 sm:mt-12 lg:col-start-1 lg:row-start-2 lg:self-end">
+          <div className="mt-8 flex h-12 items-center gap-6 border-b border-gray-200 sm:mt-10 lg:col-start-1 lg:row-start-2 lg:self-end">
             <div className="h-4 w-20 rounded bg-gray-200" />
             <div className="h-4 w-16 rounded bg-gray-200" />
             <div className="h-4 w-16 rounded bg-gray-200" />

@@ -39,7 +39,7 @@ const HOW_IT_WORKS = [
 
 /** The journal's issue-card stack, dressed as an accepted proposal review. */
 const PeerReviewCards = () => (
-  <div className="relative aspect-[3/4] w-[11.7rem] flex-shrink-0 sm:w-[13.5rem]">
+  <div className="relative aspect-[3/4] w-[11.7rem] flex-shrink-0">
     <div
       aria-hidden="true"
       className="absolute -inset-6 origin-bottom -rotate-[6deg] rounded-[2.5rem] bg-orange-500/25 blur-2xl"
@@ -106,15 +106,16 @@ const PeerReviewCards = () => (
 );
 
 const PeerReviewTimeline = () => (
-  <div className="mt-8 w-full max-w-2xl overflow-x-auto pb-1">
-    <div className="min-w-[30rem]">
+  <div className="mt-6 w-full max-w-2xl overflow-x-auto pb-1">
+    {/* Three steps fit a phone's width with tighter gaps; wider screens keep the full spacing. */}
+    <div className="sm:min-w-[30rem]">
       <div className="grid grid-cols-3">
         {PIPELINE_STEPS.map((step, index) => {
           const next = PIPELINE_STEPS[index + 1];
           const number = String(index + 1).padStart(2, '0');
 
           return (
-            <div key={step.label} className={cn('flex items-center', index > 0 && 'pl-6')}>
+            <div key={step.label} className={cn('flex items-center', index > 0 && 'pl-4 sm:pl-6')}>
               <span
                 className={cn(
                   'font-mono text-2xl font-medium tracking-wide',
@@ -128,7 +129,7 @@ const PeerReviewTimeline = () => (
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'ml-6 h-px flex-1 bg-gradient-to-r',
+                    'ml-3 h-px flex-1 bg-gradient-to-r sm:ml-6',
                     next.current
                       ? 'from-gray-300 to-orange-400'
                       : step.current
@@ -159,7 +160,7 @@ const PeerReviewTimeline = () => (
           );
 
           return (
-            <div key={step.label} className={cn(index > 0 && 'pl-6')}>
+            <div key={step.label} className={cn(index > 0 && 'pl-4 sm:pl-6')}>
               {step.href ? (
                 <Link href={step.href} className="group block">
                   {content}
@@ -177,7 +178,7 @@ const PeerReviewTimeline = () => (
 
 export const PeerReviewHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
-    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-16 tablet:!px-8 sm:py-20">
+    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-10 tablet:!px-8 sm:py-12">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           <h1
@@ -196,7 +197,8 @@ export const PeerReviewHero = () => (
           <PeerReviewTimeline />
         </div>
 
-        <div className="flex justify-center lg:justify-end lg:pr-6">
+        {/* Wide screens only, and no taller than the text beside it, as on My Funding. */}
+        <div className="hidden lg:flex lg:justify-end lg:pr-6">
           <PeerReviewCards />
         </div>
       </div>

@@ -25,7 +25,7 @@ export function MyFundingSignedOut() {
       rightSidebarTopOffset="aligned"
       topBanner={
         <MyFundingWelcomeHero
-          line="Sign in to see everything you have funded, raised and reviewed in one place: the scientists you back, the updates they post, and where your money went."
+          line="Sign in to see what you have funded, raised and reviewed, all in one place."
           actions={
             <>
               <button
