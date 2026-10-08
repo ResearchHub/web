@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { SiteService } from '@/services/site.service';
 import { useUser } from '@/contexts/UserContext';
-import { useDismissedFeaturesContext } from '@/contexts/DismissedFeaturesContext';
+import {
+  isDismissedInStorage,
+  useDismissedFeaturesContext,
+} from '@/contexts/DismissedFeaturesContext';
 
 type DismissStatus = 'unchecked' | 'checked' | 'checking';
 
@@ -61,9 +64,13 @@ export function useDismissableFeature(featureName: string): {
       return;
     }
 
-    // For logged-out users, cache as not dismissed and mark as checked
+    // For logged-out users, this browser's storage is the only record. Read it
+    // directly: this can run before the context's cache has been filled from
+    // it, and caching "not dismissed" here would erase the stored dismissal.
     if (!user) {
-      setFeatureStatus(featureName, false);
+      const dismissed = isDismissedInStorage(featureName);
+      if (dismissed) setFeatureStatus(featureName, true);
+      setIsDismissed(dismissed);
       setStatus('checked');
       return;
     }
@@ -221,11 +228,15 @@ export function useDismissableFeatures(featureNames: string[]): {
         );
 
         if (featuresToCache.length > 0) {
+          // Read from storage rather than caching "not dismissed", which would
+          // erase a dismissal the context's cache has not picked up yet.
+          const storedDismissals = new Set(featuresToCache.filter(isDismissedInStorage));
+
           setFeatures((prev) => {
             const updated = { ...prev };
             featuresToCache.forEach((featureName) => {
               updated[featureName] = {
-                isDismissed: false,
+                isDismissed: storedDismissals.has(featureName),
                 dismissStatus: 'checked',
               };
             });
@@ -233,8 +244,8 @@ export function useDismissableFeatures(featureNames: string[]): {
           });
 
           // Batch context updates outside of state update
-          featuresToCache.forEach((featureName) => {
-            setFeatureStatus(featureName, false);
+          storedDismissals.forEach((featureName) => {
+            setFeatureStatus(featureName, true);
           });
         }
       }

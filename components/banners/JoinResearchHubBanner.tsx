@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -14,6 +14,12 @@ import { cn } from '@/utils/styles';
 const REVEAL_AT_SCROLL_Y = 120;
 const HIDE_AT_SCROLL_Y = 48;
 
+/**
+ * The banner's height while it is up, 0 otherwise, so things fixed to the
+ * bottom of the screen (the Draft with AI toast) can sit above it.
+ */
+const HEIGHT_VARIABLE = '--join-banner-height';
+
 export const JoinResearchHubBanner = () => {
   const { user, isLoading } = useUser();
   const { showAuthModal } = useAuthModalContext();
@@ -25,6 +31,7 @@ export const JoinResearchHubBanner = () => {
   // The banner stays mounted while hidden, so the sweep has to be held back
   // until it is actually on screen. Latched on, never off, so it plays once.
   const [hasShimmered, setHasShimmered] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   const isEligible = !isLoading && !user && !isDismissed;
 
@@ -51,6 +58,24 @@ export const JoinResearchHubBanner = () => {
     return () => target.removeEventListener('scroll', handleScroll);
   }, [scrollContainerRef, isEligible]);
 
+  const isShowing = isEligible && isRevealed;
+
+  useEffect(() => {
+    const banner = bannerRef.current;
+    if (!isShowing || !banner) return;
+
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty(HEIGHT_VARIABLE, `${banner.offsetHeight}px`);
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(banner);
+
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty(HEIGHT_VARIABLE);
+    };
+  }, [isShowing]);
+
   if (!isEligible) return null;
 
   return (
@@ -59,6 +84,7 @@ export const JoinResearchHubBanner = () => {
       <div aria-hidden className="h-60" />
 
       <div
+        ref={bannerRef}
         role="region"
         aria-label="Join ResearchHub"
         inert={!isRevealed}
