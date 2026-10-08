@@ -122,7 +122,7 @@ export function AdvancedConfig({
 
   return (
     <CollapsibleSection
-      title="Advanced Configuration"
+      title="Search settings"
       icon={<Settings className="w-5 h-5" />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
