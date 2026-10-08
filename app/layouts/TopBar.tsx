@@ -139,6 +139,10 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
                     size={openTitle != null ? 'md' : 'lg'}
                   />
                 )}
+
+                {openTitle && topBarSlot?.titleActions && (
+                  <div className="ml-1 flex shrink-0 items-center">{topBarSlot.titleActions}</div>
+                )}
               </>
             )}
           </div>
