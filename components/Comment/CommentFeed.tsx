@@ -249,18 +249,6 @@ function CommentFeedContent({
     });
   }, [handleLoadMore, isLoadingAssessedReviews, loading, shouldLoadAssessedReviews]);
 
-  // Comments load after navigation, so the browser's native hash scroll misses `#comment-{id}`.
-  const scrolledToHashRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (loading || displayedComments.length === 0) return;
-    const hash = window.location.hash;
-    if (!/^#comment-\d+$/.test(hash) || scrolledToHashRef.current === hash) return;
-    const target = document.getElementById(hash.slice(1));
-    if (!target) return;
-    scrolledToHashRef.current = hash;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [loading, displayedComments]);
-
   // Handle bounty creation
   const handleCreateBounty = useCallback(() => {
     onCreateBounty();
