@@ -182,6 +182,8 @@ export type UserDetailsForModerator = {
   isOrcidConnected: boolean;
   orcidVerifiedEduEmail: string | null;
   riskScore: number;
+  /** The user's author profile, which their proposals, updates and reviews are filed under. */
+  authorProfileId: number | null;
   verification: {
     createdDate: string;
     externalId: string;
@@ -324,6 +326,7 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
       isOrcidConnected: false,
       orcidVerifiedEduEmail: null,
       riskScore: -1,
+      authorProfileId: null,
       verification: null,
     };
   }
@@ -337,6 +340,7 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
     isOrcidConnected: raw.is_orcid_connected || false,
     orcidVerifiedEduEmail: raw.orcid_verified_edu_email || null,
     riskScore: raw.risk_score ?? -1,
+    authorProfileId: raw.author_profile_id ?? null,
     verification: raw.verification
       ? {
           createdDate: raw.verification.created_date || '',

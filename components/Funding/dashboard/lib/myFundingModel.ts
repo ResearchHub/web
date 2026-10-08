@@ -147,6 +147,7 @@ export interface FundedRow {
   readonly postId: number;
   readonly title: string;
   readonly href: string;
+  readonly image: string | null;
   readonly scientist: AuthorProfile;
   readonly youGave: Money;
   readonly news?: ProposalNews;
@@ -169,6 +170,7 @@ export function buildFundedRows(
       postId: proposal.id,
       title: proposal.title.trim() || 'Untitled proposal',
       href: buildWorkUrl({ id: proposal.id, slug: proposal.slug, contentType: 'preregistration' }),
+      image: proposal.image,
       scientist: proposal.createdBy.authorProfile,
       youGave: proposal.fundedAmount,
       news: news.get(proposal.id),
@@ -381,10 +383,15 @@ export function lastOwnUpdates(
 }
 
 /** The people backing the user's own proposals, with how many proposals each backed. */
-export function buildOwnFunders(proposals: readonly OwnProposalModel[]): AuthorProfile[] {
+export function buildOwnFunders(
+  proposals: readonly OwnProposalModel[],
+  /** The proposals' author, who may have given to their own proposal but is not their own funder. */
+  selfAuthorId?: number
+): AuthorProfile[] {
   const seen = new Map<number, AuthorProfile>();
   for (const proposal of proposals) {
     for (const funder of proposal.funders) {
+      if (funder.id === selfAuthorId) continue;
       if (!seen.has(funder.id)) seen.set(funder.id, funder);
     }
   }

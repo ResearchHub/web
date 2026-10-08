@@ -4,7 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { getEntryMeta } from '@/components/Activity/lib/activityDisplay.utils';
-import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
+import {
+  DashboardSectionHeader,
+  SeeAllButton,
+} from '@/components/Funding/dashboard/DashboardSectionHeader';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import type { FeedCommentContent, FeedEntry } from '@/types/feed';
@@ -47,17 +50,7 @@ export function PeerReviewRows({
       <DashboardSectionHeader
         title="Your peer reviews"
         meta={total > 0 && `${total} published`}
-        action={
-          canExpand && (
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            >
-              View all
-            </button>
-          )
-        }
+        action={canExpand && <SeeAllButton onClick={() => setShowAll(true)}>See all</SeeAllButton>}
       />
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, Building2, Star, UserRound } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
+import { SeeAllButton } from '@/components/Funding/dashboard/DashboardSectionHeader';
 import type { Money, SupportedPerson } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
@@ -38,13 +39,9 @@ function RailSection({
 
 function SeeAll({ onClick, count }: { readonly onClick: () => void; readonly count: number }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-xs font-semibold text-primary-600 hover:text-primary-700"
-    >
+    <SeeAllButton onClick={onClick} size="sm">
       See all {count}
-    </button>
+    </SeeAllButton>
   );
 }
 

@@ -14,6 +14,9 @@ interface TopBarSlotContextValue {
    */
   title: string | null;
   setTitle: (title: string | null) => void;
+  /** Controls right after that title, such as the open document's ⋯ menu. */
+  titleActions: ReactNode;
+  setTitleActions: (node: ReactNode) => void;
 }
 
 const TopBarSlotContext = createContext<TopBarSlotContextValue | null>(null);
@@ -28,7 +31,11 @@ const TopBarSlotContext = createContext<TopBarSlotContextValue | null>(null);
 export function TopBarSlotProvider({ children }: { children: ReactNode }) {
   const [leftSlot, setLeftSlot] = useState<ReactNode>(null);
   const [title, setTitle] = useState<string | null>(null);
-  const value = useMemo(() => ({ leftSlot, setLeftSlot, title, setTitle }), [leftSlot, title]);
+  const [titleActions, setTitleActions] = useState<ReactNode>(null);
+  const value = useMemo(
+    () => ({ leftSlot, setLeftSlot, title, setTitle, titleActions, setTitleActions }),
+    [leftSlot, title, titleActions]
+  );
   return <TopBarSlotContext.Provider value={value}>{children}</TopBarSlotContext.Provider>;
 }
 

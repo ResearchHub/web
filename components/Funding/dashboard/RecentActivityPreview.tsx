@@ -4,7 +4,10 @@ import { useMemo } from 'react';
 import { Activity } from 'lucide-react';
 import { ActivityCardSkeleton, ActivityRow } from '@/components/Activity';
 import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.utils';
-import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
+import {
+  DashboardSectionHeader,
+  SeeAllButton,
+} from '@/components/Funding/dashboard/DashboardSectionHeader';
 import type { MyFundingActivity } from '@/components/Funding/dashboard/hooks/useMyFundingActivity';
 
 /**
@@ -59,15 +62,7 @@ export function RecentActivityPreview({
     );
   }
 
-  const seeAll = (
-    <button
-      type="button"
-      onClick={onSeeAll}
-      className="text-sm font-semibold text-primary-600 hover:text-primary-700"
-    >
-      See all activity
-    </button>
-  );
+  const seeAll = <SeeAllButton onClick={onSeeAll}>See all activity</SeeAllButton>;
 
   return (
     <section aria-label="Recent activity">

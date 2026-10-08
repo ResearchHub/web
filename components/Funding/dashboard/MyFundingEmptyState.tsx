@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { FileText } from 'lucide-react';
 import { FeedWorkCard } from '@/components/Funding/dashboard/FundingWorkCards';
-import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
+import {
+  DashboardSectionHeader,
+  SeeAllButton,
+} from '@/components/Funding/dashboard/DashboardSectionHeader';
 import { UpNext } from '@/components/Funding/dashboard/UpNext';
 import { STARTER_UP_NEXT } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
@@ -74,14 +76,7 @@ function Samples({
     <section aria-label={title}>
       <DashboardSectionHeader
         title={title}
-        action={
-          <Link
-            href={href}
-            className="text-sm font-semibold text-primary-600 hover:text-primary-700"
-          >
-            {linkLabel}
-          </Link>
-        }
+        action={<SeeAllButton href={href}>{linkLabel}</SeeAllButton>}
       />
       <ul className="space-y-4">
         {entries.map((entry) => (

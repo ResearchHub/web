@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FileText, MoveRight, Plus } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
+import { DraftMenu } from '@/components/Funding/DraftMenu';
 import { FundingDraftMenuItems } from '@/components/Funding/fundingDraftOptions';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
@@ -43,7 +44,7 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
     if (note.id !== activeNoteId) openDraft(note);
     onNavigate?.();
   };
-  const rows = (notes: readonly Note[], shown: number) =>
+  const rows = (notes: readonly Note[], shown: number, withMenu = false) =>
     notes
       // The open document keeps its row, even when it is older than the rest.
       .filter((note, index) => index < shown || note.id === activeNoteId)
@@ -55,6 +56,16 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
           trailing={
             note.id === workingNoteId ? (
               <AssistantActivityDot state="working" className="shrink-0" />
+            ) : undefined
+          }
+          menu={
+            withMenu ? (
+              <DraftMenu
+                noteId={note.id}
+                title={note.title?.trim() || 'Untitled'}
+                isOpen={note.id === activeNoteId}
+                triggerClassName="h-6 w-6"
+              />
             ) : undefined
           }
           isActive={note.id === activeNoteId}
@@ -115,7 +126,7 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
         ) : drafts.length === 0 ? (
           <p className="px-2.5 py-1.5 text-xs text-gray-500">No drafts yet.</p>
         ) : (
-          rows(drafts, DRAFTS_SHOWN)
+          rows(drafts, DRAFTS_SHOWN, true)
         )}
       </section>
 

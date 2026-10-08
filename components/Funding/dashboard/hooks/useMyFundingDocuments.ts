@@ -101,12 +101,6 @@ function publishedDocument(entry: FeedEntry, kind: FundingKind): PublishedDocume
 interface UseMyFundingDocumentsOptions {
   /** Whose page this is: the user, or the funder a moderator is viewing; unknown while signing in. */
   readonly viewedUserId: number | undefined;
-  /**
-   * The user is looking at their own page, so their proposals belong on
-   * it. A moderator's view of another funder shows that funder's
-   * RFPs and nothing else.
-   */
-  readonly isOwnPage: boolean;
 }
 
 export interface MyFundingDocuments {
@@ -133,7 +127,6 @@ export interface MyFundingDocuments {
  */
 export function useMyFundingDocuments({
   viewedUserId,
-  isOwnPage,
 }: UseMyFundingDocumentsOptions): MyFundingDocuments {
   const rfpFeedOptions = useMemo(
     () => ({
@@ -150,16 +143,14 @@ export function useMyFundingDocuments({
       contentType: 'PREREGISTRATION',
       createdBy: viewedUserId,
       ordering: 'newest',
-      enabled: isOwnPage && viewedUserId != null,
+      enabled: viewedUserId != null,
     }),
-    [viewedUserId, isOwnPage]
+    [viewedUserId]
   );
   const rfpFeed = useFeed('all', rfpFeedOptions);
   const proposalFeed = useFeed('all', proposalFeedOptions);
 
-  // A feed that is switched off never leaves its loading state, so only the
-  // sources this page reads are waited for.
-  const loadingFirst = rfpFeed.isLoading || (isOwnPage && proposalFeed.isLoading);
+  const loadingFirst = rfpFeed.isLoading || proposalFeed.isLoading;
   const [isSettled, setIsSettled] = useState(false);
   useEffect(() => {
     if (!loadingFirst) setIsSettled(true);
@@ -168,17 +159,15 @@ export function useMyFundingDocuments({
   const published = useMemo<PublishedDocument[]>(() => {
     const documents = [
       ...rfpFeed.entries.map((entry) => publishedDocument(entry, 'rfp')),
-      ...(isOwnPage ? proposalFeed.entries : []).map((entry) =>
-        publishedDocument(entry, 'proposal')
-      ),
+      ...proposalFeed.entries.map((entry) => publishedDocument(entry, 'proposal')),
     ];
     return documents.sort(
       (a, b) => Number(b.active) - Number(a.active) || b.publishedAt - a.publishedAt
     );
-  }, [rfpFeed.entries, proposalFeed.entries, isOwnPage]);
+  }, [rfpFeed.entries, proposalFeed.entries]);
 
-  const proposalsHaveMore = isOwnPage && proposalFeed.hasMore;
-  const error = rfpFeed.error ?? (isOwnPage ? proposalFeed.error : null);
+  const proposalsHaveMore = proposalFeed.hasMore;
+  const error = rfpFeed.error ?? proposalFeed.error;
   const loadMore = useCallback(() => {
     if (rfpFeed.hasMore) rfpFeed.loadMore();
     if (proposalsHaveMore) proposalFeed.loadMore();

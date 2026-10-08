@@ -4,7 +4,6 @@ import type { Money } from '@/components/Funding/dashboard/lib/myFundingModel';
 
 /** What the page knows about the user's funding, enough to write its hero. */
 export interface HeroFacts {
-  readonly isOwnPage: boolean;
   readonly given: Money;
   readonly raised: Money;
   readonly asked: Money;
@@ -30,14 +29,15 @@ const has = (amount: Money) => amount.usd > 0 || amount.rsc > 0;
 /**
  * The hero's headline, built from what the user has done: what they gave,
  * what they raised, the RFPs they run, and what they earned reviewing.
- * Nobody tells the page which they are.
+ * Nobody tells the page which they are. It always speaks to the page's user,
+ * even when a moderator is viewing it as them.
  */
 export function buildHeroCopy(
   facts: HeroFacts,
   format: (amount: Money, options?: { shorten?: boolean }) => string
 ): HeroCopy {
   const gave = has(facts.given) || facts.fundedCount > 0;
-  const raised = facts.isOwnPage && has(facts.raised);
+  const raised = has(facts.raised);
   const lead = gave && raised && facts.raised.usd > facts.given.usd ? 'raising' : 'giving';
 
   if (gave && raised) {
@@ -54,19 +54,18 @@ export function buildHeroCopy(
   }
 
   if (gave) {
-    const who = facts.isOwnPage ? 'You’ve' : 'This funder has';
     return {
       lead,
       line: LINE,
       headline: (
         <>
-          {who} put <HeadlineAmount>{format(facts.given)}</HeadlineAmount> into science.
+          You’ve put <HeadlineAmount>{format(facts.given)}</HeadlineAmount> into science.
         </>
       ),
     };
   }
 
-  if (facts.isOwnPage && facts.ownCount > 0) {
+  if (facts.ownCount > 0) {
     return {
       lead: 'raising',
       line: LINE,

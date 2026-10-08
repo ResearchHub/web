@@ -10,6 +10,8 @@ interface SidebarRowProps {
   readonly leading?: ReactNode;
   /** Something after the title: the assistant's activity dot. */
   readonly trailing?: ReactNode;
+  /** A ⋯ menu at the row's right end, shown on hover, on the open row and on touch screens. */
+  readonly menu?: ReactNode;
   readonly isActive: boolean;
   readonly onSelect: () => void;
 }
@@ -19,7 +21,14 @@ interface SidebarRowProps {
  * for the row is cut short, and the whole of it shows beside the row on
  * hover.
  */
-export function SidebarRow({ title, leading, trailing, isActive, onSelect }: SidebarRowProps) {
+export function SidebarRow({
+  title,
+  leading,
+  trailing,
+  menu,
+  isActive,
+  onSelect,
+}: SidebarRowProps) {
   // Held as state, not a ref: wrapping the row in the tooltip mounts a new
   // title element, and the measuring has to follow it.
   const [titleElement, setTitleElement] = useState<HTMLSpanElement | null>(null);
@@ -33,7 +42,11 @@ export function SidebarRow({ title, leading, trailing, isActive, onSelect }: Sid
       className={cn(
         'mb-0.5 flex w-full items-center gap-2.5 rounded-lg py-2 pr-3 text-left transition-colors',
         leading ? 'pl-2.5' : 'pl-3',
-        isActive ? 'bg-gray-100' : 'hover:bg-gray-50'
+        isActive ? 'bg-gray-100' : 'hover:bg-gray-50 group-has-[[data-state=open]]/row:bg-gray-50',
+        // Room for the menu wherever it shows, so the title stops short of it.
+        menu &&
+          'group-hover/row:pr-9 group-has-[[data-state=open]]/row:pr-9 [@media(hover:none)]:pr-9',
+        menu && isActive && 'pr-9'
       )}
     >
       {leading}
@@ -47,8 +60,9 @@ export function SidebarRow({ title, leading, trailing, isActive, onSelect }: Sid
     </button>
   );
 
-  if (!truncated) return row;
-  return (
+  const body = !truncated ? (
+    row
+  ) : (
     <Tooltip
       content={title}
       position="right"
@@ -62,6 +76,22 @@ export function SidebarRow({ title, leading, trailing, isActive, onSelect }: Sid
     >
       {row}
     </Tooltip>
+  );
+
+  if (!menu) return body;
+  return (
+    <div className="group/row relative">
+      {body}
+      <div
+        className={cn(
+          'absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 transition-opacity',
+          'focus-within:opacity-100 group-hover/row:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100',
+          isActive && 'opacity-100'
+        )}
+      >
+        {menu}
+      </div>
+    </div>
   );
 }
 

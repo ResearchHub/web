@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { DraftMenu } from '@/components/Funding/DraftMenu';
 import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
@@ -147,7 +148,7 @@ function Workspace() {
 
   // The sidebar's row follows the open document's saved title (its heading
   // once that has saved, or a name the assistant gave it) and latest edit.
-  const { patch } = useFundingDocuments();
+  const { patch, drafts } = useFundingDocuments();
   const { title: docTitle, updatedDate: docUpdatedDate } = doc;
   useEffect(() => {
     if (noteId == null || !docTitle) return;
@@ -163,6 +164,18 @@ function Workspace() {
     isWide,
   });
 
+  // An open draft can be deleted from beside its title. Held stable, so the
+  // top bar is not handed a new menu on every render while a chat streams.
+  const isDraft = noteId != null && drafts.some((draft) => draft.id === noteId);
+  const draftTitle = docTitle?.trim() || 'Untitled';
+  const draftMenu = useMemo(
+    () =>
+      isDraft && noteId != null ? (
+        <DraftMenu noteId={noteId} title={draftTitle} isOpen triggerClassName="h-8 w-8" />
+      ) : null,
+    [isDraft, noteId, draftTitle]
+  );
+
   const documentPane = (inDrawer: boolean) => (
     <DocumentPane
       document={doc}
@@ -175,7 +188,7 @@ function Workspace() {
   return (
     <PageLayout fullBleed>
       <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
-        <WorkspaceTopBar title={headerTitle} />
+        <WorkspaceTopBar title={headerTitle} actions={draftMenu} />
 
         <WorkspacePanes
           isBelowTablet={isBelowTablet}
