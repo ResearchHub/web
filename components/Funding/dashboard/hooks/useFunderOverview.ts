@@ -15,12 +15,16 @@ export function useFunderOverview(funderId: number | undefined): UseFunderOvervi
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // The funder the current numbers belong to. Until it matches, the hook is
+  // loading, even in the render before its effect has started the request.
+  const [loadedFor, setLoadedFor] = useState<number | undefined>();
 
   useEffect(() => {
     if (!funderId) {
       setOverview(null);
       setIsLoading(false);
       setError(null);
+      setLoadedFor(undefined);
       return;
     }
     let cancelled = false;
@@ -43,14 +47,17 @@ export function useFunderOverview(funderId: number | undefined): UseFunderOvervi
         }
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+          setLoadedFor(funderId);
+        }
       });
     return () => {
       cancelled = true;
     };
   }, [funderId]);
 
-  return { overview, isLoading, error };
+  return { overview, isLoading: isLoading || loadedFor !== funderId, error };
 }
 
 /** The `user_id` query param a moderator uses to view another funder's page. */

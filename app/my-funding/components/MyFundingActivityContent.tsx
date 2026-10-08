@@ -1,35 +1,40 @@
 'use client';
 
-import { ActivityCard, ActivityFeedList } from '@/components/Activity';
+import { MyFundingActivityFeed } from '@/components/Funding/dashboard/MyFundingActivityFeed';
 import type { MyFundingActivity } from '@/components/Funding/dashboard/hooks/useMyFundingActivity';
-import { MyFundingDataError } from './MyFundingDataError';
 import { MyFundingActivityEmptyState } from './MyFundingActivityEmptyState';
+import { MyFundingDataError } from './MyFundingDataError';
 
 interface MyFundingActivityContentProps {
   readonly activity: MyFundingActivity;
+  /** When the user last looked; later news is marked new. */
+  readonly seenAt: number | null;
+  /** A scientist the user backs, named in the empty state. */
+  readonly firstScientist?: string;
+  readonly hasRfps: boolean;
 }
 
-/** The full activity view shown by the Activity tab. */
-export function MyFundingActivityContent({ activity }: MyFundingActivityContentProps) {
+/** The Activity tab. */
+export function MyFundingActivityContent({
+  activity,
+  seenAt,
+  firstScientist,
+  hasRfps,
+}: MyFundingActivityContentProps) {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="max-w-3xl">
       {activity.error && (
         <div className="mb-4">
           <MyFundingDataError message="Activity data failed to load. Please refresh and try again." />
         </div>
       )}
-      <ActivityFeedList
-        isLoading={activity.isLoading}
-        isLoadingMore={activity.isLoadingMore}
-        hasMore={activity.hasMore}
-        loadMore={activity.loadMore}
-        isEmpty={activity.entries.length === 0}
-        emptyState={<MyFundingActivityEmptyState />}
-      >
-        {activity.entries.map((entry) => (
-          <ActivityCard key={entry.id} entry={entry} />
-        ))}
-      </ActivityFeedList>
+      <MyFundingActivityFeed
+        activity={activity}
+        seenAt={seenAt}
+        emptyState={
+          <MyFundingActivityEmptyState firstScientist={firstScientist} hasRfps={hasRfps} />
+        }
+      />
     </div>
   );
 }

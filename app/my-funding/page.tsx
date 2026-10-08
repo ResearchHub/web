@@ -1,3 +1,4 @@
+import 'cal-sans/index.css';
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { MyFundingPage } from './components/MyFundingPage';

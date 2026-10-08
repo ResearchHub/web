@@ -1,81 +1,158 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { DraftCarousel } from '@/components/Funding/dashboard/DraftCarousel';
+import type { ReactNode } from 'react';
+import { FundedResearchList } from '@/components/Funding/dashboard/FundedResearchList';
+import { OwnProposalCards, RfpCards } from '@/components/Funding/dashboard/FundingWorkCards';
+import { MyFundingEmptyState } from '@/components/Funding/dashboard/MyFundingEmptyState';
 import { PeerReviewRows } from '@/components/Funding/dashboard/PeerReviewRows';
-import { PublishedRows } from '@/components/Funding/dashboard/PublishedRows';
-import { useMyFundingDocuments } from '@/components/Funding/dashboard/hooks/useMyFundingDocuments';
-import { useActivityFeed } from '@/hooks/useActivityFeed';
-import type { ActivityCommentType } from '@/services/activity.service';
-import { MyFundingDataError } from './MyFundingDataError';
+import { RecentActivityPreview } from '@/components/Funding/dashboard/RecentActivityPreview';
+import { UpNext } from '@/components/Funding/dashboard/UpNext';
+import type { MyFundingActivity } from '@/components/Funding/dashboard/hooks/useMyFundingActivity';
+import type { MyFundingSeen } from '@/components/Funding/dashboard/hooks/useMyFundingSeen';
+import type {
+  FundedRow,
+  OwnProposalModel,
+  RfpCardModel,
+  UpNextItem,
+} from '@/components/Funding/dashboard/lib/myFundingModel';
+import type { FeedEntry } from '@/types/feed';
+import type { Note } from '@/types/note';
 
-/** Stable reference: a new array on every render would restart the activity feed. */
-const PEER_REVIEW_COMMENT_TYPES: readonly ActivityCommentType[] = ['REVIEW', 'PEER_REVIEW'];
+export type MyFundingTab = 'overview' | 'funded' | 'rfps' | 'proposals' | 'reviews' | 'activity';
+
+/** How many of each list the Overview shows before "See all". */
+const OVERVIEW_ROWS = 4;
+const OVERVIEW_CARDS = 2;
 
 interface MyFundingContentProps {
-  /** Whose page this is: the user, or the funder a moderator is viewing. */
-  readonly viewedUserId: number;
-  /** The user is looking at their own page, so everything they wrote belongs on it. */
-  readonly isOwnPage: boolean;
-  /** The user's author profile, whose activity and peer reviews the page reads. */
-  readonly authorId?: number;
+  readonly tab: Exclude<MyFundingTab, 'activity'>;
+  readonly isSettled: boolean;
+  readonly isEmpty: boolean;
+  readonly latestDraft?: Note;
+  /** The side the user is mostly on, whose sections come first. */
+  readonly lead: 'giving' | 'raising';
+  readonly upNext: readonly UpNextItem[];
+  readonly fundedRows: readonly FundedRow[];
+  readonly rfps: readonly RfpCardModel[];
+  readonly ownProposals: readonly OwnProposalModel[];
+  readonly rfpEntries: ReadonlyMap<number, FeedEntry>;
+  readonly proposalEntries: ReadonlyMap<number, FeedEntry>;
+  readonly reviews: {
+    readonly entries: FeedEntry[];
+    readonly total: number;
+    readonly hasMore: boolean;
+    readonly isLoadingMore: boolean;
+    readonly loadMore: () => void;
+  };
+  /** Previewed at the foot of the Overview. */
+  readonly activity: MyFundingActivity;
+  readonly now: number;
+  readonly seen: MyFundingSeen;
+  readonly onTabChange: (tab: MyFundingTab) => void;
 }
 
 /**
- * The column of My Funding, under the stats: what the user has written,
- * whichever side of funding they are on. Drafts waiting to be picked back up
- * lead, as a row of cards; then what they published, RFPs and proposals
- * together; then their peer reviews. The activity rail lives beside this
- * column, as it does on an RFP page.
+ * The column of My Funding under its hero. The Overview leads with what needs
+ * the user, then each side they are on, the bigger one first, and ends with a
+ * preview of the activity; the other tabs show one of those lists in full.
  */
-export function MyFundingContent({ viewedUserId, isOwnPage, authorId }: MyFundingContentProps) {
-  const { published, drafts, draftCount, isSettled, error, hasMore, loadMore } =
-    useMyFundingDocuments({
-      viewedUserId,
-      isOwnPage,
-    });
-
-  const readsReviews = isOwnPage && authorId != null && authorId > 0;
-  const reviews = useActivityFeed({
-    authorId: readsReviews ? authorId : undefined,
-    contentType: 'RHCOMMENTMODEL',
-    commentTypes: PEER_REVIEW_COMMENT_TYPES,
-    enabled: readsReviews,
-  });
-  const reviewEntries = readsReviews ? reviews.entries : [];
-
-  // Once the feed pages, its count becomes the number of rows loaded, so the
-  // total it first reported is the one kept.
-  const [reviewTotal, setReviewTotal] = useState(0);
-  useEffect(() => {
-    setReviewTotal((total) => Math.max(total, reviews.count));
-  }, [reviews.count]);
-
+export function MyFundingContent({
+  tab,
+  isSettled,
+  isEmpty,
+  latestDraft,
+  lead,
+  upNext,
+  fundedRows,
+  rfps,
+  ownProposals,
+  rfpEntries,
+  proposalEntries,
+  reviews,
+  activity,
+  now,
+  seen,
+  onTabChange,
+}: MyFundingContentProps) {
   if (!isSettled) return <ContentSkeleton />;
+  if (isEmpty) return <MyFundingEmptyState latestDraft={latestDraft} />;
+
+  const markReviewed = (rfp: { postId: number; proposalIds: readonly number[] }) =>
+    seen.markProposalsSeen(rfp.postId, rfp.proposalIds);
+  const overview = tab === 'overview';
+
+  const funded = (
+    <FundedResearchList
+      key="funded"
+      rows={fundedRows}
+      limit={overview ? OVERVIEW_ROWS : undefined}
+      onSeeAll={() => onTabChange('funded')}
+    />
+  );
+  const rfpCards = (
+    <RfpCards
+      key="rfps"
+      rfps={rfps}
+      entries={rfpEntries}
+      newProposalCount={seen.newProposalCount}
+      onReview={markReviewed}
+      limit={overview ? OVERVIEW_CARDS : undefined}
+      onSeeAll={() => onTabChange('rfps')}
+    />
+  );
+  const proposals = (
+    <OwnProposalCards
+      key="proposals"
+      proposals={ownProposals}
+      entries={proposalEntries}
+      now={now}
+      limit={overview ? OVERVIEW_CARDS : undefined}
+      onSeeAll={() => onTabChange('proposals')}
+    />
+  );
+  const peerReviews = reviews.entries.length > 0 && (
+    <PeerReviewRows
+      key="reviews"
+      entries={reviews.entries}
+      total={reviews.total}
+      hasMore={reviews.hasMore}
+      isLoadingMore={reviews.isLoadingMore}
+      loadMore={reviews.loadMore}
+    />
+  );
+
+  let sections: ReactNode[];
+  switch (tab) {
+    case 'funded':
+      sections = [funded];
+      break;
+    case 'rfps':
+      sections = [rfpCards];
+      break;
+    case 'proposals':
+      sections = [proposals];
+      break;
+    case 'reviews':
+      sections = [peerReviews];
+      break;
+    default:
+      sections =
+        lead === 'raising'
+          ? [proposals, peerReviews, funded, rfpCards]
+          : [funded, rfpCards, proposals, peerReviews];
+  }
 
   return (
-    <div className="mb-6 space-y-8">
-      {error && <MyFundingDataError />}
-      {drafts.length > 0 && (
-        <DraftCarousel drafts={drafts} count={Math.max(draftCount, drafts.length)} />
+    <div className="mb-6 space-y-10">
+      {overview && (
+        <UpNext items={upNext} onFollow={(item) => item.rfp && markReviewed(item.rfp)} />
       )}
-      <PublishedRows
-        documents={published}
-        hasMore={hasMore}
-        loadMore={loadMore}
-        emptyMessage={
-          isOwnPage
-            ? "You haven't published any RFPs or proposals yet."
-            : "This funder hasn't published any RFPs yet."
-        }
-      />
-      {reviewEntries.length > 0 && (
-        <PeerReviewRows
-          entries={reviewEntries}
-          total={reviewTotal}
-          hasMore={reviews.hasMore}
-          isLoadingMore={reviews.isLoadingMore}
-          loadMore={reviews.loadMore}
+      {sections}
+      {overview && (
+        <RecentActivityPreview
+          activity={activity}
+          firstScientist={fundedRows[0]?.scientist.fullName}
+          onSeeAll={() => onTabChange('activity')}
         />
       )}
     </div>
@@ -86,7 +163,7 @@ function ContentSkeleton() {
   return (
     <ul className="space-y-3" aria-hidden="true">
       {[0, 1, 2].map((index) => (
-        <li key={index} className="h-20 animate-pulse rounded-xl bg-gray-100" />
+        <li key={index} className="h-24 animate-pulse rounded-xl bg-gray-100" />
       ))}
     </ul>
   );

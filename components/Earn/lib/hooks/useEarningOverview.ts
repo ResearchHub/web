@@ -6,10 +6,14 @@ export function useEarningOverview(userId: number | undefined) {
   const [overview, setOverview] = useState<EarningOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // The user the current numbers belong to. Until it matches, the hook is
+  // loading, even in the render before its effect has started the request.
+  const [loadedFor, setLoadedFor] = useState<number | undefined>();
 
   useEffect(() => {
     if (userId === undefined) {
       setIsLoading(false);
+      setLoadedFor(undefined);
       return;
     }
 
@@ -36,6 +40,7 @@ export function useEarningOverview(userId: number | undefined) {
       } finally {
         if (!cancelled) {
           setIsLoading(false);
+          setLoadedFor(id);
         }
       }
     }
@@ -47,5 +52,5 @@ export function useEarningOverview(userId: number | undefined) {
     };
   }, [userId]);
 
-  return { overview, isLoading, error };
+  return { overview, isLoading: isLoading || loadedFor !== userId, error };
 }
