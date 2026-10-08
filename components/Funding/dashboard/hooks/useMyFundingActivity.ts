@@ -16,7 +16,7 @@ const OWN_ACTIVITY_TYPES: readonly ActivityCommentType[] = [
 interface UseMyFundingActivityOptions {
   /** Whose funding is followed: the user, or the funder a moderator is viewing. */
   readonly viewedUserId: number | undefined;
-  /** The user's own author profile; left out on a moderator's view of another funder. */
+  /** The author profile of the page's user, whose own updates and reviews join the feed. */
   readonly authorId?: number;
 }
 

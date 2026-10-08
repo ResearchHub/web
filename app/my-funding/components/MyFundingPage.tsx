@@ -24,6 +24,7 @@ import {
 import { useMyFundingActivity } from '@/components/Funding/dashboard/hooks/useMyFundingActivity';
 import { useMyFundingDocuments } from '@/components/Funding/dashboard/hooks/useMyFundingDocuments';
 import { useMyFundingSeen } from '@/components/Funding/dashboard/hooks/useMyFundingSeen';
+import { useViewedAuthorId } from '@/components/Funding/dashboard/hooks/useViewedAuthorId';
 import {
   buildFundedRows,
   buildOwnFunders,
@@ -113,20 +114,27 @@ export function MyFundingPage() {
   const format = useMoneyFormat();
   const isModerator = !!user?.isModerator;
 
-  // A moderator may view another funder's page; everyone else sees their own.
+  // A moderator may view another user's page, and sees it as that user does:
+  // in the first person, with their proposals, reviews and earnings. Only what
+  // belongs to the moderator's own account (drafts, balance, seen marks) stays theirs.
   const viewedUserId =
     (isModerator ? parseViewedFunderId(searchParams.get('user_id')) : undefined) ?? user?.id;
   const isOwnPage = viewedUserId != null && viewedUserId === user?.id;
-  const authorId = isOwnPage ? user?.authorProfile?.id : undefined;
+  const viewedAuthor = useViewedAuthorId({
+    viewedUserId,
+    isOwnPage,
+    ownAuthorId: user?.authorProfile?.id,
+  });
+  const authorId = viewedAuthor.authorId;
   const requestedTab = searchParams.get('tab') as MyFundingTab | null;
   // Fixed for the visit, so "days left" and "days ago" agree everywhere on the page.
   const [now] = useState(() => Date.now());
 
   const overview = useFunderOverview(viewedUserId);
-  const earnings = useEarningOverview(isOwnPage ? user?.id : undefined);
-  const documents = useMyFundingDocuments({ viewedUserId, isOwnPage });
+  const earnings = useEarningOverview(viewedUserId);
+  const documents = useMyFundingDocuments({ viewedUserId });
   const activity = useMyFundingActivity({ viewedUserId, authorId });
-  const readsReviews = isOwnPage && authorId != null && authorId > 0;
+  const readsReviews = authorId != null && authorId > 0;
   const reviews = useActivityFeed({
     authorId: readsReviews ? authorId : undefined,
     contentType: 'RHCOMMENTMODEL',
@@ -186,7 +194,8 @@ export function MyFundingPage() {
   const isSettled =
     !overview.isLoading &&
     documents.isSettled &&
-    (!isOwnPage || !earnings.isLoading) &&
+    !viewedAuthor.isLoading &&
+    !earnings.isLoading &&
     // The draft the empty state offers to pick up.
     (!isOwnPage || draftsStatus !== 'loading') &&
     (!readsReviews || !reviews.isLoading);
@@ -235,8 +244,8 @@ export function MyFundingPage() {
   ]);
   const hasFunded = fundedRows.length > 0;
   const hasRfps = rfps.length > 0;
-  const hasProposals = isOwnPage && ownProposals.length > 0;
-  const hasReviews = isOwnPage && reviewTotal > 0;
+  const hasProposals = ownProposals.length > 0;
+  const hasReviews = reviewTotal > 0;
   const isEmpty = isSettled && !hasFunded && !hasRfps && !hasProposals && !hasReviews;
 
   // Ways to take part for someone with nothing here yet. Starting an RFP or a
@@ -260,7 +269,6 @@ export function MyFundingPage() {
 
   const copy = buildHeroCopy(
     {
-      isOwnPage,
       given,
       raised,
       asked: sumMoney(ownProposals.map((proposal) => proposal.goal)),
@@ -453,15 +461,14 @@ function heroCovers(
 ): HeroCover[] {
   // Ordered by what was given and described by it, so the deck is the same
   // before and after the activity loads.
-  // The overview has no covers, so a funded proposal is drawn with the
-  // proposal icon and named by what was given to it.
+  // A funded proposal without a cover is drawn with the proposal icon.
   const funded = [...fundedRows]
     .sort((a, b) => b.youGave.usd - a.youGave.usd || b.youGave.rsc - a.youGave.rsc)
     .map(
       (row): HeroCover => ({
         key: row.key,
         title: row.title,
-        image: null,
+        image: row.image,
         status: `You gave ${format(row.youGave, { shorten: true })}`,
         detail: row.scientist.fullName,
       })

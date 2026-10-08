@@ -147,6 +147,7 @@ export interface FundedRow {
   readonly postId: number;
   readonly title: string;
   readonly href: string;
+  readonly image: string | null;
   readonly scientist: AuthorProfile;
   readonly youGave: Money;
   readonly news?: ProposalNews;
@@ -169,6 +170,7 @@ export function buildFundedRows(
       postId: proposal.id,
       title: proposal.title.trim() || 'Untitled proposal',
       href: buildWorkUrl({ id: proposal.id, slug: proposal.slug, contentType: 'preregistration' }),
+      image: proposal.image,
       scientist: proposal.createdBy.authorProfile,
       youGave: proposal.fundedAmount,
       news: news.get(proposal.id),

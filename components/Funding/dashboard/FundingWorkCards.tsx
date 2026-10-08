@@ -7,7 +7,10 @@ import {
   getWorkCardPresentation,
 } from '@/components/Activity/lib/activityWork.utils';
 import { Avatar } from '@/components/ui/Avatar';
-import { DashboardSectionHeader } from '@/components/Funding/dashboard/DashboardSectionHeader';
+import {
+  DashboardSectionHeader,
+  SeeAllButton,
+} from '@/components/Funding/dashboard/DashboardSectionHeader';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import type {
   OwnProposalModel,
@@ -79,15 +82,7 @@ function CardsSection<T extends { key: string }>({
         action={
           limit != null &&
           items.length > limit &&
-          onSeeAll && (
-            <button
-              type="button"
-              onClick={onSeeAll}
-              className="text-sm font-semibold text-primary-600 hover:text-primary-700"
-            >
-              See all {items.length}
-            </button>
-          )
+          onSeeAll && <SeeAllButton onClick={onSeeAll}>See all {items.length}</SeeAllButton>
         }
       />
       <ul className="space-y-4">
