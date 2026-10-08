@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle, faLinkedin, faOrcid, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { ExternalLink, GraduationCap } from 'lucide-react';
 import type { ExpertSourceLink } from '@/types/expertFinder';
+import { cn } from '@/utils/styles';
 import { ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
 
 export type ExpertSourceIconType =
@@ -12,9 +13,29 @@ export type ExpertSourceIconType =
   | 'linkedin'
   | 'x'
   | 'google-scholar'
+  | 'openalex'
   | 'generic';
 
 const ICON_CLASS = 'h-4 w-4 shrink-0';
+
+/** OpenAlex-style tricon (three joined dots / open A). Brand is black on light backgrounds. */
+function OpenAlexIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={cn(className)}
+      fill="currentColor"
+      aria-hidden
+      focusable="false"
+    >
+      <circle cx="12" cy="5.25" r="2.35" />
+      <circle cx="5.5" cy="18.25" r="2.35" />
+      <circle cx="18.5" cy="18.25" r="2.35" />
+      <path d="M10.55 6.85 6.55 16.15a1.15 1.15 0 0 0 2.12.9l3.55-8.25a1.15 1.15 0 0 0-1.67-.95Z" />
+      <path d="M13.45 6.85 17.45 16.15a1.15 1.15 0 0 1-2.12.9l-3.55-8.25a1.15 1.15 0 0 1 1.67-.95Z" />
+    </svg>
+  );
+}
 
 export function getExpertSourceIconType(url: string, text?: string): ExpertSourceIconType {
   const normalized = ensureAbsoluteHttpUrl(url) || url;
@@ -41,6 +62,10 @@ export function getExpertSourceIconType(url: string, text?: string): ExpertSourc
 
   if (hostname.includes('scholar.google') || combined.includes('google scholar')) {
     return 'google-scholar';
+  }
+
+  if (hostname.includes('openalex.org') || combined.includes('openalex')) {
+    return 'openalex';
   }
 
   if (hostname.endsWith('.edu') || hostname.includes('.edu.')) {
@@ -72,6 +97,8 @@ export function ExpertSourceLinkIcon({ url, text }: Pick<ExpertSourceLink, 'url'
       return (
         <FontAwesomeIcon icon={faGoogle} className={`${ICON_CLASS} text-[#4285F4]`} aria-hidden />
       );
+    case 'openalex':
+      return <OpenAlexIcon className={`${ICON_CLASS} text-gray-900`} />;
     default:
       return <ExternalLink className={`${ICON_CLASS} text-primary-600`} aria-hidden />;
   }

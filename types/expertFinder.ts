@@ -223,7 +223,9 @@ function defaultSourceLabel(url: string, text: string): string {
   if (isLinkedInUrl(url)) return 'LinkedIn';
   if (isXUrl(url)) return 'X';
   try {
-    return new URL(url).hostname.replace(/^www\./, '') || 'Source';
+    const hostname = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+    if (hostname.includes('openalex.org')) return 'OpenAlex';
+    return hostname || 'Source';
   } catch {
     return 'Source';
   }
@@ -253,6 +255,8 @@ function transformExpertSource(raw: string | Record<string, unknown>): ExpertSou
     (typeHint === 'x' || typeHint === 'twitter' || typeHint.includes('twitter'))
   ) {
     text = 'X';
+  } else if (!text && (typeHint === 'openalex' || typeHint.includes('openalex'))) {
+    text = 'OpenAlex';
   }
 
   return { url: normalized, text: defaultSourceLabel(normalized, text) };
