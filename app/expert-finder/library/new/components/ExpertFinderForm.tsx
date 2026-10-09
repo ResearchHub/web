@@ -22,7 +22,6 @@ import {
   ExpertFinderService,
   EXPERTISE_LEVEL_ALL,
   clampExpertCount,
-  normalizeSearchEngine,
 } from '@/services/expertFinder.service';
 import {
   expertFinderFormSchema,
@@ -30,7 +29,7 @@ import {
   type ExpertCountOption,
   DEFAULT_STATE,
 } from '../schema';
-import { AdvancedConfig } from './AdvancedConfig';
+import { SearchSettings } from './SearchSettings';
 import { SearchSubmissionProgress } from './SearchSubmissionProgress';
 import { WorkPreviewCard } from './WorkPreviewCard';
 import type { Work } from '@/types/work';
@@ -52,8 +51,7 @@ const defaultValues: ExpertFinderFormValues = {
   unifiedDocumentId: null,
   url: '',
   additionalContext: '',
-  advanced: {
-    engine: 'advanced',
+  settings: {
     expertCount: INITIAL_EXPERT_COUNT,
     expertiseLevel: [],
     region: DEFAULT_REGION,
@@ -161,8 +159,7 @@ export function ExpertFinderForm() {
       setSelectedSearchId(search?.searchId ?? null);
       if (!search) return;
       const config = search.config as Record<string, unknown>;
-      const engine = normalizeSearchEngine(config.engine);
-      const expertCount = clampExpertCount(config.expert_count, engine);
+      const expertCount = clampExpertCount(config.expert_count);
       const rawLevel = config.expertise_level;
       let expertiseLevel: ExpertiseLevel[];
       if (Array.isArray(rawLevel)) {
@@ -182,14 +179,13 @@ export function ExpertFinderForm() {
         unifiedDocumentId: unifiedId,
         url: current.url,
         additionalContext: search.additionalContext ?? current.additionalContext,
-        advanced: {
-          engine,
+        settings: {
           expertCount,
           expertiseLevel,
           region,
           state,
           inputType,
-          searchName: current.advanced.searchName ?? '',
+          searchName: current.settings.searchName ?? '',
         },
       });
       if (search.work) {
@@ -215,21 +211,20 @@ export function ExpertFinderForm() {
     }
 
     try {
-      const adv = data.advanced;
+      const settings = data.settings;
 
       const trimmedAdditionalContext = data.additionalContext?.trim() ?? '';
 
       const payload: ExpertSearchCreatePayload = {
         unified_document_id: unifiedDocumentId,
-        input_type: adv.inputType,
+        input_type: settings.inputType,
         config: {
-          expert_count: adv.expertCount,
-          engine: adv.engine,
-          expertise_level: adv.expertiseLevel,
-          region: adv.region,
-          state: adv.state,
+          expert_count: settings.expertCount,
+          expertise_level: settings.expertiseLevel,
+          region: settings.region,
+          state: settings.state,
         },
-        ...(adv.searchName?.trim() && { name: adv.searchName.trim() }),
+        ...(settings.searchName?.trim() && { name: settings.searchName.trim() }),
         ...(trimmedAdditionalContext && { additional_context: trimmedAdditionalContext }),
       };
 
@@ -296,13 +291,13 @@ export function ExpertFinderForm() {
         )}
 
         <Controller
-          name="advanced"
+          name="settings"
           control={control}
           render={({ field }) => (
-            <AdvancedConfig
+            <SearchSettings
               values={field.value}
               onChange={field.onChange}
-              errors={errors.advanced}
+              errors={errors.settings}
               availableInputTypes={availableInputTypes}
               contentType={fetchedWork?.contentType}
               onRerunSelect={handleRerunSelect}

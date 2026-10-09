@@ -14,14 +14,12 @@ import {
   clampExpertCount,
   getExpertCountOptions,
   type ExpertCountOption,
-  type ExpertSearchEngine,
   type FindMoreExpertsPayload,
 } from '@/services/expertFinder.service';
 
 export interface FindMoreExpertsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  engine: ExpertSearchEngine;
   initialAdditionalContext: string;
   isSubmitting: boolean;
   error: string | null;
@@ -33,25 +31,24 @@ const INITIAL_EXPERT_COUNT: ExpertCountOption = 10;
 export function FindMoreExpertsModal({
   isOpen,
   onClose,
-  engine,
   initialAdditionalContext,
   isSubmitting,
   error,
   onSubmit,
 }: Readonly<FindMoreExpertsModalProps>) {
-  const expertCountOptions = getExpertCountOptions(engine);
+  const expertCountOptions = getExpertCountOptions();
   const [expertCount, setExpertCount] = useState<ExpertCountOption>(() =>
-    clampExpertCount(INITIAL_EXPERT_COUNT, engine)
+    clampExpertCount(INITIAL_EXPERT_COUNT)
   );
   const [additionalContext, setAdditionalContext] = useState(initialAdditionalContext);
   const [countOpen, setCountOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setExpertCount(clampExpertCount(INITIAL_EXPERT_COUNT, engine));
+    setExpertCount(clampExpertCount(INITIAL_EXPERT_COUNT));
     setAdditionalContext(initialAdditionalContext);
     setCountOpen(false);
-  }, [isOpen, initialAdditionalContext, engine]);
+  }, [isOpen, initialAdditionalContext]);
 
   const handleSubmit = async () => {
     const payload: FindMoreExpertsPayload = { expert_count: expertCount };

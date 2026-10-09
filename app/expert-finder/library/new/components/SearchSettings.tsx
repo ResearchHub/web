@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
-import { ChevronDown, Globe2, Settings, Sparkles } from 'lucide-react';
+import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Loader } from '@/components/ui/Loader';
@@ -11,51 +11,18 @@ import { Textarea } from '@/components/ui/form/Textarea';
 import { Dropdown, DropdownItem, MultiSelectDropdown } from '@/components/ui/form/Dropdown';
 import type { ExpertSearchResult } from '@/types/expertFinder';
 import type { ContentType } from '@/types/work';
-import type { AdvancedConfigFormValues, ExpertFinderFormValues } from '../schema';
+import type { ExpertFinderFormValues, SearchSettingsFormValues } from '../schema';
 import {
   EXPERTISE_LEVEL_OPTIONS,
   ExpertiseLevel,
   InputType,
   REGION_OPTIONS,
-  clampExpertCount,
   getExpertCountOptions,
   getRegionLabel,
-  type ExpertSearchEngine,
 } from '@/services/expertFinder.service';
 import { getFieldErrorMessage } from '@/utils/form';
 import { cn } from '@/utils/styles';
 import { SearchHistoryDropdown } from './SearchHistoryDropdown';
-
-interface EngineModeCardProps {
-  selected: boolean;
-  icon: ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-}
-
-function EngineModeCard({ selected, icon, title, description, onClick }: EngineModeCardProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
-        selected
-          ? 'border-primary-600 bg-primary-50'
-          : 'border-gray-200 bg-white hover:border-gray-300'
-      )}
-    >
-      <div className={cn('mb-2', selected ? 'text-primary-600' : 'text-gray-500')}>{icon}</div>
-      <span
-        className={cn('text-sm font-semibold', selected ? 'text-primary-900' : 'text-gray-900')}
-      >
-        {title}
-      </span>
-      <span className="mt-1 text-sm leading-snug text-gray-500">{description}</span>
-    </button>
-  );
-}
 
 const INPUT_TYPE_OPTIONS: { value: InputType; label: string }[] = [
   { value: 'full_content', label: 'Full Content' },
@@ -63,10 +30,10 @@ const INPUT_TYPE_OPTIONS: { value: InputType; label: string }[] = [
   { value: 'abstract', label: 'Abstract' },
 ];
 
-interface AdvancedConfigProps {
-  values: AdvancedConfigFormValues;
-  onChange: (values: AdvancedConfigFormValues) => void;
-  errors?: FieldErrors<AdvancedConfigFormValues>;
+interface SearchSettingsProps {
+  values: SearchSettingsFormValues;
+  onChange: (values: SearchSettingsFormValues) => void;
+  errors?: FieldErrors<SearchSettingsFormValues>;
   availableInputTypes?: InputType[];
   contentType?: ContentType;
   onRerunSelect: (search: ExpertSearchResult | null) => void;
@@ -77,7 +44,7 @@ interface AdvancedConfigProps {
   additionalContextMaxLength: number;
 }
 
-export function AdvancedConfig({
+export function SearchSettings({
   values,
   onChange,
   errors,
@@ -89,7 +56,7 @@ export function AdvancedConfig({
   additionalContextError,
   additionalContextCharCount,
   additionalContextMaxLength,
-}: AdvancedConfigProps) {
+}: SearchSettingsProps) {
   const hideInputType = contentType !== 'paper';
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoadingRerun, setIsLoadingRerun] = useState(false);
@@ -110,15 +77,7 @@ export function AdvancedConfig({
   }, [availableInputTypes, values.inputType]);
 
   const regionLabel = getRegionLabel(values.region);
-  const expertCountOptions = getExpertCountOptions(values.engine);
-
-  const setEngine = (engine: ExpertSearchEngine) => {
-    onChange({
-      ...values,
-      engine,
-      expertCount: clampExpertCount(values.expertCount, engine),
-    });
-  };
+  const expertCountOptions = getExpertCountOptions();
 
   return (
     <CollapsibleSection
@@ -161,26 +120,6 @@ export function AdvancedConfig({
               error={additionalContextError}
               {...additionalContextRegister}
             />
-          </div>
-
-          <div className="min-w-0 md:!col-span-2 space-y-2">
-            <p className="text-sm font-medium text-gray-700">Search engine</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <EngineModeCard
-                selected={values.engine === 'advanced'}
-                icon={<Sparkles className="h-5 w-5" aria-hidden />}
-                title="Advanced"
-                description="OpenAlex + LLM agent. Finds relevant works for more precise expert matches."
-                onClick={() => setEngine('advanced')}
-              />
-              <EngineModeCard
-                selected={values.engine === 'basic'}
-                icon={<Globe2 className="h-5 w-5" aria-hidden />}
-                title="Basic"
-                description="GPT + web search. Broader results; useful when Advanced is blocked by content filters."
-                onClick={() => setEngine('basic')}
-              />
-            </div>
           </div>
 
           {!hideInputType && (

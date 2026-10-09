@@ -3,18 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Copy, Check, AlertCircle, AlertTriangle } from 'lucide-react';
-import { Alert } from '@/components/ui/Alert';
+import { Copy, Check, AlertCircle } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { LoadingButton } from '@/components/ui/LoadingButton';
 import { cn } from '@/utils/styles';
 import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { useExpertSearchProgress } from '@/hooks/useExpertSearchProgress';
-import { useFindMoreExperts } from '@/hooks/useExpertFinder';
-import { ExpertFinderService, clampExpertCount } from '@/services/expertFinder.service';
-import { ApiError } from '@/services/types/api';
-import { getSearchEngine, isContentFilteredError } from '@/app/expert-finder/lib/searchEngine';
-import type { ExpertSearchResult } from '@/types/expertFinder';
 import toast from 'react-hot-toast';
 
 const SEARCH_DETAIL_PATH = '/expert-finder/library';
@@ -34,9 +27,7 @@ export function SearchSubmissionProgress({
   wsUrl = null,
 }: SearchSubmissionProgressProps) {
   const router = useRouter();
-  const [{ isLoading: isRetrying }, findMore] = useFindMoreExperts();
   const [isCopied, setIsCopied] = useState(false);
-  const [failedDetail, setFailedDetail] = useState<ExpertSearchResult | null>(null);
   const detailUrl = getDetailPageUrl(searchId);
 
   const handleTerminal = useCallback(
@@ -59,27 +50,6 @@ export function SearchSubmissionProgress({
     router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
   }, [status, searchId, router]);
 
-  useEffect(() => {
-    if (status !== 'failed') {
-      setFailedDetail(null);
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const d = await ExpertFinderService.getSearch(searchId);
-        if (!cancelled) {
-          setFailedDetail(d);
-        }
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [status, searchId]);
-
   const handleCopy = () => {
     if (!detailUrl) return;
     navigator.clipboard.writeText(detailUrl).then(
@@ -92,32 +62,10 @@ export function SearchSubmissionProgress({
     );
   };
 
-  const failureMessage = error?.trim() || failedDetail?.errorMessage?.trim() || null;
-  const searchEngine = getSearchEngine(failedDetail?.config);
-  const showContentFilterRetry =
-    status === 'failed' &&
-    searchEngine === 'advanced' &&
-    isContentFilteredError(failureMessage);
-
-  const handleRetryWithBasicEngine = async () => {
-    const expertCount = clampExpertCount(failedDetail?.config?.expert_count, 'basic');
-    try {
-      await findMore(searchId, { expert_count: expertCount, engine: 'basic' });
-      router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
-    } catch (err: unknown) {
-      if (err instanceof ApiError && err.status === 409) {
-        toast.error('Search is already running');
-        router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
-        return;
-      }
-      toast.error(err instanceof Error ? err.message : 'Failed to retry with Basic engine');
-    }
-  };
+  const failureMessage = error?.trim() || null;
 
   let statusHeading: string;
-  if (status === 'failed' && showContentFilterRetry) {
-    statusHeading = 'Almost there';
-  } else if (status === 'failed') {
+  if (status === 'failed') {
     statusHeading = 'Search failed';
   } else if (status === 'completed') {
     statusHeading = 'Search completed';
@@ -131,36 +79,7 @@ export function SearchSubmissionProgress({
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">{statusHeading}</h3>
 
-      {status === 'failed' && showContentFilterRetry ? (
-        <div className="mb-4 space-y-3">
-          <Alert variant="warning" icon={<AlertTriangle className="h-4 w-4 text-yellow-500" />}>
-            <div className="space-y-1">
-              <p className="font-semibold">Advanced search was blocked</p>
-              <p className="font-normal">
-                A content filter stopped the Advanced engine. You can still find experts with the
-                Basic engine.
-              </p>
-            </div>
-          </Alert>
-          <div className="flex flex-wrap items-center gap-2">
-            <LoadingButton
-              type="button"
-              variant="default"
-              size="sm"
-              isLoading={isRetrying}
-              onClick={() => void handleRetryWithBasicEngine()}
-            >
-              Continue with Basic engine
-            </LoadingButton>
-            <Link
-              href={`${SEARCH_DETAIL_PATH}/${searchId}`}
-              className={cn(buttonVariants({ variant: 'outlined', size: 'sm' }), 'inline-flex')}
-            >
-              Open search details
-            </Link>
-          </div>
-        </div>
-      ) : status === 'failed' ? (
+      {status === 'failed' ? (
         <div className="flex items-start gap-3 mb-4">
           <AlertCircle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" aria-hidden />
           <div className="min-w-0 space-y-2">

@@ -3,18 +3,15 @@ import {
   ExpertiseLevel,
   EXPERT_COUNT_OPTIONS,
   EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
-  EXPERT_SEARCH_ENGINES,
-  getExpertCountOptions,
   InputType,
   Region,
   type ExpertCountOption,
-  type ExpertSearchEngine,
 } from '@/services/expertFinder.service';
 
 const INPUT_TYPES: InputType[] = ['abstract', 'pdf', 'full_content'];
 
 export { EXPERT_COUNT_OPTIONS };
-export type { ExpertCountOption, ExpertSearchEngine };
+export type { ExpertCountOption };
 
 export const DEFAULT_STATE = 'All States';
 
@@ -35,13 +32,8 @@ export const REGION_VALUES: [Region, ...Region[]] = [
   'africa_mena',
 ];
 
-export const ENGINE_VALUES: [ExpertSearchEngine, ...ExpertSearchEngine[]] = [
-  ...EXPERT_SEARCH_ENGINES,
-];
-
-export const advancedConfigSchema = z
+export const searchSettingsSchema = z
   .object({
-    engine: z.enum(ENGINE_VALUES).default('advanced'),
     expertCount: z.number(),
     expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
     region: z.enum(REGION_VALUES),
@@ -50,11 +42,10 @@ export const advancedConfigSchema = z
     searchName: z.string().optional().default(''),
   })
   .superRefine((data, ctx) => {
-    const options = getExpertCountOptions(data.engine);
-    if (!(options as readonly number[]).includes(data.expertCount)) {
+    if (!(EXPERT_COUNT_OPTIONS as readonly number[]).includes(data.expertCount)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Must be ${options.join(', ')}`,
+        message: `Must be ${EXPERT_COUNT_OPTIONS.join(', ')}`,
         path: ['expertCount'],
       });
     }
@@ -68,7 +59,7 @@ export const expertFinderFormSchema = z
     unifiedDocumentId: z.number().nullable().default(null),
     url: z.string().optional().default(''),
     additionalContext: z.string().max(EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH).default(''),
-    advanced: advancedConfigSchema,
+    settings: searchSettingsSchema,
   })
   .refine((data) => data.unifiedDocumentId != null, {
     message: DOCUMENT_REQUIRED_MESSAGE,
@@ -76,4 +67,4 @@ export const expertFinderFormSchema = z
   });
 
 export type ExpertFinderFormValues = z.infer<typeof expertFinderFormSchema>;
-export type AdvancedConfigFormValues = z.infer<typeof advancedConfigSchema>;
+export type SearchSettingsFormValues = z.infer<typeof searchSettingsSchema>;
