@@ -11,11 +11,12 @@ export interface SupportedResearcher {
   fundedAmount: CurrencyAmount;
 }
 
-export interface SupportedProposal {
+/** A proposal the user funded, or an RFP whose funding pool they put money into. */
+export interface SupportedPost {
   id: number;
   title: string;
   slug: string;
-  /** The proposal's cover, when it has one. */
+  /** The post's cover, when it has one. */
   image: string | null;
   createdBy: {
     id: number;
@@ -35,7 +36,8 @@ export interface FunderOverview {
   matchedFunds: CurrencyAmount;
   distributedFunds: CurrencyAmount;
   supportedResearchers: SupportedResearcher[];
-  supportedProposals: SupportedProposal[];
+  supportedProposals: SupportedPost[];
+  supportedFundingPools: SupportedPost[];
   // Display headline ($1.24M) — alias of distributedFunds for the hero copy.
   totalGiven: CurrencyAmount;
   // Alias of matchedFunds for the hero copy.
@@ -67,7 +69,7 @@ function formatMatchRatio(given: CurrencyAmount, match: CurrencyAmount): string 
 }
 
 export function transformFunderOverview(raw: any): FunderOverview {
-  const proposals = extractProposals(raw.supported_proposals);
+  const proposals = extractPosts(raw.supported_proposals);
   const researchers = extractResearchers(proposals);
 
   const distributedFunds: CurrencyAmount = {
@@ -94,6 +96,7 @@ export function transformFunderOverview(raw: any): FunderOverview {
     distributedFunds,
     supportedResearchers: researchers,
     supportedProposals: proposals,
+    supportedFundingPools: extractPosts(raw.supported_funding_pools),
     totalGiven,
     communityMatch,
     totalDeployed,
@@ -104,8 +107,8 @@ export function transformFunderOverview(raw: any): FunderOverview {
   };
 }
 
-function extractProposals(rawProposals: any[]): SupportedProposal[] {
-  return (rawProposals ?? [])
+function extractPosts(rawPosts: any[]): SupportedPost[] {
+  return (rawPosts ?? [])
     .filter((p: any) => p.created_by)
     .map((p: any) => ({
       id: p.id,
@@ -123,7 +126,7 @@ function extractProposals(rawProposals: any[]): SupportedProposal[] {
     }));
 }
 
-function extractResearchers(proposals: SupportedProposal[]): SupportedResearcher[] {
+function extractResearchers(proposals: SupportedPost[]): SupportedResearcher[] {
   const map = new Map<number, SupportedResearcher>();
 
   for (const proposal of proposals) {

@@ -464,7 +464,7 @@ function heroCovers(
 ): HeroCover[] {
   // Ordered by what was given and described by it, so the deck is the same
   // before and after the activity loads.
-  // A funded proposal without a cover is drawn with the proposal icon.
+  // A funded proposal or RFP pool without a cover is drawn with its kind's icon.
   const funded = [...fundedRows]
     .sort((a, b) => b.youGave.usd - a.youGave.usd || b.youGave.rsc - a.youGave.rsc)
     .map(
@@ -472,6 +472,7 @@ function heroCovers(
         key: row.key,
         title: row.title,
         image: row.image,
+        tone: row.kind === 'pool' ? 'blue' : 'green',
         status: `You gave ${format(row.youGave, { shorten: true })}`,
         detail: row.scientist.fullName,
       })
