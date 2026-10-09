@@ -141,9 +141,10 @@ export function latestNewsByPost(entries: readonly FeedEntry[]): Map<number, Pro
   return news;
 }
 
-/** One proposal the user funded, as Research you funded lists it. */
+/** One proposal or RFP pool the user funded, as Research you funded lists it. */
 export interface FundedRow {
   readonly key: string;
+  readonly kind: 'proposal' | 'pool';
   readonly postId: number;
   readonly title: string;
   readonly href: string;
@@ -154,28 +155,47 @@ export interface FundedRow {
 }
 
 /**
- * Research you funded, from the funding overview alone (which proposals the
- * user gave to, how much, and who wrote them) with the latest news on each
- * from the activity. The ones with the newest news come first, then the ones
- * given the most.
+ * Research you funded, from the funding overview alone (which proposals and
+ * RFP pools the user gave to, how much, and who wrote them) with the latest
+ * news on each proposal from the activity. The ones with the newest news come
+ * first, then the ones given the most.
  */
 export function buildFundedRows(
   overview: FunderOverview | null,
   news: ReadonlyMap<number, ProposalNews>
 ): FundedRow[] {
   if (!overview) return [];
-  const rows = overview.supportedProposals.map(
-    (proposal): FundedRow => ({
-      key: `funded-${proposal.id}`,
-      postId: proposal.id,
-      title: proposal.title.trim() || 'Untitled proposal',
-      href: buildWorkUrl({ id: proposal.id, slug: proposal.slug, contentType: 'preregistration' }),
-      image: proposal.image,
-      scientist: proposal.createdBy.authorProfile,
-      youGave: proposal.fundedAmount,
-      news: news.get(proposal.id),
-    })
-  );
+  const rows = [
+    ...overview.supportedProposals.map(
+      (proposal): FundedRow => ({
+        key: `funded-${proposal.id}`,
+        kind: 'proposal',
+        postId: proposal.id,
+        title: proposal.title.trim() || 'Untitled proposal',
+        href: buildWorkUrl({
+          id: proposal.id,
+          slug: proposal.slug,
+          contentType: 'preregistration',
+        }),
+        image: proposal.image,
+        scientist: proposal.createdBy.authorProfile,
+        youGave: proposal.fundedAmount,
+        news: news.get(proposal.id),
+      })
+    ),
+    ...overview.supportedFundingPools.map(
+      (pool): FundedRow => ({
+        key: `funded-${pool.id}`,
+        kind: 'pool',
+        postId: pool.id,
+        title: pool.title.trim() || 'Untitled RFP',
+        href: buildWorkUrl({ id: pool.id, slug: pool.slug, contentType: 'funding_request' }),
+        image: pool.image,
+        scientist: pool.createdBy.authorProfile,
+        youGave: pool.fundedAmount,
+      })
+    ),
+  ];
 
   const newsAt = (row: FundedRow) => (row.news ? new Date(row.news.timestamp).getTime() : 0);
   return rows.sort(
@@ -184,11 +204,11 @@ export function buildFundedRows(
   );
 }
 
-/** A scientist the user supports, with what they gave across that scientist's proposals. */
+/** A scientist the user supports, with what they gave across their proposals and RFP pools. */
 export interface SupportedPerson {
   readonly profile: AuthorProfile;
   readonly youGave: Money;
-  /** The proposal of theirs the user gave the most to. */
+  /** The title of the proposal or RFP of theirs the user gave the most to. */
   readonly proposalTitle?: string;
 }
 
