@@ -1,26 +1,35 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { DISPLAY_FONT } from '@/components/Funding/dashboard/MyFundingHero';
 import { cn } from '@/utils/styles';
 
-interface DashboardSectionHeaderProps {
+interface DashboardSectionProps {
   readonly title: string;
-  /** A small note after the title, e.g. how many items are active. */
-  readonly meta?: ReactNode;
-  /** The section's action, at the right: the button that starts a new one. */
+  /** The section's action, at the right of its heading. */
   readonly action?: ReactNode;
+  readonly className?: string;
+  readonly children: ReactNode;
 }
 
-/** The heading row of a My Funding section: the title, a note beside it, and the way to add to it. */
-export function DashboardSectionHeader({ title, meta, action }: DashboardSectionHeaderProps) {
+/**
+ * A My Funding section, its title in the hero's display face so every heading
+ * stands apart from the content under it.
+ */
+export function DashboardSection({ title, action, className, children }: DashboardSectionProps) {
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <div className="flex items-baseline gap-2.5">
-        <h2 className="text-lg font-semibold tracking-tight text-gray-900">{title}</h2>
-        {meta && <span className="text-xs text-gray-500">{meta}</span>}
+    <section aria-label={title} className={className}>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+        <h2
+          className="min-w-0 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#0b1530]"
+          style={DISPLAY_FONT}
+        >
+          {title}
+        </h2>
+        {action}
       </div>
-      {action}
-    </div>
+      {children}
+    </section>
   );
 }
 

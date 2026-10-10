@@ -27,7 +27,7 @@ interface UseFundingPowerReturn {
  * The figures behind "funding power" — everything a user can put toward
  * research right now — plus the formatter that respects their USD/RSC
  * preference. Shared by every surface that displays the number so they can't
- * drift apart: the sidebar card, the inline bar on narrow screens, and the
+ * drift apart: the sidebar card, the mobile nav's Wallet item, and the
  * pill that docks into the top bar.
  */
 export const useFundingPower = (): UseFundingPowerReturn => {
