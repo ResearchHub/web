@@ -60,6 +60,14 @@ function isFoundationProfile(profile?: AuthorProfile): boolean {
   return false;
 }
 
+/**
+ * Feed entries carry verification on the nested user, while a profile's own
+ * author record carries it at the top level, so check both.
+ */
+export function isVerifiedAuthor(author?: AuthorProfile): boolean {
+  return Boolean(author?.isVerified || author?.user?.isVerified);
+}
+
 function getFundingActivityMessage(content: FeedFundingActivityContent): ActivityHeaderMessage {
   const actor = content.createdBy;
   const recipient = content.recipient;
