@@ -143,7 +143,7 @@ export function MyFundingContent({
   }
 
   return (
-    <div className="mb-6 space-y-10">
+    <div className="mb-6 space-y-12">
       {overview && (
         <UpNext items={upNext} onFollow={(item) => item.rfp && markReviewed(item.rfp)} />
       )}

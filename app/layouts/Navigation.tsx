@@ -77,7 +77,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'My Funding',
       href: '/my-funding',
       iconKey: 'fund',
-      requiresAuth: true,
       description: 'View your funding activity',
     },
     {

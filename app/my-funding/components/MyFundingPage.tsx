@@ -370,7 +370,7 @@ export function MyFundingPage() {
       reviewEarned={hasReviews ? reviewEarned : undefined}
       people={people}
       institutions={givingOverview?.supportedInstitutions}
-      funders={hasProposals ? ownFunders : undefined}
+      funders={hasProposals ? ownFunders : []}
       onShowAll={setPeopleOpen}
     />
   );
