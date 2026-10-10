@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, Copy, Check, AlertCircle } from 'lucide-react';
+import { Copy, Check, AlertCircle } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
+import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { useExpertSearchProgress } from '@/hooks/useExpertSearchProgress';
-import { ExpertFinderService } from '@/services/expertFinder.service';
 import toast from 'react-hot-toast';
 
 const SEARCH_DETAIL_PATH = '/expert-finder/library';
 
 interface SearchSubmissionProgressProps {
   searchId: number;
+  wsUrl?: string | null;
 }
 
 function getDetailPageUrl(searchId: number): string {
@@ -21,41 +22,33 @@ function getDetailPageUrl(searchId: number): string {
   return `${globalThis.window.location.origin}${SEARCH_DETAIL_PATH}/${searchId}`;
 }
 
-export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressProps) {
+export function SearchSubmissionProgress({
+  searchId,
+  wsUrl = null,
+}: SearchSubmissionProgressProps) {
   const router = useRouter();
-  const { status, error, currentStep } = useExpertSearchProgress(searchId);
   const [isCopied, setIsCopied] = useState(false);
-  const [detailErrorMessage, setDetailErrorMessage] = useState<string | null>(null);
   const detailUrl = getDetailPageUrl(searchId);
 
-  const inProgress =
-    status !== 'completed' && status !== 'failed' && status !== null && status !== undefined;
+  const handleTerminal = useCallback(
+    (event: { kind: 'search_finished' | 'search_failed'; status: string }) => {
+      if (event.kind === 'search_finished' && event.status !== 'failed') {
+        router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
+      }
+    },
+    [router, searchId]
+  );
+
+  const { status, error, currentStep, progress, expertsFound } = useExpertSearchProgress({
+    searchId,
+    wsUrl,
+    onTerminal: handleTerminal,
+  });
 
   useEffect(() => {
     if (status !== 'completed') return;
     router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
   }, [status, searchId, router]);
-
-  useEffect(() => {
-    if (status !== 'failed') {
-      setDetailErrorMessage(null);
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const d = await ExpertFinderService.getSearch(searchId);
-        if (!cancelled && d.errorMessage?.trim()) {
-          setDetailErrorMessage(d.errorMessage.trim());
-        }
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [status, searchId]);
 
   const handleCopy = () => {
     if (!detailUrl) return;
@@ -69,7 +62,7 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
     );
   };
 
-  const failureMessage = error?.trim() || detailErrorMessage;
+  const failureMessage = error?.trim() || null;
 
   let statusHeading: string;
   if (status === 'failed') {
@@ -79,6 +72,8 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
   } else {
     statusHeading = 'Search in progress';
   }
+
+  const showLiveStatus = status !== 'failed';
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
@@ -110,22 +105,15 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
             </Link>
           </div>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-3 mb-4">
-            <Loader2 className="h-6 w-6 animate-spin text-primary-600 shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm text-gray-600">Finding experts… This can take a bit of time.</p>
-              {inProgress && currentStep ? (
-                <p className="text-sm text-gray-500 mt-1">
-                  <span className="font-medium text-gray-700">Progress:</span> {currentStep}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          {error ? <p className="text-sm text-red-600 mb-4">{error}</p> : null}
-        </>
-      )}
+      ) : showLiveStatus ? (
+        <ExpertSearchLiveStatus
+          className="mb-4"
+          progress={progress}
+          currentStep={currentStep}
+          status={status}
+          expertsFound={expertsFound}
+        />
+      ) : null}
 
       <p className="text-sm text-gray-500 mb-4">
         Feel free to close this window and check results later by visiting the search details page.

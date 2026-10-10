@@ -1,15 +1,17 @@
 import { z } from 'zod';
 import {
   ExpertiseLevel,
+  EXPERT_COUNT_OPTIONS,
   EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
   InputType,
   Region,
+  type ExpertCountOption,
 } from '@/services/expertFinder.service';
 
 const INPUT_TYPES: InputType[] = ['abstract', 'pdf', 'full_content'];
 
-export const EXPERT_COUNT_OPTIONS = [5, 10, 25, 50, 100] as const;
-export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
+export { EXPERT_COUNT_OPTIONS };
+export type { ExpertCountOption };
 
 export const DEFAULT_STATE = 'All States';
 
@@ -30,14 +32,24 @@ export const REGION_VALUES: [Region, ...Region[]] = [
   'africa_mena',
 ];
 
-export const advancedConfigSchema = z.object({
-  expertCount: z.number().default(25),
-  expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
-  region: z.enum(REGION_VALUES),
-  state: z.string(),
-  inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
-  searchName: z.string().optional().default(''),
-});
+export const searchSettingsSchema = z
+  .object({
+    expertCount: z.number(),
+    expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
+    region: z.enum(REGION_VALUES),
+    state: z.string(),
+    inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
+    searchName: z.string().optional().default(''),
+  })
+  .superRefine((data, ctx) => {
+    if (!(EXPERT_COUNT_OPTIONS as readonly number[]).includes(data.expertCount)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Must be ${EXPERT_COUNT_OPTIONS.join(', ')}`,
+        path: ['expertCount'],
+      });
+    }
+  });
 
 export const DOCUMENT_REQUIRED_MESSAGE =
   'Document is required. Paste a ResearchHub URL and click the checkmark to select a document.';
@@ -47,7 +59,7 @@ export const expertFinderFormSchema = z
     unifiedDocumentId: z.number().nullable().default(null),
     url: z.string().optional().default(''),
     additionalContext: z.string().max(EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH).default(''),
-    advanced: advancedConfigSchema,
+    settings: searchSettingsSchema,
   })
   .refine((data) => data.unifiedDocumentId != null, {
     message: DOCUMENT_REQUIRED_MESSAGE,
@@ -55,4 +67,4 @@ export const expertFinderFormSchema = z
   });
 
 export type ExpertFinderFormValues = z.infer<typeof expertFinderFormSchema>;
-export type AdvancedConfigFormValues = z.infer<typeof advancedConfigSchema>;
+export type SearchSettingsFormValues = z.infer<typeof searchSettingsSchema>;

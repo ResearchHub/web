@@ -1,19 +1,12 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import {
-  Loader2,
-  RefreshCw,
-  Download,
-  Mail,
-  MailCheck,
-  MailX,
-  UserPlus,
-  MoreVertical,
-} from 'lucide-react';
+import { Download, Mail, MailCheck, MailX, UserPlus, MoreVertical, Search } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
@@ -21,15 +14,35 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
+import { useExpertSearchDetail, useFindMoreExperts } from '@/hooks/useExpertFinder';
+import {
+  clearExpertSearchAppendBaseline,
+  getExpertSearchAppendBaseline,
+  markExpertSearchAppendBaseline,
+  useExpertSearchProgress,
+} from '@/hooks/useExpertSearchProgress';
+import { ApiError } from '@/services/types/api';
+import type { FindMoreExpertsPayload } from '@/services/expertFinder.service';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
+import { FindMoreExpertsModal } from './FindMoreExpertsModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
 import { expertHasOutreachHistory, type ExpertResult } from '@/types/expertFinder';
+
+function isFindMoreStep(step: string | null | undefined): boolean {
+  return /find(?:ing)? more/i.test(step ?? '');
+}
+
+function existingExpertsBaseline(detail: {
+  expertResults: { length: number };
+  expertCount: number;
+}): number {
+  return Math.max(detail.expertResults.length, detail.expertCount);
+}
 
 export interface SearchDetailContentProps {
   searchId: string;
@@ -86,7 +99,18 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
 
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
+  const [{ isLoading: isFindMoreSubmitting, error: findMoreError }, findMore] =
+    useFindMoreExperts();
+
   const [showAddExpertModal, setShowAddExpertModal] = useState(false);
+  const [showFindMoreModal, setShowFindMoreModal] = useState(false);
+  const [liveRunKey, setLiveRunKey] = useState(0);
+  const [liveExpertsBaseline, setLiveExpertsBaseline] = useState(() =>
+    getExpertSearchAppendBaseline(searchId)
+  );
+  const [appendLiveActive, setAppendLiveActive] = useState(
+    () => getExpertSearchAppendBaseline(searchId) > 0
+  );
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [hideContacted, setHideContacted] = useState(false);
@@ -94,6 +118,81 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
   const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
+
+  const serverInProgress =
+    searchDetail != null &&
+    (searchDetail.status === 'pending' || searchDetail.status === 'processing');
+  const isInProgress = appendLiveActive || serverInProgress;
+
+  const handleLiveTerminal = useCallback(() => {
+    setAppendLiveActive(false);
+    clearExpertSearchAppendBaseline(searchId);
+    void refetch();
+  }, [refetch, searchId]);
+
+  const beginAppendLiveRun = useCallback(() => {
+    const baseline = searchDetail ? existingExpertsBaseline(searchDetail) : 0;
+    markExpertSearchAppendBaseline(searchId, baseline);
+    setLiveExpertsBaseline(baseline);
+    setLiveRunKey((key) => key + 1);
+    setAppendLiveActive(true);
+  }, [searchDetail, searchId]);
+
+  // Recover append baseline after refresh / remount while find-more is still running.
+  useEffect(() => {
+    if (!serverInProgress || !searchDetail) return;
+    const stored = getExpertSearchAppendBaseline(searchId);
+    if (stored > 0) {
+      setLiveExpertsBaseline(stored);
+      setAppendLiveActive(true);
+      setLiveRunKey((key) => (key > 0 ? key : 1));
+      return;
+    }
+    if (isFindMoreStep(searchDetail.currentStep) && searchDetail.expertResults.length > 0) {
+      const baseline = existingExpertsBaseline(searchDetail);
+      markExpertSearchAppendBaseline(searchId, baseline);
+      setLiveExpertsBaseline(baseline);
+      setAppendLiveActive(true);
+      setLiveRunKey((key) => (key > 0 ? key : 1));
+    }
+  }, [serverInProgress, searchDetail, searchId]);
+
+  const isAppendLiveRun =
+    liveRunKey > 0 || liveExpertsBaseline > 0 || getExpertSearchAppendBaseline(searchId) > 0;
+
+  const liveSeed = useMemo(() => {
+    if (appendLiveActive && searchDetail?.status === 'completed') {
+      return {
+        status: 'processing' as const,
+        progress: 0,
+        currentStep: 'Finding more experts…',
+      };
+    }
+    if (!searchDetail) {
+      return appendLiveActive
+        ? { status: 'processing' as const, progress: 0, currentStep: 'Finding more experts…' }
+        : undefined;
+    }
+    return {
+      status: appendLiveActive ? 'processing' : searchDetail.status,
+      progress: searchDetail.progress,
+      currentStep: searchDetail.currentStep || (isAppendLiveRun ? 'Finding more experts…' : ''),
+    };
+  }, [searchDetail, isAppendLiveRun, appendLiveActive]);
+
+  const {
+    progress: liveProgress,
+    currentStep: liveCurrentStep,
+    status: liveStatus,
+    expertsFound: liveExpertsFound,
+  } = useExpertSearchProgress({
+    searchId,
+    enabled: isInProgress,
+    runKey: liveRunKey,
+    expertsBaseline: liveExpertsBaseline,
+    seed: liveSeed,
+    onTerminal: handleLiveTerminal,
+  });
 
   const toggleSelection = useCallback((index: number) => {
     setSelectedIndices((prev) => {
@@ -123,6 +222,34 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const handleProgressDone = useCallback(() => {
     setSelectedIndices(new Set());
   }, []);
+
+  const abortAppendLiveRun = useCallback(() => {
+    setAppendLiveActive(false);
+    setLiveExpertsBaseline(0);
+    clearExpertSearchAppendBaseline(searchId);
+  }, [searchId]);
+
+  const handleFindMoreSubmit = useCallback(
+    async (payload: FindMoreExpertsPayload) => {
+      beginAppendLiveRun();
+      try {
+        await findMore(searchId, payload);
+        setShowFindMoreModal(false);
+        await refetch();
+      } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 409) {
+          // Already running — keep live mode and sync status.
+          toast.error('Search is already running');
+          setShowFindMoreModal(false);
+          await refetch();
+          return;
+        }
+        abortAppendLiveRun();
+        // Modal surfaces findMoreError from the hook
+      }
+    },
+    [beginAppendLiveRun, abortAppendLiveRun, findMore, searchId, refetch]
+  );
 
   const expertResults = searchDetail?.expertResults ?? [];
 
@@ -159,10 +286,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const expertResultsTabHref = pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined;
   const outreachTabHref = pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined;
 
-  const isInProgress =
-    searchDetail != null &&
-    (searchDetail.status === 'pending' || searchDetail.status === 'processing');
-
   if (isLoading && !searchDetail) {
     return <SearchDetailSkeleton activeTab={tab} />;
   }
@@ -187,10 +310,19 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     return null;
   }
 
-  const displayedExpertTotal =
-    searchDetail.status === 'completed'
-      ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
-      : searchDetail.expertResults.length;
+  const displayedExpertTotal = Math.max(
+    searchDetail.expertCount,
+    searchDetail.expertResults.length
+  );
+
+  const statusAllowsFindMore =
+    searchDetail.status === 'completed' || searchDetail.status === 'failed';
+  const canFindMore = statusAllowsFindMore && !isInProgress;
+
+  const showCompletedResults =
+    searchDetail.status === 'completed' ||
+    (searchDetail.status === 'failed' && searchDetail.expertResults.length > 0) ||
+    (isInProgress && searchDetail.expertResults.length > 0);
 
   const visibleIndices = visibleExpertEntries.map(({ index }) => index);
   const allVisibleSelected =
@@ -202,6 +334,18 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   // Proposal drafts / proposal invitations only apply to searches linked to a
   // grant (funding round) document.
   const isGrantLinked = searchDetail.work?.contentType === 'funding_request';
+
+  const findMoreButton = canFindMore ? (
+    <Button
+      variant="outlined"
+      size="sm"
+      className="gap-2"
+      onClick={() => setShowFindMoreModal(true)}
+    >
+      <Search className="h-4 w-4" aria-hidden />
+      Find more experts
+    </Button>
+  ) : null;
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -219,12 +363,12 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
       <SearchDetailHeader search={searchDetail} />
 
-      {searchDetail.status === 'failed' && (
+      {searchDetail.status === 'failed' ? (
         <div className="space-y-3">
           <Alert variant="error">
             <div>
               <p className="font-semibold mb-1">Search failed</p>
-              <p className="font-normal">
+              <p className="font-normal whitespace-pre-wrap">
                 {searchDetail.errorMessage || 'An error occurred while running the search.'}
               </p>
               {searchDetail.currentStep ? (
@@ -234,10 +378,38 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               ) : null}
             </div>
           </Alert>
+          {canFindMore && searchDetail.expertResults.length === 0 ? (
+            <div className="flex flex-wrap items-center gap-2">{findMoreButton}</div>
+          ) : null}
         </div>
+      ) : null}
+
+      {searchDetail.status === 'completed' && searchDetail.errorMessage.trim() !== '' && (
+        <Alert variant="warning">
+          <div>
+            <p className="font-semibold mb-1">Find more did not finish cleanly</p>
+            <p className="font-normal text-sm whitespace-pre-wrap">{searchDetail.errorMessage}</p>
+            <p className="font-normal text-sm mt-2 text-amber-900/80">
+              Existing experts from this search are still available below.
+            </p>
+          </div>
+        </Alert>
       )}
 
-      {searchDetail.status === 'completed' && (
+      {isInProgress ? (
+        <ExpertSearchLiveStatus
+          progress={liveProgress}
+          currentStep={
+            liveCurrentStep ||
+            (isAppendLiveRun ? 'Finding more experts…' : searchDetail.currentStep)
+          }
+          status={liveStatus ?? (appendLiveActive ? 'processing' : searchDetail.status)}
+          expertsFound={liveExpertsFound}
+          isAppendRun={isAppendLiveRun}
+        />
+      ) : null}
+
+      {showCompletedResults && (
         <>
           <Tabs
             tabs={[
@@ -301,6 +473,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    {findMoreButton}
                     <Button
                       variant="default"
                       size="sm"
@@ -391,7 +564,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
           ) : tab === TAB_EXPERT_RESULTS ? (
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600 space-y-3">
               <p>No experts found for this search.</p>
-              <div className="flex justify-center">
+              <div className="flex flex-wrap justify-center gap-2">
+                {findMoreButton}
                 <SearchActionsMenu
                   reportPdfUrl={searchDetail.reportPdfUrl}
                   reportCsvUrl={searchDetail.reportCsvUrl}
@@ -409,6 +583,14 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         searchId={searchId}
         onSuccess={refetch}
       />
+      <FindMoreExpertsModal
+        isOpen={showFindMoreModal}
+        onClose={() => setShowFindMoreModal(false)}
+        initialAdditionalContext={searchDetail.additionalContext}
+        isSubmitting={isFindMoreSubmitting}
+        error={findMoreError}
+        onSubmit={handleFindMoreSubmit}
+      />
       <GenerateEmailModal
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}
@@ -424,28 +606,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         generation={generatePayload}
         onDone={handleProgressDone}
       />
-
-      {isInProgress && (
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-gray-500">
-            Re-check status when the search has had time to complete.
-          </p>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            onClick={refetch}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
-            ) : (
-              <RefreshCw className="h-4 w-4 shrink-0" aria-hidden />
-            )}
-            <span>{isLoading ? 'Refreshing…' : 'Refresh'}</span>
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

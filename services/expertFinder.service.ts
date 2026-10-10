@@ -82,6 +82,24 @@ export function getRegionLabel(value: Region): string {
   return REGION_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
 
+/** Allowed `expert_count` values (API: 5–25). */
+export const EXPERT_COUNT_OPTIONS = [5, 10, 25] as const;
+
+export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
+
+export function getExpertCountOptions(): readonly ExpertCountOption[] {
+  return EXPERT_COUNT_OPTIONS;
+}
+
+/** Coerce a count into a valid option; default 10. */
+export function clampExpertCount(count: unknown): ExpertCountOption {
+  const n = Number(count);
+  if ((EXPERT_COUNT_OPTIONS as readonly number[]).includes(n)) {
+    return n as ExpertCountOption;
+  }
+  return 10;
+}
+
 export interface ExpertSearchCreatePayload {
   unified_document_id: number;
   input_type: InputType;
@@ -92,6 +110,12 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
+  additional_context?: string;
+}
+
+/** POST body for find-more on an existing search. */
+export interface FindMoreExpertsPayload {
+  expert_count?: number;
   additional_context?: string;
 }
 
@@ -218,6 +242,26 @@ export class ExpertFinderService {
   }
 
   /**
+   * Request additional experts for an existing search (appended when done).
+   * POST /api/research_ai/expert-finder/searches/:searchId/find-more/
+   */
+  static async findMoreExperts(
+    searchId: number | string,
+    payload?: FindMoreExpertsPayload
+  ): Promise<ExpertSearchCreated> {
+    const body: Record<string, unknown> = {};
+    if (payload?.expert_count != null) body.expert_count = payload.expert_count;
+    if (payload && 'additional_context' in payload) {
+      body.additional_context = payload.additional_context ?? '';
+    }
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/${searchId}/find-more/`,
+      body
+    );
+    return transformExpertSearchCreateResponse(raw);
+  }
+
+  /**
    * Fetch full detail for a single expert search.
    * GET /api/research_ai/expert-finder/searches/:searchId/
    */
@@ -274,19 +318,6 @@ export class ExpertFinderService {
       limit: response.limit ?? limit,
       offset: response.offset ?? offset,
     };
-  }
-
-  /**
-   * Open an authenticated SSE stream for expert search progress.
-   *
-   * @param searchId – expert search id
-   * @param signal – optional AbortSignal to cancel the request
-   * @returns Response with response.body as ReadableStream (SSE)
-   */
-  static openProgressStream(searchId: number | string, signal?: AbortSignal): Promise<Response> {
-    return ApiClient.getStream(`${this.BASE_PATH}/progress/${searchId}/`, {
-      signal,
-    });
   }
 
   /**

@@ -183,22 +183,129 @@ export interface ExpertSearchListResponse {
   offset: number;
 }
 
-/** Result of creating an expert search. */
+/** Result of creating an expert search (or find-more). */
 export interface ExpertSearchCreated {
   searchId: number;
   status: SearchStatus;
   message: string;
-  sseUrl: string | null;
+  wsUrl: string | null;
+  expertCount?: number;
+  append?: boolean;
 }
 
-/** SSE progress event. */
-export interface ExpertSearchProgress {
-  status: SearchStatus | 'connected';
-  progress?: number;
-  currentStep?: string;
-  taskType?: string;
-  taskId?: string;
-  error?: string;
+const SEARCH_STATUSES: readonly SearchStatus[] = ['pending', 'processing', 'completed', 'failed'];
+
+/** Normalize API status (often uppercase) to client SearchStatus. */
+export function normalizeSearchStatus(
+  raw: unknown,
+  fallback: SearchStatus = 'pending'
+): SearchStatus {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  return (SEARCH_STATUSES as readonly string[]).includes(value)
+    ? (value as SearchStatus)
+    : fallback;
+}
+
+export type ExpertSearchWsEventKind =
+  | 'search_progress'
+  | 'experts_found'
+  | 'search_finished'
+  | 'search_failed';
+
+export type ExpertSearchWsEvent =
+  | {
+      kind: 'search_progress';
+      searchId: number;
+      status: SearchStatus;
+      progress: number;
+      currentStep: string;
+    }
+  | {
+      kind: 'experts_found';
+      searchId: number;
+      expertCount: number;
+    }
+  | {
+      kind: 'search_finished';
+      searchId: number;
+      status: SearchStatus;
+      progress: number;
+      currentStep: string;
+      expertCount?: number;
+      error?: string;
+    }
+  | {
+      kind: 'search_failed';
+      searchId: number;
+      status: SearchStatus;
+      progress: number;
+      currentStep: string;
+      error?: string;
+    };
+
+const WS_EVENT_KINDS: readonly ExpertSearchWsEventKind[] = [
+  'search_progress',
+  'experts_found',
+  'search_finished',
+  'search_failed',
+];
+
+function parseOptionalNumber(raw: unknown): number | undefined {
+  if (raw == null || raw === '') return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/** Parse a WebSocket JSON frame into a typed expert-search event, or null. */
+export function parseExpertSearchWsEvent(raw: unknown): ExpertSearchWsEvent | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const kind = String(obj.kind ?? '').trim();
+  if (!(WS_EVENT_KINDS as readonly string[]).includes(kind)) return null;
+
+  const searchId = Number(obj.search_id ?? 0);
+  if (!Number.isFinite(searchId)) return null;
+
+  if (kind === 'experts_found') {
+    const expertCount = parseOptionalNumber(obj.expert_count);
+    if (expertCount == null) return null;
+    return { kind, searchId, expertCount };
+  }
+
+  const status = normalizeSearchStatus(
+    obj.status,
+    kind === 'search_failed' ? 'failed' : 'processing'
+  );
+  const progress = parseOptionalNumber(obj.progress) ?? (kind === 'search_finished' ? 100 : 0);
+  const currentStep = obj.current_step != null ? String(obj.current_step) : '';
+  const error =
+    obj.error != null && String(obj.error).trim() !== '' ? String(obj.error).trim() : undefined;
+  const expertCount = parseOptionalNumber(obj.expert_count);
+
+  if (kind === 'search_progress') {
+    return { kind, searchId, status, progress, currentStep };
+  }
+  if (kind === 'search_finished') {
+    return {
+      kind,
+      searchId,
+      status: status === 'failed' ? 'failed' : 'completed',
+      progress,
+      currentStep,
+      ...(expertCount !== undefined ? { expertCount } : {}),
+      ...(error !== undefined ? { error } : {}),
+    };
+  }
+  return {
+    kind: 'search_failed',
+    searchId,
+    status: 'failed',
+    progress,
+    currentStep,
+    ...(error !== undefined ? { error } : {}),
+  };
 }
 
 function defaultSourceLabel(url: string, text: string): string {
@@ -206,7 +313,9 @@ function defaultSourceLabel(url: string, text: string): string {
   if (isLinkedInUrl(url)) return 'LinkedIn';
   if (isXUrl(url)) return 'X';
   try {
-    return new URL(url).hostname.replace(/^www\./, '') || 'Source';
+    const hostname = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+    if (hostname.includes('openalex.org')) return 'OpenAlex';
+    return hostname || 'Source';
   } catch {
     return 'Source';
   }
@@ -236,6 +345,8 @@ function transformExpertSource(raw: string | Record<string, unknown>): ExpertSou
     (typeHint === 'x' || typeHint === 'twitter' || typeHint.includes('twitter'))
   ) {
     text = 'X';
+  } else if (!text && (typeHint === 'openalex' || typeHint.includes('openalex'))) {
+    text = 'OpenAlex';
   }
 
   return { url: normalized, text: defaultSourceLabel(normalized, text) };
@@ -384,7 +495,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
     inputType: raw.input_type ?? 'abstract',
     config: raw.config ?? {},
     llmModel: raw.llm_model ?? '',
-    status: raw.status ?? 'pending',
+    status: normalizeSearchStatus(raw.status),
     progress: raw.progress ?? 0,
     currentStep: raw.current_step ?? '',
     expertResults,
@@ -408,7 +519,7 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     searchId: raw.search_id ?? 0,
     name: raw.name ?? '',
     query: raw.query ?? '',
-    status: raw.status ?? 'pending',
+    status: normalizeSearchStatus(raw.status),
     expertCount: raw.expert_count ?? 0,
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
@@ -417,23 +528,22 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
 );
 
 export const transformExpertSearchCreateResponse = createTransformer<any, ExpertSearchCreated>(
-  (raw) => ({
-    searchId: raw.search_id ?? 0,
-    status: raw.status ?? 'pending',
-    message: raw.message ?? '',
-    sseUrl: raw.sse_url ?? null,
-  })
-);
-
-export const transformExpertSearchProgressEvent = createTransformer<any, ExpertSearchProgress>(
-  (raw) => ({
-    status: raw.status ?? 'pending',
-    progress: raw.progress,
-    currentStep: raw.current_step,
-    taskType: raw.task_type,
-    taskId: raw.task_id,
-    error: raw.error,
-  })
+  (raw) => {
+    const expertCountRaw = raw.expert_count;
+    const expertCount =
+      expertCountRaw != null && Number.isFinite(Number(expertCountRaw))
+        ? Number(expertCountRaw)
+        : undefined;
+    const wsUrlRaw = raw.ws_url != null ? String(raw.ws_url).trim() : '';
+    return {
+      searchId: raw.search_id ?? 0,
+      status: normalizeSearchStatus(raw.status),
+      message: raw.message ?? '',
+      wsUrl: wsUrlRaw || null,
+      ...(expertCount !== undefined ? { expertCount } : {}),
+      ...(typeof raw.append === 'boolean' ? { append: raw.append } : {}),
+    };
+  }
 );
 
 // ── Generated emails ─────────────────────────────────

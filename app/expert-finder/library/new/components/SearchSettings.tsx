@@ -11,13 +11,13 @@ import { Textarea } from '@/components/ui/form/Textarea';
 import { Dropdown, DropdownItem, MultiSelectDropdown } from '@/components/ui/form/Dropdown';
 import type { ExpertSearchResult } from '@/types/expertFinder';
 import type { ContentType } from '@/types/work';
-import type { AdvancedConfigFormValues, ExpertFinderFormValues } from '../schema';
-import { EXPERT_COUNT_OPTIONS } from '../schema';
+import type { ExpertFinderFormValues, SearchSettingsFormValues } from '../schema';
 import {
   EXPERTISE_LEVEL_OPTIONS,
   ExpertiseLevel,
   InputType,
   REGION_OPTIONS,
+  getExpertCountOptions,
   getRegionLabel,
 } from '@/services/expertFinder.service';
 import { getFieldErrorMessage } from '@/utils/form';
@@ -30,10 +30,10 @@ const INPUT_TYPE_OPTIONS: { value: InputType; label: string }[] = [
   { value: 'abstract', label: 'Abstract' },
 ];
 
-interface AdvancedConfigProps {
-  values: AdvancedConfigFormValues;
-  onChange: (values: AdvancedConfigFormValues) => void;
-  errors?: FieldErrors<AdvancedConfigFormValues>;
+interface SearchSettingsProps {
+  values: SearchSettingsFormValues;
+  onChange: (values: SearchSettingsFormValues) => void;
+  errors?: FieldErrors<SearchSettingsFormValues>;
   availableInputTypes?: InputType[];
   contentType?: ContentType;
   onRerunSelect: (search: ExpertSearchResult | null) => void;
@@ -44,7 +44,7 @@ interface AdvancedConfigProps {
   additionalContextMaxLength: number;
 }
 
-export function AdvancedConfig({
+export function SearchSettings({
   values,
   onChange,
   errors,
@@ -56,7 +56,7 @@ export function AdvancedConfig({
   additionalContextError,
   additionalContextCharCount,
   additionalContextMaxLength,
-}: AdvancedConfigProps) {
+}: SearchSettingsProps) {
   const hideInputType = contentType !== 'paper';
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoadingRerun, setIsLoadingRerun] = useState(false);
@@ -77,10 +77,11 @@ export function AdvancedConfig({
   }, [availableInputTypes, values.inputType]);
 
   const regionLabel = getRegionLabel(values.region);
+  const expertCountOptions = getExpertCountOptions();
 
   return (
     <CollapsibleSection
-      title="Advanced Configuration"
+      title="Search settings"
       icon={<Settings className="w-5 h-5" />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
@@ -201,7 +202,7 @@ export function AdvancedConfig({
               onOpenChange={setExpertCountOpen}
             >
               <div className="py-1 max-h-60 overflow-y-auto">
-                {EXPERT_COUNT_OPTIONS.map((option) => (
+                {expertCountOptions.map((option) => (
                   <DropdownItem
                     key={option}
                     onClick={() => onChange({ ...values, expertCount: option })}
