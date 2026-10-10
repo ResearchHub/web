@@ -1,13 +1,11 @@
 import { useEffect } from 'react';
 import { useEditor } from '@tiptap/react';
-import type { AnyExtension, Editor } from '@tiptap/core';
+import type { Editor } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
 import { UndoRedo } from '@tiptap/extensions';
 import { migrateMathStrings } from '@tiptap/extension-mathematics';
 
 import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
-import { Ai } from '@/components/Editor/extensions/Ai';
-import { AiImage, AiWriter } from '@/components/Editor/extensions';
 
 const CustomDocument = Document.extend({
   content: 'heading block+',
@@ -20,9 +18,6 @@ declare global {
 }
 
 export const useBlockEditor = ({
-  aiToken,
-  userId,
-  userName = 'Maxi',
   editable = true,
   content,
   contentJson,
@@ -33,9 +28,6 @@ export const useBlockEditor = ({
   locked = false,
   requireTitle = true,
 }: {
-  aiToken?: string;
-  userId?: string;
-  userName?: string;
   editable?: boolean;
   content?: string;
   contentJson?: string;
@@ -83,20 +75,7 @@ export const useBlockEditor = ({
         UndoRedo.configure({
           depth: 100,
         }),
-        aiToken
-          ? AiWriter.configure({
-              authorId: userId,
-              authorName: userName,
-            })
-          : undefined,
-        aiToken
-          ? AiImage.configure({
-              authorId: userId,
-              authorName: userName,
-            })
-          : undefined,
-        aiToken ? Ai.configure({ token: aiToken }) : undefined,
-      ].filter((e): e is AnyExtension => e !== undefined),
+      ],
       editorProps: {
         attributes: {
           autocomplete: 'off',
