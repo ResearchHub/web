@@ -77,21 +77,6 @@ export class FundraiseService {
   }
 
   /**
-   * Alias for contributeToFundraise to maintain backwards compatibility with existing hooks
-   * @param id The ID of the fundraise to contribute to
-   * @param payload The payload containing the amount and optional currency
-   * @returns The updated fundraise
-   */
-  static async createContribution(id: ID, payload: any): Promise<Fundraise> {
-    return this.contributeToFundraise(
-      id,
-      payload.amount,
-      payload.currency || 'rsc',
-      payload.useCredits ?? false
-    );
-  }
-
-  /**
    * Create a contribution to a fundraise via Endaoment (DAF).
    * @param fundraiseId The ID of the fundraise to contribute to
    * @param originFundId The ID of the Endaoment DAF to pay from
