@@ -42,7 +42,6 @@
     "@stripe/react-stripe-js": "^5.5.0",
     "@stripe/stripe-js": "^8.6.4",
     "@tippyjs/react": "^4.2.6",
-    "@tiptap-pro/extension-ai": "3.9.2",
     "@tiptap-pro/extension-import": "3.9.2",
     "@tiptap/core": "3.29.2",
     "@tiptap/extension-bullet-list": "3.29.2",
