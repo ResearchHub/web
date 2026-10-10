@@ -39,14 +39,12 @@ export function isBudgetExhausted(budget: ResearchAIBudget | null): boolean {
 }
 
 /**
- * Off for everyone: no surface shows the model and effort controls, and no
- * send names a model, so the API's tier default runs. Flip it to bring the
- * picker back for the tiers below.
+ * The model and effort controls show for the privileged tier, which the API
+ * gives to moderators, editors and staff. For everyone else no send names a
+ * model, so the API's tier default runs.
  */
-const AI_MODEL_SELECTION_ENABLED = false;
-
 export function canSelectAIModel(tier: ResearchAIBudget['tier'] | undefined): boolean {
-  return AI_MODEL_SELECTION_ENABLED && (tier === 'invited' || tier === 'privileged');
+  return tier === 'privileged';
 }
 
 /** Display credits with comma grouping and exactly two decimal places. */
