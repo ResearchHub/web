@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
+import { SITE_CONFIG } from '@/lib/metadata';
 import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
@@ -25,8 +26,10 @@ async function getGrant(id: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, slug } = await params;
   const grant = await getGrant(id);
+  const shareImage =
+    grant.image && `${SITE_CONFIG.url}/api/og?image=${encodeURIComponent(grant.image)}`;
   return getWorkMetadata({
-    work: grant,
+    work: { ...grant, image: shareImage },
     url: `/grant/${id}/${slug}`,
   });
 }
