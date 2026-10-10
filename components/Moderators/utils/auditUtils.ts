@@ -1,6 +1,5 @@
 import { FlaggedContent } from '@/services/audit.service';
 import { buildWorkUrl } from '@/utils/url';
-import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
 
 /**
  * SIMPLIFIED AUDIT UTILS
@@ -9,9 +8,6 @@ import { extractTextFromTipTap } from '@/components/Comment/lib/commentContentUt
  * - buildWorkUrl() from utils/url.ts
  * - CommentReadOnly component for content rendering
  * - FeedItemHeader for user/timestamp display
- *
- * We avoid importing the audit transformation functions due to type incompatibilities
- * between @/services/audit.service and @/types/audit FlaggedContent types.
  */
 
 /**
@@ -82,107 +78,6 @@ export const getAuditContentUrl = (entry: FlaggedContent): string | null => {
     default:
       return `/post/${document.id}/${document.slug ?? item?.slug ?? ''}`;
   }
-};
-
-/**
- * Extract text from Quill format content
- */
-const extractTextFromQuillContent = (jsonContent: any): string => {
-  if (jsonContent.ops && Array.isArray(jsonContent.ops)) {
-    const extractedText = jsonContent.ops
-      .map((op: any) => op.insert ?? '')
-      .join('')
-      .trim();
-
-    if (extractedText) {
-      return extractedText;
-    }
-  }
-  return '';
-};
-
-/**
- * Extract text from TipTap format content
- */
-const extractTextFromTipTapDocument = (jsonContent: any): string => {
-  if (jsonContent.content || jsonContent.type === 'doc') {
-    const extractedText = extractTextFromTipTap(jsonContent);
-    if (extractedText) {
-      return extractedText.trim();
-    }
-  }
-  return '';
-};
-
-/**
- * Process JSON comment content and extract text
- */
-const processJsonCommentContent = (jsonContent: any): string => {
-  // Try extracting from Quill format first
-  const quillText = extractTextFromQuillContent(jsonContent);
-  if (quillText) {
-    return quillText;
-  }
-
-  // Try extracting from TipTap format
-  const tipTapText = extractTextFromTipTapDocument(jsonContent);
-  if (tipTapText) {
-    return tipTapText;
-  }
-
-  return 'No readable content found';
-};
-
-/**
- * Handle comment content JSON parsing and extraction
- */
-export const handleCommentContentJson = (commentContentJson: string | object): string => {
-  // Handle special case for removed content
-  if (typeof commentContentJson === 'string' && commentContentJson.includes('[Comment removed]')) {
-    return '[Comment removed]';
-  }
-
-  try {
-    const jsonContent =
-      typeof commentContentJson === 'string' ? JSON.parse(commentContentJson) : commentContentJson;
-
-    return processJsonCommentContent(jsonContent);
-  } catch (e) {
-    console.warn('Failed to parse comment_content_json:', e);
-    return 'Error parsing comment content';
-  }
-};
-
-/**
- * Get content from thread document
- */
-export const getContentFromThreadDocument = (contentItem: any): string => {
-  const document = contentItem.thread?.content_object?.unified_document?.documents?.[0];
-  if (!document) {
-    return '';
-  }
-
-  return (
-    document.renderable_text ??
-    document.title ??
-    document.abstract ??
-    'No content preview available'
-  );
-};
-
-/**
- * Get fallback content from various fields
- */
-export const getFallbackContent = (contentItem: any): string => {
-  return (
-    contentItem.content ??
-    contentItem.text ??
-    contentItem.title ??
-    contentItem.description ??
-    contentItem.renderable_text ??
-    contentItem.abstract ??
-    'No content preview available'
-  );
 };
 
 /**
@@ -281,12 +176,4 @@ const extractTextFromTipTapArray = (content: any[]): string => {
     })
     .join('')
     .trim();
-};
-
-/**
- * Check if content should show truncation based on length
- */
-export const shouldShowTruncation = (entry: FlaggedContent, maxLength: number = 400): boolean => {
-  const textContent = getAuditContentPreview(entry);
-  return textContent.length > maxLength;
 };
