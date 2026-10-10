@@ -230,9 +230,6 @@ const nextConfig = {
     },
   },
   compress: true,
-  // compiler: {
-  //   removeConsole: process.env.VERCEL_ENV === 'production',
-  // },
   turbopack: {
     resolveAlias: {
       '@': __dirname,

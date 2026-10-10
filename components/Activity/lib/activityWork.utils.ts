@@ -4,6 +4,7 @@ import { getBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import {
   isGrantOpened,
   isProposalSubmission,
+  isVerifiedAuthor,
   shouldLinkToUpdatesTab,
 } from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
@@ -140,7 +141,7 @@ function toCardAuthors(authors?: AuthorProfile[]): WorkCardAuthor[] {
     .filter((author) => !!author.fullName?.trim())
     .map((author) => ({
       name: author.fullName,
-      verified: author.user?.isVerified ?? author.isVerified,
+      verified: isVerifiedAuthor(author),
       authorUrl: author.id === 0 ? undefined : author.profileUrl,
       profileImage: author.profileImage,
     }));

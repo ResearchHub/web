@@ -3,10 +3,8 @@
 import Link from 'next/link';
 import { Bell, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import {
-  DashboardSectionHeader,
-  SeeAllButton,
-} from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
+import { DocumentThumbnail } from '@/components/Funding/dashboard/DocumentThumbnail';
 import type { FundedRow } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import { formatTimeAgo } from '@/utils/date';
@@ -20,7 +18,7 @@ interface FundedResearchListProps {
 }
 
 /**
- * Research you funded: each proposal with its scientist, the latest word from
+ * Research you funded: each proposal with its cover and scientist, the latest word from
  * its author or reviewers, and what you gave.
  */
 export function FundedResearchList({ rows, limit, onSeeAll }: FundedResearchListProps) {
@@ -29,23 +27,21 @@ export function FundedResearchList({ rows, limit, onSeeAll }: FundedResearchList
   const shown = limit ? rows.slice(0, limit) : rows;
 
   return (
-    <section aria-label="Research you funded">
-      <DashboardSectionHeader
-        title="Research you funded"
-        meta={`${rows.length} ${rows.length === 1 ? 'proposal' : 'proposals'}`}
-        action={
-          limit != null &&
-          rows.length > limit &&
-          onSeeAll && <SeeAllButton onClick={onSeeAll}>See all {rows.length}</SeeAllButton>
-        }
-      />
+    <DashboardSection
+      title="Research you funded"
+      action={
+        limit != null &&
+        rows.length > limit &&
+        onSeeAll && <SeeAllButton onClick={onSeeAll}>See all {rows.length}</SeeAllButton>
+      }
+    >
       {/* One card holding every row, like Your peer reviews. */}
       <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
         {shown.map((row) => (
           <FundedResearchRow key={row.key} row={row} />
         ))}
       </ul>
-    </section>
+    </DashboardSection>
   );
 }
 
@@ -59,7 +55,8 @@ function FundedResearchRow({ row }: { readonly row: FundedRow }) {
         href={row.news?.href ?? row.href}
         className="group block px-5 py-5 transition-colors hover:bg-gray-50/70"
       >
-        <span className="flex items-start gap-6">
+        <span className="flex items-start gap-4">
+          <DocumentThumbnail image={row.image} size="lg" />
           <span className="min-w-0 flex-1">
             <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-gray-900 group-hover:text-primary-700">
               {row.title}

@@ -4,10 +4,7 @@ import { useMemo } from 'react';
 import { Activity } from 'lucide-react';
 import { ActivityCardSkeleton, ActivityRow } from '@/components/Activity';
 import { groupActivityRows } from '@/components/Activity/lib/activityGrouping.utils';
-import {
-  DashboardSectionHeader,
-  SeeAllButton,
-} from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import type { MyFundingActivity } from '@/components/Funding/dashboard/hooks/useMyFundingActivity';
 
 /**
@@ -47,8 +44,7 @@ export function RecentActivityPreview({
 
   if (!activity.isLoading && rows.length === 0) {
     return (
-      <section aria-label="Recent activity">
-        <DashboardSectionHeader title="Recent activity" />
+      <DashboardSection title="Recent activity">
         <div className="flex items-center gap-3.5 rounded-xl border border-gray-200 bg-white px-4 py-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50">
             <Activity className="h-5 w-5 text-primary-500" aria-hidden="true" />
@@ -58,25 +54,19 @@ export function RecentActivityPreview({
             <span className="block text-sm text-gray-500">{activityPromise(firstScientist)}</span>
           </span>
         </div>
-      </section>
+      </DashboardSection>
     );
   }
 
   const seeAll = <SeeAllButton onClick={onSeeAll}>See all activity</SeeAllButton>;
 
   return (
-    <section aria-label="Recent activity">
-      <DashboardSectionHeader title="Recent activity" action={seeAll} />
+    <DashboardSection title="Recent activity" action={seeAll}>
       {activity.isLoading ? (
         <ActivityCardSkeleton />
       ) : (
-        <>
-          {rows.map((row) => (
-            <ActivityRow key={row.key} row={row} />
-          ))}
-          <div className="mt-2">{seeAll}</div>
-        </>
+        rows.map((row) => <ActivityRow key={row.key} row={row} />)
       )}
-    </section>
+    </DashboardSection>
   );
 }

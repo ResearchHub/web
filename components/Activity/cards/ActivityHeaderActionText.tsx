@@ -4,8 +4,9 @@ import { FC, ReactNode } from 'react';
 import Link from 'next/link';
 import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { cn } from '@/utils/styles';
-import type { ActivityHeaderMessage } from '../lib/activityDisplay.utils';
+import { isVerifiedAuthor, type ActivityHeaderMessage } from '../lib/activityDisplay.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { ActivityAuthorSummary } from './ActivityGroupHeader';
 
@@ -22,15 +23,11 @@ interface ActivityHeaderActionTextProps {
 }
 
 function AuthorName({
-  id,
-  profileUrl,
-  fullName,
+  author,
   showAuthorBadge,
   truncate = false,
 }: {
-  id?: number;
-  profileUrl: string;
-  fullName?: string | null;
+  author: AuthorProfile;
   showAuthorBadge?: boolean;
   /**
    * On a line of its own with no room to wrap: the name gives way with an
@@ -41,13 +38,21 @@ function AuthorName({
 }) {
   const wrapperClass = cn('inline-flex items-center', truncate && 'min-w-0 max-w-full');
   const nameClass = cn('font-semibold text-gray-900', truncate && 'min-w-0 truncate');
-  const badge = showAuthorBadge ? <AuthorBadge size="sm" className="ml-1 shrink-0" /> : null;
+  const { id, profileUrl, fullName } = author;
+  const badges = (
+    <>
+      {isVerifiedAuthor(author) && (
+        <VerifiedBadge size="sm" showTooltip className="ml-1 shrink-0" />
+      )}
+      {showAuthorBadge && <AuthorBadge size="sm" className="ml-1 shrink-0" />}
+    </>
+  );
 
   if (!id) {
     return (
       <span className={wrapperClass}>
         <span className={nameClass}>{fullName || 'Unknown'}</span>
-        {badge}
+        {badges}
       </span>
     );
   }
@@ -59,7 +64,7 @@ function AuthorName({
           {fullName || 'Unknown'}
         </Link>
       </AuthorTooltip>
-      {badge}
+      {badges}
     </span>
   );
 }
@@ -76,13 +81,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   const authorNames = authors ? (
     <ActivityAuthorSummary authors={authors} />
   ) : (
-    <AuthorName
-      id={actor.id}
-      profileUrl={actor.profileUrl}
-      fullName={actor.fullName}
-      showAuthorBadge={isAuthor}
-      truncate={stacked}
-    />
+    <AuthorName author={actor} showAuthorBadge={isAuthor} truncate={stacked} />
   );
 
   const action = (
@@ -91,11 +90,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
       {target && (
         <>
           {' '}
-          <AuthorName
-            id={target.author.id}
-            profileUrl={target.author.profileUrl}
-            fullName={target.author.fullName}
-          />
+          <AuthorName author={target.author} />
           {target.suffix && <span className="text-gray-900">{target.suffix}</span>}
         </>
       )}
