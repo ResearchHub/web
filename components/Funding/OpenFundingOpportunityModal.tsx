@@ -102,7 +102,8 @@ const CREATION_OPTIONS: CreationOption[] = [
   },
 ];
 
-const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
+/** Where a funder books time with the ResearchHub team to shape an RFP together. */
+export const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
 
 type Step = 'benefits' | 'method' | 'upload';
 

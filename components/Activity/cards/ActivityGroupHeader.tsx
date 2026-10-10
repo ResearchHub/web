@@ -4,7 +4,9 @@ import { ReactNode } from 'react';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import type { AuthorProfile } from '@/types/authorProfile';
+import { isVerifiedAuthor } from '../lib/activityDisplay.utils';
 
 const MAX_VISIBLE_AUTHORS = 3;
 const AUTHOR_AVATAR_SPACING = -14;
@@ -13,16 +15,24 @@ const MAX_NAMED_AUTHORS = 2;
 function AuthorName({ author }: Readonly<{ author: AuthorProfile }>) {
   const name = author.fullName || 'Unknown';
 
-  if (!author.id) {
-    return <span className="font-medium text-gray-900">{name}</span>;
-  }
-
   return (
-    <AuthorTooltip authorId={author.id} placement="bottom">
-      <Link href={author.profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
-        {name}
-      </Link>
-    </AuthorTooltip>
+    <span className="inline-flex items-center">
+      {author.id ? (
+        <AuthorTooltip authorId={author.id} placement="bottom">
+          <Link
+            href={author.profileUrl}
+            className="font-semibold text-gray-900 hover:text-primary-600"
+          >
+            {name}
+          </Link>
+        </AuthorTooltip>
+      ) : (
+        <span className="font-semibold text-gray-900">{name}</span>
+      )}
+      {isVerifiedAuthor(author) && (
+        <VerifiedBadge size="sm" showTooltip className="ml-1 shrink-0" />
+      )}
+    </span>
   );
 }
 
@@ -38,13 +48,13 @@ export function ActivityAuthorSummary({ authors }: Readonly<{ authors: AuthorPro
 
         return (
           <span key={`${author.id}-${index}`}>
-            {index > 0 && <span className="text-gray-500">{separator}</span>}
+            {index > 0 && <span className="text-gray-900">{separator}</span>}
             <AuthorName author={author} />
           </span>
         );
       })}
       {remaining > 0 && (
-        <span className="text-gray-500">
+        <span className="text-gray-900">
           {` and ${remaining} ${remaining === 1 ? 'other' : 'others'}`}
         </span>
       )}

@@ -18,9 +18,9 @@ export const AmountBadge: FC<AmountBadgeProps> = ({
 }) => (
   <span
     className={cn(
-      'inline-flex items-center rounded font-mono font-semibold leading-tight',
-      variant === 'orange' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800',
-      size === 'sm' ? 'px-1 py-px text-[11px]' : 'px-1.5 text-[12px]',
+      'text-[length:calc(1em+1px)] font-medium',
+      variant === 'orange' ? 'text-orange-700' : 'text-green-700',
+      size === 'sm' && '!text-xs',
       className
     )}
   >

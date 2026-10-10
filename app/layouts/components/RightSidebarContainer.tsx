@@ -4,12 +4,12 @@ import { ReactNode, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
-import { FundSidebar } from '@/components/Funding/FundSidebar';
+import { RecentlyVisited } from '@/components/RecentlyVisited/RecentlyVisited';
 import { FundingPowerCard } from '@/components/Funding/FundingPowerCard';
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
   if (typeof rightSidebar === 'boolean') {
-    return <FundSidebar />;
+    return <RecentlyVisited />;
   }
 
   return <>{rightSidebar}</>;
@@ -18,13 +18,19 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
   contentClassName?: string;
+  /** Align a custom sidebar's panel with the main column's padded content. */
+  topOffset?: 'default' | 'aligned';
   aboveSidebar?: ReactNode;
+  /** Stretch the gray rail to the bottom of the column even with a card above it. */
+  fill?: boolean;
 }
 
 export function RightSidebarContainer({
   rightSidebar,
   contentClassName,
+  topOffset = 'default',
   aboveSidebar,
+  fill = false,
 }: RightSidebarContainerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   const isDefaultSidebar = typeof rightSidebar === 'boolean';
@@ -40,7 +46,8 @@ export function RightSidebarContainer({
     <>
       <div
         className={cn(
-          'sticky z-30 mt-10',
+          'sticky z-30',
+          topOffset === 'aligned' ? 'mt-6' : 'mt-10',
           // When a card sits above the gray rail, keep a gap under the top bar
           // once sticky kicks in. Other pages keep top-0 so their sidebar
           // position is unchanged.
@@ -60,7 +67,8 @@ export function RightSidebarContainer({
             // of filling the column — otherwise a short or empty sidebar leaves
             // a tall empty rail hanging beneath that card. It still shrinks and
             // scrolls when the content is taller than the space available.
-            cardAboveSidebar ? 'flex-initial' : 'flex-1 h-full'
+            // A page can ask for the full column anyway.
+            cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
           )}
         >
           <div className={cn('h-full', contentClassName)}>

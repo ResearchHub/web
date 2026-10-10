@@ -1,10 +1,11 @@
+import 'cal-sans/index.css';
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { MyFundingPage } from './components/MyFundingPage';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'My Funding',
-  description: 'Track the funding you give and the earnings you receive.',
+  description: 'Manage your RFPs and proposals, track funding activity, and view your earnings.',
   url: '/my-funding',
 });
 

@@ -4,8 +4,9 @@ import { FC, ReactNode } from 'react';
 import Link from 'next/link';
 import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { cn } from '@/utils/styles';
-import type { ActivityHeaderMessage } from '../lib/activityDisplay.utils';
+import { isVerifiedAuthor, type ActivityHeaderMessage } from '../lib/activityDisplay.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { ActivityAuthorSummary } from './ActivityGroupHeader';
 
@@ -22,36 +23,48 @@ interface ActivityHeaderActionTextProps {
 }
 
 function AuthorName({
-  id,
-  profileUrl,
-  fullName,
+  author,
   showAuthorBadge,
+  truncate = false,
 }: {
-  id?: number;
-  profileUrl: string;
-  fullName?: string | null;
+  author: AuthorProfile;
   showAuthorBadge?: boolean;
+  /**
+   * On a line of its own with no room to wrap: the name gives way with an
+   * ellipsis so the badge after it stays whole, instead of the badge being
+   * cut off at the edge.
+   */
+  truncate?: boolean;
 }) {
-  const name = <span className="font-medium text-gray-900">{fullName || 'Unknown'}</span>;
-  const badge = showAuthorBadge ? <AuthorBadge size="sm" className="ml-1 shrink-0" /> : null;
+  const wrapperClass = cn('inline-flex items-center', truncate && 'min-w-0 max-w-full');
+  const nameClass = cn('font-semibold text-gray-900', truncate && 'min-w-0 truncate');
+  const { id, profileUrl, fullName } = author;
+  const badges = (
+    <>
+      {isVerifiedAuthor(author) && (
+        <VerifiedBadge size="sm" showTooltip className="ml-1 shrink-0" />
+      )}
+      {showAuthorBadge && <AuthorBadge size="sm" className="ml-1 shrink-0" />}
+    </>
+  );
 
   if (!id) {
     return (
-      <span className="inline-flex items-center">
-        {name}
-        {badge}
+      <span className={wrapperClass}>
+        <span className={nameClass}>{fullName || 'Unknown'}</span>
+        {badges}
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center">
+    <span className={wrapperClass}>
       <AuthorTooltip authorId={id} placement="bottom">
-        <Link href={profileUrl} className="font-medium text-gray-900 hover:text-primary-600">
+        <Link href={profileUrl} className={cn(nameClass, 'hover:text-primary-600')}>
           {fullName || 'Unknown'}
         </Link>
       </AuthorTooltip>
-      {badge}
+      {badges}
     </span>
   );
 }
@@ -68,26 +81,17 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   const authorNames = authors ? (
     <ActivityAuthorSummary authors={authors} />
   ) : (
-    <AuthorName
-      id={actor.id}
-      profileUrl={actor.profileUrl}
-      fullName={actor.fullName}
-      showAuthorBadge={isAuthor}
-    />
+    <AuthorName author={actor} showAuthorBadge={isAuthor} truncate={stacked} />
   );
 
   const action = (
     <>
-      <span className="text-gray-500">{stacked ? verb : ` ${verb}`}</span>
+      <span className="text-gray-900">{stacked ? verb : ` ${verb}`}</span>
       {target && (
         <>
           {' '}
-          <AuthorName
-            id={target.author.id}
-            profileUrl={target.author.profileUrl}
-            fullName={target.author.fullName}
-          />
-          {target.suffix && <span className="text-gray-500">{target.suffix}</span>}
+          <AuthorName author={target.author} />
+          {target.suffix && <span className="text-gray-900">{target.suffix}</span>}
         </>
       )}
       {trailing}

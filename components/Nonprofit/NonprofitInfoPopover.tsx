@@ -33,7 +33,7 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
   return (
     <div
       ref={popoverRef}
-      className="nonprofit-info-popover fixed z-50 w-80 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[60vh] flex flex-col"
+      className="nonprofit-info-popover fixed z-[10000] w-80 bg-white rounded-lg shadow-xl border border-gray-200 max-h-[60vh] flex flex-col"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,

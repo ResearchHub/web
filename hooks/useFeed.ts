@@ -46,6 +46,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
+  const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
@@ -121,6 +122,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setHasAttemptedLoad(true);
     setEntries([]);
     setIsLoading(true);
+    setError(null);
 
     try {
       const isHomeFeedTab =
@@ -157,7 +159,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasMore(result.hasMore);
       setPage(1);
     } catch (error) {
-      console.error('Error loading feed:', error);
+      const nextError = error instanceof Error ? error : new Error('Failed to load feed');
+      console.error('Error loading feed:', nextError);
+      setError(nextError);
       setPage(1);
     } finally {
       setIsLoading(false);
@@ -168,6 +172,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     if (!hasMore || isLoading) return;
 
     setIsLoading(true);
+    setError(null);
     try {
       const nextPage = page + 1;
       const isHomeFeedTab =
@@ -203,7 +208,10 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasMore(result.hasMore);
       setPage(nextPage);
     } catch (error) {
-      console.error('Error loading more feed items:', error);
+      const nextError =
+        error instanceof Error ? error : new Error('Failed to load more feed items');
+      console.error('Error loading more feed items:', nextError);
+      setError(nextError);
     } finally {
       setIsLoading(false);
     }
@@ -212,6 +220,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   return {
     entries,
     isLoading,
+    error,
     hasMore,
     loadMore,
     refresh: loadFeed,

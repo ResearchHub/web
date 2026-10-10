@@ -7,13 +7,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
+import { Menu } from 'lucide-react';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { Logo } from '@/components/ui/Logo';
 import { Tabs } from '@/components/ui/Tabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
+import { Icon } from '@/components/ui/icons';
 import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
@@ -22,10 +23,12 @@ import { TopBarBreadcrumb } from './topbar/TopBarBreadcrumb';
 import { TopBarUserControls } from './topbar/TopBarUserControls';
 
 interface TopBarProps {
+  /** Opens or closes the app's menu: the left sidebar, below the width at which it is a column. */
   onMenuClick: () => void;
+  readonly isMenuOpen?: boolean;
 }
 
-export function TopBar({ onMenuClick }: TopBarProps) {
+export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,9 +51,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   // default breadcrumb.
   const topBarSlot = useTopBarSlot();
   const leftSlot = topBarSlot?.leftSlot;
+  // Or keep the back arrow and name what the page has open instead of the page.
+  const openTitle = topBarSlot?.title ?? null;
 
-  const pageInfo = getPageInfo(pathname);
-  const showBackButton = pageInfo && !isRootNavigationPage(pathname);
+  const routePageInfo = getPageInfo(pathname);
+  // '' from the page: it has not loaded what it names yet (see TopBarSlotContext).
+  const pageInfo =
+    routePageInfo && openTitle != null
+      ? { ...routePageInfo, title: openTitle, loading: openTitle === '' }
+      : routePageInfo;
+  // Nothing of the title's row until it is known: the arrow would stand alone.
+  const showBackButton = pageInfo && !pageInfo.loading && !isRootNavigationPage(pathname);
 
   const profilePercent = useCallback(() => {
     if (!user) return 100;
@@ -84,10 +95,24 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         <div className="relative flex items-center justify-between px-4 lg:px-8 h-[var(--top-bar-height)]">
           {/* Left side */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
-            <Link href="/" className="block tablet:!hidden mr-2">
-              <div className="rounded-full bg-gray-100 flex items-center justify-center w-11 h-11">
-                <Logo noText size={36} className="mt-[-2px]" />
-              </div>
+            {/* The left sidebar is a column from 1240px up; narrower, this opens it. */}
+            <button
+              type="button"
+              onClick={onMenuClick}
+              aria-expanded={isMenuOpen}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+              className="-ml-2 mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 sidebar-compact:!hidden"
+            >
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            </button>
+
+            {/* The sidebar holds the logo from 1240px up; narrower, it sits here. */}
+            <Link
+              href="/"
+              aria-label="ResearchHub home"
+              className="mr-2 flex shrink-0 items-center sidebar-compact:!hidden"
+            >
+              <Icon name="flaskFrame" size={32} color="#3971ff" />
             </Link>
 
             {leftSlot ? (
@@ -108,8 +133,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 {pageInfo && (
                   <TopBarBreadcrumb
                     pageInfo={showTopBarFundTabs ? { ...pageInfo, title: 'Fund' } : pageInfo}
+                    shortTitle={isFundPage && !showTopBarFundTabs ? 'Fund Science' : undefined}
                     variant="desktop"
+                    truncateTitle={openTitle != null}
+                    size={openTitle != null ? 'md' : 'lg'}
                   />
+                )}
+
+                {openTitle && topBarSlot?.titleActions && (
+                  <div className="ml-1 flex shrink-0 items-center">{topBarSlot.titleActions}</div>
                 )}
               </>
             )}

@@ -1,122 +1,53 @@
 'use client';
 
-import { ChevronRight, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { Plus } from 'lucide-react';
+import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import {
-  OpenFundingOpportunityModal,
-  type FundingOpportunityCreationMethod,
-} from '@/components/Funding/OpenFundingOpportunityModal';
-import {
-  OpenProposalModal,
-  type ProposalCreationMethod,
-} from '@/components/Funding/OpenProposalModal';
+  FUNDING_DRAFT_OPTIONS,
+  FundingDraftMenuItems,
+  FundingDraftOptionContent,
+  type FundingDraftOption,
+} from '@/components/Funding/fundingDraftOptions';
+import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
 
 interface PublishMenuProps {
   forceMinimize?: boolean;
+  /** Runs once an item is picked, for a host that should then get out of the way. */
+  onItemSelected?: () => void;
 }
 
-const PUBLISH_MENU_SECTIONS = [
-  {
-    title: 'Publish on ResearchHub',
-    items: [
-      {
-        id: 'give-funding',
-        title: 'Request for Proposal',
-        description: 'Fund specific research you care about',
-        icon: <FontAwesomeIcon icon={faBullhorn} className="h-[18px] w-[18px] text-gray-700" />,
-        handler: 'handleOpenGrant',
-      },
-      {
-        id: 'request-funding',
-        title: 'Proposal',
-        description: 'Raise money for your research',
-        icon: (
-          <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-700" />
-        ),
-        handler: 'handleFundResearch',
-      },
-    ],
-  },
-] as const;
-
-interface MenuItemContentProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, description }) => {
-  return (
-    <div className="relative flex w-full items-center gap-3 pr-6">
-      <div className="flex-shrink-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 transition-colors duration-150 group-hover:bg-gray-50">
-          {icon}
-        </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold tracking-[0.01em] text-gray-900">{title}</div>
-        <div className="text-xs text-gray-600">{description}</div>
-      </div>
-      <ChevronRight className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-900 transition-opacity duration-200 opacity-0 group-hover:opacity-100" />
-    </div>
-  );
-};
-
-export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false }) => {
-  const router = useRouter();
+/**
+ * The sidebar's Publish button: a Request for Proposal or a Proposal, either
+ * of which leads straight to a new draft in the workspace for that side of
+ * the money.
+ */
+export const PublishMenu: React.FC<PublishMenuProps> = ({
+  forceMinimize = false,
+  onItemSelected,
+}) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { startNew } = useFundingDrafting();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-  const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
-  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
 
-  const handleFundResearch = () => {
-    setIsProposalModalOpen(true);
-  };
-
-  const handleConfirmCreateProposal = (method: ProposalCreationMethod) => {
-    setIsProposalModalOpen(false);
-    router.push(`/notebook?newFunding=true&proposalSource=${method}`);
-  };
-
-  const handleOpenGrant = () => {
-    setIsFundingOpportunityModalOpen(true);
-  };
-
-  const handleConfirmOpenGrant = (method: FundingOpportunityCreationMethod) => {
-    setIsFundingOpportunityModalOpen(false);
-    router.push(`/notebook?newGrant=true&grantSource=${method}`);
-  };
-
-  const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {
-    executeAuthenticatedAction(() => {
-      switch (item.handler) {
-        case 'handleFundResearch':
-          handleFundResearch();
-          break;
-        case 'handleOpenGrant':
-          handleOpenGrant();
-          break;
-      }
-    });
+  const handleMenuItemClick = (item: FundingDraftOption) => {
+    executeAuthenticatedAction(() => startNew(item.intent));
 
     // Close mobile drawer after action
     if (smAndDown) {
       setIsMobileDrawerOpen(false);
     }
+    onItemSelected?.();
   };
 
   // Regular trigger for standard mode
   const standardTrigger = (
     <button
-      className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}`}
+      className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -131,10 +62,10 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false 
     </button>
   );
 
-  // Compact trigger for minimized sidebar
+  // Compact trigger for a sidebar forced into the icon rail
   const compactTrigger = (
     <button
-      className={`${forceMinimize ? '' : 'hidden'} tablet:max-sidebar-compact:!flex items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto`}
+      className={`${forceMinimize ? 'flex' : 'hidden'} items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto`}
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -148,59 +79,27 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false 
     </button>
   );
 
-  const menuContent = (
-    <div className="space-y-3">
-      {PUBLISH_MENU_SECTIONS.map((section) => (
-        <div key={section.title}>
-          <div className="space-y-1">
-            {section.items.map((item) => (
-              <BaseMenuItem
-                key={item.id}
-                onClick={() => handleMenuItemClick(item)}
-                className="group w-full cursor-pointer px-2 py-2 rounded-lg transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100"
-              >
-                <MenuItemContent
-                  icon={item.icon}
-                  title={item.title}
-                  description={item.description}
-                />
-              </BaseMenuItem>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const menuContent = <FundingDraftMenuItems onSelect={handleMenuItemClick} />;
 
   // Mobile drawer content
   const mobileDrawerContent = (
-    <div className="space-y-4">
-      {PUBLISH_MENU_SECTIONS.map((section) => (
-        <div key={section.title}>
-          <div className="space-y-2">
-            {section.items.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => handleMenuItemClick(item)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleMenuItemClick(item);
-                  }
-                }}
-                className="group w-full px-3 py-3 cursor-pointer rounded-xl transition-colors duration-150 hover:bg-gray-100 active:bg-gray-100"
-                role="button"
-                tabIndex={0}
-                aria-label={`${item.title}: ${item.description}`}
-              >
-                <MenuItemContent
-                  icon={item.icon}
-                  title={item.title}
-                  description={item.description}
-                />
-              </div>
-            ))}
-          </div>
+    <div className="space-y-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+      {FUNDING_DRAFT_OPTIONS.map((item) => (
+        <div
+          key={item.id}
+          onClick={() => handleMenuItemClick(item)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleMenuItemClick(item);
+            }
+          }}
+          className="group w-full px-3 py-3 cursor-pointer rounded-xl transition-colors duration-150 hover:bg-gray-100 active:bg-gray-100"
+          role="button"
+          tabIndex={0}
+          aria-label={`${item.title}: ${item.description}`}
+        >
+          <FundingDraftOptionContent option={item} />
         </div>
       ))}
     </div>
@@ -229,8 +128,13 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false 
           <SwipeableDrawer
             isOpen={isMobileDrawerOpen}
             onClose={() => setIsMobileDrawerOpen(false)}
-            height="60vh"
+            height="auto"
             showCloseButton={false}
+            header={
+              <h2 className="text-lg font-semibold text-gray-900">
+                What would you like to publish?
+              </h2>
+            }
           >
             {mobileDrawerContent}
           </SwipeableDrawer>
@@ -265,18 +169,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ forceMinimize = false 
           </BaseMenu>
         </>
       )}
-
-      <OpenFundingOpportunityModal
-        isOpen={isFundingOpportunityModalOpen}
-        onClose={() => setIsFundingOpportunityModalOpen(false)}
-        onConfirm={handleConfirmOpenGrant}
-      />
-
-      <OpenProposalModal
-        isOpen={isProposalModalOpen}
-        onClose={() => setIsProposalModalOpen(false)}
-        onConfirm={handleConfirmCreateProposal}
-      />
     </div>
   );
 };

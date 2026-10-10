@@ -61,6 +61,7 @@ export const FundingPowerCard = ({ className }: FundingPowerCardProps) => {
       {/* Two-line so the subtitle can carry the methods, which is the whole
           reason to open it — "Deposit" alone read as RSC-only. */}
       <Button
+        variant="dark"
         onClick={openAddFunds}
         className="mt-3.5 h-auto w-full justify-start gap-2 px-3 py-2 text-left"
       >

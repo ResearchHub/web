@@ -2,237 +2,171 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAIMode } from './AIModeContext';
-import { assistantChatTransport } from '@/services/chatTransport';
+import { untitledDraftTitle } from './copy';
+import { useFundingIntent } from './start/useFundingIntent';
+import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
+import { documentTarget, type WorkspaceTarget } from './workspaceUrl';
+import type { ChatNoticePolicy } from '@/components/AgentChat/chatNotices';
 import {
-  useAgentChat,
-  useAgentChatList,
-  type SendOutcome,
-  type UseAgentChatListResult,
-  type UseAgentChatResult,
-} from '@/hooks/useAgentChat';
-import { useAgentModelSelection, type AgentModelSelection } from '@/hooks/useAgentModelSelection';
-import {
-  UNSENT,
-  useChatAttachments,
-  type ChatAttachments,
-  type HeldAttachments,
-} from '@/hooks/useChatAttachments';
-import { useResearchAI } from '@/hooks/useResearchAI';
-import { canSelectAIModel, formatBudgetReset } from '@/types/researchAI';
-import type { ChatNoteRef, AgentChat } from '@/types/agentChat';
-import type { GenerationRequest } from '@/types/agentModels';
-import type { ComposerNotice } from '@/components/AgentChat/ChatComposer';
+  createFundingDraft,
+  DOCUMENT_TYPE_BY_INTENT,
+} from '@/components/Funding/createFundingDraft';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
+import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
+import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
+import { getChatTransport } from '@/services/chatTransport';
+import type { AgentChat, ChatNoteRef } from '@/types/agentChat';
+import type { SelectedGrantDetails } from '@/types/grant';
+import type { Note } from '@/types/note';
 
-/** Matches the chat hook's own poll cadence, so a background turn's spinner clears as fast as the open one. */
+/** Matches the chat hook's own poll cadence, so a background turn's dot clears as fast as the open one. */
 const LIST_POLL_INTERVAL_MS = 5000;
 
-interface QueuedMessage {
-  text: string;
-  generation: GenerationRequest;
-  held: HeldAttachments;
-}
+const NOTICES: ChatNoticePolicy = { noun: 'chat', usageLimit: 'inline' };
 
-/**
- * Composer copy for a failed send. Server `detail` is rendered verbatim
- * wherever it exists; the fallbacks only cover bodies without one. A spent
- * budget names its reset time when the allowance store knows it.
- */
-function noticeFromOutcome(
-  outcome: SendOutcome & { ok: false },
-  budgetResetsAt: string | null
-): ComposerNotice {
-  switch (outcome.reason) {
-    case 'account_busy':
-      return {
-        tone: 'warning',
-        text:
-          outcome.detail ??
-          'Another assistant task of yours is still running elsewhere. Wait for it to finish, then try again.',
-      };
-    case 'busy':
-      return {
-        tone: 'warning',
-        text: outcome.detail ?? 'The assistant is still working on a previous message.',
-      };
-    case 'usage_limit':
-      return {
-        tone: 'warning',
-        text: budgetResetsAt
-          ? `You’ve used today’s assistant budget. It resets at ${formatBudgetReset(budgetResetsAt)}.`
-          : (outcome.detail ?? 'You’ve used today’s assistant budget. Try again after it resets.'),
-      };
-    case 'model_not_allowed':
-      return {
-        tone: 'error',
-        text:
-          outcome.detail ?? 'That model isn’t available to you. Pick another one and try again.',
-      };
-    case 'invalid':
-      return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
-    case 'not_found':
-      return { tone: 'error', text: 'This conversation is no longer available.' };
-    case 'unauthorized':
-      return {
-        tone: 'error',
-        text: outcome.detail ?? 'You don’t have access to the assistant.',
-      };
-    default:
-      return {
-        tone: 'error',
-        text: outcome.detail ?? 'Something went wrong — your message wasn’t sent.',
-      };
-  }
-}
-
-export interface AIModeChatState {
+export interface AIModeChatState extends ChatSession {
+  readonly target: WorkspaceTarget;
+  /** The open chat; null on the start screen, on a new chat, and while the latest is being found. */
   readonly chatId: number | null;
+  /** The open document's most recent chat is being looked up. */
+  readonly resolvingChat: boolean;
+  /** The open document's chats; empty on the start screen. */
   readonly list: UseAgentChatListResult;
-  readonly chat: UseAgentChatResult;
-  readonly modelSelection: AgentModelSelection;
-  readonly draft: string;
-  readonly setDraft: (value: string) => void;
-  /** The open chat's unsent files, kept per chat like its draft. */
-  readonly attachments: ChatAttachments;
-  readonly notice: ComposerNotice | null;
-  readonly clearNotice: () => void;
-  /** A brand-new chat is being created for the first message. */
-  readonly creatingChat: boolean;
+  /** `list` is the open document's, not, for a render after a switch, the previous one's. */
+  readonly listReady: boolean;
+  /** A chat on the open document has a turn running. */
+  readonly anyTurnActive: boolean;
   /**
-   * Sending would be refused: the allowance is unknown or spent, or a tier
-   * that picks its model has no catalog yet to pick from.
+   * What the next draft is: an RFP (`fund`) or a proposal (`need_funding`).
+   * Named by the URL the door led to (`?new=rfp`), else the last one used.
    */
-  readonly sendBlocked: boolean;
-  readonly send: () => Promise<void>;
-  /** Send given text as the user's message — a starter card, sent as-is. */
-  readonly sendText: (text: string) => Promise<void>;
-  readonly stop: () => Promise<void>;
-  /** Rename any conversation, open or not. */
-  readonly rename: (chatId: number, title: string) => Promise<boolean>;
+  readonly intent: FundingIntent;
+  /** The RFP the next proposal answers, chosen on the start screen. */
+  readonly selectedGrant: SelectedGrantDetails | null;
+  readonly setSelectedGrant: (grant: SelectedGrantDetails | null) => void;
+  /** Open one of the document's chats, or a new one. */
+  readonly openChat: (chat: number | 'new') => void;
+  /** Rename the open chat. */
+  readonly rename: (title: string) => Promise<boolean>;
   /**
-   * Delete any conversation, optionally with the notes it created; deleting
-   * the open one lands on the new-conversation screen.
+   * Delete one of the document's chats; deleting the open one opens the next
+   * most recent, or a new chat. The document is never touched.
    */
-  readonly deleteChat: (chatId: number, options?: { deleteNotes?: boolean }) => Promise<boolean>;
-  /**
-   * The notes a conversation created, for the delete confirmation: the open
-   * chat's from what is loaded, any other's from one detail fetch.
-   */
-  readonly notesForChat: (chatId: number) => Promise<ChatNoteRef[]>;
-  readonly selectChat: (chatId: number | null) => void;
-  readonly startNewChat: () => void;
-  /** The first note of every conversation whose detail this session has loaded. */
-  readonly notesByChat: ReadonlyMap<number, ChatNoteRef>;
-  /** The active conversation's document, if it has one. */
+  readonly deleteChat: (chatId: number) => Promise<boolean>;
+  /** The open document; titled from the sidebar's list until it has loaded. */
   readonly note: ChatNoteRef | null;
-  /**
-   * The title to show for a conversation: a rename the user just made, shown
-   * before the server confirms it, else the given fallback.
-   */
-  readonly titleFor: (chatId: number, fallback: string | null) => string | null;
+  /** The open chat's title, a rename shown before the server confirms it; null for a new chat. */
+  readonly chatTitle: string | null;
 }
 
 /**
- * Orchestration for the overlay: the list, the open chat, model selection,
- * per-chat drafts, and the send path. A conversation is only created on the
- * first send, so abandoned "new conversation" screens leave nothing behind.
+ * Orchestration for the workspace: the open document's chats, the open
+ * chat's session, selection through the URL, renames and deletes, and the
+ * first message of a new draft, which creates the document and then its
+ * chat. The session itself — the chat, its draft and the send path — is
+ * `useChatSession`, shared with the notebook's panel; every chat here is the
+ * notebook's kind, scoped to its document.
  */
 export function useAIModeChat(): AIModeChatState {
-  const { chatId, selectChat: selectChatInUrl } = useAIMode();
-  const transport = useMemo(() => assistantChatTransport(), []);
+  const { target: urlTarget, selectTarget } = useAIMode();
+  const noteId = urlTarget.kind === 'document' ? urlTarget.noteId : null;
+  const documentTransport = noteId != null ? getChatTransport({ noteId }) : null;
+  // The start screen has no document yet. Its session still holds the draft
+  // text, the model choice and the budget, on the assistant's transport;
+  // the first message creates its chat on the new document's instead.
+  const transport = documentTransport ?? getChatTransport({ noteId: null });
 
-  const list = useAgentChatList(transport, true);
-  const [initialChat, setInitialChat] = useState<AgentChat | null>(null);
-  const chat = useAgentChat({ transport, chatId, enabled: true, initialChat });
-  const chatRef = useRef(chat.chat);
-  chatRef.current = chat.chat;
-  // User-wide allowances and the model catalog load with the overlay; the
-  // selection hook reads them from the same store rather than fetching again.
-  const researchAI = useResearchAI(true);
-  const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
-  const modelSelection = useAgentModelSelection({
-    enabled: false,
-    canSelect: hasModelSelection && researchAI.catalog !== null,
-    conversationKey: `assistant:${chatId ?? 'new'}`,
-    locked:
-      (chat.chat?.executions.length ?? 0) > 0 ||
-      (chat.chat?.messages.length ?? 0) > 0 ||
-      chat.pendingSend !== null,
-    pinnedRef: chat.pinnedModelRef,
-    effortPinned: chat.latestExecution != null,
-    pinnedEffort: chat.latestExecution?.effort ?? null,
-  });
-  // A selectable tier must never submit its first turn without an authoritative
-  // model; cached budget and catalog data stay usable through refresh failures.
-  const sendBlocked =
-    researchAI.budget === null ||
-    researchAI.isSubmissionBlocked() ||
-    (hasModelSelection && modelSelection.model === null);
-  const getBudgetSnapshot = researchAI.getSnapshot;
-  const failureNotice = useCallback(
-    (outcome: SendOutcome & { ok: false }): ComposerNotice => {
-      const snapshot = getBudgetSnapshot();
-      return noticeFromOutcome(outcome, snapshot.budget?.resets_at ?? snapshot.limitResetAt);
-    },
-    [getBudgetSnapshot]
-  );
-
-  // ---- drafts (per chat, surviving switches and failed sends) ----
-  const draftsRef = useRef(new Map<string, string>());
-  const draftKey = chatId == null ? 'new' : String(chatId);
-  const [draft, setDraftState] = useState('');
-  const [notice, setNotice] = useState<ComposerNotice | null>(null);
-  const [queuedMessage, setQueuedMessage] = useState<QueuedMessage | null>(null);
-  const [creatingChat, setCreatingChat] = useState(false);
-  const creationSeqRef = useRef(0);
-
-  const setDraft = useCallback(
-    (value: string) => {
-      draftsRef.current.set(draftKey, value);
-      setDraftState(value);
-    },
-    [draftKey]
-  );
-
-  const prevDraftKeyRef = useRef(draftKey);
-  useEffect(() => {
-    if (prevDraftKeyRef.current === draftKey) return;
-    prevDraftKeyRef.current = draftKey;
-    setDraftState(draftsRef.current.get(draftKey) ?? '');
-    setNotice(null);
-  }, [draftKey]);
-
-  const attachments = useChatAttachments({ scope: transport.key, chatId, chat: chat.chat });
-
-  // ---- selection ----
-  const selectChat = useCallback(
-    (next: number | null) => {
-      setInitialChat(null);
-      selectChatInUrl(next);
-    },
-    [selectChatInUrl]
-  );
-  const startNewChat = useCallback(() => selectChat(null), [selectChat]);
-
-  // ---- keep the listing fresh ----
-  // Derived titles land after the first turn; previews and spinners change as
-  // turns settle. Refresh on those transitions of the open chat...
-  const latestStatus = chat.latestExecution?.status ?? null;
-  const chatTitle = chat.chat?.title ?? null;
+  const list = useAgentChatList(documentTransport, documentTransport != null);
+  const listReady = documentTransport != null && list.scopeKey === documentTransport.key;
+  const { target, chatId, resolving } = useWorkspaceTarget(list, documentTransport);
   const refreshList = list.refresh;
-  const prevListSignalRef = useRef<{ status: string | null; title: string | null }>({
-    status: null,
-    title: null,
-  });
-  useEffect(() => {
-    const prev = prevListSignalRef.current;
-    const changed = prev.status !== latestStatus || prev.title !== chatTitle;
-    prevListSignalRef.current = { status: latestStatus, title: chatTitle };
-    if (changed) refreshList();
-  }, [latestStatus, chatTitle, refreshList]);
+  const listRef = useRef(list.chats);
+  listRef.current = listReady ? list.chats : [];
+  const targetRef = useRef(target);
+  targetRef.current = target;
 
-  // ...and poll while any other conversation has a turn running, so its row
-  // spinner clears without the user having to open it.
-  const anyTurnActive = list.chats.some((item) => item.has_active_turn);
+  // ---- what the next draft is ----
+  // A Publish menu item, the Drafts "+" or a New RFP / New proposal button
+  // leads to the start screen for one side of the money; the URL says which,
+  // so the screen does not ask and a reload keeps it. It becomes the side
+  // remembered for a bare `/workspace`.
+  const [rememberedIntent, rememberIntent] = useFundingIntent();
+  const urlIntent = target.kind === 'new' ? (target.intent ?? null) : null;
+  useEffect(() => {
+    if (urlIntent) rememberIntent(urlIntent);
+  }, [urlIntent, rememberIntent]);
+  const intent = urlIntent ?? rememberedIntent;
+  const [selectedGrant, setSelectedGrant] = useState<SelectedGrantDetails | null>(null);
+
+  // ---- the first message of a new draft ----
+  // It creates the document, then a chat on it, then goes out there. A note
+  // created by an attempt whose chat then failed is kept here, so a retry
+  // reuses it rather than leaving a second draft behind. It belongs to the
+  // start screen it was made on.
+  const { selectedOrg } = useOrganizationContext();
+  const fundingDocuments = useFundingDocuments();
+  const { addDraft } = fundingDocuments;
+  const pendingNoteRef = useRef<Note | null>(null);
+  const startScreenKey = target.kind === 'new' ? intent : null;
+  useEffect(() => {
+    pendingNoteRef.current = null;
+  }, [startScreenKey]);
+  const draftInitRef = useRef({ intent, selectedGrant, orgSlug: selectedOrg?.slug ?? null });
+  draftInitRef.current = { intent, selectedGrant, orgSlug: selectedOrg?.slug ?? null };
+  const createDraftTransport = useCallback(async () => {
+    const { intent: side, selectedGrant: grant, orgSlug } = draftInitRef.current;
+    if (!orgSlug) throw new Error('No organization to create the draft in');
+    const note = await createFundingDraft({
+      orgSlug,
+      title: untitledDraftTitle(side),
+      documentType: DOCUMENT_TYPE_BY_INTENT[side],
+      // Only its author sees it until it is published.
+      grouping: 'PRIVATE',
+      selectedGrantId: grant?.id ?? null,
+      existingNote: pendingNoteRef.current,
+      onNoteCreated: (created) => {
+        pendingNoteRef.current = created;
+        addDraft(created);
+      },
+    });
+    return getChatTransport({ noteId: note.id });
+  }, [addDraft]);
+
+  const onChatCreated = useCallback(
+    (created: AgentChat) => {
+      const current = targetRef.current;
+      if (current.kind === 'document') {
+        selectTarget(documentTarget(current.noteId, created.conversation_id));
+        return;
+      }
+      const note = pendingNoteRef.current;
+      if (note == null) return;
+      // The RFP went with the draft it was picked for.
+      setSelectedGrant(null);
+      selectTarget(documentTarget(note.id, created.conversation_id));
+    },
+    [selectTarget]
+  );
+
+  const session = useChatSession({
+    transport,
+    chatId,
+    enabled: true,
+    onChatCreated,
+    onListStale: refreshList,
+    transportForNewChat: target.kind === 'new' ? createDraftTransport : undefined,
+    notices: NOTICES,
+  });
+  const { chat } = session;
+  const clearAttachments = session.attachments.clear;
+
+  // ---- keep the document's chats fresh ----
+  // The session refreshes them as the open chat's turns settle; poll while
+  // any other chat on the document has a turn running, so its dot clears
+  // without the user having to open it.
+  const anyTurnActive = listReady && list.chats.some((item) => item.has_active_turn);
   useEffect(() => {
     if (!anyTurnActive) return;
     const timer = setInterval(() => {
@@ -241,253 +175,101 @@ export function useAIModeChat(): AIModeChatState {
     return () => clearInterval(timer);
   }, [anyTurnActive, refreshList]);
 
-  // ---- document refs for the list badges ----
-  const [notesByChat, setNotesByChat] = useState<Map<number, ChatNoteRef>>(() => new Map());
-  const firstNote = chat.chat?.notes?.[0] ?? null;
-  const firstNoteId = firstNote?.id ?? null;
-  const firstNoteTitle = firstNote?.title ?? null;
-  const loadedChatId = chat.chat?.conversation_id ?? null;
-  useEffect(() => {
-    if (loadedChatId == null || firstNoteId == null || firstNoteTitle == null) return;
-    setNotesByChat((prev) => {
-      const existing = prev.get(loadedChatId);
-      if (existing?.id === firstNoteId && existing.title === firstNoteTitle) return prev;
-      const next = new Map(prev);
-      next.set(loadedChatId, { id: firstNoteId, title: firstNoteTitle });
-      return next;
-    });
-  }, [loadedChatId, firstNoteId, firstNoteTitle]);
-
-  // ---- sending ----
-  // Async continuations compare against the live target and discard results
-  // that raced a chat switch instead of applying them to the new one.
-  const targetRef = useRef<number | null>(chatId);
-  targetRef.current = chatId;
-  const isCurrentTarget = useCallback((target: number | null) => targetRef.current === target, []);
-
-  const sendText = useCallback(
-    async (rawText: string) => {
-      const text = rawText.trim();
-      if (!attachments.ready || (!text && !attachments.sendableAlone)) return;
-      setNotice(null);
-      const target = targetRef.current;
-      const generation = modelSelection.request;
-      const held = attachments.hold();
-      // The box empties the moment the user sends, as the message is already
-      // theirs; it only comes back if the send fails and they need to retry.
-      setDraft('');
-
-      if (chatId == null) {
-        const creationSeq = ++creationSeqRef.current;
-        setCreatingChat(true);
-        const created = await list.createChat();
-        if (creationSeqRef.current === creationSeq) setCreatingChat(false);
-        if (!isCurrentTarget(target)) {
-          attachments.settle(held, UNSENT);
-          return;
-        }
-        if (!created) {
-          attachments.settle(held, UNSENT);
-          setDraft(text);
-          setNotice({
-            tone: 'error',
-            text: list.accessDetail ?? 'Couldn’t start a conversation. Please try again.',
-          });
-          return;
-        }
-        draftsRef.current.delete('new');
-        // A rejected first attempt must retry with the same model and settings.
-        modelSelection.adoptConversation(`assistant:${created.conversation_id}`, generation);
-        setInitialChat(created);
-        selectChatInUrl(created.conversation_id);
-        setQueuedMessage({
-          text,
-          generation,
-          held: attachments.adopt(held, created.conversation_id),
-        });
-        return;
-      }
-
-      const outcome = await chat.send(text, generation, held.files);
-      attachments.settle(held, outcome);
-      if (!outcome.ok && isCurrentTarget(target)) {
-        setDraft(text);
-        setNotice(failureNotice(outcome));
-      }
+  // ---- choosing a chat ----
+  const openChat = useCallback(
+    (next: number | 'new') => {
+      const current = targetRef.current;
+      if (current.kind === 'document') selectTarget(documentTarget(current.noteId, next));
     },
-    [
-      chatId,
-      list,
-      chat,
-      modelSelection.request,
-      modelSelection.adoptConversation,
-      setDraft,
-      isCurrentTarget,
-      selectChatInUrl,
-      failureNotice,
-      attachments,
-    ]
+    [selectTarget]
   );
 
-  const send = useCallback(() => sendText(draft), [sendText, draft]);
-
-  // Fire the queued first message once the freshly created chat is live.
-  const sendToChat = chat.send;
-  const settleAttachments = attachments.settle;
+  // The open chat was deleted somewhere else (or never was on this
+  // document): the document opens on its most recent chat instead.
+  const chatGone = chatId != null && chat.access === 'not_found';
   useEffect(() => {
-    if (queuedMessage == null || chatId == null || chat.access !== 'ok') return;
-    const { text, generation, held } = queuedMessage;
-    const target = targetRef.current;
-    setQueuedMessage(null);
-    void sendToChat(text, generation, held.files).then((outcome) => {
-      settleAttachments(held, outcome);
-      if (outcome.ok) return;
-      if (isCurrentTarget(target)) {
-        setNotice(failureNotice(outcome));
-        setDraft(text);
-      } else {
-        draftsRef.current.set(String(target), text);
-      }
+    if (!chatGone || noteId == null) return;
+    let cancelled = false;
+    void refreshList().then(() => {
+      if (!cancelled) selectTarget(documentTarget(noteId, 'latest'));
     });
-  }, [
-    queuedMessage,
-    chatId,
-    chat.access,
-    sendToChat,
-    settleAttachments,
-    setDraft,
-    isCurrentTarget,
-    failureNotice,
-  ]);
+    return () => {
+      cancelled = true;
+    };
+  }, [chatGone, noteId, refreshList, selectTarget]);
 
-  const stop = chat.cancel;
-
-  // ---- renames, shown before the server confirms them ----
+  // ---- rename, shown before the server confirms it ----
   // A rename is the user's own words; making them wait for the PATCH just
-  // flashes the old title back at them. The override shows at once and is
-  // dropped when the listing catches up, or rolled back if the save fails.
-  const [pendingTitles, setPendingTitles] = useState<Map<number, string>>(() => new Map());
-  const setPendingTitle = useCallback((target: number, title: string | null) => {
-    setPendingTitles((prev) => {
-      if (title == null ? !prev.has(target) : prev.get(target) === title) return prev;
-      const next = new Map(prev);
-      if (title == null) next.delete(target);
-      else next.set(target, title);
-      return next;
-    });
-  }, []);
-  useEffect(() => {
-    // Retire each override once the listing shows the confirmed title.
-    for (const item of list.chats) {
-      const pending = pendingTitles.get(item.id);
-      if (pending != null && item.title === pending) setPendingTitle(item.id, null);
-    }
-  }, [list.chats, pendingTitles, setPendingTitle]);
-  const titleFor = useCallback(
-    (target: number, fallback: string | null) => pendingTitles.get(target) ?? fallback,
-    [pendingTitles]
-  );
-
+  // flashes the old title back at them.
+  const [pendingTitle, setPendingTitle] = useState<{ chatId: number; title: string } | null>(null);
   const rename = useCallback(
-    async (target: number, title: string): Promise<boolean> => {
-      setPendingTitle(target, title);
-      let renamed: boolean;
-      if (target === targetRef.current) {
-        // The open chat's hook keeps its own copy of the title in sync.
-        renamed = await chat.rename(title);
-      } else {
-        try {
-          await transport.renameChat(target, title);
-          renamed = true;
-        } catch {
-          renamed = false;
-        }
-      }
+    async (title: string): Promise<boolean> => {
+      if (chatId == null) return false;
+      setPendingTitle({ chatId, title });
+      const renamed = await chat.rename(title);
+      setPendingTitle((current) => (current?.chatId === chatId ? null : current));
       if (renamed) refreshList();
-      else setPendingTitle(target, null);
       return renamed;
     },
-    [chat, transport, refreshList, setPendingTitle]
+    [chatId, chat, refreshList]
   );
+  const listedTitle = listReady
+    ? (list.chats.find((item) => item.id === chatId)?.title ?? null)
+    : null;
+  const chatTitle =
+    chatId == null
+      ? null
+      : pendingTitle?.chatId === chatId
+        ? pendingTitle.title
+        : (chat.chat?.title ?? listedTitle);
 
-  const notesForChat = useCallback(
-    async (target: number): Promise<ChatNoteRef[]> => {
-      if (target === targetRef.current && chatRef.current?.conversation_id === target) {
-        return chatRef.current.notes ?? [];
-      }
-      try {
-        return (await transport.getChat(target)).notes ?? [];
-      } catch {
-        return [];
-      }
-    },
-    [transport]
-  );
-
-  const clearAttachments = attachments.clear;
+  // ---- delete; the document stays ----
   const deleteChat = useCallback(
-    async (target: number, options?: { deleteNotes?: boolean }): Promise<boolean> => {
-      if (!transport.deleteChat) return false;
+    async (id: number): Promise<boolean> => {
+      if (documentTransport == null) return false;
       try {
-        await transport.deleteChat(target, options);
+        await documentTransport.deleteChat(id);
       } catch {
         return false;
       }
-      draftsRef.current.delete(String(target));
-      clearAttachments(target);
-      if (targetRef.current === target) selectChat(null);
+      clearAttachments(id);
+      const current = targetRef.current;
+      if (current.kind === 'document' && current.chat === id) {
+        const next = mostRecentChat(listRef.current.filter((item) => item.id !== id));
+        selectTarget(documentTarget(current.noteId, next?.id ?? 'new'));
+      }
       refreshList();
       return true;
     },
-    [transport, selectChat, refreshList, clearAttachments]
+    [documentTransport, selectTarget, refreshList, clearAttachments]
   );
 
-  const clearNotice = useCallback(() => setNotice(null), []);
-
-  // A spent-budget notice raised before the allowance store had a reset time
-  // picks it up once the store's post-429 refresh lands.
-  const budgetResetsAt = researchAI.budget?.resets_at ?? researchAI.limitResetAt ?? null;
-  useEffect(() => {
-    if (!budgetResetsAt) return;
-    setNotice((current) =>
-      current?.tone === 'warning' &&
-      current.text.includes('budget') &&
-      !current.text.includes('resets at')
-        ? {
-            tone: 'warning',
-            text: `You’ve used today’s assistant budget. It resets at ${formatBudgetReset(budgetResetsAt)}.`,
-          }
-        : current
-    );
-  }, [budgetResetsAt]);
-
-  const note = useMemo(() => {
-    if (chatId == null) return null;
-    return firstNote ?? notesByChat.get(chatId) ?? null;
-  }, [chatId, firstNote, notesByChat]);
+  // ---- the open document ----
+  const { drafts, published } = fundingDocuments;
+  const listedTitleOfNote =
+    noteId == null
+      ? ''
+      : ([...drafts, ...published].find((item) => item.id === noteId)?.title ?? '');
+  const note = useMemo<ChatNoteRef | null>(
+    () => (noteId == null ? null : { id: noteId, title: listedTitleOfNote }),
+    [noteId, listedTitleOfNote]
+  );
 
   return {
+    ...session,
+    target,
     chatId,
+    resolvingChat: resolving,
     list,
-    chat,
-    modelSelection,
-    draft,
-    setDraft,
-    attachments,
-    notice,
-    clearNotice,
-    creatingChat,
-    sendBlocked,
-    send,
-    sendText,
-    stop,
+    listReady,
+    anyTurnActive,
+    intent,
+    selectedGrant,
+    setSelectedGrant,
+    openChat,
     rename,
     deleteChat,
-    notesForChat,
-    selectChat,
-    startNewChat,
-    notesByChat,
     note,
-    titleFor,
+    chatTitle,
   };
 }

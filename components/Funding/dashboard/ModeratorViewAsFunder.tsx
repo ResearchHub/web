@@ -3,7 +3,7 @@
 import { FC, useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
-import { Shield, X } from 'lucide-react';
+import { ChevronDown, Shield, X } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import {
   SearchableUserSingleSelect,
@@ -13,15 +13,18 @@ import { cn } from '@/utils/styles';
 
 interface ModeratorViewAsFunderProps {
   className?: string;
+  variant?: 'default' | 'tab';
 }
 
 /**
- * Moderator-only override that points the funding dashboard at another funder,
- * kept to a shield icon until it is in use. The active state comes from the
- * `user_id` param rather than local state so a reload or a shared link still
- * shows that the dashboard belongs to someone else.
+ * Moderator-only override that points the funding dashboard at another funder.
+ * The active state comes from the `user_id` param rather than local state so a
+ * reload or a shared link still shows the dashboard override.
  */
-export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ className }) => {
+export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({
+  className,
+  variant = 'default',
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -49,7 +52,29 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      {userIdParam ? (
+      {variant === 'tab' ? (
+        <>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                'flex h-full items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-200 hover:text-gray-700',
+                userIdParam && 'text-primary-600',
+                className
+              )}
+            >
+              <Shield className="h-4 w-4" aria-hidden="true" />
+              <span>Moderator</span>
+              {userIdParam && (
+                <span className="max-w-[120px] truncate text-xs font-normal text-primary-600">
+                  · {label}
+                </span>
+              )}
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </PopoverTrigger>
+        </>
+      ) : userIdParam ? (
         // Two sibling buttons rather than a nested one: the chip as a whole
         // reopens the picker, the X exits the override.
         <div
@@ -96,6 +121,18 @@ export const ModeratorViewAsFunder: FC<ModeratorViewAsFunderProps> = ({ classNam
             positioned inside this panel. */}
       <PopoverContent align="end" sideOffset={8} className="w-72">
         <p className="mb-2 text-xs font-medium text-gray-500">View dashboard as another funder</p>
+        {userIdParam && (
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-md bg-primary-50 px-2 py-1.5 text-xs text-primary-700">
+            <span className="min-w-0 truncate">Viewing {label}</span>
+            <button
+              type="button"
+              onClick={() => applyUserId(null)}
+              className="shrink-0 font-medium hover:underline"
+            >
+              Stop viewing
+            </button>
+          </div>
+        )}
         <SearchableUserSingleSelect
           value={selected}
           onChange={applyUserId}

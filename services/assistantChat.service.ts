@@ -7,6 +7,7 @@ import type {
 } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
 import { ID } from '@/types/root';
+import type { ChatCreateInit } from './chatTransport';
 
 const BASE_PATH = '/api/research_ai/assistant/chats/';
 
@@ -30,13 +31,20 @@ export interface UsageBudget {
  * adds to a chat (the documents the agent created from it).
  */
 export class AssistantChatService {
+  /** Every chat the user has, the notebook's included, each saying where it lives. */
   static async listChats(): Promise<AgentChatListItem[]> {
-    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(BASE_PATH);
+    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(
+      `${BASE_PATH}?include=notebook`
+    );
     return response.chats ?? [];
   }
 
-  static async createChat(title?: string): Promise<AgentChat> {
-    return ApiClient.post<AgentChat>(BASE_PATH, title ? { title } : {});
+  static async createChat(init?: ChatCreateInit): Promise<AgentChat> {
+    return ApiClient.post<AgentChat>(BASE_PATH, {
+      ...(init?.title ? { title: init.title } : {}),
+      ...(init?.intent ? { intent: init.intent } : {}),
+      ...(init?.selectedGrantId != null ? { selected_grant: init.selectedGrantId } : {}),
+    });
   }
 
   static async getChat(chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {

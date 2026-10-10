@@ -47,6 +47,7 @@ export function useActivityFeed({
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [isLoading, setIsLoading] = useState(!hasRestoredEntries);
+  const [error, setError] = useState<Error | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [count, setCount] = useState(initialEntries.length);
@@ -73,6 +74,7 @@ export function useActivityFeed({
   const fetchInitial = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
+    setError(null);
     pageRef.current = 1;
     setPage(1);
 
@@ -82,7 +84,9 @@ export function useActivityFeed({
       setHasMore(result.hasMore);
       setCount(result.count);
     } catch (error) {
-      console.error('Error fetching activity feed:', error);
+      const nextError = error instanceof Error ? error : new Error('Failed to fetch activity feed');
+      console.error('Error fetching activity feed:', nextError);
+      setError(nextError);
     } finally {
       setIsLoading(false);
     }
@@ -101,6 +105,7 @@ export function useActivityFeed({
     if (isLoading || isLoadingMore || !hasMore) return;
 
     setIsLoadingMore(true);
+    setError(null);
     const nextPage = pageRef.current + 1;
 
     try {
@@ -114,7 +119,9 @@ export function useActivityFeed({
       pageRef.current = nextPage;
       setPage(nextPage);
     } catch (error) {
-      console.error('Error loading more activity:', error);
+      const nextError = error instanceof Error ? error : new Error('Failed to load more activity');
+      console.error('Error loading more activity:', nextError);
+      setError(nextError);
     } finally {
       setIsLoadingMore(false);
     }
@@ -124,6 +131,7 @@ export function useActivityFeed({
     entries,
     // While deferred, keep the loading UI unless we already restored entries.
     isLoading: enabled === false ? !hasRestoredEntries : isLoading,
+    error,
     isLoadingMore,
     hasMore,
     count,

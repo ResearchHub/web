@@ -9,7 +9,7 @@ import { cn } from '@/utils/styles';
  * `BaseMenu` instead: a menu closes on selection and moves focus per item,
  * which is wrong for a panel of switches the user adjusts in place.
  *
- * Portaled above everything, including the AI Mode overlay, like `BaseMenu`.
+ * Portaled above everything, like `BaseMenu`.
  * Radix handles outside click, Escape, focus return, and keeping the panel
  * on screen.
  */

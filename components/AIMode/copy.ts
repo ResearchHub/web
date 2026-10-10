@@ -1,60 +1,66 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import {
-  faBullhorn,
-  faFileSignature,
-  faMagnifyingGlassDollar,
-} from '@fortawesome/pro-light-svg-icons';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
 
 /**
- * User-facing copy for AI Mode, in one place so the product name and the
- * empty-state wording can change without touching components.
+ * User-facing copy for the workspace, in one place so the new-draft wording
+ * can change without touching components.
  */
-export const AI_MODE_NAME = 'ResearchHub AI';
-
-/** Greeting on the new-conversation screen; the name is filled in at render. */
-export const aiModeGreeting = (firstName: string | null | undefined): string =>
-  firstName?.trim() ? `Welcome, ${firstName.trim()}` : 'Welcome';
-
-export interface StarterPrompt {
-  readonly id: string;
-  readonly title: string;
-  readonly description: string;
-  /** Same icon family as the sidebar's Publish menu. */
-  readonly icon: IconDefinition;
-  /** Sent as the conversation's first message when the card is picked. */
-  readonly message: string;
-}
 
 /**
- * Starter cards for the new-conversation screen. Picking one starts the
- * conversation with its message; the backend does not supply suggestions.
- * Titles and subtext mirror the sidebar's Publish menu.
+ * What the new-draft screen is called, in the app's top bar: named for what
+ * it will produce, not for the chat.
  */
-export const AI_MODE_STARTER_PROMPTS: readonly StarterPrompt[] = [
+export const newDraftTitle = (intent: FundingIntent): string =>
+  intent === 'fund' ? 'New RFP' : 'New proposal';
+
+/** A new draft's title until the assistant (or the user) names it. */
+export const untitledDraftTitle = (intent: FundingIntent): string =>
+  intent === 'fund' ? 'Untitled RFP' : 'Untitled proposal';
+
+/** The heading of the new-draft screen. */
+export const AI_MODE_GREETING = 'Let’s get started';
+
+/** The line under the greeting and what the composer asks for, per side of the money. */
+export const INTENT_COPY: Record<FundingIntent, { tagline: string; placeholder: string }> = {
+  fund: {
+    tagline: 'The fastest way to fund science.',
+    placeholder: 'Describe the research you want to fund…',
+  },
+  need_funding: {
+    tagline: 'Turn your proposal into funded science.',
+    placeholder: 'Describe the research you need funding for…',
+  },
+};
+
+/**
+ * Examples under a new RFP's composer, to show a funder what the assistant
+ * can do. The label is what the pill reads; clicking it sends the message as
+ * the user's first, so the chat shows exactly what was asked. No amounts: the
+ * assistant asks about the budget itself.
+ */
+export const RFP_START_PRESETS: readonly { readonly label: string; readonly message: string }[] = [
   {
-    id: 'draft-rfp',
-    title: 'Draft a Request for Proposal',
-    description: 'Fund specific research you care about',
-    icon: faBullhorn,
+    label: 'Fund a cure for cancer',
     message:
-      'Help me draft a request for proposals. Ask me for anything you still need to know about ' +
-      'the work I want to fund, then create a note and write the RFP into it.',
+      'I want to fund research toward a cure for cancer. Help me write an RFP that will reach the labs doing the most promising work.',
   },
   {
-    id: 'draft-proposal',
-    title: 'Draft a Research Proposal',
-    description: 'Raise money for your research',
-    icon: faFileSignature,
+    label: 'Fund novel longevity research',
     message:
-      'Help me draft a research proposal. Ask me for anything you still need to know about the ' +
-      'work, then create a note and write the proposal into it, starting with three hypotheses.',
+      'I want to fund novel research on the biology of aging that could lead to longer, healthier lives. Help me write an RFP for it.',
   },
   {
-    id: 'funding',
-    title: 'Find me funding',
-    description: 'Open RFPs that fit your work',
-    icon: faMagnifyingGlassDollar,
+    label: 'Back new Alzheimer’s treatments',
     message:
-      'Find open RFPs I could apply to based on my expertise, and tell me why each one is a match.',
+      'I want to back research into new ways to prevent or treat Alzheimer’s disease. Help me write an RFP for it.',
+  },
+  {
+    label: 'Support rare disease research',
+    message:
+      'I want to support research on a rare disease that few others fund. Help me write an RFP that will reach the right labs.',
+  },
+  {
+    label: 'Advance mental health care',
+    message:
+      'I want to fund research that could lead to better treatments for depression and anxiety. Help me write an RFP for it.',
   },
 ];

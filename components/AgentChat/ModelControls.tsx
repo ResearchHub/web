@@ -38,6 +38,8 @@ interface ModelControlsProps {
   readonly onChangeOptions: (options: GenerationOptions) => void;
   readonly disabled: boolean;
   readonly multiplierExplanation: string;
+  /** The sparkle and gauge before each label; off, the labels stand alone. The lock still shows. */
+  readonly showIcons?: boolean;
 }
 
 /**
@@ -73,6 +75,7 @@ export function ModelControls({
   onChangeOptions,
   disabled,
   multiplierExplanation,
+  showIcons = true,
 }: ModelControlsProps) {
   if (!model) return null;
 
@@ -113,9 +116,9 @@ export function ModelControls({
             icon={
               pinned ? (
                 <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
-              ) : (
+              ) : showIcons ? (
                 <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary-500" aria-hidden="true" />
-              )
+              ) : undefined
             }
             srLabel={pinned ? 'Assistant model, locked for this chat:' : 'Assistant model:'}
             className="max-w-[180px]"
@@ -153,9 +156,9 @@ export function ModelControls({
               icon={
                 effortLocked ? (
                   <Lock className="h-3 w-3 shrink-0 text-gray-400" aria-hidden="true" />
-                ) : (
+                ) : showIcons ? (
                   <Gauge className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
-                )
+                ) : undefined
               }
               srLabel={effortLocked ? 'Effort, locked for this chat:' : 'Effort:'}
               className="max-w-[140px]"

@@ -5,26 +5,30 @@ import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
+  /** Closes the menu once something in it is picked; see `LeftSidebar`'s `onNavigate`. */
+  onClose?: () => void;
 }
 
-export function LeftSidebarContainer({ isOpen }: LeftSidebarContainerProps) {
+/**
+ * The app's left column from 1240px up. Narrower than that there is no
+ * column: the top bar's menu button slides the whole sidebar in, over the
+ * top bar and the page.
+ */
+export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerProps) {
   return (
     <div
       className={cn(
-        // Shared base styles
-        'bg-white border-r border-gray-200 flex-shrink-0 z-50',
-        'transition-all duration-300 ease-in-out',
-        // Desktop: sticky, no transform transition
-        'tablet:!sticky tablet:!top-0 tablet:!h-screen tablet:!z-30',
-        'tablet:!transition-none tablet:!translate-x-0',
-        'tablet:sidebar-compact:!w-[240px] tablet:max-sidebar-compact:!w-[70px]',
-        'tablet:!block tablet:!w-[240px]',
-        // Mobile: fixed, slides in/out below the constant-height top bar
-        'fixed top-[var(--top-bar-height)] h-[calc(100vh-var(--top-bar-height))] duration-150 w-[240px]',
-        isOpen ? '!translate-x-0' : '!-translate-x-full'
+        'bg-white border-r border-gray-200 flex-shrink-0 z-[130] w-[240px]',
+        // The menu: fixed full height, sliding in over the top bar (and the promo banner).
+        'fixed top-0 h-screen',
+        'transition-transform duration-200 ease-out',
+        isOpen ? '!translate-x-0' : '!-translate-x-full',
+        // The column: in the page's row, always there.
+        'sidebar-compact:!sticky sidebar-compact:!top-0 sidebar-compact:!h-screen sidebar-compact:!z-30',
+        'sidebar-compact:!transition-none sidebar-compact:!translate-x-0'
       )}
     >
-      <LeftSidebar />
+      <LeftSidebar onNavigate={onClose} />
     </div>
   );
 }

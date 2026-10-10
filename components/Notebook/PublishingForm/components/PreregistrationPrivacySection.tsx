@@ -3,7 +3,8 @@ import { Lock, AlertTriangle } from 'lucide-react';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { SectionHeader } from './SectionHeader';
 
-const OPTIONS = [
+/** Who can see a proposal; shared with the workspace's publish dialog. */
+export const PROPOSAL_VISIBILITY_OPTIONS = [
   {
     value: 'public',
     label: 'Public',
@@ -16,7 +17,8 @@ const OPTIONS = [
   },
 ];
 
-function useIsLockedPrivate() {
+/** The chosen RFP only takes private proposals, so the proposal cannot be public. */
+export function useIsLockedPrivate() {
   const { watch } = useFormContext();
   const selectedGrant = watch('selectedGrant');
   return selectedGrant?.applicationVisibility === 'PRIVATE';
@@ -67,7 +69,7 @@ export function PreregistrationPrivacySection() {
       <SectionHeader icon={Lock}>Visibility</SectionHeader>
       <div className="mt-2">
         <RadioGroup
-          options={OPTIONS}
+          options={PROPOSAL_VISIBILITY_OPTIONS}
           value={value}
           onChange={(next) => setValue('isPublic', next === 'public', { shouldValidate: true })}
           size="sm"

@@ -59,12 +59,13 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
       data-testid="activity-card"
     >
       <ActivityGroupHeader authors={funders}>
-        <div className="pt-1 text-sm leading-6">
+        <div className="pt-1 text-[15px] leading-6">
           <ActivityAuthorSummary authors={funders} />
-          <span className="text-gray-500">
-            {isRfp ? ' contributed to the funding pool' : ' funded this proposal.'}
+          <span className="text-gray-900">
+            {isRfp ? ' contributed' : ' funded this proposal with'}
           </span>{' '}
-          <ContributionAmount contribution={total} className="align-middle" />
+          <ContributionAmount contribution={total} showSign={false} />
+          {isRfp && <span className="text-gray-900"> to the funding pool</span>}
         </div>
       </ActivityGroupHeader>
 

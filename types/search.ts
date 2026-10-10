@@ -28,6 +28,10 @@ export interface WorkSuggestion extends BaseSuggestion {
   slug?: string;
   publishedDate?: string;
   contentType?: ContentType;
+  /** Cover image, or a paper's first PDF page, for the Recently visited thumbnail. */
+  imageUrl?: string;
+  /** The first author photo found, the thumbnail's fallback when there is no image. */
+  authorImage?: string;
 }
 
 export interface UserSuggestion extends BaseSuggestion {

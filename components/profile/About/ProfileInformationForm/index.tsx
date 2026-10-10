@@ -27,21 +27,29 @@ import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pr
 import Icon from '@/components/ui/icons/Icon';
 import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
 
+export type SocialLinkKey = 'linkedin' | 'google_scholar' | 'twitter' | 'orcid_id';
+
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
   fields?: FormField[];
+  /** Which of the social links to show; all of them by default. */
+  socialLinks?: readonly SocialLinkKey[];
   formId?: string;
   showAvatar?: boolean;
   useAccordion?: boolean;
+  /** Without an accordion, each section's heading; off when the host's own title already says it. */
+  showSectionTitles?: boolean;
   autoFocusField?: FormField;
 }
 
 export function ProfileInformationForm({
   onSubmit,
   fields = ALL_PROFILE_FIELDS,
+  socialLinks: shownSocialLinks,
   formId,
   showAvatar = true,
   useAccordion = false,
+  showSectionTitles = true,
   autoFocusField,
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
@@ -248,40 +256,42 @@ export function ProfileInformationForm({
       const socialContent = (
         <div>
           <div className="space-y-3">
-            {(Object.keys(socialLinkMeta) as Array<keyof typeof socialLinkMeta>).map((key) => {
-              const meta = socialLinkMeta[key];
-              const isOrcid = key === 'orcid_id';
+            {(Object.keys(socialLinkMeta) as SocialLinkKey[])
+              .filter((key) => shownSocialLinks?.includes(key) ?? true)
+              .map((key) => {
+                const meta = socialLinkMeta[key];
+                const isOrcid = key === 'orcid_id';
 
-              return (
-                <div key={key} className="flex items-center gap-3">
-                  <SocialIcon
-                    icon={meta.icon}
-                    label={meta.label}
-                    href={null}
-                    size="sm"
-                    className="text-gray-500"
-                  />
-                  {isOrcid && !isOrcidConnected ? (
-                    <OrcidConnectButton
-                      variant="outlined"
-                      className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
-                      showIcon={false}
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <SocialIcon
+                      icon={meta.icon}
+                      label={meta.label}
+                      href={null}
+                      size="sm"
+                      className="text-gray-500"
                     />
-                  ) : (
-                    <Input
-                      id={key}
-                      name={key}
-                      value={socialLinks[key] || ''}
-                      onChange={handleSocialLinkChange}
-                      error={errors[key]?.message}
-                      placeholder={meta.label}
-                      className="flex-grow"
-                      disabled={isOrcid}
-                    />
-                  )}
-                </div>
-              );
-            })}
+                    {isOrcid && !isOrcidConnected ? (
+                      <OrcidConnectButton
+                        variant="outlined"
+                        className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
+                        showIcon={false}
+                      />
+                    ) : (
+                      <Input
+                        id={key}
+                        name={key}
+                        value={socialLinks[key] || ''}
+                        onChange={handleSocialLinkChange}
+                        error={errors[key]?.message}
+                        placeholder={meta.label}
+                        className="flex-grow"
+                        disabled={isOrcid}
+                      />
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </div>
       );
@@ -324,7 +334,7 @@ export function ProfileInformationForm({
         <div className="space-y-6">
           {sections.map((section) => (
             <div key={section.id}>
-              <div className="mb-4">{section.title}</div>
+              {showSectionTitles && <div className="mb-4">{section.title}</div>}
               {section.content}
             </div>
           ))}

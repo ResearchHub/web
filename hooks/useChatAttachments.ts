@@ -68,8 +68,11 @@ export interface ChatAttachments {
   readonly makeRoom: () => void;
   /** Take the ready files for a send; they leave the composer until `settle`. */
   readonly hold: () => HeldAttachments;
-  /** Move what was attached on the new-chat screen to the chat created for it. */
-  readonly adopt: (held: HeldAttachments, chatId: number) => HeldAttachments;
+  /**
+   * Move what was attached on the new-chat screen to the chat created for it,
+   * under `scope` when that chat lives on another transport.
+   */
+  readonly adopt: (held: HeldAttachments, chatId: number, scope?: string) => HeldAttachments;
   /** Sent files are done with; refused ones go back to the composer. */
   readonly settle: (held: HeldAttachments, outcome: SendOutcome) => void;
   /** Drop a deleted chat's unsent files. */
@@ -97,8 +100,9 @@ export function useChatAttachments({
   chat,
 }: UseChatAttachmentsOptions): ChatAttachments {
   const { data: session } = useSession();
+  const userId = session?.userId;
   // Keyed by user so one account never sees another's files in the same tab.
-  const owner = session?.userId ? `${session.userId}|${scope}` : null;
+  const owner = userId ? `${userId}|${scope}` : null;
   const bucket = owner ? bucketFor(owner, chatId) : null;
   const store = useMemo(() => (typeof window === 'undefined' ? null : getStore()), []);
 
@@ -169,15 +173,17 @@ export function useChatAttachments({
   }, [store, bucket, owner, chatId]);
 
   const adopt = useCallback(
-    (held: HeldAttachments, nextChatId: number): HeldAttachments => {
-      if (store && held.owner) {
-        store.move(bucketFor(held.owner, held.chatId), bucketFor(held.owner, nextChatId));
+    (held: HeldAttachments, nextChatId: number, nextScope?: string): HeldAttachments => {
+      const nextOwner =
+        held.owner && userId && nextScope != null ? `${userId}|${nextScope}` : held.owner;
+      if (store && held.owner && nextOwner) {
+        store.move(bucketFor(held.owner, held.chatId), bucketFor(nextOwner, nextChatId));
       }
-      const adopted = { ...held, chatId: nextChatId };
+      const adopted = { ...held, owner: nextOwner, chatId: nextChatId };
       if (unsettledRef.current.delete(held)) unsettledRef.current.add(adopted);
       return adopted;
     },
-    [store]
+    [store, userId]
   );
 
   const settle = useCallback(

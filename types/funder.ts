@@ -15,6 +15,8 @@ export interface SupportedProposal {
   id: number;
   title: string;
   slug: string;
+  /** The proposal's cover, when it has one. */
+  image: string | null;
   createdBy: {
     id: number;
     authorProfile: AuthorProfile;
@@ -109,6 +111,7 @@ function extractProposals(rawProposals: any[]): SupportedProposal[] {
       id: p.id,
       title: p.unified_document?.title ?? '',
       slug: p.unified_document?.slug ?? '',
+      image: p.image_url || null,
       createdBy: {
         id: p.created_by.id,
         authorProfile: transformAuthorProfile(p.created_by.author_profile),

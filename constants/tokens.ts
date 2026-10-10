@@ -52,21 +52,6 @@ export const RSC: Token = {
   chainId: BASE_CHAIN_ID,
 };
 
-/**
- * Get RSC token configuration for a specific network
- */
-export function getRSCForNetwork(network: NetworkType): Token {
-  const config = NETWORK_CONFIG[network];
-  return {
-    name: 'ResearchCoin',
-    symbol: 'RSC',
-    decimals: 18,
-    address: config.rscAddress as `0x${string}`,
-    image: 'RSC.webp',
-    chainId: config.chainId,
-  };
-}
-
 export const ETH: Token = {
   name: 'ETH',
   address: '',
@@ -86,16 +71,3 @@ export const USDC: Token = {
   image: 'USDC.webp',
   chainId: BASE_CHAIN_ID,
 };
-
-export const TRANSFER_ABI = [
-  {
-    inputs: [
-      { internalType: 'address', name: '_to', type: 'address' },
-      { internalType: 'uint256', name: '_value', type: 'uint256' },
-    ],
-    name: 'transfer',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-];

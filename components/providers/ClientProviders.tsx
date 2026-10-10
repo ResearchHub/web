@@ -26,7 +26,7 @@ import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
-import { AIModeProvider } from '@/components/AIMode/AIModeContext';
+import { FundingDocumentsProvider } from '@/contexts/FundingDocumentsContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -56,16 +56,19 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                 <FundingPowerProvider>
                                   <NotificationProvider>
                                     <OrganizationProvider>
-                                      <UserListsProvider>
-                                        <LeaderboardProvider>
-                                          <DismissedFeaturesProvider>
-                                            <AIModeProvider>
+                                      {/* Above the layouts: every page's left
+                                          sidebar lists these documents, and
+                                          navigating must not fetch them again. */}
+                                      <FundingDocumentsProvider>
+                                        <UserListsProvider>
+                                          <LeaderboardProvider>
+                                            <DismissedFeaturesProvider>
                                               <FollowProvider>{children}</FollowProvider>
-                                            </AIModeProvider>
-                                            <FeatureNotifications />
-                                          </DismissedFeaturesProvider>
-                                        </LeaderboardProvider>
-                                      </UserListsProvider>
+                                              <FeatureNotifications />
+                                            </DismissedFeaturesProvider>
+                                          </LeaderboardProvider>
+                                        </UserListsProvider>
+                                      </FundingDocumentsProvider>
                                     </OrganizationProvider>
                                   </NotificationProvider>
                                 </FundingPowerProvider>

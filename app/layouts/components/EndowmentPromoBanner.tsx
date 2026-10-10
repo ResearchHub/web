@@ -30,7 +30,7 @@ const EndowmentPromoBannerComponent: React.FC = () => {
   return (
     <Link
       href="/endowment"
-      className="tablet:!hidden relative flex items-center gap-3 px-4 py-2.5
+      className="tablet:!hidden relative flex h-14 items-center gap-3 px-4
         bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] text-white
         border-b border-[rgba(255,255,255,0.18)]
         active:opacity-90 transition-opacity"

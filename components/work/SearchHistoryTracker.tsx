@@ -9,6 +9,12 @@ interface SearchHistoryTrackerProps {
   work: Work;
 }
 
+/** Papers and posts number their ids separately, so a visit is keyed by both. */
+function isSameWork(item: SearchSuggestion, work: Work): boolean {
+  if (item.entityType !== 'paper' || item.id !== work.id) return false;
+  return (item.contentType ?? 'paper') === work.contentType;
+}
+
 export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
   useEffect(() => {
     const history = [...getSearchHistory()];
@@ -25,9 +31,14 @@ export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
       isRecent: true,
       slug: work.slug,
       contentType: work.contentType,
+      lastVisited: new Date().toISOString(),
+      imageUrl: work.image || work.figures?.[0]?.url || undefined,
+      authorImage:
+        work.authors.find((a) => a.authorProfile?.profileImage)?.authorProfile.profileImage ||
+        undefined,
     };
 
-    const existingIndex = history.findIndex((item) => item.id === work.id);
+    const existingIndex = history.findIndex((item) => isSameWork(item, work));
     if (existingIndex !== -1) {
       history.splice(existingIndex, 1);
     }

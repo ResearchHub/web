@@ -3,96 +3,66 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faHouse as faHouseSolid,
-  faBookmark as faBookmarkSolid,
-} from '@fortawesome/pro-solid-svg-icons';
-import {
-  faHouse as faHouseLight,
-  faBookmark as faBookmarkLight,
-  faBars,
-} from '@fortawesome/pro-light-svg-icons';
-import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { Sparkles, Sprout, Star } from 'lucide-react';
-import { ChangelogLink } from '@/components/changelog/ChangelogLink';
-import { FundingPowerBar } from '@/components/Funding/FundingPowerBar';
+import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { Star } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useFundingPowerControls } from '@/contexts/FundingPowerContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+import { useFundingPower } from '@/hooks/useFundingPower';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
-import { useUser } from '@/contexts/UserContext';
-import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
-import { isHubEditorOrModerator } from '@/utils/permissions';
 
 interface NavItem {
   label: string;
-  href?: string;
-  iconKey?: string;
-  isMore?: boolean;
+  href: string;
+  iconKey: 'home' | 'fund' | 'peer-review' | 'journal' | 'wallet';
   requiresAuth?: boolean;
   isHome?: boolean;
-  /** Toggles the AI Mode overlay in place instead of navigating. */
-  isAIMode?: boolean;
 }
 
-// Additional navigation items not in the bottom bar
-const moreNavItems: NavItem[] = [
-  { label: 'Endowment', href: '/endowment', iconKey: 'endowment' },
+// Everything else (Endowment, help links) is in the top bar's hamburger menu,
+// and Lists in the avatar menu.
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Home', href: '/', iconKey: 'home', isHome: true },
+  { label: 'My Funding', href: '/my-funding', iconKey: 'fund' },
+  { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
   { label: 'Journal', href: '/journal', iconKey: 'journal' },
-  { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
-  { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
+  { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
 ];
 
-// Check if a path is active
-const isPathActive = (path: string, currentPath: string, isHome?: boolean): boolean => {
-  if (isHome) {
-    return isHomeTabPath(currentPath);
-  }
-  if (path === '/my-funding') {
-    return currentPath === '/my-funding';
-  }
-  if (path === '/notebook') {
-    return currentPath.startsWith('/notebook');
-  }
-  if (path === '/journal') {
-    return currentPath.startsWith('/journal');
-  }
-  if (path === '/endowment') {
-    return currentPath.startsWith('/endowment');
-  }
-  if (path === '/lists') {
-    return currentPath === '/lists' || currentPath.startsWith('/list/');
-  }
-  return path === currentPath;
+const ICON_COLOR = '#111827';
+const ICON_SIZE = 24;
+
+const isPathActive = (item: NavItem, currentPath: string): boolean => {
+  if (item.isHome) return isHomeTabPath(currentPath);
+  if (item.iconKey === 'journal') return currentPath.startsWith('/journal');
+  return item.href === currentPath;
 };
 
+/**
+ * The Wallet item's label: the user's funding power once it is known (masked
+ * if they have hidden it), so the balance is always one glance away.
+ * "Wallet" when signed out or still loading.
+ */
+function useWalletLabel(): string {
+  const { isReady, isSignedIn, total, format } = useFundingPower();
+  const { isAmountHidden, isPrivacyReady } = useFundingPowerControls();
+
+  if (!isReady || !isSignedIn || !isPrivacyReady) return 'Wallet';
+  return isAmountHidden ? '••••' : format(total);
+}
+
 export const MobileBottomNav: React.FC = () => {
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const lastScrollY = useRef(0);
   const router = useRouter();
   const pathname = usePathname() || '';
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
-  const { user } = useUser();
-  const aiMode = useOptionalAIMode();
-
-  // Moderators and hub editors, the only users the assistant admits, get it
-  // in the bar where Peer Review sits for everyone else.
-  const mainNavItems: NavItem[] = [
-    { label: 'Home', href: '/', iconKey: 'home', isHome: true },
-    { label: 'My Funding', href: '/my-funding', iconKey: 'fund', requiresAuth: true },
-    isHubEditorOrModerator(user)
-      ? { label: 'Assistant', iconKey: 'assistant', isAIMode: true }
-      : { label: 'Peer Review', href: '/peer-review', iconKey: 'peer-review' },
-    { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
-    { label: 'More', isMore: true, iconKey: 'more' },
-  ];
+  const walletLabel = useWalletLabel();
 
   // Track scroll direction using the scroll container from context
   useEffect(() => {
@@ -116,68 +86,46 @@ export const MobileBottomNav: React.FC = () => {
   }, [scrollContainerRef]);
 
   const handleNavClick = (item: NavItem) => {
-    if (item.isMore) {
-      setIsMoreOpen(true);
-      return;
-    }
-    if (item.isAIMode) {
-      aiMode?.toggle();
-      return;
-    }
-
     if (item.requiresAuth) {
-      executeAuthenticatedAction(() => router.push(item.href!));
-    } else if (item.href) {
-      router.push(item.href);
-    }
-  };
-
-  const handleMoreItemClick = (item: NavItem) => {
-    setIsMoreOpen(false);
-    if (item.requiresAuth) {
-      executeAuthenticatedAction(() => router.push(item.href!));
-    } else if (item.href) {
+      executeAuthenticatedAction(() => router.push(item.href));
+    } else {
       router.push(item.href);
     }
   };
 
   const renderIcon = (item: NavItem, isActive: boolean) => {
-    const iconColor = isActive ? '#3971ff' : '#000000';
-    const iconSize = 24;
-
     switch (item.iconKey) {
       case 'home':
         return (
           <FontAwesomeIcon
             icon={isActive ? faHouseSolid : faHouseLight}
-            fontSize={iconSize}
-            color={iconColor}
-          />
-        );
-      case 'assistant':
-        return (
-          <Sparkles
-            size={iconSize}
-            color={iconColor}
-            strokeWidth={isActive ? 2.25 : 2}
-            fill={isActive ? iconColor : 'none'}
+            fontSize={ICON_SIZE}
+            color={ICON_COLOR}
           />
         );
       case 'peer-review':
         return (
           <Star
-            size={iconSize}
-            color={iconColor}
+            size={ICON_SIZE}
+            color={ICON_COLOR}
             strokeWidth={isActive ? 2.25 : 2}
-            fill={isActive ? iconColor : 'none'}
+            fill={isActive ? ICON_COLOR : 'none'}
           />
         );
       case 'fund':
         return (
           <Icon
             name={isActive ? 'solidHand' : ('fund' as IconName)}
-            size={iconSize}
-            color={iconColor}
+            size={ICON_SIZE}
+            color={ICON_COLOR}
+          />
+        );
+      case 'journal':
+        return (
+          <Icon
+            name={isActive ? 'rhJournal2' : ('rhJournal1' as IconName)}
+            size={ICON_SIZE}
+            color={ICON_COLOR}
           />
         );
       case 'wallet':
@@ -186,238 +134,58 @@ export const MobileBottomNav: React.FC = () => {
             outlined={!isActive}
             variant={isActive ? 'solid' : 'orange'}
             className="h-6 w-6"
-            color={iconColor}
+            color={ICON_COLOR}
           />
         );
-      case 'more':
-        return <FontAwesomeIcon icon={faBars} fontSize={iconSize} color={iconColor} />;
-      case 'endowment':
-        return <Sprout size={iconSize} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />;
-      case 'journal':
-        return (
-          <Icon
-            name={isActive ? 'rhJournal2' : ('rhJournal1' as IconName)}
-            size={iconSize}
-            color={iconColor}
-          />
-        );
-      case 'notebook':
-        return (
-          <Icon
-            name={isActive ? 'notebookBold' : ('labNotebook2' as IconName)}
-            size={iconSize}
-            color={iconColor}
-          />
-        );
-      case 'lists':
-        return (
-          <FontAwesomeIcon
-            icon={isActive ? faBookmarkSolid : faBookmarkLight}
-            fontSize={iconSize}
-            color={iconColor}
-          />
-        );
-      default:
-        return null;
     }
   };
 
-  // Check if any "More" menu item is active
-  const isMoreActive = moreNavItems.some((item) => item.href && isPathActive(item.href, pathname));
-
   return (
-    <>
-      {/* Docked over the content directly above the nav, sharing its scroll
-          fade so the two read as one piece of chrome. The nav is z-[100].
+    // A shade grayer than the page so the nav reads as chrome, not content.
+    <nav
+      data-mobile-bottom-nav
+      className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-gray-200 tablet:!hidden transition-all duration-300 ease-in-out ${
+        isScrollingDown
+          ? 'opacity-20 shadow-none'
+          : 'opacity-100 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
+      }`}
+      style={{ backgroundColor: isScrollingDown ? 'rgba(249, 250, 251, 0.3)' : '#f9fafb' }}
+    >
+      <div className="flex items-center justify-around h-16 px-2 pb-safe">
+        {NAV_ITEMS.map((item) => {
+          const isActive = isPathActive(item, pathname);
+          const label = item.iconKey === 'wallet' ? walletLabel : item.label;
 
-          Only the home tabs get it: elsewhere it covers page content that has
-          nothing to do with funding power, and PageLayout stops reserving room
-          for it. Keep this condition in sync with the padding class there.
-
-          The wrapper spans the full width but only the bar inside it is drawn,
-          so it stays `pointer-events-none` and FundingPowerBar re-enables hits
-          on the bar itself. A fixed element swallows touch drags that start on
-          it — they scroll the document, not the feed's scrollport — so every
-          pixel of it that isn't a control is a band the feed can't be scrolled
-          from, and `opacity-20` makes those bands invisible rather than absent. */}
-      {isHomeTabPath(pathname) && (
-        <div
-          className={`pointer-events-none fixed bottom-16 left-0 right-0 z-[99] px-3 pb-2 tablet:!hidden transition-opacity duration-300 ease-in-out ${
-            isScrollingDown ? 'opacity-20' : 'opacity-100'
-          }`}
-        >
-          <FundingPowerBar />
-        </div>
-      )}
-
-      {/* Bottom Navigation Bar */}
-      <nav
-        data-mobile-bottom-nav
-        className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-gray-200 tablet:!hidden transition-all duration-300 ease-in-out ${
-          isScrollingDown
-            ? 'opacity-20 shadow-none'
-            : 'opacity-100 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
-        }`}
-        style={{ backgroundColor: isScrollingDown ? 'rgba(255, 255, 255, 0.3)' : 'white' }}
-      >
-        <div className="flex items-center justify-around h-16 px-2 pb-safe">
-          {mainNavItems.map((item) => {
-            const isActive = item.isMore
-              ? isMoreActive || isMoreOpen
-              : item.isAIMode
-                ? Boolean(aiMode?.isOpen)
-                : item.href
-                  ? isPathActive(item.href, pathname, item.isHome)
-                  : false;
-
-            return (
-              <button
-                key={item.label}
-                onClick={() => handleNavClick(item)}
-                className="flex flex-col items-center justify-center flex-1 h-full py-2 transition-colors"
-              >
-                <div className="flex items-center justify-center h-7 w-7">
-                  {renderIcon(item, isActive)}
-                </div>
+          return (
+            <button
+              key={item.label}
+              onClick={() => handleNavClick(item)}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+              className="relative flex flex-col items-center justify-center flex-1 h-full py-2"
+            >
+              {/* The selection: a bar riding on the nav's top border. */}
+              {isActive && (
                 <span
-                  className={`text-[11px] mt-1 font-medium whitespace-nowrap ${
-                    isActive ? 'text-primary-600' : 'text-black'
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* More Menu Drawer */}
-      <SwipeableDrawer
-        isOpen={isMoreOpen}
-        onClose={() => setIsMoreOpen(false)}
-        height="auto"
-        showCloseButton={true}
-      >
-        <div className="pb-6">
-          {/* Title */}
-          <div className="px-4 pb-4 border-b border-gray-200 mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">More</h2>
-          </div>
-
-          {/* Primary Navigation Links */}
-          <div className="space-y-1 mb-6">
-            {moreNavItems.map((item) => {
-              const isActive = item.href ? isPathActive(item.href, pathname) : false;
-
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => handleMoreItemClick(item)}
-                  className={`flex items-center w-full px-4 py-3 rounded-lg transition-colors ${
-                    isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-center h-6 w-6 mr-3">
-                    {renderIcon(item, isActive)}
-                  </div>
-                  <span className={`text-[15px] font-medium ${isActive ? 'text-primary-600' : ''}`}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-4" />
-
-          {/* Footer Links Section */}
-          <div className="px-4">
-            {/* Social Icons & Currency Toggle */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-4">
-                <a
-                  href="https://x.com/researchhub"
-                  className="text-gray-500 hover:text-gray-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />
-                </a>
-                <a
-                  href="https://discord.com/invite/ZcCYgcnUp5"
-                  className="text-gray-500 hover:text-gray-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faDiscord} className="h-5 w-5" />
-                </a>
-                <a
-                  href="https://github.com/ResearchHub"
-                  className="text-gray-500 hover:text-gray-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faGithub} className="h-5 w-5" />
-                </a>
-                <a
-                  href="https://www.linkedin.com/company/researchhubtechnologies"
-                  className="text-gray-500 hover:text-gray-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5" />
-                </a>
+                  aria-hidden
+                  className="absolute -top-px inset-x-4 h-[3px] rounded-b-full bg-gray-900"
+                />
+              )}
+              <div className="flex items-center justify-center h-7 w-7">
+                {renderIcon(item, isActive)}
               </div>
-              {/* Currency Toggle */}
-              <select
-                value={showUSD ? 'USD' : 'RSC'}
-                onChange={() => toggleCurrency()}
-                className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+              <span
+                className={`text-[11px] mt-1 font-medium whitespace-nowrap text-gray-900 ${
+                  item.iconKey === 'wallet' ? 'tabular-nums' : ''
+                }`}
               >
-                <option value="RSC">RSC</option>
-                <option value="USD">USD</option>
-              </select>
-            </div>
-
-            {/* Utility Links */}
-            <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-              <a href="https://www.researchhub.com/tos" className="hover:text-gray-700">
-                Terms
-              </a>
-              <a href="https://www.researchhub.com/privacy" className="hover:text-gray-700">
-                Privacy
-              </a>
-              <a
-                href="https://github.com/ResearchHub/issues/issues/new/choose"
-                className="hover:text-gray-700"
-              >
-                Issues
-              </a>
-              <a href="https://docs.researchhub.com/" className="hover:text-gray-700">
-                Docs
-              </a>
-              <a
-                href="https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form"
-                className="hover:text-gray-700"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Support
-              </a>
-              <a href="https://researchhub.foundation/" className="hover:text-gray-700">
-                Foundation
-              </a>
-              <a href="https://www.researchhub.com/about" className="hover:text-gray-700">
-                About
-              </a>
-              <ChangelogLink />
-            </div>
-          </div>
-        </div>
-      </SwipeableDrawer>
-    </>
+                {label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 };
 

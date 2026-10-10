@@ -35,6 +35,19 @@ const DismissedFeaturesContext = createContext<DismissedFeaturesContextValue | n
 
 const getLocalStorageKey = (feature: string) => `feature_${feature.toLowerCase()}_dismissed`;
 
+/**
+ * Whether this browser has a dismissal stored for the feature. For a signed-out
+ * user that is the only record, and it can be needed before the cache below
+ * has been filled from it.
+ */
+export function isDismissedInStorage(feature: string): boolean {
+  try {
+    return window.localStorage.getItem(getLocalStorageKey(feature)) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 interface DismissedFeaturesProviderProps {
   children: ReactNode;
 }

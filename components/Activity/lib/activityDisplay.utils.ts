@@ -60,6 +60,14 @@ function isFoundationProfile(profile?: AuthorProfile): boolean {
   return false;
 }
 
+/**
+ * Feed entries carry verification on the nested user, while a profile's own
+ * author record carries it at the top level, so check both.
+ */
+export function isVerifiedAuthor(author?: AuthorProfile): boolean {
+  return Boolean(author?.isVerified || author?.user?.isVerified);
+}
+
 function getFundingActivityMessage(content: FeedFundingActivityContent): ActivityHeaderMessage {
   const actor = content.createdBy;
   const recipient = content.recipient;
@@ -136,12 +144,9 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return {
-      actor,
-      verb: isFundingPoolContribution(entry)
-        ? 'contributed to the funding pool'
-        : 'funded this proposal.',
-    };
+    return isFundingPoolContribution(entry)
+      ? { actor, verb: 'contributed', suffix: ' to the funding pool' }
+      : { actor, verb: 'funded this proposal with' };
   }
 
   // Registered reports arrive as `post` entries; only the document type sets them apart,

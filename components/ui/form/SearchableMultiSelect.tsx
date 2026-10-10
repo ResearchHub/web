@@ -41,6 +41,14 @@ export interface SearchableMultiSelectProps {
     option: MultiSelectOption,
     context: { focus: boolean; selected: boolean }
   ) => React.ReactElement;
+  /** Seated inside the field, before the chosen options: an icon, say. */
+  leading?: React.ReactNode;
+  /** Shown in the search input once something is chosen; nothing by default. */
+  placeholderWhenFilled?: string;
+  /** Put the caret in the search input when the field mounts. */
+  autoFocus?: boolean;
+  /** Restyles the panel the results drop in. */
+  optionsClassName?: string;
 }
 
 export function SearchableMultiSelect({
@@ -59,6 +67,10 @@ export function SearchableMultiSelect({
   sortable = false,
   minSearchLength = 2,
   renderOption,
+  leading,
+  placeholderWhenFilled = '',
+  autoFocus = false,
+  optionsClassName,
 }: SearchableMultiSelectProps) {
   const id = useId();
   const [query, setQuery] = useState('');
@@ -206,6 +218,7 @@ export function SearchableMultiSelect({
               className
             )}
           >
+            {leading}
             {sortable ? (
               <SortableMultiSelectOptions
                 options={value}
@@ -242,8 +255,9 @@ export function SearchableMultiSelect({
                 id={id}
                 aria-label={sortable ? label || placeholder : undefined}
                 autoComplete="off"
+                autoFocus={autoFocus}
                 className="w-full bg-transparent border-none p-1 text-sm outline-none"
-                placeholder={value.length === 0 ? placeholder : ''}
+                placeholder={value.length === 0 ? placeholder : placeholderWhenFilled}
                 onChange={(e) => setQuery(e.target.value.trim())}
                 onKeyDown={handleKeyDown}
                 displayValue={() => query}
@@ -260,7 +274,8 @@ export function SearchableMultiSelect({
           <ComboboxOptions
             className={cn(
               'absolute z-10 mt-1 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60',
-              renderOption ? 'py-1' : 'p-2'
+              renderOption ? 'py-1' : 'p-2',
+              optionsClassName
             )}
             style={{ width: `${dropdownWidth}px` }}
           >
