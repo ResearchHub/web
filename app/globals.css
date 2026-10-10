@@ -188,11 +188,4 @@ mark {
   .page-layout-with-mobile-bottom-nav {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
   }
-
-  /* As above, plus the funding power bar docked over the nav on the home tabs
-     (3.75rem including its gutter). Pages without that bar use the shorter
-     offset, or the unused space reads as a dead gap under the content. */
-  .page-layout-with-mobile-bottom-nav-and-funding-bar {
-    padding-bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
-  }
 }
