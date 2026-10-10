@@ -114,7 +114,7 @@ export function TextEditor({
     return (
       <span ref={ref} className={cn(EDITING_FIELD_CLASS, 'w-full items-start py-2')}>
         {/* The hidden copy sizes the cell, so the field grows with its text. */}
-        <span className="grid min-w-0 flex-1 text-[15px] leading-relaxed">
+        <span className="grid min-w-0 flex-1 text-base leading-relaxed md:text-[15px]">
           <span
             aria-hidden="true"
             className="invisible col-start-1 row-start-1 min-h-[3lh] whitespace-pre-wrap break-words"
@@ -134,7 +134,7 @@ export function TextEditor({
             }}
             className={cn(
               EDITING_INPUT_CLASS,
-              'col-start-1 row-start-1 resize-none overflow-hidden text-[15px] leading-relaxed'
+              'col-start-1 row-start-1 resize-none overflow-hidden text-base leading-relaxed md:text-[15px]'
             )}
           />
         </span>
