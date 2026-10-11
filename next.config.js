@@ -27,6 +27,12 @@ const nextConfig = {
       destination: '/',
       permanent: true,
     },
+    // The leaderboard pages were removed; old links and search results land on home.
+    {
+      source: '/leaderboard/:path*',
+      destination: '/',
+      permanent: false,
+    },
     {
       source: '/popular',
       destination: '/',

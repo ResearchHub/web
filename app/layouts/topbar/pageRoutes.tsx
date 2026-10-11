@@ -5,7 +5,7 @@ import {
   faCommentsQuestion,
   faGrid3 as faGrid3Light,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity, Settings } from 'lucide-react';
+import { Shield, Hash, Users, Activity, Settings } from 'lucide-react';
 import Image from 'next/image';
 import { Icon } from '@/components/ui/icons';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
@@ -26,7 +26,6 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/journal',
   '/notebook',
   '/browse',
-  '/leaderboard',
   '/lists',
   '/settings',
   '/endowment',
@@ -104,13 +103,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Journal',
       icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/leaderboard'),
-    getInfo: () => ({
-      title: 'Leaderboard',
-      icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     }),
   },
   {
