@@ -2,7 +2,6 @@ import { ApiClient } from './client';
 import { ID, transformUnifiedDocument } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { FeedEntry, getUnifiedDocumentId, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
-import { Topic } from '@/types/topic';
 
 interface BountyAwardPayload {
   content_type: 'rhcommentmodel';
@@ -179,7 +178,6 @@ export class BountyService {
     onlyParentBounties?: boolean;
     page?: number;
     pageSize?: number;
-    hubIds?: (string | number)[]; // Array of hub IDs to filter by
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean; total: number }> {
     // Set default parameters
     const defaultParams = {
@@ -220,15 +218,6 @@ export class BountyService {
       queryParams.append('only_parent_bounties', params.onlyParentBounties.toString());
     } else {
       queryParams.append('only_parent_bounties', defaultParams.only_parent_bounties.toString());
-    }
-
-    // hub_ids parameters (can appear multiple times)
-    if (params?.hubIds && params.hubIds.length > 0) {
-      params.hubIds.forEach((id) => {
-        if (id !== undefined && id !== null) {
-          queryParams.append('hub_ids', id.toString());
-        }
-      });
     }
 
     // Pagination parameters
@@ -383,25 +372,6 @@ export class BountyService {
         hasMore: false,
         total: 0,
       };
-    }
-  }
-
-  // Fetch all hubs available for bounties (no pagination, one call)
-  static async getBountyHubs(): Promise<Topic[]> {
-    const path = `${this.BASE_PATH}/bounty/hubs/`;
-    try {
-      const response = await ApiClient.get<any[]>(path);
-      // Use transformTopic to normalize
-      return response.map((raw) => ({
-        id: raw.id,
-        name: raw.name || '',
-        slug: raw.slug || '',
-        description: raw.description,
-        imageUrl: raw.hub_image || undefined,
-      }));
-    } catch (error) {
-      console.error('Error fetching bounty hubs', error);
-      return [];
     }
   }
 }
