@@ -16,17 +16,6 @@ const optimisticToRealIdMap = new Map<number, number>();
 const commentParentMap = new Map<number, number>();
 
 /**
- * Updates the mapping of optimistic IDs to real IDs
- * @param optimisticId The optimistic ID
- * @param realId The real ID from the server
- */
-export const mapOptimisticToRealId = (optimisticId: number, realId: number): void => {
-  optimisticToRealIdMap.set(optimisticId, realId);
-  console.log(`Mapped optimistic ID ${optimisticId} to real ID ${realId}`);
-  console.log('Current optimistic to real ID map:', optimisticToRealIdMap);
-};
-
-/**
  * Records the parent-child relationship between comments
  * @param childId The child comment ID
  * @param parentId The parent comment ID
@@ -61,22 +50,4 @@ export const recordParentChildRelationship = (childId: number, parentId: number)
  */
 export const getRealId = (id: number): number => {
   return optimisticToRealIdMap.get(id) || id;
-};
-
-/**
- * Gets the parent ID for a comment ID if it exists in our mapping
- * @param id The comment ID
- * @returns The parent ID if it exists in our mapping, otherwise null
- */
-export const getParentId = (id: number): number | null => {
-  return commentParentMap.get(id) || null;
-};
-
-/**
- * Clears all ID mappings - useful for testing or when switching contexts
- */
-export const clearIdMappings = (): void => {
-  optimisticToRealIdMap.clear();
-  commentParentMap.clear();
-  console.log('Cleared all ID mappings');
 };

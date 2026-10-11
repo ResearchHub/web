@@ -28,7 +28,6 @@ import { useAgentChatWidth } from '@/hooks/useAgentChatWidth';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
-import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import {
   getNoteKind,
@@ -185,7 +184,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
       setIsLegacyNote(false);
       return;
     }
-    setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
+    setIsLegacyNote(!note.contentJson);
   }, [note, noteError, isLoadingNote]);
 
   const [, updateNote, saveNoteNow] = useUpdateNote(note?.id, {
@@ -213,8 +212,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
 
   const showTabs = Boolean(note) && !isLegacyNote && !isChangelogAccessDenied;
   const isPublishedRegisteredReport = isPublishedRegisteredReportNote(note);
-  const isEditorReadOnly =
-    isPublishedRegisteredReport || (isLegacyNote && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
+  const isEditorReadOnly = isPublishedRegisteredReport || isLegacyNote;
   const noteKind = getNoteKind(note);
   const workTypeLabel = isChangelog
     ? 'ChangeLog'
