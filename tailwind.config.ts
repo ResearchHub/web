@@ -62,6 +62,16 @@ export default {
           '0%': { transform: 'translateY(0)' },
           '100%': { transform: 'translateY(-50%)' },
         },
+        // A menu or popover growing out of its trigger, and shrinking back.
+        // Callers set `transform-origin` to the side the trigger is on.
+        'menu-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'menu-out': {
+          '0%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'scale(0.95)' },
+        },
         // Light streak sweeping across an element. The skew is baked in because
         // the animated transform would otherwise override a skew utility class.
         shimmer: {
@@ -106,6 +116,8 @@ export default {
         // The same streak, answering a hover: no wait before it starts.
         'shimmer-quick': 'shimmer 0.9s ease-out 0.05s both',
         'take-off': 'take-off 0.8s both',
+        'menu-in': 'menu-in 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+        'menu-out': 'menu-out 0.1s ease-in both',
         'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
       },
       backgroundImage: {
