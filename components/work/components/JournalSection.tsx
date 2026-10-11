@@ -20,6 +20,7 @@ export const JournalSection = ({ journal }: JournalSectionProps) => {
   const isPreprint = isPreprintServer(journal.slug);
   const displayName = logo ? getPreprintDisplayName(journal.slug) : journal.name;
   const sectionTitle = isPreprint ? 'Preprint Server' : 'Journal';
+  const imageSrc = logo || journal.imageUrl;
 
   const badge = (
     <Badge
@@ -31,18 +32,9 @@ export const JournalSection = ({ journal }: JournalSectionProps) => {
           <Icon name="rhJournal2" size={14} className="mr-2" />
           <span className="text-gray-800">RH Journal</span>
         </>
-      ) : logo ? (
+      ) : imageSrc ? (
         <Image
-          src={logo}
-          alt={journal.name}
-          width={50}
-          height={14}
-          className="object-contain"
-          style={{ maxHeight: '14px' }}
-        />
-      ) : journal.imageUrl ? (
-        <Image
-          src={journal.imageUrl}
+          src={imageSrc}
           alt={journal.name}
           width={50}
           height={14}

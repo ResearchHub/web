@@ -23,16 +23,11 @@ const nextConfig = {
       permanent: true,
     },
     // Topic (hub) pages and the topic browser are retired.
-    {
-      source: '/topic/:path*',
+    ...['/topic/:path*', '/browse'].map((source) => ({
+      source,
       destination: '/',
       permanent: true,
-    },
-    {
-      source: '/browse',
-      destination: '/',
-      permanent: true,
-    },
+    })),
     {
       source: '/trending',
       destination: '/',
