@@ -399,7 +399,7 @@ function FundsRecipient() {
             value: 'institution',
             label: 'Your institution',
             icon: Landmark,
-            description: "Your university's nonprofit foundation receives them.",
+            description: 'Your university or non-profit foundation',
             details: <NonprofitSearchSection compact />,
           },
         ]}
