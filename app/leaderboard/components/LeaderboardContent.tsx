@@ -12,8 +12,6 @@ import { useCurrentUserLeaderboard } from '@/hooks/useLeaderboard';
 import { TopPeerReviewers } from './TopPeerReviewers';
 import { TopFunders } from './TopFunders';
 
-export type { LeaderboardPeriod } from '@/services/leaderboard.service';
-
 const PERIOD_OPTIONS: { value: LeaderboardPeriod; label: string }[] = [
   { value: '7_days', label: 'Last 7 Days' },
   { value: '30_days', label: 'Last 30 Days' },

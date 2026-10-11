@@ -43,11 +43,6 @@ export interface AuthorUpdatePayload {
   google_scholar?: string | null;
 }
 
-// Interface for the update payload parameters
-export interface AuthorUpdateParams extends AuthorUpdatePayload {
-  profileImageDataUrl?: string | null; // Add image data URL
-}
-
 export class AuthorService {
   private static readonly AUTHORS_PATH = '/api/author';
 

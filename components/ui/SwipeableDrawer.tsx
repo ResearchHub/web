@@ -185,5 +185,3 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   // Use createPortal to mount drawer to body
   return createPortal(drawerContent, document.body);
 };
-
-export default SwipeableDrawer;

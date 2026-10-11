@@ -4,7 +4,13 @@ import { FeedEntry } from '@/types/feed';
 import { BountyService } from '@/services/bounty.service';
 import { useNavigation, getFeedKey } from '@/contexts/NavigationContext';
 import { useClickContext } from '@/contexts/ClickContext';
-import { Hub } from '@/components/Earn/BountyHubSelector';
+
+interface Hub {
+  id: string | number;
+  name: string;
+  description?: string;
+  color?: string;
+}
 
 export const useBounties = () => {
   const pathname = usePathname();

@@ -34,5 +34,3 @@ export const SearchEmpty = ({
     </div>
   );
 };
-
-export default SearchEmpty;

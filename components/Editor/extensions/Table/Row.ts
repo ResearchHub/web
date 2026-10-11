@@ -4,5 +4,3 @@ export const TableRow = TiptapTableRow.extend({
   allowGapCursor: false,
   content: 'tableCell*',
 });
-
-export default TableRow;

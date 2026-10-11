@@ -56,11 +56,6 @@ export interface VoteOnCommentOptions {
   documentType: DocumentType;
 }
 
-export interface MarkNotInterestedOptions {
-  documentType: DocumentType;
-  documentId: ID;
-}
-
 export class ReactionService {
   private static readonly BASE_PATH = '/api';
 
