@@ -70,10 +70,14 @@ interface CoverBannerProps {
   readonly onRemove?: () => void;
 }
 
-/** The cover image across the column, above the title, as the published page shows it. */
+/**
+ * The cover image across the column, above the title: a strip of it, cut to
+ * fill. The masthead renders inside the editor, whose own rule for images
+ * (`.ProseMirror img { height: auto }`) would otherwise show it whole.
+ */
 export function CoverBanner({ imageUrl, onChange, onRemove }: CoverBannerProps) {
   // eslint-disable-next-line @next/next/no-img-element
-  const image = <img src={imageUrl} alt="" className="h-[170px] w-full object-cover" />;
+  const image = <img src={imageUrl} alt="" className="!h-[170px] w-full object-cover" />;
 
   if (!onChange) {
     return <div className="mb-1 overflow-hidden rounded-[10px] bg-gray-100">{image}</div>;
