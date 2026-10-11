@@ -1,6 +1,6 @@
 import { TransformedEditorData } from '@/types/editor';
 import { formatDistanceToNow } from 'date-fns';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { ListCard } from '@/components/ui/ListCard';
@@ -55,11 +55,10 @@ export function EditorMobileCard({
             </div>
           </div>
 
-          {/* Actions Dropdown */}
+          {/* Actions menu */}
           {hasWriteAccess && (
             <div className="flex-shrink-0">
-              <Dropdown
-                anchor="bottom end"
+              <BaseMenu
                 trigger={
                   <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors">
                     <MoreVertical className="h-4 w-4" />
@@ -68,24 +67,24 @@ export function EditorMobileCard({
                 className="w-40"
               >
                 {onEdit && (
-                  <DropdownItem
+                  <BaseMenuItem
                     onClick={onEdit}
                     className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
                   >
                     <Edit className="h-4 w-4" />
                     Edit Editor
-                  </DropdownItem>
+                  </BaseMenuItem>
                 )}
                 {onDelete && (
-                  <DropdownItem
+                  <BaseMenuItem
                     onClick={onDelete}
                     className="flex items-center gap-2 text-gray-700 hover:text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />
                     Remove Editor
-                  </DropdownItem>
+                  </BaseMenuItem>
                 )}
-              </Dropdown>
+              </BaseMenu>
             </div>
           )}
         </div>
