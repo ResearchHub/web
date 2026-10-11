@@ -6,7 +6,6 @@ import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import AnalyticsService from '@/services/analytics.service';
-import { Experiment } from '@/utils/experiment';
 
 interface UserContextType {
   user: User | null;

@@ -1,10 +1,5 @@
 // Constants
-export {
-  PAYMENT_FEES,
-  PAYMENT_METHOD_LABELS,
-  HIDDEN_PAYMENT_METHODS,
-  type PaymentMethodType,
-} from './constants';
+export { HIDDEN_PAYMENT_METHODS, type PaymentMethodType } from './constants';
 
 // Hooks
 export { usePaymentMethod } from './usePaymentMethod';
