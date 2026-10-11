@@ -21,7 +21,6 @@ import ApmProvider from '@/components/ApmProvider';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
-import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
 import { FundingDocumentsProvider } from '@/contexts/FundingDocumentsContext';
@@ -58,12 +57,10 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                         navigating must not fetch them again. */}
                                     <FundingDocumentsProvider>
                                       <UserListsProvider>
-                                        <LeaderboardProvider>
-                                          <DismissedFeaturesProvider>
-                                            {children}
-                                            <FeatureNotifications />
-                                          </DismissedFeaturesProvider>
-                                        </LeaderboardProvider>
+                                        <DismissedFeaturesProvider>
+                                          {children}
+                                          <FeatureNotifications />
+                                        </DismissedFeaturesProvider>
                                       </UserListsProvider>
                                     </FundingDocumentsProvider>
                                   </OrganizationProvider>

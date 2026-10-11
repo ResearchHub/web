@@ -9,7 +9,7 @@ import { useScreenSize } from '@/hooks/useScreenSize';
 import { useEditorsDashboard } from '@/hooks/useEditorsDashboard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { BaseMenu, BaseMenuRadioGroup, BaseMenuRadioItem } from '@/components/ui/form/BaseMenu';
 import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { cn } from '@/utils/styles';
@@ -301,25 +301,26 @@ export default function EditorsDashboardContent({ hasWriteAccess }: EditorsDashb
             <div className="flex items-center justify-end">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-700">Show</span>
-                <Dropdown
+                <BaseMenu
                   trigger={
                     <button className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                       <span>{pageSize}</span>
                       <ChevronDown className="w-4 h-4 text-gray-500" />
                     </button>
                   }
-                  className="w-20"
+                  className="min-w-[6rem]"
                 >
-                  {pageSizeOptions.map((size) => (
-                    <DropdownItem
-                      key={size}
-                      onClick={() => handlePageSizeChange(size)}
-                      className={pageSize === size ? 'bg-blue-50 text-blue-700' : ''}
-                    >
-                      {size}
-                    </DropdownItem>
-                  ))}
-                </Dropdown>
+                  <BaseMenuRadioGroup
+                    value={String(pageSize)}
+                    onValueChange={(value) => handlePageSizeChange(Number(value))}
+                  >
+                    {pageSizeOptions.map((size) => (
+                      <BaseMenuRadioItem key={size} value={String(size)}>
+                        {size}
+                      </BaseMenuRadioItem>
+                    ))}
+                  </BaseMenuRadioGroup>
+                </BaseMenu>
               </div>
             </div>
           </div>

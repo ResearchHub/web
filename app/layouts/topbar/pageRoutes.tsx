@@ -4,7 +4,7 @@ import {
   faBookmark as faBookmarkLight,
   faCommentsQuestion,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Shield, Users, Activity, Settings } from 'lucide-react';
+import { Shield, Users, Activity, Settings } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
 import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
 
@@ -20,7 +20,6 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/peer-review',
   '/journal',
   '/notebook',
-  '/leaderboard',
   '/lists',
   '/settings',
   '/endowment',
@@ -91,13 +90,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Journal',
       icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/leaderboard'),
-    getInfo: () => ({
-      title: 'Leaderboard',
-      icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     }),
   },
   {

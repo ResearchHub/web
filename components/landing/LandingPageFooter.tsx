@@ -18,7 +18,6 @@ export function LandingPageFooter() {
     { label: 'Peer Review', href: '/peer-review' },
     { label: 'Fund', href: '/fund' },
     { label: 'RH journal', href: '/journal' },
-    { label: 'Leaderboard', href: '/leaderboard' },
   ];
 
   const resourceLinks = [
