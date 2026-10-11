@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Loader2, X, ChevronDown, Check } from 'lucide-react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
-import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import {
   useInviteUserToOrg,
@@ -35,8 +35,6 @@ type UserItem = {
 
 const UserRow = ({
   user,
-  index,
-  totalCount,
   onRoleChange,
   onRemove,
   isRemovingUser,
@@ -45,8 +43,6 @@ const UserRow = ({
   isCurrentUserAdmin,
 }: {
   user: UserItem;
-  index: number;
-  totalCount: number;
   onRoleChange?: (id: string, role: 'Admin' | 'Member') => void;
   onRemove: (id: string) => void;
   isRemovingUser: boolean;
@@ -86,8 +82,7 @@ const UserRow = ({
           isCurrentUser() ? (
             <div className="text-sm font-bold px-3">{user.role}</div>
           ) : isCurrentUserAdmin ? (
-            <Dropdown
-              anchor={index === totalCount - 1 ? 'top end' : 'bottom end'}
+            <BaseMenu
               trigger={
                 <Button
                   variant="ghost"
@@ -110,7 +105,7 @@ const UserRow = ({
               }
               className="p-1 min-w-[250px]"
             >
-              <DropdownItem
+              <BaseMenuItem
                 onClick={() => onRoleChange && onRoleChange(user.id, 'Admin')}
                 className={user.role === 'Admin' ? 'bg-gray-100' : ''}
                 disabled={isUpdatingPermissions || isRemovingUser}
@@ -119,8 +114,8 @@ const UserRow = ({
                   <span>Admin</span>
                   {user.role === 'Admin' && <Check className="h-4 w-4 text-indigo-500" />}
                 </div>
-              </DropdownItem>
-              <DropdownItem
+              </BaseMenuItem>
+              <BaseMenuItem
                 onClick={() => onRoleChange && onRoleChange(user.id, 'Member')}
                 className={user.role === 'Member' ? 'bg-gray-100' : ''}
                 disabled={isUpdatingPermissions || isRemovingUser}
@@ -129,9 +124,9 @@ const UserRow = ({
                   <span>Member</span>
                   {user.role === 'Member' && <Check className="h-4 w-4 text-indigo-500" />}
                 </div>
-              </DropdownItem>
+              </BaseMenuItem>
               <div className="border-t border-gray-100 my-1"></div>
-              <DropdownItem
+              <BaseMenuItem
                 onClick={() => onRemove(user.id)}
                 disabled={isRemovingUser || isUpdatingPermissions}
               >
@@ -145,8 +140,8 @@ const UserRow = ({
                     <span>Remove from organization</span>
                   )}
                 </div>
-              </DropdownItem>
-            </Dropdown>
+              </BaseMenuItem>
+            </BaseMenu>
           ) : (
             <div className="text-sm font-medium px-3">{user.role}</div>
           )
@@ -405,12 +400,10 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                     </h3>
                     <div className="space-y-4">
                       {allUsers.length > 0 ? (
-                        allUsers.map((user, index) => (
+                        allUsers.map((user) => (
                           <UserRow
                             key={user.id}
                             user={user}
-                            index={index}
-                            totalCount={allUsers.length}
                             onRoleChange={
                               user.type === 'member' && isCurrentUserAdmin
                                 ? handleRoleChange

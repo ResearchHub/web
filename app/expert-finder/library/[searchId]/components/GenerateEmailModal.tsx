@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, FileText, Sparkles } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import {
+  BaseMenu,
+  BaseMenuItem,
+  BaseMenuRadioGroup,
+  BaseMenuRadioItem,
+} from '@/components/ui/form/BaseMenu';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
@@ -243,59 +248,66 @@ export function GenerateEmailModal({
 
         {creationMode === 'ai' ? (
           <>
-            <Dropdown
-              label="Outreach purpose"
-              trigger={
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-gray-900">{selectedPurpose.label}</div>
-                    <div className="truncate text-xs text-gray-500">
-                      {selectedPurpose.description}
-                    </div>
-                  </div>
-                  <ChevronDown
-                    className={cn(
-                      'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
-                      purposeDropdownOpen && 'rotate-180'
-                    )}
-                  />
-                </button>
-              }
-              onOpenChange={setPurposeDropdownOpen}
-              className="max-h-72 overflow-y-auto"
-            >
-              {visibleOptions.map((option) => {
-                const isProposalOption = option.value === PROPOSAL_DRAFT_OUTREACH_TEMPLATE;
-                const optionDisabled = isProposalOption && !proposalSelectable;
-                return (
-                  <DropdownItem
-                    key={option.value}
-                    onClick={() => {
-                      if (!optionDisabled) setPurpose(option.value);
-                    }}
-                    disabled={optionDisabled}
-                    className={cn(
-                      'items-start text-left',
-                      purpose === option.value && 'bg-gray-100 font-medium',
-                      optionDisabled && 'cursor-not-allowed opacity-60'
-                    )}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Outreach purpose
+              </label>
+              <BaseMenu
+                align="start"
+                sameWidth
+                className="max-h-72"
+                onOpenChange={setPurposeDropdownOpen}
+                trigger={
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    <div className="w-full text-left">
-                      <div className="text-sm text-gray-900">{option.label}</div>
-                      <div className="text-xs text-gray-500">{option.description}</div>
-                      {optionDisabled ? (
-                        <div className="mt-0.5 text-xs text-amber-700">
-                          Every selected expert needs a completed proposal draft
-                        </div>
-                      ) : null}
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-gray-900">
+                        {selectedPurpose.label}
+                      </div>
+                      <div className="truncate text-xs text-gray-500">
+                        {selectedPurpose.description}
+                      </div>
                     </div>
-                  </DropdownItem>
-                );
-              })}
-            </Dropdown>
+                    <ChevronDown
+                      className={cn(
+                        'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
+                        purposeDropdownOpen && 'rotate-180'
+                      )}
+                    />
+                  </button>
+                }
+              >
+                <BaseMenuRadioGroup
+                  value={purpose}
+                  onValueChange={(value) => setPurpose(value as EmailTemplateKind)}
+                >
+                  {visibleOptions.map((option) => {
+                    const isProposalOption = option.value === PROPOSAL_DRAFT_OUTREACH_TEMPLATE;
+                    const optionDisabled = isProposalOption && !proposalSelectable;
+                    return (
+                      <BaseMenuRadioItem
+                        key={option.value}
+                        value={option.value}
+                        disabled={optionDisabled}
+                        className="items-start"
+                      >
+                        <div className="w-full text-left">
+                          <div className="text-sm text-gray-900">{option.label}</div>
+                          <div className="text-xs text-gray-500">{option.description}</div>
+                          {optionDisabled ? (
+                            <div className="mt-0.5 text-xs text-amber-700">
+                              Every selected expert needs a completed proposal draft
+                            </div>
+                          ) : null}
+                        </div>
+                      </BaseMenuRadioItem>
+                    );
+                  })}
+                </BaseMenuRadioGroup>
+              </BaseMenu>
+            </div>
 
             {isCustom && (
               <div>
@@ -318,47 +330,54 @@ export function GenerateEmailModal({
             )}
           </>
         ) : (
-          <Dropdown
-            label="Choose outreach template"
-            trigger={
-              <button
-                type="button"
-                className={cn(
-                  'flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
-                  savedTemplateId == null && 'text-gray-500'
-                )}
-              >
-                {savedTemplateId == null
-                  ? 'Choose outreach template…'
-                  : (templates.find((t) => t.id === savedTemplateId)?.name ??
-                    'Choose outreach template…')}
-                <ChevronDown
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-gray-700">
+              Choose outreach template
+            </label>
+            <BaseMenu
+              align="start"
+              sameWidth
+              className="max-h-60"
+              onOpenChange={setTemplateDropdownOpen}
+              trigger={
+                <button
+                  type="button"
                   className={cn(
-                    'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
-                    templateDropdownOpen && 'rotate-180'
+                    'flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
+                    savedTemplateId == null && 'text-gray-500'
                   )}
-                />
-              </button>
-            }
-            onOpenChange={setTemplateDropdownOpen}
-            className="max-h-60 overflow-y-auto"
-          >
-            {templates.length === 0 ? (
-              <DropdownItem onClick={() => {}} className="text-gray-500 cursor-default" disabled>
-                No saved templates yet
-              </DropdownItem>
-            ) : (
-              templates.map((t) => (
-                <DropdownItem
-                  key={t.id}
-                  onClick={() => setSavedTemplateId(t.id)}
-                  className={savedTemplateId === t.id ? 'bg-gray-100 font-medium' : ''}
                 >
-                  {t.name}
-                </DropdownItem>
-              ))
-            )}
-          </Dropdown>
+                  {savedTemplateId == null
+                    ? 'Choose outreach template…'
+                    : (templates.find((t) => t.id === savedTemplateId)?.name ??
+                      'Choose outreach template…')}
+                  <ChevronDown
+                    className={cn(
+                      'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
+                      templateDropdownOpen && 'rotate-180'
+                    )}
+                  />
+                </button>
+              }
+            >
+              {templates.length === 0 ? (
+                <BaseMenuItem disabled className="text-gray-500">
+                  No saved templates yet
+                </BaseMenuItem>
+              ) : (
+                <BaseMenuRadioGroup
+                  value={savedTemplateId == null ? '' : String(savedTemplateId)}
+                  onValueChange={(value) => setSavedTemplateId(Number(value))}
+                >
+                  {templates.map((t) => (
+                    <BaseMenuRadioItem key={t.id} value={String(t.id)}>
+                      {t.name}
+                    </BaseMenuRadioItem>
+                  ))}
+                </BaseMenuRadioGroup>
+              )}
+            </BaseMenu>
+          </div>
         )}
       </div>
     </BaseModal>

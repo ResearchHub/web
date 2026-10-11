@@ -4,7 +4,6 @@ import { useState, useCallback, ReactNode } from 'react';
 import {
   Edit,
   Flag,
-  FileUp,
   Octagon,
   CheckCircle,
   Download,
@@ -46,7 +45,7 @@ export function useWorkHeaderMenuItems({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
-  const { user, selectedOrg, isModerator, isHubEditor, isAuthor, canEdit } = permissions;
+  const { selectedOrg, isModerator, isHubEditor, canEdit } = permissions;
 
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
     null
@@ -88,20 +87,6 @@ export function useWorkHeaderMenuItems({
       toast.error('Unable to edit');
     }
   }, [work.note, selectedOrg, router]);
-
-  const handleAddVersion = useCallback(() => {
-    if (!user) return;
-    let latestPaperId = work.id;
-    if (work.versions?.length) {
-      const latest = work.versions.find((v) => v.isLatest);
-      latestPaperId = latest
-        ? latest.paperId
-        : [...work.versions].sort(
-            (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-          )[0].paperId;
-    }
-    router.push(`/paper/${latestPaperId}/create/version`);
-  }, [work.id, work.versions, user, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
@@ -185,12 +170,6 @@ export function useWorkHeaderMenuItems({
         <BaseMenuItem onSelect={handleEdit}>
           <Edit className="h-4 w-4 mr-2" />
           <span>Edit</span>
-        </BaseMenuItem>
-      )}
-      {isAuthor && (
-        <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
-          <FileUp className="h-4 w-4 mr-2" />
-          <span>Upload New Version</span>
         </BaseMenuItem>
       )}
       {canInviteExperts && (

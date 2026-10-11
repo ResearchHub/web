@@ -4,12 +4,10 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { truncateText } from '@/utils/stringUtils';
 import { HashtagBadge } from '@/components/ui/badges/HashtagBadge';
 import { Topic } from '@/types/topic';
-import { useClickContext } from '@/contexts/ClickContext';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { Fundraise } from '@/types/feed';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
-import { usePathname } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 
 interface RelatedWorkCardProps {
@@ -29,9 +27,7 @@ export const RelatedWorkCard = ({
   fundraiseData,
   onFeedItemClick,
 }: RelatedWorkCardProps) => {
-  const { triggerEvent } = useClickContext();
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
-  const pathname = usePathname();
 
   if (!work) return null;
 
@@ -183,11 +179,6 @@ export const RelatedWorkCard = ({
           .filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug))
           .slice(0, 2)
           .map((topic) => {
-            // Check if we have custom handlers or if we're on the peer review page
-            const hasCustomHandler = onTopicClick;
-            const isPeerReviewPage = pathname === '/peer-review';
-            const shouldUseClickContext = isPeerReviewPage && !hasCustomHandler;
-
             return (
               <div
                 key={topic.id || topic.slug}
@@ -195,9 +186,6 @@ export const RelatedWorkCard = ({
                   e.stopPropagation();
                   if (onTopicClick) {
                     onTopicClick(topic);
-                  } else if (shouldUseClickContext) {
-                    // On peer review page without custom handlers, use ClickContext for filtering
-                    triggerEvent({ type: 'topic', payload: topic });
                   }
                   // Otherwise, let the HashtagBadge handle navigation
                 }}

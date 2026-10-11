@@ -13,7 +13,6 @@ import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
-import { ClickProvider } from '@/contexts/ClickContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
@@ -23,7 +22,6 @@ import ApmProvider from '@/components/ApmProvider';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
-import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
 import { FundingDocumentsProvider } from '@/contexts/FundingDocumentsContext';
@@ -37,56 +35,52 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
   return (
     <>
       <ApmProvider />
-      <ClickProvider>
-        <NavigationProvider>
-          <OnchainProvider>
-            <NextAuthProvider session={session}>
-              <ReferralProvider>
-                <AuthSharingWrapper>
-                  <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
-                        <PendingCountsProvider>
-                          <VerificationProvider>
-                            <ExchangeRateProvider>
-                              <CurrencyPreferenceProvider>
-                                {/* Above the layouts because the left sidebar
-                                    carries the funding power card and mounts
-                                    outside PageLayout on some routes. */}
-                                <FundingPowerProvider>
-                                  <NotificationProvider>
-                                    <OrganizationProvider>
-                                      {/* Above the layouts: every page's left
-                                          sidebar lists these documents, and
-                                          navigating must not fetch them again. */}
-                                      <FundingDocumentsProvider>
-                                        <UserListsProvider>
-                                          <LeaderboardProvider>
-                                            <DismissedFeaturesProvider>
-                                              <FollowProvider>{children}</FollowProvider>
-                                              <FeatureNotifications />
-                                            </DismissedFeaturesProvider>
-                                          </LeaderboardProvider>
-                                        </UserListsProvider>
-                                      </FundingDocumentsProvider>
-                                    </OrganizationProvider>
-                                  </NotificationProvider>
-                                </FundingPowerProvider>
-                              </CurrencyPreferenceProvider>
-                            </ExchangeRateProvider>
-                          </VerificationProvider>
-                        </PendingCountsProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                    </ShareModalProvider>
-                  </AuthModalProvider>
-                </AuthSharingWrapper>
-              </ReferralProvider>
-            </NextAuthProvider>
-            <ToasterProvider />
-          </OnchainProvider>
-        </NavigationProvider>
-      </ClickProvider>
+      <NavigationProvider>
+        <OnchainProvider>
+          <NextAuthProvider session={session}>
+            <ReferralProvider>
+              <AuthSharingWrapper>
+                <AuthModalProvider>
+                  <ShareModalProvider>
+                    <UserProvider>
+                      <PendingCountsProvider>
+                        <VerificationProvider>
+                          <ExchangeRateProvider>
+                            <CurrencyPreferenceProvider>
+                              {/* Above the layouts because the left sidebar
+                                  carries the funding power card and mounts
+                                  outside PageLayout on some routes. */}
+                              <FundingPowerProvider>
+                                <NotificationProvider>
+                                  <OrganizationProvider>
+                                    {/* Above the layouts: every page's left
+                                        sidebar lists these documents, and
+                                        navigating must not fetch them again. */}
+                                    <FundingDocumentsProvider>
+                                      <UserListsProvider>
+                                        <DismissedFeaturesProvider>
+                                          <FollowProvider>{children}</FollowProvider>
+                                          <FeatureNotifications />
+                                        </DismissedFeaturesProvider>
+                                      </UserListsProvider>
+                                    </FundingDocumentsProvider>
+                                  </OrganizationProvider>
+                                </NotificationProvider>
+                              </FundingPowerProvider>
+                            </CurrencyPreferenceProvider>
+                          </ExchangeRateProvider>
+                        </VerificationProvider>
+                      </PendingCountsProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
+                  </ShareModalProvider>
+                </AuthModalProvider>
+              </AuthSharingWrapper>
+            </ReferralProvider>
+          </NextAuthProvider>
+          <ToasterProvider />
+        </OnchainProvider>
+      </NavigationProvider>
     </>
   );
 }
