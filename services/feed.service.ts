@@ -15,7 +15,7 @@ export class FeedService {
   static async getFeed(params?: {
     page?: number;
     pageSize?: number;
-    feedView?: 'popular' | 'following' | 'latest' | 'personalized' | string;
+    feedView?: 'popular' | 'following' | 'latest' | string;
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
