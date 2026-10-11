@@ -155,6 +155,15 @@ const nextConfig = {
       permanent: true,
     },
   ],
+  // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
+  // and Next still reserves app/sitemap.xml for it, so the index lives at
+  // another path and is rewritten to the URL crawlers expect.
+  rewrites: async () => [
+    {
+      source: '/sitemap.xml',
+      destination: '/sitemap-index.xml',
+    },
+  ],
   headers: async () => [
     {
       source: '/:path*',
