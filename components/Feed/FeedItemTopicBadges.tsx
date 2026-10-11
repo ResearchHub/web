@@ -63,12 +63,8 @@ export const FeedItemTopicBadges: FC<FeedItemTopicBadgesProps> = ({
     if (category?.slug || subcategory?.slug) {
       return (
         <>
-          {category?.slug && (
-            <HashtagBadge label={category.slug} href={`/topic/${category.slug}`} />
-          )}
-          {subcategory?.slug && (
-            <HashtagBadge label={subcategory.slug} href={`/topic/${subcategory.slug}`} />
-          )}
+          {category?.slug && <HashtagBadge label={category.slug} />}
+          {subcategory?.slug && <HashtagBadge label={subcategory.slug} />}
         </>
       );
     }
@@ -77,11 +73,7 @@ export const FeedItemTopicBadges: FC<FeedItemTopicBadgesProps> = ({
       return (
         <>
           {filteredTopics.map((topic) => (
-            <HashtagBadge
-              key={topic.id || topic.slug}
-              label={topic.slug || topic.name}
-              href={`/topic/${topic.slug}`}
-            />
+            <HashtagBadge key={topic.id || topic.slug} label={topic.slug || topic.name} />
           ))}
         </>
       );
@@ -94,10 +86,7 @@ export const FeedItemTopicBadges: FC<FeedItemTopicBadgesProps> = ({
     <div className="relative flex-1 min-w-0">
       <div ref={scrollRef} className="flex gap-3 overflow-x-auto scrollbar-hide items-center">
         {journalLogo && journal?.slug && journal?.name && (
-          <HashtagBadge
-            label={journal.slug}
-            href={isRHJournal ? '/journal' : `/topic/${journal.slug}`}
-          />
+          <HashtagBadge label={journal.slug} href={isRHJournal ? '/journal' : undefined} />
         )}
         {renderBadges()}
       </div>

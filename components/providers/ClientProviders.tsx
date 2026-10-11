@@ -12,7 +12,6 @@ import { FundingPowerProvider } from '@/contexts/FundingPowerContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
-import { FollowProvider } from '@/contexts/FollowContext';
 import { ClickProvider } from '@/contexts/ClickContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
@@ -63,7 +62,7 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                         <UserListsProvider>
                                           <LeaderboardProvider>
                                             <DismissedFeaturesProvider>
-                                              <FollowProvider>{children}</FollowProvider>
+                                              {children}
                                               <FeatureNotifications />
                                             </DismissedFeaturesProvider>
                                           </LeaderboardProvider>

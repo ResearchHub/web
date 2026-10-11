@@ -60,11 +60,7 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
       <div className="space-y-3">
         <div className="flex flex-wrap gap-3">
           {displayedTopics.map((topic) => (
-            <HashtagBadge
-              key={topic.id}
-              label={topic.slug || topic.name}
-              href={`/topic/${topic.slug}`}
-            />
+            <HashtagBadge key={topic.id} label={topic.slug || topic.name} />
           ))}
         </div>
         {hasMoreTopics && (

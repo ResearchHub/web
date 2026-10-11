@@ -199,10 +199,9 @@ export const RelatedWorkCard = ({
                     // On peer review page without custom handlers, use ClickContext for filtering
                     triggerEvent({ type: 'topic', payload: topic });
                   }
-                  // Otherwise, let the HashtagBadge handle navigation
                 }}
               >
-                <HashtagBadge label={topic.slug || topic.name} href={`/topic/${topic.slug}`} />
+                <HashtagBadge label={topic.slug || topic.name} />
               </div>
             );
           })}

@@ -19,7 +19,18 @@ const nextConfig = {
     },
     {
       source: '/journal/:slug',
-      destination: '/topic/:slug',
+      destination: '/',
+      permanent: true,
+    },
+    // Topic (hub) pages and the topic browser are retired.
+    {
+      source: '/topic/:path*',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/browse',
+      destination: '/',
       permanent: true,
     },
     {
