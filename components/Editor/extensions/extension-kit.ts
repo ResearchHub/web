@@ -174,5 +174,3 @@ export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKit
   Youtube,
   ReadOnlyFigure,
 ];
-
-export default ExtensionKit;

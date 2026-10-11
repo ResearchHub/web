@@ -75,9 +75,6 @@ export interface LeaderboardMeResponse {
   funder: RawTopFunder | null;
 }
 
-export type LeaderboardReviewersResponse = RawTopReviewer[];
-export type LeaderboardFundersResponse = RawTopFunder[];
-
 // Transformer for TopReviewer
 export const transformTopReviewer = createTransformer<RawTopReviewer, TopReviewer>(
   (raw: RawTopReviewer) => {

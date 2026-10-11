@@ -49,12 +49,6 @@ export const SURFACE_KM = EARTH_RADIUS_KM * CENTRAL_ANGLE;
 /** Straight-line distance between the endpoints, through the planet. */
 export const CHORD_KM = 2 * EARTH_RADIUS_KM * Math.sin(CENTRAL_ANGLE / 2);
 
-/** How far below the surface that chord dips at its midpoint. */
-export const CHORD_DEPTH_KM = EARTH_RADIUS_KM * (1 - Math.cos(CENTRAL_ANGLE / 2));
-
-/** Closest the chord comes to the Earth's centre. Under 80 km, so: inner core. */
-export const CHORD_CENTRE_MISS_KM = EARTH_RADIUS_KM * Math.cos(CENTRAL_ANGLE / 2);
-
 /**
  * A neutrino crosses the chord at c. It has mass, so strictly it is a hair
  * slower — but at the TeV energies this RFP contemplates the deficit is
@@ -65,8 +59,6 @@ export const CHORD_MS = (CHORD_KM / C_KM_S) * 1000;
 
 /** Fiber pays twice — the longer path and the slower medium. */
 export const SURFACE_MS = ((SURFACE_KM * FIBER_INDEX) / C_KM_S) * 1000;
-
-export const SAVED_MS = SURFACE_MS - CHORD_MS;
 
 /**
  * Shell boundaries by depth, as fractions of the radius, for the cross-section.

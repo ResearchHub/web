@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteService, NoteError, type NoteInvitePreview } from '@/services/note.service';
-import {
-  isChangelogNote,
-  type NoteWithContent,
-  type Note,
-  type NoteAccess,
-  type NoteContent,
-} from '@/types/note';
+import { isChangelogNote, type Note, type NoteAccess, type NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
 import { getHTMLFromFragment, getText, getTextSerializersFromSchema } from '@tiptap/core';
@@ -82,73 +76,6 @@ export function useAcceptNoteInvite(): UseAcceptNoteInviteReturn {
   }, []);
 
   return [{ isLoading, error }, acceptInvite];
-}
-
-interface UseNoteState {
-  note: NoteWithContent | null;
-  isLoading: boolean;
-  error: Error | null;
-}
-
-type FetchNoteFn = () => Promise<void>;
-type UseNoteReturn = [UseNoteState, FetchNoteFn];
-
-/**
- * Custom hook to fetch and manage note data.
- * Accepts an optional initialNote to prevent unnecessary fetching when data is already available.
- *
- * TODO: Future Collaboration Implementation
- * This hook will be updated to use TipTap's collaboration features:
- * 1. Initialize Y.js document
- * 2. Configure TipTap collaboration extension
- * 3. Set up WebSocket connection via TiptapCollabProvider
- * 4. Handle real-time updates and presence
- *
- * Example future implementation:
- * ```typescript
- * const doc = new Y.Doc();
- * const editor = useEditor({
- *   extensions: [
- *     StarterKit.configure({ history: false }), // Disable for collaboration
- *     Collaboration.configure({ document: doc }),
- *     // Add cursor presence, etc.
- *   ],
- * });
- * ```
- *
- * @param noteId - The ID of the note to fetch
- * @returns UseNoteReturn object containing note data and loading state
- */
-export function useNote(
-  noteId: string,
-  options: UseNoteOptions = { sendImmediately: true }
-): UseNoteReturn {
-  const [note, setNote] = useState<NoteWithContent | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetch = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const noteData = await NoteService.getNote(noteId);
-      setNote(noteData);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch note'));
-      setNote(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [noteId]);
-
-  useEffect(() => {
-    if (options.sendImmediately !== false) {
-      fetch();
-    }
-  }, [fetch, options.sendImmediately]);
-
-  return [{ note, isLoading, error }, fetch];
 }
 
 interface CreateNoteInput {
@@ -472,80 +399,6 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   }, []);
 
   return [{ isLoading, error }, updateNote, saveNoteNow];
-};
-
-interface UseMakeNotePrivateState {
-  isLoading: boolean;
-  error: Error | null;
-}
-
-type MakeNotePrivateFn = (noteId: ID) => Promise<Note>;
-type UseMakeNotePrivateReturn = [UseMakeNotePrivateState, MakeNotePrivateFn];
-
-export const useMakeNotePrivate = (): UseMakeNotePrivateReturn => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const makeNotePrivate = async (noteId: ID) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await NoteService.makePrivate(noteId);
-      return response;
-    } catch (err) {
-      const errorMsg = err instanceof NoteError ? err.message : 'Failed to make note private';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ isLoading, error }, makeNotePrivate];
-};
-
-interface UpdateNotePermissionsInput {
-  noteId: ID;
-  organizationId: ID;
-  accessType?: 'ADMIN';
-}
-
-interface UseUpdateNotePermissionsState {
-  isLoading: boolean;
-  error: Error | null;
-}
-
-type UpdateNotePermissionsFn = (params: UpdateNotePermissionsInput) => Promise<boolean>;
-type UseUpdateNotePermissionsReturn = [UseUpdateNotePermissionsState, UpdateNotePermissionsFn];
-
-export const useUpdateNotePermissions = (): UseUpdateNotePermissionsReturn => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const updatePermissions = async (params: UpdateNotePermissionsInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await NoteService.updateNotePermissions(
-        params.noteId,
-        params.organizationId,
-        params.accessType
-      );
-      return response;
-    } catch (err) {
-      const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note permissions';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ isLoading, error }, updatePermissions];
 };
 
 interface UseDuplicateNoteState {

@@ -52,5 +52,3 @@ export const LoadErrorState = ({
     </div>
   );
 };
-
-export default LoadErrorState;

@@ -1,4 +1,4 @@
-import { createTransformer, BaseTransformed } from './transformer';
+import { createTransformer } from './transformer';
 import { User, transformUser } from './user';
 import { Topic, transformTopic } from './topic';
 
@@ -45,8 +45,6 @@ export interface AuthorProfile {
   editorOfHubs?: Topic[];
   isHubEditor?: boolean;
 }
-
-export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
 
 export function extractHeadline(value: unknown): string {
   if (!value) return '';

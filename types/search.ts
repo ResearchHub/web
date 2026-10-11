@@ -1,4 +1,4 @@
-import { createTransformer, BaseTransformed } from './transformer';
+import { createTransformer } from './transformer';
 import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
 import { AuthorProfile, extractHeadline } from './authorProfile';
@@ -6,7 +6,6 @@ import { ID } from './root';
 import { transformTopic } from './topic';
 import { ContentType } from './work';
 
-export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
 export type EntityType = 'user' | 'paper' | 'author' | 'post' | 'hub';
 
 export interface BaseSuggestion {
@@ -61,17 +60,6 @@ export interface TopicSuggestion extends BaseSuggestion {
 }
 
 export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion | TopicSuggestion;
-
-export interface RecentPageView {
-  id: number;
-  title: string;
-  doi?: string;
-  authors: string[];
-  lastVisited: string;
-  slug: string;
-}
-
-export type TransformedSearchSuggestion = SearchSuggestion & BaseTransformed;
 
 export const transformSearchSuggestion = createTransformer<any, SearchSuggestion>((raw: any) => {
   try {

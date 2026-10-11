@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFeed } from '@/hooks/useFeed';
-import { FUNDING_KIND_LABEL, type FundingKind } from '@/components/Funding/fundingKind';
+import type { FundingKind } from '@/components/Funding/fundingKind';
 import type { FeedEntry, FeedGrantContent, FeedPostContent } from '@/types/feed';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 
-export { FUNDING_KIND_LABEL };
 export type { FundingKind };
 
 /** An amount in both currencies, shown in whichever the user prefers. */

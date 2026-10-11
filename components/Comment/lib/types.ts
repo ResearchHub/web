@@ -1,5 +1,3 @@
-import { Comment } from '@/types/comment';
-
 export interface MentionItem {
   id: string | null;
   entityType: 'user' | 'author' | 'paper' | 'post';
@@ -78,21 +76,3 @@ export type CommentContent =
   | { content: Array<TipTapNode> }
   | { type: string; content: any[] }
   | string;
-
-/**
- * Options for comment editor
- */
-export interface CommentEditorOptions {
-  placeholder?: string;
-  isReadOnly?: boolean;
-  debug?: boolean;
-}
-
-/**
- * Result of a comment operation
- */
-export interface CommentOperationResult {
-  success: boolean;
-  comment?: Comment;
-  error?: string;
-}
