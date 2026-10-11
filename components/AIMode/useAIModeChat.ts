@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useAIMode } from './AIModeContext';
 import { untitledDraftTitle } from './copy';
+import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
 import { documentTarget, type WorkspaceTarget } from './workspaceUrl';
@@ -30,6 +32,15 @@ export interface AIModeChatState extends ChatSession {
   readonly target: WorkspaceTarget;
   /** The open chat; null on the start screen, on a new chat, and while the latest is being found. */
   readonly chatId: number | null;
+  /**
+   * Start the draft without the assistant: an empty document, opened on its
+   * own, with no chat until the user asks for one.
+   */
+  readonly startBlank: () => Promise<void>;
+  /** The blank draft is being created. */
+  readonly startingBlank: boolean;
+  /** A blank draft can be started: the organization it goes in has loaded, and none is under way. */
+  readonly canStartBlank: boolean;
   /** The open document's most recent chat is being looked up. */
   readonly resolvingChat: boolean;
   /** The open document's chats; empty on the start screen. */
@@ -115,10 +126,10 @@ export function useAIModeChat(): AIModeChatState {
   }, [startScreenKey]);
   const draftInitRef = useRef({ intent, selectedGrant, orgSlug: selectedOrg?.slug ?? null });
   draftInitRef.current = { intent, selectedGrant, orgSlug: selectedOrg?.slug ?? null };
-  const createDraftTransport = useCallback(async () => {
+  const createDraft = useCallback(async () => {
     const { intent: side, selectedGrant: grant, orgSlug } = draftInitRef.current;
     if (!orgSlug) throw new Error('No organization to create the draft in');
-    const note = await createFundingDraft({
+    return createFundingDraft({
       orgSlug,
       title: untitledDraftTitle(side),
       documentType: DOCUMENT_TYPE_BY_INTENT[side],
@@ -131,8 +142,29 @@ export function useAIModeChat(): AIModeChatState {
         addDraft(created);
       },
     });
-    return getChatTransport({ noteId: note.id });
   }, [addDraft]);
+  const createDraftTransport = useCallback(async () => {
+    const note = await createDraft();
+    return getChatTransport({ noteId: note.id });
+  }, [createDraft]);
+
+  // ---- a draft written without the assistant ----
+  // The same document, empty, opened on its own with no chat yet; the RFP
+  // picked on the start screen goes with it.
+  const [startingBlank, setStartingBlank] = useState(false);
+  const startBlank = useCallback(async () => {
+    setStartingBlank(true);
+    try {
+      const note = await createDraft();
+      rememberWorkspaceView(note.id, 'document');
+      setSelectedGrant(null);
+      selectTarget(documentTarget(note.id, 'new'));
+    } catch {
+      toast.error('Couldn’t start the draft. Please try again.');
+    } finally {
+      setStartingBlank(false);
+    }
+  }, [createDraft, selectTarget]);
 
   const onChatCreated = useCallback(
     (created: AgentChat) => {
@@ -259,6 +291,9 @@ export function useAIModeChat(): AIModeChatState {
     ...session,
     target,
     chatId,
+    startBlank,
+    startingBlank,
+    canStartBlank: selectedOrg != null && !startingBlank,
     resolvingChat: resolving,
     list,
     listReady,

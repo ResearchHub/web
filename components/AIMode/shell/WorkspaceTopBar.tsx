@@ -9,20 +9,32 @@ interface WorkspaceTopBarProps {
    * screen; '' while it is loading (see TopBarSlotContext).
    */
   readonly title: string;
-  /** Beside the title: the open draft's ⋯ menu. */
-  readonly actions?: ReactNode;
+  /** At the bar's right end, before the user's own controls: the view switch. */
+  readonly end?: ReactNode;
+  /**
+   * Stands in for the back arrow, the title and its actions: the view switch
+   * on a phone, where the bar has no room for both.
+   */
+  readonly inPlaceOfTitle?: ReactNode;
 }
 
 /**
  * Puts the workspace's open title in the app's top bar, beside the back
- * arrow, where the page's own name would be, with its actions after it. Renders nothing itself: the top
+ * arrow, where the page's own name would be, and its controls at the bar's
+ * right end (the top bar itself leaves only the account menu beside them on
+ * this page). Renders nothing itself: the top
  * bar's slots live inside `PageLayout`, so this sits among the page's
  * children and hands the title up from there.
  */
-export function WorkspaceTopBar({ title, actions = null }: WorkspaceTopBarProps) {
+export function WorkspaceTopBar({
+  title,
+  end = null,
+  inPlaceOfTitle = null,
+}: WorkspaceTopBarProps) {
   const slot = useTopBarSlot();
   const setTitle = slot?.setTitle;
-  const setTitleActions = slot?.setTitleActions;
+  const setTrailing = slot?.setTrailing;
+  const setLeftSlot = slot?.setLeftSlot;
 
   useEffect(() => {
     setTitle?.(title);
@@ -30,9 +42,14 @@ export function WorkspaceTopBar({ title, actions = null }: WorkspaceTopBarProps)
   useEffect(() => () => setTitle?.(null), [setTitle]);
 
   useEffect(() => {
-    setTitleActions?.(actions);
-  }, [setTitleActions, actions]);
-  useEffect(() => () => setTitleActions?.(null), [setTitleActions]);
+    setTrailing?.(end);
+  }, [setTrailing, end]);
+  useEffect(() => () => setTrailing?.(null), [setTrailing]);
+
+  useEffect(() => {
+    setLeftSlot?.(inPlaceOfTitle);
+  }, [setLeftSlot, inPlaceOfTitle]);
+  useEffect(() => () => setLeftSlot?.(null), [setLeftSlot]);
 
   return null;
 }
