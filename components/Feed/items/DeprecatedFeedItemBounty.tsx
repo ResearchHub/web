@@ -8,7 +8,6 @@ import {
   MetadataSection,
   PrimaryActionSection,
 } from '@/components/Feed/BaseFeedItem';
-import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -39,7 +38,7 @@ interface DeprecatedFeedItemBountyProps {
 }
 
 /**
- * Extracts the bounty, title, authors, topics, and other data from the entry
+ * Extracts the bounty, title, authors, and other data from the entry
  * regardless of whether it's a true BOUNTY contentType or a PAPER/POST entry
  * with bounties attached (as created by BountyService).
  */
@@ -60,9 +59,6 @@ function extractBountyData(entry: FeedEntry) {
           verified: a.authorProfile?.user?.isVerified,
           authorUrl: a.authorProfile?.profileUrl,
         })) ?? [],
-      topics: relatedWork?.topics ?? [],
-      category: relatedWork?.category,
-      subcategory: relatedWork?.subcategory,
       postType: relatedWork?.postType,
       commentContent: bountyContent.comment?.content,
       commentFormat: bountyContent.comment?.contentFormat,
@@ -99,9 +95,6 @@ function extractBountyData(entry: FeedEntry) {
             },
           ]
       : [],
-    topics: 'topics' in content ? (content.topics ?? []) : [],
-    category: 'category' in content ? content.category : undefined,
-    subcategory: 'subcategory' in content ? content.subcategory : undefined,
     postType: 'postType' in content ? content.postType : undefined,
     commentContent: bounty?.comment?.content,
     commentFormat: bounty?.comment?.contentFormat as ContentFormat | undefined,
@@ -132,9 +125,6 @@ export const DeprecatedFeedItemBounty: FC<DeprecatedFeedItemBountyProps> = ({
     bounty,
     title,
     authors,
-    topics,
-    category,
-    subcategory,
     postType,
     commentContent,
     commentFormat,
@@ -265,9 +255,6 @@ export const DeprecatedFeedItemBounty: FC<DeprecatedFeedItemBountyProps> = ({
         showBountyInfo={false}
         onFeedItemClick={onFeedItemClick}
         hideReportButton={false}
-        badges={
-          <FeedItemTopicBadges topics={topics} category={category} subcategory={subcategory} />
-        }
       >
         <TitleSection
           title={title}

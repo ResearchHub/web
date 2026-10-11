@@ -32,7 +32,6 @@ export type FeedSource =
   | 'peer-review'
   | 'fund'
   | 'journal'
-  | 'topic'
   | 'author'
   | 'list'
   | 'unknown';

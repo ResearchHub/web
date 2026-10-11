@@ -3,7 +3,6 @@ import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import { BountyService } from '@/services/bounty.service';
 import { useNavigation, getFeedKey } from '@/contexts/NavigationContext';
-import { useClickContext } from '@/contexts/ClickContext';
 
 interface Hub {
   id: string | number;
@@ -17,7 +16,6 @@ export const useBounties = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
-  const { event, clearEvent } = useClickContext();
 
   // Read sort from URL params, default to 'personalized'
   const sortFromUrl = searchParams.get('sort') || 'personalized';
@@ -273,27 +271,6 @@ export const useBounties = () => {
       });
     }
   }, [sort]);
-
-  useEffect(() => {
-    if (event && event.type === 'topic') {
-      const topic = event.payload;
-
-      const newHub: Hub = {
-        id: topic.id,
-        name: topic.name,
-        description: topic.description,
-      };
-      setSelectedHubs([newHub]);
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('topics', String(topic.id));
-      previousHubsParamRef.current = String(topic.id);
-      router.replace(`?${params.toString()}`, { scroll: false });
-      setPage(1);
-      fetchBounties(true, [newHub]);
-      clearEvent();
-    }
-  }, [event, router, searchParams]);
-
   return {
     entries,
     isLoading,

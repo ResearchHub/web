@@ -2,20 +2,14 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { truncateText } from '@/utils/stringUtils';
-import { HashtagBadge } from '@/components/ui/badges/HashtagBadge';
-import { Topic } from '@/types/topic';
-import { useClickContext } from '@/contexts/ClickContext';
-import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { Fundraise } from '@/types/feed';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
-import { usePathname } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 
 interface RelatedWorkCardProps {
   work: Work;
   onClick?: () => void;
-  onTopicClick?: (topic: Topic) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   fundraiseData?: Fundraise;
   onFeedItemClick?: () => void;
@@ -24,14 +18,11 @@ interface RelatedWorkCardProps {
 export const RelatedWorkCard = ({
   work,
   onClick,
-  onTopicClick,
   size = 'default',
   fundraiseData,
   onFeedItemClick,
 }: RelatedWorkCardProps) => {
-  const { triggerEvent } = useClickContext();
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
-  const pathname = usePathname();
 
   if (!work) return null;
 
@@ -176,36 +167,6 @@ export const RelatedWorkCard = ({
       {displayAbstract && (
         <div className={`mt-2 text-gray-600 ${getAbstractClass()}`}>{displayAbstract}</div>
       )}
-
-      {/* Topics */}
-      <div className="mt-2 flex flex-wrap gap-2">
-        {(work.topics || [])
-          .filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug))
-          .slice(0, 2)
-          .map((topic) => {
-            // Check if we have custom handlers or if we're on the peer review page
-            const hasCustomHandler = onTopicClick;
-            const isPeerReviewPage = pathname === '/peer-review';
-            const shouldUseClickContext = isPeerReviewPage && !hasCustomHandler;
-
-            return (
-              <div
-                key={topic.id || topic.slug}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onTopicClick) {
-                    onTopicClick(topic);
-                  } else if (shouldUseClickContext) {
-                    // On peer review page without custom handlers, use ClickContext for filtering
-                    triggerEvent({ type: 'topic', payload: topic });
-                  }
-                }}
-              >
-                <HashtagBadge label={topic.slug || topic.name} />
-              </div>
-            );
-          })}
-      </div>
 
       {/* Funding Goal */}
       {fundraiseData?.goalAmount?.usd && (

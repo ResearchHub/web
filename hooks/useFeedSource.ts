@@ -29,8 +29,6 @@ import { FeedSource } from '@/types/analytics';
  * - /peer-review → source: 'peer-review', tab: 'unknown'
  * - /fund → source: 'fund', tab: 'unknown'
  * - /journal?tab=all → source: 'journal', tab: 'all'
- * - /topic/ai/popular → source: 'topic', tab: 'popular'
- * - /topic/ai/latest → source: 'topic', tab: 'latest'
  * - /fund/needs-funding → source: 'fund', tab: 'needs-funding'
  * - /author/153397 → source: 'author', tab: 'contributions'
  * - /list/123 → source: 'list', tab: '123'
@@ -53,7 +51,6 @@ function isValidFeedSource(source: string): source is FeedSource {
     'peer-review',
     'fund',
     'journal',
-    'topic',
     'author',
     'list',
   ];
@@ -82,30 +79,26 @@ export function useFeedSource(): FeedSourceInfo {
   // Extract source from first path segment
   const source = pathSegments[0] || 'home';
 
-  const isTopicTab = source === 'topic';
   const isAuthorTab = source === 'author';
   const isListTab = source === 'list';
 
   const feedSource = toFeedSource(source);
 
-  // Extract tab: 1) query param, 2) third path segment for topic pages, 3) second path segment, 4) unknown
+  // Extract tab: 1) query param, 2) second path segment, 3) unknown
   let tab: string;
 
   const queryTab = searchParams.get('tab');
   const pathTab = pathSegments[1];
-  const topicTab = pathSegments[2];
 
   if (queryTab) {
     tab = queryTab;
-  } else if (isTopicTab && topicTab) {
-    tab = topicTab;
   } else if (isListTab && pathTab) {
     // For list pages, use the list ID (second path segment) as tab
     tab = pathTab;
   } else if (isAuthorTab) {
     // For author pages, default to 'contributions' when no query param
     tab = 'contributions';
-  } else if (pathTab && !isTopicTab && !isAuthorTab && !isListTab) {
+  } else if (pathTab && !isAuthorTab && !isListTab) {
     tab = pathTab;
   } else {
     tab = 'unknown';

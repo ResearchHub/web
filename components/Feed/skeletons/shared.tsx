@@ -30,15 +30,6 @@ export const SkeletonFeedItemHeader: FC<{ actionWidth?: string; className?: stri
   </div>
 );
 
-/** Hashtag-style topic / hub badges — matches `FeedItemTopicBadges`. */
-export const SkeletonTopicBadges: FC = () => (
-  <div className="flex gap-3 pt-3 overflow-hidden">
-    <div className="h-4 w-20 bg-gray-200 rounded flex-shrink-0" />
-    <div className="h-4 w-24 bg-gray-200 rounded flex-shrink-0" />
-    <div className="h-4 w-16 bg-gray-200 rounded flex-shrink-0" />
-  </div>
-);
-
 /** Desktop preview image on the right — matches paper/post `cardImage` column. */
 export const SkeletonCardImageRight: FC = () => (
   <div className="hidden md:!block flex-shrink-0 w-[280px] max-w-[33%]">
