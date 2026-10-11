@@ -1,5 +1,4 @@
 import { Comment } from '@/types/comment';
-import { getRealId } from './commentIdUtils';
 import { traverseCommentTree } from './commentTreeUtils';
 
 /**
@@ -21,13 +20,11 @@ export const updateCommentVoteInList = (
 ): Comment[] => {
   // Make a deep copy to avoid mutation issues
   const result = JSON.parse(JSON.stringify(comments));
-  const realCommentId = getRealId(commentId);
-
-  console.log(`Updating vote for comment ${commentId} (real ID: ${realCommentId})`);
+  console.log(`Updating vote for comment ${commentId}`);
 
   return traverseCommentTree(result, (comment) => {
-    if (comment.id === realCommentId) {
-      console.log(`Found and updating vote for comment ${realCommentId}`);
+    if (comment.id === commentId) {
+      console.log(`Found and updating vote for comment ${commentId}`);
       return { ...comment, ...updatedComment };
     }
     return comment;
@@ -43,13 +40,11 @@ export const updateCommentVoteInList = (
 export const revertOptimisticUpdate = (comments: Comment[], commentId: number): Comment[] => {
   // Make a deep copy to avoid mutation issues
   const result = JSON.parse(JSON.stringify(comments));
-  const realCommentId = getRealId(commentId);
-
-  console.log(`Reverting optimistic update for comment ${commentId} (real ID: ${realCommentId})`);
+  console.log(`Reverting optimistic update for comment ${commentId}`);
 
   return traverseCommentTree(result, (comment) => {
-    if (comment.id === realCommentId && comment.metadata?.isOptimisticUpdate) {
-      console.log(`Found and reverting optimistic update for comment ${realCommentId}`);
+    if (comment.id === commentId && comment.metadata?.isOptimisticUpdate) {
+      console.log(`Found and reverting optimistic update for comment ${commentId}`);
       return {
         ...comment,
         content: comment.metadata.originalContent,

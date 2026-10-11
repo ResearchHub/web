@@ -3,9 +3,6 @@
  * to maintain backward compatibility with existing imports.
  */
 
-// Re-export ID utilities
-export { getRealId } from '../commentIdUtils';
-
 // Re-export tree utilities
 export {
   traverseCommentTree,
