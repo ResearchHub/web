@@ -60,5 +60,3 @@ export const FontSize = Extension.create({
     };
   },
 });
-
-export default FontSize;

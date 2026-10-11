@@ -27,5 +27,3 @@ export const Quote = Node.create({
     };
   },
 });
-
-export default Quote;

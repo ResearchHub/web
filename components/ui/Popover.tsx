@@ -15,8 +15,6 @@ import { cn } from '@/utils/styles';
  */
 export const Popover = RadixPopover.Root;
 export const PopoverTrigger = RadixPopover.Trigger;
-export const PopoverAnchor = RadixPopover.Anchor;
-export const PopoverClose = RadixPopover.Close;
 
 export function PopoverContent({
   className,
