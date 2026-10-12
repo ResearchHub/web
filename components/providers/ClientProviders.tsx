@@ -23,7 +23,7 @@ import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
-import { FundingDocumentsProvider } from '@/contexts/FundingDocumentsContext';
+import { FundingNotesProvider } from '@/contexts/FundingNotesContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -55,14 +55,14 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                     {/* Above the layouts: every page's left
                                         sidebar lists these documents, and
                                         navigating must not fetch them again. */}
-                                    <FundingDocumentsProvider>
+                                    <FundingNotesProvider>
                                       <UserListsProvider>
                                         <DismissedFeaturesProvider>
                                           {children}
                                           <FeatureNotifications />
                                         </DismissedFeaturesProvider>
                                       </UserListsProvider>
-                                    </FundingDocumentsProvider>
+                                    </FundingNotesProvider>
                                   </OrganizationProvider>
                                 </NotificationProvider>
                               </FundingPowerProvider>

@@ -10,7 +10,7 @@ import { FundingDraftMenuItems } from '@/components/Funding/fundingDraftOptions'
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useUser } from '@/contexts/UserContext';
 import type { Note } from '@/types/note';
 import { cn } from '@/utils/styles';
@@ -34,7 +34,7 @@ interface SidebarDocumentsProps {
  * "New draft" row in place of the list.
  */
 export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProps) {
-  const { drafts, published, status, refresh } = useFundingDocuments();
+  const { drafts, published, status, refresh } = useFundingNotes();
   const { isLoading: userLoading } = useUser();
   const { startNew, openDraft } = useFundingDrafting();
   const aiMode = useOptionalAIMode();

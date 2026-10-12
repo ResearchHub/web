@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { DraftMenu } from '@/components/Funding/DraftMenu';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { isActiveExecutionStatus, type AgentChat, type ChatExecution } from '@/types/agentChat';
@@ -195,7 +195,7 @@ function Workspace() {
 
   // The sidebar's row follows the open document's saved title (its heading
   // once that has saved, or a name the assistant gave it) and latest edit.
-  const { patch, drafts } = useFundingDocuments();
+  const { patch, drafts } = useFundingNotes();
   const { title: docTitle, updatedDate: docUpdatedDate } = doc;
   useEffect(() => {
     if (noteId == null || !docTitle) return;
