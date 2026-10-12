@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Clock, Inbox, PenLine } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { DashboardSection } from '@/components/Funding/dashboard/DashboardSection';
 import { FUNDING_KIND_ICON } from '@/components/Funding/fundingKind';
 import type { UpNextItem } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
@@ -10,6 +11,10 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { cn } from '@/utils/styles';
 
 const ICONS = { inbox: Inbox, clock: Clock, update: PenLine } as const;
+
+/** Every card's action is secondary; none of them outranks the page's own. */
+const ACTION_CLASS =
+  'inline-flex h-9 w-fit items-center rounded-lg border border-gray-300 bg-white px-3.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50';
 
 const TONES = {
   blue: 'bg-primary-50 text-primary-600',
@@ -40,18 +45,9 @@ export function UpNext({ items, onFollow }: UpNextProps) {
   if (items.length === 0) return null;
 
   return (
-    <section aria-labelledby="my-funding-up-next">
-      <h2 id="my-funding-up-next" className="text-base font-semibold text-gray-900">
-        Up next
-      </h2>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {items.map((item, index) => {
-          const actionClass = cn(
-            'inline-flex h-9 w-fit items-center rounded-lg px-3.5 text-sm font-semibold transition-colors',
-            index === 0
-              ? 'bg-primary-500 text-white hover:bg-primary-600'
-              : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-          );
+    <DashboardSection title="Up next">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {items.map((item) => {
           const { draft } = item;
           return (
             // Cards in a row share a height, and each action sits at the foot
@@ -79,13 +75,17 @@ export function UpNext({ items, onFollow }: UpNextProps) {
                   <button
                     type="button"
                     onClick={() => executeAuthenticatedAction(() => startNew(draft))}
-                    className={actionClass}
+                    className={ACTION_CLASS}
                   >
                     {item.actionLabel}
                   </button>
                 ) : (
                   item.href && (
-                    <Link href={item.href} onClick={() => onFollow?.(item)} className={actionClass}>
+                    <Link
+                      href={item.href}
+                      onClick={() => onFollow?.(item)}
+                      className={ACTION_CLASS}
+                    >
                       {item.actionLabel}
                     </Link>
                   )
@@ -95,6 +95,6 @@ export function UpNext({ items, onFollow }: UpNextProps) {
           );
         })}
       </div>
-    </section>
+    </DashboardSection>
   );
 }

@@ -146,22 +146,7 @@ export interface WorkGrantSummary {
   endDate?: string;
 }
 
-export interface FundingRequest extends Work {
-  type: 'funding_request';
-  contentType: 'funding_request';
-  status: 'OPEN' | 'CLOSED' | 'FUNDED';
-  amount: number;
-  goalAmount: number;
-  deadline: string;
-  preregistered?: boolean;
-  image?: string;
-}
-
-// Transformed types
-export type TransformedAuthorship = Authorship & BaseTransformed;
 export type TransformedJournal = Journal & BaseTransformed;
-export type TransformedTopic = Topic & BaseTransformed;
-export type TransformedDocumentVersion = DocumentVersion & BaseTransformed;
 export type TransformedWork = Work & BaseTransformed;
 
 // Transformers

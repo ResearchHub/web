@@ -3,8 +3,6 @@ import { ID } from '@/types/root';
 import { FeedService } from './feed.service';
 import { GrantModerationService, type PendingWorksResponse } from './grant-moderation.service';
 
-export type { PendingWorksResponse };
-
 export type PendingModule = 'funding_opportunities' | 'proposals';
 
 /** Number of pending items per module, as shown on the tab badges. */

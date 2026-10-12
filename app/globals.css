@@ -165,6 +165,74 @@ body {
   font-weight: 600;
 }
 
+/*
+ * Comment and review text previewed in a feed card, as plain words: the author's
+ * formatting (headings, bold, italics, underlines, strikes, quotes, code, Quill
+ * sizes) is dropped so every preview reads at the card's own size and weight and
+ * never outweighs its headline. Links keep their colour so they still read as
+ * links. The side panel that "Read more" opens shows the text as written. The
+ * doubled class outranks CommentReadOnly's own `!text-[14px]` and QuillRenderer's
+ * global heading sizes, both of which are `!important`.
+ */
+.feed-comment-preview.feed-comment-preview
+  :is(
+    p,
+    li,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    blockquote,
+    pre,
+    span,
+    strong,
+    b,
+    em,
+    i,
+    u,
+    s,
+    del,
+    mark,
+    a,
+    code
+  ) {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+}
+
+.feed-comment-preview.feed-comment-preview
+  :is(h1, h2, h3, h4, h5, h6, blockquote, pre, strong, b, em, i, u, s, del, mark, code) {
+  color: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.feed-comment-preview.feed-comment-preview pre {
+  white-space: pre-wrap !important;
+}
+
+/* Typography's backticks around inline code and quotation marks around quotes. */
+.feed-comment-preview.feed-comment-preview :is(code, blockquote p)::before,
+.feed-comment-preview.feed-comment-preview :is(code, blockquote p)::after {
+  content: none !important;
+}
+
+.feed-comment-preview.feed-comment-preview
+  :is(p, ul, ol, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, hr) {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
 /* Search result highlighting */
 mark {
   background-color: #fef9c3;
@@ -174,25 +242,10 @@ mark {
   font-weight: 500;
 }
 
-/* When the EndowmentPromoBanner is rendered above the TopBar (mobile only),
-   the scroll content container needs extra top padding to clear the banner +
-   topbar stack. The banner is hidden at >= 768px (tablet:!hidden), so the
-   override only applies below that breakpoint. 56px is the banner height. */
 @media (max-width: 767px) {
-  .page-layout-with-promo-banner {
-    padding-top: calc(56px + var(--top-bar-height)) !important;
-  }
-
   /* Reserve space for the fixed MobileBottomNav (h-16 + safe-area inset), so
      the last of the page's content isn't stuck behind it. */
   .page-layout-with-mobile-bottom-nav {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* As above, plus the funding power bar docked over the nav on the home tabs
-     (3.75rem including its gutter). Pages without that bar use the shorter
-     offset, or the unused space reads as a dead gap under the content. */
-  .page-layout-with-mobile-bottom-nav-and-funding-bar {
-    padding-bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
   }
 }

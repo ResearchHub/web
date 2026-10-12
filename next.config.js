@@ -19,13 +19,25 @@ const nextConfig = {
     },
     {
       source: '/journal/:slug',
-      destination: '/topic/:slug',
+      destination: '/',
       permanent: true,
     },
+    // Topic (hub) pages and the topic browser are retired.
+    ...['/topic/:path*', '/browse'].map((source) => ({
+      source,
+      destination: '/',
+      permanent: true,
+    })),
     {
       source: '/trending',
       destination: '/',
       permanent: true,
+    },
+    // The leaderboard pages were removed; old links and search results land on home.
+    {
+      source: '/leaderboard/:path*',
+      destination: '/',
+      permanent: false,
     },
     {
       source: '/popular',
@@ -154,6 +166,17 @@ const nextConfig = {
         '/report/32650/identifying-the-point-of-no-return-integrating-single-cell-transcriptomics-and-proteomics-to-map-irreversible-fibroblast-commitment-in-idiopathic-pulmonary-fibrosis-stage-1-registered-report',
       permanent: true,
     },
+    // Paper pages are retired; anything else under /paper lands on the homepage.
+    ...['/paper', '/paper/:path*'].map((source) => ({ source, destination: '/', permanent: true })),
+  ],
+  // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
+  // and Next still reserves app/sitemap.xml for it, so the index lives at
+  // another path and is rewritten to the URL crawlers expect.
+  rewrites: async () => [
+    {
+      source: '/sitemap.xml',
+      destination: '/sitemap-index.xml',
+    },
   ],
   headers: async () => [
     {
@@ -230,9 +253,6 @@ const nextConfig = {
     },
   },
   compress: true,
-  // compiler: {
-  //   removeConsole: process.env.VERCEL_ENV === 'production',
-  // },
   turbopack: {
     resolveAlias: {
       '@': __dirname,

@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Star, MessageCircle, History, Bell, MessageCircleQuestion } from 'lucide-react';
+import { FileText, Star, MessageCircle, Bell, MessageCircleQuestion } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect, useMemo } from 'react';
@@ -25,14 +25,13 @@ export type TabType =
   | 'reviews'
   | 'bounties'
   | 'conversation'
-  | 'history'
   | 'applications';
 
 interface WorkTabsProps {
   work: Work;
   metadata: WorkMetadata;
   defaultTab?: TabType;
-  contentType?: 'paper' | 'post' | 'fund';
+  contentType?: 'post' | 'fund';
   onTabChange: (tab: TabType) => void;
   updatesCount?: number;
 }
@@ -40,7 +39,7 @@ interface WorkTabsProps {
 export const WorkTabs = ({
   work,
   metadata,
-  contentType = 'paper',
+  contentType = 'post',
   onTabChange,
   updatesCount = 0,
 }: WorkTabsProps) => {
@@ -76,7 +75,6 @@ export const WorkTabs = ({
     if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
-    if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
     return 'paper';
   };
 
@@ -108,13 +106,11 @@ export const WorkTabs = ({
 
     if (typeof window !== 'undefined') {
       const baseUrl =
-        contentType === 'paper'
-          ? `/paper/${work.id}/${work.slug}`
-          : contentType === 'fund'
-            ? `/proposal/${work.id}/${work.slug}`
-            : work.postType === 'QUESTION'
-              ? `/question/${work.id}/${work.slug}`
-              : `/post/${work.id}/${work.slug}`;
+        contentType === 'fund'
+          ? `/proposal/${work.id}/${work.slug}`
+          : work.postType === 'QUESTION'
+            ? `/question/${work.id}/${work.slug}`
+            : `/post/${work.id}/${work.slug}`;
 
       const tabUrlMap: Partial<Record<TabType, string>> = {
         updates: `${baseUrl}/updates`,
@@ -122,7 +118,6 @@ export const WorkTabs = ({
         reviews: `${baseUrl}/reviews`,
         applications: `${baseUrl}/applications`,
         bounties: `${baseUrl}/bounties`,
-        history: `${baseUrl}/history`,
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
 
@@ -140,7 +135,6 @@ export const WorkTabs = ({
 
   // Get the appropriate label for the main content tab
   const getMainTabLabel = () => {
-    if (contentType === 'paper') return 'Paper';
     if (contentType === 'fund') return 'Project';
     if (work.postType === 'QUESTION') return 'Question';
     return 'Post';
@@ -272,32 +266,7 @@ export const WorkTabs = ({
     },
   ];
 
-  const tabs = useMemo(() => {
-    if (hasResearchHubJournalVersions) {
-      return [
-        ...baseTabs,
-        {
-          id: 'history',
-          label: (
-            <div className="flex items-center">
-              <History className="h-4 w-4 mr-2" />
-              <span>History</span>
-              <span
-                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                  activeTab === 'history'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {work.versions?.length || 0}
-              </span>
-            </div>
-          ),
-        },
-      ];
-    }
-    return baseTabs;
-  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
+  const tabs = baseTabs;
 
   return (
     <Tabs

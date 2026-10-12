@@ -147,7 +147,6 @@ export const SidebarNavMenu: FC<SidebarNavMenuProps> = ({
         }
         align="center"
         className="w-full"
-        withOverlay={true}
         sameWidth={true}
       >
         {items.map((item) => {

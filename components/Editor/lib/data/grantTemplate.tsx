@@ -298,5 +298,4 @@ const grantTemplate: Template = {
   ],
 };
 
-export type GrantTemplate = typeof grantTemplate;
 export default grantTemplate;

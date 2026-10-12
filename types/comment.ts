@@ -81,13 +81,6 @@ export const transformThread: BaseTransformer<any, Thread> = (raw) => ({
   raw,
 });
 
-export const transformContent = (raw: any): string => {
-  if (raw.html) {
-    return raw.html;
-  }
-  return raw.comment_content_json || '';
-};
-
 export const transformComment = (raw: any): Comment => {
   // Transform user_vote from API
   // It can be either an object with vote_type or a direct numeric value

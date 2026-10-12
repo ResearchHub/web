@@ -35,5 +35,3 @@ export const isRowGripSelected = ({
 
   return !!gripRow;
 };
-
-export default isRowGripSelected;

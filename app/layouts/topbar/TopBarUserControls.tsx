@@ -21,6 +21,8 @@ interface TopBarUserControlsProps {
   onAuth: () => void;
   onSearchOpen: () => void;
   variant: 'mobile' | 'desktop';
+  /** Only the account menu (or the sign-up and log-in buttons): no search, notifications or ResearchCoin. */
+  accountOnly?: boolean;
 }
 
 const AvatarSkeleton = ({ variant }: { variant: 'mobile' | 'desktop' }) => (
@@ -49,6 +51,7 @@ export const TopBarUserControls = ({
   onAuth,
   onSearchOpen,
   variant,
+  accountOnly = false,
 }: TopBarUserControlsProps) => {
   const isMobile = variant === 'mobile';
   const rscDelta = user?.balanceHistory ?? 0;
@@ -70,9 +73,11 @@ export const TopBarUserControls = ({
   if (isMobile) {
     return (
       <div className="flex tablet:!hidden items-center space-x-1 h-full">
-        <button onClick={onSearchOpen} className="rounded-lg hover:bg-gray-100 p-2">
-          <SearchIcon className="text-gray-600 h-6 w-6" />
-        </button>
+        {!accountOnly && (
+          <button onClick={onSearchOpen} className="rounded-lg hover:bg-gray-100 p-2">
+            <SearchIcon className="text-gray-600 h-6 w-6" />
+          </button>
+        )}
 
         {isLoading ? (
           <AvatarSkeleton variant="mobile" />
@@ -99,17 +104,21 @@ export const TopBarUserControls = ({
 
   return (
     <div className="hidden tablet:!flex items-center space-x-2 h-full">
-      <TopBarSearchButton onClick={onSearchOpen} />
+      {!accountOnly && <TopBarSearchButton onClick={onSearchOpen} />}
 
       {isLoading ? (
         <>
-          <DesktopIconSkeleton />
-          <DesktopIconSkeleton />
+          {!accountOnly && (
+            <>
+              <DesktopIconSkeleton />
+              <DesktopIconSkeleton />
+            </>
+          )}
           <AvatarSkeleton variant="desktop" />
         </>
       ) : (
         <>
-          {user && (
+          {user && !accountOnly && (
             <>
               {isModerator && (
                 <Link href="/moderators" className="flex items-center">

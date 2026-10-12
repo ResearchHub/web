@@ -7,10 +7,7 @@ import {
   getWorkCardPresentation,
 } from '@/components/Activity/lib/activityWork.utils';
 import { Avatar } from '@/components/ui/Avatar';
-import {
-  DashboardSectionHeader,
-  SeeAllButton,
-} from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import type {
   OwnProposalModel,
@@ -57,7 +54,6 @@ export function FeedWorkCard({
 
 interface CardsSectionProps<T> {
   readonly title: string;
-  readonly meta?: string;
   readonly items: readonly T[];
   readonly limit?: number;
   readonly onSeeAll?: () => void;
@@ -66,7 +62,6 @@ interface CardsSectionProps<T> {
 
 function CardsSection<T extends { key: string }>({
   title,
-  meta,
   items,
   limit,
   onSeeAll,
@@ -75,22 +70,20 @@ function CardsSection<T extends { key: string }>({
   if (items.length === 0) return null;
   const shown = limit ? items.slice(0, limit) : items;
   return (
-    <section aria-label={title}>
-      <DashboardSectionHeader
-        title={title}
-        meta={meta}
-        action={
-          limit != null &&
-          items.length > limit &&
-          onSeeAll && <SeeAllButton onClick={onSeeAll}>See all {items.length}</SeeAllButton>
-        }
-      />
+    <DashboardSection
+      title={title}
+      action={
+        limit != null &&
+        items.length > limit &&
+        onSeeAll && <SeeAllButton onClick={onSeeAll}>See all {items.length}</SeeAllButton>
+      }
+    >
       <ul className="space-y-4">
         {shown.map((item) => (
           <li key={item.key}>{render(item)}</li>
         ))}
       </ul>
-    </section>
+    </DashboardSection>
   );
 }
 
@@ -117,7 +110,6 @@ export function RfpCards({
   return (
     <CardsSection
       title="Your RFPs"
-      meta={open > 0 ? `${open} open` : undefined}
       items={rfps}
       limit={limit}
       onSeeAll={onSeeAll}
@@ -234,7 +226,6 @@ export function OwnProposalCards({
   return (
     <CardsSection
       title="Your proposals"
-      meta={raising > 0 ? `${raising} raising` : undefined}
       items={proposals}
       limit={limit}
       onSeeAll={onSeeAll}

@@ -48,25 +48,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       // Navigate based on suggestion type
       if (suggestion.entityType === 'paper') {
-        if (suggestion.isRecent && suggestion.contentType && suggestion.contentType !== 'paper') {
-          if (suggestion.id) {
-            router.push(`/post/${suggestion.id}`);
-          } else {
-            router.push('/');
-          }
-        } else if (suggestion.id) {
-          router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
-        } else if ('doi' in suggestion && suggestion.doi) {
-          router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
+        if (suggestion.contentType === 'preregistration' && suggestion.id) {
+          router.push(`/proposal/${suggestion.id}/${suggestion.slug || ''}`);
+        } else if (suggestion.contentType && suggestion.contentType !== 'paper' && suggestion.id) {
+          router.push(`/post/${suggestion.id}`);
+        } else {
+          // Paper pages are retired.
+          router.push('/');
         }
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
         navigateToAuthorProfile(suggestion.authorProfile.id);
-      } else if (suggestion.entityType === 'hub') {
-        if ('slug' in suggestion && suggestion.slug) {
-          router.push(`/topic/${suggestion.slug}`);
-        } else {
-          router.push(`/topic/${suggestion.id}`);
-        }
       } else if (suggestion.entityType === 'post') {
         router.push(`/post/${suggestion.id}`);
       }

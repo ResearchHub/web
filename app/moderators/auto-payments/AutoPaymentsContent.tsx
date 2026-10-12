@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { CurrencyBadge } from '@/components/ui/RSCBadge';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { BaseMenu, BaseMenuRadioGroup, BaseMenuRadioItem } from '@/components/ui/form/BaseMenu';
 import { DatePicker } from '@/components/ui/form/DatePicker';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useAutoPayments } from '@/hooks/useAutoPayments';
@@ -195,25 +195,27 @@ export default function AutoPaymentsContent() {
         {/* Filters */}
         <div className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-6 tablet:!flex-nowrap flex-wrap">
           <div className="flex items-center gap-3 w-full tablet:!w-auto">
-            <Dropdown
+            <BaseMenu
+              align="start"
               trigger={
                 <button className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 whitespace-nowrap">
                   <span>{selectedFilterLabel}</span>
                   <ChevronDown className="w-4 h-4 text-gray-500" />
                 </button>
               }
-              className="!w-auto whitespace-nowrap"
+              className="whitespace-nowrap"
             >
-              {FILTER_OPTIONS.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  onClick={() => setDistributionType(option.value)}
-                  className={distributionType === option.value ? 'bg-blue-50 text-blue-700' : ''}
-                >
-                  {option.label}
-                </DropdownItem>
-              ))}
-            </Dropdown>
+              <BaseMenuRadioGroup
+                value={distributionType}
+                onValueChange={(value) => setDistributionType(value as DistributionType | '')}
+              >
+                {FILTER_OPTIONS.map((option) => (
+                  <BaseMenuRadioItem key={option.value} value={option.value}>
+                    {option.label}
+                  </BaseMenuRadioItem>
+                ))}
+              </BaseMenuRadioGroup>
+            </BaseMenu>
 
             {hasActiveFilters && (
               <button

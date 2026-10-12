@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, Building2, Star, UserRound } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { SeeAllButton } from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import type { Money, SupportedPerson } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
@@ -34,14 +34,6 @@ function RailSection({
       </div>
       <div className="mt-3">{children}</div>
     </section>
-  );
-}
-
-function SeeAll({ onClick, count }: { readonly onClick: () => void; readonly count: number }) {
-  return (
-    <SeeAllButton onClick={onClick} size="sm">
-      See all {count}
-    </SeeAllButton>
   );
 }
 
@@ -113,7 +105,13 @@ function PeopleYouSupport({
   return (
     <RailSection
       title="People you support"
-      action={people.length > SHOWN && <SeeAll onClick={onShowAll} count={people.length} />}
+      action={
+        people.length > SHOWN && (
+          <SeeAllButton size="sm" onClick={onShowAll}>
+            See all {people.length}
+          </SeeAllButton>
+        )
+      }
     >
       {people.length === 0 ? (
         <RailPlaceholder kind="person" />
@@ -177,7 +175,13 @@ function YourFunders({
   return (
     <RailSection
       title="Your funders"
-      action={funders.length > SHOWN && <SeeAll onClick={onShowAll} count={funders.length} />}
+      action={
+        funders.length > SHOWN && (
+          <SeeAllButton size="sm" onClick={onShowAll}>
+            See all {funders.length}
+          </SeeAllButton>
+        )
+      }
     >
       {funders.length === 0 ? (
         <RailPlaceholder kind="person" />
@@ -285,13 +289,18 @@ interface MyFundingRailProps {
   readonly reviewEarned?: Money;
   readonly people?: readonly SupportedPerson[];
   readonly institutions?: readonly SupportedInstitution[];
+  /**
+   * The people backing the user's proposals. Left out on the signed-out
+   * preview, where the section shows empty slots; signed in, an empty list
+   * leaves the section out.
+   */
   readonly funders?: readonly AuthorProfile[];
   readonly onShowAll?: (list: 'scientists' | 'funders') => void;
 }
 
 /**
  * The right rail, the same for everyone: money in and out, the people and
- * institutions the user supports, their funders, and paid reviewing. A
+ * institutions the user supports, their funders once they have any, and paid reviewing. A
  * section with nothing in it yet shows empty slots, and money not yet moved
  * shows where to start, so the rail sells the page to someone new as well as
  * summing it up for someone who has taken part.
@@ -303,7 +312,7 @@ export function MyFundingRail({
   reviewEarned = ZERO,
   people = [],
   institutions = [],
-  funders = [],
+  funders,
   onShowAll = () => undefined,
 }: MyFundingRailProps) {
   const format = useMoneyFormat();
@@ -335,7 +344,9 @@ export function MyFundingRail({
       />
       <PeopleYouSupport people={people} onShowAll={() => onShowAll('scientists')} />
       <InstitutionsYouSupport institutions={institutions} />
-      <YourFunders funders={funders} onShowAll={() => onShowAll('funders')} />
+      {(!funders || funders.length > 0) && (
+        <YourFunders funders={funders ?? []} onShowAll={() => onShowAll('funders')} />
+      )}
       <PaidReviewsTeaser />
     </RailSections>
   );

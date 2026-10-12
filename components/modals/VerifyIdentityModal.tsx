@@ -2,7 +2,7 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import { X, Check, AlertTriangle, BadgeCheck, Users, GraduationCap } from 'lucide-react';
+import { X, Check, AlertTriangle, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
@@ -15,6 +15,12 @@ interface VerifyIdentityModalProps {
   initialStep?: VerificationStep;
   context?: VerificationModalContext;
 }
+
+const VERIFICATION_BENEFITS = [
+  'Persistent blue check next to your name',
+  'Access to new features',
+  'Faster withdrawal limits',
+];
 
 type VerificationStep =
   | 'INTRO'
@@ -104,50 +110,14 @@ export function VerifyIdentityModal({
               </p>
             </div>
 
-            {/* Two columns of features */}
-            <div className="grid grid-cols-2 gap-8 mt-10">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-indigo-500 p-1 rounded-full">
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="text-xl font-semibold">All users</div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
-                    <p className="text-white">Verified badge</p>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
-                    <p className="text-white">Faster withdrawal limits</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-indigo-500 p-1 rounded-full">
-                    <GraduationCap className="h-8 w-8 text-white" />
-                  </div>
-                  <div className="text-xl font-semibold">Published authors</div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
-                    <p className="text-white">Claim RSC rewards on papers</p>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Check className="h-5 w-5 flex-shrink-0 text-white" />
-                    <p className="text-white">Get notified on bounty and grant opportunities</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ul className="mx-auto mt-8 w-fit space-y-4">
+              {VERIFICATION_BENEFITS.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3">
+                  <Check className="h-5 w-5 flex-shrink-0 text-white" />
+                  <p className="text-white">{benefit}</p>
+                </li>
+              ))}
+            </ul>
 
             {/* Start button */}
             <div className="mt-10">
@@ -276,7 +246,7 @@ export function VerifyIdentityModal({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel
-                className={`w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all ${currentStep === 'IDENTITY' ? 'max-w-[400px]' : 'max-w-2xl'}`}
+                className={`w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all ${currentStep === 'IDENTITY' ? 'max-w-[400px]' : currentStep === 'INTRO' ? 'max-w-lg' : 'max-w-2xl'}`}
               >
                 <div className="relative">
                   {/* Header with close button - only show for non-INTRO steps */}

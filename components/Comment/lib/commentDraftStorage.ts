@@ -68,12 +68,3 @@ export const removeCommentDraftById = (key: string) => {
     console.error('Error removing comment draft from localStorage:', error);
   }
 };
-
-export const clearAllCommentDrafts = () => {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({}));
-  } catch (error) {
-    console.error('Error clearing all comment drafts from localStorage:', error);
-  }
-};

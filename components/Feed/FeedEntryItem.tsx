@@ -2,15 +2,8 @@
 
 import { FC, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
-import {
-  FeedCommentContent,
-  FeedEntry,
-  FeedPostContent,
-  FeedPaperContent,
-  FeedGrantContent,
-} from '@/types/feed';
+import { FeedCommentContent, FeedEntry, FeedPostContent, FeedGrantContent } from '@/types/feed';
 import { FeedItemFundraise } from './items/DeprecatedFeedItemFundraise';
-import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
@@ -97,6 +90,11 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     return null;
   }
 
+  // Paper pages are retired, so paper entries have nowhere to go.
+  if (entry.contentType === 'PAPER') {
+    return null;
+  }
+
   // Apply appropriate spacing based on position
   const spacingClass = index !== 0 ? 'mt-8' : '';
 
@@ -120,15 +118,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             contentType: 'preregistration',
           });
         }
-        case 'PAPER': {
-          const paperContent = entry.content as FeedPaperContent;
-          return buildWorkUrl({
-            id: paperContent.id,
-            slug: paperContent.slug,
-            contentType: 'paper',
-          });
-        }
-
         case 'BOUNTY':
           if (entry.relatedWork) {
             let contentType = entry.relatedWork.contentType;
@@ -202,9 +191,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     // When showBountyInfo is set and the entry has open bounties, render as a uniform bounty card
     if (
       shouldRenderAsBountyCard &&
-      (entry.contentType === 'POST' ||
-        entry.contentType === 'PAPER' ||
-        entry.contentType === 'PREREGISTRATION')
+      (entry.contentType === 'POST' || entry.contentType === 'PREREGISTRATION')
     ) {
       content = (
         <DeprecatedFeedItemBounty
@@ -242,21 +229,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               maxLength={maxLength}
               onFeedItemClick={handleFeedItemClick}
               showBountyInfo={showBountyInfo}
-            />
-          );
-          break;
-
-        case 'PAPER':
-          content = (
-            <FeedItemPaper
-              entry={entry}
-              href={href}
-              showActions={!hideActions}
-              maxLength={maxLength}
-              onFeedItemClick={handleFeedItemClick}
-              onAbstractExpanded={handleAbstractExpanded}
-              showBountyInfo={showBountyInfo}
-              abstractCollapsedByDefault={abstractCollapsedByDefault}
             />
           );
           break;

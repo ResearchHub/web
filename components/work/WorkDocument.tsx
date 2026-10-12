@@ -1,17 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { FlaskConicalOff, Plus } from 'lucide-react';
+import { FlaskConicalOff } from 'lucide-react';
 import { Work } from '@/types/work';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { TabType } from './WorkTabs';
-import { WorkHistoryDisplay } from './WorkHistoryDisplay';
 
 import { Button } from '@/components/ui/Button';
-import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
@@ -21,10 +19,8 @@ interface WorkDocumentProps {
 }
 
 export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { user } = useUser();
   const { activeTab } = useWorkTab();
 
   const [pdfUnavailable, setPdfUnavailable] = useState(false);
@@ -32,35 +28,6 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
   const shouldFocusReviewEditor = useMemo(() => {
     return searchParams?.get('focus') === 'true';
   }, [searchParams]);
-
-  const isAuthor = useMemo(() => {
-    if (!user) return false;
-    return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
-  }, [user, work.authors]);
-
-  const handleAddVersion = () => {
-    if (!user) return; // should be authenticated already
-
-    // Determine the latest version's paperId to pre-populate the form with the most recent data
-    let latestPaperId = work.id;
-
-    if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as latest first
-      const latestFlag = work.versions.find((v) => v.isLatest);
-
-      if (latestFlag) {
-        latestPaperId = latestFlag.paperId;
-      } else {
-        // Fallback: pick the version with newest publishedDate
-        const sorted = [...work.versions].sort(
-          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-        );
-        latestPaperId = sorted[0].paperId;
-      }
-    }
-
-    router.push(`/paper/${latestPaperId}/create/version`);
-  };
 
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
@@ -167,30 +134,6 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
             />
           </div>
         );
-      case 'history':
-        return (
-          <>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-medium">Version History</h2>
-              {isAuthor && (
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleAddVersion}
-                  className="inline-flex items-center gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add New Version</span>
-                </Button>
-              )}
-            </div>
-            <WorkHistoryDisplay
-              versions={work.versions || []}
-              currentPaperId={work.id}
-              slug={work.slug}
-            />
-          </>
-        );
       default:
         return null;
     }
@@ -203,9 +146,6 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
     shouldFocusReviewEditor,
     work.versions,
     work.slug,
-    router,
-    isAuthor,
-    handleAddVersion,
   ]);
 
   return (

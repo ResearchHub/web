@@ -78,26 +78,6 @@ export const PanelSection = forwardRef<
 
 PanelSection.displayName = 'PanelSection';
 
-export const PanelHeadline = forwardRef<
-  HTMLDivElement,
-  { asChild?: boolean } & React.HTMLAttributes<HTMLDivElement>
->(({ asChild, className, children, ...rest }, ref) => {
-  const headlineClass = cn(
-    'text-black/80 dark:text-white/80 text-xs font-medium mb-2 ml-1.5',
-    className
-  );
-
-  const Comp = asChild ? Slot : 'div';
-
-  return (
-    <Comp className={headlineClass} {...rest} ref={ref}>
-      {children}
-    </Comp>
-  );
-});
-
-PanelHeadline.displayName = 'PanelHeadline';
-
 export const PanelFooter = forwardRef<
   HTMLDivElement,
   { asChild?: boolean } & React.HTMLAttributes<HTMLDivElement>

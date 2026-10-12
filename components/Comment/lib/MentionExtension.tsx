@@ -193,7 +193,6 @@ export const MentionExtension = Mention.extend({
       const url = buildWorkUrl({
         id: node.attrs.id,
         contentType: 'paper',
-        doi: node.attrs.doi,
       });
 
       // If we got a fallback URL, render as a span instead of a link

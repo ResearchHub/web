@@ -104,8 +104,8 @@ export const importDocumentToTiptap = async (
   options: { fallbackTitle?: string } = {}
 ): Promise<DocumentImportResult> => {
   // The Tiptap Cloud App ID is account-wide and shared across products
-  // (Content AI, Convert, Collab). Each product has its own JWT secret on
-  // the server, but the App ID is the same value used by `Ai.ts`.
+  // (Content AI, Convert, Collab); each product has its own JWT secret on
+  // the server.
   const appId = process.env.NEXT_PUBLIC_TIPTAP_APP_ID;
   if (!appId) {
     throw new Error(

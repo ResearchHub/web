@@ -1,19 +1,25 @@
 'use client';
 
-import { FC } from 'react';
-import { Avatar } from '@/components/ui/Avatar';
+import { FC, useState } from 'react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { ActivityCommentPanel } from '@/components/modals/ActivityCommentPanel';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { ActivityCardHeader } from './ActivityCardHeader';
-import { ActivityTimestamp } from './ActivityTimestamp';
-import { ActivityWorkActions } from '../work/ActivityWorkActions';
-import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
-import { WorkPreviewCard } from '../work/WorkPreviewCard';
-import { getActivityHeaderMessage, getCommentPreview } from '../lib/activityDisplay.utils';
-import { getWorkCardPresentation } from '../lib/activityWork.utils';
+import { ActivityActor } from './ActivityActor';
+import { ActivityCardMenu } from './ActivityCardMenu';
+import { ACTIVITY_CONTENT_DIVIDER, ActivityCardShell } from './ActivityCardShell';
+import { ActivityQuotedComment } from './ActivityQuotedComment';
+import { ActivityCardFooter } from '../work/ActivityCardFooter';
+import { ActivityWorkCover } from '../work/ActivityWorkCover';
+import { getActivityComment, getCommentPreview, getWorkNoun } from '../lib/activityDisplay.utils';
+import {
+  getActivityCta,
+  getWorkCoverPresentation,
+  shouldShowAuthorBadge,
+} from '../lib/activityWork.utils';
 import type { ActivityCommentGroupRow } from '../lib/activityGrouping.utils';
+import { cn } from '@/utils/styles';
 
 /**
  * Bodies start clipped far shorter than the 250 characters a lone comment gets, so
@@ -28,85 +34,102 @@ interface ActivityCommentGroupCardProps {
 
 /**
  * A single row standing in for several comments one author left on the same work:
- * every comment body, stacked above one shared work card.
+ * every comment body, stacked above one shared work cover.
  */
 export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ row }) => {
   const { entries, latestEntry, work, author } = row;
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { updateLastClickedEntryId } = useNavigation();
+  // Which comment the side panel shows, kept after closing so it can slide out.
+  const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  // Whether the panel shows that comment, or the one it replies to.
+  const [panelShowsParent, setPanelShowsParent] = useState(false);
+  const openPanel = (entryId: string, showParent: boolean) => {
+    setActiveEntryId(entryId);
+    setPanelShowsParent(showParent);
+    setIsPanelOpen(true);
+  };
 
   const latestEntryId = String(latestEntry.id);
-  const presentation = getWorkCardPresentation(latestEntry, work, { showUSD, exchangeRate });
+  const cover = getWorkCoverPresentation(latestEntry, work, { showUSD, exchangeRate });
 
   const comments = entries.flatMap((entry) => {
     const preview = getCommentPreview(entry);
-    return preview ? [{ entryId: String(entry.id), preview }] : [];
+    return preview
+      ? [{ entryId: String(entry.id), preview, comment: getActivityComment(entry) }]
+      : [];
   });
-
-  const message = getActivityHeaderMessage(latestEntry);
-  const groupMessage = { ...message, verb: `posted ${comments.length} comments on` };
-
-  const markEntryClicked = () => {
-    updateLastClickedEntryId(latestEntryId);
-  };
+  const activeComment = comments.find(({ entryId }) => entryId === activeEntryId)?.comment;
+  const panelComment =
+    panelShowsParent && activeComment?.parent ? activeComment.parent : activeComment;
 
   return (
-    <article
-      className="py-4 border-b border-gray-100 last:border-b-0"
-      data-entry-id={latestEntryId}
+    <ActivityCardShell
+      entryId={latestEntryId}
       // Absorbed members keep an anchor here so scroll restoration can find them.
-      data-entry-ids={entries.map((entry) => String(entry.id)).join(' ')}
-      data-testid="activity-card"
+      entryIds={entries.map((entry) => String(entry.id))}
     >
-      <div className="flex gap-2.5">
-        <div className="flex w-8 flex-shrink-0 flex-col items-center">
-          <div className="pt-0.5">
-            <Avatar
-              src={author.profileImage}
-              alt={author.fullName || 'User'}
-              size={32}
-              authorId={author.id}
-            />
-          </div>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <ActivityCardHeader entry={latestEntry} message={groupMessage} />
-
-          <div className="divide-y divide-gray-100">
-            {comments.map(({ entryId, preview }) => (
-              <div key={entryId} className="py-2.5 first:pt-0 last:pb-0">
-                <CommentReadOnly
-                  content={preview.content}
-                  contentFormat={preview.format}
-                  maxLength={GROUPED_COMMENT_MAX_LENGTH}
-                  showReadMoreButton
-                  showLinkPreviews={false}
-                  className="text-sm"
+      <div className="px-3.5 pt-3.5 tablet:px-4 tablet:pt-4">
+        <ActivityActor
+          authors={[author]}
+          action={{ label: `Left ${comments.length} comments on ${getWorkNoun(work)}` }}
+          timestamp={latestEntry.timestamp}
+          isAuthor={shouldShowAuthorBadge(latestEntry, author.id)}
+          menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
+        />
+        <div className={cn(ACTIVITY_CONTENT_DIVIDER, 'divide-y divide-gray-100')}>
+          {comments.map(({ entryId, preview, comment }) => (
+            <div key={entryId} className="py-2.5 first:pt-0 last:pb-0">
+              {comment?.parent && (
+                <ActivityQuotedComment
+                  comment={comment.parent}
+                  onOpen={() => openPanel(entryId, true)}
+                  className="mb-3"
                 />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 -ml-[42px] tablet:!ml-0">
-            <WorkPreviewCard
-              work={work}
-              brand={presentation.brand}
-              onNavigate={markEntryClicked}
-              showPlaceholder
-            >
-              <WorkPreviewCard.Metadata>
-                <ActivityWorkMetadata work={work} presentation={presentation} />
-              </WorkPreviewCard.Metadata>
-              <WorkPreviewCard.Actions>
-                <ActivityWorkActions entry={latestEntry} work={work} hideableEntries={entries} />
-              </WorkPreviewCard.Actions>
-            </WorkPreviewCard>
-            <ActivityTimestamp timestamp={latestEntry.timestamp} className="mt-3" />
-          </div>
+              )}
+              <CommentReadOnly
+                content={preview.content}
+                contentFormat={preview.format}
+                maxLength={GROUPED_COMMENT_MAX_LENGTH}
+                showReadMoreButton
+                showLinkPreviews={false}
+                onReadMore={comment ? () => openPanel(entryId, false) : undefined}
+                className="feed-comment-preview text-[15px] leading-6 text-gray-700"
+              />
+            </div>
+          ))}
         </div>
       </div>
-    </article>
+
+      <ActivityWorkCover
+        work={work}
+        cover={cover}
+        onNavigate={() => updateLastClickedEntryId(latestEntryId)}
+        className="mt-3 tablet:mx-4 tablet:rounded-xl"
+      />
+
+      <ActivityCardFooter
+        entry={latestEntry}
+        work={work}
+        cta={getActivityCta(latestEntry, work)}
+        hideableEntries={entries}
+      />
+
+      {panelComment && activeEntryId && (
+        <ActivityCommentPanel
+          isOpen={isPanelOpen}
+          onClose={() => setIsPanelOpen(false)}
+          comment={panelComment}
+          work={work}
+          onOpenParent={
+            !panelShowsParent && activeComment?.parent
+              ? () => openPanel(activeEntryId, true)
+              : undefined
+          }
+        />
+      )}
+    </ActivityCardShell>
   );
 };

@@ -1,15 +1,6 @@
 import { withShareToken } from '@/lib/shareToken/url';
 import type { ContentType } from '@/types/work';
 
-export const ALL_CONTENT_TYPES: readonly ContentType[] = [
-  'paper',
-  'post',
-  'preregistration',
-  'question',
-  'discussion',
-  'funding_request',
-];
-
 // URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /grant/
 const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
   paper: 'paper',
@@ -324,14 +315,12 @@ export function generateSlug(text: string): string {
 export const buildWorkUrl = ({
   id,
   contentType,
-  doi,
   slug,
   tab,
   shareToken,
 }: {
   id?: string | number | null;
   contentType: ContentType;
-  doi?: string | null;
   slug?: string;
   tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
   shareToken?: string | null;
@@ -357,24 +346,9 @@ export const buildWorkUrl = ({
       baseUrl = slug ? `/question/${id}/${slug}` : `/question/${id}`;
       break;
     case 'paper':
-      if (id) {
-        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-      } else if (doi) {
-        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-      } else {
-        return '#'; // Return a safe fallback URL when neither id nor doi is available
-      }
-      break;
     default:
-      // Fallback for unknown content types
-      if (id) {
-        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-      } else if (doi) {
-        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-      } else {
-        return '#'; // Return a safe fallback URL when neither id nor doi is available
-      }
-      break;
+      // Paper pages are retired and unknown content types have no page: no link.
+      return '#';
   }
 
   // Append tab if provided
@@ -390,11 +364,4 @@ export const buildWorkUrl = ({
  */
 export const buildAuthorUrl = (id: string | number) => {
   return `/author/${id}`;
-};
-
-/**
- * Builds a topic URL from a slug
- */
-export const buildTopicUrl = (slug: string) => {
-  return `/topic/${slug}`;
 };

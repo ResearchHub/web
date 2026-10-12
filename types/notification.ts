@@ -49,9 +49,7 @@ export interface Notification {
   createdDate: Date;
 }
 
-export type TransformedNotification = Notification & BaseTransformed;
 export type TransformedNotificationExtra = NotificationExtra & BaseTransformed;
-export type TransformedNotificationBodyElement = NotificationBodyElement & BaseTransformed;
 
 export type NotificationForWork = NonNullable<Notification['work']>;
 

@@ -8,7 +8,8 @@ import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Loader } from '@/components/ui/Loader';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
-import { Dropdown, DropdownItem, MultiSelectDropdown } from '@/components/ui/form/Dropdown';
+import { BaseMenu, BaseMenuRadioGroup, BaseMenuRadioItem } from '@/components/ui/form/BaseMenu';
+import { MultiSelectDropdown } from '@/components/ui/form/MultiSelectDropdown';
 import type { ExpertSearchResult } from '@/types/expertFinder';
 import type { ContentType } from '@/types/work';
 import type { AdvancedConfigFormValues, ExpertFinderFormValues } from '../schema';
@@ -77,6 +78,9 @@ export function AdvancedConfig({
   }, [availableInputTypes, values.inputType]);
 
   const regionLabel = getRegionLabel(values.region);
+  const inputTypeError = getFieldErrorMessage(errors?.inputType);
+  const expertCountError = getFieldErrorMessage(errors?.expertCount);
+  const regionError = getFieldErrorMessage(errors?.region);
 
   return (
     <CollapsibleSection
@@ -123,20 +127,21 @@ export function AdvancedConfig({
 
           {!hideInputType && (
             <div className="min-w-0">
-              <Dropdown
-                label="Input Type"
-                error={getFieldErrorMessage(errors?.inputType)}
-                helperText={
-                  contentType === 'paper'
-                    ? 'Choose abstract or PDF (PDF only if the paper has one).'
-                    : 'Choose which part of the document to use for finding experts.'
-                }
+              <label className="mb-1 block text-sm font-semibold text-gray-700">Input Type</label>
+              <BaseMenu
+                align="start"
+                sameWidth
+                className="max-h-60"
+                onOpenChange={setInputTypeOpen}
                 trigger={
                   <Button
                     type="button"
                     variant="outlined"
                     size="md"
-                    className="w-full justify-between text-left text-gray-900 font-normal"
+                    className={cn(
+                      'w-full justify-between text-left text-gray-900 font-normal',
+                      inputTypeError && 'border-red-500'
+                    )}
                   >
                     {inputTypeLabel}
                     <ChevronDown
@@ -147,46 +152,56 @@ export function AdvancedConfig({
                     />
                   </Button>
                 }
-                className="max-h-60 overflow-y-auto py-1"
-                onOpenChange={setInputTypeOpen}
               >
-                <div className="py-1 max-h-60 overflow-y-auto">
+                <BaseMenuRadioGroup
+                  value={effectiveInputType}
+                  onValueChange={(value) => onChange({ ...values, inputType: value as InputType })}
+                >
                   {(contentType === 'paper'
                     ? INPUT_TYPE_OPTIONS.filter((o) => o.value === 'abstract' || o.value === 'pdf')
                     : INPUT_TYPE_OPTIONS.filter((option) => allowedSet.has(option.value))
                   ).map((option) => {
                     const enabled = allowedSet.has(option.value);
                     return (
-                      <DropdownItem
+                      <BaseMenuRadioItem
                         key={option.value}
-                        onClick={() => enabled && onChange({ ...values, inputType: option.value })}
+                        value={option.value}
                         disabled={!enabled}
-                        className={cn(
-                          values.inputType === option.value && 'bg-primary-50 text-primary-900',
-                          !enabled && 'opacity-60 cursor-not-allowed'
-                        )}
                       >
                         {option.label}
                         {!enabled && ' (no PDF)'}
-                      </DropdownItem>
+                      </BaseMenuRadioItem>
                     );
                   })}
-                </div>
-              </Dropdown>
+                </BaseMenuRadioGroup>
+              </BaseMenu>
+              {inputTypeError && <p className="mt-1 text-xs text-red-500">{inputTypeError}</p>}
+              <p className="mt-1 text-xs text-gray-500">
+                {contentType === 'paper'
+                  ? 'Choose abstract or PDF (PDF only if the paper has one).'
+                  : 'Choose which part of the document to use for finding experts.'}
+              </p>
             </div>
           )}
 
           <div className="min-w-0">
-            <Dropdown
-              label="Number of Researchers"
-              error={getFieldErrorMessage(errors?.expertCount)}
-              helperText={`Up to ${values.expertCount} researchers will be found`}
+            <label className="mb-1 block text-sm font-semibold text-gray-700">
+              Number of Researchers
+            </label>
+            <BaseMenu
+              align="start"
+              sameWidth
+              className="max-h-60"
+              onOpenChange={setExpertCountOpen}
               trigger={
                 <Button
                   type="button"
                   variant="outlined"
                   size="md"
-                  className="w-full justify-between text-left text-gray-900 font-normal"
+                  className={cn(
+                    'w-full justify-between text-left text-gray-900 font-normal',
+                    expertCountError && 'border-red-500'
+                  )}
                 >
                   {values.expertCount}
                   <ChevronDown
@@ -197,23 +212,27 @@ export function AdvancedConfig({
                   />
                 </Button>
               }
-              className="max-h-60 overflow-y-auto py-1"
-              onOpenChange={setExpertCountOpen}
             >
-              <div className="py-1 max-h-60 overflow-y-auto">
+              <BaseMenuRadioGroup
+                value={String(values.expertCount)}
+                onValueChange={(value) =>
+                  onChange({
+                    ...values,
+                    expertCount: Number(value) as AdvancedConfigFormValues['expertCount'],
+                  })
+                }
+              >
                 {EXPERT_COUNT_OPTIONS.map((option) => (
-                  <DropdownItem
-                    key={option}
-                    onClick={() => onChange({ ...values, expertCount: option })}
-                    className={
-                      values.expertCount === option ? 'bg-primary-50 text-primary-900' : ''
-                    }
-                  >
+                  <BaseMenuRadioItem key={option} value={String(option)}>
                     {option}
-                  </DropdownItem>
+                  </BaseMenuRadioItem>
                 ))}
-              </div>
-            </Dropdown>
+              </BaseMenuRadioGroup>
+            </BaseMenu>
+            {expertCountError && <p className="mt-1 text-xs text-red-500">{expertCountError}</p>}
+            <p className="mt-1 text-xs text-gray-500">
+              Up to {values.expertCount} researchers will be found
+            </p>
           </div>
 
           <div className="min-w-0">
@@ -248,15 +267,23 @@ export function AdvancedConfig({
           </div>
 
           <div className="min-w-0">
-            <Dropdown
-              label="Geographic Region"
-              error={getFieldErrorMessage(errors?.region)}
+            <label className="mb-1 block text-sm font-semibold text-gray-700">
+              Geographic Region
+            </label>
+            <BaseMenu
+              align="start"
+              sameWidth
+              className="max-h-60"
+              onOpenChange={setRegionOpen}
               trigger={
                 <Button
                   type="button"
                   variant="outlined"
                   size="md"
-                  className="w-full justify-between text-left text-gray-900 font-normal"
+                  className={cn(
+                    'w-full justify-between text-left text-gray-900 font-normal',
+                    regionError && 'border-red-500'
+                  )}
                 >
                   {regionLabel}
                   <ChevronDown
@@ -267,23 +294,21 @@ export function AdvancedConfig({
                   />
                 </Button>
               }
-              className="max-h-60 overflow-y-auto py-1"
-              onOpenChange={setRegionOpen}
             >
-              <div className="py-1 max-h-60 overflow-y-auto">
+              <BaseMenuRadioGroup
+                value={values.region}
+                onValueChange={(value) =>
+                  onChange({ ...values, region: value as AdvancedConfigFormValues['region'] })
+                }
+              >
                 {REGION_OPTIONS.map((option) => (
-                  <DropdownItem
-                    key={option.value}
-                    onClick={() => onChange({ ...values, region: option.value })}
-                    className={
-                      values.region === option.value ? 'bg-primary-50 text-primary-900' : ''
-                    }
-                  >
+                  <BaseMenuRadioItem key={option.value} value={option.value}>
                     {option.label}
-                  </DropdownItem>
+                  </BaseMenuRadioItem>
                 ))}
-              </div>
-            </Dropdown>
+              </BaseMenuRadioGroup>
+            </BaseMenu>
+            {regionError && <p className="mt-1 text-xs text-red-500">{regionError}</p>}
           </div>
 
           <div className="min-w-0 md:!col-span-2 border-t border-gray-200 pt-4 mt-2">

@@ -78,5 +78,3 @@ export const LinkMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => 
     </BaseBubbleMenu>
   );
 };
-
-export default LinkMenu;

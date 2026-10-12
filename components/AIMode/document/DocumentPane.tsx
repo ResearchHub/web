@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Editor } from '@tiptap/react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
@@ -21,13 +21,13 @@ import { cn } from '@/utils/styles';
 import { Masthead } from './masthead/Masthead';
 import { useMastheadSlots } from './masthead/useMastheadSlots';
 import { PublishDialog } from './PublishDialog';
-import { PublishPill } from './PublishPill';
+import { PublishPill, PublishRequest, type PublishRequestOutcome } from './PublishPill';
 import type { AIModeDocument } from './useAIModeDocument';
 import { useDocumentTitle } from './useDocumentTitle';
 
 /** The page column: shared by the skeleton and the document so they line up. */
 const DOCUMENT_PAGE_CLASS =
-  'ai-mode-document mx-auto w-full max-w-[860px] px-5 py-6 tablet:!px-8 tablet:!py-8';
+  'ai-mode-document mx-auto w-full max-w-[860px] px-4 py-5 tablet:!px-8 tablet:!py-8';
 
 interface DocumentPaneProps {
   readonly document: AIModeDocument;
@@ -35,14 +35,29 @@ interface DocumentPaneProps {
   readonly chat: AgentChat | null;
   /** The assistant has a turn running on this document in one of its other chats. */
   readonly assistantWorking?: boolean;
+  /**
+   * The document has chats. One without is being written by hand, and an
+   * empty one is left to its placeholders rather than pointed at the
+   * assistant.
+   */
+  readonly hasChats?: boolean;
+  /** At the pane's top-right corner: the draft's ⋯ menu. */
+  readonly menu?: ReactNode;
+  /**
+   * Publish was pressed while the document was out of sight: open the
+   * publish dialog once it has loaded, then report back through
+   * `onPublishRequestHandled`.
+   */
+  readonly publishRequested?: boolean;
+  readonly onPublishRequestHandled?: (outcome: PublishRequestOutcome) => void;
   readonly className?: string;
 }
 
 /**
- * The document pane: the note the assistant is composing, in the real editor,
+ * The document pane: the note being drafted, by the user or the assistant, in the real editor,
  * under a masthead that holds what it needs before it can be published, with
  * a Publish button floating over it. The same in the column beside the chat
- * and in the phone's drawer.
+ * and on its own.
  * Each version the assistant writes is spliced into the editor as an in-note
  * review (highlighted insertions, struck removals, accept/reject), exactly as
  * in the notebook. The user can edit once the turn has settled; edits
@@ -54,6 +69,10 @@ export function DocumentPane({
   document,
   chat,
   assistantWorking = false,
+  hasChats = true,
+  menu = null,
+  publishRequested = false,
+  onPublishRequestHandled,
   className,
 }: DocumentPaneProps) {
   const { note, content, loading, error, status, draftText, draftBlocks, phaseLabel } = document;
@@ -182,6 +201,12 @@ export function DocumentPane({
   // while its changes wait to be accepted or rejected, there is no Publish.
   const showPublish =
     content != null && !loading && !writing && review.review == null && !editorLostContent;
+  const publishRequestState =
+    (error != null && content == null) || writing || reviewing || editorLostContent
+      ? 'blocked'
+      : showPublish && editor != null && !review.isReloading
+        ? 'ready'
+        : 'waiting';
 
   return (
     <PublishingHostProvider value={publishingHost}>
@@ -199,14 +224,24 @@ export function DocumentPane({
               assistant's work on the document, flashing and named while it
               drafts, still while its changes wait to be accepted or rejected. */}
           {(writing || assistantWorking) && (
-            <span className="absolute right-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-white/90 py-1 pl-1.5 pr-2.5 text-xs font-medium text-primary-700 backdrop-blur-sm">
+            <span
+              className={cn(
+                'absolute top-3 z-10 flex items-center gap-1.5 rounded-full bg-white/90 py-1 pl-1.5 pr-2.5 text-xs font-medium text-primary-700 backdrop-blur-sm',
+                menu ? 'right-12' : 'right-3'
+              )}
+            >
               <AssistantActivityDot state="working" />
               Drafting
             </span>
           )}
           {!writing && !assistantWorking && reviewing && (
-            <AssistantActivityDot state="review" className="absolute right-4 top-4 z-10" />
+            <AssistantActivityDot
+              state="review"
+              className={cn('absolute top-4 z-10', menu ? 'right-[52px]' : 'right-4')}
+            />
           )}
+          {/* The draft's ⋯, in the corner over the page, so it does not scroll. */}
+          {menu && <div className="absolute right-3 top-3 z-10 flex">{menu}</div>}
           {/* The document is the pane: no gutter, no card, just the page. */}
           <div className="min-h-0 flex-1 overflow-y-auto">
             <NoteReviewBanner review={review} className="mx-6 mt-4" />
@@ -240,7 +275,7 @@ export function DocumentPane({
                     nothing has been changed.
                   </div>
                 )}
-                {status === 'empty' && review.review == null && <EmptyDocument />}
+                {status === 'empty' && review.review == null && hasChats && <EmptyDocument />}
 
                 {/* Mounted once per note: the editor's content prop is only read on
                 creation, and later versions arrive through the review. */}
@@ -286,6 +321,9 @@ export function DocumentPane({
           )}
 
           {showPublish && <PublishPill />}
+          {publishRequested && onPublishRequestHandled && (
+            <PublishRequest state={publishRequestState} onHandled={onPublishRequestHandled} />
+          )}
         </div>
       </PublishingFormProvider>
     </PublishingHostProvider>

@@ -56,6 +56,8 @@ export interface ProposalNews {
   readonly author: AuthorProfile;
   readonly score?: number;
   readonly href?: string;
+  /** The activity it came from, for the side panel that opens it in full. */
+  readonly entry: FeedEntry;
 }
 
 /** Plain text from a TipTap node, with a space between blocks. */
@@ -136,6 +138,7 @@ export function latestNewsByPost(entries: readonly FeedEntry[]): Map<number, Pro
             tab: kind === 'update' ? 'updates' : 'reviews',
           })
         : undefined,
+      entry,
     });
   }
   return news;

@@ -10,6 +10,7 @@ import {
   Info,
   LifeBuoy,
   Megaphone,
+  Sprout,
   type LucideIcon,
 } from 'lucide-react';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
@@ -54,7 +55,8 @@ const SEPARATOR = 'mx-1 my-1.5 h-px bg-gray-100';
 
 /**
  * The sidebar's footer as a single row. What used to be spread across it (the
- * changelog, docs, support, currency, socials and legal links) opens from it
+ * changelog, docs, support, currency, socials and legal links), and the
+ * Endowment, open from it
  * in one menu, so the column keeps its height for navigation and documents.
  */
 export function SidebarHelpMenu() {
@@ -93,6 +95,12 @@ export function SidebarHelpMenu() {
                 New
               </span>
             )}
+          </Link>
+        </DropdownMenu.Item>
+        <DropdownMenu.Item asChild>
+          <Link href="/endowment" className={MENU_ROW}>
+            <Sprout className="h-4 w-4 shrink-0 text-gray-500" aria-hidden="true" />
+            <span className="flex-1">Endowment</span>
           </Link>
         </DropdownMenu.Item>
         {RESOURCE_LINKS.map(({ label, href, icon: Icon }) => (

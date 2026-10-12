@@ -54,9 +54,16 @@ export interface UpdateNoteParams {
   details?: NoteDetailsUpdate;
 }
 
+export type OrganizationNoteDocumentType =
+  | 'PREREGISTRATION'
+  | 'GRANT'
+  | 'DISCUSSION'
+  | 'REGISTERED_REPORT';
+
 export interface GetOrganizationNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
-  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION' | 'REGISTERED_REPORT';
+  /** One type, or several in one request. */
+  documentType?: OrganizationNoteDocumentType | readonly OrganizationNoteDocumentType[];
   /** Latest edit first; servers that don't know it keep their newest-created order. */
   ordering?: '-updated_date';
   nextUrl?: string;
@@ -163,7 +170,12 @@ export class NoteService {
     try {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
-      if (params?.documentType) queryParams.append('type', params.documentType);
+      if (params?.documentType) {
+        const types = Array.isArray(params.documentType)
+          ? params.documentType
+          : [params.documentType];
+        if (types.length > 0) queryParams.append('type', types.join(','));
+      }
       if (params?.ordering) queryParams.append('ordering', params.ordering);
       const qs = queryParams.toString();
 

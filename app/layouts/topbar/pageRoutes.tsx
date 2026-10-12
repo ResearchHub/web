@@ -3,14 +3,9 @@ import {
   faHouse as faHouseLight,
   faBookmark as faBookmarkLight,
   faCommentsQuestion,
-  faGrid3 as faGrid3Light,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity, Settings } from 'lucide-react';
-import Image from 'next/image';
+import { Shield, Users, Activity, Settings } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
-import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
-import { toTitleCase } from '@/utils/stringUtils';
-import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
 
 export interface PageInfo {
@@ -25,8 +20,6 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/peer-review',
   '/journal',
   '/notebook',
-  '/browse',
-  '/leaderboard',
   '/lists',
   '/settings',
   '/endowment',
@@ -47,13 +40,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Fund Scientific Research',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
-    }),
-  },
-  {
-    match: (p) => p === '/browse',
-    getInfo: () => ({
-      title: 'Browse',
-      icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
     }),
   },
   {
@@ -104,13 +90,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Journal',
       icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/leaderboard'),
-    getInfo: () => ({
-      title: 'Leaderboard',
-      icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     }),
   },
   {
@@ -177,13 +156,6 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/paper/'),
-    getInfo: () => ({
-      title: 'Paper',
-      icon: <Icon name="workType" size={20} className="text-gray-900" />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/post/'),
     getInfo: () => ({
       title: 'Preprint',
@@ -203,42 +175,6 @@ const ROUTE_RULES: RouteRule[] = [
       title: 'Profile',
       icon: <Icon name="profile" size={24} className="text-gray-900" />,
     }),
-  },
-  {
-    match: (p) => p.startsWith('/topic/'),
-    getInfo: (pathname) => {
-      const topicSlug = pathname.split('/topic/')[1]?.split('/')[0];
-      if (!topicSlug) return { title: '' };
-
-      const preprintLogo = getSourceLogo(topicSlug);
-      if (preprintLogo && preprintLogo !== 'rhJournal2') {
-        return {
-          title: '',
-          icon: (
-            <Image
-              src={preprintLogo}
-              alt={getPreprintDisplayName(topicSlug)}
-              width={80}
-              height={24}
-              className="object-contain"
-              style={{ maxHeight: '24px' }}
-            />
-          ),
-        };
-      }
-
-      const emoji = getTopicEmoji(topicSlug);
-      const topicName = toTitleCase(topicSlug.replace(/-/g, ' '));
-
-      return {
-        title: topicName,
-        icon: emoji ? (
-          <span className="text-2xl">{emoji}</span>
-        ) : (
-          <Hash className="w-6 h-6 text-gray-400" />
-        ),
-      };
-    },
   },
 ];
 

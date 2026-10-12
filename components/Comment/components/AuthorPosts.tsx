@@ -11,10 +11,6 @@ import { AuthorPostsCarousel } from './AuthorPostsCarousel';
 import { PostComposerModal } from './PostComposerModal';
 import { useAuthorPostComposer } from './useAuthorPostComposer';
 
-export { useAuthorPostComposer } from './useAuthorPostComposer';
-export { PostComposerModal } from './PostComposerModal';
-export type { AuthorPostComposer } from './useAuthorPostComposer';
-
 const AuthorPostsEmptyShell: FC<{ children: ReactNode }> = ({ children }) => (
   <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
     <p className="m-0 text-sm text-gray-500">{children}</p>
@@ -32,8 +28,6 @@ const ViewerEmptyState: FC = () => (
     No posts from the author yet — they&apos;ll show up here when shared.
   </AuthorPostsEmptyShell>
 );
-
-export const ViewerPostsEmptyState = ViewerEmptyState;
 
 interface AuthorPostsProps {
   posts: Comment[];

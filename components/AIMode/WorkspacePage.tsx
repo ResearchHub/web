@@ -1,29 +1,34 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { DraftMenu } from '@/components/Funding/DraftMenu';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
-import { isActiveExecutionStatus } from '@/types/agentChat';
+import { isActiveExecutionStatus, type AgentChat, type ChatExecution } from '@/types/agentChat';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { isPublishedNote } from '@/types/note';
-import { cn } from '@/utils/styles';
 import { AIModeProvider, useAIMode } from './AIModeContext';
 import { ChatPane } from './chat/ChatPane';
+import { DocumentCard } from './chat/DocumentCard';
 import { newDraftTitle } from './copy';
 import { DocumentPane } from './document/DocumentPane';
+import { PublishAction, type PublishRequestOutcome } from './document/PublishPill';
 import { useAIModeDocument, type AIModeDocument } from './document/useAIModeDocument';
+import { ViewSwitch } from './shell/ViewSwitch';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
+import { useWorkspaceView, type WorkspaceView } from './shell/workspaceView';
 import { useAIModeChat } from './useAIModeChat';
 
 const CHAT_MIN_WIDTH = 360;
 const DOCUMENT_MIN_WIDTH = 420;
 /** Share of the viewport the document opens at before the user drags it. */
 const DOCUMENT_DEFAULT_SHARE = 0.55;
+
+const WIDE_VIEWS: readonly WorkspaceView[] = ['chat', 'split', 'document'];
+const PHONE_VIEWS: readonly WorkspaceView[] = ['chat', 'document'];
 
 /** An element's width as it resizes; the viewport's until it has mounted. */
 function useElementWidth(element: HTMLElement | null): number {
@@ -40,6 +45,27 @@ function useElementWidth(element: HTMLElement | null): number {
     return () => observer.disconnect();
   }, [element]);
   return width;
+}
+
+/**
+ * The turn the document's card sits under: the one writing into it right
+ * now, else the newest that wrote a version of it. Null while no turn in
+ * the chat has touched it.
+ */
+function documentCardExecutionId(
+  chat: AgentChat | null,
+  drafting: ChatExecution | null
+): number | null {
+  if (drafting) return drafting.id;
+  const executions = chat?.executions ?? [];
+  for (let index = executions.length - 1; index >= 0; index -= 1) {
+    const wrote = (executions[index].activity ?? []).some(
+      (item) =>
+        item.type === 'tool_call' && item.status === 'succeeded' && item.note_version_id != null
+    );
+    if (wrote) return executions[index].id;
+  }
+  return null;
 }
 
 /**
@@ -68,8 +94,9 @@ function topBarTitle({
 
 /**
  * The `/workspace` page: the app's shell, with the chat and, beside it on
- * the right, the document it is about. The user's documents are in the
- * app's left sidebar, as on every page. What it is open on lives in the URL.
+ * the right, the document it is about, or either one alone, as the top
+ * bar's view switch says. The user's documents are in the app's left
+ * sidebar, as on every page. What it is open on lives in the URL.
  */
 export function WorkspacePage() {
   return (
@@ -124,31 +151,51 @@ function Workspace() {
     anchor: 'right',
   });
 
-  // On desktop the document shows beside its chat as soon as it is open; on
-  // a phone the chat header's toggle opens it in a drawer. Either way the
-  // user can hide it and bring it back from there; that choice holds for
-  // the document it was made on. Until the width is known, nothing opens.
+  // ---- what shows: the chat, the document, or both ----
+  // Chosen in the top bar and remembered per document. A document with no
+  // chats is being written by hand, so it opens on its own. A phone has room
+  // for one at a time: Split shows there as the chat, and Chat from the
+  // document view asks for Split, so a wide screen still shows both.
   const noteId = note?.id ?? null;
-  const [documentChoice, setDocumentChoice] = useState<{
-    readonly noteId: number;
-    readonly open: boolean;
-  } | null>(null);
-  const documentOpen =
-    documentChoice != null && documentChoice.noteId === noteId
-      ? documentChoice.open
-      : phoneQuery === false;
-  const setDocumentOpen = useCallback(
-    (open: boolean) => {
-      if (noteId != null) setDocumentChoice({ noteId, open });
-    },
-    [noteId]
+  const { list, listReady } = state;
+  const hasChats =
+    listReady && list.access === 'ok'
+      ? list.chats.length > 0
+      : listReady && list.access === 'hidden'
+        ? false
+        : null;
+  const [view, setView] = useWorkspaceView(noteId, hasChats);
+  // Until the width is known, the phone's way: one pane.
+  const narrow = phoneQuery !== false;
+  const shownView: WorkspaceView = narrow && view === 'split' ? 'chat' : view;
+  const showSwitch = noteId != null && !doc.missing;
+  const chooseView = useCallback(
+    (next: WorkspaceView) => setView(narrow && next === 'chat' && view !== 'chat' ? 'split' : next),
+    [narrow, setView, view]
   );
-  const closeDocument = useCallback(() => setDocumentOpen(false), [setDocumentOpen]);
-  const showDocument = noteId != null && documentOpen && !doc.missing;
+  // Out of sight, the document is reached from its card in the chat, which
+  // brings it into view: on its own on a phone, beside the chat on a wide
+  // screen. It is published from the top bar, over the chat.
+  const documentHidden = showSwitch && shownView === 'chat';
+  const openDocument = useCallback(() => setView(narrow ? 'document' : 'split'), [narrow, setView]);
+  const viewSwitch = useMemo(
+    () =>
+      showSwitch ? (
+        <ViewSwitch
+          views={narrow ? PHONE_VIEWS : WIDE_VIEWS}
+          value={shownView}
+          onChange={chooseView}
+          // A phone's bar holds the menu, the logo, Publish and the account
+          // too: no room for the views' names.
+          compact={isBelowTablet}
+        />
+      ) : null,
+    [showSwitch, narrow, shownView, chooseView, isBelowTablet]
+  );
 
   // The sidebar's row follows the open document's saved title (its heading
   // once that has saved, or a name the assistant gave it) and latest edit.
-  const { patch, drafts } = useFundingDocuments();
+  const { patch, drafts } = useFundingNotes();
   const { title: docTitle, updatedDate: docUpdatedDate } = doc;
   useEffect(() => {
     if (noteId == null || !docTitle) return;
@@ -158,75 +205,136 @@ function Workspace() {
     );
   }, [noteId, docTitle, docUpdatedDate, patch]);
 
+  // ---- Publish, while the document is out of sight ----
+  // The document stays loaded, hidden, in Chat view, and the publish dialog
+  // is its own: the top bar's button asks it to open that dialog over the
+  // chat. When the document is in the way (the assistant's changes wait to
+  // be accepted or rejected), the document comes into view instead.
+  const loadedNote = doc.details ?? doc.content;
+  const published = loadedNote != null && isPublishedNote(loadedNote);
+  const writing = doc.status === 'drafting' || doc.status === 'working';
+  // Held with the document it was for, so it never carries over to another.
+  const [publishRequestedFor, setPublishRequestedFor] = useState<number | null>(null);
+  const publishRequested = publishRequestedFor != null && publishRequestedFor === noteId;
+  const requestPublish = useCallback(() => setPublishRequestedFor(noteId), [noteId]);
+  const handlePublishRequest = useCallback(
+    (outcome: PublishRequestOutcome) => {
+      setPublishRequestedFor(null);
+      if (outcome === 'blocked') openDocument();
+    },
+    [openDocument]
+  );
+  const publishButton = useMemo(
+    () =>
+      documentHidden ? (
+        <PublishAction
+          label={published ? 'Update' : 'Publish'}
+          busy={false}
+          // Not while the assistant writes: the document would only say to wait.
+          disabled={loadedNote == null || writing}
+          onClick={requestPublish}
+          size="sm"
+          testId="workspace-topbar-publish"
+          className={isBelowTablet ? 'h-8 gap-1.5 pl-3 pr-3.5 text-[13px]' : undefined}
+        />
+      ) : null,
+    [documentHidden, published, loadedNote, writing, requestPublish, isBelowTablet]
+  );
+  const topBarEnd = useMemo(
+    () =>
+      isBelowTablet ? (
+        publishButton
+      ) : (
+        <div className="flex items-center gap-3">
+          {publishButton}
+          {viewSwitch}
+        </div>
+      ),
+    [isBelowTablet, publishButton, viewSwitch]
+  );
+
+  // ---- the document's card in the chat, while the document is out of sight ----
+  const cardExecutionId = documentHidden
+    ? documentCardExecutionId(state.chat.chat, doc.status === 'drafting' ? latestExecution : null)
+    : null;
+  const cardTitle = doc.displayTitle ?? (doc.title || 'Untitled');
+  const cardWriting =
+    turnActive && cardExecutionId != null && cardExecutionId === latestExecution?.id
+      ? doc.status === 'drafting'
+        ? 'drafting'
+        : 'working'
+      : null;
+  const renderDocumentCard = useCallback(
+    (execution: ChatExecution) =>
+      execution.id === cardExecutionId ? (
+        <DocumentCard
+          title={cardTitle}
+          published={published}
+          writing={cardWriting}
+          onOpen={openDocument}
+        />
+      ) : null,
+    [cardExecutionId, cardTitle, published, cardWriting, openDocument]
+  );
+
   const headerTitle = topBarTitle({
     startingIntent: target.kind === 'new' ? state.intent : null,
     doc,
     isWide,
   });
 
-  // An open draft can be deleted from beside its title. Held stable, so the
-  // top bar is not handed a new menu on every render while a chat streams.
+  // An open draft can be deleted from the ⋯ at the document's corner. Held
+  // stable, so the pane is not handed a new menu on every render while a
+  // chat streams.
   const isDraft = noteId != null && drafts.some((draft) => draft.id === noteId);
   const draftTitle = docTitle?.trim() || 'Untitled';
   const draftMenu = useMemo(
     () =>
       isDraft && noteId != null ? (
-        <DraftMenu noteId={noteId} title={draftTitle} isOpen triggerClassName="h-8 w-8" />
+        <DraftMenu
+          noteId={noteId}
+          title={draftTitle}
+          isOpen
+          align="end"
+          triggerClassName="h-8 w-8 bg-white/90 backdrop-blur-sm"
+        />
       ) : null,
     [isDraft, noteId, draftTitle]
-  );
-
-  const documentPane = (inDrawer: boolean) => (
-    <DocumentPane
-      document={doc}
-      chat={state.chat.chat}
-      assistantWorking={state.anyTurnActive}
-      className={inDrawer ? '-mx-4 -mt-2' : undefined}
-    />
   );
 
   return (
     <PageLayout fullBleed>
       <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
-        <WorkspaceTopBar title={headerTitle} actions={draftMenu} />
+        {/* On a phone the switch takes the title's place. */}
+        <WorkspaceTopBar
+          title={headerTitle}
+          end={topBarEnd}
+          inPlaceOfTitle={isBelowTablet ? viewSwitch : null}
+        />
 
         <WorkspacePanes
-          isBelowTablet={isBelowTablet}
+          view={shownView}
           documentWidth={{ ...documentWidth, min: DOCUMENT_MIN_WIDTH, max: documentMaxWidth }}
-          onCloseDocumentDrawer={closeDocument}
           chat={
             <ChatPane
               state={state}
               documentMissing={doc.missing}
-              headerActions={
-                noteId != null && (
-                  <button
-                    type="button"
-                    onClick={() => setDocumentOpen(!showDocument)}
-                    aria-pressed={showDocument}
-                    aria-label={showDocument ? 'Hide document' : 'Show document'}
-                    title={showDocument ? 'Hide document' : 'Show document'}
-                    className={cn(
-                      'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg transition-colors',
-                      showDocument
-                        ? 'bg-primary-50 text-primary-700 hover:bg-primary-100'
-                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                    )}
-                  >
-                    {/* The chevron points where the document goes: away to the
-                        right while it shows, in from the right while hidden. */}
-                    {showDocument ? (
-                      <PanelRightClose className="h-[18px] w-[18px]" aria-hidden="true" />
-                    ) : (
-                      <PanelRightOpen className="h-[18px] w-[18px]" aria-hidden="true" />
-                    )}
-                  </button>
-                )
-              }
+              renderExecutionExtra={renderDocumentCard}
             />
           }
-          document={showDocument ? documentPane(false) : null}
-          documentDrawer={showDocument ? documentPane(true) : null}
+          document={
+            showSwitch ? (
+              <DocumentPane
+                document={doc}
+                chat={state.chat.chat}
+                assistantWorking={state.anyTurnActive}
+                hasChats={hasChats === true}
+                menu={draftMenu}
+                publishRequested={publishRequested}
+                onPublishRequestHandled={handlePublishRequest}
+              />
+            ) : null
+          }
         />
       </div>
     </PageLayout>

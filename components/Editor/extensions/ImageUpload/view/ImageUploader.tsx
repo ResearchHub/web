@@ -63,5 +63,3 @@ export const ImageUploader = ({ onUpload }: { onUpload: (url: string) => void })
     </div>
   );
 };
-
-export default ImageUploader;

@@ -12,29 +12,6 @@ export const GRANT_IMAGE_FALLBACK_GRADIENT =
   'radial-gradient(ellipse at 25% 35%, rgba(251,146,60,0.55) 0%, transparent 50%), ' +
   'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)';
 
-export const GRANT_STATUS_CONFIG: Record<
-  GrantStatus,
-  { dotClass: string; badgeClass: string; label: string }
-> = {
-  OPEN: {
-    dotClass: 'bg-emerald-500',
-    badgeClass: 'text-primary-700 bg-primary-100',
-    label: 'Accepting Applications',
-  },
-  CLOSED: { dotClass: 'bg-gray-400', badgeClass: 'text-gray-500 bg-gray-200', label: 'Closed' },
-  PENDING: {
-    dotClass: 'bg-yellow-500',
-    badgeClass: 'text-yellow-700 bg-yellow-100',
-    label: 'Pending Review',
-  },
-  DECLINED: { dotClass: 'bg-red-500', badgeClass: 'text-red-700 bg-red-100', label: 'Declined' },
-  COMPLETED: {
-    dotClass: 'bg-blue-500',
-    badgeClass: 'text-blue-700 bg-blue-100',
-    label: 'Completed',
-  },
-};
-
 export interface GrantAmount {
   usd: number;
   rsc: number;

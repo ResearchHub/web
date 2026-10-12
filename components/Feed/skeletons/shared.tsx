@@ -1,8 +1,6 @@
 import { FC, ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 
-export const skeletonPulse = 'bg-gray-200 animate-pulse rounded';
-
 export const SkeletonCardShell: FC<{ children: ReactNode; className?: string }> = ({
   children,
   className,
@@ -29,15 +27,6 @@ export const SkeletonFeedItemHeader: FC<{ actionWidth?: string; className?: stri
       <div className="h-1 w-1 bg-gray-300 rounded-full flex-shrink-0" />
       <div className="h-3.5 w-12 bg-gray-200 rounded" />
     </div>
-  </div>
-);
-
-/** Hashtag-style topic / hub badges — matches `FeedItemTopicBadges`. */
-export const SkeletonTopicBadges: FC = () => (
-  <div className="flex gap-3 pt-3 overflow-hidden">
-    <div className="h-4 w-20 bg-gray-200 rounded flex-shrink-0" />
-    <div className="h-4 w-24 bg-gray-200 rounded flex-shrink-0" />
-    <div className="h-4 w-16 bg-gray-200 rounded flex-shrink-0" />
   </div>
 );
 

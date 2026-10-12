@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { DeleteDraftModal } from '@/components/modals/DeleteDraftModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { NoteService } from '@/services/note.service';
 import type { ID } from '@/types/root';
 import { cn } from '@/utils/styles';
@@ -18,16 +18,24 @@ interface DraftMenuProps {
   readonly isOpen?: boolean;
   /** Classes for the ⋯ button, which each place sizes and reveals its own way. */
   readonly triggerClassName?: string;
+  /** Which edge of the button the menu lines up with: its start, or its end at a right-hand corner. */
+  readonly align?: 'start' | 'end';
 }
 
 /**
- * A draft's ⋯ menu, in the sidebar and beside the open document's title:
+ * A draft's ⋯ menu, in the sidebar and at the open document's corner:
  * delete, behind a confirmation. The draft leaves the sidebar at once, and
  * deleting the one open in the workspace goes to My Funding.
  */
-export function DraftMenu({ noteId, title, isOpen = false, triggerClassName }: DraftMenuProps) {
+export function DraftMenu({
+  noteId,
+  title,
+  isOpen = false,
+  triggerClassName,
+  align = 'start',
+}: DraftMenuProps) {
   const router = useRouter();
-  const { remove } = useFundingDocuments();
+  const { remove } = useFundingNotes();
   const [confirming, setConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -49,7 +57,7 @@ export function DraftMenu({ noteId, title, isOpen = false, triggerClassName }: D
   return (
     <>
       <BaseMenu
-        align="start"
+        align={align}
         sideOffset={4}
         className="w-40 rounded-xl p-1"
         trigger={

@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useAIMode } from './AIModeContext';
 import { untitledDraftTitle } from './copy';
+import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
 import { documentTarget, type WorkspaceTarget } from './workspaceUrl';
@@ -12,8 +14,10 @@ import {
   DOCUMENT_TYPE_BY_INTENT,
 } from '@/components/Funding/createFundingDraft';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useUser } from '@/contexts/UserContext';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
 import { getChatTransport } from '@/services/chatTransport';
@@ -30,6 +34,15 @@ export interface AIModeChatState extends ChatSession {
   readonly target: WorkspaceTarget;
   /** The open chat; null on the start screen, on a new chat, and while the latest is being found. */
   readonly chatId: number | null;
+  /**
+   * Start the draft without the assistant: an empty document, opened on its
+   * own, with no chat until the user asks for one.
+   */
+  readonly startBlank: () => Promise<void>;
+  /** The blank draft is being created. */
+  readonly startingBlank: boolean;
+  /** A blank draft can be started: the organization it goes in has loaded, and none is under way. */
+  readonly canStartBlank: boolean;
   /** The open document's most recent chat is being looked up. */
   readonly resolvingChat: boolean;
   /** The open document's chats; empty on the start screen. */
@@ -59,6 +72,11 @@ export interface AIModeChatState extends ChatSession {
   readonly note: ChatNoteRef | null;
   /** The open chat's title, a rename shown before the server confirms it; null for a new chat. */
   readonly chatTitle: string | null;
+  /**
+   * No one is signed in. The start screen is open to them: they can type, and
+   * sending, a suggestion or a blank page asks them to log in instead.
+   */
+  readonly signedOut: boolean;
 }
 
 /**
@@ -106,8 +124,8 @@ export function useAIModeChat(): AIModeChatState {
   // reuses it rather than leaving a second draft behind. It belongs to the
   // start screen it was made on.
   const { selectedOrg } = useOrganizationContext();
-  const fundingDocuments = useFundingDocuments();
-  const { addDraft } = fundingDocuments;
+  const fundingNotes = useFundingNotes();
+  const { addDraft } = fundingNotes;
   const pendingNoteRef = useRef<Note | null>(null);
   const startScreenKey = target.kind === 'new' ? intent : null;
   useEffect(() => {
@@ -115,10 +133,10 @@ export function useAIModeChat(): AIModeChatState {
   }, [startScreenKey]);
   const draftInitRef = useRef({ intent, selectedGrant, orgSlug: selectedOrg?.slug ?? null });
   draftInitRef.current = { intent, selectedGrant, orgSlug: selectedOrg?.slug ?? null };
-  const createDraftTransport = useCallback(async () => {
+  const createDraft = useCallback(async () => {
     const { intent: side, selectedGrant: grant, orgSlug } = draftInitRef.current;
     if (!orgSlug) throw new Error('No organization to create the draft in');
-    const note = await createFundingDraft({
+    return createFundingDraft({
       orgSlug,
       title: untitledDraftTitle(side),
       documentType: DOCUMENT_TYPE_BY_INTENT[side],
@@ -131,8 +149,29 @@ export function useAIModeChat(): AIModeChatState {
         addDraft(created);
       },
     });
-    return getChatTransport({ noteId: note.id });
   }, [addDraft]);
+  const createDraftTransport = useCallback(async () => {
+    const note = await createDraft();
+    return getChatTransport({ noteId: note.id });
+  }, [createDraft]);
+
+  // ---- a draft written without the assistant ----
+  // The same document, empty, opened on its own with no chat yet; the RFP
+  // picked on the start screen goes with it.
+  const [startingBlank, setStartingBlank] = useState(false);
+  const startBlank = useCallback(async () => {
+    setStartingBlank(true);
+    try {
+      const note = await createDraft();
+      rememberWorkspaceView(note.id, 'document');
+      setSelectedGrant(null);
+      selectTarget(documentTarget(note.id, 'new'));
+    } catch {
+      toast.error('Couldn’t start the draft. Please try again.');
+    } finally {
+      setStartingBlank(false);
+    }
+  }, [createDraft, selectTarget]);
 
   const onChatCreated = useCallback(
     (created: AgentChat) => {
@@ -245,7 +284,7 @@ export function useAIModeChat(): AIModeChatState {
   );
 
   // ---- the open document ----
-  const { drafts, published } = fundingDocuments;
+  const { drafts, published } = fundingNotes;
   const listedTitleOfNote =
     noteId == null
       ? ''
@@ -255,10 +294,31 @@ export function useAIModeChat(): AIModeChatState {
     [noteId, listedTitleOfNote]
   );
 
+  // ---- a signed-out visitor ----
+  // What would start a draft asks them to log in, and keeps what they typed
+  // (or the suggestion they picked) in the box for when they are back.
+  const { user, isLoading: userLoading } = useUser();
+  const { showAuthModal } = useAuthModalContext();
+  const signedOut = user == null && !userLoading;
+  const { setDraft } = session;
+  const askToLogIn = useCallback(
+    async (text?: string) => {
+      if (typeof text === 'string' && text.trim()) setDraft(text);
+      showAuthModal();
+    },
+    [setDraft, showAuthModal]
+  );
+
   return {
     ...session,
+    // The catalog and the budget are the signed-in user's: without them the
+    // composer would sit disabled rather than offer to log in.
+    ...(signedOut ? { send: askToLogIn, sendBlocked: false, composerBusy: false } : {}),
     target,
     chatId,
+    startBlank: signedOut ? askToLogIn : startBlank,
+    startingBlank,
+    canStartBlank: signedOut || (selectedOrg != null && !startingBlank),
     resolvingChat: resolving,
     list,
     listReady,
@@ -271,5 +331,6 @@ export function useAIModeChat(): AIModeChatState {
     deleteChat,
     note,
     chatTitle,
+    signedOut,
   };
 }

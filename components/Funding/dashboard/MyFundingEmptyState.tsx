@@ -3,10 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { FeedWorkCard } from '@/components/Funding/dashboard/FundingWorkCards';
-import {
-  DashboardSectionHeader,
-  SeeAllButton,
-} from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { UpNext } from '@/components/Funding/dashboard/UpNext';
 import { STARTER_UP_NEXT } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
@@ -73,11 +70,7 @@ function Samples({
 }) {
   if (entries.length === 0) return null;
   return (
-    <section aria-label={title}>
-      <DashboardSectionHeader
-        title={title}
-        action={<SeeAllButton href={href}>{linkLabel}</SeeAllButton>}
-      />
+    <DashboardSection title={title} action={<SeeAllButton href={href}>{linkLabel}</SeeAllButton>}>
       <ul className="space-y-4">
         {entries.map((entry) => (
           <li key={entry.id}>
@@ -85,7 +78,7 @@ function Samples({
           </li>
         ))}
       </ul>
-    </section>
+    </DashboardSection>
   );
 }
 
@@ -107,7 +100,7 @@ export function MyFundingEmptyState({ latestDraft }: MyFundingEmptyStateProps) {
   if (isLoading) return <EmptyStateSkeleton />;
 
   return (
-    <div className="mb-6 space-y-10">
+    <div className="mb-6 space-y-12">
       <UpNext items={STARTER_UP_NEXT} />
       {latestDraft && (
         <button
@@ -147,7 +140,7 @@ export function MyFundingEmptyState({ latestDraft }: MyFundingEmptyStateProps) {
 /** The empty state's shape while the samples load: Up next, then two lists of cards. */
 function EmptyStateSkeleton() {
   return (
-    <div className="mb-6 animate-pulse space-y-10" aria-hidden="true">
+    <div className="mb-6 animate-pulse space-y-12" aria-hidden="true">
       <div>
         <div className="h-5 w-20 rounded bg-gray-200" />
         <div className="mt-3 grid gap-3 sm:grid-cols-2">

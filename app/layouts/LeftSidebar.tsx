@@ -52,7 +52,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false,
       <div className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : ''} pt-[10px]`}>
         <Link href="/" onClick={onNavigate}>
           <div className={forceMinimize ? '!hidden' : 'ml-1'}>
-            <Logo size={38} color="text-primary-600" />
+            {/* The top of every page: loaded at once, not when the lazy loader gets to it. */}
+            <Logo size={38} color="text-primary-600" loading="eager" />
           </div>
           <div className={forceMinimize ? '!block' : 'hidden'}>
             <Icon name="flaskFrame" size={38} color="#3971ff" />

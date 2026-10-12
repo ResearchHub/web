@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-const SPECIAL_ROUTES = ['/proposal/', '/grant/', '/post/', '/paper/', '/author/', '/question/'];
+const SPECIAL_ROUTES = ['/proposal/', '/grant/', '/post/', '/author/', '/question/'];
 
 export const useSmartBack = () => {
   const router = useRouter();

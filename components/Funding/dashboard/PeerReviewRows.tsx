@@ -4,10 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { getEntryMeta } from '@/components/Activity/lib/activityDisplay.utils';
-import {
-  DashboardSectionHeader,
-  SeeAllButton,
-} from '@/components/Funding/dashboard/DashboardSectionHeader';
+import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import type { FeedCommentContent, FeedEntry } from '@/types/feed';
@@ -46,13 +43,10 @@ export function PeerReviewRows({
   const canExpand = !showAll && (entries.length > RECENT_COUNT || hasMore);
 
   return (
-    <section>
-      <DashboardSectionHeader
-        title="Your peer reviews"
-        meta={total > 0 && `${total} published`}
-        action={canExpand && <SeeAllButton onClick={() => setShowAll(true)}>See all</SeeAllButton>}
-      />
-
+    <DashboardSection
+      title="Your peer reviews"
+      action={canExpand && <SeeAllButton onClick={() => setShowAll(true)}>See all</SeeAllButton>}
+    >
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         {shown.map((entry) => (
           <PeerReviewRow key={entry.id} entry={entry} />
@@ -70,7 +64,7 @@ export function PeerReviewRows({
           </div>
         )}
       </div>
-    </section>
+    </DashboardSection>
   );
 }
 

@@ -1,6 +1,6 @@
 import { CHANGELOG_NOTEBOOK_ROLLOUT_AT, CHANGELOG_POST_IDS } from '@/constants/changelog';
 import type { Organization } from './organization';
-import { createTransformer, BaseTransformed } from './transformer';
+import { createTransformer } from './transformer';
 import { transformOrganization } from './organization';
 import { Currency, ID } from './root';
 import { ContentType, ModerationStatus } from './work';
@@ -220,22 +220,6 @@ export interface NoteVersionEvent {
 }
 
 export const NOTE_VERSION_CREATED = 'note_version_created';
-
-export interface NoteApiItem {
-  id: number;
-  access: NoteAccess;
-  organization: {
-    id: number;
-    cover_image: string | null;
-    name: string;
-    slug: string;
-  };
-  created_date: string;
-  updated_date: string;
-  title: string;
-}
-
-export type TransformedNote = Note & BaseTransformed;
 
 const buildFullName = (raw: any): string =>
   `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown';

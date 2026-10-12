@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { History, Sparkles } from 'lucide-react';
+import { FileText, History, Sparkles } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
@@ -31,18 +31,19 @@ import { ChatTitleField } from './ChatTitleField';
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
-  /** Header controls at its right end: the document toggle. */
-  readonly headerActions?: ReactNode;
   /** The open document no longer exists. */
   readonly documentMissing: boolean;
+  /** Under a turn, after its answer: the document's card, under the newest turn that wrote to it. */
+  readonly renderExecutionExtra?: (execution: ChatExecution) => ReactNode;
 }
 
 /**
- * The chat: on a document, its header (History, the chat's menu
- * and the document toggle), the transcript and the composer; on the screen
- * that starts a new draft, the composer in the middle of the page.
+ * The chat: on a document, its header (the chat's menu and History), the
+ * transcript and the composer; on the screen that starts a new draft, the
+ * composer in the middle of the page, and at its foot a way to write the
+ * draft without the assistant.
  */
-export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProps) {
+export function ChatPane({ state, documentMissing, renderExecutionExtra }: ChatPaneProps) {
   const {
     chatId,
     list,
@@ -172,7 +173,8 @@ export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProp
       disabled={composerDisabled}
       sendDisabled={state.sendBlocked}
       notice={notice}
-      attachments={state.attachments}
+      // Files upload as they are picked, which needs an account.
+      attachments={state.signedOut ? undefined : state.attachments}
       dropTargetRef={paneRef}
       className={cn('border-t-0', onStart ? 'bg-white pt-0' : 'bg-gray-50')}
       boxClassName={onStart ? startComposerBoxClass(state.intent) : undefined}
@@ -276,6 +278,7 @@ export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProp
         <ChatTranscript
           chat={chat.chat}
           pendingSend={chat.pendingSend}
+          renderExecutionExtra={renderExecutionExtra}
           renderFailureActions={renderFailureActions}
         />
       </div>
@@ -334,7 +337,6 @@ export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProp
               }
             />
           )}
-          {headerActions}
         </header>
       )}
 
@@ -359,6 +361,25 @@ export function ChatPane({ state, headerActions, documentMissing }: ChatPaneProp
         <div className="shrink-0 border-t border-gray-200 bg-gray-50">
           <div className="mx-auto w-full max-w-[760px] px-3 py-3 tablet:!px-5">{composer}</div>
         </div>
+      )}
+
+      {/* Quiet, at the foot of the page: the assistant is the way in, but
+          not the only one. Also there for those the assistant is closed to. */}
+      {onStart && (
+        <p className="flex shrink-0 flex-wrap items-center justify-center gap-x-1.5 gap-y-1 px-4 pb-6 pt-2 text-sm text-gray-600">
+          Prefer to write without the assistant?
+          <button
+            type="button"
+            onClick={() => void state.startBlank()}
+            disabled={!state.canStartBlank}
+            className="inline-flex items-center gap-1.5 font-medium text-gray-900 transition-colors hover:text-primary-700 disabled:cursor-wait disabled:opacity-60"
+          >
+            <FileText className="h-4 w-4 text-gray-500" aria-hidden="true" />
+            <span className="underline decoration-gray-400 underline-offset-[3px]">
+              {state.startingBlank ? 'Starting a blank page…' : 'Start with a blank page'}
+            </span>
+          </button>
+        </p>
       )}
     </div>
   );

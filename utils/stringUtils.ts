@@ -45,15 +45,6 @@ export function snakeCaseToTitleCase(value: string): string {
  * @param str The string to convert
  * @returns The string in title case
  */
-export const toTitleCase = (str: string): string => {
-  if (!str) return '';
-  return str
-    .toLowerCase()
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
 export const pluralizeSuffix = (count: number): string => (count === 1 ? '' : 's');
 
 /**

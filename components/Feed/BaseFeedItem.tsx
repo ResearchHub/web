@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode } from 'react';
 import {
   FeedContentType,
   FeedEntry,
@@ -11,11 +11,8 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
-import { stripHtml, truncateText } from '@/utils/stringUtils';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { stripHtml } from '@/utils/stringUtils';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { Button } from '@/components/ui/Button';
-import { ChevronDown } from 'lucide-react';
 import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -95,44 +92,6 @@ export interface StatusSectionProps {
   className?: string;
 }
 
-// Subcomponents
-export const BadgeSection: FC<BadgeSectionProps> = ({
-  contentType,
-  topics = [],
-  className,
-  onClick,
-}) => {
-  return (
-    <div className={cn('flex flex-wrap gap-2 mb-1', className)}>
-      {/* Content type badge would be rendered here */}
-      {topics.map((topic) => (
-        <div
-          key={topic.slug ?? topic.name}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.(e);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              e.stopPropagation();
-              onClick?.(e as any);
-            }
-          }}
-          role={onClick ? 'button' : undefined}
-          tabIndex={onClick ? 0 : undefined}
-        >
-          <TopicAndJournalBadge
-            name={topic.name}
-            slug={topic.slug ?? topic.name}
-            disableLink={!topic.slug}
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
-
 export const TitleSection: FC<TitleSectionProps> = ({ title, className, href, onClick }) => {
   const titleStyles = cn(
     'text-md md:!text-lg font-semibold text-gray-900 mb-1 hover:underline',
@@ -152,53 +111,11 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, className, href, on
   return content;
 };
 
-export const ContentSection: FC<ContentSectionProps> = ({
-  content,
-  className,
-  maxLength = 200,
-}) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isTextTruncated = content && content.length > maxLength;
-
-  const handleToggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(!isExpanded);
-  };
-
-  // Default: render truncated plain text
-  return (
-    <div className={cn('text-sm text-gray-900 hidden md:!block leading-relaxed', className)}>
-      <p>{isExpanded ? content : truncateText(content, maxLength)}</p>
-      {isTextTruncated && (
-        <Button
-          variant="link"
-          size="sm"
-          onClick={handleToggleExpand}
-          className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
-        >
-          {isExpanded ? 'Show less' : 'Read more'}
-          <ChevronDown
-            size={14}
-            className={cn(
-              'transition-transform duration-200',
-              isExpanded && 'transform rotate-180'
-            )}
-          />
-        </Button>
-      )}
-    </div>
-  );
-};
-
 // Re-export ImageSection for backwards compatibility
-export { ImageSection, type ImageSectionProps } from './ImageSection';
+export { ImageSection } from './ImageSection';
 
 export const MetadataSection: FC<MetadataSectionProps> = ({ children, className }) => {
   return <div className={cn('mb-2', className)}>{children}</div>;
-};
-
-export const CTASection: FC<CTASectionProps> = ({ children, className }) => {
-  return <div className={cn('flex items-center gap-3', className)}>{children}</div>;
 };
 
 // Primary action component interface
@@ -219,35 +136,6 @@ export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, 
       onClick={(e) => e.stopPropagation()}
     >
       {children}
-    </div>
-  );
-};
-
-// Re-export FeedItemAbstractSection for backwards compatibility
-export {
-  FeedItemAbstractSection,
-  type FeedItemAbstractSectionProps,
-} from './FeedItemAbstractSection';
-
-export const StatusSection: FC<StatusSectionProps> = ({ status, statusText, className }) => {
-  if (!status) return null;
-
-  const statusConfig = {
-    open: { color: 'bg-emerald-500', textColor: 'text-emerald-700', text: 'Open' },
-    closed: { color: 'bg-gray-400', textColor: 'text-gray-500', text: 'Closed' },
-    expired: { color: 'bg-red-500', textColor: 'text-red-700', text: 'Expired' },
-    active: { color: 'bg-blue-500', textColor: 'text-blue-700', text: 'Active' },
-    inactive: { color: 'bg-gray-400', textColor: 'text-gray-500', text: 'Inactive' },
-  };
-
-  const config = statusConfig[status] ?? statusConfig.inactive;
-
-  return (
-    <div className={cn('flex items-center gap-1.5', className)}>
-      <span className={cn('h-2 w-2 rounded-full', config.color)} />
-      <span className={cn('text-sm font-medium', config.textColor)}>
-        {statusText ?? config.text}
-      </span>
     </div>
   );
 };
