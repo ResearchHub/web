@@ -100,6 +100,7 @@ export const CommentProvider = ({
 }) => {
   const [state, dispatch] = useReducer(commentReducer, {
     ...initialCommentState,
+    sortBy: commentType === 'AUTHOR_UPDATE' ? 'CREATED_DATE' : initialCommentState.sortBy,
     loading: true,
   });
 
