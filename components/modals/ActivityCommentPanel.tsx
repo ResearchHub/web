@@ -1,10 +1,14 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { parseContent } from '@/components/Comment/lib/commentContentUtils';
+import { extractDocEmbeds, withoutStandaloneUrls } from '@/components/Comment/lib/embedDoc';
+import type { CommentContent } from '@/components/Comment/lib/types';
+import { EmbedExpandedContent, isEmbedExpandable } from '@/components/Embed/EmbedExpandedContent';
 import { Avatar } from '@/components/ui/Avatar';
 import { SidePanel } from '@/components/ui/SidePanel';
 import { ActivityAuthorSummary } from '@/components/Activity/cards/ActivityAuthorSummary';
@@ -15,7 +19,9 @@ import {
   getWorkHrefForComment,
   type ActivityWork,
 } from '@/components/Activity/lib/activityWork.utils';
+import type { ContentFormat } from '@/types/comment';
 import { formatTimestamp } from '@/utils/date';
+import { classifyUrl, trimUrlTrailingPunctuation, URL_REGEX, type DetectedUrl } from '@/utils/url';
 
 interface ActivityCommentPanelProps {
   isOpen: boolean;
@@ -52,8 +58,46 @@ function footerLabel(comment: ActivityComment): string {
 }
 
 /**
- * Someone's comment, reply or peer review in full, opened from a feed card without
- * leaving the feed. The author's own formatting is kept here; this is where it's read.
+ * The links in a comment that play here (YouTube, X, TikTok, LinkedIn), and
+ * its words without the paragraphs that were only one of those links, so a
+ * video stands in for its URL rather than repeating it.
+ */
+function splitPlayableLinks(
+  content: CommentContent,
+  format: ContentFormat
+): { readonly body: CommentContent; readonly players: readonly DetectedUrl[] } {
+  const parsed = parseContent(content, format);
+  if (format === 'TIPTAP') {
+    const players = extractDocEmbeds(parsed).filter(isEmbedExpandable);
+    if (players.length === 0) return { body: content, players };
+    return {
+      body: withoutStandaloneUrls(
+        parsed,
+        players.map((player) => player.url)
+      ),
+      players,
+    };
+  }
+  // Quill or plain text: its links play below it, and its words stay as written.
+  const text: string = Array.isArray(parsed?.ops)
+    ? parsed.ops
+        .map((op: { insert?: unknown }) => (typeof op.insert === 'string' ? op.insert : ''))
+        .join('')
+    : typeof content === 'string'
+      ? content
+      : '';
+  const byUrl = new Map<string, DetectedUrl>();
+  for (const match of text.match(URL_REGEX) ?? []) {
+    const embed = classifyUrl(trimUrlTrailingPunctuation(match));
+    if (embed && isEmbedExpandable(embed) && !byUrl.has(embed.url)) byUrl.set(embed.url, embed);
+  }
+  return { body: content, players: [...byUrl.values()] };
+}
+
+/**
+ * Someone's comment, reply, peer review or author update in full, opened from a
+ * feed card without leaving the feed. The author's own formatting is kept here,
+ * and the videos and posts they linked play in place; this is where it's read.
  */
 export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
   isOpen,
@@ -65,6 +109,7 @@ export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
   const { author, content, format, score, parent, createdDate } = comment;
   const headline = author.headline?.trim();
   const href = getWorkHrefForComment(work, comment.kind);
+  const { body, players } = useMemo(() => splitPlayableLinks(content, format), [content, format]);
 
   return (
     <SidePanel
@@ -128,12 +173,21 @@ export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
         {parent && <ActivityQuotedComment comment={parent} onOpen={onOpenParent} lines={4} />}
 
         <CommentReadOnly
-          content={content}
+          content={body}
           contentFormat={format}
           initiallyExpanded
           showLinkPreviews={false}
           className="text-[15px] leading-7 text-gray-800"
         />
+
+        {players.map((player) => (
+          <div
+            key={player.url}
+            className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+          >
+            <EmbedExpandedContent embed={player} autoplay={false} />
+          </div>
+        ))}
       </div>
     </SidePanel>
   );
