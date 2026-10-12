@@ -71,7 +71,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         url: buildWorkUrl({
           id: raw.id,
           contentType: raw.contentType || 'paper',
-          doi: raw.doi,
           slug: raw.slug,
         }),
       };
@@ -179,7 +178,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           url: buildWorkUrl({
             id: raw.id,
             contentType: 'paper',
-            doi: raw.doi,
           }),
         };
     }

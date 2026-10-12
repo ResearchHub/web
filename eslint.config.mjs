@@ -41,7 +41,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['app/{paper,post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx'],
+    files: ['app/{post,proposal,question,report}/[[]id[]]/[[]slug[]]/**/page.tsx'],
     plugins: {
       researchhub: researchHubPlugin,
     },

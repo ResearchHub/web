@@ -8,7 +8,6 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { TabType } from './WorkTabs';
-import { WorkHistoryDisplay } from './WorkHistoryDisplay';
 
 import { Button } from '@/components/ui/Button';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
@@ -134,17 +133,6 @@ export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
               work={work}
             />
           </div>
-        );
-      case 'history':
-        return (
-          <>
-            <h2 className="mb-4 text-lg font-medium">Version History</h2>
-            <WorkHistoryDisplay
-              versions={work.versions || []}
-              currentPaperId={work.id}
-              slug={work.slug}
-            />
-          </>
         );
       default:
         return null;

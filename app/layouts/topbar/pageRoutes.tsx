@@ -156,13 +156,6 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/paper/'),
-    getInfo: () => ({
-      title: 'Paper',
-      icon: <Icon name="workType" size={20} className="text-gray-900" />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/post/'),
     getInfo: () => ({
       title: 'Preprint',

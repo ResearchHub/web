@@ -31,7 +31,6 @@ function getTabFromPath(path: string): TabType {
   if (path.includes('/applications')) return 'applications';
   if (path.includes('/reviews')) return 'reviews';
   if (path.includes('/bounties')) return 'bounties';
-  if (path.includes('/history')) return 'history';
   return 'paper';
 }
 

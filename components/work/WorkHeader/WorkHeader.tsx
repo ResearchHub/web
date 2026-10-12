@@ -40,7 +40,7 @@ import { useWorkTab } from './WorkTabContext';
 interface WorkHeaderProps {
   work: Work;
   metadata: WorkMetadata;
-  contentType?: 'paper' | 'post' | 'fund';
+  contentType?: 'post' | 'fund';
   updatesCount?: number;
   className?: string;
   eyebrow?: ReactNode;
@@ -66,7 +66,7 @@ interface WorkHeaderProps {
 export function WorkHeader({
   work,
   metadata,
-  contentType = 'paper',
+  contentType = 'post',
   updatesCount,
   className,
   eyebrow: eyebrowOverride,
