@@ -144,36 +144,45 @@ function NewsPreview({
   readonly video?: DetectedUrl | null;
 }) {
   const text = video ? withoutVideoLinks(news.text) : news.text;
-  return (
-    <>
-      <span className="flex items-center gap-1.5 text-xs text-gray-500">
-        {news.kind === 'update' ? (
-          <>
-            <Bell className="h-3.5 w-3.5 text-primary-600" aria-hidden="true" />
-            <span className="font-semibold text-gray-700">Update</span>
-          </>
-        ) : (
-          <span className="font-semibold text-gray-700">Peer review</span>
-        )}
-        {news.kind === 'review' && news.score ? (
-          <span className="inline-flex items-center gap-0.5 font-medium text-amber-700">
-            <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
-            {news.score.toFixed(1)}
-          </span>
-        ) : null}
-        <span aria-hidden="true">·</span>
-        <span>{formatTimeAgo(news.timestamp)}</span>
-      </span>
-      {video ? (
-        <span className="mt-2 flex items-center gap-3">
-          <span className="line-clamp-3 min-w-0 flex-1 text-sm leading-relaxed text-gray-700">
-            {text || (news.kind === 'update' ? 'Shared a video' : 'A video')}
-          </span>
-          <VideoThumbnail embed={video} className="aspect-video w-28 shrink-0" />
-        </span>
+  const heading = (
+    <span className="flex items-center gap-1.5 text-xs text-gray-500">
+      {news.kind === 'update' ? (
+        <>
+          <Bell className="h-3.5 w-3.5 text-primary-600" aria-hidden="true" />
+          <span className="font-semibold text-gray-700">Update</span>
+        </>
       ) : (
-        <span className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-gray-700">{text}</span>
+        <span className="font-semibold text-gray-700">Peer review</span>
       )}
-    </>
+      {news.kind === 'review' && news.score ? (
+        <span className="inline-flex items-center gap-0.5 font-medium text-amber-700">
+          <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
+          {news.score.toFixed(1)}
+        </span>
+      ) : null}
+      <span aria-hidden="true">·</span>
+      <span>{formatTimeAgo(news.timestamp)}</span>
+    </span>
+  );
+
+  if (!video) {
+    return (
+      <>
+        {heading}
+        <span className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-gray-700">{text}</span>
+      </>
+    );
+  }
+  // The video takes the right of the whole preview, beside the heading and the words.
+  return (
+    <span className="flex items-center gap-3">
+      <span className="min-w-0 flex-1">
+        {heading}
+        <span className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-gray-700">
+          {text || (news.kind === 'update' ? 'Shared a video' : 'A video')}
+        </span>
+      </span>
+      <VideoThumbnail embed={video} className="aspect-video w-28 shrink-0" />
+    </span>
   );
 }
