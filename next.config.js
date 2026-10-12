@@ -19,9 +19,15 @@ const nextConfig = {
     },
     {
       source: '/journal/:slug',
-      destination: '/topic/:slug',
+      destination: '/',
       permanent: true,
     },
+    // Topic (hub) pages and the topic browser are retired.
+    ...['/topic/:path*', '/browse'].map((source) => ({
+      source,
+      destination: '/',
+      permanent: true,
+    })),
     {
       source: '/trending',
       destination: '/',

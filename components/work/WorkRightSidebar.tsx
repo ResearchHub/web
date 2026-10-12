@@ -2,7 +2,6 @@
 
 import { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
-import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
@@ -40,7 +39,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
           })}
         />
       )}
-      {work.contentType === 'paper' && <TopicsSection topics={metadata.topics || []} />}
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />

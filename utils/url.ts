@@ -382,10 +382,3 @@ export const buildWorkUrl = ({
 export const buildAuthorUrl = (id: string | number) => {
   return `/author/${id}`;
 };
-
-/**
- * Builds a topic URL from a slug
- */
-export const buildTopicUrl = (slug: string) => {
-  return `/topic/${slug}`;
-};

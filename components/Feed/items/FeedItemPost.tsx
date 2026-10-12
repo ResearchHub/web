@@ -11,7 +11,6 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { RiskScoreBadge } from '@/components/Moderators/RiskScoreBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -100,14 +99,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         rightContent={null}
         leftContent={null}
       />
-
-      <div className="mt-[-7px]">
-        <FeedItemTopicBadges
-          topics={post.topics}
-          category={post.category}
-          subcategory={post.subcategory}
-        />
-      </div>
 
       {/* Main content layout with desktop image */}
       <FeedItemLayout

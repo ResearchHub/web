@@ -1,12 +1,11 @@
 import { createTransformer } from './transformer';
-import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
+import { buildWorkUrl, buildAuthorUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
 import { AuthorProfile, extractHeadline } from './authorProfile';
 import { ID } from './root';
-import { transformTopic } from './topic';
 import { ContentType } from './work';
 
-export type EntityType = 'user' | 'paper' | 'author' | 'post' | 'hub';
+export type EntityType = 'user' | 'paper' | 'author' | 'post';
 
 export interface BaseSuggestion {
   entityType: EntityType;
@@ -49,17 +48,7 @@ export interface PostSuggestion extends BaseSuggestion {
   documentType?: string;
 }
 
-export interface TopicSuggestion extends BaseSuggestion {
-  entityType: 'hub';
-  displayName: string;
-  id: number;
-  slug: string;
-  imageUrl?: string;
-  description?: string;
-  paperCount?: number;
-}
-
-export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion | TopicSuggestion;
+export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion;
 
 export const transformSearchSuggestion = createTransformer<any, SearchSuggestion>((raw: any) => {
   try {
@@ -174,36 +163,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
             : undefined,
         };
       }
-      case 'hub':
-        try {
-          // Transform hub using topic transformer and adapt to SearchSuggestion format
-          const topicData = transformTopic(raw);
-          return {
-            entityType: 'hub',
-            id: topicData.id,
-            displayName: topicData.name || raw.name || raw.display_name || 'Untitled Topic',
-            slug: topicData.slug || '',
-            source: raw.source || 'api',
-            isRecent: false,
-            imageUrl: topicData.imageUrl,
-            description: topicData.description,
-            paperCount: topicData.paperCount,
-            url: buildTopicUrl(topicData.slug),
-          };
-        } catch (error) {
-          console.error('Error transforming topic:', error, raw);
-          // Fallback if topic transformation fails
-          return {
-            entityType: 'hub',
-            id: raw.id || 0,
-            displayName: raw.name || raw.display_name || 'Untitled Topic',
-            slug: raw.slug || '',
-            source: raw.source || 'api',
-            isRecent: false,
-            url: raw.slug ? buildTopicUrl(raw.slug) : '#',
-          };
-        }
-
       case 'paper':
       default:
         return {

@@ -12,7 +12,7 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
+import { FeedItemJournalBadge } from '@/components/Feed/FeedItemJournalBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
@@ -101,14 +101,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           />
         ) : undefined
       }
-      badges={
-        <FeedItemTopicBadges
-          journal={filteredJournal}
-          category={paper.category}
-          subcategory={paper.subcategory}
-          topics={paper.topics}
-        />
-      }
+      badges={<FeedItemJournalBadge journal={filteredJournal} />}
     >
       {/* Top section with mobile image */}
       <FeedItemTopSection

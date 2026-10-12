@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { FileText, History, Search, X, ArrowRight, User, Hash, HelpCircle } from 'lucide-react';
+import { FileText, History, Search, X, ArrowRight, User, HelpCircle } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
-import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 import { Avatar } from '@/components/ui/Avatar';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
@@ -54,13 +53,7 @@ export function SearchSuggestions({
     return null;
   }
 
-  const handleSelect = (suggestion: SearchSuggestion, e: React.MouseEvent) => {
-    // Don't select if we clicked on a FollowTopicButton
-    if ((e.target as HTMLElement).closest('.follow-topic-btn')) {
-      return;
-    }
-
-    // Call the onSelect handler
+  const handleSelect = (suggestion: SearchSuggestion) => {
     if (onSelect) {
       onSelect(suggestion);
     }
@@ -86,7 +79,6 @@ export function SearchSuggestions({
       const isPaperSuggestion = suggestion.entityType === 'paper';
       const isUserSuggestion =
         suggestion.entityType === 'user' || suggestion.entityType === 'author';
-      const isTopicSuggestion = suggestion.entityType === 'hub';
       const isPostSuggestion = suggestion.entityType === 'post';
       const isGrantPost = isPostSuggestion && suggestion?.documentType === 'GRANT';
       const isProposalRequest = isPostSuggestion && suggestion?.documentType === 'PREREGISTRATION';
@@ -131,13 +123,6 @@ export function SearchSuggestions({
         return false;
       };
 
-      const safeGetPaperCount = () => {
-        if (isTopicSuggestion && 'paperCount' in suggestion) {
-          return suggestion.paperCount ? `${suggestion.paperCount} papers` : 'Research Topic';
-        }
-        return 'Research Topic';
-      };
-
       // Get the smaller icon variant for dropdown mode
       const getSmallIcon = () => {
         if (suggestion.isRecent)
@@ -158,8 +143,6 @@ export function SearchSuggestions({
             <User className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />
           );
         }
-        if (isTopicSuggestion)
-          return <Hash className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />;
         if (isGrantPost || isProposalRequest)
           return (
             <div style={{ padding: '6px' }} className="mt-0.5 flex-shrink-0">
@@ -176,7 +159,7 @@ export function SearchSuggestions({
           <li key={suggestionKey}>
             <div
               className="w-full px-4 py-3 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-3 text-left group cursor-pointer border-l-2 border-transparent hover:border-l-gray-300"
-              onClick={(e) => handleSelect(suggestion, e)}
+              onClick={() => handleSelect(suggestion)}
             >
               <div className="flex-shrink-0">{getSmallIcon()}</div>
               <div className="flex-1 min-w-0">
@@ -195,19 +178,7 @@ export function SearchSuggestions({
                 {isUserSuggestion && (
                   <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">{safeGetHeadline()}</p>
                 )}
-                {isTopicSuggestion && (
-                  <p className="mt-0.5 text-xs text-gray-500 line-clamp-1">
-                    Topic • {safeGetPaperCount()}
-                  </p>
-                )}
               </div>
-              {isTopicSuggestion && suggestion.id && (
-                <FollowTopicButton
-                  topicId={suggestion.id}
-                  size="sm"
-                  className="text-xs py-1 px-2 h-6 follow-topic-btn opacity-0 group-hover:opacity-100 transition-opacity"
-                />
-              )}
             </div>
           </li>
         );
@@ -218,7 +189,7 @@ export function SearchSuggestions({
         <li
           key={suggestionKey}
           className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-          onClick={(e) => handleSelect(suggestion, e)}
+          onClick={() => handleSelect(suggestion)}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-start gap-3">
@@ -239,18 +210,8 @@ export function SearchSuggestions({
                 {isUserSuggestion && (
                   <div className="text-xs text-gray-500">{safeGetHeadline()}</div>
                 )}
-                {isTopicSuggestion && (
-                  <div className="text-xs text-gray-500">Topic • {safeGetPaperCount()}</div>
-                )}
               </div>
             </div>
-            {isTopicSuggestion && suggestion.id && (
-              <FollowTopicButton
-                topicId={suggestion.id}
-                size="sm"
-                className="text-xs py-1 px-2 h-6 follow-topic-btn"
-              />
-            )}
           </div>
         </li>
       );

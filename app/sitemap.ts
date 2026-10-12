@@ -71,7 +71,6 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${SITE_URL}/fund/proposals`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/peer-review`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/journal`, changeFrequency: 'daily', priority: 0.7 },
-  { url: `${SITE_URL}/browse`, changeFrequency: 'daily', priority: 0.6 },
   { url: `${SITE_URL}/lists`, changeFrequency: 'daily', priority: 0.5 },
   { url: `${SITE_URL}/about`, changeFrequency: 'monthly', priority: 0.5 },
   { url: `${SITE_URL}/researchcoin`, changeFrequency: 'monthly', priority: 0.5 },
@@ -80,7 +79,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
 ];
 
 export async function generateSitemaps() {
-  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
+  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }];
 }
 
 export default async function sitemap({
@@ -97,23 +96,12 @@ export default async function sitemap({
       (item) => item.content_object
     );
 
-  if (sitemapId === 2) {
-    const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=1000');
-    return dedupe(
-      hubs.map((hub) => ({
-        url: `${SITE_URL}/topic/${hub.slug}`,
-        changeFrequency: 'daily' as const,
-        priority: 0.6,
-      }))
-    );
-  }
-
-  if (sitemapId === 3)
+  if (sitemapId === 2)
     return buildSlugSitemap(
       '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=1000',
       '/proposal/'
     );
-  if (sitemapId === 4)
+  if (sitemapId === 3)
     return buildSlugSitemap('/api/researchhubpost/?document_type=GRANT&page_size=100', '/grant/');
 
   return [];

@@ -5,7 +5,6 @@ import {
   SkeletonDescriptionLines,
   SkeletonFeedItemActionsFooter,
   SkeletonFeedItemHeader,
-  SkeletonTopicBadges,
 } from './shared';
 
 interface PaperPostSkeletonProps {
@@ -31,8 +30,6 @@ export const PaperPostSkeleton: FC<PaperPostSkeletonProps> = ({
             <div className="h-4 bg-gray-200 rounded w-56 mb-3" />
 
             <SkeletonDescriptionLines />
-
-            <SkeletonTopicBadges />
           </div>
 
           {showImage && <SkeletonCardImageRight />}

@@ -4,7 +4,6 @@ import {
   SkeletonCardImageMobile,
   SkeletonCardImageRight,
   SkeletonCardShell,
-  SkeletonTopicBadges,
 } from './shared';
 
 export const BountySkeleton: FC = () => (
@@ -36,8 +35,6 @@ export const BountySkeleton: FC = () => (
               </div>
             </div>
           </div>
-
-          <SkeletonTopicBadges />
         </div>
 
         <SkeletonCardImageRight />

@@ -2,9 +2,6 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { truncateText } from '@/utils/stringUtils';
-import { HashtagBadge } from '@/components/ui/badges/HashtagBadge';
-import { Topic } from '@/types/topic';
-import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { Fundraise } from '@/types/feed';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
@@ -13,7 +10,6 @@ import { buildWorkUrl } from '@/utils/url';
 interface RelatedWorkCardProps {
   work: Work;
   onClick?: () => void;
-  onTopicClick?: (topic: Topic) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   fundraiseData?: Fundraise;
   onFeedItemClick?: () => void;
@@ -22,7 +18,6 @@ interface RelatedWorkCardProps {
 export const RelatedWorkCard = ({
   work,
   onClick,
-  onTopicClick,
   size = 'default',
   fundraiseData,
   onFeedItemClick,
@@ -172,29 +167,6 @@ export const RelatedWorkCard = ({
       {displayAbstract && (
         <div className={`mt-2 text-gray-600 ${getAbstractClass()}`}>{displayAbstract}</div>
       )}
-
-      {/* Topics */}
-      <div className="mt-2 flex flex-wrap gap-2">
-        {(work.topics || [])
-          .filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug))
-          .slice(0, 2)
-          .map((topic) => {
-            return (
-              <div
-                key={topic.id || topic.slug}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onTopicClick) {
-                    onTopicClick(topic);
-                  }
-                  // Otherwise, let the HashtagBadge handle navigation
-                }}
-              >
-                <HashtagBadge label={topic.slug || topic.name} href={`/topic/${topic.slug}`} />
-              </div>
-            );
-          })}
-      </div>
 
       {/* Funding Goal */}
       {fundraiseData?.goalAmount?.usd && (

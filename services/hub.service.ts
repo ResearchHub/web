@@ -1,46 +1,8 @@
-import { Topic, transformTopicSuggestions, transformTopic } from '@/types/topic';
+import { Topic, transformTopicSuggestions } from '@/types/topic';
 import { ApiClient } from './client';
 
-interface HubResponse {
-  id: number;
-  name: string;
-  slug: string;
-  hub_image?: string | null;
-  description?: string;
-  namespace?: string;
-  category?: string;
-  discussion_count?: number;
-  paper_count?: number;
-  subscriber_count?: number;
-  is_locked?: boolean;
-  is_removed?: boolean;
-  editor_permission_groups?: any[];
-}
-
-interface HubDetailResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: HubResponse[];
-}
-
-interface PrimaryHubsResponse {
-  count: number;
-  results: HubResponse[];
-}
-
-export interface Hub {
-  id: number;
-  name: string;
-  slug: string;
-  imageUrl?: string;
-  description?: string;
-}
-
 export class HubService {
-  private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
-  private static readonly PRIMARY_HUBS_PATH = '/api/hub/primary_only';
 
   static async suggestTopics(query: string, limit?: number): Promise<Topic[]> {
     const params = new URLSearchParams({
@@ -55,30 +17,5 @@ export class HubService {
     const response = await ApiClient.get<any>(`${this.SUGGEST_PATH}/?${params.toString()}`);
 
     return transformTopicSuggestions(response);
-  }
-
-  static async followHub(hubId: number): Promise<void> {
-    await ApiClient.post(`${this.BASE_PATH}/${hubId}/follow/`);
-  }
-
-  static async unfollowHub(hubId: number): Promise<void> {
-    await ApiClient.post(`${this.BASE_PATH}/${hubId}/unfollow/`);
-  }
-
-  static async getHubBySlug(slug: string): Promise<Topic> {
-    const response = await ApiClient.get<HubDetailResponse>(
-      `${this.BASE_PATH}?slug=${encodeURIComponent(slug)}`
-    );
-
-    if (!response.results.length) {
-      throw new Error(`Hub with slug "${slug}" not found`);
-    }
-
-    return transformTopic(response.results[0]);
-  }
-
-  static async getPrimaryHubs(): Promise<Topic[]> {
-    const response = await ApiClient.getPublic<PrimaryHubsResponse>(this.PRIMARY_HUBS_PATH);
-    return response.results.map(transformTopic);
   }
 }
