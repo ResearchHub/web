@@ -68,25 +68,19 @@ const EMPTY: DocumentLists = { key: null, drafts: [], published: [], draftCount:
 const byLatestEdit = (a: Note, b: Note) =>
   new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime();
 
-/**
- * One status's documents of both types. The listing filters by one type at a
- * time, so each type is its own request and the two are merged here.
- */
+/** One status's documents of both types, in one request. */
 async function loadDocuments(
   orgSlug: string,
   status: NonNullable<GetOrganizationNotesParams['status']>
 ): Promise<{ notes: Note[]; count: number }> {
-  const pages = await Promise.all(
-    FUNDING_DOCUMENT_TYPES.map((documentType) =>
-      NoteService.getOrganizationNotes(orgSlug, { status, documentType, ordering: '-updated_date' })
-    )
-  );
-  const byId = new Map(pages.flatMap((page) => page.results).map((note) => [note.id, note]));
+  const page = await NoteService.getOrganizationNotes(orgSlug, {
+    status,
+    documentType: FUNDING_DOCUMENT_TYPES,
+    ordering: '-updated_date',
+  });
   return {
-    notes: Array.from(byId.values())
-      .filter((note) => !note.isRemoved)
-      .sort(byLatestEdit),
-    count: pages.reduce((total, page) => total + page.count, 0),
+    notes: page.results.filter((note) => !note.isRemoved).sort(byLatestEdit),
+    count: page.count,
   };
 }
 
