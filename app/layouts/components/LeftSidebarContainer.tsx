@@ -18,13 +18,15 @@ export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerPr
   return (
     <div
       className={cn(
-        'bg-white border-r border-gray-200 flex-shrink-0 z-[130] w-[240px]',
-        // The menu: fixed full height, sliding in over the top bar (and the promo banner).
-        'fixed top-0 h-screen',
+        'bg-white border-r border-gray-200 flex-shrink-0 z-[130]',
+        // The menu: fixed full height, sliding in over the top bar (and the promo
+        // banner), a fifth wider than the column so its rows are easier to tap.
+        'fixed top-0 h-screen w-[288px] max-w-[85vw]',
         'transition-transform duration-200 ease-out',
         isOpen ? '!translate-x-0' : '!-translate-x-full',
         // The column: in the page's row, always there.
         'sidebar-compact:!sticky sidebar-compact:!top-0 sidebar-compact:!h-screen sidebar-compact:!z-30',
+        'sidebar-compact:!w-[240px] sidebar-compact:!max-w-none',
         'sidebar-compact:!transition-none sidebar-compact:!translate-x-0'
       )}
     >
