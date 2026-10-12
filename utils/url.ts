@@ -315,14 +315,12 @@ export function generateSlug(text: string): string {
 export const buildWorkUrl = ({
   id,
   contentType,
-  doi,
   slug,
   tab,
   shareToken,
 }: {
   id?: string | number | null;
   contentType: ContentType;
-  doi?: string | null;
   slug?: string;
   tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
   shareToken?: string | null;
@@ -348,24 +346,9 @@ export const buildWorkUrl = ({
       baseUrl = slug ? `/question/${id}/${slug}` : `/question/${id}`;
       break;
     case 'paper':
-      if (id) {
-        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-      } else if (doi) {
-        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-      } else {
-        return '#'; // Return a safe fallback URL when neither id nor doi is available
-      }
-      break;
     default:
-      // Fallback for unknown content types
-      if (id) {
-        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-      } else if (doi) {
-        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-      } else {
-        return '#'; // Return a safe fallback URL when neither id nor doi is available
-      }
-      break;
+      // Paper pages are retired and unknown content types have no page: no link.
+      return '#';
   }
 
   // Append tab if provided

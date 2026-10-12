@@ -622,7 +622,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     // For papers
     if (entityType === 'paper') {
-      const href = buildWorkUrl({ id, doi: node.attrs?.doi, contentType: 'paper' });
+      const href = buildWorkUrl({ id, contentType: 'paper' });
       if (!href || href === '#') {
         return <span className="mention">{label}</span>;
       }

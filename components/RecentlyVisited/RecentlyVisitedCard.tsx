@@ -53,7 +53,6 @@ function toRecentPage(visit: VisitRecord): RecentPage | null {
     const href = buildWorkUrl({
       id: visit.id,
       contentType,
-      doi: 'doi' in visit ? visit.doi : undefined,
       slug: visit.slug,
     });
     if (!href || href === '#') return null;

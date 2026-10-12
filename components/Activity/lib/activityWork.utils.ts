@@ -15,7 +15,6 @@ import type {
   FeedBountyContent,
   FeedEntry,
   FeedGrantContent,
-  FeedPaperContent,
   FeedPostContent,
 } from '@/types/feed';
 import type { Bounty } from '@/types/bounty';
@@ -358,29 +357,8 @@ function grantSummaryFromFeedGrant(content: FeedGrantContent): WorkGrantSummary 
 function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
   const bounty = getActivityBounty(entry);
 
-  if (entry.contentType === 'PAPER') {
-    const paper = entry.content as FeedPaperContent;
-    if (!paper.title) return null;
-    const documentType: ContentType = 'paper';
-    const tab = resolveWorkTab(entry, documentType);
-    return {
-      id: paper.id,
-      slug: paper.slug,
-      title: paper.title,
-      href: buildWorkUrl({
-        id: paper.id,
-        slug: paper.slug,
-        contentType: documentType,
-        tab,
-      }),
-      imageUrl: paper.previewImage || paper.previewThumbnail,
-      documentType,
-      unifiedDocumentId: toOptionalNumber(paper.unifiedDocumentId),
-      bounty,
-      authors: paper.authors,
-      tab,
-    };
-  }
+  // Paper pages are retired, so a paper event has no work card to show.
+  if (entry.contentType === 'PAPER') return null;
 
   if (entry.contentType === 'GRANT') {
     const grantContent = entry.content as FeedGrantContent;

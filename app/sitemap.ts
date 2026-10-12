@@ -79,7 +79,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
 ];
 
 export async function generateSitemaps() {
-  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }];
+  return [{ id: 0 }, { id: 1 }, { id: 2 }];
 }
 
 export default async function sitemap({
@@ -91,17 +91,10 @@ export default async function sitemap({
   if (sitemapId === 0) return STATIC_ROUTES;
   if (sitemapId === 1)
     return buildSlugSitemap(
-      '/api/feed/?content_type=PAPER&page_size=1000',
-      '/paper/',
-      (item) => item.content_object
-    );
-
-  if (sitemapId === 2)
-    return buildSlugSitemap(
       '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=1000',
       '/proposal/'
     );
-  if (sitemapId === 3)
+  if (sitemapId === 2)
     return buildSlugSitemap('/api/researchhubpost/?document_type=GRANT&page_size=100', '/grant/');
 
   return [];
