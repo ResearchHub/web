@@ -166,10 +166,10 @@ function NewsPreview({
       </span>
       {video ? (
         <span className="mt-2 flex items-center gap-3">
-          <VideoThumbnail embed={video} className="aspect-video w-28 shrink-0" />
-          <span className="line-clamp-3 min-w-0 text-sm leading-relaxed text-gray-700">
+          <span className="line-clamp-3 min-w-0 flex-1 text-sm leading-relaxed text-gray-700">
             {text || (news.kind === 'update' ? 'Shared a video' : 'A video')}
           </span>
+          <VideoThumbnail embed={video} className="aspect-video w-28 shrink-0" />
         </span>
       ) : (
         <span className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-gray-700">{text}</span>
