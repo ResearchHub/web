@@ -3,40 +3,34 @@
 import { FC } from 'react';
 
 export const ActivityCardSkeleton: FC = () => (
-  <div className="animate-pulse py-4 border-b border-gray-100 last:border-b-0" aria-hidden>
-    <div className="flex gap-2.5">
-      <div className="flex w-8 flex-shrink-0 flex-col items-center">
-        <div className="pt-0.5">
-          <div className="h-8 w-8 rounded-full bg-gray-200" />
+  <div
+    className="animate-pulse overflow-hidden rounded-2xl border border-gray-200 bg-white"
+    aria-hidden
+  >
+    <div className="px-3.5 pt-3.5 tablet:px-4 tablet:pt-4">
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
+          <div className="h-3.5 w-52 rounded bg-gray-200" />
+          <div className="h-3 w-40 rounded bg-gray-200" />
         </div>
       </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="mb-2.5 flex h-6 min-w-0 items-center gap-x-1.5 pt-1">
-          <div className="h-3.5 w-24 rounded bg-gray-200" />
-          <div className="h-3.5 w-32 rounded bg-gray-200" />
-        </div>
-
-        <div className="mt-5 -ml-[42px] tablet:!ml-0">
-          <div className="overflow-hidden rounded-[14px] border border-gray-200 bg-white">
-            <div className="relative h-[190px] overflow-hidden bg-gray-200 sm:h-[180px]">
-              <div className="absolute inset-x-0 bottom-0 px-4 pb-2 pt-2 bg-black/40">
-                <div className="h-3.5 w-3/4 rounded bg-white/30" />
-                <div className="mt-1.5 h-2.5 w-1/3 rounded bg-white/20" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-3 py-2">
-              <div className="h-6 w-20 rounded bg-gray-200" />
-              <div className="flex shrink-0 items-center gap-3">
-                <div className="h-6 w-6 rounded-full bg-gray-200" />
-                <div className="h-6 w-6 rounded-full bg-gray-200" />
-                <div className="h-6 w-6 rounded-full bg-gray-200" />
-              </div>
-            </div>
-          </div>
-          <div className="mt-3 h-3 w-14 rounded bg-gray-200" />
-        </div>
+      <div className="mt-3 flex flex-col gap-2 border-t border-gray-200/70 pt-3">
+        <div className="h-3.5 w-full rounded bg-gray-200" />
+        <div className="h-3.5 w-2/3 rounded bg-gray-200" />
       </div>
+    </div>
+
+    <div className="relative mt-3 h-[136px] bg-gray-200 tablet:mx-4 tablet:h-[172px] tablet:rounded-xl">
+      <div className="absolute inset-x-0 bottom-0 px-4 pb-2.5 pt-2 bg-black/10 tablet:rounded-b-xl">
+        <div className="h-2.5 w-24 rounded bg-white/50" />
+        <div className="mt-1.5 h-3.5 w-3/4 rounded bg-white/60" />
+      </div>
+    </div>
+
+    <div className="flex items-center justify-between gap-3 px-3.5 pb-3 pt-3 tablet:px-4 tablet:pb-4">
+      <div className="h-6 w-20 rounded bg-gray-200" />
+      <div className="h-10 w-28 rounded-[10px] bg-gray-200" />
     </div>
   </div>
 );

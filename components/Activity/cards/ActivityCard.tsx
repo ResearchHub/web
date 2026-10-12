@@ -1,129 +1,147 @@
 'use client';
 
-import { FC } from 'react';
-import { Avatar } from '@/components/ui/Avatar';
+import { FC, useState } from 'react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { ActivityCommentPanel } from '@/components/modals/ActivityCommentPanel';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { ActivityCardHeader } from './ActivityCardHeader';
-import { ActivityGroupHeader } from './ActivityGroupHeader';
-import { ActivityTimestamp } from './ActivityTimestamp';
-import { ActivityWorkActions } from '../work/ActivityWorkActions';
-import { ActivityWorkMetadata } from '../work/ActivityWorkMetadata';
-import { WorkPreviewCard } from '../work/WorkPreviewCard';
+import { ActivityActor } from './ActivityActor';
+import { ActivityCardMenu } from './ActivityCardMenu';
+import { ACTIVITY_CONTENT_DIVIDER, ActivityCardShell } from './ActivityCardShell';
+import { ActivityQuotedComment } from './ActivityQuotedComment';
+import { ActivityCardFooter } from '../work/ActivityCardFooter';
+import { ActivityWorkCover } from '../work/ActivityWorkCover';
 import {
+  getActivityActionLine,
+  getActivityComment,
   getActivityHeaderMessage,
   getCommentPreview,
   isDocumentPublication,
+  toReviewVerdictPreview,
 } from '../lib/activityDisplay.utils';
-import { getActivityWork, getWorkCardPresentation } from '../lib/activityWork.utils';
+import {
+  getActivityCta,
+  getActivityWork,
+  getWorkCoverPresentation,
+  shouldShowAuthorBadge,
+} from '../lib/activityWork.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { FeedEntry } from '@/types/feed';
-import { cn } from '@/utils/styles';
 
 interface ActivityCardProps {
   entry: FeedEntry;
   hideActions?: boolean;
-  hideEntryDivider?: boolean;
   /** Author whose profile the card appears on. */
   profileAuthor?: AuthorProfile;
 }
 
+/**
+ * One activity, as a card of its own: who acted, what they did, their words, the
+ * work it happened on, and one thing the reader can do about it.
+ */
 export const ActivityCard: FC<ActivityCardProps> = ({
   entry,
   hideActions = false,
-  hideEntryDivider = false,
   profileAuthor,
 }) => {
   const work = getActivityWork(entry);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { updateLastClickedEntryId } = useNavigation();
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  // The panel shows the card's own words, or the comment they reply to.
+  const [panelShowsParent, setPanelShowsParent] = useState(false);
 
   if (!work) return null;
 
   const entryId = String(entry.id);
   const message = getActivityHeaderMessage(entry, profileAuthor);
-  let groupedAuthors: AuthorProfile[] | undefined;
-  if (isDocumentPublication(entry) && work.authors && work.authors.length > 1) {
-    groupedAuthors = work.authors;
-  }
-  const header = <ActivityCardHeader entry={entry} message={message} authors={groupedAuthors} />;
+  // A co-authored document is credited to all of its authors at once.
+  const isCoAuthored = isDocumentPublication(entry) && (work.authors?.length ?? 0) > 1;
+  const authors = isCoAuthored && work.authors ? work.authors : [message.actor];
   const commentPreview = getCommentPreview(entry);
-  const presentation = getWorkCardPresentation(entry, work, {
+  const cover = getWorkCoverPresentation(entry, work, {
     showUSD,
     exchangeRate,
     isReview: commentPreview?.isReview,
   });
-  const showComment = presentation.showComment && !!commentPreview;
-
-  const markEntryClicked = () => {
-    updateLastClickedEntryId(entryId);
+  const showComment = cover.showComment && !!commentPreview;
+  // The words in full, for the side panel that "Read more" and "Read review" open.
+  const comment = getActivityComment(entry);
+  const openPanel = (showParent: boolean) => {
+    setPanelShowsParent(showParent);
+    setIsPanelOpen(true);
   };
+  const openComment = comment ? () => openPanel(false) : undefined;
+  const openParent = comment?.parent ? () => openPanel(true) : undefined;
+  const panelComment = panelShowsParent && comment?.parent ? comment.parent : comment;
 
   return (
-    <article
-      className={cn(
-        hideActions ? 'pt-4 pb-2' : 'py-4',
-        !hideEntryDivider && 'border-b border-gray-100 last:border-b-0'
-      )}
-      data-entry-id={entryId}
-      data-testid="activity-card"
-    >
-      {groupedAuthors && (
-        <ActivityGroupHeader authors={groupedAuthors}>{header}</ActivityGroupHeader>
-      )}
-      <div className="flex gap-2.5">
-        {!groupedAuthors && (
-          <div className="flex w-8 flex-shrink-0 flex-col items-center">
-            <div className="pt-0.5">
-              <Avatar
-                src={message.actor.profileImage}
-                alt={message.actor.fullName || 'User'}
-                size={32}
-                authorId={message.actor.id}
+    <ActivityCardShell entryId={entryId}>
+      <div className="px-3.5 pt-3.5 tablet:px-4 tablet:pt-4">
+        <ActivityActor
+          authors={authors}
+          action={getActivityActionLine(entry, work)}
+          timestamp={entry.timestamp}
+          isAuthor={!isCoAuthored && shouldShowAuthorBadge(entry, message.actor.id)}
+          menu={
+            hideActions ? undefined : <ActivityCardMenu work={work} hideableEntries={[entry]} />
+          }
+        />
+        {showComment && commentPreview && (
+          <div className={ACTIVITY_CONTENT_DIVIDER}>
+            {comment?.parent && (
+              <ActivityQuotedComment
+                comment={comment.parent}
+                onOpen={openParent}
+                className="mb-3"
               />
-            </div>
+            )}
+            <CommentReadOnly
+              content={
+                commentPreview.isReview
+                  ? toReviewVerdictPreview(commentPreview.content)
+                  : commentPreview.content
+              }
+              contentFormat={commentPreview.format}
+              maxLength={250}
+              showReadMoreButton
+              showLinkPreviews={false}
+              onReadMore={openComment}
+              className="feed-comment-preview text-[15px] leading-6 text-gray-700"
+            />
           </div>
         )}
-
-        <div className={cn('min-w-0 flex-1', groupedAuthors && 'tablet:ml-[42px]')}>
-          {!groupedAuthors && header}
-
-          {showComment && commentPreview && (
-            <div className="mt-2">
-              <CommentReadOnly
-                content={commentPreview.content}
-                contentFormat={commentPreview.format}
-                maxLength={250}
-                showReadMoreButton
-                showLinkPreviews={false}
-                className="text-sm"
-              />
-            </div>
-          )}
-
-          <div className={cn('mt-5', !groupedAuthors && '-ml-[42px] tablet:!ml-0')}>
-            <WorkPreviewCard
-              work={work}
-              brand={presentation.brand}
-              onNavigate={markEntryClicked}
-              showPlaceholder
-            >
-              <WorkPreviewCard.Metadata>
-                <ActivityWorkMetadata work={work} presentation={presentation} />
-              </WorkPreviewCard.Metadata>
-              {!hideActions && (
-                <WorkPreviewCard.Actions>
-                  <ActivityWorkActions entry={entry} work={work} />
-                </WorkPreviewCard.Actions>
-              )}
-            </WorkPreviewCard>
-            <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
-          </div>
-        </div>
       </div>
-    </article>
+
+      <ActivityWorkCover
+        work={work}
+        cover={cover}
+        onNavigate={() => updateLastClickedEntryId(entryId)}
+        className="mt-3 tablet:mx-4 tablet:rounded-xl"
+      />
+
+      {hideActions ? (
+        <div className="h-3.5 tablet:h-4" />
+      ) : (
+        <ActivityCardFooter
+          entry={entry}
+          work={work}
+          cta={getActivityCta(entry, work)}
+          onOpenComment={openComment}
+        />
+      )}
+
+      {panelComment && (
+        <ActivityCommentPanel
+          isOpen={isPanelOpen}
+          onClose={() => setIsPanelOpen(false)}
+          comment={panelComment}
+          work={work}
+          onOpenParent={panelShowsParent ? undefined : openParent}
+        />
+      )}
+    </ActivityCardShell>
   );
 };

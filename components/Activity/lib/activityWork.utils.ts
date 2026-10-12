@@ -2,14 +2,17 @@ import { buildWorkUrl } from '@/utils/url';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { getBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import {
+  getActivityReview,
+  isFundingPoolContribution,
   isGrantOpened,
   isProposalSubmission,
   isVerifiedAuthor,
   shouldLinkToUpdatesTab,
+  type ActivityCommentKind,
 } from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
 import { toOptionalNumber } from '@/utils/number';
-import { getGrantBadgeAmount } from '@/types/grant';
+import { getGrantBadgeAmount, type FundingPool } from '@/types/grant';
 import type {
   ActivityAction,
   FeedBountyContent,
@@ -251,6 +254,29 @@ function presentFundraise(
   };
 }
 
+/** The grant's available funding in the reader's currency, or null when it has none. */
+function resolveGrantBudget(
+  grant: NonNullable<ActivityWork['grant']>,
+  showUSD: boolean,
+  exchangeRate: number
+): string | null {
+  const badge = getGrantBadgeAmount({
+    amount: { usd: grant.amount.usd, rsc: grant.amount.rsc ?? 0 },
+    fundingPool: grant.fundingPool,
+  });
+
+  if (showUSD) {
+    return badge.usd > 0 ? formatAmount(badge.usd, showUSD, exchangeRate, true) : null;
+  }
+  if (badge.rsc > 0) {
+    return formatAmount(badge.rsc, showUSD, exchangeRate, false);
+  }
+  if (badge.usd > 0 && exchangeRate > 0) {
+    return formatAmount(badge.usd / exchangeRate, showUSD, exchangeRate, true);
+  }
+  return null;
+}
+
 function presentGrant(
   base: WorkCardPresentation,
   grant: NonNullable<ActivityWork['grant']>,
@@ -258,30 +284,10 @@ function presentGrant(
   exchangeRate: number
 ): WorkCardPresentation {
   const stats: WorkCardStat[] = [];
-  const badge = getGrantBadgeAmount({
-    amount: { usd: grant.amount.usd, rsc: grant.amount.rsc ?? 0 },
-    fundingPool: grant.fundingPool,
-  });
-  let budgetAmount: number | null = null;
-  let skipConversion = showUSD;
+  const budget = resolveGrantBudget(grant, showUSD, exchangeRate);
 
-  if (showUSD) {
-    if (badge.usd > 0) {
-      budgetAmount = badge.usd;
-    }
-  } else if (badge.rsc > 0) {
-    budgetAmount = badge.rsc;
-  } else if (badge.usd > 0 && exchangeRate > 0) {
-    budgetAmount = badge.usd / exchangeRate;
-    skipConversion = true;
-  }
-
-  if (budgetAmount != null) {
-    stats.push({
-      label: 'Available',
-      value: formatAmount(budgetAmount, showUSD, exchangeRate, skipConversion),
-      accent: true,
-    });
+  if (budget != null) {
+    stats.push({ label: 'Available', value: budget, accent: true });
   }
   stats.push({
     label: 'Proposals',
@@ -335,6 +341,188 @@ export function getWorkCardPresentation(
   }
 
   return base;
+}
+
+export interface WorkCoverStat {
+  label: string;
+  /** Label for narrow screens, when the full one would crowd the title. */
+  shortLabel?: string;
+  value: string;
+  /** `rating` draws a star before the value; everything else is an amount. */
+  tone?: 'amount' | 'rating';
+}
+
+/** What the frosted bar on an activity card's cover shows. */
+export interface WorkCoverPresentation {
+  /** Kind of work and whose it is: "Proposal · Darren Wang", "RFP · Athanatos Foundation". */
+  eyebrow: string;
+  brand?: 'researchhub';
+  /** At most two figures, so the title keeps the room. */
+  stats: WorkCoverStat[];
+  showComment: boolean;
+}
+
+function getWorkKindLabel(work: ActivityWork): string {
+  if (isRegisteredReport(work.postType)) return 'Registered report';
+  switch (work.documentType) {
+    case 'preregistration':
+      return 'Proposal';
+    case 'funding_request':
+      return 'RFP';
+    case 'paper':
+      return 'Paper';
+    case 'question':
+      return 'Question';
+    default:
+      return 'Post';
+  }
+}
+
+/**
+ * The proposal's average peer review score. Deliberately not a single review's
+ * score: on the cover it reads as the proposal's rating.
+ */
+function resolveCoverRating(work: ActivityWork): number | null {
+  const average = work.fundraise?.reviewMetrics?.avg;
+  return average && average > 0 ? average : null;
+}
+
+function getCoverStats(
+  slot: ActivityBodySlot,
+  work: ActivityWork,
+  showUSD: boolean,
+  exchangeRate: number
+): WorkCoverStat[] {
+  if (slot === 'fundraise' && work.fundraise) {
+    const { goalAmount } = work.fundraise;
+    const goal = (showUSD ? goalAmount?.usd : goalAmount?.rsc) ?? 0;
+    const rating = resolveCoverRating(work);
+    const stats: WorkCoverStat[] = [];
+    if (rating != null) {
+      stats.push({ label: 'Rating', value: rating.toFixed(1), tone: 'rating' });
+    }
+    if (goal > 0) {
+      stats.push({ label: 'Raising', value: formatAmount(goal, showUSD, exchangeRate, true) });
+    }
+    return stats;
+  }
+
+  if (slot === 'grant' && work.grant) {
+    const budget = resolveGrantBudget(work.grant, showUSD, exchangeRate);
+    return budget ? [{ label: 'Available funding', shortLabel: 'Funding', value: budget }] : [];
+  }
+
+  if (slot === 'bounty' && work.bounty) {
+    const { amount } = getBountyDisplayAmount(work.bounty, exchangeRate, showUSD);
+    return [
+      {
+        label: work.bounty.bountyType === 'REVIEW' ? 'Review bounty' : 'Bounty',
+        value: formatAmount(amount, showUSD, exchangeRate, true),
+      },
+    ];
+  }
+
+  return [];
+}
+
+export function getWorkCoverPresentation(
+  entry: FeedEntry,
+  work: ActivityWork,
+  options: { showUSD: boolean; exchangeRate: number; isReview?: boolean }
+): WorkCoverPresentation {
+  const { showUSD, exchangeRate, isReview } = options;
+  const slot = resolveActivityBodySlot(entry.activityAction, work, { isReview });
+  const base = buildBasePresentation(entry, work, slot, { isReview });
+
+  const owner = base.brand
+    ? 'ResearchHub'
+    : base.organization || base.authors[0]?.name || base.institution;
+
+  return {
+    eyebrow: owner ? `${getWorkKindLabel(work)} · ${owner}` : getWorkKindLabel(work),
+    brand: base.brand,
+    showComment: base.showComment,
+    stats: getCoverStats(slot, work, showUSD, exchangeRate),
+  };
+}
+
+/**
+ * The work's page, on the tab a comment of this kind lives on: reviews on the reviews
+ * tab, author updates on updates (proposals only have one), the rest in conversation.
+ */
+export function getWorkHrefForComment(work: ActivityWork, kind: ActivityCommentKind): string {
+  let tab: ActivityWork['tab'] = 'conversation';
+  if (kind === 'review') tab = 'reviews';
+  else if (kind === 'update' && work.documentType === 'preregistration') tab = 'updates';
+  return buildActivityWorkHref({
+    id: work.id,
+    slug: work.slug || undefined,
+    contentType: work.documentType,
+    postType: work.postType,
+    tab,
+  });
+}
+
+/**
+ * The one button on an activity card. Funding opens the contribution modal in place;
+ * everything else is a link to where the activity happened.
+ */
+export type ActivityCta =
+  /** Opens the card's side panel on the review. */
+  | { kind: 'review'; label: string }
+  | { kind: 'fund-proposal'; label: string; shortLabel: string; fundraise: Fundraise }
+  | { kind: 'fund-pool'; label: string; fundingPool: FundingPool }
+  | { kind: 'link'; label: string; href: string };
+
+function readLabel(work: ActivityWork): string {
+  switch (work.documentType) {
+    case 'preregistration':
+      return 'Read proposal';
+    case 'funding_request':
+      return 'View RFP';
+    case 'paper':
+      return 'Read paper';
+    default:
+      return 'Read post';
+  }
+}
+
+export function getActivityCta(entry: FeedEntry, work: ActivityWork): ActivityCta {
+  const link = (label: string): ActivityCta => ({ kind: 'link', label, href: work.href });
+  const openFundraise = work.fundraise?.status === 'OPEN' ? work.fundraise : undefined;
+  const commentType =
+    entry.content.contentType === 'COMMENT' ? entry.content.comment?.commentType : undefined;
+
+  // A review, or a payout for one, always leads to the review itself, opened in
+  // place; one that arrives without its text falls back to the reviews tab.
+  if (getActivityReview(entry)) return { kind: 'review', label: 'Read review' };
+  if (entry.contentType === 'FUNDINGACTIVITY' || commentType === 'REVIEW') {
+    return link('Read review');
+  }
+
+  if (entry.activityAction === 'bounty_opened' || entry.contentType === 'BOUNTY') {
+    return link('View bounty');
+  }
+
+  if (commentType) return link('Reply');
+
+  if (isFundingPoolContribution(entry)) {
+    const pool = work.grant?.fundingPool;
+    return pool?.status === 'OPEN'
+      ? { kind: 'fund-pool', label: 'Add to pool', fundingPool: pool }
+      : link('View RFP');
+  }
+
+  if (openFundraise) {
+    return {
+      kind: 'fund-proposal',
+      label: 'Fund proposal',
+      shortLabel: 'Fund',
+      fundraise: openFundraise,
+    };
+  }
+
+  return link(readLabel(work));
 }
 
 function grantSummaryFromFeedGrant(content: FeedGrantContent): WorkGrantSummary | undefined {

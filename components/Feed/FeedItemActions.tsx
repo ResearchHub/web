@@ -181,6 +181,11 @@ interface FeedItemActionsProps {
     className?: string; // Add optional className for styling menu items
   }>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
+  /**
+   * Keep share, save and the menu beside the votes on the left, leaving the right
+   * side to `rightSideActionButton` alone.
+   */
+  groupUtilityActions?: boolean;
   href?: string; // URL to use for navigation
   reviews?: Review[]; // New property for reviews
   awardedBountyAmount?: number; // Add awarded bounty amount
@@ -195,10 +200,14 @@ interface FeedItemActionsProps {
   isExpanded?: boolean;
   className?: string;
   /**
-   * `default` — flat icon row used by feed and activity cards.
+   * `default` — flat icon row used by feed cards.
    * `inline` — pill chrome for comment rows.
+   * `card` — the pill chrome with share and save kept, for activity cards: votes in
+   * their own pill and round buttons beside it, so the icons read as separate controls.
    */
-  variant?: 'default' | 'inline';
+  variant?: 'default' | 'inline' | 'card';
+  /** Leave the ⋯ menu out, for cards that put their own elsewhere. */
+  hideMoreMenu?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -225,6 +234,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   hideReportButton = false,
   menuItems = [],
   rightSideActionButton,
+  groupUtilityActions = false,
   href,
   reviews = [],
   awardedBountyAmount,
@@ -238,6 +248,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   isExpanded = false,
   className,
   variant = 'default',
+  hideMoreMenu = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -471,12 +482,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const showShare = variant !== 'inline';
   const showMoreMenu =
-    !!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
-    menuItems.length > 0 ||
-    !hideReportButton ||
-    canHideFromFeed;
-  // Comment rows keep the pill chrome; cards use bare icons.
-  const isFlat = variant !== 'inline';
+    !hideMoreMenu &&
+    (!!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
+      menuItems.length > 0 ||
+      !hideReportButton ||
+      canHideFromFeed);
+  // Feed cards use bare icons; comment rows and activity cards keep the pill chrome.
+  const isFlat = variant === 'default';
 
   const shareButton = showShare ? (
     isFlat ? (
@@ -581,6 +593,52 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       </Button>
     )
+  ) : null;
+
+  const moreMenu = showMoreMenu ? (
+    <BaseMenu
+      trigger={moreMenuTrigger}
+      align={groupUtilityActions ? 'start' : 'end'}
+      open={isMenuOpen}
+      onOpenChange={setIsMenuOpen}
+    >
+      {listDetailContext && relatedDocumentUnifiedDocumentId && (
+        <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+          <Trash2 className="w-4 h-4" />
+          <span>Remove from list</span>
+        </BaseMenuItem>
+      )}
+
+      {canHideFromFeed && (
+        <BaseMenuItem onClick={handleOpenHideFromFeed} className="flex items-center gap-2">
+          <EyeOff className="w-4 h-4" />
+          <span>Hide from feed</span>
+        </BaseMenuItem>
+      )}
+
+      {menuItems.map((item, index) => (
+        <BaseMenuItem
+          key={`menu-item-${index}`}
+          onClick={(e) => {
+            setIsMenuOpen(false);
+            item.onClick(e);
+          }}
+          className={cn('flex items-center gap-2', item.className)}
+        >
+          {item.icon && <item.icon className="w-4 h-4" />}
+          <span>{item.label}</span>
+        </BaseMenuItem>
+      ))}
+
+      {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+
+      {!hideReportButton && (
+        <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+          <Flag className="w-4 h-4" />
+          <span>{actionLabels?.report || 'Report'}</span>
+        </BaseMenuItem>
+      )}
+    </BaseMenu>
   ) : null;
 
   return (
@@ -787,59 +845,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             />
           )}
           {children}
+          {groupUtilityActions && shareButton}
+          {groupUtilityActions && saveButton}
+          {groupUtilityActions && moreMenu}
         </div>
 
         <div
           className={cn('flex flex-shrink-0 items-center justify-end', isFlat ? 'gap-3' : 'gap-1')}
         >
           {rightSideActionButton}
-          {shareButton}
-          {saveButton}
-          {showMoreMenu && (
-            <BaseMenu
-              trigger={moreMenuTrigger}
-              align="end"
-              open={isMenuOpen}
-              onOpenChange={setIsMenuOpen}
-            >
-              {listDetailContext && relatedDocumentUnifiedDocumentId && (
-                <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  <span>Remove from list</span>
-                </BaseMenuItem>
-              )}
-
-              {canHideFromFeed && (
-                <BaseMenuItem onClick={handleOpenHideFromFeed} className="flex items-center gap-2">
-                  <EyeOff className="w-4 h-4" />
-                  <span>Hide from feed</span>
-                </BaseMenuItem>
-              )}
-
-              {menuItems.map((item, index) => (
-                <BaseMenuItem
-                  key={`menu-item-${index}`}
-                  onClick={(e) => {
-                    setIsMenuOpen(false);
-                    item.onClick(e);
-                  }}
-                  className={cn('flex items-center gap-2', item.className)}
-                >
-                  {item.icon && <item.icon className="w-4 h-4" />}
-                  <span>{item.label}</span>
-                </BaseMenuItem>
-              ))}
-
-              {showSeparator && <div className="h-px my-1 bg-gray-200" />}
-
-              {!hideReportButton && (
-                <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
-                  <Flag className="w-4 h-4" />
-                  <span>{actionLabels?.report || 'Report'}</span>
-                </BaseMenuItem>
-              )}
-            </BaseMenu>
-          )}
+          {!groupUtilityActions && shareButton}
+          {!groupUtilityActions && saveButton}
+          {!groupUtilityActions && moreMenu}
         </div>
       </div>
 

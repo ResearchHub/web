@@ -10,7 +10,6 @@ import { ActivityCard } from '@/components/Activity/cards/ActivityCard';
 import { ActivityCardSkeleton } from '@/components/Activity/cards/ActivityCardSkeleton';
 import { useExcludedFromFeed } from '@/hooks/useExcludedFromFeed';
 import type { FeedEntry } from '@/types/feed';
-import { cn } from '@/utils/styles';
 
 export function HiddenFeedContent() {
   const {
@@ -126,10 +125,10 @@ export function HiddenFeedContent() {
         )}
 
         {items.length > 0 && (
-          <div>
-            {items.map((entry, index) => (
-              <div key={entry.id} className={cn(index > 0 && 'border-t border-gray-100', 'pb-4')}>
-                <ActivityCard entry={entry} hideActions hideEntryDivider />
+          <div className="flex flex-col gap-4">
+            {items.map((entry) => (
+              <div key={entry.id} className="flex flex-col gap-2">
+                <ActivityCard entry={entry} hideActions />
                 <div className="flex justify-end">
                   <Button
                     variant="outlined"

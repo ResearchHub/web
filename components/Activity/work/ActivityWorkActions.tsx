@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import type { ActivityWork } from '../lib/activityWork.utils';
 import type { FeedContentType, FeedEntry } from '@/types/feed';
@@ -9,6 +9,16 @@ interface ActivityWorkActionsProps {
   entry: FeedEntry;
   work: ActivityWork;
   hideableEntries?: FeedEntry[];
+  /** Share, save and the menu beside the votes, leaving the right for `trailing`. */
+  groupUtilityActions?: boolean;
+  /** The card's own button, at the far right. */
+  trailing?: ReactNode;
+  /** Classes for the left-hand group of actions. */
+  className?: string;
+  /** See `FeedItemActions`; activity cards use `card`. */
+  variant?: 'default' | 'card';
+  /** Leave the ⋯ menu out, when the card shows its own. */
+  hideMoreMenu?: boolean;
 }
 
 function getFeedContentTypeForWork(work: ActivityWork): FeedContentType {
@@ -26,6 +36,11 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
   entry,
   work,
   hideableEntries,
+  groupUtilityActions,
+  trailing,
+  className,
+  variant,
+  hideMoreMenu,
 }) => {
   const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
 
@@ -42,6 +57,11 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
       href={work.href}
       actionLabels={{ report: 'Flag Content' }}
       hideCommentButton
+      groupUtilityActions={groupUtilityActions}
+      rightSideActionButton={trailing}
+      className={className}
+      variant={variant}
+      hideMoreMenu={hideMoreMenu}
     />
   );
 };
