@@ -33,6 +33,12 @@ function forwardShareToken(request: NextRequest) {
 const isProposalRoute = (pathname: string) =>
   pathname === '/proposal' || pathname.startsWith('/proposal/');
 
+// The workspace's start screen is public: a signed-out visitor can see it and
+// type, and signs in when they send. A document open in it is someone's own,
+// so that stays gated.
+const isWorkspaceStart = (request: NextRequest) =>
+  request.nextUrl.pathname === '/workspace' && !request.nextUrl.searchParams.has('note');
+
 export function proxy(request: NextRequest, event: NextFetchEvent) {
   // Proposal pages are public and matched only to forward the share token. Every
   // other route in the matcher is auth-gated, so a new public route needs a
@@ -40,6 +46,7 @@ export function proxy(request: NextRequest, event: NextFetchEvent) {
   if (isProposalRoute(request.nextUrl.pathname)) {
     return forwardShareToken(request);
   }
+  if (isWorkspaceStart(request)) return NextResponse.next();
 
   return requireAuth(request as NextRequestWithAuth, event);
 }

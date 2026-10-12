@@ -173,7 +173,8 @@ export function ChatPane({ state, documentMissing, renderExecutionExtra }: ChatP
       disabled={composerDisabled}
       sendDisabled={state.sendBlocked}
       notice={notice}
-      attachments={state.attachments}
+      // Files upload as they are picked, which needs an account.
+      attachments={state.signedOut ? undefined : state.attachments}
       dropTargetRef={paneRef}
       className={cn('border-t-0', onStart ? 'bg-white pt-0' : 'bg-gray-50')}
       boxClassName={onStart ? startComposerBoxClass(state.intent) : undefined}
