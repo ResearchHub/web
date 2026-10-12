@@ -15,6 +15,7 @@ import { ActivityCommentPanel } from '@/components/modals/ActivityCommentPanel';
 import { Avatar } from '@/components/ui/Avatar';
 import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { DocumentThumbnail } from '@/components/Funding/dashboard/DocumentThumbnail';
+import { DISPLAY_FONT } from '@/components/Funding/dashboard/MyFundingHero';
 import type { FundedRow, ProposalNews } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import { formatTimeAgo } from '@/utils/date';
@@ -56,9 +57,10 @@ export function FundedResearchList({ rows, limit, onSeeAll }: FundedResearchList
         <>
           <h3
             className={cn(
-              'mb-3 text-sm font-semibold text-gray-700',
+              'mb-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#0b1530]',
               shownProposals.length > 0 && 'mt-6'
             )}
+            style={DISPLAY_FONT}
           >
             RFP pools you funded
           </h3>
