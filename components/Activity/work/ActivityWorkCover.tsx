@@ -17,7 +17,8 @@ interface ActivityWorkCoverProps {
 
 /**
  * The work an activity card is about: its cover, kept short, with a frosted bar
- * along the bottom carrying the kind of work, its title and up to two figures.
+ * along the bottom carrying the kind of work, its title and up to two figures,
+ * and for a proposal, how far its fundraise has come.
  */
 export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
   work,
@@ -25,7 +26,7 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
   onNavigate,
   className,
 }) => {
-  const { eyebrow, brand, stats } = cover;
+  const { eyebrow, brand, stats, progress } = cover;
 
   return (
     <Link
@@ -90,6 +91,22 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
             </div>
           )}
         </div>
+
+        {progress != null && (
+          <div
+            role="progressbar"
+            aria-label="Funding progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress * 100)}
+            className="mt-2 h-[3px] overflow-hidden rounded-full bg-white/15"
+          >
+            <div
+              className="h-full rounded-full bg-emerald-400"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        )}
       </div>
     </Link>
   );

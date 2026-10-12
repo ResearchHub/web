@@ -166,35 +166,69 @@ body {
 }
 
 /*
- * Comment and review text previewed in a feed card. Authors format for the full
- * page (headings, bold section titles, Quill sizes); in a card the card sets the
- * type, so the author's words read at the card's size and never outweigh its
- * headline. The doubled class outranks CommentReadOnly's own `!text-[14px]` and
- * QuillRenderer's global heading sizes, both of which are `!important`.
+ * Comment and review text previewed in a feed card, as plain words: the author's
+ * formatting (headings, bold, italics, underlines, strikes, quotes, code, Quill
+ * sizes) is dropped so every preview reads at the card's own size and weight and
+ * never outweighs its headline. Links keep their colour so they still read as
+ * links. The side panel that "Read more" opens shows the text as written. The
+ * doubled class outranks CommentReadOnly's own `!text-[14px]` and QuillRenderer's
+ * global heading sizes, both of which are `!important`.
  */
 .feed-comment-preview.feed-comment-preview
-  :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, span, strong, b, em, a, code) {
+  :is(
+    p,
+    li,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    blockquote,
+    pre,
+    span,
+    strong,
+    b,
+    em,
+    i,
+    u,
+    s,
+    del,
+    mark,
+    a,
+    code
+  ) {
   font-size: inherit !important;
   line-height: inherit !important;
   letter-spacing: normal !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  text-transform: none !important;
 }
 
-.feed-comment-preview.feed-comment-preview :is(h1, h2, h3, h4, h5, h6) {
-  margin: 0 0 0.125rem !important;
-  font-weight: 500 !important;
-  color: #111827 !important;
+.feed-comment-preview.feed-comment-preview
+  :is(h1, h2, h3, h4, h5, h6, blockquote, pre, strong, b, em, i, u, s, del, mark, code) {
+  color: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
-/* A heading made of bold text stays a step under the card's semibold headline. */
-.feed-comment-preview.feed-comment-preview :is(h1, h2, h3, h4, h5, h6) :is(strong, b) {
-  font-weight: 500 !important;
+.feed-comment-preview.feed-comment-preview pre {
+  white-space: pre-wrap !important;
 }
 
-.feed-comment-preview.feed-comment-preview :is(strong, b) {
-  font-weight: 600 !important;
+/* Typography's backticks around inline code and quotation marks around quotes. */
+.feed-comment-preview.feed-comment-preview :is(code, blockquote p)::before,
+.feed-comment-preview.feed-comment-preview :is(code, blockquote p)::after {
+  content: none !important;
 }
 
-.feed-comment-preview.feed-comment-preview :is(p, ul, ol, blockquote, pre, figure, hr) {
+.feed-comment-preview.feed-comment-preview
+  :is(p, ul, ol, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, hr) {
   margin-top: 0 !important;
   margin-bottom: 0.5rem !important;
 }
