@@ -15,6 +15,8 @@ interface ViewSwitchProps {
   readonly views: readonly WorkspaceView[];
   readonly value: WorkspaceView;
   readonly onChange: (view: WorkspaceView) => void;
+  /** Icons alone, named for screen readers and on hover: a phone's top bar, beside Publish. */
+  readonly compact?: boolean;
   readonly className?: string;
 }
 
@@ -22,7 +24,13 @@ interface ViewSwitchProps {
  * What the workspace shows of the open document, in the top bar: a gray
  * track with the current view lifted out of it in white.
  */
-export function ViewSwitch({ views, value, onChange, className }: ViewSwitchProps) {
+export function ViewSwitch({
+  views,
+  value,
+  onChange,
+  compact = false,
+  className,
+}: ViewSwitchProps) {
   return (
     <div
       role="group"
@@ -38,14 +46,17 @@ export function ViewSwitch({ views, value, onChange, className }: ViewSwitchProp
             type="button"
             onClick={() => onChange(view)}
             aria-pressed={selected}
+            aria-label={compact ? label : undefined}
+            title={compact ? label : undefined}
             className={cn(
-              'flex h-[30px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors',
+              'flex h-[30px] items-center gap-1.5 rounded-full text-[13px] font-medium transition-colors',
+              compact ? 'px-2.5' : 'px-3',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
               selected ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
             )}
           >
             <Icon className="h-[15px] w-[15px]" aria-hidden="true" />
-            {label}
+            {!compact && label}
           </button>
         );
       })}

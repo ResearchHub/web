@@ -14,8 +14,10 @@ import {
   DOCUMENT_TYPE_BY_INTENT,
 } from '@/components/Funding/createFundingDraft';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { useUser } from '@/contexts/UserContext';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
 import { getChatTransport } from '@/services/chatTransport';
@@ -70,6 +72,11 @@ export interface AIModeChatState extends ChatSession {
   readonly note: ChatNoteRef | null;
   /** The open chat's title, a rename shown before the server confirms it; null for a new chat. */
   readonly chatTitle: string | null;
+  /**
+   * No one is signed in. The start screen is open to them: they can type, and
+   * sending, a suggestion or a blank page asks them to log in instead.
+   */
+  readonly signedOut: boolean;
 }
 
 /**
@@ -287,13 +294,31 @@ export function useAIModeChat(): AIModeChatState {
     [noteId, listedTitleOfNote]
   );
 
+  // ---- a signed-out visitor ----
+  // What would start a draft asks them to log in, and keeps what they typed
+  // (or the suggestion they picked) in the box for when they are back.
+  const { user, isLoading: userLoading } = useUser();
+  const { showAuthModal } = useAuthModalContext();
+  const signedOut = user == null && !userLoading;
+  const { setDraft } = session;
+  const askToLogIn = useCallback(
+    async (text?: string) => {
+      if (typeof text === 'string' && text.trim()) setDraft(text);
+      showAuthModal();
+    },
+    [setDraft, showAuthModal]
+  );
+
   return {
     ...session,
+    // The catalog and the budget are the signed-in user's: without them the
+    // composer would sit disabled rather than offer to log in.
+    ...(signedOut ? { send: askToLogIn, sendBlocked: false, composerBusy: false } : {}),
     target,
     chatId,
-    startBlank,
+    startBlank: signedOut ? askToLogIn : startBlank,
     startingBlank,
-    canStartBlank: selectedOrg != null && !startingBlank,
+    canStartBlank: signedOut || (selectedOrg != null && !startingBlank),
     resolvingChat: resolving,
     list,
     listReady,
@@ -306,5 +331,6 @@ export function useAIModeChat(): AIModeChatState {
     deleteChat,
     note,
     chatTitle,
+    signedOut,
   };
 }

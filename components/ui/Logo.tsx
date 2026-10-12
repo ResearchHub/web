@@ -7,9 +7,17 @@ interface LogoProps {
   size?: number | { height: number; width: number };
   color?: string;
   variant?: 'default' | 'white';
+  /** `eager` where the logo is above the fold, so it never waits on the lazy loader. */
+  loading?: 'eager' | 'lazy';
 }
 
-export const Logo = ({ className, noText = false, size, variant = 'default' }: LogoProps) => {
+export const Logo = ({
+  className,
+  noText = false,
+  size,
+  variant = 'default',
+  loading,
+}: LogoProps) => {
   const dimensions = (() => {
     if (!size) return { height: 32, width: noText ? 23 : 150 };
     if (typeof size === 'number') {
@@ -33,6 +41,7 @@ export const Logo = ({ className, noText = false, size, variant = 'default' }: L
       alt="ResearchHub Logo"
       width={dimensions.width}
       height={dimensions.height}
+      loading={loading}
       className={cn(className)}
     />
   );

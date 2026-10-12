@@ -1,10 +1,12 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { EmbedExpandedContent } from '@/components/Embed/EmbedExpandedContent';
+import { splitPlayableLinks } from '@/components/Embed/playableLinks';
 import { Avatar } from '@/components/ui/Avatar';
 import { SidePanel } from '@/components/ui/SidePanel';
 import { ActivityAuthorSummary } from '@/components/Activity/cards/ActivityAuthorSummary';
@@ -52,8 +54,9 @@ function footerLabel(comment: ActivityComment): string {
 }
 
 /**
- * Someone's comment, reply or peer review in full, opened from a feed card without
- * leaving the feed. The author's own formatting is kept here; this is where it's read.
+ * Someone's comment, reply, peer review or author update in full, opened from a
+ * feed card without leaving the feed. The author's own formatting is kept here,
+ * and the videos and posts they linked play in place; this is where it's read.
  */
 export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
   isOpen,
@@ -65,6 +68,7 @@ export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
   const { author, content, format, score, parent, createdDate } = comment;
   const headline = author.headline?.trim();
   const href = getWorkHrefForComment(work, comment.kind);
+  const { body, players } = useMemo(() => splitPlayableLinks(content, format), [content, format]);
 
   return (
     <SidePanel
@@ -128,12 +132,21 @@ export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
         {parent && <ActivityQuotedComment comment={parent} onOpen={onOpenParent} lines={4} />}
 
         <CommentReadOnly
-          content={content}
+          content={body}
           contentFormat={format}
           initiallyExpanded
           showLinkPreviews={false}
           className="text-[15px] leading-7 text-gray-800"
         />
+
+        {players.map((player) => (
+          <div
+            key={player.url}
+            className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+          >
+            <EmbedExpandedContent embed={player} autoplay={false} />
+          </div>
+        ))}
       </div>
     </SidePanel>
   );

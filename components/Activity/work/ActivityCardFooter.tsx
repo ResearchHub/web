@@ -19,7 +19,7 @@ function ActivityCtaButton({
 }: Readonly<{ cta: ActivityCta; work: ActivityWork; onOpenComment?: () => void }>) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  if (cta.kind === 'review') {
+  if (cta.kind === 'panel') {
     return (
       <button type="button" onClick={onOpenComment} className={CTA_CLASS}>
         {cta.label}
@@ -81,7 +81,7 @@ interface ActivityCardFooterProps {
   cta: ActivityCta;
   /** Feed entries the card stands for, offered to moderators hiding it. */
   hideableEntries?: FeedEntry[];
-  /** Opens the card's side panel, for a "Read review" button. */
+  /** Opens the card's side panel, for a "Read review" or "Read update" button. */
   onOpenComment?: () => void;
   className?: string;
 }

@@ -2,6 +2,7 @@ import { buildWorkUrl } from '@/utils/url';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { getBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import {
+  getActivityComment,
   getActivityReview,
   isFundingPoolContribution,
   isGrantOpened,
@@ -468,8 +469,8 @@ export function getWorkHrefForComment(work: ActivityWork, kind: ActivityCommentK
  * everything else is a link to where the activity happened.
  */
 export type ActivityCta =
-  /** Opens the card's side panel on the review. */
-  | { kind: 'review'; label: string }
+  /** Opens the card's side panel on its words: a review or an author update. */
+  | { kind: 'panel'; label: string }
   | { kind: 'fund-proposal'; label: string; shortLabel: string; fundraise: Fundraise }
   | { kind: 'fund-pool'; label: string; fundingPool: FundingPool }
   | { kind: 'link'; label: string; href: string };
@@ -495,7 +496,7 @@ export function getActivityCta(entry: FeedEntry, work: ActivityWork): ActivityCt
 
   // A review, or a payout for one, always leads to the review itself, opened in
   // place; one that arrives without its text falls back to the reviews tab.
-  if (getActivityReview(entry)) return { kind: 'review', label: 'Read review' };
+  if (getActivityReview(entry)) return { kind: 'panel', label: 'Read review' };
   if (entry.contentType === 'FUNDINGACTIVITY' || commentType === 'REVIEW') {
     return link('Read review');
   }
@@ -503,6 +504,9 @@ export function getActivityCta(entry: FeedEntry, work: ActivityWork): ActivityCt
   if (entry.activityAction === 'bounty_opened' || entry.contentType === 'BOUNTY') {
     return link('View bounty');
   }
+
+  // An update is read in place too, with its videos playing there.
+  if (getActivityComment(entry)?.kind === 'update') return { kind: 'panel', label: 'Read update' };
 
   if (commentType) return link('Reply');
 

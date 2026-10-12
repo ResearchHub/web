@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { ExternalLink, Send } from 'lucide-react';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { getWorkPath } from '@/components/Notebook/PublishingForm/formMapping';
@@ -15,11 +16,9 @@ import { cn } from '@/utils/styles';
  */
 export function PublishPill() {
   const controller = usePublishingController();
-  const { note, editor, articleType, workId, isPublished, isChangelog } = controller;
+  const { note, editor, articleType, workId, isPublished } = controller;
 
-  // A type this surface cannot publish has no button to press.
-  const isNewPreprint = articleType === 'discussion' && !workId && !isChangelog;
-  if (!articleType || isNewPreprint || controller.blockedMessage) return null;
+  if (!articleType || !hasPublishButton(controller)) return null;
 
   const handleClick = () => void controller.requestPublish();
 
@@ -72,26 +71,96 @@ export function PublishPill() {
   );
 }
 
+type PublishingController = ReturnType<typeof usePublishingController>;
+
+/** A type this surface cannot publish has no button to press. */
+function hasPublishButton(controller: PublishingController): boolean {
+  const { articleType, workId, isChangelog, blockedMessage } = controller;
+  const isNewPreprint = articleType === 'discussion' && !workId && !isChangelog;
+  return articleType != null && !isNewPreprint && !blockedMessage;
+}
+
+/**
+ * How long a document that was still loading must hold still before a
+ * requested publish goes ahead: the assistant's newest version becomes a
+ * review only once the editor is up, a render or two after it reports ready.
+ */
+const PUBLISH_REQUEST_SETTLE_MS = 200;
+
+/** How a requested publish ended: its dialog opened, or the document stood in the way. */
+export type PublishRequestOutcome = 'opened' | 'blocked';
+
+/**
+ * Carries out a Publish pressed while the document was out of sight (the top
+ * bar's, in Chat view): the same click as the pill's, at once if the
+ * document is ready, else once it has loaded and settled. While the
+ * assistant writes, or its changes wait to be accepted or rejected, the
+ * request ends `blocked`, for the host to bring the document into view.
+ */
+export function PublishRequest({
+  state,
+  onHandled,
+}: {
+  /** `waiting` until the document has loaded; `blocked` when it cannot be published as it stands. */
+  readonly state: 'waiting' | 'blocked' | 'ready';
+  readonly onHandled: (outcome: PublishRequestOutcome) => void;
+}) {
+  const controller = usePublishingController();
+  const canPublish =
+    hasPublishButton(controller) &&
+    !controller.readOnly &&
+    !controller.isDeclined &&
+    !controller.isPublishing;
+  // Read when the timer fires, so a re-render in between does not restart it.
+  const latest = useRef({ canPublish, requestPublish: controller.requestPublish, onHandled });
+  latest.current = { canPublish, requestPublish: controller.requestPublish, onHandled };
+  // Settled already when asked: nothing is about to change under the dialog.
+  const readyWhenAsked = useRef(state === 'ready');
+
+  useEffect(() => {
+    if (state === 'waiting') return;
+    if (state === 'blocked') {
+      latest.current.onHandled('blocked');
+      return;
+    }
+    const go = () => {
+      const { canPublish: can, requestPublish, onHandled: handled } = latest.current;
+      handled(can ? 'opened' : 'blocked');
+      if (can) void requestPublish();
+    };
+    if (readyWhenAsked.current) {
+      go();
+      return;
+    }
+    const timer = window.setTimeout(go, PUBLISH_REQUEST_SETTLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [state]);
+
+  return null;
+}
+
 /**
  * The blue button: a paper plane and its label. On hover it lifts, the blue
  * runs into indigo, a streak of light crosses it and the plane takes off and
  * lands again; with reduced motion only the colours change. While the
  * publish is under way a spinner stands in for the plane.
  */
-function PublishAction({
+export function PublishAction({
   label,
   busy,
   disabled,
   onClick,
   size,
+  testId = 'workspace-publish',
   className,
 }: {
   readonly label: string;
   readonly busy: boolean;
   readonly disabled: boolean;
   readonly onClick: () => void;
-  /** The floating pill, or the button inside the published pill. */
+  /** The floating pill, or the button inside the published pill and the top bar. */
   readonly size: 'lg' | 'sm';
+  readonly testId?: string;
   readonly className?: string;
 }) {
   const large = size === 'lg';
@@ -103,7 +172,7 @@ function PublishAction({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      data-testid="workspace-publish"
+      data-testid={testId}
       className={cn(
         'group relative inline-flex items-center overflow-hidden rounded-full bg-primary-600 font-semibold text-white',
         'transition-[transform,box-shadow] duration-300 ease-out',
