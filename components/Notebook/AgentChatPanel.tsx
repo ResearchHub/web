@@ -13,10 +13,7 @@ import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { isRfpNote } from '@/types/note';
 import { MAX_CHAT_TITLE_LENGTH, type AgentChat } from '@/types/agentChat';
-import { ENDOWMENT_PROMO_BANNER_FEATURE } from '@/app/layouts/components/EndowmentPromoBanner';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useEditorIsEmpty } from '@/hooks/useEditorIsEmpty';
-import { belowMobileTopBar } from '@/components/Notebook/mobileBarOffsets';
 import { NoteReviewControls } from '@/components/Notebook/NoteReview/NoteReviewControls';
 import { NoteReviewBanner } from '@/components/Notebook/NoteReview/NoteReviewBanner';
 import { useNoteAgentReview } from '@/components/Notebook/NoteReview/useNoteAgentReview';
@@ -108,13 +105,6 @@ export function AgentChatPanel({
   // calls the document: the notebook holds RFPs as well as proposals.
   const noteIsEmpty = useEditorIsEmpty(editor);
   const noteIsRfp = isRfpNote(currentNote);
-
-  // Mirrors PageLayout: the promo banner sits above the TopBar on mobile, and
-  // this panel hangs from the bar's underside, so it has to know.
-  const { isDismissed: promoDismissed, dismissStatus: promoStatus } = useDismissableFeature(
-    ENDOWMENT_PROMO_BANNER_FEATURE
-  );
-  const promoBannerVisible = promoStatus === 'checked' && !promoDismissed;
 
   // One transport per note: the hooks reset on its identity.
   const transport = getChatTransport({ noteId });
@@ -373,9 +363,9 @@ export function AgentChatPanel({
         'fixed bottom-0 right-0 z-[110] flex flex-col border-l border-gray-200 bg-white',
         'shadow-[-8px_0_28px_-16px_rgba(31,30,27,0.22)]',
         // The header carries the only control that closes the panel, so the
-        // top edge has to clear the mobile top bar — and the promo banner
-        // above it — or the panel becomes a room with no door.
-        belowMobileTopBar(promoBannerVisible),
+        // top edge has to clear the mobile top bar, or the panel becomes a room
+        // with no door.
+        'top-[var(--top-bar-height)]',
         !docked && 'w-full',
         // A transition during a drag lags the pointer.
         !isResizing && 'transition-transform duration-200 ease-out',

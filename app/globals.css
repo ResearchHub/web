@@ -242,15 +242,7 @@ mark {
   font-weight: 500;
 }
 
-/* When the EndowmentPromoBanner is rendered above the TopBar (mobile only),
-   the scroll content container needs extra top padding to clear the banner +
-   topbar stack. The banner is hidden at >= 768px (tablet:!hidden), so the
-   override only applies below that breakpoint. 56px is the banner height. */
 @media (max-width: 767px) {
-  .page-layout-with-promo-banner {
-    padding-top: calc(56px + var(--top-bar-height)) !important;
-  }
-
   /* Reserve space for the fixed MobileBottomNav (h-16 + safe-area inset), so
      the last of the page's content isn't stuck behind it. */
   .page-layout-with-mobile-bottom-nav {
