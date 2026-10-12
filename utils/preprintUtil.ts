@@ -29,9 +29,6 @@ export const isPreprintServer = (slug: string): boolean => {
   return ['arxiv', 'biorxiv', 'chemrxiv', 'medrxiv'].includes(slug.toLowerCase());
 };
 
-// Alias for getSourceLogo (for consistency with other naming conventions)
-export const get_document_metadata = getSourceLogo;
-
 // Get display name for preprint servers
 export const getPreprintDisplayName = (slug: string): string => {
   const sourceLower = slug.toLowerCase();

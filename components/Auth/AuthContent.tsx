@@ -7,8 +7,6 @@ import ForgotPassword from './screens/ForgotPassword';
 import { AuthScreen, type AuthAppearance, type CatalystSurface } from './types';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
-export type { AuthAppearance, CatalystSurface } from './types';
-
 interface AuthContentProps {
   onClose?: () => void;
   onSuccess?: () => void;

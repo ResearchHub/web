@@ -102,6 +102,3 @@ export function PopularityScoreTooltip({ score, breakdown }: PopularityScoreTool
     </div>
   );
 }
-
-/** @deprecated Use PopularityScoreTooltip instead */
-export const HotScoreTooltip = PopularityScoreTooltip;

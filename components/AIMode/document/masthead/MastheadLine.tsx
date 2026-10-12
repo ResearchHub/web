@@ -10,9 +10,9 @@ import { cn } from '@/utils/styles';
 export const EDITING_FIELD_CLASS =
   'flex items-center gap-2 rounded-lg border border-solid border-primary-600 bg-white px-2.5 ring-[3px] ring-primary-600/15';
 
-/** The text input inside such a field. */
+/** The text input inside such a field: 16px on a phone, so iOS does not zoom in on focus. */
 export const EDITING_INPUT_CLASS =
-  'min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:outline-none focus:ring-0';
+  'min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-gray-900 md:text-sm outline-none placeholder:text-gray-400 focus:outline-none focus:ring-0';
 
 interface AddDetailProps {
   readonly icon: LucideIcon;

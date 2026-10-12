@@ -8,5 +8,4 @@ export * from './ReferralImpactSkeleton';
 export * from './ReferredUsersList';
 export * from './ReferredUsersSkeleton';
 export * from './QRCodeModal';
-export * from './IllustratedGuide';
 export * from './ReferralCalculator';

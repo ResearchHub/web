@@ -27,9 +27,9 @@ interface NonprofitSearchSectionProps {
   onChange?: (result: NonprofitSelectionResult) => void;
   standalone?: boolean;
   /**
-   * For a host that labels the section itself (the workspace's publish
-   * dialog): no heading, and the hint is one short line whose link opens the
-   * Endaoment explainer the heading's help button would.
+   * For a host that labels and explains the section itself (the workspace's
+   * publish dialog): no heading or hint, only a "How it works" link that opens
+   * the Endaoment explainer the heading's help button would.
    */
   compact?: boolean;
 }
@@ -181,8 +181,7 @@ function NonprofitSearchSectionInner({
     <div className={compact ? 'space-y-2' : 'space-y-3'}>
       {compact ? (
         !readOnly && (
-          <p className="text-xs leading-snug text-gray-500">
-            Your university’s foundation can receive the funds for you.{' '}
+          <p className="text-xs leading-snug">
             <button
               type="button"
               onClick={() => setShowEndaomentInfo(true)}

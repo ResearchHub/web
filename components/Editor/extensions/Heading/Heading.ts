@@ -11,5 +11,3 @@ export const Heading = TiptapHeading.extend({
     return [`h${level}`, mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
   },
 });
-
-export default Heading;

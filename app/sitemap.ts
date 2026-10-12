@@ -73,9 +73,6 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${SITE_URL}/journal`, changeFrequency: 'daily', priority: 0.7 },
   { url: `${SITE_URL}/browse`, changeFrequency: 'daily', priority: 0.6 },
   { url: `${SITE_URL}/lists`, changeFrequency: 'daily', priority: 0.5 },
-  { url: `${SITE_URL}/leaderboard`, changeFrequency: 'daily', priority: 0.6 },
-  { url: `${SITE_URL}/leaderboard/reviewers`, changeFrequency: 'daily', priority: 0.5 },
-  { url: `${SITE_URL}/leaderboard/funders`, changeFrequency: 'daily', priority: 0.5 },
   { url: `${SITE_URL}/about`, changeFrequency: 'monthly', priority: 0.5 },
   { url: `${SITE_URL}/researchcoin`, changeFrequency: 'monthly', priority: 0.5 },
   { url: `${SITE_URL}/tos`, changeFrequency: 'yearly', priority: 0.3 },
@@ -89,9 +86,9 @@ export async function generateSitemaps() {
 export default async function sitemap({
   id,
 }: {
-  id: number | string;
+  id: Promise<string>;
 }): Promise<MetadataRoute.Sitemap> {
-  const sitemapId = Number(id);
+  const sitemapId = Number(await id);
   if (sitemapId === 0) return STATIC_ROUTES;
   if (sitemapId === 1)
     return buildSlugSitemap(

@@ -1,8 +1,6 @@
 import { FC, ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 
-export const skeletonPulse = 'bg-gray-200 animate-pulse rounded';
-
 export const SkeletonCardShell: FC<{ children: ReactNode; className?: string }> = ({
   children,
   className,

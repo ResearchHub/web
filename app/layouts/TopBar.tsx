@@ -21,6 +21,7 @@ import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
 import { TopBarBackButton } from './topbar/TopBarBackButton';
 import { TopBarBreadcrumb } from './topbar/TopBarBreadcrumb';
 import { TopBarUserControls } from './topbar/TopBarUserControls';
+import { WORKSPACE_PATH } from '@/components/AIMode/workspaceUrl';
 
 interface TopBarProps {
   /** Opens or closes the app's menu: the left sidebar, below the width at which it is a column. */
@@ -53,6 +54,10 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
   const leftSlot = topBarSlot?.leftSlot;
   // Or keep the back arrow and name what the page has open instead of the page.
   const openTitle = topBarSlot?.title ?? null;
+  // The workspace keeps the bar's right end to its own controls and the
+  // account menu. Known from the address, so search and the rest never show
+  // there, not even as placeholders while the workspace loads.
+  const accountMenuOnly = pathname === WORKSPACE_PATH;
 
   const routePageInfo = getPageInfo(pathname);
   // '' from the page: it has not loaded what it names yet (see TopBarSlotContext).
@@ -170,6 +175,10 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
 
           {/* Right side */}
           <div className="flex items-center space-x-2 h-full">
+            {topBarSlot?.trailing && (
+              <div className="mr-2 flex shrink-0 items-center">{topBarSlot.trailing}</div>
+            )}
+
             <TopBarUserControls
               user={user}
               isLoading={isLoading}
@@ -180,6 +189,7 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
+              accountOnly={accountMenuOnly}
               variant="desktop"
             />
 
@@ -193,6 +203,7 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
+              accountOnly={accountMenuOnly}
               variant="mobile"
             />
           </div>

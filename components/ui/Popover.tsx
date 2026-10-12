@@ -15,8 +15,6 @@ import { cn } from '@/utils/styles';
  */
 export const Popover = RadixPopover.Root;
 export const PopoverTrigger = RadixPopover.Trigger;
-export const PopoverAnchor = RadixPopover.Anchor;
-export const PopoverClose = RadixPopover.Close;
 
 export function PopoverContent({
   className,
@@ -33,7 +31,9 @@ export function PopoverContent({
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          'z-[100000] rounded-xl border border-gray-200 bg-white p-3 shadow-lg outline-none',
+          'z-[100000] max-w-[calc(100vw-16px)] rounded-xl border border-gray-200 bg-white p-3 shadow-lg outline-none',
+          // Grows out of the trigger, like `BaseMenu`.
+          'origin-[var(--radix-popover-content-transform-origin)] animate-menu-in data-[state=closed]:animate-menu-out',
           className
         )}
         {...props}

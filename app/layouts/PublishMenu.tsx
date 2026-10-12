@@ -150,8 +150,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
             align="start"
             sideOffset={8}
             className="w-[320px] p-1 rounded-xl"
-            withOverlay={false}
-            animate
           >
             {menuContent}
           </BaseMenu>
@@ -162,8 +160,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
             align="start"
             sideOffset={8}
             className="w-[320px] p-1 rounded-xl"
-            withOverlay={false}
-            animate
           >
             {menuContent}
           </BaseMenu>

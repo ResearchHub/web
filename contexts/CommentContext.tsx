@@ -5,11 +5,7 @@ import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '
 import { UserVoteType } from '@/types/reaction';
 import { ContentType, Work } from '@/types/work';
 import { CommentService } from '@/services/comment.service';
-import {
-  extractUserMentions,
-  findCommentById,
-  getRealId,
-} from '@/components/Comment/lib/commentUtils/index';
+import { extractUserMentions, findCommentById } from '@/components/Comment/lib/commentUtils/index';
 import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
@@ -541,10 +537,6 @@ export const CommentProvider = ({
       try {
         console.log(`Creating reply to parent ${parentId} with content:`, content);
 
-        // Get the real parent ID if it exists
-        const realParentId = getRealId(parentId);
-        console.log(`Real parent ID: ${realParentId}`);
-
         const apiContent = convertToApiFormat(content);
 
         // Extract mentions from the question content
@@ -554,13 +546,13 @@ export const CommentProvider = ({
             : [];
 
         // Make the API call first
-        console.log(`Making API call to create reply to parent ${realParentId}`);
+        console.log(`Making API call to create reply to parent ${parentId}`);
         const newReply = await CommentService.createComment({
           workId: documentId,
           contentType,
           content: apiContent,
           contentFormat: 'TIPTAP',
-          parentId: realParentId,
+          parentId,
           commentType: 'GENERIC_COMMENT',
           mentions: mentions || [],
         });
@@ -576,7 +568,7 @@ export const CommentProvider = ({
         // Update the state with the new reply
         dispatch({
           type: CommentActionType.ADD_REPLY,
-          payload: { parentId: realParentId, reply: newReply },
+          payload: { parentId, reply: newReply },
         });
 
         // Clear the replying state
@@ -613,9 +605,6 @@ export const CommentProvider = ({
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
       try {
-        // Get the real comment ID if it exists
-        const realId = getRealId(commentId);
-
         const apiContent = convertToApiFormat(content);
 
         // Extract mentions from the question content
@@ -625,10 +614,10 @@ export const CommentProvider = ({
             : [];
 
         // Find the comment to update
-        const commentToUpdate = findCommentById(state.comments, realId);
+        const commentToUpdate = findCommentById(state.comments, commentId);
 
         if (!commentToUpdate) {
-          console.error(`Comment with ID ${realId} not found`);
+          console.error(`Comment with ID ${commentId} not found`);
           return null;
         }
 
@@ -655,7 +644,7 @@ export const CommentProvider = ({
 
         // Make the API call
         const response = await CommentService.updateComment({
-          commentId: realId,
+          commentId,
           documentId,
           contentType,
           content: apiContent,
@@ -675,7 +664,7 @@ export const CommentProvider = ({
           // Revert the optimistic update if the API call failed
           dispatch({
             type: CommentActionType.REVERT_OPTIMISTIC_UPDATE,
-            payload: realId,
+            payload: commentId,
           });
 
           return null;

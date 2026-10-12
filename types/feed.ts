@@ -1,15 +1,8 @@
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Topic, transformTopic } from './topic';
-import { createTransformer, BaseTransformed } from './transformer';
-import {
-  Work,
-  transformPaper,
-  transformPost,
-  FundingRequest,
-  ContentType,
-  type WorkGrantSummary,
-} from './work';
+import { createTransformer } from './transformer';
+import { Work, transformPaper, transformPost, ContentType, type WorkGrantSummary } from './work';
 import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
@@ -23,9 +16,6 @@ import { FOUNDATION_USER_ID } from '@/config/constants';
 import { FundingPool, GrantStatus, transformFundingPool } from './grant';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
-
-// Re-export FundingRequest for backward compatibility
-export type { FundingRequest };
 
 // Simplified structure for parent comment preview - now recursive
 export interface ParentCommentPreview {
@@ -628,9 +618,6 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
 
   return undefined;
 }
-
-export type TransformedContent = Content & BaseTransformed;
-export type TransformedFeedEntry = FeedEntry & BaseTransformed;
 
 function transformActivityRelatedWorkGrant(rawGrant: unknown): WorkGrantSummary | undefined {
   if (!rawGrant || typeof rawGrant !== 'object') return undefined;
@@ -1583,92 +1570,6 @@ export const transformBountyCommentToFeedItem = (
     awardedBountyAmount: comment.awardedBountyAmount,
     isAssessed: comment.isAssessed ?? false,
   };
-};
-
-/**
- * Creates a FeedEntry from a Work object, typically used for bounty entries
- * where we need to display the related work (paper or post) as a feed item.
- * @param work The Work object to transform into a FeedEntry
- * @param originalEntry The original FeedEntry to extract metadata from (metrics, userVote, tips)
- * @returns A FeedEntry object with the work as content, or null if the work cannot be transformed
- */
-export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): FeedEntry | null => {
-  if (!work) return null;
-
-  const contentType = work.contentType === 'paper' ? 'PAPER' : 'POST';
-  if (!contentType) return null;
-
-  const bountyEntry = originalEntry.content as FeedBountyContent;
-  const originalBounty = bountyEntry.bounty;
-  const bountyWithComment: BountyWithComment = {
-    ...originalBounty,
-    comment: bountyEntry.comment,
-  };
-
-  // Transform Work to FeedPostContent or FeedPaperContent
-  if (contentType === 'POST') {
-    const postContent: FeedPostContent = {
-      id: work.id,
-      bounties: [bountyWithComment],
-      contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
-      createdDate: work.createdDate,
-      createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
-      textPreview: work.previewContent || work.abstract || '',
-      slug: work.slug,
-      title: work.title,
-      previewImage: work.image,
-      authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
-      topics: work.topics || [],
-      postType: work.postType,
-    };
-
-    return {
-      id: work.id.toString(),
-      recommendationId: null,
-      timestamp: work.createdDate,
-      action: 'publish',
-      contentType: contentType,
-      content: postContent,
-      relatedWork: undefined,
-      metrics: originalEntry.metrics,
-      userVote: originalEntry.userVote,
-      tips: originalEntry.tips,
-    };
-  } else if (contentType === 'PAPER') {
-    const paperContent: FeedPaperContent = {
-      id: work.id,
-      bounties: [bountyWithComment],
-      contentType: 'PAPER',
-      createdDate: work.createdDate,
-      createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
-      textPreview: work.abstract || '',
-      slug: work.slug,
-      title: work.title,
-      authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
-      topics: work.topics || [],
-      journal: work.journal || {
-        id: 0,
-        name: '',
-        slug: '',
-        description: '',
-      },
-    };
-
-    return {
-      id: work.id.toString(),
-      recommendationId: null,
-      timestamp: work.createdDate,
-      action: 'publish',
-      contentType: 'PAPER',
-      content: paperContent,
-      relatedWork: undefined,
-      metrics: originalEntry.metrics,
-      userVote: originalEntry.userVote,
-      tips: originalEntry.tips,
-    };
-  }
-
-  return null;
 };
 
 export type { AuthorProfile };
