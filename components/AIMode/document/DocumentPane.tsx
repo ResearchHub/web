@@ -21,13 +21,13 @@ import { cn } from '@/utils/styles';
 import { Masthead } from './masthead/Masthead';
 import { useMastheadSlots } from './masthead/useMastheadSlots';
 import { PublishDialog } from './PublishDialog';
-import { PublishPill } from './PublishPill';
+import { PublishPill, PublishRequest, type PublishRequestOutcome } from './PublishPill';
 import type { AIModeDocument } from './useAIModeDocument';
 import { useDocumentTitle } from './useDocumentTitle';
 
 /** The page column: shared by the skeleton and the document so they line up. */
 const DOCUMENT_PAGE_CLASS =
-  'ai-mode-document mx-auto w-full max-w-[860px] px-5 py-6 tablet:!px-8 tablet:!py-8';
+  'ai-mode-document mx-auto w-full max-w-[860px] px-4 py-5 tablet:!px-8 tablet:!py-8';
 
 interface DocumentPaneProps {
   readonly document: AIModeDocument;
@@ -43,6 +43,13 @@ interface DocumentPaneProps {
   readonly hasChats?: boolean;
   /** At the pane's top-right corner: the draft's ⋯ menu. */
   readonly menu?: ReactNode;
+  /**
+   * Publish was pressed while the document was out of sight: open the
+   * publish dialog once it has loaded, then report back through
+   * `onPublishRequestHandled`.
+   */
+  readonly publishRequested?: boolean;
+  readonly onPublishRequestHandled?: (outcome: PublishRequestOutcome) => void;
   readonly className?: string;
 }
 
@@ -64,6 +71,8 @@ export function DocumentPane({
   assistantWorking = false,
   hasChats = true,
   menu = null,
+  publishRequested = false,
+  onPublishRequestHandled,
   className,
 }: DocumentPaneProps) {
   const { note, content, loading, error, status, draftText, draftBlocks, phaseLabel } = document;
@@ -192,6 +201,12 @@ export function DocumentPane({
   // while its changes wait to be accepted or rejected, there is no Publish.
   const showPublish =
     content != null && !loading && !writing && review.review == null && !editorLostContent;
+  const publishRequestState =
+    (error != null && content == null) || writing || reviewing || editorLostContent
+      ? 'blocked'
+      : showPublish && editor != null && !review.isReloading
+        ? 'ready'
+        : 'waiting';
 
   return (
     <PublishingHostProvider value={publishingHost}>
@@ -306,6 +321,9 @@ export function DocumentPane({
           )}
 
           {showPublish && <PublishPill />}
+          {publishRequested && onPublishRequestHandled && (
+            <PublishRequest state={publishRequestState} onHandled={onPublishRequestHandled} />
+          )}
         </div>
       </PublishingFormProvider>
     </PublishingHostProvider>

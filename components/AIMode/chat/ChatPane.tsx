@@ -33,6 +33,8 @@ interface ChatPaneProps {
   readonly state: AIModeChatState;
   /** The open document no longer exists. */
   readonly documentMissing: boolean;
+  /** Under a turn, after its answer: the document's card, under the newest turn that wrote to it. */
+  readonly renderExecutionExtra?: (execution: ChatExecution) => ReactNode;
 }
 
 /**
@@ -41,7 +43,7 @@ interface ChatPaneProps {
  * composer in the middle of the page, and at its foot a way to write the
  * draft without the assistant.
  */
-export function ChatPane({ state, documentMissing }: ChatPaneProps) {
+export function ChatPane({ state, documentMissing, renderExecutionExtra }: ChatPaneProps) {
   const {
     chatId,
     list,
@@ -275,6 +277,7 @@ export function ChatPane({ state, documentMissing }: ChatPaneProps) {
         <ChatTranscript
           chat={chat.chat}
           pendingSend={chat.pendingSend}
+          renderExecutionExtra={renderExecutionExtra}
           renderFailureActions={renderFailureActions}
         />
       </div>

@@ -49,6 +49,14 @@
   @apply max-w-none py-2 pl-16 pr-0;
 }
 
+/* A phone has no pointer to bring the handle up, and no width to spare for
+   its gutter: the text runs the pane's width. */
+@media (max-width: 767px) {
+  .ai-mode-document .ProseMirror {
+    @apply pl-0;
+  }
+}
+
 /* The document's title is its first heading; the cover slot sits before it,
    so the editor's own first-child placeholder rule never matches. An empty
    title, and the prompt standing in for a missing one, read "Add title"
