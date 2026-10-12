@@ -15,7 +15,7 @@ import {
 } from '@/components/Funding/createFundingDraft';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
@@ -124,8 +124,8 @@ export function useAIModeChat(): AIModeChatState {
   // reuses it rather than leaving a second draft behind. It belongs to the
   // start screen it was made on.
   const { selectedOrg } = useOrganizationContext();
-  const fundingDocuments = useFundingDocuments();
-  const { addDraft } = fundingDocuments;
+  const fundingNotes = useFundingNotes();
+  const { addDraft } = fundingNotes;
   const pendingNoteRef = useRef<Note | null>(null);
   const startScreenKey = target.kind === 'new' ? intent : null;
   useEffect(() => {
@@ -284,7 +284,7 @@ export function useAIModeChat(): AIModeChatState {
   );
 
   // ---- the open document ----
-  const { drafts, published } = fundingDocuments;
+  const { drafts, published } = fundingNotes;
   const listedTitleOfNote =
     noteId == null
       ? ''

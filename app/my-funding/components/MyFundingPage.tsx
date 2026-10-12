@@ -45,7 +45,7 @@ import {
   RadiatingDotTabIconActive,
 } from '@/components/ui/RadiatingDotTabIcon';
 import { Tabs } from '@/components/ui/Tabs';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useUser } from '@/contexts/UserContext';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import type { ActivityCommentType } from '@/services/activity.service';
@@ -148,7 +148,7 @@ export function MyFundingPage() {
     setReviewTotal((total) => Math.max(total, reviews.count));
   }, [reviews.count]);
   const seen = useMyFundingSeen(user?.id, isOwnPage);
-  const { drafts, status: draftsStatus } = useFundingDocuments();
+  const { drafts, status: draftsStatus } = useFundingNotes();
 
   const rfpDocuments = useMemo(
     () => documents.published.filter((document) => document.kind === 'rfp'),

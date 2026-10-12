@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { DeleteDraftModal } from '@/components/modals/DeleteDraftModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { NoteService } from '@/services/note.service';
 import type { ID } from '@/types/root';
 import { cn } from '@/utils/styles';
@@ -35,7 +35,7 @@ export function DraftMenu({
   align = 'start',
 }: DraftMenuProps) {
   const router = useRouter();
-  const { remove } = useFundingDocuments();
+  const { remove } = useFundingNotes();
   const [confirming, setConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
