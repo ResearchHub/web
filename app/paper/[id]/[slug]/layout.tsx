@@ -1,13 +1,12 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PaperService } from '@/services/paper.service';
-import { MetadataService } from '@/services/metadata.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
+import { getPaper, getDocumentMetadata } from './data';
 
 interface Props {
   params: Promise<{
@@ -20,7 +19,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, slug } = await params;
   try {
-    const work = await PaperService.get(id);
+    const work = await getPaper(id);
     const previewText = stripHtml(work.previewContent || '').substring(0, 155);
     const description = work.abstract || previewText || 'Read this research paper on ResearchHub.';
     return buildArticleMetadata({
@@ -48,11 +47,11 @@ export default async function PaperSlugLayout({ params, children }: Props) {
 
   let work;
   try {
-    work = await PaperService.get(id);
+    work = await getPaper(id);
   } catch {
     notFound();
   }
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await getDocumentMetadata(work.unifiedDocumentId);
 
   return (
     <WorkTabProvider>
