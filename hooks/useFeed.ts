@@ -4,7 +4,7 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 import { useFeedStateRestoration } from './useFeedStateRestoration';
 
-type FeedTab = 'following' | 'latest' | 'popular' | 'for-you' | 'journal';
+export type FeedTab = 'following' | 'latest' | 'popular' | 'journal';
 export type FundingTab = 'all' | 'open' | 'closed';
 export type FeedSource = 'all' | 'researchhub';
 
@@ -126,16 +126,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
     try {
       const isHomeFeedTab =
-        activeTab === 'popular' ||
-        activeTab === 'following' ||
-        activeTab === 'latest' ||
-        activeTab === 'for-you';
+        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
-      const feedView = isHomeFeedTab
-        ? activeTab === 'for-you'
-          ? 'personalized'
-          : activeTab
-        : undefined;
+      const feedView = isHomeFeedTab ? activeTab : undefined;
 
       const result = await FeedService.getFeed({
         page: 1,
@@ -176,16 +169,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     try {
       const nextPage = page + 1;
       const isHomeFeedTab =
-        activeTab === 'popular' ||
-        activeTab === 'following' ||
-        activeTab === 'latest' ||
-        activeTab === 'for-you';
+        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
-      const feedView = isHomeFeedTab
-        ? activeTab === 'for-you'
-          ? 'personalized'
-          : activeTab
-        : undefined;
+      const feedView = isHomeFeedTab ? activeTab : undefined;
 
       const result = await FeedService.getFeed({
         page: nextPage,
