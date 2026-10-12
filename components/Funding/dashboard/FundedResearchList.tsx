@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { Bell, Star } from 'lucide-react';
 import { getActivityComment } from '@/components/Activity/lib/activityDisplay.utils';
 import { getActivityWork } from '@/components/Activity/lib/activityWork.utils';
+import {
+  isVideoLink,
+  splitPlayableLinks,
+  withoutVideoLinks,
+} from '@/components/Embed/playableLinks';
+import { VideoThumbnail } from '@/components/Embed/VideoThumbnail';
 import { ActivityCommentPanel } from '@/components/modals/ActivityCommentPanel';
 import { Avatar } from '@/components/ui/Avatar';
 import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
@@ -12,6 +18,7 @@ import { DocumentThumbnail } from '@/components/Funding/dashboard/DocumentThumbn
 import type { FundedRow, ProposalNews } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import { formatTimeAgo } from '@/utils/date';
+import type { DetectedUrl } from '@/utils/url';
 
 interface FundedResearchListProps {
   readonly rows: readonly FundedRow[];
@@ -62,6 +69,16 @@ function FundedResearchRow({ row }: { readonly row: FundedRow }) {
     const work = getActivityWork(row.news.entry);
     return comment && work ? { comment, work } : null;
   }, [row.news]);
+  // A video in the news shows as one, its link dropped from the words.
+  const video = useMemo(
+    () =>
+      panel
+        ? (splitPlayableLinks(panel.comment.content, panel.comment.format).players.find(
+            isVideoLink
+          ) ?? null)
+        : null,
+    [panel]
+  );
 
   return (
     <li className="px-5 py-5">
@@ -96,7 +113,7 @@ function FundedResearchRow({ row }: { readonly row: FundedRow }) {
       {row.news &&
         (panel ? (
           <button type="button" onClick={() => setIsPanelOpen(true)} className={NEWS_CLASS}>
-            <NewsPreview news={row.news} />
+            <NewsPreview news={row.news} video={video} />
           </button>
         ) : (
           <Link href={row.news.href ?? row.href} className={NEWS_CLASS}>
@@ -119,7 +136,14 @@ function FundedResearchRow({ row }: { readonly row: FundedRow }) {
 const NEWS_CLASS =
   'mt-4 block w-full rounded-lg bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500';
 
-function NewsPreview({ news }: { readonly news: ProposalNews }) {
+function NewsPreview({
+  news,
+  video = null,
+}: {
+  readonly news: ProposalNews;
+  readonly video?: DetectedUrl | null;
+}) {
+  const text = video ? withoutVideoLinks(news.text) : news.text;
   return (
     <>
       <span className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -140,7 +164,16 @@ function NewsPreview({ news }: { readonly news: ProposalNews }) {
         <span aria-hidden="true">·</span>
         <span>{formatTimeAgo(news.timestamp)}</span>
       </span>
-      <span className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-gray-700">{news.text}</span>
+      {video ? (
+        <span className="mt-2 flex items-center gap-3">
+          <VideoThumbnail embed={video} className="aspect-video w-28 shrink-0" />
+          <span className="line-clamp-3 min-w-0 text-sm leading-relaxed text-gray-700">
+            {text || (news.kind === 'update' ? 'Shared a video' : 'A video')}
+          </span>
+        </span>
+      ) : (
+        <span className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-gray-700">{text}</span>
+      )}
     </>
   );
 }
