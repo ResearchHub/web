@@ -14,6 +14,7 @@ import { TopBarContainer } from './components/TopBarContainer';
 import { MobileOverlay } from './components/MobileOverlay';
 import { LeftSidebarContainer } from './components/LeftSidebarContainer';
 import { RightSidebarContainer } from './components/RightSidebarContainer';
+import { PullToRefresh } from './components/PullToRefresh';
 
 const MobileBottomNav = dynamic(
   () => import('./MobileBottomNav').then((mod) => mod.MobileBottomNav),
@@ -129,6 +130,10 @@ function PageLayoutInner({
               'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]'
             )}
           >
+            {/* First, so the gap it opens sits above everything on the page. A
+                full-bleed page never scrolls, so it has nothing to pull down. */}
+            <PullToRefresh scrollContainerRef={scrollContainerRef} />
+
             {topBanner && <div className="w-full">{topBanner}</div>}
 
             <div
