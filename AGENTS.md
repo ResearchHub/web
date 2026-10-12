@@ -10,6 +10,10 @@ Next.js frontend for ResearchHub. All data comes from the Django API in
 - The Playwright smoke tests in `smoke/` are the only test suite. They run
   against a running environment (see `README.md`).
 - Add tests only when the user asks for them.
+- If a change adds network requests (a new API call, or an existing call made
+  more often), call it out prominently in the summary to the user: say which
+  endpoints, where they are triggered, and why the data could not come from an
+  existing response.
 
 ## Dependencies
 - `@tiptap-pro/*` and Font Awesome Pro install from private registries. Their
@@ -28,6 +32,9 @@ Next.js frontend for ResearchHub. All data comes from the Django API in
   return transformed models.
 - Keep services and transformers to data; display formatting belongs in
   components.
+- When possible and reasonable, prefer updating an API endpoint to include the
+  data a view needs over making additional network requests to other endpoints
+  to fetch it.
 - `app/layouts/PageLayout.tsx` is the standard page shell.
 - Build UI from `components/ui/` (`Button`, `Tabs`, `BaseModal`, ...) and merge
   class names with `cn()` from `utils/styles.ts`. Modals go in
