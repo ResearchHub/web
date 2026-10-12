@@ -32,6 +32,8 @@ export interface ParentCommentPreview {
   id: number;
   content: any;
   contentFormat?: ContentFormat;
+  /** Raw comment type, e.g. `REVIEW` when the reply answers a peer review. */
+  commentType?: string;
   createdBy: AuthorProfile;
   parentComment?: ParentCommentPreview | undefined; // Add recursive field
 }
@@ -129,6 +131,7 @@ const transformNestedParentComment = (rawParent: any): ParentCommentPreview | un
       id: rawParent.id,
       content: rawParent.comment_content_json,
       contentFormat: rawParent.comment_content_type,
+      commentType: rawParent.comment_type,
       createdBy: createdBy,
       // Recursively transform the next parent level
       parentComment: transformNestedParentComment(rawParent.parent_comment),
