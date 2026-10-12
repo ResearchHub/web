@@ -27,8 +27,9 @@ interface ActivityActorProps {
 
 /**
  * Who did what, and when: the name with its badges, credential and time on one
- * line, and the action under it. Kept to the byline's quieter type so the card's
- * content, below it, is the first thing that reads as someone's words.
+ * line, and the action under it. On a phone the credential takes a line of its own
+ * between them. Kept to the byline's quieter type so the card's content, below it,
+ * is the first thing that reads as someone's words.
  */
 export const ActivityActor: FC<ActivityActorProps> = ({
   authors,
@@ -90,8 +91,10 @@ export const ActivityActor: FC<ActivityActorProps> = ({
               <ActivityAuthorSummary authors={authors} />
             </span>
             {isAuthor && <AuthorBadge size="sm" className="flex-shrink-0 self-center" />}
-            <span className="flex min-w-[3.5rem] flex-1 basis-0 items-baseline gap-1 text-[13px] text-gray-500">
-              {headline && <span className="min-w-0 truncate">· {headline}</span>}
+            <span className="flex min-w-min flex-1 basis-0 items-baseline gap-1 text-[13px] text-gray-500 tablet:min-w-[3.5rem]">
+              {headline && (
+                <span className="hidden min-w-0 truncate tablet:block">· {headline}</span>
+              )}
               <Tooltip
                 content={new Date(timestamp).toLocaleString()}
                 wrapperClassName="flex h-auto w-fit flex-shrink-0"
@@ -102,6 +105,12 @@ export const ActivityActor: FC<ActivityActorProps> = ({
               </Tooltip>
             </span>
           </div>
+        )}
+        {headline && (
+          // Beside a name on a phone there's only room for a sliver of it.
+          <p className="line-clamp-2 text-[13px] leading-[18px] text-gray-500 tablet:hidden">
+            {headline}
+          </p>
         )}
         <ActivityActionText line={action} className="mt-0.5" />
       </div>

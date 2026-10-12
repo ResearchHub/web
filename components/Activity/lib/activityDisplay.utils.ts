@@ -215,7 +215,7 @@ type CommentWorkTab = 'reviews' | 'bounties' | 'conversation' | 'updates' | unde
  * only routed under `/proposal` and `/report`. On any other work the update has
  * to settle for the conversation tab rather than link at a missing route.
  */
-export function shouldLinkToUpdatesTab(entry: FeedEntry, workContentType?: ContentType): boolean {
+function shouldLinkToUpdatesTab(entry: FeedEntry, workContentType?: ContentType): boolean {
   if (entry.contentType !== 'COMMENT') return false;
   if (workContentType !== 'preregistration') return false;
   return (entry.content as FeedCommentContent).comment?.commentType === 'AUTHOR_UPDATE';

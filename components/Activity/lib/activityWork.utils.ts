@@ -8,7 +8,6 @@ import {
   isGrantOpened,
   isProposalSubmission,
   isVerifiedAuthor,
-  shouldLinkToUpdatesTab,
   type ActivityCommentKind,
 } from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
@@ -32,6 +31,7 @@ export interface ActivityWork {
   id: number;
   slug: string;
   title: string;
+  /** The work's own page, never one of its tabs: a card always opens the work itself. */
   href: string;
   imageUrl?: string;
   documentType: ContentType;
@@ -42,7 +42,6 @@ export interface ActivityWork {
   grant?: WorkGrantSummary;
   bounty?: Bounty;
   authors?: AuthorProfile[];
-  tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
 }
 
 export interface WorkCardAuthor {
@@ -81,33 +80,6 @@ export function getActivityBounty(entry: FeedEntry): Bounty | undefined {
   }
   const bounties = entry.content.bounties;
   return bounties?.find((bounty) => bounty.status === 'OPEN') ?? bounties?.[0];
-}
-
-/**
- * `workContentType` is the type of the work being linked to, not of the entry —
- * author updates are `comment_published` like any other comment and only the
- * target tells them apart from a conversation comment.
- */
-function resolveWorkTab(entry: FeedEntry, workContentType?: ContentType): ActivityWork['tab'] {
-  switch (entry.activityAction) {
-    case 'tip_review':
-    case 'peer_review_published':
-      return 'reviews';
-    case 'bounty_opened':
-    case 'bounty_contributed':
-    case 'bounty_payout':
-      return 'bounties';
-    case 'comment_published':
-      if (
-        entry.content.contentType === 'COMMENT' &&
-        entry.content.comment.commentType === 'REVIEW'
-      ) {
-        return 'reviews';
-      }
-      return shouldLinkToUpdatesTab(entry, workContentType) ? 'updates' : 'conversation';
-    default:
-      return undefined;
-  }
 }
 
 function resolveActivityBodySlot(
@@ -188,6 +160,9 @@ function isRegisteredReport(postType?: string): boolean {
   return postType === 'REGISTERED_REPORT';
 }
 
+/** The tabs a comment can live on, for links that open on one. */
+type WorkTab = 'reviews' | 'conversation' | 'updates';
+
 /**
  * Registered reports are `post` documents, which `buildWorkUrl` has no route for. Their
  * pages carry their own tabs, so a work tab is dropped, as `/post` does when redirecting.
@@ -197,7 +172,7 @@ function buildActivityWorkHref(params: {
   slug?: string;
   contentType: ContentType;
   postType?: string;
-  tab?: ActivityWork['tab'];
+  tab?: WorkTab;
 }): string {
   return isRegisteredReport(params.postType)
     ? buildRegisteredReportUrl(params.id, params.slug)
@@ -360,6 +335,8 @@ export interface WorkCoverPresentation {
   brand?: 'researchhub';
   /** At most two figures, so the title keeps the room. */
   stats: WorkCoverStat[];
+  /** How far a proposal's fundraise is toward its goal, from 0 to 1. */
+  progress?: number;
   showComment: boolean;
 }
 
@@ -386,6 +363,17 @@ function getWorkKindLabel(work: ActivityWork): string {
 function resolveCoverRating(work: ActivityWork): number | null {
   const average = work.fundraise?.reviewMetrics?.avg;
   return average && average > 0 ? average : null;
+}
+
+/**
+ * Every card about a proposal shows how far its fundraise has come, whatever the
+ * activity was, so the bar is read from the work rather than the card's slot.
+ */
+function resolveFundingProgress(work: ActivityWork): number | undefined {
+  if (work.documentType !== 'preregistration' || !work.fundraise) return undefined;
+  const goal = work.fundraise.goalAmount?.usd ?? 0;
+  if (goal <= 0) return undefined;
+  return Math.min(1, (work.fundraise.amountRaised?.usd ?? 0) / goal);
 }
 
 function getCoverStats(
@@ -444,6 +432,7 @@ export function getWorkCoverPresentation(
     brand: base.brand,
     showComment: base.showComment,
     stats: getCoverStats(slot, work, showUSD, exchangeRate),
+    progress: resolveFundingProgress(work),
   };
 }
 
@@ -452,7 +441,7 @@ export function getWorkCoverPresentation(
  * tab, author updates on updates (proposals only have one), the rest in conversation.
  */
 export function getWorkHrefForComment(work: ActivityWork, kind: ActivityCommentKind): string {
-  let tab: ActivityWork['tab'] = 'conversation';
+  let tab: WorkTab = 'conversation';
   if (kind === 'review') tab = 'reviews';
   else if (kind === 'update' && work.documentType === 'preregistration') tab = 'updates';
   return buildActivityWorkHref({
@@ -495,7 +484,7 @@ export function getActivityCta(entry: FeedEntry, work: ActivityWork): ActivityCt
     entry.content.contentType === 'COMMENT' ? entry.content.comment?.commentType : undefined;
 
   // A review, or a payout for one, always leads to the review itself, opened in
-  // place; one that arrives without its text falls back to the reviews tab.
+  // place; one that arrives without its text falls back to the work's page.
   if (getActivityReview(entry)) return { kind: 'panel', label: 'Read review' };
   if (entry.contentType === 'FUNDINGACTIVITY' || commentType === 'REVIEW') {
     return link('Read review');
@@ -556,7 +545,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
     const grantContent = entry.content as FeedGrantContent;
     if (!grantContent.title) return null;
     const documentType: ContentType = 'funding_request';
-    const tab = resolveWorkTab(entry, documentType);
     return {
       id: grantContent.id,
       slug: grantContent.slug,
@@ -565,7 +553,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
         id: grantContent.id,
         slug: grantContent.slug,
         contentType: documentType,
-        tab,
       }),
       imageUrl: grantContent.previewImage,
       documentType,
@@ -573,7 +560,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
       grant: grantSummaryFromFeedGrant(grantContent),
       bounty,
       authors: grantContent.authors,
-      tab,
     };
   }
 
@@ -592,7 +578,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
       post.contentType === 'PREREGISTRATION'
         ? 'preregistration'
         : 'post';
-    const tab = resolveWorkTab(entry, documentType);
     return {
       id: post.id,
       slug: post.slug,
@@ -602,7 +587,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
         slug: post.slug || undefined,
         contentType: documentType,
         postType: post.postType,
-        tab,
       }),
       imageUrl: post.previewImage,
       documentType,
@@ -614,7 +598,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
         entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION'
           ? undefined
           : post.authors,
-      tab,
     };
   }
 
@@ -666,7 +649,6 @@ export function shouldShowAuthorBadge(entry: FeedEntry, authorId?: number | null
 
 function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
   const documentType = related.contentType;
-  const tab = resolveWorkTab(entry, documentType);
   const relatedAuthors = related.authors?.map((authorship) => authorship.authorProfile);
 
   return {
@@ -678,7 +660,6 @@ function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
       slug: related.slug,
       contentType: documentType,
       postType: related.postType,
-      tab,
     }),
     imageUrl: related.image,
     documentType,
@@ -688,7 +669,6 @@ function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
     grant: related.grantSummary,
     bounty: getActivityBounty(entry),
     authors: resolveWorkAuthors(entry, relatedAuthors),
-    tab,
   };
 }
 

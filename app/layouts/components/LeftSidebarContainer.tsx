@@ -19,8 +19,8 @@ export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerPr
     <div
       className={cn(
         'bg-white border-r border-gray-200 flex-shrink-0 z-[130]',
-        // The menu: fixed full height, sliding in over the top bar (and the promo
-        // banner), a fifth wider than the column so its rows are easier to tap.
+        // The menu: fixed full height, sliding in over the top bar, a fifth wider
+        // than the column so its rows are easier to tap.
         'fixed top-0 h-screen w-[288px] max-w-[85vw]',
         'transition-transform duration-200 ease-out',
         isOpen ? '!translate-x-0' : '!-translate-x-full',

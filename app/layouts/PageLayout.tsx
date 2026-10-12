@@ -9,13 +9,12 @@ import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
 import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
 import { TopBarContainer } from './components/TopBarContainer';
 import { MobileOverlay } from './components/MobileOverlay';
 import { LeftSidebarContainer } from './components/LeftSidebarContainer';
 import { RightSidebarContainer } from './components/RightSidebarContainer';
-import { ENDOWMENT_PROMO_BANNER_FEATURE } from './components/EndowmentPromoBanner';
+import { PullToRefresh } from './components/PullToRefresh';
 
 const MobileBottomNav = dynamic(
   () => import('./MobileBottomNav').then((mod) => mod.MobileBottomNav),
@@ -84,13 +83,6 @@ function PageLayoutInner({
 
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
 
-  // Mirror the EndowmentPromoBanner's visibility so we can reserve space for it
-  // on mobile while it's shown above the TopBar. The banner itself only renders
-  // below the tablet breakpoint, so the extra padding is also mobile-only.
-  const { isDismissed: isPromoDismissed, dismissStatus: promoDismissStatus } =
-    useDismissableFeature(ENDOWMENT_PROMO_BANNER_FEATURE);
-  const isPromoBannerVisible = promoDismissStatus === 'checked' && !isPromoDismissed;
-
   return (
     <ScrollContainerProvider
       scrollContainerRef={scrollContainerRef}
@@ -118,8 +110,7 @@ function PageLayoutInner({
               'relative flex min-w-0 flex-1 flex-col overflow-hidden',
               'page-layout-with-mobile-bottom-nav',
               'pt-[var(--top-bar-height)] mt-0',
-              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
-              isPromoBannerVisible && 'page-layout-with-promo-banner'
+              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]'
             )}
           >
             {children}
@@ -128,18 +119,21 @@ function PageLayoutInner({
         ) : (
           /* The scrollport. Padding clears the fixed top bar on phones, where it
              hides on scroll; a margin does from the tablet breakpoint up. The
-             `page-layout-*` classes reserve room for the promo banner and the
-             bottom nav where those show. */
+             `page-layout-with-mobile-bottom-nav` class reserves room for the
+             bottom nav where it shows. */
           <div
             ref={scrollContainerRef}
             className={cn(
               'flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain relative transition-all duration-150',
               'page-layout-with-mobile-bottom-nav',
               'pt-[var(--top-bar-height)] mt-0',
-              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]',
-              isPromoBannerVisible && 'page-layout-with-promo-banner'
+              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]'
             )}
           >
+            {/* First, so the gap it opens sits above everything on the page. A
+                full-bleed page never scrolls, so it has nothing to pull down. */}
+            <PullToRefresh scrollContainerRef={scrollContainerRef} />
+
             {topBanner && <div className="w-full">{topBanner}</div>}
 
             <div

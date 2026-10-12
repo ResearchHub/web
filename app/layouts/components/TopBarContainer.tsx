@@ -1,6 +1,5 @@
 'use client';
 
-import { EndowmentPromoBanner } from './EndowmentPromoBanner';
 import { TopBar } from '../TopBar';
 
 interface TopBarContainerProps {
@@ -24,7 +23,6 @@ export function TopBarContainer({
         transition-transform duration-300 ease-in-out tablet:!transform-none
         ${shouldHide ? '-translate-y-full' : 'translate-y-0'}`}
     >
-      <EndowmentPromoBanner />
       <TopBar onMenuClick={onMenuClick} isMenuOpen={isLeftSidebarOpen} />
     </div>
   );
