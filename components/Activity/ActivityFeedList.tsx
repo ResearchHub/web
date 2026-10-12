@@ -40,7 +40,7 @@ export function ActivityFeedList({
   });
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       {children}
 
       {(isLoading || isLoadingMore) &&

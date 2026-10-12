@@ -8,7 +8,7 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { cn } from '@/utils/styles';
 import { isVerifiedAuthor, type ActivityHeaderMessage } from '../lib/activityDisplay.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
-import { ActivityAuthorSummary } from './ActivityGroupHeader';
+import { ActivityAuthorSummary } from './ActivityAuthorSummary';
 
 interface ActivityHeaderActionTextProps {
   message: ActivityHeaderMessage;

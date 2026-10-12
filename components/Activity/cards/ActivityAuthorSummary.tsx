@@ -1,15 +1,11 @@
 'use client';
 
-import { ReactNode } from 'react';
 import Link from 'next/link';
-import { AvatarStack } from '@/components/ui/AvatarStack';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { isVerifiedAuthor } from '../lib/activityDisplay.utils';
 
-const MAX_VISIBLE_AUTHORS = 3;
-const AUTHOR_AVATAR_SPACING = -14;
 const MAX_NAMED_AUTHORS = 2;
 
 function AuthorName({ author }: Readonly<{ author: AuthorProfile }>) {
@@ -59,34 +55,5 @@ export function ActivityAuthorSummary({ authors }: Readonly<{ authors: AuthorPro
         </span>
       )}
     </>
-  );
-}
-
-export function ActivityGroupHeader({
-  authors,
-  children,
-}: Readonly<{
-  authors: AuthorProfile[];
-  children: ReactNode;
-}>) {
-  const avatarItems = authors.map((author) => ({
-    src: author.profileImage || '',
-    alt: author.fullName || 'User',
-    authorId: author.id || undefined,
-  }));
-
-  return (
-    <div className="flex items-start gap-2.5">
-      <div className="flex-shrink-0 pt-0.5">
-        <AvatarStack
-          items={avatarItems}
-          size="sm"
-          maxItems={MAX_VISIBLE_AUTHORS}
-          spacing={AUTHOR_AVATAR_SPACING}
-          showLabel={false}
-        />
-      </div>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
   );
 }

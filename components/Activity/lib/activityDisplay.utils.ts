@@ -1,7 +1,9 @@
 import { buildWorkUrl } from '@/utils/url';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 import type { CurrencyAmount } from '@/utils/currency';
+import { parseContent } from '@/components/Comment/lib/commentContentUtils';
 import type {
+  FeedBountyContent,
   FeedCommentContent,
   FeedContentType,
   FeedEntry,
@@ -9,10 +11,12 @@ import type {
   FeedGrantContent,
   FeedPaperContent,
   FeedPostContent,
+  ParentCommentPreview,
 } from '@/types/feed';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { CommentType, ContentFormat } from '@/types/comment';
-import type { CommentContent } from '@/components/Comment/lib/types';
+import type { CommentContent, TipTapNode, TipTapTextNode } from '@/components/Comment/lib/types';
+import type { Bounty } from '@/types/bounty';
 import type { ContentType } from '@/types/work';
 
 const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
@@ -427,4 +431,326 @@ export function getCommentPreview(entry: FeedEntry): ActivityCommentPreview | nu
     format: comment.contentFormat,
     isReview: comment.commentType === 'REVIEW',
   };
+}
+
+/**
+ * The amount or score that rides on an action line. Each kind keeps its own
+ * renderer, since bounties and grants convert currency differently.
+ */
+export type ActivityActionValue =
+  | { kind: 'contribution'; amount: CurrencyAmount }
+  | { kind: 'grant'; amount: ActivityGrantAmount }
+  | { kind: 'bounty'; bounty: Bounty }
+  | { kind: 'score'; score: number };
+
+/**
+ * What happened, phrased without the actor (whose name heads the card) and naming
+ * what was acted on, so a first-time reader can tell a proposal from an RFP.
+ */
+export interface ActivityActionLine {
+  /** "Funded a proposal", "Peer reviewed a proposal", "Earned". */
+  label: string;
+  /** Someone the action was aimed at, e.g. the reviewer a funder tipped. */
+  target?: AuthorProfile;
+  value?: ActivityActionValue;
+  /** Words after the value: "for a peer review". */
+  trailing?: string;
+}
+
+const WORK_NOUNS: Record<ContentType, string> = {
+  preregistration: 'a proposal',
+  funding_request: 'an RFP',
+  paper: 'a paper',
+  question: 'a question',
+  discussion: 'a post',
+  post: 'a post',
+};
+
+/** "a proposal", "an RFP"; registered reports only differ from posts by their post type. */
+export function getWorkNoun(work?: { documentType: ContentType; postType?: string }): string {
+  if (!work) return 'a post';
+  if (work.postType === 'REGISTERED_REPORT') return 'a registered report';
+  return WORK_NOUNS[work.documentType] ?? 'a post';
+}
+
+function contributionValue(amount?: CurrencyAmount): ActivityActionValue | undefined {
+  return amount ? { kind: 'contribution', amount } : undefined;
+}
+
+function getFundingActivityActionLine(content: FeedFundingActivityContent): ActivityActionLine {
+  const value = contributionValue(
+    content.totalUsdCents > 0
+      ? { amount: content.totalUsd, currency: 'USD' }
+      : { amount: content.totalAmount, currency: 'RSC' }
+  );
+  const recipient = content.recipient;
+
+  if (
+    recipient &&
+    (content.sourceType === 'BOUNTY_PAYOUT' || isFoundationProfile(content.createdBy))
+  ) {
+    return { label: 'Earned', value, trailing: 'for a peer review' };
+  }
+  if (content.sourceType === 'BOUNTY_PAYOUT') {
+    return { label: 'Awarded a bounty', value };
+  }
+  if (!recipient) {
+    return { label: 'Tipped a peer review', value };
+  }
+  return { label: 'Tipped', target: recipient, value, trailing: 'for a peer review' };
+}
+
+function getCommentActionLine(entry: FeedEntry, noun: string): ActivityActionLine {
+  const commentContent = entry.content as FeedCommentContent;
+  const bounty = commentContent.bounties?.[0];
+  if (bounty) {
+    return {
+      label: bounty.bountyType === 'REVIEW' ? 'Opened a peer review bounty' : 'Opened a bounty',
+      value: { kind: 'bounty', bounty },
+    };
+  }
+
+  switch (commentContent.comment?.commentType) {
+    case 'REVIEW': {
+      const earning = getReviewEarning(entry);
+      if (earning) {
+        return {
+          label: 'Earned',
+          value: contributionValue(earning),
+          trailing: 'for a peer review',
+        };
+      }
+      const score = getReviewScore(entry);
+      return {
+        label: `Peer reviewed ${noun}`,
+        value: score ? { kind: 'score', score } : undefined,
+      };
+    }
+    case 'AUTHOR_UPDATE':
+      return { label: 'Posted an update' };
+    case 'ANSWER':
+      return { label: 'Answered a question' };
+    default: {
+      const parent = commentContent.parentComment;
+      if (parent) {
+        return {
+          label:
+            parent.commentType === 'REVIEW' ? 'Replied to a peer review' : 'Replied to a comment',
+        };
+      }
+      return { label: `Commented on ${noun}` };
+    }
+  }
+}
+
+/**
+ * The action line for a card. `work` supplies the noun ("a proposal", "an RFP"),
+ * so it should be the work the card shows.
+ */
+export function getActivityActionLine(
+  entry: FeedEntry,
+  work?: { documentType: ContentType; postType?: string }
+): ActivityActionLine {
+  const noun = getWorkNoun(work);
+
+  if (entry.contentType === 'FUNDINGACTIVITY') {
+    return getFundingActivityActionLine(entry.content as FeedFundingActivityContent);
+  }
+  if (entry.contentType === 'COMMENT') {
+    return getCommentActionLine(entry, noun);
+  }
+  if (entry.contentType === 'BOUNTY') {
+    const bounty = (entry.content as FeedBountyContent).bounty;
+    if (entry.activityAction === 'bounty_opened' && bounty) {
+      return {
+        label: bounty.bountyType === 'REVIEW' ? 'Opened a peer review bounty' : 'Opened a bounty',
+        value: { kind: 'bounty', bounty },
+      };
+    }
+    return { label: 'Contributed to a bounty' };
+  }
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
+    return {
+      label: isFundingPoolContribution(entry)
+        ? 'Added to an RFP’s funding pool'
+        : 'Funded a proposal',
+      value: contributionValue(getContribution(entry)),
+    };
+  }
+  if (entry.contentType === 'GRANT') {
+    const amount = getGrantAmount(entry);
+    return { label: 'Opened an RFP', value: amount ? { kind: 'grant', amount } : undefined };
+  }
+  if (entry.contentType === 'PREREGISTRATION') {
+    return { label: 'Submitted a proposal for funding' };
+  }
+  if (entry.contentType === 'PAPER') {
+    return { label: 'Published a preprint' };
+  }
+  const postType = (entry.content as FeedPostContent).postType ?? entry.relatedWork?.postType;
+  if (entry.contentType === 'POST' && postType === 'REGISTERED_REPORT') {
+    return { label: 'Published a registered report' };
+  }
+  if (entry.contentType === 'POST') {
+    return { label: 'Posted a discussion' };
+  }
+  return { label: `Contributed to ${noun}` };
+}
+
+/** Plain text of a TipTap node and its children. */
+function nodeText(node: TipTapNode | TipTapTextNode): string {
+  if ('content' in node && node.content) return node.content.map(nodeText).join('');
+  return node.text ?? '';
+}
+
+/** "Overall impact", "1. Overall assessment (3.0/5.0)", "OVERALL IMPACT (4/5)". */
+const VERDICT_HEADING = /^\s*(\d+[.)]\s*)?overall\b/i;
+
+/** TipTap arrives either as an object or as the JSON string the API stores. */
+function parseTipTap(content: CommentContent): Exclude<CommentContent, string> | null {
+  if (typeof content !== 'string') return content ?? null;
+  try {
+    const parsed: unknown = JSON.parse(content);
+    return parsed && typeof parsed === 'object'
+      ? (parsed as Exclude<CommentContent, string>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reviews open with the reviewer's credentials, conflicts and AI disclosure; the
+ * verdict comes after. When a review has an "Overall …" section, the preview starts
+ * there. Anything else (Quill, no such section) is returned untouched.
+ */
+export function toReviewVerdictPreview(content: CommentContent): CommentContent {
+  const doc = parseTipTap(content);
+  if (!doc) return content;
+
+  if (!Array.isArray(doc.content)) {
+    // Some payloads wrap the document one level down.
+    const nested = doc.content as unknown;
+    if (nested && typeof nested === 'object') {
+      const inner = toReviewVerdictPreview(nested as CommentContent);
+      return inner === nested ? content : ({ content: inner } as CommentContent);
+    }
+    return content;
+  }
+
+  const nodes = doc.content as TipTapNode[];
+  const start = nodes.findIndex((node) => VERDICT_HEADING.test(nodeText(node)));
+  if (start <= 0) return content;
+  return { ...doc, content: nodes.slice(start) } as CommentContent;
+}
+
+export type ActivityCommentKind = 'review' | 'comment' | 'update' | 'answer';
+
+/** A comment an activity quotes, such as the one a reply answers. */
+export interface ActivityQuotedComment {
+  author: AuthorProfile;
+  content: CommentContent;
+  format: ContentFormat;
+  kind: ActivityCommentKind;
+}
+
+/** Someone's words an activity is about, with what the side panel needs to show them. */
+export interface ActivityComment extends ActivityQuotedComment {
+  /** Missing for a quoted parent, which the feed sends without a date. */
+  createdDate?: string;
+  score?: number;
+  /** The comment this one replies to. */
+  parent?: ActivityQuotedComment;
+}
+
+function toCommentKind(commentType?: string): ActivityCommentKind {
+  switch (commentType) {
+    case 'REVIEW':
+      return 'review';
+    case 'AUTHOR_UPDATE':
+      return 'update';
+    case 'ANSWER':
+      return 'answer';
+    default:
+      return 'comment';
+  }
+}
+
+function toQuotedParent(parent?: ParentCommentPreview): ActivityQuotedComment | undefined {
+  if (!parent?.content || !parent.createdBy) return undefined;
+  return {
+    author: parent.createdBy,
+    content: parent.content,
+    format: parent.contentFormat ?? 'TIPTAP',
+    kind: toCommentKind(parent.commentType),
+  };
+}
+
+/**
+ * The words behind a comment or review entry, or behind a payout for a review.
+ * Null for everything else, and for entries that arrive without the text.
+ */
+export function getActivityComment(entry: FeedEntry): ActivityComment | null {
+  if (entry.contentType === 'FUNDINGACTIVITY') {
+    const funding = entry.content as FeedFundingActivityContent;
+    const review = funding.peerReview;
+    const author = review?.author ?? funding.recipient;
+    if (!review?.content || !review.isReview || !author) return null;
+    return {
+      author,
+      content: review.content,
+      format: review.contentFormat,
+      kind: 'review',
+      createdDate: review.createdDate ?? entry.timestamp,
+    };
+  }
+
+  if (entry.contentType !== 'COMMENT') return null;
+  const commentContent = entry.content as FeedCommentContent;
+  const { comment } = commentContent;
+  if (!comment?.content) return null;
+  const kind = toCommentKind(comment.commentType);
+  const score = commentContent.review?.score ?? comment.reviewScore;
+  return {
+    author: commentContent.createdBy,
+    content: comment.content,
+    format: comment.contentFormat,
+    kind,
+    score: kind === 'review' && score && score > 0 ? score : undefined,
+    createdDate: entry.timestamp,
+    parent: toQuotedParent(commentContent.parentComment),
+  };
+}
+
+/** The peer review behind an entry: a review itself, or a payout for one. */
+export function getActivityReview(entry: FeedEntry): ActivityComment | null {
+  const comment = getActivityComment(entry);
+  return comment?.kind === 'review' ? comment : null;
+}
+
+/** Text nodes that sit inline; everything else is a block that needs a gap after it. */
+const INLINE_PARENTS = new Set(['paragraph', 'heading', 'text']);
+
+/** Plain text of a TipTap tree, with a space between blocks so they don't run together. */
+function blockText(node: TipTapNode | TipTapTextNode): string {
+  if (!('content' in node) || !node.content) return node.text ?? '';
+  const separator = INLINE_PARENTS.has(node.type) ? '' : ' ';
+  return node.content.map(blockText).join(separator);
+}
+
+/**
+ * A comment flattened to one line of plain text, for quoting. Reviews start at
+ * their verdict, as their previews do.
+ */
+export function getCommentExcerpt(comment: ActivityQuotedComment): string {
+  const content =
+    comment.kind === 'review' ? toReviewVerdictPreview(comment.content) : comment.content;
+  const parsed = parseContent(content, comment.format);
+  if (!parsed) return '';
+  const text = Array.isArray(parsed.ops)
+    ? parsed.ops
+        .map((op: { insert?: unknown }) => (typeof op.insert === 'string' ? op.insert : ''))
+        .join('')
+    : blockText(parsed);
+  return text.replace(/\s+/g, ' ').trim();
 }
