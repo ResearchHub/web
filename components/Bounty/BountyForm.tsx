@@ -36,7 +36,7 @@ import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
 
 type Step = 'details' | 'payment';
-type BountyLength = '14' | '30' | '60' | 'custom';
+type BountyLength = '7' | '14' | '30' | '60' | 'custom';
 
 interface SelectedPaper {
   id: string;
@@ -138,6 +138,7 @@ const BountyLengthSelector = ({
   onChange: (value: BountyLength) => void;
 }) => {
   const options: BountyLengthOption[] = [
+    { value: '7', label: '7 days' },
     { value: '14', label: '14 days' },
     { value: '30', label: '30 days' },
     { value: '60', label: '60 days' },
