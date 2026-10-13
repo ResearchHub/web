@@ -161,18 +161,20 @@ export function transformRegisteredReportCandidate(entry: RawApiFeedEntry): Feed
 export interface UserModerationState {
   isLoading: boolean;
   error: string | null;
-  lastAction: 'suspend' | 'reinstate' | 'flag' | null;
+  lastAction: 'suspend' | 'reinstate' | 'flag' | 'research_ai_invite' | null;
 }
 
 // Hook action types
 export type SuspendUserAction = (authorId: string) => Promise<void>;
 export type ReinstateUserAction = (authorId: string) => Promise<void>;
 export type MarkProbableSpammerAction = (authorId: string) => Promise<void>;
+export type SetResearchAiInvitedAction = (userId: string, invited: boolean) => Promise<void>;
 
 export type UserModerationActions = {
   suspendUser: SuspendUserAction;
   reinstateUser: ReinstateUserAction;
   markProbableSpammer: MarkProbableSpammerAction;
+  setResearchAiInvited: SetResearchAiInvitedAction;
 };
 
 export type UseUserModerationReturn = [UserModerationState, UserModerationActions];

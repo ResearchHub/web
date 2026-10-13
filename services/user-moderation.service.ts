@@ -86,4 +86,19 @@ export class UserModerationService {
       throw new UserModerationError('Failed to flag user as probable spammer.', error);
     }
   }
+
+  /**
+   * Adds a user to, or removes them from, the Research AI invited tier
+   * @param userId - The user ID (not the author profile ID)
+   * @param invited - true to add the user, false to remove them
+   */
+  static async setResearchAiInvited(userId: string, invited: boolean): Promise<void> {
+    const path = `/api/research_ai/invited-tier/${userId}/`;
+    try {
+      await (invited ? ApiClient.post(path) : ApiClient.delete(path));
+    } catch (error) {
+      console.error(`Error updating Research AI tier for user ${userId}:`, error);
+      throw new UserModerationError('Failed to update Research AI tier.', error);
+    }
+  }
 }
