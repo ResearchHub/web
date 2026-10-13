@@ -36,7 +36,7 @@ import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
 
 type Step = 'details' | 'payment';
-type BountyLength = '14' | '30' | '60' | 'custom';
+type BountyLength = '7' | '14' | '30' | '60' | 'custom';
 
 interface SelectedPaper {
   id: string;
@@ -138,6 +138,7 @@ const BountyLengthSelector = ({
   onChange: (value: BountyLength) => void;
 }) => {
   const options: BountyLengthOption[] = [
+    { value: '7', label: '7 days' },
     { value: '14', label: '14 days' },
     { value: '30', label: '30 days' },
     { value: '60', label: '60 days' },
@@ -154,7 +155,10 @@ const BountyLengthSelector = ({
             <ChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
           </span>
         </Listbox.Button>
-        <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+        <Listbox.Options
+          anchor={{ to: 'bottom', gap: 4 }}
+          className="z-[110] max-h-60 w-[var(--button-width)] overflow-auto rounded-lg bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+        >
           {options.map((option) => (
             <Listbox.Option
               key={option.value}
