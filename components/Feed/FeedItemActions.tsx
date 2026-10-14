@@ -850,14 +850,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           {groupUtilityActions && moreMenu}
         </div>
 
-        <div
-          className={cn('flex flex-shrink-0 items-center justify-end', isFlat ? 'gap-3' : 'gap-1')}
-        >
-          {rightSideActionButton}
-          {!groupUtilityActions && shareButton}
-          {!groupUtilityActions && saveButton}
-          {!groupUtilityActions && moreMenu}
-        </div>
+        {/* Left out when it would be empty, so it doesn't add a gap after the votes. */}
+        {(rightSideActionButton || !groupUtilityActions) && (
+          <div
+            className={cn(
+              'flex flex-shrink-0 items-center justify-end',
+              isFlat ? 'gap-3' : 'gap-1'
+            )}
+          >
+            {rightSideActionButton}
+            {!groupUtilityActions && shareButton}
+            {!groupUtilityActions && saveButton}
+            {!groupUtilityActions && moreMenu}
+          </div>
+        )}
       </div>
 
       {contentToFlag && (

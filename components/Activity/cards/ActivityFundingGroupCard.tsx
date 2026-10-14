@@ -62,20 +62,19 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
         action={line}
         timestamp={latestEntry.timestamp}
         menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
-        footer={
-          <ActivityCardFooter
-            entry={latestEntry}
-            work={work}
-            cta={getActivityCta(latestEntry, work)}
-            hideableEntries={entries}
-          />
-        }
       >
         <ActivityWorkCover
           work={work}
           cover={cover}
           onNavigate={() => updateLastClickedEntryId(latestEntryId)}
           className="mt-3"
+        />
+
+        <ActivityCardFooter
+          entry={latestEntry}
+          work={work}
+          cta={getActivityCta(latestEntry, work)}
+          hideableEntries={entries}
         />
       </ActivityActor>
     </ActivityCardShell>

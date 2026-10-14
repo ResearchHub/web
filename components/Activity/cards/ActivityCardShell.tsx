@@ -16,15 +16,16 @@ interface ActivityCardShellProps {
 export const ACTIVITY_CONTENT_DIVIDER = 'mt-3 border-t border-gray-200/70 pt-3';
 
 /**
- * The hairline under each activity row. It starts where the column beside the
- * avatar does (a 40px avatar and a 12px gap), so it never crosses an avatar.
+ * The hairline under each activity row: the row's full width on a phone, and from
+ * the tablet breakpoint up starting where the column beside the avatar does (a
+ * 40px avatar and a 12px gap), so it never crosses an avatar.
  */
 export const ACTIVITY_ROW_DIVIDER =
-  'relative after:absolute after:bottom-0 after:left-[52px] after:right-0 after:h-px after:bg-gray-200 last:after:hidden';
+  'relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gray-200 last:after:hidden tablet:after:left-[52px]';
 
 /**
- * One activity row: no box around it, just an inset hairline under it that
- * separates it from the next. The last row in a list goes without.
+ * One activity row: no box around it, just a hairline under it that separates it
+ * from the next. The last row in a list goes without.
  */
 export const ActivityCardShell: FC<ActivityCardShellProps> = ({
   entryId,

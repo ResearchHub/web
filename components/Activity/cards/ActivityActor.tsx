@@ -24,21 +24,14 @@ interface ActivityActorProps {
   menu?: ReactNode;
   /** The rest of the card, set in the column beside the avatar, under the byline. */
   children?: ReactNode;
-  /**
-   * The card's action row. It shares the column beside the avatar from the tablet
-   * breakpoint up; on a phone that column is too narrow for votes, share, save and
-   * a labelled button at once, so the row runs under the avatar too.
-   */
-  footer?: ReactNode;
 }
 
 /**
  * Who did what, and when, with the rest of the card beside them: the avatar keeps a
  * column of its own, and the byline and everything under it share the column to its
- * right (all but the action row, on a phone; see `footer`). The byline carries the
- * name with its badges and the time on one line, and the action under it. Kept to
- * the byline's quieter type so the card's content, below it, is the first thing
- * that reads as someone's words.
+ * right. The byline carries the name with its badges and the time on one line, and
+ * the action under it. Kept to the byline's quieter type so the card's content,
+ * below it, is the first thing that reads as someone's words.
  */
 export const ActivityActor: FC<ActivityActorProps> = ({
   authors,
@@ -47,7 +40,6 @@ export const ActivityActor: FC<ActivityActorProps> = ({
   isAuthor = false,
   menu,
   children,
-  footer,
 }) => {
   const [lead] = authors;
   if (!lead) return null;
@@ -55,11 +47,11 @@ export const ActivityActor: FC<ActivityActorProps> = ({
   const isGroup = authors.length > 1;
 
   return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3">
+    <div className="flex gap-3">
       {isGroup ? (
         // Stacked down the column rather than across it, so the column stays one
         // avatar wide. The lead sits on top.
-        <div className="flex flex-col">
+        <div className="flex flex-shrink-0 flex-col">
           {authors.slice(0, MAX_STACKED_AVATARS).map((author, index) => (
             <div
               key={author.id ?? index}
@@ -77,7 +69,7 @@ export const ActivityActor: FC<ActivityActorProps> = ({
           ))}
         </div>
       ) : (
-        <div>
+        <div className="flex-shrink-0">
           <Avatar
             src={lead.profileImage}
             alt={lead.fullName || 'User'}
@@ -87,7 +79,7 @@ export const ActivityActor: FC<ActivityActorProps> = ({
         </div>
       )}
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             {isGroup ? (
@@ -131,8 +123,6 @@ export const ActivityActor: FC<ActivityActorProps> = ({
 
         {children}
       </div>
-
-      {footer && <div className="col-span-2 tablet:col-span-1 tablet:col-start-2">{footer}</div>}
     </div>
   );
 };

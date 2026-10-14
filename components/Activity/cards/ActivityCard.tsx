@@ -85,16 +85,6 @@ export const ActivityCard: FC<ActivityCardProps> = ({
         timestamp={entry.timestamp}
         isAuthor={!isCoAuthored && shouldShowAuthorBadge(entry, message.actor.id)}
         menu={hideActions ? undefined : <ActivityCardMenu work={work} hideableEntries={[entry]} />}
-        footer={
-          hideActions ? undefined : (
-            <ActivityCardFooter
-              entry={entry}
-              work={work}
-              cta={getActivityCta(entry, work)}
-              onOpenComment={openComment}
-            />
-          )
-        }
       >
         {showComment && commentPreview && (
           <div className={ACTIVITY_CONTENT_DIVIDER}>
@@ -116,7 +106,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
               showReadMoreButton
               showLinkPreviews={false}
               onReadMore={openComment}
-              className="feed-comment-preview text-[15px] leading-6 text-gray-700"
+              className="feed-comment-preview text-[15px] leading-6 text-gray-900"
             />
           </div>
         )}
@@ -127,6 +117,15 @@ export const ActivityCard: FC<ActivityCardProps> = ({
           onNavigate={() => updateLastClickedEntryId(entryId)}
           className="mt-3"
         />
+
+        {!hideActions && (
+          <ActivityCardFooter
+            entry={entry}
+            work={work}
+            cta={getActivityCta(entry, work)}
+            onOpenComment={openComment}
+          />
+        )}
       </ActivityActor>
 
       {panelComment && (

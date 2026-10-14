@@ -77,14 +77,6 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
         timestamp={latestEntry.timestamp}
         isAuthor={shouldShowAuthorBadge(latestEntry, author.id)}
         menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
-        footer={
-          <ActivityCardFooter
-            entry={latestEntry}
-            work={work}
-            cta={getActivityCta(latestEntry, work)}
-            hideableEntries={entries}
-          />
-        }
       >
         <div className={cn(ACTIVITY_CONTENT_DIVIDER, 'divide-y divide-gray-100')}>
           {comments.map(({ entryId, preview, comment }) => (
@@ -103,7 +95,7 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                 showReadMoreButton
                 showLinkPreviews={false}
                 onReadMore={comment ? () => openPanel(entryId, false) : undefined}
-                className="feed-comment-preview text-[15px] leading-6 text-gray-700"
+                className="feed-comment-preview text-[15px] leading-6 text-gray-900"
               />
             </div>
           ))}
@@ -114,6 +106,13 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
           cover={cover}
           onNavigate={() => updateLastClickedEntryId(latestEntryId)}
           className="mt-3"
+        />
+
+        <ActivityCardFooter
+          entry={latestEntry}
+          work={work}
+          cta={getActivityCta(latestEntry, work)}
+          hideableEntries={entries}
         />
       </ActivityActor>
 

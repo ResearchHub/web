@@ -6,9 +6,9 @@ import { ACTIVITY_ROW_DIVIDER } from './ActivityCardShell';
 
 export const ActivityCardSkeleton: FC = () => (
   <div className={cn(ACTIVITY_ROW_DIVIDER, 'animate-pulse py-4')} aria-hidden>
-    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3">
-      <div className="h-10 w-10 rounded-full bg-gray-200" />
-      <div className="min-w-0">
+    <div className="flex gap-3">
+      <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200" />
+      <div className="min-w-0 flex-1">
         <div className="flex flex-col gap-2 pt-1">
           <div className="h-3.5 w-52 max-w-full rounded bg-gray-200" />
           <div className="h-3 w-40 max-w-full rounded bg-gray-200" />
@@ -24,11 +24,11 @@ export const ActivityCardSkeleton: FC = () => (
             <div className="mt-1.5 h-3.5 w-3/4 rounded bg-white/60" />
           </div>
         </div>
-      </div>
 
-      <div className="col-span-2 flex items-center justify-between gap-3 pt-3 tablet:col-span-1 tablet:col-start-2">
-        <div className="h-6 w-20 rounded bg-gray-200" />
-        <div className="h-10 w-28 rounded-[10px] bg-gray-200" />
+        <div className="flex items-center justify-between gap-3 pt-3">
+          <div className="h-6 w-20 rounded bg-gray-200" />
+          <div className="h-11 w-28 rounded-xl bg-gray-200 tablet:h-10 tablet:rounded-[10px]" />
+        </div>
       </div>
     </div>
   </div>
