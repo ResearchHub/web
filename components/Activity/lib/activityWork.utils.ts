@@ -19,6 +19,7 @@ import type {
   FeedEntry,
   FeedGrantContent,
   FeedPostContent,
+  Review,
 } from '@/types/feed';
 import type { Bounty } from '@/types/bounty';
 import type { Fundraise, ReviewMetrics } from '@/types/funding';
@@ -44,6 +45,8 @@ export interface ActivityWork {
   authors?: AuthorProfile[];
   /** The average score and count of the work's assessed peer reviews. */
   reviewMetrics?: ReviewMetrics;
+  /** The first few of those reviews, with who wrote them. */
+  assessedReviews?: Review[];
 }
 
 export interface WorkCardAuthor {
@@ -332,8 +335,16 @@ export interface WorkCoverStat {
 
 /** What the frosted bar on an activity card's cover shows. */
 export interface WorkCoverPresentation {
-  /** Kind of work and whose it is: "Proposal · Darren Wang", "RFP · Athanatos Foundation". */
+  /**
+   * Whose work it is. A person's name alone, set beside their avatar in place of the
+   * kind of work: "Darren Wang". Otherwise the kind and its owner: "RFP · Athanatos
+   * Foundation".
+   */
   eyebrow: string;
+  /** The author the eyebrow names, when it names a person. */
+  eyebrowAuthor?: WorkCardAuthor;
+  /** Who reviewed the work, behind its rating: the first few assessed reviews. */
+  reviewPreview?: { average: number; reviews: Review[]; href: string };
   brand?: 'researchhub';
   /** At most two figures, so the title keeps the room. */
   stats: WorkCoverStat[];
@@ -400,7 +411,7 @@ function getSlotStat(
   if (slot === 'bounty' && work.bounty) {
     const { amount } = getBountyDisplayAmount(work.bounty, exchangeRate, showUSD);
     return {
-      label: work.bounty.bountyType === 'REVIEW' ? 'Review bounty' : 'Bounty',
+      label: 'Bounty',
       value: formatAmount(amount, showUSD, exchangeRate, true),
     };
   }
@@ -437,9 +448,23 @@ export function getWorkCoverPresentation(
   const owner = base.brand
     ? 'ResearchHub'
     : base.organization || base.authors[0]?.name || base.institution;
+  // Read from the work rather than `base`, which leaves a reviewed proposal's
+  // authors out; the cover still says whose proposal it is.
+  const author = base.brand || base.organization ? undefined : toCardAuthors(work.authors)[0];
+  const kind = getWorkKindLabel(work);
+  const rating = resolveCoverRating(work);
 
   return {
-    eyebrow: owner ? `${getWorkKindLabel(work)} · ${owner}` : getWorkKindLabel(work),
+    eyebrow: author?.name ?? (owner ? `${kind} · ${owner}` : kind),
+    eyebrowAuthor: author,
+    reviewPreview:
+      rating != null && work.assessedReviews?.length
+        ? {
+            average: rating,
+            reviews: work.assessedReviews,
+            href: getWorkHrefForComment(work, 'review'),
+          }
+        : undefined,
     brand: base.brand,
     showComment: base.showComment,
     stats: getCoverStats(slot, work, showUSD, exchangeRate),
@@ -681,6 +706,7 @@ function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
     bounty: getActivityBounty(entry),
     authors: resolveWorkAuthors(entry, relatedAuthors),
     reviewMetrics: related.reviewMetrics,
+    assessedReviews: related.assessedReviews,
   };
 }
 

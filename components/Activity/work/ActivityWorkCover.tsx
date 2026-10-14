@@ -3,9 +3,42 @@
 import { FC } from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { Avatar } from '@/components/ui/Avatar';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { WorkCoverArt } from './WorkCoverArt';
-import type { ActivityWork, WorkCoverPresentation } from '../lib/activityWork.utils';
+import type { ActivityWork, WorkCoverPresentation, WorkCoverStat } from '../lib/activityWork.utils';
+
+/** A fundraise no one has given to yet still shows a sliver, so the bar reads as one. */
+const MIN_VISIBLE_PROGRESS = 0.1;
+
+function CoverStat({ stat }: Readonly<{ stat: WorkCoverStat }>) {
+  return (
+    <>
+      <div className="whitespace-nowrap text-[10px] font-semibold uppercase leading-3 tracking-[0.07em] text-white/60">
+        {stat.shortLabel ? (
+          <>
+            <span className="tablet:hidden">{stat.shortLabel}</span>
+            <span className="hidden tablet:inline">{stat.label}</span>
+          </>
+        ) : (
+          stat.label
+        )}
+      </div>
+      <div className="flex items-center justify-end gap-1 whitespace-nowrap font-mono text-sm font-semibold leading-5 tablet:text-[15px]">
+        {stat.tone === 'rating' ? (
+          <>
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden />
+            <span className="text-white/90">{stat.value}</span>
+          </>
+        ) : (
+          <span className="text-emerald-300">{stat.value}</span>
+        )}
+      </div>
+    </>
+  );
+}
 
 interface ActivityWorkCoverProps {
   work: ActivityWork;
@@ -18,9 +51,9 @@ interface ActivityWorkCoverProps {
 /**
  * The work an activity card is about: its cover, rounded on every corner and edged
  * in light gray so it reads apart from the words above it, with a frosted bar
- * along the bottom carrying the kind of work, its title (up to three lines), its
- * peer review rating and up to one more figure, and for a proposal, how far its
- * fundraise has come.
+ * along the bottom carrying whose work it is, its title (up to three lines), its
+ * peer review rating (hover it for the reviewers) and up to one more figure, and
+ * for a proposal, how far its fundraise has come.
  */
 export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
   work,
@@ -28,7 +61,7 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
   onNavigate,
   className,
 }) => {
-  const { eyebrow, brand, stats, progress } = cover;
+  const { eyebrow, eyebrowAuthor, reviewPreview, brand, stats, progress } = cover;
 
   return (
     <Link
@@ -59,8 +92,20 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
       >
         <div className="flex items-end gap-3 tablet:gap-5">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[10px] font-bold uppercase leading-3 tracking-[0.08em] text-white/70">
-              {eyebrow}
+            <div className="flex min-w-0 items-center gap-1.5">
+              {eyebrowAuthor && (
+                // No profile link or tooltip: the whole cover is already a link.
+                <Avatar
+                  src={eyebrowAuthor.profileImage}
+                  alt={eyebrowAuthor.name}
+                  size={16}
+                  disableTooltip
+                  className="flex-shrink-0 ring-1 ring-white/30"
+                />
+              )}
+              <span className="truncate text-[10px] font-bold uppercase leading-3 tracking-[0.08em] text-white/70">
+                {eyebrow}
+              </span>
             </div>
             <div className="mt-0.5 line-clamp-3 text-[14.5px] font-bold leading-[19px] tracking-tight text-white tablet:text-[15px] tablet:leading-5">
               {work.title}
@@ -70,30 +115,31 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
           {stats.length > 0 && (
             // Stacked on a phone, so two figures leave the title room for its three lines.
             <div className="flex flex-shrink-0 flex-col gap-1.5 text-right tablet:flex-row tablet:gap-4">
-              {stats.map((stat) => (
-                <div key={stat.label}>
-                  <div className="whitespace-nowrap text-[10px] font-semibold uppercase leading-3 tracking-[0.07em] text-white/60">
-                    {stat.shortLabel ? (
-                      <>
-                        <span className="tablet:hidden">{stat.shortLabel}</span>
-                        <span className="hidden tablet:inline">{stat.label}</span>
-                      </>
-                    ) : (
-                      stat.label
-                    )}
+              {stats.map((stat) =>
+                stat.tone === 'rating' && reviewPreview ? (
+                  <Tooltip
+                    key={stat.label}
+                    content={
+                      <PeerReviewTooltip
+                        reviews={reviewPreview.reviews}
+                        averageScore={reviewPreview.average}
+                        href={reviewPreview.href}
+                      />
+                    }
+                    position="top"
+                    width="w-[320px]"
+                    wrapperClassName="h-auto flex-col"
+                  >
+                    <div className="cursor-help">
+                      <CoverStat stat={stat} />
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <div key={stat.label}>
+                    <CoverStat stat={stat} />
                   </div>
-                  <div className="flex items-center justify-end gap-1 whitespace-nowrap font-mono text-sm font-semibold leading-5 tablet:text-[15px]">
-                    {stat.tone === 'rating' ? (
-                      <>
-                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden />
-                        <span className="text-white/90">{stat.value}</span>
-                      </>
-                    ) : (
-                      <span className="text-emerald-300">{stat.value}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </div>
@@ -109,7 +155,7 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
           >
             <div
               className="h-full rounded-full bg-emerald-400"
-              style={{ width: `${progress * 100}%` }}
+              style={{ width: `${Math.max(progress, MIN_VISIBLE_PROGRESS) * 100}%` }}
             />
           </div>
         )}
