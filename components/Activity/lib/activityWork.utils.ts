@@ -21,7 +21,7 @@ import type {
   FeedPostContent,
 } from '@/types/feed';
 import type { Bounty } from '@/types/bounty';
-import type { Fundraise } from '@/types/funding';
+import type { Fundraise, ReviewMetrics } from '@/types/funding';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { ContentType, Work, WorkGrantSummary } from '@/types/work';
 
@@ -42,6 +42,8 @@ export interface ActivityWork {
   grant?: WorkGrantSummary;
   bounty?: Bounty;
   authors?: AuthorProfile[];
+  /** The average score and count of the work's assessed peer reviews. */
+  reviewMetrics?: ReviewMetrics;
 }
 
 export interface WorkCardAuthor {
@@ -357,11 +359,11 @@ function getWorkKindLabel(work: ActivityWork): string {
 }
 
 /**
- * The proposal's average peer review score. Deliberately not a single review's
- * score: on the cover it reads as the proposal's rating.
+ * The work's average score across its assessed peer reviews. Deliberately not a
+ * single review's score: on the cover it reads as the work's rating.
  */
 function resolveCoverRating(work: ActivityWork): number | null {
-  const average = work.fundraise?.reviewMetrics?.avg;
+  const average = (work.reviewMetrics ?? work.fundraise?.reviewMetrics)?.avg;
   return average && average > 0 ? average : null;
 }
 
@@ -376,42 +378,51 @@ function resolveFundingProgress(work: ActivityWork): number | undefined {
   return Math.min(1, (work.fundraise.amountRaised?.usd ?? 0) / goal);
 }
 
+function getSlotStat(
+  slot: ActivityBodySlot,
+  work: ActivityWork,
+  showUSD: boolean,
+  exchangeRate: number
+): WorkCoverStat | null {
+  if (slot === 'fundraise' && work.fundraise) {
+    const { goalAmount } = work.fundraise;
+    const goal = (showUSD ? goalAmount?.usd : goalAmount?.rsc) ?? 0;
+    return goal > 0
+      ? { label: 'Raising', value: formatAmount(goal, showUSD, exchangeRate, true) }
+      : null;
+  }
+
+  if (slot === 'grant' && work.grant) {
+    const budget = resolveGrantBudget(work.grant, showUSD, exchangeRate);
+    return budget ? { label: 'Available funding', shortLabel: 'Funding', value: budget } : null;
+  }
+
+  if (slot === 'bounty' && work.bounty) {
+    const { amount } = getBountyDisplayAmount(work.bounty, exchangeRate, showUSD);
+    return {
+      label: work.bounty.bountyType === 'REVIEW' ? 'Review bounty' : 'Bounty',
+      value: formatAmount(amount, showUSD, exchangeRate, true),
+    };
+  }
+
+  return null;
+}
+
+/** The work's rating wherever it has one, then the figure the card's slot carries. */
 function getCoverStats(
   slot: ActivityBodySlot,
   work: ActivityWork,
   showUSD: boolean,
   exchangeRate: number
 ): WorkCoverStat[] {
-  if (slot === 'fundraise' && work.fundraise) {
-    const { goalAmount } = work.fundraise;
-    const goal = (showUSD ? goalAmount?.usd : goalAmount?.rsc) ?? 0;
-    const rating = resolveCoverRating(work);
-    const stats: WorkCoverStat[] = [];
-    if (rating != null) {
-      stats.push({ label: 'Rating', value: rating.toFixed(1), tone: 'rating' });
-    }
-    if (goal > 0) {
-      stats.push({ label: 'Raising', value: formatAmount(goal, showUSD, exchangeRate, true) });
-    }
-    return stats;
+  const stats: WorkCoverStat[] = [];
+  const rating = resolveCoverRating(work);
+  if (rating != null) {
+    stats.push({ label: 'Rating', value: rating.toFixed(1), tone: 'rating' });
   }
-
-  if (slot === 'grant' && work.grant) {
-    const budget = resolveGrantBudget(work.grant, showUSD, exchangeRate);
-    return budget ? [{ label: 'Available funding', shortLabel: 'Funding', value: budget }] : [];
-  }
-
-  if (slot === 'bounty' && work.bounty) {
-    const { amount } = getBountyDisplayAmount(work.bounty, exchangeRate, showUSD);
-    return [
-      {
-        label: work.bounty.bountyType === 'REVIEW' ? 'Review bounty' : 'Bounty',
-        value: formatAmount(amount, showUSD, exchangeRate, true),
-      },
-    ];
-  }
-
-  return [];
+  const slotStat = getSlotStat(slot, work, showUSD, exchangeRate);
+  if (slotStat) stats.push(slotStat);
+  return stats;
 }
 
 export function getWorkCoverPresentation(
@@ -669,6 +680,7 @@ function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
     grant: related.grantSummary,
     bounty: getActivityBounty(entry),
     authors: resolveWorkAuthors(entry, relatedAuthors),
+    reviewMetrics: related.reviewMetrics,
   };
 }
 

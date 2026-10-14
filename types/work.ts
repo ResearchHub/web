@@ -9,7 +9,7 @@ import { stripHtml } from '../utils/stringUtils';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
 import { transformFundingPool, type FundingPool, type GrantApplicationVisibility } from './grant';
-import { Fundraise, transformFundraise } from './funding';
+import { Fundraise, ReviewMetrics, transformFundraise } from './funding';
 
 export interface PeerReview {
   id: number;
@@ -107,6 +107,8 @@ export interface Work {
   registeredReportId?: number | null;
   postType?: string;
   fundraise?: Fundraise;
+  /** The average score and count of the work's assessed peer reviews. */
+  reviewMetrics?: ReviewMetrics;
   tips?: Tip[];
   peerReviews?: PeerReview[];
   /**

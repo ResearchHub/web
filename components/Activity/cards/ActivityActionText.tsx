@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { BountyAmount } from '../amounts/BountyAmount';
 import { ContributionAmount } from '../amounts/ContributionAmount';
 import { GrantFundingAmount } from '../amounts/GrantFundingAmount';
@@ -34,6 +34,8 @@ function ActionValue({ value }: Readonly<{ value: ActivityActionValue }>) {
 
 interface ActivityActionTextProps {
   line: ActivityActionLine;
+  /** Runs on at the end of the line, as the byline's time does. */
+  suffix?: ReactNode;
   className?: string;
 }
 
@@ -42,7 +44,7 @@ interface ActivityActionTextProps {
  * reads as the content under it. A `div`, since a named target brings its profile
  * tooltip, which renders block content.
  */
-export const ActivityActionText: FC<ActivityActionTextProps> = ({ line, className }) => (
+export const ActivityActionText: FC<ActivityActionTextProps> = ({ line, suffix, className }) => (
   <div className={cn('text-sm leading-5 text-gray-600', className)}>
     {line.label}
     {line.target && (
@@ -58,5 +60,6 @@ export const ActivityActionText: FC<ActivityActionTextProps> = ({ line, classNam
       </>
     )}
     {line.trailing && ` ${line.trailing}`}
+    {suffix && <> {suffix}</>}
   </div>
 );

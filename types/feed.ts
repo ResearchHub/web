@@ -691,6 +691,9 @@ export function transformActivityRelatedWork(raw: any): Work | undefined {
     image: raw.image_url ?? undefined,
     fundraise,
     grantSummary: raw.grant ? transformActivityRelatedWorkGrant(raw.grant) : undefined,
+    reviewMetrics: raw.review_metrics?.count
+      ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count }
+      : undefined,
   };
 }
 

@@ -31,9 +31,10 @@ interface ActivityActorProps {
  * Who did what, and when, with the rest of the card beside them: the avatar keeps a
  * column of its own, and the byline and everything under it share the column to its
  * right. Several people overlap across the byline's row instead, and what's under
- * them keeps the same column. The byline carries the name with its badges and the
- * time on one line, and the action under it. Kept to the byline's quieter type so
- * the card's content, below it, is the first thing that reads as someone's words.
+ * them keeps the same column. The byline carries the name with its badges on one
+ * line, and the action under it, with the time at its end. Kept to the byline's
+ * quieter type so the card's content, below it, is the first thing that reads as
+ * someone's words.
  */
 export const ActivityActor: FC<ActivityActorProps> = ({
   authors,
@@ -52,17 +53,8 @@ export const ActivityActor: FC<ActivityActorProps> = ({
     <div className="flex min-w-0 flex-1 items-start gap-3">
       <div className="min-w-0 flex-1">
         {isGroup ? (
-          // Several names wrap, so the time runs on after the last one instead of
-          // sitting apart in a column of its own.
           <div className="text-[15px] leading-5">
-            <ActivityAuthorSummary authors={authors} />{' '}
-            <time
-              dateTime={timestamp}
-              title={new Date(timestamp).toLocaleString()}
-              className="whitespace-nowrap text-[13px] text-gray-500"
-            >
-              · {formatTimeAgoShort(timestamp)}
-            </time>
+            <ActivityAuthorSummary authors={authors} />
           </div>
         ) : (
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-1 text-[15px] leading-5">
@@ -72,19 +64,23 @@ export const ActivityActor: FC<ActivityActorProps> = ({
               <ActivityAuthorSummary authors={authors} />
             </span>
             {isAuthor && <AuthorBadge size="sm" className="flex-shrink-0 self-center" />}
-            <span className="flex items-baseline text-[13px] text-gray-500">
-              <Tooltip
-                content={new Date(timestamp).toLocaleString()}
-                wrapperClassName="flex h-auto w-fit flex-shrink-0"
-              >
-                <time dateTime={timestamp} className="cursor-default whitespace-nowrap">
-                  · {formatTimeAgoShort(timestamp)}
-                </time>
-              </Tooltip>
-            </span>
           </div>
         )}
-        <ActivityActionText line={action} className="mt-0.5" />
+        <ActivityActionText
+          line={action}
+          className="mt-0.5"
+          suffix={
+            <Tooltip
+              content={new Date(timestamp).toLocaleString()}
+              wrapperAs="span"
+              wrapperClassName="h-auto text-[13px] text-gray-500"
+            >
+              <time dateTime={timestamp} className="cursor-default whitespace-nowrap">
+                · {formatTimeAgoShort(timestamp)}
+              </time>
+            </Tooltip>
+          }
+        />
       </div>
 
       {menu && <div className="-mr-1.5 -mt-1 flex-shrink-0">{menu}</div>}

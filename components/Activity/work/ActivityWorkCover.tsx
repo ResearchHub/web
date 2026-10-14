@@ -18,8 +18,9 @@ interface ActivityWorkCoverProps {
 /**
  * The work an activity card is about: its cover, rounded on every corner and edged
  * in light gray so it reads apart from the words above it, with a frosted bar
- * along the bottom carrying the kind of work, its title and up to two figures, and
- * for a proposal, how far its fundraise has come.
+ * along the bottom carrying the kind of work, its title (up to three lines), its
+ * peer review rating and up to one more figure, and for a proposal, how far its
+ * fundraise has come.
  */
 export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
   work,
@@ -61,13 +62,14 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
             <div className="truncate text-[10px] font-bold uppercase leading-3 tracking-[0.08em] text-white/70">
               {eyebrow}
             </div>
-            <div className="mt-0.5 line-clamp-2 text-[14.5px] font-bold leading-[19px] tracking-tight text-white tablet:text-[15px] tablet:leading-5">
+            <div className="mt-0.5 line-clamp-3 text-[14.5px] font-bold leading-[19px] tracking-tight text-white tablet:text-[15px] tablet:leading-5">
               {work.title}
             </div>
           </div>
 
           {stats.length > 0 && (
-            <div className="flex flex-shrink-0 gap-4 text-right">
+            // Stacked on a phone, so two figures leave the title room for its three lines.
+            <div className="flex flex-shrink-0 flex-col gap-1.5 text-right tablet:flex-row tablet:gap-4">
               {stats.map((stat) => (
                 <div key={stat.label}>
                   <div className="whitespace-nowrap text-[10px] font-semibold uppercase leading-3 tracking-[0.07em] text-white/60">
