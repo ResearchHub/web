@@ -11,10 +11,10 @@ import type { FeedEntry } from '@/types/feed';
 /**
  * Neutral on purpose: the card's one button never takes the primary colour. A touch
  * smaller on a phone, so the longest label still fits beside the votes in the column
- * next to the avatar.
+ * next to the avatar, and the button doesn't tower over the bare icons there.
  */
 const CTA_CLASS =
-  'inline-flex h-11 flex-shrink-0 items-center justify-center whitespace-nowrap rounded-xl border border-gray-300 bg-white px-3 text-[13px] font-semibold text-gray-900 transition-colors hover:bg-gray-50 tablet:h-10 tablet:rounded-[10px] tablet:px-4 tablet:text-sm';
+  'inline-flex h-9 flex-shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] border border-gray-300 bg-white px-3 text-[13px] font-semibold text-gray-900 transition-colors hover:bg-gray-50 tablet:h-10 tablet:px-4 tablet:text-sm';
 
 function ActivityCtaButton({
   cta,
@@ -91,10 +91,10 @@ interface ActivityCardFooterProps {
 }
 
 /**
- * Votes in a pill with share and save beside it on the left; the card's one button
- * on the right. The ⋯ menu lives in the card's header instead. Where the column is
- * too narrow for both, as on the narrowest phones, the button wraps onto a line of
- * its own and stays on the right.
+ * Votes with share and save beside them on the left (the votes in a pill from tablet
+ * up); the card's one button on the right. The ⋯ menu lives in the card's header
+ * instead. Where the column is too narrow for both, as on the narrowest phones, the
+ * button wraps onto a line of its own and stays on the right.
  */
 export const ActivityCardFooter: FC<ActivityCardFooterProps> = ({
   entry,
@@ -113,7 +113,8 @@ export const ActivityCardFooter: FC<ActivityCardFooterProps> = ({
         groupUtilityActions
         variant="card"
         hideMoreMenu
-        className="gap-0.5 tablet:gap-2"
+        // Bare on a phone, the up arrow is pulled out to sit flush with the text above.
+        className="-ml-2 gap-2 tablet:ml-0"
       />
     </div>
     <div className="ml-auto">

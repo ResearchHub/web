@@ -27,7 +27,7 @@ export const ActivityCardSkeleton: FC = () => (
 
         <div className="flex items-center justify-between gap-3 pt-3">
           <div className="h-6 w-20 rounded bg-gray-200" />
-          <div className="h-11 w-28 rounded-xl bg-gray-200 tablet:h-10 tablet:rounded-[10px]" />
+          <div className="h-9 w-28 rounded-[10px] bg-gray-200 tablet:h-10" />
         </div>
       </div>
     </div>

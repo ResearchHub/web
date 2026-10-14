@@ -204,6 +204,7 @@ interface FeedItemActionsProps {
    * `inline` — pill chrome for comment rows.
    * `card` — the pill chrome with share and save kept, for activity cards: votes in
    * their own pill and round buttons beside it, so the icons read as separate controls.
+   * Below the tablet breakpoint the votes go bare, leaving the narrow row its spacing.
    */
   variant?: 'default' | 'inline' | 'card';
   /** Leave the ⋯ menu out, for cards that put their own elsewhere. */
@@ -657,7 +658,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               isFlat
                 ? cn('gap-2', isVoting && 'opacity-50')
                 : cn(
-                    'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
+                    variant === 'card'
+                      ? 'tablet:h-8 tablet:rounded-full tablet:bg-white tablet:px-1 tablet:shadow-sm tablet:ring-1 tablet:ring-gray-200/80'
+                      : 'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
                     isVoting && 'opacity-50'
                   )
             )}
