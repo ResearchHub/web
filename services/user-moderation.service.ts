@@ -98,7 +98,7 @@ export class UserModerationService {
       await (invited ? ApiClient.post(path) : ApiClient.delete(path));
     } catch (error) {
       console.error(`Error updating Research AI tier for user ${userId}:`, error);
-      throw new UserModerationError('Failed to update Research AI tier.', error);
+      throw new UserModerationError('Failed to update ResearchHub AI usage.', error);
     }
   }
 }

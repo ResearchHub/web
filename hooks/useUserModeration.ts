@@ -109,7 +109,7 @@ export const useUserModeration = (): UseUserModerationReturn => {
         const errorMessage =
           error instanceof UserModerationError
             ? error.message
-            : 'Failed to update Research AI tier';
+            : 'Failed to update ResearchHub AI usage';
         setState((prev) => ({
           ...prev,
           isLoading: false,

@@ -176,8 +176,8 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   const handleSetResearchAiInvited = (invited: boolean) =>
     executeAction(
       () => setResearchAiInvited(userId, invited),
-      invited ? 'User added to Research AI invited' : 'User removed from Research AI invited',
-      'Failed to update Research AI tier'
+      invited ? 'Granted higher ResearchHub AI usage' : 'Removed higher ResearchHub AI usage',
+      'Failed to update ResearchHub AI usage'
     );
 
   const menuItems = [
@@ -221,7 +221,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'Verification ID', value: verificationId || 'N/A', copyable: !!verificationId },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
     {
-      label: 'Research AI tier',
+      label: 'ResearchHub AI tier',
       value: userDetails.researchAiTier ? snakeCaseToTitleCase(userDetails.researchAiTier) : 'N/A',
     },
   ];
@@ -237,8 +237,8 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       onClick={() => handleSetResearchAiInvited(!userDetails.researchAiInvitedManually)}
     >
       {userDetails.researchAiInvitedManually
-        ? 'Remove from Research AI invited'
-        : 'Add to Research AI invited'}
+        ? 'Remove higher ResearchHub AI usage'
+        : 'Grant higher ResearchHub AI usage'}
     </Button>
   );
 
