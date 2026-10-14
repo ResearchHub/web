@@ -22,7 +22,7 @@ import type { ContentType } from '@/types/work';
 const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
   GENERIC_COMMENT: 'commented on',
   REVIEW: 'peer reviewed',
-  AUTHOR_UPDATE: 'posted an update',
+  AUTHOR_UPDATE: 'posted an update on their research',
   ANSWER: 'answered on',
   BOUNTY: 'contributed to',
 };
@@ -527,7 +527,7 @@ function getCommentActionLine(entry: FeedEntry, noun: string): ActivityActionLin
       };
     }
     case 'AUTHOR_UPDATE':
-      return { label: 'Posted an update' };
+      return { label: 'Posted an update on their research' };
     case 'ANSWER':
       return { label: 'Answered a question' };
     default: {
