@@ -7,6 +7,7 @@ import type {
   UserModerationActions,
   UseUserModerationReturn,
   MarkProbableSpammerAction,
+  SetResearchAiInvitedAction,
 } from '@/types/moderation';
 
 /**
@@ -92,10 +93,39 @@ export const useUserModeration = (): UseUserModerationReturn => {
     }
   }, []);
 
+  const setResearchAiInvited: SetResearchAiInvitedAction = useCallback(
+    async (userId: string, invited: boolean) => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      try {
+        await UserModerationService.setResearchAiInvited(userId, invited);
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          lastAction: 'research_ai_invite',
+          error: null,
+        }));
+      } catch (error) {
+        const errorMessage =
+          error instanceof UserModerationError
+            ? error.message
+            : 'Failed to update ResearchHub AI usage';
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: errorMessage,
+        }));
+        throw error; // Re-throw for component handling
+      }
+    },
+    []
+  );
+
   const actions: UserModerationActions = {
     suspendUser,
     reinstateUser,
     markProbableSpammer,
+    setResearchAiInvited,
   };
 
   return [state, actions];

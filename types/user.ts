@@ -184,6 +184,10 @@ export type UserDetailsForModerator = {
   riskScore: number;
   /** The user's author profile, which their proposals, updates and reviews are filed under. */
   authorProfileId: number | null;
+  /** Research AI usage tier: 'default', 'invited', 'privileged' or 'blocked'. */
+  researchAiTier: string;
+  /** Whether a moderator or editor put the user on the invited tier by hand. */
+  researchAiInvitedManually: boolean;
   verification: {
     createdDate: string;
     externalId: string;
@@ -327,6 +331,8 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
       orcidVerifiedEduEmail: null,
       riskScore: -1,
       authorProfileId: null,
+      researchAiTier: '',
+      researchAiInvitedManually: false,
       verification: null,
     };
   }
@@ -341,6 +347,8 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
     orcidVerifiedEduEmail: raw.orcid_verified_edu_email || null,
     riskScore: raw.risk_score ?? -1,
     authorProfileId: raw.author_profile_id ?? null,
+    researchAiTier: raw.research_ai_tier || '',
+    researchAiInvitedManually: raw.research_ai_invited_manually || false,
     verification: raw.verification
       ? {
           createdDate: raw.verification.created_date || '',
