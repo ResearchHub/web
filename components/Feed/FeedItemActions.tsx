@@ -9,6 +9,7 @@ import {
   MoreHorizontal,
   ArrowUp,
   ArrowDown,
+  Bookmark,
   Maximize2,
   Share,
   Trash2,
@@ -202,9 +203,8 @@ interface FeedItemActionsProps {
   /**
    * `default` — flat icon row used by feed cards.
    * `inline` — pill chrome for comment rows.
-   * `card` — the pill chrome with share and save kept, for activity cards: votes in
-   * their own pill and round buttons beside it, so the icons read as separate controls.
-   * Below the tablet breakpoint the votes go bare, leaving the narrow row its spacing.
+   * `card` — for activity cards: bare votes with share and save kept beside them, every
+   * icon in the same round button and drawn to the same size.
    */
   variant?: 'default' | 'inline' | 'card';
   /** Leave the ⋯ menu out, for cards that put their own elsewhere. */
@@ -488,8 +488,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       menuItems.length > 0 ||
       !hideReportButton ||
       canHideFromFeed);
-  // Feed cards use bare icons; comment rows and activity cards keep the pill chrome.
+  // Feed cards use bare icons; comment rows keep the pill chrome.
   const isFlat = variant === 'default';
+  const isCard = variant === 'card';
+  // Activity cards size each icon by the glyph it draws rather than by its box, so the
+  // arrows, share and save all come out about 15px tall at one stroke weight.
+  const cardIcon = { absoluteStrokeWidth: true, strokeWidth: 1.75 } as const;
+  const arrowIconProps = isCard
+    ? { ...cardIcon, size: 22 }
+    : { className: isFlat ? 'h-4 w-4' : 'h-[18px] w-[18px]' };
+  const cardIconButtonClass = 'text-gray-500 hover:bg-gray-100 hover:text-gray-900';
 
   const shareButton = showShare ? (
     isFlat ? (
@@ -512,9 +520,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           e.stopPropagation();
         }}
         onClick={handleCopyDocumentUrl}
-        className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+        className={cn(
+          'flex !p-0 items-center justify-center rounded-full transition-colors',
+          isCard ? 'h-7 w-7' : 'h-8 w-8',
+          isCard
+            ? cardIconButtonClass
+            : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+        )}
       >
-        <Share className="h-[18px] w-[18px]" />
+        {isCard ? <Share {...cardIcon} size={16} /> : <Share className="h-[18px] w-[18px]" />}
       </Button>
     )
   ) : null;
@@ -582,16 +596,26 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         onClick={handleAddToList}
         disabled={isTogglingDefaultList}
         className={cn(
-          'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
+          'flex !p-0 items-center justify-center rounded-full transition-colors',
+          isCard ? 'h-7 w-7' : 'h-8 w-8',
           isDocumentInList
-            ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
-            : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+            ? isCard
+              ? 'text-green-600 hover:bg-green-50 hover:text-green-700'
+              : 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
+            : isCard
+              ? cardIconButtonClass
+              : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
         )}
       >
-        <FontAwesomeIcon
-          icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-          className="h-[18px] w-[18px]"
-        />
+        {isCard ? (
+          // Drawn with the same set as the arrows and share; Font Awesome's fills its box.
+          <Bookmark {...cardIcon} size={18} fill={isDocumentInList ? 'currentColor' : 'none'} />
+        ) : (
+          <FontAwesomeIcon
+            icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+            className="h-[18px] w-[18px]"
+          />
+        )}
       </Button>
     )
   ) : null;
@@ -658,9 +682,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               isFlat
                 ? cn('gap-2', isVoting && 'opacity-50')
                 : cn(
-                    variant === 'card'
-                      ? 'tablet:h-8 tablet:rounded-full tablet:bg-white tablet:px-1 tablet:shadow-sm tablet:ring-1 tablet:ring-gray-200/80'
-                      : 'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
+                    // Activity cards leave the votes bare, like the icons beside them.
+                    !isCard && 'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
                     isVoting && 'opacity-50'
                   )
             )}
@@ -687,7 +710,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className={isFlat ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
+              <ArrowUp {...arrowIconProps} />
             </button>
             <span
               className={cn(
@@ -721,7 +744,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className={isFlat ? 'h-4 w-4' : 'h-[18px] w-[18px]'} />
+              <ArrowDown {...arrowIconProps} />
             </button>
           </div>
           {!hideCommentButton && (
