@@ -16,9 +16,10 @@ interface ActivityWorkCoverProps {
 }
 
 /**
- * The work an activity card is about: its cover, kept short, with a frosted bar
- * along the bottom carrying the kind of work, its title and up to two figures,
- * and for a proposal, how far its fundraise has come.
+ * The work an activity card is about: its cover, rounded on every corner and edged
+ * in light gray so it reads apart from the words above it, with a frosted bar
+ * along the bottom carrying the kind of work, its title and up to two figures, and
+ * for a proposal, how far its fundraise has come.
  */
 export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
   work,
@@ -33,7 +34,8 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
       href={work.href}
       onClick={onNavigate}
       className={cn(
-        'group relative block h-[136px] overflow-hidden bg-gray-900 tablet:h-[172px]',
+        // `isolate` keeps the image's hover zoom inside the rounded corners in Safari.
+        'group relative isolate block aspect-[3/2] overflow-hidden rounded-xl border border-gray-200 bg-gray-900 tablet:aspect-[2/1]',
         className
       )}
     >
@@ -41,11 +43,13 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
         imageUrl={work.imageUrl}
         title={work.title}
         brand={brand}
-        sizes="(max-width: 768px) 100vw, 640px"
+        sizes="(max-width: 768px) 80vw, 560px"
       />
 
+      {/* Rounded itself, to the corners inside the border: a backdrop filter ignores
+          the corners its parent clips to. */}
       <div
-        className="absolute inset-x-0 bottom-0 border-t border-white/[0.06] px-3.5 pb-2.5 pt-2 tablet:px-4"
+        className="absolute inset-x-0 bottom-0 rounded-b-[11px] border-t border-white/[0.06] px-3.5 pb-2.5 pt-2 tablet:px-4"
         style={{
           backdropFilter: 'blur(16px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(16px) saturate(1.4)',

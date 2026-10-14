@@ -71,14 +71,13 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
       // Absorbed members keep an anchor here so scroll restoration can find them.
       entryIds={entries.map((entry) => String(entry.id))}
     >
-      <div className="px-3.5 pt-3.5 tablet:px-4 tablet:pt-4">
-        <ActivityActor
-          authors={[author]}
-          action={{ label: `Left ${comments.length} comments on ${getWorkNoun(work)}` }}
-          timestamp={latestEntry.timestamp}
-          isAuthor={shouldShowAuthorBadge(latestEntry, author.id)}
-          menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
-        />
+      <ActivityActor
+        authors={[author]}
+        action={{ label: `Left ${comments.length} comments on ${getWorkNoun(work)}` }}
+        timestamp={latestEntry.timestamp}
+        isAuthor={shouldShowAuthorBadge(latestEntry, author.id)}
+        menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
+      >
         <div className={cn(ACTIVITY_CONTENT_DIVIDER, 'divide-y divide-gray-100')}>
           {comments.map(({ entryId, preview, comment }) => (
             <div key={entryId} className="py-2.5 first:pt-0 last:pb-0">
@@ -96,26 +95,26 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                 showReadMoreButton
                 showLinkPreviews={false}
                 onReadMore={comment ? () => openPanel(entryId, false) : undefined}
-                className="feed-comment-preview text-[15px] leading-6 text-gray-700"
+                className="feed-comment-preview text-[15px] leading-6 text-gray-900"
               />
             </div>
           ))}
         </div>
-      </div>
 
-      <ActivityWorkCover
-        work={work}
-        cover={cover}
-        onNavigate={() => updateLastClickedEntryId(latestEntryId)}
-        className="mt-3 tablet:mx-4 tablet:rounded-xl"
-      />
+        <ActivityWorkCover
+          work={work}
+          cover={cover}
+          onNavigate={() => updateLastClickedEntryId(latestEntryId)}
+          className="mt-3"
+        />
 
-      <ActivityCardFooter
-        entry={latestEntry}
-        work={work}
-        cta={getActivityCta(latestEntry, work)}
-        hideableEntries={entries}
-      />
+        <ActivityCardFooter
+          entry={latestEntry}
+          work={work}
+          cta={getActivityCta(latestEntry, work)}
+          hideableEntries={entries}
+        />
+      </ActivityActor>
 
       {panelComment && activeEntryId && (
         <ActivityCommentPanel

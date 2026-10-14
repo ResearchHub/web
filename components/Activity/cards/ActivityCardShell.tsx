@@ -12,10 +12,21 @@ interface ActivityCardShellProps {
   children: ReactNode;
 }
 
-/** A hairline between the byline and the actor's own words, inset to the card's padding. */
+/** A hairline between the byline and the actor's own words, across the column beside the avatar. */
 export const ACTIVITY_CONTENT_DIVIDER = 'mt-3 border-t border-gray-200/70 pt-3';
 
-/** The white card every activity row sits in, so each one reads as its own unit. */
+/**
+ * The hairline under each activity row: the row's full width on a phone, and from
+ * the tablet breakpoint up starting where the column beside the avatar does (a
+ * 40px avatar and a 12px gap), so it never crosses an avatar.
+ */
+export const ACTIVITY_ROW_DIVIDER =
+  'relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gray-200 last:after:hidden tablet:after:left-[52px]';
+
+/**
+ * One activity row: no box around it, just a hairline under it that separates it
+ * from the next. The last row in a list goes without.
+ */
 export const ActivityCardShell: FC<ActivityCardShellProps> = ({
   entryId,
   entryIds,
@@ -23,10 +34,7 @@ export const ActivityCardShell: FC<ActivityCardShellProps> = ({
   children,
 }) => (
   <article
-    className={cn(
-      'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)]',
-      className
-    )}
+    className={cn(ACTIVITY_ROW_DIVIDER, 'py-4', className)}
     data-entry-id={entryId}
     data-entry-ids={entryIds?.join(' ')}
     data-testid="activity-card"

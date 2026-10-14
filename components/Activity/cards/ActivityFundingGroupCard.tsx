@@ -57,28 +57,26 @@ export const ActivityFundingGroupCard: FC<ActivityFundingGroupCardProps> = ({ ro
       // Absorbed members keep an anchor here so scroll restoration can find them.
       entryIds={entries.map((entry) => String(entry.id))}
     >
-      <div className="px-3.5 pt-3.5 tablet:px-4 tablet:pt-4">
-        <ActivityActor
-          authors={funders}
-          action={line}
-          timestamp={latestEntry.timestamp}
-          menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
+      <ActivityActor
+        authors={funders}
+        action={line}
+        timestamp={latestEntry.timestamp}
+        menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
+      >
+        <ActivityWorkCover
+          work={work}
+          cover={cover}
+          onNavigate={() => updateLastClickedEntryId(latestEntryId)}
+          className="mt-3"
         />
-      </div>
 
-      <ActivityWorkCover
-        work={work}
-        cover={cover}
-        onNavigate={() => updateLastClickedEntryId(latestEntryId)}
-        className="mt-3 tablet:mx-4 tablet:rounded-xl"
-      />
-
-      <ActivityCardFooter
-        entry={latestEntry}
-        work={work}
-        cta={getActivityCta(latestEntry, work)}
-        hideableEntries={entries}
-      />
+        <ActivityCardFooter
+          entry={latestEntry}
+          work={work}
+          cta={getActivityCta(latestEntry, work)}
+          hideableEntries={entries}
+        />
+      </ActivityActor>
     </ActivityCardShell>
   );
 };

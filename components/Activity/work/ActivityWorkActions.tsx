@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import type { ActivityWork } from '../lib/activityWork.utils';
 import type { FeedContentType, FeedEntry } from '@/types/feed';
@@ -9,10 +9,8 @@ interface ActivityWorkActionsProps {
   entry: FeedEntry;
   work: ActivityWork;
   hideableEntries?: FeedEntry[];
-  /** Share, save and the menu beside the votes, leaving the right for `trailing`. */
+  /** Share, save and the menu beside the votes, rather than on the right. */
   groupUtilityActions?: boolean;
-  /** The card's own button, at the far right. */
-  trailing?: ReactNode;
   /** Classes for the left-hand group of actions. */
   className?: string;
   /** See `FeedItemActions`; activity cards use `card`. */
@@ -37,7 +35,6 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
   work,
   hideableEntries,
   groupUtilityActions,
-  trailing,
   className,
   variant,
   hideMoreMenu,
@@ -58,7 +55,6 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
       actionLabels={{ report: 'Flag Content' }}
       hideCommentButton
       groupUtilityActions={groupUtilityActions}
-      rightSideActionButton={trailing}
       className={className}
       variant={variant}
       hideMoreMenu={hideMoreMenu}
