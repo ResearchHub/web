@@ -98,7 +98,7 @@ export const ActivityCardFooter: FC<ActivityCardFooterProps> = ({
   onOpenComment,
   className,
 }) => (
-  <div className={cn('px-3.5 pb-3 pt-3 tablet:px-4 tablet:pb-4', className)}>
+  <div className={cn('pt-3', className)}>
     <ActivityWorkActions
       entry={entry}
       work={work}
