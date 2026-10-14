@@ -129,8 +129,12 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
                     position="top"
                     width="w-[320px]"
                     wrapperClassName="h-auto flex-col"
+                    // A tap on a phone opens the work, like the rest of the cover.
+                    disableTouchClick
                   >
-                    <div className="cursor-help">
+                    {/* Lit on hover where there's a pointer to hover with; the padding
+                        and its negative margin keep the figure where it was. */}
+                    <div className="-mx-1.5 -my-1 cursor-help rounded-md px-1.5 py-1 transition-colors [@media(hover:hover)]:hover:bg-white/15">
                       <CoverStat stat={stat} />
                     </div>
                   </Tooltip>

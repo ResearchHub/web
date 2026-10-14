@@ -336,12 +336,13 @@ export interface WorkCoverStat {
 /** What the frosted bar on an activity card's cover shows. */
 export interface WorkCoverPresentation {
   /**
-   * Whose work it is. A person's name alone, set beside their avatar in place of the
-   * kind of work: "Darren Wang". Otherwise the kind and its owner: "RFP · Athanatos
-   * Foundation".
+   * Whose work it is, set beside its author's avatar in place of the kind of work:
+   * the nonprofit receiving a proposal's funds when it has one, "Governing Council
+   * of the University of Toronto", and the author otherwise, "Darren Wang". Without
+   * an author, the kind and its owner: "RFP · Athanatos Foundation".
    */
   eyebrow: string;
-  /** The author the eyebrow names, when it names a person. */
+  /** The author whose avatar leads the eyebrow. */
   eyebrowAuthor?: WorkCardAuthor;
   /** Who reviewed the work, behind its rating: the first few assessed reviews. */
   reviewPreview?: { average: number; reviews: Review[]; href: string };
@@ -455,7 +456,7 @@ export function getWorkCoverPresentation(
   const rating = resolveCoverRating(work);
 
   return {
-    eyebrow: author?.name ?? (owner ? `${kind} · ${owner}` : kind),
+    eyebrow: author ? base.institution || author.name : owner ? `${kind} · ${owner}` : kind,
     eyebrowAuthor: author,
     reviewPreview:
       rating != null && work.assessedReviews?.length
