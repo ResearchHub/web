@@ -23,7 +23,7 @@ interface NavItem {
   isHome?: boolean;
 }
 
-// Everything else (Endowment, help links) is in the top bar's hamburger menu,
+// Everything else (help links, the Endowment among them) is in the top bar's hamburger menu,
 // and Lists in the avatar menu.
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/', iconKey: 'home', isHome: true },

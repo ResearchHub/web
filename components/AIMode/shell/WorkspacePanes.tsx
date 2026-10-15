@@ -20,11 +20,13 @@ interface WorkspacePanesProps {
 /**
  * The chat, the document, or the two side by side with the document on the
  * right, where its column drags and the chat takes the rest. The document
- * keeps its place in the tree as the view changes, so switching between
- * Split and Document never reloads its editor.
+ * stays mounted in every view, hidden in Chat: switching views never reloads
+ * its editor, the assistant's changes wait in it to be reviewed, and its
+ * publish dialog can open over the chat.
  */
 export function WorkspacePanes({ chat, document, view, documentWidth }: WorkspacePanesProps) {
-  const showDocument = document != null && view !== 'chat';
+  const hasDocument = document != null;
+  const showDocument = hasDocument && view !== 'chat';
   const showChat = !showDocument || view === 'split';
   const split = showChat && showDocument;
 
@@ -32,12 +34,13 @@ export function WorkspacePanes({ chat, document, view, documentWidth }: Workspac
     <div className="relative flex min-h-0 flex-1">
       {showChat && <main className="relative flex min-w-0 flex-1 flex-col">{chat}</main>}
 
-      {showDocument && (
+      {hasDocument && (
         <aside
           style={split ? { width: documentWidth.width } : undefined}
           className={cn(
             'relative flex min-w-0 flex-col overflow-hidden bg-white',
-            split ? 'shrink-0 border-l border-gray-200' : 'flex-1'
+            split ? 'shrink-0 border-l border-gray-200' : 'flex-1',
+            !showDocument && 'hidden'
           )}
         >
           {split && (

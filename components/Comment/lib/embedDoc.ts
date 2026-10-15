@@ -261,3 +261,49 @@ function makeRichLinkNode(embed: DetectedUrl) {
     },
   };
 }
+
+/**
+ * Returns a new doc without the paragraphs that hold nothing but one of
+ * `urls` (as a bare URL, a link whose text is its href, or a rich link), nor
+ * the legacy `embed` blocks for them. For
+ * a surface that plays those URLs as embeds, so the link isn't shown twice.
+ * A URL inside a sentence stays where it is.
+ */
+export function withoutStandaloneUrls(doc: any, urls: readonly string[]): any {
+  if (!doc || typeof doc !== 'object' || urls.length === 0) return doc;
+  const keys = new Set(urls.map(canonicalUrlKey).filter((key): key is string => key != null));
+  const isStandalone = (node: any): boolean => {
+    // The legacy block-level `embed` node is a URL on its own by definition.
+    if (node?.type === 'embed') {
+      const key = node.attrs?.url ? canonicalUrlKey(String(node.attrs.url)) : null;
+      return key != null && keys.has(key);
+    }
+    if (node?.type !== 'paragraph' || !Array.isArray(node.content)) return false;
+    const parts = node.content.filter(
+      (child: any) => !(child.type === 'text' && !String(child.text ?? '').trim())
+    );
+    if (parts.length !== 1) return false;
+    const [part] = parts;
+    const url =
+      part.type === 'richLink'
+        ? part.attrs?.url
+        : part.type === 'text'
+          ? (findLinkMarkHref(part.marks) ?? isUrlOnlyText(String(part.text ?? '')))
+          : null;
+    if (!url) return false;
+    if (part.type === 'text' && findLinkMarkHref(part.marks)) {
+      // A link whose wording the author chose is prose, not a pasted URL.
+      if (canonicalUrlKey(String(part.text ?? '')) !== canonicalUrlKey(url)) return false;
+    }
+    const key = canonicalUrlKey(String(url));
+    return key != null && keys.has(key);
+  };
+  const strip = (node: any): any => {
+    if (!node || typeof node !== 'object' || !Array.isArray(node.content)) return node;
+    return {
+      ...node,
+      content: node.content.filter((child: any) => !isStandalone(child)).map(strip),
+    };
+  };
+  return strip(doc);
+}

@@ -16,9 +16,9 @@ import { NoteService, type GetOrganizationNotesParams } from '@/services/note.se
 import type { Note } from '@/types/note';
 import type { ID } from '@/types/root';
 
-export type FundingDocumentsStatus = 'off' | 'loading' | 'ready' | 'error';
+export type FundingNotesStatus = 'off' | 'loading' | 'ready' | 'error';
 
-export interface FundingDocuments {
+export interface FundingNotes {
   /** RFPs and proposals without a post, latest edit first. */
   readonly drafts: readonly Note[];
   /** RFPs and proposals with a post, open or inactive, latest edit first. */
@@ -26,7 +26,7 @@ export interface FundingDocuments {
   /** How many drafts the server has, which can be more than are loaded. */
   readonly draftCount: number;
   /** `off` until there is a signed-in user with an organization; `loading` only before the first load. */
-  readonly status: FundingDocumentsStatus;
+  readonly status: FundingNotesStatus;
   /** Load both lists again: after "Try again", or once something was published. */
   readonly refresh: () => Promise<void>;
   /** A draft just created here; it leads the list at once. */
@@ -39,7 +39,7 @@ export interface FundingDocuments {
 
 const noop = () => {};
 
-const OFF: FundingDocuments = {
+const OFF: FundingNotes = {
   drafts: [],
   published: [],
   draftCount: 0,
@@ -50,7 +50,7 @@ const OFF: FundingDocuments = {
   remove: noop,
 };
 
-const FundingDocumentsContext = createContext<FundingDocuments>(OFF);
+const FundingNotesContext = createContext<FundingNotes>(OFF);
 
 /** The two kinds of document the funding side drafts and publishes. */
 const FUNDING_DOCUMENT_TYPES = ['PREREGISTRATION', 'GRANT'] as const;
@@ -68,25 +68,19 @@ const EMPTY: DocumentLists = { key: null, drafts: [], published: [], draftCount:
 const byLatestEdit = (a: Note, b: Note) =>
   new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime();
 
-/**
- * One status's documents of both types. The listing filters by one type at a
- * time, so each type is its own request and the two are merged here.
- */
+/** One status's documents of both types, in one request. */
 async function loadDocuments(
   orgSlug: string,
   status: NonNullable<GetOrganizationNotesParams['status']>
 ): Promise<{ notes: Note[]; count: number }> {
-  const pages = await Promise.all(
-    FUNDING_DOCUMENT_TYPES.map((documentType) =>
-      NoteService.getOrganizationNotes(orgSlug, { status, documentType, ordering: '-updated_date' })
-    )
-  );
-  const byId = new Map(pages.flatMap((page) => page.results).map((note) => [note.id, note]));
+  const page = await NoteService.getOrganizationNotes(orgSlug, {
+    status,
+    documentType: FUNDING_DOCUMENT_TYPES,
+    ordering: '-updated_date',
+  });
   return {
-    notes: Array.from(byId.values())
-      .filter((note) => !note.isRemoved)
-      .sort(byLatestEdit),
-    count: pages.reduce((total, page) => total + page.count, 0),
+    notes: page.results.filter((note) => !note.isRemoved).sort(byLatestEdit),
+    count: page.count,
   };
 }
 
@@ -96,7 +90,7 @@ async function loadDocuments(
  * drafts, and moving between pages never fetches them again. Reloads when the
  * user or the organization changes, and when asked to.
  */
-export function FundingDocumentsProvider({ children }: { readonly children: ReactNode }) {
+export function FundingNotesProvider({ children }: { readonly children: ReactNode }) {
   const { user } = useUser();
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const userId = user?.id ?? null;
@@ -127,7 +121,7 @@ export function FundingDocumentsProvider({ children }: { readonly children: Reac
       setFailedKey(null);
     } catch (error) {
       if (seq !== seqRef.current) return;
-      console.error('Failed to load funding documents:', error);
+      console.error('Failed to load funding notes:', error);
       setFailedKey(forKey);
     }
   }, []);
@@ -143,7 +137,7 @@ export function FundingDocumentsProvider({ children }: { readonly children: Reac
   }, [key, load]);
 
   const lists = loaded.key === key ? loaded : EMPTY;
-  const status: FundingDocumentsStatus =
+  const status: FundingNotesStatus =
     key == null
       ? userId != null && isLoadingOrg
         ? 'loading'
@@ -204,7 +198,7 @@ export function FundingDocumentsProvider({ children }: { readonly children: Reac
     });
   }, []);
 
-  const value = useMemo<FundingDocuments>(
+  const value = useMemo<FundingNotes>(
     () => ({
       drafts: lists.drafts,
       published: lists.published,
@@ -218,12 +212,10 @@ export function FundingDocumentsProvider({ children }: { readonly children: Reac
     [lists, status, refresh, addDraft, patch, remove]
   );
 
-  return (
-    <FundingDocumentsContext.Provider value={value}>{children}</FundingDocumentsContext.Provider>
-  );
+  return <FundingNotesContext.Provider value={value}>{children}</FundingNotesContext.Provider>;
 }
 
 /** The user's RFPs and proposals; switched off (and empty) outside the provider. */
-export function useFundingDocuments(): FundingDocuments {
-  return useContext(FundingDocumentsContext);
+export function useFundingNotes(): FundingNotes {
+  return useContext(FundingNotesContext);
 }

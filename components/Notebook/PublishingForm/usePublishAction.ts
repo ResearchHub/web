@@ -4,7 +4,7 @@ import type { Editor } from '@tiptap/react';
 import type { UseFormReturn } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { setDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
@@ -98,7 +98,7 @@ export function usePublishAction({
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
-  const { refresh: refreshFundingDocuments } = useFundingDocuments();
+  const { refresh: refreshFundingNotes } = useFundingNotes();
 
   const dismissConfirmation = useCallback(() => setPendingConfirmation(null), []);
   const acceptNonprofit = useCallback(() => setPendingConfirmation('publish'), []);
@@ -354,7 +354,7 @@ export function usePublishAction({
           toast.success(`${publishLabel} published successfully!`);
         }
         // The document has a post now: the sidebar moves it from Drafts to Published.
-        void refreshFundingDocuments();
+        void refreshFundingNotes();
         router.push(getWorkPath(formData.articleType, String(response.id), response.slug));
       } catch (error: unknown) {
         const fallback = 'Error publishing. Please try again.';
@@ -391,7 +391,7 @@ export function usePublishAction({
       upsertPost,
       tryLinkNonprofit,
       isChangelog,
-      refreshFundingDocuments,
+      refreshFundingNotes,
       router,
     ]
   );

@@ -79,16 +79,13 @@ export const ActivityCard: FC<ActivityCardProps> = ({
 
   return (
     <ActivityCardShell entryId={entryId}>
-      <div className="px-3.5 pt-3.5 tablet:px-4 tablet:pt-4">
-        <ActivityActor
-          authors={authors}
-          action={getActivityActionLine(entry, work)}
-          timestamp={entry.timestamp}
-          isAuthor={!isCoAuthored && shouldShowAuthorBadge(entry, message.actor.id)}
-          menu={
-            hideActions ? undefined : <ActivityCardMenu work={work} hideableEntries={[entry]} />
-          }
-        />
+      <ActivityActor
+        authors={authors}
+        action={getActivityActionLine(entry, work)}
+        timestamp={entry.timestamp}
+        isAuthor={!isCoAuthored && shouldShowAuthorBadge(entry, message.actor.id)}
+        menu={hideActions ? undefined : <ActivityCardMenu work={work} hideableEntries={[entry]} />}
+      >
         {showComment && commentPreview && (
           <div className={ACTIVITY_CONTENT_DIVIDER}>
             {comment?.parent && (
@@ -109,29 +106,27 @@ export const ActivityCard: FC<ActivityCardProps> = ({
               showReadMoreButton
               showLinkPreviews={false}
               onReadMore={openComment}
-              className="feed-comment-preview text-[15px] leading-6 text-gray-700"
+              className="feed-comment-preview text-[15px] leading-6 text-gray-900"
             />
           </div>
         )}
-      </div>
 
-      <ActivityWorkCover
-        work={work}
-        cover={cover}
-        onNavigate={() => updateLastClickedEntryId(entryId)}
-        className="mt-3 tablet:mx-4 tablet:rounded-xl"
-      />
-
-      {hideActions ? (
-        <div className="h-3.5 tablet:h-4" />
-      ) : (
-        <ActivityCardFooter
-          entry={entry}
+        <ActivityWorkCover
           work={work}
-          cta={getActivityCta(entry, work)}
-          onOpenComment={openComment}
+          cover={cover}
+          onNavigate={() => updateLastClickedEntryId(entryId)}
+          className="mt-3"
         />
-      )}
+
+        {!hideActions && (
+          <ActivityCardFooter
+            entry={entry}
+            work={work}
+            cta={getActivityCta(entry, work)}
+            onOpenComment={openComment}
+          />
+        )}
+      </ActivityActor>
 
       {panelComment && (
         <ActivityCommentPanel

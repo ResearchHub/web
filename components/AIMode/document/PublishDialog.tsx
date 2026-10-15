@@ -45,7 +45,8 @@ interface PublishDialogProps {
  *
  * Its title and its Publish stay put while the rest scrolls between them, so
  * Publish, and what holds it back, are always in sight. On a phone it is a
- * sheet from the bottom of the screen; from `md` up, a card in the middle.
+ * screen of its own, over whatever was showing; from `md` up, a card in the
+ * middle.
  */
 export function PublishDialog({ title, onRename }: PublishDialogProps) {
   const { articleType, workId, isPublishing, dismissConfirmation, confirmPublish } =
@@ -95,21 +96,21 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
           </TransitionChild>
 
           <div className="fixed inset-0">
-            <div className="flex h-full items-end justify-center md:items-center md:p-4">
+            <div className="flex h-full items-stretch justify-center md:items-center md:p-4">
               <TransitionChild
                 as={Fragment}
                 enter="ease-out duration-200"
-                enterFrom="opacity-0 translate-y-full md:translate-y-0 md:scale-95"
-                enterTo="opacity-100 translate-y-0 md:scale-100"
+                enterFrom="opacity-0 md:scale-95"
+                enterTo="opacity-100 md:scale-100"
                 leave="ease-in duration-150"
-                leaveFrom="opacity-100 translate-y-0 md:scale-100"
-                leaveTo="opacity-0 translate-y-full md:translate-y-0 md:scale-95"
+                leaveFrom="opacity-100 md:scale-100"
+                leaveTo="opacity-0 md:scale-95"
               >
                 <DialogPanel
                   data-testid="workspace-publish-dialog"
-                  className="flex max-h-[calc(100dvh-12px)] w-full flex-col overflow-hidden rounded-t-2xl bg-white text-left shadow-2xl md:max-h-[85vh] md:max-w-[520px] md:rounded-2xl"
+                  className="flex h-[100dvh] w-full flex-col overflow-hidden bg-white text-left md:h-auto md:max-h-[85vh] md:max-w-[520px] md:rounded-2xl md:shadow-2xl"
                 >
-                  <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 py-2 pl-4 pr-2 md:border-0 md:px-6 md:pb-1 md:pt-6">
+                  <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 pb-2 pl-4 pr-2 pt-[max(8px,env(safe-area-inset-top))] md:border-0 md:px-6 md:pb-1 md:pt-6">
                     <div className="min-w-0 py-1.5 md:py-0">
                       <DialogTitle
                         as="h2"

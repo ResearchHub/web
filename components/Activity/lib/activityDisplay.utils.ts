@@ -22,7 +22,7 @@ import type { ContentType } from '@/types/work';
 const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
   GENERIC_COMMENT: 'commented on',
   REVIEW: 'peer reviewed',
-  AUTHOR_UPDATE: 'posted an update',
+  AUTHOR_UPDATE: 'posted an update on their research',
   ANSWER: 'answered on',
   BOUNTY: 'contributed to',
 };
@@ -215,7 +215,7 @@ type CommentWorkTab = 'reviews' | 'bounties' | 'conversation' | 'updates' | unde
  * only routed under `/proposal` and `/report`. On any other work the update has
  * to settle for the conversation tab rather than link at a missing route.
  */
-export function shouldLinkToUpdatesTab(entry: FeedEntry, workContentType?: ContentType): boolean {
+function shouldLinkToUpdatesTab(entry: FeedEntry, workContentType?: ContentType): boolean {
   if (entry.contentType !== 'COMMENT') return false;
   if (workContentType !== 'preregistration') return false;
   return (entry.content as FeedCommentContent).comment?.commentType === 'AUTHOR_UPDATE';
@@ -527,7 +527,7 @@ function getCommentActionLine(entry: FeedEntry, noun: string): ActivityActionLin
       };
     }
     case 'AUTHOR_UPDATE':
-      return { label: 'Posted an update' };
+      return { label: 'Posted an update on their research' };
     case 'ANSWER':
       return { label: 'Answered a question' };
     default: {

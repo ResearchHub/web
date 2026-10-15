@@ -8,7 +8,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { Sprout, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { isHomeTabPath } from '@/hooks/useFundTabs';
 import { cn } from '@/utils/styles';
 
@@ -28,7 +28,6 @@ interface NavigationItem {
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
   isLucideStar?: boolean;
-  isLucideSprout?: boolean;
   isHome?: boolean;
 }
 
@@ -91,12 +90,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       iconKey: 'journal',
       description: 'Read and publish research papers',
     },
-    {
-      label: 'Endowment',
-      href: '/endowment',
-      isLucideSprout: true,
-      description: 'Learn about the ResearchHub Endowment',
-    },
   ];
 
   const getButtonStyles = (isActive: boolean) => {
@@ -120,10 +113,6 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     if (path === '/my-funding') {
       return currentPath === '/my-funding';
-    }
-
-    if (path === '/endowment') {
-      return currentPath.startsWith('/endowment');
     }
 
     return path === currentPath;
@@ -198,8 +187,6 @@ export const Navigation: React.FC<NavigationProps> = ({
               strokeWidth={isActive ? 2 : 2}
               fill={isActive ? iconColor : 'none'}
             />
-          ) : item.isLucideSprout ? (
-            <Sprout size={22} color={iconColor} strokeWidth={isActive ? 2.25 : 2} />
           ) : item.iconKey ? (
             <Icon name={getIconName() as IconName} size={26} color={iconColor} />
           ) : (

@@ -7,9 +7,11 @@ import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
 import { DraftMenu } from '@/components/Funding/DraftMenu';
 import { FundingDraftMenuItems } from '@/components/Funding/fundingDraftOptions';
+import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
-import { useFundingDocuments } from '@/contexts/FundingDocumentsContext';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
+import { useUser } from '@/contexts/UserContext';
 import type { Note } from '@/types/note';
 import { cn } from '@/utils/styles';
 import { SidebarRow } from './SidebarRow';
@@ -27,17 +29,18 @@ interface SidebarDocumentsProps {
 /**
  * The user's RFPs and proposals under the app's nav, on every page: what is
  * still a draft, with a "+" to start another, and what has been published.
- * Each opens in the workspace; the one open there is highlighted.
+ * Each opens in the workspace; the one open there is highlighted. With no
+ * drafts, and for a visitor who is signed out, Drafts is still there with a
+ * "New draft" row in place of the list.
  */
 export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProps) {
-  const { drafts, published, status, refresh } = useFundingDocuments();
+  const { drafts, published, status, refresh } = useFundingNotes();
+  const { isLoading: userLoading } = useUser();
   const { startNew, openDraft } = useFundingDrafting();
   const aiMode = useOptionalAIMode();
   const target = aiMode?.target;
   const workingNoteId = aiMode?.workingNoteId ?? null;
   const activeNoteId = target?.kind === 'document' ? target.noteId : null;
-
-  if (status === 'off') return null;
 
   const open = (note: Note) => {
     // The open document stays on the chat it is on.
@@ -75,6 +78,13 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
 
   const ready = status === 'ready';
   const hasPublished = ready && published.length > 0;
+  // Signed out, or signed in with nothing drafted: the way to start one is
+  // the list's only row, so the heading needs no "+" of its own.
+  const showsNewDraftRow = status === 'off' ? !userLoading : ready && drafts.length === 0;
+  const startDraft = (intent: FundingIntent) => {
+    startNew(intent);
+    onNavigate?.();
+  };
 
   return (
     <div className={cn('px-3 pb-3', className)}>
@@ -83,34 +93,41 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
       <section aria-label="Drafts">
         <SectionHeading
           action={
-            <BaseMenu
-              align="start"
-              sideOffset={4}
-              className="w-[320px] max-w-[calc(100vw-1rem)] rounded-xl p-1"
-              trigger={
-                <button
-                  type="button"
-                  aria-label="New draft"
-                  title="New draft"
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                >
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                </button>
-              }
-            >
-              <FundingDraftMenuItems
-                onSelect={(option) => {
-                  startNew(option.intent);
-                  onNavigate?.();
-                }}
+            showsNewDraftRow ? undefined : (
+              <NewDraftMenu
+                onSelect={startDraft}
+                trigger={
+                  <button
+                    type="button"
+                    aria-label="New draft"
+                    title="New draft"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                }
               />
-            </BaseMenu>
+            )
           }
         >
           Drafts
         </SectionHeading>
 
-        {status === 'loading' ? (
+        {showsNewDraftRow ? (
+          <NewDraftMenu
+            onSelect={startDraft}
+            trigger={
+              <button
+                type="button"
+                // A document row's shape, in the gray of something not there yet.
+                className="mb-0.5 flex w-full items-center gap-2.5 rounded-lg py-2 pl-2.5 pr-3 text-left text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 data-[state=open]:bg-gray-50"
+              >
+                <Plus className="h-[15px] w-[15px] shrink-0 text-gray-500" aria-hidden="true" />
+                New draft
+              </button>
+            }
+          />
+        ) : status === 'loading' || status === 'off' ? (
           <RowsSkeleton />
         ) : status === 'error' ? (
           <div className="flex flex-col items-start gap-1 px-2.5 py-1.5">
@@ -123,8 +140,6 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
               Try again
             </button>
           </div>
-        ) : drafts.length === 0 ? (
-          <p className="px-2.5 py-1.5 text-xs text-gray-500">No drafts yet.</p>
         ) : (
           rows(drafts, DRAFTS_SHOWN, true)
         )}
@@ -148,6 +163,26 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
         </Link>
       )}
     </div>
+  );
+}
+
+/** The choice between an RFP and a proposal, opened from `trigger`. */
+function NewDraftMenu({
+  trigger,
+  onSelect,
+}: {
+  readonly trigger: ReactNode;
+  readonly onSelect: (intent: FundingIntent) => void;
+}) {
+  return (
+    <BaseMenu
+      align="start"
+      sideOffset={4}
+      className="w-[320px] max-w-[calc(100vw-1rem)] rounded-xl p-1"
+      trigger={trigger}
+    >
+      <FundingDraftMenuItems onSelect={(option) => onSelect(option.intent)} />
+    </BaseMenu>
   );
 }
 

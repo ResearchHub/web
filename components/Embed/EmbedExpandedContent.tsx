@@ -53,12 +53,16 @@ export const XEmbedIframe: FC<{ tweetId: string }> = ({ tweetId }) => {
  * they need it to outlive the lifecycle of the card itself (see
  * `InlineRichLink` for the canonical example).
  */
-export const EmbedExpandedContent: FC<{ embed: DetectedUrl }> = ({ embed }) => {
+export const EmbedExpandedContent: FC<{
+  embed: DetectedUrl;
+  /** Start a video at once: right for a modal opened on purpose, not for one sitting in a page. */
+  autoplay?: boolean;
+}> = ({ embed, autoplay = true }) => {
   if (embed.kind === 'youtube' && embed.videoId) {
     return (
       <div className="relative w-full bg-black" style={{ aspectRatio: '16 / 9' }}>
         <iframe
-          src={`https://www.youtube.com/embed/${embed.videoId}?autoplay=1`}
+          src={`https://www.youtube.com/embed/${embed.videoId}${autoplay ? '?autoplay=1' : ''}`}
           title="YouTube video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
