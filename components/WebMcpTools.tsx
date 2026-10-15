@@ -35,7 +35,7 @@ const WebMcpTools = () => {
     if (!modelContext) return;
 
     const controller = new AbortController();
-    modelContext.registerTool(
+    void modelContext.registerTool(
       {
         name: 'search_researchhub',
         description: 'Search ResearchHub for researchers and posts such as proposals and grants.',
