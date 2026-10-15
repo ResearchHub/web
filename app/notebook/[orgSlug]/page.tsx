@@ -89,7 +89,7 @@ export default function OrganizationPage() {
         template: initialContent,
         queryParam: 'newChangelog',
         queryValue: 'true',
-        documentType: 'DISCUSSION',
+        documentType: 'CHANGELOG',
       });
     } else if (isNewFunding) {
       // "Upload a document" is handled inline in OpenProposalModal; here we

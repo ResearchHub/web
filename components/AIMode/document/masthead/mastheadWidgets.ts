@@ -153,6 +153,7 @@ const WIDGETS_BY_TYPE: Record<ArticleType, readonly MastheadWidgetConfig[]> = {
   grant: [COVER_IMAGE, ORGANIZATION, FUNDING_AMOUNT, CONTACTS, SHORT_DESCRIPTION],
   registered_report: [COVER_IMAGE, AUTHORS],
   discussion: [AUTHORS],
+  changelog: [AUTHORS],
 };
 
 /** The details a work of this type carries in its masthead. */

@@ -21,14 +21,14 @@ export const NOTEBOOK_WORK_TYPES = [
     description: 'Create a research proposal and optionally raise funding.',
   },
   {
-    value: 'discussion',
+    value: 'changelog',
     label: 'ChangeLog',
     description: 'Publish a ResearchHub product update.',
   },
 ] as const;
 
 export const getAvailableNotebookWorkTypes = (isModerator: boolean) =>
-  NOTEBOOK_WORK_TYPES.filter((workType) => workType.value !== 'discussion' || isModerator);
+  NOTEBOOK_WORK_TYPES.filter((workType) => workType.value !== 'changelog' || isModerator);
 
 type NotebookWorkType = (typeof NOTEBOOK_WORK_TYPES)[number]['value'];
 
@@ -79,7 +79,7 @@ export const NotebookPrimaryNavigation = ({
       icon: <FontAwesomeIcon icon={faFileSignature} className="h-[18px] w-[18px] text-gray-500" />,
       onClick: onNewProposal,
     },
-    discussion: {
+    changelog: {
       icon: <Icon name="submit1" size={18} color="#6b7280" />,
       onClick: onNewChangelog,
     },
@@ -100,9 +100,7 @@ export const NotebookPrimaryNavigation = ({
             className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100"
           >
             {action.icon}
-            <span className="font-medium">
-              New {workType.value === 'discussion' ? workType.label : workType.label}
-            </span>
+            <span className="font-medium">New {workType.label}</span>
           </button>
         );
       })}
