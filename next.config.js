@@ -1,3 +1,5 @@
+const MARKDOWN_ACCEPT = { type: 'header', key: 'accept', value: '.*text/markdown.*' };
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -169,16 +171,36 @@ const nextConfig = {
     // Paper pages are retired; anything else under /paper lands on the homepage.
     ...['/paper', '/paper/:path*'].map((source) => ({ source, destination: '/', permanent: true })),
   ],
-  // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
-  // and Next still reserves app/sitemap.xml for it, so the index lives at
-  // another path and is rewritten to the URL crawlers expect.
-  rewrites: async () => [
-    {
-      source: '/sitemap.xml',
-      destination: '/sitemap-index.xml',
-    },
-  ],
+  rewrites: async () => ({
+    // Agents asking for markdown get llms.txt instead of the homepage; this has
+    // to run before files because `/` is itself a page.
+    beforeFiles: [
+      {
+        source: '/',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/llms.txt',
+      },
+    ],
+    // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
+    // and Next still reserves app/sitemap.xml for it, so the index lives at
+    // another path and is rewritten to the URL crawlers expect.
+    afterFiles: [
+      {
+        source: '/sitemap.xml',
+        destination: '/sitemap-index.xml',
+      },
+    ],
+  }),
   headers: async () => [
+    {
+      source: '/',
+      headers: [{ key: 'Link', value: '</.well-known/api-catalog>; rel="api-catalog"' }],
+    },
+    {
+      source: '/',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
     {
       source: '/:path*',
       headers: [

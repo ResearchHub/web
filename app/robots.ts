@@ -23,6 +23,7 @@ export default function robots(): MetadataRoute.Robots {
         '/_next/',
         '/sw.js',
       ],
+      other: { 'Content-Signal': 'ai-train=yes, search=yes, ai-input=yes' },
     },
     sitemap: `${SITE_CONFIG.url}/sitemap.xml`,
   };
