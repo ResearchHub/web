@@ -2,6 +2,7 @@ import { PostService } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { ChangelogEntry } from '@/components/changelog/ChangelogEntry';
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { CHANGELOG_POST_IDS } from '@/constants/changelog';
@@ -38,6 +39,8 @@ async function fetchPostWithContent(postId: string): Promise<PostWithContent | n
 }
 
 export default async function ChangelogPage() {
+  await connection(); // stop build-time prerender for this page
+
   const postsWithContent = await Promise.all(
     CHANGELOG_POST_IDS.map((id) => fetchPostWithContent(id))
   );
