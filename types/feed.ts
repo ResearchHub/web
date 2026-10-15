@@ -441,6 +441,11 @@ export interface FeedEntry {
   contentType: FeedContentType; // New field to easily identify the type of content
   metrics?: ContentMetrics;
   relatedWork?: Work;
+  /**
+   * Peer reviews of the work the entry is about, assessed or not, where the payload
+   * lists them: a comment's document's, or a post's own. Left unset where it doesn't.
+   */
+  workReviews?: Review[];
   tips?: Tip[];
   raw?: RawApiFeedEntry;
   userVote?: UserVoteType;
@@ -691,17 +696,6 @@ export function transformActivityRelatedWork(raw: any): Work | undefined {
     image: raw.image_url ?? undefined,
     fundraise,
     grantSummary: raw.grant ? transformActivityRelatedWorkGrant(raw.grant) : undefined,
-    reviewMetrics: raw.review_metrics?.count
-      ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count }
-      : undefined,
-    assessedReviews: Array.isArray(raw.assessed_reviews)
-      ? raw.assessed_reviews.map((review: any) => ({
-          id: review.id,
-          score: review.score,
-          author: transformAuthorProfile(review.author),
-          isAssessed: review.is_assessed ?? true,
-        }))
-      : undefined,
   };
 }
 
@@ -712,6 +706,17 @@ export interface ExcludedFromFeedList {
 }
 
 // Updated transformFeedEntry function to use the simplified Content type
+/** A content object's `reviews` list, when it carries one. */
+function transformFeedReviews(raw: unknown): Review[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  return raw.map((review: any) => ({
+    id: review.id,
+    score: review.score,
+    author: transformAuthorProfile(review.author),
+    isAssessed: review.is_assessed ?? false,
+  }));
+}
+
 export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
   if (!feedEntry) {
     throw new Error('Feed entry is undefined');
@@ -756,6 +761,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
   // Transform the content based on content_type
   let content: Content;
   let relatedWork: Work | undefined;
+  let workReviews: Review[] | undefined;
   let contentType: FeedContentType;
 
   switch (content_type.toUpperCase()) {
@@ -1042,6 +1048,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
 
         content = commentContent;
 
+        workReviews = transformFeedReviews((content_object.post ?? content_object.paper)?.reviews);
+
         // If the comment is associated with a paper or post, transform it to a Work and set as relatedWork
         if (content_object.paper) {
           try {
@@ -1146,6 +1154,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           }
 
           // Create a FeedPostEntry object
+          workReviews = transformFeedReviews(content_object.reviews);
           const postEntry: FeedPostContent = {
             id: content_object.id,
             unifiedDocumentId: getUnifiedDocumentId(content_object),
@@ -1182,14 +1191,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                   transformBounty(bounty, { ignoreBaseAmount: true })
                 )
               : [],
-            reviews: content_object.reviews
-              ? content_object.reviews.map((review: any) => ({
-                  id: review.id,
-                  score: review.score,
-                  author: transformAuthorProfile(review.author),
-                  isAssessed: review.is_assessed ?? false,
-                }))
-              : [],
+            reviews: workReviews ?? [],
           };
 
           if (content_object.fundraise) {
@@ -1335,6 +1337,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     ...baseFeedEntry,
     content,
     relatedWork,
+    workReviews,
     contentType,
     hotScoreV2: hot_score_v2,
     riskScore: feedEntry.risk_score,
