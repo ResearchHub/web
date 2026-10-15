@@ -52,13 +52,5 @@ export function proxy(request: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  matcher: [
-    '/notebook/:path*',
-    '/notebook/api/:path*',
-    '/workspace',
-    '/referral',
-    '/lists',
-    '/list/:path*',
-    '/proposal/:path*',
-  ],
+  matcher: ['/workspace', '/referral', '/lists', '/list/:path*', '/proposal/:path*'],
 };

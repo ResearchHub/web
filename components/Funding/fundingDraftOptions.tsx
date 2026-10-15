@@ -42,7 +42,11 @@ export const FUNDING_DRAFT_OPTIONS: readonly FundingDraftOption[] = [
 ];
 
 /** One option's face: its icon in a tile, its name and what it is for. */
-export function FundingDraftOptionContent({ option }: { readonly option: FundingDraftOption }) {
+export function FundingDraftOptionContent({
+  option,
+}: {
+  readonly option: Pick<FundingDraftOption, 'icon' | 'title' | 'description'>;
+}) {
   return (
     <div className="relative flex w-full items-center gap-3 pr-6">
       <div className="flex-shrink-0">

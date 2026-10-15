@@ -33,7 +33,7 @@ import {
   type PublishAction,
 } from './usePublishAction';
 
-export interface PublishingController extends PublishAction {
+interface PublishingController extends PublishAction {
   readonly note: NoteWithContent | null;
   readonly editor: Editor | null;
   /** The form can be read but not changed or published. */

@@ -11,6 +11,7 @@ import {
   RegisteredReportModerationService,
 } from '@/services/registered-report-moderation.service';
 import type { FeedEntry } from '@/types/feed';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 
 export interface DraftOperation {
   proposalId: number;
@@ -146,7 +147,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
         setEntries((currentEntries) =>
           currentEntries.filter((entry) => entry.content.id !== proposalId)
         );
-        router.replace(`/notebook/${organization.slug}/${noteId}`);
+        router.replace(workspaceHref(documentTarget(noteId)));
       } catch (error) {
         const accessDenied = isModeratorAccessError(error);
         const message = getDraftFailureMessage(error, noteId);

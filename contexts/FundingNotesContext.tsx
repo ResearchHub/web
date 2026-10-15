@@ -16,9 +16,9 @@ import { NoteService, type GetOrganizationNotesParams } from '@/services/note.se
 import type { Note } from '@/types/note';
 import type { ID } from '@/types/root';
 
-export type FundingNotesStatus = 'off' | 'loading' | 'ready' | 'error';
+type FundingNotesStatus = 'off' | 'loading' | 'ready' | 'error';
 
-export interface FundingNotes {
+interface FundingNotes {
   /** RFPs and proposals without a post, latest edit first. */
   readonly drafts: readonly Note[];
   /** RFPs and proposals with a post, open or inactive, latest edit first. */

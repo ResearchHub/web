@@ -1,7 +1,3 @@
-import { useFormContext } from 'react-hook-form';
-import { Eye } from 'lucide-react';
-import { RadioGroup } from '@/components/ui/form/RadioGroup';
-import { SectionHeader } from './SectionHeader';
 import { CommunityMatchTooltip } from '@/components/tooltips/CommunityMatchTooltip';
 
 const CommunityMatchBadge = () => (
@@ -34,23 +30,3 @@ export const GRANT_APPLICATION_VISIBILITY_OPTIONS = [
     description: 'Only yourself and peer-reviewers can view private proposals.',
   },
 ];
-
-export function GrantApplicationVisibilitySection() {
-  const { watch, setValue } = useFormContext();
-  const value = watch('applicationVisibility') ?? 'OPTIONAL';
-
-  return (
-    <div className="py-3 px-6">
-      <SectionHeader icon={Eye}>Application Visibility</SectionHeader>
-      <p className="mb-2 text-sm text-gray-500">{GRANT_APPLICATION_VISIBILITY_HELP}</p>
-      <div className="mt-2">
-        <RadioGroup
-          options={GRANT_APPLICATION_VISIBILITY_OPTIONS}
-          value={value}
-          onChange={(next) => setValue('applicationVisibility', next, { shouldValidate: true })}
-          size="sm"
-        />
-      </div>
-    </div>
-  );
-}

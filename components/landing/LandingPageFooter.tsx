@@ -124,14 +124,14 @@ export function LandingPageFooter() {
                   </Link>
                 </li>
               ))}
-              <li key="notebook">
+              <li key="workspace">
                 <button
-                  onClick={() => handleAuthenticatedLink('/notebook')}
+                  onClick={() => handleAuthenticatedLink('/workspace')}
                   className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
                   onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                   onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                 >
-                  Notebook
+                  Workspace
                 </button>
               </li>
             </ul>

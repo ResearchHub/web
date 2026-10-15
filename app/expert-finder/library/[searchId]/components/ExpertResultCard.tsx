@@ -14,7 +14,6 @@ import {
   Pencil,
   Sparkles,
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -33,9 +32,9 @@ import {
   proposalDraftStepProgress,
 } from '@/types/expertFinder';
 import { useProposalDraft } from '@/hooks/useExpertFinder';
-import { NoteService } from '@/services/note.service';
 import { ExpertFormModal } from './ExpertFormModal';
 import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
@@ -60,7 +59,6 @@ interface ProposalDraftSectionProps {
   draft: ProposalDraft | null;
   isStarting: boolean;
   startError: string | null;
-  isOpeningNote: boolean;
   onStart: () => void;
   onOpenNote: () => void;
 }
@@ -69,7 +67,6 @@ function ProposalDraftSection({
   draft,
   isStarting,
   startError,
-  isOpeningNote,
   onStart,
   onOpenNote,
 }: Readonly<ProposalDraftSectionProps>) {
@@ -126,13 +123,8 @@ function ProposalDraftSection({
         size="sm"
         className="w-full gap-2"
         onClick={onOpenNote}
-        disabled={isOpeningNote}
       >
-        {isOpeningNote ? (
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-        ) : (
-          <FileText className="h-4 w-4 shrink-0" aria-hidden />
-        )}
+        <FileText className="h-4 w-4 shrink-0" aria-hidden />
         Open proposal
       </Button>
     );
@@ -169,7 +161,6 @@ export function ExpertResultCard({
 }: ExpertResultCardProps) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
-  const [isOpeningNote, setIsOpeningNote] = useState(false);
 
   // Refresh the search detail once a draft settles so selection-based flows
   // (e.g. proposal invitation emails) see the latest draft state.
@@ -186,17 +177,9 @@ export function ExpertResultCard({
     if (expert.searchExpertId != null) void startDraft(expert.searchExpertId);
   }, [expert.searchExpertId, startDraft]);
 
-  const handleOpenNote = useCallback(async () => {
+  const handleOpenNote = useCallback(() => {
     if (draft?.noteId == null) return;
-    setIsOpeningNote(true);
-    try {
-      const note = await NoteService.getNote(String(draft.noteId));
-      router.push(`/notebook/${note.organization.slug}/${draft.noteId}`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to open the proposal note');
-    } finally {
-      setIsOpeningNote(false);
-    }
+    router.push(workspaceHref(documentTarget(draft.noteId)));
   }, [draft?.noteId, router]);
   const name = empty(expert.name);
   const canEditContact = expert.expertId != null && Boolean(onSuccess);
@@ -445,9 +428,8 @@ export function ExpertResultCard({
             draft={draft}
             isStarting={isStarting}
             startError={startError}
-            isOpeningNote={isOpeningNote}
             onStart={handleStartDraft}
-            onOpenNote={() => void handleOpenNote()}
+            onOpenNote={handleOpenNote}
           />
         ) : null}
         {onGenerateEmail && (

@@ -1,7 +1,7 @@
 'use client';
 
-import { Plus } from 'lucide-react';
-import { BaseMenu } from '@/components/ui/form/BaseMenu';
+import { Plus, ScrollText } from 'lucide-react';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import {
@@ -11,8 +11,18 @@ import {
   type FundingDraftOption,
 } from '@/components/Funding/fundingDraftOptions';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
+import { useChangelogDrafting } from '@/components/changelog/useChangelogDrafting';
+import { useUser } from '@/contexts/UserContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
+
+/** Moderators also publish product updates; the entry drafts in the workspace too. */
+const CHANGELOG_OPTION = {
+  id: 'changelog',
+  title: 'ChangeLog',
+  description: 'Publish a ResearchHub product update',
+  icon: <ScrollText className="h-[18px] w-[18px] text-gray-700" />,
+};
 
 interface PublishMenuProps {
   forceMinimize?: boolean;
@@ -23,7 +33,7 @@ interface PublishMenuProps {
 /**
  * The sidebar's Publish button: a Request for Proposal or a Proposal, either
  * of which leads straight to a new draft in the workspace for that side of
- * the money.
+ * the money, and for moderators a ChangeLog entry.
  */
 export const PublishMenu: React.FC<PublishMenuProps> = ({
   forceMinimize = false,
@@ -31,6 +41,9 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { startNew } = useFundingDrafting();
+  const { startChangelog } = useChangelogDrafting();
+  const { user } = useUser();
+  const isModerator = !!user?.isModerator;
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
@@ -38,6 +51,16 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     executeAuthenticatedAction(() => startNew(item.intent));
 
     // Close mobile drawer after action
+    if (smAndDown) {
+      setIsMobileDrawerOpen(false);
+    }
+    onItemSelected?.();
+  };
+
+  const handleChangelogClick = () => {
+    executeAuthenticatedAction(() => {
+      void startChangelog();
+    });
     if (smAndDown) {
       setIsMobileDrawerOpen(false);
     }
@@ -79,27 +102,46 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
     </button>
   );
 
-  const menuContent = <FundingDraftMenuItems onSelect={handleMenuItemClick} />;
+  const menuContent = (
+    <div className="space-y-1">
+      <FundingDraftMenuItems onSelect={handleMenuItemClick} />
+      {isModerator && (
+        <BaseMenuItem
+          onClick={handleChangelogClick}
+          className="group w-full cursor-pointer rounded-lg px-2 py-2 transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100"
+        >
+          <FundingDraftOptionContent option={CHANGELOG_OPTION} />
+        </BaseMenuItem>
+      )}
+    </div>
+  );
 
   // Mobile drawer content
+  const mobileItems = [
+    ...FUNDING_DRAFT_OPTIONS.map((item) => ({
+      option: item,
+      onPick: () => handleMenuItemClick(item),
+    })),
+    ...(isModerator ? [{ option: CHANGELOG_OPTION, onPick: handleChangelogClick }] : []),
+  ];
   const mobileDrawerContent = (
     <div className="space-y-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
-      {FUNDING_DRAFT_OPTIONS.map((item) => (
+      {mobileItems.map(({ option, onPick }) => (
         <div
-          key={item.id}
-          onClick={() => handleMenuItemClick(item)}
+          key={option.id}
+          onClick={onPick}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              handleMenuItemClick(item);
+              onPick();
             }
           }}
           className="group w-full px-3 py-3 cursor-pointer rounded-xl transition-colors duration-150 hover:bg-gray-100 active:bg-gray-100"
           role="button"
           tabIndex={0}
-          aria-label={`${item.title}: ${item.description}`}
+          aria-label={`${option.title}: ${option.description}`}
         >
-          <FundingDraftOptionContent option={item} />
+          <FundingDraftOptionContent option={option} />
         </div>
       ))}
     </div>

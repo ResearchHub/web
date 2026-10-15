@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
 import { useReferralMetrics } from '@/hooks/useReferral';
 import { ReferralImpactSkeleton } from './ReferralImpactSkeleton';
+import { newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 
 export function ReferralImpactSection() {
   const router = useRouter();
@@ -102,7 +103,7 @@ export function ReferralImpactSection() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/notebook?newFunding=true')}
+                    onClick={() => router.push(workspaceHref(newDraftTarget('need_funding')))}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     <span>Create proposal</span>
