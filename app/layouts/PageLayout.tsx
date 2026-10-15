@@ -11,7 +11,6 @@ import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext
 import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
 import { TopBarContainer } from './components/TopBarContainer';
-import { MobileOverlay } from './components/MobileOverlay';
 import { LeftSidebarContainer } from './components/LeftSidebarContainer';
 import { RightSidebarContainer } from './components/RightSidebarContainer';
 import { PullToRefresh } from './components/PullToRefresh';
@@ -72,14 +71,8 @@ function PageLayoutInner({
 }: PageLayoutProps) {
   const isNarrow = contentWidth === 'narrow';
 
-  const {
-    scrollContainerRef,
-    isLeftSidebarOpen,
-    showOverlay,
-    overlayVisible,
-    toggleLeftSidebar,
-    closeLeftSidebar,
-  } = usePageLayoutState();
+  const { scrollContainerRef, isLeftSidebarOpen, toggleLeftSidebar, closeLeftSidebar } =
+    usePageLayoutState();
 
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
 
@@ -94,8 +87,6 @@ function PageLayoutInner({
           isLeftSidebarOpen={isLeftSidebarOpen}
           onMenuClick={toggleLeftSidebar}
         />
-
-        <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
         <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
 

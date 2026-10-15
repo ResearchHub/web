@@ -9,11 +9,17 @@ import { cn } from '@/utils/styles';
 interface SidePanelProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Without one there is no header bar: the content brings its own top. */
   title?: ReactNode;
   children: ReactNode;
   /** Pinned under the scrolling body. */
   footer?: ReactNode;
-  /** Width from the tablet breakpoint up; below it the panel takes the whole screen. */
+  /** The edge it slides in from, and is swiped back off to. */
+  side?: 'left' | 'right';
+  /**
+   * The panel's width. By default it fills a phone and is 560px from the tablet
+   * breakpoint up.
+   */
   widthClassName?: string;
 }
 
@@ -37,11 +43,13 @@ function startsInSideScroller(target: EventTarget | null, panel: HTMLElement): b
 }
 
 /**
- * Lets a finger drag the panel back off to the right, the way it came in, and closes
- * it if let go far enough along or flicked. A touch that moves mostly up or down is
- * left to scroll the panel.
+ * Lets a finger drag the panel back off the edge it came in from, and closes it if
+ * let go far enough along or flicked. A touch that moves mostly up or down is left
+ * to scroll the panel.
  */
-function useSwipeToClose(onClose: () => void) {
+function useSwipeToClose(onClose: () => void, side: 'left' | 'right') {
+  // Distances below are measured toward the panel's own edge.
+  const sign = side === 'right' ? 1 : -1;
   const panelRef = useRef<HTMLDivElement>(null);
   const swipe = useRef<{
     startX: number;
@@ -58,7 +66,7 @@ function useSwipeToClose(onClose: () => void) {
     const panel = panelRef.current;
     if (!panel) return;
     panel.style.transition = settle ? `transform ${SWIPE_SETTLE_MS}ms ease-out` : 'none';
-    panel.style.transform = `translateX(${x})`;
+    panel.style.transform = `translateX(calc(${x} * ${sign}))`;
   };
 
   const onTouchStart = (e: TouchEvent<HTMLDivElement>) => {
@@ -80,11 +88,11 @@ function useSwipeToClose(onClose: () => void) {
     const current = swipe.current;
     if (!current || current.axis === 'y') return;
     const touch = e.touches[0];
-    const dx = touch.clientX - current.startX;
+    const dx = (touch.clientX - current.startX) * sign;
     const dy = touch.clientY - current.startY;
     if (!current.axis) {
       if (Math.abs(dx) < SWIPE_SLOP && Math.abs(dy) < SWIPE_SLOP) return;
-      current.axis = dx > Math.abs(dy) ? 'x' : 'y';
+      current.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
       if (current.axis === 'y') return;
     }
     current.dx = Math.max(0, dx);
@@ -122,10 +130,10 @@ function useSwipeToClose(onClose: () => void) {
 }
 
 /**
- * A panel that slides in from the right over a dimmed page, for reading something
- * in full without leaving the list it came from. On a phone it fills the screen and
- * reads as a page of its own: a back button sits left of the title, and a swipe to
- * the right takes it away.
+ * A panel that slides in over a dimmed page: from the right for reading something in
+ * full without leaving the list it came from, from the left for the app's menu. On a
+ * phone the right-hand one fills the screen and reads as a page of its own: a back
+ * button sits left of the title. A swipe back toward its edge takes either away.
  */
 export const SidePanel: FC<SidePanelProps> = ({
   isOpen,
@@ -133,9 +141,11 @@ export const SidePanel: FC<SidePanelProps> = ({
   title,
   children,
   footer,
-  widthClassName = 'tablet:max-w-[560px]',
+  side = 'right',
+  widthClassName = 'w-full tablet:max-w-[560px]',
 }) => {
-  const swipeHandlers = useSwipeToClose(onClose);
+  const swipeHandlers = useSwipeToClose(onClose, side);
+  const offscreen = side === 'right' ? 'translate-x-full' : '-translate-x-full';
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -153,50 +163,57 @@ export const SidePanel: FC<SidePanelProps> = ({
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-hidden">
-          <div className="pointer-events-none fixed inset-y-0 right-0 flex w-full justify-end">
+          <div
+            className={cn(
+              'pointer-events-none fixed inset-y-0 flex w-full',
+              side === 'right' ? 'right-0 justify-end' : 'left-0 justify-start'
+            )}
+          >
             <Transition.Child
               as={Fragment}
               enter="transform transition ease-out duration-300"
-              enterFrom="translate-x-full"
+              enterFrom={offscreen}
               enterTo="translate-x-0"
               leave="transform transition ease-in duration-200"
               leaveFrom="translate-x-0"
-              leaveTo="translate-x-full"
+              leaveTo={offscreen}
             >
               <Dialog.Panel
                 {...swipeHandlers}
                 className={cn(
                   // Sideways moves are left to the swipe; the page still scrolls and zooms.
-                  'pointer-events-auto flex h-full w-full touch-pan-y touch-pinch-zoom flex-col bg-white shadow-2xl',
+                  'pointer-events-auto flex h-full touch-pan-y touch-pinch-zoom flex-col bg-white shadow-2xl',
                   widthClassName
                 )}
               >
-                <div className="flex flex-shrink-0 items-center gap-1 border-b border-gray-200 px-4 py-2 tablet:gap-4 tablet:px-6 tablet:py-4">
-                  <Button
-                    onClick={onClose}
-                    variant="ghost"
-                    size="icon"
-                    className="-ml-3 flex-shrink-0 rounded-full tablet:hidden"
-                    aria-label="Back"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </Button>
-                  <Dialog.Title
-                    as="h2"
-                    className="min-w-0 flex-1 text-base font-semibold text-gray-900"
-                  >
-                    {title}
-                  </Dialog.Title>
-                  <Button
-                    onClick={onClose}
-                    variant="ghost"
-                    size="icon"
-                    className="hidden h-9 w-9 flex-shrink-0 rounded-full tablet:inline-flex"
-                    aria-label="Close"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
+                {title != null && (
+                  <div className="flex flex-shrink-0 items-center gap-1 border-b border-gray-200 px-4 py-2 tablet:gap-4 tablet:px-6 tablet:py-4">
+                    <Button
+                      onClick={onClose}
+                      variant="ghost"
+                      size="icon"
+                      className="-ml-3 flex-shrink-0 rounded-full tablet:hidden"
+                      aria-label="Back"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </Button>
+                    <Dialog.Title
+                      as="h2"
+                      className="min-w-0 flex-1 text-base font-semibold text-gray-900"
+                    >
+                      {title}
+                    </Dialog.Title>
+                    <Button
+                      onClick={onClose}
+                      variant="ghost"
+                      size="icon"
+                      className="hidden h-9 w-9 flex-shrink-0 rounded-full tablet:inline-flex"
+                      aria-label="Close"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                )}
 
                 <div className="min-h-0 flex-1 touch-pan-y touch-pinch-zoom overflow-y-auto">
                   {children}

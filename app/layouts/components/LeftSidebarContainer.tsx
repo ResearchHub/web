@@ -1,36 +1,44 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { SidePanel } from '@/components/ui/SidePanel';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
-  /** Closes the menu once something in it is picked; see `LeftSidebar`'s `onNavigate`. */
+  /**
+   * Closes the menu, and once something in it is picked; see `LeftSidebar`'s
+   * `onNavigate`. Without it there is no menu, only the column.
+   */
   onClose?: () => void;
 }
 
 /**
  * The app's left column from 1240px up. Narrower than that there is no
- * column: the top bar's menu button slides the whole sidebar in, over the
- * top bar and the page.
+ * column: the top bar's menu button slides the whole sidebar in from the left,
+ * in the same panel the feed opens a review in.
  */
 export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerProps) {
+  // Widening the window past the breakpoint swaps an open menu for the column.
+  const hasColumn = useMediaQuery('(min-width: 1240px)');
+
   return (
-    <div
-      className={cn(
-        'bg-white border-r border-gray-200 flex-shrink-0 z-[130]',
-        // The menu: fixed full height, sliding in over the top bar, a fifth wider
-        // than the column so its rows are easier to tap.
-        'fixed top-0 h-screen w-[288px] max-w-[85vw]',
-        'transition-transform duration-200 ease-out',
-        isOpen ? '!translate-x-0' : '!-translate-x-full',
-        // The column: in the page's row, always there.
-        'sidebar-compact:!sticky sidebar-compact:!top-0 sidebar-compact:!h-screen sidebar-compact:!z-30',
-        'sidebar-compact:!w-[240px] sidebar-compact:!max-w-none',
-        'sidebar-compact:!transition-none sidebar-compact:!translate-x-0'
+    <>
+      <div className="hidden sidebar-compact:!block sticky top-0 z-30 h-screen w-[240px] flex-shrink-0 border-r border-gray-200 bg-white">
+        <LeftSidebar />
+      </div>
+
+      {onClose && (
+        <SidePanel
+          isOpen={isOpen && hasColumn === false}
+          onClose={onClose}
+          side="left"
+          // A fifth wider than the column, so its rows are easier to tap.
+          widthClassName="w-[288px] max-w-[85vw]"
+        >
+          <LeftSidebar onNavigate={onClose} />
+        </SidePanel>
       )}
-    >
-      <LeftSidebar onNavigate={onClose} />
-    </div>
+    </>
   );
 }
