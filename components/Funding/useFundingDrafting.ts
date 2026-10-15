@@ -7,6 +7,7 @@ import {
   documentTarget,
   newDraftTarget,
   workspaceHref,
+  type DocumentChat,
   type WorkspaceTarget,
 } from '@/components/AIMode/workspaceUrl';
 import type { Note } from '@/types/note';
@@ -16,7 +17,18 @@ export interface FundingDrafting {
   /** Start a new RFP (`fund`) or proposal (`need_funding`). */
   readonly startNew: (intent: FundingIntent) => void;
   /** Pick a draft back up, or open a published document. */
-  readonly openDraft: (note: Pick<Note, 'id'>) => void;
+  readonly openDraft: (note: Pick<Note, 'id' | 'latestChatId'>) => void;
+}
+
+/**
+ * The chat a document opens on. Its row in the documents listing says which
+ * of its chats is the most recent, or that it has none, so the workspace
+ * opens straight on it; without that, on its most recent chat once the
+ * workspace has loaded its chats to find it.
+ */
+function chatToOpen(note: Pick<Note, 'latestChatId'>): DocumentChat {
+  if (note.latestChatId === undefined) return 'latest';
+  return note.latestChatId ?? 'new';
 }
 
 /**
@@ -37,7 +49,7 @@ export function useFundingDrafting(): FundingDrafting {
     };
     return {
       startNew: (intent) => goTo(newDraftTarget(intent)),
-      openDraft: (note) => goTo(documentTarget(note.id)),
+      openDraft: (note) => goTo(documentTarget(note.id, chatToOpen(note))),
     };
   }, [openWorkspace, router]);
 }

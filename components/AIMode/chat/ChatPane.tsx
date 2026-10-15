@@ -33,8 +33,50 @@ interface ChatPaneProps {
   readonly state: AIModeChatState;
   /** The open document no longer exists. */
   readonly documentMissing: boolean;
+  /**
+   * The chat stays on its skeleton even once it has loaded: the document
+   * beside it is still coming, and the two show together.
+   */
+  readonly held?: boolean;
   /** Under a turn, after its answer: the document's card, under the newest turn that wrote to it. */
   readonly renderExecutionExtra?: (execution: ChatExecution) => ReactNode;
+}
+
+/** What the chat pane's body shows. */
+export type ChatPaneContent =
+  /** The assistant is closed to this account, or this chat is someone else's. */
+  | 'blocked'
+  /** The screen that starts a new draft. */
+  | 'start'
+  /** The document no longer exists. */
+  | 'missing'
+  /** The document's chats are closed to this account. */
+  | 'list-blocked'
+  | 'list-failed'
+  | 'chat-failed'
+  /** The document's most recent chat is being found, or the open one is loading. */
+  | 'loading'
+  /** A new chat, or one with nothing in it yet. */
+  | 'empty'
+  | 'transcript';
+
+/** What the chat pane's body shows, for `state`; the page asks too, to know when it has loaded. */
+export function chatPaneContent(state: AIModeChatState, documentMissing: boolean): ChatPaneContent {
+  const { listReady, list, chatId, chat } = state;
+  if (state.researchAI.budget?.tier === 'blocked') return 'blocked';
+  if (state.target.kind === 'new') return 'start';
+  if (documentMissing) return 'missing';
+  if (listReady && list.access === 'hidden') return 'list-blocked';
+  // Never the new-chat state while the most recent chat is being found: it
+  // would read as the chat having gone.
+  if (state.resolvingChat) return listReady && list.access === 'error' ? 'list-failed' : 'loading';
+  if (chatId == null) return 'empty';
+  if (chat.access === 'unauthorized') return 'blocked';
+  // A chat that is gone hands over to the document's most recent one.
+  if (chat.chat == null) return chat.access === 'error' ? 'chat-failed' : 'loading';
+  const isEmpty =
+    chat.chat.messages.length === 0 && chat.chat.executions.length === 0 && !chat.pendingSend;
+  return isEmpty ? 'empty' : 'transcript';
 }
 
 /**
@@ -43,7 +85,12 @@ interface ChatPaneProps {
  * composer in the middle of the page, and at its foot a way to write the
  * draft without the assistant.
  */
-export function ChatPane({ state, documentMissing, renderExecutionExtra }: ChatPaneProps) {
+export function ChatPane({
+  state,
+  documentMissing,
+  held = false,
+  renderExecutionExtra,
+}: ChatPaneProps) {
   const {
     chatId,
     list,
@@ -200,88 +247,70 @@ export function ChatPane({ state, documentMissing, renderExecutionExtra }: ChatP
     />
   );
 
+  const content = chatPaneContent(state, documentMissing);
   const body = (): ReactNode => {
-    if (aiBlocked) return <AccessBlocked detail={null} />;
-    if (onStart) {
-      return (
-        <StartScreen
-          composer={composer}
-          greeting={AI_MODE_GREETING}
-          intent={state.intent}
-          presets={
-            // A funder sees what to ask for; a researcher brings their own topic.
-            state.intent === 'fund' ? (
-              <StartPresets
-                onSelect={(message) => void state.send(message)}
-                disabled={composerDisabled || composerBusy || state.sendBlocked}
-              />
-            ) : undefined
-          }
-        />
-      );
+    switch (content) {
+      case 'blocked':
+        return <AccessBlocked detail={null} />;
+      case 'start':
+        return (
+          <StartScreen
+            composer={composer}
+            greeting={AI_MODE_GREETING}
+            intent={state.intent}
+            presets={
+              // A funder sees what to ask for; a researcher brings their own topic.
+              state.intent === 'fund' ? (
+                <StartPresets
+                  onSelect={(message) => void state.send(message)}
+                  disabled={composerDisabled || composerBusy || state.sendBlocked}
+                />
+              ) : undefined
+            }
+          />
+        );
+      case 'missing':
+        return (
+          <div className="flex flex-col items-center gap-3 py-16 text-center">
+            <p className="text-sm text-gray-600">This document is no longer available.</p>
+            <Link
+              href="/my-funding"
+              className="text-sm font-medium text-primary-600 hover:text-primary-700"
+            >
+              Go to My Funding
+            </Link>
+          </div>
+        );
+      case 'list-blocked':
+        return <AccessBlocked detail={list.accessDetail} />;
+      case 'list-failed':
+        return <RetryState message="Couldn’t load this document’s chats." onRetry={list.refresh} />;
+      case 'chat-failed':
+        return <RetryState message="Couldn’t load this chat." onRetry={chat.refetch} />;
+      case 'loading':
+        return <ChatTranscriptSkeleton />;
     }
-    if (documentMissing) {
+    if (held) return <ChatTranscriptSkeleton />;
+    if (content === 'empty' || chat.chat == null) {
+      // A new chat says what the assistant can do in a line and leaves the
+      // rest to the composer: no heading, no suggestions to pick from.
       return (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <p className="text-sm text-gray-600">This document is no longer available.</p>
-          <Link
-            href="/my-funding"
-            className="text-sm font-medium text-primary-600 hover:text-primary-700"
-          >
-            Go to My Funding
-          </Link>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-6">
+          <Sparkles className="h-8 w-8 text-primary-500" aria-hidden="true" />
+          <p className="max-w-xs text-center text-sm leading-relaxed text-gray-500">
+            The assistant can help draft this document, find research to support it, and answer your
+            questions along the way.
+          </p>
         </div>
       );
     }
-    if (listBlocked) return <AccessBlocked detail={list.accessDetail} />;
-    if (resolving) {
-      // Never the new-chat state while the most recent chat is being found:
-      // it would read as the chat having gone.
-      return listFailed ? (
-        <RetryState message="Couldn’t load this document’s chats." onRetry={list.refresh} />
-      ) : (
-        <ChatTranscriptSkeleton />
-      );
-    }
-    // A new chat says what the assistant can do in a line and leaves the
-    // rest to the composer: no heading, no suggestions to pick from.
-    const emptyState = (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-6">
-        <Sparkles className="h-8 w-8 text-primary-500" aria-hidden="true" />
-        <p className="max-w-xs text-center text-sm leading-relaxed text-gray-500">
-          The assistant can help draft this document, find research to support it, and answer your
-          questions along the way.
-        </p>
-      </div>
-    );
-    if (chatId == null) return emptyState;
-    switch (chat.access) {
-      case 'unauthorized':
-        return <AccessBlocked detail={null} />;
-      case 'error':
-        if (chat.chat == null) {
-          return <RetryState message="Couldn’t load this chat." onRetry={chat.refetch} />;
-        }
-        break;
-      case 'loading':
-      case 'not_found':
-        // A chat that is gone hands over to the document's most recent one.
-        if (chat.chat == null) return <ChatTranscriptSkeleton />;
-        break;
-    }
-    if (!chat.chat) return null;
-    const isEmpty =
-      chat.chat.messages.length === 0 && chat.chat.executions.length === 0 && !chat.pendingSend;
-    if (isEmpty) return emptyState;
     return (
-      <div className="animate-in fade-in duration-300">
-        <ChatTranscript
-          chat={chat.chat}
-          pendingSend={chat.pendingSend}
-          renderExecutionExtra={renderExecutionExtra}
-          renderFailureActions={renderFailureActions}
-        />
-      </div>
+      <ChatTranscript
+        chat={chat.chat}
+        pendingSend={chat.pendingSend}
+        renderExecutionExtra={renderExecutionExtra}
+        renderFailureActions={renderFailureActions}
+      />
     );
   };
 

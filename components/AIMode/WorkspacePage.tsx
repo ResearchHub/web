@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PageLayout } from '@/app/layouts/PageLayout';
 import { DraftMenu } from '@/components/Funding/DraftMenu';
 import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -9,13 +8,14 @@ import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { isActiveExecutionStatus, type AgentChat, type ChatExecution } from '@/types/agentChat';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { isPublishedNote } from '@/types/note';
-import { AIModeProvider, useAIMode } from './AIModeContext';
-import { ChatPane } from './chat/ChatPane';
+import { useAIMode } from './AIModeContext';
+import { ChatPane, chatPaneContent } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
 import { newDraftTitle } from './copy';
 import { DocumentPane } from './document/DocumentPane';
 import { PublishAction, type PublishRequestOutcome } from './document/PublishPill';
 import { useAIModeDocument, type AIModeDocument } from './document/useAIModeDocument';
+import { usePaneReveal } from './shell/usePaneReveal';
 import { ViewSwitch } from './shell/ViewSwitch';
 import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
@@ -72,41 +72,43 @@ function documentCardExecutionId(
  * What the top bar names: on the start screen what it will produce (an RFP
  * or a proposal), and on a document its title as the document heads it, or,
  * below the width at which a title stays readable, just whether it is out
- * yet. '' is the bar's loading state: shown until the note has loaded, so
- * nothing stands in for the real title first.
+ * yet. Until the note has loaded, its row in the sidebar's listing says the
+ * same, so the bar names it from the click. '' is the bar's loading state,
+ * for a document the listing does not have.
  */
 function topBarTitle({
   startingIntent,
   doc,
+  listed,
   isWide,
 }: {
   readonly startingIntent: FundingIntent | null;
   readonly doc: AIModeDocument;
+  /** The document's row in the sidebar's listing; null when it has none. */
+  readonly listed: { readonly title: string; readonly published: boolean } | null;
   readonly isWide: boolean;
 }): string {
   if (startingIntent) return newDraftTitle(startingIntent);
   const loadedNote = doc.details ?? doc.content;
   if (doc.missing || (doc.error != null && loadedNote == null)) return 'Untitled';
-  if (loadedNote == null) return '';
+  const listedTitle = listed ? listed.title.trim() || 'Untitled' : '';
+  if (loadedNote == null) {
+    if (listed == null) return '';
+    if (!isWide) return listed.published ? 'Published' : 'Draft';
+    return listedTitle;
+  }
   if (!isWide) return isPublishedNote(loadedNote) ? 'Published' : 'Draft';
-  return doc.displayTitle ?? '';
+  return doc.displayTitle ?? listedTitle;
 }
 
 /**
- * The `/workspace` page: the app's shell, with the chat and, beside it on
- * the right, the document it is about, or either one alone, as the top
- * bar's view switch says. The user's documents are in the app's left
- * sidebar, as on every page. What it is open on lives in the URL.
+ * The `/workspace` page's area beside the app's sidebar: the chat and,
+ * beside it on the right, the document it is about, or either one alone, as
+ * the top bar's view switch says. The user's documents are in the sidebar,
+ * as on every page. What it is open on lives in the URL, read by the
+ * `AIModeProvider` the page puts above its shell.
  */
 export function WorkspacePage() {
-  return (
-    <AIModeProvider>
-      <Workspace />
-    </AIModeProvider>
-  );
-}
-
-function Workspace() {
   const state = useAIModeChat();
   const { target, note } = state;
 
@@ -151,20 +153,34 @@ function Workspace() {
     anchor: 'right',
   });
 
+  // The open document's row in the sidebar's listing, which has what the
+  // page needs to know about it before the document itself has loaded.
+  const noteId = note?.id ?? null;
+  const { patch, drafts, published: publishedNotes } = useFundingNotes();
+  const listedDraft = noteId == null ? undefined : drafts.find((item) => item.id === noteId);
+  const listedNote =
+    listedDraft ?? (noteId == null ? undefined : publishedNotes.find((item) => item.id === noteId));
+
   // ---- what shows: the chat, the document, or both ----
   // Chosen in the top bar and remembered per document. A document with no
   // chats is being written by hand, so it opens on its own. A phone has room
   // for one at a time: Split shows there as the chat, and Chat from the
   // document view asks for Split, so a wide screen still shows both.
-  const noteId = note?.id ?? null;
+  // Until its chats have loaded, a chat the address names is one it has, and
+  // the listing says whether it has any: the view is the right one from the
+  // click rather than changing under the user once they load.
   const { list, listReady } = state;
   const hasChats =
     listReady && list.access === 'ok'
       ? list.chats.length > 0
       : listReady && list.access === 'hidden'
         ? false
-        : null;
-  const [view, setView] = useWorkspaceView(noteId, hasChats);
+        : target.kind === 'document' && typeof target.chat === 'number'
+          ? true
+          : listedNote?.latestChatId !== undefined
+            ? listedNote.latestChatId != null
+            : null;
+  const [view, setView, viewSettled] = useWorkspaceView(noteId, hasChats);
   // Until the width is known, the phone's way: one pane.
   const narrow = phoneQuery !== false;
   const shownView: WorkspaceView = narrow && view === 'split' ? 'chat' : view;
@@ -193,9 +209,24 @@ function Workspace() {
     [showSwitch, narrow, shownView, chooseView, isBelowTablet]
   );
 
+  // ---- the panes arrive together ----
+  // A document opens with the panes on their skeletons, and they show what
+  // they have loaded in the same frame once both have it and the view is
+  // known, rather than one, then the other, then the page rearranging
+  // around them. The document reports when its editor is up.
+  const chatVisible = !showSwitch || shownView !== 'document';
+  const documentVisible = showSwitch && shownView !== 'chat';
+  const chatReady = chatPaneContent(state, doc.missing) !== 'loading';
+  const [documentReadyFor, setDocumentReadyFor] = useState<number | null>(null);
+  const documentReady = noteId != null && documentReadyFor === noteId;
+  const panesRevealed = usePaneReveal(
+    noteId,
+    viewSettled && (!chatVisible || chatReady) && (!documentVisible || documentReady),
+    (chatVisible && chatReady) || (documentVisible && documentReady)
+  );
+
   // The sidebar's row follows the open document's saved title (its heading
   // once that has saved, or a name the assistant gave it) and latest edit.
-  const { patch, drafts } = useFundingNotes();
   const { title: docTitle, updatedDate: docUpdatedDate } = doc;
   useEffect(() => {
     if (noteId == null || !docTitle) return;
@@ -280,13 +311,14 @@ function Workspace() {
   const headerTitle = topBarTitle({
     startingIntent: target.kind === 'new' ? state.intent : null,
     doc,
+    listed: listedNote ? { title: listedNote.title ?? '', published: listedDraft == null } : null,
     isWide,
   });
 
   // An open draft can be deleted from the ⋯ at the document's corner. Held
   // stable, so the pane is not handed a new menu on every render while a
   // chat streams.
-  const isDraft = noteId != null && drafts.some((draft) => draft.id === noteId);
+  const isDraft = listedDraft != null;
   const draftTitle = docTitle?.trim() || 'Untitled';
   const draftMenu = useMemo(
     () =>
@@ -303,40 +335,41 @@ function Workspace() {
   );
 
   return (
-    <PageLayout fullBleed>
-      <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
-        {/* On a phone the switch takes the title's place. */}
-        <WorkspaceTopBar
-          title={headerTitle}
-          end={topBarEnd}
-          inPlaceOfTitle={isBelowTablet ? viewSwitch : null}
-        />
+    <div ref={setPanesEl} className="workspace-fade-in flex min-h-0 flex-1 flex-col bg-gray-50">
+      {/* On a phone the switch takes the title's place. */}
+      <WorkspaceTopBar
+        title={headerTitle}
+        end={topBarEnd}
+        inPlaceOfTitle={isBelowTablet ? viewSwitch : null}
+      />
 
-        <WorkspacePanes
-          view={shownView}
-          documentWidth={{ ...documentWidth, min: DOCUMENT_MIN_WIDTH, max: documentMaxWidth }}
-          chat={
-            <ChatPane
-              state={state}
-              documentMissing={doc.missing}
-              renderExecutionExtra={renderDocumentCard}
+      <WorkspacePanes
+        view={shownView}
+        documentWidth={{ ...documentWidth, min: DOCUMENT_MIN_WIDTH, max: documentMaxWidth }}
+        chat={
+          <ChatPane
+            state={state}
+            documentMissing={doc.missing}
+            held={!panesRevealed}
+            renderExecutionExtra={renderDocumentCard}
+          />
+        }
+        document={
+          showSwitch ? (
+            <DocumentPane
+              document={doc}
+              chat={state.chat.chat}
+              assistantWorking={state.anyTurnActive}
+              hasChats={hasChats === true}
+              menu={draftMenu}
+              held={!panesRevealed}
+              onReady={setDocumentReadyFor}
+              publishRequested={publishRequested}
+              onPublishRequestHandled={handlePublishRequest}
             />
-          }
-          document={
-            showSwitch ? (
-              <DocumentPane
-                document={doc}
-                chat={state.chat.chat}
-                assistantWorking={state.anyTurnActive}
-                hasChats={hasChats === true}
-                menu={draftMenu}
-                publishRequested={publishRequested}
-                onPublishRequestHandled={handlePublishRequest}
-              />
-            ) : null
-          }
-        />
-      </div>
-    </PageLayout>
+          ) : null
+        }
+      />
+    </div>
   );
 }
