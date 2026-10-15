@@ -36,7 +36,7 @@ async function withContent(work: Work): Promise<PostWithContent> {
 
 const pageHref = (page: number) => (page > 1 ? `/changelog?page=${page}` : '/changelog');
 
-export default async function ChangelogPage({ searchParams }: ChangelogPageProps) {
+export default async function ChangelogPage({ searchParams }: Readonly<ChangelogPageProps>) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number.parseInt(pageParam ?? '1', 10) || 1);
 
