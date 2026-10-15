@@ -7,7 +7,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useResizableWidth } from '@/hooks/useResizableWidth';
 import { isActiveExecutionStatus, type AgentChat, type ChatExecution } from '@/types/agentChat';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
-import { isPublishedNote } from '@/types/note';
+import type { UseAgentChatListResult } from '@/hooks/useAgentChat';
+import { isPublishedNote, type Note } from '@/types/note';
 import { useAIMode } from './AIModeContext';
 import { ChatPane, chatPaneContent } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
@@ -21,6 +22,7 @@ import { WorkspacePanes } from './shell/WorkspacePanes';
 import { WorkspaceTopBar } from './shell/WorkspaceTopBar';
 import { useWorkspaceView, type WorkspaceView } from './shell/workspaceView';
 import { useAIModeChat } from './useAIModeChat';
+import type { WorkspaceTarget } from './workspaceUrl';
 
 const CHAT_MIN_WIDTH = 360;
 const DOCUMENT_MIN_WIDTH = 420;
@@ -84,21 +86,63 @@ function topBarTitle({
 }: {
   readonly startingIntent: FundingIntent | null;
   readonly doc: AIModeDocument;
-  /** The document's row in the sidebar's listing; null when it has none. */
-  readonly listed: { readonly title: string; readonly published: boolean } | null;
+  readonly listed: ListedDocument | null;
   readonly isWide: boolean;
 }): string {
   if (startingIntent) return newDraftTitle(startingIntent);
   const loadedNote = doc.details ?? doc.content;
   if (doc.missing || (doc.error != null && loadedNote == null)) return 'Untitled';
-  const listedTitle = listed ? listed.title.trim() || 'Untitled' : '';
-  if (loadedNote == null) {
-    if (listed == null) return '';
-    if (!isWide) return listed.published ? 'Published' : 'Draft';
-    return listedTitle;
-  }
+  if (loadedNote == null) return listed ? listedTitle(listed, isWide) : '';
   if (!isWide) return isPublishedNote(loadedNote) ? 'Published' : 'Draft';
-  return doc.displayTitle ?? listedTitle;
+  return doc.displayTitle ?? '';
+}
+
+/** What the top bar names a document by from its row, before the note itself has loaded. */
+function listedTitle(listed: ListedDocument, isWide: boolean): string {
+  if (!isWide) return listed.isDraft ? 'Draft' : 'Published';
+  return listed.note.title?.trim() || 'Untitled';
+}
+
+/** The open document's row in the sidebar's listing, and which of its sections it is in. */
+interface ListedDocument {
+  readonly note: Note;
+  readonly isDraft: boolean;
+}
+
+function listedDocument(
+  noteId: number | null,
+  drafts: readonly Note[],
+  published: readonly Note[]
+): ListedDocument | null {
+  if (noteId == null) return null;
+  const draft = drafts.find((item) => item.id === noteId);
+  if (draft) return { note: draft, isDraft: true };
+  const publishedNote = published.find((item) => item.id === noteId);
+  return publishedNote ? { note: publishedNote, isDraft: false } : null;
+}
+
+/**
+ * Whether the open document has chats, or null while nothing says. Its chat
+ * listing, once loaded; until then, a chat the address names is one it has,
+ * and its row in the sidebar's listing says whether it has any.
+ */
+function documentHasChats({
+  list,
+  listReady,
+  target,
+  listed,
+}: {
+  readonly list: UseAgentChatListResult;
+  readonly listReady: boolean;
+  readonly target: WorkspaceTarget;
+  readonly listed: ListedDocument | null;
+}): boolean | null {
+  if (listReady && list.access === 'ok') return list.chats.length > 0;
+  if (listReady && list.access === 'hidden') return false;
+  if (target.kind === 'document' && typeof target.chat === 'number') return true;
+  const latestChatId = listed?.note.latestChatId;
+  if (latestChatId === undefined) return null;
+  return latestChatId != null;
 }
 
 /**
@@ -157,29 +201,21 @@ export function WorkspacePage() {
   // page needs to know about it before the document itself has loaded.
   const noteId = note?.id ?? null;
   const { patch, drafts, published: publishedNotes } = useFundingNotes();
-  const listedDraft = noteId == null ? undefined : drafts.find((item) => item.id === noteId);
-  const listedNote =
-    listedDraft ?? (noteId == null ? undefined : publishedNotes.find((item) => item.id === noteId));
+  const listed = listedDocument(noteId, drafts, publishedNotes);
 
   // ---- what shows: the chat, the document, or both ----
   // Chosen in the top bar and remembered per document. A document with no
   // chats is being written by hand, so it opens on its own. A phone has room
   // for one at a time: Split shows there as the chat, and Chat from the
   // document view asks for Split, so a wide screen still shows both.
-  // Until its chats have loaded, a chat the address names is one it has, and
-  // the listing says whether it has any: the view is the right one from the
-  // click rather than changing under the user once they load.
-  const { list, listReady } = state;
-  const hasChats =
-    listReady && list.access === 'ok'
-      ? list.chats.length > 0
-      : listReady && list.access === 'hidden'
-        ? false
-        : target.kind === 'document' && typeof target.chat === 'number'
-          ? true
-          : listedNote?.latestChatId !== undefined
-            ? listedNote.latestChatId != null
-            : null;
+  // Known before its chats have loaded where it can be, so the view is the
+  // right one from the click rather than changing under the user once they load.
+  const hasChats = documentHasChats({
+    list: state.list,
+    listReady: state.listReady,
+    target,
+    listed,
+  });
   const [view, setView, viewSettled] = useWorkspaceView(noteId, hasChats);
   // Until the width is known, the phone's way: one pane.
   const narrow = phoneQuery !== false;
@@ -214,16 +250,13 @@ export function WorkspacePage() {
   // they have loaded in the same frame once both have it and the view is
   // known, rather than one, then the other, then the page rearranging
   // around them. The document reports when its editor is up.
-  const chatVisible = !showSwitch || shownView !== 'document';
-  const documentVisible = showSwitch && shownView !== 'chat';
-  const chatReady = chatPaneContent(state, doc.missing) !== 'loading';
-  const [documentReadyFor, setDocumentReadyFor] = useState<number | null>(null);
-  const documentReady = noteId != null && documentReadyFor === noteId;
-  const panesRevealed = usePaneReveal(
+  const panes = usePaneReveal({
     noteId,
-    viewSettled && (!chatVisible || chatReady) && (!documentVisible || documentReady),
-    (chatVisible && chatReady) || (documentVisible && documentReady)
-  );
+    view: shownView,
+    hasDocument: showSwitch,
+    settled: viewSettled,
+    chatReady: chatPaneContent(state, doc.missing) !== 'loading',
+  });
 
   // The sidebar's row follows the open document's saved title (its heading
   // once that has saved, or a name the assistant gave it) and latest edit.
@@ -311,14 +344,14 @@ export function WorkspacePage() {
   const headerTitle = topBarTitle({
     startingIntent: target.kind === 'new' ? state.intent : null,
     doc,
-    listed: listedNote ? { title: listedNote.title ?? '', published: listedDraft == null } : null,
+    listed,
     isWide,
   });
 
   // An open draft can be deleted from the ⋯ at the document's corner. Held
   // stable, so the pane is not handed a new menu on every render while a
   // chat streams.
-  const isDraft = listedDraft != null;
+  const isDraft = listed?.isDraft === true;
   const draftTitle = docTitle?.trim() || 'Untitled';
   const draftMenu = useMemo(
     () =>
@@ -350,7 +383,7 @@ export function WorkspacePage() {
           <ChatPane
             state={state}
             documentMissing={doc.missing}
-            held={!panesRevealed}
+            held={!panes.revealed}
             renderExecutionExtra={renderDocumentCard}
           />
         }
@@ -362,8 +395,8 @@ export function WorkspacePage() {
               assistantWorking={state.anyTurnActive}
               hasChats={hasChats === true}
               menu={draftMenu}
-              held={!panesRevealed}
-              onReady={setDocumentReadyFor}
+              held={!panes.revealed}
+              onReady={panes.setDocumentReady}
               publishRequested={publishRequested}
               onPublishRequestHandled={handlePublishRequest}
             />

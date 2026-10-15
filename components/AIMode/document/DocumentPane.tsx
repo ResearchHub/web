@@ -232,12 +232,10 @@ export function DocumentPane({
   // The bottom-centre spot is the assistant's first: while it writes, and
   // while its changes wait to be accepted or rejected, there is no Publish.
   const showPublish = showArticle && !writing && review.review == null && !editorLostContent;
-  const publishRequestState =
-    failedToLoad || writing || reviewing || editorLostContent
-      ? 'blocked'
-      : showPublish && !review.isReloading
-        ? 'ready'
-        : 'waiting';
+  const publishRequestState = publishRequestStateFor({
+    blocked: failedToLoad || writing || reviewing || editorLostContent,
+    ready: showPublish && !review.isReloading,
+  });
 
   return (
     <PublishingHostProvider value={publishingHost}>
@@ -364,6 +362,23 @@ export function DocumentPane({
       </PublishingFormProvider>
     </PublishingHostProvider>
   );
+}
+
+/**
+ * Where a Publish pressed while the document was out of sight stands: the
+ * document is in the way (it failed to load, or the assistant's work on it
+ * is under way or waits for review), its dialog can open, or it is still
+ * coming.
+ */
+function publishRequestStateFor({
+  blocked,
+  ready,
+}: {
+  readonly blocked: boolean;
+  readonly ready: boolean;
+}): 'blocked' | 'ready' | 'waiting' {
+  if (blocked) return 'blocked';
+  return ready ? 'ready' : 'waiting';
 }
 
 /**

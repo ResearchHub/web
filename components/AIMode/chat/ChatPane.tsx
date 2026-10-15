@@ -62,15 +62,20 @@ export type ChatPaneContent =
 
 /** What the chat pane's body shows, for `state`; the page asks too, to know when it has loaded. */
 export function chatPaneContent(state: AIModeChatState, documentMissing: boolean): ChatPaneContent {
-  const { listReady, list, chatId, chat } = state;
   if (state.researchAI.budget?.tier === 'blocked') return 'blocked';
   if (state.target.kind === 'new') return 'start';
   if (documentMissing) return 'missing';
-  if (listReady && list.access === 'hidden') return 'list-blocked';
+  const listAccess = state.listReady ? state.list.access : 'loading';
+  if (listAccess === 'hidden') return 'list-blocked';
   // Never the new-chat state while the most recent chat is being found: it
   // would read as the chat having gone.
-  if (state.resolvingChat) return listReady && list.access === 'error' ? 'list-failed' : 'loading';
-  if (chatId == null) return 'empty';
+  if (state.resolvingChat) return listAccess === 'error' ? 'list-failed' : 'loading';
+  if (state.chatId == null) return 'empty';
+  return openChatContent(state.chat);
+}
+
+/** What the chat pane's body shows of the open chat. */
+function openChatContent(chat: AIModeChatState['chat']): ChatPaneContent {
   if (chat.access === 'unauthorized') return 'blocked';
   // A chat that is gone hands over to the document's most recent one.
   if (chat.chat == null) return chat.access === 'error' ? 'chat-failed' : 'loading';
