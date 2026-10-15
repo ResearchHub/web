@@ -65,6 +65,8 @@ async function buildSlugSitemap(
   );
 }
 
+// Public pages only: routes gated by the auth matcher in proxy.ts (such as
+// /lists) redirect crawlers to login, so they don't belong here.
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: SITE_URL, changeFrequency: 'hourly', priority: 1 },
   { url: `${SITE_URL}/fund`, changeFrequency: 'daily', priority: 0.9 },

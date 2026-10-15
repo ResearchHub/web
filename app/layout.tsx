@@ -94,6 +94,7 @@ export default async function RootLayout({
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
         <Clarity />
+        {/* Registers site tools for in-browser AI agents; renders nothing. */}
         <WebMcpTools />
       </body>
     </html>

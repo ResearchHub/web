@@ -1,3 +1,6 @@
+// Matches requests from AI agents asking for markdown instead of HTML
+// (`Accept: text/markdown`). Next anchors `has` values as a full-string regex,
+// hence the surrounding `.*`.
 const MARKDOWN_ACCEPT = { type: 'header', key: 'accept', value: '.*text/markdown.*' };
 
 /** @type {import('next').NextConfig} */
@@ -172,8 +175,11 @@ const nextConfig = {
     ...['/paper', '/paper/:path*'].map((source) => ({ source, destination: '/', permanent: true })),
   ],
   rewrites: async () => ({
-    // Agents asking for markdown get llms.txt instead of the homepage; this has
-    // to run before files because `/` is itself a page.
+    // Markdown content negotiation: agents asking for markdown get llms.txt (a
+    // markdown summary of the site) instead of the homepage HTML. Browsers never
+    // send this Accept value, so they are unaffected. This has to run before
+    // files because `/` is itself a page, and afterFiles rewrites only apply to
+    // paths no page or file matches.
     beforeFiles: [
       {
         source: '/',
@@ -192,10 +198,15 @@ const nextConfig = {
     ],
   }),
   headers: async () => [
+    // Link header (RFC 8288) pointing agents at the API catalog, so they can
+    // find it from the homepage response alone without parsing HTML.
     {
       source: '/',
       headers: [{ key: 'Link', value: '</.well-known/api-catalog>; rel="api-catalog"' }],
     },
+    // The markdown rewrite above serves llms.txt, which is labelled text/plain
+    // by default; agents need text/markdown to know they got markdown. Headers
+    // match the original request path, so this targets `/`, not `/llms.txt`.
     {
       source: '/',
       has: [MARKDOWN_ACCEPT],
