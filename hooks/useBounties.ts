@@ -10,8 +10,8 @@ export const useBounties = () => {
   const router = useRouter();
   const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
 
-  // Read sort from URL params, default to 'personalized'
-  const sortFromUrl = searchParams.get('sort') || 'personalized';
+  // Read sort from URL params, default to newest
+  const sortFromUrl = searchParams.get('sort') || '-created_date';
 
   // Check for restored state synchronously before initializing state
   const restoredState = useMemo(() => {
@@ -54,11 +54,10 @@ export const useBounties = () => {
 
   // Sync sort state with URL params (don't inject default into URL)
   useEffect(() => {
-    const currentSort = searchParams.get('sort');
-    if (currentSort && currentSort !== sort) {
-      setSort(currentSort);
+    if (sortFromUrl !== sort) {
+      setSort(sortFromUrl);
     }
-  }, [searchParams, sort]);
+  }, [sortFromUrl, sort]);
 
   const fetchBounties = async (reset = false) => {
     if (reset) {
@@ -71,7 +70,6 @@ export const useBounties = () => {
 
       const result = await BountyService.fetchBounties({
         status,
-        personalized: true,
         sort,
         onlyParentBounties: true,
         page: currentPage,

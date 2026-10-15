@@ -6,7 +6,6 @@ import { SortMenu } from '@/components/ui/SortMenu';
 import { useBounties } from '@/hooks/useBounties';
 
 const SORT_OPTIONS = [
-  { label: 'Best', value: 'personalized' },
   { label: 'Newest', value: '-created_date' },
   { label: 'Expiring soon', value: 'expiration_date' },
   { label: 'RSC amount', value: '-total_amount' },
