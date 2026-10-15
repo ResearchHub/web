@@ -613,8 +613,9 @@ export interface UseAgentChatListResult {
   chats: AgentChatListItem[];
   access: ChatListAccess;
   /**
-   * The transport whose listing `chats` is: right after the transport
-   * changes, for one render, the previous one's rows are still here.
+   * The transport whose listing `chats` and `access` are, once it has
+   * answered, with rows or with an error: right after the transport changes,
+   * for one render, the previous one's are still here.
    */
   scopeKey: string | null;
   /** The server's `detail` copy behind a `hidden` or `error` access state. */
@@ -654,6 +655,9 @@ export function useAgentChatList(
     } catch (err) {
       if (seq !== seqRef.current) return;
       const status = chatErrorStatus(err);
+      // A failed listing is this transport's answer too: without it the
+      // surface would wait on the listing forever instead of saying why.
+      setScopeKey(transport.key);
       setAccessDetail(chatErrorDetail(err) ?? null);
       if (status === 401 || status === 403 || status === 404) {
         setAccess('hidden');
