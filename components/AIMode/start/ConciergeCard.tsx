@@ -1,9 +1,11 @@
 'use client';
 
 import { ArrowUpRight } from 'lucide-react';
-import { WHITE_GLOVE_BOOKING_URL } from '@/components/Funding/OpenFundingOpportunityModal';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
+
+/** Where a funder books time with the ResearchHub team to shape an RFP together. */
+const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
 
 /** The PhD on the team who takes funders' calls. */
 const CONCIERGE_AVATAR_URL =

@@ -4,7 +4,7 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 import { useFeedStateRestoration } from './useFeedStateRestoration';
 
-export type FeedTab = 'following' | 'latest' | 'popular' | 'journal';
+type FeedTab = 'following' | 'latest' | 'popular' | 'journal';
 export type FundingTab = 'all' | 'open' | 'closed';
 export type FeedSource = 'all' | 'researchhub';
 

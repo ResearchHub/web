@@ -21,6 +21,7 @@ import { GrantModerationService } from '@/services/grant-moderation.service';
 import { handleDownload } from '@/utils/download';
 import { FundraiseModalConfig } from './WorkHeaderModals';
 import toast from 'react-hot-toast';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 
 interface UseWorkHeaderMenuItemsOptions {
   work: Work;
@@ -45,7 +46,7 @@ export function useWorkHeaderMenuItems({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
-  const { selectedOrg, isModerator, isHubEditor, canEdit } = permissions;
+  const { isModerator, isHubEditor, canEdit } = permissions;
 
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
     null
@@ -81,12 +82,12 @@ export function useWorkHeaderMenuItems({
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
   const handleEdit = useCallback(() => {
-    if (selectedOrg && work.note) {
-      router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
+    if (work.note) {
+      router.push(workspaceHref(documentTarget(work.note.id)));
     } else {
       toast.error('Unable to edit');
     }
-  }, [work.note, selectedOrg, router]);
+  }, [work.note, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();

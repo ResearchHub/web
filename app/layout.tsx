@@ -1,6 +1,8 @@
 import localFont from 'next/font/local';
 
 import './globals.css';
+// The editor renders math with KaTeX wherever a document shows.
+import 'katex/dist/katex.min.css';
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/auth.config';

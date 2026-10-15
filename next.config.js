@@ -168,6 +168,23 @@ const nextConfig = {
     },
     // Paper pages are retired; anything else under /paper lands on the homepage.
     ...['/paper', '/paper/:path*'].map((source) => ({ source, destination: '/', permanent: true })),
+    // The notebook is retired; drafting lives in the workspace. The entries
+    // that look at the query string must come before the plain /notebook one.
+    ...[
+      ['/notebook', '/workspace?new=rfp', 'newGrant'],
+      ['/notebook', '/workspace?new=proposal', 'newFunding'],
+      ['/notebook', '/workspace'],
+      ['/notebook/:org/:id(\\d+)', '/workspace?note=:id'],
+      ['/notebook/:org', '/workspace'],
+      // Note and organization invites are retired with the notebook.
+      ['/note/join/:path*', '/workspace'],
+      ['/org/join/:path*', '/workspace'],
+    ].map(([source, destination, query]) => ({
+      source,
+      destination,
+      permanent: false,
+      ...(query ? { has: [{ type: 'query', key: query }] } : {}),
+    })),
   ],
   // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
   // and Next still reserves app/sitemap.xml for it, so the index lives at

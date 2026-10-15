@@ -17,6 +17,7 @@ import { cn } from '@/utils/styles';
 import type { GrantApplicationVisibility } from '@/types/grant';
 import type { Note } from '@/types/note';
 import type { ProposalForModal } from '@/services/post.service';
+import { documentTarget, newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 
 const ProposalSkeleton = () => (
   <div className="space-y-2">
@@ -73,7 +74,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
 
   const handleDraftNew = () => {
     onClose();
-    router.push(`/notebook?newFunding=true&selectedGrantId=${encodeURIComponent(grantId)}`);
+    router.push(workspaceHref(newDraftTarget('need_funding')));
   };
 
   const handleContinueWithDraft = async () => {
@@ -86,9 +87,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         selectedGrantId: grantId,
       });
       onClose();
-      router.push(
-        `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
-      );
+      router.push(workspaceHref(documentTarget(selectedDraftNote.id)));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to select RFP');
     } finally {

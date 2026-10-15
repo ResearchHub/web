@@ -61,7 +61,7 @@ export function humanizeLabel(label: string): string {
   return label.replaceAll(/([a-z0-9])_(?=[a-z0-9])/g, '$1 ');
 }
 
-export function hostnameOf(url: string): string {
+function hostnameOf(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');
   } catch {
@@ -461,17 +461,4 @@ export function ActivityFeed({
       })}
     </ol>
   );
-}
-
-/** Unique sources across a whole turn, for the Sources tab. */
-export function collectSources(items: ChatFeedItem[]): ChatActivitySource[] {
-  const byUrl = new Map<string, ChatActivitySource>();
-  for (const item of items) {
-    if (item.type === 'tool_call' && item.sources) {
-      for (const source of item.sources) {
-        if (!byUrl.has(source.url)) byUrl.set(source.url, source);
-      }
-    }
-  }
-  return Array.from(byUrl.values());
 }

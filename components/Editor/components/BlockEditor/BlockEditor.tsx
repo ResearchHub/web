@@ -10,7 +10,6 @@ import ColumnsMenu from '../../extensions/MultiColumn/menus/ColumnsMenu';
 import TableRowMenu from '../../extensions/Table/menus/TableRow';
 import ImageBlockMenu from '../../extensions/ImageBlock/components/ImageBlockMenu';
 import TableColumnMenu from '../../extensions/Table/menus/TableColumn';
-import { useNotebookContext } from '@/contexts/NotebookContext';
 
 export interface BlockEditorProps {
   content?: string;

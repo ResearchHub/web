@@ -1,7 +1,7 @@
 import type { AgentModelCatalog } from '@/types/agentModels';
 import { isBudgetExhausted, isResearchAIBudget, type ResearchAIBudget } from '@/types/researchAI';
 
-export interface ResearchAIState {
+interface ResearchAIState {
   budget: ResearchAIBudget | null;
   budgetStatus: 'loading' | 'ok' | 'unavailable';
   catalog: AgentModelCatalog | null;

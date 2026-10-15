@@ -19,7 +19,6 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   ...HOME_TAB_PATHS,
   '/peer-review',
   '/journal',
-  '/notebook',
   '/lists',
   '/settings',
   '/endowment',

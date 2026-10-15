@@ -5,7 +5,7 @@ import { useAssetUpload } from '@/hooks/useAssetUpload';
 import type { PublishingFormData } from './schema';
 
 export const COVER_IMAGE_ACCEPT = ['image/jpeg', 'image/png'];
-export const COVER_IMAGE_MAX_MB = 10;
+const COVER_IMAGE_MAX_MB = 10;
 
 /** Why this file cannot be a cover image, or null when it can. */
 export function coverImageFileError(file: File): string | null {
