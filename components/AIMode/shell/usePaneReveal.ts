@@ -40,7 +40,7 @@ export function usePaneReveal({
   settled,
   chatReady,
 }: PaneRevealOptions): PaneReveal {
-  const [documentReadyFor, setDocumentReady] = useState<number | null>(null);
+  const [documentReadyFor, setDocumentReadyFor] = useState<number | null>(null);
   const [revealedFor, setRevealedFor] = useState<number | null>(null);
 
   const chatShown = !hasDocument || view !== 'document';
@@ -60,5 +60,5 @@ export function usePaneReveal({
     return () => clearTimeout(timer);
   }, [noteId, revealed, anyReady]);
 
-  return { revealed, setDocumentReady };
+  return { revealed, setDocumentReady: setDocumentReadyFor };
 }
