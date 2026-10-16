@@ -9,6 +9,7 @@ import { MarkdownMessage } from './MarkdownMessage';
 import { answerRevealKey, isRevealable } from '@/hooks/useTextReveal';
 import { ExecutionProgress } from './ExecutionProgress';
 import { PendingThinkingRow } from './ActivityFeed';
+import { RoutedModelNote } from './RoutedModelNote';
 
 type TranscriptEntry =
   | { key: string; kind: 'user'; message: ChatMessage }
@@ -236,6 +237,12 @@ export function ChatTranscript({
                   execution={entry.execution}
                   failureActions={renderFailureActions?.(entry.execution)}
                 />
+                {entry.execution.routed_model && (
+                  <RoutedModelNote
+                    model={entry.execution.model}
+                    routedModel={entry.execution.routed_model}
+                  />
+                )}
                 {entry.answer && (
                   <AssistantBubble
                     content={entry.answer.content}
