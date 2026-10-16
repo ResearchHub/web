@@ -331,11 +331,6 @@ export function useAgentChat({
             previous?.executions.find((cached) => cached.id === execution.id)?.status !==
               execution.status
         );
-        for (const execution of settled) {
-          if (execution.error?.code === 'usage_limit_exceeded') {
-            recordLimit(undefined, execution.finished_at ?? execution.started_at);
-          }
-        }
         if (settled.length > 0) void refreshBudget(true);
         setChat((prev) => {
           const merged = mergeLiveChat(live ? prev : null, data);
@@ -358,7 +353,7 @@ export function useAgentChat({
         }
       }
     },
-    [transport, chatId, refreshBudget, recordLimit]
+    [transport, chatId, refreshBudget]
   );
 
   // Reset + initial load whenever the target chat changes or the panel opens.
