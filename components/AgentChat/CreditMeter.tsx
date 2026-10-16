@@ -6,9 +6,8 @@ import { formatBudgetReset, formatCredits, isBudgetExhausted } from '@/types/res
 export function CreditMeter({
   budget,
   budgetStatus,
-  limitResetAt,
   onRefresh,
-}: Pick<ResearchAIState, 'budget' | 'budgetStatus' | 'limitResetAt'> & { onRefresh: () => void }) {
+}: Pick<ResearchAIState, 'budget' | 'budgetStatus'> & { onRefresh: () => void }) {
   if (budget?.tier === 'blocked') {
     return (
       <output className="mt-2 block text-xs text-gray-600">
@@ -28,7 +27,7 @@ export function CreditMeter({
       </output>
     );
   }
-  const exhausted = isBudgetExhausted(budget) || limitResetAt !== null;
+  const exhausted = isBudgetExhausted(budget);
   const { remaining, daily_limit: limit } = budget.credits;
   const reset = formatBudgetReset(budget.resets_at);
   let balanceLabel = 'Credits unavailable';

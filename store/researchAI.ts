@@ -6,8 +6,6 @@ export interface ResearchAIState {
   budgetStatus: 'loading' | 'ok' | 'unavailable';
   catalog: AgentModelCatalog | null;
   catalogStatus: 'loading' | 'ok' | 'unavailable';
-  /** A provider may reject its next call while some recorded credits remain. */
-  limitResetAt: string | null;
 }
 
 export const INITIAL_RESEARCH_AI_STATE: ResearchAIState = {
@@ -15,7 +13,6 @@ export const INITIAL_RESEARCH_AI_STATE: ResearchAIState = {
   budgetStatus: 'loading',
   catalog: null,
   catalogStatus: 'loading',
-  limitResetAt: null,
 };
 
 /** One store per authenticated session, shared across notes and AI workflows. */
@@ -37,14 +34,7 @@ export function createResearchAIStore(loaders: {
     listeners.forEach((listener) => listener());
   };
   const acceptBudget = (budget: ResearchAIBudget) => {
-    update({
-      budget,
-      budgetStatus: 'ok',
-      limitResetAt:
-        state.limitResetAt && Date.parse(budget.resets_at) <= Date.parse(state.limitResetAt)
-          ? state.limitResetAt
-          : null,
-    });
+    update({ budget, budgetStatus: 'ok' });
   };
 
   const refreshBudget = (force = false): Promise<void> => {
@@ -110,28 +100,11 @@ export function createResearchAIStore(loaders: {
     refreshBudget,
     refreshCatalog,
     /** 429 budget is top-level, and must outrank an older in-flight GET. */
-    recordLimit: (value?: unknown, occurredAt?: string | null) => {
-      // Reopening yesterday's failed conversation must not exhaust today's allowance.
-      if (
-        occurredAt &&
-        Number.isFinite(Date.parse(occurredAt)) &&
-        new Date(occurredAt).toISOString().slice(0, 10) !== new Date().toISOString().slice(0, 10)
-      )
-        return;
+    recordLimit: (value?: unknown) => {
       budgetRevision += 1;
       if (isResearchAIBudget(value)) acceptBudget(value);
-      const nextReset = new Date();
-      nextReset.setUTCHours(24, 0, 0, 0);
-      const knownReset = state.budget?.resets_at;
-      update({
-        limitResetAt:
-          knownReset && Date.parse(knownReset) > Date.now() ? knownReset : nextReset.toISOString(),
-      });
       void refreshBudget(true);
     },
-    isSubmissionBlocked: () =>
-      state.budget?.tier === 'blocked' ||
-      isBudgetExhausted(state.budget) ||
-      state.limitResetAt !== null,
+    isSubmissionBlocked: () => state.budget?.tier === 'blocked' || isBudgetExhausted(state.budget),
   };
 }

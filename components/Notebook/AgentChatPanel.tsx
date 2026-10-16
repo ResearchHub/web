@@ -536,7 +536,6 @@ export function AgentChatPanel({
             <CreditMeter
               budget={researchAI.budget}
               budgetStatus={researchAI.budgetStatus}
-              limitResetAt={researchAI.limitResetAt}
               onRefresh={() => {
                 void researchAI.refreshBudget(true);
               }}

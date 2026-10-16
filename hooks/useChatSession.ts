@@ -202,11 +202,7 @@ export function useChatSession({
   const failureNotice = useCallback(
     (outcome: FailedSend): ComposerNotice | null => {
       const snapshot = getBudgetSnapshot();
-      return noticeFromOutcome(
-        outcome,
-        notices,
-        snapshot.budget?.resets_at ?? snapshot.limitResetAt
-      );
+      return noticeFromOutcome(outcome, notices, snapshot.budget?.resets_at ?? null);
     },
     [getBudgetSnapshot, notices]
   );
@@ -364,7 +360,7 @@ export function useChatSession({
 
   // A spent-budget notice raised before the allowance store had a reset time
   // picks it up once the store's post-429 refresh lands.
-  const budgetResetsAt = researchAI.budget?.resets_at ?? researchAI.limitResetAt ?? null;
+  const budgetResetsAt = researchAI.budget?.resets_at ?? null;
   useEffect(() => {
     if (!budgetResetsAt || notices.usageLimit !== 'inline') return;
     setNotice((current) =>
