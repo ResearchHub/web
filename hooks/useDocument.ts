@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { PostService } from '@/services/post.service';
+import { PostService, type ArticleTypeApi } from '@/services/post.service';
 import { ID } from '@/types/root';
 import { TransformedWork } from '@/types/work';
 import { ApiError } from '@/services/types';
@@ -12,7 +12,7 @@ export interface PreregistrationPostParams {
   nftSupply: string;
 
   // Document related
-  articleType: 'PREREGISTRATION' | 'DISCUSSION' | 'GRANT' | 'REGISTERED_REPORT';
+  articleType: ArticleTypeApi;
   title: string;
   noteId: ID;
   proposalId?: number | null;

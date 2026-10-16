@@ -426,7 +426,7 @@ export const useDuplicateNote = (): UseDuplicateNoteReturn => {
         title: `${originalNote.title} (Copy)`,
         grouping: originalNote.access,
         organization_slug: organizationSlug,
-        document_type: isChangelogNote(originalNote) ? 'DISCUSSION' : undefined,
+        document_type: isChangelogNote(originalNote) ? 'CHANGELOG' : undefined,
       });
 
       // 3. Copy the content to the new note

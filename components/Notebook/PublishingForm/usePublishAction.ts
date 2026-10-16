@@ -23,6 +23,7 @@ const REGISTERED_REPORT_MODERATOR_MESSAGE = 'Only moderators can publish Registe
 const PREPRINT_MESSAGE = 'Preprints can no longer be created in the notebook.';
 
 const PUBLISH_LABEL: Record<string, string> = {
+  changelog: 'ChangeLog',
   preregistration: 'Proposal',
   grant: 'Request for Proposal',
   registered_report: 'Registered Report',
@@ -146,6 +147,7 @@ export function usePublishAction({
     const { articleType, selectedNonprofit } = methods.getValues();
     if (
       articleType !== 'preregistration' &&
+      articleType !== 'changelog' &&
       articleType !== 'discussion' &&
       articleType !== 'grant' &&
       articleType !== 'registered_report'

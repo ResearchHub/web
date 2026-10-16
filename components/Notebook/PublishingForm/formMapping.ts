@@ -45,6 +45,7 @@ const mapContentTypeToArticleType = (contentType: string): ArticleType => {
 
 export const mapDocumentTypeToArticleType = (documentType: string): ArticleType | null => {
   const map: Record<string, ArticleType> = {
+    CHANGELOG: 'changelog',
     DISCUSSION: 'discussion',
     GRANT: 'grant',
     PREREGISTRATION: 'preregistration',
@@ -271,7 +272,7 @@ export const resolveArticleType = (
   params: { get(key: string): string | null } | null
 ): ArticleType | null => {
   if (params?.get('newFunding') === 'true') return 'preregistration';
-  if (params?.get('newChangelog') === 'true') return 'discussion';
+  if (params?.get('newChangelog') === 'true') return 'changelog';
   if (params?.get('newGrant') === 'true') return 'grant';
 
   const template = params?.get('template');

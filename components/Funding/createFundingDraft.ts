@@ -14,7 +14,7 @@ export const DOCUMENT_TYPE_BY_INTENT: Record<FundingIntent, string> = {
 export interface CreateFundingDraftOptions {
   readonly orgSlug: string;
   readonly title: string;
-  /** `GRANT`, `PREREGISTRATION`, or the notebook's changelog `DISCUSSION`. */
+  /** `GRANT`, `PREREGISTRATION`, or `CHANGELOG`. */
   readonly documentType: string;
   /** `WORKSPACE` shares it with the organization; `PRIVATE` keeps it to its author. */
   readonly grouping: NoteAccess;

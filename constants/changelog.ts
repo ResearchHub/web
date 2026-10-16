@@ -1,53 +1,7 @@
-/** Earliest timestamp at which this frontend can create ChangeLog notes. */
-export const CHANGELOG_NOTEBOOK_ROLLOUT_AT = '2026-08-10T20:56:32.000Z';
-
 /**
- * Source of truth for changelog post IDs. The first ID is treated as the
- * "latest" entry and is used to derive the storage key that drives the
- * "new changelog" indicator in the footer — adding a new ID at the top
- * automatically invalidates the seen-flag for all users.
+ * localStorage key recording that this browser has seen the changelog up to
+ * `latestPostId`. A newer entry gets a new key, which brings back the "new
+ * changelog" indicator for everyone.
  */
-export const CHANGELOG_POST_IDS = [
-  '32976',
-  '32975',
-  '32974',
-  '32973',
-  '32972',
-  '32971',
-  '32970',
-  '32969',
-  '32728',
-  '32727',
-  '32729',
-  '32726',
-  '32725',
-  '32502',
-  '32356',
-  '32355',
-  '32354',
-  '32306',
-  '32298',
-  '32266',
-  '32263',
-  '32262',
-  '32261',
-  '32260',
-  '32259',
-  '32258',
-  '32256',
-  '32257',
-  '32255',
-  '17886',
-  '17884',
-  '17874',
-  '17859',
-  '17850',
-  '17846',
-  '17841',
-  '17839',
-  '17833',
-  '4594',
-] as const;
-
-export const LATEST_CHANGELOG_POST_ID = CHANGELOG_POST_IDS[0];
-export const CHANGELOG_STORAGE_KEY = `rh-changelog-seen-${LATEST_CHANGELOG_POST_ID}`;
+export const getChangelogStorageKey = (latestPostId: number | string) =>
+  `rh-changelog-seen-${latestPostId}`;
