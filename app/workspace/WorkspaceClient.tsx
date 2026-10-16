@@ -1,6 +1,5 @@
 'use client';
 
-import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { AIModeProvider } from '@/components/AIMode/AIModeContext';
@@ -21,23 +20,18 @@ const WorkspacePage = dynamic(
 
 /**
  * The provider is above the shell, so the sidebar knows from the start which
- * document is open and opens another in place. Behind Suspense because it
- * reads what the workspace is open on from the URL's search params.
+ * document is open and opens another in place. It reads what the workspace is
+ * open on from the URL's search params with no Suspense boundary above it,
+ * which only a prerendered page needs: this one is rendered on request, as
+ * every page is (the root layout reads the session). A boundary here would
+ * have the server send a second shell as its fallback, and swap it in.
  */
 export function WorkspaceClient() {
   return (
-    <Suspense
-      fallback={
-        <PageLayout fullBleed>
-          <EmptyWorkspace />
-        </PageLayout>
-      }
-    >
-      <AIModeProvider>
-        <PageLayout fullBleed>
-          <WorkspacePage />
-        </PageLayout>
-      </AIModeProvider>
-    </Suspense>
+    <AIModeProvider>
+      <PageLayout fullBleed>
+        <WorkspacePage />
+      </PageLayout>
+    </AIModeProvider>
   );
 }
