@@ -74,33 +74,65 @@ function documentCardExecutionId(
  * What the top bar names: on the start screen what it will produce (an RFP
  * or a proposal), and on a document its title as the document heads it, or,
  * below the width at which a title stays readable, just whether it is out
- * yet. Until the note has loaded, its row in the sidebar's listing says the
- * same, so the bar names it from the click. '' is the bar's loading state,
- * for a document the listing does not have.
+ * yet. Until the document has arrived in its panes the bar names it only
+ * with what will not change once it has (see `titleWhileOpening`), so the
+ * title is never replaced by another as it does.
  */
 function topBarTitle({
   startingIntent,
   doc,
+  arrived,
   listed,
+  shownTitle,
   isWide,
 }: {
   readonly startingIntent: FundingIntent | null;
   readonly doc: AIModeDocument;
+  /** The document has loaded and shows in its panes. */
+  readonly arrived: boolean;
   readonly listed: ListedDocument | null;
+  /** The title the bar showed for the document when it was last open here. */
+  readonly shownTitle: string | undefined;
   readonly isWide: boolean;
 }): string {
   if (startingIntent) return newDraftTitle(startingIntent);
   const loadedNote = doc.details ?? doc.content;
   if (doc.missing || (doc.error != null && loadedNote == null)) return 'Untitled';
-  if (loadedNote == null) return listed ? listedTitle(listed, isWide) : '';
+  if (loadedNote == null || !arrived) return titleWhileOpening(listed, shownTitle, isWide);
   if (!isWide) return isPublishedNote(loadedNote) ? 'Published' : 'Draft';
   return doc.displayTitle ?? '';
 }
 
-/** What the top bar names a document by from its row, before the note itself has loaded. */
-function listedTitle(listed: ListedDocument, isWide: boolean): string {
-  if (!isWide) return listed.isDraft ? 'Draft' : 'Published';
-  return listed.note.title?.trim() || 'Untitled';
+/**
+ * The bar's title while a document opens. Below the width for a title,
+ * whether it is out yet, which its row in the sidebar's listing says. Wider,
+ * the title it showed when the document was last open here: not the row's
+ * own title, which is the saved one and can differ from the heading the bar
+ * names it by (the assistant may have named the note apart from the heading
+ * it wrote). '' is the bar's loading state, when neither is known.
+ */
+function titleWhileOpening(
+  listed: ListedDocument | null,
+  shownTitle: string | undefined,
+  isWide: boolean
+): string {
+  if (isWide) return shownTitle ?? '';
+  if (listed == null) return '';
+  return listed.isDraft ? 'Draft' : 'Published';
+}
+
+/** The title the top bar showed for each document opened in this page session. */
+const shownTitles = new Map<number, string>();
+
+/**
+ * The title the top bar showed for the open document when it was last open
+ * here, kept up to date while it is: opened again, it is named from the click.
+ */
+function useShownTitle(noteId: number | null, title: string | null, arrived: boolean) {
+  useEffect(() => {
+    if (noteId != null && arrived && title) shownTitles.set(noteId, title);
+  }, [noteId, arrived, title]);
+  return noteId == null ? undefined : shownTitles.get(noteId);
 }
 
 /** The open document's row in the sidebar's listing, and which of its sections it is in. */
@@ -341,10 +373,13 @@ export function WorkspacePage() {
     [cardExecutionId, cardTitle, published, cardWriting, openDocument]
   );
 
+  const shownTitle = useShownTitle(noteId, doc.displayTitle, panes.revealed);
   const headerTitle = topBarTitle({
     startingIntent: target.kind === 'new' ? state.intent : null,
     doc,
+    arrived: panes.revealed,
     listed,
+    shownTitle,
     isWide,
   });
 
