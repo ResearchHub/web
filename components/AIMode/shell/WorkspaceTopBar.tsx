@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useLayoutEffect, type ReactNode } from 'react';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 
 interface WorkspaceTopBarProps {
@@ -24,7 +24,9 @@ interface WorkspaceTopBarProps {
  * right end (the top bar itself leaves only the account menu beside them on
  * this page). Renders nothing itself: the top
  * bar's slots live inside `PageLayout`, so this sits among the page's
- * children and hands the title up from there.
+ * children and hands the title up from there. Before paint, so the bar never
+ * shows a frame of the previous document's title, or of no controls, over
+ * the panes of the next.
  */
 export function WorkspaceTopBar({
   title,
@@ -36,20 +38,20 @@ export function WorkspaceTopBar({
   const setTrailing = slot?.setTrailing;
   const setLeftSlot = slot?.setLeftSlot;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setTitle?.(title);
   }, [setTitle, title]);
-  useEffect(() => () => setTitle?.(null), [setTitle]);
+  useLayoutEffect(() => () => setTitle?.(null), [setTitle]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setTrailing?.(end);
   }, [setTrailing, end]);
-  useEffect(() => () => setTrailing?.(null), [setTrailing]);
+  useLayoutEffect(() => () => setTrailing?.(null), [setTrailing]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLeftSlot?.(inPlaceOfTitle);
   }, [setLeftSlot, inPlaceOfTitle]);
-  useEffect(() => () => setLeftSlot?.(null), [setLeftSlot]);
+  useLayoutEffect(() => () => setLeftSlot?.(null), [setLeftSlot]);
 
   return null;
 }

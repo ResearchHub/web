@@ -42,7 +42,8 @@ const AIModeContext = createContext<AIModeContextValue | null>(null);
  *
  * Mounted by the `/workspace` page, not globally: the doors elsewhere in the
  * app are plain links built with `workspaceHref`. Reads the URL with
- * `useSearchParams`, so it needs a Suspense boundary above it.
+ * `useSearchParams`, so on a page that is prerendered it would need a
+ * Suspense boundary above it; the workspace is rendered on request.
  */
 export function AIModeProvider({ children }: { readonly children: ReactNode }) {
   const searchParams = useSearchParams();

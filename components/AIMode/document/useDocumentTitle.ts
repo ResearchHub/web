@@ -43,6 +43,16 @@ export interface DocumentTitle {
   readonly writeTitle: (title: string) => void;
 }
 
+interface HeadingRead {
+  readonly editor: Editor;
+  readonly heading: string | null;
+}
+
+function headingOf(editor: Editor | null, read: HeadingRead | null): string | null {
+  if (!editor || editor.isDestroyed) return null;
+  return read?.editor === editor ? read.heading : titleOf(editor.state.doc);
+}
+
 /**
  * The document's one title, which is its first heading (see `./masthead/title`).
  * It is edited in the document like any text; this keeps everything else in
@@ -64,20 +74,19 @@ export function useDocumentTitle({
   locked,
   reviewing,
 }: UseDocumentTitleOptions): DocumentTitle {
-  // The heading as the editor has it, read on every change.
-  const [heading, setHeading] = useState<string | null>(null);
+  // The heading as the editor has it, read on every change and held with the
+  // editor it was read from: a new editor's is read from it directly until
+  // its first change, so it never reports the one before it, or none.
+  const [read, setRead] = useState<HeadingRead | null>(null);
   useEffect(() => {
-    if (!editor || editor.isDestroyed) {
-      setHeading(null);
-      return undefined;
-    }
-    const read = () => setHeading(titleOf(editor.state.doc));
-    read();
-    editor.on('update', read);
+    if (!editor || editor.isDestroyed) return undefined;
+    const update = () => setRead({ editor, heading: titleOf(editor.state.doc) });
+    editor.on('update', update);
     return () => {
-      editor.off('update', read);
+      editor.off('update', update);
     };
   }, [editor]);
+  const heading = headingOf(editor, read);
 
   // Only once the editor is up: until then the title the note loaded with stands.
   useEffect(() => {

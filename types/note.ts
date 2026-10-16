@@ -83,6 +83,12 @@ export interface Note {
   preregistrationSettings?: NotePreregistrationSettings | null;
   selectedGrant?: SelectedGrantDetails | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
+  /**
+   * The signed-in user's chat on the document with the newest activity, as
+   * the documents listing reports it; null when they have none. Absent from
+   * responses that don't say.
+   */
+  latestChatId?: number | null;
 }
 
 /** Grant fields the Note API accepts; an omitted key keeps its saved value. */
@@ -362,6 +368,8 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     selectedGrant: raw.selected_grant_details
       ? transformSelectedGrant(raw.selected_grant_details)
       : null,
+    // Undefined where the response doesn't say.
+    latestChatId: raw.latest_chat_id,
   };
 });
 

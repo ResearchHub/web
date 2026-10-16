@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { Editor } from '@tiptap/react';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
@@ -44,6 +52,16 @@ interface DocumentPaneProps {
   /** At the pane's top-right corner: the draft's ⋯ menu. */
   readonly menu?: ReactNode;
   /**
+   * The document stays on its skeleton even once its editor is up: the chat
+   * beside it is still coming, and the two show together.
+   */
+  readonly held?: boolean;
+  /**
+   * Told which note the pane has ready to show (its editor up, or what it
+   * shows in its place), and null while it has none.
+   */
+  readonly onReady?: (noteId: number | null) => void;
+  /**
    * Publish was pressed while the document was out of sight: open the
    * publish dialog once it has loaded, then report back through
    * `onPublishRequestHandled`.
@@ -71,6 +89,8 @@ export function DocumentPane({
   assistantWorking = false,
   hasChats = true,
   menu = null,
+  held = false,
+  onReady,
   publishRequested = false,
   onPublishRequestHandled,
   className,
@@ -176,6 +196,18 @@ export function DocumentPane({
   // the message is sent, even before the note has loaded.
   const startingDocument = document.starting && review.review == null;
 
+  // The editor builds itself over a few renders after the note has loaded.
+  // Until it is up the article, masthead and all, stays out of sight behind
+  // the skeleton, so the page arrives whole rather than in pieces.
+  const failedToLoad = error != null && content == null;
+  const loadedContent = !failedToLoad && !startingDocument && !loading ? content : null;
+  const ready = failedToLoad || startingDocument || (loadedContent != null && editor != null);
+  const showArticle = loadedContent != null && editor != null && !held;
+  // Before paint, so the pane beside it is let go in the same frame.
+  useLayoutEffect(() => {
+    onReady?.(ready ? noteId : null);
+  }, [onReady, ready, noteId]);
+
   const reviewing = review.review != null;
   const mastheadSlots = useMastheadSlots(editor);
 
@@ -199,14 +231,11 @@ export function DocumentPane({
 
   // The bottom-centre spot is the assistant's first: while it writes, and
   // while its changes wait to be accepted or rejected, there is no Publish.
-  const showPublish =
-    content != null && !loading && !writing && review.review == null && !editorLostContent;
-  const publishRequestState =
-    (error != null && content == null) || writing || reviewing || editorLostContent
-      ? 'blocked'
-      : showPublish && editor != null && !review.isReloading
-        ? 'ready'
-        : 'waiting';
+  const showPublish = showArticle && !writing && review.review == null && !editorLostContent;
+  const publishRequestState = publishRequestStateFor({
+    blocked: failedToLoad || writing || reviewing || editorLostContent,
+    ready: showPublish && !review.isReloading,
+  });
 
   return (
     <PublishingHostProvider value={publishingHost}>
@@ -246,7 +275,7 @@ export function DocumentPane({
           <div className="min-h-0 flex-1 overflow-y-auto">
             <NoteReviewBanner review={review} className="mx-6 mt-4" />
 
-            {error && content == null ? (
+            {failedToLoad ? (
               <div className="flex flex-col items-center gap-3 py-16 text-center">
                 <p className="text-sm text-gray-600">{error}</p>
                 <Button variant="outlined" size="sm" onClick={document.reload}>
@@ -255,58 +284,63 @@ export function DocumentPane({
               </div>
             ) : startingDocument ? (
               <StartingDocument label={phaseLabel} />
-            ) : loading || content == null ? (
-              <div className={DOCUMENT_PAGE_CLASS}>
-                <DocumentPaneSkeleton />
-              </div>
             ) : (
-              <article
-                className={cn(
-                  DOCUMENT_PAGE_CLASS,
-                  'animate-in fade-in duration-300',
-                  // Room for the last lines to scroll clear of the floating button.
-                  '!pb-28'
-                )}
-              >
-                <Masthead slots={mastheadSlots} />
-                {editorLostContent && (
-                  <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                    This document couldn’t be displayed here. Open it in the notebook to view it;
-                    nothing has been changed.
+              <>
+                {!showArticle && (
+                  <div className={DOCUMENT_PAGE_CLASS}>
+                    <DocumentPaneSkeleton />
                   </div>
                 )}
-                {status === 'empty' && review.review == null && hasChats && <EmptyDocument />}
+                {loadedContent && (
+                  <article
+                    className={cn(
+                      DOCUMENT_PAGE_CLASS,
+                      // Room for the last lines to scroll clear of the floating button.
+                      '!pb-28',
+                      !showArticle && 'hidden'
+                    )}
+                  >
+                    <Masthead slots={mastheadSlots} />
+                    {editorLostContent && (
+                      <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                        This document couldn’t be displayed here. Open it in the notebook to view
+                        it; nothing has been changed.
+                      </div>
+                    )}
+                    {status === 'empty' && review.review == null && hasChats && <EmptyDocument />}
 
-                {/* Mounted once per note: the editor's content prop is only read on
-                creation, and later versions arrive through the review. */}
-                <div className={cn(writing && !document.hasWrittenVersion && 'hidden')}>
-                  <BlockEditorClientWrapper
-                    key={noteId ?? 'none'}
-                    content={content.content}
-                    contentJson={content.contentJson}
-                    editable
-                    locked={locked}
-                    requireTitle={false}
-                    autofocus={false}
-                    onUpdate={handleEditorUpdate}
-                    setEditor={setEditor}
-                  />
-                </div>
+                    {/* Mounted once per note: the editor's content prop is only read on
+                    creation, and later versions arrive through the review. */}
+                    <div className={cn(writing && !document.hasWrittenVersion && 'hidden')}>
+                      <BlockEditorClientWrapper
+                        key={noteId ?? 'none'}
+                        content={loadedContent.content}
+                        contentJson={loadedContent.contentJson}
+                        editable
+                        locked={locked}
+                        requireTitle={false}
+                        autofocus={false}
+                        onUpdate={handleEditorUpdate}
+                        setEditor={setEditor}
+                      />
+                    </div>
 
-                {status === 'drafting' && draftText && (
-                  <DraftSection
-                    text={draftText}
-                    blocks={draftBlocks}
-                    editor={editor}
-                    key={document.draftKey}
-                    hasSavedContent={document.hasWrittenVersion}
-                  />
+                    {status === 'drafting' && draftText && (
+                      <DraftSection
+                        text={draftText}
+                        blocks={draftBlocks}
+                        editor={editor}
+                        key={document.draftKey}
+                        hasSavedContent={document.hasWrittenVersion}
+                      />
+                    )}
+
+                    {status === 'working' && document.hasWrittenVersion && (
+                      <InProgressRow label={phaseLabel ?? 'Working'} />
+                    )}
+                  </article>
                 )}
-
-                {status === 'working' && document.hasWrittenVersion && (
-                  <InProgressRow label={phaseLabel ?? 'Working'} />
-                )}
-              </article>
+              </>
             )}
           </div>
 
@@ -328,6 +362,23 @@ export function DocumentPane({
       </PublishingFormProvider>
     </PublishingHostProvider>
   );
+}
+
+/**
+ * Where a Publish pressed while the document was out of sight stands: the
+ * document is in the way (it failed to load, or the assistant's work on it
+ * is under way or waits for review), its dialog can open, or it is still
+ * coming.
+ */
+function publishRequestStateFor({
+  blocked,
+  ready,
+}: {
+  readonly blocked: boolean;
+  readonly ready: boolean;
+}): 'blocked' | 'ready' | 'waiting' {
+  if (blocked) return 'blocked';
+  return ready ? 'ready' : 'waiting';
 }
 
 /**

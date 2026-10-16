@@ -51,13 +51,14 @@ export function rememberWorkspaceView(noteId: number, view: WorkspaceView): void
 /**
  * The open document's view: the one last chosen for it in this browser,
  * else the document alone when it has no chats (it is being written by
- * hand) and the chat beside it otherwise. `hasChats` is null while the
- * document's chats are loading.
+ * hand) and the chat beside it otherwise. `hasChats` is null while that is
+ * not known; the third value says whether the view is settled, rather than
+ * a guess that may change once it is.
  */
 export function useWorkspaceView(
   noteId: number | null,
   hasChats: boolean | null
-): readonly [WorkspaceView, (view: WorkspaceView) => void] {
+): readonly [WorkspaceView, (view: WorkspaceView) => void, boolean] {
   const [chosen, setChosen] = useState<{
     readonly noteId: number;
     readonly view: WorkspaceView;
@@ -68,6 +69,7 @@ export function useWorkspaceView(
     return storedView(noteId);
   }, [noteId, chosen]);
   const view = remembered ?? (hasChats === false ? 'document' : 'split');
+  const settled = noteId == null || remembered != null || hasChats != null;
 
   const setView = useCallback(
     (next: WorkspaceView) => {
@@ -77,5 +79,5 @@ export function useWorkspaceView(
     },
     [noteId]
   );
-  return [view, setView];
+  return [view, setView, settled];
 }

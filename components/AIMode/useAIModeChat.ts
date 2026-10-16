@@ -214,6 +214,16 @@ export function useAIModeChat(): AIModeChatState {
     return () => clearInterval(timer);
   }, [anyTurnActive, refreshList]);
 
+  // The sidebar opens a document straight on the chat its row names as the
+  // most recent; keep that in step as chats are started, used and deleted here.
+  const { patch } = fundingNotes;
+  const mostRecentChatId =
+    listReady && list.access === 'ok' ? (mostRecentChat(list.chats)?.id ?? null) : undefined;
+  useEffect(() => {
+    if (noteId == null || mostRecentChatId === undefined) return;
+    patch(noteId, { latestChatId: mostRecentChatId });
+  }, [noteId, mostRecentChatId, patch]);
+
   // ---- choosing a chat ----
   const openChat = useCallback(
     (next: number | 'new') => {
