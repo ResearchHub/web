@@ -266,8 +266,8 @@ export function OutreachDetailPageContent({
   if (!email) return null;
 
   const isClosed = isGeneratedEmailClosed(email.status);
-  const isSent = email.status === 'sent';
-  const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
+  const isSent = email.status === 'sent' || Boolean(email.sentAt);
+  const statusPresentation = getGeneratedEmailStatusPresentation(email);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
   const showOutreachMoreMenu = !isClosed;
   const channelLabels = isSent ? getOutreachChannelLabels(email.channels) : [];
@@ -376,18 +376,31 @@ export function OutreachDetailPageContent({
                 via {label}
               </Badge>
             ))}
-            {isGeneratedEmailBounced(email.status) && email.bouncedAt && (
+            {email.senderAccount ? (
+              <span className="text-xs text-gray-500">From {email.senderAccount}</span>
+            ) : null}
+            {email.sentAt ? (
+              <span className="text-xs text-gray-500">Sent {formatExactTime(email.sentAt)}</span>
+            ) : null}
+            {email.repliedAt ? (
+              <span className="text-xs text-gray-500">
+                Replied {formatExactTime(email.repliedAt)}
+              </span>
+            ) : null}
+            {isGeneratedEmailBounced(email) && email.bouncedAt && (
               <span className="text-xs text-gray-500">
                 Bounced on {formatExactTime(email.bouncedAt)}
               </span>
             )}
-            {!isGeneratedEmailBounced(email.status) && email.openCount > 0 && email.openedAt && (
-              <span className="text-xs text-gray-500">
-                {email.openCount === 1
-                  ? `Opened on ${formatExactTime(email.openedAt)}`
-                  : `Opened ${email.openCount} times, first on ${formatExactTime(email.openedAt)}`}
-              </span>
-            )}
+            {!isGeneratedEmailBounced(email) &&
+              (email.openCount > 0 || email.openedAt) &&
+              email.openedAt && (
+                <span className="text-xs text-gray-500">
+                  {email.openCount === 1
+                    ? `Opened on ${formatExactTime(email.openedAt)}`
+                    : `Opened ${email.openCount} times, first on ${formatExactTime(email.openedAt)}`}
+                </span>
+              )}
             {showOutreachMoreMenu && (
               <BaseMenu
                 align="end"

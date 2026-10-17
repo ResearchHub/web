@@ -21,11 +21,25 @@ import type {
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
+  OutreachCampaign,
+  OutreachCampaignCancelQueuedResponse,
+  OutreachCampaignPreviewRequest,
+  OutreachCampaignPreviewResponse,
+  OutreachCampaignSendResponse,
+  OutreachCapacity,
+  OutreachMailbox,
+  OutreachMailboxUpdatePayload,
+  OutreachOAuthInitResponse,
+  OutreachOAuthProvider,
+  OutreachOAuthSession,
   ProposalDraft,
   SavedTemplate,
 } from '@/types/expertFinder';
 import { isProposalDraftActive } from '@/types/expertFinder';
 import type { Work } from '@/types/work';
+
+const OUTREACH_OAUTH_POLL_INTERVAL_MS = 3000;
+const OUTREACH_OAUTH_POLL_TIMEOUT_MS = 10 * 60 * 1000;
 
 // ── useExpertSearchDetail ────────────────────────────────────────────────────
 
@@ -531,6 +545,8 @@ interface UseGeneratedEmailsParams {
   limit?: number;
   offset?: number;
   searchId?: number | string;
+  campaignId?: number | string;
+  status?: string;
   immediate?: boolean;
 }
 
@@ -560,6 +576,8 @@ export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGenera
           limit: merged?.limit,
           offset: merged?.offset,
           search_id: merged?.searchId != null ? merged.searchId : undefined,
+          campaign_id: merged?.campaignId != null ? merged.campaignId : undefined,
+          status: merged?.status,
         });
         setEmails(response.emails);
         setPagination({
@@ -574,7 +592,7 @@ export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGenera
         setIsLoading(false);
       }
     },
-    [params?.limit, params?.offset, params?.searchId]
+    [params?.limit, params?.offset, params?.searchId, params?.campaignId, params?.status]
   );
 
   const immediate = params?.immediate !== false;
@@ -707,38 +725,79 @@ export function useDeleteGeneratedEmail(): UseDeleteGeneratedEmailReturn {
   return [{ isLoading, error }, deleteEmail];
 }
 
-// ── usePreviewEmails ─────────────────────────────────────────────────────────
+// ── useOutreachMailboxes ─────────────────────────────────────────────────────
 
-interface UsePreviewEmailsState {
+interface UseOutreachMailboxesState {
+  mailboxes: OutreachMailbox[];
   isLoading: boolean;
   error: string | null;
 }
 
-type PreviewEmailsFn = (payload: {
-  generated_email_ids: number[];
-  reply_to: string[];
-}) => Promise<{ sent: number }>;
-type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
+type FetchOutreachMailboxesFn = () => Promise<void>;
+type UseOutreachMailboxesReturn = [UseOutreachMailboxesState, FetchOutreachMailboxesFn];
 
-/**
- * Send generated email(s) to the current user for preview/testing.
- */
-export function usePreviewEmails(): UsePreviewEmailsReturn {
+export function useOutreachMailboxes(
+  immediate = true,
+  options?: { scope?: 'all' }
+): UseOutreachMailboxesReturn {
+  const scope = options?.scope;
+  const [mailboxes, setMailboxes] = useState<OutreachMailbox[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const previewEmails = useCallback(
+  const fetch = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await ExpertFinderService.listOutreachMailboxes(
+        scope ? { scope } : undefined
+      );
+      setMailboxes(response);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch mailboxes';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [scope]);
+
+  useEffect(() => {
+    if (immediate) void fetch();
+  }, [immediate, fetch]);
+
+  return [{ mailboxes, isLoading, error }, fetch];
+}
+
+// ── useConnectOutreachMailbox ────────────────────────────────────────────────
+
+interface UseConnectOutreachMailboxState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type ConnectOutreachMailboxFn = (payload: {
+  email: string;
+  app_password: string;
+  reply_to?: string;
+}) => Promise<OutreachMailbox>;
+type UseConnectOutreachMailboxReturn = [UseConnectOutreachMailboxState, ConnectOutreachMailboxFn];
+
+export function useConnectOutreachMailbox(): UseConnectOutreachMailboxReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const connect = useCallback(
     async (payload: {
-      generated_email_ids: number[];
-      reply_to: string[];
-    }): Promise<{ sent: number }> => {
+      email: string;
+      app_password: string;
+      reply_to?: string;
+    }): Promise<OutreachMailbox> => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await ExpertFinderService.previewEmails(payload);
-        return response;
+        return await ExpertFinderService.connectOutreachMailbox(payload);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to send preview email';
+        const message = err instanceof Error ? err.message : 'Failed to connect mailbox';
         setError(message);
         throw err;
       } finally {
@@ -748,43 +807,37 @@ export function usePreviewEmails(): UsePreviewEmailsReturn {
     []
   );
 
-  return [{ isLoading, error }, previewEmails];
+  return [{ isLoading, error }, connect];
 }
 
-// ── useSendEmails ─────────────────────────────────────────────────────────────
+// ── useUpdateOutreachMailbox ─────────────────────────────────────────────────
 
-interface UseSendEmailsState {
+interface UseUpdateOutreachMailboxState {
   isLoading: boolean;
   error: string | null;
 }
 
-type SendEmailsFn = (payload: {
-  generated_email_ids: number[];
-  reply_to: string[];
-  cc?: string[];
-}) => Promise<{ sent: number }>;
-type UseSendEmailsReturn = [UseSendEmailsState, SendEmailsFn];
+type UpdateOutreachMailboxFn = (
+  mailboxId: number | string,
+  payload: OutreachMailboxUpdatePayload
+) => Promise<OutreachMailbox>;
+type UseUpdateOutreachMailboxReturn = [UseUpdateOutreachMailboxState, UpdateOutreachMailboxFn];
 
-/**
- * Send generated email(s) to experts via SES.
- */
-export function useSendEmails(): UseSendEmailsReturn {
+export function useUpdateOutreachMailbox(): UseUpdateOutreachMailboxReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendEmails = useCallback(
-    async (payload: {
-      generated_email_ids: number[];
-      reply_to: string[];
-      cc?: string[];
-    }): Promise<{ sent: number }> => {
+  const update = useCallback(
+    async (
+      mailboxId: number | string,
+      payload: OutreachMailboxUpdatePayload
+    ): Promise<OutreachMailbox> => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await ExpertFinderService.sendEmails(payload);
-        return response;
+        return await ExpertFinderService.updateOutreachMailbox(mailboxId, payload);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to send emails';
+        const message = err instanceof Error ? err.message : 'Failed to update mailbox';
         setError(message);
         throw err;
       } finally {
@@ -794,7 +847,541 @@ export function useSendEmails(): UseSendEmailsReturn {
     []
   );
 
-  return [{ isLoading, error }, sendEmails];
+  return [{ isLoading, error }, update];
+}
+
+// ── useDetachOutreachMailbox ─────────────────────────────────────────────────
+
+interface UseDetachOutreachMailboxState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type DetachOutreachMailboxFn = (mailboxId: number | string) => Promise<void>;
+type UseDetachOutreachMailboxReturn = [UseDetachOutreachMailboxState, DetachOutreachMailboxFn];
+
+export function useDetachOutreachMailbox(): UseDetachOutreachMailboxReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const detach = useCallback(async (mailboxId: number | string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderService.detachOutreachMailbox(mailboxId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to detach mailbox';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, detach];
+}
+
+// ── useInitOutreachOAuth ─────────────────────────────────────────────────────
+
+interface UseInitOutreachOAuthState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type InitOutreachOAuthFn = (
+  provider: OutreachOAuthProvider,
+  payload?: { reply_to?: string }
+) => Promise<OutreachOAuthInitResponse>;
+type UseInitOutreachOAuthReturn = [UseInitOutreachOAuthState, InitOutreachOAuthFn];
+
+export function useInitOutreachOAuth(): UseInitOutreachOAuthReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const init = useCallback(
+    async (
+      provider: OutreachOAuthProvider,
+      payload?: { reply_to?: string }
+    ): Promise<OutreachOAuthInitResponse> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        return await ExpertFinderService.initOutreachOAuth(provider, payload);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to start mailbox authorization';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, init];
+}
+
+// ── useOutreachOAuthSession ──────────────────────────────────────────────────
+
+interface UseOutreachOAuthSessionState {
+  session: OutreachOAuthSession | null;
+  isPolling: boolean;
+  error: string | null;
+}
+
+type StartOutreachOAuthPollingFn = (
+  sessionId: string,
+  options?: { onTerminal?: (session: OutreachOAuthSession) => void }
+) => void;
+type CancelOutreachOAuthPollingFn = () => void;
+
+type UseOutreachOAuthSessionReturn = [
+  UseOutreachOAuthSessionState,
+  { startPolling: StartOutreachOAuthPollingFn; cancel: CancelOutreachOAuthPollingFn },
+];
+
+function isTerminalOutreachOAuthStatus(
+  status: OutreachOAuthSession['status']
+): status is 'success' | 'error' | 'expired' {
+  return status === 'success' || status === 'error' || status === 'expired';
+}
+
+/**
+ * Polls an outreach OAuth session every 3s until success/error/expired or a 10-minute timeout.
+ * Clears timers on cancel, terminal status, and unmount.
+ */
+export function useOutreachOAuthSession(): UseOutreachOAuthSessionReturn {
+  const [session, setSession] = useState<OutreachOAuthSession | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightRef = useRef(false);
+  const cancelledRef = useRef(true);
+  const sessionIdRef = useRef<string | null>(null);
+  const onTerminalRef = useRef<((session: OutreachOAuthSession) => void) | null>(null);
+
+  const clearTimers = useCallback(() => {
+    if (intervalRef.current != null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current != null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  const cancel = useCallback(() => {
+    cancelledRef.current = true;
+    sessionIdRef.current = null;
+    onTerminalRef.current = null;
+    inFlightRef.current = false;
+    clearTimers();
+    setIsPolling(false);
+  }, [clearTimers]);
+
+  useEffect(() => () => cancel(), [cancel]);
+
+  const finishTerminal = useCallback(
+    (next: OutreachOAuthSession) => {
+      clearTimers();
+      setIsPolling(false);
+      setSession(next);
+      const onTerminal = onTerminalRef.current;
+      onTerminalRef.current = null;
+      sessionIdRef.current = null;
+      cancelledRef.current = true;
+      onTerminal?.(next);
+    },
+    [clearTimers]
+  );
+
+  const pollOnce = useCallback(async () => {
+    const sessionId = sessionIdRef.current;
+    if (!sessionId || cancelledRef.current || inFlightRef.current) return;
+
+    inFlightRef.current = true;
+    try {
+      const result = await ExpertFinderService.pollOutreachOAuthSession(sessionId);
+      if (cancelledRef.current || sessionIdRef.current !== sessionId) return;
+      setError(null);
+      setSession(result);
+      if (isTerminalOutreachOAuthStatus(result.status)) {
+        finishTerminal(result);
+      }
+    } catch (err: unknown) {
+      if (cancelledRef.current || sessionIdRef.current !== sessionId) return;
+      const message = err instanceof Error ? err.message : 'Failed to check authorization status';
+      setError(message);
+    } finally {
+      inFlightRef.current = false;
+    }
+  }, [finishTerminal]);
+
+  const startPolling = useCallback(
+    (sessionId: string, options?: { onTerminal?: (session: OutreachOAuthSession) => void }) => {
+      cancel();
+      cancelledRef.current = false;
+      sessionIdRef.current = sessionId;
+      onTerminalRef.current = options?.onTerminal ?? null;
+      setSession(null);
+      setError(null);
+      setIsPolling(true);
+
+      void pollOnce();
+      intervalRef.current = setInterval(() => {
+        void pollOnce();
+      }, OUTREACH_OAUTH_POLL_INTERVAL_MS);
+
+      timeoutRef.current = setTimeout(() => {
+        if (cancelledRef.current || sessionIdRef.current !== sessionId) return;
+        finishTerminal({
+          sessionId,
+          status: 'expired',
+          errorDescription: 'Authorization timed out. Please try again.',
+          mailbox: null,
+        });
+      }, OUTREACH_OAUTH_POLL_TIMEOUT_MS);
+    },
+    [cancel, finishTerminal, pollOnce]
+  );
+
+  return [
+    { session, isPolling, error },
+    { startPolling, cancel },
+  ];
+}
+
+// ── useOutreachCapacity ──────────────────────────────────────────────────────
+
+interface UseOutreachCapacityState {
+  capacity: OutreachCapacity | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchOutreachCapacityFn = () => Promise<void>;
+type UseOutreachCapacityReturn = [UseOutreachCapacityState, FetchOutreachCapacityFn];
+
+export function useOutreachCapacity(immediate = true): UseOutreachCapacityReturn {
+  const [capacity, setCapacity] = useState<OutreachCapacity | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await ExpertFinderService.getOutreachCapacity();
+      setCapacity(response);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch outreach capacity';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (immediate) void fetch();
+  }, [immediate, fetch]);
+
+  return [{ capacity, isLoading, error }, fetch];
+}
+
+// ── useOutreachCampaigns ─────────────────────────────────────────────────────
+
+interface UseOutreachCampaignsState {
+  campaigns: OutreachCampaign[];
+  pagination: Pagination;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface UseOutreachCampaignsParams {
+  limit?: number;
+  offset?: number;
+  immediate?: boolean;
+}
+
+type FetchOutreachCampaignsFn = (params?: UseOutreachCampaignsParams) => Promise<void>;
+type UseOutreachCampaignsReturn = [UseOutreachCampaignsState, FetchOutreachCampaignsFn];
+
+export function useOutreachCampaigns(
+  params?: UseOutreachCampaignsParams | boolean
+): UseOutreachCampaignsReturn {
+  const opts = typeof params === 'boolean' ? { immediate: params } : (params ?? {});
+  const limit = opts.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
+  const offset = opts.offset ?? 0;
+  const immediate = opts.immediate !== false;
+
+  const [campaigns, setCampaigns] = useState<OutreachCampaign[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ total: 0, limit, offset });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(
+    async (fetchParams?: UseOutreachCampaignsParams) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await ExpertFinderService.listOutreachCampaigns({
+          limit: fetchParams?.limit ?? limit,
+          offset: fetchParams?.offset ?? offset,
+        });
+        setCampaigns(response.campaigns);
+        setPagination({
+          total: response.total,
+          limit: response.limit,
+          offset: response.offset,
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch campaigns';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [limit, offset]
+  );
+
+  useEffect(() => {
+    if (immediate) void fetch();
+  }, [immediate, fetch]);
+
+  return [{ campaigns, pagination, isLoading, error }, fetch];
+}
+
+// ── useRewriteTemplate ───────────────────────────────────────────────────────
+
+interface UseRewriteTemplateState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type RewriteTemplateFn = (templateId: number | string) => Promise<SavedTemplate>;
+type UseRewriteTemplateReturn = [UseRewriteTemplateState, RewriteTemplateFn];
+
+export function useRewriteTemplate(): UseRewriteTemplateReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const rewrite = useCallback(async (templateId: number | string): Promise<SavedTemplate> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await ExpertFinderService.rewriteTemplate(templateId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to rewrite template';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, rewrite];
+}
+
+// ── usePublishTemplate ───────────────────────────────────────────────────────
+
+interface UsePublishTemplateState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type PublishTemplateFn = (
+  templateId: number | string,
+  payload: { name: string }
+) => Promise<OutreachCampaign>;
+type UsePublishTemplateReturn = [UsePublishTemplateState, PublishTemplateFn];
+
+export function usePublishTemplate(): UsePublishTemplateReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const publish = useCallback(
+    async (templateId: number | string, payload: { name: string }): Promise<OutreachCampaign> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        return await ExpertFinderService.publishTemplate(templateId, payload);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to publish template';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, publish];
+}
+
+// ── useActivateOutreachCampaign ──────────────────────────────────────────────
+
+interface UseActivateOutreachCampaignState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type ActivateOutreachCampaignFn = (campaignId: number | string) => Promise<OutreachCampaign>;
+type UseActivateOutreachCampaignReturn = [
+  UseActivateOutreachCampaignState,
+  ActivateOutreachCampaignFn,
+];
+
+export function useActivateOutreachCampaign(): UseActivateOutreachCampaignReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const activate = useCallback(async (campaignId: number | string): Promise<OutreachCampaign> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await ExpertFinderService.activateOutreachCampaign(campaignId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to restore campaign';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, activate];
+}
+
+// ── useSendOutreachCampaign ──────────────────────────────────────────────────
+
+interface UseSendOutreachCampaignState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type SendOutreachCampaignFn = (
+  campaignId: number | string,
+  payload: { expert_search_id: number; expert_ids: number[] }
+) => Promise<OutreachCampaignSendResponse>;
+type UseSendOutreachCampaignReturn = [UseSendOutreachCampaignState, SendOutreachCampaignFn];
+
+export function useSendOutreachCampaign(): UseSendOutreachCampaignReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const send = useCallback(
+    async (
+      campaignId: number | string,
+      payload: { expert_search_id: number; expert_ids: number[] }
+    ): Promise<OutreachCampaignSendResponse> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        return await ExpertFinderService.sendOutreachCampaign(campaignId, payload);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to send';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, send];
+}
+
+// ── useCancelQueuedOutreachCampaign ──────────────────────────────────────────
+
+interface UseCancelQueuedOutreachCampaignState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type CancelQueuedOutreachCampaignFn = (
+  campaignId: number | string,
+  payload: { generated_email_ids: number[] }
+) => Promise<OutreachCampaignCancelQueuedResponse>;
+type UseCancelQueuedOutreachCampaignReturn = [
+  UseCancelQueuedOutreachCampaignState,
+  CancelQueuedOutreachCampaignFn,
+];
+
+export function useCancelQueuedOutreachCampaign(): UseCancelQueuedOutreachCampaignReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const cancelQueued = useCallback(
+    async (
+      campaignId: number | string,
+      payload: { generated_email_ids: number[] }
+    ): Promise<OutreachCampaignCancelQueuedResponse> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        return await ExpertFinderService.cancelQueuedOutreachCampaign(campaignId, payload);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to remove pending delivery items';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, cancelQueued];
+}
+
+// ── usePreviewOutreachCampaign ───────────────────────────────────────────────
+
+interface UsePreviewOutreachCampaignState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type PreviewOutreachCampaignFn = (
+  campaignId: number | string,
+  payload: OutreachCampaignPreviewRequest
+) => Promise<OutreachCampaignPreviewResponse>;
+type UsePreviewOutreachCampaignReturn = [
+  UsePreviewOutreachCampaignState,
+  PreviewOutreachCampaignFn,
+];
+
+export function usePreviewOutreachCampaign(): UsePreviewOutreachCampaignReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const preview = useCallback(
+    async (
+      campaignId: number | string,
+      payload: OutreachCampaignPreviewRequest
+    ): Promise<OutreachCampaignPreviewResponse> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        return await ExpertFinderService.previewOutreachCampaign(campaignId, payload);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to send campaign preview';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, preview];
 }
 
 // ── useSavedTemplates ────────────────────────────────────────────────────────

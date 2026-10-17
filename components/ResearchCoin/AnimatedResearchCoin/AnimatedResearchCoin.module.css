@@ -95,9 +95,7 @@
 .glyph {
   width: 66%;
   height: 66%;
-  filter: drop-shadow(
-    0 2px 0 color-mix(in srgb, var(--rc-shadow) 30%, transparent)
-  );
+  filter: drop-shadow(0 2px 0 color-mix(in srgb, var(--rc-shadow) 30%, transparent));
 }
 
 .mote {

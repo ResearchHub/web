@@ -2,10 +2,19 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Download, Mail, MailCheck, MailX, UserPlus, MoreVertical, Search } from 'lucide-react';
+import {
+  Download,
+  Eye,
+  MailCheck,
+  MailX,
+  Send,
+  UserPlus,
+  MoreVertical,
+  Search,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -23,15 +32,16 @@ import {
 } from '@/hooks/useExpertSearchProgress';
 import { ApiError } from '@/services/types/api';
 import type { FindMoreExpertsPayload } from '@/services/expertFinder.service';
+import { CampaignPreviewModal } from '@/app/expert-finder/campaigns/components/CampaignPreviewModal';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
-import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
-import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { ExpertFormModal } from './ExpertFormModal';
 import { FindMoreExpertsModal } from './FindMoreExpertsModal';
+import { SendModal } from './SendModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import { SearchDetailSkeleton } from '@/components/ExpertFinder/SearchDetailSkeleton';
 import { expertHasOutreachHistory, type ExpertResult } from '@/types/expertFinder';
+import { isValidEmail } from '@/utils/validation';
 
 function isFindMoreStep(step: string | null | undefined): boolean {
   return /find(?:ing)? more/i.test(step ?? '');
@@ -52,11 +62,28 @@ function SearchActionsMenu({
   reportPdfUrl,
   reportCsvUrl,
   onAddExpert,
+  onPreviewCampaign,
+  previewDisabledReason,
 }: {
   reportPdfUrl?: string | null;
   reportCsvUrl?: string | null;
   onAddExpert: () => void;
+  onPreviewCampaign?: () => void;
+  previewDisabledReason?: string | null;
 }) {
+  const previewItem = (
+    <BaseMenuItem
+      disabled={Boolean(previewDisabledReason) || onPreviewCampaign == null}
+      onSelect={() => {
+        if (previewDisabledReason || !onPreviewCampaign) return;
+        onPreviewCampaign();
+      }}
+    >
+      <Eye className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
+      <span>Preview</span>
+    </BaseMenuItem>
+  );
+
   return (
     <BaseMenu
       align="end"
@@ -73,6 +100,20 @@ function SearchActionsMenu({
         </button>
       }
     >
+      {onPreviewCampaign != null ? (
+        previewDisabledReason ? (
+          <Tooltip
+            content={previewDisabledReason}
+            position="left"
+            width="w-56"
+            wrapperClassName="block w-full"
+          >
+            <div className="w-full">{previewItem}</div>
+          </Tooltip>
+        ) : (
+          previewItem
+        )
+      ) : null}
       <BaseMenuItem onSelect={onAddExpert}>
         <UserPlus className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
         <span>Add expert</span>
@@ -95,6 +136,7 @@ function SearchActionsMenu({
 
 export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
 
@@ -114,10 +156,10 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [hideContacted, setHideContacted] = useState(false);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
-  const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
+  const [showSendCampaignModal, setShowSendCampaignModal] = useState(false);
+  const [sendCampaignExperts, setSendCampaignExperts] = useState<ExpertResult[]>([]);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewExpert, setPreviewExpert] = useState<ExpertResult | null>(null);
 
   const serverInProgress =
     searchDetail != null &&
@@ -203,24 +245,14 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     });
   }, []);
 
-  const openGenerateForExperts = useCallback((experts: ExpertResult[]) => {
-    setGenerateExperts(experts);
-    setShowGenerateModal(true);
+  const openSendCampaignForExperts = useCallback((experts: ExpertResult[]) => {
+    setSendCampaignExperts(experts);
+    setShowSendCampaignModal(true);
   }, []);
 
-  const handleGenerateConfirm = useCallback((payload: GenerateEmailConfirmPayload) => {
-    setGeneratePayload(payload);
-    setShowGenerateModal(false);
-    setShowProgressModal(true);
-  }, []);
-
-  const handleProgressClose = useCallback(() => {
-    setShowProgressModal(false);
-    setGeneratePayload(null);
-  }, []);
-
-  const handleProgressDone = useCallback(() => {
-    setSelectedIndices(new Set());
+  const openPreviewForExpert = useCallback((expert: ExpertResult) => {
+    setPreviewExpert(expert);
+    setShowPreviewModal(true);
   }, []);
 
   const abortAppendLiveRun = useCallback(() => {
@@ -265,6 +297,28 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     () => expertResults.filter(expertHasOutreachHistory).length,
     [expertResults]
   );
+
+  const selectedPreviewExpert = useMemo(() => {
+    if (selectedIndices.size !== 1) return null;
+    const index = Array.from(selectedIndices)[0];
+    const expert = expertResults[index];
+    if (!expert) return null;
+    const email = expert.email?.trim() ?? '';
+    return email && isValidEmail(email) ? expert : null;
+  }, [expertResults, selectedIndices]);
+
+  const previewDisabledReason = useMemo(() => {
+    if (selectedIndices.size === 0) {
+      return 'Select a single expert to preview';
+    }
+    if (selectedIndices.size > 1) {
+      return 'Preview is available only for a single expert';
+    }
+    if (selectedPreviewExpert == null) {
+      return 'Selected expert needs a valid email to preview';
+    }
+    return null;
+  }, [selectedIndices.size, selectedPreviewExpert]);
 
   const toggleHideContacted = useCallback(() => {
     setHideContacted((prev) => {
@@ -433,11 +487,9 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
             <section>
               <GeneratedEmailsList
                 searchId={searchId}
-                getDetailHref={(e) => `/expert-finder/library/${searchId}/outreach/${e.id}`}
                 emptyMessage={
                   <p className="text-gray-600">
-                    No outreach for this search yet. Use the Expert results tab to select experts
-                    and generate outreach.
+                    No outreach yet. Select experts on the Expert results tab and click Send.
                   </p>
                 }
               />
@@ -482,12 +534,12 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                         const experts = Array.from(selectedIndices).map(
                           (i) => searchDetail.expertResults[i]
                         );
-                        openGenerateForExperts(experts);
+                        openSendCampaignForExperts(experts);
                       }}
                       disabled={selectedIndices.size === 0}
                     >
-                      <Mail className="h-4 w-4" aria-hidden />
-                      Generate outreach
+                      <Send className="h-4 w-4" aria-hidden />
+                      Send
                     </Button>
                     {contactedExpertCount > 0 ? (
                       <Tooltip
@@ -528,6 +580,10 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       reportPdfUrl={searchDetail.reportPdfUrl}
                       reportCsvUrl={searchDetail.reportCsvUrl}
                       onAddExpert={() => setShowAddExpertModal(true)}
+                      onPreviewCampaign={() => {
+                        if (selectedPreviewExpert) openPreviewForExpert(selectedPreviewExpert);
+                      }}
+                      previewDisabledReason={previewDisabledReason}
                     />
                   </div>
                 </div>
@@ -552,7 +608,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       index={index}
                       selected={selectedIndices.has(index)}
                       onToggleSelect={toggleSelection}
-                      onGenerateEmail={(expert) => openGenerateForExperts([expert])}
                       searchId={searchId}
                       onSuccess={refetch}
                       proposalDraftsEnabled={isGrantLinked}
@@ -591,20 +646,27 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         error={findMoreError}
         onSubmit={handleFindMoreSubmit}
       />
-      <GenerateEmailModal
-        isOpen={showGenerateModal}
-        onClose={() => setShowGenerateModal(false)}
-        experts={generateExperts}
-        onConfirm={handleGenerateConfirm}
-        isGrantLinked={isGrantLinked}
+      <SendModal
+        isOpen={showSendCampaignModal}
+        onClose={() => setShowSendCampaignModal(false)}
+        searchId={Number(searchId)}
+        experts={sendCampaignExperts}
+        onSuccess={() => {
+          setSelectedIndices(new Set());
+          void refetch();
+          if (pathname) {
+            router.push(`${pathname}?tab=${TAB_OUTREACH}`);
+          }
+        }}
       />
-      <GenerateEmailProgressModal
-        isOpen={showProgressModal}
-        onClose={handleProgressClose}
-        experts={generateExperts}
-        searchId={searchId}
-        generation={generatePayload}
-        onDone={handleProgressDone}
+      <CampaignPreviewModal
+        isOpen={showPreviewModal && previewExpert != null}
+        onClose={() => {
+          setShowPreviewModal(false);
+          setPreviewExpert(null);
+        }}
+        expertEmail={previewExpert?.email?.trim() || ''}
+        expertSearchId={Number(searchId)}
       />
     </div>
   );
