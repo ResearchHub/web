@@ -15,9 +15,11 @@ import { ActivityCommentPanel } from '@/components/modals/ActivityCommentPanel';
 import { Avatar } from '@/components/ui/Avatar';
 import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { DocumentThumbnail } from '@/components/Funding/dashboard/DocumentThumbnail';
+import { DISPLAY_FONT } from '@/components/Funding/dashboard/MyFundingHero';
 import type { FundedRow, ProposalNews } from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import { formatTimeAgo } from '@/utils/date';
+import { cn } from '@/utils/styles';
 import type { DetectedUrl } from '@/utils/url';
 
 interface FundedResearchListProps {
@@ -30,13 +32,16 @@ interface FundedResearchListProps {
 
 /**
  * Research you funded: each proposal with its cover and scientist, the latest word from
- * its author or reviewers, and what you gave. The proposal opens its page; the latest
- * word opens in full in the side panel.
+ * its author or reviewers, and what you gave; then each RFP pool you put money into,
+ * with its creator and what you gave. The proposal opens its page; the latest word
+ * opens in full in the side panel.
  */
 export function FundedResearchList({ rows, limit, onSeeAll }: FundedResearchListProps) {
   if (rows.length === 0) return null;
 
   const shown = limit ? rows.slice(0, limit) : rows;
+  const shownProposals = shown.filter((row) => row.kind === 'proposal');
+  const shownPools = shown.filter((row) => row.kind === 'pool');
 
   return (
     <DashboardSection
@@ -47,13 +52,33 @@ export function FundedResearchList({ rows, limit, onSeeAll }: FundedResearchList
         onSeeAll && <SeeAllButton onClick={onSeeAll}>See all {rows.length}</SeeAllButton>
       }
     >
-      {/* One card holding every row, like Your peer reviews. */}
-      <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
-        {shown.map((row) => (
-          <FundedResearchRow key={row.key} row={row} />
-        ))}
-      </ul>
+      {shownProposals.length > 0 && <FundedResearchRows rows={shownProposals} />}
+      {shownPools.length > 0 && (
+        <>
+          <h3
+            className={cn(
+              'mb-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-[#0b1530]',
+              shownProposals.length > 0 && 'mt-6'
+            )}
+            style={DISPLAY_FONT}
+          >
+            RFP pools you funded
+          </h3>
+          <FundedResearchRows rows={shownPools} />
+        </>
+      )}
     </DashboardSection>
+  );
+}
+
+/** One card holding every row, like Your peer reviews. */
+function FundedResearchRows({ rows }: { readonly rows: readonly FundedRow[] }) {
+  return (
+    <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+      {rows.map((row) => (
+        <FundedResearchRow key={row.key} row={row} />
+      ))}
+    </ul>
   );
 }
 
