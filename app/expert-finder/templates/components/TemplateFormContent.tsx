@@ -1,22 +1,30 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, Trash2, Save } from 'lucide-react';
+import { Loader2, Trash2, Save, Sparkles, Upload } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
+import { Badge } from '@/components/ui/Badge';
 import { BaseSection } from '@/components/ui/BaseSection';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Modal } from '@/components/ui/form/Modal';
+import { Tooltip } from '@/components/ui/Tooltip';
 import {
   useSavedTemplateDetail,
   useCreateSavedTemplate,
   useUpdateSavedTemplate,
   useDeleteSavedTemplate,
+  useOutreachCampaigns,
+  useRewriteTemplate,
+  usePublishTemplate,
 } from '@/hooks/useExpertFinder';
-import type { SavedTemplate } from '@/types/expertFinder';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import type { OutreachCampaign, SavedTemplate } from '@/types/expertFinder';
+import { formatTimestamp } from '@/utils/date';
 import { TemplateVariableEditor } from './TemplateBodyEditor';
 
 export interface TemplateFormState {
@@ -59,6 +67,15 @@ function formToUpdatePayload(form: TemplateFormState) {
   };
 }
 
+function isFormDirty(form: TemplateFormState, template: SavedTemplate | null): boolean {
+  if (!template) return false;
+  return (
+    form.name !== template.name ||
+    form.emailSubject !== template.emailSubject ||
+    form.emailBody !== template.emailBody
+  );
+}
+
 export interface TemplateFormContentProps {
   templateId?: string;
 }
@@ -73,14 +90,34 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
   const [{ isLoading: isCreating }, createTemplate] = useCreateSavedTemplate();
   const [{ isLoading: isUpdating }, updateTemplate] = useUpdateSavedTemplate();
   const [{ isLoading: isDeleting, error: deleteError }, deleteTemplate] = useDeleteSavedTemplate();
+  const [{ campaigns, isLoading: campaignsLoading }, refetchCampaigns] =
+    useOutreachCampaigns(isEdit);
+  const [{ isLoading: isRewriting }, rewriteTemplate] = useRewriteTemplate();
+  const [{ isLoading: isPublishing }, publishTemplate] = usePublishTemplate();
 
   const [form, setForm] = useState<TemplateFormState>(emptyForm);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [campaignName, setCampaignName] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [publishedCampaign, setPublishedCampaign] = useState<OutreachCampaign | null>(null);
 
   useEffect(() => {
     if (template) setForm(templateToForm(template));
   }, [template]);
+
+  const matchedCampaign = useMemo(() => {
+    if (!templateId) return null;
+    const id = Number(templateId);
+    return campaigns.find((c) => c.templateId === id) ?? null;
+  }, [campaigns, templateId]);
+
+  useEffect(() => {
+    setPublishedCampaign(matchedCampaign);
+  }, [matchedCampaign]);
+
+  const dirty = isFormDirty(form, template);
 
   const setField = useCallback(
     <K extends keyof TemplateFormState>(field: K, value: TemplateFormState[K]) => {
@@ -97,7 +134,8 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
     if (isEdit) {
       try {
         await updateTemplate(templateId, formToUpdatePayload(form));
-        await refetch();
+        await Promise.all([refetch(), refetchCampaigns()]);
+        toast.success('Template saved');
       } catch (err) {
         setSaveError(err instanceof Error ? err.message : 'Failed to save');
       }
@@ -124,7 +162,49 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
     }
   };
 
+  const handleRewrite = async () => {
+    if (!templateId || dirty) return;
+    setActionError(null);
+    try {
+      const created = await rewriteTemplate(templateId);
+      toast.success('Created rewritten template');
+      router.push(`/expert-finder/templates/${created.id}`);
+    } catch (err) {
+      setActionError(extractApiErrorMessage(err, 'Failed to rewrite template'));
+    }
+  };
+
+  const openPublishModal = () => {
+    if (!templateId || dirty) return;
+    setActionError(null);
+    const defaultName =
+      publishedCampaign?.name?.trim() || form.name.trim() || template?.name?.trim() || '';
+    setCampaignName(defaultName.slice(0, 100));
+    setShowPublishModal(true);
+  };
+
+  const handlePublishConfirm = async () => {
+    if (!templateId || dirty) return;
+    const name = campaignName.trim();
+    if (!name) {
+      setActionError('Campaign name is required');
+      return;
+    }
+    setActionError(null);
+    const wasUpdate = publishedCampaign != null;
+    try {
+      const campaign = await publishTemplate(templateId, { name });
+      setPublishedCampaign(campaign);
+      setShowPublishModal(false);
+      await refetchCampaigns();
+      toast.success(wasUpdate ? 'Campaign updated' : 'Campaign published');
+    } catch (err) {
+      setActionError(extractApiErrorMessage(err, 'Failed to publish template'));
+    }
+  };
+
   const isSaving = isCreating || isUpdating;
+  const busy = isDeleting || isSaving || isRewriting || isPublishing;
 
   // —— Edit mode: loading / error states ——
   if (isEdit) {
@@ -157,6 +237,8 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
   const displayName =
     isEdit && template ? template.name || `Template #${templateId}` : 'New template';
 
+  const campaignForUi = publishedCampaign;
+
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
       <Breadcrumbs
@@ -164,7 +246,129 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
         className="mb-2"
       />
 
-      {(saveError || deleteError) && <Alert variant="error">{saveError || deleteError}</Alert>}
+      {(saveError || deleteError || actionError) && (
+        <Alert variant="error">{saveError || deleteError || actionError}</Alert>
+      )}
+
+      {isEdit ? (
+        <div className="flex flex-wrap items-center justify-end">
+          <Tooltip
+            content="Uses AI to rewrite this template into a new one with different wording, while keeping the same placeholders. Save any edits first so the rewrite uses the current text."
+            position="top"
+            width="w-72"
+            className="text-left"
+            wrapperClassName="inline-flex"
+          >
+            <Button
+              type="button"
+              variant="outlined"
+              size="sm"
+              className="gap-2"
+              disabled={busy || dirty}
+              title={dirty ? 'Save changes before rewriting' : undefined}
+              onClick={handleRewrite}
+            >
+              {isRewriting ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Sparkles className="h-4 w-4" aria-hidden />
+              )}
+              Rewrite
+            </Button>
+          </Tooltip>
+        </div>
+      ) : null}
+
+      {isEdit ? (
+        <BaseSection>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900">Outreach campaign</h3>
+              <p className="text-sm text-gray-500">
+                {campaignForUi
+                  ? 'Update the campaign with the current template.'
+                  : 'Publish this template to create a campaign.'}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              className="gap-2"
+              disabled={busy || dirty}
+              title={
+                dirty
+                  ? campaignForUi
+                    ? 'Save changes before updating'
+                    : 'Save changes before publishing'
+                  : undefined
+              }
+              onClick={openPublishModal}
+            >
+              {isPublishing ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Upload className="h-4 w-4" aria-hidden />
+              )}
+              {campaignForUi ? 'Update' : 'Publish'}
+            </Button>
+          </div>
+
+          {dirty ? (
+            <Alert variant="warning" className="mt-3">
+              {campaignForUi ? 'Save changes before updating.' : 'Save changes before publishing.'}
+            </Alert>
+          ) : null}
+
+          {campaignsLoading && !campaignForUi ? (
+            <div className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              Loading campaign…
+            </div>
+          ) : campaignForUi ? (
+            <div className="mt-3 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/expert-finder/campaigns/${campaignForUi.id}`}
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                >
+                  {campaignForUi.name?.trim() || `Campaign #${campaignForUi.id}`}
+                </Link>
+                {campaignForUi.hasUnpublishedChanges ? (
+                  <Badge variant="warning" size="sm">
+                    Unpublished changes
+                  </Badge>
+                ) : (
+                  <Badge variant="success" size="sm">
+                    Up to date
+                  </Badge>
+                )}
+                {campaignForUi.publishedAt ? (
+                  <span className="text-xs text-gray-500">
+                    Published {formatTimestamp(campaignForUi.publishedAt, false)}
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {campaignForUi.publishedSubject || '—'}
+              </p>
+              <p className="text-xs text-gray-500">
+                Queued {campaignForUi.counts.queued} · Sent {campaignForUi.counts.sent} · Opened{' '}
+                {campaignForUi.counts.opened} · Replied {campaignForUi.counts.replied} · Bounced{' '}
+                {campaignForUi.counts.bounced}
+              </p>
+              {campaignForUi.hasUnpublishedChanges ? (
+                <p className="text-xs text-amber-700">
+                  Template differs from the published version. Update the campaign to use the latest
+                  text.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-gray-600">Not published yet.</p>
+          )}
+        </BaseSection>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Input
@@ -187,7 +391,7 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
             value={form.emailSubject}
             onChange={(value) => setField('emailSubject', value)}
             placeholder="Invitation to collaborate with {{organization}}"
-            disabled={isDeleting || isSaving}
+            disabled={busy}
             singleLine
             minHeightClassName="min-h-[32px]"
           />
@@ -201,7 +405,7 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
           <TemplateVariableEditor
             value={form.emailBody}
             onChange={(value) => setField('emailBody', value)}
-            disabled={isDeleting || isSaving}
+            disabled={busy}
             valueAsHtml
           />
         </BaseSection>
@@ -214,7 +418,7 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
               size="md"
               className="gap-2"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={isDeleting || isSaving}
+              disabled={busy}
             >
               <Trash2 className="h-4 w-4" aria-hidden />
               {isDeleting ? (
@@ -231,7 +435,7 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
             variant="default"
             size="md"
             className="gap-2"
-            disabled={!form.name.trim() || isDeleting || isSaving}
+            disabled={!form.name.trim() || busy}
           >
             <Save className="h-4 w-4" aria-hidden />
             {isSaving ? (
@@ -259,6 +463,51 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
             </Button>
             <Button variant="default" size="sm" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : 'Delete'}
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {isEdit && (
+        <Modal
+          isOpen={showPublishModal}
+          onClose={() => !isPublishing && setShowPublishModal(false)}
+          title={publishedCampaign ? 'Update campaign' : 'Publish campaign'}
+        >
+          <p className="text-sm text-gray-600 mb-3">
+            {publishedCampaign ? 'Update the campaign name.' : 'Choose a name for this campaign.'}
+          </p>
+          <Input
+            label="Campaign name"
+            value={campaignName}
+            onChange={(e) => setCampaignName(e.target.value.slice(0, 100))}
+            placeholder="e.g. Spring RFP blast"
+            required
+            disabled={isPublishing}
+            helperText={`${campaignName.trim().length}/100`}
+          />
+          <div className="mt-4 flex justify-end gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={isPublishing}
+              onClick={() => setShowPublishModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2"
+              disabled={isPublishing || !campaignName.trim()}
+              onClick={() => void handlePublishConfirm()}
+            >
+              {isPublishing ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Upload className="h-4 w-4" aria-hidden />
+              )}
+              {publishedCampaign ? 'Update' : 'Publish'}
             </Button>
           </div>
         </Modal>

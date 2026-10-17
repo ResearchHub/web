@@ -43,7 +43,6 @@ interface ExpertResultCardProps {
   searchId: string;
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
-  onGenerateEmail?: (expert: ExpertResult) => void;
   onSuccess?: () => Promise<void>;
   /** Enables AI proposal drafts (grant-linked searches only). */
   proposalDraftsEnabled?: boolean;
@@ -163,7 +162,6 @@ export function ExpertResultCard({
   searchId,
   selected,
   onToggleSelect,
-  onGenerateEmail,
   onSuccess,
   proposalDraftsEnabled,
 }: ExpertResultCardProps) {
@@ -199,6 +197,7 @@ export function ExpertResultCard({
     }
   }, [draft?.noteId, router]);
   const name = empty(expert.name);
+  const email = empty(expert.email);
   const canEditContact = expert.expertId != null && Boolean(onSuccess);
   const title = empty(expert.title);
   const affiliation = empty(expert.affiliation);
@@ -210,7 +209,6 @@ export function ExpertResultCard({
         .filter(Boolean)
     : [];
   const notes = empty(expert.notes);
-  const email = expert.email?.trim();
   const sources = expert.sources?.length ? expert.sources : [];
 
   const [notesExpanded, setNotesExpanded] = useState(false);
@@ -296,6 +294,14 @@ export function ExpertResultCard({
         )}
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3">
+        {email ? (
+          <div className="flex items-start gap-2 text-sm text-gray-600">
+            <Mail className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" aria-hidden />
+            <span className="min-w-0 break-all select-all" title={email}>
+              {email}
+            </span>
+          </div>
+        ) : null}
         {affiliation ? (
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <Building2 className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" aria-hidden />
@@ -439,8 +445,8 @@ export function ExpertResultCard({
         ) : null}
       </div>
 
-      <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
-        {showProposalDraft ? (
+      {showProposalDraft ? (
+        <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
           <ProposalDraftSection
             draft={draft}
             isStarting={isStarting}
@@ -449,32 +455,8 @@ export function ExpertResultCard({
             onStart={handleStartDraft}
             onOpenNote={() => void handleOpenNote()}
           />
-        ) : null}
-        {onGenerateEmail && (
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            className="w-full gap-2"
-            onClick={() => onGenerateEmail(expert)}
-          >
-            <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Generate outreach
-          </Button>
-        )}
-        {email && !onGenerateEmail && (
-          <a
-            href={`mailto:${email}`}
-            className={cn(
-              'inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700',
-              'w-full'
-            )}
-          >
-            <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Contact Expert
-          </a>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {canEditContact && onSuccess ? (
         <ExpertFormModal
