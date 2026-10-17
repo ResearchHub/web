@@ -180,7 +180,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
             src={content.previewImage}
             alt={content.title}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-contain object-top sm:object-cover sm:object-center transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 660px"
           />
         ) : (

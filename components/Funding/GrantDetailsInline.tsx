@@ -13,7 +13,13 @@ export function GrantDetailsInline({ content, imageUrl }: GrantDetailsInlineProp
     <div className="py-6">
       {imageUrl && (
         <div className="relative w-full h-[200px] sm:h-[280px] rounded-xl overflow-hidden bg-gray-100 mb-6">
-          <Image src={imageUrl} alt="" fill className="object-cover" sizes="860px" />
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            className="object-contain sm:object-cover"
+            sizes="860px"
+          />
         </div>
       )}
 
