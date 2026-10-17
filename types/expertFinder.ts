@@ -620,3 +620,52 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   createdDate: raw.created_date ?? '',
   updatedDate: raw.updated_date ?? '',
 }));
+
+// ── Mailbox / Gmail connection (app-level, camelCase) ────────────────────────
+
+/** Wire `status` values from GET/POST mailbox endpoints. */
+export type MailboxStatusValue = 'ok' | 'needs_reauth' | 'disconnected' | (string & {});
+
+/** Current Gmail mailbox connection for Expert Finder outreach. */
+export interface MailboxStatus {
+  connected: boolean;
+  email: string | null;
+  status: MailboxStatusValue;
+  lastError: string | null;
+}
+
+/** OAuth client config for building the Google authorize URL on the FE. */
+export interface MailboxConnectConfig {
+  clientId: string;
+  scopes: string[];
+  redirectUri: string;
+}
+
+function parseMailboxScopes(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.filter((s): s is string => typeof s === 'string' && s.trim() !== '');
+  }
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    return raw.split(/[\s,]+/).filter(Boolean);
+  }
+  return [];
+}
+
+export const transformMailboxStatus = createTransformer<any, MailboxStatus>((raw) => ({
+  connected: Boolean(raw?.connected),
+  email:
+    raw?.email != null && String(raw.email).trim() !== '' ? String(raw.email).trim() : null,
+  status: (raw?.status as MailboxStatusValue) ?? (raw?.connected ? 'ok' : 'disconnected'),
+  lastError:
+    raw?.last_error != null && String(raw.last_error).trim() !== ''
+      ? String(raw.last_error).trim()
+      : null,
+}));
+
+export const transformMailboxConnectConfig = createTransformer<any, MailboxConnectConfig>(
+  (raw) => ({
+    clientId: raw?.client_id != null ? String(raw.client_id) : '',
+    scopes: parseMailboxScopes(raw?.scopes),
+    redirectUri: raw?.redirect_uri != null ? String(raw.redirect_uri) : '',
+  })
+);

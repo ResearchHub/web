@@ -11,6 +11,10 @@ import {
   type UpdateGeneratedEmailPayload,
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
+import {
+  ExpertFinderMailboxService,
+  type ConnectMailboxPayload,
+} from '@/services/expertFinderMailbox.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import type {
   ExpertResult,
@@ -19,6 +23,7 @@ import type {
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
+  MailboxStatus,
   ProposalDraft,
   SavedTemplate,
 } from '@/types/expertFinder';
@@ -963,4 +968,120 @@ export function useDeleteSavedTemplate(): UseDeleteSavedTemplateReturn {
   }, []);
 
   return [{ isLoading, error }, deleteTemplate];
+}
+
+// ── useMailboxStatus ─────────────────────────────────────────────────────────
+
+interface UseMailboxStatusState {
+  status: MailboxStatus | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchMailboxStatusFn = () => Promise<MailboxStatus | null>;
+type UseMailboxStatusReturn = [UseMailboxStatusState, FetchMailboxStatusFn];
+
+/**
+ * Fetches the current Expert Finder Gmail mailbox connection status.
+ */
+export function useMailboxStatus(options?: { immediate?: boolean }): UseMailboxStatusReturn {
+  const [status, setStatus] = useState<MailboxStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async (): Promise<MailboxStatus | null> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const next = await ExpertFinderMailboxService.getStatus();
+      setStatus(next);
+      return next;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch mailbox status';
+      setError(message);
+      setStatus(null);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const immediate = options?.immediate !== false;
+  useEffect(() => {
+    if (immediate) void fetch();
+  }, [immediate, fetch]);
+
+  return [{ status, isLoading, error }, fetch];
+}
+
+// ── useConnectMailbox ────────────────────────────────────────────────────────
+
+interface UseConnectMailboxState {
+  status: MailboxStatus | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type ConnectMailboxFn = (payload: ConnectMailboxPayload) => Promise<MailboxStatus>;
+type UseConnectMailboxReturn = [UseConnectMailboxState, ConnectMailboxFn];
+
+/**
+ * Exchanges a Google OAuth code for a connected Expert Finder mailbox.
+ */
+export function useConnectMailbox(): UseConnectMailboxReturn {
+  const [status, setStatus] = useState<MailboxStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const connect = useCallback(async (payload: ConnectMailboxPayload): Promise<MailboxStatus> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const next = await ExpertFinderMailboxService.connect(payload);
+      setStatus(next);
+      return next;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to connect Gmail';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ status, isLoading, error }, connect];
+}
+
+// ── useDisconnectMailbox ─────────────────────────────────────────────────────
+
+interface UseDisconnectMailboxState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type DisconnectMailboxFn = () => Promise<void>;
+type UseDisconnectMailboxReturn = [UseDisconnectMailboxState, DisconnectMailboxFn];
+
+/**
+ * Disconnects the user's Expert Finder Gmail mailbox.
+ */
+export function useDisconnectMailbox(): UseDisconnectMailboxReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const disconnect = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderMailboxService.disconnect();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to disconnect Gmail';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, disconnect];
 }
