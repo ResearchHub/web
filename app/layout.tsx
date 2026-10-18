@@ -74,9 +74,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  other: {
-    'application/ld+json': JSON.stringify(generateOrganizationStructuredData()),
-  },
 };
 
 export default async function RootLayout({
@@ -89,6 +86,12 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateOrganizationStructuredData()).replace(/</g, '\\u003c'),
+          }}
+        />
         <ClientProviders session={session}>{children}</ClientProviders>
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
