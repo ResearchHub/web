@@ -346,8 +346,6 @@ export function OutreachSettingsContent() {
                 <span className="font-semibold text-gray-900">{capacity.dailyLimitTotal}</span>{' '}
                 remaining today
               </span>
-              <span className="text-gray-500">Sent today: {capacity.sentToday}</span>
-              <span className="text-gray-500">Active mailboxes: {capacity.activeMailboxCount}</span>
             </div>
             {capacity.activeMailboxCount === 0 ? (
               <Alert variant="warning">Connect a mailbox before sending.</Alert>

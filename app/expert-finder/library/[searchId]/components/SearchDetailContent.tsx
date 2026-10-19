@@ -5,21 +5,17 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ExpertSearchLiveStatus } from '@/app/expert-finder/components/ExpertSearchLiveStatus';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import {
-  Download,
-  Eye,
-  MailCheck,
-  MailX,
-  Send,
-  UserPlus,
-  MoreVertical,
-  Search,
-} from 'lucide-react';
+import { Download, Eye, Filter, Send, UserPlus, MoreVertical, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import {
+  BaseMenu,
+  BaseMenuItem,
+  BaseMenuRadioGroup,
+  BaseMenuRadioItem,
+} from '@/components/ui/form/BaseMenu';
 import { Tabs } from '@/components/ui/Tabs';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
@@ -320,9 +316,9 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     return null;
   }, [selectedIndices.size, selectedPreviewExpert]);
 
-  const toggleHideContacted = useCallback(() => {
-    setHideContacted((prev) => {
-      const next = !prev;
+  const setHideContactedFilter = useCallback(
+    (next: boolean) => {
+      setHideContacted(next);
       if (next) {
         setSelectedIndices((selected) => {
           const pruned = new Set<number>();
@@ -333,9 +329,9 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
           return pruned;
         });
       }
-      return next;
-    });
-  }, [expertResults]);
+    },
+    [expertResults]
+  );
 
   const expertResultsTabHref = pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined;
   const outreachTabHref = pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined;
@@ -541,41 +537,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       <Send className="h-4 w-4" aria-hidden />
                       Send
                     </Button>
-                    {contactedExpertCount > 0 ? (
-                      <Tooltip
-                        content={
-                          hideContacted
-                            ? 'Showing experts without prior outreach'
-                            : 'Hide experts already contacted'
-                        }
-                        position="top"
-                        wrapperClassName="inline-flex shrink-0"
-                      >
-                        <button
-                          type="button"
-                          aria-pressed={hideContacted}
-                          aria-label={
-                            hideContacted
-                              ? 'Show experts already contacted'
-                              : 'Hide experts already contacted'
-                          }
-                          onClick={toggleHideContacted}
-                          className={cn(
-                            'inline-flex h-8 w-8 items-center justify-center rounded-lg border shadow-sm transition-colors',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-                            hideContacted
-                              ? 'border-primary-600 bg-primary-50 text-primary-700 hover:bg-primary-100'
-                              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                          )}
-                        >
-                          {hideContacted ? (
-                            <MailX className="h-4 w-4" aria-hidden />
-                          ) : (
-                            <MailCheck className="h-4 w-4" aria-hidden />
-                          )}
-                        </button>
-                      </Tooltip>
-                    ) : null}
                     <SearchActionsMenu
                       reportPdfUrl={searchDetail.reportPdfUrl}
                       reportCsvUrl={searchDetail.reportCsvUrl}
@@ -585,6 +546,37 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                       }}
                       previewDisabledReason={previewDisabledReason}
                     />
+                    {contactedExpertCount > 0 ? (
+                      <BaseMenu
+                        align="end"
+                        className="min-w-[220px] rounded-xl p-1.5"
+                        trigger={
+                          <button
+                            type="button"
+                            aria-label="Filter contacted experts"
+                            className={cn(
+                              'inline-flex h-8 w-8 items-center justify-center rounded-lg border shadow-sm transition-colors',
+                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+                              hideContacted
+                                ? 'border-primary-600 bg-primary-50 text-primary-700 hover:bg-primary-100'
+                                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                            )}
+                          >
+                            <Filter className="h-4 w-4" aria-hidden />
+                          </button>
+                        }
+                      >
+                        <BaseMenuRadioGroup
+                          value={hideContacted ? 'hide' : 'show'}
+                          onValueChange={(value) => {
+                            setHideContactedFilter(value === 'hide');
+                          }}
+                        >
+                          <BaseMenuRadioItem value="show">Show contacted experts</BaseMenuRadioItem>
+                          <BaseMenuRadioItem value="hide">Hide contacted experts</BaseMenuRadioItem>
+                        </BaseMenuRadioGroup>
+                      </BaseMenu>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -594,7 +586,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                   <button
                     type="button"
                     className="mt-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-                    onClick={toggleHideContacted}
+                    onClick={() => setHideContactedFilter(false)}
                   >
                     Show contacted experts
                   </button>
