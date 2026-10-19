@@ -42,7 +42,7 @@ ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub. RSC
 
 - [Website](https://researchhub.com): Main ResearchHub platform
 - [Documentation](https://docs.researchhub.com): ResearchHub documentation
-- [Documentation MCP](https://docs.researchhub.com/~gitbook/mcp): Existing read-only GitBook MCP for platform documentation. It does not search live ResearchHub research records, access accounts, or perform funding actions.
+- [Documentation MCP](https://docs.researchhub.com/~gitbook/mcp): Existing GitBook MCP for searching and reading platform documentation and submitting documentation feedback. It does not search live ResearchHub research records, access ResearchHub accounts, or perform funding actions.
 - [Foundation](https://researchhub.foundation): ResearchHub Foundation
 - [X](https://x.com/researchhub): ResearchHub on X
 - [GitHub](https://github.com/ResearchHub): Open-source repositories

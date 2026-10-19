@@ -1,0 +1,29 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://researchhub.com/.well-known/api-catalog",
+      "item": [
+        {
+          "href": "https://docs.researchhub.com/~gitbook/mcp",
+          "title": "ResearchHub documentation MCP"
+        }
+      ]
+    },
+    {
+      "anchor": "https://docs.researchhub.com/~gitbook/mcp",
+      "service-desc": [
+        {
+          "href": "https://docs.researchhub.com/.well-known/mcp/server-card.json",
+          "type": "application/mcp-server-card+json"
+        }
+      ],
+      "related": [
+        {
+          "href": "https://docs.researchhub.com/",
+          "type": "text/html",
+          "title": "ResearchHub platform documentation"
+        }
+      ]
+    }
+  ]
+}

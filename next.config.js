@@ -205,6 +205,28 @@ const nextConfig = {
         },
       ],
     },
+    {
+      source: '/',
+      headers: [
+        {
+          key: 'Link',
+          value: '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
+        },
+      ],
+    },
+    {
+      source: '/.well-known/api-catalog',
+      headers: [
+        {
+          key: 'Content-Type',
+          value: 'application/linkset+json; profile="https://www.rfc-editor.org/info/rfc9727"',
+        },
+        {
+          key: 'Link',
+          value: '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
+        },
+      ],
+    },
   ],
   images: {
     unoptimized: false,
