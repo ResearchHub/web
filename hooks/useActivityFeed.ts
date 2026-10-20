@@ -20,6 +20,16 @@ interface UseActivityFeedOptions {
   enabled?: boolean;
 }
 
+/**
+ * Tip and contribution entries come without their work's reviews, so any loaded
+ * entry about the same work lends them its own and their covers can show a rating.
+ * Only a new page's entries borrow: one already on screen keeps the cover it was
+ * drawn with, rather than a rating appearing on it when a later page arrives.
+ */
+function lendReviewsToPage(loaded: FeedEntry[], page: FeedEntry[]): FeedEntry[] {
+  return shareWorkReviews([...loaded, ...page]).slice(loaded.length);
+}
+
 export function useActivityFeed({
   authorId,
   contentType,
@@ -81,7 +91,7 @@ export function useActivityFeed({
 
     try {
       const result = await fetchPage(1);
-      setEntries(result.entries);
+      setEntries(shareWorkReviews(result.entries));
       setHasMore(result.hasMore);
       setCount(result.count);
     } catch (error) {
@@ -112,7 +122,7 @@ export function useActivityFeed({
     try {
       const result = await fetchPage(nextPage);
       setEntries((prev) => {
-        const next = [...prev, ...result.entries];
+        const next = [...prev, ...lendReviewsToPage(prev, result.entries)];
         setCount(next.length);
         return next;
       });
@@ -128,12 +138,8 @@ export function useActivityFeed({
     }
   }, [isLoading, isLoadingMore, hasMore, fetchPage]);
 
-  // Tip and contribution entries come without their work's reviews; any other
-  // loaded entry about the same work lends them, so their covers can show a rating.
-  const entriesWithReviews = useMemo(() => shareWorkReviews(entries), [entries]);
-
   return {
-    entries: entriesWithReviews,
+    entries,
     // While deferred, keep the loading UI unless we already restored entries.
     isLoading: enabled === false ? !hasRestoredEntries : isLoading,
     error,
