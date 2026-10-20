@@ -54,13 +54,14 @@ export function useGeneratedSharePost(postId: ID): UseGeneratedSharePostResult {
         } else if (Date.now() >= deadline) {
           setResult({ text: null, failed: true });
         } else {
-          timer = setTimeout(poll, POLL_INTERVAL_MS);
+          timer = setTimeout(() => void poll(), POLL_INTERVAL_MS);
         }
       } catch {
         if (!cancelled) setResult({ text: null, failed: true });
       }
     };
-    poll();
+    // poll handles its own errors.
+    void poll();
 
     return () => {
       cancelled = true;
