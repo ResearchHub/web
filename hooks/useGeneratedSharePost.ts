@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { SocialShareService } from '@/services/socialShare.service';
 import { ID } from '@/types/root';
 
+const POLL_INTERVAL_MS = 1500;
+// Past this the modal keeps the title; the post is still cached for next time.
+const POLL_TIMEOUT_MS = 60_000;
+
 interface UseGeneratedSharePostResult {
   /** The AI-written post, or null while it is being written or after a failure. */
   text: string | null;
@@ -18,8 +22,8 @@ interface Result {
 
 /**
  * Fetches the AI-written share post for a proposal or RFP while `postId` is
- * set. A missing `postId` keeps the last result, so a closing modal does not
- * flash back to loading.
+ * set, polling while a worker writes it. A missing `postId` keeps the last
+ * result, so a closing modal does not flash back to loading.
  */
 export function useGeneratedSharePost(postId: ID): UseGeneratedSharePostResult {
   const [result, setResult] = useState<Result | null>(null);
@@ -37,16 +41,30 @@ export function useGeneratedSharePost(postId: ID): UseGeneratedSharePostResult {
     if (postId === null || postId === undefined) return;
 
     let cancelled = false;
-    SocialShareService.generatePost(postId)
-      .then((text) => {
-        if (!cancelled) setResult({ text, failed: false });
-      })
-      .catch(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = Date.now() + POLL_TIMEOUT_MS;
+
+    // A worker writes the post, so ask again until it is ready or we give up.
+    const poll = async () => {
+      try {
+        const text = await SocialShareService.requestPost(postId);
+        if (cancelled) return;
+        if (text !== null) {
+          setResult({ text, failed: false });
+        } else if (Date.now() >= deadline) {
+          setResult({ text: null, failed: true });
+        } else {
+          timer = setTimeout(poll, POLL_INTERVAL_MS);
+        }
+      } catch {
         if (!cancelled) setResult({ text: null, failed: true });
-      });
+      }
+    };
+    poll();
 
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [postId]);
 
