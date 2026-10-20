@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Info, Loader2, Mail, Pencil, Plus, Trash2, Unplug } from 'lucide-react';
+import { ChevronRight, Info, Loader2, Mail, Pencil, Trash2, Unplug } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getOutreachCampaignStatusPresentation } from '@/app/expert-finder/lib/outreachCampaignStatus';
-import { getOutreachMailboxProviderLabel } from '@/app/expert-finder/lib/outreachMailboxProviders';
 import { Alert } from '@/components/ui/Alert';
 import { Badge } from '@/components/ui/Badge';
 import { BaseSection } from '@/components/ui/BaseSection';
@@ -18,7 +17,6 @@ import { Modal } from '@/components/ui/form/Modal';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
 import {
-  useConnectOutreachMailbox,
   useDetachOutreachMailbox,
   useInitOutreachOAuth,
   useOutreachCampaigns,
@@ -28,12 +26,9 @@ import {
   useUpdateOutreachMailbox,
 } from '@/hooks/useExpertFinder';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import { ApiError } from '@/services/types/api';
 import type { OutreachCampaign, OutreachMailbox, OutreachOAuthSession } from '@/types/expertFinder';
 import { isValidEmail } from '@/utils/validation';
 import { formatTimestamp } from '@/utils/date';
-
-const GOOGLE_APP_PASSWORD_HELP_URL = 'https://support.google.com/accounts/answer/185833?hl=en';
 
 const GOOGLE_WORKSPACE_OAUTH = {
   title: 'Connect Google Workspace',
@@ -76,7 +71,6 @@ export function OutreachSettingsContent() {
     useOutreachCapacity();
   const [{ campaigns, isLoading: campaignsLoading, error: campaignsError }, refetchCampaigns] =
     useOutreachCampaigns();
-  const [{ isLoading: isConnecting }, connectMailbox] = useConnectOutreachMailbox();
   const [{ isLoading: isUpdatingMailbox }, updateMailbox] = useUpdateOutreachMailbox();
   const [{ isLoading: isDetaching }, detachMailbox] = useDetachOutreachMailbox();
   const [{ isLoading: isInitiatingOAuth }, initOutreachOAuth] = useInitOutreachOAuth();
@@ -85,11 +79,6 @@ export function OutreachSettingsContent() {
     { startPolling, cancel: cancelOAuthPolling },
   ] = useOutreachOAuthSession();
 
-  const [email, setEmail] = useState('');
-  const [appPassword, setAppPassword] = useState('');
-  const [replyTo, setReplyTo] = useState('');
-  const [showConnectForm, setShowConnectForm] = useState(false);
-  const [connectError, setConnectError] = useState<string | null>(null);
   const [detachTarget, setDetachTarget] = useState<OutreachMailbox | null>(null);
   const [editReplyMailbox, setEditReplyMailbox] = useState<OutreachMailbox | null>(null);
   const [editReplyTo, setEditReplyTo] = useState('');
@@ -100,13 +89,6 @@ export function OutreachSettingsContent() {
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [oauthWaiting, setOauthWaiting] = useState(false);
   const oauthPopupRef = useRef<Window | null>(null);
-
-  const clearConnectForm = useCallback(() => {
-    setEmail('');
-    setAppPassword('');
-    setReplyTo('');
-    setConnectError(null);
-  }, []);
 
   const closeOauthPopup = useCallback(() => {
     const popup = oauthPopupRef.current;
@@ -130,10 +112,6 @@ export function OutreachSettingsContent() {
   }, [cancelOAuthPolling, closeOauthPopup]);
 
   useEffect(() => {
-    if (!showConnectForm) clearConnectForm();
-  }, [showConnectForm, clearConnectForm]);
-
-  useEffect(() => {
     if (editReplyMailbox) {
       setEditReplyTo(editReplyMailbox.replyTo ?? '');
       setEditReplyError(null);
@@ -148,13 +126,6 @@ export function OutreachSettingsContent() {
     [cancelOAuthPolling, closeOauthPopup]
   );
 
-  const trimmedEmail = email.trim();
-  const trimmedReplyTo = replyTo.trim();
-  const emailValid = trimmedEmail.length > 0 && isValidEmail(trimmedEmail);
-  const replyToValid = trimmedReplyTo.length === 0 || isValidEmail(trimmedReplyTo);
-  const canConnect =
-    emailValid && replyToValid && appPassword.trim().length > 0 && !isConnecting && !isDetaching;
-
   const trimmedOauthReplyTo = oauthReplyTo.trim();
   const oauthReplyToValid = trimmedOauthReplyTo.length === 0 || isValidEmail(trimmedOauthReplyTo);
   const oauthBusy = isInitiatingOAuth || isOAuthPolling || oauthWaiting;
@@ -162,36 +133,6 @@ export function OutreachSettingsContent() {
   const refreshAll = useCallback(async () => {
     await Promise.all([refetchMailboxes(), refetchCapacity(), refetchCampaigns()]);
   }, [refetchMailboxes, refetchCapacity, refetchCampaigns]);
-
-  const handleConnect = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canConnect) return;
-    setConnectError(null);
-    try {
-      await connectMailbox({
-        email: trimmedEmail,
-        app_password: appPassword,
-        ...(trimmedReplyTo ? { reply_to: trimmedReplyTo } : {}),
-      });
-      clearConnectForm();
-      setShowConnectForm(false);
-      toast.success('Gmail mailbox connected');
-      await refreshAll();
-    } catch (err: unknown) {
-      if (err instanceof ApiError && err.status === 409) {
-        setConnectError(
-          extractApiErrorMessage(
-            err,
-            'This mailbox is already connected or owned by another editor.'
-          )
-        );
-      } else {
-        setConnectError(extractApiErrorMessage(err, 'Failed to connect mailbox'));
-      }
-    } finally {
-      setAppPassword('');
-    }
-  };
 
   const handleSaveReplyTo = async () => {
     if (!editReplyMailbox) return;
@@ -225,7 +166,6 @@ export function OutreachSettingsContent() {
 
   const openOauthReplyModal = () => {
     if (oauthBusy) return;
-    setShowConnectForm(false);
     cancelOAuthPolling();
     closeOauthPopup();
     setShowOauthFlow(true);
@@ -385,120 +325,20 @@ export function OutreachSettingsContent() {
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Connected mailboxes</h2>
-            <p className="text-sm text-gray-500">
-              Personal Gmail (app password) or Google Workspace.
-            </p>
+            <p className="text-sm text-gray-500">Connect a Google Workspace mailbox to send outreach.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {!showConnectForm ? (
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2"
-                disabled={oauthBusy}
-                onClick={() => setShowConnectForm(true)}
-              >
-                <Plus className="h-4 w-4" aria-hidden />
-                Connect Gmail
-              </Button>
-            ) : null}
-            <button
-              type="button"
-              disabled
-              onClick={openOauthReplyModal}
-              className="inline-flex h-8 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-            >
-              <GoogleIcon className="h-4 w-4" />
-              Sign in with Google Workspace
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={oauthBusy}
+            onClick={openOauthReplyModal}
+            className="inline-flex h-8 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          >
+            <GoogleIcon className="h-4 w-4" />
+            Sign in with Google Workspace
+          </button>
         </div>
 
         {mailboxesError ? <Alert variant="error">{mailboxesError}</Alert> : null}
-
-        {showConnectForm ? (
-          <form
-            onSubmit={handleConnect}
-            className="mb-4 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4"
-          >
-            {connectError ? <Alert variant="error">{connectError}</Alert> : null}
-            <Input
-              label="Gmail address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@gmail.com"
-              autoComplete="username"
-              required
-              disabled={isConnecting}
-              error={
-                trimmedEmail.length > 0 && !emailValid ? 'Enter a valid email address' : undefined
-              }
-            />
-            <div>
-              <Input
-                label="Google app password"
-                type="password"
-                value={appPassword}
-                onChange={(e) => setAppPassword(e.target.value)}
-                placeholder="16-character app password"
-                autoComplete="new-password"
-                required
-                disabled={isConnecting}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Requires an{' '}
-                <a
-                  href={GOOGLE_APP_PASSWORD_HELP_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
-                >
-                  app password
-                </a>
-                .
-              </p>
-            </div>
-            <Input
-              label="Reply-To (optional)"
-              type="email"
-              value={replyTo}
-              onChange={(e) => setReplyTo(e.target.value)}
-              placeholder="replies@example.com"
-              disabled={isConnecting}
-              error={
-                trimmedReplyTo.length > 0 && !replyToValid
-                  ? 'Enter a valid email address'
-                  : undefined
-              }
-            />
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button
-                type="button"
-                variant="outlined"
-                size="sm"
-                disabled={isConnecting}
-                onClick={() => setShowConnectForm(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="default"
-                size="sm"
-                disabled={!canConnect}
-                className="gap-2"
-              >
-                {isConnecting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <Mail className="h-4 w-4" aria-hidden />
-                )}
-                Connect
-              </Button>
-            </div>
-          </form>
-        ) : null}
 
         {mailboxesLoading && mailboxes.length === 0 ? (
           <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -509,51 +349,43 @@ export function OutreachSettingsContent() {
           <p className="text-sm text-gray-600">No mailboxes connected yet.</p>
         ) : (
           <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200">
-            {mailboxes.map((mailbox) => {
-              const providerLabel = getOutreachMailboxProviderLabel(mailbox.providerCode);
-              return (
-                <li
-                  key={mailbox.id}
-                  className="flex flex-wrap items-center justify-between gap-3 px-3 py-3"
+            {mailboxes.map((mailbox) => (
+              <li
+                key={mailbox.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-3 py-3"
+              >
+                <div className="min-w-0">
+                  <span className="text-sm font-medium text-gray-900 truncate block">
+                    {mailbox.email}
+                  </span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    <span className="inline-flex items-center gap-1">
+                      Reply-To: {mailbox.replyTo || '—'}
+                      <button
+                        type="button"
+                        className="inline-flex rounded p-0.5 text-gray-500 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:opacity-50"
+                        aria-label="Edit Reply-To"
+                        title="Edit Reply-To"
+                        disabled={isUpdatingMailbox || mailbox.status === 'disconnecting'}
+                        onClick={() => setEditReplyMailbox(mailbox)}
+                      >
+                        <Pencil className="h-3 w-3 shrink-0" aria-hidden />
+                      </button>
+                    </span>
+                  </p>
+                </div>
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  className="gap-2"
+                  disabled={isDetaching || mailbox.status === 'disconnecting'}
+                  onClick={() => setDetachTarget(mailbox)}
                 >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                      <span className="text-sm font-medium text-gray-900 truncate">
-                        {mailbox.email}
-                      </span>
-                      {providerLabel ? (
-                        <span className="text-xs text-gray-500">{providerLabel}</span>
-                      ) : null}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      <span className="inline-flex items-center gap-1">
-                        Reply-To: {mailbox.replyTo || '—'}
-                        <button
-                          type="button"
-                          className="inline-flex rounded p-0.5 text-gray-500 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:opacity-50"
-                          aria-label="Edit Reply-To"
-                          title="Edit Reply-To"
-                          disabled={isUpdatingMailbox || mailbox.status === 'disconnecting'}
-                          onClick={() => setEditReplyMailbox(mailbox)}
-                        >
-                          <Pencil className="h-3 w-3 shrink-0" aria-hidden />
-                        </button>
-                      </span>
-                    </p>
-                  </div>
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    className="gap-2"
-                    disabled={isDetaching || mailbox.status === 'disconnecting'}
-                    onClick={() => setDetachTarget(mailbox)}
-                  >
-                    <Unplug className="h-4 w-4" aria-hidden />
-                    Detach
-                  </Button>
-                </li>
-              );
-            })}
+                  <Unplug className="h-4 w-4" aria-hidden />
+                  Detach
+                </Button>
+              </li>
+            ))}
           </ul>
         )}
       </BaseSection>
