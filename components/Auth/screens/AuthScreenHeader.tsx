@@ -27,7 +27,7 @@ export function AuthScreenHeader({
           {backLabel}
         </button>
       )}
-      <h2 className="text-[28px] font-extrabold leading-tight tracking-tight text-gray-900">
+      <h2 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 lg:!text-[28px] lg:!font-extrabold">
         {title}
       </h2>
       {subtitle && <p className="mt-1.5 text-[15px] leading-relaxed text-gray-600">{subtitle}</p>}

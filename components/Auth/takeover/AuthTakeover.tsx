@@ -60,18 +60,18 @@ export function AuthTakeover({ children, onClose, backdrop }: AuthTakeoverProps)
           </div>
         </div>
       ) : (
-        <div className="relative h-[300px] tablet:!h-[360px]">
+        <div className="relative h-[280px] tablet:!h-[340px]">
           <ShaderBackdrop backdrop={shown} layout="band" className="absolute inset-0" />
+          {/* Darkens the bottom of the band so the headline reads over any backdrop. */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#02040c]/90 via-[#02040c]/55 to-transparent" />
           <Logo variant="white" size={22} loading="eager" className="absolute left-5 top-5" />
-          <div className="absolute bottom-0 left-4 max-w-[300px] rounded-t-[14px] bg-white px-5 pb-2 pt-[18px]">
-            <h2 className="text-[30px] font-extrabold leading-[1.02] tracking-tight text-gray-900 [text-wrap:balance]">
-              {HEADLINE}
-            </h2>
-          </div>
+          <h2 className="absolute bottom-6 left-5 right-5 max-w-[320px] text-[26px] font-extrabold leading-[1.08] tracking-tight text-white [text-wrap:balance]">
+            {HEADLINE}
+          </h2>
         </div>
       )}
 
-      <div className="flex flex-1 flex-col px-6 pb-10 pt-8 lg:!overflow-y-auto lg:!px-12 lg:!py-16">
+      <div className="flex flex-1 flex-col px-6 pb-10 pt-9 lg:!overflow-y-auto lg:!px-12 lg:!py-16">
         <div className="mx-auto w-full max-w-[400px] lg:!my-auto">
           {children}
           <p className="mt-8 text-[13px] leading-relaxed text-gray-500">
