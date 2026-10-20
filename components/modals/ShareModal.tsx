@@ -8,7 +8,6 @@ import SocialShareButtons from '@/components/SocialShareButtons';
 import SharePostPreview from '@/components/SharePostPreview';
 import { useGeneratedSharePost } from '@/hooks/useGeneratedSharePost';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
-import { ID } from '@/types/root';
 
 export type ShareAction =
   | 'USER_OPENED_PROPOSAL'
@@ -97,7 +96,7 @@ interface ShareModalProps {
   action: ShareAction;
   shouldShowConfetti?: boolean;
   /** Post id of a proposal or RFP; swaps the description for an AI-written post preview. */
-  aiPostId?: ID;
+  aiPostId?: number;
 }
 
 export default function ShareModal({

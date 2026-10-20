@@ -44,10 +44,11 @@ export function SocialShareButtons({
 
   const twitterLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(buildUrlWithUtm(url, 'x'))}`;
   // share-offsite takes only a link; the feed composer also takes the post text.
+  const linkedInUrl = buildUrlWithUtm(url, 'linkedin');
   const linkedInLink =
     text === undefined
-      ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildUrlWithUtm(url, 'linkedin'))}`
-      : `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`${text} ${buildUrlWithUtm(url, 'linkedin')}`)}`;
+      ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(linkedInUrl)}`
+      : `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text + ' ' + linkedInUrl)}`;
   const blueSkyLink = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${socialText} ${buildUrlWithUtm(url, 'bluesky')}`)}`;
 
   const handleShare = (platform: 'linkedin' | 'x' | 'bluesky' | 'copy') => {

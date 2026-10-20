@@ -28,7 +28,7 @@ export function SharePostPreview({
   docTitle,
   url,
   onChange,
-}: SharePostPreviewProps) {
+}: Readonly<SharePostPreviewProps>) {
   const { user } = useUser();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

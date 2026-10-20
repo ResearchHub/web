@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import ShareModal, { ShareAction } from '@/components/modals/ShareModal';
-import { ID } from '@/types/root';
 
 interface ShareModalContextType {
   showShareModal: (params: {
@@ -10,7 +9,7 @@ interface ShareModalContextType {
     docTitle: string;
     action: ShareAction;
     shouldShowConfetti?: boolean;
-    aiPostId?: ID;
+    aiPostId?: number;
   }) => void;
   hideShareModal: () => void;
 }
@@ -31,7 +30,7 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
   const [docTitle, setDocTitle] = useState('');
   const [action, setAction] = useState<ShareAction>('USER_FUNDED_PROPOSAL');
   const [shouldShowConfetti, setShouldShowConfetti] = useState(true);
-  const [aiPostId, setAiPostId] = useState<ID>(undefined);
+  const [aiPostId, setAiPostId] = useState<number>();
 
   const showShareModal = useCallback(
     ({
@@ -45,7 +44,7 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
       docTitle: string;
       action: ShareAction;
       shouldShowConfetti?: boolean;
-      aiPostId?: ID;
+      aiPostId?: number;
     }) => {
       setShareUrl(url);
       setDocTitle(docTitle);
