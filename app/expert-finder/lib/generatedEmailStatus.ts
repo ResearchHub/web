@@ -1,3 +1,5 @@
+import type { GeneratedEmail } from '@/types/expertFinder';
+
 export function isGeneratedEmailDraftLike(status: string): boolean {
   return status === 'draft';
 }
@@ -10,8 +12,10 @@ export function isGeneratedEmailPipelineBusy(status: string): boolean {
   return status === 'processing' || status === 'sending';
 }
 
-export function isGeneratedEmailBounced(status: string): boolean {
-  return status === 'bounced';
+export function isGeneratedEmailBounced(
+  email: Pick<GeneratedEmail, 'status' | 'bouncedAt'>
+): boolean {
+  return email.status === 'bounced' || Boolean(email.bouncedAt);
 }
 
 export function isGeneratedEmailFailed(status: string): boolean {
@@ -25,29 +29,46 @@ export type GeneratedEmailStatusBadgeVariant =
   | 'warning'
   | 'error';
 
-export function getGeneratedEmailStatusPresentation(
-  status: string,
-  openCount: number = 0
-): {
+export type GeneratedEmailStatusInput = Pick<
+  GeneratedEmail,
+  'status' | 'openCount' | 'openedAt' | 'bouncedAt' | 'repliedAt' | 'sentAt' | 'complainedAt'
+>;
+
+/**
+ * Delivery-aware badge presentation.
+ * Precedence: complained → bounced → replied → opened → sent → queued/sending → draft → failed.
+ */
+export function getGeneratedEmailStatusPresentation(email: GeneratedEmailStatusInput): {
   label: string;
   variant: GeneratedEmailStatusBadgeVariant;
 } {
-  if (status === 'sent' && openCount > 0) {
+  const { status, openCount = 0, openedAt, bouncedAt, repliedAt, sentAt, complainedAt } = email;
+
+  if (status === 'complained' || complainedAt) {
+    return { label: 'Complained', variant: 'error' };
+  }
+  if (status === 'bounced' || bouncedAt) {
+    return { label: 'Bounced', variant: 'error' };
+  }
+  if (repliedAt) {
+    return { label: 'Replied', variant: 'success' };
+  }
+  if (openedAt || openCount > 0) {
     return { label: 'Opened', variant: 'success' };
   }
+  if (sentAt || status === 'sent') {
+    return { label: 'Sent', variant: 'success' };
+  }
+
   switch (status) {
-    case 'bounced':
-      return { label: 'Bounced', variant: 'error' };
     case 'draft':
       return { label: 'Draft', variant: 'primary' };
-    case 'sent':
-      return { label: 'Sent', variant: 'success' };
     case 'closed':
       return { label: 'Closed', variant: 'default' };
     case 'processing':
-      return { label: 'Processing', variant: 'warning' };
+      return { label: 'Queued', variant: 'warning' };
     case 'sending':
-      return { label: 'Sending', variant: 'warning' };
+      return { label: 'Pending delivery', variant: 'warning' };
     case 'failed':
       return { label: 'Failed', variant: 'error' };
     case 'send_failed':

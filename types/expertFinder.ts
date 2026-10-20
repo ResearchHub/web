@@ -618,7 +618,13 @@ export interface GeneratedEmail {
   proposalDraftId: number | null;
   /** Invite URL granting the expert editor access to the proposal note, when present. */
   proposalInviteUrl: string | null;
+  outreachCampaign: number | null;
+  externalLeadId: string | null;
+  senderAccount: string | null;
+  sentAt: string | null;
+  repliedAt: string | null;
   bouncedAt: string | null;
+  complainedAt: string | null;
   openedAt: string | null;
   openCount: number;
   createdAt: string;
@@ -657,7 +663,13 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
     notes: raw.notes ?? '',
     channels: parseOutreachChannels(raw.channels),
     sources: sources?.length ? sources : null,
+    outreachCampaign: raw.outreach_campaign ?? null,
+    externalLeadId: raw.external_lead_id ?? null,
+    senderAccount: raw.sender_account ?? null,
+    sentAt: raw.sent_at ?? null,
+    repliedAt: raw.replied_at ?? null,
     bouncedAt: raw.bounced_at ?? null,
+    complainedAt: raw.complained_at ?? null,
     openedAt: raw.opened_at ?? null,
     openCount: raw.open_count ?? 0,
     createdAt: raw.created_at ?? '',
@@ -665,10 +677,7 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
     createdBy: transformCreatedBy(raw.created_by),
     listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
     proposalDraftId: raw.proposal_draft ?? null,
-    proposalInviteUrl:
-      raw.proposal_invite_url != null && String(raw.proposal_invite_url).trim() !== ''
-        ? String(raw.proposal_invite_url).trim()
-        : null,
+    proposalInviteUrl: raw.proposal_invite_url ?? null,
   };
 });
 
@@ -730,3 +739,260 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   createdDate: raw.created_date ?? '',
   updatedDate: raw.updated_date ?? '',
 }));
+
+// ── Instantly outreach mailboxes / capacity / campaigns ──────────────────────
+
+export type OutreachMailboxStatus = 'active' | 'disconnecting' | 'error' | 'disconnected';
+
+export interface OutreachMailbox {
+  id: number;
+  email: string;
+  status: OutreachMailboxStatus;
+  dailyLimit: number;
+  replyTo: string | null;
+  providerCode: string;
+  createdDate: string;
+  updatedDate: string;
+  editorId: number | null;
+  editorEmail: string | null;
+  warmupEnabled: boolean | null;
+  totalSent: number | null;
+}
+
+export type OutreachMailboxUpdatePayload = {
+  reply_to?: string;
+  daily_limit?: number;
+  warmup_enabled?: boolean;
+};
+
+const OUTREACH_MAILBOX_STATUSES: readonly OutreachMailboxStatus[] = [
+  'active',
+  'disconnecting',
+  'error',
+  'disconnected',
+];
+
+function parseOutreachMailboxStatus(raw: unknown): OutreachMailboxStatus {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  return (OUTREACH_MAILBOX_STATUSES as readonly string[]).includes(value)
+    ? (value as OutreachMailboxStatus)
+    : 'disconnected';
+}
+
+export const transformOutreachMailbox = createTransformer<any, OutreachMailbox>((raw) => ({
+  id: raw.id ?? 0,
+  email: raw.email ?? '',
+  status: parseOutreachMailboxStatus(raw.status),
+  dailyLimit: raw.daily_limit ?? 0,
+  replyTo: raw.reply_to ?? null,
+  providerCode: raw.provider_code != null ? String(raw.provider_code) : '',
+  createdDate: raw.created_date ?? '',
+  updatedDate: raw.updated_date ?? '',
+  editorId: raw.editor_id != null ? Number(raw.editor_id) : null,
+  editorEmail: raw.editor_email != null ? String(raw.editor_email) : null,
+  warmupEnabled: typeof raw.warmup_enabled === 'boolean' ? raw.warmup_enabled : null,
+  totalSent: raw.total_sent != null ? Number(raw.total_sent) : null,
+}));
+
+export interface OutreachCapacityMailbox {
+  email: string;
+  status: OutreachMailboxStatus;
+  dailyLimit: number;
+  sentToday: number;
+  remainingToday: number;
+}
+
+export interface OutreachCapacity {
+  activeMailboxCount: number;
+  dailyLimitTotal: number;
+  sentToday: number;
+  remainingToday: number;
+  mailboxes: OutreachCapacityMailbox[];
+}
+
+export const transformOutreachCapacityMailbox = createTransformer<any, OutreachCapacityMailbox>(
+  (raw) => ({
+    email: raw.email ?? '',
+    status: parseOutreachMailboxStatus(raw.status),
+    dailyLimit: raw.daily_limit ?? 0,
+    sentToday: raw.sent_today ?? 0,
+    remainingToday: raw.remaining_today ?? 0,
+  })
+);
+
+export const transformOutreachCapacity = createTransformer<any, OutreachCapacity>((raw) => ({
+  activeMailboxCount: raw.active_mailbox_count ?? 0,
+  dailyLimitTotal: raw.daily_limit_total ?? 0,
+  sentToday: raw.sent_today ?? 0,
+  remainingToday: raw.remaining_today ?? 0,
+  mailboxes: Array.isArray(raw.mailboxes)
+    ? raw.mailboxes.map((item: any) => transformOutreachCapacityMailbox(item))
+    : [],
+}));
+
+export interface OutreachCampaignCounts {
+  queued: number;
+  sent: number;
+  opened: number;
+  replied: number;
+  bounced: number;
+}
+
+export type OutreachCampaignStatus = 'active' | 'paused' | 'no_active_mailboxes' | 'error';
+
+export interface OutreachCampaign {
+  id: number;
+  name: string;
+  templateId: number;
+  templateName: string;
+  externalCampaignId: string | null;
+  publishedSubject: string;
+  publishedBody: string;
+  publishedVariableKeys: string[];
+  status: OutreachCampaignStatus | string;
+  publishedAt: string | null;
+  hasUnpublishedChanges: boolean;
+  counts: OutreachCampaignCounts;
+  createdDate: string;
+  updatedDate: string;
+}
+
+export interface OutreachCampaignListResponse {
+  campaigns: OutreachCampaign[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+function transformOutreachCampaignCounts(raw: any): OutreachCampaignCounts {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return {
+    queued: source.queued ?? 0,
+    sent: source.sent ?? 0,
+    opened: source.opened ?? 0,
+    replied: source.replied ?? 0,
+    bounced: source.bounced ?? 0,
+  };
+}
+
+export const transformOutreachCampaign = createTransformer<any, OutreachCampaign>((raw) => ({
+  id: raw.id ?? 0,
+  name: raw.name ?? '',
+  templateId: raw.template_id ?? 0,
+  templateName: raw.template_name ?? '',
+  externalCampaignId: raw.external_campaign_id ?? null,
+  publishedSubject: raw.published_subject ?? '',
+  publishedBody: raw.published_body ?? '',
+  publishedVariableKeys: Array.isArray(raw.published_variable_keys)
+    ? raw.published_variable_keys.map((key: unknown) => String(key))
+    : [],
+  status: raw.status ?? '',
+  publishedAt: raw.published_at ?? null,
+  hasUnpublishedChanges: Boolean(raw.has_unpublished_changes),
+  counts: transformOutreachCampaignCounts(raw.counts),
+  createdDate: raw.created_date ?? '',
+  updatedDate: raw.updated_date ?? '',
+}));
+
+export interface OutreachCampaignSendResponse {
+  emails: GeneratedEmail[];
+  queued: number;
+}
+
+export interface OutreachCampaignCancelQueuedResponse {
+  cancelled: number;
+  skippedIds: number[];
+  emails: GeneratedEmail[];
+}
+
+export interface OutreachCampaignPreviewRequest {
+  expert_email: string;
+  to_email: string;
+  expert_search_id?: number;
+  from_mailbox_id?: number;
+}
+
+export interface OutreachCampaignPreviewResponse {
+  subject: string;
+  html: string;
+  toEmail: string;
+  fromEmail: string;
+  fromMailboxId: number | null;
+  expertId: number | null;
+  expertEmail: string;
+  expertSearchId: number | null;
+}
+
+export const transformOutreachCampaignPreviewResponse = createTransformer<
+  any,
+  OutreachCampaignPreviewResponse
+>((raw) => ({
+  subject: raw.subject ?? '',
+  html: raw.html ?? '',
+  toEmail: raw.to_email ?? '',
+  fromEmail: raw.from_email ?? '',
+  fromMailboxId: raw.from_mailbox_id ?? null,
+  expertId: raw.expert_id ?? null,
+  expertEmail: raw.expert_email ?? '',
+  expertSearchId: raw.expert_search_id ?? null,
+}));
+
+// ── Outreach mailbox OAuth (Google Workspace) ────────────────────────────────
+
+export type OutreachOAuthProvider = 'google';
+
+export interface OutreachOAuthInitResponse {
+  sessionId: string;
+  authUrl: string;
+}
+
+export const transformOutreachOAuthInitResponse = createTransformer<any, OutreachOAuthInitResponse>(
+  (raw) => ({
+    sessionId: raw.session_id ?? '',
+    authUrl: raw.auth_url ?? '',
+  })
+);
+
+export type OutreachOAuthSessionStatus = 'pending' | 'success' | 'error' | 'expired';
+
+const OUTREACH_OAUTH_SESSION_STATUSES: readonly OutreachOAuthSessionStatus[] = [
+  'pending',
+  'success',
+  'error',
+  'expired',
+];
+
+function parseOutreachOAuthSessionStatus(raw: unknown): OutreachOAuthSessionStatus {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  if ((OUTREACH_OAUTH_SESSION_STATUSES as readonly string[]).includes(value)) {
+    return value as OutreachOAuthSessionStatus;
+  }
+  // Unknown statuses: keep polling unless they clearly look like failures.
+  if (value === 'failed' || value === 'failure' || value === 'cancelled' || value === 'canceled') {
+    return 'error';
+  }
+  return 'pending';
+}
+
+export interface OutreachOAuthSession {
+  sessionId: string;
+  status: OutreachOAuthSessionStatus;
+  errorDescription: string | null;
+  mailbox: OutreachMailbox | null;
+}
+
+export const transformOutreachOAuthSession = createTransformer<any, OutreachOAuthSession>(
+  (raw) => ({
+    sessionId: raw.session_id ?? raw.id ?? '',
+    status: parseOutreachOAuthSessionStatus(raw.status),
+    errorDescription: raw.error_description ?? raw.error ?? null,
+    mailbox:
+      raw.mailbox != null && typeof raw.mailbox === 'object'
+        ? transformOutreachMailbox(raw.mailbox)
+        : null,
+  })
+);

@@ -8,6 +8,11 @@ import {
   transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
   transformGeneratedEmail,
+  transformOutreachCampaign,
+  transformOutreachCapacity,
+  transformOutreachMailbox,
+  transformOutreachOAuthInitResponse,
+  transformOutreachOAuthSession,
   transformSavedTemplate,
   transformInvitedExperts,
   transformProposalDraft,
@@ -20,7 +25,20 @@ import {
   type ExpertSearchListResponse,
   type GeneratedEmail,
   type GeneratedEmailListResponse,
+  type OutreachCampaign,
+  type OutreachCampaignCancelQueuedResponse,
+  type OutreachCampaignListResponse,
+  type OutreachCampaignPreviewRequest,
+  type OutreachCampaignPreviewResponse,
+  type OutreachCampaignSendResponse,
+  transformOutreachCampaignPreviewResponse,
+  type OutreachCapacity,
   type OutreachChannel,
+  type OutreachMailbox,
+  type OutreachMailboxUpdatePayload,
+  type OutreachOAuthInitResponse,
+  type OutreachOAuthProvider,
+  type OutreachOAuthSession,
   type SavedTemplate,
   type SavedTemplateListResponse,
 } from '@/types/expertFinder';
@@ -28,17 +46,6 @@ import type { ContentType, Work } from '@/types/work';
 import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
 import { ApiError } from './types/api';
-
-// TEMP: Disable outreach while AWS sender provider is broken. Set to false to re-enable.
-const OUTREACH_SENDING_DISABLED = true;
-const OUTREACH_DISABLED_MESSAGE =
-  'Expert outreach is temporarily unavailable. Please try again later.';
-
-function assertExpertFinderOutreachEnabled(): void {
-  if (OUTREACH_SENDING_DISABLED) {
-    throw new ApiError(OUTREACH_DISABLED_MESSAGE, 503);
-  }
-}
 
 // ── API enum values and display labels ─────────────
 
@@ -153,11 +160,13 @@ export const PROPOSAL_DRAFT_OUTREACH_TEMPLATE: EmailTemplateKind = 'proposal-dra
 /** GeneratedEmail.status */
 export const GENERATED_EMAIL_STATUS_VALUES = [
   'draft',
-  'sent',
   'processing',
-  'failed',
   'sending',
+  'sent',
+  'bounced',
+  'failed',
   'send_failed',
+  'complained',
   'closed',
 ] as const;
 
@@ -424,6 +433,8 @@ export class ExpertFinderService {
     limit?: number;
     offset?: number;
     search_id?: number | string;
+    campaign_id?: number | string;
+    status?: string;
   }): Promise<GeneratedEmailListResponse> {
     const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
@@ -433,6 +444,12 @@ export class ExpertFinderService {
     });
     if (params?.search_id != null && params.search_id !== '') {
       searchParams.set('search_id', String(params.search_id));
+    }
+    if (params?.campaign_id != null && params.campaign_id !== '') {
+      searchParams.set('campaign_id', String(params.campaign_id));
+    }
+    if (params?.status != null && params.status.trim() !== '') {
+      searchParams.set('status', params.status.trim());
     }
     const response = await ApiClient.get<{
       emails: Record<string, unknown>[];
@@ -472,40 +489,92 @@ export class ExpertFinderService {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/emails/${emailId}/`);
   }
 
-  /**
-   * Send generated email(s) to experts via SES.
-   * POST /api/research_ai/expert-finder/emails/send/
-   */
-  static async sendEmails(payload: {
-    generated_email_ids: number[];
-    reply_to: string[];
-    cc?: string[];
-  }): Promise<{ sent: number }> {
-    assertExpertFinderOutreachEnabled();
-    const body: Record<string, unknown> = {
-      generated_email_ids: payload.generated_email_ids,
-      reply_to: payload.reply_to,
-    };
-    if (payload.cc != null && payload.cc.length > 0) body.cc = payload.cc;
-    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/send/`, body);
-    return { sent: raw.sent ?? 0 };
+  // ── Outreach mailboxes (Instantly) ───────────────────────────────────────
+
+  static async listOutreachMailboxes(params?: {
+    /** Moderator-only: all mailboxes (admin shape with editor/warmup fields). */
+    scope?: 'all';
+  }): Promise<OutreachMailbox[]> {
+    const query = params?.scope === 'all' ? '?scope=all' : '';
+    const response = await ApiClient.get<{ mailboxes: Record<string, unknown>[] }>(
+      `${this.BASE_PATH}/outreach-mailboxes/${query}`
+    );
+    return Array.isArray(response.mailboxes)
+      ? response.mailboxes.map((item) => transformOutreachMailbox(item))
+      : [];
   }
 
   /**
-   * Send generated email(s) to the current user for preview/testing.
-   * POST /api/research_ai/expert-finder/emails/preview/
+   * Connect a personal Gmail mailbox via Google app password.
+   * The app password is sent only in this request and is never returned or stored client-side.
    */
-  static async previewEmails(payload: {
-    generated_email_ids: number[];
-    reply_to: string[];
-  }): Promise<{ sent: number }> {
-    assertExpertFinderOutreachEnabled();
+  static async connectOutreachMailbox(payload: {
+    email: string;
+    app_password: string;
+    reply_to?: string;
+  }): Promise<OutreachMailbox> {
     const body: Record<string, unknown> = {
-      generated_email_ids: payload.generated_email_ids,
-      reply_to: payload.reply_to,
+      email: payload.email,
+      app_password: payload.app_password,
     };
-    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
-    return { sent: raw.sent ?? 0 };
+    if (payload.reply_to != null) body.reply_to = payload.reply_to;
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-mailboxes/`,
+      body
+    );
+    return transformOutreachMailbox(raw);
+  }
+
+  /**
+   * Update mailbox fields. `daily_limit` and `warmup_enabled` are moderator-only on the API.
+   */
+  static async updateOutreachMailbox(
+    mailboxId: number | string,
+    payload: OutreachMailboxUpdatePayload
+  ): Promise<OutreachMailbox> {
+    const raw = await ApiClient.patch<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-mailboxes/${mailboxId}/`,
+      payload
+    );
+    return transformOutreachMailbox(raw);
+  }
+
+  static async detachOutreachMailbox(mailboxId: number | string): Promise<void> {
+    return ApiClient.deleteNoContent(`${this.BASE_PATH}/outreach-mailboxes/${mailboxId}/`);
+  }
+
+  /**
+   * Start Google Workspace OAuth for an outreach mailbox.
+   * Returns a session id + auth URL; the browser should open auth_url and poll the session.
+   */
+  static async initOutreachOAuth(
+    provider: OutreachOAuthProvider,
+    payload?: { reply_to?: string }
+  ): Promise<OutreachOAuthInitResponse> {
+    const body: Record<string, unknown> = {};
+    if (payload?.reply_to != null && payload.reply_to.trim() !== '') {
+      body.reply_to = payload.reply_to.trim();
+    }
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-mailboxes/oauth/${provider}/init/`,
+      body
+    );
+    return transformOutreachOAuthInitResponse(raw);
+  }
+
+  /** Poll an in-flight outreach OAuth session until it reaches a terminal status. */
+  static async pollOutreachOAuthSession(sessionId: string): Promise<OutreachOAuthSession> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-mailboxes/oauth/session/${encodeURIComponent(sessionId)}/`
+    );
+    return transformOutreachOAuthSession(raw);
+  }
+
+  static async getOutreachCapacity(): Promise<OutreachCapacity> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-capacity/`
+    );
+    return transformOutreachCapacity(raw);
   }
 
   // ── Saved templates ──────────────────────────────────────────────────────
@@ -562,24 +631,148 @@ export class ExpertFinderService {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/templates/${templateId}/`);
   }
 
+  /**
+   * Rewrite a shared template via Bedrock into a new EmailTemplate (placeholders preserved).
+   * POST /api/research_ai/expert-finder/templates/<id>/rewrite/
+   */
+  static async rewriteTemplate(templateId: number | string): Promise<SavedTemplate> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/templates/${templateId}/rewrite/`
+    );
+    return transformSavedTemplate(raw);
+  }
+
+  /**
+   * Publish a shared template into this editor's outreach campaign (idempotent upsert).
+   * Requires a campaign name. Does not send leads.
+   * POST /api/research_ai/expert-finder/templates/<id>/publish/
+   */
+  static async publishTemplate(
+    templateId: number | string,
+    payload: { name: string }
+  ): Promise<OutreachCampaign> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/templates/${templateId}/publish/`,
+      { name: payload.name.trim() }
+    );
+    return transformOutreachCampaign(raw);
+  }
+
+  // ── Outreach campaigns ───────────────────────────────────────────────────
+
+  static async listOutreachCampaigns(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<OutreachCampaignListResponse> {
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
+    const offset = params?.offset ?? 0;
+    const response = await ApiClient.get<{
+      campaigns?: Record<string, unknown>[];
+      total?: number;
+      limit?: number;
+      offset?: number;
+    }>(`${this.BASE_PATH}/outreach-campaigns/?limit=${limit}&offset=${offset}`);
+    const items = Array.isArray(response.campaigns) ? response.campaigns : [];
+    return {
+      campaigns: items.map((item) => transformOutreachCampaign(item)),
+      total: response.total ?? items.length,
+      limit: response.limit ?? limit,
+      offset: response.offset ?? offset,
+    };
+  }
+
+  static async getOutreachCampaign(campaignId: number | string): Promise<OutreachCampaign | null> {
+    const { campaigns } = await this.listOutreachCampaigns({ limit: 100, offset: 0 });
+    const id = Number(campaignId);
+    return campaigns.find((c) => c.id === id) ?? null;
+  }
+
+  /**
+   * Activate (restore) a paused outreach campaign after reconnecting a mailbox.
+   * POST /api/research_ai/expert-finder/outreach-campaigns/<id>/activate/
+   * Requires ≥1 active mailbox; returns the updated campaign (200).
+   */
+  static async activateOutreachCampaign(campaignId: number | string): Promise<OutreachCampaign> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-campaigns/${campaignId}/activate/`,
+      {}
+    );
+    return transformOutreachCampaign(raw);
+  }
+
+  /**
+   * Queue selected experts onto a published campaign.
+   * POST /api/research_ai/expert-finder/outreach-campaigns/<id>/send/
+   * 202: { emails, queued }. Capacity does not gate; Instantly drips over days.
+   */
+  static async sendOutreachCampaign(
+    campaignId: number | string,
+    payload: { expert_search_id: number; expert_ids: number[] }
+  ): Promise<OutreachCampaignSendResponse> {
+    const raw = await ApiClient.post<{
+      emails?: Record<string, unknown>[];
+      queued?: number;
+    }>(`${this.BASE_PATH}/outreach-campaigns/${campaignId}/send/`, payload);
+    return {
+      emails: Array.isArray(raw.emails)
+        ? raw.emails.map((item) => transformGeneratedEmail(item))
+        : [],
+      queued: raw.queued ?? 0,
+    };
+  }
+
+  /**
+   * Cancel pending-delivery leads on a campaign (status=sending only).
+   * POST /api/research_ai/expert-finder/outreach-campaigns/<id>/cancel-queued/
+   */
+  static async cancelQueuedOutreachCampaign(
+    campaignId: number | string,
+    payload: { generated_email_ids: number[] }
+  ): Promise<OutreachCampaignCancelQueuedResponse> {
+    const raw = await ApiClient.post<{
+      cancelled?: number;
+      skipped_ids?: number[];
+      emails?: Record<string, unknown>[];
+    }>(`${this.BASE_PATH}/outreach-campaigns/${campaignId}/cancel-queued/`, payload);
+    return {
+      cancelled: raw.cancelled ?? 0,
+      skippedIds: Array.isArray(raw.skipped_ids)
+        ? raw.skipped_ids.map((id) => Number(id)).filter((id) => Number.isFinite(id))
+        : [],
+      emails: Array.isArray(raw.emails)
+        ? raw.emails.map((item) => transformGeneratedEmail(item))
+        : [],
+    };
+  }
+
+  /**
+   * Send an Instantly test email for a published campaign (no GeneratedEmail / lead).
+   * POST /api/research_ai/expert-finder/outreach-campaigns/<id>/preview/
+   */
+  static async previewOutreachCampaign(
+    campaignId: number | string,
+    payload: OutreachCampaignPreviewRequest
+  ): Promise<OutreachCampaignPreviewResponse> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-campaigns/${campaignId}/preview/`,
+      payload
+    );
+    return transformOutreachCampaignPreviewResponse(raw);
+  }
+
   // ── RFP applicant invitations ────────────────────────────────────────────
 
   /**
-   * Invite experts to apply to an RFP (grant) by email.
+   * Create draft invitation emails for RFP applicants (does not send via Instantly).
    * POST /api/research_ai/expert-finder/rfp/:grantId/invite-applicants/
    */
   static async inviteApplicants(
     grantId: string | number,
-    params: { emails: string[]; replyTo?: string; cc?: string[] }
+    params: { emails: string[] }
   ): Promise<InviteApplicantsResponse> {
-    assertExpertFinderOutreachEnabled();
-    const body: Record<string, unknown> = { emails: params.emails };
-    if (params.replyTo) body.reply_to = params.replyTo;
-    if (params.cc && params.cc.length) body.cc = params.cc;
-
     const response = await ApiClient.post<RawInviteApplicantsResponse>(
       `${this.BASE_PATH}/rfp/${grantId}/invite-applicants/`,
-      body
+      { emails: params.emails }
     );
     return {
       queued: response.queued ?? 0,

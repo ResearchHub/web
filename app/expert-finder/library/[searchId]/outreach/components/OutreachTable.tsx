@@ -1,16 +1,17 @@
 'use client';
 
-import Link from 'next/link';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
 import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
 import { getOutreachChannelLabels } from '@/app/expert-finder/lib/outreachChannels';
+import { cn } from '@/utils/styles';
 
 function statusCell(email: GeneratedEmail) {
-  const { label, variant } = getGeneratedEmailStatusPresentation(email.status, email.openCount);
-  const channelLabels = email.status === 'sent' ? getOutreachChannelLabels(email.channels) : [];
+  const { label, variant } = getGeneratedEmailStatusPresentation(email);
+  const showChannels = email.status === 'sent' || Boolean(email.sentAt);
+  const channelLabels = showChannels ? getOutreachChannelLabels(email.channels) : [];
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <Badge variant={variant}>{label}</Badge>
@@ -23,17 +24,8 @@ function statusCell(email: GeneratedEmail) {
   );
 }
 
-const SUBJECT_TRUNCATE_LENGTH = 50;
-
-function truncate(s: string, max: number): string {
-  if (!s?.trim()) return '—';
-  const t = s.trim();
-  return t.length <= max ? t : `${t.slice(0, max)}…`;
-}
-
 const OUTREACH_TABLE_COLUMNS: SortableColumn[] = [
-  { key: 'subject', label: 'Subject', sortable: false },
-  { key: 'expertName', label: 'Expert', sortable: false },
+  { key: 'expert', label: 'Expert', sortable: false },
   { key: 'status', label: 'Status', sortable: false },
   { key: 'createdBy', label: 'Created By', sortable: false },
   { key: 'createdAt', label: 'Created Date', sortable: false },
@@ -43,31 +35,31 @@ export { OUTREACH_TABLE_COLUMNS };
 
 interface OutreachTableProps {
   emails: GeneratedEmail[];
-  onRowClick?: (email: GeneratedEmail) => void;
-  getDetailHref: (email: GeneratedEmail) => string;
   selectedIds?: Set<number>;
   onSelectionChange?: (ids: Set<number>) => void;
+  selectableIds?: Set<number>;
 }
 
 export function OutreachTable({
   emails,
-  onRowClick,
-  getDetailHref,
   selectedIds,
   onSelectionChange,
+  selectableIds,
 }: OutreachTableProps) {
   const pageIds = emails.map((e) => e.id);
-  const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds?.has(id));
+  const selectablePageIds = selectableIds ? pageIds.filter((id) => selectableIds.has(id)) : pageIds;
+  const allSelected =
+    selectablePageIds.length > 0 && selectablePageIds.every((id) => selectedIds?.has(id));
 
   const handleSelectAll = () => {
     if (!onSelectionChange || !selectedIds) return;
     if (allSelected) {
       const next = new Set(selectedIds);
-      pageIds.forEach((id) => next.delete(id));
+      selectablePageIds.forEach((id) => next.delete(id));
       onSelectionChange(next);
     } else {
       const next = new Set(selectedIds);
-      pageIds.forEach((id) => next.add(id));
+      selectablePageIds.forEach((id) => next.add(id));
       onSelectionChange(next);
     }
   };
@@ -75,6 +67,7 @@ export function OutreachTable({
   const handleSelectRow = (emailId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onSelectionChange || !selectedIds) return;
+    if (selectableIds && !selectableIds.has(emailId)) return;
     const next = new Set(selectedIds);
     if (next.has(emailId)) next.delete(emailId);
     else next.add(emailId);
@@ -89,10 +82,11 @@ export function OutreachTable({
             label: (
               <input
                 type="checkbox"
-                checked={pageIds.length > 0 ? allSelected : false}
+                checked={selectablePageIds.length > 0 ? allSelected : false}
+                disabled={selectablePageIds.length === 0}
                 onChange={handleSelectAll}
-                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                aria-label="Select all on this page"
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Select all pending delivery on this page"
               />
             ),
             sortable: false,
@@ -102,19 +96,26 @@ export function OutreachTable({
       : OUTREACH_TABLE_COLUMNS;
 
   const data = emails.map((email) => {
-    const subjectText = truncate(email.emailSubject, SUBJECT_TRUNCATE_LENGTH);
+    const expertName = email.expertName?.trim() || '—';
+    const expertEmail = email.expertEmail?.trim() || '';
+    const canSelect = !selectableIds || selectableIds.has(email.id);
     const row: Record<string, unknown> = {
       id: email.id,
-      subject: (
-        <Link
-          href={getDetailHref(email)}
-          className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {subjectText}
-        </Link>
+      expert: (
+        <div className="min-w-0">
+          <div
+            className="text-sm text-gray-900 truncate"
+            title={expertName !== '—' ? expertName : undefined}
+          >
+            {expertName}
+          </div>
+          {expertEmail ? (
+            <div className="text-xs text-gray-500 break-all" title={expertEmail}>
+              {expertEmail}
+            </div>
+          ) : null}
+        </div>
       ),
-      expertName: email.expertName || '—',
       status: statusCell(email),
       createdBy: email.createdBy?.author?.fullName ?? '—',
       createdAt: formatTimestamp(email.createdAt, false),
@@ -124,26 +125,23 @@ export function OutreachTable({
         <input
           type="checkbox"
           checked={selectedIds.has(email.id)}
+          disabled={!canSelect}
           onChange={() => {}}
           onClick={(e) => handleSelectRow(email.id, e)}
-          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-          aria-label={`Select ${email.expertName || 'row'}`}
+          className={cn(
+            'h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500',
+            canSelect ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'
+          )}
+          aria-label={
+            canSelect
+              ? `Select ${email.expertName || 'row'}`
+              : `${email.expertName || 'Row'} cannot be removed from queue`
+          }
         />
       );
     }
     return row;
   });
 
-  return (
-    <TableContainer
-      columns={columns}
-      data={data}
-      rowKey="id"
-      className="w-full cursor-pointer"
-      onRowClick={(row) => {
-        const email = emails.find((e) => e.id === row.id);
-        if (email) onRowClick?.(email);
-      }}
-    />
-  );
+  return <TableContainer columns={columns} data={data} rowKey="id" className="w-full" />;
 }
