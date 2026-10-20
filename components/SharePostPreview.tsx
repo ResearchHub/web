@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { useUser } from '@/contexts/UserContext';
@@ -18,23 +18,30 @@ interface SharePostPreviewProps {
   isGenerated: boolean;
   docTitle: string;
   url: string;
+  /** The image social sites show in the link's card. */
+  imageUrl?: string;
   onChange: (text: string) => void;
 }
 
-/** Editable preview of the post the share modal's social buttons will open. */
+/** Editable preview of the post the share modal's social buttons will open, laid out like X's composer. */
 export function SharePostPreview({
   text,
   isGenerated,
   docTitle,
   url,
+  imageUrl,
   onChange,
 }: Readonly<SharePostPreviewProps>) {
   const { user } = useUser();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [imageFailed, setImageFailed] = useState(false);
 
   const isLoading = text === null;
   const charCount = [...(text ?? '')].length + 1 + X_LINK_CHARS;
   const isOverLimit = charCount > X_MAX_CHARS;
+  const showImage = Boolean(imageUrl) && !imageFailed;
+
+  useEffect(() => setImageFailed(false), [imageUrl]);
 
   // Grow the textarea with its content so the preview reads like a real post.
   useEffect(() => {
@@ -61,12 +68,8 @@ export function SharePostPreview({
           disableTooltip
         />
         <div className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-gray-900">
-            {user?.fullName ?? 'You'}
-          </span>
-
           {isLoading ? (
-            <div className="mt-2 space-y-2" aria-live="polite">
+            <div className="space-y-2 pt-1" aria-live="polite">
               <div className="h-3 w-full animate-pulse rounded bg-gray-200" />
               <div className="h-3 w-11/12 animate-pulse rounded bg-gray-200" />
               <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200" />
@@ -82,14 +85,32 @@ export function SharePostPreview({
               onChange={(e) => onChange(e.target.value)}
               aria-label="Post text"
               rows={3}
-              className="mt-1 block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-sm leading-relaxed text-gray-900 focus:outline-none focus:ring-0"
+              className="block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-sm leading-relaxed text-gray-900 focus:outline-none focus:ring-0"
             />
           )}
+          <p className="break-all text-sm leading-relaxed text-[#1d9bf0]">{url}</p>
 
-          <div className="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-            <p className="text-xs text-gray-500">{domain}</p>
-            <p className="line-clamp-2 text-sm font-medium text-gray-900">{docTitle}</p>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-gray-200">
+            {showImage ? (
+              <div className="relative aspect-[1.91/1] bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  onError={() => setImageFailed(true)}
+                />
+                <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded bg-black/75 px-1.5 py-0.5 text-xs text-white">
+                  {docTitle}
+                </span>
+              </div>
+            ) : (
+              <div className="bg-gray-50 px-3 py-2">
+                <p className="line-clamp-2 text-sm font-medium text-gray-900">{docTitle}</p>
+              </div>
+            )}
           </div>
+          <p className="mt-1 text-xs text-gray-500">From {domain}</p>
         </div>
       </div>
 

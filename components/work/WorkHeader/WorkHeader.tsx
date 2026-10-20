@@ -7,6 +7,7 @@ import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { ContentType, Work } from '@/types/work';
+import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
@@ -171,6 +172,7 @@ export function WorkHeader({
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
       aiPostId: aiPostRoute ? work.id : undefined,
+      previewImageUrl: aiPostRoute ? getWorkShareImageUrl(work) : undefined,
     });
   };
 

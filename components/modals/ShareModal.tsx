@@ -97,6 +97,8 @@ interface ShareModalProps {
   shouldShowConfetti?: boolean;
   /** Post id of a proposal or RFP; swaps the description for an AI-written post preview. */
   aiPostId?: number;
+  /** The image the shared link's card shows on social sites. */
+  previewImageUrl?: string;
 }
 
 export default function ShareModal({
@@ -107,6 +109,7 @@ export default function ShareModal({
   action,
   shouldShowConfetti = true,
   aiPostId,
+  previewImageUrl,
 }: ShareModalProps) {
   const config = SHARE_CONFIGS[action];
   const hasAiPost = aiPostId != null;
@@ -281,6 +284,7 @@ export default function ShareModal({
                         isGenerated={generated.text !== null}
                         docTitle={docTitle}
                         url={url}
+                        imageUrl={previewImageUrl}
                         onChange={setDraft}
                       />
                     </div>
