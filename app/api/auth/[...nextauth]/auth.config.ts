@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import TwitterProvider from 'next-auth/providers/twitter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
 import { AuthSharingService } from '@/services/auth-sharing.service';
@@ -14,6 +15,44 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    TwitterProvider({
+      clientId: process.env.TWITTER_CLIENT_ID!,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+      version: '2.0',
+      authorization: {
+        url: 'https://x.com/i/oauth2/authorize',
+        params: { scope: 'users.read users.email tweet.read' },
+      },
+      token: {
+        url: 'https://api.x.com/2/oauth2/token',
+        async request({ params, checks, provider }) {
+          if (
+            params.error ||
+            !params.code ||
+            !checks.state ||
+            params.state !== checks.state ||
+            !checks.code_verifier
+          ) {
+            throw new Error('Invalid X OAuth callback');
+          }
+
+          const data = await AuthService.loginWithTwitter({
+            code: params.code,
+            code_verifier: checks.code_verifier,
+            redirect_uri: provider.callbackUrl,
+          });
+
+          return {
+            tokens: {
+              access_token: data.access_token,
+              token_type: 'bearer',
+              authToken: data.key,
+            },
+          };
+        },
+      },
+      userinfo: { url: 'https://api.x.com/2/users/me' },
     }),
     CredentialsProvider({
       name: 'Credentials',
@@ -74,15 +113,15 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: '/auth/signin',
-    error: '/auth/error',
+    error: '/api/auth/signin',
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.type === 'oauth') {
+      if (account?.provider === 'google' || account?.provider === 'twitter') {
         try {
           // Log OAuth token state for debugging
           if (DEBUG_AUTH) {
-            console.log('[Auth] Google OAuth callback received', {
+            console.log('[Auth] OAuth callback received', {
               hasAccessToken: !!account?.access_token,
               hasIdToken: !!account?.id_token,
               accountProvider: account?.provider,
@@ -91,7 +130,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Validate required tokens
-          if (!account?.access_token || !account?.id_token) {
+          if (!account.access_token || (account.provider === 'google' && !account.id_token)) {
             console.error('[Auth] Missing OAuth tokens', {
               hasAccessToken: !!account?.access_token,
               hasIdToken: !!account?.id_token,
@@ -99,14 +138,17 @@ export const authOptions: NextAuthOptions = {
             throw new Error('MissingOAuthTokens');
           }
 
-          const data = await AuthService.googleLogin({
-            access_token: account.access_token,
-            id_token: account.id_token,
-          });
+          const data =
+            account.provider === 'twitter'
+              ? { key: account.authToken }
+              : await AuthService.googleLogin({
+                  access_token: account.access_token,
+                  id_token: account.id_token,
+                });
 
           // Validate API response
           if (!data || !data.key) {
-            console.error('[Auth] Invalid response from googleLogin', {
+            console.error('[Auth] Invalid OAuth login response', {
               hasData: !!data,
               hasKey: !!data?.key,
             });
@@ -126,15 +168,16 @@ export const authOptions: NextAuthOptions = {
             throw new Error('InvalidUserData');
           }
 
-          const user = userData.results[0];
+          const authenticatedUser = userData.results[0];
 
           // Store auth token and user ID
+          user.email = authenticatedUser.email;
           (account as any).authToken = data.key;
-          (account as any).userId = user.id;
+          (account as any).userId = authenticatedUser.id;
 
           if (DEBUG_AUTH) {
-            console.log('[Auth] Google OAuth successful', {
-              userId: user.id,
+            console.log('[Auth] OAuth successful', {
+              userId: authenticatedUser.id,
               timestamp: new Date().toISOString(),
             });
           }
@@ -142,7 +185,7 @@ export const authOptions: NextAuthOptions = {
           return true;
         } catch (error) {
           // Log detailed error information
-          console.error('[Auth] Google OAuth error', {
+          console.error('[Auth] OAuth error', {
             error: error instanceof Error ? error.message : 'Unknown error',
             errorType: error instanceof Error ? error.constructor.name : typeof error,
             stack: error instanceof Error ? error.stack : undefined,

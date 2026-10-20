@@ -60,7 +60,7 @@ export interface RegisterApiRequest {
 
 export interface CheckAccountApiResponse {
   exists: boolean;
-  auth?: 'google' | 'email';
+  auth?: 'google' | 'twitter_oauth2' | 'email';
   is_verified?: boolean;
 }
 

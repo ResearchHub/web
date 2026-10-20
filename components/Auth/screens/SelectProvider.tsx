@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { signIn } from 'next-auth/react';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
@@ -20,7 +22,7 @@ interface SelectProviderProps {
   setError: (error: string | null) => void;
   showHeader?: boolean;
   setIsLoading?: (isLoading: boolean) => void;
-  /** URL to redirect to after Google OAuth login */
+  /** URL to redirect to after OAuth login */
   callbackUrl?: string;
   appearance?: AuthAppearance;
   catalystSurface?: CatalystSurface;
@@ -90,8 +92,8 @@ export default function SelectProvider({
       const response = await AuthService.checkAccount(email);
 
       if (response.exists) {
-        if (response.auth === 'google') {
-          handleGoogleSignIn();
+        if (response.auth === 'google' || response.auth === 'twitter_oauth2') {
+          handleSocialSignIn(response.auth === 'google' ? 'google' : 'twitter');
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -107,10 +109,12 @@ export default function SelectProvider({
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((analyticsError) => {
-      console.error('Analytics failed:', analyticsError);
-    });
+  const handleSocialSignIn = async (provider: 'google' | 'twitter') => {
+    if (provider === 'google') {
+      AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((analyticsError) => {
+        console.error('Analytics failed:', analyticsError);
+      });
+    }
 
     const searchParams = new URLSearchParams(window.location.search);
     const originalCallbackUrl = callbackUrl || searchParams.get('callbackUrl') || '/';
@@ -124,7 +128,7 @@ export default function SelectProvider({
       finalCallbackUrl = referralUrl.toString();
     }
 
-    signIn('google', { callbackUrl: finalCallbackUrl });
+    signIn(provider, { callbackUrl: finalCallbackUrl });
   };
 
   if (isCatalystDark) {
@@ -159,9 +163,17 @@ export default function SelectProvider({
             <span />
           </div>
 
-          <button className="btn-google" type="button" onClick={handleGoogleSignIn}>
+          <button className="btn-social" type="button" onClick={() => handleSocialSignIn('google')}>
             <GoogleGlyph />
             {auth.googleLabel}
+          </button>
+          <button
+            className="btn-social mt-3"
+            type="button"
+            onClick={() => handleSocialSignIn('twitter')}
+          >
+            <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />
+            Continue with X
           </button>
         </form>
 
@@ -250,7 +262,7 @@ export default function SelectProvider({
             letter-spacing: 0.08em;
             color: rgba(255, 255, 255, 0.5);
           }
-          .btn-google {
+          .btn-social {
             width: 100%;
             height: 54px;
             border: 1px solid rgba(255, 255, 255, 0.22);
@@ -269,10 +281,10 @@ export default function SelectProvider({
             backdrop-filter: blur(6px);
             transition: background 0.15s;
           }
-          .btn-google:hover {
+          .btn-social:hover {
             background: rgba(255, 255, 255, 0.16);
           }
-          .btn-google:focus-visible {
+          .btn-social:focus-visible {
             outline: 2px solid #fff;
             outline-offset: 2px;
           }
@@ -345,7 +357,7 @@ export default function SelectProvider({
 
         <button
           type="button"
-          onClick={handleGoogleSignIn}
+          onClick={() => handleSocialSignIn('google')}
           className="w-full flex items-center justify-center gap-2 p-3 border border-gray-300 rounded hover:bg-gray-50"
         >
           <svg className="w-5 h-5" aria-hidden="true" viewBox="0 0 24 24">
@@ -367,6 +379,14 @@ export default function SelectProvider({
             />
           </svg>
           {auth.googleLabel}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSocialSignIn('twitter')}
+          className="mt-3 w-full flex items-center justify-center gap-2 p-3 border border-gray-300 rounded hover:bg-gray-50"
+        >
+          <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />
+          Continue with X
         </button>
       </form>
 

@@ -188,6 +188,27 @@ export class AuthService {
     };
   }
 
+  static async loginWithTwitter(credentials: {
+    code: string;
+    code_verifier: string;
+    redirect_uri: string;
+  }): Promise<{ key: string; access_token: string }> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/twitter/login/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(credentials),
+      }
+    );
+
+    if (!response.ok) {
+      throw new AuthError('X sign-in failed', response.status);
+    }
+
+    return response.json();
+  }
+
   static async googleLogin(tokens: { access_token?: string; id_token?: string }) {
     const url = `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/google/login/`;
 
