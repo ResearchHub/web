@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { ActivityService, ActivityCommentType, ActivityScope } from '@/services/activity.service';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
-import { shareWorkReviews } from '@/components/Activity/lib/activityWork.utils';
 
 export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 
@@ -18,16 +17,6 @@ interface UseActivityFeedOptions {
   grantId?: number | string;
   disableCache?: boolean;
   enabled?: boolean;
-}
-
-/**
- * Tip and contribution entries come without their work's reviews, so any loaded
- * entry about the same work lends them its own and their covers can show a rating.
- * Only a new page's entries borrow: one already on screen keeps the cover it was
- * drawn with, rather than a rating appearing on it when a later page arrives.
- */
-function lendReviewsToPage(loaded: FeedEntry[], page: FeedEntry[]): FeedEntry[] {
-  return shareWorkReviews([...loaded, ...page]).slice(loaded.length);
 }
 
 export function useActivityFeed({
@@ -91,7 +80,7 @@ export function useActivityFeed({
 
     try {
       const result = await fetchPage(1);
-      setEntries(shareWorkReviews(result.entries));
+      setEntries(result.entries);
       setHasMore(result.hasMore);
       setCount(result.count);
     } catch (error) {
@@ -122,7 +111,7 @@ export function useActivityFeed({
     try {
       const result = await fetchPage(nextPage);
       setEntries((prev) => {
-        const next = [...prev, ...lendReviewsToPage(prev, result.entries)];
+        const next = [...prev, ...result.entries];
         setCount(next.length);
         return next;
       });
