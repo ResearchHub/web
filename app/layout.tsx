@@ -9,6 +9,7 @@ import { generateOrganizationStructuredData } from '@/lib/structured-data';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
 import Clarity from '@/components/Clarity';
+import WebMcpTools from '@/components/WebMcpTools';
 import { ClientProviders } from '@/components/providers/ClientProviders';
 
 const geistSans = localFont({
@@ -93,6 +94,8 @@ export default async function RootLayout({
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
         <Clarity />
+        {/* Registers site tools for in-browser AI agents; renders nothing. */}
+        <WebMcpTools />
       </body>
     </html>
   );
