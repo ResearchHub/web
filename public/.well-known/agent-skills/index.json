@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "navigate-researchhub",
+      "type": "skill-md",
+      "description": "Find research funding opportunities, proposals, peer review bounties, and researcher profiles on ResearchHub.",
+      "url": "/.well-known/agent-skills/navigate-researchhub/SKILL.md",
+      "digest": "sha256:7c827ee637979a7d395c0b4744bbccf1f1156324c97ccd1e4f8d5196409ffe80"
+    }
+  ]
+}

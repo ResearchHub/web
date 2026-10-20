@@ -4,7 +4,7 @@
 
 ## About ResearchHub
 
-ResearchHub's mission is to accelerate the pace of scientific research. It is a collaborative platform centered on funding scientific work and conducting open peer review of both proposals and preprints, with discussion happening in topic-specific communities called Hubs. Funded proposals have a clear path from idea to execution.
+ResearchHub's mission is to accelerate the pace of scientific research. It is a collaborative platform centered on funding scientific work and conducting open peer review of both proposals and preprints. Funded proposals have a clear path from idea to execution.
 
 The platform is maintained by two entities:
 
@@ -92,21 +92,11 @@ Uses:
 
 Documentation: https://docs.researchhub.com
 
-### Hubs (Topics)
-
-Research is organized into "Hubs" by discipline. Each Hub acts as a live journal, with highly upvoted content rising to the top. Users can browse, follow, and contribute to any Hub. Within each Hub, content can be viewed by Popular or Latest.
-
-Browse: https://researchhub.com/browse
-
 ## Frequently Asked Questions
 
 ### Is content on ResearchHub open?
 
 Yes. User-contributed content (excluding peer reviews) is shared under Creative Commons Attribution 4.0 (CC BY 4.0). Anyone can reuse that content for any purpose with attribution — a hyperlink back to the source page is sufficient. Peer review content is governed by a separate license under the Terms of Service (Section 4A). CC BY is the gold standard for scholarly content, used by PLOS, eLife, and BMC.
-
-### What papers can be uploaded?
-
-Users can create a page for any paper to enable summary and discussion. Fulltext PDF uploads are limited to papers released under CC BY or CC0 licenses that are already publicly available elsewhere.
 
 ### How does peer review work?
 
@@ -129,7 +119,6 @@ By holding RSC in a ResearchHub account, holders automatically earn yield as Fun
 - [Peer Review](https://researchhub.com/peer-review): Earn for peer reviews
 - [Proposals](https://researchhub.com/fund/proposals): Community research proposals seeking funding
 - [Journal](https://researchhub.com/journal): ResearchHub Journal
-- [Browse Hubs](https://researchhub.com/browse): Explore research by discipline
 - [Documentation](https://docs.researchhub.com): ResearchHub documentation
 - [Foundation](https://researchhub.foundation): ResearchHub Foundation
 - [X](https://x.com/researchhub): ResearchHub on X
