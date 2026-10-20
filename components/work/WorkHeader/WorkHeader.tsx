@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
-import { Work } from '@/types/work';
+import { ContentType, Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
@@ -36,6 +36,9 @@ import { PendingReviewBadge } from './PendingReviewBadge';
 import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
+
+// Proposals and RFPs get an AI-written post in the share modal.
+const AI_POST_CONTENT_TYPES = new Set<ContentType>(['preregistration', 'funding_request']);
 
 interface WorkHeaderProps {
   work: Work;
@@ -160,6 +163,7 @@ export function WorkHeader({
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
+      aiPostId: AI_POST_CONTENT_TYPES.has(work.contentType) ? work.id : undefined,
     });
 
   const defaultEyebrow = foundationBounty ? (

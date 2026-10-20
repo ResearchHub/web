@@ -11,6 +11,8 @@ interface SocialShareButtonsProps {
   docTitle: string;
   url: string;
   showCopyButton?: boolean;
+  /** Post text for every platform; defaults to the action's text built from the title. */
+  text?: string;
 }
 
 export function SocialShareButtons({
@@ -18,9 +20,10 @@ export function SocialShareButtons({
   docTitle,
   url,
   showCopyButton = false,
+  text,
 }: SocialShareButtonsProps) {
   const config = SHARE_CONFIGS[action];
-  const socialText = config.socialText(docTitle);
+  const socialText = text ?? config.socialText(docTitle);
   const [copied, setCopied] = useState(false);
 
   const buildUrlWithUtm = (baseUrl: string, source: 'linkedin' | 'x' | 'bluesky') => {
@@ -36,7 +39,11 @@ export function SocialShareButtons({
   };
 
   const twitterLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(socialText)}&url=${encodeURIComponent(buildUrlWithUtm(url, 'x'))}`;
-  const linkedInLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildUrlWithUtm(url, 'linkedin'))}`;
+  // share-offsite takes only a link; the feed composer also takes the post text.
+  const linkedInLink =
+    text === undefined
+      ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(buildUrlWithUtm(url, 'linkedin'))}`
+      : `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(`${text} ${buildUrlWithUtm(url, 'linkedin')}`)}`;
   const blueSkyLink = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${socialText} ${buildUrlWithUtm(url, 'bluesky')}`)}`;
 
   const handleShare = (platform: 'linkedin' | 'x' | 'bluesky' | 'copy') => {
