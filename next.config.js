@@ -83,12 +83,19 @@ const nextConfig = {
     },
     {
       source: '/grant/:id(\\d+)/:slug/applications',
-      destination: '/grant/:id/:slug',
+      destination: '/rfp/:id/:slug',
       permanent: true,
     },
     {
       source: '/grant/:id(\\d+)/:slug/conversation',
-      destination: '/grant/:id/:slug',
+      destination: '/rfp/:id/:slug',
+      permanent: true,
+    },
+    // RFP pages moved from /grant to /rfp. Covers /grant/:id, /grant/:id/:slug
+    // and anything deeper; Next carries the query string over on its own.
+    {
+      source: '/grant/:path*',
+      destination: '/rfp/:path*',
       permanent: true,
     },
     {

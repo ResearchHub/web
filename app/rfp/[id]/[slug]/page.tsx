@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const grant = await getGrant(id);
   return getWorkMetadata({
     work: grant,
-    url: `/grant/${id}/${slug}`,
+    url: `/rfp/${id}/${slug}`,
   });
 }
 

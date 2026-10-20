@@ -365,7 +365,7 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   if (notification.type === 'GRANT_APPROVED' && notification.work) {
     const { id, slug } = notification.work;
     if (id && slug) {
-      return `/grant/${id}/${slug}`;
+      return `/rfp/${id}/${slug}`;
     }
   }
 
