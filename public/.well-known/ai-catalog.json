@@ -15,6 +15,17 @@
         "which preprints and proposals are open for paid peer review",
         "look up a researcher's profile on ResearchHub"
       ]
+    },
+    {
+      "identifier": "urn:air:researchhub.com:mcp:researchhub",
+      "displayName": "ResearchHub MCP Server",
+      "type": "application/mcp-server-card+json",
+      "url": "https://researchhub.com/.well-known/mcp/server-card.json",
+      "representativeQueries": [
+        "search open research grants on a topic",
+        "find funding opportunities for CRISPR research",
+        "read the full call text and deadline of a ResearchHub grant"
+      ]
     }
   ]
 }

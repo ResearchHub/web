@@ -195,6 +195,12 @@ const nextConfig = {
         source: '/sitemap.xml',
         destination: '/sitemap-index.xml',
       },
+      // The backend serves the MCP server card next to the MCP endpoint it
+      // describes; agents look for it on the site's own origin.
+      {
+        source: '/.well-known/mcp/server-card.json',
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/research_ai/mcp/server-card/`,
+      },
     ],
   }),
   headers: async () => [
