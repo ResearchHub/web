@@ -36,10 +36,13 @@ const validateGrant = (data: any, ctx: z.RefinementCtx) => {
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
-    articleType: z.enum(['discussion', 'preregistration', 'grant', 'registered_report'] as const, {
-      required_error: 'Please select a work type',
-      invalid_type_error: 'Please select a valid work type',
-    }),
+    articleType: z.enum(
+      ['changelog', 'discussion', 'preregistration', 'grant', 'registered_report'] as const,
+      {
+        required_error: 'Please select a work type',
+        invalid_type_error: 'Please select a valid work type',
+      }
+    ),
     authors: z.array(optionSchema),
     contacts: z.array(optionSchema),
     budget: z.string().optional(),

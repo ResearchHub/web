@@ -18,6 +18,9 @@ import type { ID } from '@/types/root';
 
 export type FundingNotesStatus = 'off' | 'loading' | 'ready' | 'error';
 
+/** What a page that has a document open can tell its row about it. */
+export type NoteRowChanges = Partial<Pick<Note, 'title' | 'updatedDate' | 'latestChatId'>>;
+
 export interface FundingNotes {
   /** RFPs and proposals without a post, latest edit first. */
   readonly drafts: readonly Note[];
@@ -32,7 +35,7 @@ export interface FundingNotes {
   /** A draft just created here; it leads the list at once. */
   readonly addDraft: (note: Note) => void;
   /** A document changed here: its row says so at once. */
-  readonly patch: (noteId: ID, changes: Partial<Pick<Note, 'title' | 'updatedDate'>>) => void;
+  readonly patch: (noteId: ID, changes: NoteRowChanges) => void;
   /** A document deleted here: its row goes at once. */
   readonly remove: (noteId: ID) => void;
 }
@@ -165,7 +168,7 @@ export function FundingNotesProvider({ children }: { readonly children: ReactNod
     });
   }, []);
 
-  const patch = useCallback((noteId: ID, changes: Partial<Pick<Note, 'title' | 'updatedDate'>>) => {
+  const patch = useCallback((noteId: ID, changes: NoteRowChanges) => {
     const update = (notes: Note[]) => {
       const target = notes.find((note) => note.id === noteId);
       const changed =

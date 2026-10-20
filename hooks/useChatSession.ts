@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ComposerNotice } from '@/components/AgentChat/ChatComposer';
 import {
   budgetSpentNotice,
+  isBudgetNotice,
   isBudgetNoticeWithoutReset,
   noticeFromOutcome,
   type ChatNoticePolicy,
@@ -22,7 +23,7 @@ import type { ChatCreateInit, ChatTransport } from '@/services/chatTransport';
 import { chatErrorDetail } from '@/services/notebookChat.service';
 import { isActiveExecutionStatus, type AgentChat } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
-import { canSelectAIModel } from '@/types/researchAI';
+import { canSelectAIModel, isBudgetExhausted } from '@/types/researchAI';
 
 /**
  * A first message waiting on the chat it will start, holding the model choice
@@ -202,11 +203,7 @@ export function useChatSession({
   const failureNotice = useCallback(
     (outcome: FailedSend): ComposerNotice | null => {
       const snapshot = getBudgetSnapshot();
-      return noticeFromOutcome(
-        outcome,
-        notices,
-        snapshot.budget?.resets_at ?? snapshot.limitResetAt
-      );
+      return noticeFromOutcome(outcome, notices, snapshot.budget?.resets_at ?? null);
     },
     [getBudgetSnapshot, notices]
   );
@@ -363,14 +360,21 @@ export function useChatSession({
   }, [transport, settleAttachments]);
 
   // A spent-budget notice raised before the allowance store had a reset time
-  // picks it up once the store's post-429 refresh lands.
-  const budgetResetsAt = researchAI.budget?.resets_at ?? researchAI.limitResetAt ?? null;
+  // picks it up once the store's post-429 refresh lands, and goes away once a
+  // refreshed budget has credits again (a new day, or a raised tier).
+  const budgetResetsAt = researchAI.budget?.resets_at ?? null;
+  const budgetAvailable = researchAI.budget !== null && !isBudgetExhausted(researchAI.budget);
   useEffect(() => {
-    if (!budgetResetsAt || notices.usageLimit !== 'inline') return;
+    if (notices.usageLimit !== 'inline') return;
+    if (budgetAvailable) {
+      setNotice((current) => (isBudgetNotice(current) ? null : current));
+      return;
+    }
+    if (!budgetResetsAt) return;
     setNotice((current) =>
       isBudgetNoticeWithoutReset(current) ? budgetSpentNotice(budgetResetsAt) : current
     );
-  }, [budgetResetsAt, notices.usageLimit]);
+  }, [budgetAvailable, budgetResetsAt, notices.usageLimit]);
 
   // Stop is only offered once something cancellable exists server-side. While
   // the message POST is still in flight or the chat is being created, cancel

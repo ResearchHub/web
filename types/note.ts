@@ -1,4 +1,3 @@
-import { CHANGELOG_NOTEBOOK_ROLLOUT_AT, CHANGELOG_POST_IDS } from '@/constants/changelog';
 import type { Organization } from './organization';
 import { createTransformer } from './transformer';
 import { transformOrganization } from './organization';
@@ -84,6 +83,12 @@ export interface Note {
   preregistrationSettings?: NotePreregistrationSettings | null;
   selectedGrant?: SelectedGrantDetails | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
+  /**
+   * The signed-in user's chat on the document with the newest activity, as
+   * the documents listing reports it; null when they have none. Absent from
+   * responses that don't say.
+   */
+  latestChatId?: number | null;
 }
 
 /** Grant fields the Note API accepts; an omitted key keeps its saved value. */
@@ -312,6 +317,9 @@ const isGrantDocumentType = (documentType?: string | null): boolean =>
 const isPreregistrationDocumentType = (documentType?: string | null): boolean =>
   documentType?.trim().toUpperCase() === 'PREREGISTRATION';
 
+const isChangelogDocumentType = (documentType?: string | null): boolean =>
+  documentType?.trim().toUpperCase() === 'CHANGELOG';
+
 const serializeNoteJson = (value: unknown): string | undefined => {
   if (typeof value === 'string') return value;
   if (!value || typeof value !== 'object') return undefined;
@@ -360,6 +368,8 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     selectedGrant: raw.selected_grant_details
       ? transformSelectedGrant(raw.selected_grant_details)
       : null,
+    // Undefined where the response doesn't say.
+    latestChatId: raw.latest_chat_id,
   };
 });
 
@@ -391,10 +401,6 @@ export const transformNoteContent = createTransformer<any, NoteContent>((raw) =>
 
 type ClassifiableNoteKey = 'documentType' | 'post' | 'proposalId';
 type ClassifiableNote = Pick<Note, ClassifiableNoteKey>;
-type ClassifiableChangelogNote = ClassifiableNote & Pick<Note, 'createdDate'>;
-
-const CHANGELOG_POST_ID_SET: ReadonlySet<string> = new Set(CHANGELOG_POST_IDS);
-const CHANGELOG_ROLLOUT_TIMESTAMP = Date.parse(CHANGELOG_NOTEBOOK_ROLLOUT_AT);
 
 export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
   isRegisteredReportDocumentType(note?.documentType) ||
@@ -428,7 +434,7 @@ export const isProposalNote = (note?: ClassifiableNote | null): boolean =>
  * What a note is, for anything that shows notes by kind. A Registered Report
  * comes first because it carries a proposal's type underneath; `preprint`
  * is a note that was published as an ordinary post; `other` has no type
- * yet. ChangeLogs need the note's date and stay with `isChangelogNote`.
+ * yet. ChangeLogs are told apart by `isChangelogNote`.
  */
 export type NoteKind = 'proposal' | 'rfp' | 'registered_report' | 'preprint' | 'other';
 
@@ -449,18 +455,5 @@ export const NOTE_KIND_LABELS: Record<Exclude<NoteKind, 'other'>, string> = {
   preprint: 'Preprint',
 };
 
-/** Uses exact legacy IDs because ordinary preprints also used DISCUSSION before rollout. */
-export const isChangelogNote = (note?: ClassifiableChangelogNote | null): boolean => {
-  if (!note || isRegisteredReportNote(note)) return false;
-
-  const postId = note.post?.id;
-  if (postId != null && CHANGELOG_POST_ID_SET.has(String(postId))) return true;
-
-  const wasCreatedOnOrAfterRollout = Date.parse(note.createdDate) >= CHANGELOG_ROLLOUT_TIMESTAMP;
-  if (!wasCreatedOnOrAfterRollout) return false;
-
-  return (
-    note.documentType?.trim().toUpperCase() === 'DISCUSSION' ||
-    note.post?.documentType?.trim().toUpperCase() === 'DISCUSSION'
-  );
-};
+export const isChangelogNote = (note?: ClassifiableNote | null): boolean =>
+  isChangelogDocumentType(note?.documentType) || isChangelogDocumentType(note?.post?.documentType);

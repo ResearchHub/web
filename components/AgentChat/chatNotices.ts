@@ -25,13 +25,14 @@ export function budgetSpentNotice(budgetResetsAt: string | null): ComposerNotice
   };
 }
 
+/** Whether ``notice`` is a spent-budget notice. */
+export function isBudgetNotice(notice: ComposerNotice | null): boolean {
+  return notice?.tone === 'warning' && notice.text.includes('budget');
+}
+
 /** A budget notice that went out before the reset time was known. */
 export function isBudgetNoticeWithoutReset(notice: ComposerNotice | null): boolean {
-  return (
-    notice?.tone === 'warning' &&
-    notice.text.includes('budget') &&
-    !notice.text.includes('resets at')
-  );
+  return isBudgetNotice(notice) && !notice?.text.includes('resets at');
 }
 
 /**

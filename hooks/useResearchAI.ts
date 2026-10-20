@@ -47,7 +47,7 @@ export function useResearchAI(enabled = false) {
   // retry with a bounded delay rather than leaving Send disabled all day.
   useEffect(() => {
     if (!enabled || !token) return;
-    const resetsAt = state.budget?.resets_at ?? state.limitResetAt;
+    const resetsAt = state.budget?.resets_at;
     if (!resetsAt) return;
     let timer: ReturnType<typeof setTimeout>;
     let cancelled = false;
@@ -71,7 +71,7 @@ export function useResearchAI(enabled = false) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [enabled, token, store, state.budget?.resets_at, state.limitResetAt]);
+  }, [enabled, token, store, state.budget?.resets_at]);
 
   return { ...state, ...store };
 }
