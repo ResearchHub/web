@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -70,8 +71,27 @@ export function AuthTakeover({ children, onClose, backdrop }: AuthTakeoverProps)
         </div>
       )}
 
-      <div className="flex flex-1 justify-center px-6 pb-10 pt-6 lg:!items-center lg:!overflow-y-auto lg:!py-16">
-        <div className="w-full max-w-md">{children}</div>
+      <div className="flex flex-1 flex-col px-6 pb-10 pt-8 lg:!overflow-y-auto lg:!px-12 lg:!py-16">
+        <div className="mx-auto w-full max-w-[400px] lg:!my-auto">
+          {children}
+          <p className="mt-8 text-[13px] leading-relaxed text-gray-500">
+            By continuing, you agree to our{' '}
+            <Link
+              href="/tos"
+              className="font-medium text-gray-700 underline-offset-2 hover:underline"
+            >
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link
+              href="/privacy"
+              className="font-medium text-gray-700 underline-offset-2 hover:underline"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
       </div>
 
       <Button
