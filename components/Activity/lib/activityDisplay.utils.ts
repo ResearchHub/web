@@ -133,8 +133,7 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
           suffix: ' for their peer review',
         };
       }
-      const score = commentContent.review?.score ?? commentContent.comment.reviewScore;
-      return { actor, verb: score ? 'peer reviewed and scored' : 'peer reviewed' };
+      return { actor, verb: 'peer reviewed' };
     }
 
     return {
@@ -434,14 +433,13 @@ export function getCommentPreview(entry: FeedEntry): ActivityCommentPreview | nu
 }
 
 /**
- * The amount or score that rides on an action line. Each kind keeps its own
+ * The amount that rides on an action line. Each kind keeps its own
  * renderer, since bounties and grants convert currency differently.
  */
 export type ActivityActionValue =
   | { kind: 'contribution'; amount: CurrencyAmount }
   | { kind: 'grant'; amount: ActivityGrantAmount }
-  | { kind: 'bounty'; bounty: Bounty }
-  | { kind: 'score'; score: number };
+  | { kind: 'bounty'; bounty: Bounty };
 
 /**
  * What happened, phrased without the actor (whose name heads the card) and naming
@@ -520,11 +518,7 @@ function getCommentActionLine(entry: FeedEntry, noun: string): ActivityActionLin
           trailing: 'for a peer review',
         };
       }
-      const score = getReviewScore(entry);
-      return {
-        label: `Peer reviewed ${noun}`,
-        value: score ? { kind: 'score', score } : undefined,
-      };
+      return { label: `Peer reviewed ${noun}` };
     }
     case 'AUTHOR_UPDATE':
       return { label: 'Posted an update on their research' };
