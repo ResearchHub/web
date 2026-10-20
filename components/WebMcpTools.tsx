@@ -31,6 +31,11 @@ declare global {
 
 /**
  * Exposes site search to in-browser AI agents through WebMCP.
+ *
+ * This is frontend only: WebMCP tools exist only while a page is open in a
+ * browser that supports the API. It is separate from a backend MCP server, which
+ * agents connect to directly without loading the site, and neither replaces the
+ * other.
  */
 const WebMcpTools = () => {
   useEffect(() => {

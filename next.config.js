@@ -212,6 +212,12 @@ const nextConfig = {
       has: [MARKDOWN_ACCEPT],
       headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
     },
+    // ARD (agenticresourcediscovery.org) requires the capability manifest to be
+    // readable cross-origin.
+    {
+      source: '/.well-known/ai-catalog.json',
+      headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
+    },
     {
       source: '/:path*',
       headers: [
