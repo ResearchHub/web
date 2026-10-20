@@ -12,7 +12,6 @@ interface UseGeneratedSharePostResult {
 }
 
 interface Result {
-  postId: ID;
   text: string | null;
   failed: boolean;
 }
@@ -24,19 +23,26 @@ interface Result {
  */
 export function useGeneratedSharePost(postId: ID): UseGeneratedSharePostResult {
   const [result, setResult] = useState<Result | null>(null);
-  const [requestedId, setRequestedId] = useState<ID>(postId);
+  const [prevPostId, setPrevPostId] = useState<ID>(postId);
+
+  // Every new request, including reopening on the same post, starts from
+  // loading: the post may have changed, so the last draft must not be shared.
+  // Reset during render so the stale draft never paints.
+  if (postId !== prevPostId) {
+    setPrevPostId(postId);
+    if (postId !== null && postId !== undefined) setResult(null);
+  }
 
   useEffect(() => {
     if (postId === null || postId === undefined) return;
 
     let cancelled = false;
-    setRequestedId(postId);
     SocialShareService.generatePost(postId)
       .then((text) => {
-        if (!cancelled) setResult({ postId, text, failed: false });
+        if (!cancelled) setResult({ text, failed: false });
       })
       .catch(() => {
-        if (!cancelled) setResult({ postId, text: null, failed: true });
+        if (!cancelled) setResult({ text: null, failed: true });
       });
 
     return () => {
@@ -44,9 +50,6 @@ export function useGeneratedSharePost(postId: ID): UseGeneratedSharePostResult {
     };
   }, [postId]);
 
-  // Only a result for the post currently asked about counts, so reopening on
-  // another post never shows the previous post's text.
-  const currentId = postId ?? requestedId;
-  if (!result || result.postId !== currentId) return { text: null, failed: false };
+  if (!result) return { text: null, failed: false };
   return { text: result.text, failed: result.failed };
 }
