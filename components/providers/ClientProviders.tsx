@@ -40,7 +40,7 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
             <ReferralProvider>
               <AuthSharingWrapper>
                 <AuthModalProvider>
-                  <ShareModalProvider>
+                  <>
                     <UserProvider>
                       <PendingCountsProvider>
                         <VerificationProvider>
@@ -58,7 +58,9 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                     <FundingNotesProvider>
                                       <UserListsProvider>
                                         <DismissedFeaturesProvider>
-                                          {children}
+                                          {/* Inside the user providers: the share
+                                              modal's post preview shows the sharer. */}
+                                          <ShareModalProvider>{children}</ShareModalProvider>
                                           <FeatureNotifications />
                                         </DismissedFeaturesProvider>
                                       </UserListsProvider>
@@ -72,7 +74,7 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                       </PendingCountsProvider>
                     </UserProvider>
                     <SignupModalContainer />
-                  </ShareModalProvider>
+                  </>
                 </AuthModalProvider>
               </AuthSharingWrapper>
             </ReferralProvider>

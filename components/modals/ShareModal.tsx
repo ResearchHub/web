@@ -5,6 +5,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import Confetti from 'react-confetti';
 import { PartyPopper, Copy, Share } from 'lucide-react';
 import SocialShareButtons from '@/components/SocialShareButtons';
+import SharePostPreview from '@/components/SharePostPreview';
+import { useGeneratedSharePost } from '@/hooks/useGeneratedSharePost';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 export type ShareAction =
@@ -93,6 +95,10 @@ interface ShareModalProps {
   url: string;
   action: ShareAction;
   shouldShowConfetti?: boolean;
+  /** Post id of a proposal or RFP; swaps the description for an AI-written post preview. */
+  aiPostId?: number;
+  /** The image the shared link's card shows on social sites. */
+  previewImageUrl?: string;
 }
 
 export default function ShareModal({
@@ -102,8 +108,17 @@ export default function ShareModal({
   url,
   action,
   shouldShowConfetti = true,
+  aiPostId,
+  previewImageUrl,
 }: ShareModalProps) {
   const config = SHARE_CONFIGS[action];
+  const hasAiPost = aiPostId != null;
+  const fallbackText = config.socialText(docTitle).trim();
+  const generated = useGeneratedSharePost(isOpen ? aiPostId : null);
+  const [draft, setDraft] = useState<string | null>(null);
+  // While the draft is being written the preview shows a placeholder, but the
+  // buttons still share the title so a quick click is never a dead end.
+  const previewText = draft ?? generated.text ?? (generated.failed ? fallbackText : null);
   const [displayData, setDisplayData] = useState<{
     title: React.ReactNode;
     description: React.ReactNode;
@@ -116,6 +131,7 @@ export default function ShareModal({
 
   useEffect(() => {
     if (isOpen) {
+      setDraft(null);
       setDisplayData({
         title: config.title(docTitle, url),
         description: config.description(docTitle),
@@ -144,7 +160,8 @@ export default function ShareModal({
     const urlWithUtm = new URL(url, window.location.origin);
     urlWithUtm.searchParams.set('utm_source', 'copy_url');
     urlWithUtm.searchParams.set('utm_medium', 'social_share');
-    const finalUrl = urlWithUtm.toString();
+    // Proposals and RFPs share their bare /<route>/<id> link as is.
+    const finalUrl = hasAiPost ? url : urlWithUtm.toString();
 
     navigator.clipboard.writeText(finalUrl);
     setCopied(true);
@@ -164,6 +181,31 @@ export default function ShareModal({
     });
     onClose();
   };
+
+  const copyLinkRow = (
+    <div className="mt-1 flex rounded-md shadow-sm">
+      <input
+        type="text"
+        name="share-url"
+        id="share-url"
+        className="focus:ring-blue-500 focus:border-blue-500 flex-1 rounded-none rounded-l-md text-sm border border-gray-300 bg-gray-50 p-2"
+        value={url}
+        readOnly
+      />
+      <button
+        onClick={handleCopy}
+        className="relative -ml-px inline-flex items-center space-x-2 px-4 py-2 rounded-r-md border border-gray-300 bg-rhBlue-500 text-white text-sm font-medium hover:bg-rhBlue-600 focus:outline-none focus:ring-1 focus:ring-rhBlue-500 focus:border-rhBlue-500"
+      >
+        <Copy size={16} />
+        <span>Copy</span>
+        {copied && (
+          <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-xs px-2 py-1 rounded">
+            Copied!
+          </span>
+        )}
+      </button>
+    </div>
+  );
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -227,42 +269,56 @@ export default function ShareModal({
                   {displayData && (
                     <>
                       <h2 className="text-2xl font-bold text-gray-800">{displayData.title}</h2>
-                      <p className="text-gray-500 mt-2 px-4">{displayData.description}</p>
+                      {!hasAiPost && (
+                        <p className="text-gray-500 mt-2 px-4">{displayData.description}</p>
+                      )}
                     </>
                   )}
                 </div>
 
-                <div className="mt-6">
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <input
-                      type="text"
-                      name="share-url"
-                      id="share-url"
-                      className="focus:ring-blue-500 focus:border-blue-500 flex-1 rounded-none rounded-l-md text-sm border border-gray-300 bg-gray-50 p-2"
-                      value={url}
-                      readOnly
-                    />
-                    <button
-                      onClick={handleCopy}
-                      className="relative -ml-px inline-flex items-center space-x-2 px-4 py-2 rounded-r-md border border-gray-300 bg-rhBlue-500 text-white text-sm font-medium hover:bg-rhBlue-600 focus:outline-none focus:ring-1 focus:ring-rhBlue-500 focus:border-rhBlue-500"
-                    >
-                      <Copy size={16} />
-                      <span>Copy</span>
-                      {copied && (
-                        <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-xs px-2 py-1 rounded">
-                          Copied!
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                </div>
+                {hasAiPost ? (
+                  <>
+                    <div className="mt-6">
+                      <SharePostPreview
+                        text={previewText}
+                        isGenerated={generated.text !== null}
+                        docTitle={docTitle}
+                        url={url}
+                        imageUrl={previewImageUrl}
+                        onChange={setDraft}
+                      />
+                    </div>
 
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-gray-700 text-center">
-                    Or share directly on:
-                  </p>
-                  <SocialShareButtons action={action} docTitle={docTitle} url={url} />
-                </div>
+                    <div className="mt-6">
+                      <p className="text-sm font-medium text-gray-700 text-center">Share on:</p>
+                      <SocialShareButtons
+                        action={action}
+                        docTitle={docTitle}
+                        url={url}
+                        text={previewText ?? fallbackText}
+                        addUtm={false}
+                      />
+                    </div>
+
+                    <div className="mt-6">
+                      <p className="text-sm font-medium text-gray-700 text-center">
+                        Or copy the link:
+                      </p>
+                      {copyLinkRow}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mt-6">{copyLinkRow}</div>
+
+                    <div className="mt-6">
+                      <p className="text-sm font-medium text-gray-700 text-center">
+                        Or share directly on:
+                      </p>
+                      <SocialShareButtons action={action} docTitle={docTitle} url={url} />
+                    </div>
+                  </>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>

@@ -6,7 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
-import { Work } from '@/types/work';
+import { ContentType, Work } from '@/types/work';
+import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
@@ -36,6 +37,13 @@ import { PendingReviewBadge } from './PendingReviewBadge';
 import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
+
+// Proposals and RFPs get an AI-written post in the share modal, shared under
+// a bare /<route>/<id> link that redirects to the slugged page.
+const AI_POST_ROUTES: Partial<Record<ContentType, string>> = {
+  preregistration: 'proposal',
+  funding_request: 'grant',
+};
 
 interface WorkHeaderProps {
   work: Work;
@@ -154,13 +162,19 @@ export function WorkHeader({
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
-  const shareAction = () =>
+  const shareAction = () => {
+    const aiPostRoute = AI_POST_ROUTES[work.contentType];
     showShareModal({
-      url: stripShareToken(globalThis.location.href),
+      url: aiPostRoute
+        ? `${globalThis.location.origin}/${aiPostRoute}/${work.id}`
+        : stripShareToken(globalThis.location.href),
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
+      aiPostId: aiPostRoute ? work.id : undefined,
+      previewImageUrl: aiPostRoute ? getWorkShareImageUrl(work) : undefined,
     });
+  };
 
   const defaultEyebrow = foundationBounty ? (
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
