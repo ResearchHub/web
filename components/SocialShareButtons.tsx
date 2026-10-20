@@ -13,6 +13,8 @@ interface SocialShareButtonsProps {
   showCopyButton?: boolean;
   /** Post text for every platform; defaults to the action's text built from the title. */
   text?: string;
+  /** Tag shared links with UTM params; off to share `url` exactly as given. */
+  addUtm?: boolean;
 }
 
 export function SocialShareButtons({
@@ -21,12 +23,14 @@ export function SocialShareButtons({
   url,
   showCopyButton = false,
   text,
+  addUtm = true,
 }: SocialShareButtonsProps) {
   const config = SHARE_CONFIGS[action];
   const socialText = text ?? config.socialText(docTitle);
   const [copied, setCopied] = useState(false);
 
   const buildUrlWithUtm = (baseUrl: string, source: 'linkedin' | 'x' | 'bluesky') => {
+    if (!addUtm) return baseUrl;
     try {
       const urlWithUtm = new URL(baseUrl, window.location.origin);
       urlWithUtm.searchParams.set('utm_source', source);

@@ -37,8 +37,12 @@ import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
 
-// Proposals and RFPs get an AI-written post in the share modal.
-const AI_POST_CONTENT_TYPES = new Set<ContentType>(['preregistration', 'funding_request']);
+// Proposals and RFPs get an AI-written post in the share modal, shared under
+// a bare /<route>/<id> link that redirects to the slugged page.
+const AI_POST_ROUTES: Partial<Record<ContentType, string>> = {
+  preregistration: 'proposal',
+  funding_request: 'grant',
+};
 
 interface WorkHeaderProps {
   work: Work;
@@ -157,14 +161,18 @@ export function WorkHeader({
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
-  const shareAction = () =>
+  const shareAction = () => {
+    const aiPostRoute = AI_POST_ROUTES[work.contentType];
     showShareModal({
-      url: stripShareToken(globalThis.location.href),
+      url: aiPostRoute
+        ? `${globalThis.location.origin}/${aiPostRoute}/${work.id}`
+        : stripShareToken(globalThis.location.href),
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
-      aiPostId: AI_POST_CONTENT_TYPES.has(work.contentType) ? work.id : undefined,
+      aiPostId: aiPostRoute ? work.id : undefined,
     });
+  };
 
   const defaultEyebrow = foundationBounty ? (
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />

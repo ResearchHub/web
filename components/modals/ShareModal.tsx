@@ -158,7 +158,8 @@ export default function ShareModal({
     const urlWithUtm = new URL(url, window.location.origin);
     urlWithUtm.searchParams.set('utm_source', 'copy_url');
     urlWithUtm.searchParams.set('utm_medium', 'social_share');
-    const finalUrl = urlWithUtm.toString();
+    // Proposals and RFPs share their bare /<route>/<id> link as is.
+    const finalUrl = hasAiPost ? url : urlWithUtm.toString();
 
     navigator.clipboard.writeText(finalUrl);
     setCopied(true);
@@ -292,6 +293,7 @@ export default function ShareModal({
                         docTitle={docTitle}
                         url={url}
                         text={previewText ?? fallbackText}
+                        addUtm={false}
                       />
                     </div>
 
