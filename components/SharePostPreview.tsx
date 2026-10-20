@@ -11,6 +11,24 @@ import { cn } from '@/utils/styles';
 const X_MAX_CHARS = 280;
 const X_LINK_CHARS = 23;
 
+// X's twitter-text weights: code points in these ranges count once, everything
+// else (CJK, emoji, most symbols) twice. Mirrors the backend's check.
+const X_SINGLE_WEIGHT_RANGES: ReadonlyArray<readonly [number, number]> = [
+  [0x0000, 0x10ff],
+  [0x2000, 0x200d],
+  [0x2010, 0x201f],
+  [0x2032, 0x2037],
+];
+
+const xWeightedLength = (text: string) =>
+  [...text].reduce((total, char) => {
+    const codePoint = char.codePointAt(0) ?? 0;
+    const single = X_SINGLE_WEIGHT_RANGES.some(
+      ([low, high]) => codePoint >= low && codePoint <= high
+    );
+    return total + (single ? 1 : 2);
+  }, 0);
+
 interface SharePostPreviewProps {
   /** The post text, or null while it is being written. */
   text: string | null;
@@ -37,7 +55,7 @@ export function SharePostPreview({
   const [imageFailed, setImageFailed] = useState(false);
 
   const isLoading = text === null;
-  const charCount = [...(text ?? '')].length + 1 + X_LINK_CHARS;
+  const charCount = xWeightedLength(text ?? '') + 1 + X_LINK_CHARS;
   const isOverLimit = charCount > X_MAX_CHARS;
   const showImage = Boolean(imageUrl) && !imageFailed;
 
