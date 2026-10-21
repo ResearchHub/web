@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
+import { FC, useState, useEffect, useMemo, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
 import Link from 'next/link';
@@ -10,8 +10,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faCircle } from '@fortawesome/pro-light-svg-icons';
 import { useVerification } from '@/contexts/VerificationContext';
 import { Button } from '@/components/ui/Button';
-import { createAvatar } from '@dicebear/core';
-import * as pixelArt from '@dicebear/pixel-art';
+import { Avatar as DiceBearAvatar, Style } from '@dicebear/core';
+import voxelArt from '@dicebear/styles/voxel-art.json';
 
 type AvatarSize = 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
 
@@ -33,28 +33,65 @@ export interface AvatarProps {
   showTooltip?: boolean;
 }
 
-// Pale cool tints only; warm tones blend into the skin, hair, and yellow outfits.
-// DiceBear expects hex colors without the leading '#'.
-const pixelAvatarBackgrounds = [
-  'dbeafe', // blue
-  'e0e7ff', // indigo
-  'ede9fe', // violet
-  'e0f2fe', // sky
-  'cffafe', // cyan
-  'ccfbf1', // teal
-  'd1fae5', // emerald
-  'fce7f3', // pink
-  'f1f5f9', // slate
+// Pale cool tints only; warm tones blend into the skin and hair.
+const voxelAvatarBackgrounds = [
+  '#dbeafe', // blue
+  '#e0e7ff', // indigo
+  '#ede9fe', // violet
+  '#e0f2fe', // sky
+  '#cffafe', // cyan
+  '#ccfbf1', // teal
+  '#d1fae5', // emerald
+  '#fce7f3', // pink
+  '#f1f5f9', // slate
 ];
 
-const generatePixelAvatarUri = (seed: string) =>
-  createAvatar(pixelArt, {
+const voxelArtStyle = new Style(voxelArt);
+
+// Every avatar wears a white lab coat and glasses; the seed varies the face, hair, and colors.
+const generateVoxelAvatarUri = (seed: string) =>
+  new DiceBearAvatar(voxelArtStyle, {
     seed,
-    backgroundColor: pixelAvatarBackgrounds,
-    glassesProbability: 50,
-    beardProbability: 30,
-    accessoriesProbability: 25,
-    hatProbability: 15,
+    backgroundColor: voxelAvatarBackgrounds,
+    outfitVariant: 'coat',
+    jacketColor: '#f8f9fa',
+    glassesProbability: 100,
+    // Visor reads as safety goggles; shades are left out.
+    glassesVariant: { round: 3, square: 3, cat: 2, visor: 1 },
+    mouthVariant: [
+      'smile',
+      'bigSmile',
+      'flat',
+      'ooh',
+      'smirk',
+      'laugh',
+      'wideSmile',
+      'frown',
+      'grin',
+    ],
+    // Hair only; no caps, beanies, or animal ears.
+    topVariant: [
+      'short',
+      'spiky',
+      'bowl',
+      'sideSwept',
+      'curly',
+      'mohawk',
+      'buns',
+      'ponytail',
+      'bob',
+      'shoulderLength',
+      'longStraight',
+      'longWavy',
+      'partedLong',
+      'braids',
+      'twinTails',
+      'afro',
+      'halfShaved',
+    ],
+    animationVariant: 'none',
+    // Crops the full-body figure to head and shoulders so the coat still shows.
+    scale: 1.12,
   }).toDataUri();
 
 // Map string sizes to pixel values
@@ -316,7 +353,11 @@ export const Avatar: FC<AvatarProps> = ({
     setIsLoading(false);
   };
 
-  const shouldShowPixelAvatar = !src || imageError || isLoading;
+  const shouldShowGeneratedAvatar = !src || imageError || isLoading;
+  const generatedAvatarUri = useMemo(
+    () => (shouldShowGeneratedAvatar ? generateVoxelAvatarUri(alt) : null),
+    [shouldShowGeneratedAvatar, alt]
+  );
 
   // Handle custom pixel size
   const customStyle: CSSProperties = {};
@@ -359,7 +400,7 @@ export const Avatar: FC<AvatarProps> = ({
         </span>
       ) : (
         <img
-          src={shouldShowPixelAvatar ? generatePixelAvatarUri(alt) : src}
+          src={generatedAvatarUri ?? src ?? undefined}
           alt={alt}
           className="h-full w-full object-cover"
           onError={handleImageError}
