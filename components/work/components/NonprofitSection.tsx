@@ -1,11 +1,10 @@
 'use client';
 
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Landmark } from 'lucide-react';
 import { SidebarCard } from '@/components/ui/SidebarCard';
-import { NonprofitDisplay } from '@/components/Nonprofit';
 import { ID } from '@/types/root';
 import { useNonprofitOrg } from '@/hooks/useNonprofitByFundraiseId';
-import { useWorkNonprofit } from '@/components/work/WorkInstitutionContext';
+import { useWorkInstitution, useWorkNonprofit } from '@/components/work/WorkInstitutionContext';
 import { useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
@@ -17,11 +16,17 @@ interface NonprofitSectionProps {
   className?: string;
 }
 
+/** An EIN as it is written: 12-3456789. */
+const formatEin = (ein: string) => `${ein.substring(0, 2)}-${ein.substring(2)}`;
+
 /**
  * The nonprofit a fundraise pays into, as a sidebar card, or nothing for most
  * fundraises, which have none. It reads the nonprofit the proposal page loaded
  * (WorkInstitutionProvider), so it shows with the page; the details dialog
- * fills in from Endaoment after.
+ * fills in from Endaoment after. Laid out as a row of the Reviewed by card:
+ * a round icon, the name linking to its page on Endaoment, what the money is
+ * designated for and the EIN, then a link to the details, as the other cards
+ * end on theirs.
  */
 export function NonprofitSection({ fundraiseId, className }: NonprofitSectionProps) {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -30,6 +35,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
   const link = useWorkNonprofit(fundraiseId);
   const nonprofit = useNonprofitOrg(link?.nonprofitDetails ?? null);
   const departmentLabName = link?.note;
+  const href = useWorkInstitution()?.href;
 
   if (!nonprofit) {
     return null;
@@ -37,31 +43,54 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
   return (
     <SidebarCard
-      title="Nonprofit Recipient"
+      title="Nonprofit recipient"
       action={
-        <Button
-          className="text-gray-400 hover:text-gray-600"
+        <button
+          type="button"
           onClick={() => setShowEndaomentInfo(true)}
-          variant="ghost"
-          size="icon"
+          aria-label="How donations through a nonprofit work"
+          className="flex h-6 w-6 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
         >
           <HelpCircle className="h-4 w-4" />
-        </Button>
+        </button>
       }
       className={className}
     >
-      <div className="mt-2">
-        <NonprofitDisplay
-          nonprofit={nonprofit}
-          note={departmentLabName || ''}
-          onNoteChange={() => {}}
-          onInfoClick={() => setIsInfoOpen(true)}
-          onClear={() => {}}
-          isInfoOpen={isInfoOpen}
-          readOnly={true}
-          allowClear={false}
-        />
+      <div className="mt-2 flex gap-2.5">
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500"
+          aria-hidden="true"
+        >
+          <Landmark className="h-3.5 w-3.5" />
+        </span>
+        <div className="min-w-0 flex-1 text-[13px] leading-[18px]">
+          {href ? (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 hover:underline"
+            >
+              {nonprofit.name}
+            </a>
+          ) : (
+            <p className="font-semibold text-gray-900">{nonprofit.name}</p>
+          )}
+          {departmentLabName && (
+            <p className="mt-0.5 text-gray-600">Designated for {departmentLabName}</p>
+          )}
+          {nonprofit.ein && (
+            <p className="mt-0.5 text-xs text-gray-500">EIN {formatEin(nonprofit.ein)}</p>
+          )}
+        </div>
       </div>
+      <button
+        type="button"
+        onClick={() => setIsInfoOpen(true)}
+        className="mt-2 text-sm font-semibold text-primary-600 hover:text-primary-700"
+      >
+        About this nonprofit
+      </button>
 
       {/* Nonprofit Info Dialog */}
       <Transition show={isInfoOpen} as={Fragment}>
@@ -123,9 +152,7 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                         {nonprofit.ein && (
                           <>
                             <span className="text-gray-500">EIN:</span>
-                            <span className="font-medium">
-                              {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
-                            </span>
+                            <span className="font-medium">{formatEin(nonprofit.ein)}</span>
                           </>
                         )}
 
