@@ -234,7 +234,12 @@ export function WorkHeader({
           <Lightbulb className="h-5 w-5" />
         </button>
       )}
-      <button onClick={shareAction} className={cn(btnClass, '!hidden lg:!flex')} aria-label="Share">
+      {/* A cover keeps Share in its chip on every screen; elsewhere phones find it in the menu. */}
+      <button
+        onClick={shareAction}
+        className={cn(btnClass, !cover && '!hidden lg:!flex')}
+        aria-label="Share"
+      >
         <Share className="h-5 w-5" />
       </button>
       <BaseMenu
@@ -245,12 +250,14 @@ export function WorkHeader({
           </button>
         }
       >
-        <div className="lg:hidden">
-          <BaseMenuItem onSelect={shareAction}>
-            <Share className="h-4 w-4 mr-2" />
-            Share
-          </BaseMenuItem>
-        </div>
+        {!cover && (
+          <div className="lg:hidden">
+            <BaseMenuItem onSelect={shareAction}>
+              <Share className="h-4 w-4 mr-2" />
+              Share
+            </BaseMenuItem>
+          </div>
+        )}
         {additionalMenuItems}
         {menuItems}
       </BaseMenu>
