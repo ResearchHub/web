@@ -68,12 +68,16 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
         metadata={metadata}
         preTitle={preTitle}
         hideVoteWidget
-        // The top bar already says it's an RFP; the cover names who funds it.
+        // The top bar already says it's an RFP; the cover names who funds it,
+        // linked to the organization's own account when it has one.
         cover={{
           imageUrl: work.image,
-          eyebrow: organization,
-          eyebrowFace: organization
-            ? { name: organization, image: organizationProfile?.profileImage }
+          eyebrow: organization
+            ? {
+                name: organization,
+                image: organizationProfile?.profileImage,
+                authorId: organizationProfile?.id,
+              }
             : undefined,
           badges,
         }}

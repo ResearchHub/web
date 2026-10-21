@@ -8,7 +8,7 @@ import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
-import { CoverBadge } from '@/components/work/WorkCover';
+import { CoverBadge, type CoverEyebrowSubject } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
@@ -28,12 +28,25 @@ interface WorkHeaderProposalProps {
   preTitle?: ReactNode;
 }
 
-/** Who proposes it, for the cover's top line: the lead author, and how many more. */
+/** Who proposes it, for the Fund panel's cover: the lead author, and how many more. */
 function proposerLabel(work: Work): string | undefined {
   const [lead, ...others] = work.authors;
   if (!lead) return undefined;
   const name = lead.authorProfile.fullName;
   return others.length > 0 ? `${name} and ${others.length} more` : name;
+}
+
+/** The same for the cover's top line: the lead author's face, linked to their profile. */
+function proposerEyebrow(work: Work): CoverEyebrowSubject | undefined {
+  const [lead, ...others] = work.authors;
+  if (!lead) return undefined;
+  const { id, fullName, profileImage } = lead.authorProfile;
+  return {
+    name: fullName,
+    image: profileImage,
+    authorId: id,
+    more: others.length > 0 ? `and ${others.length} more` : undefined,
+  };
 }
 
 /**
@@ -92,7 +105,6 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   };
 
   const proposer = proposerLabel(displayedWork);
-  const lead = displayedWork.authors[0]?.authorProfile;
 
   const handleMakePublic = async () => {
     setIsMakingPublic(true);
@@ -141,8 +153,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
         preTitle={preTitle}
         cover={{
           imageUrl: displayedWork.image,
-          eyebrow: proposer,
-          eyebrowFace: lead && { name: lead.fullName, image: lead.profileImage },
+          eyebrow: proposerEyebrow(displayedWork),
           badges: closedBadge,
         }}
       />

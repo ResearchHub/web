@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
-import { COVER_CHIP_CLASS, WorkCover, type CoverEyebrowFace } from '@/components/work/WorkCover';
+import { COVER_CHIP_CLASS, WorkCover, type CoverEyebrowSubject } from '@/components/work/WorkCover';
 import { ContentType, Work } from '@/types/work';
 import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -60,10 +60,8 @@ interface WorkHeaderProps {
    */
   cover?: {
     imageUrl?: string;
-    /** The small line over the title. */
-    eyebrow?: string;
-    /** A small face before it. */
-    eyebrowFace?: CoverEyebrowFace;
+    /** Who the small line over the title names, with their face and link. */
+    eyebrow?: CoverEyebrowSubject;
     /** In the cover's corner, e.g. "Closed"; unset, a foundation bounty's badge if it has one. */
     badges?: ReactNode;
   };
@@ -281,7 +279,6 @@ export function WorkHeader({
         <WorkCover
           title={work.title}
           eyebrow={cover.eyebrow}
-          eyebrowFace={cover.eyebrowFace}
           imageUrl={cover.imageUrl}
           badges={resolvedEyebrow}
           actions={actionBar}

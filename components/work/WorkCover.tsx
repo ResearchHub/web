@@ -2,21 +2,27 @@
 
 import type { ReactNode } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/utils/styles';
 
-/** The face beside the eyebrow: the funder's, or the lead author's. */
-export interface CoverEyebrowFace {
+/** Who the small line over the title names, with their face: the funder, or the lead author. */
+export interface CoverEyebrowSubject {
   name: string;
+  /** Their picture; without one, the name's initials. */
   image?: string | null;
+  /** Their author profile: the face and name link to it and, under a mouse, open their card. */
+  authorId?: number;
+  /** Plain text after the name, e.g. "and 2 more". */
+  more?: string;
 }
 
 interface WorkCoverProps {
   title: string;
   /** The small line over the title: who funds an RFP, who proposes a proposal. */
-  eyebrow?: string;
-  /** A small face before the eyebrow; without an image, the name's initials. */
-  eyebrowFace?: CoverEyebrowFace;
+  eyebrow?: CoverEyebrowSubject;
   imageUrl?: string;
   /** Badges pinned to the cover's top-left corner (pending review, closed); on phones, over the eyebrow. */
   badges?: ReactNode;
@@ -48,12 +54,65 @@ export function CoverBadge({ children }: { children: ReactNode }) {
   );
 }
 
+// The eyebrow's type, for CoverEyebrow and the large cover's linked line.
+const EYEBROW_TYPE_CLASS = 'font-bold uppercase tracking-[0.08em] text-white/80';
+
 /** The small line over a cover's title: who funds an RFP, who proposes a proposal. */
 export function CoverEyebrow({ children, className }: { children: ReactNode; className?: string }) {
+  return <p className={cn('truncate', EYEBROW_TYPE_CLASS, className)}>{children}</p>;
+}
+
+// A mouse can hover the name for its card; on touch screens that hover would
+// be the tap that follows the link. The same test as AuthorLink's.
+const CAN_HOVER_QUERY = '(hover: hover) and (pointer: fine)';
+
+/**
+ * The large cover's eyebrow: a face and a name, one link to their profile
+ * that, under a mouse, opens their profile card (AuthorTooltip) too. Without
+ * a profile, plain text.
+ */
+function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
+  const { name, image, authorId, more } = subject;
+  // Unknown while the page hydrates, so the server's render is the plain link.
+  const canHover = useMediaQuery(CAN_HOVER_QUERY) === true;
+
+  const faceAndName = (
+    <>
+      <Avatar src={image} alt={name} size={22} className="ring-1 ring-white/40" />
+      <span className="truncate underline-offset-2 group-hover/eyebrow:underline">{name}</span>
+    </>
+  );
+
+  let subjectLine: ReactNode = (
+    <span className="flex min-w-0 items-center gap-2">{faceAndName}</span>
+  );
+  if (authorId) {
+    const link = (
+      <Link
+        href={`/author/${authorId}`}
+        // Not prefetched: a profile most visitors never open.
+        prefetch={false}
+        className="group/eyebrow flex min-w-0 items-center gap-2 transition-colors hover:text-white"
+      >
+        {faceAndName}
+      </Link>
+    );
+    subjectLine = canHover ? (
+      <AuthorTooltip authorId={authorId} placement="bottom">
+        {link}
+      </AuthorTooltip>
+    ) : (
+      // The box AuthorTooltip wraps it in, so the line doesn't move when the
+      // card arrives after hydration.
+      <span className="relative inline-flex min-w-0 max-w-full items-center">{link}</span>
+    );
+  }
+
   return (
-    <p className={cn('truncate font-bold uppercase tracking-[0.08em] text-white/80', className)}>
-      {children}
-    </p>
+    <div className={cn('flex min-w-0 items-center text-[10.5px] sm:text-xs', EYEBROW_TYPE_CLASS)}>
+      {subjectLine}
+      {more && <span className="ml-1 shrink-0">{more}</span>}
+    </div>
   );
 }
 
@@ -96,7 +155,6 @@ const IMAGE_HOVER_CLASS = cn(
 export function WorkCover({
   title,
   eyebrow,
-  eyebrowFace,
   imageUrl,
   badges,
   actions,
@@ -188,19 +246,7 @@ export function WorkCover({
           {badges && (
             <div className="mb-2.5 flex flex-wrap gap-1.5 empty:hidden tablet:hidden">{badges}</div>
           )}
-          {eyebrow && (
-            <div className="flex min-w-0 items-center gap-2">
-              {eyebrowFace && (
-                <Avatar
-                  src={eyebrowFace.image}
-                  alt={eyebrowFace.name}
-                  size={22}
-                  className="ring-1 ring-white/40"
-                />
-              )}
-              <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>
-            </div>
-          )}
+          {eyebrow && <CoverEyebrowLine subject={eyebrow} />}
           <h1 className="mt-1.5 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
             {title}
           </h1>
