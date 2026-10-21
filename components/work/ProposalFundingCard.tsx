@@ -26,7 +26,6 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
   return (
     <FundingCard
       label="Funding"
-      status={summary.statusLabel}
       aside={
         summary.timeLeft && (
           // Counted from the server's clock first; the browser's can tip it over.

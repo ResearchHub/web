@@ -16,8 +16,6 @@ import { pluralizeSuffix } from '@/utils/stringUtils';
 export interface FundraiseSummary {
   isActive: boolean;
   isCompleted: boolean;
-  /** "Fully funded" or "Closed" once it stops taking money. */
-  statusLabel?: string;
   raised: string;
   goal: string;
   /** How much of the goal is raised, 0 to 100. */
@@ -79,7 +77,6 @@ export function useFundraiseSummary(fundraise: Fundraise): FundraiseSummary {
   return {
     isActive,
     isCompleted,
-    statusLabel: isCompleted ? 'Fully funded' : status === 'CLOSED' ? 'Closed' : undefined,
     raised: formatFundingAmount(raised, showUSD),
     goal: formatFundingAmount(goal, showUSD),
     percent: Math.floor(percent),

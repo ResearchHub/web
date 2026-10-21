@@ -134,7 +134,6 @@ export function GrantFundingPoolWidget({
   return (
     <FundingCard
       label="Funding pool"
-      status={isOpen ? undefined : 'Closed'}
       aside={infoButton}
       testId="grant-funding-pool"
       className={className}
