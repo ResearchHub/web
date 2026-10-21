@@ -2,6 +2,7 @@
 
 import { useId, useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { ZoomableImages } from '@/components/ui/ZoomableImages';
 import { PostBlockEditor } from '@/components/work/PostBlockEditor';
 import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
 import { decodeHtmlEntities, stripHtml } from '@/utils/stringUtils';
@@ -54,7 +55,8 @@ interface DocumentSectionsProps {
 
 /**
  * A work's body as sections that open and close, one per heading. Each
- * section's text is rendered the first time it opens and kept after that.
+ * section's text is rendered the first time it opens and kept after that. A
+ * click on an image opens it full screen.
  */
 export function DocumentSections({
   content,
@@ -74,9 +76,9 @@ export function DocumentSections({
 
   if (sections.length === 0) {
     return (
-      <div className="py-6">
+      <ZoomableImages className="py-6">
         <PostBlockEditor content={body} className={BODY_CLASS} />
-      </div>
+      </ZoomableImages>
     );
   }
 
@@ -91,7 +93,7 @@ export function DocumentSections({
   };
 
   return (
-    <div className="pb-6">
+    <ZoomableImages className="pb-6">
       {intro && (
         <div className="border-b border-gray-200 py-4">
           <PostBlockEditor content={intro} className={BODY_CLASS} />
@@ -128,6 +130,6 @@ export function DocumentSections({
           </section>
         );
       })}
-    </div>
+    </ZoomableImages>
   );
 }

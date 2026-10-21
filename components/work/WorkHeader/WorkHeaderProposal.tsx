@@ -92,6 +92,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   };
 
   const proposer = proposerLabel(displayedWork);
+  const lead = displayedWork.authors[0]?.authorProfile;
 
   const handleMakePublic = async () => {
     setIsMakingPublic(true);
@@ -138,7 +139,12 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
         metadata={metadata}
         additionalMenuItems={additionalMenuItems}
         preTitle={preTitle}
-        cover={{ imageUrl: displayedWork.image, eyebrow: proposer, badges: closedBadge }}
+        cover={{
+          imageUrl: displayedWork.image,
+          eyebrow: proposer,
+          eyebrowFace: lead && { name: lead.fullName, image: lead.profileImage },
+          badges: closedBadge,
+        }}
       />
 
       {fundraise && isActive && (

@@ -8,7 +8,7 @@ import { documentTarget, newDraftTarget, workspaceHref } from '@/components/AIMo
 import { Button } from '@/components/ui/Button';
 import { PinnedFooter } from '@/components/ui/PinnedFooter';
 import { SidePanel } from '@/components/ui/SidePanel';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { FULL_DRAWER_HEIGHT, SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -322,7 +322,7 @@ export function ApplyToGrantPanel({
     <SwipeableDrawer
       isOpen={isOpen}
       onClose={handleClose}
-      height="85vh"
+      height={FULL_DRAWER_HEIGHT}
       header={
         <div className="border-b border-gray-200 pb-3">
           <span className="text-lg font-semibold text-gray-900">Apply to RFP</span>

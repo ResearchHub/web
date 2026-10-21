@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { PinnedFooter, type PinnedFooterContainer } from '@/components/ui/PinnedFooter';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { FULL_DRAWER_HEIGHT, SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { SidePanel } from '@/components/ui/SidePanel';
 import { cn } from '@/utils/styles';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -850,7 +850,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         <SwipeableDrawer
           isOpen={isOpen}
           onClose={handleClose}
-          height="72vh"
+          height={FULL_DRAWER_HEIGHT}
           showCloseButton={true}
           header={
             <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
