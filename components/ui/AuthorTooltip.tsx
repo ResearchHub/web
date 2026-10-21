@@ -28,7 +28,7 @@ const CustomTooltipWrapper: React.FC<{
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   position: 'top' | 'bottom' | 'left' | 'right';
-  anchorRef: React.RefObject<HTMLDivElement | null>;
+  anchorRef: React.RefObject<HTMLElement | null>;
 }> = ({ isVisible, children, className, onMouseEnter, onMouseLeave, position, anchorRef }) => {
   const [mounted, setMounted] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -111,7 +111,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   const showTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Create a custom tooltip wrapper with a ref we can use
-  const tooltipWrapperRef = useRef<HTMLDivElement>(null);
+  const tooltipWrapperRef = useRef<HTMLSpanElement>(null);
   const tooltipContentRef = useRef<HTMLDivElement>(null);
 
   // Clear cache once on component initialization
@@ -369,9 +369,10 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
     return <>{children}</>;
   }
 
-  // Use our custom tooltip implementation with portal
+  // Use our custom tooltip implementation with portal. A span, so a name with
+  // its card can sit inside a paragraph; the card itself is portaled out.
   return (
-    <div
+    <span
       ref={tooltipWrapperRef}
       // min-w-0 so a name inside can truncate when the line around it is tight.
       className="relative inline-flex min-w-0 max-w-full items-center"
@@ -390,6 +391,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
       >
         <div ref={tooltipContentRef}>{tooltipContent}</div>
       </CustomTooltipWrapper>
-    </div>
+    </span>
   );
 };
