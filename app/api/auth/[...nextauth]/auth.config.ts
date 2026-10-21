@@ -17,8 +17,10 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+      id: 'x',
+      name: 'X',
+      clientId: process.env.X_CLIENT_ID!,
+      clientSecret: process.env.X_CLIENT_SECRET!,
       version: '2.0',
       authorization: {
         url: 'https://x.com/i/oauth2/authorize',
@@ -37,7 +39,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid X OAuth callback');
           }
 
-          const data = await AuthService.loginWithTwitter({
+          const data = await AuthService.loginWithX({
             code: params.code,
             code_verifier: checks.code_verifier,
             redirect_uri: provider.callbackUrl,
@@ -117,7 +119,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'google' || account?.provider === 'twitter') {
+      if (account?.provider === 'google' || account?.provider === 'x') {
         try {
           // Log OAuth token state for debugging
           if (DEBUG_AUTH) {
@@ -139,7 +141,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const data =
-            account.provider === 'twitter'
+            account.provider === 'x'
               ? { key: account.authToken }
               : await AuthService.googleLogin({
                   access_token: account.access_token,

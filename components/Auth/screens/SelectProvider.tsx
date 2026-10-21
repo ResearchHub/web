@@ -94,8 +94,8 @@ export default function SelectProvider({
       const response = await AuthService.checkAccount(email);
 
       if (response.exists) {
-        if (response.auth === 'google' || response.auth === 'twitter_oauth2') {
-          handleSocialSignIn(response.auth === 'google' ? 'google' : 'twitter');
+        if (response.auth === 'google' || response.auth === 'x_oauth2') {
+          handleSocialSignIn(response.auth === 'google' ? 'google' : 'x');
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -111,7 +111,7 @@ export default function SelectProvider({
     }
   };
 
-  const handleSocialSignIn = (provider: 'google' | 'twitter') => {
+  const handleSocialSignIn = (provider: 'google' | 'x') => {
     if (provider === 'google') {
       AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((analyticsError) => {
         console.error('Analytics failed:', analyticsError);
@@ -169,11 +169,7 @@ export default function SelectProvider({
             <GoogleGlyph />
             {auth.googleLabel}
           </button>
-          <button
-            className="btn-social mt-3"
-            type="button"
-            onClick={() => handleSocialSignIn('twitter')}
-          >
+          <button className="btn-social mt-3" type="button" onClick={() => handleSocialSignIn('x')}>
             <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />
             Continue with X
           </button>
@@ -371,7 +367,7 @@ export default function SelectProvider({
           type="button"
           variant="outlined"
           size="lg"
-          onClick={() => handleSocialSignIn('twitter')}
+          onClick={() => handleSocialSignIn('x')}
           className="mt-3 w-full gap-2.5 font-semibold text-gray-900"
         >
           <FontAwesomeIcon icon={faXTwitter} className="h-5 w-5" />

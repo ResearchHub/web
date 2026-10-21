@@ -188,13 +188,13 @@ export class AuthService {
     };
   }
 
-  static async loginWithTwitter(credentials: {
+  static async loginWithX(credentials: {
     code: string;
     code_verifier: string;
     redirect_uri: string;
   }): Promise<{ key: string; access_token: string }> {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/twitter/login/`,
+      `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/x/login/`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
