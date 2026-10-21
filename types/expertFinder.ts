@@ -853,7 +853,6 @@ export interface OutreachCampaign {
   publishedVariableKeys: string[];
   status: OutreachCampaignStatus | string;
   publishedAt: string | null;
-  hasUnpublishedChanges: boolean;
   counts: OutreachCampaignCounts;
   createdDate: string;
   updatedDate: string;
@@ -890,7 +889,6 @@ export const transformOutreachCampaign = createTransformer<any, OutreachCampaign
     : [],
   status: raw.status ?? '',
   publishedAt: raw.published_at ?? null,
-  hasUnpublishedChanges: Boolean(raw.has_unpublished_changes),
   counts: transformOutreachCampaignCounts(raw.counts),
   createdDate: raw.created_date ?? '',
   updatedDate: raw.updated_date ?? '',
@@ -994,5 +992,102 @@ export const transformOutreachOAuthSession = createTransformer<any, OutreachOAut
       raw.mailbox != null && typeof raw.mailbox === 'object'
         ? transformOutreachMailbox(raw.mailbox)
         : null,
+  })
+);
+
+// ── Expert Finder overview (conversion metrics) ──────────────────────────────
+
+export interface ExpertFinderOverviewSummary {
+  searchesTotal: number;
+  searchesCompleted: number;
+  searchesFailed: number;
+  searchesPending: number;
+  signupRate: number | null;
+  emailSendRate: number | null;
+  openRate: number | null;
+  bounceRate: number | null;
+}
+
+export interface ExpertFinderOverviewFilters {
+  unifiedDocumentId: number | null;
+  start: string | null;
+  end: string | null;
+  editorId: number | null;
+}
+
+export interface ExpertFinderOverviewMeta {
+  cachedAt: string | null;
+  filters: ExpertFinderOverviewFilters;
+}
+
+export interface ExpertFinderOverview {
+  expertsTotal: number;
+  expertsSignedUp: number;
+  emailsGenerated: number;
+  emailsSent: number;
+  emailsBounced: number;
+  emailsOpened: number;
+  proposalsOpened: number;
+  summary: ExpertFinderOverviewSummary;
+  meta: ExpertFinderOverviewMeta;
+}
+
+export interface ExpertFinderOverviewParams {
+  start?: string;
+  end?: string;
+  unifiedDocumentId?: number;
+  editorId?: number;
+}
+
+function parseNullableRate(value: unknown): number | null {
+  if (value == null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function transformOverviewSummary(raw: any): ExpertFinderOverviewSummary {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return {
+    searchesTotal: source.searches_total ?? 0,
+    searchesCompleted: source.searches_completed ?? 0,
+    searchesFailed: source.searches_failed ?? 0,
+    searchesPending: source.searches_pending ?? 0,
+    signupRate: parseNullableRate(source.signup_rate),
+    emailSendRate: parseNullableRate(source.email_send_rate),
+    openRate: parseNullableRate(source.open_rate),
+    bounceRate: parseNullableRate(source.bounce_rate),
+  };
+}
+
+function transformOverviewFilters(raw: any): ExpertFinderOverviewFilters {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return {
+    unifiedDocumentId:
+      source.unified_document_id != null && Number.isFinite(Number(source.unified_document_id))
+        ? Number(source.unified_document_id)
+        : null,
+    start: source.start != null ? String(source.start) : null,
+    end: source.end != null ? String(source.end) : null,
+    editorId:
+      source.editor_id != null && Number.isFinite(Number(source.editor_id))
+        ? Number(source.editor_id)
+        : null,
+  };
+}
+
+export const transformExpertFinderOverview = createTransformer<any, ExpertFinderOverview>(
+  (raw) => ({
+    expertsTotal: raw.experts_total ?? 0,
+    expertsSignedUp: raw.experts_signed_up ?? 0,
+    emailsGenerated: raw.emails_generated ?? 0,
+    emailsSent: raw.emails_sent ?? 0,
+    emailsBounced: raw.emails_bounced ?? 0,
+    emailsOpened: raw.emails_opened ?? 0,
+    proposalsOpened: raw.proposals_opened ?? 0,
+    summary: transformOverviewSummary(raw.summary),
+    meta: {
+      cachedAt: raw.meta?.cached_at != null ? String(raw.meta.cached_at) : null,
+      filters: transformOverviewFilters(raw.meta?.filters),
+    },
   })
 );

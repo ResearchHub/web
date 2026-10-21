@@ -17,6 +17,8 @@ import { ApiError } from '@/services/types/api';
 import type {
   ExpertResult,
   ExpertSearchCreated,
+  ExpertFinderOverview,
+  ExpertFinderOverviewParams,
   InvitedExperts,
   ExpertSearchResult,
   ExpertSearchListItem,
@@ -1092,6 +1094,62 @@ export function useOutreachCapacity(immediate = true): UseOutreachCapacityReturn
   return [{ capacity, isLoading, error }, fetch];
 }
 
+// ── useExpertFinderOverview ──────────────────────────────────────────────────
+
+interface UseExpertFinderOverviewState {
+  overview: ExpertFinderOverview | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchExpertFinderOverviewFn = (params?: ExpertFinderOverviewParams) => Promise<void>;
+type UseExpertFinderOverviewReturn = [
+  UseExpertFinderOverviewState,
+  FetchExpertFinderOverviewFn,
+];
+
+export function useExpertFinderOverview(
+  params?: ExpertFinderOverviewParams & { immediate?: boolean }
+): UseExpertFinderOverviewReturn {
+  const immediate = params?.immediate !== false;
+  const start = params?.start;
+  const end = params?.end;
+  const unifiedDocumentId = params?.unifiedDocumentId;
+  const editorId = params?.editorId;
+
+  const [overview, setOverview] = useState<ExpertFinderOverview | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(
+    async (fetchParams?: ExpertFinderOverviewParams) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await ExpertFinderService.getOverview({
+          start: fetchParams?.start ?? start,
+          end: fetchParams?.end ?? end,
+          unifiedDocumentId: fetchParams?.unifiedDocumentId ?? unifiedDocumentId,
+          editorId: fetchParams?.editorId ?? editorId,
+        });
+        setOverview(response);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch overview';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [start, end, unifiedDocumentId, editorId]
+  );
+
+  useEffect(() => {
+    if (immediate) void fetch();
+  }, [immediate, fetch]);
+
+  return [{ overview, isLoading, error }, fetch];
+}
+
 // ── useOutreachCampaigns ─────────────────────────────────────────────────────
 
 interface UseOutreachCampaignsState {
@@ -1255,6 +1313,91 @@ export function useActivateOutreachCampaign(): UseActivateOutreachCampaignReturn
   }, []);
 
   return [{ isLoading, error }, activate];
+}
+
+// ── useUpdateOutreachCampaign ────────────────────────────────────────────────
+
+interface UseUpdateOutreachCampaignState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type UpdateOutreachCampaignFn = (
+  campaignId: number | string,
+  payload: {
+    name?: string;
+    published_subject?: string;
+    published_body?: string;
+  }
+) => Promise<OutreachCampaign>;
+type UseUpdateOutreachCampaignReturn = [
+  UseUpdateOutreachCampaignState,
+  UpdateOutreachCampaignFn,
+];
+
+export function useUpdateOutreachCampaign(): UseUpdateOutreachCampaignReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const update = useCallback(
+    async (
+      campaignId: number | string,
+      payload: {
+        name?: string;
+        published_subject?: string;
+        published_body?: string;
+      }
+    ): Promise<OutreachCampaign> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        return await ExpertFinderService.updateOutreachCampaign(campaignId, payload);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to update campaign';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, update];
+}
+
+// ── useDeleteOutreachCampaign ────────────────────────────────────────────────
+
+interface UseDeleteOutreachCampaignState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type DeleteOutreachCampaignFn = (campaignId: number | string) => Promise<void>;
+type UseDeleteOutreachCampaignReturn = [
+  UseDeleteOutreachCampaignState,
+  DeleteOutreachCampaignFn,
+];
+
+export function useDeleteOutreachCampaign(): UseDeleteOutreachCampaignReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const remove = useCallback(async (campaignId: number | string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderService.deleteOutreachCampaign(campaignId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete campaign';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, remove];
 }
 
 // ── useSendOutreachCampaign ──────────────────────────────────────────────────

@@ -79,7 +79,7 @@ export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
 const CUSTOM_PREFIX = 'custom:';
 
 export function getTemplateDisplayLabel(value: string | null | undefined): string {
-  if (value == null || value.trim() === '') return 'Saved template';
+  if (value == null || value.trim() === '') return 'Saved draft';
   const v = value.trim();
   const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === v);
   if (opt) return opt.label;
@@ -227,8 +227,8 @@ export function GenerateEmailModal({
             <CreationModeCard
               selected={creationMode === 'template'}
               icon={<FileText className="h-5 w-5" aria-hidden />}
-              title="Use a template"
-              description="Reuse one of your saved outreach templates"
+              title="Use a draft"
+              description="Reuse one of your saved outreach drafts"
               onClick={() => setCreationMode('template')}
             />
             <CreationModeCard
@@ -319,7 +319,7 @@ export function GenerateEmailModal({
           </>
         ) : (
           <Dropdown
-            label="Choose outreach template"
+            label="Choose outreach draft"
             trigger={
               <button
                 type="button"
@@ -329,9 +329,9 @@ export function GenerateEmailModal({
                 )}
               >
                 {savedTemplateId == null
-                  ? 'Choose outreach template…'
+                  ? 'Choose outreach draft…'
                   : (templates.find((t) => t.id === savedTemplateId)?.name ??
-                    'Choose outreach template…')}
+                    'Choose outreach draft…')}
                 <ChevronDown
                   className={cn(
                     'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
@@ -345,7 +345,7 @@ export function GenerateEmailModal({
           >
             {templates.length === 0 ? (
               <DropdownItem onClick={() => {}} className="text-gray-500 cursor-default" disabled>
-                No saved templates yet
+                No saved drafts yet
               </DropdownItem>
             ) : (
               templates.map((t) => (
