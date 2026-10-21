@@ -5,6 +5,8 @@ import { Lock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import { useShowProposalTab } from '@/components/work/lib/workTabs';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import {
@@ -16,6 +18,7 @@ import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 import { getWorkReviewScore } from '@/components/work/lib/reviewScore';
 import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
 import type { WorkMetadata } from '@/services/metadata.service';
+import type { Fundraise } from '@/types/funding';
 import type { Work } from '@/types/work';
 import { formatTimestamp } from '@/utils/date';
 import { pluralizeSuffix } from '@/utils/stringUtils';
@@ -26,10 +29,11 @@ const PRIVATE_NOTE = 'Only the funder and vetted reviewers can read this proposa
 
 /**
  * Over a proposal's Proposal tab: who proposes it, with the lead author's
- * face, then chips for its review score, when it was posted, the RFP it
- * answers, whether it went in privately, and its DOI. Each chip opens what it
- * is about: the score the Reviews tab, the date the Updates tab, the RFP and
- * the DOI their pages. The other tabs open straight on their content.
+ * face, then chips for what it has raised (where the funding card is hidden),
+ * its review score, when it was posted, the RFP it answers, whether it went
+ * in privately, and its DOI. Each chip opens what it is about: the score the
+ * Reviews tab, the date the Updates tab, the RFP and the DOI their pages. The
+ * other tabs open straight on their content.
  */
 export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkMetadata }) {
   const showTab = useShowProposalTab(work);
@@ -41,6 +45,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
   const postedDate = work.publishedDate || work.createdDate;
 
   const { title: grantTitle, href: grantHref } = getLinkedGrantLink(work);
+  const fundraise = metadata.fundraising;
 
   if (activeTab !== 'paper') return null;
 
@@ -68,6 +73,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
       )}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
+        {fundraise && <ProposalAmountChip fundraise={fundraise} />}
         {reviewScore !== undefined && (
           <button
             type="button"
@@ -132,5 +138,37 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * What the fundraise has raised, as the first chip where the funding card is
+ * hidden (phones and tablets), as an RFP's byline leads with its award. It
+ * stays once the fundraise has ended. While open it shows raised of the goal
+ * and opens the Fund panel; after, what it raised, and it opens the sidebar
+ * drawer, whose funding card has the rest. It follows the RSC or USD choice,
+ * as the card and the action bar do.
+ */
+function ProposalAmountChip({ fundraise }: { fundraise: Fundraise }) {
+  const summary = useFundraiseSummary(fundraise);
+  const { openFundPanel } = useFundPanel();
+  const { setMobileSidebarOpen } = useWorkTab();
+
+  return (
+    <button
+      type="button"
+      onClick={summary.isActive ? openFundPanel : () => setMobileSidebarOpen(true)}
+      aria-haspopup="dialog"
+      className={cn(
+        BYLINE_LINK_CHIP_CLASS,
+        'lg:hidden',
+        // Green while it raises and once it met its goal; gray when it ended short.
+        (summary.isActive || summary.isCompleted) &&
+          'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+      )}
+    >
+      <span className="font-mono font-semibold">{summary.raised}</span>
+      {summary.isActive ? `of ${summary.goal}` : 'raised'}
+    </button>
   );
 }
