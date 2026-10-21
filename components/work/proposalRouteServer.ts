@@ -5,7 +5,10 @@ import { notFound } from 'next/navigation';
 import { getShareToken } from '@/lib/shareToken/server';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 import { MetadataService, type WorkMetadata } from '@/services/metadata.service';
+import { NonprofitService } from '@/services/nonprofit.service';
 import { PostService } from '@/services/post.service';
+import type { NonprofitLink } from '@/types/nonprofit';
+import type { ID } from '@/types/root';
 import type { Work } from '@/types/work';
 
 type ProposalTab = 'reviews' | 'bounties' | 'conversation' | 'updates';
@@ -30,6 +33,21 @@ export const getProposalOrNotFound = cache(async (id: string): Promise<Work> => 
 export const getProposalMetadata = cache(
   async (unifiedDocumentId: string): Promise<WorkMetadata> =>
     MetadataService.get(unifiedDocumentId, { shareToken: await getShareToken() })
+);
+
+// The nonprofit a proposal's fundraise pays into, or null for most, which pay
+// the researcher. Loaded with the page so the cover, the byline and the
+// sidebar all name it from the first render. The page works without it, so a
+// failed lookup reads as none.
+export const getProposalNonprofit = cache(
+  async (fundraiseId: ID): Promise<NonprofitLink | null> => {
+    try {
+      const [link] = await NonprofitService.getNonprofitsByFundraiseId(fundraiseId);
+      return link ?? null;
+    } catch {
+      return null;
+    }
+  }
 );
 
 export async function getProposalContent(work: Work): Promise<string | undefined> {

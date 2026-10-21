@@ -4,11 +4,11 @@ import { HelpCircle } from 'lucide-react';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { NonprofitDisplay } from '@/components/Nonprofit';
 import { ID } from '@/types/root';
-import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
-import { useEffect, useState } from 'react';
+import { useNonprofitOrg } from '@/hooks/useNonprofitByFundraiseId';
+import { useWorkNonprofit } from '@/components/work/WorkInstitutionContext';
+import { useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { NonprofitOrg } from '@/types/nonprofit';
 import { Button } from '@/components/ui/Button';
 import { formatNonprofitAddress } from '@/components/Nonprofit/formatNonprofitAddress';
 
@@ -18,21 +18,20 @@ interface NonprofitSectionProps {
 }
 
 /**
- * The nonprofit a fundraise pays into, as a sidebar card. Most fundraises have
- * none, so the card waits for the answer rather than holding a place for it.
+ * The nonprofit a fundraise pays into, as a sidebar card, or nothing for most
+ * fundraises, which have none. It reads the nonprofit the proposal page loaded
+ * (WorkInstitutionProvider), so it shows with the page; the details dialog
+ * fills in from Endaoment after.
  */
 export function NonprofitSection({ fundraiseId, className }: NonprofitSectionProps) {
-  const [selectedNonprofit, setSelectedNonprofit] = useState<NonprofitOrg | null>(null);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [showEndaomentInfo, setShowEndaomentInfo] = useState(false);
 
-  const { nonprofit, departmentLabName, isLoading, fetchNonprofitData } =
-    useNonprofitByFundraiseId();
+  const link = useWorkNonprofit(fundraiseId);
+  const nonprofit = useNonprofitOrg(link?.nonprofitDetails ?? null);
+  const departmentLabName = link?.note;
 
-  useEffect(() => {
-    fetchNonprofitData(fundraiseId);
-  }, [fundraiseId, fetchNonprofitData]);
-
-  if (isLoading || !nonprofit) {
+  if (!nonprofit) {
     return null;
   }
 
@@ -56,17 +55,17 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
           nonprofit={nonprofit}
           note={departmentLabName || ''}
           onNoteChange={() => {}}
-          onInfoClick={() => setSelectedNonprofit(nonprofit)}
+          onInfoClick={() => setIsInfoOpen(true)}
           onClear={() => {}}
-          isInfoOpen={selectedNonprofit?.id === nonprofit.id}
+          isInfoOpen={isInfoOpen}
           readOnly={true}
           allowClear={false}
         />
       </div>
 
       {/* Nonprofit Info Dialog */}
-      <Transition show={!!selectedNonprofit} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setSelectedNonprofit(null)}>
+      <Transition show={isInfoOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsInfoOpen(false)}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity duration-200"
@@ -91,14 +90,14 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 shadow-xl transition-all">
-                  {selectedNonprofit && (
+                  {nonprofit && (
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <Dialog.Title className="text-lg font-medium text-gray-900">
-                          {selectedNonprofit.name}
+                          {nonprofit.name}
                         </Dialog.Title>
                         <Button
-                          onClick={() => setSelectedNonprofit(null)}
+                          onClick={() => setIsInfoOpen(false)}
                           variant="ghost"
                           size="icon"
                           className="text-gray-400 hover:text-gray-600"
@@ -121,39 +120,35 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                       </div>
 
                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
-                        {selectedNonprofit.ein && (
+                        {nonprofit.ein && (
                           <>
                             <span className="text-gray-500">EIN:</span>
                             <span className="font-medium">
-                              {selectedNonprofit.ein.substring(0, 2) +
-                                '-' +
-                                selectedNonprofit.ein.substring(2)}
+                              {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
                             </span>
                           </>
                         )}
 
-                        {formatNonprofitAddress(selectedNonprofit.address) && (
+                        {formatNonprofitAddress(nonprofit.address) && (
                           <>
                             <span className="text-gray-500">Location:</span>
-                            <span>{formatNonprofitAddress(selectedNonprofit.address)}</span>
+                            <span>{formatNonprofitAddress(nonprofit.address)}</span>
                           </>
                         )}
 
                         <span className="text-gray-500">Category:</span>
                         <span className="break-words">
-                          {selectedNonprofit.nteeCode} - {selectedNonprofit.nteeDescription}
+                          {nonprofit.nteeCode} - {nonprofit.nteeDescription}
                         </span>
 
                         <span className="text-gray-500">Endaoment ID:</span>
-                        <span className="font-medium break-words">
-                          {selectedNonprofit.endaomentOrgId}
-                        </span>
+                        <span className="font-medium break-words">{nonprofit.endaomentOrgId}</span>
                       </div>
 
-                      {selectedNonprofit.description && (
+                      {nonprofit.description && (
                         <div className="pt-3 border-t border-gray-100">
                           <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
-                          <p className="text-sm text-gray-600">{selectedNonprofit.description}</p>
+                          <p className="text-sm text-gray-600">{nonprofit.description}</p>
                         </div>
                       )}
                     </div>
