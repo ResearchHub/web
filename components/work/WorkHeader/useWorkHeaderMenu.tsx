@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/hooks/useFundraise';
 import { GrantModerationService } from '@/services/grant-moderation.service';
 import { handleDownload } from '@/utils/download';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { FundraiseModalConfig } from './WorkHeaderModals';
 import toast from 'react-hot-toast';
 
@@ -82,11 +83,16 @@ export function useWorkHeaderMenuItems({
 
   const handleEdit = useCallback(() => {
     if (selectedOrg && work.note) {
-      router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
+      // RFPs are written in the workspace; the rest still open in the notebook.
+      router.push(
+        work.contentType === 'funding_request'
+          ? workspaceHref(documentTarget(work.note.id))
+          : `/notebook/${work.note.organization.slug}/${work.note.id}`
+      );
     } else {
       toast.error('Unable to edit');
     }
-  }, [work.note, selectedOrg, router]);
+  }, [work.note, work.contentType, selectedOrg, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();

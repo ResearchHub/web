@@ -5,11 +5,9 @@ import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
-import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
 import { ID } from '@/types/root';
-import type { GrantApplicationVisibility } from '@/types/grant';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -32,10 +30,6 @@ export interface WorkHeaderModalsProps {
   onCloseFundraiseModal: () => void;
   onConfirmFundraise: () => void;
   fundraiseModalConfig: FundraiseModalConfig;
-  isApplyToGrantModalOpen?: boolean;
-  onCloseApplyToGrantModal?: () => void;
-  grantId?: string;
-  grantApplicationVisibility?: GrantApplicationVisibility;
   showReopenModal?: boolean;
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
@@ -62,10 +56,6 @@ export function WorkHeaderModals({
   onCloseFundraiseModal,
   onConfirmFundraise,
   fundraiseModalConfig,
-  isApplyToGrantModalOpen = false,
-  onCloseApplyToGrantModal,
-  grantId,
-  grantApplicationVisibility,
   showReopenModal = false,
   onCloseReopenModal,
   onConfirmReopen,
@@ -137,16 +127,6 @@ export function WorkHeaderModals({
           isOpen={showInviteExpertsModal}
           onClose={onCloseInviteExpertsModal}
           grantId={inviteExpertsGrantId}
-        />
-      )}
-      {grantId && onCloseApplyToGrantModal && (
-        <ApplyToGrantModal
-          isOpen={isApplyToGrantModalOpen}
-          onClose={onCloseApplyToGrantModal}
-          onUseSelected={onCloseApplyToGrantModal}
-          grantId={grantId}
-          grantTitle={work.title}
-          grantApplicationVisibility={grantApplicationVisibility}
         />
       )}
     </>

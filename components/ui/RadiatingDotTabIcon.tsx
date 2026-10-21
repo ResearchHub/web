@@ -1,15 +1,14 @@
-import { type LucideIcon, type LucideProps } from 'lucide-react';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { cn } from '@/utils/styles';
 
 function radiatingDotTabIcon(color: string) {
-  return function RadiatingDotTabIcon({ className }: LucideProps) {
+  return function RadiatingDotTabIcon({ className }: { className?: string }) {
     return (
       <span className={cn('inline-flex items-center justify-center', className)}>
         <RadiatingDot ring color={color} />
       </span>
     );
-  } as LucideIcon;
+  };
 }
 
 /** Inactive tab: gray so the dot does not inherit near-black tab text. */

@@ -35,13 +35,10 @@ export default async function GrantSlugPage({ params }: Props) {
   const { id } = await params;
   const work = await getGrant(id);
 
-  const grant = work.note?.post?.grant;
-
   return (
     <GrantContentSwitcher
       content={work.previewContent}
-      imageUrl={work.image}
-      showProposalFilters={Boolean(grant?.description)}
+      showProposalFilters={Boolean(work.note?.post?.grant?.description)}
     />
   );
 }

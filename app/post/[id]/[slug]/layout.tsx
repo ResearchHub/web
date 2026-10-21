@@ -33,7 +33,7 @@ export default async function PostSlugLayout({ params, children }: Props) {
   return (
     <WorkTabProvider>
       <PageLayout
-        topBanner={<WorkHeader work={work} metadata={metadata} contentType="post" />}
+        topBanner={<WorkHeader work={work} metadata={metadata} />}
         rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}
       >
         <Suspense>{children}</Suspense>

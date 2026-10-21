@@ -17,8 +17,7 @@ import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
-import { isDeadlineInFuture } from '@/utils/date';
-import { getGrantBadgeAmount } from '@/types/grant';
+import { getGrantBadgeAmount, isGrantActive } from '@/types/grant';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -63,9 +62,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   const imageUrl = grant.previewImage ?? undefined;
 
   const isPending = grant.grant?.status === 'PENDING';
-  const isActive =
-    grant.grant?.status === 'OPEN' &&
-    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
+  const isActive = grant.grant ? isGrantActive(grant.grant) : false;
 
   const applicants =
     grant.grant?.applicants?.map(({ profile }) => ({

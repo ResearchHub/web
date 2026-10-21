@@ -28,6 +28,29 @@ export const stripHtml = (html: string): string => {
     .trim();
 };
 
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+};
+
+/**
+ * Turns the HTML entities left in plain text back into characters: the basic
+ * named ones and any numeric one. Works without a DOM, so on the server too.
+ */
+export const decodeHtmlEntities = (text: string): string =>
+  text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, code: string) => {
+    if (code.startsWith('#')) {
+      const isHex = code[1] === 'x' || code[1] === 'X';
+      const point = parseInt(code.slice(isHex ? 2 : 1), isHex ? 16 : 10);
+      return point >= 0 && point <= 0x10ffff ? String.fromCodePoint(point) : entity;
+    }
+    return NAMED_ENTITIES[code.toLowerCase()] ?? entity;
+  });
+
 /**
  * Converts a snake case string to title case
  * @param value The snake case string to convert

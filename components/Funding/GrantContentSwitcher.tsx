@@ -1,26 +1,30 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useGrantTab } from '@/components/Funding/GrantPageContent';
-import { GrantDetailsInline } from '@/components/Funding/GrantDetailsInline';
+import { useGrantActivity, useGrantPage } from '@/components/Funding/GrantPageContext';
+import { DocumentSections } from '@/components/work/DocumentSections';
 import { ActivityCard, ActivityFeedList } from '@/components/Activity';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFundraises } from '@/contexts/FundraiseContext';
 
+/** Who can apply is what most readers of an RFP come for, so it opens with the first section. */
+const isOpenOnRfp = (title: string, index: number) =>
+  index === 0 || /eligib|who can apply/i.test(title);
+
 interface GrantContentSwitcherProps {
   content?: string;
-  imageUrl?: string;
   showProposalFilters?: boolean;
 }
 
+/** The open tab's content on the RFP page: its details, its proposals or its activity. */
 export function GrantContentSwitcher({
   content,
-  imageUrl,
   showProposalFilters = false,
 }: GrantContentSwitcherProps) {
-  const { activeTab, setActiveTab, activity } = useGrantTab();
+  const { activeTab, setActiveTab } = useGrantPage();
+  const activity = useGrantActivity();
   const { restoredScrollPosition: proposalsRestoredScrollPosition } = useFundraises();
   const {
     entries,
@@ -61,7 +65,11 @@ export function GrantContentSwitcher({
         <ProposalFeed isActive={isProposalsActive} />
       </div>
       <div className={activeTab !== 'details' ? 'hidden' : undefined}>
-        <GrantDetailsInline content={content} imageUrl={imageUrl} />
+        <DocumentSections
+          content={content}
+          emptyText="No details available for this grant."
+          isOpenByDefault={isOpenOnRfp}
+        />
       </div>
       <div className={!isActivityActive ? 'hidden' : undefined}>
         <ActivityFeedList

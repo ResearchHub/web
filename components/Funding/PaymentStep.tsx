@@ -3,6 +3,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { PinnedFooter, type PinnedFooterContainer } from '@/components/ui/PinnedFooter';
+import { cn } from '@/utils/styles';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Logo } from '@/components/ui/Logo';
@@ -64,6 +66,17 @@ interface PaymentStepProps {
   onEndaomentPaymentConfirm?: (fundId: string) => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
+  /**
+   * False while the amount can't be paid (under the minimum, over the
+   * maximum, or empty). Every way to pay waits, the wallet and Endaoment
+   * buttons included.
+   */
+  canPay?: boolean;
+  /**
+   * Pins the confirm button, with any error or balance alert just above it, to
+   * the bottom of the drawer or side panel this step scrolls in.
+   */
+  pinActionIn?: PinnedFooterContainer;
 }
 
 /**
@@ -86,6 +99,8 @@ export function PaymentStep({
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
   onStripeReady,
+  canPay = true,
+  pinActionIn,
 }: PaymentStepProps) {
   const fundingPoolHoldingRsc = allocateFromPool?.fundingPool.amountHolding.rsc ?? null;
 
@@ -106,23 +121,24 @@ export function PaymentStep({
     defaultPaymentMethod
   );
 
-  // When wallet availability / pool option resolves and no method is selected yet, apply the default
+  // Until the user picks a method (or starts on a card), the default follows
+  // what it waits on: the wallet check and the balances. Not the amount:
+  // switching methods as someone types would reload the card form or the
+  // wallet button under them.
+  const [hasPickedMethod, setHasPickedMethod] = useState(false);
   useEffect(() => {
-    if (selectedMethod === null && defaultPaymentMethod !== null) {
+    if (!hasPickedMethod && defaultPaymentMethod !== null) {
       setSelectedMethod(defaultPaymentMethod);
     }
-  }, [defaultPaymentMethod, selectedMethod]);
-
-  useEffect(() => {
-    if (
-      allocateFromPool &&
-      fundingPoolHoldingRsc != null &&
-      fundingPoolHoldingRsc >= amountInRsc &&
-      selectedMethod !== 'funding_pool'
-    ) {
-      setSelectedMethod('funding_pool');
-    }
-  }, [allocateFromPool?.fundingPool.id, fundingPoolHoldingRsc]);
+  }, [
+    walletAvailability.checking,
+    walletAvailability.applePay,
+    walletAvailability.googlePay,
+    rscBalance,
+    fundingCreditsBalance,
+    fundingPoolHoldingRsc,
+    hasPickedMethod,
+  ]);
 
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
@@ -185,7 +201,12 @@ export function PaymentStep({
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
 
   const isDisabled =
-    isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
+    !canPay ||
+    isProcessing ||
+    !selectedMethod ||
+    isRscInsufficientBalance ||
+    isCreditCardIncomplete;
+  const confirmLabel = isFundingPoolMethod ? 'Confirm & Allocate' : 'Confirm & Pay';
 
   const handleConfirm = useCallback(() => {
     // Endaoment uses a separate flow (handleEndaomentConfirm).
@@ -200,10 +221,17 @@ export function PaymentStep({
     }
   }, [selectedEndaomentFund, onEndaomentPaymentConfirm]);
 
+  const handleCreditCardCompleteChange = useCallback((isComplete: boolean) => {
+    setIsCreditCardComplete(isComplete);
+    // Card details typed in keep the card, whatever the amount does next.
+    if (isComplete) setHasPickedMethod(true);
+  }, []);
+
   // Handle payment method selection from widget
   const handlePaymentMethodChange = useCallback(
     (method: PaymentMethodType | null) => {
       setSelectedMethod(method);
+      setHasPickedMethod(method !== null);
       // Reset credit card completeness when changing methods
       if (method !== 'credit_card') {
         setIsCreditCardComplete(false);
@@ -227,8 +255,69 @@ export function PaymentStep({
     // No-op - we use the confirm button below instead
   }, []);
 
+  const alerts = (
+    <>
+      {/* Insufficient balance alert for RSC / pool */}
+      {isRscInsufficientBalance &&
+        (isFundingPoolMethod ? (
+          <Alert variant="error">
+            Amount exceeds the funding pool balance available to allocate.
+          </Alert>
+        ) : (
+          <InsufficientBalanceAlert />
+        ))}
+
+      {/* Insufficient balance alert for Endaoment */}
+      {isEndaomentInsufficientBalance && <EndaomentInsufficientFundsAlert />}
+
+      {/* Error Alert */}
+      {error && <Alert variant="error">{error}</Alert>}
+    </>
+  );
+
+  const actionButton = (
+    <>
+      {!canPay ? (
+        <Button type="button" variant="default" disabled className="w-full h-12 text-base">
+          {confirmLabel}
+        </Button>
+      ) : selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
+        <PaymentRequestButton
+          amountCents={Math.round(totalDueUsd * 100)}
+          amountInRsc={amountInRsc}
+          paymentTarget={paymentTarget}
+          label="Fund Research"
+          unavailableText={
+            selectedMethod === 'apple_pay'
+              ? 'Apple Pay not available on this device'
+              : 'Google Pay not available on this device'
+          }
+          onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
+          onError={(err) => console.error('Payment request error:', err)}
+        />
+      ) : selectedMethod === 'endaoment' ? (
+        <EndaomentPaymentButton
+          isProcessing={isProcessing}
+          selectedFund={selectedEndaomentFund}
+          hasSufficientFunds={!isEndaomentInsufficientBalance}
+          onConfirm={handleEndaomentConfirm}
+        />
+      ) : (
+        <Button
+          type="button"
+          variant="default"
+          disabled={isDisabled}
+          className="w-full h-12 text-base"
+          onClick={handleConfirm}
+        >
+          {isProcessing ? 'Processing...' : confirmLabel}
+        </Button>
+      )}
+    </>
+  );
+
   return (
-    <div className="flex flex-col h-full">
+    <div className={cn('flex flex-col', pinActionIn ? 'flex-1' : 'h-full')}>
       {/* Content area */}
       <div className="space-y-6 flex-1">
         {/* Payment Method Selector */}
@@ -242,7 +331,7 @@ export function PaymentStep({
           onPreviewTransaction={handlePreviewTransaction}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
-          onCreditCardCompleteChange={setIsCreditCardComplete}
+          onCreditCardCompleteChange={handleCreditCardCompleteChange}
           onEndaomentFundSelected={setSelectedEndaomentFund}
           onStripeReady={onStripeReady}
           hideButton
@@ -344,21 +433,7 @@ export function PaymentStep({
               </div>
             </div>
 
-            {/* Insufficient balance alert for RSC / pool */}
-            {isRscInsufficientBalance &&
-              (isFundingPoolMethod ? (
-                <Alert variant="error">
-                  Amount exceeds the funding pool balance available to allocate.
-                </Alert>
-              ) : (
-                <InsufficientBalanceAlert />
-              ))}
-
-            {/* Insufficient balance alert for Endaoment */}
-            {isEndaomentInsufficientBalance && <EndaomentInsufficientFundsAlert />}
-
-            {/* Error Alert */}
-            {error && <Alert variant="error">{error}</Alert>}
+            {!pinActionIn && alerts}
           </div>
         )}
 
@@ -371,46 +446,15 @@ export function PaymentStep({
       </div>
 
       {/* Payment Button - pinned to bottom */}
-      {selectedMethod && (
-        <div className="pt-6">
-          {selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
-            <PaymentRequestButton
-              amountCents={Math.round(totalDueUsd * 100)}
-              amountInRsc={amountInRsc}
-              paymentTarget={paymentTarget}
-              label="Fund Research"
-              unavailableText={
-                selectedMethod === 'apple_pay'
-                  ? 'Apple Pay not available on this device'
-                  : 'Google Pay not available on this device'
-              }
-              onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
-              onError={(err) => console.error('Payment request error:', err)}
-            />
-          ) : selectedMethod === 'endaoment' ? (
-            <EndaomentPaymentButton
-              isProcessing={isProcessing}
-              selectedFund={selectedEndaomentFund}
-              hasSufficientFunds={!isEndaomentInsufficientBalance}
-              onConfirm={handleEndaomentConfirm}
-            />
-          ) : (
-            <Button
-              type="button"
-              variant="default"
-              disabled={isDisabled}
-              className="w-full h-12 text-base"
-              onClick={handleConfirm}
-            >
-              {isProcessing
-                ? 'Processing...'
-                : isFundingPoolMethod
-                  ? 'Confirm & Allocate'
-                  : 'Confirm & Pay'}
-            </Button>
-          )}
-        </div>
-      )}
+      {selectedMethod &&
+        (pinActionIn ? (
+          <PinnedFooter container={pinActionIn} className="space-y-3">
+            {alerts}
+            {actionButton}
+          </PinnedFooter>
+        ) : (
+          <div className="pt-6">{actionButton}</div>
+        ))}
     </div>
   );
 }

@@ -28,12 +28,20 @@ interface PageLayoutProps {
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
+  /**
+   * Tabs under the banner, as wide as the page: the main column and the
+   * sidebar. A sibling of the row rather than inside it, so they can stick to
+   * the top across the whole page as it scrolls (see WorkPageTabs).
+   */
+  pageTabs?: ReactNode;
   rightSidebarAbove?: ReactNode;
   /**
    * With a card above it the gray rail normally sizes to its content; this
    * keeps it stretched to the bottom of the column regardless.
    */
   rightSidebarFill?: boolean;
+  /** The sidebar brings its own cards: no gray rail around it. */
+  rightSidebarBare?: boolean;
   fundraiseGrantId?: number;
   /**
    * `default` centers the page in a 1180px container and lets the main column
@@ -63,8 +71,10 @@ function PageLayoutInner({
   className,
   sidebarContentClassName,
   topBanner,
+  pageTabs,
   rightSidebarAbove,
   rightSidebarFill = false,
+  rightSidebarBare = false,
   contentWidth = 'default',
   wideRow = false,
   fullBleed = false,
@@ -126,6 +136,7 @@ function PageLayoutInner({
             <PullToRefresh scrollContainerRef={scrollContainerRef} />
 
             {topBanner && <div className="w-full">{topBanner}</div>}
+            {pageTabs}
 
             <div
               className={cn(
@@ -157,6 +168,8 @@ function PageLayoutInner({
                   contentClassName={sidebarContentClassName}
                   aboveSidebar={rightSidebarAbove}
                   fill={rightSidebarFill}
+                  bare={rightSidebarBare}
+                  belowPageTabs={Boolean(pageTabs)}
                 />
               )}
             </div>

@@ -16,6 +16,8 @@ export default {
         gray: colors.gray,
         rhBlue: colors.rhBlue,
         orcid: colors.orcid,
+        // The funding cards' and work covers' dark blue.
+        navy: '#0b1530',
       },
       screens: {
         mobile: '480px',
@@ -102,6 +104,13 @@ export default {
           },
           '100%': { transform: 'translate(0, 0) scale(1)', opacity: '1' },
         },
+        // A heart floating up out of its box, drifting sideways by `--drift`
+        // and fading as it goes.
+        'heart-rise': {
+          '0%': { transform: 'translate(0, 0) scale(0.5)', opacity: '0' },
+          '15%': { opacity: '1' },
+          '100%': { transform: 'translate(var(--drift, 0px), -120px) scale(1.1)', opacity: '0' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -119,6 +128,9 @@ export default {
         'menu-in': 'menu-in 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
         'menu-out': 'menu-out 0.1s ease-in both',
         'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
+        // Callers stagger each heart with their own delay and duration; `both`
+        // keeps a heart hidden until its delay is up.
+        'heart-rise': 'heart-rise 2.8s ease-out infinite both',
       },
       backgroundImage: {
         // Paired with `animate-text-shine` and `bg-clip-text`. Sized to 300% so

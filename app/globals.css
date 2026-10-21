@@ -165,6 +165,11 @@ body {
   font-weight: 600;
 }
 
+/* A post's editor leaves its padding to the card around it (PostBlockEditor). */
+.post-content .ProseMirror {
+  padding: 0 !important;
+}
+
 /*
  * Comment and review text previewed in a feed card, as plain words: the author's
  * formatting (headings, bold, italics, underlines, strikes, quotes, code, Quill

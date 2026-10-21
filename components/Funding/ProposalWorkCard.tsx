@@ -17,7 +17,8 @@ import {
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
 import { AllocateFundingPoolModal } from '@/components/modals/AllocateFundingPoolModal';
 import { Button } from '@/components/ui/Button';
-import { useGrantAllocateContext } from '@/components/Funding/GrantPageContent';
+import { useGrantAllocateContext } from '@/components/Funding/GrantPageContext';
+import { canManageGrantPool } from '@/components/Funding/lib/canManageGrantPool';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useFundraises } from '@/contexts/FundraiseContext';
@@ -84,11 +85,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
       ? findGrantApplicationIdForPost(grantAllocate.applications, work.id)
       : undefined;
 
-  const isGrantCreator =
-    user?.id != null &&
-    grantAllocate?.grantCreatedByUserId != null &&
-    Number(user.id) === Number(grantAllocate.grantCreatedByUserId);
-  const canManagePool = isGrantCreator || !!user?.isModerator;
+  const canManagePool = canManageGrantPool(user, grantAllocate?.grantCreatedByUserId);
 
   // The button stays visible once the viewer can manage an open pool, even when
   // nothing is left to give — the modal explains the exhausted balance rather
