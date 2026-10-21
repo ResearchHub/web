@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useFundraises } from '@/contexts/FundraiseContext';
-import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { getPoolSplit, toBackers, visiblePercent } from '@/components/Funding/lib/fundingAmounts';
 import { CountBadge } from '@/components/ui/CountBadge';
 import { type Face, FaceStack } from '@/components/ui/FaceStack';
@@ -35,7 +35,11 @@ interface Fact {
   withoutSidebar?: Fact;
 }
 
-/** `text` from sm, and `compactText` below it, where they differ. */
+/**
+ * `text` from sm, and `compactText` below it, where they differ. Dates are
+ * formatted in the server's time zone first, so near midnight the browser's
+ * can read a day apart: hydration keeps the server's text without a warning.
+ */
 function CompactableText({
   text,
   compactText = text,
@@ -46,14 +50,24 @@ function CompactableText({
   className?: string;
 }) {
   if (compactText === text) {
-    return text ? <span className={cn('block truncate', className)}>{text}</span> : null;
+    return text ? (
+      <span suppressHydrationWarning className={cn('block truncate', className)}>
+        {text}
+      </span>
+    ) : null;
   }
   return (
     <>
       {compactText && (
-        <span className={cn('block truncate sm:hidden', className)}>{compactText}</span>
+        <span suppressHydrationWarning className={cn('block truncate sm:hidden', className)}>
+          {compactText}
+        </span>
       )}
-      {text && <span className={cn('hidden truncate sm:block', className)}>{text}</span>}
+      {text && (
+        <span suppressHydrationWarning className={cn('hidden truncate sm:block', className)}>
+          {text}
+        </span>
+      )}
     </>
   );
 }
@@ -140,7 +154,7 @@ function fundingFact(award: FundingPoolAmount, pool: FundingPool | null): Fact {
   };
   if (!pool) return awardFact;
 
-  const { total, communityPercent } = getPoolSplit(award, pool.amountRaised, true);
+  const { total, communityPercent } = getPoolSplit(award, pool, true);
   return {
     ...awardFact,
     withoutSidebar: {
@@ -160,7 +174,7 @@ function fundingFact(award: FundingPoolAmount, pool: FundingPool | null): Fact {
 /** Available funding, proposals, deadline and opening date in one strip under the cover. */
 export function GrantFacts({ openedDate, className }: { openedDate?: string; className?: string }) {
   const { proposalCount } = useFundraises();
-  const { grantAmount, fundingPool, applications } = useGrantPage();
+  const { grantAmount, fundingPool, applications, isActive, isPending } = useGrantPage();
 
   // One face per applicant, however many proposals they sent.
   const applicants = [...new Map(applications.map((a) => [a.profile.id, a.profile])).values()];
@@ -187,8 +201,9 @@ export function GrantFacts({ openedDate, className }: { openedDate?: string; cla
         }
       : // Without faces (private applications, or none yet) the count stays the value.
         { label: 'Proposals', value: proposals },
-    // Every RFP takes proposals on a rolling basis for now, whatever its end date.
-    { label: 'Deadline', value: 'Rolling' },
+    // Open RFPs take proposals on a rolling basis for now, whatever their end
+    // date. A pending one will once it is approved.
+    { label: 'Deadline', value: isActive || isPending ? 'Rolling' : 'Closed' },
     ...(openedDate
       ? [
           {

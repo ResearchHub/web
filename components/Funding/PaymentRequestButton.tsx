@@ -64,8 +64,11 @@ function PaymentRequestButtonInner({
       requestPayerEmail: true,
     });
 
-    // Check if the Payment Request is available
+    // Check if the Payment Request is available. A check that finishes after
+    // this request was replaced is dropped, so it can't overwrite the newer one.
+    let isCurrent = true;
     pr.canMakePayment().then((result) => {
+      if (!isCurrent) return;
       if (result) {
         setPaymentRequest(pr);
         setCanMakePayment(true);
@@ -79,8 +82,9 @@ function PaymentRequestButtonInner({
     });
 
     return () => {
-      // Cleanup
+      isCurrent = false;
       setPaymentRequest(null);
+      setCanMakePayment(null);
     };
   }, [stripe, hasAmount, label, onAvailabilityChange]);
 
@@ -152,6 +156,15 @@ function PaymentRequestButtonInner({
       paymentRequest.off('paymentmethod', handlePaymentMethod);
     };
   }, [paymentRequest, stripe, amountInRsc, paymentTarget, onSuccess, onError]);
+
+  // Nothing to pay yet: no request is built until there is an amount.
+  if (!hasAmount) {
+    return (
+      <Button type="button" variant="default" disabled className="w-full h-12 text-base">
+        Enter an amount
+      </Button>
+    );
+  }
 
   // Still checking availability
   if (canMakePayment === null) {

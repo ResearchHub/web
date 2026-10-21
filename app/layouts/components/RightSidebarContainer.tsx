@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -36,6 +36,10 @@ export function RightSidebarContainer({
   bare = false,
 }: RightSidebarContainerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
+  // The drawer's copy of the sidebar mounts the first time the drawer opens.
+  // Mounted from the start, every card in it would load its data a second time.
+  const [hasOpenedDrawer, setHasOpenedDrawer] = useState(false);
+  if (mobileSidebarOpen && !hasOpenedDrawer) setHasOpenedDrawer(true);
   const isDefaultSidebar = typeof rightSidebar === 'boolean';
   const sidebarKey = isDefaultSidebar ? 'default' : 'custom';
 
@@ -98,10 +102,12 @@ export function RightSidebarContainer({
           onClose={() => setMobileSidebarOpen(false)}
           height="85vh"
         >
-          <div className="space-y-3">
-            {aboveSidebar}
-            {sidebarContent}
-          </div>
+          {hasOpenedDrawer && (
+            <div className="space-y-3">
+              {aboveSidebar}
+              {sidebarContent}
+            </div>
+          )}
         </SwipeableDrawer>
       </div>
     </>

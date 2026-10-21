@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FileUp, Info } from 'lucide-react';
+import { FileUp, Info, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FaceStack } from '@/components/ui/FaceStack';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -32,6 +32,8 @@ interface GrantFundingPoolWidgetProps {
   isOpen: boolean;
   /** Whether the grant is accepting proposals. */
   canApply: boolean;
+  /** Proposals go only to the funder and vetted reviewers. */
+  isPrivate: boolean;
   /** Grant creators and moderators also see what is still waiting to be allocated. */
   canManagePool: boolean;
   onApply: () => void;
@@ -51,6 +53,7 @@ export function GrantFundingPoolWidget({
   fundingPool,
   isOpen,
   canApply,
+  isPrivate,
   canManagePool,
   onApply,
   className,
@@ -59,7 +62,7 @@ export function GrantFundingPoolWidget({
   const format = (amount: FundingPoolAmount) => formatFundingAmount(amount, showUSD);
 
   const raised = fundingPool.amountRaised;
-  const { total, communityPercent } = getPoolSplit(grantAmount, raised, showUSD);
+  const { total, communityPercent } = getPoolSplit(grantAmount, fundingPool, showUSD);
   const hasCommunityFunding = communityPercent > 0;
   const funderPercent = Math.round(100 - communityPercent);
 
@@ -231,6 +234,13 @@ export function GrantFundingPoolWidget({
           <FileUp className="h-4 w-4" />
           Apply
         </Button>
+      )}
+
+      {canApply && isPrivate && (
+        <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-white/60">
+          <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+          Your proposal will be submitted privately
+        </p>
       )}
 
       {!canApply && !isOpen && (

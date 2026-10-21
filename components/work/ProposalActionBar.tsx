@@ -1,8 +1,8 @@
 'use client';
 
-import { StickyActionBar } from '@/components/work/StickyActionBar';
+import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
-import { useFundraiseSummary } from '@/components/Fund/lib/useFundraiseSummary';
+import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
 
 /**
@@ -30,7 +30,7 @@ export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
             style={{ width: `${summary.barPercent}%` }}
           />
         </div>
-        <p className="mt-1 truncate text-xs text-gray-500">
+        <p suppressHydrationWarning className="mt-1 truncate text-xs text-gray-500">
           {summary.timeLeft ? `${summary.fundersText} · ${summary.timeLeft}` : summary.fundersText}
         </p>
       </div>

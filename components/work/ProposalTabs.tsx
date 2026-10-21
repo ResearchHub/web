@@ -1,17 +1,14 @@
 'use client';
 
-import { useCallback } from 'react';
 import { Bell, FileText, MessageCircle, Star } from 'lucide-react';
 import Icon, { type IconName } from '@/components/ui/icons/Icon';
 import { StickyTabs } from '@/components/ui/StickyTabs';
 import { useActiveBountyAmount } from '@/components/Bounty/lib/useActiveBountyAmount';
-import { useSelectWorkTab } from '@/components/work/useSelectWorkTab';
-import type { TabType } from '@/components/work/WorkTabs';
+import { PROPOSAL_TABS_ID, useSelectWorkTab } from '@/components/work/lib/workTabs';
+import type { TabType } from '@/components/work/WorkHeader/WorkTabContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { WorkMetadata } from '@/services/metadata.service';
 import type { Work } from '@/types/work';
-
-const PROPOSAL_TABS_ID = 'proposal-tabs';
 
 /** The bounty coin, in the tab's own colour. */
 function bountyTabIcon(name: IconName) {
@@ -22,21 +19,6 @@ function bountyTabIcon(name: IconName) {
 
 const BountiesIcon = bountyTabIcon('earn1');
 const BountiesActiveIcon = bountyTabIcon('solidEarn');
-
-/** Opens one of a proposal's tabs from elsewhere on its page, and scrolls the tabs into view. */
-export function useShowProposalTab(work: Work) {
-  const { showTab } = useSelectWorkTab(work);
-
-  return useCallback(
-    (tab: TabType) => {
-      showTab(tab);
-      document
-        .getElementById(PROPOSAL_TABS_ID)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    },
-    [showTab]
-  );
-}
 
 interface ProposalTabsProps {
   work: Work;

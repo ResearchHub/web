@@ -2,16 +2,16 @@
 
 import { FileUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { StickyActionBar } from '@/components/work/StickyActionBar';
+import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
-import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { useGrantPage } from '@/components/Funding/GrantPageContext';
 
 /** Apply and Fund, for the RFP page wherever its pool card is hidden. */
 export function GrantActionBar() {
-  const { grantId, isActive, isPoolOpen, setIsApplyPanelOpen } = useGrantPage();
+  const { canApply, isPoolOpen, setIsApplyPanelOpen } = useGrantPage();
 
   // Contributions need the RFP open too, so with nothing to apply to there is nothing to fund.
-  if (!grantId || !isActive) return null;
+  if (!canApply) return null;
 
   return (
     <StickyActionBar>

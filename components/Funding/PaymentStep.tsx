@@ -67,6 +67,12 @@ interface PaymentStepProps {
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /**
+   * False while the amount can't be paid (under the minimum, over the
+   * maximum, or empty). Every way to pay waits, the wallet and Endaoment
+   * buttons included.
+   */
+  canPay?: boolean;
+  /**
    * Pins the confirm button, with any error or balance alert just above it, to
    * the bottom of the drawer or side panel this step scrolls in.
    */
@@ -93,6 +99,7 @@ export function PaymentStep({
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
   onStripeReady,
+  canPay = true,
   pinActionIn,
 }: PaymentStepProps) {
   const fundingPoolHoldingRsc = allocateFromPool?.fundingPool.amountHolding.rsc ?? null;
@@ -115,14 +122,23 @@ export function PaymentStep({
   );
 
   // Until the user picks a method (or starts on a card), the default follows
-  // what it waits on: wallet availability, balances and the amount, which can
-  // change on the same screen.
+  // what it waits on: the wallet check and the balances. Not the amount:
+  // switching methods as someone types would reload the card form or the
+  // wallet button under them.
   const [hasPickedMethod, setHasPickedMethod] = useState(false);
   useEffect(() => {
     if (!hasPickedMethod && defaultPaymentMethod !== null) {
       setSelectedMethod(defaultPaymentMethod);
     }
-  }, [defaultPaymentMethod, hasPickedMethod]);
+  }, [
+    walletAvailability.checking,
+    walletAvailability.applePay,
+    walletAvailability.googlePay,
+    rscBalance,
+    fundingCreditsBalance,
+    fundingPoolHoldingRsc,
+    hasPickedMethod,
+  ]);
 
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
@@ -185,7 +201,12 @@ export function PaymentStep({
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
 
   const isDisabled =
-    isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
+    !canPay ||
+    isProcessing ||
+    !selectedMethod ||
+    isRscInsufficientBalance ||
+    isCreditCardIncomplete;
+  const confirmLabel = isFundingPoolMethod ? 'Confirm & Allocate' : 'Confirm & Pay';
 
   const handleConfirm = useCallback(() => {
     // Endaoment uses a separate flow (handleEndaomentConfirm).
@@ -256,7 +277,11 @@ export function PaymentStep({
 
   const actionButton = (
     <>
-      {selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
+      {!canPay ? (
+        <Button type="button" variant="default" disabled className="w-full h-12 text-base">
+          {confirmLabel}
+        </Button>
+      ) : selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
         <PaymentRequestButton
           amountCents={Math.round(totalDueUsd * 100)}
           amountInRsc={amountInRsc}
@@ -285,11 +310,7 @@ export function PaymentStep({
           className="w-full h-12 text-base"
           onClick={handleConfirm}
         >
-          {isProcessing
-            ? 'Processing...'
-            : isFundingPoolMethod
-              ? 'Confirm & Allocate'
-              : 'Confirm & Pay'}
+          {isProcessing ? 'Processing...' : confirmLabel}
         </Button>
       )}
     </>

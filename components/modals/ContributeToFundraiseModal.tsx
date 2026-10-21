@@ -248,6 +248,24 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
 
   const minAmountUsd = 1;
 
+  /** Why an amount can't be paid, with the reason analytics logs; null when it can. */
+  const getAmountProblem = (usd: number): { message: string; reason: string } | null => {
+    if (usd < minAmountUsd) {
+      return {
+        message: `Minimum contribution is $${minAmountUsd}`,
+        reason: 'Amount below minimum',
+      };
+    }
+    if (maxAmountUsd != null && usd > maxAmountUsd) {
+      const max = maxAmountUsd.toLocaleString('en-US', { maximumFractionDigits: 0 });
+      return { message: `Maximum contribution is $${max}`, reason: 'Amount above maximum' };
+    }
+    return null;
+  };
+  // Every way to pay waits on this, including the wallet and Endaoment
+  // buttons, which the panel shows right under the amount.
+  const canPay = !amountError && getAmountProblem(amountUsd) === null;
+
   // Format helpers
   const formatUsd = (amount: number) => {
     return `$${amount.toLocaleString('en-US', {
@@ -265,10 +283,13 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         ...analyticsTarget,
         amount_usd: amountUsd,
         amount_rsc: amountInRsc,
+        // The panel shows the amount and the payment methods on one screen,
+        // so its amount and payment steps fire together.
+        flow: isPanel ? 'one_step' : 'two_step',
         ...properties,
       });
     },
-    [analyticsTarget, amountUsd, amountInRsc]
+    [analyticsTarget, amountUsd, amountInRsc, isPanel]
   );
 
   // Handlers
@@ -280,18 +301,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       setAmountUsd(numValue);
       setSelectedQuickAmount(null);
       setIsSliderControlled(false); // Input sets scaled visual mode
-
-      if (numValue < minAmountUsd) {
-        setAmountError(`Minimum contribution is $${minAmountUsd}`);
-      } else if (maxAmountUsd != null && numValue > maxAmountUsd) {
-        setAmountError(
-          `Maximum contribution is $${maxAmountUsd.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-          })}`
-        );
-      } else {
-        setAmountError(undefined);
-      }
+      setAmountError(getAmountProblem(numValue)?.message);
     } else {
       setAmountUsd(0);
       setAmountError('Please enter a valid amount');
@@ -327,6 +337,11 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     setCurrentView(isPanel ? 'funding' : 'payment');
   }, [logFunnelStep, refreshUser, isPanel]);
 
+  // A payment in flight finishes on the panel that started it.
+  const handleClose = () => {
+    if (!isContributing) onClose();
+  };
+
   // Every way of paying ends here once the money has landed: the panel turns
   // to its done screen, and the modal closes on a toast.
   const finishSuccess = useCallback(
@@ -346,28 +361,14 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
 
   const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
-      if (amountUsd < minAmountUsd) {
-        setError(`Minimum contribution is $${minAmountUsd}`);
+      const amountProblem = getAmountProblem(amountUsd);
+      if (amountProblem) {
+        setError(amountProblem.message);
         AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
           ...analyticsTarget,
           payment_method: paymentMethod,
           error_type: 'validation',
-          error_message: 'Amount below minimum',
-        });
-        return;
-      }
-
-      if (maxAmountUsd != null && amountUsd > maxAmountUsd) {
-        setError(
-          `Maximum contribution is $${maxAmountUsd.toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-          })}`
-        );
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-          ...analyticsTarget,
-          payment_method: paymentMethod,
-          error_type: 'validation',
-          error_message: 'Amount above maximum',
+          error_message: amountProblem.reason,
         });
         return;
       }
@@ -536,6 +537,18 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     async (originFundId: string) => {
       if (!fundraise) return;
 
+      const amountProblem = getAmountProblem(amountUsd);
+      if (amountProblem) {
+        setError(amountProblem.message);
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          ...analyticsTarget,
+          payment_method: 'endaoment',
+          error_type: 'validation',
+          error_message: amountProblem.reason,
+        });
+        return;
+      }
+
       try {
         setIsContributing(true);
         setError(null);
@@ -567,6 +580,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       fundraise,
       analyticsTarget,
       amountUsd,
+      maxAmountUsd,
       logFunnelStep,
       finishSuccess,
       contributionSuccessMessage,
@@ -612,8 +626,9 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     return undefined;
   };
 
+  // Locked while a payment goes through, so the amount on screen is the one charged.
   const amountFields = (
-    <div className="space-y-3">
+    <fieldset disabled={isContributing} className="min-w-0 space-y-3">
       <Input
         type="text"
         inputMode="decimal"
@@ -632,7 +647,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         remainingGoalUsd={quickAmountCeilingUsd}
         showRemaining={!isPoolMode}
       />
-    </div>
+    </fieldset>
   );
 
   const paymentStep = (pinActionIn?: PinnedFooterContainer) => (
@@ -652,6 +667,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       onPaymentRequestSuccess={handlePaymentRequestSuccess}
       onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
       onStripeReady={handleStripeReady}
+      canPay={canPay}
       pinActionIn={pinActionIn}
     />
   );
@@ -774,7 +790,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
               <Button
                 type="button"
                 variant="default"
-                disabled={amountUsd < minAmountUsd || !!amountError}
+                disabled={!canPay}
                 className="w-full h-12 text-base"
                 onClick={handleContinueToPayment}
               >
@@ -819,7 +835,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       {isMobile ? (
         <SwipeableDrawer
           isOpen={isOpen}
-          onClose={onClose}
+          onClose={handleClose}
           height="72vh"
           showCloseButton={true}
           header={
@@ -836,7 +852,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       ) : isPanel ? (
         <SidePanel
           isOpen={isOpen}
-          onClose={onClose}
+          onClose={handleClose}
           widthClassName="w-full tablet:max-w-[440px]"
           title={
             <span className="flex min-w-0 items-center gap-2">
@@ -850,7 +866,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       ) : (
         <BaseModal
           isOpen={isOpen}
-          onClose={onClose}
+          onClose={handleClose}
           title={modalTitle}
           maxWidth="max-w-md"
           headerAction={headerAction}

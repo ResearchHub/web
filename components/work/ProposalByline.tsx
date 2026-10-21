@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Lock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { useShowProposalTab } from '@/components/work/ProposalTabs';
+import { useShowProposalTab } from '@/components/work/lib/workTabs';
+import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 import { getWorkReviewScore } from '@/components/work/lib/reviewScore';
 import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
 import type { WorkMetadata } from '@/services/metadata.service';
@@ -12,7 +13,6 @@ import type { Work } from '@/types/work';
 import { formatTimestamp } from '@/utils/date';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
-import { buildWorkUrl, generateSlug } from '@/utils/url';
 
 const CHIP_CLASS =
   'inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-[12.5px] font-medium text-gray-700';
@@ -31,16 +31,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
   const reviewCount = work.peerReviews?.length ?? 0;
   const postedDate = work.publishedDate || work.createdDate;
 
-  const grant = work.linkedGrant;
-  const grantTitle = grant?.title || grant?.shortTitle || grant?.organization;
-  const grantHref =
-    grant?.postId && grantTitle
-      ? buildWorkUrl({
-          id: grant.postId,
-          slug: generateSlug(grantTitle),
-          contentType: 'funding_request',
-        })
-      : null;
+  const { title: grantTitle, href: grantHref } = getLinkedGrantLink(work);
 
   return (
     <div>
@@ -81,7 +72,10 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
           </button>
         )}
         {postedDate && (
-          <span className={CHIP_CLASS}>Posted {formatTimestamp(postedDate, false)}</span>
+          // Formatted in the server's time zone first; the browser's can read a day apart.
+          <span suppressHydrationWarning className={CHIP_CLASS}>
+            Posted {formatTimestamp(postedDate, false)}
+          </span>
         )}
         {grantTitle &&
           (grantHref ? (

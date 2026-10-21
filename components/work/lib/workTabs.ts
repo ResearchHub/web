@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { TabType } from '@/components/work/WorkTabs';
-import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
+import { useWorkTab, type TabType } from '@/components/work/WorkHeader/WorkTabContext';
 import { useUser } from '@/contexts/UserContext';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { SHARE_TOKEN_PARAM } from '@/lib/shareToken/constants';
@@ -10,6 +9,9 @@ import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { buildPayloadForDocumentTabClick } from '@/types/analytics';
 import type { Work } from '@/types/work';
 import { buildWorkUrl } from '@/utils/url';
+
+/** The proposal tabs' anchor, which opening a tab from elsewhere scrolls back to. */
+export const PROPOSAL_TABS_ID = 'proposal-tabs';
 
 /** Params that survive a tab change: the registered-report stage and a private link's token. */
 const KEPT_PARAMS = ['rr', SHARE_TOKEN_PARAM];
@@ -34,24 +36,27 @@ function workTabUrl(work: Work, tab: TabType): string {
 }
 
 /**
- * Switching a work's tab: the page shows its content, and the address bar
- * follows to the tab's route. Clicks on the tab strip itself are logged.
+ * Opens one of a work's tabs from anywhere on its page: the page shows its
+ * content, and the address bar follows to the tab's route.
  */
-export function useSelectWorkTab(work: Work) {
-  const { activeTab, setActiveTab } = useWorkTab();
-  const { user } = useUser();
-  const deviceType = useDeviceType();
-
-  /** Opens a tab from anywhere on the page. */
-  const showTab = useCallback(
+export function useShowWorkTab(work: Work) {
+  const { setActiveTab } = useWorkTab();
+  return useCallback(
     (tab: TabType) => {
       setActiveTab(tab);
       window.history.replaceState(null, '', workTabUrl(work, tab));
     },
     [work, setActiveTab]
   );
+}
 
-  /** A click on the tab strip: opens the tab and logs the click. */
+/** Clicks on a work's tab strip: they open the tab and are logged. */
+export function useSelectWorkTab(work: Work) {
+  const { activeTab } = useWorkTab();
+  const showTab = useShowWorkTab(work);
+  const { user } = useUser();
+  const deviceType = useDeviceType();
+
   const selectTab = useCallback(
     (tab: TabType) => {
       if (tab === activeTab) return;
@@ -66,5 +71,19 @@ export function useSelectWorkTab(work: Work) {
     [activeTab, showTab, work, deviceType, user]
   );
 
-  return { activeTab, showTab, selectTab };
+  return { activeTab, selectTab };
+}
+
+/** Opens one of a proposal's tabs from elsewhere on its page, and scrolls the tabs into view. */
+export function useShowProposalTab(work: Work) {
+  const showTab = useShowWorkTab(work);
+  return useCallback(
+    (tab: TabType) => {
+      showTab(tab);
+      document
+        .getElementById(PROPOSAL_TABS_ID)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    [showTab]
+  );
 }

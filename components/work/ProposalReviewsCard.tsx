@@ -4,7 +4,7 @@ import { ReviewScoreStars } from '@/components/Activity/amounts/ReviewScoreStars
 import { Avatar } from '@/components/ui/Avatar';
 import { CountBadge } from '@/components/ui/CountBadge';
 import { SidebarCard } from '@/components/ui/SidebarCard';
-import { useShowProposalTab } from '@/components/work/ProposalTabs';
+import { useShowProposalTab } from '@/components/work/lib/workTabs';
 import type { Work } from '@/types/work';
 import { formatTimeAgoShort } from '@/utils/date';
 import { pluralizeSuffix } from '@/utils/stringUtils';
@@ -51,7 +51,11 @@ export function ProposalReviewsCard({ work }: { work: Work }) {
                     <span className="truncate font-semibold text-gray-900">
                       {reviewer.fullName}
                     </span>
-                    <time dateTime={review.createdDate} className="shrink-0 text-xs text-gray-500">
+                    <time
+                      dateTime={review.createdDate}
+                      suppressHydrationWarning
+                      className="shrink-0 text-xs text-gray-500"
+                    >
                       {formatTimeAgoShort(review.createdDate)}
                     </time>
                   </span>

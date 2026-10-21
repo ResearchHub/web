@@ -8,10 +8,9 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useActiveBountyAmount } from '@/components/Bounty/lib/useActiveBountyAmount';
-import { useSelectWorkTab } from '@/components/work/useSelectWorkTab';
+import { useSelectWorkTab } from '@/components/work/lib/workTabs';
+import type { TabType } from '@/components/work/WorkHeader/WorkTabContext';
 import { colors } from '@/app/styles/colors';
-
-export type TabType = 'paper' | 'updates' | 'reviews' | 'bounties' | 'conversation';
 
 interface WorkTabsProps {
   work: Work;

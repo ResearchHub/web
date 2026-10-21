@@ -7,7 +7,7 @@ import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ActivitySidebarServer, ActivitySidebarSkeleton } from '@/components/Activity';
-import { GrantPageProvider } from '@/components/Funding/GrantPageContent';
+import { GrantPageProvider } from '@/components/Funding/GrantPageContext';
 import { FundPanelProvider } from '@/components/Funding/FundPanelContext';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';

@@ -10,7 +10,7 @@ import {
   FundingTotal,
 } from '@/components/Funding/FundingCard';
 import { FundButton } from '@/components/Funding/FundButton';
-import { useFundraiseSummary } from '@/components/Fund/lib/useFundraiseSummary';
+import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
 
 /**
@@ -27,7 +27,14 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
     <FundingCard
       label="Funding"
       status={summary.statusLabel}
-      aside={summary.timeLeft && <span className="text-xs text-white/60">{summary.timeLeft}</span>}
+      aside={
+        summary.timeLeft && (
+          // Counted from the server's clock first; the browser's can tip it over.
+          <span suppressHydrationWarning className="text-xs text-white/60">
+            {summary.timeLeft}
+          </span>
+        )
+      }
       testId="proposal-funding"
     >
       <FundingTotal amount={summary.raised} goal={summary.goal} />

@@ -3,7 +3,7 @@
 import { FileUp, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { GrantFundingPoolWidget } from '@/components/Funding/GrantFundingPoolWidget';
-import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { canManageGrantPool } from '@/components/Funding/lib/canManageGrantPool';
 import { useUser } from '@/contexts/UserContext';
 
@@ -14,18 +14,15 @@ import { useUser } from '@/contexts/UserContext';
 export function GrantPoolCard() {
   const { user } = useUser();
   const {
-    grantId,
     organization,
     grantAmount,
     applicationVisibility,
-    isActive,
+    canApply,
     isPoolOpen,
     fundingPool,
     grantCreatedByUserId,
     setIsApplyPanelOpen,
   } = useGrantPage();
-
-  const canApply = !!grantId && isActive;
 
   if (fundingPool && grantAmount) {
     return (
@@ -35,6 +32,7 @@ export function GrantPoolCard() {
         fundingPool={fundingPool}
         isOpen={isPoolOpen}
         canApply={canApply}
+        isPrivate={applicationVisibility === 'PRIVATE'}
         canManagePool={canManageGrantPool(user, grantCreatedByUserId)}
         onApply={() => setIsApplyPanelOpen(true)}
       />

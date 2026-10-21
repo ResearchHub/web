@@ -6,7 +6,7 @@ import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { ApplyToGrantPanel } from '@/components/modals/ApplyToGrantPanel';
-import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
 import { CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';

@@ -7,15 +7,19 @@ import type { Work } from '@/types/work';
  * keeps, preferring the metadata's.
  */
 export function getWorkReviewScore(work: Work, metadata?: WorkMetadata): number | undefined {
-  const peerReviews = work.peerReviews ?? [];
-  const metadataScore = metadata?.metrics?.reviewScore;
   const score =
-    work.postType === 'REGISTERED_REPORT'
-      ? peerReviews.length > 0
-        ? peerReviews.reduce((total, review) => total + review.score, 0) / peerReviews.length
-        : undefined
-      : metadataScore && metadataScore > 0
-        ? metadataScore
-        : work.metrics?.reviewScore;
+    work.postType === 'REGISTERED_REPORT' ? averagePeerReviews(work) : apiScore(work, metadata);
   return score !== undefined && score > 0 ? score : undefined;
+}
+
+function averagePeerReviews(work: Work): number | undefined {
+  const peerReviews = work.peerReviews ?? [];
+  if (peerReviews.length === 0) return undefined;
+  return peerReviews.reduce((total, review) => total + review.score, 0) / peerReviews.length;
+}
+
+function apiScore(work: Work, metadata?: WorkMetadata): number | undefined {
+  const metadataScore = metadata?.metrics?.reviewScore;
+  if (metadataScore && metadataScore > 0) return metadataScore;
+  return work.metrics?.reviewScore;
 }

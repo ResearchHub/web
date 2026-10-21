@@ -1,10 +1,13 @@
 'use client';
 
-import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { useGrantActivity, useGrantPage } from '@/components/Funding/GrantPageContext';
 import { ActivityCardCompact } from '@/components/Activity/cards/ActivityCardCompact';
 import { Button } from '@/components/ui/Button';
 import { SidebarCard, SidebarCardSkeleton } from '@/components/ui/SidebarCard';
 import { ID } from '@/types/root';
+
+/** The sidebar shows the latest few; the Activity tab has the rest. */
+const MAX_SHOWN = 5;
 
 /**
  * The RFP's recent activity as one card under the pool card. Each row links to
@@ -16,8 +19,8 @@ export function GrantActivityCard({
   /** The RFP's own post: its title isn't repeated on every row. */
   currentDocumentId?: ID;
 }) {
-  const { activity } = useGrantPage();
-  const { entries, isLoading, hasMore, isLoadingMore, loadMore } = activity;
+  const { showTab } = useGrantPage();
+  const { entries, isLoading, hasMore } = useGrantActivity();
 
   if (isLoading && entries.length === 0) return <SidebarCardSkeleton />;
   if (entries.length === 0) return null;
@@ -25,7 +28,7 @@ export function GrantActivityCard({
   return (
     <SidebarCard title="Recent activity">
       <div className="-mx-2 mt-2 flex flex-col">
-        {entries.map((entry) => (
+        {entries.slice(0, MAX_SHOWN).map((entry) => (
           <ActivityCardCompact
             key={entry.id}
             entry={entry}
@@ -34,15 +37,14 @@ export function GrantActivityCard({
           />
         ))}
       </div>
-      {hasMore && (
+      {(hasMore || entries.length > MAX_SHOWN) && (
         <Button
           variant="outlined"
           size="sm"
-          onClick={loadMore}
-          disabled={isLoadingMore}
+          onClick={() => showTab('activity')}
           className="mt-3 w-full"
         >
-          {isLoadingMore ? 'Loading…' : 'Show more'}
+          See all activity
         </Button>
       )}
     </SidebarCard>

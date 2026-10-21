@@ -20,7 +20,8 @@ interface Section {
  * The editor writes headings at the top level of the body, never inside
  * another element, so cutting the HTML string at them never splits one.
  */
-function splitSections(html: string): { intro: string; sections: Section[] } {
+function splitSections(html: string): { body: string; intro: string; sections: Section[] } {
+  // The title shows on the cover, so the body drops its own.
   const body = removeTitleFromHTML(html).trim();
   const level = /<h2[\s>]/i.test(body) ? 2 : 3;
   const heading = new RegExp(`^<h${level}[^>]*>([\\s\\S]*?)<\\/h${level}>`, 'i');
@@ -35,7 +36,7 @@ function splitSections(html: string): { intro: string; sections: Section[] } {
       html: match ? chunk.slice(match[0].length) : chunk,
     };
   });
-  return { intro: intro.trim(), sections };
+  return { body, intro: intro.trim(), sections };
 }
 
 const openFirstSection = (_title: string, index: number) => index === 0;
@@ -61,7 +62,7 @@ export function DocumentSections({
   isOpenByDefault = openFirstSection,
 }: DocumentSectionsProps) {
   const idPrefix = useId();
-  const { intro, sections } = useMemo(() => splitSections(content ?? ''), [content]);
+  const { body, intro, sections } = useMemo(() => splitSections(content ?? ''), [content]);
   const [open, setOpen] = useState<Set<number>>(
     () => new Set(sections.flatMap((s, i) => (isOpenByDefault(s.title, i) ? [i] : [])))
   );
@@ -74,7 +75,7 @@ export function DocumentSections({
   if (sections.length === 0) {
     return (
       <div className="py-6">
-        <PostBlockEditor content={content} className={BODY_CLASS} />
+        <PostBlockEditor content={body} className={BODY_CLASS} />
       </div>
     );
   }

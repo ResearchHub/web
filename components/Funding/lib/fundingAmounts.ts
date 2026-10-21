@@ -1,4 +1,9 @@
-import type { FundingPoolAmount, FundingPoolContributor } from '@/types/grant';
+import {
+  getGrantBadgeAmount,
+  type FundingPool,
+  type FundingPoolAmount,
+  type FundingPoolContributor,
+} from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
 
 /** An amount kept in both currencies, in whichever the reader prefers. */
@@ -43,10 +48,11 @@ export function visiblePercent(percent: number): number {
 /** An RFP's pool: the funder's award plus what backers added, and the backers' share. */
 export function getPoolSplit(
   award: FundingPoolAmount,
-  raised: FundingPoolAmount,
+  pool: FundingPool,
   showUSD: boolean
 ): { total: FundingPoolAmount; communityPercent: number } {
-  const total = { usd: award.usd + raised.usd, rsc: award.rsc + raised.rsc };
+  const total = getGrantBadgeAmount({ amount: award, fundingPool: pool });
+  const raised = pool.amountRaised;
   const totalShare = showUSD ? total.usd : total.rsc;
   const raisedShare = showUSD ? raised.usd : raised.rsc;
   return { total, communityPercent: totalShare > 0 ? (raisedShare / totalShare) * 100 : 0 };

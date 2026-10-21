@@ -8,9 +8,9 @@ import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Review } from '@/types/feed';
-import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { getWorkReviewScore } from '@/components/work/lib/reviewScore';
 import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
+import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 
 interface WorkHeaderSubtitleProps {
   work: Work;
@@ -43,16 +43,8 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
   }));
 
   const isPrivate = work.isPublic === false && work.contentType === 'preregistration';
-  const linkedGrant = work.linkedGrant;
-  const linkedGrantTitle =
-    linkedGrant?.title || linkedGrant?.shortTitle || linkedGrant?.organization || 'an RFP';
-  const linkedGrantHref = linkedGrant?.postId
-    ? buildWorkUrl({
-        id: linkedGrant.postId,
-        slug: generateSlug(linkedGrantTitle),
-        contentType: 'funding_request',
-      })
-    : null;
+  const { title: grantTitle, href: linkedGrantHref } = getLinkedGrantLink(work);
+  const linkedGrantTitle = grantTitle || 'an RFP';
 
   return (
     <div className="flex flex-col gap-2">

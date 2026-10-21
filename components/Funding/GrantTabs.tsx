@@ -3,7 +3,12 @@
 import { FileText } from 'lucide-react';
 import { faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { faFileSignature as faFileSignatureSolid } from '@fortawesome/pro-solid-svg-icons';
-import { useGrantPage, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
+import {
+  GRANT_TABS_ID,
+  useGrantActivity,
+  useGrantPage,
+  type GrantBannerTab,
+} from '@/components/Funding/GrantPageContext';
 import {
   RadiatingDotTabIcon,
   RadiatingDotTabIconActive,
@@ -17,7 +22,8 @@ const ProposalsActiveIcon = fontAwesomeTabIcon(faFileSignatureSolid);
 
 /** Details, Proposals and Activity, stuck to the top of the RFP page as it scrolls. */
 export function GrantTabs({ className }: { className?: string }) {
-  const { activeTab, setActiveTab, activity } = useGrantPage();
+  const { activeTab, setActiveTab } = useGrantPage();
+  const activity = useGrantActivity();
   const { proposalCount } = useFundraises();
 
   // The feed counts what it has loaded so far; with more to load it is a floor.
@@ -25,6 +31,7 @@ export function GrantTabs({ className }: { className?: string }) {
 
   return (
     <StickyTabs
+      id={GRANT_TABS_ID}
       className={className}
       activeTab={activeTab}
       onTabChange={(tab) => setActiveTab(tab as GrantBannerTab)}

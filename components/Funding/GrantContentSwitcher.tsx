@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { useGrantActivity, useGrantPage } from '@/components/Funding/GrantPageContext';
 import { DocumentSections } from '@/components/work/DocumentSections';
 import { ActivityCard, ActivityFeedList } from '@/components/Activity';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
@@ -23,7 +23,8 @@ export function GrantContentSwitcher({
   content,
   showProposalFilters = false,
 }: GrantContentSwitcherProps) {
-  const { activeTab, setActiveTab, activity } = useGrantPage();
+  const { activeTab, setActiveTab } = useGrantPage();
+  const activity = useGrantActivity();
   const { restoredScrollPosition: proposalsRestoredScrollPosition } = useFundraises();
   const {
     entries,
