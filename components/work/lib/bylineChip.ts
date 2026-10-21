@@ -1,7 +1,12 @@
 import { cn } from '@/utils/styles';
 
-/** The box a work's byline sits in, as the sidebar's cards do, so it reads apart from the body under it. */
-export const BYLINE_BOX_CLASS = 'mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm';
+/**
+ * The box a work's byline sits in, as the sidebar's cards do, so it reads
+ * apart from the body under it. Phones pad the page's top by half as much, so
+ * the box adds the rest and sits as far under the tabs there as elsewhere.
+ */
+export const BYLINE_BOX_CLASS =
+  'mb-4 mt-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mt-0';
 
 /** A chip in a work's byline: a review score, a date, the RFP it answers, a count. */
 export const BYLINE_CHIP_CLASS =
