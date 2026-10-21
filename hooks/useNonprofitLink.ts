@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { NonprofitService } from '@/services/nonprofit.service';
 import { NonprofitOrg, NonprofitFundraiseLink, CreateNonprofitParams } from '@/types/nonprofit';
 import { ID } from '@/types/root';
-import { ApiError } from '@/services/types';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 
 export interface UseNonprofitLinkReturn {
   data: NonprofitFundraiseLink | null;
@@ -67,32 +67,12 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
 
       return linkResponse;
     } catch (err) {
-      // Handle various error types
-      let errorMessage: string;
-
-      if (err instanceof ApiError) {
-        try {
-          const errorData = JSON.parse(err.message);
-
-          // Try to extract specific error messages
-          if (errorData.data && errorData.data.error) {
-            errorMessage = errorData.data.error;
-          } else if (errorData.error) {
-            errorMessage = errorData.error;
-          } else {
-            errorMessage = 'An error occurred while linking the nonprofit to the fundraise';
-          }
-        } catch (parseError) {
-          errorMessage =
-            err.message || 'An error occurred while linking the nonprofit to the fundraise';
-        }
-      } else if (err instanceof Error) {
-        errorMessage = err.message || 'An unknown error occurred';
-      } else {
-        errorMessage = 'An unknown error occurred';
-      }
-
-      const errorObj = new Error(errorMessage);
+      const errorObj = new Error(
+        extractApiErrorMessage(
+          err,
+          'An error occurred while linking the nonprofit to the fundraise'
+        )
+      );
       setError(errorObj);
       throw errorObj;
     } finally {
