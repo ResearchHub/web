@@ -187,12 +187,12 @@ export function CampaignPreviewModal({
 
             {!campaignsLoading && campaigns.length === 0 ? (
               <Alert variant="warning">
-                Publish a template first.{' '}
+                Publish a draft first.{' '}
                 <Link
-                  href="/expert-finder/templates"
+                  href="/expert-finder/emails"
                   className="font-medium text-primary-700 underline-offset-2 hover:underline"
                 >
-                  Open templates
+                  Open emails
                 </Link>
               </Alert>
             ) : (

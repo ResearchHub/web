@@ -4,9 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Info, Loader2, Mail, Pencil, Trash2, Unplug } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { getOutreachCampaignStatusPresentation } from '@/app/expert-finder/lib/outreachCampaignStatus';
 import { Alert } from '@/components/ui/Alert';
-import { Badge } from '@/components/ui/Badge';
 import { BaseSection } from '@/components/ui/BaseSection';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
@@ -19,32 +17,21 @@ import { useUser } from '@/contexts/UserContext';
 import {
   useDetachOutreachMailbox,
   useInitOutreachOAuth,
-  useOutreachCampaigns,
   useOutreachCapacity,
   useOutreachMailboxes,
   useOutreachOAuthSession,
   useUpdateOutreachMailbox,
 } from '@/hooks/useExpertFinder';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import type { OutreachCampaign, OutreachMailbox, OutreachOAuthSession } from '@/types/expertFinder';
+import type { OutreachMailbox, OutreachOAuthSession } from '@/types/expertFinder';
 import { isValidEmail } from '@/utils/validation';
-import { formatTimestamp } from '@/utils/date';
+// import { OutreachOverviewSection } from './OutreachOverviewSection';
 
 const GOOGLE_WORKSPACE_OAUTH = {
   title: 'Connect Google Workspace',
   description: 'Sign in with a Google Workspace account (not @gmail.com).',
   successToast: 'Google Workspace mailbox connected',
 } as const;
-
-function CampaignCountsSummary({ campaign }: { campaign: OutreachCampaign }) {
-  const { counts } = campaign;
-  return (
-    <p className="text-xs text-gray-500 mt-1">
-      Queued {counts.queued} · Sent {counts.sent} · Opened {counts.opened} · Replied{' '}
-      {counts.replied} · Bounced {counts.bounced}
-    </p>
-  );
-}
 
 function openOAuthWindow(authUrl: string): Window | null {
   const features = 'popup=yes,width=600,height=720,left=120,top=80';
@@ -69,8 +56,6 @@ export function OutreachSettingsContent() {
     useOutreachMailboxes();
   const [{ capacity, isLoading: capacityLoading, error: capacityError }, refetchCapacity] =
     useOutreachCapacity();
-  const [{ campaigns, isLoading: campaignsLoading, error: campaignsError }, refetchCampaigns] =
-    useOutreachCampaigns();
   const [{ isLoading: isUpdatingMailbox }, updateMailbox] = useUpdateOutreachMailbox();
   const [{ isLoading: isDetaching }, detachMailbox] = useDetachOutreachMailbox();
   const [{ isLoading: isInitiatingOAuth }, initOutreachOAuth] = useInitOutreachOAuth();
@@ -131,8 +116,8 @@ export function OutreachSettingsContent() {
   const oauthBusy = isInitiatingOAuth || isOAuthPolling || oauthWaiting;
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([refetchMailboxes(), refetchCapacity(), refetchCampaigns()]);
-  }, [refetchMailboxes, refetchCapacity, refetchCampaigns]);
+    await Promise.all([refetchMailboxes(), refetchCapacity()]);
+  }, [refetchMailboxes, refetchCapacity]);
 
   const handleSaveReplyTo = async () => {
     if (!editReplyMailbox) return;
@@ -244,6 +229,8 @@ export function OutreachSettingsContent() {
         <h1 className="text-xl font-semibold text-gray-900">Outreach settings</h1>
         <p className="text-sm text-gray-600 mt-1">Connect a mailbox to send outreach.</p>
       </div>
+
+      {/* Overview hidden for now — re-enable OutreachOverviewSection when ready */}
 
       <BaseSection>
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -386,63 +373,6 @@ export function OutreachSettingsContent() {
                 </Button>
               </li>
             ))}
-          </ul>
-        )}
-      </BaseSection>
-
-      <BaseSection>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Published campaigns</h2>
-        </div>
-        {campaignsError ? <Alert variant="error">{campaignsError}</Alert> : null}
-        {campaignsLoading && campaigns.length === 0 ? (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            Loading campaigns…
-          </div>
-        ) : campaigns.length === 0 ? (
-          <p className="text-sm text-gray-600">
-            No published campaigns yet.{' '}
-            <Link
-              href="/expert-finder/templates"
-              className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
-            >
-              Open templates
-            </Link>{' '}
-            to publish one.
-          </p>
-        ) : (
-          <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200">
-            {campaigns.map((campaign) => {
-              const title =
-                campaign.name?.trim() ||
-                campaign.templateName?.trim() ||
-                `Campaign #${campaign.id}`;
-              const status = getOutreachCampaignStatusPresentation(campaign.status);
-              return (
-                <li key={campaign.id} className="px-3 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={`/expert-finder/campaigns/${campaign.id}`}
-                      className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-                    >
-                      {title}
-                    </Link>
-                    <Badge variant={status.variant} size="sm">
-                      {status.label}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">
-                    {campaign.templateName ? `${campaign.templateName} · ` : ''}
-                    {campaign.publishedSubject || '—'}
-                    {campaign.publishedAt
-                      ? ` · Published ${formatTimestamp(campaign.publishedAt, false)}`
-                      : ''}
-                  </p>
-                  <CampaignCountsSummary campaign={campaign} />
-                </li>
-              );
-            })}
           </ul>
         )}
       </BaseSection>

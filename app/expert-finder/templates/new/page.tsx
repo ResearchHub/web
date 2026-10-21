@@ -1,5 +1,5 @@
-import { TemplateFormContent } from '../components/TemplateFormContent';
+import { redirect } from 'next/navigation';
 
 export default function NewTemplatePage() {
-  return <TemplateFormContent />;
+  redirect('/expert-finder/emails/new');
 }

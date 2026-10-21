@@ -35,7 +35,6 @@ function campaignOptionLabel(campaign: OutreachCampaign): string {
   const name = getOutreachCampaignLabel(campaign);
   if (campaign.status === 'no_active_mailboxes') return `${name} (no mailbox)`;
   if (campaign.status === 'paused') return `${name} (paused)`;
-  if (campaign.hasUnpublishedChanges) return `${name} (unpublished changes)`;
   return name;
 }
 
@@ -185,12 +184,12 @@ export function SendModal({ isOpen, onClose, searchId, experts, onSuccess }: Sen
 
         {noCampaigns ? (
           <Alert variant="warning">
-            Publish a template first.{' '}
+            Publish a draft first.{' '}
             <Link
-              href="/expert-finder/templates"
+              href="/expert-finder/emails"
               className="font-medium text-primary-700 underline-offset-2 hover:underline"
             >
-              Open templates
+              Open emails
             </Link>
           </Alert>
         ) : (
@@ -238,12 +237,6 @@ export function SendModal({ isOpen, onClose, searchId, experts, onSuccess }: Sen
             </div>
           </Dropdown>
         )}
-
-        {selectedCampaign?.hasUnpublishedChanges ? (
-          <Alert variant="warning">
-            Unpublished template changes — send uses the last published version.
-          </Alert>
-        ) : null}
 
         {selectedCampaign ? (
           <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">

@@ -1,4 +1,4 @@
-import { TemplateFormContent } from '../components/TemplateFormContent';
+import { redirect } from 'next/navigation';
 
 interface TemplateDetailPageProps {
   params: Promise<{ templateId: string }>;
@@ -6,5 +6,5 @@ interface TemplateDetailPageProps {
 
 export default async function TemplateDetailPage({ params }: TemplateDetailPageProps) {
   const { templateId } = await params;
-  return <TemplateFormContent templateId={templateId} />;
+  redirect(`/expert-finder/emails/${templateId}`);
 }

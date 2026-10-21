@@ -9,6 +9,7 @@ import {
   transformExpertSearchListItem,
   transformGeneratedEmail,
   transformOutreachCampaign,
+  transformExpertFinderOverview,
   transformOutreachCapacity,
   transformOutreachMailbox,
   transformOutreachOAuthInitResponse,
@@ -32,6 +33,8 @@ import {
   type OutreachCampaignPreviewResponse,
   type OutreachCampaignSendResponse,
   transformOutreachCampaignPreviewResponse,
+  type ExpertFinderOverview,
+  type ExpertFinderOverviewParams,
   type OutreachCapacity,
   type OutreachChannel,
   type OutreachMailbox,
@@ -577,6 +580,27 @@ export class ExpertFinderService {
     return transformOutreachCapacity(raw);
   }
 
+  /**
+   * Aggregated Expert Finder metrics for a date window (default last 30 days).
+   * GET /api/research_ai/expert-finder/overview/
+   */
+  static async getOverview(params?: ExpertFinderOverviewParams): Promise<ExpertFinderOverview> {
+    const searchParams = new URLSearchParams();
+    if (params?.start) searchParams.set('start', params.start);
+    if (params?.end) searchParams.set('end', params.end);
+    if (params?.unifiedDocumentId != null) {
+      searchParams.set('unified_document_id', String(params.unifiedDocumentId));
+    }
+    if (params?.editorId != null) {
+      searchParams.set('editor_id', String(params.editorId));
+    }
+    const query = searchParams.toString();
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      query ? `${this.BASE_PATH}/overview/?${query}` : `${this.BASE_PATH}/overview/`
+    );
+    return transformExpertFinderOverview(raw);
+  }
+
   // ── Saved templates ──────────────────────────────────────────────────────
 
   static async listTemplates(params?: {
@@ -643,8 +667,8 @@ export class ExpertFinderService {
   }
 
   /**
-   * Publish a shared template into this editor's outreach campaign (idempotent upsert).
-   * Requires a campaign name. Does not send leads.
+   * Publish a draft into a new outreach campaign (always creates; 201).
+   * Copies subject/body onto the campaign. Later draft edits do not update existing campaigns.
    * POST /api/research_ai/expert-finder/templates/<id>/publish/
    */
   static async publishTemplate(
@@ -685,6 +709,40 @@ export class ExpertFinderService {
     const { campaigns } = await this.listOutreachCampaigns({ limit: 100, offset: 0 });
     const id = Number(campaignId);
     return campaigns.find((c) => c.id === id) ?? null;
+  }
+
+  /**
+   * Update a live campaign's name and/or published copy (RH + Instantly).
+   * PATCH /api/research_ai/expert-finder/outreach-campaigns/<id>/
+   */
+  static async updateOutreachCampaign(
+    campaignId: number | string,
+    payload: {
+      name?: string;
+      published_subject?: string;
+      published_body?: string;
+    }
+  ): Promise<OutreachCampaign> {
+    const body: Record<string, string> = {};
+    if (payload.name !== undefined) body.name = payload.name;
+    if (payload.published_subject !== undefined) {
+      body.published_subject = payload.published_subject;
+    }
+    if (payload.published_body !== undefined) body.published_body = payload.published_body;
+    const raw = await ApiClient.patch<Record<string, unknown>>(
+      `${this.BASE_PATH}/outreach-campaigns/${campaignId}/`,
+      body
+    );
+    return transformOutreachCampaign(raw);
+  }
+
+  /**
+   * Delete a campaign that has no GeneratedEmail rows.
+   * DELETE /api/research_ai/expert-finder/outreach-campaigns/<id>/
+   * 204 success; 409 if the campaign has emails.
+   */
+  static async deleteOutreachCampaign(campaignId: number | string): Promise<void> {
+    await ApiClient.deleteNoContent(`${this.BASE_PATH}/outreach-campaigns/${campaignId}/`);
   }
 
   /**

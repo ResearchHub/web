@@ -1,5 +1,5 @@
-import { TemplatesPageContent } from './components/TemplatesPageContent';
+import { redirect } from 'next/navigation';
 
 export default function ExpertFinderTemplatesPage() {
-  return <TemplatesPageContent />;
+  redirect('/expert-finder/emails');
 }

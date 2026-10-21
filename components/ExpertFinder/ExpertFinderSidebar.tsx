@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { BookOpen, FileText, Settings } from 'lucide-react';
+import { BookOpen, Mail, Settings } from 'lucide-react';
 import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/SidebarNav';
 
 const navigationItems: SidebarNavItem[] = [
@@ -12,9 +12,9 @@ const navigationItems: SidebarNavItem[] = [
     description: '',
   },
   {
-    name: 'Templates',
-    href: '/expert-finder/templates',
-    icon: FileText,
+    name: 'Emails',
+    href: '/expert-finder/emails',
+    icon: Mail,
     description: '',
   },
   {
