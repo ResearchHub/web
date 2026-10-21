@@ -59,6 +59,17 @@ const COVER_BOX_CLASS = cn(
   'tablet:!min-h-[280px] tablet:!rounded-lg lg:!min-h-[300px]'
 );
 
+// Under a mouse the image grows a little, as the homepage feed's covers do,
+// overshooting a touch before it settles. It eases straight back when the
+// mouse leaves, since leaving runs the resting state's transition. Not on
+// touch screens, where a tap would leave it grown, nor with reduced motion.
+const IMAGE_HOVER_CLASS = cn(
+  'transition-transform duration-300 ease-out',
+  'motion-safe:[@media(hover:hover)_and_(pointer:fine)]:group-hover/cover:scale-105',
+  '[@media(hover:hover)_and_(pointer:fine)]:group-hover/cover:duration-500',
+  '[@media(hover:hover)_and_(pointer:fine)]:group-hover/cover:ease-[cubic-bezier(0.34,1.56,0.64,1)]'
+);
+
 /**
  * A work's large cover, for the RFP and proposal pages: its image with the
  * title on a frosted bar along the bottom. Without an image the bar sits on a
@@ -87,25 +98,32 @@ export function WorkCover({
       )}
       <div
         className={cn(
-          'relative isolate overflow-hidden bg-navy',
+          'group/cover relative isolate overflow-hidden bg-navy',
           // The bar sits at the bottom; the top keeps clear of the actions.
           'tablet:flex tablet:flex-col tablet:justify-end tablet:pt-16',
           COVER_BOX_CLASS
         )}
       >
         {imageUrl && (
-          // Sized by its own width and height: full width at its natural shape
-          // on phones, stretched over the whole box from tablet up. The
-          // width and height here only reserve room until it loads.
-          <Image
-            src={imageUrl}
-            alt=""
-            width={1200}
-            height={630}
-            priority
-            className="block h-auto w-full tablet:absolute tablet:inset-0 tablet:!h-full tablet:object-cover"
-            sizes="(min-width: 1012px) 980px, 100vw"
-          />
+          // Its frame clips it as it grows. On phones it sits above the title
+          // band, which it would otherwise spill onto.
+          <div className="overflow-hidden tablet:absolute tablet:inset-0">
+            {/* Sized by its own width and height: full width at its natural
+                shape on phones, stretched over the whole box from tablet up.
+                The width and height here only reserve room until it loads. */}
+            <Image
+              src={imageUrl}
+              alt=""
+              width={1200}
+              height={630}
+              priority
+              className={cn(
+                'block h-auto w-full tablet:absolute tablet:inset-0 tablet:!h-full tablet:object-cover',
+                IMAGE_HOVER_CLASS
+              )}
+              sizes="(min-width: 1012px) 980px, 100vw"
+            />
+          </div>
         )}
 
         {/* Badges on the left, actions on the right. Where both don't fit
