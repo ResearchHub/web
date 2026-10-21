@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, type ReactNode } from 'react';
 import { Dialog } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Plus, Files, PenLine, HelpCircle, Lock, ArrowRight, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
+import { SidePanel } from '@/components/ui/SidePanel';
+import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { documentTarget, newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
@@ -34,6 +38,15 @@ const ProposalSkeleton = () => (
   </div>
 );
 
+/** What the right-hand apply panel shows about the RFP. */
+export interface ApplyPanelInfo {
+  /** At the top, e.g. the RFP's cover card, which names the RFP. */
+  cover?: ReactNode;
+  /** The RFP's own award, "Up to $X". */
+  amountUsd?: number;
+  organization?: string;
+}
+
 interface ApplyToGrantModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -41,7 +54,12 @@ interface ApplyToGrantModalProps {
   grantId: string;
   grantTitle?: string;
   grantApplicationVisibility?: GrantApplicationVisibility;
+  /** Opens as a panel from the right (a drawer from the bottom on phones) instead of a modal. */
+  panel?: ApplyPanelInfo;
 }
+
+/** In the panel, a new proposal is drafted with AI in the workspace or written in the editor. */
+type NewDraftMethod = 'ai' | 'editor';
 
 export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   isOpen,
@@ -49,8 +67,10 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   grantId,
   grantTitle,
   grantApplicationVisibility,
+  panel,
 }) => {
   const [draftNotes, setDraftNotes] = useState<Note[]>([]);
+  const [newDraftMethod, setNewDraftMethod] = useState<NewDraftMethod | null>(null);
   const [selectedDraftNoteId, setSelectedDraftNoteId] = useState<string | null>(null);
   const [draftNewSelected, setDraftNewSelected] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,6 +78,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   const { user } = useUser();
   const { selectedOrg } = useOrganizationContext();
   const router = useRouter();
+  const isMobile = useIsMobile();
 
   const selectedDraftNote = draftNotes.find((n) => n.id.toString() === selectedDraftNoteId);
 
@@ -69,6 +90,18 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   const handleSelectDraftNote = (id: string) => {
     setSelectedDraftNoteId(id);
     setDraftNewSelected(false);
+    setNewDraftMethod(null);
+  };
+
+  const handleSelectNewDraftMethod = (method: NewDraftMethod) => {
+    setNewDraftMethod(method);
+    setSelectedDraftNoteId(null);
+  };
+
+  // The workspace picks its RFP on its own start screen; it can't be handed one yet.
+  const handleDraftWithAI = () => {
+    onClose();
+    router.push(workspaceHref(newDraftTarget('need_funding')));
   };
 
   const handleDraftNew = () => {
@@ -86,8 +119,11 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
         selectedGrantId: grantId,
       });
       onClose();
+      // The panel picks drafts up in the workspace; the modal still uses the notebook.
       router.push(
-        `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
+        panel
+          ? workspaceHref(documentTarget(selectedDraftNote.id))
+          : `/notebook/${selectedDraftNote.organization.slug}/${selectedDraftNote.id}?tab=details`
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to select RFP');
@@ -112,6 +148,8 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     if (isOpen) {
       setSelectedDraftNoteId(null);
       setDraftNewSelected(false);
+      // The panel starts on drafting with AI, as the most direct way in.
+      setNewDraftMethod(panel ? 'ai' : null);
       if (user?.id) {
         fetchDraftNotes();
       }
@@ -220,6 +258,212 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       </>
     );
   };
+
+  if (panel) {
+    const optionClass = (selected: boolean) =>
+      cn(
+        'flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors',
+        selected
+          ? 'border-primary-500 bg-primary-50/60 ring-1 ring-primary-500'
+          : 'border-gray-200 bg-white hover:border-gray-300'
+      );
+    const radioDot = (selected: boolean) => (
+      <span
+        aria-hidden="true"
+        className={cn(
+          'mt-0.5 h-5 w-5 flex-shrink-0 rounded-full bg-white',
+          selected ? 'border-[6px] border-primary-500' : 'border-[1.5px] border-gray-300'
+        )}
+      />
+    );
+    const newOptions: { method: NewDraftMethod; label: string; description: string }[] = [
+      {
+        method: 'ai',
+        label: 'Draft it with AI',
+        description: 'Opens the AI workspace to draft a proposal.',
+      },
+      {
+        method: 'editor',
+        label: 'Write it yourself',
+        description: 'A blank proposal in the editor, with this RFP attached.',
+      },
+    ];
+    const canStart = Boolean(newDraftMethod || selectedDraftNote);
+    const handleStart = () => {
+      if (newDraftMethod === 'ai') handleDraftWithAI();
+      else if (newDraftMethod === 'editor') handleDraftNew();
+      else void handleContinueWithDraft();
+    };
+
+    const footer = (
+      <div className="flex items-center gap-2.5">
+        <Button variant="outlined" onClick={handleClose} disabled={isSavingSelection}>
+          Cancel
+        </Button>
+        <Button
+          data-testid="apply-continue"
+          onClick={handleStart}
+          disabled={!canStart || isSavingSelection}
+          className="flex-1"
+        >
+          {isSavingSelection
+            ? 'Saving...'
+            : selectedDraftNote
+              ? 'Continue with this draft'
+              : 'Start a proposal'}
+        </Button>
+      </div>
+    );
+
+    const body = (
+      <div
+        className={cn(
+          // The drawer brings its own padding.
+          'flex flex-col gap-5',
+          isMobile ? 'pb-5' : 'p-4 tablet:p-6',
+          isSavingSelection && 'pointer-events-none opacity-50'
+        )}
+      >
+        {panel.cover}
+
+        {panel.amountUsd ? (
+          <div>
+            <p className="text-[22px] font-extrabold tracking-tight text-gray-900">
+              Up to{' '}
+              <span className="font-mono font-semibold text-green-700">
+                ${Math.round(panel.amountUsd).toLocaleString()}
+              </span>
+            </p>
+            {panel.organization && (
+              <p className="mt-1 text-sm text-gray-600">Funded by {panel.organization}.</p>
+            )}
+          </div>
+        ) : null}
+
+        <fieldset className="min-w-0">
+          <legend className="text-[13px] font-semibold text-gray-600">
+            How do you want to write it?
+          </legend>
+          <div className="mt-2 flex flex-col gap-2">
+            {newOptions.map((option) => {
+              const selected = newDraftMethod === option.method;
+              return (
+                <label
+                  key={option.method}
+                  data-testid={option.method === 'editor' ? 'apply-draft-new' : undefined}
+                  className={optionClass(selected)}
+                >
+                  <input
+                    type="radio"
+                    name="apply-method"
+                    className="sr-only"
+                    checked={selected}
+                    onChange={() => handleSelectNewDraftMethod(option.method)}
+                  />
+                  {radioDot(selected)}
+                  <span>
+                    <span className="block text-[15px] font-semibold text-gray-900">
+                      {option.label}
+                    </span>
+                    <span className="mt-0.5 block text-[13px] leading-[18px] text-gray-600">
+                      {option.description}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        {loading ? (
+          <ProposalSkeleton />
+        ) : (
+          draftNotes.length > 0 && (
+            // min-w-0: a fieldset is as wide as its content by default, so a long
+            // draft title would push it past the panel instead of truncating.
+            <fieldset className="min-w-0">
+              <legend className="text-[13px] font-semibold text-gray-600">
+                Or continue a draft
+              </legend>
+              <div className="mt-2 flex flex-col gap-2">
+                {draftNotes.map((note) => {
+                  const noteId = note.id.toString();
+                  const selected = noteId === selectedDraftNoteId;
+                  return (
+                    <label key={noteId} className={optionClass(selected)}>
+                      <input
+                        type="radio"
+                        name="apply-method"
+                        className="sr-only"
+                        checked={selected}
+                        onChange={() => handleSelectDraftNote(noteId)}
+                      />
+                      {radioDot(selected)}
+                      <span className="min-w-0">
+                        <span className="block truncate text-[15px] font-semibold text-gray-900">
+                          {note.title || 'Untitled'}
+                        </span>
+                        {note.createdDate && (
+                          <span className="mt-0.5 block text-[13px] text-gray-600">
+                            Draft · {formatDate(note.createdDate)}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )
+        )}
+
+        {grantApplicationVisibility === 'PRIVATE' && (
+          <div className="flex gap-2 rounded-lg border border-primary-100 bg-primary-50 p-3 text-xs text-primary-800">
+            <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+            <p>
+              <span className="font-semibold">Private submission.</span> Only funders and vetted
+              peer reviewers will be able to view your proposal.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+
+    if (isMobile) {
+      return (
+        <SwipeableDrawer
+          isOpen={isOpen}
+          onClose={handleClose}
+          height="85vh"
+          header={
+            <div className="border-b border-gray-200 pb-3">
+              <span className="text-lg font-semibold text-gray-900">Apply to RFP</span>
+            </div>
+          }
+        >
+          <div className="flex min-h-full flex-col">
+            {body}
+            {/* Pinned to the bottom, as in the funding drawer. */}
+            <div className="sticky bottom-0 z-10 -mx-4 -mb-4 mt-auto border-t border-gray-100 bg-white px-4 pb-4 pt-4">
+              {footer}
+            </div>
+          </div>
+        </SwipeableDrawer>
+      );
+    }
+
+    return (
+      <SidePanel
+        isOpen={isOpen}
+        onClose={handleClose}
+        title="Apply to RFP"
+        widthClassName="w-full tablet:max-w-[440px]"
+        footer={footer}
+      >
+        {body}
+      </SidePanel>
+    );
+  }
 
   return (
     <BaseModal

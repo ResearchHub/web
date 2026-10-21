@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
+import { WorkCover } from '@/components/work/WorkCover';
 import { ContentType, Work } from '@/types/work';
 import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -27,6 +28,7 @@ import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
 import type { GrantApplicationVisibility } from '@/types/grant';
+import type { ApplyPanelInfo } from '@/components/modals/ApplyToGrantModal';
 
 import { useWorkVote, useWorkPermissions } from './WorkHeaderHooks';
 import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
@@ -48,8 +50,6 @@ const AI_POST_ROUTES: Partial<Record<ContentType, string>> = {
 interface WorkHeaderProps {
   work: Work;
   metadata: WorkMetadata;
-  contentType?: 'post' | 'fund';
-  updatesCount?: number;
   className?: string;
   eyebrow?: ReactNode;
   preTitle?: ReactNode;
@@ -57,25 +57,29 @@ interface WorkHeaderProps {
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
   reviewsTabUrl?: string;
-  primaryAction?: ReactNode;
   hideVoteWidget?: boolean;
   /** Top-align title and CTA column; use when the CTA is a tall panel. */
   alignTop?: boolean;
   /** Keep the tabs in the title's column beside the CTA, rather than on a row beneath both. */
   inlineTabs?: boolean;
+  /**
+   * Show the work as a large image cover with its title on it, instead of the
+   * hero header. The eyebrow becomes badges on the cover; tabs, subtitle and
+   * primary action are left to the page.
+   */
+  cover?: { imageUrl?: string; eyebrow?: string };
   grantModalProps?: {
     isApplyToGrantModalOpen: boolean;
     onCloseApplyToGrantModal: () => void;
     grantId: string;
     grantApplicationVisibility?: GrantApplicationVisibility;
+    applyPanel?: ApplyPanelInfo;
   };
 }
 
 export function WorkHeader({
   work,
   metadata,
-  contentType = 'post',
-  updatesCount,
   className,
   eyebrow: eyebrowOverride,
   preTitle,
@@ -83,10 +87,10 @@ export function WorkHeader({
   additionalMenuItems,
   tabs: tabsOverride,
   reviewsTabUrl: reviewsTabUrlOverride,
-  primaryAction,
   hideVoteWidget = false,
   alignTop = false,
   inlineTabs = false,
+  cover,
   grantModalProps,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -202,11 +206,14 @@ export function WorkHeader({
       <WorkHeaderSubtitle work={work} metadata={metadata} reviewsUrl={reviewsTabUrl} />
     );
 
-  const btnClass =
-    'p-2 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors';
+  // On a cover the buttons share one white chip, so they drop their own fill.
+  const btnClass = cn(
+    'p-2 flex items-center justify-center rounded-lg text-gray-600 transition-colors',
+    cover ? 'hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'
+  );
 
   const actionBar = (
-    <div className="flex items-center gap-3">
+    <div className={cn('flex items-center', cover ? 'gap-0.5' : 'gap-3')}>
       {!hideVoteWidget && (
         <div className="flex items-center rounded-lg bg-gray-100">
           <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} size="sm" />
@@ -224,13 +231,16 @@ export function WorkHeader({
       >
         <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
       </button>
-      <button
-        onClick={() => setMobileSidebarOpen(true)}
-        className={cn(btnClass, 'lg:hidden')}
-        aria-label="Show insights"
-      >
-        <Lightbulb className="h-5 w-5" />
-      </button>
+      {/* An RFP's sidebar (pool, activity) is already on its phone page. */}
+      {!cover && (
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className={cn(btnClass, 'lg:hidden')}
+          aria-label="Show insights"
+        >
+          <Lightbulb className="h-5 w-5" />
+        </button>
+      )}
       <button onClick={shareAction} className={cn(btnClass, '!hidden lg:!flex')} aria-label="Share">
         <Share className="h-5 w-5" />
       </button>
@@ -254,35 +264,37 @@ export function WorkHeader({
     </div>
   );
 
-  const defaultTabs = (
-    <WorkTabs
-      work={work}
-      metadata={metadata}
-      contentType={contentType}
-      onTabChange={setActiveTab}
-      updatesCount={updatesCount}
-    />
-  );
+  const defaultTabs = <WorkTabs work={work} metadata={metadata} onTabChange={setActiveTab} />;
 
   const resolvedTabs = tabsOverride !== undefined ? tabsOverride : defaultTabs;
 
   return (
     <>
-      <HeroHeader
-        title={work.title}
-        eyebrow={resolvedEyebrow}
-        preTitle={preTitle}
-        subtitle={resolvedSubtitle}
-        actions={actionBar}
-        cta={primaryAction}
-        className={className}
-        alignTop={alignTop}
-        inlineChildren={inlineTabs}
-      >
-        <div className="mt-3 sm:mt-4">
-          <div className="min-w-0">{resolvedTabs}</div>
-        </div>
-      </HeroHeader>
+      {cover ? (
+        <WorkCover
+          title={work.title}
+          eyebrow={cover.eyebrow}
+          imageUrl={cover.imageUrl}
+          badges={resolvedEyebrow}
+          actions={actionBar}
+          preTitle={preTitle}
+        />
+      ) : (
+        <HeroHeader
+          title={work.title}
+          eyebrow={resolvedEyebrow}
+          preTitle={preTitle}
+          subtitle={resolvedSubtitle}
+          actions={actionBar}
+          className={className}
+          alignTop={alignTop}
+          inlineChildren={inlineTabs}
+        >
+          <div className="mt-3 sm:mt-4">
+            <div className="min-w-0">{resolvedTabs}</div>
+          </div>
+        </HeroHeader>
+      )}
 
       <WorkHeaderModals
         work={work}
@@ -304,6 +316,7 @@ export function WorkHeader({
         onCloseApplyToGrantModal={grantModalProps?.onCloseApplyToGrantModal}
         grantId={grantModalProps?.grantId}
         grantApplicationVisibility={grantModalProps?.grantApplicationVisibility}
+        applyPanel={grantModalProps?.applyPanel}
         showReopenModal={showReopenModal}
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}

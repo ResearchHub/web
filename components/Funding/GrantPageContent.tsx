@@ -29,6 +29,9 @@ interface GrantTabContextValue {
   setFundingPool: (pool: FundingPool | null) => void;
   applications: Application[];
   grantCreatedByUserId: ID | null;
+  /** Apply opens from the pool card and the phone's action bar alike. */
+  isApplyModalOpen: boolean;
+  setIsApplyModalOpen: (open: boolean) => void;
 }
 
 const GrantTabContext = createContext<GrantTabContextValue | null>(null);
@@ -60,6 +63,7 @@ export function GrantTabProvider({
 }) {
   const [activeTab, setActiveTab] = useState<GrantBannerTab>(defaultTab);
   const [fundingPool, setFundingPool] = useState<FundingPool | null>(initialFundingPool);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   useEffect(() => {
     setFundingPool(initialFundingPool);
@@ -108,6 +112,8 @@ export function GrantTabProvider({
         setFundingPool: handleSetFundingPool,
         applications: initialApplications,
         grantCreatedByUserId,
+        isApplyModalOpen,
+        setIsApplyModalOpen,
       }}
     >
       {children}

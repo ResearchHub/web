@@ -9,6 +9,8 @@ import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Review } from '@/types/feed';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
+import { getWorkReviewScore } from '@/components/work/lib/reviewScore';
+import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
 
 interface WorkHeaderSubtitleProps {
   work: Work;
@@ -17,24 +19,11 @@ interface WorkHeaderSubtitleProps {
 }
 
 export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSubtitleProps) {
-  const authors = work.authors.map((a) => ({
-    name: a.authorProfile.fullName,
-    verified: a.authorProfile.user?.isVerified,
-    profileUrl: `/author/${a.authorProfile.id}`,
-    authorUrl: a.authorProfile.user ? `/author/${a.authorProfile.id}` : undefined,
-  }));
+  const authors = toAuthorListAuthors(work.authors);
 
   const peerReviews = work.peerReviews ?? [];
-  const metadataReviewScore = metadata?.metrics?.reviewScore;
-  const reviewScore =
-    work.postType === 'REGISTERED_REPORT'
-      ? peerReviews.length > 0
-        ? peerReviews.reduce((total, review) => total + review.score, 0) / peerReviews.length
-        : undefined
-      : metadataReviewScore && metadataReviewScore > 0
-        ? metadataReviewScore
-        : work.metrics?.reviewScore;
-  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
+  const reviewScore = getWorkReviewScore(work, metadata);
+  const hasReviewScore = reviewScore !== undefined;
 
   const reviews: Review[] = peerReviews.map((pr) => ({
     id: pr.id,

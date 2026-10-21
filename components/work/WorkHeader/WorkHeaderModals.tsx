@@ -5,7 +5,7 @@ import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
-import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { ApplyToGrantModal, type ApplyPanelInfo } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
 import { ID } from '@/types/root';
@@ -36,6 +36,8 @@ export interface WorkHeaderModalsProps {
   onCloseApplyToGrantModal?: () => void;
   grantId?: string;
   grantApplicationVisibility?: GrantApplicationVisibility;
+  /** Opens Apply as a right-hand panel showing this. */
+  applyPanel?: ApplyPanelInfo;
   showReopenModal?: boolean;
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
@@ -66,6 +68,7 @@ export function WorkHeaderModals({
   onCloseApplyToGrantModal,
   grantId,
   grantApplicationVisibility,
+  applyPanel,
   showReopenModal = false,
   onCloseReopenModal,
   onConfirmReopen,
@@ -147,6 +150,7 @@ export function WorkHeaderModals({
           grantId={grantId}
           grantTitle={work.title}
           grantApplicationVisibility={grantApplicationVisibility}
+          panel={applyPanel}
         />
       )}
     </>

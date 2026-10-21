@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { type ComponentProps, type ReactNode, useEffect } from 'react';
 import { useGrantTab } from '@/components/Funding/GrantPageContent';
-import { GrantDetailsInline } from '@/components/Funding/GrantDetailsInline';
+import { DocumentSections } from '@/components/work/DocumentSections';
+import { GrantFacts } from '@/components/Funding/GrantFacts';
+import { GrantTabs } from '@/components/Funding/GrantTabs';
 import { ActivityCard, ActivityFeedList } from '@/components/Activity';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
@@ -11,13 +13,16 @@ import { useFundraises } from '@/contexts/FundraiseContext';
 
 interface GrantContentSwitcherProps {
   content?: string;
-  imageUrl?: string;
+  facts: ComponentProps<typeof GrantFacts>;
+  /** Sticky Apply and Fund buttons, shown only where the right sidebar is hidden. */
+  actionBar?: ReactNode;
   showProposalFilters?: boolean;
 }
 
 export function GrantContentSwitcher({
   content,
-  imageUrl,
+  facts,
+  actionBar,
   showProposalFilters = false,
 }: GrantContentSwitcherProps) {
   const { activeTab, setActiveTab, activity } = useGrantTab();
@@ -56,12 +61,14 @@ export function GrantContentSwitcher({
 
   return (
     <>
+      <GrantFacts {...facts} />
+      <GrantTabs className="mt-4" />
       <div className={!isProposalsActive ? 'hidden' : undefined}>
         {showProposalFilters && <ProposalSortAndFilters />}
         <ProposalFeed isActive={isProposalsActive} />
       </div>
       <div className={activeTab !== 'details' ? 'hidden' : undefined}>
-        <GrantDetailsInline content={content} imageUrl={imageUrl} />
+        <DocumentSections content={content} emptyText="No details available for this grant." />
       </div>
       <div className={!isActivityActive ? 'hidden' : undefined}>
         <ActivityFeedList
@@ -76,6 +83,7 @@ export function GrantContentSwitcher({
           ))}
         </ActivityFeedList>
       </div>
+      {actionBar}
     </>
   );
 }

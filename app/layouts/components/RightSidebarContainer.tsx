@@ -23,6 +23,8 @@ interface RightSidebarContainerProps {
   aboveSidebar?: ReactNode;
   /** Stretch the gray rail to the bottom of the column even with a card above it. */
   fill?: boolean;
+  /** Render the sidebar's content as it is, without the gray rail around it. */
+  bare?: boolean;
 }
 
 export function RightSidebarContainer({
@@ -31,6 +33,7 @@ export function RightSidebarContainer({
   topOffset = 'default',
   aboveSidebar,
   fill = false,
+  bare = false,
 }: RightSidebarContainerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   const isDefaultSidebar = typeof rightSidebar === 'boolean';
@@ -51,7 +54,7 @@ export function RightSidebarContainer({
           // When a card sits above the gray rail, keep a gap under the top bar
           // once sticky kicks in. Other pages keep top-0 so their sidebar
           // position is unchanged.
-          cardAboveSidebar
+          cardAboveSidebar || bare
             ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
             : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
           'lg:!flex !hidden right-sidebar:!flex',
@@ -60,25 +63,33 @@ export function RightSidebarContainer({
       >
         {cardAboveSidebar}
 
-        <aside
-          className={cn(
-            'min-h-0 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
-            // With a card above it, the gray panel sizes to its content instead
-            // of filling the column — otherwise a short or empty sidebar leaves
-            // a tall empty rail hanging beneath that card. It still shrinks and
-            // scrolls when the content is taller than the space available.
-            // A page can ask for the full column anyway.
-            cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
-          )}
-        >
-          <div className={cn('h-full', contentClassName)}>
-            <div className="p-4 empty:hidden">
-              <Suspense fallback={null}>
-                <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-              </Suspense>
-            </div>
+        {bare ? (
+          <div className={cn('min-h-0 overflow-y-auto scrollbar-on-hover', contentClassName)}>
+            <Suspense fallback={null}>
+              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+            </Suspense>
           </div>
-        </aside>
+        ) : (
+          <aside
+            className={cn(
+              'min-h-0 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
+              // With a card above it, the gray panel sizes to its content instead
+              // of filling the column — otherwise a short or empty sidebar leaves
+              // a tall empty rail hanging beneath that card. It still shrinks and
+              // scrolls when the content is taller than the space available.
+              // A page can ask for the full column anyway.
+              cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
+            )}
+          >
+            <div className={cn('h-full', contentClassName)}>
+              <div className="p-4 empty:hidden">
+                <Suspense fallback={null}>
+                  <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+                </Suspense>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
 
       <div className="lg:hidden">

@@ -1,14 +1,18 @@
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { WorkSkeleton, WorkHeaderSkeleton } from '@/components/work/WorkSkeleton';
+import DocumentSkeleton from '@/components/skeletons/DocumentSkeleton';
+import { WorkCoverSkeleton } from '@/components/work/WorkCover';
 import { ProposalSidebarSkeleton } from '@/components/work/ProposalSidebarSkeleton';
 
 export default function ProposalLoading() {
   return (
     <PageLayout
-      topBanner={<WorkHeaderSkeleton tabCount={5} />}
+      contentWidth="narrow"
+      rightSidebarTopOffset="aligned"
+      rightSidebarBare
+      topBanner={<WorkCoverSkeleton />}
       rightSidebar={<ProposalSidebarSkeleton />}
     >
-      <WorkSkeleton showPdf={false} />
+      <DocumentSkeleton className="max-w-[860px] !px-0 !pt-0" lines={12} />
     </PageLayout>
   );
 }

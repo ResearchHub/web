@@ -2,7 +2,7 @@
 
 import { FC, useMemo, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
-import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { SidebarCard } from '@/components/ui/SidebarCard';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -42,20 +42,18 @@ export const AiPeerReviewSection: FC<AiPeerReviewSectionProps> = ({ aiPeerReview
     tldr.length > TLDR_MAX_CHARS ? `${tldr.slice(0, TLDR_MAX_CHARS).trimEnd()}…` : tldr;
 
   return (
-    <div>
-      <SidebarHeader
-        title="Key Insights"
-        action={
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center h-5 rounded-full border border-primary-200 bg-primary-50 px-2 text-[10px] font-semibold uppercase tracking-wider leading-none text-primary-700">
-              Beta
-            </span>
-            <AiPeerReviewVerdictBadge rating={overallRating ?? null} />
-          </div>
-        }
-        className="mb-3"
-      />
-      <div className="space-y-2.5">
+    <SidebarCard
+      title="Key Insights"
+      action={
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center h-5 rounded-full border border-primary-200 bg-primary-50 px-2 text-[10px] font-semibold uppercase tracking-wider leading-none text-primary-700">
+            Beta
+          </span>
+          <AiPeerReviewVerdictBadge rating={overallRating ?? null} />
+        </div>
+      }
+    >
+      <div className="mt-2 space-y-2.5">
         {truncatedTldr && <p className="text-sm leading-relaxed text-gray-900">{truncatedTldr}</p>}
 
         {pros.length + cons.length > 0 && (
@@ -125,7 +123,7 @@ export const AiPeerReviewSection: FC<AiPeerReviewSectionProps> = ({ aiPeerReview
           )}
         </div>
       </BaseModal>
-    </div>
+    </SidebarCard>
   );
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { type PaymentMethodType } from './constants';
 
 interface UsePaymentMethodOptions {
@@ -48,6 +48,12 @@ export function usePaymentMethod(options: UsePaymentMethodOptions = {}): UsePaym
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(initialMethod);
+
+  // The owner can settle on a method after mount (a default that waits on
+  // balances or the wallet check, or one that follows the amount); show it.
+  useEffect(() => {
+    setSelectedMethod(initialMethod);
+  }, [initialMethod]);
 
   const toggleExpanded = useCallback(() => {
     setIsExpanded((prev) => !prev);

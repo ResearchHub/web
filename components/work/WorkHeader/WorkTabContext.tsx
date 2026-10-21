@@ -25,7 +25,8 @@ export function useWorkTab() {
   return ctx ?? NOOP_TAB_CONTEXT;
 }
 
-function getTabFromPath(path: string): TabType {
+/** Which tab a work's route opens on: its own route for each, the work's page for the paper. */
+export function getTabFromPath(path: string): TabType {
   if (path.includes('/updates')) return 'updates';
   if (path.includes('/conversation')) return 'conversation';
   if (path.includes('/applications')) return 'applications';
@@ -34,16 +35,18 @@ function getTabFromPath(path: string): TabType {
   return 'paper';
 }
 
-export function WorkTabProvider({
-  children,
-  defaultTab,
-}: {
-  children: ReactNode;
-  defaultTab?: TabType;
-}) {
+export function WorkTabProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<TabType>(() => defaultTab ?? getTabFromPath(pathname));
+  const [activeTab, setActiveTab] = useState<TabType>(() => getTabFromPath(pathname));
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // A link to another of the work's tabs keeps this layout mounted: follow it.
+  const [tabPath, setTabPath] = useState(pathname);
+  if (pathname !== tabPath) {
+    setTabPath(pathname);
+    setActiveTab(getTabFromPath(pathname));
+  }
+
   return (
     <WorkTabContext.Provider
       value={{ activeTab, setActiveTab, mobileSidebarOpen, setMobileSidebarOpen }}

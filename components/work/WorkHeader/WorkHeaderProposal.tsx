@@ -1,13 +1,14 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
-import { Coins, Globe2, Link2 } from 'lucide-react';
+import { type ReactNode, useRef, useState } from 'react';
+import { Globe2, Link2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { Button } from '@/components/ui/Button';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useUser } from '@/contexts/UserContext';
@@ -23,19 +24,32 @@ import { WorkHeader } from './WorkHeader';
 interface WorkHeaderProposalProps {
   work: Work;
   metadata: WorkMetadata;
-  updatesCount?: number;
   className?: string;
   preTitle?: ReactNode;
 }
 
+/** Who proposes it, for the cover's top line: the lead author, and how many more. */
+function proposerLabel(work: Work): string | undefined {
+  const [lead, ...others] = work.authors;
+  if (!lead) return undefined;
+  const name = lead.authorProfile.fullName;
+  return others.length > 0 ? `${name} and ${others.length} more` : name;
+}
+
+/**
+ * The proposal page's cover. The byline, tabs and funding card live in the
+ * page beneath it; this keeps the Fund panel they open, and the proposal's
+ * own menu actions (share link, make public).
+ */
 export function WorkHeaderProposal({
   work,
   metadata,
-  updatesCount,
   className,
   preTitle,
 }: WorkHeaderProposalProps) {
-  const [isFundModalOpen, setIsFundModalOpen] = useState(false);
+  const { isFundPanelOpen, closeFundPanel } = useFundPanel();
+  // Funding ends on the panel's thank-you screen; the share prompt waits for it to close.
+  const hasJustFundedRef = useRef(false);
   const [isMakePublicModalOpen, setIsMakePublicModalOpen] = useState(false);
   const [isMakingPublic, setIsMakingPublic] = useState(false);
   const [isShareLinkModalOpen, setIsShareLinkModalOpen] = useState(false);
@@ -67,14 +81,22 @@ export function WorkHeaderProposal({
     (isOwner || !!user?.isModerator || !!user?.authorProfile?.isHubEditor);
 
   const handleContributeSuccess = () => {
-    setIsFundModalOpen(false);
+    hasJustFundedRef.current = true;
+    router.refresh();
+  };
+
+  const handleFundPanelClose = () => {
+    closeFundPanel();
+    if (!hasJustFundedRef.current) return;
+    hasJustFundedRef.current = false;
     showShareModal({
       url: stripShareToken(globalThis.location.href),
       docTitle: displayedWork.title,
       action: 'USER_FUNDED_PROPOSAL',
     });
-    router.refresh();
   };
+
+  const proposer = proposerLabel(displayedWork);
 
   const handleMakePublic = async () => {
     setIsMakingPublic(true);
@@ -110,19 +132,6 @@ export function WorkHeaderProposal({
       </>
     ) : undefined;
 
-  const primaryAction =
-    isActive && fundraise ? (
-      <Button
-        variant="default"
-        size="lg"
-        onClick={() => setIsFundModalOpen(true)}
-        className="hidden tablet:flex gap-2"
-      >
-        <Coins className="w-5 h-5" />
-        Fund Proposal
-      </Button>
-    ) : undefined;
-
   const isClosed = fundraise ? getEffectiveStatus(fundraise) === 'CLOSED' : false;
 
   const closedEyebrow = isClosed ? (
@@ -136,23 +145,31 @@ export function WorkHeaderProposal({
       <WorkHeader
         work={displayedWork}
         metadata={metadata}
-        contentType="fund"
-        updatesCount={updatesCount}
         className={className}
-        primaryAction={primaryAction}
         additionalMenuItems={additionalMenuItems}
         eyebrow={closedEyebrow}
         preTitle={preTitle}
+        cover={{ imageUrl: displayedWork.image, eyebrow: proposer }}
       />
 
       {fundraise && isActive && (
         <ContributeToFundraiseModal
-          isOpen={isFundModalOpen}
-          onClose={() => setIsFundModalOpen(false)}
+          isOpen={isFundPanelOpen}
+          onClose={handleFundPanelClose}
           onContributeSuccess={handleContributeSuccess}
           fundraise={fundraise}
           proposalTitle={displayedWork.title}
           work={displayedWork}
+          desktop="panel"
+          singleStep
+          topContent={
+            <WorkCoverCard
+              title={displayedWork.title}
+              eyebrow={proposer ? `Proposal · ${proposer}` : 'Proposal'}
+              imageUrl={displayedWork.image}
+            />
+          }
+          successText="Your name now shows with this proposal's funders."
         />
       )}
 

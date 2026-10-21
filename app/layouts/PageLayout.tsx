@@ -34,6 +34,8 @@ interface PageLayoutProps {
    * keeps it stretched to the bottom of the column regardless.
    */
   rightSidebarFill?: boolean;
+  /** The sidebar brings its own cards: no gray rail around it. */
+  rightSidebarBare?: boolean;
   fundraiseGrantId?: number;
   /**
    * `default` centers the page in a 1180px container and lets the main column
@@ -65,6 +67,7 @@ function PageLayoutInner({
   topBanner,
   rightSidebarAbove,
   rightSidebarFill = false,
+  rightSidebarBare = false,
   contentWidth = 'default',
   wideRow = false,
   fullBleed = false,
@@ -157,6 +160,7 @@ function PageLayoutInner({
                   contentClassName={sidebarContentClassName}
                   aboveSidebar={rightSidebarAbove}
                   fill={rightSidebarFill}
+                  bare={rightSidebarBare}
                 />
               )}
             </div>
