@@ -127,7 +127,7 @@ test('a new RFP can be drafted in the notebook and published', async ({ page }) 
 
   // Publishing redirects to the RFP itself, which is the user-visible
   // confirmation that it exists and is readable by its author.
-  await page.waitForURL(/\/grant\/\d+\//);
+  await page.waitForURL(/\/rfp\/\d+\//);
   await expect(page.getByRole('heading', { name: title }).first()).toBeVisible();
 
   grantUrl = page.url();
@@ -170,6 +170,6 @@ test("a published RFP's title can be edited", async ({ page }) => {
   // Republishing redirects back to the RFP, rendered from the response rather
   // than from anything cached in the notebook — so the heading is the title as
   // the API now has it.
-  await page.waitForURL(/\/grant\/\d+\//);
+  await page.waitForURL(/\/rfp\/\d+\//);
   await expect(page.getByRole('heading', { name: title }).first()).toBeVisible();
 });

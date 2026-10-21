@@ -1,144 +1,32 @@
 'use client';
 
-import { FileText, Star, MessageCircle, Bell, MessageCircleQuestion } from 'lucide-react';
+import { FileText, Star, MessageCircle, MessageCircleQuestion } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState, useEffect, useMemo } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
-import { usePathname } from 'next/navigation';
-import AnalyticsService, { LogEvent } from '@/services/analytics.service';
-import { buildPayloadForDocumentTabClick } from '@/types/analytics';
-import { useUser } from '@/contexts/UserContext';
-import { useDeviceType } from '@/hooks/useDeviceType';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { getActiveBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
-import { formatCurrency } from '@/utils/currency';
-import { SHARE_TOKEN_PARAM } from '@/lib/shareToken/constants';
+import { useActiveBountyAmount } from '@/components/Bounty/lib/useActiveBountyAmount';
+import { useSelectWorkTab } from '@/components/work/lib/workTabs';
+import type { TabType } from '@/components/work/WorkHeader/WorkTabContext';
 import { colors } from '@/app/styles/colors';
-
-export type TabType =
-  | 'paper'
-  | 'updates'
-  | 'reviews'
-  | 'bounties'
-  | 'conversation'
-  | 'applications';
 
 interface WorkTabsProps {
   work: Work;
   metadata: WorkMetadata;
-  defaultTab?: TabType;
-  contentType?: 'post' | 'fund';
-  onTabChange: (tab: TabType) => void;
-  updatesCount?: number;
 }
 
-export const WorkTabs = ({
-  work,
-  metadata,
-  contentType = 'post',
-  onTabChange,
-  updatesCount = 0,
-}: WorkTabsProps) => {
-  const pathname = usePathname();
-  const { user } = useUser();
-  const deviceType = useDeviceType();
+/** A post's or a question's tabs, under its title. Proposals have their own, in the page. */
+export const WorkTabs = ({ work, metadata }: WorkTabsProps) => {
+  const { activeTab, selectTab } = useSelectWorkTab(work);
   const { showUSD } = useCurrencyPreference();
-  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
+  const bountyAmount = useActiveBountyAmount(metadata.bounties || []);
 
   const reviewCount = work.peerReviews?.length ?? 0;
 
-  const activeBounties = useMemo(
-    () => getActiveBounties(metadata.bounties || []),
-    [metadata.bounties]
-  );
-  const { amount: totalBountyAmount } = useMemo(
-    () => getTotalBountyDisplayAmount(activeBounties, exchangeRate, showUSD),
-    [activeBounties, exchangeRate, showUSD]
-  );
-
-  const canDisplayBountyAmount =
-    !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
-
-  const hasActiveBounties = activeBounties.length > 0;
-
-  const hasResearchHubJournalVersions = useMemo(() => {
-    return (work.versions || []).some((version) => version.isResearchHubJournal);
-  }, [work.versions]);
-
-  const getActiveTabFromPath = (path: string): TabType => {
-    if (path.includes('/updates')) return 'updates';
-    if (path.includes('/conversation')) return 'conversation';
-    if (path.includes('/applications')) return 'applications';
-    if (path.includes('/reviews')) return 'reviews';
-    if (path.includes('/bounties')) return 'bounties';
-    return 'paper';
-  };
-
-  const [activeTab, setActiveTab] = useState<TabType>(() => getActiveTabFromPath(pathname));
-
-  useEffect(() => {
-    const tabFromPath = getActiveTabFromPath(pathname);
-    if (tabFromPath !== activeTab) {
-      setActiveTab(tabFromPath);
-      onTabChange(tabFromPath);
-    }
-  }, [pathname, onTabChange, hasResearchHubJournalVersions]);
-
-  const handleTabChange = (tab: TabType) => {
-    if (tab === activeTab) return;
-
-    setActiveTab(tab);
-    onTabChange(tab);
-
-    try {
-      const payload = buildPayloadForDocumentTabClick(work, {
-        clickedTab: tab,
-        deviceType,
-      });
-      AnalyticsService.logEventWithUserProperties(LogEvent.DOCUMENT_TAB_CLICKED, payload, user);
-    } catch (error) {
-      console.warn('Failed to track document tab click analytics:', error);
-    }
-
-    if (typeof window !== 'undefined') {
-      const baseUrl =
-        contentType === 'fund'
-          ? `/proposal/${work.id}/${work.slug}`
-          : work.postType === 'QUESTION'
-            ? `/question/${work.id}/${work.slug}`
-            : `/post/${work.id}/${work.slug}`;
-
-      const tabUrlMap: Partial<Record<TabType, string>> = {
-        updates: `${baseUrl}/updates`,
-        conversation: `${baseUrl}/conversation`,
-        reviews: `${baseUrl}/reviews`,
-        applications: `${baseUrl}/applications`,
-        bounties: `${baseUrl}/bounties`,
-      };
-      const newUrl = tabUrlMap[tab] || baseUrl;
-
-      const currentParams = new URLSearchParams(window.location.search);
-      const preserved = new URLSearchParams();
-      for (const key of ['rr', SHARE_TOKEN_PARAM]) {
-        const value = currentParams.get(key);
-        if (value) preserved.set(key, value);
-      }
-
-      const query = preserved.toString();
-      window.history.replaceState(null, '', query ? `${newUrl}?${query}` : newUrl);
-    }
-  };
-
   // Get the appropriate label for the main content tab
-  const getMainTabLabel = () => {
-    if (contentType === 'fund') return 'Project';
-    if (work.postType === 'QUESTION') return 'Question';
-    return 'Post';
-  };
+  const getMainTabLabel = () => (work.postType === 'QUESTION' ? 'Question' : 'Post');
 
   // Define base tabs
   const baseTabs = [
@@ -155,29 +43,6 @@ export const WorkTabs = ({
         </div>
       ),
     },
-    // Show Updates tab only for fund content type
-    ...(contentType === 'fund'
-      ? [
-          {
-            id: 'updates',
-            label: (
-              <div className="flex items-center">
-                <Bell className="h-4 w-4 mr-2" />
-                <span>Updates</span>
-                <span
-                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    activeTab === 'updates'
-                      ? 'bg-indigo-100 text-indigo-600'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {updatesCount}
-                </span>
-              </div>
-            ),
-          },
-        ]
-      : []),
     // Show Reviews tab only if not a question
     ...(work.postType === 'QUESTION'
       ? []
@@ -240,7 +105,7 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {hasActiveBounties && canDisplayBountyAmount ? (
+            {bountyAmount ? (
               <>
                 {!showUSD && (
                   <ResearchCoinIcon
@@ -249,13 +114,7 @@ export const WorkTabs = ({
                     outlined
                   />
                 )}
-                {formatCurrency({
-                  amount: totalBountyAmount,
-                  showUSD,
-                  exchangeRate,
-                  shorten: true,
-                  skipConversion: showUSD,
-                })}
+                {bountyAmount}
               </>
             ) : (
               0
@@ -272,7 +131,7 @@ export const WorkTabs = ({
     <Tabs
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={(id) => handleTabChange(id as TabType)}
+      onTabChange={(id) => selectTab(id as TabType)}
       className="border-b-0"
     />
   );

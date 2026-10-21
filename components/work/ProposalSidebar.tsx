@@ -1,51 +1,31 @@
-import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
-import { getShareToken } from '@/lib/shareToken/server';
-import { FundraiseSection } from './components/FundraiseSection';
-import { FundingOpportunitySection } from './components/FundingOpportunitySection';
-import { NonprofitSection } from './components/NonprofitSection';
-import { FundersSection } from './components/FundersSection';
-import { PeerReviewsSection } from './components/PeerReviewsSection';
+'use client';
+
+import type { WorkMetadata } from '@/services/metadata.service';
+import type { Work } from '@/types/work';
+import { ProposalFundingCard } from './ProposalFundingCard';
+import { ProposalReviewsCard } from './ProposalReviewsCard';
 import { AiPeerReviewSection } from './components/AiPeerReviewSection';
-import { buildWorkUrl } from '@/utils/url';
-import { DOISection } from './components/DOISection';
+import { NonprofitSection } from './components/NonprofitSection';
 
 interface ProposalSidebarProps {
   work: Work;
   metadata: WorkMetadata;
 }
 
-export const ProposalSidebar = async ({ work, metadata }: ProposalSidebarProps) => {
-  const shareToken = await getShareToken();
+/**
+ * The proposal page's right sidebar, in the RFP sidebar's style: the funding
+ * card over who reviewed it, then the AI's key insights and the nonprofit the
+ * money goes to, where it has them.
+ */
+export function ProposalSidebar({ work, metadata }: ProposalSidebarProps) {
+  const fundraise = metadata.fundraising;
 
   return (
-    <div className="space-y-12">
-      {work.aiPeerReview && <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />}
-      {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
-      {metadata.fundraising &&
-        metadata.fundraising.contributors &&
-        metadata.fundraising.contributors.numContributors > 0 && (
-          <FundersSection
-            fundraise={metadata.fundraising}
-            fundraiseTitle={work.title}
-            work={work}
-          />
-        )}
-      {work.peerReviews && work.peerReviews.length > 0 && (
-        <PeerReviewsSection
-          peerReviews={work.peerReviews}
-          reviewsUrl={buildWorkUrl({
-            id: work.id,
-            contentType: work.contentType,
-            slug: work.slug,
-            tab: 'reviews',
-            shareToken,
-          })}
-        />
-      )}
-      {work.linkedGrant && <FundingOpportunitySection grant={work.linkedGrant} />}
-      {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
-      {work.doi && <DOISection doi={work.doi} />}
+    <div className="flex flex-col gap-3">
+      {fundraise && <ProposalFundingCard fundraise={fundraise} />}
+      <ProposalReviewsCard work={work} />
+      <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />
+      {fundraise && <NonprofitSection fundraiseId={fundraise.id} />}
     </div>
   );
-};
+}

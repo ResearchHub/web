@@ -6,7 +6,11 @@ import { getShareToken } from '@/lib/shareToken/server';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
+import { FundPanelProvider } from '@/components/Funding/FundPanelContext';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
+import { ProposalByline } from '@/components/work/ProposalByline';
+import { ProposalTabs } from '@/components/work/ProposalTabs';
+import { ProposalActionBar } from '@/components/work/ProposalActionBar';
 import { getProposalMetadata, getProposalOrNotFound } from '@/components/work/proposalRouteServer';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 import type { RegisteredReportTrackerStep } from '@/types/registeredReport';
@@ -83,28 +87,41 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
         ]
       : undefined;
 
+  // Laid out as the RFP page is: the cover with the tabs across the page under
+  // it, then the byline over each tab's content, with the funding card in the
+  // sidebar and a Fund bar where the sidebar is hidden.
   return (
     <WorkTabProvider>
-      <PageLayout
-        topBanner={
-          <WorkHeaderProposal
-            work={work}
-            metadata={metadata}
-            updatesCount={authorPosts.length}
-            preTitle={
-              <RegisteredReportRouteTrackerLoader
-                currentStage="proposal"
-                currentPostId={work.id}
-                registeredReportId={work.registeredReportId}
-                trackerWithoutReport={trackerWithoutReport}
-              />
-            }
-          />
-        }
-        rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
-      >
-        <Suspense>{children}</Suspense>
-      </PageLayout>
+      <FundPanelProvider>
+        <PageLayout
+          contentWidth="narrow"
+          // The funding card's top lines up with the byline's.
+          rightSidebarTopOffset="aligned"
+          rightSidebarBare
+          topBanner={
+            <WorkHeaderProposal
+              work={work}
+              metadata={metadata}
+              preTitle={
+                <RegisteredReportRouteTrackerLoader
+                  currentStage="proposal"
+                  currentPostId={work.id}
+                  registeredReportId={work.registeredReportId}
+                  trackerWithoutReport={trackerWithoutReport}
+                />
+              }
+            />
+          }
+          pageTabs={
+            <ProposalTabs work={work} metadata={metadata} updatesCount={authorPosts.length} />
+          }
+          rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
+        >
+          <ProposalByline work={work} metadata={metadata} />
+          <Suspense>{children}</Suspense>
+          {metadata.fundraising && <ProposalActionBar fundraise={metadata.fundraising} />}
+        </PageLayout>
+      </FundPanelProvider>
     </WorkTabProvider>
   );
 }

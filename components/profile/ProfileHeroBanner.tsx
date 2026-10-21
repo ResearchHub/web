@@ -9,7 +9,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
 import { specificTimeSince, MEMBERSHIP_JUST_JOINED } from '@/utils/date';
 import { AuthorProfile } from '@/types/authorProfile';
-import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useUser } from '@/contexts/UserContext';
 import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
@@ -57,10 +56,6 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
   const displayedDescription =
     shouldTruncate && !isDescriptionExpanded ? `${description.slice(0, 300)}...` : description;
 
-  const { percent, missing } = currentUser
-    ? calculateProfileCompletion(currentUser)
-    : { percent: 0, missing: [] };
-
   const { sync: syncAuthorship, isSyncing } = useSyncOrcid({ onSuccess: refetchAuthorInfo });
   const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
 
@@ -76,16 +71,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
         <div className="flex flex-col sm:!flex-row gap-6">
           {/* Left column - Avatar */}
           <div className="flex-shrink-0">
-            <Avatar
-              src={author.profileImage}
-              alt={author.fullName}
-              size={128}
-              showProfileCompletion={isOwnProfile}
-              profileCompletionPercent={percent}
-              showProfileCompletionNumber
-              missing={missing}
-              showTooltip
-            />
+            <Avatar src={author.profileImage} alt={author.fullName} size={128} />
           </div>
 
           {/* Right column - Content */}

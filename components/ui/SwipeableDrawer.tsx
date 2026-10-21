@@ -4,6 +4,9 @@ import { X as CloseIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+/** As tall as the screen allows, with a strip of the page left above it so it reads as a sheet. */
+export const FULL_DRAWER_HEIGHT = 'calc(100dvh - 2rem)';
+
 interface SwipeableDrawerProps {
   /**
    * Controls whether the drawer is open or closed

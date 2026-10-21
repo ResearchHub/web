@@ -6,7 +6,7 @@ export const DOUBLEZERO_CAMPAIGN: PoolCampaign = {
   unit: { singular: 'proposal', plural: 'proposals' },
   // The open RFP, where each proposal can be backed directly.
   fallbackUrl:
-    '/grant/32329/beyond-electromagnetic-communication-exploring-the-next-physics-of-connectivity',
+    '/rfp/32329/beyond-electromagnetic-communication-exploring-the-next-physics-of-connectivity',
   environments: {
     production: {
       grantId: 314,

@@ -3,6 +3,7 @@ import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { Contact, transformContact } from './note';
 import type { Application } from './funding';
+import { isOpenBeforeDeadline } from '@/utils/date';
 
 export type GrantStatus = 'OPEN' | 'CLOSED' | 'PENDING' | 'DECLINED' | 'COMPLETED';
 
@@ -82,6 +83,11 @@ export function transformFundingPool(raw: any): FundingPool {
       top: (raw.contributors?.top ?? []).map(transformFundingPoolContributor),
     },
   };
+}
+
+/** Whether a grant takes proposals: open, and before its end date if it has one. */
+export function isGrantActive(grant: { status?: string; endDate?: string | null }): boolean {
+  return isOpenBeforeDeadline(grant);
 }
 
 /**

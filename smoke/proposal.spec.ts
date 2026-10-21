@@ -66,7 +66,7 @@ test('a new proposal can be drafted from an RFP and published', async ({ page })
   const title = proposalTitle();
 
   await logIn(page);
-  await page.goto(`/grant/${grantPostId()}`);
+  await page.goto(`/rfp/${grantPostId()}`);
 
   // The entry point only exists while the RFP is open for applications, so a
   // closed or expired fixture fails here rather than somewhere confusing.

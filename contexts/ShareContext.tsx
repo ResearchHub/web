@@ -9,6 +9,8 @@ interface ShareModalContextType {
     docTitle: string;
     action: ShareAction;
     shouldShowConfetti?: boolean;
+    aiPostId?: number;
+    previewImageUrl?: string;
   }) => void;
   hideShareModal: () => void;
 }
@@ -29,6 +31,8 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
   const [docTitle, setDocTitle] = useState('');
   const [action, setAction] = useState<ShareAction>('USER_FUNDED_PROPOSAL');
   const [shouldShowConfetti, setShouldShowConfetti] = useState(true);
+  const [aiPostId, setAiPostId] = useState<number>();
+  const [previewImageUrl, setPreviewImageUrl] = useState<string>();
 
   const showShareModal = useCallback(
     ({
@@ -36,17 +40,23 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
       docTitle,
       action,
       shouldShowConfetti,
+      aiPostId,
+      previewImageUrl,
     }: {
       url: string;
       docTitle: string;
       action: ShareAction;
       shouldShowConfetti?: boolean;
+      aiPostId?: number;
+      previewImageUrl?: string;
     }) => {
       setShareUrl(url);
       setDocTitle(docTitle);
       setAction(action);
       setIsOpen(true);
       setShouldShowConfetti(shouldShowConfetti ?? true);
+      setAiPostId(aiPostId);
+      setPreviewImageUrl(previewImageUrl);
     },
     []
   );
@@ -66,6 +76,8 @@ export function ShareModalProvider({ children }: { children: ReactNode }) {
         docTitle={docTitle}
         action={action}
         shouldShowConfetti={shouldShowConfetti}
+        aiPostId={aiPostId}
+        previewImageUrl={previewImageUrl}
       />
     </ShareModalContext.Provider>
   );

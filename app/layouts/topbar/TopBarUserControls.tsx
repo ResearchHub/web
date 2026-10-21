@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
 import UserMenu from '@/components/menus/UserMenu';
 import type { User } from '@/types/user';
 import { TopBarSearchButton } from './TopBarSearchButton';
+import { TopBarPublishButton } from './TopBarPublishButton';
 import { formatBadgeCount, formatRSC } from '@/utils/number';
 import { UserService } from '@/services/user.service';
-import { cn } from '@/lib/utils';
 
 interface TopBarUserControlsProps {
   user: User | null;
@@ -16,7 +16,6 @@ interface TopBarUserControlsProps {
   unreadCount: number;
   pendingModerationCount: number;
   avatarSize: number;
-  profilePercent: number;
   onViewProfile: () => void;
   onAuth: () => void;
   onSearchOpen: () => void;
@@ -25,14 +24,9 @@ interface TopBarUserControlsProps {
   accountOnly?: boolean;
 }
 
-const AvatarSkeleton = ({ variant }: { variant: 'mobile' | 'desktop' }) => (
+const AvatarSkeleton = ({ className = 'w-8 h-8' }: { className?: string }) => (
   <div className="flex items-center">
-    <div
-      className={cn(
-        'bg-gray-300 rounded-full animate-pulse',
-        variant === 'mobile' ? 'w-10 h-10' : 'w-8 h-8'
-      )}
-    />
+    <div className={`${className} bg-gray-300 rounded-full animate-pulse`} />
   </div>
 );
 
@@ -46,7 +40,6 @@ export const TopBarUserControls = ({
   unreadCount,
   pendingModerationCount,
   avatarSize,
-  profilePercent,
   onViewProfile,
   onAuth,
   onSearchOpen,
@@ -72,21 +65,18 @@ export const TopBarUserControls = ({
 
   if (isMobile) {
     return (
-      <div className="flex tablet:!hidden items-center space-x-1 h-full">
-        {!accountOnly && (
-          <button onClick={onSearchOpen} className="rounded-lg hover:bg-gray-100 p-2">
-            <SearchIcon className="text-gray-600 h-6 w-6" />
-          </button>
-        )}
+      // Search is in the ☰ menu on a phone; the bar keeps Publish and the account.
+      <div className="flex tablet:!hidden items-center gap-2 h-full">
+        {!accountOnly && <TopBarPublishButton />}
 
         {isLoading ? (
-          <AvatarSkeleton variant="mobile" />
+          <AvatarSkeleton className="w-10 h-10" />
         ) : user ? (
           <UserMenu
             user={user}
             onViewProfile={onViewProfile}
             avatarSize={avatarSize}
-            percent={profilePercent}
+            variant="panel"
           />
         ) : (
           <Button
@@ -114,7 +104,7 @@ export const TopBarUserControls = ({
               <DesktopIconSkeleton />
             </>
           )}
-          <AvatarSkeleton variant="desktop" />
+          <AvatarSkeleton />
         </>
       ) : (
         <>
@@ -160,12 +150,7 @@ export const TopBarUserControls = ({
           )}
 
           {user ? (
-            <UserMenu
-              user={user}
-              onViewProfile={onViewProfile}
-              avatarSize={avatarSize}
-              percent={profilePercent}
-            />
+            <UserMenu user={user} onViewProfile={onViewProfile} avatarSize={avatarSize} />
           ) : (
             <div className="flex items-center space-x-2">
               <Button
