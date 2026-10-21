@@ -12,6 +12,11 @@ import { SocialIcon } from '@/components/ui/SocialIcon';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { colors } from '@/app/styles/colors';
 
+// The box the tooltip wraps its anchor in, shared with AuthorLink so a name
+// sits the same with or without its card. min-w-0 so a name inside can
+// truncate when the line around it is tight.
+export const AUTHOR_TOOLTIP_ANCHOR_CLASS = 'relative inline-flex min-w-0 max-w-full items-center';
+
 interface AuthorTooltipProps {
   authorId?: number;
   children: React.ReactNode;
@@ -374,8 +379,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   return (
     <span
       ref={tooltipWrapperRef}
-      // min-w-0 so a name inside can truncate when the line around it is tight.
-      className="relative inline-flex min-w-0 max-w-full items-center"
+      className={AUTHOR_TOOLTIP_ANCHOR_CLASS}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { AUTHOR_TOOLTIP_ANCHOR_CLASS, AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/utils/styles';
 
@@ -14,11 +14,6 @@ interface AuthorLinkProps {
   /** Which side of the name their profile card opens on. */
   tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
 }
-
-// The box AuthorTooltip wraps the name in, kept for the plain link too so the
-// name sits the same either way and doesn't move when the card arrives after
-// hydration. It also lets a `truncate` name shrink.
-const NAME_BOX_CLASS = 'relative inline-flex min-w-0 max-w-full items-center';
 
 /**
  * An author's name as a link to their profile. With a mouse, hovering it opens
@@ -34,8 +29,14 @@ export function AuthorLink({
   // Unknown while the page hydrates, so the server's render is the plain link.
   const canHover = useMediaQuery('(hover: hover) and (pointer: fine)') === true;
 
+  // Every name sits in the box AuthorTooltip wraps it in, so it doesn't move
+  // when the card arrives after hydration, and a `truncate` name can shrink.
   if (!authorId) {
-    return <span className={className}>{name}</span>;
+    return (
+      <span className={AUTHOR_TOOLTIP_ANCHOR_CLASS}>
+        <span className={className}>{name}</span>
+      </span>
+    );
   }
 
   const link = (
@@ -50,7 +51,7 @@ export function AuthorLink({
   );
 
   if (!canHover) {
-    return <span className={NAME_BOX_CLASS}>{link}</span>;
+    return <span className={AUTHOR_TOOLTIP_ANCHOR_CLASS}>{link}</span>;
   }
 
   return (
