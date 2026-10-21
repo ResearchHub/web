@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { PinnedFooter, type PinnedFooterContainer } from '@/components/ui/PinnedFooter';
 import { cn } from '@/utils/styles';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -67,11 +68,9 @@ interface PaymentStepProps {
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /**
    * Pins the confirm button, with any error or balance alert just above it, to
-   * the bottom of the scrolling panel or drawer this step sits in. The value is
-   * the bar's insets, matching that container's padding (e.g. "-mx-6 -mb-6 px-6
-   * pb-6"), so the bar runs edge to edge.
+   * the bottom of the drawer or side panel this step scrolls in.
    */
-  pinAction?: string;
+  pinActionIn?: PinnedFooterContainer;
 }
 
 /**
@@ -94,7 +93,7 @@ export function PaymentStep({
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
   onStripeReady,
-  pinAction,
+  pinActionIn,
 }: PaymentStepProps) {
   const fundingPoolHoldingRsc = allocateFromPool?.fundingPool.amountHolding.rsc ?? null;
 
@@ -124,17 +123,6 @@ export function PaymentStep({
       setSelectedMethod(defaultPaymentMethod);
     }
   }, [defaultPaymentMethod, hasPickedMethod]);
-
-  useEffect(() => {
-    if (
-      allocateFromPool &&
-      fundingPoolHoldingRsc != null &&
-      fundingPoolHoldingRsc >= amountInRsc &&
-      selectedMethod !== 'funding_pool'
-    ) {
-      setSelectedMethod('funding_pool');
-    }
-  }, [allocateFromPool?.fundingPool.id, fundingPoolHoldingRsc]);
 
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
@@ -308,7 +296,7 @@ export function PaymentStep({
   );
 
   return (
-    <div className={cn('flex flex-col', pinAction ? 'flex-1' : 'h-full')}>
+    <div className={cn('flex flex-col', pinActionIn ? 'flex-1' : 'h-full')}>
       {/* Content area */}
       <div className="space-y-6 flex-1">
         {/* Payment Method Selector */}
@@ -424,7 +412,7 @@ export function PaymentStep({
               </div>
             </div>
 
-            {!pinAction && alerts}
+            {!pinActionIn && alerts}
           </div>
         )}
 
@@ -438,16 +426,11 @@ export function PaymentStep({
 
       {/* Payment Button - pinned to bottom */}
       {selectedMethod &&
-        (pinAction ? (
-          <div
-            className={cn(
-              'sticky bottom-0 z-10 mt-auto space-y-3 border-t border-gray-100 bg-white pt-4',
-              pinAction
-            )}
-          >
+        (pinActionIn ? (
+          <PinnedFooter container={pinActionIn} className="space-y-3">
             {alerts}
             {actionButton}
-          </div>
+          </PinnedFooter>
         ) : (
           <div className="pt-6">{actionButton}</div>
         ))}

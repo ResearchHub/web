@@ -10,6 +10,7 @@ import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
 import type { WorkMetadata } from '@/services/metadata.service';
 import type { Work } from '@/types/work';
 import { formatTimestamp } from '@/utils/date';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 
@@ -76,7 +77,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
           >
             <Star className="h-3 w-3 fill-current" aria-hidden="true" />
             {reviewScore.toFixed(1)}
-            {reviewCount > 0 && ` · ${reviewCount} ${reviewCount === 1 ? 'review' : 'reviews'}`}
+            {reviewCount > 0 && ` · ${reviewCount} review${pluralizeSuffix(reviewCount)}`}
           </button>
         )}
         {postedDate && (

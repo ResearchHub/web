@@ -35,6 +35,12 @@ export function formatTimeAgoShort(timestamp: string): string {
   return time.format(time.year() === now.year() ? 'MMM D' : 'MMM D, YYYY');
 }
 
+/** "Jun 17" this year, "Jun 2025" before it: a date short enough for a narrow cell. */
+export function formatShortDate(timestamp: string): string {
+  const date = dayjs(timestamp);
+  return date.format(date.year() === dayjs().year() ? 'MMM D' : 'MMM YYYY');
+}
+
 /**
  * Checks if a timestamp is within the last 24 hours
  * @param timestamp ISO timestamp string

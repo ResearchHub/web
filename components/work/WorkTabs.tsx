@@ -3,57 +3,28 @@
 import { FileText, Star, MessageCircle, MessageCircleQuestion } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { useState, useEffect } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
-import { usePathname } from 'next/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useActiveBountyAmount } from '@/components/Bounty/lib/useActiveBountyAmount';
-import { getTabFromPath } from '@/components/work/WorkHeader/WorkTabContext';
-import { useWorkTabChange } from '@/components/work/useWorkTabChange';
+import { useSelectWorkTab } from '@/components/work/useSelectWorkTab';
 import { colors } from '@/app/styles/colors';
 
-export type TabType =
-  | 'paper'
-  | 'updates'
-  | 'reviews'
-  | 'bounties'
-  | 'conversation'
-  | 'applications';
+export type TabType = 'paper' | 'updates' | 'reviews' | 'bounties' | 'conversation';
 
 interface WorkTabsProps {
   work: Work;
   metadata: WorkMetadata;
-  onTabChange: (tab: TabType) => void;
 }
 
 /** A post's or a question's tabs, under its title. Proposals have their own, in the page. */
-export const WorkTabs = ({ work, metadata, onTabChange }: WorkTabsProps) => {
-  const pathname = usePathname();
+export const WorkTabs = ({ work, metadata }: WorkTabsProps) => {
+  const { activeTab, selectTab } = useSelectWorkTab(work);
   const { showUSD } = useCurrencyPreference();
   const bountyAmount = useActiveBountyAmount(metadata.bounties || []);
-  const handleWorkTabChange = useWorkTabChange(work, 'post');
 
   const reviewCount = work.peerReviews?.length ?? 0;
-
-  const [activeTab, setActiveTab] = useState<TabType>(() => getTabFromPath(pathname));
-
-  useEffect(() => {
-    const tabFromPath = getTabFromPath(pathname);
-    if (tabFromPath !== activeTab) {
-      setActiveTab(tabFromPath);
-      onTabChange(tabFromPath);
-    }
-  }, [pathname, onTabChange]);
-
-  const handleTabChange = (tab: TabType) => {
-    if (tab === activeTab) return;
-
-    setActiveTab(tab);
-    onTabChange(tab);
-    handleWorkTabChange(tab);
-  };
 
   // Get the appropriate label for the main content tab
   const getMainTabLabel = () => (work.postType === 'QUESTION' ? 'Question' : 'Post');
@@ -161,7 +132,7 @@ export const WorkTabs = ({ work, metadata, onTabChange }: WorkTabsProps) => {
     <Tabs
       tabs={tabs}
       activeTab={activeTab}
-      onTabChange={(id) => handleTabChange(id as TabType)}
+      onTabChange={(id) => selectTab(id as TabType)}
       className="border-b-0"
     />
   );

@@ -5,6 +5,7 @@ import type { FundingPool } from '@/types/grant';
 import type { Work } from '@/types/work';
 import type { ID } from '@/types/root';
 import type { User } from '@/types/user';
+import { canManageGrantPool } from './canManageGrantPool';
 
 export interface AllocateFromFundingPoolOption {
   fundingPool: FundingPool;
@@ -35,13 +36,11 @@ export function useAllocateFromFundingPool({
     const fundingPool = linked?.fundingPool;
     const applicationId = linked?.applicationId;
 
-    if (!enabled || !user?.id || !linked || !fundingPool || applicationId == null) {
+    if (!enabled || !linked || !fundingPool || applicationId == null) {
       return null;
     }
 
-    const isGrantCreator =
-      linked.createdByUserId != null && Number(user.id) === Number(linked.createdByUserId);
-    if (!isGrantCreator && !user.isModerator) {
+    if (!canManageGrantPool(user, linked.createdByUserId)) {
       return null;
     }
 

@@ -15,6 +15,25 @@ interface WorkCoverProps {
   actions?: ReactNode;
   /** Above the cover, e.g. the registered-report stage tracker. */
   preTitle?: ReactNode;
+  className?: string;
+}
+
+/** A chip for a cover's corner, e.g. "Closed". */
+export function CoverBadge({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-md bg-white/95 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
+      {children}
+    </span>
+  );
+}
+
+/** The small line over a cover's title: who funds an RFP, who proposes a proposal. */
+export function CoverEyebrow({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={cn('truncate font-bold uppercase tracking-[0.08em] text-white/80', className)}>
+      {children}
+    </p>
+  );
 }
 
 // Edge to edge on phones. From tablet, the same box as the narrow page row
@@ -36,16 +55,24 @@ const COVER_BOX_CLASS =
  * in a square), so there the image keeps its own shape, uncut, and the title
  * sits on a navy band under it instead of over it.
  */
-export function WorkCover({ title, eyebrow, imageUrl, badges, actions, preTitle }: WorkCoverProps) {
+export function WorkCover({
+  title,
+  eyebrow,
+  imageUrl,
+  badges,
+  actions,
+  preTitle,
+  className,
+}: WorkCoverProps) {
   return (
-    <div className={COVER_ROW_CLASS}>
+    <div className={cn(COVER_ROW_CLASS, className)}>
       {/* The tracker renders nothing for most works; empty:hidden drops its spacing then. */}
       {preTitle && (
         <div className="mb-3 px-4 pt-4 empty:hidden tablet:!px-0 tablet:!pt-0">{preTitle}</div>
       )}
       <div
         className={cn(
-          'relative isolate overflow-hidden bg-[#0b1530]',
+          'relative isolate overflow-hidden bg-navy',
           // The bar sits at the bottom; the top keeps clear of the actions.
           'tablet:flex tablet:flex-col tablet:justify-end tablet:pt-16',
           COVER_BOX_CLASS
@@ -80,11 +107,7 @@ export function WorkCover({ title, eyebrow, imageUrl, badges, actions, preTitle 
             'tablet:backdrop-blur-xl tablet:backdrop-saturate-150'
           )}
         >
-          {eyebrow && (
-            <p className="truncate text-[10.5px] font-bold uppercase tracking-[0.08em] text-white/80 sm:text-xs">
-              {eyebrow}
-            </p>
-          )}
+          {eyebrow && <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>}
           <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
             {title}
           </h1>

@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
@@ -8,7 +9,6 @@ import { EmbedExpandedContent } from '@/components/Embed/EmbedExpandedContent';
 import { splitPlayableLinks } from '@/components/Embed/playableLinks';
 import { Avatar } from '@/components/ui/Avatar';
 import { SidePanel } from '@/components/ui/SidePanel';
-import { WorkMiniCard } from '@/components/ui/WorkMiniCard';
 import { ActivityAuthorSummary } from '@/components/Activity/cards/ActivityAuthorSummary';
 import { ActivityQuotedComment } from '@/components/Activity/cards/ActivityQuotedComment';
 import { ReviewScoreStars } from '@/components/Activity/amounts/ReviewScoreStars';
@@ -115,7 +115,19 @@ export const ActivityCommentPanel: FC<ActivityCommentPanelProps> = ({
           </div>
         )}
 
-        <WorkMiniCard title={work.title} imageUrl={work.imageUrl} href={href} />
+        <Link
+          href={href}
+          className="flex items-center gap-3 rounded-xl border border-gray-200 p-2 pr-3 hover:bg-gray-50"
+        >
+          <div className="relative h-11 w-[72px] flex-shrink-0 overflow-hidden rounded-lg bg-gray-900">
+            {work.imageUrl && (
+              <Image src={work.imageUrl} alt="" fill className="object-cover" sizes="72px" />
+            )}
+          </div>
+          <span className="line-clamp-2 min-w-0 text-sm font-semibold leading-5 text-gray-900">
+            {work.title}
+          </span>
+        </Link>
 
         {parent && <ActivityQuotedComment comment={parent} onOpen={onOpenParent} lines={4} />}
 

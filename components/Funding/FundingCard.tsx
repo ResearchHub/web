@@ -2,38 +2,9 @@
 
 import type { ReactNode } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { formatCurrency } from '@/utils/currency';
+import type { Backer } from '@/components/Funding/lib/fundingAmounts';
 import { cn } from '@/utils/styles';
-
-/** An amount kept in both currencies, shown in whichever the reader prefers. */
-export interface DualAmount {
-  usd: number;
-  rsc: number;
-}
-
-export function formatFundingAmount(amount: DualAmount, showUSD: boolean): string {
-  return formatCurrency({
-    amount: showUSD ? amount.usd : amount.rsc,
-    showUSD,
-    exchangeRate: 1,
-    skipConversion: true,
-  });
-}
-
-/** Someone who put money in, as the card's faces and tooltips show them. */
-export interface Backer {
-  id: string | number;
-  name: string;
-  image: string;
-  authorId?: number;
-  /** Already formatted, e.g. "$250". */
-  amount: string;
-}
-
-/** A first $100 against a $25K total is a sliver; floor it so it shows on the bar. */
-export const MIN_VISIBLE_PERCENT = 4;
 
 interface FundingCardProps {
   label: string;
@@ -59,10 +30,7 @@ export function FundingCard({
   testId,
 }: FundingCardProps) {
   return (
-    <div
-      data-testid={testId}
-      className={cn('w-full rounded-lg bg-[#0b1530] p-4 text-white', className)}
-    >
+    <div data-testid={testId} className={cn('w-full rounded-lg bg-navy p-4 text-white', className)}>
       <div className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.07em] text-white/65">
           {label}
@@ -190,31 +158,5 @@ export function BackersTip({
         <div className="mt-1.5 text-gray-500">and {total - listed.length} more</div>
       )}
     </div>
-  );
-}
-
-const MAX_FACES = 3;
-
-/**
- * The first few backers' faces, ringed in the card's navy. Each links to its
- * profile, unless the faces sit inside a control of their own.
- */
-export function BackerFaces({ backers, linked = true }: { backers: Backer[]; linked?: boolean }) {
-  return (
-    <AvatarStack
-      className="shrink-0"
-      items={backers.slice(0, MAX_FACES).map((backer) => ({
-        src: backer.image,
-        alt: backer.name,
-        tooltip: backer.name,
-        authorId: linked ? backer.authorId : undefined,
-      }))}
-      size="xxs"
-      maxItems={MAX_FACES}
-      spacing={-6}
-      ringColorClass="ring-[#0b1530]"
-      showExtraCount={false}
-      showLabel={false}
-    />
   );
 }

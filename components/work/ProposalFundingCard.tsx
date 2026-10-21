@@ -1,17 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Coins } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { ContributorModal } from '@/components/modals/ContributorModal';
+import { FaceStack } from '@/components/ui/FaceStack';
 import {
-  BackerFaces,
   BackersTip,
   FundingBar,
   FundingCard,
   FundingTotal,
 } from '@/components/Funding/FundingCard';
-import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { FundButton } from '@/components/Funding/FundButton';
 import { useFundraiseSummary } from '@/components/Fund/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
 
@@ -22,9 +20,7 @@ import type { Fundraise } from '@/types/funding';
  */
 export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
   const summary = useFundraiseSummary(fundraise);
-  const { openFundPanel } = useFundPanel();
   const [isFundersListOpen, setIsFundersListOpen] = useState(false);
-  const funderNoun = summary.funderCount === 1 ? 'funder' : 'funders';
   const hasFunders = summary.funders.length > 0;
 
   return (
@@ -47,8 +43,7 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
               <BackersTip
                 heading={
                   <>
-                    {summary.funderCount} {funderNoun} gave{' '}
-                    <span className="font-mono">{summary.raised}</span>
+                    {summary.fundersText} gave <span className="font-mono">{summary.raised}</span>
                   </>
                 }
                 backers={summary.funders}
@@ -66,10 +61,8 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
             onClick={() => setIsFundersListOpen(true)}
             className="flex min-w-0 items-center gap-2 text-white/80 transition-colors hover:text-white"
           >
-            <span className="truncate">
-              {summary.funderCount} {funderNoun}
-            </span>
-            <BackerFaces backers={summary.funders} linked={false} />
+            <span className="truncate">{summary.fundersText}</span>
+            <FaceStack faces={summary.funders} ringClassName="ring-navy" linked={false} />
           </button>
         ) : (
           <span className="truncate text-white/80">
@@ -82,15 +75,9 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
       </div>
 
       {summary.isActive && (
-        <Button
-          data-testid="proposal-fund"
-          variant="default"
-          onClick={openFundPanel}
-          className="mt-4 w-full gap-2 font-semibold"
-        >
-          <Coins className="h-4 w-4" />
+        <FundButton data-testid="proposal-fund" className="mt-4 w-full font-semibold">
           Fund
-        </Button>
+        </FundButton>
       )}
 
       {hasFunders && (

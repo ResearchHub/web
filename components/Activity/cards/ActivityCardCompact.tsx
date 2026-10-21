@@ -63,10 +63,12 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({
 
   if (!title) return null;
 
-  /** When the entry's work is this post, hide the title link (already on that page). */
+  // The whole row links to the entry when asked and the entry has a page.
+  const rowHref = rowLink ? href : undefined;
+  const isRowLink = Boolean(rowHref);
+  /** A linked row needs no title link, nor does an entry about this very page. */
   const hideTitle =
-    rowLink || (currentDocumentId != null && isEntryAboutDocument(entry, currentDocumentId));
-  const isRowLink = rowLink && Boolean(href);
+    isRowLink || (currentDocumentId != null && isEntryAboutDocument(entry, currentDocumentId));
 
   const message = getActivityHeaderMessage(entry);
   const actionIcon = getActionIcon(entry);
@@ -148,8 +150,8 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({
       )}
     >
       {/* A link laid over the whole row; the row's own links sit above it. */}
-      {isRowLink && href && (
-        <Link href={href} aria-label={title} className="absolute inset-0 rounded-lg" />
+      {rowHref && (
+        <Link href={rowHref} aria-label={title} className="absolute inset-0 rounded-lg" />
       )}
       <div
         className={cn(

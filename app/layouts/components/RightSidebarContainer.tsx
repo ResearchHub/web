@@ -45,15 +45,21 @@ export function RightSidebarContainer({
   const cardAboveSidebar =
     aboveSidebar ?? (isDefaultSidebar ? <FundingPowerCard className="w-full" /> : undefined);
 
+  const sidebarContent = (
+    <Suspense fallback={null}>
+      <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+    </Suspense>
+  );
+
   return (
     <>
       <div
         className={cn(
           'sticky z-30',
           topOffset === 'aligned' ? 'mt-6' : 'mt-10',
-          // When a card sits above the gray rail, keep a gap under the top bar
-          // once sticky kicks in. Other pages keep top-0 so their sidebar
-          // position is unchanged.
+          // When a card sits above the gray rail, or the sidebar is all cards
+          // of its own (bare), keep a gap under the top bar once sticky kicks
+          // in. Other pages keep top-0 so their sidebar position is unchanged.
           cardAboveSidebar || bare
             ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
             : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
@@ -65,9 +71,7 @@ export function RightSidebarContainer({
 
         {bare ? (
           <div className={cn('min-h-0 overflow-y-auto scrollbar-on-hover', contentClassName)}>
-            <Suspense fallback={null}>
-              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-            </Suspense>
+            {sidebarContent}
           </div>
         ) : (
           <aside
@@ -82,11 +86,7 @@ export function RightSidebarContainer({
             )}
           >
             <div className={cn('h-full', contentClassName)}>
-              <div className="p-4 empty:hidden">
-                <Suspense fallback={null}>
-                  <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-                </Suspense>
-              </div>
+              <div className="p-4 empty:hidden">{sidebarContent}</div>
             </div>
           </aside>
         )}
@@ -100,9 +100,7 @@ export function RightSidebarContainer({
         >
           <div className="space-y-3">
             {aboveSidebar}
-            <Suspense fallback={null}>
-              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-            </Suspense>
+            {sidebarContent}
           </div>
         </SwipeableDrawer>
       </div>

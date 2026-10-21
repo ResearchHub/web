@@ -11,7 +11,7 @@ import {
   RadiatingDotTabIcon,
   RadiatingDotTabIconActive,
 } from '@/components/ui/RadiatingDotTabIcon';
-import { fontAwesomeTabIcon } from '@/components/ui/Tabs';
+import { fontAwesomeTabIcon } from '@/components/ui/icons/fontAwesomeTabIcon';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
 export type FundTab = 'activity' | 'fund' | 'proposals';

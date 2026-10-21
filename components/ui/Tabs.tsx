@@ -1,19 +1,13 @@
 import { cn } from '@/utils/styles';
-import { ChevronLeft, ChevronRight, type LucideIcon, type LucideProps } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { type ComponentType, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { CountBadge } from '@/components/ui/CountBadge';
 
 type TabsVariant = 'primary' | 'pill' | 'segmented';
 
-/** A Font Awesome icon in the shape a tab's `icon` takes. */
-export function fontAwesomeTabIcon(icon: IconDefinition): LucideIcon {
-  return function FontAwesomeTabIcon({ className }: LucideProps) {
-    return <FontAwesomeIcon icon={icon} className={className} />;
-  } as LucideIcon;
-}
+/** A tab's icon: a Lucide icon, or any component that takes a class name. */
+type TabIcon = ComponentType<{ className?: string }>;
 
 /** A tab's count: grey on the segmented control, the tab's colour on an active underlined one. */
 function countBadgeClass(variant: TabsVariant, isActive: boolean) {
@@ -30,14 +24,14 @@ function countBadgeClass(variant: TabsVariant, isActive: boolean) {
 interface Tab {
   id: string;
   label: React.ReactNode;
-  /** Shown in a small badge after the label. */
+  /** Shown in a small badge after the label; none for 0. */
   count?: number | string;
   href?: string;
   scroll?: boolean;
   highlight?: boolean;
   separator?: boolean;
-  icon?: LucideIcon;
-  activeIcon?: LucideIcon;
+  icon?: TabIcon;
+  activeIcon?: TabIcon;
   iconClassName?: string;
   activeClassName?: string;
   onClick?: (e: React.MouseEvent) => void;
@@ -112,7 +106,7 @@ const TabItem: React.FC<{
     <>
       {Icon && <Icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
       <span className="truncate">{tab.label}</span>
-      {tab.count != null && (
+      {tab.count != null && tab.count !== 0 && (
         <CountBadge count={tab.count} className={countBadgeClass(variant, isActive)} />
       )}
     </>

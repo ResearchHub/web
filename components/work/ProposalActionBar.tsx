@@ -1,9 +1,7 @@
 'use client';
 
-import { Coins } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/work/StickyActionBar';
-import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { FundButton } from '@/components/Funding/FundButton';
 import { useFundraiseSummary } from '@/components/Fund/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
 
@@ -14,11 +12,8 @@ import type { Fundraise } from '@/types/funding';
  */
 export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
   const summary = useFundraiseSummary(fundraise);
-  const { openFundPanel } = useFundPanel();
 
   if (!summary.isActive) return null;
-
-  const funders = `${summary.funderCount} ${summary.funderCount === 1 ? 'funder' : 'funders'}`;
 
   return (
     <StickyActionBar>
@@ -36,13 +31,12 @@ export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
           />
         </div>
         <p className="mt-1 truncate text-xs text-gray-500">
-          {summary.timeLeft ? `${funders} · ${summary.timeLeft}` : funders}
+          {summary.timeLeft ? `${summary.fundersText} · ${summary.timeLeft}` : summary.fundersText}
         </p>
       </div>
-      <Button variant="default" size="lg" onClick={openFundPanel} className="gap-2 px-6">
-        <Coins className="h-4 w-4" />
+      <FundButton size="lg" className="px-6">
         Fund
-      </Button>
+      </FundButton>
     </StickyActionBar>
   );
 }

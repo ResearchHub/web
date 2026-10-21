@@ -5,52 +5,40 @@ import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
-import { useGrantTab } from '@/components/Funding/GrantPageContent';
+import { ApplyToGrantPanel } from '@/components/modals/ApplyToGrantPanel';
+import { useGrantPage } from '@/components/Funding/GrantPageContent';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
-import type { FundingPool, GrantApplicationVisibility } from '@/types/grant';
+import type { FundingPool } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
 import { PendingReviewBadge } from './PendingReviewBadge';
 
 interface WorkHeaderGrantProps {
   work: Work;
   metadata: WorkMetadata;
-  grantId?: string;
-  isActive?: boolean;
-  isPending?: boolean;
-  organization?: string;
-  applicationVisibility?: GrantApplicationVisibility;
-  fundingPool?: FundingPool | null;
-  className?: string;
   preTitle?: ReactNode;
 }
 
 /**
- * The RFP page's cover. The tabs, key facts and pool card live in the page
+ * The RFP page's cover. The facts, tabs and pool card live in the page
  * beneath it; this keeps the Apply and Add to pool panels they open.
  */
-export function WorkHeaderGrant({
-  work,
-  metadata,
-  grantId,
-  isActive = true,
-  isPending = false,
-  organization,
-  applicationVisibility,
-  fundingPool: fundingPoolProp = null,
-  className,
-  preTitle,
-}: WorkHeaderGrantProps) {
+export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantProps) {
   const router = useRouter();
   const {
-    fundingPool: contextPool,
+    grantId,
+    organization,
+    applicationVisibility,
+    grantAmount,
+    isPending,
+    isActive,
+    fundingPool,
     setFundingPool,
-    isApplyModalOpen,
-    setIsApplyModalOpen,
-  } = useGrantTab();
+    isApplyPanelOpen,
+    setIsApplyPanelOpen,
+  } = useGrantPage();
   const { isFundPanelOpen, closeFundPanel } = useFundPanel();
-
-  const fundingPool = contextPool ?? fundingPoolProp;
 
   // The panel stays open on its "Added to the pool" screen; the page behind it
   // catches up with the new pool.
@@ -69,9 +57,7 @@ export function WorkHeaderGrant({
   const badges = isPending ? (
     <PendingReviewBadge />
   ) : !isActive ? (
-    <span className="inline-flex items-center rounded-md bg-white/95 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
-      Closed
-    </span>
+    <CoverBadge>Closed</CoverBadge>
   ) : null;
 
   return (
@@ -79,28 +65,26 @@ export function WorkHeaderGrant({
       <WorkHeader
         work={work}
         metadata={metadata}
-        className={className}
-        eyebrow={badges}
         preTitle={preTitle}
         hideVoteWidget
         // The top bar already says it's an RFP; the cover names who funds it.
-        cover={{ imageUrl: work.image, eyebrow: organization }}
-        grantModalProps={
-          grantId
-            ? {
-                isApplyToGrantModalOpen: isApplyModalOpen,
-                onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
-                grantId,
-                grantApplicationVisibility: applicationVisibility,
-                applyPanel: {
-                  cover: coverCard,
-                  amountUsd: work.note?.post?.grant?.amount.usd,
-                  organization,
-                },
-              }
-            : undefined
-        }
+        cover={{ imageUrl: work.image, eyebrow: organization, badges }}
+        // Its phone page has the pool (facts strip, action bar) and the
+        // activity (Activity tab) already.
+        hideSidebarButton
       />
+
+      {grantId && (
+        <ApplyToGrantPanel
+          isOpen={isApplyPanelOpen}
+          onClose={() => setIsApplyPanelOpen(false)}
+          grantId={grantId}
+          applicationVisibility={applicationVisibility}
+          cover={coverCard}
+          amountUsd={grantAmount?.usd}
+          organization={organization}
+        />
+      )}
 
       {fundingPool?.status === 'OPEN' && (
         <ContributeToFundraiseModal
@@ -110,8 +94,7 @@ export function WorkHeaderGrant({
           onContributeSuccess={handleContributeSuccess}
           fundingPool={fundingPool}
           proposalTitle={work.title}
-          desktop="panel"
-          singleStep
+          variant="panel"
           topContent={coverCard}
           successText={`Every dollar in the pool goes to the proposals ${
             organization || 'the funder'

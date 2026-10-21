@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { PostBlockEditor } from '@/components/work/PostBlockEditor';
 import { removeTitleFromHTML } from '@/components/Editor/lib/utils/documentTitle';
+import { decodeHtmlEntities, stripHtml } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 
 interface Section {
@@ -15,6 +16,9 @@ interface Section {
  * Split a document's body at its top-level headings: its h2s, or its h3s when
  * it has none, so a section keeps its own subsections. Text before the first
  * heading comes back as `intro`; a body with no headings has no sections.
+ *
+ * The editor writes headings at the top level of the body, never inside
+ * another element, so cutting the HTML string at them never splits one.
  */
 function splitSections(html: string): { intro: string; sections: Section[] } {
   const body = removeTitleFromHTML(html).trim();
@@ -27,17 +31,14 @@ function splitSections(html: string): { intro: string; sections: Section[] } {
   const sections = chunks.map((chunk) => {
     const match = chunk.match(heading);
     return {
-      title: (match?.[1] ?? '').replace(/<[^>]+>/g, '').trim(),
+      title: decodeHtmlEntities(stripHtml(match?.[1] ?? '')),
       html: match ? chunk.slice(match[0].length) : chunk,
     };
   });
   return { intro: intro.trim(), sections };
 }
 
-/** Who can apply is what most readers of an RFP come for, so it opens with the first section. */
-function isOpenByDefault(title: string, index: number) {
-  return index === 0 || /eligib|who can apply/i.test(title);
-}
+const openFirstSection = (_title: string, index: number) => index === 0;
 
 const BODY_CLASS = '!border-0 !shadow-none !rounded-none !p-0 !mb-0 !bg-transparent';
 
@@ -46,15 +47,25 @@ interface DocumentSectionsProps {
   content?: string;
   /** Shown instead when there is no body. */
   emptyText: string;
+  /** Which sections start open; the first, unless the page says otherwise. */
+  isOpenByDefault?: (title: string, index: number) => boolean;
 }
 
-/** A work's body as sections that open and close, one per heading. */
-export function DocumentSections({ content, emptyText }: DocumentSectionsProps) {
+/**
+ * A work's body as sections that open and close, one per heading. Each
+ * section's text is rendered the first time it opens and kept after that.
+ */
+export function DocumentSections({
+  content,
+  emptyText,
+  isOpenByDefault = openFirstSection,
+}: DocumentSectionsProps) {
   const idPrefix = useId();
   const { intro, sections } = useMemo(() => splitSections(content ?? ''), [content]);
   const [open, setOpen] = useState<Set<number>>(
     () => new Set(sections.flatMap((s, i) => (isOpenByDefault(s.title, i) ? [i] : [])))
   );
+  const [rendered, setRendered] = useState<Set<number>>(() => new Set(open));
 
   if (!content) {
     return <p className="text-gray-500 py-12 text-center">{emptyText}</p>;
@@ -68,13 +79,15 @@ export function DocumentSections({ content, emptyText }: DocumentSectionsProps) 
     );
   }
 
-  const toggle = (index: number) =>
+  const toggle = (index: number) => {
     setOpen((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
       else next.add(index);
       return next;
     });
+    setRendered((prev) => (prev.has(index) ? prev : new Set(prev).add(index)));
+  };
 
   return (
     <div className="pb-6">
@@ -106,9 +119,10 @@ export function DocumentSections({ content, emptyText }: DocumentSectionsProps) 
                 />
               </button>
             </h2>
-            {/* Kept mounted while closed, so the text stays on the page for search. */}
             <div id={bodyId} className={cn('pb-4', !isOpen && 'hidden')}>
-              <PostBlockEditor content={section.html} className={BODY_CLASS} />
+              {rendered.has(index) && (
+                <PostBlockEditor content={section.html} className={BODY_CLASS} />
+              )}
             </div>
           </section>
         );

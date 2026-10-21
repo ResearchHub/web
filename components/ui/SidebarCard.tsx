@@ -28,3 +28,18 @@ export function SidebarCard({ title, action, children, className }: SidebarCardP
     </section>
   );
 }
+
+/** A sidebar card's place while it loads: a title over a few rows, each led by a face. */
+export function SidebarCardSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="animate-pulse space-y-3 rounded-lg border border-gray-200 p-4">
+      <div className="h-4 w-24 rounded bg-gray-200" />
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="flex items-center gap-2.5">
+          <div className="h-7 w-7 shrink-0 rounded-full bg-gray-200" />
+          <div className="h-4 flex-1 rounded bg-gray-200" />
+        </div>
+      ))}
+    </div>
+  );
+}

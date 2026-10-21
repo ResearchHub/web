@@ -1,9 +1,9 @@
 'use client';
 
-import { useGrantTab } from '@/components/Funding/GrantPageContent';
+import { useGrantPage } from '@/components/Funding/GrantPageContent';
 import { ActivityCardCompact } from '@/components/Activity/cards/ActivityCardCompact';
 import { Button } from '@/components/ui/Button';
-import { SidebarCard } from '@/components/ui/SidebarCard';
+import { SidebarCard, SidebarCardSkeleton } from '@/components/ui/SidebarCard';
 import { ID } from '@/types/root';
 
 /**
@@ -16,12 +16,10 @@ export function GrantActivityCard({
   /** The RFP's own post: its title isn't repeated on every row. */
   currentDocumentId?: ID;
 }) {
-  const { activity } = useGrantTab();
+  const { activity } = useGrantPage();
   const { entries, isLoading, hasMore, isLoadingMore, loadMore } = activity;
 
-  if (isLoading && entries.length === 0) {
-    return <div className="h-40 animate-pulse rounded-lg border border-gray-200 bg-gray-50" />;
-  }
+  if (isLoading && entries.length === 0) return <SidebarCardSkeleton />;
   if (entries.length === 0) return null;
 
   return (

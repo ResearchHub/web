@@ -16,6 +16,8 @@ export default {
         gray: colors.gray,
         rhBlue: colors.rhBlue,
         orcid: colors.orcid,
+        // The funding cards' and work covers' dark blue.
+        navy: '#0b1530',
       },
       screens: {
         mobile: '480px',

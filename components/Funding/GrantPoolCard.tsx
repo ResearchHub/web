@@ -1,101 +1,61 @@
 'use client';
 
-import { Coins, FileUp, Lock } from 'lucide-react';
+import { FileUp, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { GrantFundingPoolWidget } from '@/components/work/WorkHeader/GrantFundingPoolWidget';
-import { useGrantTab } from '@/components/Funding/GrantPageContent';
-import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { GrantFundingPoolWidget } from '@/components/Funding/GrantFundingPoolWidget';
+import { useGrantPage } from '@/components/Funding/GrantPageContent';
+import { canManageGrantPool } from '@/components/Funding/lib/canManageGrantPool';
 import { useUser } from '@/contexts/UserContext';
-import type { FundingPool, FundingPoolAmount, GrantApplicationVisibility } from '@/types/grant';
-import { ID } from '@/types/root';
-import { cn } from '@/utils/styles';
-
-interface GrantPoolCardProps {
-  grantId?: string;
-  organization?: string;
-  /** The grant's own amount, before any community contributions. */
-  grantAmount: FundingPoolAmount | null;
-  fundingPool: FundingPool | null;
-  isActive: boolean;
-  applicationVisibility?: GrantApplicationVisibility;
-  grantCreatedByUserId: ID | null;
-  className?: string;
-}
 
 /**
- * The RFP's funding pool with Add to pool and Apply. It sits above
- * the right sidebar, and in the main column where there is no sidebar. Grants
- * without a pool get the two plain buttons instead.
+ * The RFP's funding pool with Add to pool and Apply, at the top of its right
+ * sidebar. An RFP without a pool gets a plain Apply button instead.
  */
-export function GrantPoolCard({
-  grantId,
-  organization,
-  grantAmount,
-  fundingPool: fundingPoolProp,
-  isActive,
-  applicationVisibility,
-  grantCreatedByUserId,
-  className,
-}: GrantPoolCardProps) {
+export function GrantPoolCard() {
   const { user } = useUser();
-  const { fundingPool: contextPool, setIsApplyModalOpen } = useGrantTab();
-  const { openFundPanel } = useFundPanel();
+  const {
+    grantId,
+    organization,
+    grantAmount,
+    applicationVisibility,
+    isActive,
+    isPoolOpen,
+    fundingPool,
+    grantCreatedByUserId,
+    setIsApplyPanelOpen,
+  } = useGrantPage();
 
-  const fundingPool = contextPool ?? fundingPoolProp;
-  const isPoolOpen = !!grantId && isActive && fundingPool?.status === 'OPEN';
   const canApply = !!grantId && isActive;
-  const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
-
-  const isGrantCreator =
-    user?.id != null &&
-    grantCreatedByUserId != null &&
-    Number(user.id) === Number(grantCreatedByUserId);
-  const canManagePool = isGrantCreator || !!user?.isModerator;
 
   if (fundingPool && grantAmount) {
     return (
-      <div className={cn('flex w-full flex-col', className)}>
-        <GrantFundingPoolWidget
-          organization={organization ?? ''}
-          grantAmount={grantAmount}
-          fundingPool={fundingPool}
-          isOpen={isPoolOpen}
-          canApply={canApply}
-          canManagePool={canManagePool}
-          onApply={() => setIsApplyModalOpen(true)}
-          onContribute={openFundPanel}
-        />
-      </div>
+      <GrantFundingPoolWidget
+        organization={organization ?? ''}
+        grantAmount={grantAmount}
+        fundingPool={fundingPool}
+        isOpen={isPoolOpen}
+        canApply={canApply}
+        canManagePool={canManageGrantPool(user, grantCreatedByUserId)}
+        onApply={() => setIsApplyPanelOpen(true)}
+      />
     );
   }
 
   if (!canApply) return null;
 
   return (
-    <div className={cn('flex w-full flex-col gap-2', className)}>
-      {isPoolOpen && (
-        <Button
-          data-testid="grant-contribute"
-          variant="outlined"
-          size="lg"
-          onClick={openFundPanel}
-          className="w-full gap-2"
-        >
-          <Coins className="h-5 w-5" />
-          Contribute
-        </Button>
-      )}
+    <div className="flex w-full flex-col gap-2">
       <Button
         data-testid="grant-submit-proposal"
         variant="default"
         size="lg"
-        onClick={() => setIsApplyModalOpen(true)}
+        onClick={() => setIsApplyPanelOpen(true)}
         className="w-full gap-2"
       >
         Apply
         <FileUp className="h-5 w-5" />
       </Button>
-      {requiresPrivateApplications && (
+      {applicationVisibility === 'PRIVATE' && (
         <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500">
           <Lock className="h-3 w-3 shrink-0" />
           <span>Your proposal will be submitted privately</span>

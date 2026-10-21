@@ -3,14 +3,15 @@
 import { getEffectiveStatus, isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import {
   type Backer,
-  MIN_VISIBLE_PERCENT,
   formatFundingAmount,
-} from '@/components/Funding/FundingCard';
+  visiblePercent,
+} from '@/components/Funding/lib/fundingAmounts';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { computeGoalRate, getContributionTotal, type Fundraise } from '@/types/funding';
 import { formatCurrency } from '@/utils/currency';
 import { formatDeadline } from '@/utils/date';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 
 export interface FundraiseSummary {
   isActive: boolean;
@@ -24,6 +25,8 @@ export interface FundraiseSummary {
   /** The bar's fill: the percent, floored so a first small gift still shows. */
   barPercent: number;
   funderCount: number;
+  /** "3 funders". */
+  fundersText: string;
   /** The top funders, each with what they put in. */
   funders: Backer[];
   /** Dollars per RSC: the rate the goal was met at once completed, else today's. */
@@ -40,6 +43,7 @@ export function useFundraiseSummary(fundraise: Fundraise): FundraiseSummary {
   const status = getEffectiveStatus(fundraise);
   const isActive = isFundraiseActive(fundraise);
   const isCompleted = status === 'COMPLETED';
+  const funderCount = fundraise.contributors.numContributors;
 
   // A completed fundraise raised its goal. Its RSC keeps changing in dollars,
   // so in USD both figures are pinned to the goal; in RSC, to what came in.
@@ -84,8 +88,9 @@ export function useFundraiseSummary(fundraise: Fundraise): FundraiseSummary {
     raised: formatFundingAmount(raised, showUSD),
     goal: formatFundingAmount(goal, showUSD),
     percent: Math.floor(percent),
-    barPercent: percent > 0 ? Math.max(MIN_VISIBLE_PERCENT, percent) : 0,
-    funderCount: fundraise.contributors.numContributors,
+    barPercent: visiblePercent(percent),
+    funderCount,
+    fundersText: `${funderCount} funder${pluralizeSuffix(funderCount)}`,
     funders,
     rscToUsdRate: rate,
     timeLeft: isActive && fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined,

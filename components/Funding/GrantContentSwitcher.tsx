@@ -1,31 +1,29 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useEffect } from 'react';
-import { useGrantTab } from '@/components/Funding/GrantPageContent';
+import { useEffect } from 'react';
+import { useGrantPage } from '@/components/Funding/GrantPageContent';
 import { DocumentSections } from '@/components/work/DocumentSections';
-import { GrantFacts } from '@/components/Funding/GrantFacts';
-import { GrantTabs } from '@/components/Funding/GrantTabs';
 import { ActivityCard, ActivityFeedList } from '@/components/Activity';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFundraises } from '@/contexts/FundraiseContext';
 
+/** Who can apply is what most readers of an RFP come for, so it opens with the first section. */
+const isOpenOnRfp = (title: string, index: number) =>
+  index === 0 || /eligib|who can apply/i.test(title);
+
 interface GrantContentSwitcherProps {
   content?: string;
-  facts: ComponentProps<typeof GrantFacts>;
-  /** Sticky Apply and Fund buttons, shown only where the right sidebar is hidden. */
-  actionBar?: ReactNode;
   showProposalFilters?: boolean;
 }
 
+/** The open tab's content on the RFP page: its details, its proposals or its activity. */
 export function GrantContentSwitcher({
   content,
-  facts,
-  actionBar,
   showProposalFilters = false,
 }: GrantContentSwitcherProps) {
-  const { activeTab, setActiveTab, activity } = useGrantTab();
+  const { activeTab, setActiveTab, activity } = useGrantPage();
   const { restoredScrollPosition: proposalsRestoredScrollPosition } = useFundraises();
   const {
     entries,
@@ -61,14 +59,16 @@ export function GrantContentSwitcher({
 
   return (
     <>
-      <GrantFacts {...facts} />
-      <GrantTabs className="mt-4" />
       <div className={!isProposalsActive ? 'hidden' : undefined}>
         {showProposalFilters && <ProposalSortAndFilters />}
         <ProposalFeed isActive={isProposalsActive} />
       </div>
       <div className={activeTab !== 'details' ? 'hidden' : undefined}>
-        <DocumentSections content={content} emptyText="No details available for this grant." />
+        <DocumentSections
+          content={content}
+          emptyText="No details available for this grant."
+          isOpenByDefault={isOpenOnRfp}
+        />
       </div>
       <div className={!isActivityActive ? 'hidden' : undefined}>
         <ActivityFeedList
@@ -83,7 +83,6 @@ export function GrantContentSwitcher({
           ))}
         </ActivityFeedList>
       </div>
-      {actionBar}
     </>
   );
 }

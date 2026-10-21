@@ -26,10 +26,9 @@ export function useWorkTab() {
 }
 
 /** Which tab a work's route opens on: its own route for each, the work's page for the paper. */
-export function getTabFromPath(path: string): TabType {
+function getTabFromPath(path: string): TabType {
   if (path.includes('/updates')) return 'updates';
   if (path.includes('/conversation')) return 'conversation';
-  if (path.includes('/applications')) return 'applications';
   if (path.includes('/reviews')) return 'reviews';
   if (path.includes('/bounties')) return 'bounties';
   return 'paper';

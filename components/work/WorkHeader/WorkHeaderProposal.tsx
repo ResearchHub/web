@@ -8,6 +8,7 @@ import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
@@ -24,7 +25,6 @@ import { WorkHeader } from './WorkHeader';
 interface WorkHeaderProposalProps {
   work: Work;
   metadata: WorkMetadata;
-  className?: string;
   preTitle?: ReactNode;
 }
 
@@ -41,12 +41,7 @@ function proposerLabel(work: Work): string | undefined {
  * page beneath it; this keeps the Fund panel they open, and the proposal's
  * own menu actions (share link, make public).
  */
-export function WorkHeaderProposal({
-  work,
-  metadata,
-  className,
-  preTitle,
-}: WorkHeaderProposalProps) {
+export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderProposalProps) {
   const { isFundPanelOpen, closeFundPanel } = useFundPanel();
   // Funding ends on the panel's thank-you screen; the share prompt waits for it to close.
   const hasJustFundedRef = useRef(false);
@@ -134,22 +129,16 @@ export function WorkHeaderProposal({
 
   const isClosed = fundraise ? getEffectiveStatus(fundraise) === 'CLOSED' : false;
 
-  const closedEyebrow = isClosed ? (
-    <span className="inline-flex items-center font-medium text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-gray-600 bg-gray-100">
-      Fundraise Closed
-    </span>
-  ) : undefined;
+  const closedBadge = isClosed ? <CoverBadge>Fundraise closed</CoverBadge> : undefined;
 
   return (
     <>
       <WorkHeader
         work={displayedWork}
         metadata={metadata}
-        className={className}
         additionalMenuItems={additionalMenuItems}
-        eyebrow={closedEyebrow}
         preTitle={preTitle}
-        cover={{ imageUrl: displayedWork.image, eyebrow: proposer }}
+        cover={{ imageUrl: displayedWork.image, eyebrow: proposer, badges: closedBadge }}
       />
 
       {fundraise && isActive && (
@@ -160,8 +149,7 @@ export function WorkHeaderProposal({
           fundraise={fundraise}
           proposalTitle={displayedWork.title}
           work={displayedWork}
-          desktop="panel"
-          singleStep
+          variant="panel"
           topContent={
             <WorkCoverCard
               title={displayedWork.title}

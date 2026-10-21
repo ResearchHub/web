@@ -7,13 +7,15 @@ import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ActivitySidebarServer, ActivitySidebarSkeleton } from '@/components/Activity';
-import { isDeadlineInFuture } from '@/utils/date';
-import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
+import { GrantPageProvider } from '@/components/Funding/GrantPageContent';
 import { FundPanelProvider } from '@/components/Funding/FundPanelContext';
 import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { GrantSidebar } from '@/components/Funding/GrantSidebar';
+import { GrantFacts } from '@/components/Funding/GrantFacts';
+import { GrantTabs } from '@/components/Funding/GrantTabs';
+import { GrantActionBar } from '@/components/Funding/GrantActionBar';
 
 interface Props {
   params: Promise<{
@@ -60,21 +62,15 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const grant = work.note?.post?.grant;
   const grantId = grant?.id ?? undefined;
   const grantTitle = grant?.shortTitle || work.title;
-  const isPending = grant?.status === 'PENDING';
-  const isActive =
-    grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
 
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
+  // Laid out as the proposal page is: the cover, then the facts and the tabs
+  // over each tab's content, with the pool card in the sidebar and an Apply
+  // and Fund bar where the sidebar is hidden.
   return (
     <FundPanelProvider>
-      <GrantTabProvider
-        defaultTab="details"
-        grantId={grantId}
-        fundingPool={grant?.fundingPool ?? null}
-        applications={grant?.applications ?? []}
-        grantCreatedByUserId={grant?.createdBy?.id ?? null}
-      >
+      <GrantPageProvider defaultTab="details" grant={grant}>
         <PageLayout
           contentWidth="narrow"
           // The pool card's top lines up with the facts strip's.
@@ -84,12 +80,6 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             <WorkHeaderGrant
               work={work}
               metadata={metadata}
-              grantId={grantId?.toString()}
-              isActive={isActive}
-              isPending={isPending}
-              organization={grant?.organization}
-              applicationVisibility={grant?.applicationVisibility}
-              fundingPool={grant?.fundingPool ?? null}
               preTitle={
                 <RegisteredReportRouteTrackerLoader
                   currentStage="grant"
@@ -104,16 +94,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
           rightSidebarBare={Boolean(grant)}
           rightSidebar={
             grant ? (
-              <GrantSidebar
-                grantId={grantId?.toString()}
-                organization={grant.organization}
-                grantAmount={{ usd: grant.amount.usd ?? 0, rsc: grant.amount.rsc ?? 0 }}
-                fundingPool={grant.fundingPool ?? null}
-                isActive={isActive}
-                applicationVisibility={grant.applicationVisibility}
-                grantCreatedByUserId={grant.createdBy?.id ?? null}
-                currentDocumentId={work.id}
-              />
+              <GrantSidebar currentDocumentId={work.id} />
             ) : (
               <Suspense fallback={<ActivitySidebarSkeleton />}>
                 <ActivitySidebarServer
@@ -125,10 +106,13 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             )
           }
         >
+          <GrantFacts openedDate={grant?.startDate || work.publishedDate || work.createdDate} />
+          <GrantTabs className="mt-4" />
           {children}
+          <GrantActionBar />
           <SearchHistoryTracker work={work} />
         </PageLayout>
-      </GrantTabProvider>
+      </GrantPageProvider>
     </FundPanelProvider>
   );
 }

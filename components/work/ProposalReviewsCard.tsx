@@ -7,6 +7,7 @@ import { SidebarCard } from '@/components/ui/SidebarCard';
 import { useShowProposalTab } from '@/components/work/ProposalTabs';
 import type { Work } from '@/types/work';
 import { formatTimeAgoShort } from '@/utils/date';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 
 /** Reviews shown in the card; the Reviews tab has them all. */
 const MAX_SHOWN = 3;
@@ -71,7 +72,7 @@ export function ProposalReviewsCard({ work }: { work: Work }) {
         onClick={showReviews}
         className="mt-1 text-sm font-semibold text-primary-600 hover:text-primary-700"
       >
-        Read all {allReviews.length} {allReviews.length === 1 ? 'review' : 'reviews'}
+        Read all {allReviews.length} review{pluralizeSuffix(allReviews.length)}
       </button>
     </SidebarCard>
   );

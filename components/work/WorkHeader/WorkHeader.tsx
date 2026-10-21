@@ -27,9 +27,6 @@ import { stripShareToken } from '@/lib/shareToken/url';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
-import type { GrantApplicationVisibility } from '@/types/grant';
-import type { ApplyPanelInfo } from '@/components/modals/ApplyToGrantModal';
-
 import { useWorkVote, useWorkPermissions } from './WorkHeaderHooks';
 import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
 import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
@@ -51,47 +48,42 @@ interface WorkHeaderProps {
   work: Work;
   metadata: WorkMetadata;
   className?: string;
-  eyebrow?: ReactNode;
   preTitle?: ReactNode;
   subtitle?: ReactNode;
   additionalMenuItems?: ReactNode;
   tabs?: ReactNode;
   reviewsTabUrl?: string;
   hideVoteWidget?: boolean;
-  /** Top-align title and CTA column; use when the CTA is a tall panel. */
-  alignTop?: boolean;
-  /** Keep the tabs in the title's column beside the CTA, rather than on a row beneath both. */
-  inlineTabs?: boolean;
   /**
    * Show the work as a large image cover with its title on it, instead of the
-   * hero header. The eyebrow becomes badges on the cover; tabs, subtitle and
-   * primary action are left to the page.
+   * hero header. Tabs, subtitle and primary action are left to the page.
    */
-  cover?: { imageUrl?: string; eyebrow?: string };
-  grantModalProps?: {
-    isApplyToGrantModalOpen: boolean;
-    onCloseApplyToGrantModal: () => void;
-    grantId: string;
-    grantApplicationVisibility?: GrantApplicationVisibility;
-    applyPanel?: ApplyPanelInfo;
+  cover?: {
+    imageUrl?: string;
+    /** The small line over the title. */
+    eyebrow?: string;
+    /** In the cover's corner, e.g. "Closed"; unset, a foundation bounty's badge if it has one. */
+    badges?: ReactNode;
   };
+  /**
+   * Below lg the sidebar opens in a drawer from the header. A page that shows
+   * everything its sidebar holds on phones anyway leaves the button out.
+   */
+  hideSidebarButton?: boolean;
 }
 
 export function WorkHeader({
   work,
   metadata,
   className,
-  eyebrow: eyebrowOverride,
   preTitle,
   subtitle: subtitleOverride,
   additionalMenuItems,
   tabs: tabsOverride,
   reviewsTabUrl: reviewsTabUrlOverride,
   hideVoteWidget = false,
-  alignTop = false,
-  inlineTabs = false,
   cover,
-  grantModalProps,
+  hideSidebarButton = false,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
@@ -164,7 +156,7 @@ export function WorkHeader({
           shareToken,
         }));
 
-  const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
+  const { setMobileSidebarOpen } = useWorkTab();
 
   const shareAction = () => {
     const aiPostRoute = AI_POST_ROUTES[work.contentType];
@@ -184,7 +176,7 @@ export function WorkHeader({
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
   ) : undefined;
 
-  const baseEyebrow = eyebrowOverride === undefined ? defaultEyebrow : eyebrowOverride;
+  const baseEyebrow = cover?.badges === undefined ? defaultEyebrow : cover.badges;
 
   // Papers, posts, and proposals carry their moderation state at the top level.
   // Grants are exempt (their post stays APPROVED; grant.status drives their own
@@ -231,8 +223,7 @@ export function WorkHeader({
       >
         <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
       </button>
-      {/* An RFP's sidebar (pool, activity) is already on its phone page. */}
-      {!cover && (
+      {!hideSidebarButton && (
         <button
           onClick={() => setMobileSidebarOpen(true)}
           className={cn(btnClass, 'lg:hidden')}
@@ -264,7 +255,7 @@ export function WorkHeader({
     </div>
   );
 
-  const defaultTabs = <WorkTabs work={work} metadata={metadata} onTabChange={setActiveTab} />;
+  const defaultTabs = <WorkTabs work={work} metadata={metadata} />;
 
   const resolvedTabs = tabsOverride !== undefined ? tabsOverride : defaultTabs;
 
@@ -278,6 +269,7 @@ export function WorkHeader({
           badges={resolvedEyebrow}
           actions={actionBar}
           preTitle={preTitle}
+          className={className}
         />
       ) : (
         <HeroHeader
@@ -287,8 +279,6 @@ export function WorkHeader({
           subtitle={resolvedSubtitle}
           actions={actionBar}
           className={className}
-          alignTop={alignTop}
-          inlineChildren={inlineTabs}
         >
           <div className="mt-3 sm:mt-4">
             <div className="min-w-0">{resolvedTabs}</div>
@@ -312,11 +302,6 @@ export function WorkHeader({
         onCloseFundraiseModal={closeFundraiseModal}
         onConfirmFundraise={confirmFundraiseAction}
         fundraiseModalConfig={fundraiseModalConfig}
-        isApplyToGrantModalOpen={grantModalProps?.isApplyToGrantModalOpen}
-        onCloseApplyToGrantModal={grantModalProps?.onCloseApplyToGrantModal}
-        grantId={grantModalProps?.grantId}
-        grantApplicationVisibility={grantModalProps?.grantApplicationVisibility}
-        applyPanel={grantModalProps?.applyPanel}
         showReopenModal={showReopenModal}
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}

@@ -1,22 +1,27 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Coins, FileUp, Info } from 'lucide-react';
+import { FileUp, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { FaceStack } from '@/components/ui/FaceStack';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { FundButton } from '@/components/Funding/FundButton';
 import { FundingPoolTip } from '@/components/Funding/FundingPoolTip';
 import {
-  type Backer,
-  BackerFaces,
   BackersTip,
   FundingBar,
   FundingCard,
   FundingTotal,
-  MIN_VISIBLE_PERCENT,
-  formatFundingAmount,
 } from '@/components/Funding/FundingCard';
+import {
+  formatFundingAmount,
+  getPoolSplit,
+  toBackers,
+  visiblePercent,
+} from '@/components/Funding/lib/fundingAmounts';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { FundingPool, FundingPoolAmount } from '@/types/grant';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 
 interface GrantFundingPoolWidgetProps {
@@ -30,7 +35,6 @@ interface GrantFundingPoolWidgetProps {
   /** Grant creators and moderators also see what is still waiting to be allocated. */
   canManagePool: boolean;
   onApply: () => void;
-  onContribute: () => void;
   className?: string;
 }
 
@@ -49,40 +53,22 @@ export function GrantFundingPoolWidget({
   canApply,
   canManagePool,
   onApply,
-  onContribute,
   className,
 }: GrantFundingPoolWidgetProps) {
   const { showUSD } = useCurrencyPreference();
   const format = (amount: FundingPoolAmount) => formatFundingAmount(amount, showUSD);
 
   const raised = fundingPool.amountRaised;
-  const total: FundingPoolAmount = {
-    usd: (grantAmount.usd ?? 0) + (raised.usd ?? 0),
-    rsc: (grantAmount.rsc ?? 0) + (raised.rsc ?? 0),
-  };
-
-  const grantShare = showUSD ? grantAmount.usd : grantAmount.rsc;
-  const raisedShare = showUSD ? raised.usd : raised.rsc;
-  const totalShare = grantShare + raisedShare;
-  const hasCommunityFunding = raisedShare > 0;
-  const rawCommunityPercent = totalShare > 0 ? (raisedShare / totalShare) * 100 : 0;
-  const communityPercent = hasCommunityFunding
-    ? Math.max(MIN_VISIBLE_PERCENT, rawCommunityPercent)
-    : 0;
-  const funderPercent = Math.round(100 - rawCommunityPercent);
+  const { total, communityPercent } = getPoolSplit(grantAmount, raised, showUSD);
+  const hasCommunityFunding = communityPercent > 0;
+  const funderPercent = Math.round(100 - communityPercent);
 
   const funderLabel = organization || 'The funder';
   const backerCount = fundingPool.contributors.total;
-  const backerNoun = backerCount === 1 ? 'backer' : 'backers';
+  const backersText = `${backerCount} backer${pluralizeSuffix(backerCount)}`;
   // Feeds ship the pool without contributors, so a pool can have money raised
   // and no faces to show for it.
-  const backers: Backer[] = fundingPool.contributors.top.map((contributor) => ({
-    id: contributor.id,
-    name: contributor.fullName,
-    image: contributor.profileImage,
-    authorId: contributor.authorProfileId,
-    amount: format(contributor.totalContribution),
-  }));
+  const backers = toBackers(fundingPool.contributors.top, showUSD);
   const hasFaces = backerCount > 0 && backers.length > 0;
 
   const breakdownRow = (label: ReactNode, value: string, emphasis = false) => (
@@ -154,11 +140,11 @@ export function GrantFundingPoolWidget({
 
       <FundingBar
         label={`${funderPercent}% from ${funderLabel}, ${Math.round(
-          rawCommunityPercent
+          communityPercent
         )}% from the community`}
         parts={[
           {
-            percent: 100 - communityPercent,
+            percent: 100 - visiblePercent(communityPercent),
             colorClassName: 'bg-emerald-400',
             tip: (
               <div className="space-y-0.5 text-left text-xs">
@@ -171,15 +157,14 @@ export function GrantFundingPoolWidget({
             ),
           },
           {
-            percent: communityPercent,
+            percent: visiblePercent(communityPercent),
             colorClassName: 'bg-indigo-300',
             tipWidth: 'w-64',
             tip: (
               <BackersTip
                 heading={
                   <>
-                    {backerCount} {backerNoun} added{' '}
-                    <span className="font-mono">{format(raised)}</span>
+                    {backersText} added <span className="font-mono">{format(raised)}</span>
                   </>
                 }
                 backers={hasFaces ? backers : []}
@@ -217,13 +202,9 @@ export function GrantFundingPoolWidget({
             data-testid="grant-funding-pool-backers"
           >
             <span className="truncate">
-              {backerCount > 0
-                ? `${backerCount} ${backerNoun}`
-                : isOpen
-                  ? 'Be the first backer'
-                  : 'No backers'}
+              {backerCount > 0 ? backersText : isOpen ? 'Be the first backer' : 'No backers'}
             </span>
-            {hasFaces && <BackerFaces backers={backers} />}
+            {hasFaces && <FaceStack faces={backers} ringClassName="ring-navy" />}
           </dt>
           <dd className="font-mono font-semibold tabular-nums text-indigo-200">
             {hasCommunityFunding ? format(raised) : '—'}
@@ -231,27 +212,21 @@ export function GrantFundingPoolWidget({
         </div>
       </dl>
 
-      {/* Add to pool carries the card — these links get shared at funders, so it
-          stays the only filled control. Applying is the same size but outlined,
-          so the two domains never read as one flow. */}
+      {/* Add to pool carries the card in the brand blue: these links get shared
+          with funders. Apply is the same size in white, so the two never read as
+          one flow. */}
       {isOpen && (
-        <Button
-          data-testid="grant-contribute"
-          variant="default"
-          onClick={onContribute}
-          className="mt-4 w-full gap-2 font-semibold"
-        >
-          <Coins className="h-4 w-4" />
+        <FundButton data-testid="grant-contribute" className="mt-4 w-full font-semibold">
           Add to pool
-        </Button>
+        </FundButton>
       )}
 
       {canApply && (
         <Button
           data-testid="grant-submit-proposal"
-          variant="outlined"
+          variant="inverse"
           onClick={onApply}
-          className="mt-2 w-full gap-2 !border-white !bg-white !text-gray-900 hover:!bg-gray-100"
+          className="mt-2 w-full gap-2"
         >
           <FileUp className="h-4 w-4" />
           Apply
