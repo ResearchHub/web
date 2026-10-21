@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { BaseScreenProps } from '../types';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
+import { Input } from '@/components/ui/form/Input';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import { usePasswordReset } from '@/hooks/useAuth';
-import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { AuthScreenHeader } from './AuthScreenHeader';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -13,13 +13,10 @@ interface Props extends BaseScreenProps {
 }
 
 export default function ForgotPassword({
-  onClose,
   email,
-  setEmail,
   error: authError,
   setError: setAuthError,
   onBack,
-  modalView = false,
 }: Props) {
   const [localEmail, setLocalEmail] = useState(email);
   const { resetPassword, isLoading, error, success, reset } = usePasswordReset();
@@ -45,14 +42,7 @@ export default function ForgotPassword({
   if (success) {
     return (
       <div>
-        <div className="flex items-center gap-2 mb-6">
-          {modalView && (
-            <Button type="button" onClick={handleBack} variant="ghost" size="icon">
-              <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
-            </Button>
-          )}
-          <h2 className="text-xl font-semibold mr-6 !leading-10">Request submitted</h2>
-        </div>
+        <AuthScreenHeader title="Request submitted" onBack={handleBack} />
 
         <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg">
           <p className="mb-2">
@@ -64,7 +54,7 @@ export default function ForgotPassword({
           </p>
         </div>
 
-        <Button onClick={handleBack} className="w-full mb-4">
+        <Button onClick={handleBack} size="lg" className="w-full mb-4">
           Back to login
         </Button>
 
@@ -87,14 +77,12 @@ export default function ForgotPassword({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        {modalView && (
-          <Button type="button" onClick={handleBack} variant="ghost" size="icon">
-            <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
-          </Button>
-        )}
-        <h2 className="text-xl font-semibold mr-6 !leading-10">Reset your password</h2>
-      </div>
+      <AuthScreenHeader
+        title="Reset your password"
+        subtitle="We'll email you a link to choose a new one."
+        onBack={handleBack}
+        backLabel="Back to login"
+      />
 
       {(error || authError) && (
         <Alert variant="error" className="mb-4">
@@ -103,44 +91,31 @@ export default function ForgotPassword({
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email address
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={localEmail}
-            onChange={(e) => setLocalEmail(e.target.value)}
-            placeholder="Enter your email address"
-            autoCapitalize="none"
-            autoComplete="email"
-            className="w-full p-3 border rounded"
-            ref={emailInputRef}
-            data-testid="auth-forgot-email-input"
-          />
-        </div>
+        <Input
+          id="email"
+          type="email"
+          label="Email"
+          value={localEmail}
+          onChange={(e) => setLocalEmail(e.target.value)}
+          placeholder="name@institution.org"
+          autoCapitalize="none"
+          autoComplete="email"
+          className="h-12"
+          wrapperClassName="mb-5"
+          ref={emailInputRef}
+          data-testid="auth-forgot-email-input"
+        />
 
         <Button
           type="submit"
+          size="lg"
           disabled={isLoading}
-          className="w-full mb-4"
+          className="w-full"
           data-testid="auth-forgot-submit"
         >
           {isLoading ? 'Sending...' : 'Send reset link'}
         </Button>
       </form>
-
-      {!modalView && (
-        <Button
-          onClick={handleBack}
-          disabled={isLoading}
-          variant="ghost"
-          className="w-full text-gray-600 hover:text-gray-800"
-        >
-          ← Back to login
-        </Button>
-      )}
     </div>
   );
 }
