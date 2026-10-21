@@ -5,27 +5,23 @@ import {
   LogOut,
   BadgeCheck,
   Bell,
-  Shield,
   UserPlus,
   Search,
   Settings,
   Bookmark,
 } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
 import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
-import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
+import { YouPanel } from '@/components/You/YouPanel';
 
 interface UserMenuProps {
   user: User;
@@ -34,7 +30,8 @@ interface UserMenuProps {
   onMenuOpenChange?: (isOpen: boolean) => void;
   avatarSize?: number | 'sm' | 'md' | 'xs' | 'xxs';
   showAvatarOnly?: boolean;
-  percent: number;
+  /** `menu`: the dropdown, from the tablet breakpoint up. `panel`: a phone's full-screen You sidebar. */
+  variant?: 'menu' | 'panel';
 }
 
 export default function UserMenu({
@@ -42,13 +39,12 @@ export default function UserMenu({
   onViewProfile,
   isMenuOpen,
   onMenuOpenChange,
-  percent,
   avatarSize = 30,
   showAvatarOnly = false,
+  variant = 'menu',
 }: UserMenuProps) {
   const [showVerificationBanner, setShowVerificationBanner] = useState(true);
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
@@ -59,22 +55,6 @@ export default function UserMenu({
       setInternalMenuOpen(open);
     }
   };
-
-  // Check if we're on mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    // Set initial value
-    checkMobile();
-
-    // Add event listener for window resize
-    window.addEventListener('resize', checkMobile);
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const handleCloseMenu = () => {
     setMenuOpenState(false);
@@ -102,24 +82,35 @@ export default function UserMenu({
         className="font-semibold"
         alt={user.authorProfile?.fullName ?? user.fullName}
         size={effectiveAvatarSize}
-        showProfileCompletion
-        profileCompletionPercent={percent}
       />
     </button>
   );
 
-  // Mobile drawer menu content
-  const mobileMenuContent = (
-    <>
+  if (variant === 'panel') {
+    return (
+      <>
+        {avatarButton}
+        <YouPanel user={user} isOpen={menuOpenState} onClose={handleCloseMenu} />
+      </>
+    );
+  }
+
+  return (
+    <BaseMenu
+      trigger={avatarButton}
+      align="start"
+      sideOffset={0}
+      className="w-64 p-0"
+      open={menuOpenState}
+      onOpenChange={setMenuOpenState}
+    >
       {/* User info section */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center">
           <Avatar
             src={user.authorProfile?.profileImage}
             alt={user.authorProfile?.fullName ?? user.fullName}
             size="md"
-            showProfileCompletion
-            profileCompletionPercent={percent}
           />
           <div className="ml-3 flex-1">
             <p className="text-base font-medium text-gray-900 flex items-center gap-1 leading-tight">
@@ -129,51 +120,26 @@ export default function UserMenu({
             <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
           </div>
         </div>
-        <Button
-          onClick={() => {
-            navigateToAuthorProfile(user.authorProfile?.id, false);
-            setMenuOpenState(false);
-          }}
-          variant="outlined"
-          size="sm"
-          className="w-full mt-3"
-        >
-          <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
-          Edit Profile
-        </Button>
       </div>
 
       {/* Menu items */}
-      <div className="py-4">
-        <div
-          className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
-          onClick={() => {
-            navigateToAuthorProfile(user.authorProfile?.id, false);
-            setMenuOpenState(false);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              navigateToAuthorProfile(user.authorProfile?.id, false);
-              setMenuOpenState(false);
-            }
-          }}
-          tabIndex={0}
-          role="button"
-          aria-label="View Profile"
+      <div className="py-1">
+        <BaseMenuItem
+          onClick={() => navigateToAuthorProfile(user.authorProfile?.id, false)}
+          className="w-full px-4 py-2"
         >
           <div className="flex items-center">
             <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
             <span className="text-sm text-gray-700">View Profile</span>
           </div>
-        </div>
+        </BaseMenuItem>
 
         <Link
           href="/notifications"
-          className="block sidebar-compact:!hidden"
+          className="block sidebar-compact:hidden"
           onClick={() => setMenuOpenState(false)}
         >
-          <div className="px-6 py-2 hover:bg-gray-50">
+          <div className="w-full px-4 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <Bell className="h-5 w-5 mr-3 text-gray-500" />
               <span className="text-sm text-gray-700">Notifications</span>
@@ -183,10 +149,10 @@ export default function UserMenu({
 
         <Link
           href="/researchcoin"
-          className="block sidebar-compact:!hidden"
+          className="block sidebar-compact:hidden"
           onClick={() => setMenuOpenState(false)}
         >
-          <div className="px-6 py-2 hover:bg-gray-50">
+          <div className="w-full px-4 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <ResearchCoinIcon outlined className="h-5 w-5 mr-3 text-gray-500" color="#676767" />
               <span className="text-sm text-gray-700">My ResearchCoin</span>
@@ -194,20 +160,9 @@ export default function UserMenu({
           </div>
         </Link>
 
-        {user?.isModerator && (
-          <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
-              <div className="flex items-center">
-                <Shield className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Moderation</span>
-              </div>
-            </div>
-          </Link>
-        )}
-
         {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
           <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="w-full px-4 py-2 hover:bg-gray-50">
               <div className="flex items-center">
                 <Search className="h-5 w-5 mr-3 text-gray-500" />
                 <span className="text-sm text-gray-700">Expert Finder</span>
@@ -217,7 +172,7 @@ export default function UserMenu({
         )}
 
         <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
+          <div className="w-full px-4 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <Bookmark className="h-5 w-5 mr-3 text-gray-500" />
               <span className="text-sm text-gray-700">Your Lists</span>
@@ -226,7 +181,7 @@ export default function UserMenu({
         </Link>
 
         <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
+          <div className="w-full px-4 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <Settings className="h-5 w-5 mr-3 text-gray-500" />
               <span className="text-sm text-gray-700">Settings</span>
@@ -235,34 +190,18 @@ export default function UserMenu({
         </Link>
 
         {!user.isVerified && (
-          <div
-            className="px-6 py-2 hover:bg-gray-50"
-            onClick={() => {
-              setMenuOpenState(false);
-              openVerificationModal();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setMenuOpenState(false);
-                openVerificationModal();
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            aria-label="Verify Account"
-          >
+          <BaseMenuItem onClick={() => openVerificationModal()} className="w-full px-4 py-2">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <BadgeCheck className="h-5 w-5 mr-3 text-gray-500" />
                 <span className="text-sm text-gray-700">Verify Account</span>
               </div>
             </div>
-          </div>
+          </BaseMenuItem>
         )}
 
         <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
+          <div className="w-full px-4 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
               <span className="text-sm text-gray-700">Refer and earn 10%</span>
@@ -273,198 +212,27 @@ export default function UserMenu({
           </div>
         </Link>
 
-        <div
-          className="px-6 py-2 hover:bg-gray-50"
+        <BaseMenuItem
           onClick={() => AuthSharingService.signOutFromBothApps()}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              AuthSharingService.signOutFromBothApps();
-            }
-          }}
-          tabIndex={0}
-          role="button"
-          aria-label="Sign Out"
+          className="w-full px-4 py-2"
           data-testid="user-menu-signout"
         >
           <div className="flex items-center">
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
             <span className="text-sm text-gray-700">Sign Out</span>
           </div>
-        </div>
+        </BaseMenuItem>
       </div>
 
       {/* Verification Banner at bottom */}
       {showVerificationBanner && !user.isVerified && (
-        <div className="px-6 py-4 mt-auto border-t border-gray-200">
+        <div className="pb-3 px-3 mt-2">
           <VerificationBanner
             onClose={() => setShowVerificationBanner(false)}
             onMenuClose={handleCloseMenu}
           />
         </div>
       )}
-    </>
-  );
-
-  return (
-    <>
-      {isMobile ? (
-        <>
-          {/* Mobile view with SwipeableDrawer */}
-          <div className="flex center" onClick={() => setMenuOpenState(true)}>
-            {avatarButton}
-          </div>
-          <SwipeableDrawer isOpen={menuOpenState} onClose={handleCloseMenu} showCloseButton={false}>
-            {mobileMenuContent}
-          </SwipeableDrawer>
-        </>
-      ) : (
-        /* Desktop view - original BaseMenu implementation */
-        <BaseMenu
-          trigger={avatarButton}
-          align="start"
-          sideOffset={0}
-          className="w-64 p-0"
-          open={menuOpenState}
-          onOpenChange={setMenuOpenState}
-        >
-          {/* User info section */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center">
-              <Avatar
-                src={user.authorProfile?.profileImage}
-                alt={user.authorProfile?.fullName ?? user.fullName}
-                size="md"
-                showProfileCompletion
-                profileCompletionPercent={percent}
-              />
-              <div className="ml-3 flex-1">
-                <p className="text-base font-medium text-gray-900 flex items-center gap-1 leading-tight">
-                  {user.authorProfile?.fullName ?? user.fullName}
-                  {user.isVerified && <VerifiedBadge size="sm" />}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Menu items */}
-          <div className="py-1">
-            <BaseMenuItem
-              onClick={() => navigateToAuthorProfile(user.authorProfile?.id, false)}
-              className="w-full px-4 py-2"
-            >
-              <div className="flex items-center">
-                <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">View Profile</span>
-              </div>
-            </BaseMenuItem>
-
-            <Link
-              href="/notifications"
-              className="block sidebar-compact:hidden"
-              onClick={() => setMenuOpenState(false)}
-            >
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Bell className="h-5 w-5 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Notifications</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/researchcoin"
-              className="block sidebar-compact:hidden"
-              onClick={() => setMenuOpenState(false)}
-            >
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <ResearchCoinIcon
-                    outlined
-                    className="h-5 w-5 mr-3 text-gray-500"
-                    color="#676767"
-                  />
-                  <span className="text-sm text-gray-700">My ResearchCoin</span>
-                </div>
-              </div>
-            </Link>
-
-            {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
-              <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
-                <div className="w-full px-4 py-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Search className="h-5 w-5 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Expert Finder</span>
-                  </div>
-                </div>
-              </Link>
-            )}
-
-            <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Bookmark className="h-5 w-5 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Your Lists</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <Settings className="h-5 w-5 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Settings</span>
-                </div>
-              </div>
-            </Link>
-
-            {!user.isVerified && (
-              <BaseMenuItem onClick={() => openVerificationModal()} className="w-full px-4 py-2">
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center">
-                    <BadgeCheck className="h-5 w-5 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Verify Account</span>
-                  </div>
-                </div>
-              </BaseMenuItem>
-            )}
-
-            <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Refer and earn 10%</span>
-                  <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
-                    New
-                  </span>
-                </div>
-              </div>
-            </Link>
-
-            <BaseMenuItem
-              onClick={() => AuthSharingService.signOutFromBothApps()}
-              className="w-full px-4 py-2"
-              data-testid="user-menu-signout"
-            >
-              <div className="flex items-center">
-                <LogOut className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Sign Out</span>
-              </div>
-            </BaseMenuItem>
-          </div>
-
-          {/* Verification Banner at bottom */}
-          {showVerificationBanner && !user.isVerified && (
-            <div className="pb-3 px-3 mt-2">
-              <VerificationBanner
-                onClose={() => setShowVerificationBanner(false)}
-                onMenuClose={handleCloseMenu}
-              />
-            </div>
-          )}
-        </BaseMenu>
-      )}
-    </>
+    </BaseMenu>
   );
 }

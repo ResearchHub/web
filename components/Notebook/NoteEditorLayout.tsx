@@ -16,7 +16,6 @@ import { NotesMenu } from './NotesMenu';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { PublishingForm, PublishingFormProvider } from '@/components/Notebook/PublishingForm';
 
-import { ABOVE_MOBILE_NAV } from './mobileBarOffsets';
 import { AgentChatPanel, type NoteReviewHandle } from '@/components/Notebook/AgentChatPanel';
 import { noteDiffPersistableDoc } from './NoteReview/noteDiffOverlay';
 import { NoteReviewControls } from './NoteReview/NoteReviewControls';
@@ -351,9 +350,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
             'pointer-events-none fixed inset-x-0 z-30 flex justify-center px-4',
             // Clear of the button that reopens the panel, which shares this
             // corner while the panel is closed.
-            isAgentChatOpen
-              ? ABOVE_MOBILE_NAV.bottom6
-              : cn(ABOVE_MOBILE_NAV.bottom24, 'lg:!bottom-6')
+            isAgentChatOpen ? 'bottom-6' : 'bottom-24 lg:!bottom-6'
           )}
         >
           <NoteReviewControls
@@ -366,7 +363,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
 
       {/*
        * Floats in the bottom-right corner, on the side the panel docks to.
-       * Below `tablet` it clears the 64px MobileBottomNav. It hides once open —
+       * It hides once open —
        * the panel would cover it, and its close button is the way back.
        */}
       {showAgentChat && activeNoteId && !isAgentChatOpen && (
@@ -376,7 +373,7 @@ export function NoteEditorLayout({ onAgentChatDockedChange }: NoteEditorLayoutPr
           aria-expanded={false}
           className={cn(
             'group fixed right-6 z-40 flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-primary-500 via-primary-600 to-indigo-600 py-2.5 pl-3.5 pr-4 text-sm font-medium text-white shadow-lg shadow-primary-500/25 transition-shadow hover:shadow-xl hover:shadow-primary-500/35',
-            ABOVE_MOBILE_NAV.bottom6
+            'bottom-6'
           )}
         >
           {/* Highlight band that sweeps across on hover. */}

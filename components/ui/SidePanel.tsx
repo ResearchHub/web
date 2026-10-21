@@ -21,6 +21,8 @@ interface SidePanelProps {
    * breakpoint up.
    */
   widthClassName?: string;
+  /** Once it has finished sliding away and handed focus back. */
+  onAfterClose?: () => void;
 }
 
 /** A swipe across that carries the panel this share of its width closes it on release. */
@@ -143,12 +145,13 @@ export const SidePanel: FC<SidePanelProps> = ({
   footer,
   side = 'right',
   widthClassName = 'w-full tablet:max-w-[560px]',
+  onAfterClose,
 }) => {
   const swipeHandlers = useSwipeToClose(onClose, side);
   const offscreen = side === 'right' ? 'translate-x-full' : '-translate-x-full';
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
+    <Transition appear show={isOpen} as={Fragment} afterLeave={onAfterClose}>
       <Dialog as="div" className="relative z-[9999]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
