@@ -103,10 +103,9 @@ export function GrantByline({ openedDate }: { openedDate?: string }) {
             : 'No proposals yet'}
         </li>
         {/* Open RFPs take proposals on a rolling basis for now, whatever their
-            end date. A pending one will once it is approved. */}
-        <li className={BYLINE_CHIP_CLASS}>
-          {isActive || isPending ? 'Rolling deadline' : 'Closed'}
-        </li>
+            end date. A pending one will once it is approved. A closed one has
+            no chip: the cover's badge says it is closed. */}
+        {!isClosed && <li className={BYLINE_CHIP_CLASS}>Rolling deadline</li>}
       </ul>
     </div>
   );

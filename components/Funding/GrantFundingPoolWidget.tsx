@@ -241,10 +241,6 @@ export function GrantFundingPoolWidget({
           Your proposal will be submitted privately
         </p>
       )}
-
-      {!canApply && !isOpen && (
-        <p className="mt-3 text-center text-xs text-white/60">This RFP is closed</p>
-      )}
     </FundingCard>
   );
 }
