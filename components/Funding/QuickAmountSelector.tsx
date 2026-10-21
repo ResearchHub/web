@@ -61,6 +61,16 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
     return null;
   }
 
+  // Narrower on phones, so four amounts and Remaining still fit on one row.
+  const chipClass = (isSelected: boolean) =>
+    cn(
+      'px-2.5 sm:px-3 py-2 text-sm font-medium rounded-full border transition-all',
+      'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
+      isSelected
+        ? 'bg-primary-600 text-white border-primary-600'
+        : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
+    );
+
   return (
     <div className={cn('flex flex-nowrap items-center gap-2', className)}>
       {/* Quick amount buttons */}
@@ -69,13 +79,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
           key={amount}
           type="button"
           onClick={() => handleAmountClick(amount)}
-          className={cn(
-            'px-3 py-2 text-sm font-medium rounded-full border transition-all',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
-            isQuickAmountSelected(amount)
-              ? 'bg-primary-600 text-white border-primary-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
-          )}
+          className={chipClass(isQuickAmountSelected(amount))}
         >
           {formatQuickAmountLabel(amount)}
         </button>
@@ -86,13 +90,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
         <button
           type="button"
           onClick={handleFundRemaining}
-          className={cn(
-            'px-3 py-2 text-sm font-medium rounded-full border transition-all',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
-            isRemainingSelected
-              ? 'bg-primary-600 text-white border-primary-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
-          )}
+          className={chipClass(isRemainingSelected)}
         >
           Remaining
         </button>

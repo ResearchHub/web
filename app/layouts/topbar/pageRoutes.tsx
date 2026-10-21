@@ -10,6 +10,8 @@ import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
 
 export interface PageInfo {
   title: string;
+  /** Stands in for the title where the bar has no room for it: phones and narrow tablets. */
+  compactTitle?: string;
   icon?: React.ReactNode;
   /** The page names what it has open and has not yet: a placeholder stands in. */
   loading?: boolean;
@@ -128,9 +130,10 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/grant/'),
+    match: (p) => p.startsWith('/rfp/'),
     getInfo: () => ({
-      title: 'Fund',
+      title: 'Request for Proposal',
+      compactTitle: 'RFP',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },

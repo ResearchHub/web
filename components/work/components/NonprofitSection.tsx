@@ -1,9 +1,8 @@
 'use client';
 
 import { HelpCircle } from 'lucide-react';
-import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { SidebarCard } from '@/components/ui/SidebarCard';
 import { NonprofitDisplay } from '@/components/Nonprofit';
-import { NonprofitSkeleton } from '@/components/skeletons/NonprofitSkeleton';
 import { ID } from '@/types/root';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useEffect, useState } from 'react';
@@ -18,10 +17,10 @@ interface NonprofitSectionProps {
 }
 
 /**
- * Component to display nonprofit information associated with a fundraise
+ * The nonprofit a fundraise pays into, as a sidebar card. Most fundraises have
+ * none, so the card waits for the answer rather than holding a place for it.
  */
 export function NonprofitSection({ fundraiseId, className }: NonprofitSectionProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [selectedNonprofit, setSelectedNonprofit] = useState<NonprofitOrg | null>(null);
   const [showEndaomentInfo, setShowEndaomentInfo] = useState(false);
 
@@ -30,47 +29,39 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
   useEffect(() => {
     fetchNonprofitData(fundraiseId);
-    setIsMounted(true);
   }, [fundraiseId, fetchNonprofitData]);
 
-  if (!nonprofit && !isLoading && isMounted) {
+  if (isLoading || !nonprofit) {
     return null;
   }
 
   return (
-    <section className={className}>
-      <SidebarHeader
-        title="Nonprofit Recipient"
-        action={
-          <Button
-            className="text-gray-400 hover:text-gray-600"
-            onClick={() => setShowEndaomentInfo(true)}
-            variant="ghost"
-            size="icon"
-          >
-            <HelpCircle className="h-4 w-4" />
-          </Button>
-        }
-      />
-
-      {isLoading || !isMounted ? (
-        <NonprofitSkeleton showHeader={false} />
-      ) : (
-        nonprofit && (
-          <div className="mt-2">
-            <NonprofitDisplay
-              nonprofit={nonprofit}
-              note={departmentLabName || ''}
-              onNoteChange={() => {}}
-              onInfoClick={() => setSelectedNonprofit(nonprofit)}
-              onClear={() => {}}
-              isInfoOpen={selectedNonprofit?.id === nonprofit.id}
-              readOnly={true}
-              allowClear={false}
-            />
-          </div>
-        )
-      )}
+    <SidebarCard
+      title="Nonprofit Recipient"
+      action={
+        <Button
+          className="text-gray-400 hover:text-gray-600"
+          onClick={() => setShowEndaomentInfo(true)}
+          variant="ghost"
+          size="icon"
+        >
+          <HelpCircle className="h-4 w-4" />
+        </Button>
+      }
+      className={className}
+    >
+      <div className="mt-2">
+        <NonprofitDisplay
+          nonprofit={nonprofit}
+          note={departmentLabName || ''}
+          onNoteChange={() => {}}
+          onInfoClick={() => setSelectedNonprofit(nonprofit)}
+          onClear={() => {}}
+          isInfoOpen={selectedNonprofit?.id === nonprofit.id}
+          readOnly={true}
+          allowClear={false}
+        />
+      </div>
 
       {/* Nonprofit Info Dialog */}
       <Transition show={!!selectedNonprofit} as={Fragment}>
@@ -286,6 +277,6 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
           </div>
         </Dialog>
       </Transition>
-    </section>
+    </SidebarCard>
   );
 }

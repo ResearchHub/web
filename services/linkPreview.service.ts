@@ -23,6 +23,8 @@
  * see services/linkPreview.service.ts SSRF discussion for the tradeoff.
  */
 
+import { decodeHtmlEntities as decodeOnce } from '@/utils/stringUtils';
+
 // =============================================================================
 // Public types
 // =============================================================================
@@ -76,15 +78,6 @@ const TITLE_REGEX = /<title[^>]*>([^<]+)<\/title>/i;
 // Detect either an og:title or twitter:title meta tag — used to stop reading
 // early on traditional static pages where metadata lives in <head>.
 const TITLE_META_REGEX = /<meta[^>]*(?:property|name)=["'](?:og:title|twitter:title)["']/i;
-
-const NAMED_ENTITIES: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
 
 // Several CDN-protected sites (Wikipedia, Washington Post, Cloudflare-fronted
 // pages) block the historical `facebookexternalhit/1.1` UA we used here with a
@@ -148,29 +141,17 @@ function abs(maybeUrl: string | undefined, base: string): string | undefined {
 }
 
 /**
- * Decodes HTML entities (named like `&amp;`, decimal like `&#39;`, hex like
- * `&#x27;`) iteratively so doubly-encoded values (e.g. LinkedIn's
- * `&amp;#39;` for an apostrophe) collapse to the original character.
- *
- * Edge-runtime safe: pure regex + String.fromCodePoint, no DOMParser.
+ * Decodes HTML entities a few passes over, so doubly-encoded values (e.g.
+ * LinkedIn's `&amp;#39;` for an apostrophe) collapse to the original
+ * character. Edge-runtime safe: `decodeOnce` uses no DOMParser.
  */
 function decodeHtmlEntities(input: string | undefined): string | undefined {
   if (!input) return input;
   let s = input;
   for (let i = 0; i < 4; i++) {
-    if (!/&(#x?[0-9a-f]+|[a-z]+);/i.test(s)) break;
-    s = s.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (full, body: string) => {
-      if (body.startsWith('#x') || body.startsWith('#X')) {
-        const code = parseInt(body.slice(2), 16);
-        return Number.isFinite(code) ? String.fromCodePoint(code) : full;
-      }
-      if (body.startsWith('#')) {
-        const code = parseInt(body.slice(1), 10);
-        return Number.isFinite(code) ? String.fromCodePoint(code) : full;
-      }
-      const named = NAMED_ENTITIES[body.toLowerCase()];
-      return named ?? full;
-    });
+    const decoded = decodeOnce(s);
+    if (decoded === s) break;
+    s = decoded;
   }
   return s;
 }

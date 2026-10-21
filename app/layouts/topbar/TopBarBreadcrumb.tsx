@@ -54,7 +54,17 @@ export const TopBarBreadcrumb = ({
           />
         ) : pageInfo.title ? (
           <span className={titleClass} style={titleStyle} title={pageInfo.title}>
-            {shortTitle && !isMobile ? (
+            {pageInfo.compactTitle ? (
+              isMobile ? (
+                pageInfo.compactTitle
+              ) : (
+                <>
+                  {/* From 900px the search field leaves room for the full title. */}
+                  <span className="hidden min-[900px]:inline">{pageInfo.title}</span>
+                  <span className="min-[900px]:hidden">{pageInfo.compactTitle}</span>
+                </>
+              )
+            ) : shortTitle && !isMobile ? (
               <>
                 {/* The bar is as wide as the screen under 1240px, and 240px narrower past it. */}
                 <span className="hidden min-[1100px]:max-[1239px]:inline min-[1340px]:inline">

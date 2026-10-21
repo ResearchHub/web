@@ -167,6 +167,12 @@ export interface ChatExecution {
    * every later turn on it runs, and cannot be changed.
    */
   model: string;
+  /**
+   * Ref of the model that answered instead of `model` after it refused the
+   * conversation. Once set, every later turn on the chat carries it too. Null
+   * when `model` answered; omitted by older backends.
+   */
+  routed_model?: string | null;
   /** Saved effort for this turn; null on legacy turns, omitted by older backends. */
   effort?: EffortLevel | null;
   /** The user message that started this turn. */

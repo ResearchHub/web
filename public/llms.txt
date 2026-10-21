@@ -2,9 +2,9 @@
 
 > ResearchHub is an open science platform where researchers publish, peer review, fund, and discuss scientific research. Contributors earn ResearchCoin (RSC) for their work.
 
-ResearchHub's mission is to accelerate the pace of scientific research. It is a collaborative platform centered on funding scientific work and conducting open peer review of both proposals and preprints, alongside discussion in topic-specific communities called Hubs. Funded proposals have a clear path from idea to execution, with payouts in RSC or — when a nonprofit is attached — USD. Approved peer reviews earn $150 worth of RSC, all content is published open access, and peer review completes in as few as 14 days. The home page is a live activity feed of platform-wide funding, review, and discussion, with tabs for open Requests for Proposals and community proposals seeking funding. The ResearchHub Endowment lets RSC holders earn yield as Funding Credits — a non-transferable currency that can only be spent on funding preregistered research proposals — turning one-time capital into perpetual research funding. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
+ResearchHub's mission is to accelerate the pace of scientific research. It is a collaborative platform centered on funding scientific work and conducting open peer review of both proposals and preprints. Funded proposals have a clear path from idea to execution, with payouts in RSC or — when a nonprofit is attached — USD. Approved peer reviews earn $150 worth of RSC, all content is published open access, and peer review completes in as few as 14 days. The home page is a live activity feed of platform-wide funding, review, and discussion, with tabs for open Requests for Proposals and community proposals seeking funding. The ResearchHub Endowment lets RSC holders earn yield as Funding Credits — a non-transferable currency that can only be spent on funding preregistered research proposals — turning one-time capital into perpetual research funding. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
 
-Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topics at `/topic/{slug}`, authors at `/author/{id}`, posts at `/post/{id}/{slug}`, proposals at `/proposal/{id}/{slug}`, and grants at `/grant/{id}/{slug}`.
+Dynamic content follows these URL patterns: authors at `/author/{id}`, posts at `/post/{id}/{slug}`, proposals at `/proposal/{id}/{slug}`, and RFPs (requests for proposals) at `/rfp/{id}/{slug}`.
 
 ## Core
 
@@ -12,10 +12,6 @@ Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topi
 - [About](https://researchhub.com/about): Mission, values, and vision
 - [Team](https://researchhub.com/team): The people behind ResearchHub
 - [Changelog](https://researchhub.com/changelog): Product updates
-
-## Research & Discovery
-
-- [Browse Hubs](https://researchhub.com/browse): Research topics organized into Hubs by discipline
 
 ## Funding
 
@@ -27,10 +23,6 @@ Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topi
 
 - [Earn for Peer Reviews](https://researchhub.com/peer-review): Approved reviews of preprints and proposals earn $150 worth of RSC
 - [ResearchHub Journal](https://researchhub.com/journal): Open access, peer-reviewed journal with review in as few as 14 days
-
-## Community
-
-- [Referral Program](https://researchhub.com/referral): Invite researchers and earn rewards
 
 ## ResearchCoin (RSC)
 

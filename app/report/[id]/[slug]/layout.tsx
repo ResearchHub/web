@@ -68,7 +68,6 @@ export default async function RegisteredReportLayout({ params, children }: Reado
           <WorkHeader
             work={payload.work}
             metadata={metadata}
-            contentType="post"
             reviewsTabUrl={reviewsTabUrl}
             preTitle={
               <RegisteredReportRouteTracker
