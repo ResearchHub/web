@@ -7,7 +7,9 @@ import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useReferral } from '@/contexts/ReferralContext';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/form/Input';
 import type { AuthAppearance, CatalystSurface } from '../types';
+import { AuthScreenHeader } from './AuthScreenHeader';
 import { CATALYST_NYC_EVENT } from '@/components/events/catalyst/constants';
 
 interface SelectProviderProps {
@@ -284,18 +286,10 @@ export default function SelectProvider({
   return (
     <div>
       {showHeader && appearance === 'default' && (
-        <>
-          <h2 className="text-xl font-bold tracking-tight text-gray-900 !leading-10 mr-6">
-            Welcome to ResearchHub{' '}
-            <span role="img" aria-label="wave">
-              👋
-            </span>
-          </h2>
-          <p className="mt-2 mb-6 text-base text-gray-700">
-            We are an open-science platform that enables discussions, peer-reviews, publications and
-            more.
-          </p>
-        </>
+        <AuthScreenHeader
+          title="Log in or sign up"
+          subtitle="Fund, publish and review open science."
+        />
       )}
 
       {isCatalystLight && entryTitle}
@@ -303,23 +297,17 @@ export default function SelectProvider({
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
       <form onSubmit={handleCheckAccount}>
-        {isCatalystLight && (
-          <label
-            className="block text-xs font-semibold text-gray-600 mb-2"
-            htmlFor="catalyst-email-light"
-          >
-            {resolvedEmailLabel}
-          </label>
-        )}
-        <input
+        <Input
           type="email"
-          id={isCatalystLight ? 'catalyst-email-light' : undefined}
+          id={isCatalystLight ? 'catalyst-email-light' : 'auth-email'}
+          label={isCatalystLight ? resolvedEmailLabel : 'Email'}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder={isCatalystLight ? auth.emailPlaceholder : 'Email'}
+          placeholder={isCatalystLight ? auth.emailPlaceholder : 'name@institution.org'}
           autoCapitalize="none"
           autoComplete="email"
-          className="w-full p-3 border rounded mb-4"
+          className="h-12"
+          wrapperClassName="mb-4"
           ref={emailInputRef}
           data-testid="auth-email-input"
         />
@@ -334,19 +322,18 @@ export default function SelectProvider({
           {isLoading ? auth.loadingLabel : auth.continueLabel}
         </Button>
 
-        <div className="relative my-8">
-          <div className="absolute top-[2px] inset-x-0 bottom-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">or</span>
-          </div>
+        <div className="my-6 flex items-center gap-3 text-sm text-gray-500">
+          <span className="h-px flex-1 bg-gray-200" />
+          or
+          <span className="h-px flex-1 bg-gray-200" />
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="outlined"
+          size="lg"
           onClick={handleGoogleSignIn}
-          className="w-full flex items-center justify-center gap-2 p-3 border border-gray-300 rounded hover:bg-gray-50"
+          className="w-full gap-2.5 font-semibold text-gray-900"
         >
           <svg className="w-5 h-5" aria-hidden="true" viewBox="0 0 24 24">
             <path
@@ -367,7 +354,7 @@ export default function SelectProvider({
             />
           </svg>
           {auth.googleLabel}
-        </button>
+        </Button>
       </form>
 
       {isCatalystLight && entryNote}
