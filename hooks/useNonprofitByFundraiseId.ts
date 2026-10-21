@@ -70,14 +70,13 @@ export interface UseNonprofitByFundraiseIdReturn {
   departmentLabName: string;
   isLoading: boolean;
   error: Error | null;
-  fetchNonprofitData: (fundraiseId: ID) => Promise<void>;
 }
 
 /**
  * Hook for fetching nonprofit data associated with a fundraiseId
  *
  * @param initialFundraiseId - Optional initial fundraise ID to fetch on mount
- * @returns Object containing nonprofit data, loading state, error state, and fetch function
+ * @returns Object containing nonprofit data, loading state and error state
  */
 export const useNonprofitByFundraiseId = (
   initialFundraiseId?: ID
@@ -142,6 +141,5 @@ export const useNonprofitByFundraiseId = (
     departmentLabName: state.departmentLabName,
     isLoading: state.isLoading,
     error: state.error,
-    fetchNonprofitData,
   };
 };
