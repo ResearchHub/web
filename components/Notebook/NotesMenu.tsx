@@ -32,9 +32,6 @@ import { cn } from '@/utils/styles';
 export function NotesMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  // Bottom inset so the mobile sheet stops above the (fixed) bottom nav rather
-  // than covering it. The sheet intentionally covers the top bar.
-  const [bottomInset, setBottomInset] = useState(0);
   // The creation modals live here (rather than inside NotebookPrimaryNavigation)
   // so the menu can close as the modal opens without unmounting the modal.
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
@@ -110,19 +107,6 @@ export function NotesMenu() {
     />
   );
 
-  // Measure the bottom nav while the mobile sheet is open so it stops just
-  // above it (accounts for safe areas).
-  useEffect(() => {
-    if (!isOpen || !isMobile) return;
-    const measure = () => {
-      const bottomNav = document.querySelector('[data-mobile-bottom-nav]');
-      setBottomInset(bottomNav?.getBoundingClientRect().height ?? 0);
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, [isOpen, isMobile]);
-
   return (
     <div className="relative">
       <button
@@ -151,15 +135,12 @@ export function NotesMenu() {
 
       {/* Mobile: sheet portaled to <body> so it escapes the top bar's
           transformed stacking context. It covers the top bar (z above its
-          z-[60]) and stops just above the fixed bottom nav. */}
+          z-[60]). */}
       {isOpen &&
         isMobile &&
         isMounted &&
         createPortal(
-          <div
-            className="fixed left-0 right-0 top-0 z-[70] flex flex-col bg-white shadow-lg"
-            style={{ bottom: bottomInset }}
-          >
+          <div className="fixed inset-0 z-[70] flex flex-col bg-white shadow-lg">
             {/* Header with a close control. */}
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <div className="flex items-center gap-2 text-gray-800">
