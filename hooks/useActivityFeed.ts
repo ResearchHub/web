@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { ActivityService, ActivityCommentType, ActivityScope } from '@/services/activity.service';
 import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
-import { shareWorkReviews } from '@/components/Activity/lib/activityWork.utils';
 
 export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 
@@ -128,12 +127,8 @@ export function useActivityFeed({
     }
   }, [isLoading, isLoadingMore, hasMore, fetchPage]);
 
-  // Tip and contribution entries come without their work's reviews; any other
-  // loaded entry about the same work lends them, so their covers can show a rating.
-  const entriesWithReviews = useMemo(() => shareWorkReviews(entries), [entries]);
-
   return {
-    entries: entriesWithReviews,
+    entries,
     // While deferred, keep the loading UI unless we already restored entries.
     isLoading: enabled === false ? !hasRestoredEntries : isLoading,
     error,

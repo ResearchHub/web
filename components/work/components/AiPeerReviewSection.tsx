@@ -1,186 +1,163 @@
 'use client';
 
 import { FC, useMemo, useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
-import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { Button } from '@/components/ui/Button';
-import { BaseModal } from '@/components/ui/BaseModal';
+import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { CountBadge } from '@/components/ui/CountBadge';
+import { SidebarCard } from '@/components/ui/SidebarCard';
+import { SidePanel } from '@/components/ui/SidePanel';
 import { AiPeerReviewVerdictBadge } from '@/components/work/AiPeerReviewCard/AiPeerReviewVerdictBadge';
-import type { KeyInsightItem, ProposalReview } from '@/types/aiPeerReview';
+import type { KeyInsightItem, KeyInsightItemType, ProposalReview } from '@/types/aiPeerReview';
 import { cn } from '@/utils/styles';
 
 interface AiPeerReviewSectionProps {
   aiPeerReview: ProposalReview | null | undefined;
 }
 
-const TLDR_MAX_CHARS = 100;
+/** Strengths the card lists, and weaknesses; the panel has them all. */
 const MAX_PER_KIND = 2;
 
+/**
+ * The AI's read of the proposal, as a sidebar card in the other cards' style:
+ * the opening of its summary, the top strengths and weaknesses, and a link to
+ * all of it in a side panel.
+ */
 export const AiPeerReviewSection: FC<AiPeerReviewSectionProps> = ({ aiPeerReview }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const { keyInsight, overallRating } = aiPeerReview ?? {};
 
-  const { pros, cons, allPros, allCons } = useMemo(() => {
-    if (!keyInsight?.items?.length) return { pros: [], cons: [], allPros: [], allCons: [] };
+  const { strengths, weaknesses } = useMemo(() => {
+    const items = keyInsight?.items ?? [];
     const byOrder = (a: KeyInsightItem, b: KeyInsightItem) => a.order - b.order || a.id - b.id;
-    const sortedPros = keyInsight.items.filter((i) => i.itemType === 'strength').sort(byOrder);
-    const sortedCons = keyInsight.items.filter((i) => i.itemType === 'weakness').sort(byOrder);
     return {
-      pros: sortedPros.slice(0, MAX_PER_KIND),
-      cons: sortedCons.slice(0, MAX_PER_KIND),
-      allPros: sortedPros,
-      allCons: sortedCons,
+      strengths: items.filter((i) => i.itemType === 'strength').sort(byOrder),
+      weaknesses: items.filter((i) => i.itemType === 'weakness').sort(byOrder),
     };
   }, [keyInsight]);
 
-  if (!aiPeerReview || aiPeerReview.status !== 'completed') return null;
-  if (!keyInsight) return null;
+  if (aiPeerReview?.status !== 'completed' || !keyInsight) return null;
 
   const tldr = keyInsight.tldr ?? '';
-  const truncatedTldr =
-    tldr.length > TLDR_MAX_CHARS ? `${tldr.slice(0, TLDR_MAX_CHARS).trimEnd()}…` : tldr;
+  const shown = [...strengths.slice(0, MAX_PER_KIND), ...weaknesses.slice(0, MAX_PER_KIND)];
+  const verdict = <AiPeerReviewVerdictBadge rating={overallRating ?? null} />;
 
   return (
-    <div>
-      <SidebarHeader
-        title="Key Insights"
-        action={
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center h-5 rounded-full border border-primary-200 bg-primary-50 px-2 text-[10px] font-semibold uppercase tracking-wider leading-none text-primary-700">
-              Beta
-            </span>
-            <AiPeerReviewVerdictBadge rating={overallRating ?? null} />
-          </div>
-        }
-        className="mb-3"
-      />
-      <div className="space-y-2.5">
-        {truncatedTldr && <p className="text-sm leading-relaxed text-gray-900">{truncatedTldr}</p>}
+    <SidebarCard
+      title={
+        <>
+          Key insights
+          <BetaChip />
+        </>
+      }
+      action={verdict}
+    >
+      {tldr && <p className="mt-2 line-clamp-3 text-[13px] leading-[18px] text-gray-700">{tldr}</p>}
 
-        {pros.length + cons.length > 0 && (
-          <ul className="space-y-1.5">
-            {pros.map((i) => (
-              <ProConItem key={`pro-${i.id}`} item={i} variant="pro" />
-            ))}
-            {cons.map((i) => (
-              <ProConItem key={`con-${i.id}`} item={i} variant="con" />
-            ))}
-          </ul>
-        )}
+      {shown.length > 0 && (
+        <ul className="mt-2.5 flex flex-col gap-1.5">
+          {shown.map((item) => (
+            <li
+              key={`${item.itemType}-${item.id}`}
+              className="flex items-start gap-1.5 text-[13px] leading-[18px] text-gray-900"
+            >
+              <InsightIcon kind={item.itemType} size={14} className="mt-0.5" />
+              <span className="min-w-0">{item.label.trim() || item.description}</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <Button
-          type="button"
-          variant="outlined"
-          size="sm"
-          onClick={() => setIsModalOpen(true)}
-          className="mt-1 w-full gap-1.5 !h-7 !px-2 !text-xs font-medium border-primary-200 text-primary-700 hover:bg-primary-50 hover:border-primary-300"
-        >
-          <Sparkles size={12} />
-          View full insights
-        </Button>
-      </div>
-
-      <BaseModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={
-          <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-gray-900" />
-            <span>Key Insights</span>
-            <span className="inline-flex items-center h-5 rounded-full border border-primary-200 bg-primary-50 px-2 text-[10px] font-semibold uppercase tracking-wider leading-none text-primary-700">
-              Beta
-            </span>
-            <AiPeerReviewVerdictBadge rating={overallRating ?? null} />
-          </div>
-        }
-        maxWidth="max-w-3xl"
-        padding="p-6"
-        className="!border-2 !border-transparent ![background:linear-gradient(white,white)_padding-box,linear-gradient(135deg,#3b82f6,#a855f7)_border-box]"
+      <button
+        type="button"
+        onClick={() => setIsPanelOpen(true)}
+        className="mt-2 text-sm font-semibold text-primary-600 hover:text-primary-700"
       >
-        <div className="space-y-6">
+        Read the full insights
+      </button>
+
+      <SidePanel
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+        title={
+          <span className="flex min-w-0 items-center gap-2">
+            Key insights
+            <BetaChip />
+            {verdict}
+          </span>
+        }
+        widthClassName="w-full tablet:max-w-[440px]"
+      >
+        <div className="space-y-6 p-4 tablet:p-6">
           {tldr && (
             <section>
-              <h4 className="mb-3 pb-2 border-b border-gray-200 text-base font-semibold text-gray-900">
-                TL;DR
-              </h4>
-              <p className="text-sm leading-relaxed text-gray-900">{tldr}</p>
+              <h3 className="text-sm font-semibold text-gray-900">Summary</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-700">{tldr}</p>
             </section>
           )}
-
-          {(allPros.length > 0 || allCons.length > 0) && (
-            <section>
-              <h4 className="mb-3 pb-2 border-b border-gray-200 text-base font-semibold text-gray-900">
-                Deep Dive
-              </h4>
-              <div className="space-y-4">
-                {allPros.map((i) => (
-                  <DeepDiveItem key={`modal-pro-${i.id}`} item={i} variant="pro" />
-                ))}
-                {allCons.map((i) => (
-                  <DeepDiveItem key={`modal-con-${i.id}`} item={i} variant="con" />
-                ))}
-              </div>
-            </section>
-          )}
+          <InsightList heading="Strengths" items={strengths} />
+          <InsightList heading="Weaknesses" items={weaknesses} />
         </div>
-      </BaseModal>
-    </div>
+      </SidePanel>
+    </SidebarCard>
   );
 };
 
-interface ProConItemProps {
-  item: { label: string; description: string };
-  variant: 'pro' | 'con';
-}
-
-const DeepDiveItem: FC<{ item: KeyInsightItem; variant: 'pro' | 'con' }> = ({ item, variant }) => {
-  const Icon = variant === 'pro' ? ArrowUpRight : ArrowDownRight;
-  const iconColor = variant === 'pro' ? 'text-green-600' : 'text-red-600';
-  const hasLabel = item.label.trim().length > 0;
-  const showSeparateDescription = hasLabel && item.description && item.description !== item.label;
-
+/** That the insights are an early feature, as a muted chip beside their title. */
+function BetaChip() {
   return (
-    <div className="flex items-start gap-2">
-      <Icon size={16} className={cn('shrink-0 mt-0.5', iconColor)} />
-      <div className="min-w-0 flex-1">
-        {hasLabel && <div className="text-sm font-semibold text-gray-900">{item.label}</div>}
-        {showSeparateDescription ? (
-          <p className="mt-0.5 text-sm leading-relaxed text-gray-700">{item.description}</p>
-        ) : !hasLabel && item.description ? (
-          <p className="text-sm leading-relaxed text-gray-900">{item.description}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-};
-
-const ProConItem: FC<ProConItemProps> = ({ item, variant }) => {
-  const Icon = variant === 'pro' ? ArrowUpRight : ArrowDownRight;
-  const iconColor = variant === 'pro' ? 'text-green-600' : 'text-red-600';
-  const hasLabel = item.label.trim().length > 0;
-  const preview = hasLabel ? item.label : item.description;
-  const tooltip =
-    hasLabel && item.description && item.description !== item.label ? item.description : null;
-
-  const inner = (
-    <span className="inline-flex items-start gap-1.5 text-sm text-gray-900">
-      <Icon size={14} className={cn('shrink-0 mt-0.5', iconColor)} />
-      <span className={cn(tooltip && 'cursor-help border-b border-dashed border-gray-300')}>
-        {preview}
-      </span>
+    <span className="inline-flex items-center rounded-md bg-gray-100 px-1.5 text-xs font-medium leading-5 text-gray-500">
+      Beta
     </span>
   );
+}
+
+function InsightIcon({
+  kind,
+  size,
+  className,
+}: {
+  kind: KeyInsightItemType;
+  size: number;
+  className?: string;
+}) {
+  const isStrength = kind === 'strength';
+  const Icon = isStrength ? ArrowUpRight : ArrowDownRight;
+  return (
+    <Icon
+      role="img"
+      aria-label={isStrength ? 'Strength' : 'Weakness'}
+      size={size}
+      className={cn('shrink-0', isStrength ? 'text-green-600' : 'text-red-600', className)}
+    />
+  );
+}
+
+/** One kind of insight in the panel, each with what the AI said about it. */
+function InsightList({ heading, items }: { heading: string; items: KeyInsightItem[] }) {
+  if (items.length === 0) return null;
 
   return (
-    <li>
-      {tooltip ? (
-        <Tooltip content={tooltip} width="w-72" position="top">
-          {inner}
-        </Tooltip>
-      ) : (
-        inner
-      )}
-    </li>
+    <section>
+      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+        {heading}
+        <CountBadge count={items.length} />
+      </h3>
+      <ul className="mt-3 space-y-4">
+        {items.map((item) => {
+          const label = item.label.trim();
+          const description = item.description !== item.label ? item.description : '';
+          return (
+            <li key={`${item.itemType}-${item.id}`} className="flex items-start gap-2">
+              <InsightIcon kind={item.itemType} size={16} className="mt-1" />
+              <div className="min-w-0 text-sm leading-6">
+                {label && <p className="font-semibold text-gray-900">{label}</p>}
+                {description && (
+                  <p className={label ? 'text-gray-700' : 'text-gray-900'}>{description}</p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
-};
+}

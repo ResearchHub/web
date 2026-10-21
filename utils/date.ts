@@ -152,6 +152,11 @@ export function isDeadlineInFuture(deadline: string): boolean {
   return deadlineDate.isAfter(now);
 }
 
+/** Open, and before its end date if it has one: an RFP or a fundraise still taking part. */
+export function isOpenBeforeDeadline(item: { status?: string; endDate?: string | null }): boolean {
+  return item.status === 'OPEN' && (item.endDate ? isDeadlineInFuture(item.endDate) : true);
+}
+
 export const MEMBERSHIP_JUST_JOINED = 'just joined';
 
 export function specificTimeSince(dateInput: string | Date): string {

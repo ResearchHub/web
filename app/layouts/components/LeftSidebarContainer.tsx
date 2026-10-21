@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef, useState } from 'react';
+import { SearchModal } from '@/components/Search/SearchModal';
 import { SidePanel } from '@/components/ui/SidePanel';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { LeftSidebar } from '../LeftSidebar';
@@ -21,6 +23,11 @@ interface LeftSidebarContainerProps {
 export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerProps) {
   // Widening the window past the breakpoint swaps an open menu for the column.
   const hasColumn = useMediaQuery('(min-width: 1240px)');
+  // The menu's Search: the menu steps aside and the search opens in its place,
+  // once the menu is gone, so the focus it hands back to ☰ doesn't land after
+  // the search box has taken it.
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchAfterClose = useRef(false);
 
   return (
     <>
@@ -35,10 +42,23 @@ export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerPr
           side="left"
           // A fifth wider than the column, so its rows are easier to tap.
           widthClassName="w-[288px] max-w-[85vw]"
+          onAfterClose={() => {
+            if (!searchAfterClose.current) return;
+            searchAfterClose.current = false;
+            setIsSearchOpen(true);
+          }}
         >
-          <LeftSidebar onNavigate={onClose} />
+          <LeftSidebar
+            onNavigate={onClose}
+            onSearch={() => {
+              searchAfterClose.current = true;
+              onClose();
+            }}
+          />
         </SidePanel>
       )}
+
+      {onClose && <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
     </>
   );
 }

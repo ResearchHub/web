@@ -20,6 +20,8 @@ interface ActivityHeaderActionTextProps {
   trailing?: ReactNode;
   /** Show AuthorBadge next to the actor when they authored the work. */
   isAuthor?: boolean;
+  /** Stacked only: rendered at the right end of the author's line, e.g. the time. */
+  aside?: ReactNode;
 }
 
 function AuthorName({
@@ -76,6 +78,7 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   stacked = false,
   trailing,
   isAuthor = false,
+  aside,
 }) => {
   const { actor, verb, target } = message;
   const authorNames = authors ? (
@@ -101,7 +104,14 @@ export const ActivityHeaderActionText: FC<ActivityHeaderActionTextProps> = ({
   if (stacked) {
     return (
       <span className={cn('block', className)}>
-        <span className="block truncate">{authorNames}</span>
+        {aside ? (
+          <span className="flex items-baseline gap-2">
+            <span className="block min-w-0 flex-1 truncate">{authorNames}</span>
+            {aside}
+          </span>
+        ) : (
+          <span className="block truncate">{authorNames}</span>
+        )}
         <span className="block">{action}</span>
       </span>
     );

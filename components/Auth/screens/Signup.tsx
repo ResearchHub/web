@@ -4,13 +4,13 @@ import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
 import { parseFullName } from '@/utils/nameUtils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/form/Input';
 import { useReferral } from '@/contexts/ReferralContext';
 import AnalyticsService from '@/services/analytics.service';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { TURNSTILE_SITEKEY } from '@/config/constants';
+import { AuthScreenHeader } from './AuthScreenHeader';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -31,7 +31,6 @@ export default function Signup({
   setError,
   onBack,
   onVerify,
-  modalView = false,
 }: Props) {
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
@@ -87,53 +86,59 @@ export default function Signup({
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 mb-6">
-        {modalView && (
-          <Button type="button" onClick={onBack} variant="ghost" size="icon">
-            <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
-          </Button>
-        )}
-
-        <h2 className="text-xl font-semibold mr-6">Create your account</h2>
-      </div>
+      <AuthScreenHeader
+        title="Create your account"
+        subtitle={
+          <>
+            Signing up as <span className="font-medium text-gray-900">{email}</span>
+          </>
+        }
+        onBack={onBack}
+      />
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
       <form onSubmit={handleSignup}>
-        <input
+        <Input
           type="text"
+          id="auth-signup-name"
+          label="Full name"
           name="name"
           autoComplete="name"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          placeholder="Full name (e.g. John Smith)"
-          className="w-full p-3 border rounded mb-4"
+          placeholder="e.g. Jane Smith"
+          className="h-12"
+          wrapperClassName="mb-4"
           ref={fullNameInputRef}
           data-testid="auth-signup-name-input"
         />
 
-        <div className="relative mb-4">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            name="new-password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full p-3 border rounded pr-12"
-            data-testid="auth-signup-password-input"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
-          >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
-        </div>
+        <Input
+          type={showPassword ? 'text' : 'password'}
+          id="auth-signup-password"
+          label="Password"
+          name="new-password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="h-12"
+          wrapperClassName="mb-5"
+          data-testid="auth-signup-password-input"
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="flex items-center px-3 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          }
+        />
 
         {TURNSTILE_SITEKEY && (
-          <div className="mb-4">
+          <div className="mb-5">
             <Turnstile
               ref={turnstileRef}
               siteKey={TURNSTILE_SITEKEY}
@@ -155,21 +160,16 @@ export default function Signup({
           </div>
         )}
 
-        <button
+        <Button
           type="submit"
+          size="lg"
           disabled={isLoading || (!!TURNSTILE_SITEKEY && !turnstileToken)}
-          className="w-full bg-indigo-600 text-white p-3 rounded mb-4 hover:bg-indigo-700 disabled:opacity-50"
+          className="w-full"
           data-testid="auth-signup-submit"
         >
           {isLoading ? 'Creating account...' : 'Create account'}
-        </button>
+        </Button>
       </form>
-
-      {!modalView && (
-        <button onClick={onBack} className="w-full text-gray-600 hover:text-gray-800">
-          ← Back
-        </button>
-      )}
     </div>
   );
 }

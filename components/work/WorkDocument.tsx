@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
-import { TabType } from './WorkTabs';
+import type { TabType } from './WorkHeader/WorkTabContext';
 
 import { Button } from '@/components/ui/Button';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';

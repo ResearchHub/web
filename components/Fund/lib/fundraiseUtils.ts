@@ -1,4 +1,4 @@
-import { isDeadlineInFuture } from '@/utils/date';
+import { isDeadlineInFuture, isOpenBeforeDeadline } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
 import type { FundraiseStatus } from '@/types/funding';
 
@@ -7,10 +7,7 @@ import type { FundraiseStatus } from '@/types/funding';
  * An OPEN fundraise with a past endDate is treated as inactive.
  */
 export function isFundraiseActive(fundraise: Fundraise): boolean {
-  return (
-    fundraise.status === 'OPEN' &&
-    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true)
-  );
+  return isOpenBeforeDeadline(fundraise);
 }
 
 /**

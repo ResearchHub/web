@@ -27,7 +27,8 @@ export const setDocumentTitle = (editor: Editor | null, newTitle: string): void 
 };
 
 export function removeTitleFromHTML(html: string): string {
-  return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
+  // [\s\S] rather than `.`, so a title that spans lines goes too.
+  return html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, '');
 }
 
 /** Extract a plain-text string from a TipTap-style JSON template (top-level blocks only). */

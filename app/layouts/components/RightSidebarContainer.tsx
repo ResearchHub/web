@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
@@ -23,6 +23,10 @@ interface RightSidebarContainerProps {
   aboveSidebar?: ReactNode;
   /** Stretch the gray rail to the bottom of the column even with a card above it. */
   fill?: boolean;
+  /** Render the sidebar's content as it is, without the gray rail around it. */
+  bare?: boolean;
+  /** The page's tabs stick above the row, so the sidebar sticks below them. */
+  belowPageTabs?: boolean;
 }
 
 export function RightSidebarContainer({
@@ -31,8 +35,14 @@ export function RightSidebarContainer({
   topOffset = 'default',
   aboveSidebar,
   fill = false,
+  bare = false,
+  belowPageTabs = false,
 }: RightSidebarContainerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
+  // The drawer's copy of the sidebar mounts the first time the drawer opens.
+  // Mounted from the start, every card in it would load its data a second time.
+  const [hasOpenedDrawer, setHasOpenedDrawer] = useState(false);
+  if (mobileSidebarOpen && !hasOpenedDrawer) setHasOpenedDrawer(true);
   const isDefaultSidebar = typeof rightSidebar === 'boolean';
   const sidebarKey = isDefaultSidebar ? 'default' : 'custom';
 
@@ -42,43 +52,55 @@ export function RightSidebarContainer({
   const cardAboveSidebar =
     aboveSidebar ?? (isDefaultSidebar ? <FundingPowerCard className="w-full" /> : undefined);
 
+  const sidebarContent = (
+    <Suspense fallback={null}>
+      <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+    </Suspense>
+  );
+
   return (
     <>
       <div
         className={cn(
           'sticky z-30',
           topOffset === 'aligned' ? 'mt-6' : 'mt-10',
-          // When a card sits above the gray rail, keep a gap under the top bar
-          // once sticky kicks in. Other pages keep top-0 so their sidebar
-          // position is unchanged.
-          cardAboveSidebar
-            ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
-            : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
+          // When a card sits above the gray rail, or the sidebar is all cards
+          // of its own (bare), keep a gap under the top bar once sticky kicks
+          // in. Other pages keep top-0 so their sidebar position is unchanged.
+          // Page tabs stuck at the top are 55px tall on desktop (54px tabs and
+          // their rule); the sidebar keeps the same 1rem gap under them.
+          belowPageTabs
+            ? 'top-[calc(55px+1rem)] h-[calc(100vh-var(--top-bar-height)-55px-1rem)]'
+            : cardAboveSidebar || bare
+              ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
+              : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
           'lg:!flex !hidden right-sidebar:!flex',
           'w-80 flex-shrink-0 flex-col gap-3'
         )}
       >
         {cardAboveSidebar}
 
-        <aside
-          className={cn(
-            'min-h-0 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
-            // With a card above it, the gray panel sizes to its content instead
-            // of filling the column — otherwise a short or empty sidebar leaves
-            // a tall empty rail hanging beneath that card. It still shrinks and
-            // scrolls when the content is taller than the space available.
-            // A page can ask for the full column anyway.
-            cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
-          )}
-        >
-          <div className={cn('h-full', contentClassName)}>
-            <div className="p-4 empty:hidden">
-              <Suspense fallback={null}>
-                <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-              </Suspense>
-            </div>
+        {bare ? (
+          <div className={cn('min-h-0 overflow-y-auto scrollbar-on-hover', contentClassName)}>
+            {sidebarContent}
           </div>
-        </aside>
+        ) : (
+          <aside
+            className={cn(
+              'min-h-0 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
+              // With a card above it, the gray panel sizes to its content instead
+              // of filling the column — otherwise a short or empty sidebar leaves
+              // a tall empty rail hanging beneath that card. It still shrinks and
+              // scrolls when the content is taller than the space available.
+              // A page can ask for the full column anyway.
+              cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
+            )}
+          >
+            <div className={cn('h-full', contentClassName)}>
+              <div className="p-4 empty:hidden">{sidebarContent}</div>
+            </div>
+          </aside>
+        )}
       </div>
 
       <div className="lg:hidden">
@@ -87,12 +109,12 @@ export function RightSidebarContainer({
           onClose={() => setMobileSidebarOpen(false)}
           height="85vh"
         >
-          <div className="space-y-3">
-            {aboveSidebar}
-            <Suspense fallback={null}>
-              <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
-            </Suspense>
-          </div>
+          {hasOpenedDrawer && (
+            <div className="space-y-3">
+              {aboveSidebar}
+              {sidebarContent}
+            </div>
+          )}
         </SwipeableDrawer>
       </div>
     </>

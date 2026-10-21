@@ -53,7 +53,7 @@ interface PaymentWidgetProps {
   onEndaomentLogin?: () => void;
   /** Whether the CTA button should be disabled */
   isButtonDisabled?: boolean;
-  /** Initial/controlled selected payment method */
+  /** The selected payment method, which the caller keeps */
   selectedPaymentMethod?: PaymentMethodType | null;
   /** Callback when payment method changes (for lifting state) */
   onPaymentMethodChange?: (method: PaymentMethodType | null) => void;
@@ -95,8 +95,8 @@ export function PaymentWidget({
   walletAvailability,
   hasNonprofit = false,
 }: PaymentWidgetProps) {
-  const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
-    initialMethod: selectedPaymentMethod,
+  const selectedMethod = selectedPaymentMethod ?? null;
+  const { isExpanded, toggleExpanded, selectMethod } = usePaymentMethod({
     onMethodChange: onPaymentMethodChange,
   });
 

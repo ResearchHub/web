@@ -22,7 +22,7 @@ import type {
   Review,
 } from '@/types/feed';
 import type { Bounty } from '@/types/bounty';
-import type { Fundraise } from '@/types/funding';
+import type { Fundraise, ReviewMetrics } from '@/types/funding';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { ContentType, Work, WorkGrantSummary } from '@/types/work';
 
@@ -43,7 +43,9 @@ export interface ActivityWork {
   grant?: WorkGrantSummary;
   bounty?: Bounty;
   authors?: AuthorProfile[];
-  /** The work's assessed peer reviews, as far as the feed has them. */
+  /** The average score and count of the work's assessed peer reviews. */
+  reviewMetrics?: ReviewMetrics;
+  /** The first few of those reviews, with who wrote them. */
   assessedReviews?: Review[];
 }
 
@@ -149,14 +151,9 @@ function formatAmount(
   });
 }
 
-function resolveReviewScore(entry: FeedEntry, work: ActivityWork): number | null {
+function resolveReviewScore(entry: FeedEntry): number | null {
   const entryScore = entry.metrics?.reviewScore;
-  if (entryScore && entryScore > 0) return entryScore;
-
-  const fundraiseAvg = work.fundraise?.reviewMetrics?.avg;
-  if (fundraiseAvg && fundraiseAvg > 0) return fundraiseAvg;
-
-  return null;
+  return entryScore && entryScore > 0 ? entryScore : null;
 }
 
 function isRegisteredReport(postType?: string): boolean {
@@ -203,7 +200,7 @@ function buildBasePresentation(
     brand: isDiscussion(work) ? 'researchhub' : undefined,
     organization: resolveOrganization(entry, work),
     institution: entry.nonprofit?.name ?? null,
-    score: resolveReviewScore(entry, work),
+    score: resolveReviewScore(entry),
     // Caller ANDs with commentPreview presence; here we only gate by slot.
     showComment: slot !== 'bounty' && slot !== 'grant',
   };
@@ -373,10 +370,7 @@ function getWorkKindLabel(work: ActivityWork): string {
  * single review's score: on the cover it reads as the work's rating.
  */
 function resolveCoverRating(work: ActivityWork): number | null {
-  const scores = work.assessedReviews?.map((review) => review.score) ?? [];
-  const average = scores.length
-    ? scores.reduce((sum, score) => sum + score, 0) / scores.length
-    : work.fundraise?.reviewMetrics?.avg;
+  const average = work.reviewMetrics?.avg;
   return average && average > 0 ? average : null;
 }
 
@@ -598,7 +592,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
       grant: grantSummaryFromFeedGrant(grantContent),
       bounty,
       authors: grantContent.authors,
-      assessedReviews: getAssessedReviews(entry),
     };
   }
 
@@ -637,7 +630,6 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
         entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION'
           ? undefined
           : post.authors,
-      assessedReviews: getAssessedReviews(entry),
     };
   }
 
@@ -709,43 +701,9 @@ function workFromRelatedWork(entry: FeedEntry, related: Work): ActivityWork {
     grant: related.grantSummary,
     bounty: getActivityBounty(entry),
     authors: resolveWorkAuthors(entry, relatedAuthors),
-    assessedReviews: getAssessedReviews(entry),
+    reviewMetrics: related.reviewMetrics,
+    assessedReviews: related.assessedReviews,
   };
-}
-
-function getAssessedReviews(entry: FeedEntry): Review[] | undefined {
-  const assessed = entry.workReviews?.filter(
-    (review) => review.isAssessed && Number.isFinite(review.score)
-  );
-  return assessed?.length ? assessed : undefined;
-}
-
-/** The work an entry is about, as one key for every entry about it. */
-function getWorkKey(entry: FeedEntry): number | undefined {
-  return entry.relatedWork?.unifiedDocumentId ?? undefined;
-}
-
-/**
- * Lends a work's peer reviews to the entries about it whose payload leaves them
- * out (review tips and payouts, contributions), from another loaded entry about the
- * same work. An entry that lists reviews, even none, keeps its own.
- */
-export function shareWorkReviews(entries: FeedEntry[]): FeedEntry[] {
-  const reviewsByWork = new Map<number, Review[]>();
-  for (const entry of entries) {
-    const key = getWorkKey(entry);
-    if (key != null && entry.workReviews && !reviewsByWork.has(key)) {
-      reviewsByWork.set(key, entry.workReviews);
-    }
-  }
-  if (reviewsByWork.size === 0) return entries;
-
-  return entries.map((entry) => {
-    if (entry.workReviews) return entry;
-    const key = getWorkKey(entry);
-    const workReviews = key != null ? reviewsByWork.get(key) : undefined;
-    return workReviews ? { ...entry, workReviews } : entry;
-  });
 }
 
 export function getActivityWork(entry: FeedEntry): ActivityWork | null {

@@ -5,6 +5,21 @@ import { getChangelogStorageKey } from '@/constants/changelog';
 import { PostService } from '@/services/post.service';
 
 /**
+ * One request for the latest entry per page load, however many places ask
+ * (the sidebar's help menu, the phone's You panel each time it opens). A
+ * failed request is forgotten so the next one tries again.
+ */
+let latestChangelog: ReturnType<typeof PostService.getLatestChangelog> | null = null;
+
+function getLatestChangelog() {
+  latestChangelog ??= PostService.getLatestChangelog().catch((error) => {
+    latestChangelog = null;
+    throw error;
+  });
+  return latestChangelog;
+}
+
+/**
  * Whether this browser has opened the changelog since its latest entry, kept in
  * localStorage. Starts as seen so the "new" marker never flashes before the
  * latest entry and the stored value are read after mount.
@@ -16,7 +31,7 @@ export function useChangelogSeen() {
   useEffect(() => {
     let isCancelled = false;
 
-    PostService.getLatestChangelog()
+    getLatestChangelog()
       .then((latest) => {
         if (isCancelled || !latest) return;
         const key = getChangelogStorageKey(latest.id);

@@ -24,9 +24,8 @@ function ActionValue({ value }: Readonly<{ value: ActivityActionValue }>) {
       return <BountyAmount bounty={value.bounty} className={VALUE_CLASS} />;
     case 'score':
       return (
-        <span className="inline-flex items-center gap-1 align-[-2px]">
+        <span className="inline-flex items-center align-[-2px]">
           <ReviewScoreStars score={value.score} size="sm" />
-          <span className="font-semibold text-amber-700">{value.score.toFixed(1)}</span>
         </span>
       );
   }

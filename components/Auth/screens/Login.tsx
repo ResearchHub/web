@@ -3,11 +3,11 @@ import { BaseScreenProps } from '../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/form/Input';
 import { useAutoFocus } from '@/hooks/useAutoFocus';
-import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AuthService } from '@/services/auth.service';
 import { ApiError } from '@/services/types/api';
+import { AuthScreenHeader } from './AuthScreenHeader';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -28,7 +28,6 @@ export default function Login({
   setError,
   onBack,
   onForgotPassword,
-  modalView = false,
 }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -141,75 +140,76 @@ export default function Login({
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        {modalView && (
-          <Button type="button" onClick={handleBackClick} variant="ghost" size="icon">
-            <FontAwesomeIcon icon={faChevronLeft} className="h-5 w-5" />
-          </Button>
-        )}
-
-        <h2 className="text-xl font-semibold mr-6 !leading-10">
-          {isMfaStep ? 'Verify your sign-in' : 'Welcome back'}
-        </h2>
-      </div>
+      <AuthScreenHeader
+        title={isMfaStep ? 'Verify your sign-in' : 'Welcome back'}
+        subtitle={
+          isMfaStep
+            ? 'Enter the 6-digit code from your authenticator app or one of your recovery codes.'
+            : undefined
+        }
+        onBack={handleBackClick}
+      />
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">{error}</div>}
 
       <form onSubmit={handleLogin}>
-        <input
+        <Input
           type="email"
+          id="auth-login-email"
+          label="Email"
           value={email}
           autoCapitalize="none"
           autoComplete="email"
-          className="w-full p-3 border rounded mb-4 bg-gray-50"
+          className="h-12 bg-gray-50 text-gray-600"
+          wrapperClassName="mb-4"
           disabled
         />
 
         {isMfaStep ? (
-          <>
-            <p className="text-sm text-gray-600 mb-4">
-              Enter the 6-digit code from your authenticator app or one of your recovery codes.
-            </p>
-            <input
-              type="text"
-              value={mfaCode}
-              onChange={(e) => setMfaCode(e.target.value)}
-              placeholder="Authenticator or recovery code"
-              className="w-full p-3 border rounded mb-4"
-              ref={mfaInputRef}
-              autoCapitalize="none"
-              autoComplete="one-time-code"
-            />
-          </>
+          <Input
+            type="text"
+            id="auth-mfa-code"
+            label="Code"
+            value={mfaCode}
+            onChange={(e) => setMfaCode(e.target.value)}
+            placeholder="Authenticator or recovery code"
+            className="h-12"
+            wrapperClassName="mb-5"
+            ref={mfaInputRef}
+            autoCapitalize="none"
+            autoComplete="one-time-code"
+          />
         ) : (
-          <div className="relative mb-4">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full p-3 border rounded pr-12"
-              ref={passwordInputRef}
-              data-testid="auth-password-input"
-            />
-            <Button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-[50%] -translate-y-[50%] text-gray-500 hover:text-gray-700"
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </Button>
-          </div>
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            id="auth-login-password"
+            label="Password"
+            name="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="h-12"
+            wrapperClassName="mb-5"
+            ref={passwordInputRef}
+            data-testid="auth-password-input"
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="flex items-center px-3 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            }
+          />
         )}
 
         <Button
           type="submit"
+          size="lg"
           disabled={isLoading}
-          className="w-full mb-4"
+          className="w-full"
           data-testid={isMfaStep ? 'auth-mfa-submit' : 'auth-login-submit'}
         >
           {isLoading
@@ -222,43 +222,30 @@ export default function Login({
         </Button>
       </form>
 
-      {isMfaStep ? (
-        <div className="text-left mb-4">
+      <div className="mt-5">
+        {isMfaStep ? (
           <Button
             type="button"
             variant="link"
             onClick={resetMfaStep}
             disabled={isLoading}
-            className="text-rhBlue-500 hover:text-rhBlue-600 text-sm"
+            className="text-sm"
           >
             Back to password
           </Button>
-        </div>
-      ) : (
-        <div className="text-left mb-4">
+        ) : (
           <Button
             type="button"
             variant="link"
             onClick={onForgotPassword}
             disabled={isLoading}
-            className="text-rhBlue-500 hover:text-rhBlue-600 text-sm"
+            className="text-sm"
             data-testid="auth-forgot-password"
           >
             Forgot your password?
           </Button>
-        </div>
-      )}
-
-      {!modalView && (
-        <Button
-          onClick={handleBackClick}
-          disabled={isLoading}
-          variant="ghost"
-          className="w-full text-gray-600 hover:text-gray-800"
-        >
-          ← Back
-        </Button>
-      )}
+        )}
+      </div>
     </div>
   );
 }

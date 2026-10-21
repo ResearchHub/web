@@ -5,10 +5,8 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Comment } from '@/types/comment';
-import { TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
-import { PostBlockEditor } from './PostBlockEditor';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
+import { DocumentSections } from './DocumentSections';
 import { AuthorPosts } from '@/components/Comment/components/AuthorPosts';
 import { PostVideoCallout } from './components/PostVideoCallout';
 import { useStorageKey } from '@/utils/storageKeys';
@@ -123,46 +121,12 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     setIsProposalVideoModalOpen(true);
   };
 
-  // Render tab content based on activeTab
+  // The tabs sit above this in the layout; this is the open tab's content.
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'paper':
         return (
-          <div className="mt-6">
-            {metadata.fundraising && (
-              <div className="mb-6">
-                <FundraiseProgress
-                  fundraise={{
-                    id: metadata.fundraising.id,
-                    status: metadata.fundraising.status,
-                    amountRaised: {
-                      rsc: metadata.fundraising.amountRaised.rsc,
-                      usd: metadata.fundraising.amountRaised.usd,
-                    },
-                    goalAmount: {
-                      rsc: metadata.fundraising.goalAmount.rsc,
-                      usd: metadata.fundraising.goalAmount.usd,
-                    },
-                    endDate: metadata.fundraising.endDate,
-                    contributors: {
-                      numContributors: metadata.fundraising.contributors.topContributors.length,
-                      topContributors: metadata.fundraising.contributors.topContributors,
-                    },
-                    createdDate: metadata.fundraising.createdDate || '',
-                    updatedDate: metadata.fundraising.updatedDate || '',
-                    goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
-                  }}
-                  fundraiseTitle={work.title}
-                  work={work}
-                  onContribute={() => {}}
-                  contributeOnMobileOnly
-                  // Match the gray border used by AuthorPosts and PostBlockEditor
-                  // on this page; the component's own primary-100 default is
-                  // designed for use on backgrounds where the brand tint reads.
-                  className="border-gray-200"
-                />
-              </div>
-            )}
+          <div>
             {/*
               Render the rich callout *or* the AuthorPosts section, never both.
               The callout is the empty-state surface for authors who haven't
@@ -186,16 +150,10 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                   documentAuthors={work.authors}
                 />
               ))}
-            {work.previewContent ? (
-              <PostBlockEditor content={work.previewContent} />
-            ) : content ? (
-              <div
-                className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            ) : (
-              <p className="text-gray-500">No content available</p>
-            )}
+            <DocumentSections
+              content={work.previewContent || content}
+              emptyText="No content available"
+            />
           </div>
         );
       case 'updates':
@@ -291,7 +249,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
   ]);
 
   return (
-    <div>
+    <div className="mt-2">
       {renderTabContent}
       <NewlyCreatedProposalModal
         isOpen={isProposalVideoModalOpen}

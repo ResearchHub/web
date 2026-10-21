@@ -64,7 +64,7 @@ The rule applies to all work document pages:
 - `app/post/[id]/[slug]/**/page.tsx`
 - `app/fund/[id]/[slug]/**/page.tsx`
 - `app/question/[id]/[slug]/**/page.tsx`
-- `app/grant/[id]/[slug]/**/page.tsx`
+- `app/rfp/[id]/[slug]/**/page.tsx`
 
 ## Configuration
 

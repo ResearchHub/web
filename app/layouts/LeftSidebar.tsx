@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Search as SearchIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Navigation } from './Navigation';
 import toast from 'react-hot-toast';
@@ -19,9 +19,15 @@ interface LeftSidebarProps {
    * and a pick that changes the page in place must still close it.
    */
   onNavigate?: () => void;
+  /** The menu's Search row, on a phone, where the top bar has no search. */
+  onSearch?: () => void;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false, onNavigate }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({
+  forceMinimize = false,
+  onNavigate,
+  onSearch,
+}) => {
   const pathname = usePathname();
 
   const handleUnimplementedFeature = (featureName: string) => {
@@ -61,6 +67,19 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false,
         </Link>
       </div>
 
+      {onSearch && (
+        <div className="mt-3 px-3 tablet:!hidden">
+          <button
+            type="button"
+            onClick={onSearch}
+            className="flex h-10 w-full items-center gap-3 rounded-full bg-gray-100 px-4 text-left text-sm text-gray-500 transition-colors hover:bg-gray-200"
+          >
+            <SearchIcon className="h-4 w-4 shrink-0 text-gray-600" aria-hidden="true" />
+            Search
+          </button>
+        </div>
+      )}
+
       <div className={`mt-6 px-3 ${forceMinimize ? '!flex !justify-center !px-2' : ''}`}>
         <PublishMenu forceMinimize={forceMinimize} onItemSelected={onNavigate} />
       </div>
@@ -79,9 +98,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false,
       </div>
 
       {/* The scroll area above is flex-1, so this sits at the bottom of the column.
-          Only covers 768px to the right sidebar's breakpoint: below that the
-          bar is docked over the mobile bottom nav, and above it the funding
-          power card is in the right sidebar. */}
+          Only covers 768px to the right sidebar's breakpoint: above it the
+          funding power card is in the right sidebar. */}
       <div className={`px-2 pb-3 ${forceMinimize ? '!block' : 'hidden tablet:max-lg:!block'}`}>
         <FundingPowerRailButton />
       </div>

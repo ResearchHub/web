@@ -45,9 +45,11 @@ function PaymentRequestButtonInner({
   const [canMakePayment, setCanMakePayment] = useState<boolean | null>(null); // null = checking
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Create and configure payment request
+  // Built once, not once per amount: a new amount updates the request (below)
+  // rather than building another and checking the wallet again on each keystroke.
+  const hasAmount = amountCents > 0;
   useEffect(() => {
-    if (!stripe || amountCents <= 0) {
+    if (!stripe || !hasAmount) {
       return;
     }
 
@@ -62,8 +64,11 @@ function PaymentRequestButtonInner({
       requestPayerEmail: true,
     });
 
-    // Check if the Payment Request is available
+    // Check if the Payment Request is available. A check that finishes after
+    // this request was replaced is dropped, so it can't overwrite the newer one.
+    let isCurrent = true;
     pr.canMakePayment().then((result) => {
+      if (!isCurrent) return;
       if (result) {
         setPaymentRequest(pr);
         setCanMakePayment(true);
@@ -77,10 +82,11 @@ function PaymentRequestButtonInner({
     });
 
     return () => {
-      // Cleanup
+      isCurrent = false;
       setPaymentRequest(null);
+      setCanMakePayment(null);
     };
-  }, [stripe, amountCents, label, onAvailabilityChange]);
+  }, [stripe, hasAmount, label, onAvailabilityChange]);
 
   // Update payment request amount when it changes
   useEffect(() => {
@@ -150,6 +156,15 @@ function PaymentRequestButtonInner({
       paymentRequest.off('paymentmethod', handlePaymentMethod);
     };
   }, [paymentRequest, stripe, amountInRsc, paymentTarget, onSuccess, onError]);
+
+  // Nothing to pay yet: no request is built until there is an amount.
+  if (!hasAmount) {
+    return (
+      <Button type="button" variant="default" disabled className="w-full h-12 text-base">
+        Enter an amount
+      </Button>
+    );
+  }
 
   // Still checking availability
   if (canMakePayment === null) {

@@ -1,0 +1,20 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "ResearchHub",
+    "identifier": "researchhub.com"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:researchhub.com:skill:navigate-researchhub",
+      "displayName": "Navigate ResearchHub",
+      "type": "application/agent-skills+md",
+      "url": "https://researchhub.com/.well-known/agent-skills/navigate-researchhub/SKILL.md",
+      "representativeQueries": [
+        "find open research funding opportunities",
+        "which preprints and proposals are open for paid peer review",
+        "look up a researcher's profile on ResearchHub"
+      ]
+    }
+  ]
+}

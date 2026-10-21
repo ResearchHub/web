@@ -89,7 +89,7 @@ export const JoinResearchHubBanner = () => {
         aria-label="Join ResearchHub"
         inert={!isRevealed}
         className={cn(
-          // z-index clears the MobileBottomNav (z-100) so the banner covers it.
+          // Above the page's own fixed bars, so the banner covers them.
           'fixed inset-x-0 bottom-0 z-[110] transition-[opacity,transform] duration-500 ease-out',
           isRevealed
             ? 'translate-y-0 opacity-100'
