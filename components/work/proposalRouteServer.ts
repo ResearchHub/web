@@ -37,18 +37,20 @@ export const getProposalMetadata = cache(
 
 // The nonprofit a proposal's fundraise pays into, or null for most, which pay
 // the researcher. Loaded with the page so the cover, the byline and the
-// sidebar all name it from the first render. The page works without it, so a
-// failed lookup reads as none.
-export const getProposalNonprofit = cache(
+// sidebar all name it from the first render. It throws when the lookup fails,
+// so the layout can tell that apart from none.
+export const fetchProposalNonprofit = cache(
   async (fundraiseId: ID): Promise<NonprofitLink | null> => {
-    try {
-      const [link] = await NonprofitService.getNonprofitsByFundraiseId(fundraiseId);
-      return link ?? null;
-    } catch {
-      return null;
-    }
+    const [link] = await NonprofitService.getNonprofitsByFundraiseId(fundraiseId);
+    return link ?? null;
   }
 );
+
+// The same lookup, shared with the layout. The page works without it, so a
+// failed lookup reads as none.
+export async function getProposalNonprofit(fundraiseId: ID): Promise<NonprofitLink | null> {
+  return fetchProposalNonprofit(fundraiseId).catch(() => null);
+}
 
 export async function getProposalContent(work: Work): Promise<string | undefined> {
   if (!work.contentUrl) return undefined;

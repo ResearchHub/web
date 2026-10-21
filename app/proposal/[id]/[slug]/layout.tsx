@@ -13,8 +13,8 @@ import { ProposalTabs } from '@/components/work/ProposalTabs';
 import { ProposalActionBar } from '@/components/work/ProposalActionBar';
 import { WorkInstitutionProvider } from '@/components/work/WorkInstitutionContext';
 import {
+  fetchProposalNonprofit,
   getProposalMetadata,
-  getProposalNonprofit,
   getProposalOrNotFound,
 } from '@/components/work/proposalRouteServer';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
@@ -67,8 +67,15 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
       documentId: work.id,
       contentType: work.contentType,
     }),
-    metadataRequest.then((m) => (m.fundraising ? getProposalNonprofit(m.fundraising.id) : null)),
+    // undefined when the lookup failed, as opposed to null for none.
+    metadataRequest.then((m) =>
+      m.fundraising ? fetchProposalNonprofit(m.fundraising.id).catch(() => undefined) : null
+    ),
   ]);
+  // A failed lookup is handed over as never looked up rather than as none, so
+  // the Fund panel still looks the nonprofit up itself when it opens and keeps
+  // its donor-advised fund option. The cover and the byline name the author.
+  const nonprofitFundraiseId = nonprofit === undefined ? undefined : metadata.fundraising?.id;
   const trackerWithoutReport: RegisteredReportTrackerStep[] | undefined =
     metadata.fundraising?.status === 'COMPLETED' && !work.registeredReportId
       ? [
@@ -102,7 +109,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
   return (
     <WorkTabProvider>
       <FundPanelProvider>
-        <WorkInstitutionProvider fundraiseId={metadata.fundraising?.id} nonprofit={nonprofit}>
+        <WorkInstitutionProvider fundraiseId={nonprofitFundraiseId} nonprofit={nonprofit ?? null}>
           <PageLayout
             contentWidth="narrow"
             // The funding card's top lines up with the byline's.

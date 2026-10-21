@@ -30,7 +30,7 @@ const WorkNonprofitContext = createContext<WorkNonprofit | null>(null);
 /**
  * Hands the nonprofit the proposal page loaded on the server to everything on
  * the page that names it, so none of them looks it up again. Without a
- * fundraise there is nothing to look up, and the hooks read as outside it.
+ * fundraise id (none, or the lookup failed) the hooks read as outside it.
  */
 export function WorkInstitutionProvider({
   fundraiseId,
