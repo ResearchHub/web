@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
-import { WorkCover, type CoverEyebrowFace } from '@/components/work/WorkCover';
+import { COVER_CHIP_CLASS, WorkCover, type CoverEyebrowFace } from '@/components/work/WorkCover';
 import { ContentType, Work } from '@/types/work';
 import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -174,8 +174,15 @@ export function WorkHeader({
     });
   };
 
+  // On a cover the badges sit on the image, so they wear its chips' edge.
+  const badgeClass = cover ? COVER_CHIP_CLASS : undefined;
+
   const defaultEyebrow = foundationBounty ? (
-    <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
+    <WorkHeaderBountyEyebrow
+      bountyDisplay={bountyDisplay}
+      reviewsUrl={reviewsUrl}
+      className={badgeClass}
+    />
   ) : undefined;
 
   const baseEyebrow = cover?.badges === undefined ? defaultEyebrow : cover.badges;
@@ -187,7 +194,7 @@ export function WorkHeader({
   if (work.moderationStatus === 'PENDING') {
     resolvedEyebrow = (
       <div className="flex flex-wrap items-center gap-1.5">
-        <PendingReviewBadge />
+        <PendingReviewBadge className={badgeClass} />
         {baseEyebrow}
       </div>
     );

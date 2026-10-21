@@ -27,10 +27,22 @@ interface WorkCoverProps {
   className?: string;
 }
 
+/**
+ * What every chip over a cover's image wears (its badges, the actions): a
+ * hairline edge and a soft shadow, so a white chip still stands off a white
+ * image.
+ */
+export const COVER_CHIP_CLASS = 'shadow-md ring-1 ring-black/10';
+
 /** A chip for a cover's corner, e.g. "Closed". */
 export function CoverBadge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-md bg-white/95 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
+    <span
+      className={cn(
+        'inline-flex items-center rounded-md bg-white/95 px-2 py-0.5 text-xs font-semibold text-gray-700',
+        COVER_CHIP_CLASS
+      )}
+    >
       {children}
     </span>
   );
@@ -142,7 +154,12 @@ export function WorkCover({
           >
             {badges && <div className="pointer-events-auto flex gap-1.5">{badges}</div>}
             {actions && (
-              <div className="pointer-events-auto ml-auto rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur">
+              <div
+                className={cn(
+                  'pointer-events-auto ml-auto rounded-xl bg-white/90 p-1 backdrop-blur',
+                  COVER_CHIP_CLASS
+                )}
+              >
                 {actions}
               </div>
             )}
