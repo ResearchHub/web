@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Lock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useShowProposalTab } from '@/components/work/lib/workTabs';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import {
@@ -20,11 +21,15 @@ import { formatTimestamp } from '@/utils/date';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 
+/** Who can read a proposal sent to an RFP privately. */
+const PRIVATE_NOTE = 'Only the funder and vetted reviewers can read this proposal.';
+
 /**
  * Over a proposal's Proposal tab: who proposes it, with the lead author's
  * face, then chips for its review score, when it was posted, the RFP it
- * answers, whether it went in privately, and its DOI. The other tabs open
- * straight on their content.
+ * answers, whether it went in privately, and its DOI. Each chip opens what it
+ * is about: the score the Reviews tab, the date the Updates tab, the RFP and
+ * the DOI their pages. The other tabs open straight on their content.
  */
 export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkMetadata }) {
   const showTab = useShowProposalTab(work);
@@ -68,7 +73,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
             type="button"
             onClick={() => showTab('reviews')}
             className={cn(
-              BYLINE_CHIP_CLASS,
+              BYLINE_LINK_CHIP_CLASS,
               'bg-amber-100 font-semibold text-amber-800 hover:bg-amber-200'
             )}
           >
@@ -78,10 +83,16 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
           </button>
         )}
         {postedDate && (
+          // What has happened since it was posted is on the Updates tab.
           // Formatted in the server's time zone first; the browser's can read a day apart.
-          <span suppressHydrationWarning className={BYLINE_CHIP_CLASS}>
+          <button
+            type="button"
+            suppressHydrationWarning
+            onClick={() => showTab('updates')}
+            className={BYLINE_LINK_CHIP_CLASS}
+          >
             Posted {formatTimestamp(postedDate, false)}
-          </span>
+          </button>
         )}
         {grantTitle &&
           (grantHref ? (
@@ -94,10 +105,20 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
             </span>
           ))}
         {work.isPublic === false && (
-          <span className={cn(BYLINE_CHIP_CLASS, 'bg-amber-50 text-amber-800')}>
-            <Lock className="h-3 w-3" aria-hidden="true" />
-            Submitted privately
-          </span>
+          // Who can read it, on hover or, on a touch screen, a tap.
+          <Tooltip content={PRIVATE_NOTE} position="bottom" width="w-60">
+            <button
+              type="button"
+              className={cn(
+                BYLINE_LINK_CHIP_CLASS,
+                'bg-amber-50 text-amber-800 hover:bg-amber-100'
+              )}
+            >
+              <Lock className="h-3 w-3" aria-hidden="true" />
+              Submitted privately
+              <span className="sr-only">: {PRIVATE_NOTE}</span>
+            </button>
+          </Tooltip>
         )}
         {work.doi && (
           <a
