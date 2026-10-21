@@ -172,7 +172,8 @@ export function WorkHeader({
     });
   };
 
-  // On a cover the badges sit on the image, so they wear its chips' edge.
+  // From tablet a cover's badges sit on its image, so they wear its chips'
+  // edge (on phones they open the title band).
   const badgeClass = cover ? COVER_CHIP_CLASS : undefined;
 
   const defaultEyebrow = foundationBounty ? (

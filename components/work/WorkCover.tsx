@@ -2,11 +2,9 @@
 
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
+import { AuthorLink } from '@/components/ui/AuthorLink';
 import { Avatar } from '@/components/ui/Avatar';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/utils/styles';
 
 /**
@@ -42,9 +40,9 @@ interface WorkCoverProps {
 }
 
 /**
- * What every chip over a cover's image wears (its badges, the actions): a
- * hairline edge and a soft shadow, so a white chip still stands off a white
- * image.
+ * What every chip over a cover's image wears (the actions and, from tablet,
+ * the badges): a hairline edge and a soft shadow, so a white chip still stands
+ * off a white image.
  */
 export const COVER_CHIP_CLASS = 'shadow-md ring-1 ring-black/10';
 
@@ -70,10 +68,6 @@ export function CoverEyebrow({ children, className }: { children: ReactNode; cla
   return <p className={cn('truncate', EYEBROW_TYPE_CLASS, className)}>{children}</p>;
 }
 
-// A mouse can hover the name for its card; on touch screens that hover would
-// be the tap that follows the link. The same test as AuthorLink's.
-const CAN_HOVER_QUERY = '(hover: hover) and (pointer: fine)';
-
 const EYEBROW_LINK_CLASS =
   'group/eyebrow flex min-w-0 items-center gap-2 transition-colors hover:text-white';
 
@@ -84,17 +78,19 @@ const EYEBROW_LINK_CLASS =
  */
 function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
   const { name, image, icon: Icon, authorId, href, more } = subject;
-  // Unknown while the page hydrates, so the server's render is the plain link.
-  const canHover = useMediaQuery(CAN_HOVER_QUERY) === true;
 
-  const face =
-    Icon && !image ? (
-      <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/40">
-        <Icon className="h-3 w-3" aria-hidden />
-      </span>
-    ) : (
-      <Avatar src={image} alt={name} size={22} className="ring-1 ring-white/40" />
-    );
+  // Hidden from screen readers, which hear the name once, from the text beside it.
+  const face = (
+    <span aria-hidden className="shrink-0">
+      {Icon && !image ? (
+        <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/40">
+          <Icon className="h-3 w-3" />
+        </span>
+      ) : (
+        <Avatar src={image} alt={name} size={22} className="ring-1 ring-white/40" />
+      )}
+    </span>
+  );
   const faceAndName = (
     <>
       {face}
@@ -106,24 +102,10 @@ function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
     <span className="flex min-w-0 items-center gap-2">{faceAndName}</span>
   );
   if (authorId) {
-    const link = (
-      <Link
-        href={`/author/${authorId}`}
-        // Not prefetched: a profile most visitors never open.
-        prefetch={false}
-        className={EYEBROW_LINK_CLASS}
-      >
+    subjectLine = (
+      <AuthorLink authorId={authorId} name={name} className={EYEBROW_LINK_CLASS}>
         {faceAndName}
-      </Link>
-    );
-    subjectLine = canHover ? (
-      <AuthorTooltip authorId={authorId} placement="bottom">
-        {link}
-      </AuthorTooltip>
-    ) : (
-      // The box AuthorTooltip wraps it in, so the line doesn't move when the
-      // card arrives after hydration.
-      <span className="relative inline-flex min-w-0 max-w-full items-center">{link}</span>
+      </AuthorLink>
     );
   } else if (href) {
     subjectLine = (
@@ -155,14 +137,13 @@ const COVER_BOX_CLASS = cn(
   'tablet:!min-h-[280px] tablet:!rounded-lg lg:!min-h-[300px]'
 );
 
-// Under a mouse the image grows a little, as the homepage feed's covers do,
-// overshooting a touch before it settles. It eases straight back when the
-// mouse leaves, since leaving runs the resting state's transition. Not on
-// touch screens, where a tap would leave it grown, nor with reduced motion.
+// Under a mouse the image grows a little over 300ms, as the homepage feed's
+// covers do, overshooting a touch before it settles. It eases straight back
+// when the mouse leaves, since leaving runs the resting state's transition.
+// Not on touch screens, where a tap would leave it grown, nor with reduced motion.
 const IMAGE_HOVER_CLASS = cn(
   'transition-transform duration-300 ease-out',
   'motion-safe:[@media(hover:hover)_and_(pointer:fine)]:group-hover/cover:scale-105',
-  '[@media(hover:hover)_and_(pointer:fine)]:group-hover/cover:duration-500',
   '[@media(hover:hover)_and_(pointer:fine)]:group-hover/cover:ease-[cubic-bezier(0.34,1.56,0.64,1)]'
 );
 

@@ -29,25 +29,8 @@ interface WorkHeaderProposalProps {
   preTitle?: ReactNode;
 }
 
-/** Who proposes it, for the Fund panel's cover: the lead author, and how many more. */
-function proposerLabel(work: Work): string | undefined {
-  const [lead, ...others] = work.authors;
-  if (!lead) return undefined;
-  const name = lead.authorProfile.fullName;
-  return others.length > 0 ? `${name} and ${others.length} more` : name;
-}
-
-/**
- * Who the cover's top line names: the nonprofit or institution the money goes
- * to, when there is one, linked to its page on Endaoment. Otherwise the lead
- * author, linked to their profile, and how many more.
- */
-function proposerEyebrow(
-  work: Work,
-  institution: WorkInstitution | null
-): CoverEyebrowSubject | undefined {
-  // Nonprofits carry no logo in the link the page loads, so a building stands in.
-  if (institution) return { name: institution.name, icon: Landmark, href: institution.href };
+/** The lead author, linked to their profile, and how many more. */
+function leadAuthorEyebrow(work: Work): CoverEyebrowSubject | undefined {
   const [lead, ...others] = work.authors;
   if (!lead) return undefined;
   const { id, fullName, profileImage } = lead.authorProfile;
@@ -57,6 +40,26 @@ function proposerEyebrow(
     authorId: id,
     more: others.length > 0 ? `and ${others.length} more` : undefined,
   };
+}
+
+/** Who proposes it, for the Fund panel's cover: the lead author, and how many more. */
+function proposerLabel(work: Work): string | undefined {
+  const lead = leadAuthorEyebrow(work);
+  return lead && [lead.name, lead.more].filter(Boolean).join(' ');
+}
+
+/**
+ * Who the cover's top line names: the nonprofit or institution the money goes
+ * to, when there is one, linked to its page on Endaoment. Otherwise the lead
+ * author.
+ */
+function proposerEyebrow(
+  work: Work,
+  institution: WorkInstitution | null
+): CoverEyebrowSubject | undefined {
+  // Nonprofits carry no logo in the link the page loads, so a building stands in.
+  if (institution) return { name: institution.name, icon: Landmark, href: institution.href };
+  return leadAuthorEyebrow(work);
 }
 
 /**
