@@ -58,7 +58,10 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
     <div className={BYLINE_BOX_CLASS}>
       {lead && (
         <div className="flex items-center gap-3">
-          <Avatar src={lead.profileImage} alt={lead.fullName} size="md" authorId={lead.id} />
+          {/* Its profile card's box may shrink; the face may not, or a long line squeezes it. */}
+          <span className="shrink-0">
+            <Avatar src={lead.profileImage} alt={lead.fullName} size="md" authorId={lead.id} />
+          </span>
           <div className="min-w-0">
             <AuthorList
               authors={toAuthorListAuthors(work.authors, { profileCards: true })}

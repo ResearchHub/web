@@ -64,12 +64,15 @@ export function GrantByline({ openedDate }: { openedDate?: string }) {
     <div className={BYLINE_BOX_CLASS}>
       {organization && (
         <div className="flex items-center gap-3">
-          <Avatar
-            src={organizationProfile?.profileImage}
-            alt={organization}
-            size="md"
-            authorId={organizationProfile?.id}
-          />
+          {/* Its profile card's box may shrink; the face may not, or a long line squeezes it. */}
+          <span className="shrink-0">
+            <Avatar
+              src={organizationProfile?.profileImage}
+              alt={organization}
+              size="md"
+              authorId={organizationProfile?.id}
+            />
+          </span>
           <div className="min-w-0">
             {/* A funder with its own account opens its profile card on hover. */}
             <p className="flex min-w-0 text-base font-semibold text-gray-900">
