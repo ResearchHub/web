@@ -30,11 +30,12 @@ const PRIVATE_NOTE = 'Only the funder and vetted reviewers can read this proposa
 
 /**
  * Over a proposal's Proposal tab: who proposes it, with the lead author's
- * face, each name opening its profile card on hover, and, under the names, the nonprofit the money goes to, then chips for what it has raised (where the funding card is hidden),
- * its review score, when it was posted, the RFP it answers, whether it went
- * in privately, and its DOI. Each chip opens what it is about: the score the
- * Reviews tab, the date the Updates tab, the RFP and the DOI their pages. The
- * other tabs open straight on their content.
+ * face, each name opening its profile card on hover, and under the names the
+ * nonprofit the money goes to. Then chips for what it has raised (where the
+ * funding card is hidden), its review score, when it was posted, the RFP it
+ * answers, whether it went in privately, and its DOI. Each chip opens what it
+ * is about: the score the Reviews tab, the date the Updates tab, the RFP and
+ * the DOI their pages. The other tabs open straight on their content.
  */
 export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkMetadata }) {
   const showTab = useShowProposalTab(work);
