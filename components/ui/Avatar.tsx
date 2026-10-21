@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, useMemo, CSSProperties, MouseEvent } from 'react';
+import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
 import Link from 'next/link';
@@ -354,10 +354,6 @@ export const Avatar: FC<AvatarProps> = ({
   };
 
   const shouldShowGeneratedAvatar = !src || imageError || isLoading;
-  const generatedAvatarUri = useMemo(
-    () => (shouldShowGeneratedAvatar ? generateVoxelAvatarUri(alt) : null),
-    [shouldShowGeneratedAvatar, alt]
-  );
 
   // Handle custom pixel size
   const customStyle: CSSProperties = {};
@@ -400,7 +396,7 @@ export const Avatar: FC<AvatarProps> = ({
         </span>
       ) : (
         <img
-          src={generatedAvatarUri ?? src ?? undefined}
+          src={shouldShowGeneratedAvatar ? generateVoxelAvatarUri(alt) : src}
           alt={alt}
           className="h-full w-full object-cover"
           onError={handleImageError}
