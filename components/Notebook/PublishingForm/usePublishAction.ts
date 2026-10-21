@@ -15,6 +15,7 @@ import { ApiError } from '@/services/types';
 import type { NoteWithContent } from '@/types/note';
 import { getFieldErrorMessage } from '@/utils/form';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
+import { coverImageGenerationParams, isMissingCoverImage } from './coverImageGeneration';
 import { DEFAULT_FUNDRAISE_END_DAYS, getWorkPath, mapOptionsToIds } from './formMapping';
 import type { PublishingFormData } from './schema';
 
@@ -29,8 +30,12 @@ const PUBLISH_LABEL: Record<string, string> = {
   registered_report: 'Registered Report',
 };
 
-/** Which confirmation, if any, is waiting on the user before the work is published. */
-export type PendingConfirmation = 'nonprofit' | 'publish' | null;
+/**
+ * Which confirmation, if any, is waiting on the user before the work is
+ * published: a generated cover to pick when the work has none, the nonprofit,
+ * then the publish confirmation itself.
+ */
+export type PendingConfirmation = 'coverImage' | 'nonprofit' | 'publish' | null;
 
 interface PublishActionOptions {
   readonly methods: UseFormReturn<PublishingFormData>;
@@ -48,6 +53,8 @@ interface PublishActionOptions {
    * document: there the first heading is a section and is left alone.
    */
   readonly titleInDocument: boolean;
+  /** The title the work would be published under right now. */
+  readonly getTitle: () => string;
   /**
    * The host shows its own confirmation, which is where whatever is still
    * missing gets filled in and where a nonprofit is chosen. A request to
@@ -65,6 +72,8 @@ export interface PublishAction {
   readonly dismissConfirmation: () => void;
   /** The nonprofit was confirmed; the publish confirmation comes next. */
   readonly acceptNonprofit: () => void;
+  /** A cover was picked for a work that had none; publishing carries on. */
+  readonly acceptCoverImage: () => void;
   /** Publishes under the title the user confirmed. */
   readonly confirmPublish: (title: string) => Promise<void>;
   /** Any step of publishing is in flight. */
@@ -91,6 +100,7 @@ export function usePublishAction({
   canPublishChangelog,
   canPublishRegisteredReport,
   titleInDocument,
+  getTitle,
   hostConfirms,
 }: PublishActionOptions): PublishAction {
   const router = useRouter();
@@ -114,6 +124,14 @@ export function usePublishAction({
 
     if (!canPublishRegisteredReport) {
       toast.error(REGISTERED_REPORT_MODERATOR_MESSAGE);
+      return;
+    }
+
+    // A proposal or RFP without a cover gets generated ones to pick from
+    // before anything else; it cannot be published without one.
+    const values = methods.getValues();
+    if (isMissingCoverImage(values) && coverImageGenerationParams(values, getTitle())) {
+      setPendingConfirmation('coverImage');
       return;
     }
 
@@ -156,7 +174,12 @@ export function usePublishAction({
     }
 
     setPendingConfirmation(selectedNonprofit ? 'nonprofit' : 'publish');
-  }, [readOnly, isNewPreprint, canPublishRegisteredReport, methods, hostConfirms]);
+  }, [readOnly, isNewPreprint, canPublishRegisteredReport, methods, getTitle, hostConfirms]);
+
+  const acceptCoverImage = useCallback(() => {
+    setPendingConfirmation(null);
+    void requestPublish();
+  }, [requestPublish]);
 
   const uploadCoverImage = useCallback(
     async (formData: PublishingFormData): Promise<string | null | false> => {
@@ -405,6 +428,7 @@ export function usePublishAction({
     pendingConfirmation,
     dismissConfirmation,
     acceptNonprofit,
+    acceptCoverImage,
     confirmPublish,
     isPublishing: isUpserting || isRedirecting || isLinkingNonprofit,
     isUpserting,

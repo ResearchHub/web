@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Pencil, X } from 'lucide-react';
+import { Pencil, Sparkles, X } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { MIN_PUBLISH_TITLE_LENGTH } from '@/components/modals/ConfirmPublishModal';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { getRequiredFields } from '@/components/Notebook/PublishingForm/completion';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
+import { useCoverImageGenerator } from '@/components/Notebook/PublishingForm/useCoverImageGenerator';
 import { useSelectedGrant } from '@/components/Notebook/PublishingForm/useSelectedGrant';
 import { cn } from '@/utils/styles';
 import { AmountEditor } from './masthead/AmountWidget';
@@ -418,7 +419,11 @@ function GrantRow({
   );
 }
 
-/** The cover image has no editor: the row opens the file picker, and the pick shows as a thumbnail. */
+/**
+ * The cover image has no editor: the row opens the file picker, and the pick
+ * shows as a thumbnail. Without one, a proposal or RFP also offers covers
+ * generated from its details, under the row.
+ */
 function CoverRow({
   config,
   value,
@@ -431,6 +436,7 @@ function CoverRow({
   readonly optional: boolean;
 }) {
   const cover = useCoverImagePicker(value);
+  const generator = useCoverImageGenerator();
   const needed = attention && !cover.imageUrl;
   return (
     <Row
@@ -448,7 +454,24 @@ function CoverRow({
           <AddPill attention={needed}>{cover.imageUrl ? 'Change' : 'Add'}</AddPill>
         </>
       }
-      extra={<input {...cover.inputProps} data-testid="publish-dialog-cover-input" />}
+      below={
+        generator.available && !cover.imageUrl ? (
+          <button
+            type="button"
+            onClick={generator.open}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:underline"
+          >
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            Or generate one with AI
+          </button>
+        ) : undefined
+      }
+      extra={
+        <>
+          <input {...cover.inputProps} data-testid="publish-dialog-cover-input" />
+          {generator.modal}
+        </>
+      }
     />
   );
 }
