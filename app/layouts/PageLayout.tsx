@@ -78,13 +78,13 @@ function PageLayoutInner({
   const { scrollContainerRef, shellRef, isLeftSidebarOpen, toggleLeftSidebar, closeLeftSidebar } =
     usePageLayoutState();
 
-  const mobileTopNav = useMobileNavScroll({ scrollContainerRef, shellRef });
+  useMobileNavScroll({ scrollContainerRef, shellRef });
 
   return (
-    <ScrollContainerProvider scrollContainerRef={scrollContainerRef} mobileTopNav={mobileTopNav}>
+    <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
       {/* Marked data-top-bar-hidden while the phone top bar is slid away. The
-          bar and the page tabs follow that in CSS, so a scroll that hides or
-          shows the bar re-renders nothing. */}
+          bar and whatever moves with it follow that in CSS, so a scroll that
+          hides or shows the bar re-renders nothing. */}
       <div ref={shellRef} className="group/shell flex app-shell-viewport">
         <TopBarContainer isLeftSidebarOpen={isLeftSidebarOpen} onMenuClick={toggleLeftSidebar} />
 

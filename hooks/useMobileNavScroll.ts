@@ -1,5 +1,4 @@
-import { useEffect, useState, RefObject } from 'react';
-import type { MobileTopNavStore } from '@/contexts/ScrollContainerContext';
+import { useEffect, RefObject } from 'react';
 
 /** From the tablet breakpoint up the top bar never hides, so nothing is tracked there. */
 const TABLET_UP_QUERY = '(min-width: 768px)';
@@ -16,37 +15,17 @@ interface UseMobileNavScrollOptions {
   hideAfterScrollY?: number;
 }
 
-function createMobileTopNavStore() {
-  let isHidden = false;
-  const listeners = new Set<() => void>();
-  return {
-    getSnapshot: () => isHidden,
-    subscribe: (onChange: () => void) => {
-      listeners.add(onChange);
-      return () => listeners.delete(onChange);
-    },
-    set: (hidden: boolean) => {
-      isHidden = hidden;
-      listeners.forEach((onChange) => onChange());
-    },
-  };
-}
-
 /**
  * Hides the phone top bar on scrolling down and shows it again on scrolling up:
  * - only once the page is taller than the screen (with nothing to scroll, it stays)
  * - at most once a frame, and without React state, so a scroll re-renders nothing
- *
- * Returns the store that useIsMobileTopNavHidden reads, for ScrollContainerProvider.
  */
 export function useMobileNavScroll({
   scrollContainerRef,
   shellRef,
   threshold = 10,
   hideAfterScrollY = 64,
-}: UseMobileNavScrollOptions): MobileTopNavStore {
-  const [store] = useState(createMobileTopNavStore);
-
+}: UseMobileNavScrollOptions) {
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -57,10 +36,10 @@ export function useMobileNavScroll({
     let scrollFrame = 0;
     let contentFrame = 0;
 
+    // The shell's attribute is the only record of whether the bar is hidden.
+    // Setting it to the state it already has changes nothing.
     const setHidden = (hidden: boolean) => {
-      if (store.getSnapshot() === hidden) return;
       shellRef.current?.toggleAttribute('data-top-bar-hidden', hidden);
-      store.set(hidden);
     };
 
     const isScrollable = () => container.scrollHeight > container.clientHeight;
@@ -131,7 +110,6 @@ export function useMobileNavScroll({
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     tabletUp.addEventListener('change', handleBreakpointChange);
-    if (!isScrollable()) setHidden(false);
 
     return () => {
       container.removeEventListener('scroll', handleScroll);
@@ -140,7 +118,5 @@ export function useMobileNavScroll({
       cancelAnimationFrame(scrollFrame);
       cancelAnimationFrame(contentFrame);
     };
-  }, [scrollContainerRef, shellRef, store, threshold, hideAfterScrollY]);
-
-  return store;
+  }, [scrollContainerRef, shellRef, threshold, hideAfterScrollY]);
 }

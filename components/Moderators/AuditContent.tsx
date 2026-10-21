@@ -8,11 +8,7 @@ import { AuditItemCard } from './AuditItemCard';
 import { AuditItemSkeleton } from './AuditItemSkeleton';
 import { SelectionCheckbox } from './SelectionCheckbox';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
-import { useIsMobileTopNavHidden } from '@/contexts/ScrollContainerContext';
 import { ID } from '@/types/root';
-
-const STICKY_TOP_DEFAULT = '25px';
-const STICKY_TOP_NAV_HIDDEN = '-45px';
 
 interface AuditContentProps {
   entries: FlaggedContent[];
@@ -60,7 +56,6 @@ export const AuditContent: FC<AuditContentProps> = ({
   onBulkAction,
 }) => {
   const [showBulkRemoveConfirm, setShowBulkRemoveConfirm] = useState(false);
-  const isMobileTopNavHidden = useIsMobileTopNavHidden();
 
   const isPending = view === 'pending';
   const selectionCount = selectedIds.length;
@@ -129,12 +124,11 @@ export const AuditContent: FC<AuditContentProps> = ({
       {/* Filters */}
       {filters && <div className="mb-6">{filters}</div>}
 
-      {/* Bulk action bar — sticky, shown when in pending view and entries exist */}
+      {/* Bulk action bar — sticky, shown when in pending view and entries exist.
+          On phones it moves up as the top bar slides away (PageLayout's shell
+          is marked data-top-bar-hidden), in CSS. */}
       {isPending && totalCount > 0 && !isLoading && (
-        <div
-          style={{ top: isMobileTopNavHidden ? STICKY_TOP_NAV_HIDDEN : STICKY_TOP_DEFAULT }}
-          className="sticky tablet:!top-[25px] z-10 mb-4 flex flex-wrap items-center gap-y-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 transition-[top] duration-300"
-        >
+        <div className="sticky top-[25px] group-data-[top-bar-hidden]/shell:top-[-45px] tablet:!top-[25px] z-10 mb-4 flex flex-wrap items-center gap-y-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 transition-[top] duration-300">
           <div className="flex items-center gap-3 mr-auto">
             {onToggleSelectAll && (
               <div className="w-8 flex-shrink-0 flex justify-center">
