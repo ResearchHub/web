@@ -6,7 +6,7 @@ export const SUBSTATION_CAMPAIGN: PoolCampaign = {
   unit: { singular: 'experiment', plural: 'experiments' },
   // The open RFP, where each proposal can be backed directly.
   fallbackUrl:
-    '/grant/5081/request-for-proposals-electromagnetic-fields-and-soft-tissue-injury-susceptibility',
+    '/rfp/5081/request-for-proposals-electromagnetic-fields-and-soft-tissue-injury-susceptibility',
   environments: {
     production: {
       grantId: 24,

@@ -128,7 +128,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/grant/'),
+    match: (p) => p.startsWith('/rfp/'),
     getInfo: () => ({
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,

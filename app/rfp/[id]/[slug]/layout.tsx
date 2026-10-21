@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildArticleMetadata({
       title: work.title,
       description,
-      url: `/grant/${id}/${work.slug}`,
+      url: `/rfp/${id}/${work.slug}`,
       image: work.image,
       publishedTime: work.publishedDate || work.createdDate,
       modifiedTime: work.updatedDate,

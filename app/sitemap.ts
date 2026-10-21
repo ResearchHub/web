@@ -96,7 +96,7 @@ export default async function sitemap({
       '/proposal/'
     );
   if (sitemapId === 2)
-    return buildSlugSitemap('/api/researchhubpost/?document_type=GRANT&page_size=100', '/grant/');
+    return buildSlugSitemap('/api/researchhubpost/?document_type=GRANT&page_size=100', '/rfp/');
 
   return [];
 }

@@ -98,7 +98,7 @@ export function handlePostRedirect(work: Work, id: string, slug: string, tab?: s
  * Handles redirection when slug is missing from the URL
  * @param work The work object to get the slug from
  * @param id The post ID
- * @param currentPath The current path (e.g., 'post', 'question', 'fund', 'paper', 'grant')
+ * @param currentPath The current path (e.g., 'post', 'question', 'fund', 'paper', 'rfp')
  */
 export function handleMissingSlugRedirect(
   work: Work,

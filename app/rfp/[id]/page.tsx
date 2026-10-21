@@ -25,5 +25,5 @@ export default async function GrantRedirectPage({ params, searchParams }: Props)
     notFound();
   }
 
-  handleMissingSlugRedirect(grant, id, 'grant', createUrlSearchParams(resolvedSearchParams));
+  handleMissingSlugRedirect(grant, id, 'rfp', createUrlSearchParams(resolvedSearchParams));
 }
