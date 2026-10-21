@@ -6,10 +6,9 @@ import { FileText, MoveRight, Plus } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
 import { DraftMenu } from '@/components/Funding/DraftMenu';
-import { FundingDraftMenuItems } from '@/components/Funding/fundingDraftOptions';
+import { NewDraftMenu } from '@/components/Funding/NewDraftMenu';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
-import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useUser } from '@/contexts/UserContext';
 import type { Note } from '@/types/note';
@@ -163,26 +162,6 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
         </Link>
       )}
     </div>
-  );
-}
-
-/** The choice between an RFP and a proposal, opened from `trigger`. */
-function NewDraftMenu({
-  trigger,
-  onSelect,
-}: {
-  readonly trigger: ReactNode;
-  readonly onSelect: (intent: FundingIntent) => void;
-}) {
-  return (
-    <BaseMenu
-      align="start"
-      sideOffset={4}
-      className="w-[320px] max-w-[calc(100vw-1rem)] rounded-xl p-1"
-      trigger={trigger}
-    >
-      <FundingDraftMenuItems onSelect={(option) => onSelect(option.intent)} />
-    </BaseMenu>
   );
 }
 

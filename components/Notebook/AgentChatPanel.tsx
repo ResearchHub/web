@@ -358,8 +358,7 @@ export function AgentChatPanel({
       inert={!open}
       style={{ width: docked ? width : undefined }}
       className={cn(
-        // Above the mobile bottom nav (z-[100]), which would otherwise cover
-        // the composer while the sheet is open.
+        // Above the page's own fixed bars while the sheet is open.
         'fixed bottom-0 right-0 z-[110] flex flex-col border-l border-gray-200 bg-white',
         'shadow-[-8px_0_28px_-16px_rgba(31,30,27,0.22)]',
         // The header carries the only control that closes the panel, so the
