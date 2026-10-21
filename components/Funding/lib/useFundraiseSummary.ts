@@ -16,6 +16,8 @@ import { pluralizeSuffix } from '@/utils/stringUtils';
 export interface FundraiseSummary {
   isActive: boolean;
   isCompleted: boolean;
+  /** Why Fund is grayed out once the fundraise stops taking money. */
+  fundUnavailableReason?: string;
   raised: string;
   goal: string;
   /** How much of the goal is raised, 0 to 100. */
@@ -77,6 +79,11 @@ export function useFundraiseSummary(fundraise: Fundraise): FundraiseSummary {
   return {
     isActive,
     isCompleted,
+    fundUnavailableReason: isActive
+      ? undefined
+      : isCompleted
+        ? 'This proposal is fully funded'
+        : 'This fundraise is no longer taking contributions',
     raised: formatFundingAmount(raised, showUSD),
     goal: formatFundingAmount(goal, showUSD),
     percent: Math.floor(percent),

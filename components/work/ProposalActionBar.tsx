@@ -8,12 +8,11 @@ import type { Fundraise } from '@/types/funding';
 /**
  * Fund, for the proposal page wherever its funding card is hidden: a bar as
  * wide as the page for how far the fundraise has come, then raised of the
- * goal, the funders and the time left beside the button.
+ * goal, the funders and the time left beside the button. Once the fundraise
+ * ends the bar stays, with Fund grayed out.
  */
 export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
   const summary = useFundraiseSummary(fundraise);
-
-  if (!summary.isActive) return null;
 
   return (
     <StickyActionBar>
@@ -44,7 +43,7 @@ export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
                 : summary.fundersText}
             </p>
           </div>
-          <FundButton size="lg" className="px-6">
+          <FundButton size="lg" className="px-6" unavailableReason={summary.fundUnavailableReason}>
             Fund
           </FundButton>
         </div>

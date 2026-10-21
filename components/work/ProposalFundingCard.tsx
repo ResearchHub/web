@@ -80,11 +80,15 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
         </span>
       </div>
 
-      {summary.isActive && (
-        <FundButton data-testid="proposal-fund" className="mt-4 w-full font-semibold">
-          Fund
-        </FundButton>
-      )}
+      {/* Kept once the fundraise ends, grayed out with the reason on hover. */}
+      <FundButton
+        data-testid="proposal-fund"
+        className="mt-4 w-full font-semibold"
+        unavailableReason={summary.fundUnavailableReason}
+        ground="navy"
+      >
+        Fund
+      </FundButton>
 
       {hasFunders && (
         <ContributorModal
