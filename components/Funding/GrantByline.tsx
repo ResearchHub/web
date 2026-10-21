@@ -1,5 +1,6 @@
 'use client';
 
+import { AuthorLink } from '@/components/ui/AuthorLink';
 import { Avatar } from '@/components/ui/Avatar';
 import { FaceStack } from '@/components/ui/FaceStack';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -70,7 +71,14 @@ export function GrantByline({ openedDate }: { openedDate?: string }) {
             authorId={organizationProfile?.id}
           />
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold text-gray-900">{organization}</p>
+            {/* A funder with its own account opens its profile card on hover. */}
+            <p className="flex min-w-0 text-base font-semibold text-gray-900">
+              <AuthorLink
+                authorId={organizationProfile?.id}
+                name={organization}
+                className="truncate"
+              />
+            </p>
             {openedDate && (
               // Formatted in the server's time zone first; the browser's can read a day apart.
               <p suppressHydrationWarning className="truncate text-[13px] text-gray-500">
