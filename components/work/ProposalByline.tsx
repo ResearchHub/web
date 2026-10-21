@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Lock, Star } from 'lucide-react';
+import { Landmark, Lock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import { useShowProposalTab } from '@/components/work/lib/workTabs';
+import { useWorkInstitution, type WorkInstitution } from '@/components/work/WorkInstitutionContext';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import {
   BYLINE_BOX_CLASS,
@@ -29,7 +30,7 @@ const PRIVATE_NOTE = 'Only the funder and vetted reviewers can read this proposa
 
 /**
  * Over a proposal's Proposal tab: who proposes it, with the lead author's
- * face, then chips for what it has raised (where the funding card is hidden),
+ * face and, under the names, the nonprofit the money goes to, then chips for what it has raised (where the funding card is hidden),
  * its review score, when it was posted, the RFP it answers, whether it went
  * in privately, and its DOI. Each chip opens what it is about: the score the
  * Reviews tab, the date the Updates tab, the RFP and the DOI their pages. The
@@ -38,8 +39,11 @@ const PRIVATE_NOTE = 'Only the funder and vetted reviewers can read this proposa
 export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkMetadata }) {
   const showTab = useShowProposalTab(work);
   const { activeTab } = useWorkTab();
+  const institution = useWorkInstitution();
 
   const lead = work.authors[0]?.authorProfile;
+  // One author's headline; with co-authors it would read as theirs too.
+  const headline = work.authors.length === 1 ? lead?.headline : undefined;
   const reviewScore = getWorkReviewScore(work, metadata);
   const reviewCount = work.peerReviews?.length ?? 0;
   const postedDate = work.publishedDate || work.createdDate;
@@ -64,9 +68,16 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
               showAbbreviatedInMobile
               mobileExpandable
             />
-            {/* One author's headline; with co-authors it would read as theirs too. */}
-            {work.authors.length === 1 && lead.headline && (
-              <p className="truncate text-[13px] text-gray-500">{lead.headline}</p>
+            {(institution || headline) && (
+              <p className="flex min-w-0 items-center gap-1 text-[13px] text-gray-500">
+                {institution && <InstitutionName institution={institution} />}
+                {headline && (
+                  <span className="min-w-0 truncate">
+                    {institution && '· '}
+                    {headline}
+                  </span>
+                )}
+              </p>
             )}
           </div>
         </div>
@@ -170,5 +181,33 @@ function ProposalAmountChip({ fundraise }: { fundraise: Fundraise }) {
       <span className="font-mono font-semibold">{summary.raised}</span>
       {summary.isActive ? `of ${summary.goal}` : 'raised'}
     </button>
+  );
+}
+
+/**
+ * The nonprofit a proposal's money goes to, beside its authors: a landmark and
+ * its name, linking to its page on Endaoment, which takes the donations. It
+ * keeps its width over the headline after it, and truncates only on its own.
+ */
+function InstitutionName({ institution }: { institution: WorkInstitution }) {
+  const content = (
+    <>
+      <Landmark className="h-3 w-3 shrink-0" aria-hidden="true" />
+      <span className="sr-only">Nonprofit recipient: </span>
+      <span className="truncate">{institution.name}</span>
+    </>
+  );
+  const className = 'flex min-w-0 max-w-full shrink-0 items-center gap-1 text-gray-600';
+
+  if (!institution.href) return <span className={className}>{content}</span>;
+  return (
+    <a
+      href={institution.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(className, 'hover:text-gray-900 hover:underline')}
+    >
+      {content}
+    </a>
   );
 }
