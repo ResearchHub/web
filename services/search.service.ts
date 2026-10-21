@@ -7,15 +7,9 @@ import {
   UserSuggestion,
   mapUserSuggestionToAuthorSuggestion,
 } from '@/types/search';
-import {
-  transformInstitutions,
-  type Institution,
-  type InstitutionSuggestionsResponse,
-} from '@/types/institution';
 
 export class SearchService {
   private static readonly BASE_PATH = '/api';
-  private static readonly INSTITUTIONS_SUGGEST_PATH = '/api/search/institutions/suggest';
   private static readonly DEFAULT_INDICES: EntityType[] = ['user', 'post'];
 
   static async getSuggestions(
@@ -55,13 +49,5 @@ export class SearchService {
         (s): s is UserSuggestion => (s.entityType === 'user' || s.entityType === 'author') && !!s.id
       )
       .map(mapUserSuggestionToAuthorSuggestion);
-  }
-
-  static async suggestInstitutions(query: string): Promise<Institution[]> {
-    const response = await ApiClient.get<InstitutionSuggestionsResponse>(
-      `${this.INSTITUTIONS_SUGGEST_PATH}/?suggestion_phrases__completion=${encodeURIComponent(query)}`
-    );
-
-    return transformInstitutions(response);
   }
 }
