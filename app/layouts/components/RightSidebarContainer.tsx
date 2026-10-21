@@ -25,6 +25,8 @@ interface RightSidebarContainerProps {
   fill?: boolean;
   /** Render the sidebar's content as it is, without the gray rail around it. */
   bare?: boolean;
+  /** The page's tabs stick above the row, so the sidebar sticks below them. */
+  belowPageTabs?: boolean;
 }
 
 export function RightSidebarContainer({
@@ -34,6 +36,7 @@ export function RightSidebarContainer({
   aboveSidebar,
   fill = false,
   bare = false,
+  belowPageTabs = false,
 }: RightSidebarContainerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
   // The drawer's copy of the sidebar mounts the first time the drawer opens.
@@ -64,9 +67,13 @@ export function RightSidebarContainer({
           // When a card sits above the gray rail, or the sidebar is all cards
           // of its own (bare), keep a gap under the top bar once sticky kicks
           // in. Other pages keep top-0 so their sidebar position is unchanged.
-          cardAboveSidebar || bare
-            ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
-            : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
+          // Page tabs stuck at the top are 55px tall on desktop (54px tabs and
+          // their rule); the sidebar keeps the same 1rem gap under them.
+          belowPageTabs
+            ? 'top-[calc(55px+1rem)] h-[calc(100vh-var(--top-bar-height)-55px-1rem)]'
+            : cardAboveSidebar || bare
+              ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
+              : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
           'lg:!flex !hidden right-sidebar:!flex',
           'w-80 flex-shrink-0 flex-col gap-3'
         )}

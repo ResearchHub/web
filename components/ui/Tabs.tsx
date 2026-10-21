@@ -4,14 +4,14 @@ import React, { type ComponentType, useCallback, useEffect, useRef, useState } f
 import Link from 'next/link';
 import { CountBadge } from '@/components/ui/CountBadge';
 
-type TabsVariant = 'primary' | 'pill' | 'segmented';
+type TabsVariant = 'primary' | 'pill' | 'page';
 
 /** A tab's icon: a Lucide icon, or any component that takes a class name. */
 type TabIcon = ComponentType<{ className?: string }>;
 
-/** A tab's count: grey on the segmented control, the tab's colour on an active underlined one. */
+/** A tab's count: plain grey text on page tabs, the tab's colour on an active underlined one. */
 function countBadgeClass(variant: TabsVariant, isActive: boolean) {
-  if (variant === 'segmented') return 'bg-gray-200';
+  if (variant === 'page') return 'bg-transparent px-0 font-medium text-gray-400';
   if (variant === 'primary') {
     return cn(
       'rounded-full px-2',
@@ -43,16 +43,14 @@ interface TabsProps {
   onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   className?: string;
   /**
-   * `primary` underlines the active tab, `pill` rings it, and `segmented` sets
-   * the tabs side by side in one grey control, the active one raised in white,
-   * with their labels and counts but not their icons.
+   * `primary` underlines the active tab and `pill` rings it. `page` is a work
+   * page's own sections: larger labels, no icons, plain counts and a navy
+   * underline; on phones the tabs share the width edge to edge.
    */
   variant?: TabsVariant;
   disabled?: boolean;
   /** Rendered at the right end of the tab row, outside the scrollable strip. */
   rightContent?: React.ReactNode;
-  /** Underlined tabs set closer together, for a narrow column. */
-  compact?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -87,20 +85,19 @@ const TabItem: React.FC<{
         ? 'border border-gray-300 bg-white text-gray-900 shadow-sm'
         : 'text-gray-500 hover:text-gray-700',
     ],
-    // Each tab grows to share the control's width, but never narrower than its
+    // On phones each tab grows to share the row, but never narrower than its
     // label, so a row with more tabs than fit scrolls instead of squeezing them.
-    variant === 'segmented' && [
-      'h-[38px] flex-1 justify-center rounded-lg px-3',
-      isActive
-        ? 'bg-white text-gray-900 shadow-[0_1px_2px_rgba(17,24,39,0.12)]'
-        : 'text-gray-600 hover:text-gray-900',
+    variant === 'page' && [
+      'h-12 flex-1 justify-center gap-1.5 border-b-2 px-3 text-[15px]',
+      'tablet:!h-[54px] tablet:!flex-none tablet:!px-0 tablet:!text-base',
+      isActive ? 'border-b-navy text-navy' : 'border-transparent text-gray-500 hover:text-gray-900',
     ],
     disabled && 'cursor-not-allowed pointer-events-none'
   );
 
-  // The segmented control shows labels and counts only.
+  // Page tabs show labels and counts only.
   const Icon =
-    variant === 'segmented' ? undefined : isActive && tab.activeIcon ? tab.activeIcon : tab.icon;
+    variant === 'page' ? undefined : isActive && tab.activeIcon ? tab.activeIcon : tab.icon;
 
   const content = (
     <>
@@ -141,7 +138,6 @@ export const Tabs: React.FC<TabsProps> = ({
   variant = 'primary',
   disabled = false,
   rightContent,
-  compact = false,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -171,10 +167,12 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   const isPrimary = variant === 'primary';
-  const gradient = isPrimary ? 'white' : '#f3f4f6';
+  // Both underline their active tab along a grey rule under the row.
+  const isUnderlined = isPrimary || variant === 'page';
+  const gradient = isUnderlined ? 'white' : '#f3f4f6';
 
   return (
-    <div className={cn('w-full relative', isPrimary && 'border-b border-gray-200', className)}>
+    <div className={cn('w-full relative', isUnderlined && 'border-b border-gray-200', className)}>
       {/* The scroll strip gets its own relative box so the fade/arrow overlays
           stay pinned to it rather than to the row, which may also hold
           rightContent on its right edge. */}
@@ -200,9 +198,9 @@ export const Tabs: React.FC<TabsProps> = ({
             onScroll={checkScrollability}
             className={cn(
               'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-              isPrimary && (compact ? 'space-x-6 -mb-px' : 'space-x-8 -mb-px'),
-              variant === 'pill' && 'gap-2',
-              variant === 'segmented' && 'gap-0.5 rounded-[10px] bg-gray-100 p-[3px]'
+              isPrimary && 'space-x-8 -mb-px',
+              variant === 'page' && '-mb-px tablet:!gap-8',
+              variant === 'pill' && 'gap-2'
             )}
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >

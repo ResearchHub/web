@@ -40,10 +40,15 @@ export function CoverEyebrow({ children, className }: { children: ReactNode; cla
 // below (PageLayout's contentWidth="narrow"): its 1012px container, the main
 // column's left padding, and from lg, where the sidebar shows, no right padding
 // so the cover ends on the sidebar's edge. Between tablet and lg there is no
-// sidebar and the main column stops at 860px, so the cover does too.
-const COVER_ROW_CLASS = 'mx-auto w-full max-w-[1012px] tablet:!px-8 tablet:!pt-6 lg:!pr-0';
-const COVER_BOX_CLASS =
-  'tablet:!min-h-[280px] tablet:!max-w-[860px] tablet:!rounded-lg lg:!min-h-[300px] lg:!max-w-none';
+// sidebar and the main column stops at 860px, so the cover does too. The page
+// tabs under the cover share these widths.
+export const WORK_ROW_CLASS = 'mx-auto w-full max-w-[1012px] tablet:!px-8 lg:!pr-0';
+export const WORK_BOX_WIDTH_CLASS = 'tablet:!max-w-[860px] lg:!max-w-none';
+const COVER_ROW_CLASS = cn(WORK_ROW_CLASS, 'tablet:!pt-6');
+const COVER_BOX_CLASS = cn(
+  WORK_BOX_WIDTH_CLASS,
+  'tablet:!min-h-[280px] tablet:!rounded-lg lg:!min-h-[300px]'
+);
 
 /**
  * A work's large cover, for the RFP and proposal pages: its image with the

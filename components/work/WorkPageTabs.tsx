@@ -2,22 +2,22 @@
 
 import type { ComponentProps } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
+import { WORK_BOX_WIDTH_CLASS, WORK_ROW_CLASS } from '@/components/work/WorkCover';
 import { useIsMobileTopNavHidden } from '@/contexts/ScrollContainerContext';
 import { cn } from '@/utils/styles';
 
-type StickyTabsProps = Omit<ComponentProps<typeof Tabs>, 'variant'> & {
+type WorkPageTabsProps = Omit<ComponentProps<typeof Tabs>, 'variant'> & {
   /** Lets other parts of the page scroll the tabs into view. */
   id?: string;
 };
 
 /**
- * A page's tabs, stuck to the top of the main column as the page scrolls
- * under them: underlined from tablet up, and on phones a segmented switch on
- * a white band, edge to edge, with room above and below. On phones they
- * follow the top bar: right under it while it shows, at the very top once it
- * slides away.
+ * A work page's sections, right under its cover and as wide as it, across the
+ * main column and the sidebar. They stick to the top as the page scrolls: on
+ * phones right under the top bar while it shows, and at the very top once it
+ * slides away. Render them in PageLayout's `pageTabs`, which spans the page.
  */
-export function StickyTabs({ id, className, ...tabsProps }: StickyTabsProps) {
+export function WorkPageTabs({ id, className, ...tabsProps }: WorkPageTabsProps) {
   const isTopBarHidden = useIsMobileTopNavHidden();
 
   return (
@@ -33,18 +33,18 @@ export function StickyTabs({ id, className, ...tabsProps }: StickyTabsProps) {
       <div
         className={cn(
           'sticky z-20 bg-white transition-[top] duration-300',
-          '-mx-4 px-4 py-2 tablet:!mx-0 tablet:!px-0 tablet:!py-0',
           // On phones the scrollport keeps the top bar's height as padding and
           // sticky offsets start inside it, so top-0 is right under the bar; as
-          // the bar slides away the band moves up by its height. From tablet up
+          // the bar slides away the tabs move up by its height. From tablet up
           // the page scrolls below the bar, which never hides.
           isTopBarHidden ? 'top-[calc(var(--top-bar-height)*-1)]' : 'top-0',
           'tablet:!top-0',
           className
         )}
       >
-        <Tabs {...tabsProps} variant="segmented" className="tablet:!hidden" />
-        <Tabs {...tabsProps} variant="primary" compact className="hidden tablet:!block" />
+        <div className={WORK_ROW_CLASS}>
+          <Tabs {...tabsProps} variant="page" className={WORK_BOX_WIDTH_CLASS} />
+        </div>
       </div>
     </>
   );

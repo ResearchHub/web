@@ -112,15 +112,12 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
               }
             />
           }
+          pageTabs={
+            <ProposalTabs work={work} metadata={metadata} updatesCount={authorPosts.length} />
+          }
           rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
         >
           <ProposalByline work={work} metadata={metadata} />
-          <ProposalTabs
-            work={work}
-            metadata={metadata}
-            updatesCount={authorPosts.length}
-            className="mt-4"
-          />
           <Suspense>{children}</Suspense>
           {metadata.fundraising && <ProposalActionBar fundraise={metadata.fundraising} />}
         </PageLayout>

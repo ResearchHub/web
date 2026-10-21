@@ -13,7 +13,7 @@ import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 import { RegisteredReportRouteTrackerLoader } from '@/components/work/RegisteredReportRouteTrackerLoader';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { GrantSidebar } from '@/components/Funding/GrantSidebar';
-import { GrantFacts } from '@/components/Funding/GrantFacts';
+import { GrantByline } from '@/components/Funding/GrantByline';
 import { GrantTabs } from '@/components/Funding/GrantTabs';
 import { GrantActionBar } from '@/components/Funding/GrantActionBar';
 
@@ -65,15 +65,15 @@ export default async function GrantSlugLayout({ params, children }: Props) {
 
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
-  // Laid out as the proposal page is: the cover, then the facts and the tabs
-  // over each tab's content, with the pool card in the sidebar and an Apply
-  // and Fund bar where the sidebar is hidden.
+  // Laid out as the proposal page is: the cover with the tabs across the
+  // page under it, then the byline over each tab's content, with the pool card
+  // in the sidebar and an Apply and Fund bar where the sidebar is hidden.
   return (
     <FundPanelProvider>
       <GrantPageProvider defaultTab="details" grant={grant}>
         <PageLayout
           contentWidth="narrow"
-          // The pool card's top lines up with the facts strip's.
+          // The pool card's top lines up with the byline's.
           rightSidebarTopOffset="aligned"
           fundraiseGrantId={grantId ? Number(grantId) : undefined}
           topBanner={
@@ -89,6 +89,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
               }
             />
           }
+          pageTabs={<GrantTabs />}
           // The sidebar brings its own cards: the pool over the activity. A post
           // without a grant keeps the plain activity list.
           rightSidebarBare={Boolean(grant)}
@@ -106,8 +107,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             )
           }
         >
-          <GrantFacts openedDate={grant?.startDate || work.publishedDate || work.createdDate} />
-          <GrantTabs className="mt-4" />
+          <GrantByline openedDate={grant?.startDate || work.publishedDate || work.createdDate} />
           {children}
           <GrantActionBar />
           <SearchHistoryTracker work={work} />

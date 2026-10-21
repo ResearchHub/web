@@ -5,6 +5,7 @@ import { Lock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useShowProposalTab } from '@/components/work/lib/workTabs';
+import { BYLINE_CHIP_CLASS, BYLINE_LINK_CHIP_CLASS } from '@/components/work/lib/bylineChip';
 import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 import { getWorkReviewScore } from '@/components/work/lib/reviewScore';
 import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
@@ -13,10 +14,6 @@ import type { Work } from '@/types/work';
 import { formatTimestamp } from '@/utils/date';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
-
-const CHIP_CLASS =
-  'inline-flex max-w-full items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-[12.5px] font-medium text-gray-700';
-const LINK_CHIP_CLASS = cn(CHIP_CLASS, 'transition-colors hover:bg-gray-200');
 
 /**
  * Under a proposal's cover: who proposes it, with the lead author's face, then
@@ -62,7 +59,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
             type="button"
             onClick={() => showTab('reviews')}
             className={cn(
-              CHIP_CLASS,
+              BYLINE_CHIP_CLASS,
               'bg-amber-100 font-semibold text-amber-800 hover:bg-amber-200'
             )}
           >
@@ -73,22 +70,22 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
         )}
         {postedDate && (
           // Formatted in the server's time zone first; the browser's can read a day apart.
-          <span suppressHydrationWarning className={CHIP_CLASS}>
+          <span suppressHydrationWarning className={BYLINE_CHIP_CLASS}>
             Posted {formatTimestamp(postedDate, false)}
           </span>
         )}
         {grantTitle &&
           (grantHref ? (
-            <Link href={grantHref} className={LINK_CHIP_CLASS}>
+            <Link href={grantHref} className={BYLINE_LINK_CHIP_CLASS}>
               <span className="truncate">{grantTitle}</span>
             </Link>
           ) : (
-            <span className={CHIP_CLASS}>
+            <span className={BYLINE_CHIP_CLASS}>
               <span className="truncate">{grantTitle}</span>
             </span>
           ))}
         {work.isPublic === false && (
-          <span className={cn(CHIP_CLASS, 'bg-amber-50 text-amber-800')}>
+          <span className={cn(BYLINE_CHIP_CLASS, 'bg-amber-50 text-amber-800')}>
             <Lock className="h-3 w-3" aria-hidden="true" />
             Submitted privately
           </span>
@@ -98,7 +95,7 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
             href={`https://doi.org/${work.doi}`}
             target="_blank"
             rel="noopener noreferrer"
-            className={LINK_CHIP_CLASS}
+            className={BYLINE_LINK_CHIP_CLASS}
           >
             DOI
           </a>
