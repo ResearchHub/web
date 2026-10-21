@@ -1,6 +1,7 @@
 import { PageLayout } from '@/app/layouts/PageLayout';
 import DocumentSkeleton from '@/components/skeletons/DocumentSkeleton';
 import { SidebarCardSkeleton } from '@/components/ui/SidebarCard';
+import { BYLINE_BOX_CLASS } from '@/components/work/lib/bylineChip';
 import {
   WORK_BOX_WIDTH_CLASS,
   WORK_ROW_CLASS,
@@ -26,10 +27,10 @@ function PageTabsSkeleton() {
   );
 }
 
-/** The byline's place: a face and two lines over a row of chips. */
+/** The byline's place: its box, with a face and two lines over a row of chips. */
 function BylineSkeleton() {
   return (
-    <div className="mb-4 animate-pulse">
+    <div className={cn(BYLINE_BOX_CLASS, 'animate-pulse')}>
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 shrink-0 rounded-full bg-gray-200" />
         <div className="space-y-1.5">

@@ -2,12 +2,21 @@
 
 import type { ReactNode } from 'react';
 import Image from 'next/image';
+import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
+
+/** The face beside the eyebrow: the funder's, or the lead author's. */
+export interface CoverEyebrowFace {
+  name: string;
+  image?: string | null;
+}
 
 interface WorkCoverProps {
   title: string;
   /** The small line over the title: who funds an RFP, who proposes a proposal. */
   eyebrow?: string;
+  /** A small face before the eyebrow; without an image, the name's initials. */
+  eyebrowFace?: CoverEyebrowFace;
   imageUrl?: string;
   /** Badges pinned to the cover's top-left corner (pending review, closed). */
   badges?: ReactNode;
@@ -63,6 +72,7 @@ const COVER_BOX_CLASS = cn(
 export function WorkCover({
   title,
   eyebrow,
+  eyebrowFace,
   imageUrl,
   badges,
   actions,
@@ -116,8 +126,20 @@ export function WorkCover({
             'tablet:backdrop-blur-xl tablet:backdrop-saturate-150'
           )}
         >
-          {eyebrow && <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>}
-          <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
+          {eyebrow && (
+            <div className="flex min-w-0 items-center gap-2">
+              {eyebrowFace && (
+                <Avatar
+                  src={eyebrowFace.image}
+                  alt={eyebrowFace.name}
+                  size={22}
+                  className="ring-1 ring-white/40"
+                />
+              )}
+              <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>
+            </div>
+          )}
+          <h1 className="mt-1.5 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
             {title}
           </h1>
         </div>
