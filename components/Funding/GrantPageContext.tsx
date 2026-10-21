@@ -151,7 +151,7 @@ export function GrantPageProvider({
   } = useActivityFeed({ scope: 'grants', grantId });
 
   // Kept apart from the page's state, so the feed's updates as it loads
-  // re-render only what shows the feed, not the cover, facts or pool card.
+  // re-render only what shows the feed, not the cover, byline or pool card.
   const activity = useMemo(
     (): GrantActivity => ({
       entries,

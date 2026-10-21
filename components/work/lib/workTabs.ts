@@ -74,16 +74,22 @@ export function useSelectWorkTab(work: Work) {
   return { activeTab, selectTab };
 }
 
-/** Opens one of a proposal's tabs from elsewhere on its page, and scrolls the tabs into view. */
+/**
+ * Opens one of a proposal's tabs from elsewhere on its page, and scrolls the
+ * tabs into view. A card in the phone sidebar drawer closes the drawer first,
+ * or the tab would open behind it.
+ */
 export function useShowProposalTab(work: Work) {
   const showTab = useShowWorkTab(work);
+  const { setMobileSidebarOpen } = useWorkTab();
   return useCallback(
     (tab: TabType) => {
+      setMobileSidebarOpen(false);
       showTab(tab);
       document
         .getElementById(PROPOSAL_TABS_ID)
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
-    [showTab]
+    [showTab, setMobileSidebarOpen]
   );
 }

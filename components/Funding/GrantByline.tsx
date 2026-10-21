@@ -30,6 +30,7 @@ export function GrantByline({
   // One face per applicant, however many proposals they sent.
   const applicants = [...new Map(applications.map((a) => [a.profile.id, a.profile])).values()];
   const backerCount = fundingPool?.contributors.total ?? 0;
+  const isClosed = !isActive && !isPending;
 
   return (
     <div className={className}>
@@ -50,7 +51,8 @@ export function GrantByline({
 
       <ul className={cn('flex flex-wrap gap-1.5', organization && 'mt-3')}>
         {grantAmount?.usd ? (
-          <li className={cn(BYLINE_CHIP_CLASS, 'bg-emerald-50 text-emerald-800')}>
+          // Green only while the RFP takes proposals; once closed the money is no longer on offer.
+          <li className={cn(BYLINE_CHIP_CLASS, isActive && 'bg-emerald-50 text-emerald-800')}>
             <span className="font-mono font-semibold">
               {formatCurrency({
                 amount: grantAmount.usd,
@@ -59,7 +61,7 @@ export function GrantByline({
                 skipConversion: true,
               })}
             </span>
-            available
+            {isClosed ? 'in funding' : 'available'}
           </li>
         ) : null}
         {fundingPool && backerCount > 0 && (

@@ -187,14 +187,21 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     (isPoolMode
       ? 'Your contribution has been added to the RFP funding pool.'
       : 'Your contribution has been successfully added to the fundraise.');
-  const [amountUsd, setAmountUsd] = useState(DEFAULT_AMOUNT_USD);
+  // Opens on the usual amount, or on what's left when a cap is lower, so the
+  // first amount shown can be paid.
+  const startAmountUsd =
+    maxAmountUsd != null && maxAmountUsd < DEFAULT_AMOUNT_USD
+      ? Math.floor(maxAmountUsd)
+      : DEFAULT_AMOUNT_USD;
+  const startQuickAmount = startAmountUsd === DEFAULT_AMOUNT_USD ? DEFAULT_AMOUNT_USD : null;
+  const [amountUsd, setAmountUsd] = useState(startAmountUsd);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
-  /** What the panel's done screen says was added. */
-  const [paidUsd, setPaidUsd] = useState(0);
-  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(DEFAULT_AMOUNT_USD);
+  /** What the panel's done screen says was added, and whether it came out of the RFP's pool. */
+  const [paid, setPaid] = useState({ usd: 0, fromPool: false });
+  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(startQuickAmount);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
 
   // Each opening starts fresh. Resetting as it opens rather than as it closes
@@ -205,8 +212,8 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     setWasOpen(isOpen);
     if (isOpen) {
       setCurrentView('funding');
-      setSelectedQuickAmount(DEFAULT_AMOUNT_USD);
-      setAmountUsd(DEFAULT_AMOUNT_USD);
+      setSelectedQuickAmount(startQuickAmount);
+      setAmountUsd(startAmountUsd);
       setError(null);
       setAmountError(undefined);
       setIsSliderControlled(false);
@@ -345,11 +352,11 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   // Every way of paying ends here once the money has landed: the panel turns
   // to its done screen, and the modal closes on a toast.
   const finishSuccess = useCallback(
-    (message: string, updatedPool?: FundingPool) => {
+    (message: string, updatedPool?: FundingPool, fromPool = false) => {
       refreshUser?.();
       onContributeSuccess?.(updatedPool);
       if (isPanel) {
-        setPaidUsd(amountUsd);
+        setPaid({ usd: amountUsd, fromPool });
         setCurrentView('done');
       } else {
         toast.success(message);
@@ -495,7 +502,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
         payment_method: paymentMethod,
       });
-      finishSuccess(toastMessage, updatedPool);
+      finishSuccess(toastMessage, updatedPool, paymentMethod === 'funding_pool');
     } catch (err) {
       console.error('Failed to contribute:', err);
       AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
@@ -677,7 +684,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
 
   // Render content based on current view
   const renderContent = () => {
-    const paidDisplay = `$${formatDollars(paidUsd)}`;
+    const paidDisplay = `$${formatDollars(paid.usd)}`;
 
     if (isPanel && currentView === 'done') {
       return (
@@ -688,9 +695,16 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
               <Check className="h-8 w-8" strokeWidth={2.6} aria-hidden="true" />
             </span>
             <p className="mt-3.5 text-[22px] font-extrabold tracking-tight text-gray-900">
-              {isPoolMode ? `You added ${paidDisplay} to the pool` : `You funded ${paidDisplay}`}
+              {paid.fromPool
+                ? `You allocated ${paidDisplay} from the pool`
+                : isPoolMode
+                  ? `You added ${paidDisplay} to the pool`
+                  : `You funded ${paidDisplay}`}
             </p>
-            {successText && <p className="mt-1.5 text-sm leading-5 text-gray-600">{successText}</p>}
+            {/* The page's line is about the funder's own money, which an allocation isn't. */}
+            {successText && !paid.fromPool && (
+              <p className="mt-1.5 text-sm leading-5 text-gray-600">{successText}</p>
+            )}
           </div>
           <PinnedFooter container={footerContainer}>
             <Button

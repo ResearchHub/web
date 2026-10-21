@@ -4,12 +4,12 @@ import { getEffectiveStatus, isFundraiseActive } from '@/components/Fund/lib/fun
 import {
   type Backer,
   formatFundingAmount,
+  formatMoney,
   visiblePercent,
 } from '@/components/Funding/lib/fundingAmounts';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { computeGoalRate, getContributionTotal, type Fundraise } from '@/types/funding';
-import { formatCurrency } from '@/utils/currency';
 import { formatDeadline } from '@/utils/date';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
@@ -72,12 +72,7 @@ export function useFundraiseSummary(fundraise: Fundraise): FundraiseSummary {
       name: contributor.authorProfile.fullName,
       image: contributor.authorProfile.profileImage,
       authorId: contributor.authorProfile.id,
-      amount: formatCurrency({
-        amount: showUSD ? Math.round(total) : total,
-        showUSD,
-        exchangeRate: 1,
-        skipConversion: true,
-      }),
+      amount: formatMoney(showUSD ? Math.round(total) : total, showUSD),
     };
   });
 

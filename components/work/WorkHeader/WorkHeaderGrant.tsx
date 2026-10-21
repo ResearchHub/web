@@ -21,7 +21,7 @@ interface WorkHeaderGrantProps {
 }
 
 /**
- * The RFP page's cover. The facts, tabs and pool card live in the page
+ * The RFP page's cover. The tabs, byline and pool card live in the page
  * beneath it; this keeps the Apply and Add to pool panels they open.
  */
 export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantProps) {
@@ -69,8 +69,8 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
         hideVoteWidget
         // The top bar already says it's an RFP; the cover names who funds it.
         cover={{ imageUrl: work.image, eyebrow: organization, badges }}
-        // Its phone page has the pool (facts strip, action bar) and the
-        // activity (Activity tab) already.
+        // Its phone page has the pool (byline, action bar) and the activity
+        // (Activity tab) already.
         hideSidebarButton
       />
 

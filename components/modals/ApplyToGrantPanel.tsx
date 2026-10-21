@@ -152,12 +152,17 @@ export function ApplyToGrantPanel({
     if (!isSavingSelection) onClose();
   };
 
+  // Each opening starts on drafting with AI, as the most direct way in.
   useEffect(() => {
     if (!isOpen) return;
-    // Each opening starts on drafting with AI, as the most direct way in.
     setSelectedDraftNoteId(null);
     setNewDraftMethod('ai');
-    if (user?.id) fetchDraftNotes();
+  }, [isOpen]);
+
+  // The organization can arrive after the panel opens; loading its drafts then
+  // leaves a choice already made alone.
+  useEffect(() => {
+    if (isOpen && user?.id) fetchDraftNotes();
   }, [isOpen, user?.id, selectedOrg?.slug]);
 
   const fetchDraftNotes = async () => {

@@ -87,9 +87,9 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
         ]
       : undefined;
 
-  // Laid out as the RFP page is: the cover, then the byline and the tabs over
-  // each tab's own page, with the funding card in the sidebar and a Fund bar
-  // where the sidebar is hidden.
+  // Laid out as the RFP page is: the cover with the tabs across the page under
+  // it, then the byline over each tab's content, with the funding card in the
+  // sidebar and a Fund bar where the sidebar is hidden.
   return (
     <WorkTabProvider>
       <FundPanelProvider>

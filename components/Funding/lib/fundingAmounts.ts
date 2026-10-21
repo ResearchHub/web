@@ -5,15 +5,23 @@ import {
   type FundingPoolContributor,
 } from '@/types/grant';
 import { formatCurrency } from '@/utils/currency';
+import { formatRSC } from '@/utils/number';
+
+/**
+ * An amount already in the reader's currency, with its unit: "$1,155", or
+ * "12,345 RSC". RSC keeps one decimal under 10, so a small gift doesn't read 0.
+ */
+export function formatMoney(value: number, showUSD: boolean): string {
+  if (showUSD) {
+    return formatCurrency({ amount: value, showUSD, exchangeRate: 1, skipConversion: true });
+  }
+  const rsc = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
+  return `${formatRSC({ amount: rsc })} RSC`;
+}
 
 /** An amount kept in both currencies, in whichever the reader prefers. */
 export function formatFundingAmount(amount: FundingPoolAmount, showUSD: boolean): string {
-  return formatCurrency({
-    amount: showUSD ? amount.usd : amount.rsc,
-    showUSD,
-    exchangeRate: 1,
-    skipConversion: true,
-  });
+  return formatMoney(showUSD ? amount.usd : amount.rsc, showUSD);
 }
 
 /** Someone who put money in, as faces and tooltips show them. */

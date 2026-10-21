@@ -80,6 +80,9 @@ export function WorkCover({
           'relative isolate overflow-hidden bg-navy',
           // The bar sits at the bottom; the top keeps clear of the actions.
           'tablet:flex tablet:flex-col tablet:justify-end tablet:pt-16',
+          // A phone's band sits under the image, so with none it would start
+          // at the top, under the badges and actions.
+          !imageUrl && (badges || actions) && 'pt-14',
           COVER_BOX_CLASS
         )}
       >
@@ -98,9 +101,10 @@ export function WorkCover({
           />
         )}
 
-        {badges && <div className="absolute left-3 top-3 flex gap-1.5">{badges}</div>}
+        {/* Above the title band, which comes later and would otherwise take their taps. */}
+        {badges && <div className="absolute left-3 top-3 z-10 flex gap-1.5">{badges}</div>}
         {actions && (
-          <div className="absolute right-3 top-3 rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur">
+          <div className="absolute right-3 top-3 z-10 rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur">
             {actions}
           </div>
         )}
