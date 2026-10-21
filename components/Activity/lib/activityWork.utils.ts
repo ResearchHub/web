@@ -151,14 +151,9 @@ function formatAmount(
   });
 }
 
-function resolveReviewScore(entry: FeedEntry, work: ActivityWork): number | null {
+function resolveReviewScore(entry: FeedEntry): number | null {
   const entryScore = entry.metrics?.reviewScore;
-  if (entryScore && entryScore > 0) return entryScore;
-
-  const fundraiseAvg = work.fundraise?.reviewMetrics?.avg;
-  if (fundraiseAvg && fundraiseAvg > 0) return fundraiseAvg;
-
-  return null;
+  return entryScore && entryScore > 0 ? entryScore : null;
 }
 
 function isRegisteredReport(postType?: string): boolean {
@@ -205,7 +200,7 @@ function buildBasePresentation(
     brand: isDiscussion(work) ? 'researchhub' : undefined,
     organization: resolveOrganization(entry, work),
     institution: entry.nonprofit?.name ?? null,
-    score: resolveReviewScore(entry, work),
+    score: resolveReviewScore(entry),
     // Caller ANDs with commentPreview presence; here we only gate by slot.
     showComment: slot !== 'bounty' && slot !== 'grant',
   };
@@ -375,7 +370,7 @@ function getWorkKindLabel(work: ActivityWork): string {
  * single review's score: on the cover it reads as the work's rating.
  */
 function resolveCoverRating(work: ActivityWork): number | null {
-  const average = (work.reviewMetrics ?? work.fundraise?.reviewMetrics)?.avg;
+  const average = work.reviewMetrics?.avg;
   return average && average > 0 ? average : null;
 }
 
