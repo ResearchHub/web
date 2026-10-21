@@ -4,6 +4,7 @@ import { FC, ReactNode } from 'react';
 import { BountyAmount } from '../amounts/BountyAmount';
 import { ContributionAmount } from '../amounts/ContributionAmount';
 import { GrantFundingAmount } from '../amounts/GrantFundingAmount';
+import { ReviewScoreStars } from '../amounts/ReviewScoreStars';
 import { ActivityAuthorSummary } from './ActivityAuthorSummary';
 import type { ActivityActionLine, ActivityActionValue } from '../lib/activityDisplay.utils';
 import { cn } from '@/utils/styles';
@@ -21,6 +22,12 @@ function ActionValue({ value }: Readonly<{ value: ActivityActionValue }>) {
       return <GrantFundingAmount amount={value.amount} className={VALUE_CLASS} />;
     case 'bounty':
       return <BountyAmount bounty={value.bounty} className={VALUE_CLASS} />;
+    case 'score':
+      return (
+        <span className="inline-flex items-center align-[-2px]">
+          <ReviewScoreStars score={value.score} size="sm" />
+        </span>
+      );
   }
 }
 
@@ -32,7 +39,7 @@ interface ActivityActionTextProps {
 }
 
 /**
- * What the actor did, with its amount, set in the byline's grey so it never
+ * What the actor did, with its amount or score, set in the byline's grey so it never
  * reads as the content under it. A `div`, since a named target brings its profile
  * tooltip, which renders block content.
  */
