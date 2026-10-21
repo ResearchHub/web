@@ -111,7 +111,7 @@ export default function SelectProvider({
     }
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'twitter') => {
+  const handleSocialSignIn = (provider: 'google' | 'twitter') => {
     if (provider === 'google') {
       AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((analyticsError) => {
         console.error('Analytics failed:', analyticsError);
@@ -130,7 +130,7 @@ export default function SelectProvider({
       finalCallbackUrl = referralUrl.toString();
     }
 
-    signIn(provider, { callbackUrl: finalCallbackUrl });
+    void signIn(provider, { callbackUrl: finalCallbackUrl });
   };
 
   if (isCatalystDark) {
