@@ -3,25 +3,33 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/utils/styles';
 
-/** Who the small line over the title names, with their face: the funder, or the lead author. */
+/**
+ * Who the small line over the title names, with their face: the funder, the
+ * nonprofit a proposal's money goes to, or the lead author.
+ */
 export interface CoverEyebrowSubject {
   name: string;
-  /** Their picture; without one, the name's initials. */
+  /** Their picture; without one, `icon`, or else the name's initials. */
   image?: string | null;
+  /** In place of initials, for an organization with no picture, e.g. a building. */
+  icon?: LucideIcon;
   /** Their author profile: the face and name link to it and, under a mouse, open their card. */
   authorId?: number;
+  /** Otherwise their page on another site, opened in a new tab. */
+  href?: string;
   /** Plain text after the name, e.g. "and 2 more". */
   more?: string;
 }
 
 interface WorkCoverProps {
   title: string;
-  /** The small line over the title: who funds an RFP, who proposes a proposal. */
+  /** The small line over the title: who funds an RFP, who a proposal's money goes to or who proposes it. */
   eyebrow?: CoverEyebrowSubject;
   imageUrl?: string;
   /** Badges pinned to the cover's top-left corner (pending review, closed); on phones, over the eyebrow. */
@@ -66,19 +74,30 @@ export function CoverEyebrow({ children, className }: { children: ReactNode; cla
 // be the tap that follows the link. The same test as AuthorLink's.
 const CAN_HOVER_QUERY = '(hover: hover) and (pointer: fine)';
 
+const EYEBROW_LINK_CLASS =
+  'group/eyebrow flex min-w-0 items-center gap-2 transition-colors hover:text-white';
+
 /**
  * The large cover's eyebrow: a face and a name, one link to their profile
- * that, under a mouse, opens their profile card (AuthorTooltip) too. Without
- * a profile, plain text.
+ * that, under a mouse, opens their profile card (AuthorTooltip) too, or to an
+ * organization's own page. With neither, plain text.
  */
 function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
-  const { name, image, authorId, more } = subject;
+  const { name, image, icon: Icon, authorId, href, more } = subject;
   // Unknown while the page hydrates, so the server's render is the plain link.
   const canHover = useMediaQuery(CAN_HOVER_QUERY) === true;
 
+  const face =
+    Icon && !image ? (
+      <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/40">
+        <Icon className="h-3 w-3" aria-hidden />
+      </span>
+    ) : (
+      <Avatar src={image} alt={name} size={22} className="ring-1 ring-white/40" />
+    );
   const faceAndName = (
     <>
-      <Avatar src={image} alt={name} size={22} className="ring-1 ring-white/40" />
+      {face}
       <span className="truncate underline-offset-2 group-hover/eyebrow:underline">{name}</span>
     </>
   );
@@ -92,7 +111,7 @@ function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
         href={`/author/${authorId}`}
         // Not prefetched: a profile most visitors never open.
         prefetch={false}
-        className="group/eyebrow flex min-w-0 items-center gap-2 transition-colors hover:text-white"
+        className={EYEBROW_LINK_CLASS}
       >
         {faceAndName}
       </Link>
@@ -105,6 +124,12 @@ function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
       // The box AuthorTooltip wraps it in, so the line doesn't move when the
       // card arrives after hydration.
       <span className="relative inline-flex min-w-0 max-w-full items-center">{link}</span>
+    );
+  } else if (href) {
+    subjectLine = (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={EYEBROW_LINK_CLASS}>
+        {faceAndName}
+      </a>
     );
   }
 

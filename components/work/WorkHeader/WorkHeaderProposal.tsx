@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useRef, useState } from 'react';
-import { Globe2, Link2 } from 'lucide-react';
+import { Globe2, Landmark, Link2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -10,6 +10,7 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
 import { CoverBadge, type CoverEyebrowSubject } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
+import { useWorkInstitution, type WorkInstitution } from '@/components/work/WorkInstitutionContext';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useUser } from '@/contexts/UserContext';
@@ -36,8 +37,17 @@ function proposerLabel(work: Work): string | undefined {
   return others.length > 0 ? `${name} and ${others.length} more` : name;
 }
 
-/** The same for the cover's top line: the lead author's face, linked to their profile. */
-function proposerEyebrow(work: Work): CoverEyebrowSubject | undefined {
+/**
+ * Who the cover's top line names: the nonprofit or institution the money goes
+ * to, when there is one, linked to its page on Endaoment. Otherwise the lead
+ * author, linked to their profile, and how many more.
+ */
+function proposerEyebrow(
+  work: Work,
+  institution: WorkInstitution | null
+): CoverEyebrowSubject | undefined {
+  // Nonprofits carry no logo in the link the page loads, so a building stands in.
+  if (institution) return { name: institution.name, icon: Landmark, href: institution.href };
   const [lead, ...others] = work.authors;
   if (!lead) return undefined;
   const { id, fullName, profileImage } = lead.authorProfile;
@@ -65,6 +75,8 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   const { showShareModal } = useShareModalContext();
   const { user } = useUser();
   const router = useRouter();
+  // Loaded with the page on the server, so the cover names it from the first paint.
+  const institution = useWorkInstitution();
 
   const displayedWork = updatedWork ?? work;
   const fundraise = metadata.fundraising ?? null;
@@ -153,7 +165,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
         preTitle={preTitle}
         cover={{
           imageUrl: displayedWork.image,
-          eyebrow: proposerEyebrow(displayedWork),
+          eyebrow: proposerEyebrow(displayedWork, institution),
           badges: closedBadge,
         }}
       />
