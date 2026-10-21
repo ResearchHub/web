@@ -41,6 +41,11 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
     return null;
   }
 
+  // Empty in the record we store, until Endaoment's answers; a row shows only
+  // once there is something in it.
+  const location = formatNonprofitAddress(nonprofit.address);
+  const category = [nonprofit.nteeCode, nonprofit.nteeDescription].filter(Boolean).join(' - ');
+
   return (
     <SidebarCard
       title="Nonprofit recipient"
@@ -156,17 +161,19 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                           </>
                         )}
 
-                        {formatNonprofitAddress(nonprofit.address) && (
+                        {location && (
                           <>
                             <span className="text-gray-500">Location:</span>
-                            <span>{formatNonprofitAddress(nonprofit.address)}</span>
+                            <span>{location}</span>
                           </>
                         )}
 
-                        <span className="text-gray-500">Category:</span>
-                        <span className="break-words">
-                          {nonprofit.nteeCode} - {nonprofit.nteeDescription}
-                        </span>
+                        {category && (
+                          <>
+                            <span className="text-gray-500">Category:</span>
+                            <span className="break-words">{category}</span>
+                          </>
+                        )}
 
                         <span className="text-gray-500">Endaoment ID:</span>
                         <span className="font-medium break-words">{nonprofit.endaomentOrgId}</span>
