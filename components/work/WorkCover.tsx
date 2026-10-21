@@ -18,7 +18,7 @@ interface WorkCoverProps {
   /** A small face before the eyebrow; without an image, the name's initials. */
   eyebrowFace?: CoverEyebrowFace;
   imageUrl?: string;
-  /** Badges pinned to the cover's top-left corner (pending review, closed). */
+  /** Badges pinned to the cover's top-left corner (pending review, closed); on phones, over the eyebrow. */
   badges?: ReactNode;
   /** Save, share and the menu, pinned to the top-right corner. */
   actions?: ReactNode;
@@ -90,7 +90,8 @@ const IMAGE_HOVER_CLASS = cn(
  *
  * On phones a fixed-height box would crop most of a wide banner (a 3:1 image
  * in a square), so there the image keeps its own shape, uncut, and the title
- * sits on a navy band under it instead of over it.
+ * sits on a navy band under it instead of over it, with the badges at the
+ * band's top so that only the actions sit on the image.
  */
 export function WorkCover({
   title,
@@ -122,7 +123,9 @@ export function WorkCover({
           <div className="overflow-hidden tablet:absolute tablet:inset-0">
             {/* Sized by its own width and height: full width at its natural
                 shape on phones, stretched over the whole box from tablet up.
-                The width and height here only reserve room until it loads. */}
+                The width and height here only reserve room until it loads.
+                On phones a very wide banner is still as tall as the actions
+                and their margins, cropped at its sides to get there. */}
             <Image
               src={imageUrl}
               alt=""
@@ -130,7 +133,8 @@ export function WorkCover({
               height={630}
               priority
               className={cn(
-                'block h-auto w-full tablet:absolute tablet:inset-0 tablet:!h-full tablet:object-cover',
+                'block h-auto min-h-[68px] w-full object-cover',
+                'tablet:absolute tablet:inset-0 tablet:!h-full',
                 IMAGE_HOVER_CLASS
               )}
               sizes="(min-width: 1012px) 980px, 100vw"
@@ -138,11 +142,13 @@ export function WorkCover({
           </div>
         )}
 
-        {/* Badges on the left, actions on the right. Where both don't fit
-            across, the actions keep the top and the badges wrap under them.
-            Above the title band, which comes later and would otherwise take
-            their taps. A phone's cover without an image has the row in the
-            flow, over the band. */}
+        {/* Over the image's top: the actions on the right and, from tablet,
+            the badges on the left. Where both don't fit across, the actions
+            keep the top and the badges wrap under them. On phones they never
+            fit across, and a wide banner is too short for two rows, so there
+            the badges open the title band instead. Above the band, which
+            comes later and would otherwise take their taps. A phone's cover
+            without an image has the row in the flow, over the band. */}
         {(badges || actions) && (
           <div
             className={cn(
@@ -152,7 +158,11 @@ export function WorkCover({
                 : 'relative px-3 pt-3 tablet:absolute tablet:inset-x-3 tablet:top-3 tablet:p-0'
             )}
           >
-            {badges && <div className="pointer-events-auto flex gap-1.5">{badges}</div>}
+            {badges && (
+              <div className="pointer-events-auto hidden min-w-0 flex-wrap gap-1.5 tablet:flex">
+                {badges}
+              </div>
+            )}
             {actions && (
               <div
                 className={cn(
@@ -173,6 +183,11 @@ export function WorkCover({
             'tablet:backdrop-blur-xl tablet:backdrop-saturate-150'
           )}
         >
+          {/* The phone's place for the badges. A badge that renders nothing
+              leaves the row empty, and empty:hidden drops its spacing. */}
+          {badges && (
+            <div className="mb-2.5 flex flex-wrap gap-1.5 empty:hidden tablet:hidden">{badges}</div>
+          )}
           {eyebrow && (
             <div className="flex min-w-0 items-center gap-2">
               {eyebrowFace && (
