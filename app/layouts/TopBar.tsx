@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
 import { useRouter, usePathname } from 'next/navigation';
@@ -8,7 +8,6 @@ import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
-import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Tabs } from '@/components/ui/Tabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
@@ -67,11 +66,6 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
       : routePageInfo;
   // Nothing of the title's row until it is known: the arrow would stand alone.
   const showBackButton = pageInfo && !pageInfo.loading && !isRootNavigationPage(pathname);
-
-  const profilePercent = useCallback(() => {
-    if (!user) return 100;
-    return calculateProfileCompletion(user).percent;
-  }, [user]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -185,7 +179,6 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
               unreadCount={unreadCount}
               pendingModerationCount={pendingModerationCount}
               avatarSize={32}
-              profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
@@ -199,7 +192,6 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
               unreadCount={unreadCount}
               pendingModerationCount={pendingModerationCount}
               avatarSize={40}
-              profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
               onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
