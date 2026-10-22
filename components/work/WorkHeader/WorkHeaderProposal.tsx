@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useRef, useState } from 'react';
-import { Globe2, Landmark, Link2 } from 'lucide-react';
+import { Globe2, Link2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -50,16 +50,24 @@ function proposerLabel(work: Work): string | undefined {
 
 /**
  * Who the cover's top line names: the nonprofit or institution the money goes
- * to, when there is one, linked to its page on Endaoment. Otherwise the lead
- * author.
+ * to, when there is one, beside the lead author's face and linked to its page
+ * on Endaoment. Otherwise the lead author.
  */
 function proposerEyebrow(
   work: Work,
   institution: WorkInstitution | null
 ): CoverEyebrowSubject | undefined {
-  // Nonprofits carry no logo in the link the page loads, so a building stands in.
-  if (institution) return { name: institution.name, icon: Landmark, href: institution.href };
-  return leadAuthorEyebrow(work);
+  const lead = leadAuthorEyebrow(work);
+  // Nonprofits carry no logo in the link the page loads; the lead author's face stands beside its name.
+  if (institution) {
+    return {
+      name: institution.name,
+      image: lead?.image,
+      faceName: lead?.name,
+      href: institution.href,
+    };
+  }
+  return lead;
 }
 
 /**

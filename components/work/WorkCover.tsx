@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import type { LucideIcon } from 'lucide-react';
 import { AuthorLink } from '@/components/ui/AuthorLink';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
@@ -13,10 +12,10 @@ import { cn } from '@/utils/styles';
  */
 export interface CoverEyebrowSubject {
   name: string;
-  /** Their picture; without one, `icon`, or else the name's initials. */
+  /** The face beside the name; without a picture, its initials. */
   image?: string | null;
-  /** In place of initials, for an organization with no picture, e.g. a building. */
-  icon?: LucideIcon;
+  /** Whose face it is when not the subject's own, e.g. the lead author beside their nonprofit. */
+  faceName?: string;
   /** Their author profile: the face and name link to it and, under a mouse, open their card. */
   authorId?: number;
   /** Otherwise their page on another site, opened in a new tab. */
@@ -77,18 +76,12 @@ const EYEBROW_LINK_CLASS =
  * organization's own page. With neither, plain text.
  */
 function CoverEyebrowLine({ subject }: { subject: CoverEyebrowSubject }) {
-  const { name, image, icon: Icon, authorId, href, more } = subject;
+  const { name, image, faceName, authorId, href, more } = subject;
 
   // Hidden from screen readers, which hear the name once, from the text beside it.
   const face = (
     <span aria-hidden className="shrink-0">
-      {Icon && !image ? (
-        <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-white/40">
-          <Icon className="h-3 w-3" />
-        </span>
-      ) : (
-        <Avatar src={image} alt={name} size={22} className="ring-1 ring-white/40" />
-      )}
+      <Avatar src={image} alt={faceName ?? name} size={22} className="ring-1 ring-white/40" />
     </span>
   );
   const faceAndName = (
