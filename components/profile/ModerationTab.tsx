@@ -57,6 +57,8 @@ function buildInsights(
 ): InsightItem[] {
   const items: InsightItem[] = [];
   const verificationTooltip = buildVerificationTooltip(userDetails);
+  const verifiedVia = userDetails.verification?.verifiedVia;
+  const verificationLabel = `Verified via ${snakeCaseToTitleCase(verifiedVia ?? '')}`;
   const hasPersonaInsight = backendInsights.some((insight) =>
     isPersonaVerificationEvent(insight.eventType)
   );
@@ -64,7 +66,7 @@ function buildInsights(
   if (!hasPersonaInsight) {
     items.push(
       verificationTooltip
-        ? { label: 'Identity Verified', tone: 'good', tooltip: verificationTooltip }
+        ? { label: verificationLabel, tone: 'good', tooltip: verificationTooltip }
         : { label: 'Not Verified', tone: 'bad', tooltip: 'No identity verification on file' }
     );
   }
@@ -86,12 +88,16 @@ function buildInsights(
   }
 
   for (const insight of backendInsights) {
-    const tooltip =
-      isPersonaVerificationEvent(insight.eventType) && verificationTooltip
-        ? verificationTooltip
-        : getInsightTooltip(insight);
+    const isVerificationInsight =
+      isPersonaVerificationEvent(insight.eventType) && !!verificationTooltip;
+    const tooltip = isVerificationInsight ? verificationTooltip : getInsightTooltip(insight);
+    // The backend records a Persona event for every approved verification, X and manual included.
+    const label =
+      isVerificationInsight && verifiedVia !== 'PERSONA'
+        ? verificationLabel
+        : formatInsightLabel(insight.eventType, insight.count);
     items.push({
-      label: formatInsightLabel(insight.eventType, insight.count),
+      label,
       tone: getInsightTone(insight),
       tooltip,
     });
