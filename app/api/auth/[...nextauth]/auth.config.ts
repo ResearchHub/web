@@ -5,6 +5,10 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 
+// TEMPORARY: experiment.staging inherits staging's NEXTAUTH_URL, which sends the X callback
+// and post-login redirects to staging. NextAuth reads this per request. Revert before merging.
+process.env.NEXTAUTH_URL = 'https://experiment.staging.researchhub.com';
+
 // Debug flag - set to true to enable detailed authentication logging
 const DEBUG_AUTH = true;
 
