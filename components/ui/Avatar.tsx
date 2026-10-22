@@ -4,8 +4,7 @@ import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
 import Link from 'next/link';
-import { Avatar as DiceBearAvatar, Style } from '@dicebear/core';
-import voxelArt from '@dicebear/styles/voxel-art.json';
+import { generatePixelScientistAvatarUri } from '@/utils/pixelScientistAvatar';
 
 type AvatarSize = 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
 
@@ -21,67 +20,6 @@ export interface AvatarProps {
   labelClassName?: string;
   labelStyle?: CSSProperties;
 }
-
-// Pale cool tints only; warm tones blend into the skin and hair.
-const voxelAvatarBackgrounds = [
-  '#dbeafe', // blue
-  '#e0e7ff', // indigo
-  '#ede9fe', // violet
-  '#e0f2fe', // sky
-  '#cffafe', // cyan
-  '#ccfbf1', // teal
-  '#d1fae5', // emerald
-  '#fce7f3', // pink
-  '#f1f5f9', // slate
-];
-
-const voxelArtStyle = new Style(voxelArt);
-
-// Every avatar wears a white lab coat and glasses; the seed varies the face, hair, and colors.
-const generateVoxelAvatarUri = (seed: string) =>
-  new DiceBearAvatar(voxelArtStyle, {
-    seed,
-    backgroundColor: voxelAvatarBackgrounds,
-    outfitVariant: 'coat',
-    jacketColor: '#f8f9fa',
-    glassesProbability: 100,
-    // Visor reads as safety goggles; shades are left out.
-    glassesVariant: { round: 3, square: 3, cat: 2, visor: 1 },
-    mouthVariant: [
-      'smile',
-      'bigSmile',
-      'flat',
-      'ooh',
-      'smirk',
-      'laugh',
-      'wideSmile',
-      'frown',
-      'grin',
-    ],
-    // Hair only; no caps, beanies, or animal ears.
-    topVariant: [
-      'short',
-      'spiky',
-      'bowl',
-      'sideSwept',
-      'curly',
-      'mohawk',
-      'buns',
-      'ponytail',
-      'bob',
-      'shoulderLength',
-      'longStraight',
-      'longWavy',
-      'partedLong',
-      'braids',
-      'twinTails',
-      'afro',
-      'halfShaved',
-    ],
-    animationVariant: 'none',
-    // Crops the full-body figure to head and shoulders so the coat still shows.
-    scale: 1.12,
-  }).toDataUri();
 
 // Map string sizes to pixel values
 const sizeMap = {
@@ -199,7 +137,7 @@ export const Avatar: FC<AvatarProps> = ({
         </span>
       ) : (
         <img
-          src={shouldShowGeneratedAvatar ? generateVoxelAvatarUri(alt) : src}
+          src={shouldShowGeneratedAvatar ? generatePixelScientistAvatarUri(alt) : src}
           alt={alt}
           className="h-full w-full object-cover"
           onError={handleImageError}
