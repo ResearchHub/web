@@ -10,8 +10,6 @@ import { usePublishingController } from './PublishingFormProvider';
 import type { PublishingFormData } from './schema';
 import { useCoverImageUpload } from './useCoverImageUpload';
 
-const NEEDS_TITLE_MESSAGE = 'Add a title before generating a cover image.';
-
 /**
  * Offers AI-generated covers next to a cover control: `open` generates
  * options from the form as it is, and `modal`, rendered where the control
@@ -26,7 +24,7 @@ export function useCoverImageGenerator() {
   const open = () => {
     const next = coverImageGenerationParams(getValues(), getTitle());
     if (!next) {
-      toast.error(NEEDS_TITLE_MESSAGE);
+      toast.error('Add a title before generating a cover image.');
       return;
     }
     setParams(next);

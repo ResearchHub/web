@@ -7,6 +7,8 @@ export interface GenerateCoverImagesParams {
   subtitle?: string;
   organization?: string;
   fundingAmountUsd?: number | null;
+  /** Storage key of an uploaded logo to place in the banners. */
+  logoKey?: string | null;
 }
 
 /**
@@ -23,6 +25,7 @@ export class CoverImageService {
       subtitle: params.subtitle ?? '',
       organization: params.organization ?? '',
       funding_amount_usd: params.fundingAmountUsd ?? null,
+      logo_key: params.logoKey ?? '',
     });
     return transformCoverImageGeneration(response);
   }
