@@ -7,7 +7,13 @@ import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/co
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import type { CommentContent } from '@/components/Comment/lib/types';
-import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
+import {
+  Fundraise,
+  FundraiseStatus,
+  transformFundraise,
+  Application,
+  transformApplication,
+} from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { stripHtml } from '@/utils/stringUtils';
@@ -298,10 +304,13 @@ export interface FeedFundingActivityContent extends BaseFeedContent {
   peerReview?: FeedFundingActivityPeerReview;
 }
 
-/** One-shot “proposal fully funded” event (`content_type: FUNDRAISE`, status COMPLETED). */
+/**
+ * One-shot “proposal fully funded” event (`content_type: FUNDRAISE`).
+ * Emitted when raised amount meets the goal.
+ */
 export interface FeedFundraiseContent extends BaseFeedContent {
   contentType: 'FUNDRAISE';
-  status: 'COMPLETED';
+  status: FundraiseStatus;
   amountRaised: { usd: number; rsc: number };
   goalAmount: { usd: number; rsc: number | null };
   postId: number | null;
@@ -432,8 +441,7 @@ export function deriveActivityAction(feedEntry: RawApiFeedEntry): ActivityAction
     case 'USDFUNDRAISECONTRIBUTION':
       return 'fundraise_contribution';
     case 'FUNDRAISE':
-      if ((obj.status as string | undefined) === 'COMPLETED') return 'proposal_fully_funded';
-      return undefined;
+      return 'proposal_fully_funded';
     case 'FUNDINGACTIVITY': {
       const sourceType = obj.source_type as string | undefined;
       if (sourceType === 'BOUNTY_PAYOUT') return 'bounty_payout';
@@ -1269,9 +1277,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
 
     case 'FUNDRAISE': {
       contentType = 'FUNDRAISE';
-      if (content_object?.status !== 'COMPLETED') {
-        throw new Error(`Ignoring FUNDRAISE feed entry with status ${content_object?.status}`);
-      }
       try {
         const relatedWorkRaw = feedEntry.related_work;
         const createdBy = transformAuthorProfile(author);
@@ -1284,10 +1289,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 slug: content_object.hub.slug || '',
               }
           : null;
+        const rawStatus = (content_object.status as string | undefined)?.toUpperCase();
+        const status: FundraiseStatus =
+          rawStatus === 'COMPLETED' || rawStatus === 'CLOSED' ? rawStatus : 'OPEN';
         const fundraiseEntry: FeedFundraiseContent = {
           id: content_object.id ?? id,
           contentType: 'FUNDRAISE',
-          status: 'COMPLETED',
+          status,
           createdDate: action_date || created_date,
           createdBy,
           unifiedDocumentId: String(

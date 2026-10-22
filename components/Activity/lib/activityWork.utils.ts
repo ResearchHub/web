@@ -6,6 +6,7 @@ import {
   getActivityReview,
   isFundingPoolContribution,
   isGrantOpened,
+  isProposalFullyFunded,
   isProposalSubmission,
   isVerifiedAuthor,
   type ActivityCommentKind,
@@ -700,7 +701,9 @@ export function isActivityWorkAuthor(entry: FeedEntry, authorId?: number | null)
  * would be redundant.
  */
 export function shouldShowAuthorBadge(entry: FeedEntry, authorId?: number | null): boolean {
-  if (isProposalSubmission(entry) || isGrantOpened(entry)) return false;
+  if (isProposalSubmission(entry) || isGrantOpened(entry) || isProposalFullyFunded(entry)) {
+    return false;
+  }
   return isActivityWorkAuthor(entry, authorId);
 }
 

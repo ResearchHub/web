@@ -36,7 +36,7 @@ export const FeedItemFundraiseCompleted: FC<FeedItemFundraiseCompletedProps> = (
 }) => {
   const { showUSD } = useCurrencyPreference();
   const content = entry.content as FeedFundraiseContent;
-  const author = content.createdBy;
+  const author = entry.relatedWork?.authors?.[0]?.authorProfile ?? content.createdBy;
 
   const proposalId = content.postId;
   const proposalSlug = content.proposalSlug || undefined;
