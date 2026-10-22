@@ -5,7 +5,10 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
+      // Link-card images live under /api/og; crawlers that build link previews
+      // (Twitterbot, LinkedInBot, ...) skip images robots.txt disallows. The
+      // longer Allow path wins over `/api/` (RFC 9309 longest match).
+      allow: ['/', '/api/og'],
       disallow: [
         '/api/',
         '/auth/',

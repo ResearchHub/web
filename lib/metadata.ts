@@ -4,7 +4,8 @@ export const SITE_CONFIG = {
   name: 'ResearchHub',
   description:
     'ResearchHub is a collaborative community seeking to improve prioritization, collaboration, reproducibility, and funding of scientific research. Join us to discuss and discover academic research.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com',
+  // The www host is the one the site is served from; the bare domain 308s to it.
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.researchhub.com',
   ogImage: '/og-card-preview.png',
   twitterHandle: '@researchhub',
   locale: 'en_US',
@@ -32,9 +33,45 @@ const truncateOgTitle = (title: string) =>
 const truncateOgDescription = (description: string) =>
   description.length > 155 ? description.substring(0, 152) + '...' : description;
 
+/**
+ * Bump when the generated card design or the share-image resizing changes, so
+ * link cards stop matching URLs that browsers and crawlers already cached.
+ */
+const OG_IMAGE_VERSION = '1';
+
+/**
+ * Card images are keyed by their URL, so content edits get new URLs. The CDN
+ * keeps them until the next deploy; downstream caches recheck daily.
+ */
+export const OG_IMAGE_CACHE_CONTROL = 'public, max-age=86400, s-maxage=31536000';
+
+/** Hosts whose uploads `/api/og/image` will resize into share images. */
+export const SHARE_IMAGE_HOSTS = [
+  'storage.prod.researchhub.com',
+  'storage.staging.researchhub.com',
+  'storage.dev.researchhub.com',
+  'researchhub-dev-storage.s3.amazonaws.com',
+];
+
 /** The generated card image a page gets when it has no image of its own. */
 export function buildDefaultOgImageUrl(title: string, description: string): string {
-  return `${SITE_CONFIG.url}/api/og?title=${encodeURIComponent(truncateOgTitle(title))}&description=${encodeURIComponent(truncateOgDescription(description))}`;
+  return `${SITE_CONFIG.url}/api/og?title=${encodeURIComponent(truncateOgTitle(title))}&description=${encodeURIComponent(truncateOgDescription(description))}&v=${OG_IMAGE_VERSION}`;
+}
+
+/**
+ * Routes an uploaded image through `/api/og/image`, which serves a small JPEG
+ * instead of the multi-megabyte original. Other images pass through as is.
+ */
+export function buildShareImageUrl(image: string): string {
+  let host: string;
+  try {
+    host = new URL(image).hostname;
+  } catch {
+    // A relative path is one of our static assets, already sized for cards.
+    return image;
+  }
+  if (!SHARE_IMAGE_HOSTS.includes(host)) return image;
+  return `${SITE_CONFIG.url}/api/og/image?url=${encodeURIComponent(image)}&v=${OG_IMAGE_VERSION}`;
 }
 
 export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
@@ -55,7 +92,7 @@ export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
   const truncatedDescription = truncateOgDescription(description);
 
   // Use dynamic OG image generation if no custom image is provided
-  const ogImage = image || buildDefaultOgImageUrl(title, description);
+  const ogImage = image ? buildShareImageUrl(image) : buildDefaultOgImageUrl(title, description);
 
   const fullUrl = url ? `${SITE_CONFIG.url}${url}` : SITE_CONFIG.url;
 
