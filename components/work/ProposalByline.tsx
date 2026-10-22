@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Landmark, Lock, Star } from 'lucide-react';
+import { Lock, Star } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -189,19 +189,18 @@ function ProposalAmountChip({ fundraise }: { fundraise: Fundraise }) {
 }
 
 /**
- * The nonprofit a proposal's money goes to, beside its authors: a landmark and
- * its name, linking to its page on Endaoment, which takes the donations. It
- * keeps its width over the headline after it, and truncates only on its own.
+ * The nonprofit a proposal's money goes to, beside its authors: its name,
+ * linking to its page on Endaoment, which takes the donations. It keeps its
+ * width over the headline after it, and truncates only on its own.
  */
 function InstitutionName({ institution }: { institution: WorkInstitution }) {
   const content = (
     <>
-      <Landmark className="h-3 w-3 shrink-0" aria-hidden="true" />
       <span className="sr-only">Nonprofit recipient: </span>
       <span className="truncate">{institution.name}</span>
     </>
   );
-  const className = 'flex min-w-0 max-w-full shrink-0 items-center gap-1 text-gray-600';
+  const className = 'flex min-w-0 max-w-full shrink-0 items-center text-gray-600';
 
   if (!institution.href) return <span className={className}>{content}</span>;
   return (
