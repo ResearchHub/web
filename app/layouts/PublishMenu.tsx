@@ -39,7 +39,11 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
   const standardTrigger = (
     <Button
       aria-label="New draft"
-      className={cn('h-10 gap-2 px-4 text-[15px] shadow-sm', forceMinimize && '!hidden')}
+      // As wide as the Publish button it replaced, and a little shorter.
+      className={cn(
+        'h-9 min-w-[124px] gap-2 px-5 py-0 text-[15px] shadow-sm',
+        forceMinimize && '!hidden'
+      )}
     >
       <Plus className="h-5 w-5" aria-hidden="true" />
       <span>Draft</span>
