@@ -219,12 +219,14 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
 
   const userIdDisplay = String(userDetails.id ?? '');
   const verificationId = userDetails.verification?.externalId || '';
+  const verifiedVia = userDetails.verification?.verifiedVia;
 
   const detailItems: { label: string; value: string; copyable?: boolean }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
     { label: 'User ID', value: userIdDisplay || 'N/A', copyable: !!userIdDisplay },
     { label: 'Verified name', value: verifiedName },
     { label: 'Verification ID', value: verificationId || 'N/A', copyable: !!verificationId },
+    { label: 'Verified by', value: verifiedVia ? snakeCaseToTitleCase(verifiedVia) : 'N/A' },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
     {
       label: 'ResearchHub AI tier',
