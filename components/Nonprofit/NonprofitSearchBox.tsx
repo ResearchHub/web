@@ -6,6 +6,7 @@ import { NonprofitOrg } from '@/types/nonprofit';
 import { cn } from '@/utils/styles';
 import React, { KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/Button';
+import { formatNonprofitAddress } from './formatNonprofitAddress';
 
 interface NonprofitSearchBoxProps {
   searchTerm: string;
@@ -90,9 +91,7 @@ function NonprofitResultItem({
   onInfoClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedInfoNonprofit: NonprofitOrg | null;
 }) {
-  const location = [nonprofit.address?.region, nonprofit.address?.country]
-    .filter(Boolean)
-    .join(', ');
+  const location = formatNonprofitAddress(nonprofit.address);
 
   return (
     <div

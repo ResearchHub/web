@@ -12,6 +12,7 @@ import { NonprofitHeader } from './NonprofitHeader';
 import { NonprofitSearchBox } from './NonprofitSearchBox';
 import NonprofitDisplay from './NonprofitDisplay';
 import { Button } from '@/components/ui/Button';
+import { formatNonprofitAddress } from './formatNonprofitAddress';
 
 export interface NonprofitSelectionResult {
   nonprofit: NonprofitOrg | null;
@@ -320,11 +321,12 @@ function NonprofitSearchSectionInner({
                           </>
                         )}
 
-                        <span className="text-gray-500">Location:</span>
-                        <span>
-                          {selectedInfoNonprofit.address.region},{' '}
-                          {selectedInfoNonprofit.address.country}
-                        </span>
+                        {formatNonprofitAddress(selectedInfoNonprofit.address) && (
+                          <>
+                            <span className="text-gray-500">Location:</span>
+                            <span>{formatNonprofitAddress(selectedInfoNonprofit.address)}</span>
+                          </>
+                        )}
 
                         <span className="text-gray-500">Category:</span>
                         <span className="break-words">
