@@ -90,6 +90,10 @@ function NonprofitResultItem({
   onInfoClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedInfoNonprofit: NonprofitOrg | null;
 }) {
+  const location = [nonprofit.address?.region, nonprofit.address?.country]
+    .filter(Boolean)
+    .join(', ');
+
   return (
     <div
       className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
@@ -104,6 +108,7 @@ function NonprofitResultItem({
             EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
           </div>
         )}
+        {location && <div className="text-xs text-gray-500">{location}</div>}
       </div>
       <Button
         className={cn(
