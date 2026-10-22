@@ -892,8 +892,8 @@ interface Traits {
 
 const hashSeed = (seed: string) => {
   let hash = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    hash ^= seed.charCodeAt(i);
+  for (const character of seed) {
+    hash ^= character.codePointAt(0) ?? 0;
     hash = Math.imul(hash, 16777619);
   }
   hash ^= hash >>> 16;
@@ -904,11 +904,13 @@ const hashSeed = (seed: string) => {
   return hash >>> 0;
 };
 
+// Int32Array storage wraps the state to 32 bits on every write, which the generator relies on.
 const createRandom = (seed: number) => {
-  let state = seed;
+  const state = new Int32Array([seed]);
   return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    state[0] += 0x6d2b79f5;
+    const current = state[0];
+    let t = Math.imul(current ^ (current >>> 15), 1 | current);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
@@ -932,7 +934,7 @@ const pickTraits = (seed: string): Traits => {
   };
 };
 
-const toChannels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+const toChannels = (hex: string) => [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
 
 const toHex = (channels: number[]) =>
   '#' + channels.map((channel) => channel.toString(16).padStart(2, '0')).join('');
@@ -955,7 +957,7 @@ const blend = (base: string, tint: string, alpha: number) => {
 };
 
 const createGrid = <T>(size: number, fill: T): T[][] =>
-  Array.from({ length: size }, () => Array<T>(size).fill(fill));
+  Array.from({ length: size }, () => new Array<T>(size).fill(fill));
 
 const isOnCanvas = (x: number, y: number) => x >= 0 && y >= 0 && x < HI_RES && y < HI_RES;
 
@@ -1073,6 +1075,18 @@ const drawAvatarSvg = ({
   ) => {
     const codes = upscale(drawing);
     const isFilled = (x: number, y: number) => (codes[y]?.[x] ?? '.') !== '.';
+    const shadeRim = (code: string, x: number, y: number) => {
+      const isHairHighlight =
+        rim === 'hair' &&
+        code === 'H' &&
+        !isFilled(x, y - 1) &&
+        isFilled(x, y + 2) &&
+        x < LIT_SIDE_END;
+      if (isHairHighlight) return 'L';
+      const isSkinShadow =
+        rim === 'skin' && code === 'S' && (!isFilled(x + 1, y) || !isFilled(x + 2, y));
+      return isSkinShadow ? 's' : code;
+    };
 
     codes.forEach((row, y) =>
       row.forEach((code, x) => {
@@ -1088,16 +1102,7 @@ const drawAvatarSvg = ({
 
     codes.forEach((row, y) =>
       row.forEach((code, x) => {
-        if (code === '.') return;
-        const isHairHighlight =
-          rim === 'hair' &&
-          code === 'H' &&
-          !isFilled(x, y - 1) &&
-          isFilled(x, y + 2) &&
-          x < LIT_SIDE_END;
-        const isSkinShadow =
-          rim === 'skin' && code === 'S' && (!isFilled(x + 1, y) || !isFilled(x + 2, y));
-        paint(x, y, palette[isHairHighlight ? 'L' : isSkinShadow ? 's' : code]);
+        if (code !== '.') paint(x, y, palette[shadeRim(code, x, y)]);
       })
     );
 
