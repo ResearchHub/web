@@ -72,16 +72,13 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
               showAbbreviatedInMobile
               mobileExpandable
             />
-            {(institution || headline) && (
-              <p className="flex min-w-0 items-center gap-1 text-[13px] text-gray-500">
-                {institution && <InstitutionName institution={institution} />}
-                {headline && (
-                  <span className="min-w-0 truncate">
-                    {institution && '· '}
-                    {headline}
-                  </span>
-                )}
+            {/* The nonprofit the money goes to when there is one, else the author's headline. */}
+            {institution ? (
+              <p className="flex min-w-0 text-[13px] text-gray-500">
+                <InstitutionName institution={institution} />
               </p>
+            ) : (
+              headline && <p className="truncate text-[13px] text-gray-500">{headline}</p>
             )}
           </div>
         </div>
@@ -189,9 +186,9 @@ function ProposalAmountChip({ fundraise }: { fundraise: Fundraise }) {
 }
 
 /**
- * The nonprofit a proposal's money goes to, beside its authors: its name,
- * linking to its page on Endaoment, which takes the donations. It keeps its
- * width over the headline after it, and truncates only on its own.
+ * The nonprofit a proposal's money goes to, under its authors in place of the
+ * headline: its name, linking to its page on Endaoment, which takes the
+ * donations.
  */
 function InstitutionName({ institution }: { institution: WorkInstitution }) {
   const content = (
@@ -200,7 +197,7 @@ function InstitutionName({ institution }: { institution: WorkInstitution }) {
       <span className="truncate">{institution.name}</span>
     </>
   );
-  const className = 'flex min-w-0 max-w-full shrink-0 items-center text-gray-600';
+  const className = 'flex min-w-0 max-w-full items-center text-gray-600';
 
   if (!institution.href) return <span className={className}>{content}</span>;
   return (
