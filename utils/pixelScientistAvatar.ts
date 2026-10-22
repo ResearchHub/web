@@ -174,9 +174,8 @@ interface Head {
 }
 
 // Each head is one scientist's face; it sets the face shape, features, and skin tone.
-const HEADS: Head[] = [
-  // Albert Einstein
-  {
+const HEADS = Object.values<Head>({
+  albertEinstein: {
     skin: '#f2d3bc',
     shape: 'round',
     eyes: 'droopy',
@@ -185,12 +184,23 @@ const HEADS: Head[] = [
     mouth: 'line',
     extra: ['wrinkles'],
   },
-  // Marie Curie
-  { skin: '#f6dccb', shape: 'narrow', eyes: 'dot', brows: 'thin', nose: 'small', mouth: 'small' },
-  // Isaac Newton
-  { skin: '#f3d6c0', shape: 'long', eyes: 'dot', brows: 'thin', nose: 'long', mouth: 'small' },
-  // Nikola Tesla
-  {
+  marieCurie: {
+    skin: '#f6dccb',
+    shape: 'narrow',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'small',
+  },
+  isaacNewton: {
+    skin: '#f3d6c0',
+    shape: 'long',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'long',
+    mouth: 'small',
+  },
+  nikolaTesla: {
     skin: '#efd2bb',
     shape: 'narrow',
     eyes: 'droopy',
@@ -199,8 +209,7 @@ const HEADS: Head[] = [
     mouth: 'line',
     extra: ['cheekbones'],
   },
-  // Charles Darwin
-  {
+  charlesDarwin: {
     skin: '#f0cdb2',
     shape: 'oval',
     eyes: 'droopy',
@@ -209,10 +218,15 @@ const HEADS: Head[] = [
     mouth: 'line',
     extra: ['wrinkles'],
   },
-  // Rosalind Franklin
-  { skin: '#f5d9c6', shape: 'oval', eyes: 'dot', brows: 'thin', nose: 'small', mouth: 'smile' },
-  // Ada Lovelace
-  {
+  rosalindFranklin: {
+    skin: '#f5d9c6',
+    shape: 'oval',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'smile',
+  },
+  adaLovelace: {
     skin: '#f8e0d0',
     shape: 'narrow',
     eyes: 'dot',
@@ -221,12 +235,23 @@ const HEADS: Head[] = [
     mouth: 'small',
     extra: ['blush'],
   },
-  // Jane Goodall
-  { skin: '#f1cfb4', shape: 'long', eyes: 'dot', brows: 'thin', nose: 'small', mouth: 'smile' },
-  // Richard Feynman
-  { skin: '#efcfb2', shape: 'square', eyes: 'dot', brows: 'heavy', nose: 'long', mouth: 'smile' },
-  // Galileo Galilei
-  {
+  janeGoodall: {
+    skin: '#f1cfb4',
+    shape: 'long',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'smile',
+  },
+  richardFeynman: {
+    skin: '#efcfb2',
+    shape: 'square',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'long',
+    mouth: 'smile',
+  },
+  galileoGalilei: {
     skin: '#e8c0a0',
     shape: 'long',
     eyes: 'droopy',
@@ -235,12 +260,23 @@ const HEADS: Head[] = [
     mouth: 'line',
     extra: ['wrinkles'],
   },
-  // Carl Sagan
-  { skin: '#eecaa8', shape: 'square', eyes: 'dot', brows: 'heavy', nose: 'big', mouth: 'smile' },
-  // Thomas Edison
-  { skin: '#f0d0b8', shape: 'square', eyes: 'dot', brows: 'heavy', nose: 'small', mouth: 'line' },
-  // Benjamin Franklin
-  {
+  carlSagan: {
+    skin: '#eecaa8',
+    shape: 'square',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'big',
+    mouth: 'smile',
+  },
+  thomasEdison: {
+    skin: '#f0d0b8',
+    shape: 'square',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'small',
+    mouth: 'line',
+  },
+  benjaminFranklin: {
     skin: '#f2d0b8',
     shape: 'round',
     eyes: 'dot',
@@ -249,10 +285,15 @@ const HEADS: Head[] = [
     mouth: 'small',
     extra: ['blush', 'jowls'],
   },
-  // Katherine Johnson
-  { skin: '#8a5a3c', shape: 'round', eyes: 'dot', brows: 'thin', nose: 'small', mouth: 'smile' },
-  // George Washington Carver
-  {
+  katherineJohnson: {
+    skin: '#8a5a3c',
+    shape: 'round',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'smile',
+  },
+  georgeWashingtonCarver: {
     skin: '#5e3a24',
     shape: 'long',
     eyes: 'dot',
@@ -261,12 +302,23 @@ const HEADS: Head[] = [
     mouth: 'line',
     extra: ['cheekbones'],
   },
-  // Srinivasa Ramanujan
-  { skin: '#8c5a3a', shape: 'round', eyes: 'dot', brows: 'heavy', nose: 'wide', mouth: 'small' },
-  // C. V. Raman
-  { skin: '#9a6644', shape: 'oval', eyes: 'droopy', brows: 'thin', nose: 'big', mouth: 'smile' },
-  // Chien-Shiung Wu
-  {
+  srinivasaRamanujan: {
+    skin: '#8c5a3a',
+    shape: 'round',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'wide',
+    mouth: 'small',
+  },
+  cvRaman: {
+    skin: '#9a6644',
+    shape: 'oval',
+    eyes: 'droopy',
+    brows: 'thin',
+    nose: 'big',
+    mouth: 'smile',
+  },
+  chienShiungWu: {
     skin: '#f1cfa4',
     shape: 'oval',
     eyes: 'dot',
@@ -275,10 +327,15 @@ const HEADS: Head[] = [
     mouth: 'small',
     extra: ['blush'],
   },
-  // Hideki Yukawa
-  { skin: '#eec79c', shape: 'long', eyes: 'dot', brows: 'heavy', nose: 'small', mouth: 'line' },
-  // Abdus Salam
-  {
+  hidekiYukawa: {
+    skin: '#eec79c',
+    shape: 'long',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'small',
+    mouth: 'line',
+  },
+  abdusSalam: {
     skin: '#a87450',
     shape: 'round',
     eyes: 'droopy',
@@ -287,8 +344,7 @@ const HEADS: Head[] = [
     mouth: 'line',
     extra: ['jowls'],
   },
-  // Percy Julian
-  {
+  percyJulian: {
     skin: '#6d4430',
     shape: 'oval',
     eyes: 'dot',
@@ -297,7 +353,7 @@ const HEADS: Head[] = [
     mouth: 'smile',
     extra: ['cheekbones'],
   },
-];
+});
 
 const HAIRSTYLES: Sprite[] = [
   // Albert Einstein's wild hair
