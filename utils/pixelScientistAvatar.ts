@@ -62,6 +62,9 @@ const HEAD_SHAPES: Record<HeadShape, Record<number, Span>> = {
   narrow: { 6: [9, 14], 7: [8, 15], 11: [7, 16], 14: [8, 15], 18: [9, 14], 19: [10, 13] },
 };
 
+const drawLine = (y: number, fromX: number, toX: number, code: string): Cell[] =>
+  Array.from({ length: toX - fromX + 1 }, (_, i) => [fromX + i, y, code]);
+
 // The face centre sits between x=23 and x=24 on the 48 grid.
 const mirrorAcrossFace = (cells: Cell[]): Cell[] =>
   cells.flatMap(([x, y, code]) => [
@@ -81,61 +84,24 @@ const FACE_FEATURES = {
     dot: copyToRightEye([
       [18, 22, 'W'],
       [19, 22, 'E'],
-      [18, 23, 'E'],
-      [19, 23, 'E'],
-      [18, 24, 'E'],
-      [19, 24, 'E'],
-      [17, 21, 'l'],
-      [18, 21, 'l'],
-      [19, 21, 'l'],
-      [20, 21, 'l'],
+      ...drawLine(23, 18, 19, 'E'),
+      ...drawLine(24, 18, 19, 'E'),
+      ...drawLine(21, 17, 20, 'l'),
     ]),
     droopy: copyToRightEye([
       [18, 23, 'W'],
       [19, 23, 'E'],
-      [18, 24, 'E'],
-      [19, 24, 'E'],
-      [17, 22, 'l'],
-      [18, 22, 'l'],
-      [19, 22, 'l'],
-      [20, 22, 'l'],
-      [17, 26, 's'],
-      [18, 26, 's'],
-      [19, 26, 's'],
-      [20, 26, 's'],
+      ...drawLine(24, 18, 19, 'E'),
+      ...drawLine(22, 17, 20, 'l'),
+      ...drawLine(26, 17, 20, 's'),
     ]),
   },
   brows: {
-    thin: mirrorAcrossFace([
-      [17, 19, 'B'],
-      [18, 19, 'B'],
-      [19, 19, 'B'],
-      [20, 19, 'B'],
-      [16, 20, 'B'],
-    ]),
-    heavy: mirrorAcrossFace([
-      [16, 18, 'B'],
-      [17, 18, 'B'],
-      [18, 18, 'B'],
-      [19, 18, 'B'],
-      [20, 18, 'B'],
-      [15, 19, 'B'],
-      [16, 19, 'B'],
-      [17, 19, 'B'],
-      [18, 19, 'B'],
-      [19, 19, 'B'],
-      [20, 19, 'B'],
-      [21, 19, 'B'],
-    ]),
+    thin: mirrorAcrossFace([...drawLine(19, 17, 20, 'B'), [16, 20, 'B']]),
+    heavy: mirrorAcrossFace([...drawLine(18, 16, 20, 'B'), ...drawLine(19, 15, 21, 'B')]),
   },
   nose: {
-    small: [
-      [24, 26, 's'],
-      [24, 27, 's'],
-      [23, 28, 's'],
-      [24, 28, 's'],
-      [25, 28, 's'],
-    ],
+    small: [[24, 26, 's'], [24, 27, 's'], ...drawLine(28, 23, 25, 's')],
     long: [
       [24, 22, 's'],
       [24, 23, 's'],
@@ -143,10 +109,7 @@ const FACE_FEATURES = {
       [24, 25, 's'],
       [24, 26, 's'],
       [25, 27, 's'],
-      [22, 28, 's'],
-      [23, 28, 's'],
-      [24, 28, 's'],
-      [25, 28, 's'],
+      ...drawLine(28, 22, 25, 's'),
     ],
     big: [
       [24, 23, 's'],
@@ -157,8 +120,7 @@ const FACE_FEATURES = {
       [21, 27, 's'],
       [21, 28, 's'],
       [22, 28, 'n'],
-      [23, 28, 's'],
-      [24, 28, 's'],
+      ...drawLine(28, 23, 24, 's'),
       [25, 28, 'n'],
       [26, 28, 's'],
     ],
@@ -169,72 +131,29 @@ const FACE_FEATURES = {
       [27, 27, 's'],
       [20, 28, 's'],
       [21, 28, 'n'],
-      [22, 28, 's'],
-      [23, 28, 's'],
-      [24, 28, 's'],
-      [25, 28, 's'],
+      ...drawLine(28, 22, 25, 's'),
       [26, 28, 'n'],
       [27, 28, 's'],
     ],
   },
   mouth: {
-    line: [
-      [20, 32, 'M'],
-      [21, 32, 'M'],
-      [22, 32, 'M'],
-      [23, 32, 'M'],
-      [24, 32, 'M'],
-      [25, 32, 'M'],
-      [26, 32, 'M'],
-      [27, 32, 'M'],
-      [22, 33, 's'],
-      [23, 33, 's'],
-      [24, 33, 's'],
-      [25, 33, 's'],
-    ],
-    small: [
-      [22, 32, 'M'],
-      [23, 32, 'M'],
-      [24, 32, 'M'],
-      [25, 32, 'M'],
-      [23, 33, 's'],
-      [24, 33, 's'],
-    ],
+    line: [...drawLine(32, 20, 27, 'M'), ...drawLine(33, 22, 25, 's')],
+    small: [...drawLine(32, 22, 25, 'M'), ...drawLine(33, 23, 24, 's')],
     smile: mirrorAcrossFace([
       [19, 30, 'M'],
       [20, 31, 'M'],
-      [21, 32, 'M'],
-      [22, 32, 'M'],
-      [23, 32, 'M'],
-      [22, 33, 'm'],
-      [23, 33, 'm'],
+      ...drawLine(32, 21, 23, 'M'),
+      ...drawLine(33, 22, 23, 'm'),
     ]),
   },
   extra: {
-    wrinkles: mirrorAcrossFace([
-      [19, 15, 's'],
-      [20, 15, 's'],
-      [21, 15, 's'],
-      [22, 15, 's'],
-      [23, 15, 's'],
-      [20, 17, 's'],
-      [21, 17, 's'],
-      [22, 17, 's'],
-      [23, 17, 's'],
-    ]),
+    wrinkles: mirrorAcrossFace([...drawLine(15, 19, 23, 's'), ...drawLine(17, 20, 23, 's')]),
     cheekbones: mirrorAcrossFace([
       [15, 29, 's'],
       [16, 30, 's'],
       [17, 31, 's'],
     ]),
-    blush: mirrorAcrossFace([
-      [15, 28, 'c'],
-      [16, 28, 'c'],
-      [17, 28, 'c'],
-      [15, 29, 'c'],
-      [16, 29, 'c'],
-      [17, 29, 'c'],
-    ]),
+    blush: mirrorAcrossFace([...drawLine(28, 15, 17, 'c'), ...drawLine(29, 15, 17, 'c')]),
     jowls: mirrorAcrossFace([
       [16, 33, 's'],
       [16, 34, 's'],
@@ -649,8 +568,11 @@ const drawGoggles = (): Cell[] => {
     );
   }
   for (let y = 22; y <= 24; y++) {
-    cells.push([23, y, 'F'], [24, y, 'F']);
-    for (const x of [9, 10, 11, 12, 35, 36, 37, 38]) cells.push([x, y, 'T']);
+    cells.push(
+      ...drawLine(y, 23, 24, 'F'),
+      ...drawLine(y, 9, 12, 'T'),
+      ...drawLine(y, 35, 38, 'T')
+    );
   }
   return cells;
 };
@@ -1061,6 +983,7 @@ const drawAvatarSvg = ({
   prop,
 }: Traits) => {
   const pixels = createGrid<string | null>(HI_RES, null);
+  const deepSkin = shade(head.skin, -0.3);
   const hairPalette: Palette = {
     H: hairColor,
     h: shade(hairColor, -0.25),
@@ -1070,10 +993,10 @@ const drawAvatarSvg = ({
   const skinPalette: Palette = {
     S: head.skin,
     s: shade(head.skin, -0.12),
-    n: shade(head.skin, -0.3),
+    n: deepSkin,
     E: OUTLINE,
     W: WHITE,
-    l: shade(head.skin, -0.3),
+    l: deepSkin,
     M: shade(head.skin, -0.45),
     m: '#f4f4f4',
     B: shade(hairColor, -0.35),
@@ -1153,6 +1076,20 @@ const drawAvatarSvg = ({
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${HI_RES} ${HI_RES}" shape-rendering="crispEdges">${rects}</svg>`;
 };
 
-// The same seed always draws the same avatar.
-export const generatePixelScientistAvatarUri = (seed: string) =>
-  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(drawAvatarSvg(pickTraits(seed)))}`;
+const MAX_CACHED_AVATARS = 500;
+const cachedAvatarUris = new Map<string, string>();
+
+// The same seed always draws the same avatar, so each seed is drawn once and reused.
+export const generatePixelScientistAvatarUri = (seed: string) => {
+  const cachedUri = cachedAvatarUris.get(seed);
+  if (cachedUri) return cachedUri;
+
+  if (cachedAvatarUris.size === MAX_CACHED_AVATARS) {
+    cachedAvatarUris.delete(cachedAvatarUris.keys().next().value as string);
+  }
+  // Only '#' must be escaped in an SVG data URI; it would otherwise start the URL fragment.
+  const svg = drawAvatarSvg(pickTraits(seed));
+  const uri = `data:image/svg+xml;charset=utf-8,${svg.replaceAll('#', '%23')}`;
+  cachedAvatarUris.set(seed, uri);
+  return uri;
+};
