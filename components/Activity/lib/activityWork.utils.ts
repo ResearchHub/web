@@ -17,6 +17,7 @@ import type {
   ActivityAction,
   FeedBountyContent,
   FeedEntry,
+  FeedFundraiseContent,
   FeedGrantContent,
   FeedPostContent,
   Review,
@@ -100,6 +101,9 @@ function resolveActivityBodySlot(
   }
   if (work?.grant && work.documentType === 'funding_request') {
     return 'grant';
+  }
+  if (activityAction === 'proposal_fully_funded') {
+    return 'default';
   }
   if (
     activityAction === 'tip_review' ||
@@ -630,6 +634,27 @@ function getWorkFromContent(entry: FeedEntry): ActivityWork | null {
         entry.contentType === 'PURCHASE' || entry.contentType === 'USDFUNDRAISECONTRIBUTION'
           ? undefined
           : post.authors,
+    };
+  }
+
+  if (entry.contentType === 'FUNDRAISE') {
+    const fundraise = entry.content as FeedFundraiseContent;
+    const title = fundraise.proposalTitle?.trim();
+    if (!title || fundraise.postId == null) return null;
+    const documentType: ContentType = 'preregistration';
+    return {
+      id: fundraise.postId,
+      slug: fundraise.proposalSlug || '',
+      title,
+      href: buildActivityWorkHref({
+        id: fundraise.postId,
+        slug: fundraise.proposalSlug || undefined,
+        contentType: documentType,
+      }),
+      documentType,
+      unifiedDocumentId: toOptionalNumber(fundraise.unifiedDocumentId),
+      bounty,
+      authors: undefined,
     };
   }
 

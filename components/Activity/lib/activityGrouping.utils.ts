@@ -117,7 +117,12 @@ function resolveWorkKey(work: ActivityWork): string {
  * their own row even back to back.
  */
 function toGroupKind(entry: FeedEntry): ActivityGroupKind | null {
-  if (entry.activityAction === 'fundraise_contribution') return 'funding';
+  if (
+    entry.activityAction === 'fundraise_contribution' ||
+    entry.activityAction === 'proposal_fully_funded'
+  ) {
+    return 'funding';
+  }
   if (entry.activityAction !== 'comment_published') return null;
 
   const { comment } = entry.content as FeedCommentContent;

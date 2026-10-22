@@ -344,6 +344,9 @@ export function getActionIcon(entry: FeedEntry): ActivityActionIconName {
   ) {
     return 'coins';
   }
+  if (entry.contentType === 'FUNDRAISE' || entry.activityAction === 'proposal_fully_funded') {
+    return 'fund';
+  }
   if (entry.contentType === 'BOUNTY') return 'coins';
   if (entry.contentType !== 'COMMENT') return null;
 
@@ -576,6 +579,9 @@ export function getActivityActionLine(
         : 'Funded a proposal',
       value: contributionValue(getContribution(entry)),
     };
+  }
+  if (entry.contentType === 'FUNDRAISE' || entry.activityAction === 'proposal_fully_funded') {
+    return { label: 'Fully funded a proposal' };
   }
   if (entry.contentType === 'GRANT') {
     const amount = getGrantAmount(entry);
