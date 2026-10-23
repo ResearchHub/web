@@ -36,17 +36,13 @@ export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
 }
 
 /**
- * Handles redirection for question posts
+ * Question pages are retired, so a question post lands on the homepage, as
+ * /question URLs do.
  * @param work The work object to check for question type
- * @param id The post ID
- * @param slug The post slug
- * @param tab Optional tab to append to the URL (e.g., 'conversation', 'bounties')
  */
-export function handleQuestionRedirect(work: Work, id: string, slug: string, tab?: string) {
+export function handleQuestionRedirect(work: Work) {
   if (work.postType === 'QUESTION') {
-    const basePath = `/question/${id}/${slug}`;
-    const redirectPath = tab ? `${basePath}/${tab}` : basePath;
-    redirect(redirectPath);
+    redirect('/');
   }
 }
 
@@ -79,11 +75,10 @@ export function handleGrantRedirect(work: Work, id: string, slug: string) {
  * @param work The work object to check for redirects
  * @param id The post ID
  * @param slug The post slug
- * @param tab Optional tab to append to the URL for question redirects
  */
-export function handlePostRedirect(work: Work, id: string, slug: string, tab?: string) {
+export function handlePostRedirect(work: Work, id: string, slug: string) {
   // Check for question redirect first
-  handleQuestionRedirect(work, id, slug, tab);
+  handleQuestionRedirect(work);
 
   handleRegisteredReportRedirect(work, id, slug);
 
@@ -98,7 +93,7 @@ export function handlePostRedirect(work: Work, id: string, slug: string, tab?: s
  * Handles redirection when slug is missing from the URL
  * @param work The work object to get the slug from
  * @param id The post ID
- * @param currentPath The current path (e.g., 'post', 'question', 'fund', 'paper', 'rfp')
+ * @param currentPath The current path (e.g., 'post', 'fund', 'rfp')
  */
 export function handleMissingSlugRedirect(
   work: Work,
