@@ -93,6 +93,7 @@ function CommentFeed({
           renderCommentActions={renderCommentActions}
           hideEditor={hideEditor}
           commentType={commentType}
+          documentId={documentId}
           contentType={contentType}
           debug={debug}
           onCreateBounty={handleCreateBounty}
@@ -123,6 +124,7 @@ function CommentFeedContent({
   renderCommentActions = true,
   hideEditor = false,
   commentType,
+  documentId,
   contentType,
   debug = false,
   unifiedDocumentId,
@@ -133,7 +135,7 @@ function CommentFeedContent({
   belowEditor,
   readOnly = false,
   onlyAssessedReviews = false,
-}: Omit<CommentFeedProps, 'documentId'> & {
+}: CommentFeedProps & {
   onCreateBounty: () => void;
   canCreateBounty?: boolean;
 }) {
@@ -147,7 +149,8 @@ function CommentFeedContent({
     }
   }, [commentType, debug]);
 
-  const { filteredComments, count, loading, error, createComment, loadMore } = useCommentsContext();
+  const { filteredComments, count, loading, error, createComment, loadMore, emitCommentEvent } =
+    useCommentsContext();
   const [isLoadingAssessedReviews, setIsLoadingAssessedReviews] = useState(false);
   const isLoadingAssessedReviewsRef = useRef(false);
   const displayedComments = onlyAssessedReviews
@@ -195,8 +198,14 @@ function CommentFeedContent({
               score: overallRating,
             });
 
-            result.score = overallRating;
-            result.reviewScore = overallRating;
+            // The rating is saved as its own record after the comment, so the comment in the
+            // list has none yet. Give it the score through the reducer, which re-renders the
+            // review with its stars; `score` is the vote count and stays as the API sent it.
+            emitCommentEvent('comment_updated', {
+              comment: { ...result, reviewScore: overallRating },
+              contentType,
+              documentId,
+            });
             toast.success('Review submitted successfully!', { id: toastId });
             showShareModal({
               url: window.location.href,
@@ -220,7 +229,16 @@ function CommentFeedContent({
         return false;
       }
     },
-    [commentType, createComment]
+    [
+      commentType,
+      createComment,
+      emitCommentEvent,
+      contentType,
+      documentId,
+      unifiedDocumentId,
+      showShareModal,
+      work?.title,
+    ]
   );
 
   const handleLoadMore = useCallback(async () => {
