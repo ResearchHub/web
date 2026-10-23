@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Sparkles } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
+import { useCoverImageGenerator } from '@/components/Notebook/PublishingForm/useCoverImageGenerator';
 import { cn } from '@/utils/styles';
 import { AmountWidget } from './AmountWidget';
 import { ApplyingToWidget } from './ApplyingToWidget';
@@ -58,6 +60,7 @@ export function Masthead({ slots }: MastheadProps) {
 
   const coverConfig = widgets.find((widget) => widget.kind === 'cover');
   const cover = useCoverImagePicker(values.coverImage);
+  const coverGenerator = useCoverImageGenerator();
   const coverEditable = coverConfig != null && isEditable(coverConfig);
 
   // A paragraph is an offer on the line until it is written; from then on it
@@ -159,6 +162,9 @@ export function Masthead({ slots }: MastheadProps) {
                   />
                 </DetailHint>
               )}
+              {offersCover && coverGenerator.available && (
+                <AddDetail icon={Sparkles} label="Generate cover" onClick={coverGenerator.open} />
+              )}
             </div>
           )}
         </div>
@@ -171,6 +177,7 @@ export function Masthead({ slots }: MastheadProps) {
         </p>
       )}
       {coverEditable && <input {...cover.inputProps} />}
+      {coverGenerator.modal}
     </div>
   );
 

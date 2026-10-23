@@ -31,6 +31,9 @@ const validateGrant = (data: any, ctx: z.RefinementCtx) => {
   if (parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding amount must be greater than 0');
   }
+  if (!data.coverImage?.file && !data.coverImage?.url) {
+    addIssue(ctx, 'coverImage', 'Cover image is required for a Request for Proposal');
+  }
 };
 
 export const publishingFormSchema = z
