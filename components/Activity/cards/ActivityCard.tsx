@@ -106,7 +106,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({
               showReadMoreButton
               showLinkPreviews={false}
               onReadMore={openComment}
-              className="feed-comment-preview text-[15px] leading-6 text-gray-900"
+              variant="preview"
             />
           </div>
         )}

@@ -6,12 +6,19 @@ import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { formatTimeAgoShort } from '@/utils/date';
+import { cn } from '@/utils/styles';
 import { ActivityActionText } from './ActivityActionText';
 import { ActivityAuthorSummary } from './ActivityAuthorSummary';
 import type { ActivityActionLine } from '../lib/activityDisplay.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
 
 const MAX_STACKED_AVATARS = 3;
+
+/** The avatar and the column it sits in: 40px on a card, 32px on a reply under one. */
+const SIZES = {
+  md: { avatar: 'md', grid: 'grid-cols-[2.5rem_minmax(0,1fr)]' },
+  sm: { avatar: 'sm', grid: 'grid-cols-[2rem_minmax(0,1fr)]' },
+} as const;
 
 interface ActivityActorProps {
   /** Whoever acted: one person, or several (co-authors, funders) shown as a stack. */
@@ -21,6 +28,12 @@ interface ActivityActorProps {
   timestamp: string;
   /** The actor wrote the work the card is about. */
   isAuthor?: boolean;
+  /** More badges after the name, on its line. */
+  badges?: ReactNode;
+  /** When the words were last edited, shown as "· Edited" after the time. */
+  editedAt?: string;
+  /** `sm` for a reply under another row: a 32px avatar in a narrower column. */
+  size?: keyof typeof SIZES;
   /** The card's ⋯ menu, pinned to the top-right corner. */
   menu?: ReactNode;
   /** The rest of the card, set in the column beside the avatar, under the byline. */
@@ -41,6 +54,9 @@ export const ActivityActor: FC<ActivityActorProps> = ({
   action,
   timestamp,
   isAuthor = false,
+  badges,
+  editedAt,
+  size = 'md',
   menu,
   children,
 }) => {
@@ -48,6 +64,7 @@ export const ActivityActor: FC<ActivityActorProps> = ({
   if (!lead) return null;
 
   const isGroup = authors.length > 1;
+  const { avatar: avatarSize, grid } = SIZES[size];
 
   const header = (
     <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -64,21 +81,36 @@ export const ActivityActor: FC<ActivityActorProps> = ({
               <ActivityAuthorSummary authors={authors} />
             </span>
             {isAuthor && <AuthorBadge size="sm" className="flex-shrink-0 self-center" />}
+            {badges}
           </div>
         )}
         <ActivityActionText
           line={action}
           className="mt-0.5"
           suffix={
-            <Tooltip
-              content={new Date(timestamp).toLocaleString()}
-              wrapperAs="span"
-              wrapperClassName="h-auto text-[13px] text-gray-500"
-            >
-              <time dateTime={timestamp} className="cursor-default whitespace-nowrap">
-                · {formatTimeAgoShort(timestamp)}
-              </time>
-            </Tooltip>
+            <>
+              <Tooltip
+                content={new Date(timestamp).toLocaleString()}
+                wrapperAs="span"
+                wrapperClassName="h-auto text-[13px] text-gray-500"
+              >
+                <time dateTime={timestamp} className="cursor-default whitespace-nowrap">
+                  · {formatTimeAgoShort(timestamp)}
+                </time>
+              </Tooltip>
+              {editedAt && (
+                <>
+                  {' '}
+                  <Tooltip
+                    content={`Edited ${new Date(editedAt).toLocaleString()}`}
+                    wrapperAs="span"
+                    wrapperClassName="h-auto text-[13px] text-gray-500"
+                  >
+                    <span className="cursor-default whitespace-nowrap">· Edited</span>
+                  </Tooltip>
+                </>
+              )}
+            </>
           }
         />
       </div>
@@ -88,7 +120,7 @@ export const ActivityActor: FC<ActivityActorProps> = ({
   );
 
   return (
-    <div className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3">
+    <div className={cn('grid', grid, 'gap-x-3')}>
       {isGroup ? (
         <div className="col-span-2 flex items-start gap-3">
           <AvatarStack
@@ -110,7 +142,7 @@ export const ActivityActor: FC<ActivityActorProps> = ({
           <Avatar
             src={lead.profileImage}
             alt={lead.fullName || 'User'}
-            size="md"
+            size={avatarSize}
             authorId={lead.id}
           />
           {header}

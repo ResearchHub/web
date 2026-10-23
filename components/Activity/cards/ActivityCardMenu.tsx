@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useState } from 'react';
+import { FC, useState } from 'react';
 import { EyeOff, Flag, MoreHorizontal } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
@@ -8,8 +8,12 @@ import { useFlagModal } from '@/hooks/useFlagging';
 import { useHideFromFeed } from '@/hooks/useHideFromFeed';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import {
+  OVERFLOW_MENU_TRIGGER_CLASS,
+  OverflowMenu,
+  type OverflowMenuItem,
+} from '@/components/ui/OverflowMenu';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import type { ActivityWork } from '../lib/activityWork.utils';
 import type { FeedEntry } from '@/types/feed';
@@ -19,13 +23,6 @@ interface ActivityCardMenuProps {
   work: ActivityWork;
   /** Feed entries the card stands for, which moderators can hide together. */
   hideableEntries: FeedEntry[];
-}
-
-interface MenuAction {
-  key: string;
-  label: string;
-  icon: ReactNode;
-  onSelect: () => void;
 }
 
 /** Flags are filed against the work; papers have their own type, everything else is a post. */
@@ -51,7 +48,7 @@ export const ActivityCardMenu: FC<ActivityCardMenuProps> = ({ work, hideableEntr
 
   const canHideFromFeed = !!user?.isModerator && hideableEntries.length > 0;
 
-  const actions: MenuAction[] = [
+  const actions: OverflowMenuItem[] = [
     ...(canHideFromFeed
       ? [
           {
@@ -71,9 +68,6 @@ export const ActivityCardMenu: FC<ActivityCardMenuProps> = ({ work, hideableEntr
     },
   ];
 
-  const triggerClass =
-    'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800';
-
   const openDrawer = () => {
     setIsDrawerMounted(true);
     // One frame closed first, so the drawer slides in rather than appearing.
@@ -86,37 +80,14 @@ export const ActivityCardMenu: FC<ActivityCardMenuProps> = ({ work, hideableEntr
         <button
           type="button"
           onClick={openDrawer}
-          className={triggerClass}
+          className={OVERFLOW_MENU_TRIGGER_CLASS}
           aria-label="More options"
           data-testid="feed-item-more-options"
         >
           <MoreHorizontal className="h-5 w-5" />
         </button>
       ) : (
-        <BaseMenu
-          align="end"
-          trigger={
-            <button
-              type="button"
-              className={triggerClass}
-              aria-label="More options"
-              data-testid="feed-item-more-options"
-            >
-              <MoreHorizontal className="h-5 w-5" />
-            </button>
-          }
-        >
-          {actions.map((action) => (
-            <BaseMenuItem
-              key={action.key}
-              onClick={action.onSelect}
-              className="flex items-center gap-2"
-            >
-              {action.icon}
-              <span>{action.label}</span>
-            </BaseMenuItem>
-          ))}
-        </BaseMenu>
+        <OverflowMenu items={actions} />
       )}
 
       {isDrawerMounted && (
