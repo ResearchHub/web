@@ -1,14 +1,13 @@
 'use client';
 
-import { Fragment, useRef, useEffect, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { useRef, useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import { PartyPopper, Copy, Share } from 'lucide-react';
 import SocialShareButtons from '@/components/SocialShareButtons';
 import SharePostPreview from '@/components/SharePostPreview';
+import { SidePanel } from '@/components/ui/SidePanel';
 import { FULL_DRAWER_HEIGHT, SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { cn } from '@/utils/styles';
 import { useGeneratedSharePost } from '@/hooks/useGeneratedSharePost';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
@@ -224,39 +223,22 @@ export default function ShareModal({
     />
   );
 
-  // The same content in the phone's drawer and the desktop's dialog. The
-  // drawer's header carries the title, so its body starts on the description.
+  // The same content in the phone's drawer and the desktop's side panel. Both
+  // headers carry the title, so the body starts on the description.
   const shareContent = (
     <>
-      {isMobile ? (
-        displayData && !hasAiPost && <p className="mb-6 text-gray-500">{displayData.description}</p>
-      ) : (
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-14 w-14 flex items-center justify-center rounded-full bg-blue-100">
-            <config.IconComponent size={36} color="#3B82F6" />
-          </div>
-
-          {displayData && (
-            <>
-              <h2 className="text-2xl font-bold text-gray-800">{displayData.title}</h2>
-              {!hasAiPost && <p className="text-gray-500 mt-2 px-4">{displayData.description}</p>}
-            </>
-          )}
-        </div>
-      )}
+      {displayData && !hasAiPost && <p className="mb-6 text-gray-500">{displayData.description}</p>}
 
       {hasAiPost ? (
         <>
-          <div className={cn(!isMobile && 'mt-6')}>
-            <SharePostPreview
-              text={previewText}
-              isGenerated={generated.text !== null}
-              docTitle={docTitle}
-              url={url}
-              imageUrl={previewImageUrl}
-              onChange={setDraft}
-            />
-          </div>
+          <SharePostPreview
+            text={previewText}
+            isGenerated={generated.text !== null}
+            docTitle={docTitle}
+            url={url}
+            imageUrl={previewImageUrl}
+            onChange={setDraft}
+          />
 
           <div className="mt-6">
             <p className="text-sm font-medium text-gray-700 text-center">Share on:</p>
@@ -276,7 +258,7 @@ export default function ShareModal({
         </>
       ) : (
         <>
-          <div className={cn(!isMobile && 'mt-6')}>{copyLinkRow}</div>
+          {copyLinkRow}
 
           <div className="mt-6">
             <p className="text-sm font-medium text-gray-700 text-center">Or share directly on:</p>
@@ -312,57 +294,24 @@ export default function ShareModal({
     );
   }
 
+  // From the phone breakpoint up it slides in from the right, full height,
+  // like the Fund panel, rather than opening over the middle of the page.
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={handleClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black !bg-opacity-50" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel
-                ref={modalRef}
-                className="bg-white rounded-lg shadow-xl w-full max-w-md p-8 relative overflow-hidden"
-              >
-                {confetti}
-                <button
-                  onClick={handleClose}
-                  className="absolute top-3 right-3 p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none transition-colors duration-200 z-10"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-
-                {shareContent}
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+    <SidePanel
+      isOpen={isOpen}
+      onClose={handleClose}
+      widthClassName="w-full tablet:max-w-[440px]"
+      title={
+        <span className="flex min-w-0 items-center gap-2">
+          <config.IconComponent className="h-5 w-5 flex-shrink-0 text-primary-500" aria-hidden />
+          {displayData?.title ?? 'Share'}
+        </span>
+      }
+    >
+      <div ref={modalRef} className="relative min-h-full p-6">
+        {confetti}
+        {shareContent}
+      </div>
+    </SidePanel>
   );
 }

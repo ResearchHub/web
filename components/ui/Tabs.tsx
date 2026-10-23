@@ -9,9 +9,11 @@ type TabsVariant = 'primary' | 'pill' | 'page';
 /** A tab's icon: a Lucide icon, or any component that takes a class name. */
 type TabIcon = ComponentType<{ className?: string }>;
 
-/** A tab's count: plain grey text on page tabs, the tab's colour on an active underlined one. */
+/**
+ * A tab's count: on page tabs the same grey pill as the counts in the right
+ * sidebar's cards, on an underlined tab the tab's colour while it is active.
+ */
 function countBadgeClass(variant: TabsVariant, isActive: boolean) {
-  if (variant === 'page') return 'bg-transparent px-0 font-medium text-gray-400';
   if (variant === 'primary') {
     return cn(
       'rounded-full px-2',
@@ -26,6 +28,8 @@ interface Tab {
   label: React.ReactNode;
   /** Shown in a small badge after the label; none for 0. */
   count?: number | string;
+  /** The count is still loading: a blank badge holds its place, so the row doesn't move when it lands. */
+  countLoading?: boolean;
   href?: string;
   scroll?: boolean;
   highlight?: boolean;
@@ -44,8 +48,8 @@ interface TabsProps {
   className?: string;
   /**
    * `primary` underlines the active tab and `pill` rings it. `page` is a work
-   * page's own sections: larger labels, no icons, plain counts and a navy
-   * underline; on phones the tabs share the width edge to edge.
+   * page's own sections: larger labels, no icons, counts in grey pills and a
+   * navy underline; on phones the tabs share the width edge to edge.
    */
   variant?: TabsVariant;
   disabled?: boolean;
@@ -103,8 +107,16 @@ const TabItem: React.FC<{
     <>
       {Icon && <Icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
       <span className="truncate">{tab.label}</span>
-      {tab.count != null && tab.count !== 0 && (
-        <CountBadge count={tab.count} className={countBadgeClass(variant, isActive)} />
+      {tab.countLoading ? (
+        <CountBadge
+          count=""
+          className={cn('h-5 animate-pulse', countBadgeClass(variant, isActive))}
+        />
+      ) : (
+        tab.count != null &&
+        tab.count !== 0 && (
+          <CountBadge count={tab.count} className={countBadgeClass(variant, isActive)} />
+        )
       )}
     </>
   );
