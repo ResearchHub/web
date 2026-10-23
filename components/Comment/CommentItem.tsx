@@ -21,6 +21,10 @@ import {
 } from '@/types/feed';
 import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
+import { BountyActionRow } from '@/components/Bounty/BountyActionRow';
+import { BountySolutions } from '@/components/Bounty/BountySolutions';
+import { PrimaryActionSection } from '@/components/Feed/BaseFeedItem';
+import { calculateTotalAwardedAmount, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
 import { ACTIVITY_ROW_DIVIDER } from '@/components/Activity/cards/ActivityCardShell';
@@ -255,6 +259,64 @@ export const CommentItem = ({
           autoFocus={true}
           initialRating={comment.reviewScore}
           editing={isEditing}
+        />
+      );
+    }
+
+    if (isBountyComment && comment.bounties?.length && isFeedRow) {
+      const bounty = comment.bounties[0];
+      const showSolutions = !isOpenBounty(bounty) && (bounty.solutions?.length ?? 0) > 0;
+
+      return (
+        <CommentCard
+          entry={transformCommentToFeedItem(comment, contentType, work)}
+          depth={depth}
+          replyTo={replyTo}
+          isOwnComment={isAuthor}
+          action={{
+            label:
+              bounty.bountyType === 'REVIEW' ? 'Opened a peer review bounty' : 'Opened a bounty',
+          }}
+          hideActions={readOnly || comment.isRemoved}
+          showTooltips={showTooltips}
+          workContentType={workContentType}
+          afterBody={
+            showSolutions && (
+              <div className="mt-3">
+                <BountySolutions
+                  solutions={bounty.solutions}
+                  isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
+                  totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
+                  onViewSolution={(solutionId, authorName, awardedAmount) =>
+                    setSelectedSolution({ solutionId, authorName, awardedAmount })
+                  }
+                />
+              </div>
+            )
+          }
+          footer={
+            !readOnly && (
+              <PrimaryActionSection>
+                <BountyActionRow
+                  bounty={bounty}
+                  commentId={comment.id}
+                  relatedWork={work}
+                  relatedDocumentId={comment.thread?.objectId}
+                  relatedDocumentContentType={contentType}
+                  canAward={isAuthor && canAwardBounty}
+                  onAward={(bountyId) => {
+                    setSelectedBountyId(bountyId);
+                    setShowAwardModal(true);
+                  }}
+                  isAuthor={isAuthor}
+                  onContributeSuccess={() => {
+                    forceRefresh();
+                    onCommentUpdate?.(comment);
+                  }}
+                />
+              </PrimaryActionSection>
+            )
+          }
         />
       );
     }
