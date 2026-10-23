@@ -5,10 +5,14 @@ import type { ArticleType, PublishingFormData } from './schema';
 export const canGenerateCoverImage = (articleType: ArticleType | undefined): boolean =>
   articleType === 'preregistration' || articleType === 'grant';
 
-/** What a generated cover shows, from the form; null when there is nothing to show yet. */
+/**
+ * What a generated cover shows, from the form; null when there is nothing to
+ * show yet. With the note, the covers use the logo its chat recorded, if any.
+ */
 export function coverImageGenerationParams(
   values: PublishingFormData,
-  title: string
+  title: string,
+  noteId?: number | null
 ): GenerateCoverImagesParams | null {
   if (!canGenerateCoverImage(values.articleType) || !title.trim()) return null;
   const isGrant = values.articleType === 'grant';
@@ -19,6 +23,7 @@ export function coverImageGenerationParams(
     subtitle: isGrant ? values.shortDescription?.trim() : undefined,
     organization: isGrant ? values.organization?.trim() : undefined,
     fundingAmountUsd: amount > 0 ? amount : null,
+    noteId: noteId ?? null,
   };
 }
 

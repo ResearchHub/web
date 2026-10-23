@@ -7,8 +7,8 @@ export interface GenerateCoverImagesParams {
   subtitle?: string;
   organization?: string;
   fundingAmountUsd?: number | null;
-  /** Storage key of an uploaded logo to place in the banners. */
-  logoKey?: string | null;
+  /** The draft the covers are for; its chat's cover logo is placed in them. */
+  noteId?: number | null;
 }
 
 /**
@@ -25,7 +25,7 @@ export class CoverImageService {
       subtitle: params.subtitle ?? '',
       organization: params.organization ?? '',
       funding_amount_usd: params.fundingAmountUsd ?? null,
-      logo_key: params.logoKey ?? '',
+      note_id: params.noteId ?? null,
     });
     return transformCoverImageGeneration(response);
   }

@@ -293,7 +293,7 @@ export function PublishingFormProvider({
   const coverChoiceParams = useMemo(
     () =>
       action.pendingConfirmation === 'coverImage'
-        ? coverImageGenerationParams(methods.getValues(), getTitle())
+        ? coverImageGenerationParams(methods.getValues(), getTitle(), note?.id)
         : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [action.pendingConfirmation]
@@ -311,7 +311,7 @@ export function PublishingFormProvider({
             params={coverChoiceParams}
             description={`Your ${
               articleType === 'grant' ? 'Request for Proposal' : 'proposal'
-            } needs a cover image. Generate options and pick one to keep publishing, or close this and upload your own.`}
+            } needs a cover image. Pick one of these to keep publishing, or close this and upload your own.`}
             onSelect={(image) => {
               methods.setValue(
                 'coverImage',

@@ -16,13 +16,13 @@ import { useCoverImageUpload } from './useCoverImageUpload';
  * is, has the user pick one, which becomes the form's cover.
  */
 export function useCoverImageGenerator() {
-  const { articleType, getTitle } = usePublishingController();
+  const { articleType, getTitle, note } = usePublishingController();
   const { getValues } = useFormContext<PublishingFormData>();
   const { selectGenerated } = useCoverImageUpload();
   const [params, setParams] = useState<GenerateCoverImagesParams | null>(null);
 
   const open = () => {
-    const next = coverImageGenerationParams(getValues(), getTitle());
+    const next = coverImageGenerationParams(getValues(), getTitle(), note?.id);
     if (!next) {
       toast.error('Add a title before generating a cover image.');
       return;
