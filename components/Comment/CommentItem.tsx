@@ -313,6 +313,7 @@ export const CommentItem = ({
                     forceRefresh();
                     onCommentUpdate?.(comment);
                   }}
+                  hideActions={comment.isRemoved}
                 />
               </PrimaryActionSection>
             )

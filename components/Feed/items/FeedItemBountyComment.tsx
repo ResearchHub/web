@@ -240,6 +240,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               isAuthor={isAuthor}
               showContributeButton={showContributeButton}
               onContributeSuccess={onContributeSuccess}
+              hideActions={hideActions}
             />
           </PrimaryActionSection>
         )}

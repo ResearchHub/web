@@ -43,6 +43,8 @@ interface BountyActionRowProps {
   isAuthor?: boolean;
   showContributeButton?: boolean;
   onContributeSuccess?: () => void;
+  /** Amount and status only, e.g. for a removed comment: no Award, Support or Solve. */
+  hideActions?: boolean;
 }
 
 /**
@@ -60,6 +62,7 @@ export const BountyActionRow: FC<BountyActionRowProps> = ({
   isAuthor = false,
   showContributeButton = false,
   onContributeSuccess,
+  hideActions = false,
 }) => {
   const params = useParams();
   const router = useRouter();
@@ -248,7 +251,7 @@ export const BountyActionRow: FC<BountyActionRowProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {canAward && isActive && onAward && (
+          {!hideActions && canAward && isActive && onAward && (
             <Button
               onClick={handleAwardBounty}
               size="sm"
@@ -259,7 +262,7 @@ export const BountyActionRow: FC<BountyActionRowProps> = ({
               Award bounty
             </Button>
           )}
-          {showBackingUI && isActive && !isAuthor && (
+          {!hideActions && showBackingUI && isActive && !isAuthor && (
             <Button
               variant="outlined"
               size="sm"
@@ -270,7 +273,7 @@ export const BountyActionRow: FC<BountyActionRowProps> = ({
               Support
             </Button>
           )}
-          {isOpen && (
+          {!hideActions && isOpen && (
             <Button
               variant="dark"
               size="sm"
