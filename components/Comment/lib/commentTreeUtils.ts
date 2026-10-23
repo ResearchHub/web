@@ -153,6 +153,29 @@ export const addReplyDeep = (comments: Comment[], parentId: number, reply: Comme
 };
 
 /**
+ * Removes a comment from the comment tree, at any depth, along with its replies
+ * @param comments The comment tree
+ * @param commentId The ID of the comment to remove
+ * @returns The updated comment tree, with the parent's reply counts lowered by one
+ */
+export const removeCommentDeep = (comments: Comment[], commentId: number): Comment[] =>
+  traverseCommentTree(comments, (comment) => {
+    if (comment.id === commentId) {
+      return null;
+    }
+
+    if (comment.replies?.some((reply) => reply.id === commentId)) {
+      return {
+        ...comment,
+        replyCount: Math.max((comment.replyCount || 0) - 1, 0),
+        childrenCount: Math.max((comment.childrenCount || 0) - 1, 0),
+      };
+    }
+
+    return comment;
+  });
+
+/**
  * Updates a comment in the comment tree
  * @param comments The comment tree
  * @param updatedComment The updated comment

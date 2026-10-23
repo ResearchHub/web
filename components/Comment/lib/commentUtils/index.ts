@@ -9,6 +9,7 @@ export {
   findCommentById,
   addReplyDeep,
   updateReplyDeep,
+  removeCommentDeep,
 } from '../commentTreeUtils';
 
 // Re-export optimistic update utilities
