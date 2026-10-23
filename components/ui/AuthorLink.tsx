@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { AUTHOR_TOOLTIP_ANCHOR_CLASS, AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -13,6 +14,11 @@ interface AuthorLinkProps {
   className?: string;
   /** Which side of the name their profile card opens on. */
   tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
+  /**
+   * In place of the bare name, e.g. their face beside it; the link then takes
+   * no underline of its own, so the children choose what underlines.
+   */
+  children?: ReactNode;
 }
 
 /**
@@ -25,6 +31,7 @@ export function AuthorLink({
   name,
   className,
   tooltipPlacement = 'bottom',
+  children,
 }: AuthorLinkProps) {
   // Unknown while the page hydrates, so the server's render is the plain link.
   const canHover = useMediaQuery('(hover: hover) and (pointer: fine)') === true;
@@ -34,7 +41,7 @@ export function AuthorLink({
   if (!authorId) {
     return (
       <span className={AUTHOR_TOOLTIP_ANCHOR_CLASS}>
-        <span className={className}>{name}</span>
+        <span className={className}>{children ?? name}</span>
       </span>
     );
   }
@@ -44,9 +51,9 @@ export function AuthorLink({
       href={`/author/${authorId}`}
       // Not prefetched: the names on a page would each load a profile no one opened.
       prefetch={false}
-      className={cn('hover:underline', className)}
+      className={cn(!children && 'hover:underline', className)}
     >
-      {name}
+      {children ?? name}
     </Link>
   );
 
