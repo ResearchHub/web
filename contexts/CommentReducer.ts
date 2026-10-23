@@ -564,14 +564,18 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         loading: true,
         error: null,
       };
-    case CommentActionType.DELETE_COMMENT_SUCCESS:
+    case CommentActionType.DELETE_COMMENT_SUCCESS: {
+      const deletedId = action.payload.comment.id;
+      // The count is of top-level comments, as the API reports it, so a reply leaves it alone.
+      const isTopLevel = state.comments.some((comment) => comment.id === deletedId);
       return {
         ...state,
-        comments: state.comments.filter((comment) => comment.id !== action.payload.comment.id),
-        count: state.count - 1,
+        comments: removeCommentDeep(state.comments, deletedId),
+        count: isTopLevel ? Math.max(state.count - 1, 0) : state.count,
         loading: false,
         error: null,
       };
+    }
     default:
       return state;
   }
@@ -583,6 +587,7 @@ import {
   updateCommentVoteInList,
   revertOptimisticUpdate,
   updateReplyDeep,
+  removeCommentDeep,
   traverseCommentTree,
 } from '@/components/Comment/lib/commentUtils/index';
 
