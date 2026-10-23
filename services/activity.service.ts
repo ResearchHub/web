@@ -19,6 +19,8 @@ export interface GetActivityParams {
   documentType?: ActivityDocumentType;
   contentType?: string;
   grantId?: number | string;
+  /** One document's activity: its comments, reviews, updates and contributions. */
+  unifiedDocumentId?: number | string;
   scope?: ActivityScope;
   disableCache?: boolean;
 }
@@ -75,6 +77,9 @@ export class ActivityService {
     if (params?.documentType) queryParams.append('document_type', params.documentType);
     if (params?.contentType) queryParams.append('content_type', params.contentType);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
+    if (params?.unifiedDocumentId) {
+      queryParams.append('unified_document_id', params.unifiedDocumentId.toString());
+    }
     if (params?.scope) queryParams.append('scope', params.scope);
     if (params?.disableCache) queryParams.append('disable_cache', 'true');
 
