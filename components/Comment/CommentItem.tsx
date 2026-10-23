@@ -13,13 +13,7 @@ import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
-import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
-import {
-  toCommentAuthor,
-  transformCommentToFeedItem,
-  transformBountyCommentToFeedItem,
-} from '@/types/feed';
-import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
+import { toCommentAuthor, transformCommentToFeedItem } from '@/types/feed';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { BountyActionRow } from '@/components/Bounty/BountyActionRow';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
@@ -30,7 +24,6 @@ import { useUser } from '@/contexts/UserContext';
 import { ACTIVITY_ROW_DIVIDER } from '@/components/Activity/cards/ActivityCardShell';
 import { cn } from '@/utils/styles';
 import { CommentCard } from './CommentCard';
-import type { CommentRowStyle } from './lib/commentRowStyle';
 import type { AuthorProfile } from '@/types/authorProfile';
 
 // Define the SolutionViewEvent interface (previously in BountyCard)
@@ -50,11 +43,9 @@ interface CommentItemProps {
   includeReplies?: boolean;
   showDebugInfo?: boolean;
   readOnly?: boolean;
-  /** `feed` draws the homepage's activity row; see `useCommentRowStyle`. */
-  rowStyle?: CommentRowStyle;
-  /** In a `feed` thread: 0 for its first comment, 1+ for the replies listed under it. */
+  /** 0 for a thread's first comment, 1+ for the replies listed under it. */
   depth?: number;
-  /** In a `feed` thread: whose comment a reply at depth 2+ answers. */
+  /** Whose comment a reply at depth 2+ answers. */
   replyTo?: AuthorProfile;
 }
 
@@ -90,7 +81,6 @@ export const CommentItem = ({
   includeReplies = true,
   showDebugInfo = false,
   readOnly = false,
-  rowStyle = 'feed',
   depth = 0,
   replyTo,
 }: CommentItemProps) => {
@@ -121,11 +111,7 @@ export const CommentItem = ({
   const viewerAuthorId = user?.authorProfile?.id;
   const isAuthor =
     viewerAuthorId != null && viewerAuthorId === comment?.createdBy?.authorProfile?.id;
-  const isFeedRow = rowStyle === 'feed';
-  const flatReplies = useMemo(
-    () => (isFeedRow && depth === 0 ? flattenReplies(comment) : []),
-    [isFeedRow, depth, comment]
-  );
+  const flatReplies = useMemo(() => (depth === 0 ? flattenReplies(comment) : []), [depth, comment]);
   const canAwardBounty = canManageBounties(user);
 
   // Determine if this comment is being edited or replied to
@@ -263,7 +249,7 @@ export const CommentItem = ({
       );
     }
 
-    if (isBountyComment && comment.bounties?.length && isFeedRow) {
+    if (isBountyComment && comment.bounties?.length) {
       const bounty = comment.bounties[0];
       const showSolutions = !isOpenBounty(bounty) && (bounty.solutions?.length ?? 0) > 0;
 
@@ -322,144 +308,27 @@ export const CommentItem = ({
       );
     }
 
-    if (isBountyComment && comment.bounties) {
-      try {
-        const feedEntry = transformBountyCommentToFeedItem(comment, contentType, work);
-
-        const customHref = undefined; // Setting to undefined to prevent navigation
-
-        return (
-          <div className="space-y-4">
-            <FeedItemBountyComment
-              entry={feedEntry}
-              showSolutions={true}
-              showRelatedWork={false}
-              href={customHref}
-              hideActions={readOnly || comment.isRemoved}
-              showTooltips={showTooltips}
-              isAuthor={isAuthor}
-              showCreatorActions={!readOnly && isAuthor}
-              canAwardBounty={!readOnly && canAwardBounty}
-              showContributeButton={false}
-              showSupportAndCTAButtons={!readOnly}
-              onAward={
-                readOnly
-                  ? undefined
-                  : (bountyId) => {
-                      setSelectedBountyId(bountyId);
-                      setShowAwardModal(true);
-                    }
-              }
-              onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
-              onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
-              onContributeSuccess={() => {
-                // After successful contribution, refresh the comments
-                forceRefresh();
-
-                // Also call the parent's onCommentUpdate if provided
-                if (onCommentUpdate) {
-                  onCommentUpdate(comment);
-                }
-              }}
-              actionLabels={{
-                comment: 'Reply',
-              }}
-              onViewSolution={(event) => {
-                setSelectedSolution({
-                  solutionId: event.solutionId,
-                  authorName: event.authorName,
-                  awardedAmount: event.awardedAmount,
-                });
-              }}
-            />
-
-            {/* If we're replying, show the reply editor */}
-            {isReplying && !readOnly && (
-              <div className="mt-4 border-t pt-4 px-4 pb-4">
-                <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-                <CommentEditor
-                  onSubmit={handleReply}
-                  onCancel={() => setReplyingToCommentId(null)}
-                  placeholder="Write your reply..."
-                  autoFocus={true}
-                  isBountyReply={true}
-                />
-              </div>
-            )}
-          </div>
-        );
-      } catch (error) {
-        console.error('Error transforming bounty comment to feed item:', error);
-
-        // Fallback to a simple error message
-        return (
-          <div className="p-4 border border-red-200 rounded-md bg-red-50 text-red-700">
-            <p>There was an error displaying this bounty. Please refresh the page and try again.</p>
-          </div>
-        );
-      }
-    }
-
-    // For regular comments, use FeedItemComment
-    // Transform the comment to a feed entry
-    const feedEntry = transformCommentToFeedItem(comment, contentType, work);
-
-    if (isFeedRow) {
-      return (
-        <>
-          <CommentCard
-            entry={feedEntry}
-            depth={depth}
-            replyTo={replyTo}
-            isOwnComment={isAuthor}
-            onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
-            onEdit={readOnly || !isAuthor ? undefined : () => setEditingCommentId(comment.id)}
-            onDelete={readOnly || !isAuthor ? undefined : () => handleDelete()}
-            hideActions={readOnly || !includeReplies || comment.isRemoved}
-            showTooltips={showTooltips}
-            workContentType={workContentType}
-          />
-
-          {isReplying && !readOnly && (
-            // Lined up with the row's words from the tablet up; the whole width on a phone.
-            <div
-              className={cn('mt-3', depth > 0 ? 'tablet:ml-11' : 'tablet:ml-[52px]')}
-              data-testid="comment-reply-editor"
-            >
-              <CommentEditor
-                onSubmit={handleReply}
-                onCancel={() => setReplyingToCommentId(null)}
-                placeholder="Write your reply..."
-                autoFocus={true}
-                isBountyReply={false}
-              />
-            </div>
-          )}
-        </>
-      );
-    }
-
     return (
-      <div className="space-y-4">
-        <FeedItemComment
-          entry={feedEntry}
+      <>
+        <CommentCard
+          entry={transformCommentToFeedItem(comment, contentType, work)}
+          depth={depth}
+          replyTo={replyTo}
+          isOwnComment={isAuthor}
           onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
-          onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
-          onDelete={readOnly ? undefined : () => handleDelete()}
-          showCreatorActions={!readOnly && isAuthor}
-          showTooltips={showTooltips}
-          showRelatedWork={false}
+          onEdit={readOnly || !isAuthor ? undefined : () => setEditingCommentId(comment.id)}
+          onDelete={readOnly || !isAuthor ? undefined : () => handleDelete()}
           hideActions={readOnly || !includeReplies || comment.isRemoved}
-          actionLabels={{
-            comment: 'Reply',
-          }}
+          showTooltips={showTooltips}
           workContentType={workContentType}
         />
 
-        {/* If we're replying, show the reply editor */}
         {isReplying && !readOnly && (
-          <div className="mt-4 border-t pt-4 px-4 pb-4" data-testid="comment-reply-editor">
-            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+          // Lined up with the row's words from the tablet up; the whole width on a phone.
+          <div
+            className={cn('mt-3', depth > 0 ? 'tablet:ml-11' : 'tablet:ml-[52px]')}
+            data-testid="comment-reply-editor"
+          >
             <CommentEditor
               onSubmit={handleReply}
               onCancel={() => setReplyingToCommentId(null)}
@@ -469,20 +338,14 @@ export const CommentItem = ({
             />
           </div>
         )}
-      </div>
+      </>
     );
   };
 
   return (
     <div
-      className={
-        isFeedRow
-          ? // A hairline under each whole thread, none between a thread's replies.
-            depth === 0
-            ? cn(ACTIVITY_ROW_DIVIDER, 'py-4')
-            : 'pt-4'
-          : 'mt-4'
-      }
+      // A hairline under each whole thread, none between a thread's replies.
+      className={depth === 0 ? cn(ACTIVITY_ROW_DIVIDER, 'py-4') : 'pt-4'}
       id={`comment-${comment.id}`}
       data-testid="comment-item"
     >
@@ -567,9 +430,9 @@ export const CommentItem = ({
       {/* Comment content */}
       {renderContent()}
 
-      {/* A feed thread lists every reply in one column, one indent in, with a rail running
-          down from under the first comment's avatar. */}
-      {isFeedRow && includeReplies && flatReplies.length > 0 && (
+      {/* A thread lists every reply in one column, one indent in, with a rail running down
+          from under the first comment's avatar. */}
+      {includeReplies && flatReplies.length > 0 && (
         <>
           <div
             aria-hidden
@@ -588,14 +451,12 @@ export const CommentItem = ({
                   showTooltips={showTooltips}
                   includeReplies={includeReplies}
                   readOnly={readOnly}
-                  rowStyle="feed"
                   depth={item.depth}
                   replyTo={item.depth >= 2 ? toCommentAuthor(item.parent.createdBy) : undefined}
                 />
               ) : (
                 <LoadMoreReplies
                   key={`more-${item.parent.id}`}
-                  variant="feed"
                   commentId={item.parent.id}
                   remainingCount={item.remaining}
                   isLoading={loading}
@@ -605,50 +466,6 @@ export const CommentItem = ({
           </div>
         </>
       )}
-
-      {/* Replies section - conditionally rendered based on includeReplies prop */}
-      {isFeedRow ? null : includeReplies && comment.replies && comment.replies.length > 0 ? (
-        <div className="-mt-1 pt-5 pl-6 border-l border-gray-200">
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={`reply-${reply.id}`}
-              comment={{
-                ...reply,
-                parentId: comment.id, // Ensure the parentId is explicitly set
-              }}
-              contentType={contentType}
-              commentType={commentType}
-              onCommentUpdate={onCommentUpdate}
-              onCommentDelete={onCommentDelete}
-              showTooltips={showTooltips}
-              includeReplies={includeReplies}
-              readOnly={readOnly}
-            />
-          ))}
-
-          {/* Load More Replies button */}
-          {comment.childrenCount > comment.replies.length && (
-            <div className="mt-2">
-              <LoadMoreReplies
-                commentId={comment.id}
-                remainingCount={comment.childrenCount - comment.replies.length}
-                isLoading={loading}
-              />
-            </div>
-          )}
-        </div>
-      ) : includeReplies && comment.childrenCount > 0 ? (
-        // No replies loaded yet, but there are replies to load
-        <div className="mt-4">
-          <div className="mt-2">
-            <LoadMoreReplies
-              commentId={comment.id}
-              remainingCount={comment.childrenCount}
-              isLoading={loading}
-            />
-          </div>
-        </div>
-      ) : null}
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal
