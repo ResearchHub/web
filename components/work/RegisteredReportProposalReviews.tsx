@@ -26,7 +26,6 @@ export function RegisteredReportProposalReviews({
         belowEditor={<ReviewStatusBanner bounties={metadata?.bounties ?? []} />}
         readOnly
         onlyAssessedReviews
-        rowStyle="feed"
       />
     </div>
   );
