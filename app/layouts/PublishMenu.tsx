@@ -1,9 +1,7 @@
 'use client';
 
 import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
-import { cn } from '@/utils/styles';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import {
   FundingDraftMenuItems,
@@ -18,10 +16,10 @@ interface PublishMenuProps {
 }
 
 /**
- * The sidebar's Draft button, in the primary blue: a Request for Proposal or a
- * Proposal, either of which leads straight to a new draft in the workspace for
- * that side of the money. A popover at every width, phones included, since on
- * one it opens inside the menu panel.
+ * The sidebar's Draft button: a Request for Proposal or a Proposal, either
+ * of which leads straight to a new draft in the workspace for that side of
+ * the money. A popover at every width, phones included, since on one it opens
+ * inside the menu panel.
  */
 export const PublishMenu: React.FC<PublishMenuProps> = ({
   forceMinimize = false,
@@ -37,28 +35,21 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
 
   // Regular trigger for standard mode
   const standardTrigger = (
-    <Button
-      aria-label="New draft"
-      // As wide as the Publish button it replaced, and a little shorter.
-      className={cn(
-        'h-9 min-w-[124px] gap-2 px-5 py-0 text-[15px] shadow-sm',
-        forceMinimize && '!hidden'
-      )}
+    <button
+      className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : ''}`}
     >
-      <Plus className="h-5 w-5" aria-hidden="true" />
+      <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
       <span>Draft</span>
-    </Button>
+    </button>
   );
 
   // Compact trigger for a sidebar forced into the icon rail
   const compactTrigger = (
-    <Button
-      size="icon"
-      aria-label="New draft"
-      className={cn(forceMinimize ? 'flex' : 'hidden', 'mx-auto shadow-sm')}
+    <button
+      className={`${forceMinimize ? 'flex' : 'hidden'} items-center justify-center p-3 rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] mx-auto`}
     >
-      <Plus className="h-5 w-5" aria-hidden="true" />
-    </Button>
+      <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
+    </button>
   );
 
   const menuContent = <FundingDraftMenuItems onSelect={handleMenuItemClick} />;
