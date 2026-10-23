@@ -1,11 +1,10 @@
 import { withShareToken } from '@/lib/shareToken/url';
 import type { ContentType } from '@/types/work';
 
-// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /rfp/ (and legacy /grant/)
+// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /proposal/, /fund/, /rfp/ (and legacy /grant/)
 const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
   paper: 'paper',
   post: 'post',
-  question: 'question',
   proposal: 'preregistration',
   fund: 'preregistration',
   rfp: 'funding_request',
@@ -342,13 +341,10 @@ export const buildWorkUrl = ({
       if (!id) return '#';
       baseUrl = slug ? `/proposal/${id}/${slug}` : `/proposal/${id}`;
       break;
-    case 'question':
-      if (!id) return '#'; // Return a safe fallback for questions without ID
-      baseUrl = slug ? `/question/${id}/${slug}` : `/question/${id}`;
-      break;
     case 'paper':
+    case 'question':
     default:
-      // Paper pages are retired and unknown content types have no page: no link.
+      // Paper and question pages are retired and unknown content types have no page: no link.
       return '#';
   }
 

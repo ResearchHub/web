@@ -47,7 +47,7 @@ export default async function WorkPage({ params }: Props) {
   return (
     <PageLayout rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <WorkDocument work={work} metadata={metadata} defaultTab="paper" />
+        <PostDocument work={work} metadata={metadata} content={content} />
         <SearchHistoryTracker work={work} />
         <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
       </Suspense>
@@ -63,7 +63,6 @@ The rule applies to all work document pages:
 - `app/paper/[id]/[slug]/**/page.tsx`
 - `app/post/[id]/[slug]/**/page.tsx`
 - `app/fund/[id]/[slug]/**/page.tsx`
-- `app/question/[id]/[slug]/**/page.tsx`
 - `app/rfp/[id]/[slug]/**/page.tsx`
 
 ## Configuration
