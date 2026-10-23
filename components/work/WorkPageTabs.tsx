@@ -3,7 +3,6 @@
 import type { ComponentProps } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { WORK_BOX_WIDTH_CLASS, WORK_ROW_CLASS } from '@/components/work/WorkCover';
-import { useIsMobileTopNavHidden } from '@/contexts/ScrollContainerContext';
 import { cn } from '@/utils/styles';
 
 type WorkPageTabsProps = Omit<ComponentProps<typeof Tabs>, 'variant'> & {
@@ -18,8 +17,6 @@ type WorkPageTabsProps = Omit<ComponentProps<typeof Tabs>, 'variant'> & {
  * slides away. Render them in PageLayout's `pageTabs`, which spans the page.
  */
 export function WorkPageTabs({ id, className, ...tabsProps }: WorkPageTabsProps) {
-  const isTopBarHidden = useIsMobileTopNavHidden();
-
   return (
     <>
       {/* The tabs' own place on the page, which stuck tabs have left: scrolling
@@ -35,9 +32,10 @@ export function WorkPageTabs({ id, className, ...tabsProps }: WorkPageTabsProps)
           'sticky z-20 bg-white transition-[top] duration-300',
           // On phones the scrollport keeps the top bar's height as padding and
           // sticky offsets start inside it, so top-0 is right under the bar; as
-          // the bar slides away the tabs move up by its height. From tablet up
+          // the bar slides away (PageLayout's shell is marked
+          // data-top-bar-hidden) the tabs move up by its height. From tablet up
           // the page scrolls below the bar, which never hides.
-          isTopBarHidden ? 'top-[calc(var(--top-bar-height)*-1)]' : 'top-0',
+          'top-0 group-data-[top-bar-hidden]/shell:top-[calc(var(--top-bar-height)*-1)]',
           'tablet:!top-0',
           className
         )}
