@@ -8,8 +8,9 @@ import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
-import { CoverBadge } from '@/components/work/WorkCover';
+import { CoverBadge, type CoverEyebrowSubject } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
+import { useWorkInstitution, type WorkInstitution } from '@/components/work/WorkInstitutionContext';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useUser } from '@/contexts/UserContext';
@@ -28,12 +29,45 @@ interface WorkHeaderProposalProps {
   preTitle?: ReactNode;
 }
 
-/** Who proposes it, for the cover's top line: the lead author, and how many more. */
-function proposerLabel(work: Work): string | undefined {
+/** The lead author, linked to their profile, and how many more. */
+function leadAuthorEyebrow(work: Work): CoverEyebrowSubject | undefined {
   const [lead, ...others] = work.authors;
   if (!lead) return undefined;
-  const name = lead.authorProfile.fullName;
-  return others.length > 0 ? `${name} and ${others.length} more` : name;
+  const { id, fullName, profileImage } = lead.authorProfile;
+  return {
+    name: fullName,
+    image: profileImage,
+    authorId: id,
+    more: others.length > 0 ? `and ${others.length} more` : undefined,
+  };
+}
+
+/** Who proposes it, for the Fund panel's cover: the lead author, and how many more. */
+function proposerLabel(work: Work): string | undefined {
+  const lead = leadAuthorEyebrow(work);
+  return lead && [lead.name, lead.more].filter(Boolean).join(' ');
+}
+
+/**
+ * Who the cover's top line names: the nonprofit or institution the money goes
+ * to, when there is one, beside the lead author's face and linked to its page
+ * on Endaoment. Otherwise the lead author.
+ */
+function proposerEyebrow(
+  work: Work,
+  institution: WorkInstitution | null
+): CoverEyebrowSubject | undefined {
+  const lead = leadAuthorEyebrow(work);
+  // Nonprofits carry no logo in the link the page loads; the lead author's face stands beside its name.
+  if (institution) {
+    return {
+      name: institution.name,
+      image: lead?.image,
+      faceName: lead?.name,
+      href: institution.href,
+    };
+  }
+  return lead;
 }
 
 /**
@@ -52,6 +86,8 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   const { showShareModal } = useShareModalContext();
   const { user } = useUser();
   const router = useRouter();
+  // Loaded with the page on the server, so the cover names it from the first paint.
+  const institution = useWorkInstitution();
 
   const displayedWork = updatedWork ?? work;
   const fundraise = metadata.fundraising ?? null;
@@ -92,7 +128,6 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   };
 
   const proposer = proposerLabel(displayedWork);
-  const lead = displayedWork.authors[0]?.authorProfile;
 
   const handleMakePublic = async () => {
     setIsMakingPublic(true);
@@ -141,8 +176,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
         preTitle={preTitle}
         cover={{
           imageUrl: displayedWork.image,
-          eyebrow: proposer,
-          eyebrowFace: lead && { name: lead.fullName, image: lead.profileImage },
+          eyebrow: proposerEyebrow(displayedWork, institution),
           badges: closedBadge,
         }}
       />

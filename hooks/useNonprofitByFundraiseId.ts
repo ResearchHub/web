@@ -11,6 +11,53 @@ import {
 } from '@/types/nonprofit';
 import { ID } from '@/types/root';
 
+/**
+ * A linked nonprofit's full record: Endaoment's, found by its EIN, keeping our
+ * own id and wallet; or the record we store, when Endaoment has no match.
+ */
+async function fetchNonprofitOrg(details: NonprofitDetails): Promise<NonprofitOrg> {
+  if (details.ein) {
+    const searchResults = await NonprofitService.searchNonprofitOrgs(details.ein);
+    const match = searchResults.find((result) => result.ein === details.ein);
+    if (match) {
+      return {
+        ...match,
+        id: details.id, // Preserve our internal database ID
+        baseWalletAddress: details.baseWalletAddress || match.baseWalletAddress,
+        endaomentOrgId: details.endaomentOrgId,
+      };
+    }
+  }
+  return transformNonprofitDetailsToOrg(details.raw);
+}
+
+/**
+ * The full record of a nonprofit the page already has the link for, e.g. from
+ * `useWorkNonprofit`. The record we store shows at once; Endaoment's address,
+ * category and description replace it when its EIN search answers.
+ */
+export function useNonprofitOrg(details: NonprofitDetails | null): NonprofitOrg | null {
+  const [found, setFound] = useState<NonprofitOrg | null>(null);
+  const id = details?.id;
+
+  useEffect(() => {
+    if (!details) return;
+    let isCurrent = true;
+    fetchNonprofitOrg(details)
+      .then((org) => {
+        if (isCurrent) setFound(org);
+      })
+      .catch((error) => console.error('Error fetching nonprofit details:', error));
+    return () => {
+      isCurrent = false;
+    };
+    // Keyed by id: a refreshed page hands over an equal record, not a new nonprofit.
+  }, [id]);
+
+  if (!details) return null;
+  return found?.id === details.id ? found : transformNonprofitDetailsToOrg(details.raw);
+}
+
 interface UseNonprofitByFundraiseIdState {
   nonprofit: NonprofitOrg | null;
   departmentLabName: string;
@@ -23,14 +70,13 @@ export interface UseNonprofitByFundraiseIdReturn {
   departmentLabName: string;
   isLoading: boolean;
   error: Error | null;
-  fetchNonprofitData: (fundraiseId: ID) => Promise<void>;
 }
 
 /**
  * Hook for fetching nonprofit data associated with a fundraiseId
  *
  * @param initialFundraiseId - Optional initial fundraise ID to fetch on mount
- * @returns Object containing nonprofit data, loading state, error state, and fetch function
+ * @returns Object containing nonprofit data, loading state and error state
  */
 export const useNonprofitByFundraiseId = (
   initialFundraiseId?: ID
@@ -57,43 +103,13 @@ export const useNonprofitByFundraiseId = (
 
       if (nonprofitLinks && nonprofitLinks.length > 0) {
         const firstLink = nonprofitLinks[0];
-        const nonprofitDetails = firstLink.nonprofitDetails;
 
-        // Search for the complete nonprofit information using the EIN
-        let completeNonprofitInfo: NonprofitOrg | null = null;
-        if (nonprofitDetails.ein) {
-          const searchResults = await NonprofitService.searchNonprofitOrgs(nonprofitDetails.ein);
-          // If we find an exact match by EIN, use that data
-          completeNonprofitInfo =
-            searchResults.find((result) => result.ein === nonprofitDetails.ein) || null;
-        }
-
-        if (completeNonprofitInfo) {
-          // If we found complete info, use it but ensure we keep our database IDs
-          setState({
-            nonprofit: {
-              ...completeNonprofitInfo,
-              id: nonprofitDetails.id, // Preserve our internal database ID
-              baseWalletAddress:
-                nonprofitDetails.baseWalletAddress || completeNonprofitInfo.baseWalletAddress,
-              endaomentOrgId: nonprofitDetails.endaomentOrgId,
-            },
-            departmentLabName: firstLink.note || '',
-            isLoading: false,
-            error: null,
-          });
-        } else {
-          // If we don't have complete info from search, use the transformNonprofitDetailsToOrg
-          // transformer to convert our database details to a nonprofit org
-          const formattedNonprofit = transformNonprofitDetailsToOrg(nonprofitDetails.raw);
-
-          setState({
-            nonprofit: formattedNonprofit,
-            departmentLabName: firstLink.note || '',
-            isLoading: false,
-            error: null,
-          });
-        }
+        setState({
+          nonprofit: await fetchNonprofitOrg(firstLink.nonprofitDetails),
+          departmentLabName: firstLink.note || '',
+          isLoading: false,
+          error: null,
+        });
       } else {
         setState({
           nonprofit: null,
@@ -125,6 +141,5 @@ export const useNonprofitByFundraiseId = (
     departmentLabName: state.departmentLabName,
     isLoading: state.isLoading,
     error: state.error,
-    fetchNonprofitData,
   };
 };

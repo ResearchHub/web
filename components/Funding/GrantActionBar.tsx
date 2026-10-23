@@ -5,27 +5,45 @@ import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
+import {
+  actionButtonProps,
+  getApplyUnavailableReason,
+  getPoolUnavailableReason,
+} from '@/components/Funding/lib/unavailableAction';
+import { cn } from '@/utils/styles';
 
-/** Apply and Fund, for the RFP page wherever its pool card is hidden. */
+/**
+ * Apply and Fund, for the RFP page wherever its pool card is hidden. Once the
+ * RFP closes they stay, grayed out with the reason on hover, as on the card.
+ */
 export function GrantActionBar() {
-  const { canApply, isPoolOpen, setIsApplyPanelOpen } = useGrantPage();
+  const { grantId, canApply, isPending, isPoolOpen, fundingPool, setIsApplyPanelOpen } =
+    useGrantPage();
 
-  // Contributions need the RFP open too, so with nothing to apply to there is nothing to fund.
-  if (!canApply) return null;
+  if (!grantId) return null;
+
+  const apply = actionButtonProps(
+    () => setIsApplyPanelOpen(true),
+    getApplyUnavailableReason({ canApply, isPending })
+  );
 
   return (
     <StickyActionBar>
       <Button
         variant="outlined"
         size="lg"
-        onClick={() => setIsApplyPanelOpen(true)}
-        className="flex-1 gap-2"
+        {...apply}
+        className={cn('flex-1 gap-2', apply.className)}
       >
         <FileUp className="h-4 w-4" />
         Apply
       </Button>
-      {isPoolOpen && (
-        <FundButton size="lg" className="flex-1">
+      {fundingPool && (
+        <FundButton
+          size="lg"
+          className="flex-1"
+          unavailableReason={getPoolUnavailableReason({ isPoolOpen, isPending })}
+        >
           Fund
         </FundButton>
       )}

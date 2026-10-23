@@ -19,6 +19,11 @@ import {
   toBackers,
   visiblePercent,
 } from '@/components/Funding/lib/fundingAmounts';
+import {
+  actionButtonProps,
+  getApplyUnavailableReason,
+  getPoolUnavailableReason,
+} from '@/components/Funding/lib/unavailableAction';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { FundingPool, FundingPoolAmount } from '@/types/grant';
 import { pluralizeSuffix } from '@/utils/stringUtils';
@@ -32,6 +37,8 @@ interface GrantFundingPoolWidgetProps {
   isOpen: boolean;
   /** Whether the grant is accepting proposals. */
   canApply: boolean;
+  /** Waiting for approval: it takes proposals and money once approved. */
+  isPending: boolean;
   /** Proposals go only to the funder and vetted reviewers. */
   isPrivate: boolean;
   /** Grant creators and moderators also see what is still waiting to be allocated. */
@@ -45,7 +52,8 @@ interface GrantFundingPoolWidgetProps {
  * pool. The total leads; the bar and its legend split it between the funder,
  * in green, and the backers, in indigo with their faces. The info tooltip
  * explains what a funding pool is, with what has been allocated and, for
- * managers, what is left to allocate.
+ * managers, what is left to allocate. Once the RFP closes both buttons stay,
+ * grayed out with the reason on hover.
  */
 export function GrantFundingPoolWidget({
   organization,
@@ -53,6 +61,7 @@ export function GrantFundingPoolWidget({
   fundingPool,
   isOpen,
   canApply,
+  isPending,
   isPrivate,
   canManagePool,
   onApply,
@@ -60,6 +69,11 @@ export function GrantFundingPoolWidget({
 }: GrantFundingPoolWidgetProps) {
   const { showUSD } = useCurrencyPreference();
   const format = (amount: FundingPoolAmount) => formatFundingAmount(amount, showUSD);
+  const apply = actionButtonProps(
+    onApply,
+    getApplyUnavailableReason({ canApply, isPending }),
+    'navy'
+  );
 
   const raised = fundingPool.amountRaised;
   const { total, communityPercent } = getPoolSplit(grantAmount, fundingPool, showUSD);
@@ -134,7 +148,6 @@ export function GrantFundingPoolWidget({
   return (
     <FundingCard
       label="Funding pool"
-      status={isOpen ? undefined : 'Closed'}
       aside={infoButton}
       testId="grant-funding-pool"
       className={className}
@@ -218,33 +231,30 @@ export function GrantFundingPoolWidget({
       {/* Add to pool carries the card in the brand blue: these links get shared
           with funders. Apply is the same size in white, so the two never read as
           one flow. */}
-      {isOpen && (
-        <FundButton data-testid="grant-contribute" className="mt-4 w-full font-semibold">
-          Add to pool
-        </FundButton>
-      )}
+      <FundButton
+        data-testid="grant-contribute"
+        className="mt-4 w-full font-semibold"
+        unavailableReason={getPoolUnavailableReason({ isPoolOpen: isOpen, isPending })}
+        ground="navy"
+      >
+        Add to pool
+      </FundButton>
 
-      {canApply && (
-        <Button
-          data-testid="grant-submit-proposal"
-          variant="inverse"
-          onClick={onApply}
-          className="mt-2 w-full gap-2"
-        >
-          <FileUp className="h-4 w-4" />
-          Apply
-        </Button>
-      )}
+      <Button
+        data-testid="grant-submit-proposal"
+        variant="inverse"
+        {...apply}
+        className={cn('mt-2 w-full gap-2', apply.className)}
+      >
+        <FileUp className="h-4 w-4" />
+        Apply
+      </Button>
 
       {canApply && isPrivate && (
         <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-white/60">
           <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
           Your proposal will be submitted privately
         </p>
-      )}
-
-      {!canApply && !isOpen && (
-        <p className="mt-3 text-center text-xs text-white/60">This RFP is closed</p>
       )}
     </FundingCard>
   );
