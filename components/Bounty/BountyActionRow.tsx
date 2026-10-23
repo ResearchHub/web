@@ -7,20 +7,18 @@ import { toast } from 'react-hot-toast';
 import {
   ENABLE_BOUNTY_BACKING,
   getBountyDisplayAmount,
+  getBountyStatus,
   isActiveBounty,
   isOpenBounty,
 } from '@/components/Bounty/lib/bountyUtil';
+import { BountyStatus } from '@/components/Bounty/BountyStatus';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { RadiatingDot } from '@/components/ui/RadiatingDot';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
-import { getRemainingDays } from '@/utils/date';
-import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
 import type { Bounty, BountyContribution } from '@/types/bounty';
 import type { ContentType, Work } from '@/types/work';
@@ -78,22 +76,7 @@ export const BountyActionRow: FC<BountyActionRowProps> = ({
 
   const bountyLabel = bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty';
 
-  const statusInfo = (() => {
-    if (bounty.status === 'OPEN' && isActive) {
-      const days = getRemainingDays(bounty.expirationDate ?? null);
-      const remaining =
-        days !== null
-          ? days < 1
-            ? '< 1 day remaining'
-            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'} remaining`
-          : null;
-      return { label: 'Open', color: 'bg-green-500', remaining, urgent: days !== null && days < 3 };
-    }
-    if (bounty.status === 'ASSESSMENT') {
-      return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
-    }
-    return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
-  })();
+  const statusInfo = getBountyStatus(bounty, isActive);
 
   const getAddButtonText = () => {
     if (relatedWork?.postType === 'QUESTION') return 'Answer';
@@ -218,36 +201,7 @@ export const BountyActionRow: FC<BountyActionRowProps> = ({
             </div>
           )}
 
-          <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
-            <div className="flex items-center gap-1.5">
-              <RadiatingDot color={statusInfo.color} size="sm" isRadiating={isActive} />
-              {bounty.status === 'ASSESSMENT' ? (
-                <Tooltip
-                  content="Editors are reviewing any submissions and will award top reviews."
-                  position="top"
-                >
-                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap border-b border-dashed border-gray-400 cursor-help">
-                    {statusInfo.label}
-                  </span>
-                </Tooltip>
-              ) : (
-                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                  {statusInfo.label}
-                </span>
-              )}
-              {statusInfo.remaining && (
-                <span
-                  className={cn(
-                    'text-xs whitespace-nowrap',
-                    statusInfo.urgent ? 'text-amber-600 font-medium' : 'text-gray-500'
-                  )}
-                >
-                  ({statusInfo.remaining})
-                </span>
-              )}
-            </div>
-          </div>
+          <BountyStatus status={statusInfo} isActive={isActive} />
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
