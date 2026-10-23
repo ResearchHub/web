@@ -8,6 +8,7 @@ import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+import { NewToResearchHubMenuDot } from '@/components/NewToResearchHub/NewToResearchHubSidebarCard';
 import { Tabs } from '@/components/ui/Tabs';
 import { useFundTabs } from '@/hooks/useFundTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
@@ -100,9 +101,10 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
               onClick={onMenuClick}
               aria-expanded={isMenuOpen}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              className="-ml-2 mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 sidebar-compact:!hidden"
+              className="relative -ml-2 mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 sidebar-compact:!hidden"
             >
               <Menu className="h-6 w-6" aria-hidden="true" />
+              <NewToResearchHubMenuDot isMenuOpen={isMenuOpen} />
             </button>
 
             {/* The sidebar holds the logo from 1240px up; narrower, it sits here. */}
