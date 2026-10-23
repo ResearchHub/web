@@ -545,23 +545,22 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         loading: false,
         error: null,
       };
+    // Saving an edit or a delete leaves `loading` alone: the feed swaps the whole list for its
+    // skeleton while that is true, which is for fetching the list, not for changing one comment.
     case CommentActionType.UPDATE_COMMENT_START:
       return {
         ...state,
-        loading: true,
         error: null,
       };
     case CommentActionType.UPDATE_COMMENT_SUCCESS:
       return {
         ...state,
         comments: updateReplyDeep(state.comments, action.payload.comment),
-        loading: false,
         error: null,
       };
     case CommentActionType.DELETE_COMMENT_START:
       return {
         ...state,
-        loading: true,
         error: null,
       };
     case CommentActionType.DELETE_COMMENT_SUCCESS: {
@@ -572,7 +571,6 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         ...state,
         comments: removeCommentDeep(state.comments, deletedId),
         count: isTopLevel ? Math.max(state.count - 1, 0) : state.count,
-        loading: false,
         error: null,
       };
     }
