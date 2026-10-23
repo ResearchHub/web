@@ -12,7 +12,7 @@ export interface OverflowMenuItem {
 }
 
 /** The round ⋯ button, for a row's top-right corner. */
-export const OVERFLOW_MENU_TRIGGER_CLASS =
+const OVERFLOW_MENU_TRIGGER_CLASS =
   'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800';
 
 interface OverflowMenuProps {
