@@ -12,6 +12,7 @@ import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
+import type { User } from './user';
 import { FOUNDATION_USER_ID } from '@/config/constants';
 import { FundingPool, GrantStatus, transformFundingPool } from './grant';
 
@@ -1447,6 +1448,13 @@ function getReviewScore(
 }
 
 /**
+ * A comment's author as the feed's components expect it: the author profile, with
+ * the account under `user`, where the verified badge and the AI reviewer check look.
+ */
+export const toCommentAuthor = (createdBy: User): AuthorProfile =>
+  ({ ...createdBy.authorProfile, user: { ...createdBy } }) as AuthorProfile;
+
+/**
  * Transforms a Comment object into a FeedEntry that can be used with FeedItemComment component
  * @param comment The Comment object to transform
  * @param contentType The content type of the related document (paper, post, etc.)
@@ -1458,20 +1466,13 @@ export const transformCommentToFeedItem = (
   contentType: ContentType,
   relatedDocument?: Work
 ): FeedEntry => {
-  // The structure of the createdBy property needs to include user as a sub-property and authorProfile on higher level to
-  // be compatible with the rest of the feed items.
-  const createdByAuthorProfile = {
-    ...comment.createdBy.authorProfile,
-    user: { ...comment.createdBy },
-  };
-
   // Create a FeedCommentContent object from the comment
   const commentContent: FeedCommentContent = {
     id: comment.id,
     contentType: 'COMMENT',
     createdDate: comment.createdDate,
     updatedDate: comment.updatedDate,
-    createdBy: createdByAuthorProfile as AuthorProfile,
+    createdBy: toCommentAuthor(comment.createdBy),
     isRemoved: comment.isRemoved,
     comment: {
       id: comment.id,
@@ -1493,10 +1494,11 @@ export const transformCommentToFeedItem = (
     relatedDocumentContentType: contentType,
   };
 
-  // Add review data if this is a review comment
+  // Add review data if this is a review comment. The rating only: `score` is the
+  // comment's vote count, never a stand-in for missing stars.
   if (comment.commentType === 'REVIEW') {
     commentContent.review = {
-      score: comment.reviewScore || comment.score || 0,
+      score: comment.reviewScore || 0,
     };
   }
 
@@ -1513,7 +1515,7 @@ export const transformCommentToFeedItem = (
       votes: comment.score || 0,
       comments: comment.childrenCount || 0,
       saves: 0, // Required property
-      reviewScore: comment.commentType === 'REVIEW' ? comment.reviewScore || comment.score || 0 : 0,
+      reviewScore: comment.commentType === 'REVIEW' ? comment.reviewScore || 0 : 0,
     },
     userVote: comment.userVote,
     tips: comment.tips,
@@ -1550,7 +1552,7 @@ export const transformBountyCommentToFeedItem = (
     contentType: 'BOUNTY',
     createdDate: comment.createdDate,
     bounty: bounty,
-    createdBy: comment.createdBy.authorProfile!,
+    createdBy: toCommentAuthor(comment.createdBy),
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,
     comment: {
