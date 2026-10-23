@@ -7,12 +7,18 @@ interface LoadMoreRepliesProps {
   commentId: number;
   remainingCount: number;
   isLoading?: boolean;
+  /**
+   * `feed`: a quiet text button in a feed thread's reply column, gone once the replies
+   * are in. `card`: the blue button, then "Replies loaded".
+   */
+  variant?: 'card' | 'feed';
 }
 
 const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   commentId,
   remainingCount,
   isLoading: externalLoading = false,
+  variant = 'card',
 }) => {
   const { loadMoreReplies } = useComments();
   const [loading, setLoading] = useState(false);
@@ -41,6 +47,21 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   }
 
   const isButtonLoading = loading || externalLoading;
+  const label = `Show ${remainingCount} more ${remainingCount === 1 ? 'reply' : 'replies'}`;
+
+  if (variant === 'feed') {
+    return (
+      <button
+        type="button"
+        onClick={handleLoadMore}
+        disabled={isButtonLoading}
+        className="mt-3 inline-flex min-h-8 items-center gap-1 text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-default disabled:opacity-60"
+      >
+        <ChevronDown className="h-4 w-4" aria-hidden />
+        {isButtonLoading ? 'Loading…' : label}
+      </button>
+    );
+  }
 
   return (
     <div className="mt-2 mb-3 ml-2">
@@ -70,7 +91,7 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
           ) : (
             <>
               <ChevronDown className="h-4 w-4 mr-1" />
-              Show {remainingCount} more {remainingCount === 1 ? 'reply' : 'replies'}
+              {label}
             </>
           )}
         </Button>
