@@ -2,7 +2,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseLight,
   faBookmark as faBookmarkLight,
-  faCommentsQuestion,
 } from '@fortawesome/pro-light-svg-icons';
 import { Shield, Users, Activity, Settings } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
@@ -163,13 +162,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Preprint',
       icon: <Icon name="preprint" size={20} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/question/'),
-    getInfo: () => ({
-      title: 'Question',
-      icon: <FontAwesomeIcon icon={faCommentsQuestion} fontSize={24} className="text-gray-900" />,
     }),
   },
   {

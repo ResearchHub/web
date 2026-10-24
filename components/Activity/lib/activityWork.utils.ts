@@ -166,6 +166,7 @@ type WorkTab = 'reviews' | 'conversation' | 'updates';
 /**
  * Registered reports are `post` documents, which `buildWorkUrl` has no route for. Their
  * pages carry their own tabs, so a work tab is dropped, as `/post` does when redirecting.
+ * Questions are `post` documents too, and their pages are retired: no link.
  */
 function buildActivityWorkHref(params: {
   id: number;
@@ -174,9 +175,11 @@ function buildActivityWorkHref(params: {
   postType?: string;
   tab?: WorkTab;
 }): string {
-  return isRegisteredReport(params.postType)
-    ? buildRegisteredReportUrl(params.id, params.slug)
-    : buildWorkUrl(params);
+  if (isRegisteredReport(params.postType)) {
+    return buildRegisteredReportUrl(params.id, params.slug);
+  }
+  const contentType = params.postType === 'QUESTION' ? 'question' : params.contentType;
+  return buildWorkUrl({ ...params, contentType });
 }
 
 /** Discussions are product updates written by the ResearchHub team. */

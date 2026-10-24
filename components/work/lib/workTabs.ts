@@ -21,8 +21,7 @@ function workTabUrl(work: Work, tab: TabType): string {
   const path = buildWorkUrl({
     id: work.id,
     slug: work.slug,
-    // Questions are posts with a route of their own.
-    contentType: work.postType === 'QUESTION' ? 'question' : work.contentType,
+    contentType: work.contentType,
     tab: tab === 'paper' ? undefined : tab,
   });
   const currentParams = new URLSearchParams(window.location.search);
