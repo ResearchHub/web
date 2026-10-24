@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
+import { useSetContentTabsHidden } from '@/contexts/FeedTabsVisibilityContext';
 
 /**
  * Observes a sentinel in the scroll container and reports when content tabs
@@ -11,7 +11,7 @@ import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 export function useContentTabsVisibilitySentinel(enabled = true) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useScrollContainer();
-  const { setContentTabsHidden } = useFeedTabsVisibility();
+  const setContentTabsHidden = useSetContentTabsHidden();
 
   useEffect(() => {
     if (!enabled) return;
