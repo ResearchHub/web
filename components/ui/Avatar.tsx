@@ -4,6 +4,7 @@ import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
 import Link from 'next/link';
+import { generatePixelScientistAvatarUri } from '@/utils/pixelScientistAvatar';
 
 type AvatarSize = 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
 
@@ -19,44 +20,6 @@ export interface AvatarProps {
   labelClassName?: string;
   labelStyle?: CSSProperties;
 }
-
-// Define a set of background colors for avatars without images
-const backgroundColors = [
-  'bg-indigo-100', // Indigo
-  'bg-emerald-100', // Emerald
-  'bg-amber-100', // Amber
-  'bg-sky-100', // Sky
-  'bg-rose-100', // Rose
-  'bg-violet-100', // Violet
-  'bg-lime-100', // Lime
-  'bg-cyan-100', // Cyan
-  'bg-fuchsia-100', // Fuchsia
-  'bg-orange-100', // Orange
-];
-
-// Define a set of text colors corresponding to the background colors
-const textColors = [
-  'text-indigo-700', // Indigo
-  'text-emerald-700', // Emerald
-  'text-amber-700', // Amber
-  'text-sky-700', // Sky
-  'text-rose-700', // Rose
-  'text-violet-700', // Violet
-  'text-lime-700', // Lime
-  'text-cyan-700', // Cyan
-  'text-fuchsia-700', // Fuchsia
-  'text-orange-700', // Orange
-];
-
-// Generate a deterministic color index based on the string
-const getColorIndex = (str: string): number => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % backgroundColors.length;
-  return index;
-};
 
 // Map string sizes to pixel values
 const sizeMap = {
@@ -99,13 +62,6 @@ export const Avatar: FC<AvatarProps> = ({
     }
   }, [src]);
 
-  const getInitials = (name: string) => {
-    const parts = name.trim().split(' ').filter(Boolean);
-    if (parts.length === 0) return '?';
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-  };
-
   const sizeClasses = {
     xxxs: 'h-3 w-3',
     xxs: 'h-5 w-5',
@@ -138,13 +94,7 @@ export const Avatar: FC<AvatarProps> = ({
     setIsLoading(false);
   };
 
-  const shouldShowInitials = !src || imageError || isLoading;
-  const initials = getInitials(alt);
-
-  // Get the color index based on the alt text
-  const colorIndex = getColorIndex(alt);
-  const backgroundColorClass = backgroundColors[colorIndex];
-  const textColorClass = textColors[colorIndex];
+  const shouldShowGeneratedAvatar = !src || imageError || isLoading;
 
   // Handle custom pixel size
   const customStyle: CSSProperties = {};
@@ -157,8 +107,7 @@ export const Avatar: FC<AvatarProps> = ({
     <div
       className={cn(
         'relative inline-flex rounded-full overflow-hidden',
-        'flex items-center justify-center flex-shrink-0',
-        shouldShowInitials ? backgroundColorClass : 'bg-gray-100',
+        'flex items-center justify-center flex-shrink-0 bg-gray-100',
         typeof size !== 'number' ? sizeClasses[size as AvatarSize] : '',
         onClick ? 'cursor-pointer' : '',
         authorId ? 'cursor-pointer' : '',
@@ -186,22 +135,9 @@ export const Avatar: FC<AvatarProps> = ({
         >
           {label}
         </span>
-      ) : shouldShowInitials ? (
-        <span
-          className={cn(
-            'absolute inset-0 flex items-center justify-center font-medium',
-            textColorClass,
-            getTextSizeClass(
-              typeof size === 'number' ? size : sizeMap[size as AvatarSize],
-              initials.length
-            )
-          )}
-        >
-          {initials}
-        </span>
       ) : (
         <img
-          src={src}
+          src={shouldShowGeneratedAvatar ? generatePixelScientistAvatarUri(alt) : src}
           alt={alt}
           className="h-full w-full object-cover"
           onError={handleImageError}
