@@ -717,7 +717,7 @@ type SendEmailsFn = (payload: {
 type UseSendEmailsReturn = [UseSendEmailsState, SendEmailsFn];
 
 /**
- * Send generated email(s) to experts via SES.
+ * Send generated email(s) to experts via the connected Gmail mailbox.
  */
 export function useSendEmails(): UseSendEmailsReturn {
   const [isLoading, setIsLoading] = useState(false);
@@ -1059,7 +1059,7 @@ interface UseDisconnectMailboxState {
   error: string | null;
 }
 
-type DisconnectMailboxFn = () => Promise<void>;
+type DisconnectMailboxFn = () => Promise<MailboxStatus>;
 type UseDisconnectMailboxReturn = [UseDisconnectMailboxState, DisconnectMailboxFn];
 
 /**
@@ -1069,11 +1069,11 @@ export function useDisconnectMailbox(): UseDisconnectMailboxReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const disconnect = useCallback(async (): Promise<void> => {
+  const disconnect = useCallback(async (): Promise<MailboxStatus> => {
     setIsLoading(true);
     setError(null);
     try {
-      await ExpertFinderMailboxService.disconnect();
+      return await ExpertFinderMailboxService.disconnect();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to disconnect Gmail';
       setError(message);

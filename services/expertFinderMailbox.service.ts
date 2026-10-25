@@ -50,8 +50,10 @@ export class ExpertFinderMailboxService {
   /**
    * Disconnect the user's Gmail mailbox.
    * DELETE /api/research_ai/expert-finder/mailbox/
+   * Returns the same mailbox status shape (usage included).
    */
-  static async disconnect(): Promise<void> {
-    return ApiClient.deleteNoContent(`${this.BASE_PATH}/`);
+  static async disconnect(): Promise<MailboxStatus> {
+    const raw = await ApiClient.delete<Record<string, unknown>>(`${this.BASE_PATH}/`);
+    return transformMailboxStatus(raw);
   }
 }
