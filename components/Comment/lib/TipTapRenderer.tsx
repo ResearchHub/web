@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { Fragment, ReactNode, useState } from 'react';
 import { SectionHeaderProps } from './renderUtils';
 import hljs from 'highlight.js';
 import { useEffect } from 'react';
@@ -8,6 +8,7 @@ import { buildWorkUrl, classifyUrl } from '@/utils/url';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { InlineRichLink } from '@/components/Embed';
 import { normalizeRichLinks } from './embedDoc';
+import { BLOCK_MATH_REGEX, INLINE_MATH_REGEX, KatexMath } from './KatexMath';
 
 interface TipTapRendererProps {
   content: any;
@@ -68,6 +69,48 @@ export const renderTextWithMarks = (text: string, marks: any[]): ReactNode => {
   return result;
 };
 
+/**
+ * Renders text, turning legacy `$...$` segments into KaTeX (comments saved
+ * before the Mathematics extension). Code marks are left as literal source.
+ */
+export const renderTextWithInlineMath = (text: string, marks: any[] = []): ReactNode => {
+  if (!text) return null;
+
+  if (marks.some((mark) => mark.type === 'code')) {
+    return renderTextWithMarks(text, marks);
+  }
+
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+  const regex = new RegExp(INLINE_MATH_REGEX.source, INLINE_MATH_REGEX.flags);
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(
+        <Fragment key={key++}>
+          {renderTextWithMarks(text.slice(lastIndex, match.index), marks)}
+        </Fragment>
+      );
+    }
+    nodes.push(<KatexMath key={key++} latex={match[1]} />);
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (nodes.length === 0) {
+    return renderTextWithMarks(text, marks);
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(
+      <Fragment key={key++}>{renderTextWithMarks(text.slice(lastIndex), marks)}</Fragment>
+    );
+  }
+
+  return <>{nodes}</>;
+};
+
 function demoteUrlToLinkedText(url: string) {
   return {
     type: 'text',
@@ -117,6 +160,10 @@ export const extractPlainText = (node: any): string => {
       return name;
     }
     return name;
+  }
+
+  if (node.type === 'inlineMath' || node.type === 'blockMath') {
+    return node.attrs?.latex || '';
   }
 
   // If it has content, recursively extract text from all children
@@ -413,17 +460,45 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       if (debug) console.log('TRUNCATING TEXT to', truncatedText + '...');
       return (
         <>
-          {renderTextWithMarks(truncatedText, node.marks || [])}
+          {renderTextWithInlineMath(truncatedText, node.marks || [])}
           <span className="text-gray-500 font-semibold">...</span>
         </>
       );
     }
 
-    return renderTextWithMarks(text, node.marks || []);
+    return renderTextWithInlineMath(text, node.marks || []);
+  }
+
+  // TipTap Mathematics nodes (saved after the extension was enabled)
+  if (node.type === 'inlineMath') {
+    const latex = node.attrs?.latex || '';
+    if (!latex) return null;
+    return <KatexMath latex={latex} />;
+  }
+
+  if (node.type === 'blockMath') {
+    const latex = node.attrs?.latex || '';
+    if (!latex) return null;
+    return <KatexMath latex={latex} display />;
   }
 
   // Handle paragraph nodes
   if (node.type === 'paragraph') {
+    // A paragraph whose only content is `$$...$$` is treated as display math
+    // for comments authored before blockMath nodes existed.
+    if (
+      Array.isArray(node.content) &&
+      node.content.length === 1 &&
+      node.content[0]?.type === 'text' &&
+      typeof node.content[0].text === 'string'
+    ) {
+      const trimmed = node.content[0].text.trim();
+      const blockMatch = trimmed.match(BLOCK_MATH_REGEX);
+      if (blockMatch) {
+        return <KatexMath latex={blockMatch[1].trim()} display />;
+      }
+    }
+
     const { children } = renderChildrenWithTruncation(node.content, {
       debug,
       renderSectionHeader,
