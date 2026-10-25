@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import { cn } from '@/utils/styles';
 
-const NAV_ITEM_COUNT = 2;
+const NAV_ITEM_COUNT = 3;
 
 function SidebarNavItemSkeleton({ active }: { active?: boolean }) {
   return (
