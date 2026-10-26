@@ -347,8 +347,12 @@ export const buildWorkUrl = ({
       baseUrl = slug ? `/question/${id}/${slug}` : `/question/${id}`;
       break;
     case 'paper':
+      // Only journal papers still have pages; any other paper's page is a 404.
+      if (!id) return '#';
+      baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
+      break;
     default:
-      // Paper pages are retired and unknown content types have no page: no link.
+      // Unknown content types have no page: no link.
       return '#';
   }
 

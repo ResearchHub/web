@@ -1,42 +1,27 @@
 'use client';
 
-import { createContext, useContext, useMemo, ReactNode, RefObject } from 'react';
+import { createContext, useContext, ReactNode, RefObject } from 'react';
 
-interface ScrollContainerContextType {
-  scrollContainerRef: RefObject<HTMLDivElement | null> | null;
-  isMobileTopNavHidden: boolean;
-}
-
-const ScrollContainerContext = createContext<ScrollContainerContextType>({
-  scrollContainerRef: null,
-  isMobileTopNavHidden: false,
-});
+// Only the scrollport's ref, which never changes, so reading it never
+// re-renders on a scroll. Whether the phone top bar is hidden is not here: it
+// is PageLayout's shell attribute `data-top-bar-hidden`, which whatever moves
+// with the bar follows in CSS (see WorkPageTabs).
+const ScrollContainerContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 
 export function ScrollContainerProvider({
   children,
   scrollContainerRef,
-  isMobileTopNavHidden = false,
 }: {
   children: ReactNode;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
-  isMobileTopNavHidden?: boolean;
 }) {
-  const value = useMemo(
-    () => ({ scrollContainerRef, isMobileTopNavHidden }),
-    [scrollContainerRef, isMobileTopNavHidden]
-  );
-
   return (
-    <ScrollContainerContext.Provider value={value}>{children}</ScrollContainerContext.Provider>
+    <ScrollContainerContext.Provider value={scrollContainerRef}>
+      {children}
+    </ScrollContainerContext.Provider>
   );
 }
 
 export function useScrollContainer() {
-  const context = useContext(ScrollContainerContext);
-  return context.scrollContainerRef;
-}
-
-export function useIsMobileTopNavHidden() {
-  const context = useContext(ScrollContainerContext);
-  return context.isMobileTopNavHidden;
+  return useContext(ScrollContainerContext);
 }
