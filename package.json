@@ -116,6 +116,7 @@
     "react-hot-toast": "^2.5.2",
     "react-intersection-observer": "^9.16.0",
     "sanitize-html": "^2.14.0",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^2.5.5",
     "tippy.js": "^6.3.7",
     "uuid": "^14.0.0",

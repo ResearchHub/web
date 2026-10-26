@@ -2,6 +2,7 @@ import {
   buildArticleMetadata,
   buildDefaultOgImageUrl,
   buildOpenGraphMetadata,
+  buildShareImageUrl,
 } from '@/lib/metadata';
 import { generateDocumentStructuredData } from '@/lib/structured-data';
 import { Work } from '@/types/work';
@@ -18,7 +19,10 @@ function getWorkImage(work: Work): string | undefined {
 
 /** The image social sites show in a work's link card: the same one its page metadata sets. */
 export function getWorkShareImageUrl(work: Work): string {
-  return getWorkImage(work) || buildDefaultOgImageUrl(work.title, getWorkDescription(work));
+  const image = getWorkImage(work);
+  return image
+    ? buildShareImageUrl(image)
+    : buildDefaultOgImageUrl(work.title, getWorkDescription(work));
 }
 
 export function getWorkMetadata({
