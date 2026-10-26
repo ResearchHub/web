@@ -104,7 +104,7 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
                 )}
                 {/* Show verified badge if user is verified - check both direct user prop and author */}
                 {(user?.isVerified || author?.isVerified || author?.user?.isVerified) && (
-                  <VerifiedBadge size="sm" showTooltip={true} />
+                  <VerifiedBadge size="sm" showTooltip={true} authorId={authorId} />
                 )}
                 {/* Show AuthorBadge with priority over EditorBadge - only if not hidden */}
                 {!hideAuthorBadge && isAuthorOfWork && (

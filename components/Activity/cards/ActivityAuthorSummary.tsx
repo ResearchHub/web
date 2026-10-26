@@ -26,7 +26,7 @@ function AuthorName({ author }: Readonly<{ author: AuthorProfile }>) {
         <span className="font-semibold text-gray-900">{name}</span>
       )}
       {isVerifiedAuthor(author) && (
-        <VerifiedBadge size="sm" showTooltip className="ml-1 shrink-0" />
+        <VerifiedBadge size="sm" showTooltip authorId={author.id} className="ml-1 shrink-0" />
       )}
     </span>
   );

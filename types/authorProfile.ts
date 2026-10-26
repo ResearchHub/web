@@ -21,6 +21,8 @@ export interface Education {
   is_public: boolean;
 }
 
+export type VerificationMethod = 'PERSONA' | 'MANUAL' | 'X' | 'EDU_EMAIL';
+
 export interface AuthorProfile {
   id: number;
   fullName: string;
@@ -41,6 +43,8 @@ export interface AuthorProfile {
   isOrcidConnected?: boolean;
   isClaimed: boolean;
   isVerified: boolean;
+  /** Only sent for a single author; undefined means not loaded. */
+  verificationMethods?: VerificationMethod[];
   userId?: number;
   editorOfHubs?: Topic[];
   isHubEditor?: boolean;
@@ -99,6 +103,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     isClaimed: isClaimed,
     userId: raw.user_id || undefined,
     isVerified: raw.is_verified || false,
+    verificationMethods: raw.verification_methods,
     isHubEditor: raw.is_hub_editor || false,
     editorOfHubs: (raw.is_hub_editor_of || []).map((topic: any) => transformTopic(topic)),
   };

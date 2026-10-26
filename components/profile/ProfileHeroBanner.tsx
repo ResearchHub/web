@@ -83,7 +83,12 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
                   <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-snug text-gray-900">
                     {author.fullName}
                   </h1>
-                  {author.isVerified && <VerifiedBadge showTooltip={true} />}
+                  {author.isVerified && (
+                    <VerifiedBadge
+                      showTooltip={true}
+                      verificationMethods={author.verificationMethods}
+                    />
+                  )}
                 </div>
                 {author.headline && (
                   <p className="text-sm sm:text-base text-gray-500 mt-1">{author.headline}</p>

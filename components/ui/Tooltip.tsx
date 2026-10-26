@@ -82,41 +82,50 @@ const TooltipContent = ({
     if (!tooltipRef.current || !triggerRect) return;
 
     const tooltip = tooltipRef.current;
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
 
-    let top = 0;
-    let left = 0;
+    const updatePosition = () => {
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
 
-    // Calculate position based on specified position
-    switch (position) {
-      case 'top':
-        top = triggerRect.top - tooltipRect.height - 8;
-        left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
-        break;
-      case 'bottom':
-        top = triggerRect.bottom + 8;
-        left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
-        break;
-      case 'left':
-        top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
-        left = triggerRect.left - tooltipRect.width - 8;
-        break;
-      case 'right':
-        top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
-        left = triggerRect.right + 8;
-        break;
-    }
+      let top = 0;
+      let left = 0;
 
-    // Adjust if tooltip would go off screen
-    if (left < 10) left = 10;
-    if (left + tooltipRect.width > windowWidth - 10) left = windowWidth - tooltipRect.width - 10;
-    if (top < 10) top = 10;
-    if (top + tooltipRect.height > windowHeight - 10) top = windowHeight - tooltipRect.height - 10;
+      // Calculate position based on specified position
+      switch (position) {
+        case 'top':
+          top = triggerRect.top - tooltipRect.height - 8;
+          left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
+          break;
+        case 'bottom':
+          top = triggerRect.bottom + 8;
+          left = triggerRect.left + (triggerRect.width - tooltipRect.width) / 2;
+          break;
+        case 'left':
+          top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
+          left = triggerRect.left - tooltipRect.width - 8;
+          break;
+        case 'right':
+          top = triggerRect.top + (triggerRect.height - tooltipRect.height) / 2;
+          left = triggerRect.right + 8;
+          break;
+      }
 
-    setTooltipPosition({ top, left });
-    setMounted(true);
+      // Adjust if tooltip would go off screen
+      if (left < 10) left = 10;
+      if (left + tooltipRect.width > windowWidth - 10) left = windowWidth - tooltipRect.width - 10;
+      if (top < 10) top = 10;
+      if (top + tooltipRect.height > windowHeight - 10)
+        top = windowHeight - tooltipRect.height - 10;
+
+      setTooltipPosition({ top, left });
+      setMounted(true);
+    };
+
+    // Content that loads after opening resizes the tooltip and moves its anchor point.
+    const resizeObserver = new ResizeObserver(updatePosition);
+    resizeObserver.observe(tooltip);
+    return () => resizeObserver.disconnect();
   }, [triggerRect, position]);
 
   if (!triggerRect) return null;

@@ -57,8 +57,6 @@ function buildInsights(
 ): InsightItem[] {
   const items: InsightItem[] = [];
   const verificationTooltip = buildVerificationTooltip(userDetails);
-  const verifiedVia = userDetails.verification?.verifiedVia;
-  const verificationLabel = `Verified via ${snakeCaseToTitleCase(verifiedVia ?? '')}`;
   const hasPersonaInsight = backendInsights.some((insight) =>
     isPersonaVerificationEvent(insight.eventType)
   );
@@ -66,7 +64,7 @@ function buildInsights(
   if (!hasPersonaInsight) {
     items.push(
       verificationTooltip
-        ? { label: verificationLabel, tone: 'good', tooltip: verificationTooltip }
+        ? { label: 'Identity Verified', tone: 'good', tooltip: verificationTooltip }
         : { label: 'Not Verified', tone: 'bad', tooltip: 'No identity verification on file' }
     );
   }
@@ -88,16 +86,12 @@ function buildInsights(
   }
 
   for (const insight of backendInsights) {
-    const isVerificationInsight =
-      isPersonaVerificationEvent(insight.eventType) && !!verificationTooltip;
-    const tooltip = isVerificationInsight ? verificationTooltip : getInsightTooltip(insight);
-    // The backend records a Persona event for every approved verification, X and manual included.
-    const label =
-      isVerificationInsight && verifiedVia !== 'PERSONA'
-        ? verificationLabel
-        : formatInsightLabel(insight.eventType, insight.count);
+    const tooltip =
+      isPersonaVerificationEvent(insight.eventType) && verificationTooltip
+        ? verificationTooltip
+        : getInsightTooltip(insight);
     items.push({
-      label,
+      label: formatInsightLabel(insight.eventType, insight.count),
       tone: getInsightTone(insight),
       tooltip,
     });
@@ -219,14 +213,18 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
 
   const userIdDisplay = String(userDetails.id ?? '');
   const verificationId = userDetails.verification?.externalId || '';
-  const verifiedVia = userDetails.verification?.verifiedVia;
 
   const detailItems: { label: string; value: string; copyable?: boolean }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
     { label: 'User ID', value: userIdDisplay || 'N/A', copyable: !!userIdDisplay },
     { label: 'Verified name', value: verifiedName },
     { label: 'Verification ID', value: verificationId || 'N/A', copyable: !!verificationId },
-    { label: 'Verified by', value: verifiedVia ? snakeCaseToTitleCase(verifiedVia) : 'N/A' },
+    {
+      label: 'Verified via',
+      value: userDetails.verification
+        ? snakeCaseToTitleCase(userDetails.verification.verifiedVia)
+        : 'N/A',
+    },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
     {
       label: 'ResearchHub AI tier',
