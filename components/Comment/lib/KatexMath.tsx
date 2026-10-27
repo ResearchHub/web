@@ -3,8 +3,8 @@
 import katex from 'katex';
 import { cn } from '@/utils/styles';
 
-/** Same pattern TipTap's Mathematics migration uses for `$...$` text. */
-export const INLINE_MATH_REGEX = /\$(?!\d+\$)(.+?)\$(?!\d)/g;
+/** `$...$` inline only — excludes `$$` so display math is not partially eaten. */
+export const INLINE_MATH_REGEX = /(?<!\$)\$(?!\$|\d+\$)(.+?)(?<!\$)\$(?!\$|\d)/g;
 
 export const BLOCK_MATH_REGEX = /^\$\$([\s\S]+?)\$\$/;
 
