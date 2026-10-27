@@ -219,12 +219,6 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'User ID', value: userIdDisplay || 'N/A', copyable: !!userIdDisplay },
     { label: 'Verified name', value: verifiedName },
     { label: 'Verification ID', value: verificationId || 'N/A', copyable: !!verificationId },
-    {
-      label: 'Verified via',
-      value: userDetails.verification
-        ? snakeCaseToTitleCase(userDetails.verification.verifiedVia)
-        : 'N/A',
-    },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
     {
       label: 'ResearchHub AI tier',
