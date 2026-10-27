@@ -6,7 +6,7 @@ import { cn } from '@/utils/styles';
 /** `$...$` inline only — excludes `$$` so display math is not partially eaten. */
 export const INLINE_MATH_REGEX = /(?<!\$)\$(?!\$|\d+\$)(.+?)(?<!\$)\$(?!\$|\d)/g;
 
-export const BLOCK_MATH_REGEX = /^\$\$([\s\S]+?)\$\$/;
+export const BLOCK_MATH_REGEX = /^\$\$([\s\S]+?)\$\$$/;
 
 interface KatexMathProps {
   latex: string;
