@@ -490,7 +490,8 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       Array.isArray(node.content) &&
       node.content.length === 1 &&
       node.content[0]?.type === 'text' &&
-      typeof node.content[0].text === 'string'
+      typeof node.content[0].text === 'string' &&
+      !node.content[0].marks?.some((mark: { type?: string }) => mark.type === 'code')
     ) {
       const trimmed = node.content[0].text.trim();
       const blockMatch = trimmed.match(BLOCK_MATH_REGEX);
