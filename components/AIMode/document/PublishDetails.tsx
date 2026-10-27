@@ -465,9 +465,9 @@ function CoverRow({
     below = (
       <div className="flex flex-col gap-2" aria-busy="true">
         <Skeleton className="aspect-[3/1] w-full rounded-lg" />
-        <p role="status" className="text-xs text-gray-500">
+        <output className="block text-xs text-gray-500">
           Generating a cover from your details. This usually takes under a minute.
-        </p>
+        </output>
       </div>
     );
   } else if (cover.imageUrl) {
