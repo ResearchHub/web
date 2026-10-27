@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -18,12 +10,10 @@ import {
   setDocumentTitle,
 } from '@/components/Editor/lib/utils/documentTitle';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
-import { GenerateCoverImageModal } from '@/components/modals/GenerateCoverImageModal';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { usePublishingHost } from '@/contexts/PublishingHostContext';
 import { useUser } from '@/contexts/UserContext';
 import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
-import { coverImageGenerationParams } from './coverImageGeneration';
 import {
   applyGrantDefaults,
   autoAddCurrentUser,
@@ -250,7 +240,6 @@ export function PublishingFormProvider({
     canPublishChangelog,
     canPublishRegisteredReport,
     titleInDocument: publishTitle === undefined,
-    getTitle,
     hostConfirms: publishConfirmation !== undefined,
   });
 
@@ -288,40 +277,10 @@ export function PublishingFormProvider({
     getTitle,
   };
 
-  // Read once when publishing asks for a cover, so the options match the
-  // details as they were then.
-  const coverChoiceParams = useMemo(
-    () =>
-      action.pendingConfirmation === 'coverImage'
-        ? coverImageGenerationParams(methods.getValues(), getTitle(), note?.id)
-        : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [action.pendingConfirmation]
-  );
-
   return (
     <PublishingControllerContext.Provider value={controller}>
       <FormProvider {...methods}>
         {children}
-
-        {coverChoiceParams && (
-          <GenerateCoverImageModal
-            isOpen
-            onClose={action.dismissConfirmation}
-            params={coverChoiceParams}
-            description={`Your ${
-              articleType === 'grant' ? 'Request for Proposal' : 'proposal'
-            } needs a cover image. Pick one of these to keep publishing, or close this and upload your own.`}
-            onSelect={(image) => {
-              methods.setValue(
-                'coverImage',
-                { file: null, key: image.key, url: image.url },
-                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
-              );
-              action.acceptCoverImage();
-            }}
-          />
-        )}
 
         {action.pendingConfirmation === 'nonprofit' && selectedNonprofit && (
           <NonprofitConfirmModal

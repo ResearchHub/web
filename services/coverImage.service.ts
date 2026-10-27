@@ -7,13 +7,13 @@ export interface GenerateCoverImagesParams {
   subtitle?: string;
   organization?: string;
   fundingAmountUsd?: number | null;
-  /** The draft the covers are for; its chat's cover logo is placed in them. */
+  /** The draft the cover is for; its chat's cover logo is placed in it. */
   noteId?: number | null;
 }
 
 /**
- * AI-generated cover images for proposals and RFPs: start a request, then
- * poll it until its images are ready.
+ * An AI-generated cover image for a proposal or RFP: start a request, then
+ * poll it until its image is ready.
  */
 export class CoverImageService {
   private static readonly BASE_PATH = '/api/research_ai/cover-images';

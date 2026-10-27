@@ -7,7 +7,7 @@ export const canGenerateCoverImage = (articleType: ArticleType | undefined): boo
 
 /**
  * What a generated cover shows, from the form; null when there is nothing to
- * show yet. With the note, the covers use the logo its chat recorded, if any.
+ * show yet. With the note, the cover uses the logo its chat recorded, if any.
  */
 export function coverImageGenerationParams(
   values: PublishingFormData,
@@ -26,7 +26,3 @@ export function coverImageGenerationParams(
     noteId: noteId ?? null,
   };
 }
-
-/** The work has no cover yet, uploaded or generated. */
-export const isMissingCoverImage = (values: PublishingFormData): boolean =>
-  !values.coverImage?.file && !values.coverImage?.url;

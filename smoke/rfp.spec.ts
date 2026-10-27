@@ -16,7 +16,7 @@ import { openNotebookEditor } from './helpers/notebook';
  */
 const rfpTitle = () => `Smoke test RFP, please ignore ${randomUUID().slice(0, 8)}`;
 
-/** A 64×64 PNG. Without a cover, publishing an RFP offers AI-generated ones first. */
+/** A 64×64 PNG, since an RFP cannot be published without a cover. */
 const COVER_IMAGE = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAUElEQVR42u3PQQkAAAgEsOufzLchzGEE' +
     '38JgBZbqeS0CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApcF3mo' +

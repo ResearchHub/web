@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Pencil, Sparkles, X } from 'lucide-react';
+import { Pencil, RefreshCw, Sparkles, X, type LucideIcon } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { MIN_PUBLISH_TITLE_LENGTH } from '@/components/modals/ConfirmPublishModal';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
@@ -9,6 +9,7 @@ import { getRequiredFields } from '@/components/Notebook/PublishingForm/completi
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
 import { useCoverImageGenerator } from '@/components/Notebook/PublishingForm/useCoverImageGenerator';
 import { useSelectedGrant } from '@/components/Notebook/PublishingForm/useSelectedGrant';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/utils/styles';
 import { AmountEditor } from './masthead/AmountWidget';
 import { useCoverImagePicker } from './masthead/CoverImage';
@@ -421,8 +422,9 @@ function GrantRow({
 
 /**
  * The cover image has no editor: the row opens the file picker, and the pick
- * shows as a thumbnail. Without one, a proposal or RFP also offers covers
- * generated from its details, under the row.
+ * shows as a thumbnail. A proposal or RFP without one gets one generated from
+ * its details as soon as the dialog opens; its cover shows under the row large
+ * enough to read before publishing, with a way to generate a new one.
  */
 function CoverRow({
   config,
@@ -437,7 +439,64 @@ function CoverRow({
 }) {
   const cover = useCoverImagePicker(value);
   const generator = useCoverImageGenerator();
-  const needed = attention && !cover.imageUrl;
+  const needed = attention && !cover.imageUrl && !generator.isGenerating;
+
+  useEffect(() => {
+    if (generator.available && !cover.imageUrl) void generator.generate({ quiet: true });
+    // Once, as the dialog opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const generateLink = (label: string, Icon: LucideIcon) => (
+    <button
+      type="button"
+      onClick={() => void generator.generate()}
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:underline"
+    >
+      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      {label}
+    </button>
+  );
+
+  let below: ReactNode;
+  if (!generator.available) {
+    below = undefined;
+  } else if (generator.isGenerating) {
+    below = (
+      <div className="flex flex-col gap-2" aria-busy="true">
+        <Skeleton className="aspect-[3/1] w-full rounded-lg" />
+        <p role="status" className="text-xs text-gray-500">
+          Generating a cover from your details. This usually takes under a minute.
+        </p>
+      </div>
+    );
+  } else if (cover.imageUrl) {
+    below = (
+      <div className="flex flex-col gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={cover.imageUrl}
+          alt="Cover preview"
+          data-testid="publish-dialog-cover-preview"
+          className="aspect-[3/1] w-full rounded-lg object-cover"
+        />
+        <p className="text-xs text-gray-500">
+          To add your organization&apos;s logo, attach it in the chat and ask the assistant to use
+          it on the cover, then generate a new one.
+        </p>
+        {generator.error && <p className="text-sm text-red-700">{generator.error}</p>}
+        {generateLink('Generate a new cover', RefreshCw)}
+      </div>
+    );
+  } else {
+    below = (
+      <div className="flex flex-col items-start gap-1">
+        {generator.error && <p className="text-sm text-red-700">{generator.error}</p>}
+        {generateLink(generator.error ? 'Try again' : 'Or generate one with AI', Sparkles)}
+      </div>
+    );
+  }
+
   return (
     <Row
       label={config.name}
@@ -454,24 +513,8 @@ function CoverRow({
           <AddPill attention={needed}>{cover.imageUrl ? 'Change' : 'Add'}</AddPill>
         </>
       }
-      below={
-        generator.available && !cover.imageUrl ? (
-          <button
-            type="button"
-            onClick={generator.open}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:underline"
-          >
-            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            Or generate one with AI
-          </button>
-        ) : undefined
-      }
-      extra={
-        <>
-          <input {...cover.inputProps} data-testid="publish-dialog-cover-input" />
-          {generator.modal}
-        </>
-      }
+      below={below}
+      extra={<input {...cover.inputProps} data-testid="publish-dialog-cover-input" />}
     />
   );
 }
