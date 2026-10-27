@@ -170,16 +170,19 @@ export function useAuthorVerificationMethods(
   authorId: number | undefined,
   knownMethods: VerificationMethod[] | undefined
 ): UseAuthorVerificationMethodsReturn {
-  const [loadedMethods, setLoadedMethods] = useState<VerificationMethod[]>();
+  const [loaded, setLoaded] = useState<{ authorId: number; methods: VerificationMethod[] }>();
   const [isLoading, setIsLoading] = useState(false);
-  const methods = knownMethods ?? loadedMethods;
+  const methods = knownMethods ?? (loaded?.authorId === authorId ? loaded?.methods : undefined);
 
   const loadVerificationMethods = () => {
     if (!authorId || methods || isLoading) return;
     setIsLoading(true);
     AuthorService.getAuthorInfo(authorId)
-      .then((user) => setLoadedMethods(user.authorProfile?.verificationMethods ?? []))
-      .catch(() => setLoadedMethods([]))
+      .then((user) =>
+        setLoaded({ authorId, methods: user.authorProfile?.verificationMethods ?? [] })
+      )
+      // Leave the methods unloaded so the next hover retries.
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   };
 
