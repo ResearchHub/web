@@ -19,6 +19,7 @@ import {
   type Grant,
   type GrantApplicationVisibility,
 } from '@/types/grant';
+import type { AuthorProfile } from '@/types/authorProfile';
 import { ID } from '@/types/root';
 
 export type GrantBannerTab = 'proposals' | 'details' | 'activity';
@@ -33,6 +34,8 @@ interface GrantPageContextValue {
   showTab: (tab: GrantBannerTab) => void;
   grantId?: string;
   organization?: string;
+  /** The organization's own account, when one of the RFP's contacts is it: its face for the byline and cover. */
+  organizationProfile?: AuthorProfile;
   applicationVisibility?: GrantApplicationVisibility;
   /** The funder's own award, before backers add to the pool. */
   grantAmount: FundingPoolAmount | null;
@@ -65,6 +68,18 @@ interface GrantActivity {
   feedKey: string;
   restoredScrollPosition: number | null;
   lastClickedEntryId: string | null;
+}
+
+const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase();
+
+/** The contact whose account is named for the organization, as funders' own accounts are. */
+function findOrganizationProfile(grant: Grant): AuthorProfile | undefined {
+  if (!grant.organization) return undefined;
+  const organization = normalizeName(grant.organization);
+  return grant.contacts?.find(
+    (contact) =>
+      contact.authorProfile && normalizeName(contact.authorProfile.fullName) === organization
+  )?.authorProfile;
 }
 
 const GrantPageContext = createContext<GrantPageContextValue | null>(null);
@@ -122,6 +137,7 @@ export function GrantPageProvider({
       showTab,
       grantId,
       organization: grant?.organization,
+      organizationProfile: grant ? findOrganizationProfile(grant) : undefined,
       applicationVisibility: grant?.applicationVisibility,
       grantAmount: grant ? { usd: grant.amount.usd ?? 0, rsc: grant.amount.rsc ?? 0 } : null,
       isPending: grant?.status === 'PENDING',

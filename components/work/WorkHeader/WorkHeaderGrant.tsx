@@ -29,6 +29,7 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
   const {
     grantId,
     organization,
+    organizationProfile,
     applicationVisibility,
     grantAmount,
     isPending,
@@ -68,7 +69,14 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
         preTitle={preTitle}
         hideVoteWidget
         // The top bar already says it's an RFP; the cover names who funds it.
-        cover={{ imageUrl: work.image, eyebrow: organization, badges }}
+        cover={{
+          imageUrl: work.image,
+          eyebrow: organization,
+          eyebrowFace: organization
+            ? { name: organization, image: organizationProfile?.profileImage }
+            : undefined,
+          badges,
+        }}
         // Its phone page has the pool (byline, action bar) and the activity
         // (Activity tab) already.
         hideSidebarButton

@@ -178,8 +178,6 @@ const nextConfig = {
         '/report/32650/identifying-the-point-of-no-return-integrating-single-cell-transcriptomics-and-proteomics-to-map-irreversible-fibroblast-commitment-in-idiopathic-pulmonary-fibrosis-stage-1-registered-report',
       permanent: true,
     },
-    // Paper pages are retired; anything else under /paper lands on the homepage.
-    ...['/paper', '/paper/:path*'].map((source) => ({ source, destination: '/', permanent: true })),
   ],
   rewrites: async () => ({
     // Markdown content negotiation: agents asking for markdown get llms.txt (a

@@ -4,7 +4,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { FaceStack } from '@/components/ui/FaceStack';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { formatFundingAmount, toBackers } from '@/components/Funding/lib/fundingAmounts';
-import { BYLINE_CHIP_CLASS } from '@/components/work/lib/bylineChip';
+import { BYLINE_BOX_CLASS, BYLINE_CHIP_CLASS } from '@/components/work/lib/bylineChip';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { formatCurrency } from '@/utils/currency';
 import { formatTimestamp } from '@/utils/date';
@@ -12,31 +12,41 @@ import { pluralizeSuffix } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 
 /**
- * Under an RFP's tabs, as a proposal's byline sits under its own: who funds
- * it and since when, then chips for the award, the proposals so far and the
- * deadline. Where the sidebar's pool card is hidden, a chip shows the backers.
+ * Over an RFP's Details tab, as a proposal's byline sits over its own: who
+ * funds it and since when, then chips for the award, the proposals so far and
+ * the deadline. Where the sidebar's pool card is hidden, a chip shows the
+ * backers. The other tabs open straight on their lists.
  */
-export function GrantByline({
-  openedDate,
-  className,
-}: {
-  openedDate?: string;
-  className?: string;
-}) {
+export function GrantByline({ openedDate }: { openedDate?: string }) {
   const { proposalCount } = useFundraises();
-  const { organization, grantAmount, fundingPool, applications, isActive, isPending } =
-    useGrantPage();
+  const {
+    activeTab,
+    organization,
+    organizationProfile,
+    grantAmount,
+    fundingPool,
+    applications,
+    isActive,
+    isPending,
+  } = useGrantPage();
 
   // One face per applicant, however many proposals they sent.
   const applicants = [...new Map(applications.map((a) => [a.profile.id, a.profile])).values()];
   const backerCount = fundingPool?.contributors.total ?? 0;
   const isClosed = !isActive && !isPending;
 
+  if (activeTab !== 'details') return null;
+
   return (
-    <div className={className}>
+    <div className={BYLINE_BOX_CLASS}>
       {organization && (
         <div className="flex items-center gap-3">
-          <Avatar src={null} alt={organization} size="md" />
+          <Avatar
+            src={organizationProfile?.profileImage}
+            alt={organization}
+            size="md"
+            authorId={organizationProfile?.id}
+          />
           <div className="min-w-0">
             <p className="truncate text-base font-semibold text-gray-900">{organization}</p>
             {openedDate && (

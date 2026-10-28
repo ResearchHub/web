@@ -2,12 +2,21 @@
 
 import type { ReactNode } from 'react';
 import Image from 'next/image';
+import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
+
+/** The face beside the eyebrow: the funder's, or the lead author's. */
+export interface CoverEyebrowFace {
+  name: string;
+  image?: string | null;
+}
 
 interface WorkCoverProps {
   title: string;
   /** The small line over the title: who funds an RFP, who proposes a proposal. */
   eyebrow?: string;
+  /** A small face before the eyebrow; without an image, the name's initials. */
+  eyebrowFace?: CoverEyebrowFace;
   imageUrl?: string;
   /** Badges pinned to the cover's top-left corner (pending review, closed). */
   badges?: ReactNode;
@@ -63,6 +72,7 @@ const COVER_BOX_CLASS = cn(
 export function WorkCover({
   title,
   eyebrow,
+  eyebrowFace,
   imageUrl,
   badges,
   actions,
@@ -80,9 +90,6 @@ export function WorkCover({
           'relative isolate overflow-hidden bg-navy',
           // The bar sits at the bottom; the top keeps clear of the actions.
           'tablet:flex tablet:flex-col tablet:justify-end tablet:pt-16',
-          // A phone's band sits under the image, so with none it would start
-          // at the top, under the badges and actions.
-          !imageUrl && (badges || actions) && 'pt-14',
           COVER_BOX_CLASS
         )}
       >
@@ -101,11 +108,26 @@ export function WorkCover({
           />
         )}
 
-        {/* Above the title band, which comes later and would otherwise take their taps. */}
-        {badges && <div className="absolute left-3 top-3 z-10 flex gap-1.5">{badges}</div>}
-        {actions && (
-          <div className="absolute right-3 top-3 z-10 rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur">
-            {actions}
+        {/* Badges on the left, actions on the right. Where both don't fit
+            across, the actions keep the top and the badges wrap under them.
+            Above the title band, which comes later and would otherwise take
+            their taps. A phone's cover without an image has the row in the
+            flow, over the band. */}
+        {(badges || actions) && (
+          <div
+            className={cn(
+              'pointer-events-none z-10 flex flex-wrap-reverse items-end gap-2',
+              imageUrl
+                ? 'absolute inset-x-3 top-3'
+                : 'relative px-3 pt-3 tablet:absolute tablet:inset-x-3 tablet:top-3 tablet:p-0'
+            )}
+          >
+            {badges && <div className="pointer-events-auto flex gap-1.5">{badges}</div>}
+            {actions && (
+              <div className="pointer-events-auto ml-auto rounded-xl bg-white/90 p-1 shadow-sm backdrop-blur">
+                {actions}
+              </div>
+            )}
           </div>
         )}
 
@@ -116,8 +138,20 @@ export function WorkCover({
             'tablet:backdrop-blur-xl tablet:backdrop-saturate-150'
           )}
         >
-          {eyebrow && <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>}
-          <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
+          {eyebrow && (
+            <div className="flex min-w-0 items-center gap-2">
+              {eyebrowFace && (
+                <Avatar
+                  src={eyebrowFace.image}
+                  alt={eyebrowFace.name}
+                  size={22}
+                  className="ring-1 ring-white/40"
+                />
+              )}
+              <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>
+            </div>
+          )}
+          <h1 className="mt-1.5 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
             {title}
           </h1>
         </div>

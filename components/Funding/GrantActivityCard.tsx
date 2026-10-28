@@ -7,7 +7,7 @@ import { SidebarCard, SidebarCardSkeleton } from '@/components/ui/SidebarCard';
 import { ID } from '@/types/root';
 
 /** The sidebar shows the latest few; the Activity tab has the rest. */
-const MAX_SHOWN = 5;
+const MAX_SHOWN = 8;
 
 /**
  * The RFP's recent activity as one card under the pool card. Each row links to

@@ -17,7 +17,7 @@ interface WorkTabsProps {
   metadata: WorkMetadata;
 }
 
-/** A post's or a question's tabs, under its title. Proposals have their own, in the page. */
+/** A post's, a question's or a journal paper's tabs, under its title. Proposals have their own, in the page. */
 export const WorkTabs = ({ work, metadata }: WorkTabsProps) => {
   const { activeTab, selectTab } = useSelectWorkTab(work);
   const { showUSD } = useCurrencyPreference();
@@ -26,7 +26,10 @@ export const WorkTabs = ({ work, metadata }: WorkTabsProps) => {
   const reviewCount = work.peerReviews?.length ?? 0;
 
   // Get the appropriate label for the main content tab
-  const getMainTabLabel = () => (work.postType === 'QUESTION' ? 'Question' : 'Post');
+  const getMainTabLabel = () => {
+    if (work.contentType === 'paper') return 'Paper';
+    return work.postType === 'QUESTION' ? 'Question' : 'Post';
+  };
 
   // Define base tabs
   const baseTabs = [

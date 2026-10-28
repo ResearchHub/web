@@ -47,21 +47,28 @@ function dedupe(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
   return entries.filter((entry) => !seen.has(entry.url) && seen.add(entry.url));
 }
 
-async function buildSlugSitemap(
-  apiPath: string,
-  urlPrefix: string,
-  extract: (item: any) => { id: number; slug?: string } = (item) => item
+interface SitemapPost {
+  id: number;
+  slug: string;
+  updated_date: string;
+}
+
+// The backend's sitemap action returns only public, non-removed posts of one
+// type, with just the fields a URL needs.
+async function buildPostSitemap(
+  documentType: string,
+  urlPrefix: string
 ): Promise<MetadataRoute.Sitemap> {
-  const items = await fetchAllPages<any>(apiPath);
+  const posts = await fetchAllPages<SitemapPost>(
+    `/api/researchhubpost/sitemap/?document_type=${documentType}`
+  );
   return dedupe(
-    items.map((item) => {
-      const { id, slug } = extract(item);
-      return {
-        url: SITE_URL + urlPrefix + id + (slug ? '/' + slug : ''),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      };
-    })
+    posts.map((post) => ({
+      url: SITE_URL + urlPrefix + post.id + (post.slug ? '/' + post.slug : ''),
+      lastModified: post.updated_date,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
   );
 }
 
@@ -90,13 +97,8 @@ export default async function sitemap({
 }): Promise<MetadataRoute.Sitemap> {
   const sitemapId = Number(await id);
   if (sitemapId === 0) return STATIC_ROUTES;
-  if (sitemapId === 1)
-    return buildSlugSitemap(
-      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=1000',
-      '/proposal/'
-    );
-  if (sitemapId === 2)
-    return buildSlugSitemap('/api/researchhubpost/?document_type=GRANT&page_size=100', '/rfp/');
+  if (sitemapId === 1) return buildPostSitemap('PREREGISTRATION', '/proposal/');
+  if (sitemapId === 2) return buildPostSitemap('GRANT', '/rfp/');
 
   return [];
 }

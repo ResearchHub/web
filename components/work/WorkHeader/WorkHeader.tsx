@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
-import { WorkCover } from '@/components/work/WorkCover';
+import { WorkCover, type CoverEyebrowFace } from '@/components/work/WorkCover';
 import { ContentType, Work } from '@/types/work';
 import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -62,6 +62,8 @@ interface WorkHeaderProps {
     imageUrl?: string;
     /** The small line over the title. */
     eyebrow?: string;
+    /** A small face before it. */
+    eyebrowFace?: CoverEyebrowFace;
     /** In the cover's corner, e.g. "Closed"; unset, a foundation bounty's badge if it has one. */
     badges?: ReactNode;
   };
@@ -232,7 +234,12 @@ export function WorkHeader({
           <Lightbulb className="h-5 w-5" />
         </button>
       )}
-      <button onClick={shareAction} className={cn(btnClass, '!hidden lg:!flex')} aria-label="Share">
+      {/* A cover keeps Share in its chip on every screen; elsewhere phones find it in the menu. */}
+      <button
+        onClick={shareAction}
+        className={cn(btnClass, !cover && '!hidden lg:!flex')}
+        aria-label="Share"
+      >
         <Share className="h-5 w-5" />
       </button>
       <BaseMenu
@@ -243,12 +250,14 @@ export function WorkHeader({
           </button>
         }
       >
-        <div className="lg:hidden">
-          <BaseMenuItem onSelect={shareAction}>
-            <Share className="h-4 w-4 mr-2" />
-            Share
-          </BaseMenuItem>
-        </div>
+        {!cover && (
+          <div className="lg:hidden">
+            <BaseMenuItem onSelect={shareAction}>
+              <Share className="h-4 w-4 mr-2" />
+              Share
+            </BaseMenuItem>
+          </div>
+        )}
         {additionalMenuItems}
         {menuItems}
       </BaseMenu>
@@ -265,6 +274,7 @@ export function WorkHeader({
         <WorkCover
           title={work.title}
           eyebrow={cover.eyebrow}
+          eyebrowFace={cover.eyebrowFace}
           imageUrl={cover.imageUrl}
           badges={resolvedEyebrow}
           actions={actionBar}
