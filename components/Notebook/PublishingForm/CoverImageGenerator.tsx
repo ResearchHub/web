@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react';
 import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useCoverImageGeneration } from '@/hooks/useCoverImageGeneration';
@@ -43,36 +51,42 @@ export function CoverImageGeneratorProvider({ children }: { readonly children: R
   useEffect(() => cancel, [noteId, cancel]);
 
   /** With `quiet`, a work without a title is skipped instead of asking for one. */
-  const run = async ({ quiet }: { quiet: boolean }) => {
-    const params = coverImageGenerationParams(getValues(), getTitle(), noteId);
-    if (!params) {
-      if (!quiet) toast.error('Add a title before generating a cover image.');
-      return;
-    }
-    const before = getValues('coverImage');
-    const image = await request(params);
-    const current = getValues('coverImage');
-    // Unless the user picked a cover of their own while it generated.
-    if (!image || current?.file !== before?.file || current?.url !== before?.url) return;
-    selectGenerated(image);
-  };
+  const run = useCallback(
+    async ({ quiet }: { quiet: boolean }) => {
+      const params = coverImageGenerationParams(getValues(), getTitle(), noteId);
+      if (!params) {
+        if (!quiet) toast.error('Add a title before generating a cover image.');
+        return;
+      }
+      const before = getValues('coverImage');
+      const image = await request(params);
+      const current = getValues('coverImage');
+      // Unless the user picked a cover of their own while it generated.
+      if (!image || current?.file !== before?.file || current?.url !== before?.url) return;
+      selectGenerated(image);
+    },
+    [getValues, getTitle, noteId, request, selectGenerated]
+  );
 
   const available = canGenerateCoverImage(articleType);
-  const generator: CoverImageGenerator = {
-    available,
-    isGenerating,
-    error,
-    generate: () => run({ quiet: false }),
-    generateIfMissing: () => {
-      const cover = getValues('coverImage');
-      if (!available || isGenerating || cover?.file || cover?.url) return;
-      if (noteId == null || generatedForRef.current === noteId) return;
-      // Not counted until there is a title to generate from.
-      if (!coverImageGenerationParams(getValues(), getTitle(), noteId)) return;
-      generatedForRef.current = noteId;
-      void run({ quiet: true });
-    },
-  };
+  const generator = useMemo<CoverImageGenerator>(
+    () => ({
+      available,
+      isGenerating,
+      error,
+      generate: () => run({ quiet: false }),
+      generateIfMissing: () => {
+        const cover = getValues('coverImage');
+        if (!available || isGenerating || cover?.file || cover?.url) return;
+        if (noteId == null || generatedForRef.current === noteId) return;
+        // Not counted until there is a title to generate from.
+        if (!coverImageGenerationParams(getValues(), getTitle(), noteId)) return;
+        generatedForRef.current = noteId;
+        void run({ quiet: true });
+      },
+    }),
+    [available, isGenerating, error, run, getValues, getTitle, noteId]
+  );
 
   return (
     <CoverImageGeneratorContext.Provider value={generator}>
