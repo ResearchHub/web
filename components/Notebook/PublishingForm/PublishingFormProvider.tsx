@@ -14,6 +14,7 @@ import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { usePublishingHost } from '@/contexts/PublishingHostContext';
 import { useUser } from '@/contexts/UserContext';
 import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import { CoverImageGeneratorProvider } from './CoverImageGenerator';
 import {
   applyGrantDefaults,
   autoAddCurrentUser,
@@ -280,40 +281,44 @@ export function PublishingFormProvider({
   return (
     <PublishingControllerContext.Provider value={controller}>
       <FormProvider {...methods}>
-        {children}
+        <CoverImageGeneratorProvider>
+          {children}
 
-        {action.pendingConfirmation === 'nonprofit' && selectedNonprofit && (
-          <NonprofitConfirmModal
-            isOpen
-            onClose={action.dismissConfirmation}
-            onConfirm={action.acceptNonprofit}
-            nonprofitName={selectedNonprofit.name}
-            ein={selectedNonprofit.ein}
-          />
-        )}
-
-        {action.pendingConfirmation === 'publish' &&
-          (publishConfirmation !== undefined ? (
-            publishConfirmation
-          ) : (
-            <ConfirmPublishModal
+          {action.pendingConfirmation === 'nonprofit' && selectedNonprofit && (
+            <NonprofitConfirmModal
               isOpen
               onClose={action.dismissConfirmation}
-              onConfirm={action.confirmPublish}
-              title={
-                publishTitle ??
-                (getDocumentTitleFromEditor(editor) ||
-                  (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research'))
-              }
-              isPublishing={action.isPublishing}
-              isUpdate={Boolean(workId)}
-              onTitleChange={
-                publishTitle === undefined ? (title) => setDocumentTitle(editor, title) : undefined
-              }
-              variant={articleType === 'grant' ? 'rfp' : 'default'}
-              documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
+              onConfirm={action.acceptNonprofit}
+              nonprofitName={selectedNonprofit.name}
+              ein={selectedNonprofit.ein}
             />
-          ))}
+          )}
+
+          {action.pendingConfirmation === 'publish' &&
+            (publishConfirmation !== undefined ? (
+              publishConfirmation
+            ) : (
+              <ConfirmPublishModal
+                isOpen
+                onClose={action.dismissConfirmation}
+                onConfirm={action.confirmPublish}
+                title={
+                  publishTitle ??
+                  (getDocumentTitleFromEditor(editor) ||
+                    (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research'))
+                }
+                isPublishing={action.isPublishing}
+                isUpdate={Boolean(workId)}
+                onTitleChange={
+                  publishTitle === undefined
+                    ? (title) => setDocumentTitle(editor, title)
+                    : undefined
+                }
+                variant={articleType === 'grant' ? 'rfp' : 'default'}
+                documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
+              />
+            ))}
+        </CoverImageGeneratorProvider>
       </FormProvider>
     </PublishingControllerContext.Provider>
   );
