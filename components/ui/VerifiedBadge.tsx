@@ -23,11 +23,11 @@ interface VerifiedBadgeProps {
 const METHOD_DETAILS: Record<VerificationMethod, { label: string; icon: React.ReactNode }> = {
   PERSONA: {
     label: 'Identity verified by Persona',
-    icon: <IdCard className="w-4 h-4 text-blue-500" />,
+    icon: <IdCard className="w-4 h-4 text-gray-900" />,
   },
   MANUAL: {
     label: 'Identity verified by ResearchHub',
-    icon: <ShieldCheck className="w-4 h-4 text-blue-500" />,
+    icon: <ShieldCheck className="w-4 h-4 text-gray-900" />,
   },
   X: {
     label: 'Identity verified by X',
@@ -35,7 +35,7 @@ const METHOD_DETAILS: Record<VerificationMethod, { label: string; icon: React.Re
   },
   EDU_EMAIL: {
     label: 'Verified academic email',
-    icon: <GraduationCap className="w-4 h-4 text-blue-500" />,
+    icon: <GraduationCap className="w-4 h-4 text-gray-900" />,
   },
 };
 
