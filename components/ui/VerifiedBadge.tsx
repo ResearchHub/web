@@ -22,7 +22,7 @@ interface VerifiedBadgeProps {
 
 const METHOD_DETAILS: Record<VerificationMethod, { label: string; icon: React.ReactNode }> = {
   PERSONA: {
-    label: 'Government ID verified',
+    label: 'Identity verified by Persona',
     icon: <IdCard className="w-4 h-4 text-blue-500" />,
   },
   MANUAL: {
