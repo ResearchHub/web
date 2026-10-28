@@ -480,8 +480,8 @@ function CoverRow({
           Generating your cover…
         </div>
         <output aria-live="polite" className="block text-xs text-gray-500">
-          <span className="sr-only">Generating your cover. </span>
-          Made from your details. This usually takes under a minute.
+          <span className="sr-only">Generating your cover.</span> Made from your details. This
+          usually takes under a minute.
         </output>
       </div>
     );
