@@ -44,7 +44,7 @@ function AuthorName({
   const badges = (
     <>
       {isVerifiedAuthor(author) && (
-        <VerifiedBadge size="sm" showTooltip className="ml-1 shrink-0" />
+        <VerifiedBadge size="sm" showTooltip authorId={id} className="ml-1 shrink-0" />
       )}
       {showAuthorBadge && <AuthorBadge size="sm" className="ml-1 shrink-0" />}
     </>

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';
+import type { VerificationMethod } from '@/types/authorProfile';
 import type { User, RiskScoreEvent, Insight, RiskScoreEventsFilters } from '@/types/user';
 import { UserService } from '@/services/user.service';
 import { UserDetailsForModerator } from '@/types/user';
@@ -147,6 +148,45 @@ export function useAuthorInfo(authorId: number | null): UseFetchAuthorInfoReturn
   }, [authorId, fetchAuthorInfo]);
 
   return [{ author, isLoading, error }, fetchAuthorInfo];
+}
+
+interface UseAuthorVerificationMethodsState {
+  methods: VerificationMethod[] | undefined;
+  isLoading: boolean;
+}
+
+type LoadVerificationMethodsFn = () => void;
+
+type UseAuthorVerificationMethodsReturn = [
+  UseAuthorVerificationMethodsState,
+  LoadVerificationMethodsFn,
+];
+
+/**
+ * List payloads only carry `is_verified`, so unless `knownMethods` is passed,
+ * the methods load from the author's overview on demand.
+ */
+export function useAuthorVerificationMethods(
+  authorId: number | undefined,
+  knownMethods: VerificationMethod[] | undefined
+): UseAuthorVerificationMethodsReturn {
+  const [loaded, setLoaded] = useState<{ authorId: number; methods: VerificationMethod[] }>();
+  const [isLoading, setIsLoading] = useState(false);
+  const methods = knownMethods ?? (loaded?.authorId === authorId ? loaded?.methods : undefined);
+
+  const loadVerificationMethods = () => {
+    if (!authorId || methods || isLoading) return;
+    setIsLoading(true);
+    AuthorService.getAuthorInfo(authorId)
+      .then((user) =>
+        setLoaded({ authorId, methods: user.authorProfile?.verificationMethods ?? [] })
+      )
+      // Leave the methods unloaded so the next hover retries.
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  };
+
+  return [{ methods, isLoading }, loadVerificationMethods];
 }
 
 interface UseUserDetailsForModeratorState {
