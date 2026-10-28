@@ -1121,20 +1121,37 @@ const drawAvatarSvg = ({
   if (eyewear) paintLayer(eyewear, eyewear.colors, false);
   if (prop) paintLayer(prop, prop.colors, true);
 
-  // One rect per horizontal run of a color keeps the SVG small.
-  let rects = `<rect width="${HI_RES}" height="${HI_RES}" fill="${background}"/>`;
+  // One path per color, made of its horizontal runs, keeps the SVG small and quick to decode.
+  // Runs bleed into empty cells below so no seam shows, but never over a cell another color fills.
+  const runsByColor = new Map<string, string>();
   pixels.forEach((row, y) => {
+    const heightAt = (x: number) => (pixels[y + 1]?.[x] ? 1 : 1.05);
     for (let x = 0; x < HI_RES; ) {
       const color = row[x];
+      const height = heightAt(x);
       let width = 1;
-      while (color && x + width < HI_RES && row[x + width] === color) width++;
+      while (
+        color &&
+        x + width < HI_RES &&
+        row[x + width] === color &&
+        heightAt(x + width) === height
+      ) {
+        width++;
+      }
       if (color) {
-        rects += `<rect x="${x}" y="${y}" width="${width}" height="1.05" fill="${color}"/>`;
+        runsByColor.set(
+          color,
+          `${runsByColor.get(color) ?? ''}M${x} ${y}h${width}v${height}H${x}z`
+        );
       }
       x += width;
     }
   });
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${HI_RES} ${HI_RES}" shape-rendering="crispEdges">${rects}</svg>`;
+  let paths = `<rect width="${HI_RES}" height="${HI_RES}" fill="${background}"/>`;
+  runsByColor.forEach((runs, color) => {
+    paths += `<path fill="${color}" d="${runs}"/>`;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${HI_RES} ${HI_RES}" shape-rendering="crispEdges">${paths}</svg>`;
 };
 
 const MAX_CACHED_AVATARS = 500;
