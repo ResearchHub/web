@@ -470,12 +470,17 @@ function CoverRow({
     below = undefined;
   } else if (generator.isGenerating) {
     below = (
-      <div className="flex flex-col gap-2" aria-busy="true">
-        <div className="flex aspect-[3/1] w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-primary-50 text-sm font-medium text-primary-700">
-          <Sparkles className="h-4 w-4" aria-hidden="true" />
+      <div className="flex flex-col gap-2">
+        {/* The status below says it to screen readers. */}
+        <div
+          aria-hidden="true"
+          className="flex aspect-[3/1] w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-primary-50 text-sm font-medium text-primary-700"
+        >
+          <Sparkles className="h-4 w-4" />
           Generating your cover…
         </div>
-        <output className="block text-xs text-gray-500">
+        <output aria-live="polite" className="block text-xs text-gray-500">
+          <span className="sr-only">Generating your cover. </span>
           Made from your details. This usually takes under a minute.
         </output>
       </div>

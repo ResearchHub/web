@@ -40,12 +40,12 @@ const CoverImageGeneratorContext = createContext<CoverImageGenerator | null>(nul
  */
 export function CoverImageGeneratorProvider({ children }: { readonly children: ReactNode }) {
   const { articleType, getTitle, note } = usePublishingController();
-  const { getValues } = useFormContext<PublishingFormData>();
+  const { getValues, watch } = useFormContext<PublishingFormData>();
   const { selectGenerated } = useCoverImageUpload();
   const { isGenerating, error, generate: request, cancel } = useCoverImageGeneration();
   const noteId = note?.id ?? null;
-  // The draft a cover was last generated for without being asked.
-  const generatedForRef = useRef<number | null>(null);
+  // The drafts a cover was generated for without being asked.
+  const generatedForRef = useRef(new Set<number>());
 
   // A cover generating for another draft is not this one's.
   useEffect(() => cancel, [noteId, cancel]);
@@ -58,14 +58,20 @@ export function CoverImageGeneratorProvider({ children }: { readonly children: R
         if (!quiet) toast.error('Add a title before generating a cover image.');
         return;
       }
-      const before = getValues('coverImage');
-      const image = await request(params);
-      const current = getValues('coverImage');
-      // Unless the user picked a cover of their own while it generated.
-      if (!image || current?.file !== before?.file || current?.url !== before?.url) return;
-      selectGenerated(image);
+      // Any change to the cover while it generates was the user's own (a pick,
+      // even one taken away again) and is kept over the generated one.
+      let coverChanged = false;
+      const subscription = watch((_values, { name }) => {
+        if (name === 'coverImage') coverChanged = true;
+      });
+      try {
+        const image = await request(params);
+        if (image && !coverChanged) selectGenerated(image);
+      } finally {
+        subscription.unsubscribe();
+      }
     },
-    [getValues, getTitle, noteId, request, selectGenerated]
+    [getValues, getTitle, noteId, request, selectGenerated, watch]
   );
 
   const available = canGenerateCoverImage(articleType);
@@ -78,10 +84,10 @@ export function CoverImageGeneratorProvider({ children }: { readonly children: R
       generateIfMissing: () => {
         const cover = getValues('coverImage');
         if (!available || isGenerating || cover?.file || cover?.url) return;
-        if (noteId == null || generatedForRef.current === noteId) return;
+        if (noteId == null || generatedForRef.current.has(noteId)) return;
         // Not counted until there is a title to generate from.
         if (!coverImageGenerationParams(getValues(), getTitle(), noteId)) return;
-        generatedForRef.current = noteId;
+        generatedForRef.current.add(noteId);
         void run({ quiet: true });
       },
     }),
