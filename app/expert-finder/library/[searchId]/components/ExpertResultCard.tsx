@@ -12,6 +12,7 @@ import {
   Loader2,
   Mail,
   Pencil,
+  SlidersHorizontal,
   Sparkles,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -119,22 +120,45 @@ function ProposalDraftSection({
   }
 
   if (isProposalDraftComplete(draft)) {
+    const chosen = draft?.chosenParameters ?? [];
     return (
-      <Button
-        type="button"
-        variant="outlined"
-        size="sm"
-        className="w-full gap-2"
-        onClick={onOpenNote}
-        disabled={isOpeningNote}
-      >
-        {isOpeningNote ? (
-          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
-        ) : (
-          <FileText className="h-4 w-4 shrink-0" aria-hidden />
-        )}
-        Open proposal
-      </Button>
+      <div className="space-y-2">
+        <Button
+          type="button"
+          variant="outlined"
+          size="sm"
+          className="w-full gap-2"
+          onClick={onOpenNote}
+          disabled={isOpeningNote}
+        >
+          {isOpeningNote ? (
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+          ) : (
+            <FileText className="h-4 w-4 shrink-0" aria-hidden />
+          )}
+          Open proposal
+        </Button>
+        {chosen.length > 0 ? (
+          <details className="rounded-lg bg-gray-100 px-3 py-2.5 text-sm">
+            <summary className="flex cursor-pointer items-center gap-2 font-medium text-gray-700">
+              <SlidersHorizontal className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+              <span>Values the AI chose ({chosen.length})</span>
+            </summary>
+            <p className="mt-1 text-gray-500">
+              The RFP and profile didn&apos;t settle these, so the draft states them as the plan.
+              Check them before sharing the proposal.
+            </p>
+            <ul className="mt-2 space-y-1.5 text-gray-600">
+              {chosen.map((item, index) => (
+                <li key={`${item.parameter}-${index}`}>
+                  <span className="font-medium text-gray-700">{item.parameter}:</span> {item.value}
+                  {item.basis ? <span className="text-gray-500"> ({item.basis})</span> : null}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </div>
     );
   }
 

@@ -59,6 +59,14 @@ export const PROPOSAL_DRAFT_STEPS = [
 
 export type ProposalDraftStep = (typeof PROPOSAL_DRAFT_STEPS)[number]['value'];
 
+/** A value the drafting AI chose because the RFP and profile left it open. */
+export interface ProposalDraftChosenParameter {
+  parameter: string;
+  value: string;
+  /** Why this value: an assumption or source; may be empty. */
+  basis: string;
+}
+
 /** AI-generated proposal draft job for one expert in a search. */
 export interface ProposalDraft {
   id: number;
@@ -69,6 +77,8 @@ export interface ProposalDraft {
   step: ProposalDraftStep;
   roundsUsed: number;
   errorMessage: string;
+  /** Values the AI chose for the draft; shown beside the note, not in it. */
+  chosenParameters: ProposalDraftChosenParameter[];
   createdDate: string;
   completedAt: string | null;
 }
@@ -103,6 +113,13 @@ export const transformProposalDraft = createTransformer<any, ProposalDraft>((raw
   step: raw.step ?? 'QUEUED',
   roundsUsed: raw.rounds_used ?? 0,
   errorMessage: raw.error_message ?? '',
+  chosenParameters: Array.isArray(raw.chosen_parameters)
+    ? raw.chosen_parameters.map((p: any) => ({
+        parameter: p?.parameter ?? '',
+        value: p?.value ?? '',
+        basis: p?.basis ?? '',
+      }))
+    : [],
   createdDate: raw.created_date ?? '',
   completedAt: raw.completed_at ?? null,
 }));
