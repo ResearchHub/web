@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
+import type { GeneratedCoverImage } from '@/types/coverImage';
 import type { PublishingFormData } from './schema';
 
 export const COVER_IMAGE_ACCEPT = ['image/jpeg', 'image/png'];
@@ -20,6 +21,7 @@ export function coverImageFileError(file: File): string | null {
  * Sets the surrounding publishing form's cover image from a picked file: the
  * pick shows at once, and is swapped for what the server stored when the
  * upload returns. Whatever control picks the file, the form ends up the same.
+ * A generated cover is chosen with `selectGenerated`.
  */
 export function useCoverImageUpload() {
   const { getValues, setValue } = useFormContext<PublishingFormData>();
@@ -52,7 +54,13 @@ export function useCoverImageUpload() {
     write({ file: null, key: uploaded.objectKey, url: uploaded.absoluteUrl });
   };
 
+  /** A generated cover is already stored: it only needs writing to the form. */
+  const selectGenerated = useCallback(
+    (image: GeneratedCoverImage) => write({ file: null, key: image.key, url: image.url }),
+    [write]
+  );
+
   const remove = useCallback(() => write(null), [write]);
 
-  return { select, remove };
+  return { select, selectGenerated, remove };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -49,6 +49,8 @@ export interface PublishingController extends PublishAction {
   readonly canPublish: boolean;
   /** Why publishing is refused, when the reason is worth showing next to the button. */
   readonly blockedMessage: string | null;
+  /** The title the work would be published under right now; empty when it has none. */
+  readonly getTitle: () => string;
 }
 
 const PublishingControllerContext = createContext<PublishingController | null>(null);
@@ -222,6 +224,11 @@ export function PublishingFormProvider({
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
   const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
 
+  const getTitle = useCallback(
+    () => publishTitle ?? getDocumentTitleFromEditor(editor),
+    [publishTitle, editor]
+  );
+
   const action = usePublishAction({
     methods,
     note,
@@ -267,6 +274,7 @@ export function PublishingFormProvider({
     isDeclined,
     canPublish,
     blockedMessage,
+    getTitle,
   };
 
   return (
