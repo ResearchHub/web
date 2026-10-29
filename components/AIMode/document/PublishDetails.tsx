@@ -471,17 +471,9 @@ function CoverRow({
   } else if (generator.isGenerating) {
     below = (
       <div className="flex flex-col gap-2">
-        {/* The status below says it to screen readers. */}
-        <div
-          aria-hidden="true"
-          className="flex aspect-[3/1] w-full animate-pulse items-center justify-center gap-2 rounded-lg bg-primary-50 text-sm font-medium text-primary-700"
-        >
-          <Sparkles className="h-4 w-4" />
-          Generating your cover…
-        </div>
+        <CoverSkeleton />
         <output aria-live="polite" className="block text-xs text-gray-500">
-          <span className="sr-only">Generating your cover.</span> Made from your details. This
-          usually takes under a minute.
+          Generating a cover from your details. This takes about 15 seconds.
         </output>
       </div>
     );
@@ -532,6 +524,31 @@ function CoverRow({
       below={below}
       extra={<input {...cover.inputProps} data-testid="publish-dialog-cover-input" />}
     />
+  );
+}
+
+/**
+ * A cover being generated, as the shape of the banner it will be: the label,
+ * title, funding line and subtitle on the left and a mark on the right, as
+ * the generated covers lay them out. The caption beside it says what it is.
+ */
+function CoverSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex aspect-[3/1] w-full animate-pulse items-center gap-[6%] rounded-lg bg-gray-100 px-[5%]"
+    >
+      <div className="flex flex-1 flex-col gap-2.5">
+        <div className="h-1.5 w-[30%] rounded-full bg-gray-300" />
+        <div className="flex flex-col gap-1.5">
+          <div className="h-3.5 w-[85%] rounded bg-gray-300" />
+          <div className="h-3.5 w-[60%] rounded bg-gray-300" />
+        </div>
+        <div className="h-2.5 w-[40%] rounded bg-gray-200" />
+        <div className="h-1.5 w-[55%] rounded-full bg-gray-200" />
+      </div>
+      <div className="aspect-square w-[18%] shrink-0 rounded-full bg-gray-200" />
+    </div>
   );
 }
 
