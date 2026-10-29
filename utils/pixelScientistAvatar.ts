@@ -12,6 +12,9 @@ interface Sprite {
   rows: string[];
 }
 
+// Sprite art is written one row per line; rows are split on whitespace, so indentation is free.
+const art = ([rows]: TemplateStringsArray) => rows.trim().split(/\s+/);
+
 type Drawing = Sprite | { cells: Cell[] };
 type ColoredDrawing = Drawing & { colors: Palette };
 
@@ -444,339 +447,357 @@ const HEADS = Object.values<Head>({
   },
 });
 
-const HAIRSTYLES: Sprite[] = [
+const HAIRSTYLES = Object.values<Sprite>({
   // Albert Einstein's wild hair
-  {
+  albertEinstein: {
     start: 2,
-    rows: [
-      '.....H..H..HH..H..H.....',
-      '....HHH.HHHHHHHH.HHH....',
-      '...HHHHHHHHHHHHHHHHHH...',
-      '..HHHHHhhHHHHHHhhHHHHH..',
-      '..HHHHHH........HHHHHH..',
-      '.HHHHHh..........hHHHHH.',
-      '..HHHHh..........hHHHH..',
-      '.HHHHHh..........hHHHHH.',
-      '..HHHhh..........hhHHH..',
-      '...HHhh..........hhHH...',
-      '..HHHh............hHHH..',
-      '...HH..............HH...',
-    ],
+    rows: art`
+      .....H..H..HH..H..H.....
+      ....HHH.HHHHHHHH.HHH....
+      ...HHHHHHHHHHHHHHHHHH...
+      ..HHHHHhhHHHHHHhhHHHHH..
+      ..HHHHHH........HHHHHH..
+      .HHHHHh..........hHHHHH.
+      ..HHHHh..........hHHHH..
+      .HHHHHh..........hHHHHH.
+      ..HHHhh..........hhHHH..
+      ...HHhh..........hhHH...
+      ..HHHh............hHHH..
+      ...HH..............HH...
+    `,
   },
   // Marie Curie's top bun
-  {
+  marieCurie: {
     start: 1,
-    rows: [
-      '..........HHHH..........',
-      '.........HHhhHH.........',
-      '........HHHHHHHH........',
-      '.......HHHHHHHHHH.......',
-      '......HHHHHHHHHHHH......',
-      '.....HHHHhhhhhhHHHH.....',
-      '.....HHH........HHH.....',
-      '.....HH..........HH.....',
-      '......H..........H......',
-    ],
+    rows: art`
+      ..........HHHH..........
+      .........HHhhHH.........
+      ........HHHHHHHH........
+      .......HHHHHHHHHH.......
+      ......HHHHHHHHHHHH......
+      .....HHHHhhhhhhHHHH.....
+      .....HHH........HHH.....
+      .....HH..........HH.....
+      ......H..........H......
+    `,
   },
   // Isaac Newton's curly wig
-  {
+  isaacNewton: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHhhHHHH.......',
-      '......HHHHHhhHHHHH......',
-      '.....HHHHHhhhhHHHHH.....',
-      '....HHHh........hHHH....',
-      '....HhHH........HHhH....',
-      '...HHHh..........hHHH...',
-      '...HhHH..........HHhH...',
-      '...HHHh..........hHHH...',
-      '...HhHH..........HHhH...',
-      '...HHHh..........hHHH...',
-      '...HhHH..........HHhH...',
-      '...HHHh..........hHHH...',
-      '...HhHH..........HHhH...',
-      '...HHHh..........hHHH...',
-      '....HhH..........HhH....',
-      '....HH............HH....',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHhhHHHH.......
+      ......HHHHHhhHHHHH......
+      .....HHHHHhhhhHHHHH.....
+      ....HHHh........hHHH....
+      ....HhHH........HHhH....
+      ...HHHh..........hHHH...
+      ...HhHH..........HHhH...
+      ...HHHh..........hHHH...
+      ...HhHH..........HHhH...
+      ...HHHh..........hHHH...
+      ...HhHH..........HHhH...
+      ...HHHh..........hHHH...
+      ...HhHH..........HHhH...
+      ...HHHh..........hHHH...
+      ....HhH..........HhH....
+      ....HH............HH....
+    `,
   },
   // Nikola Tesla's centre part
-  {
+  nikolaTesla: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHhhHHHH.......',
-      '......HHHHHhhHHHHH......',
-      '......HHHHhhhhHHHH......',
-      '......HH........HH......',
-      '......HH........HH......',
-      '......H..........H......',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHhhHHHH.......
+      ......HHHHHhhHHHHH......
+      ......HHHHhhhhHHHH......
+      ......HH........HH......
+      ......HH........HH......
+      ......H..........H......
+    `,
   },
   // Charles Darwin's shiny dome
-  {
+  charlesDarwin: {
     start: 7,
-    rows: [
-      '.........ww.............',
-      '......HH........HH......',
-      '.....HHH........HHH.....',
-      '.....HHh........hHH.....',
-      '.....Hh..........hH.....',
-    ],
+    rows: art`
+      .........ww.............
+      ......HH........HH......
+      .....HHH........HHH.....
+      .....HHh........hHH.....
+      .....Hh..........hH.....
+    `,
   },
   // Rosalind Franklin's side-swept bob
-  {
+  rosalindFranklin: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHHHHHHHHHH......',
-      '......HHHHHHHHHhhHH.....',
-      '......HHHHHh.....HHH....',
-      '......HHHh........HH....',
-      '......HH..........HH....',
-      '......HH.........HHH....',
-      '.....HHH.........HHH....',
-      '.....HH...........HH....',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHHHHHHH.......
+      ......HHHHHHHHHHHH......
+      ......HHHHHHHHHhhHH.....
+      ......HHHHHh.....HHH....
+      ......HHHh........HH....
+      ......HH..........HH....
+      ......HH.........HHH....
+      .....HHH.........HHH....
+      .....HH...........HH....
+    `,
   },
   // Ada Lovelace's ringlets
-  {
+  adaLovelace: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHhhHHHH.......',
-      '......HHHHHhhHHHHH......',
-      '.....HHHHHHhhHHHHHH.....',
-      '.....HHH........HHH.....',
-      '....HHHH........HHHH....',
-      '...HHhHH........HHhHH...',
-      '...HhHh..........hHhH...',
-      '...HHhH..........HhHH...',
-      '...HhHh..........hHhH...',
-      '....HH............HH....',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHhhHHHH.......
+      ......HHHHHhhHHHHH......
+      .....HHHHHHhhHHHHHH.....
+      .....HHH........HHH.....
+      ....HHHH........HHHH....
+      ...HHhHH........HHhHH...
+      ...HhHh..........hHhH...
+      ...HHhH..........HhHH...
+      ...HhHh..........hHhH...
+      ....HH............HH....
+    `,
   },
   // Jane Goodall's ponytail
-  {
+  janeGoodall: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHHHHHHHHHH......',
-      '......HHHhhhhhhHHHH.....',
-      '......HH........HHHHH...',
-      '......HH.........HHHHH..',
-      '......H...........HhHH..',
-      '..................HHhH..',
-      '...................HHH..',
-      '...................HhH..',
-      '....................HH..',
-      '....................H...',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHHHHHHH.......
+      ......HHHHHHHHHHHH......
+      ......HHHhhhhhhHHHH.....
+      ......HH........HHHHH...
+      ......HH.........HHHHH..
+      ......H...........HhHH..
+      ..................HHhH..
+      ...................HHH..
+      ...................HhH..
+      ....................HH..
+      ....................H...
+    `,
   },
   // Richard Feynman's swept-back waves
-  {
+  richardFeynman: {
     start: 2,
-    rows: [
-      '........HH..HHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHHHHHHHHHH......',
-      '.....HHHHhHHHHhHHHH.....',
-      '.....HHHhhhhhhhhHHH.....',
-      '.....HHH........HHH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '......H..........H......',
-    ],
+    rows: art`
+      ........HH..HHH.........
+      .......HHHHHHHHHH.......
+      ......HHHHHHHHHHHH......
+      .....HHHHhHHHHhHHHH.....
+      .....HHHhhhhhhhhHHH.....
+      .....HHH........HHH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      ......H..........H......
+    `,
   },
   // Katherine Johnson's short curls
-  {
+  katherineJohnson: {
     start: 3,
-    rows: [
-      '.........HhHhHH.........',
-      '.......HhHhHhHhHh.......',
-      '......hHhHhHhHhHhH......',
-      '......HhHhHhHhHhHh......',
-      '......hH........Hh......',
-      '......Hh........hH......',
-      '......h..........h......',
-    ],
+    rows: art`
+      .........HhHhHH.........
+      .......HhHhHhHhHh.......
+      ......hHhHhHhHhHhH......
+      ......HhHhHhHhHhHh......
+      ......hH........Hh......
+      ......Hh........hH......
+      ......h..........h......
+    `,
   },
   // Srinivasa Ramanujan's side part
-  {
+  srinivasaRamanujan: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHhHHHHHHHH......',
-      '......HHhhHHHHHHHHH.....',
-      '......HH........HHH.....',
-      '......HH.........HH.....',
-      '......H..........H......',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHHHHHHH.......
+      ......HHHhHHHHHHHH......
+      ......HHhhHHHHHHHHH.....
+      ......HH........HHH.....
+      ......HH.........HH.....
+      ......H..........H......
+    `,
   },
   // George Washington Carver's close crop
-  {
+  georgeWashingtonCarver: {
     start: 4,
-    rows: [
-      '.........HhHhHh.........',
-      '.......hHhHhHhHhH.......',
-      '......HhHhHhHhHhHh......',
-      '......Hh........hH......',
-      '......h..........h......',
-    ],
+    rows: art`
+      .........HhHhHh.........
+      .......hHhHhHhHhH.......
+      ......HhHhHhHhHhHh......
+      ......Hh........hH......
+      ......h..........h......
+    `,
   },
   // Chien-Shiung Wu's tucked bob
-  {
+  chienShiungWu: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHHHHHHHHHH......',
-      '.....HHHHhhhHHHHHHH.....',
-      '.....HHH........HHH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '.....hHH........HHh.....',
-      '......hh........hh......',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHHHHHHH.......
+      ......HHHHHHHHHHHH......
+      .....HHHHhhhHHHHHHH.....
+      .....HHH........HHH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      .....hHH........HHh.....
+      ......hh........hh......
+    `,
   },
   // Paul Dirac's slicked-back hair
-  {
+  paulDirac: {
     start: 3,
-    rows: [
-      '..........HHHH..........',
-      '........HHHHHHHH........',
-      '.......HhhhhhhhhH.......',
-      '......HHHHHHHHHHHH......',
-      '......HH........HH......',
-      '......H..........H......',
-    ],
+    rows: art`
+      ..........HHHH..........
+      ........HHHHHHHH........
+      .......HhhhhhhhhH.......
+      ......HHHHHHHHHHHH......
+      ......HH........HH......
+      ......H..........H......
+    `,
   },
   // J. Robert Oppenheimer's porkpie hat
-  {
+  robertOppenheimer: {
     start: 2,
-    rows: [
-      '........KKKKKKKK........',
-      '.......KKKKKKKKKK.......',
-      '.......kkkkkkkkkk.......',
-      '....KKKKKKKKKKKKKKKK....',
-      '......HH........HH......',
-      '......H..........H......',
-    ],
+    rows: art`
+      ........KKKKKKKK........
+      .......KKKKKKKKKK.......
+      .......kkkkkkkkkk.......
+      ....KKKKKKKKKKKKKKKK....
+      ......HH........HH......
+      ......H..........H......
+    `,
   },
   // Lise Meitner's neat swept-back hair
-  {
+  liseMeitner: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHhhHHhhHHH......',
-      '.....HHHHHHHHHHHHHH.....',
-      '.....HHH........HHH.....',
-      '.....HH..........HH.....',
-      '.....HH..........HH.....',
-      '......H..........H......',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHHHHHHH.......
+      ......HHHhhHHhhHHH......
+      .....HHHHHHHHHHHHHH.....
+      .....HHH........HHH.....
+      .....HH..........HH.....
+      .....HH..........HH.....
+      ......H..........H......
+    `,
   },
   // Werner Heisenberg's pompadour
-  {
+  wernerHeisenberg: {
     start: 1,
-    rows: [
-      '........HHHHHH..........',
-      '......HHHHHHHHHH........',
-      '.....HHHHhhHHHHHHH......',
-      '.....HHHHHHHHHHHHHH.....',
-      '......HHHHhhhhhHHHH.....',
-      '......HHH.......HHH.....',
-      '......HH.........HH.....',
-      '......H..........H......',
-    ],
+    rows: art`
+      ........HHHHHH..........
+      ......HHHHHHHHHH........
+      .....HHHHhhHHHHHHH......
+      .....HHHHHHHHHHHHHH.....
+      ......HHHHhhhhhHHHH.....
+      ......HHH.......HHH.....
+      ......HH.........HH.....
+      ......H..........H......
+    `,
   },
   // Dorothy Hodgkin's soft waves
-  {
+  dorothyHodgkin: {
     start: 3,
-    rows: [
-      '.........HHHHHH.........',
-      '.......HHHHHHHHHH.......',
-      '......HHHhHHHHhHHH......',
-      '.....HHHhhHHHHhhHHH.....',
-      '.....HHH........HHH.....',
-      '....HHhH........HhHH....',
-      '....HHHh........hHHH....',
-      '....HhHH........HHhH....',
-      '....HHHh........hHHH....',
-      '.....HH..........HH.....',
-    ],
+    rows: art`
+      .........HHHHHH.........
+      .......HHHHHHHHHH.......
+      ......HHHhHHHHhHHH......
+      .....HHHhhHHHHhhHHH.....
+      .....HHH........HHH.....
+      ....HHhH........HhHH....
+      ....HHHh........hHHH....
+      ....HhHH........HHhH....
+      ....HHHh........hHHH....
+      .....HH..........HH.....
+    `,
   },
-];
+});
 
-const FACIAL_HAIR: Sprite[] = [
+const FACIAL_HAIR = Object.values<Sprite>({
   // Albert Einstein's walrus moustache
-  {
+  albertEinstein: {
     start: 15,
-    rows: ['........HHHHHHHH........', '.......HHhHHHHhHH.......', '.......HH......HH.......'],
+    rows: art`
+      ........HHHHHHHH........
+      .......HHhHHHHhHH.......
+      .......HH......HH.......
+    `,
   },
   // Nikola Tesla's neat moustache
-  { start: 15, rows: ['.........HHHHHH.........'] },
+  nikolaTesla: {
+    start: 15,
+    rows: art`
+      .........HHHHHH.........
+    `,
+  },
   // Charles Darwin's great beard
-  {
+  charlesDarwin: {
     start: 13,
-    rows: [
-      '......H..........H......',
-      '......HH........HH......',
-      '......HHHHHHHHHHHH......',
-      '......HHHH....HHHH......',
-      '......HHHHHHHHHHHH......',
-      '......HHhHHHHHHhHH......',
-      '.......HHHhHHhHHH.......',
-      '........HHHHHHHH........',
-      '.........HHhhHH.........',
-      '..........HHHH..........',
-    ],
+    rows: art`
+      ......H..........H......
+      ......HH........HH......
+      ......HHHHHHHHHHHH......
+      ......HHHH....HHHH......
+      ......HHHHHHHHHHHH......
+      ......HHhHHHHHHhHH......
+      .......HHHhHHhHHH.......
+      ........HHHHHHHH........
+      .........HHhhHH.........
+      ..........HHHH..........
+    `,
   },
   // Galileo Galilei's pointed beard
-  {
+  galileoGalilei: {
     start: 15,
-    rows: [
-      '........HHHHHHHH........',
-      '........HH....HH........',
-      '.........HHHHHH.........',
-      '.........HHHHHH.........',
-      '..........HhhH..........',
-      '...........HH...........',
-    ],
+    rows: art`
+      ........HHHHHHHH........
+      ........HH....HH........
+      .........HHHHHH.........
+      .........HHHHHH.........
+      ..........HhhH..........
+      ...........HH...........
+    `,
   },
   // George Washington Carver's trim moustache
-  { start: 15, rows: ['..........HHHH..........'] },
-  // Ernest Rutherford's bushy moustache
-  {
+  georgeWashingtonCarver: {
     start: 15,
-    rows: ['.......HHHHHHHHHH.......', '......HHHhHHHHhHHH......', '.......HHH....HHH.......'],
+    rows: art`
+      ..........HHHH..........
+    `,
   },
-];
+  // Ernest Rutherford's bushy moustache
+  ernestRutherford: {
+    start: 15,
+    rows: art`
+      .......HHHHHHHHHH.......
+      ......HHHhHHHHhHHH......
+      .......HHH....HHH.......
+    `,
+  },
+});
 
 // Drawn directly on the 48 grid: two rounded lenses, a bridge, and a strap.
 const drawGoggles = (): Cell[] => {
-  const lens = [
-    '..FFFFFF..',
-    '.FffffffF.',
-    'FfGGGGGGfF',
-    'FfgGGGGGfF',
-    'FfGgGGGGfF',
-    'FfGGGGGGfF',
-    'FfGGGGGGfF',
-    'FfGGGGGGfF',
-    '.FffffffF.',
-    '..FFFFFF..',
-  ];
+  const lens = art`
+    ..FFFFFF..
+    .FffffffF.
+    FfGGGGGGfF
+    FfgGGGGGfF
+    FfGgGGGGfF
+    FfGGGGGGfF
+    FfGGGGGGfF
+    FfGGGGGGfF
+    .FffffffF.
+    ..FFFFFF..
+  `;
   const cells: Cell[] = [];
   for (const left of [13, 25]) {
     lens.forEach((row, dy) =>
@@ -795,32 +816,32 @@ const drawGoggles = (): Cell[] => {
   return cells;
 };
 
-const EYEWEAR: ColoredDrawing[] = [
+const EYEWEAR = Object.values<ColoredDrawing>({
   // Benjamin Franklin's wire spectacles
-  {
+  benjaminFranklin: {
     colors: { F: '#c9a227', g: WHITE },
     start: 10,
-    rows: [
-      '........FFF..FFF........',
-      '......FFg..FFg..FF......',
-      '.......F...FF...F.......',
-      '........FFF..FFF........',
-    ],
+    rows: art`
+      ........FFF..FFF........
+      ......FFg..FFg..FF......
+      .......F...FF...F.......
+      ........FFF..FFF........
+    `,
   },
   // Katherine Johnson's cat-eye glasses
-  {
+  katherineJohnson: {
     colors: { F: '#5a2d2d', g: WHITE },
     start: 9,
-    rows: [
-      '......F..........F......',
-      '......FFFFF..FFFFF......',
-      '.......Fg..FFg..F.......',
-      '.......F...FF...F.......',
-      '........FFF..FFF........',
-    ],
+    rows: art`
+      ......F..........F......
+      ......FFFFF..FFFFF......
+      .......Fg..FFg..F.......
+      .......F...FF...F.......
+      ........FFF..FFF........
+    `,
   },
   // Safety goggles; the tinted lenses let the eyes show through.
-  {
+  safetyGoggles: {
     colors: {
       F: '#2f3e4e',
       f: '#6b8fb3',
@@ -831,168 +852,180 @@ const EYEWEAR: ColoredDrawing[] = [
     cells: drawGoggles(),
   },
   // Hideki Yukawa's round glasses
-  {
+  hidekiYukawa: {
     colors: { F: '#222222', g: WHITE },
     start: 10,
-    rows: [
-      '.......FFFF..FFFF.......',
-      '......FFg..FFg..FF......',
-      '.......F...FF...F.......',
-      '.......FFFF..FFFF.......',
-    ],
+    rows: art`
+      .......FFFF..FFFF.......
+      ......FFg..FFg..FF......
+      .......F...FF...F.......
+      .......FFFF..FFFF.......
+    `,
   },
   // Vannevar Bush's rimless glasses
-  {
+  vannevarBush: {
     colors: { F: '#b8bec6', G: { tint: '#dff3ff', alpha: 0.35 }, g: WHITE },
     start: 10,
-    rows: ['.......GGGG..GGGG.......', '......FGgGGFFGgGGF......', '.......GGGG..GGGG.......'],
+    rows: art`
+      .......GGGG..GGGG.......
+      ......FGgGGFFGgGGF......
+      .......GGGG..GGGG.......
+    `,
   },
-];
+});
 
 const LAB_COAT: ColoredDrawing = {
   start: 20,
-  rows: [
-    '.....CCCCcTssTcCCCC.....',
-    '....CCCCCCcTTcCCCCCC....',
-    '...CCCCCCCCXXCCCCCCCC...',
-    '...CCCCCCCCXXCCCCCCCC...',
-  ],
+  rows: art`
+    .....CCCCcTssTcCCCC.....
+    ....CCCCCCcTTcCCCCCC....
+    ...CCCCCCCCXXCCCCCCCC...
+    ...CCCCCCCCXXCCCCCCCC...
+  `,
   colors: { C: '#f4f4f6', c: '#c4c4d0', T: '#7aa6c2', X: '#c4c4d0' },
 };
 
 // Props sit beside the head: inside the circle avatars are cropped to, and clear of the face.
-const PROPS: ColoredDrawing[] = [
+const PROPS = Object.values<ColoredDrawing>({
   // Isaac Newton's apple
-  {
+  isaacNewton: {
     colors: { R: '#d62828', r: '#9d1c1c', n: '#6b4423', L: '#4caf50', w: WHITE },
     start: 5,
-    rows: [
-      '...................nL...',
-      '..................RRRR..',
-      '..................RwRR..',
-      '..................RRrR..',
-      '...................rr...',
-    ],
+    rows: art`
+      ...................nL...
+      ..................RRRR..
+      ..................RwRR..
+      ..................RRrR..
+      ...................rr...
+    `,
   },
   // Nikola Tesla's lightning bolt
-  {
+  nikolaTesla: {
     colors: { Y: '#ffd60a' },
     start: 8,
-    rows: [
-      '....................YYY.',
-      '...................YYY..',
-      '..................YYYYY.',
-      '....................YY..',
-      '...................YY...',
-      '...................Y....',
-    ],
+    rows: art`
+      ....................YYY.
+      ...................YYY..
+      ..................YYYYY.
+      ....................YY..
+      ...................YY...
+      ...................Y....
+    `,
   },
   // Marie Curie's glowing flask
-  {
+  marieCurie: {
     colors: { n: '#8b5e3c', G: '#d8e2ef', V: '#7cff6b', w: WHITE },
     start: 9,
-    rows: [
-      '....................nn..',
-      '....................GG..',
-      '....................GG..',
-      '...................GVVG.',
-      '...................VwVV.',
-      '...................VVVV.',
-      '...................GGGG.',
-    ],
+    rows: art`
+      ....................nn..
+      ....................GG..
+      ....................GG..
+      ...................GVVG.
+      ...................VwVV.
+      ...................VVVV.
+      ...................GGGG.
+    `,
   },
   // Charles Darwin's finch
-  {
+  charlesDarwin: {
     colors: { B: '#8b5e3c', b: '#d9a066', y: '#e0b040', E: OUTLINE },
     start: 8,
-    rows: [
-      '...................BBB..',
-      '..................yBEB..',
-      '...................BBBB.',
-      '...................bBBB.',
-      '....................BBB.',
-    ],
+    rows: art`
+      ...................BBB..
+      ..................yBEB..
+      ...................BBBB.
+      ...................bBBB.
+      ....................BBB.
+    `,
   },
   // Thomas Edison's light bulb
-  {
+  thomasEdison: {
     colors: { Y: '#ffe066', w: WHITE, G: '#9aa0a6' },
     start: 7,
-    rows: [
-      '...................YYY..',
-      '..................YwYYY.',
-      '..................YYYYY.',
-      '...................YYY..',
-      '...................GGG..',
-      '....................G...',
-    ],
+    rows: art`
+      ...................YYY..
+      ..................YwYYY.
+      ..................YYYYY.
+      ...................YYY..
+      ...................GGG..
+      ....................G...
+    `,
   },
   // Galileo Galilei's telescope
-  {
+  galileoGalilei: {
     colors: { T: '#d4a017', t: '#7a4b2a' },
     start: 14,
-    rows: [
-      '.....................TT.',
-      '....................TTT.',
-      '...................TTT..',
-      '..................ttt...',
-      '.................ttt....',
-      '................ttt.....',
-      '................tt......',
-    ],
+    rows: art`
+      .....................TT.
+      ....................TTT.
+      ...................TTT..
+      ..................ttt...
+      .................ttt....
+      ................ttt.....
+      ................tt......
+    `,
   },
   // Rosalind Franklin's DNA helix
-  {
+  rosalindFranklin: {
     colors: { A: '#4895ef', B: '#f72585', i: '#dddddd' },
     start: 8,
-    rows: [
-      '.AiiB...................',
-      '..AB....................',
-      '..BA....................',
-      '.BiiA...................',
-      '..BA....................',
-      '..AB....................',
-      '.AiiB...................',
-    ],
+    rows: art`
+      .AiiB...................
+      ..AB....................
+      ..BA....................
+      .BiiA...................
+      ..BA....................
+      ..AB....................
+      .AiiB...................
+    `,
   },
   // Carl Sagan's ringed planet
-  {
+  carlSagan: {
     colors: { P: '#f4a261', p: '#c97c3d', O: '#e9c46a' },
     start: 8,
-    rows: ['...................PPP..', '..................OPPPO.', '...................pPp..'],
+    rows: art`
+      ...................PPP..
+      ..................OPPPO.
+      ...................pPp..
+    `,
   },
   // Ada Lovelace's engine gear
-  {
+  adaLovelace: {
     colors: { G: '#9aa0a6' },
     start: 7,
-    rows: [
-      '..G.G...................',
-      '.GGGGG..................',
-      '.GG.GG..................',
-      '.GGGGG..................',
-      '..G.G...................',
-    ],
+    rows: art`
+      ..G.G...................
+      .GGGGG..................
+      .GG.GG..................
+      .GGGGG..................
+      ..G.G...................
+    `,
   },
   // George Washington Carver's peanut
-  {
+  georgeWashingtonCarver: {
     colors: { P: '#d9a86c', p: '#b5834a' },
     start: 10,
-    rows: [
-      '....................PP..',
-      '...................PPPP.',
-      '...................PpPP.',
-      '....................PP..',
-      '...................PPPP.',
-      '...................PPpP.',
-      '....................PP..',
-    ],
+    rows: art`
+      ....................PP..
+      ...................PPPP.
+      ...................PpPP.
+      ....................PP..
+      ...................PPPP.
+      ...................PPpP.
+      ....................PP..
+    `,
   },
   // Srinivasa Ramanujan's infinity sign
-  {
+  srinivasaRamanujan: {
     colors: { I: OUTLINE },
     start: 8,
-    rows: ['...................I.I..', '..................I.I.I.', '...................I.I..'],
+    rows: art`
+      ...................I.I..
+      ..................I.I.I.
+      ...................I.I..
+    `,
   },
-];
+});
 
 interface Traits {
   head: Head;
