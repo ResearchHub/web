@@ -7,9 +7,9 @@ import { MIN_PUBLISH_TITLE_LENGTH } from '@/components/modals/ConfirmPublishModa
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { getRequiredFields } from '@/components/Notebook/PublishingForm/completion';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
-import { useCoverImageGenerator } from '@/components/Notebook/PublishingForm/useCoverImageGenerator';
+import { useCoverImageGenerator } from '@/components/Notebook/PublishingForm/CoverImageGenerator';
 import { useSelectedGrant } from '@/components/Notebook/PublishingForm/useSelectedGrant';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { cn } from '@/utils/styles';
 import { AmountEditor } from './masthead/AmountWidget';
 import { useCoverImagePicker } from './masthead/CoverImage';
@@ -167,6 +167,8 @@ interface RowProps {
   readonly optional?: boolean;
   /** The work cannot be published until this row is given a value, or a better one. */
   readonly attention?: boolean;
+  /** Its value is being made for the user: a dot radiates beside the label. */
+  readonly working?: boolean;
   /** A second, quieter line under the label. */
   readonly hint?: ReactNode;
   /** The value, or what to do while there is none, at the row's right end. */
@@ -196,6 +198,7 @@ function Row({
   label,
   optional = false,
   attention = false,
+  working = false,
   hint,
   trailing,
   onOpen,
@@ -214,11 +217,15 @@ function Row({
     <>
       <span className="flex shrink-0 flex-col">
         <span className="flex items-center gap-2 text-[15px] font-medium text-gray-900 md:text-sm">
-          {attention && (
-            <span
-              aria-hidden="true"
-              className="h-[7px] w-[7px] shrink-0 rounded-full bg-amber-600"
-            />
+          {working ? (
+            <RadiatingDot ring size="md" color="bg-primary-500" className="shrink-0" />
+          ) : (
+            attention && (
+              <span
+                aria-hidden="true"
+                className="h-[7px] w-[7px] shrink-0 rounded-full bg-amber-600"
+              />
+            )
           )}
           {label}
           {optional && (
@@ -423,8 +430,8 @@ function GrantRow({
 /**
  * The cover image has no editor: the row opens the file picker, and the pick
  * shows as a thumbnail. A proposal or RFP without one gets one generated from
- * its details as soon as the dialog opens; its cover shows under the row large
- * enough to read before publishing, with a way to generate a new one.
+ * its details the first time the dialog opens; its cover shows under the row
+ * large enough to read before publishing, with a way to generate a new one.
  */
 function CoverRow({
   config,
@@ -442,8 +449,8 @@ function CoverRow({
   const needed = attention && !cover.imageUrl && !generator.isGenerating;
 
   useEffect(() => {
-    if (generator.available && !cover.imageUrl) void generator.generate({ quiet: true });
-    // Once, as the dialog opens.
+    generator.generateIfMissing();
+    // As the dialog opens; the generator makes one at most once per draft.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -463,10 +470,10 @@ function CoverRow({
     below = undefined;
   } else if (generator.isGenerating) {
     below = (
-      <div className="flex flex-col gap-2" aria-busy="true">
-        <Skeleton className="aspect-[3/1] w-full rounded-lg" />
-        <output className="block text-xs text-gray-500">
-          Generating a cover from your details. This usually takes under a minute.
+      <div className="flex flex-col gap-2">
+        <CoverSkeleton />
+        <output aria-live="polite" className="block text-xs text-gray-500">
+          Generating a cover from your details. This takes about 15 seconds.
         </output>
       </div>
     );
@@ -502,6 +509,7 @@ function CoverRow({
       label={config.name}
       optional={optional}
       attention={needed}
+      working={generator.isGenerating}
       hint={cover.error ?? undefined}
       onOpen={cover.browse}
       trailing={
@@ -516,6 +524,31 @@ function CoverRow({
       below={below}
       extra={<input {...cover.inputProps} data-testid="publish-dialog-cover-input" />}
     />
+  );
+}
+
+/**
+ * A cover being generated, as the shape of the banner it will be: the label,
+ * title, funding line and subtitle on the left and a mark on the right, as
+ * the generated covers lay them out. The caption beside it says what it is.
+ */
+function CoverSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex aspect-[3/1] w-full animate-pulse items-center gap-[6%] rounded-lg bg-gray-100 px-[5%]"
+    >
+      <div className="flex flex-1 flex-col gap-2.5">
+        <div className="h-1.5 w-[30%] rounded-full bg-gray-300" />
+        <div className="flex flex-col gap-1.5">
+          <div className="h-3.5 w-[85%] rounded bg-gray-300" />
+          <div className="h-3.5 w-[60%] rounded bg-gray-300" />
+        </div>
+        <div className="h-2.5 w-[40%] rounded bg-gray-200" />
+        <div className="h-1.5 w-[55%] rounded-full bg-gray-200" />
+      </div>
+      <div className="aspect-square w-[18%] shrink-0 rounded-full bg-gray-200" />
+    </div>
   );
 }
 

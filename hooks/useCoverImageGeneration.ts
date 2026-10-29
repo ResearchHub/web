@@ -5,8 +5,8 @@ import type { GeneratedCoverImage } from '@/types/coverImage';
 
 /**
  * Starts a cover image request and polls it until its image is ready. A new
- * `generate` (or unmounting) abandons the one in flight, which then resolves
- * to null.
+ * `generate`, `cancel` or unmounting abandons the one in flight, which then
+ * resolves to null.
  */
 export function useCoverImageGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -55,5 +55,11 @@ export function useCoverImageGeneration() {
     []
   );
 
-  return { isGenerating, error, generate };
+  const cancel = useCallback(() => {
+    runRef.current += 1;
+    setIsGenerating(false);
+    setError(null);
+  }, []);
+
+  return { isGenerating, error, generate, cancel };
 }
