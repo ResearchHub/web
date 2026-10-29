@@ -1,3 +1,5 @@
+import { colors as themeColors } from '@/app/styles/colors';
+
 type Cell = [x: number, y: number, code: string];
 // Square grid of code character codes stored row by row; 0 is an empty cell.
 type CodeGrid = Uint8Array;
@@ -32,16 +34,7 @@ const SKIN_SHADOW = charCode('s');
 const UNOUTLINED_CODES = new Set(['w', 'g', 'i', 'I'].map(charCode));
 
 const HAIR_COLORS = ['#2b2b2b', '#4a3121', '#7b4a2a', '#a0452b', '#e3c16f', '#a8a8a8', '#f2f2f2'];
-const BACKGROUND_COLORS = [
-  '#8ecae6',
-  '#ffb4a2',
-  '#cdb4db',
-  '#b9fbc0',
-  '#ffd166',
-  '#a0c4ff',
-  '#f4a261',
-  '#90be6d',
-];
+const BACKGROUND = themeColors.rhBlue[500];
 
 type HeadShape = 'oval' | 'round' | 'long' | 'square' | 'narrow';
 
@@ -353,6 +346,102 @@ const HEADS = Object.values<Head>({
     mouth: 'smile',
     extra: ['cheekbones'],
   },
+  paulDirac: {
+    skin: '#f1d4be',
+    shape: 'narrow',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'long',
+    mouth: 'small',
+    extra: ['cheekbones'],
+  },
+  vannevarBush: {
+    skin: '#eecdb4',
+    shape: 'long',
+    eyes: 'droopy',
+    brows: 'heavy',
+    nose: 'big',
+    mouth: 'line',
+    extra: ['wrinkles'],
+  },
+  robertOppenheimer: {
+    skin: '#f0d2bc',
+    shape: 'narrow',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'long',
+    mouth: 'line',
+    extra: ['cheekbones'],
+  },
+  liseMeitner: {
+    skin: '#f4d8c4',
+    shape: 'oval',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'small',
+  },
+  erwinSchrodinger: {
+    skin: '#f2d2b6',
+    shape: 'round',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'small',
+    mouth: 'smile',
+  },
+  maxPlanck: {
+    skin: '#efd0b8',
+    shape: 'long',
+    eyes: 'droopy',
+    brows: 'heavy',
+    nose: 'long',
+    mouth: 'line',
+    extra: ['wrinkles'],
+  },
+  nielsBohr: {
+    skin: '#f0cfb6',
+    shape: 'long',
+    eyes: 'droopy',
+    brows: 'heavy',
+    nose: 'big',
+    mouth: 'small',
+    extra: ['jowls'],
+  },
+  graceHopper: {
+    skin: '#f3d5c2',
+    shape: 'oval',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'smile',
+    extra: ['wrinkles'],
+  },
+  wernerHeisenberg: {
+    skin: '#f5d7c0',
+    shape: 'oval',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'smile',
+  },
+  dorothyHodgkin: {
+    skin: '#f6dac8',
+    shape: 'round',
+    eyes: 'dot',
+    brows: 'thin',
+    nose: 'small',
+    mouth: 'smile',
+    extra: ['blush'],
+  },
+  ernestRutherford: {
+    skin: '#efc9ad',
+    shape: 'round',
+    eyes: 'dot',
+    brows: 'heavy',
+    nose: 'big',
+    mouth: 'line',
+    extra: ['jowls'],
+  },
 });
 
 const HAIRSTYLES: Sprite[] = [
@@ -559,6 +648,74 @@ const HAIRSTYLES: Sprite[] = [
       '......hh........hh......',
     ],
   },
+  // Paul Dirac's slicked-back hair
+  {
+    start: 3,
+    rows: [
+      '..........HHHH..........',
+      '........HHHHHHHH........',
+      '.......HhhhhhhhhH.......',
+      '......HHHHHHHHHHHH......',
+      '......HH........HH......',
+      '......H..........H......',
+    ],
+  },
+  // J. Robert Oppenheimer's porkpie hat
+  {
+    start: 2,
+    rows: [
+      '........KKKKKKKK........',
+      '.......KKKKKKKKKK.......',
+      '.......kkkkkkkkkk.......',
+      '....KKKKKKKKKKKKKKKK....',
+      '......HH........HH......',
+      '......H..........H......',
+    ],
+  },
+  // Lise Meitner's neat swept-back hair
+  {
+    start: 3,
+    rows: [
+      '.........HHHHHH.........',
+      '.......HHHHHHHHHH.......',
+      '......HHHhhHHhhHHH......',
+      '.....HHHHHHHHHHHHHH.....',
+      '.....HHH........HHH.....',
+      '.....HH..........HH.....',
+      '.....HH..........HH.....',
+      '......H..........H......',
+    ],
+  },
+  // Werner Heisenberg's pompadour
+  {
+    start: 1,
+    rows: [
+      '........HHHHHH..........',
+      '......HHHHHHHHHH........',
+      '.....HHHHhhHHHHHHH......',
+      '.....HHHHHHHHHHHHHH.....',
+      '......HHHHhhhhhHHHH.....',
+      '......HHH.......HHH.....',
+      '......HH.........HH.....',
+      '......H..........H......',
+    ],
+  },
+  // Dorothy Hodgkin's soft waves
+  {
+    start: 3,
+    rows: [
+      '.........HHHHHH.........',
+      '.......HHHHHHHHHH.......',
+      '......HHHhHHHHhHHH......',
+      '.....HHHhhHHHHhhHHH.....',
+      '.....HHH........HHH.....',
+      '....HHhH........HhHH....',
+      '....HHHh........hHHH....',
+      '....HhHH........HHhH....',
+      '....HHHh........hHHH....',
+      '.....HH..........HH.....',
+    ],
+  },
 ];
 
 const FACIAL_HAIR: Sprite[] = [
@@ -599,6 +756,11 @@ const FACIAL_HAIR: Sprite[] = [
   },
   // George Washington Carver's trim moustache
   { start: 15, rows: ['..........HHHH..........'] },
+  // Ernest Rutherford's bushy moustache
+  {
+    start: 15,
+    rows: ['.......HHHHHHHHHH.......', '......HHHhHHHHhHHH......', '.......HHH....HHH.......'],
+  },
 ];
 
 // Drawn directly on the 48 grid: two rounded lenses, a bridge, and a strap.
@@ -679,9 +841,15 @@ const EYEWEAR: ColoredDrawing[] = [
       '.......FFFF..FFFF.......',
     ],
   },
+  // Vannevar Bush's rimless glasses
+  {
+    colors: { F: '#b8bec6', G: { tint: '#dff3ff', alpha: 0.35 }, g: WHITE },
+    start: 10,
+    rows: ['.......GGGG..GGGG.......', '......FGgGGFFGgGGF......', '.......GGGG..GGGG.......'],
+  },
 ];
 
-const COLLARED_CUT: Sprite = {
+const LAB_COAT: ColoredDrawing = {
   start: 20,
   rows: [
     '.....CCCCcTssTcCCCC.....',
@@ -689,64 +857,27 @@ const COLLARED_CUT: Sprite = {
     '...CCCCCCCCXXCCCCCCCC...',
     '...CCCCCCCCXXCCCCCCCC...',
   ],
-};
-const TURTLENECK_CUT: Sprite = {
-  start: 19,
-  rows: [
-    '..........TTTT..........',
-    '.....CCCCcTTTTcCCCC.....',
-    '....CCCCCCcTTcCCCCCC....',
-    '...CCCCCCCCTTCCCCCCCC...',
-    '...CCCCCCCCTTCCCCCCCC...',
-  ],
-};
-const QIPAO_CUT: Sprite = {
-  start: 19,
-  rows: [
-    '..........TTTT..........',
-    '.....CCCCCTTTTCCCCC.....',
-    '....CCCCCCCCCXCCCCCC....',
-    '...CCCCCCCCCCCXCCCCCC...',
-    '...CCCCCCCCCCCCXCCCCC...',
-  ],
+  colors: { C: '#f4f4f6', c: '#c4c4d0', T: '#7aa6c2', X: '#c4c4d0' },
 };
 
-const OUTFITS: ColoredDrawing[] = [
-  // Lab coat
-  { ...COLLARED_CUT, colors: { C: '#f4f4f6', c: '#c4c4d0', T: '#7aa6c2', X: '#c4c4d0' } },
-  // Albert Einstein's grey cardigan
-  { ...COLLARED_CUT, colors: { C: '#8a7f72', c: '#6b6157', T: '#f4f4f4', X: '#6b6157' } },
-  // Nikola Tesla's suit and tie
-  { ...COLLARED_CUT, colors: { C: '#2b2d42', c: '#15162a', T: '#f4f4f4', X: '#9d2235' } },
-  // Marie Curie's black dress
-  { ...COLLARED_CUT, colors: { C: '#33333d', c: '#1e1e26', T: '#e9e4d8', X: '#1e1e26' } },
-  // Carl Sagan's turtleneck and blazer
-  { ...TURTLENECK_CUT, colors: { C: '#8b5a2b', c: '#6b431e', T: '#8e2c3a' } },
-  // Isaac Newton's crimson robe
-  { ...COLLARED_CUT, colors: { C: '#9b2335', c: '#6e1826', T: '#f4f4f4', X: '#f4f4f4' } },
-  // Ada Lovelace's violet gown
-  { ...COLLARED_CUT, colors: { C: '#6247aa', c: '#4a3485', T: '#e8dff5', X: '#4a3485' } },
-  // Chien-Shiung Wu's qipao
-  { ...QIPAO_CUT, colors: { C: '#1f7a8c', T: '#16596a', X: '#f2c14e' } },
-];
-
+// Props sit beside the head: inside the circle avatars are cropped to, and clear of the face.
 const PROPS: ColoredDrawing[] = [
   // Isaac Newton's apple
   {
     colors: { R: '#d62828', r: '#9d1c1c', n: '#6b4423', L: '#4caf50', w: WHITE },
-    start: 0,
+    start: 5,
     rows: [
-      '....................nL..',
-      '...................RRRR.',
-      '...................RwRR.',
-      '...................RRrR.',
-      '....................rr..',
+      '...................nL...',
+      '..................RRRR..',
+      '..................RwRR..',
+      '..................RRrR..',
+      '...................rr...',
     ],
   },
   // Nikola Tesla's lightning bolt
   {
     colors: { Y: '#ffd60a' },
-    start: 0,
+    start: 8,
     rows: [
       '....................YYY.',
       '...................YYY..',
@@ -759,34 +890,33 @@ const PROPS: ColoredDrawing[] = [
   // Marie Curie's glowing flask
   {
     colors: { n: '#8b5e3c', G: '#d8e2ef', V: '#7cff6b', w: WHITE },
-    start: 15,
+    start: 9,
     rows: [
-      '...................nn...',
-      '...................GG...',
-      '...................GG...',
-      '..................GVVG..',
-      '.................GVVVVG.',
-      '.................VVwVVV.',
-      '.................VVVVVV.',
-      '.................GGGGGG.',
+      '....................nn..',
+      '....................GG..',
+      '....................GG..',
+      '...................GVVG.',
+      '...................VwVV.',
+      '...................VVVV.',
+      '...................GGGG.',
     ],
   },
   // Charles Darwin's finch
   {
     colors: { B: '#8b5e3c', b: '#d9a066', y: '#e0b040', E: OUTLINE },
-    start: 16,
+    start: 8,
     rows: [
-      '..................BBB...',
-      '.................yBEB...',
-      '..................BBBB..',
-      '..................bBBBB.',
-      '...................BBBBB',
+      '...................BBB..',
+      '..................yBEB..',
+      '...................BBBB.',
+      '...................bBBB.',
+      '....................BBB.',
     ],
   },
   // Thomas Edison's light bulb
   {
     colors: { Y: '#ffe066', w: WHITE, G: '#9aa0a6' },
-    start: 0,
+    start: 7,
     rows: [
       '...................YYY..',
       '..................YwYYY.',
@@ -801,19 +931,19 @@ const PROPS: ColoredDrawing[] = [
     colors: { T: '#d4a017', t: '#7a4b2a' },
     start: 14,
     rows: [
-      '......................TT',
-      '.....................TTT',
+      '.....................TT.',
       '....................TTT.',
-      '...................ttt..',
+      '...................TTT..',
       '..................ttt...',
       '.................ttt....',
-      '.................tt.....',
+      '................ttt.....',
+      '................tt......',
     ],
   },
   // Rosalind Franklin's DNA helix
   {
     colors: { A: '#4895ef', B: '#f72585', i: '#dddddd' },
-    start: 13,
+    start: 8,
     rows: [
       '.AiiB...................',
       '..AB....................',
@@ -822,31 +952,22 @@ const PROPS: ColoredDrawing[] = [
       '..BA....................',
       '..AB....................',
       '.AiiB...................',
-      '..AB....................',
-      '..BA....................',
-      '.BiiA...................',
     ],
   },
   // Carl Sagan's ringed planet
   {
     colors: { P: '#f4a261', p: '#c97c3d', O: '#e9c46a' },
-    start: 1,
-    rows: [
-      '...................PP...',
-      '..................PPPP..',
-      '................OOPPPPOO',
-      '..................pPPp..',
-      '...................pp...',
-    ],
+    start: 8,
+    rows: ['...................PPP..', '..................OPPPO.', '...................pPp..'],
   },
   // Ada Lovelace's engine gear
   {
     colors: { G: '#9aa0a6' },
-    start: 1,
+    start: 7,
     rows: [
       '..G.G...................',
       '.GGGGG..................',
-      'GGG.GGG.................',
+      '.GG.GG..................',
       '.GGGGG..................',
       '..G.G...................',
     ],
@@ -854,39 +975,31 @@ const PROPS: ColoredDrawing[] = [
   // George Washington Carver's peanut
   {
     colors: { P: '#d9a86c', p: '#b5834a' },
-    start: 15,
+    start: 10,
     rows: [
-      '...................PP...',
-      '..................PPPP..',
-      '..................PpPP..',
-      '...................PP...',
-      '..................PPPP..',
-      '..................PPpP..',
-      '...................PP...',
+      '....................PP..',
+      '...................PPPP.',
+      '...................PpPP.',
+      '....................PP..',
+      '...................PPPP.',
+      '...................PPpP.',
+      '....................PP..',
     ],
   },
   // Srinivasa Ramanujan's infinity sign
   {
     colors: { I: OUTLINE },
-    start: 1,
-    rows: [
-      '...............II...II..',
-      '..............I..I.I..I.',
-      '..............I...I...I.',
-      '..............I..I.I..I.',
-      '...............II...II..',
-    ],
+    start: 8,
+    rows: ['...................I.I..', '..................I.I.I.', '...................I.I..'],
   },
 ];
 
 interface Traits {
   head: Head;
   hairColor: string;
-  background: string;
   hair: Sprite;
   facialHair: Sprite | null;
   eyewear: ColoredDrawing | null;
-  outfit: ColoredDrawing;
   prop: ColoredDrawing | null;
 }
 
@@ -928,11 +1041,9 @@ const pickTraits = (seed: string): Traits => {
   return {
     head: pick(HEADS),
     hairColor: pick(HAIR_COLORS),
-    background: pick(BACKGROUND_COLORS),
     hair: pick(HAIRSTYLES),
     facialHair: pickSometimes(0.45, FACIAL_HAIR),
     eyewear: pickSometimes(0.4, EYEWEAR),
-    outfit: pick(OUTFITS),
     prop: pickSometimes(0.85, PROPS),
   };
 };
@@ -1283,19 +1394,10 @@ const encodeBmp = (pixels: Uint8Array, colors: string[]) => {
   return toBase64(bytes.subarray(0, length));
 };
 
-const drawAvatarBitmap = ({
-  head,
-  hairColor,
-  background,
-  hair,
-  facialHair,
-  eyewear,
-  outfit,
-  prop,
-}: Traits) => {
+const drawAvatarBitmap = ({ head, hairColor, hair, facialHair, eyewear, prop }: Traits) => {
   // Pixels hold palette indexes; index 0 is an empty pixel, which shows the background.
   const pixels = pixelScratch.fill(EMPTY);
-  const colors = [background];
+  const colors = [BACKGROUND];
   const colorIndexes = new Map<string, number>();
   const colorIndex = (color: string) => {
     let index = colorIndexes.get(color);
@@ -1313,6 +1415,8 @@ const drawAvatarBitmap = ({
     h: shade(hairColor, -0.25),
     L: shade(hairColor, 0.3),
     w: WHITE,
+    K: '#5c5449',
+    k: '#2e2a26',
   };
   const skinPalette: Palette = {
     S: head.skin,
@@ -1362,7 +1466,7 @@ const drawAvatarBitmap = ({
     );
   };
 
-  paintPart(outfit, { ...outfit.colors, s: skinPalette.s }, false);
+  paintPart(LAB_COAT, { ...LAB_COAT.colors, s: skinPalette.s }, false);
   const spans = HEAD_SHAPES[head.shape];
   const silhouette = getPreparedLayer(spans, 'skin', () =>
     prepareLayer(drawHeadSilhouette(spans), { rim: 'skin' })
