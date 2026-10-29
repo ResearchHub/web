@@ -23,7 +23,7 @@ const HI_RES = GRID * 2;
 const OUTLINE = '#1b1b2f';
 const WHITE = '#ffffff';
 const LIT_SIDE_END = 26;
-const charCode = (code: string) => code.charCodeAt(0);
+const charCode = (code: string) => code.codePointAt(0) ?? 0;
 const EMPTY = 0;
 const HAIR = charCode('H');
 const HAIR_HIGHLIGHT = charCode('L');
@@ -996,7 +996,7 @@ const placeSprite = ({ start, rows }: Sprite): CodeGrid => {
   const grid = spriteScratch.fill(EMPTY);
   rows.forEach((row, dy) => {
     for (let x = 0; x < row.length; x++) {
-      if (row[x] !== '.') grid[(start + dy) * GRID + x] = row.charCodeAt(x);
+      if (row[x] !== '.') grid[(start + dy) * GRID + x] = row.codePointAt(x) ?? EMPTY;
     }
   });
   return grid;
@@ -1014,6 +1014,29 @@ const plotCells = (cells: Cell[]): Upscaled => {
   return { codes, top, bottom };
 };
 
+// Off the grid, a cell's neighbor is the cell itself.
+const codeAt = (grid: CodeGrid, x: number, y: number, fallback: number) =>
+  x >= 0 && y >= 0 && x < GRID && y < GRID ? grid[y * GRID + x] : fallback;
+
+// Writes the 2x2 block one 24-grid cell becomes on the 48 grid. EMPTY is 0, so the codes OR to 0
+// only when the cell and its neighbors are all blank; that block stays blank, as the grid starts.
+const scaleCell = (
+  scaled: CodeGrid,
+  topLeft: number,
+  center: number,
+  above: number,
+  right: number,
+  left: number,
+  below: number
+) => {
+  if ((center | above | right | left | below) === EMPTY) return;
+  const bottomLeft = topLeft + HI_RES;
+  scaled[topLeft] = left === above && left !== below && above !== right ? above : center;
+  scaled[topLeft + 1] = above === right && above !== left && right !== below ? right : center;
+  scaled[bottomLeft] = below === left && below !== right && left !== above ? left : center;
+  scaled[bottomLeft + 1] = right === below && right !== above && below !== left ? below : center;
+};
+
 // Scale2x rounds corners and diagonals instead of doubling pixels into 2x2 blocks.
 // Rows outside [fromRow, toRow) must be empty; they stay empty when scaled.
 const scale2x = (grid: CodeGrid, fromRow: number, toRow: number): CodeGrid => {
@@ -1021,27 +1044,15 @@ const scale2x = (grid: CodeGrid, fromRow: number, toRow: number): CodeGrid => {
   for (let y = fromRow; y < toRow; y++) {
     for (let x = 0; x < GRID; x++) {
       const center = grid[y * GRID + x];
-      const above = y > 0 ? grid[(y - 1) * GRID + x] : center;
-      const right = x < GRID - 1 ? grid[y * GRID + x + 1] : center;
-      const left = x > 0 ? grid[y * GRID + x - 1] : center;
-      const below = y < GRID - 1 ? grid[(y + 1) * GRID + x] : center;
-      // A blank cell with blank neighbors stays blank, and the scaled grid starts blank.
-      if (
-        center === EMPTY &&
-        above === EMPTY &&
-        right === EMPTY &&
-        left === EMPTY &&
-        below === EMPTY
-      ) {
-        continue;
-      }
-      const topLeft = 2 * y * HI_RES + 2 * x;
-      const bottomLeft = topLeft + HI_RES;
-      scaled[topLeft] = left === above && left !== below && above !== right ? above : center;
-      scaled[topLeft + 1] = above === right && above !== left && right !== below ? right : center;
-      scaled[bottomLeft] = below === left && below !== right && left !== above ? left : center;
-      scaled[bottomLeft + 1] =
-        right === below && right !== above && below !== left ? below : center;
+      scaleCell(
+        scaled,
+        2 * y * HI_RES + 2 * x,
+        center,
+        codeAt(grid, x, y - 1, center),
+        codeAt(grid, x + 1, y, center),
+        codeAt(grid, x - 1, y, center),
+        codeAt(grid, x, y + 1, center)
+      );
     }
   }
   return scaled;
@@ -1127,60 +1138,70 @@ const createFills = () => {
       runStarts: Uint16Array.from(starts),
       runLengths: Uint8Array.from(lengths),
       runCodes: Uint8Array.from(runCodes),
-      codes: [...codeIds.keys()].map((code) => String.fromCharCode(code)),
+      codes: [...codeIds.keys()].map((code) => String.fromCodePoint(code)),
     }),
+  };
+};
+
+const RIM_CODES: Record<NonNullable<LayerOptions['rim']>, number> = { hair: HAIR, skin: SKIN };
+
+const isFilledIn = (codes: CodeGrid, x: number, y: number) =>
+  isOnCanvas(x, y) && codes[y * HI_RES + x] !== EMPTY;
+
+// Hair catches light on its upper edge; skin falls into shadow on its right edge.
+const shadeRim = (codes: CodeGrid, code: number, x: number, y: number) => {
+  if (code === HAIR) {
+    const isLit = !isFilledIn(codes, x, y - 1) && isFilledIn(codes, x, y + 2) && x < LIT_SIDE_END;
+    return isLit ? HAIR_HIGHLIGHT : code;
+  }
+  const isShadowed = !isFilledIn(codes, x + 1, y) || !isFilledIn(codes, x + 2, y);
+  return isShadowed ? SKIN_SHADOW : code;
+};
+
+// Collects the empty, on-canvas cells that border a layer, each once.
+const createOutline = (codes: CodeGrid) => {
+  const cells: number[] = [];
+  const isOutlined = outlineScratch.fill(0);
+  const add = (x: number, y: number) => {
+    const cell = y * HI_RES + x;
+    if (!isOnCanvas(x, y) || codes[cell] || isOutlined[cell]) return;
+    isOutlined[cell] = 1;
+    cells.push(toBmpCell(x, y));
+  };
+  return {
+    // At the left and right edges, cell ± 1 is in the next or previous row. Skipping on it is
+    // still safe: the neighbor it stands for is off the canvas, which `add` ignores anyway.
+    addAround: (x: number, y: number) => {
+      const cell = y * HI_RES + x;
+      if (!codes[cell + 1]) add(x + 1, y);
+      if (!codes[cell - 1]) add(x - 1, y);
+      if (!codes[cell + HI_RES]) add(x, y + 1);
+      if (!codes[cell - HI_RES]) add(x, y - 1);
+    },
+    finish: () => Uint16Array.from(cells),
   };
 };
 
 const prepareLayer = (drawing: Drawing, { rim }: LayerOptions = {}): PreparedLayer => {
   const { codes, top, bottom } = upscale(drawing);
-  const isFilled = (x: number, y: number) => isOnCanvas(x, y) && codes[y * HI_RES + x] !== EMPTY;
-  const shadeRim = (code: number, x: number, y: number) => {
-    const isHairHighlight =
-      rim === 'hair' &&
-      code === HAIR &&
-      !isFilled(x, y - 1) &&
-      isFilled(x, y + 2) &&
-      x < LIT_SIDE_END;
-    if (isHairHighlight) return HAIR_HIGHLIGHT;
-    const isSkinShadow =
-      rim === 'skin' && code === SKIN && (!isFilled(x + 1, y) || !isFilled(x + 2, y));
-    return isSkinShadow ? SKIN_SHADOW : code;
-  };
-
-  const outline: number[] = [];
+  const outline = createOutline(codes);
   const fills = createFills();
-  const isOutlined = outlineScratch.fill(0);
-  const addOutline = (x: number, y: number) => {
-    const cell = y * HI_RES + x;
-    if (!isOnCanvas(x, y) || codes[cell] || isOutlined[cell]) return;
-    isOutlined[cell] = 1;
-    outline.push(toBmpCell(x, y));
-  };
-  const rimCode = rim === 'hair' ? HAIR : rim === 'skin' ? SKIN : EMPTY;
+  const rimCode = rim ? RIM_CODES[rim] : EMPTY;
   for (let y = top; y < bottom; y++) {
     for (let x = 0; x < HI_RES; x++) {
-      const cell = y * HI_RES + x;
-      const code = codes[cell];
+      const code = codes[y * HI_RES + x];
       if (code === EMPTY) continue;
-      fills.add(toBmpCell(x, y), code === rimCode ? shadeRim(code, x, y) : code);
-      if (UNOUTLINED_CODES.has(code)) continue;
-      // At the left and right edges, cell ± 1 is in the next or previous row. Skipping on it is
-      // still safe: the neighbor it stands for is off the canvas, which addOutline ignores anyway.
-      if (!codes[cell + 1]) addOutline(x + 1, y);
-      if (!codes[cell - 1]) addOutline(x - 1, y);
-      if (!codes[cell + HI_RES]) addOutline(x, y + 1);
-      if (!codes[cell - HI_RES]) addOutline(x, y - 1);
+      fills.add(toBmpCell(x, y), code === rimCode ? shadeRim(codes, code, x, y) : code);
+      if (!UNOUTLINED_CODES.has(code)) outline.addAround(x, y);
     }
   }
-  return { outline: Uint16Array.from(outline), ...fills.finish(), filled: codes };
+  return { outline: outline.finish(), ...fills.finish(), filled: codes };
 };
 
 // Face features paint after the silhouette, only where it is filled, and add no outline.
 const prepareFeatures = (features: Cell[], silhouette: PreparedLayer): PreparedLayer => {
   const fills = createFills();
-  for (let i = 0; i < features.length; i++) {
-    const [x, y, code] = features[i];
+  for (const [x, y, code] of features) {
     if (silhouette.filled[y * HI_RES + x]) fills.add(toBmpCell(x, y), charCode(code));
   }
   return { outline: new Uint16Array(0), ...fills.finish(), filled: silhouette.filled };
@@ -1206,9 +1227,7 @@ const getPreparedLayer = (shape: object, variant: string, prepare: () => Prepare
 // Uint8Array#toBase64 is newer than btoa, so older browsers and Node versions fall back to btoa.
 const toBase64 = (bytes: Uint8Array) => {
   const withBase64 = bytes as Uint8Array & { toBase64?: () => string };
-  return withBase64.toBase64
-    ? withBase64.toBase64()
-    : btoa(String.fromCharCode.apply(null, bytes as unknown as number[]));
+  return withBase64.toBase64 ? withBase64.toBase64() : btoa(String.fromCodePoint(...bytes));
 };
 
 const BMP_HEADER_SIZE = 54;
@@ -1313,8 +1332,7 @@ const drawAvatarBitmap = ({
     palette: Palette,
     outlineOver: boolean
   ) => {
-    for (let i = 0; i < outline.length; i++) {
-      const cell = outline[i];
+    for (const cell of outline) {
       if (outlineOver || pixels[cell] === 0) pixels[cell] = outlineIndex;
     }
     const fills = codes.map((code) => {
