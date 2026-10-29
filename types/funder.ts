@@ -24,6 +24,11 @@ export interface SupportedProposal {
   fundedAmount: CurrencyAmount;
 }
 
+export interface SupportedGrant extends SupportedProposal {
+  /** Offering org, when the RFP has one. */
+  organization?: string;
+}
+
 export interface SupportedInstitution {
   id: number;
   name: string;
@@ -36,6 +41,7 @@ export interface FunderOverview {
   distributedFunds: CurrencyAmount;
   supportedResearchers: SupportedResearcher[];
   supportedProposals: SupportedProposal[];
+  supportedGrants: SupportedGrant[];
   // Display headline ($1.24M) — alias of distributedFunds for the hero copy.
   totalGiven: CurrencyAmount;
   // Alias of matchedFunds for the hero copy.
@@ -68,7 +74,8 @@ function formatMatchRatio(given: CurrencyAmount, match: CurrencyAmount): string 
 
 export function transformFunderOverview(raw: any): FunderOverview {
   const proposals = extractProposals(raw.supported_proposals);
-  const researchers = extractResearchers(proposals);
+  const grants = extractGrants(raw.supported_grants);
+  const researchers = extractResearchers([...proposals, ...grants]);
 
   const distributedFunds: CurrencyAmount = {
     rsc: raw.distributed_funds?.rsc ?? 0,
@@ -94,6 +101,7 @@ export function transformFunderOverview(raw: any): FunderOverview {
     distributedFunds,
     supportedResearchers: researchers,
     supportedProposals: proposals,
+    supportedGrants: grants,
     totalGiven,
     communityMatch,
     totalDeployed,
@@ -104,39 +112,53 @@ export function transformFunderOverview(raw: any): FunderOverview {
   };
 }
 
-function extractProposals(rawProposals: any[]): SupportedProposal[] {
-  return (rawProposals ?? [])
-    .filter((p: any) => p.created_by)
-    .map((p: any) => ({
-      id: p.id,
-      title: p.unified_document?.title ?? '',
-      slug: p.unified_document?.slug ?? '',
-      image: p.image_url || null,
-      createdBy: {
-        id: p.created_by.id,
-        authorProfile: transformAuthorProfile(p.created_by.author_profile),
-      },
-      fundedAmount: {
-        rsc: p.funded_amount?.rsc ?? 0,
-        usd: usdFromAmount(p.funded_amount),
-      },
-    }));
+function extractBase(item: any): SupportedProposal {
+  return {
+    id: item.id,
+    title: item.unified_document?.title ?? '',
+    slug: item.unified_document?.slug ?? '',
+    image: item.image_url || null,
+    createdBy: {
+      id: item.created_by.id,
+      authorProfile: transformAuthorProfile(item.created_by.author_profile),
+    },
+    fundedAmount: {
+      rsc: item.funded_amount?.rsc ?? 0,
+      usd: usdFromAmount(item.funded_amount),
+    },
+  };
 }
 
-function extractResearchers(proposals: SupportedProposal[]): SupportedResearcher[] {
+function extractProposals(rawItems: any[]): SupportedProposal[] {
+  return (rawItems ?? []).filter((item: any) => item.created_by).map(extractBase);
+}
+
+function extractGrants(rawItems: any[]): SupportedGrant[] {
+  return (rawItems ?? [])
+    .filter((item: any) => item.created_by)
+    .map((item: any) => {
+      const organization = typeof item.organization === 'string' ? item.organization.trim() : '';
+      return {
+        ...extractBase(item),
+        ...(organization ? { organization } : {}),
+      };
+    });
+}
+
+function extractResearchers(items: SupportedProposal[]): SupportedResearcher[] {
   const map = new Map<number, SupportedResearcher>();
 
-  for (const proposal of proposals) {
-    const { id, authorProfile } = proposal.createdBy;
+  for (const item of items) {
+    const { id, authorProfile } = item.createdBy;
     const existing = map.get(id);
     if (existing) {
-      existing.fundedAmount.rsc += proposal.fundedAmount.rsc;
-      existing.fundedAmount.usd += proposal.fundedAmount.usd;
+      existing.fundedAmount.rsc += item.fundedAmount.rsc;
+      existing.fundedAmount.usd += item.fundedAmount.usd;
     } else {
       map.set(id, {
         id,
         authorProfile,
-        fundedAmount: { ...proposal.fundedAmount },
+        fundedAmount: { ...item.fundedAmount },
       });
     }
   }
