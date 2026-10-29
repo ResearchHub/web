@@ -1,5 +1,6 @@
 type Cell = [x: number, y: number, code: string];
-type CodeGrid = string[][];
+// Square grid of code character codes stored row by row; 0 is an empty cell.
+type CodeGrid = Uint8Array;
 type Tint = { tint: string; alpha: number };
 type Palette = Record<string, string | Tint>;
 type Span = [left: number, right: number];
@@ -14,7 +15,6 @@ type ColoredDrawing = Drawing & { colors: Palette };
 
 interface LayerOptions {
   rim?: 'hair' | 'skin';
-  features?: Cell[];
 }
 
 // Parts are authored on the 24 grid and upscaled to the 48 grid; face features are drawn at 48.
@@ -23,13 +23,13 @@ const HI_RES = GRID * 2;
 const OUTLINE = '#1b1b2f';
 const WHITE = '#ffffff';
 const LIT_SIDE_END = 26;
-const UNOUTLINED_CODES = new Set(['w', 'g', 'i', 'I']);
-const NEIGHBOR_OFFSETS = [
-  [1, 0],
-  [-1, 0],
-  [0, 1],
-  [0, -1],
-];
+const charCode = (code: string) => code.charCodeAt(0);
+const EMPTY = 0;
+const HAIR = charCode('H');
+const HAIR_HIGHLIGHT = charCode('L');
+const SKIN = charCode('S');
+const SKIN_SHADOW = charCode('s');
+const UNOUTLINED_CODES = new Set(['w', 'g', 'i', 'I'].map(charCode));
 
 const HAIR_COLORS = ['#2b2b2b', '#4a3121', '#7b4a2a', '#a0452b', '#e3c16f', '#a8a8a8', '#f2f2f2'];
 const BACKGROUND_COLORS = [
@@ -892,8 +892,11 @@ interface Traits {
 
 const hashSeed = (seed: string) => {
   let hash = 2166136261;
-  for (const character of seed) {
-    hash ^= character.codePointAt(0) ?? 0;
+  // Steps by code point, so a surrogate pair hashes as one character.
+  for (let i = 0; i < seed.length; i++) {
+    const codePoint = seed.codePointAt(i) ?? 0;
+    if (codePoint > 0xffff) i++;
+    hash ^= codePoint;
     hash = Math.imul(hash, 16777619);
   }
   hash ^= hash >>> 16;
@@ -934,7 +937,15 @@ const pickTraits = (seed: string): Traits => {
   };
 };
 
-const toChannels = (hex: string) => [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
+const parsedChannels = new Map<string, number[]>();
+const toChannels = (hex: string) => {
+  let channels = parsedChannels.get(hex);
+  if (!channels) {
+    channels = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
+    parsedChannels.set(hex, channels);
+  }
+  return channels;
+};
 
 const toHex = (channels: number[]) =>
   '#' + channels.map((channel) => channel.toString(16).padStart(2, '0')).join('');
@@ -942,12 +953,20 @@ const toHex = (channels: number[]) =>
 const clampChannel = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
 // Negative amounts darken toward black; positive amounts lighten toward white.
-const shade = (hex: string, amount: number) =>
-  toHex(
-    toChannels(hex).map((channel) =>
-      clampChannel(amount < 0 ? channel * (1 + amount) : channel + (255 - channel) * amount)
-    )
-  );
+const shadedColors = new Map<string, string>();
+const shade = (hex: string, amount: number) => {
+  const key = `${hex}${amount}`;
+  let shaded = shadedColors.get(key);
+  if (!shaded) {
+    shaded = toHex(
+      toChannels(hex).map((channel) =>
+        clampChannel(amount < 0 ? channel * (1 + amount) : channel + (255 - channel) * amount)
+      )
+    );
+    shadedColors.set(key, shaded);
+  }
+  return shaded;
+};
 
 const blend = (base: string, tint: string, alpha: number) => {
   const tintChannels = toChannels(tint);
@@ -956,54 +975,89 @@ const blend = (base: string, tint: string, alpha: number) => {
   );
 };
 
-const createGrid = <T>(size: number, fill: T): T[][] =>
-  Array.from({ length: size }, () => new Array<T>(size).fill(fill));
+const createGrid = (size: number): CodeGrid => new Uint8Array(size * size);
 
 const isOnCanvas = (x: number, y: number) => x >= 0 && y >= 0 && x < HI_RES && y < HI_RES;
 
+// Codes on the 48 grid, with the rows [top, bottom) that hold anything; all other rows are empty.
+interface Upscaled {
+  codes: CodeGrid;
+  top: number;
+  bottom: number;
+}
+
+// Avatars and layers are drawn one at a time, synchronously, so these scratch buffers are shared.
+const spriteScratch = createGrid(GRID);
+const outlineScratch = new Uint8Array(HI_RES * HI_RES);
+const pixelScratch = new Uint8Array(HI_RES * HI_RES);
+
+// The returned grid is scratch space, valid until the next call.
 const placeSprite = ({ start, rows }: Sprite): CodeGrid => {
-  const grid = createGrid(GRID, '.');
-  rows.forEach((row, dy) =>
-    [...row].forEach((code, x) => {
-      grid[start + dy][x] = code;
-    })
-  );
+  const grid = spriteScratch.fill(EMPTY);
+  rows.forEach((row, dy) => {
+    for (let x = 0; x < row.length; x++) {
+      if (row[x] !== '.') grid[(start + dy) * GRID + x] = row.charCodeAt(x);
+    }
+  });
   return grid;
 };
 
-const plotCells = (cells: Cell[]): CodeGrid => {
-  const grid = createGrid(HI_RES, '.');
-  for (const [x, y, code] of cells) grid[y][x] = code;
-  return grid;
+const plotCells = (cells: Cell[]): Upscaled => {
+  const codes = createGrid(HI_RES);
+  let top = HI_RES;
+  let bottom = 0;
+  for (const [x, y, code] of cells) {
+    codes[y * HI_RES + x] = charCode(code);
+    top = Math.min(top, y);
+    bottom = Math.max(bottom, y + 1);
+  }
+  return { codes, top, bottom };
 };
 
 // Scale2x rounds corners and diagonals instead of doubling pixels into 2x2 blocks.
-const scale2x = (grid: CodeGrid): CodeGrid => {
-  const scaled = createGrid(HI_RES, '.');
-  const codeAt = (x: number, y: number, fallback: string) => grid[y]?.[x] ?? fallback;
-  grid.forEach((row, y) =>
-    row.forEach((center, x) => {
-      const above = codeAt(x, y - 1, center);
-      const right = codeAt(x + 1, y, center);
-      const left = codeAt(x - 1, y, center);
-      const below = codeAt(x, y + 1, center);
-      scaled[2 * y][2 * x] = left === above && left !== below && above !== right ? above : center;
-      scaled[2 * y][2 * x + 1] =
-        above === right && above !== left && right !== below ? right : center;
-      scaled[2 * y + 1][2 * x] =
-        below === left && below !== right && left !== above ? left : center;
-      scaled[2 * y + 1][2 * x + 1] =
+// Rows outside [fromRow, toRow) must be empty; they stay empty when scaled.
+const scale2x = (grid: CodeGrid, fromRow: number, toRow: number): CodeGrid => {
+  const scaled = createGrid(HI_RES);
+  for (let y = fromRow; y < toRow; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const center = grid[y * GRID + x];
+      const above = y > 0 ? grid[(y - 1) * GRID + x] : center;
+      const right = x < GRID - 1 ? grid[y * GRID + x + 1] : center;
+      const left = x > 0 ? grid[y * GRID + x - 1] : center;
+      const below = y < GRID - 1 ? grid[(y + 1) * GRID + x] : center;
+      // A blank cell with blank neighbors stays blank, and the scaled grid starts blank.
+      if (
+        center === EMPTY &&
+        above === EMPTY &&
+        right === EMPTY &&
+        left === EMPTY &&
+        below === EMPTY
+      ) {
+        continue;
+      }
+      const topLeft = 2 * y * HI_RES + 2 * x;
+      const bottomLeft = topLeft + HI_RES;
+      scaled[topLeft] = left === above && left !== below && above !== right ? above : center;
+      scaled[topLeft + 1] = above === right && above !== left && right !== below ? right : center;
+      scaled[bottomLeft] = below === left && below !== right && left !== above ? left : center;
+      scaled[bottomLeft + 1] =
         right === below && right !== above && below !== left ? below : center;
-    })
-  );
+    }
+  }
   return scaled;
 };
 
-const upscale = (drawing: Drawing): CodeGrid =>
-  'cells' in drawing ? plotCells(drawing.cells) : scale2x(placeSprite(drawing));
+const upscale = (drawing: Drawing): Upscaled => {
+  if ('cells' in drawing) return plotCells(drawing.cells);
+  const end = drawing.start + drawing.rows.length;
+  return {
+    codes: scale2x(placeSprite(drawing), drawing.start, end),
+    top: 2 * drawing.start,
+    bottom: 2 * end,
+  };
+};
 
-const drawHeadSilhouette = (head: Head): Sprite => {
-  const spans = HEAD_SHAPES[head.shape];
+const drawHeadSilhouette = (spans: Record<number, Span>): Sprite => {
   const rows: string[] = [];
   let span = spans[6];
   for (let y = 6; y <= 19; y++) {
@@ -1030,7 +1084,187 @@ const listHeadFeatures = (head: Head): Cell[] => [
   ...(head.extra ?? []).flatMap((mark) => FACE_FEATURES.extra[mark]),
 ];
 
-const drawAvatarSvg = ({
+// BMP stores rows bottom-up, so painted pixels use that order and the encoder copies them as is.
+const toBmpCell = (x: number, y: number) => (HI_RES - 1 - y) * HI_RES + x;
+
+// A layer reduced to what painting needs: where its outline goes and which code fills each cell.
+// Cells are BMP-order pixel indexes. Fills are runs of consecutive cells sharing a code, which
+// each run names by position in `codes`. `filled` is the layer's code grid, in top-down order.
+interface PreparedLayer {
+  outline: Uint16Array;
+  runStarts: Uint16Array;
+  runLengths: Uint8Array;
+  runCodes: Uint8Array;
+  codes: string[];
+  filled: Uint8Array;
+}
+
+// Fills must be added in painting order; a cell continues the last run when it is next in line.
+const createFills = () => {
+  const starts: number[] = [];
+  const lengths: number[] = [];
+  const runCodes: number[] = [];
+  const codeIds = new Map<number, number>();
+  let last = -1;
+  let lastCode = -1;
+  let id = -1;
+  return {
+    add: (cell: number, code: number) => {
+      if (code !== lastCode) {
+        lastCode = code;
+        id = codeIds.get(code) ?? codeIds.size;
+        codeIds.set(code, id);
+      }
+      if (last >= 0 && runCodes[last] === id && starts[last] + lengths[last] === cell) {
+        lengths[last]++;
+      } else {
+        last = starts.push(cell) - 1;
+        lengths.push(1);
+        runCodes.push(id);
+      }
+    },
+    finish: () => ({
+      runStarts: Uint16Array.from(starts),
+      runLengths: Uint8Array.from(lengths),
+      runCodes: Uint8Array.from(runCodes),
+      codes: [...codeIds.keys()].map((code) => String.fromCharCode(code)),
+    }),
+  };
+};
+
+const prepareLayer = (drawing: Drawing, { rim }: LayerOptions = {}): PreparedLayer => {
+  const { codes, top, bottom } = upscale(drawing);
+  const isFilled = (x: number, y: number) => isOnCanvas(x, y) && codes[y * HI_RES + x] !== EMPTY;
+  const shadeRim = (code: number, x: number, y: number) => {
+    const isHairHighlight =
+      rim === 'hair' &&
+      code === HAIR &&
+      !isFilled(x, y - 1) &&
+      isFilled(x, y + 2) &&
+      x < LIT_SIDE_END;
+    if (isHairHighlight) return HAIR_HIGHLIGHT;
+    const isSkinShadow =
+      rim === 'skin' && code === SKIN && (!isFilled(x + 1, y) || !isFilled(x + 2, y));
+    return isSkinShadow ? SKIN_SHADOW : code;
+  };
+
+  const outline: number[] = [];
+  const fills = createFills();
+  const isOutlined = outlineScratch.fill(0);
+  const addOutline = (x: number, y: number) => {
+    const cell = y * HI_RES + x;
+    if (!isOnCanvas(x, y) || codes[cell] || isOutlined[cell]) return;
+    isOutlined[cell] = 1;
+    outline.push(toBmpCell(x, y));
+  };
+  const rimCode = rim === 'hair' ? HAIR : rim === 'skin' ? SKIN : EMPTY;
+  for (let y = top; y < bottom; y++) {
+    for (let x = 0; x < HI_RES; x++) {
+      const cell = y * HI_RES + x;
+      const code = codes[cell];
+      if (code === EMPTY) continue;
+      fills.add(toBmpCell(x, y), code === rimCode ? shadeRim(code, x, y) : code);
+      if (UNOUTLINED_CODES.has(code)) continue;
+      // At the left and right edges, cell ± 1 is in the next or previous row. Skipping on it is
+      // still safe: the neighbor it stands for is off the canvas, which addOutline ignores anyway.
+      if (!codes[cell + 1]) addOutline(x + 1, y);
+      if (!codes[cell - 1]) addOutline(x - 1, y);
+      if (!codes[cell + HI_RES]) addOutline(x, y + 1);
+      if (!codes[cell - HI_RES]) addOutline(x, y - 1);
+    }
+  }
+  return { outline: Uint16Array.from(outline), ...fills.finish(), filled: codes };
+};
+
+// Face features paint after the silhouette, only where it is filled, and add no outline.
+const prepareFeatures = (features: Cell[], silhouette: PreparedLayer): PreparedLayer => {
+  const fills = createFills();
+  for (let i = 0; i < features.length; i++) {
+    const [x, y, code] = features[i];
+    if (silhouette.filled[y * HI_RES + x]) fills.add(toBmpCell(x, y), charCode(code));
+  }
+  return { outline: new Uint16Array(0), ...fills.finish(), filled: silhouette.filled };
+};
+
+// Prepared layers are cached by shape (sprite rows, cell list, head spans, or head) and by
+// everything else that changes the result, so parts that share a shape share its layer.
+const preparedLayers = new WeakMap<object, Map<string, PreparedLayer>>();
+const getPreparedLayer = (shape: object, variant: string, prepare: () => PreparedLayer) => {
+  let variants = preparedLayers.get(shape);
+  if (!variants) {
+    variants = new Map();
+    preparedLayers.set(shape, variants);
+  }
+  let layer = variants.get(variant);
+  if (!layer) {
+    layer = prepare();
+    variants.set(variant, layer);
+  }
+  return layer;
+};
+
+// Uint8Array#toBase64 is newer than btoa, so older browsers and Node versions fall back to btoa.
+const toBase64 = (bytes: Uint8Array) => {
+  const withBase64 = bytes as Uint8Array & { toBase64?: () => string };
+  return withBase64.toBase64
+    ? withBase64.toBase64()
+    : btoa(String.fromCharCode.apply(null, bytes as unknown as number[]));
+};
+
+const BMP_HEADER_SIZE = 54;
+const BMP_INFO_HEADER_SIZE = 40;
+
+const MAX_PALETTE_SIZE = 256;
+
+// An 8-bit BMP holds at most 256 colors, so a color past that reuses the closest one already used.
+// Index 0 is skipped because it marks empty pixels.
+const nearestPaintedColorIndex = (color: string, colors: string[]) => {
+  const [red, green, blue] = toChannels(color);
+  let nearest = 1;
+  let nearestDistance = Infinity;
+  for (let i = 1; i < colors.length; i++) {
+    const [r, g, b] = toChannels(colors[i]);
+    const distance = (red - r) ** 2 + (green - g) ** 2 + (blue - b) ** 2;
+    if (distance < nearestDistance) {
+      nearest = i;
+      nearestDistance = distance;
+    }
+  }
+  return nearest;
+};
+
+// One buffer, sized for a full palette, holds each BMP while it is encoded. The header fields
+// that are the same for every avatar are written once; size, pixel offset, and palette size vary.
+const bmpBuffer = new Uint8Array(BMP_HEADER_SIZE + MAX_PALETTE_SIZE * 4 + HI_RES * HI_RES);
+const bmpView = new DataView(bmpBuffer.buffer);
+bmpBuffer[0] = 0x42;
+bmpBuffer[1] = 0x4d;
+bmpView.setUint32(14, BMP_INFO_HEADER_SIZE, true);
+bmpView.setInt32(18, HI_RES, true);
+bmpView.setInt32(22, HI_RES, true);
+bmpView.setUint16(26, 1, true);
+bmpView.setUint16(28, 8, true);
+
+// An 8-bit palette BMP needs no compression or checksums, so it is cheap to write and to decode.
+const encodeBmp = (pixels: Uint8Array, colors: string[]) => {
+  const pixelOffset = BMP_HEADER_SIZE + colors.length * 4;
+  const length = pixelOffset + pixels.length;
+  const bytes = bmpBuffer;
+  bmpView.setUint32(2, length, true);
+  bmpView.setUint32(10, pixelOffset, true);
+  bmpView.setUint32(46, colors.length, true);
+  colors.forEach((color, i) => {
+    const [red, green, blue] = toChannels(color);
+    const entry = BMP_HEADER_SIZE + i * 4;
+    bytes[entry] = blue;
+    bytes[entry + 1] = green;
+    bytes[entry + 2] = red;
+  });
+  bytes.set(pixels, pixelOffset);
+  return toBase64(bytes.subarray(0, length));
+};
+
+const drawAvatarBitmap = ({
   head,
   hairColor,
   background,
@@ -1040,7 +1274,20 @@ const drawAvatarSvg = ({
   outfit,
   prop,
 }: Traits) => {
-  const pixels = createGrid<string | null>(HI_RES, null);
+  // Pixels hold palette indexes; index 0 is an empty pixel, which shows the background.
+  const pixels = pixelScratch.fill(EMPTY);
+  const colors = [background];
+  const colorIndexes = new Map<string, number>();
+  const colorIndex = (color: string) => {
+    let index = colorIndexes.get(color);
+    if (index === undefined) {
+      if (colors.length === MAX_PALETTE_SIZE) return nearestPaintedColorIndex(color, colors);
+      index = colors.push(color) - 1;
+      colorIndexes.set(color, index);
+    }
+    return index;
+  };
+  const outlineIndex = colorIndex(OUTLINE);
   const deepSkin = shade(head.skin, -0.3);
   const hairPalette: Palette = {
     H: hairColor,
@@ -1061,97 +1308,59 @@ const drawAvatarSvg = ({
     c: '#e8968a',
   };
 
-  const paint = (x: number, y: number, color: Palette[string] | undefined) => {
-    if (color === undefined) pixels[y][x] = OUTLINE;
-    else if (typeof color === 'string') pixels[y][x] = color;
-    else pixels[y][x] = blend(pixels[y][x] ?? background, color.tint, color.alpha);
-  };
-
   const paintLayer = (
-    drawing: Drawing,
+    { outline, runStarts, runLengths, runCodes, codes }: PreparedLayer,
     palette: Palette,
-    outlineOver: boolean,
-    { rim, features = [] }: LayerOptions = {}
+    outlineOver: boolean
   ) => {
-    const codes = upscale(drawing);
-    const isFilled = (x: number, y: number) => (codes[y]?.[x] ?? '.') !== '.';
-    const shadeRim = (code: string, x: number, y: number) => {
-      const isHairHighlight =
-        rim === 'hair' &&
-        code === 'H' &&
-        !isFilled(x, y - 1) &&
-        isFilled(x, y + 2) &&
-        x < LIT_SIDE_END;
-      if (isHairHighlight) return 'L';
-      const isSkinShadow =
-        rim === 'skin' && code === 'S' && (!isFilled(x + 1, y) || !isFilled(x + 2, y));
-      return isSkinShadow ? 's' : code;
-    };
-
-    codes.forEach((row, y) =>
-      row.forEach((code, x) => {
-        if (code === '.' || UNOUTLINED_CODES.has(code)) return;
-        for (const [dx, dy] of NEIGHBOR_OFFSETS) {
-          const nx = x + dx;
-          const ny = y + dy;
-          if (!isOnCanvas(nx, ny) || isFilled(nx, ny)) continue;
-          if (outlineOver || pixels[ny][nx] === null) pixels[ny][nx] = OUTLINE;
-        }
-      })
-    );
-
-    codes.forEach((row, y) =>
-      row.forEach((code, x) => {
-        if (code !== '.') paint(x, y, palette[shadeRim(code, x, y)]);
-      })
-    );
-
-    for (const [x, y, code] of features) {
-      if (isFilled(x, y)) paint(x, y, palette[code]);
+    for (let i = 0; i < outline.length; i++) {
+      const cell = outline[i];
+      if (outlineOver || pixels[cell] === 0) pixels[cell] = outlineIndex;
+    }
+    const fills = codes.map((code) => {
+      const color = palette[code];
+      if (color === undefined) return outlineIndex;
+      return typeof color === 'string' ? colorIndex(color) : color;
+    });
+    for (let run = 0; run < runStarts.length; run++) {
+      const start = runStarts[run];
+      const end = start + runLengths[run];
+      const fill = fills[runCodes[run]];
+      if (typeof fill === 'number') {
+        pixels.fill(fill, start, end);
+        continue;
+      }
+      for (let cell = start; cell < end; cell++) {
+        pixels[cell] = colorIndex(blend(colors[pixels[cell]], fill.tint, fill.alpha));
+      }
     }
   };
+  const paintPart = (part: Drawing, palette: Palette, outlineOver: boolean, rim?: 'hair') => {
+    const [shape, start] = 'cells' in part ? [part.cells, ''] : [part.rows, part.start];
+    paintLayer(
+      getPreparedLayer(shape, `${start}:${rim ?? ''}`, () => prepareLayer(part, { rim })),
+      palette,
+      outlineOver
+    );
+  };
 
-  paintLayer(outfit, { ...outfit.colors, s: skinPalette.s }, false);
-  paintLayer(drawHeadSilhouette(head), skinPalette, false, {
-    rim: 'skin',
-    features: listHeadFeatures(head),
-  });
-  if (facialHair) paintLayer(facialHair, hairPalette, true, { rim: 'hair' });
-  paintLayer(hair, hairPalette, true, { rim: 'hair' });
-  if (eyewear) paintLayer(eyewear, eyewear.colors, false);
-  if (prop) paintLayer(prop, prop.colors, true);
+  paintPart(outfit, { ...outfit.colors, s: skinPalette.s }, false);
+  const spans = HEAD_SHAPES[head.shape];
+  const silhouette = getPreparedLayer(spans, 'skin', () =>
+    prepareLayer(drawHeadSilhouette(spans), { rim: 'skin' })
+  );
+  paintLayer(silhouette, skinPalette, false);
+  paintLayer(
+    getPreparedLayer(head, 'features', () => prepareFeatures(listHeadFeatures(head), silhouette)),
+    skinPalette,
+    false
+  );
+  if (facialHair) paintPart(facialHair, hairPalette, true, 'hair');
+  paintPart(hair, hairPalette, true, 'hair');
+  if (eyewear) paintPart(eyewear, eyewear.colors, false);
+  if (prop) paintPart(prop, prop.colors, true);
 
-  // One path per color, made of its horizontal runs, keeps the SVG small and quick to decode.
-  // Runs bleed into empty cells below so no seam shows, but never over a cell another color fills.
-  const runsByColor = new Map<string, string>();
-  pixels.forEach((row, y) => {
-    const heightAt = (x: number) => (pixels[y + 1]?.[x] ? 1 : 1.05);
-    for (let x = 0; x < HI_RES; ) {
-      const color = row[x];
-      const height = heightAt(x);
-      let width = 1;
-      while (
-        color &&
-        x + width < HI_RES &&
-        row[x + width] === color &&
-        heightAt(x + width) === height
-      ) {
-        width++;
-      }
-      if (color) {
-        runsByColor.set(
-          color,
-          `${runsByColor.get(color) ?? ''}M${x} ${y}h${width}v${height}H${x}z`
-        );
-      }
-      x += width;
-    }
-  });
-  let paths = `<rect width="${HI_RES}" height="${HI_RES}" fill="${background}"/>`;
-  runsByColor.forEach((runs, color) => {
-    paths += `<path fill="${color}" d="${runs}"/>`;
-  });
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${HI_RES} ${HI_RES}" shape-rendering="crispEdges">${paths}</svg>`;
+  return encodeBmp(pixels, colors);
 };
 
 const MAX_CACHED_AVATARS = 500;
@@ -1165,9 +1374,7 @@ export const generatePixelScientistAvatarUri = (seed: string) => {
   if (cachedAvatarUris.size === MAX_CACHED_AVATARS) {
     cachedAvatarUris.delete(cachedAvatarUris.keys().next().value as string);
   }
-  // Only '#' must be escaped in an SVG data URI; it would otherwise start the URL fragment.
-  const svg = drawAvatarSvg(pickTraits(seed));
-  const uri = `data:image/svg+xml;charset=utf-8,${svg.replaceAll('#', '%23')}`;
+  const uri = `data:image/bmp;base64,${drawAvatarBitmap(pickTraits(seed))}`;
   cachedAvatarUris.set(seed, uri);
   return uri;
 };

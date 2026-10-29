@@ -139,7 +139,10 @@ export const Avatar: FC<AvatarProps> = ({
         <img
           src={shouldShowGeneratedAvatar ? generatePixelScientistAvatarUri(alt) : src}
           alt={alt}
-          className="h-full w-full object-cover"
+          className={cn(
+            'h-full w-full object-cover',
+            shouldShowGeneratedAvatar && '[image-rendering:pixelated]'
+          )}
           onError={handleImageError}
         />
       )}
