@@ -48,7 +48,7 @@ export function LandingPageFooter() {
     {
       href: 'https://x.com/researchhub',
       icon: faXTwitter,
-      label: 'Follow us on X (Twitter)',
+      label: 'Follow us on X',
     },
     {
       href: 'https://discord.com/invite/ZcCYgcnUp5',

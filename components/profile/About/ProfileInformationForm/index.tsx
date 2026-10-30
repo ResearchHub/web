@@ -64,7 +64,7 @@ export function ProfileInformationForm({
     },
     twitter: {
       icon: <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6 text-[#000]" />,
-      label: 'X (Twitter) Profile URL',
+      label: 'X Profile URL',
     },
     orcid_id: {
       icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-orcid-500" />,
@@ -76,6 +76,7 @@ export function ProfileInformationForm({
 
   const authorProfile = user?.authorProfile;
   const isOrcidConnected = authorProfile?.isOrcidConnected ?? false;
+  const isXConnected = authorProfile?.isXConnected ?? false;
 
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema({ fields })),
@@ -279,7 +280,7 @@ export function ProfileInformationForm({
                         className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
                         showIcon={false}
                       />
-                    ) : isX && !authorProfile?.twitter ? (
+                    ) : isX && !isXConnected ? (
                       <Button
                         type="button"
                         variant="dark"
