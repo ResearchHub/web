@@ -26,6 +26,7 @@ import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
 import Icon from '@/components/ui/icons/Icon';
 import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
+import { signIn } from 'next-auth/react';
 
 export type SocialLinkKey = 'linkedin' | 'google_scholar' | 'twitter' | 'orcid_id';
 
@@ -261,6 +262,7 @@ export function ProfileInformationForm({
               .map((key) => {
                 const meta = socialLinkMeta[key];
                 const isOrcid = key === 'orcid_id';
+                const isX = key === 'twitter';
 
                 return (
                   <div key={key} className="flex items-center gap-3">
@@ -277,6 +279,19 @@ export function ProfileInformationForm({
                         className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
                         showIcon={false}
                       />
+                    ) : isX && !authorProfile?.twitter ? (
+                      <Button
+                        type="button"
+                        variant="dark"
+                        className="flex-grow"
+                        onClick={() => {
+                          const callbackUrl = new URL(window.location.href);
+                          callbackUrl.searchParams.set('x_connected', 'true');
+                          void signIn('x', { callbackUrl: callbackUrl.href });
+                        }}
+                      >
+                        Connect X
+                      </Button>
                     ) : (
                       <Input
                         id={key}
@@ -286,7 +301,7 @@ export function ProfileInformationForm({
                         error={errors[key]?.message}
                         placeholder={meta.label}
                         className="flex-grow"
-                        disabled={isOrcid}
+                        disabled={isOrcid || isX}
                       />
                     )}
                   </div>

@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import GoogleProvider from 'next-auth/providers/google';
 import TwitterProvider from 'next-auth/providers/twitter';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -39,11 +40,15 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid X OAuth callback');
           }
 
-          const data = await AuthService.loginWithX({
-            code: params.code,
-            code_verifier: checks.code_verifier,
-            redirect_uri: provider.callbackUrl,
-          });
+          const session = await getServerSession(authOptions);
+          const data = await AuthService.authenticateWithX(
+            {
+              code: params.code,
+              code_verifier: checks.code_verifier,
+              redirect_uri: provider.callbackUrl,
+            },
+            session?.authToken
+          );
 
           return {
             tokens: {

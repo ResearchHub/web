@@ -16,6 +16,7 @@ import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { ModerationTab } from '@/components/profile/ModerationTab';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
+import { useXConnectCallback } from '@/hooks/useXConnectCallback';
 import {
   ProfileHeroBanner,
   ProfileHeroBannerSkeleton,
@@ -105,6 +106,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   useOrcidCallback({ onSuccess: refreshUser });
+  useXConnectCallback();
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
 
   // Tab state â€” lifted here so the tab bar can live in the hero banner

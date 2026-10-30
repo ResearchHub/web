@@ -4,17 +4,38 @@ import { useSearchParams } from 'next/navigation';
 import AuthContent from '@/components/Auth/AuthContent';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { status } = useSession();
   const authError = searchParams?.get('error');
   const error =
     authError === 'OAuthCallback'
       ? 'Unable to sign in. Please try again. For X, confirm your email address and allow email access.'
       : authError;
   const callbackUrl = searchParams?.get('callbackUrl') || '/';
+  const isFailedXConnect = status === 'authenticated' && !!authError;
+
+  const getSafeCallbackUrl = () => {
+    const url = new URL(callbackUrl, window.location.origin);
+    url.searchParams.delete('x_connected');
+    return url.origin === window.location.origin ? url.href : '/';
+  };
+
+  useEffect(() => {
+    if (isFailedXConnect) {
+      toast.error('Unable to connect X. It may already be linked to a different account.');
+      router.replace(getSafeCallbackUrl());
+    }
+  }, [isFailedXConnect]);
+
+  if (authError && status !== 'unauthenticated') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -47,7 +68,7 @@ function SignInContent() {
 
         <AuthContent
           initialError={error}
-          onSuccess={() => router.push(callbackUrl)}
+          onSuccess={() => router.push(getSafeCallbackUrl())}
           showHeader={false}
         />
       </div>
