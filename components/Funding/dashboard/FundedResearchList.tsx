@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Bell, Star } from 'lucide-react';
+import { Bell, Building2, Star } from 'lucide-react';
 import { getActivityComment } from '@/components/Activity/lib/activityDisplay.utils';
 import { getActivityWork } from '@/components/Activity/lib/activityWork.utils';
 import {
@@ -15,7 +15,11 @@ import { ActivityCommentPanel } from '@/components/modals/ActivityCommentPanel';
 import { Avatar } from '@/components/ui/Avatar';
 import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { DocumentThumbnail } from '@/components/Funding/dashboard/DocumentThumbnail';
-import type { FundedRow, ProposalNews } from '@/components/Funding/dashboard/lib/myFundingModel';
+import {
+  fundedRowByline,
+  type FundedRow,
+  type ProposalNews,
+} from '@/components/Funding/dashboard/lib/myFundingModel';
 import { useMoneyFormat } from '@/components/Funding/dashboard/lib/useMoneyFormat';
 import { formatTimeAgo } from '@/utils/date';
 import type { DetectedUrl } from '@/utils/url';
@@ -89,13 +93,17 @@ function FundedResearchRow({ row }: { readonly row: FundedRow }) {
             {row.title}
           </span>
           <span className="mt-2 flex min-w-0 items-center gap-2 text-[13px] text-gray-600">
-            <Avatar
-              src={row.scientist.profileImage}
-              alt={row.scientist.fullName}
-              size={20}
-              disableTooltip
-            />
-            <span className="truncate">{row.scientist.fullName}</span>
+            {row.kind === 'grant' && row.organization ? (
+              <Building2 className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+            ) : (
+              <Avatar
+                src={row.scientist.profileImage}
+                alt={row.scientist.fullName}
+                size={20}
+                disableTooltip
+              />
+            )}
+            <span className="truncate">{fundedRowByline(row)}</span>
           </span>
         </span>
 

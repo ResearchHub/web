@@ -10,6 +10,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { Button } from '@/components/ui/Button';
+import { formatNonprofitAddress } from '@/components/Nonprofit/formatNonprofitAddress';
 
 interface NonprofitSectionProps {
   fundraiseId: ID;
@@ -131,10 +132,12 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                           </>
                         )}
 
-                        <span className="text-gray-500">Location:</span>
-                        <span>
-                          {selectedNonprofit.address.region}, {selectedNonprofit.address.country}
-                        </span>
+                        {formatNonprofitAddress(selectedNonprofit.address) && (
+                          <>
+                            <span className="text-gray-500">Location:</span>
+                            <span>{formatNonprofitAddress(selectedNonprofit.address)}</span>
+                          </>
+                        )}
 
                         <span className="text-gray-500">Category:</span>
                         <span className="break-words">

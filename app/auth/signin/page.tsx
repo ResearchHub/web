@@ -9,7 +9,11 @@ import { Suspense } from 'react';
 function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams?.get('error');
+  const authError = searchParams?.get('error');
+  const error =
+    authError === 'OAuthCallback'
+      ? 'Unable to sign in. Please try again. For X, confirm your email address and allow email access.'
+      : authError;
   const callbackUrl = searchParams?.get('callbackUrl') || '/';
 
   return (

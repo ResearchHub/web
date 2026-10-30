@@ -75,22 +75,18 @@ function PageLayoutInner({
 }: PageLayoutProps) {
   const isNarrow = contentWidth === 'narrow';
 
-  const { scrollContainerRef, isLeftSidebarOpen, toggleLeftSidebar, closeLeftSidebar } =
+  const { scrollContainerRef, shellRef, isLeftSidebarOpen, toggleLeftSidebar, closeLeftSidebar } =
     usePageLayoutState();
 
-  const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
+  useMobileNavScroll({ scrollContainerRef, shellRef });
 
   return (
-    <ScrollContainerProvider
-      scrollContainerRef={scrollContainerRef}
-      isMobileTopNavHidden={isMobileTopNavHidden}
-    >
-      <div className="flex app-shell-viewport">
-        <TopBarContainer
-          isMobileTopNavHidden={isMobileTopNavHidden}
-          isLeftSidebarOpen={isLeftSidebarOpen}
-          onMenuClick={toggleLeftSidebar}
-        />
+    <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+      {/* Marked data-top-bar-hidden while the phone top bar is slid away. The
+          bar and whatever moves with it follow that in CSS, so a scroll that
+          hides or shows the bar re-renders nothing. */}
+      <div ref={shellRef} className="group/shell flex app-shell-viewport">
+        <TopBarContainer isLeftSidebarOpen={isLeftSidebarOpen} onMenuClick={toggleLeftSidebar} />
 
         <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
 
