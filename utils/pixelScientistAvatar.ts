@@ -37,7 +37,18 @@ const SKIN_SHADOW = charCode('s');
 const UNOUTLINED_CODES = new Set(['w', 'g', 'i', 'I'].map(charCode));
 
 const HAIR_COLORS = ['#2b2b2b', '#4a3121', '#7b4a2a', '#a0452b', '#e3c16f', '#a8a8a8', '#f2f2f2'];
-const BACKGROUND = themeColors.rhBlue[500];
+const BACKGROUND_COLORS = [
+  '#8ecae6',
+  '#ffb4a2',
+  '#cdb4db',
+  '#b9fbc0',
+  '#ffd166',
+  '#a0c4ff',
+  '#f4a261',
+  '#90be6d',
+  '#f3e9d8',
+  themeColors.rhBlue[500],
+];
 
 type HeadShape = 'oval' | 'round' | 'long' | 'square' | 'narrow';
 
@@ -1034,6 +1045,7 @@ interface Traits {
   facialHair: Sprite | null;
   eyewear: ColoredDrawing | null;
   prop: ColoredDrawing | null;
+  background: string;
 }
 
 const hashSeed = (seed: string) => {
@@ -1078,6 +1090,7 @@ const pickTraits = (seed: string): Traits => {
     facialHair: pickSometimes(0.45, FACIAL_HAIR),
     eyewear: pickSometimes(0.4, EYEWEAR),
     prop: pickSometimes(0.85, PROPS),
+    background: pick(BACKGROUND_COLORS),
   };
 };
 
@@ -1427,10 +1440,18 @@ const encodeBmp = (pixels: Uint8Array, colors: string[]) => {
   return toBase64(bytes.subarray(0, length));
 };
 
-const drawAvatarBitmap = ({ head, hairColor, hair, facialHair, eyewear, prop }: Traits) => {
+const drawAvatarBitmap = ({
+  head,
+  hairColor,
+  hair,
+  facialHair,
+  eyewear,
+  prop,
+  background,
+}: Traits) => {
   // Pixels hold palette indexes; index 0 is an empty pixel, which shows the background.
   const pixels = pixelScratch.fill(EMPTY);
-  const colors = [BACKGROUND];
+  const colors = [background];
   const colorIndexes = new Map<string, number>();
   const colorIndex = (color: string) => {
     let index = colorIndexes.get(color);
