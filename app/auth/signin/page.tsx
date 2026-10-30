@@ -18,7 +18,8 @@ function SignInContent() {
       ? 'Unable to sign in. Please try again. For X, confirm your email address and allow email access.'
       : authError;
   const callbackUrl = searchParams?.get('callbackUrl') || '/';
-  const isFailedXConnect = status === 'authenticated' && !!authError;
+  const isFailedXConnect =
+    status === 'authenticated' && !!authError && callbackUrl.includes('x_connected=true');
 
   const getSafeCallbackUrl = () => {
     const url = new URL(callbackUrl, window.location.origin);
@@ -33,7 +34,7 @@ function SignInContent() {
     }
   }, [isFailedXConnect]);
 
-  if (authError && status !== 'unauthenticated') {
+  if ((authError && status === 'loading') || isFailedXConnect) {
     return null;
   }
 
