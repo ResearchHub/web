@@ -173,6 +173,8 @@ export const extractTextFromTipTap = (tipTapContent: any): string => {
   const processNode = (node: any): void => {
     if (node.text) {
       text += node.text;
+    } else if (node.type === 'inlineMath' || node.type === 'blockMath') {
+      text += node.attrs?.latex || '';
     } else if (node.content && Array.isArray(node.content)) {
       node.content.forEach(processNode);
     }

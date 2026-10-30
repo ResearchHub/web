@@ -150,7 +150,9 @@ export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKit
   }),
   Subscript,
   Superscript,
-  Mathematics,
+  Mathematics.configure({
+    katexOptions: { throwOnError: false },
+  }),
   Table,
   TableCell,
   TableHeader,
