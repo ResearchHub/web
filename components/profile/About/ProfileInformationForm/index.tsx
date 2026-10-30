@@ -265,22 +265,19 @@ export function ProfileInformationForm({
                 const isOrcid = key === 'orcid_id';
                 const isX = key === 'twitter';
 
-                return (
-                  <div key={key} className="flex items-center gap-3">
-                    <SocialIcon
-                      icon={meta.icon}
-                      label={meta.label}
-                      href={null}
-                      size="sm"
-                      className="text-gray-500"
-                    />
-                    {isOrcid && !isOrcidConnected ? (
+                const renderSocialLinkField = () => {
+                  if (isOrcid && !isOrcidConnected) {
+                    return (
                       <OrcidConnectButton
                         variant="outlined"
                         className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
                         showIcon={false}
                       />
-                    ) : isX && !isXConnected ? (
+                    );
+                  }
+
+                  if (isX && !isXConnected) {
+                    return (
                       <Button
                         type="button"
                         variant="dark"
@@ -293,18 +290,33 @@ export function ProfileInformationForm({
                       >
                         Connect X
                       </Button>
-                    ) : (
-                      <Input
-                        id={key}
-                        name={key}
-                        value={socialLinks[key] || ''}
-                        onChange={handleSocialLinkChange}
-                        error={errors[key]?.message}
-                        placeholder={meta.label}
-                        className="flex-grow"
-                        disabled={isOrcid || isX}
-                      />
-                    )}
+                    );
+                  }
+
+                  return (
+                    <Input
+                      id={key}
+                      name={key}
+                      value={socialLinks[key] || ''}
+                      onChange={handleSocialLinkChange}
+                      error={errors[key]?.message}
+                      placeholder={meta.label}
+                      className="flex-grow"
+                      disabled={isOrcid || isX}
+                    />
+                  );
+                };
+
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <SocialIcon
+                      icon={meta.icon}
+                      label={meta.label}
+                      href={null}
+                      size="sm"
+                      className="text-gray-500"
+                    />
+                    {renderSocialLinkField()}
                   </div>
                 );
               })}
