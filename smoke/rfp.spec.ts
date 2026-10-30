@@ -16,6 +16,14 @@ import { openNotebookEditor } from './helpers/notebook';
  */
 const rfpTitle = () => `Smoke test RFP, please ignore ${randomUUID().slice(0, 8)}`;
 
+/** A 64×64 PNG, since an RFP cannot be published without a cover. */
+const COVER_IMAGE = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAUElEQVR42u3PQQkAAAgEsOufzLchzGEE' +
+    '38JgBZbqeS0CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApcF3mo' +
+    'CWVPTG70AAAAASUVORK5CYII=',
+  'base64'
+);
+
 const isPostUpsert = (url: string) => new URL(url).pathname === '/api/researchhubpost/';
 
 /** Fills in the confirm dialog and publishes, returning the upsert response. */
@@ -83,14 +91,20 @@ test('a new RFP can be drafted in the notebook and published', async ({ page }) 
 
   await page.getByTestId('notebook-add-details').click();
 
-  // A short description and a funding amount are what the schema demands of
-  // a grant. Contacts are required too but deliberately not filled: the form
+  // A short description, a funding amount and a cover are what the schema
+  // demands of a grant. Contacts are required too but deliberately not filled: the form
   // seeds them with the current user, and asserting the publish payload
   // carries one covers that without driving a user search.
   await page
     .getByTestId('grant-description-input')
     .fill('Smoke test RFP. Please ignore — created by the automated smoke suite.');
   await page.getByTestId('grant-amount-input').fill('10000');
+  await page.getByTestId('cover-image-input').setInputFiles({
+    name: 'smoke-cover.png',
+    mimeType: 'image/png',
+    buffer: COVER_IMAGE,
+  });
+  await expect(page.getByRole('button', { name: 'Remove cover image' })).toBeVisible();
 
   await page.getByTestId('publishing-form-submit').click();
 

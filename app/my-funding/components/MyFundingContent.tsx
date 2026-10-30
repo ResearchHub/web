@@ -151,7 +151,7 @@ export function MyFundingContent({
       {overview && (
         <RecentActivityPreview
           activity={activity}
-          firstScientist={fundedRows[0]?.scientist.fullName}
+          firstScientist={fundedRows.find((row) => row.kind === 'proposal')?.scientist.fullName}
           onSeeAll={() => onTabChange('activity')}
         />
       )}

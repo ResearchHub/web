@@ -144,20 +144,28 @@ export function latestNewsByPost(entries: readonly FeedEntry[]): Map<number, Pro
   return news;
 }
 
-/** One proposal the user funded, as Research you funded lists it. */
+/** One proposal or RFP the user funded, as Research you funded lists it. */
 export interface FundedRow {
   readonly key: string;
+  readonly kind: 'proposal' | 'grant';
   readonly postId: number;
   readonly title: string;
   readonly href: string;
   readonly image: string | null;
   readonly scientist: AuthorProfile;
+  readonly organization?: string;
   readonly youGave: Money;
   readonly news?: ProposalNews;
 }
 
+/** Byline under a funded row's title: org for RFPs when present, else the author. */
+export function fundedRowByline(row: FundedRow): string {
+  if (row.kind === 'grant' && row.organization) return row.organization;
+  return row.scientist.fullName;
+}
+
 /**
- * Research you funded, from the funding overview alone (which proposals the
+ * Research you funded, from the funding overview (proposals and RFP pools the
  * user gave to, how much, and who wrote them) with the latest news on each
  * from the activity. The ones with the newest news come first, then the ones
  * given the most.
@@ -167,9 +175,10 @@ export function buildFundedRows(
   news: ReadonlyMap<number, ProposalNews>
 ): FundedRow[] {
   if (!overview) return [];
-  const rows = overview.supportedProposals.map(
+  const proposalRows = overview.supportedProposals.map(
     (proposal): FundedRow => ({
-      key: `funded-${proposal.id}`,
+      key: `funded-proposal-${proposal.id}`,
+      kind: 'proposal',
       postId: proposal.id,
       title: proposal.title.trim() || 'Untitled proposal',
       href: buildWorkUrl({ id: proposal.id, slug: proposal.slug, contentType: 'preregistration' }),
@@ -179,6 +188,21 @@ export function buildFundedRows(
       news: news.get(proposal.id),
     })
   );
+  const grantRows = overview.supportedGrants.map(
+    (grant): FundedRow => ({
+      key: `funded-grant-${grant.id}`,
+      kind: 'grant',
+      postId: grant.id,
+      title: grant.title.trim() || 'Untitled RFP',
+      href: buildWorkUrl({ id: grant.id, slug: grant.slug, contentType: 'funding_request' }),
+      image: grant.image,
+      scientist: grant.createdBy.authorProfile,
+      organization: grant.organization,
+      youGave: grant.fundedAmount,
+      news: news.get(grant.id),
+    })
+  );
+  const rows = [...proposalRows, ...grantRows];
 
   const newsAt = (row: FundedRow) => (row.news ? new Date(row.news.timestamp).getTime() : 0);
   return rows.sort(
@@ -198,6 +222,7 @@ export interface SupportedPerson {
 export function buildSupportedPeople(rows: readonly FundedRow[]): SupportedPerson[] {
   const byScientist = new Map<number, { person: SupportedPerson; best: number }>();
   for (const row of rows) {
+    if (row.kind === 'grant') continue;
     const id = row.scientist.id;
     const current = byScientist.get(id);
     if (!current) {

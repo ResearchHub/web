@@ -32,6 +32,7 @@ import {
   buildRfpCards,
   buildSupportedPeople,
   buildUpNext,
+  fundedRowByline,
   lastOwnUpdates,
   latestNewsByPost,
   type FundedRow,
@@ -473,7 +474,7 @@ function heroCovers(
         title: row.title,
         image: row.image,
         status: `You gave ${format(row.youGave, { shorten: true })}`,
-        detail: row.scientist.fullName,
+        detail: fundedRowByline(row),
       })
     );
   const own = ownProposals.map(

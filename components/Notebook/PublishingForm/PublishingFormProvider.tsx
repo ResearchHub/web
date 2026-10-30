@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -14,6 +14,7 @@ import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { usePublishingHost } from '@/contexts/PublishingHostContext';
 import { useUser } from '@/contexts/UserContext';
 import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import { CoverImageGeneratorProvider } from './CoverImageGenerator';
 import {
   applyGrantDefaults,
   autoAddCurrentUser,
@@ -49,6 +50,8 @@ export interface PublishingController extends PublishAction {
   readonly canPublish: boolean;
   /** Why publishing is refused, when the reason is worth showing next to the button. */
   readonly blockedMessage: string | null;
+  /** The title the work would be published under right now; empty when it has none. */
+  readonly getTitle: () => string;
 }
 
 const PublishingControllerContext = createContext<PublishingController | null>(null);
@@ -222,6 +225,11 @@ export function PublishingFormProvider({
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
   const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
 
+  const getTitle = useCallback(
+    () => publishTitle ?? getDocumentTitleFromEditor(editor),
+    [publishTitle, editor]
+  );
+
   const action = usePublishAction({
     methods,
     note,
@@ -267,45 +275,50 @@ export function PublishingFormProvider({
     isDeclined,
     canPublish,
     blockedMessage,
+    getTitle,
   };
 
   return (
     <PublishingControllerContext.Provider value={controller}>
       <FormProvider {...methods}>
-        {children}
+        <CoverImageGeneratorProvider>
+          {children}
 
-        {action.pendingConfirmation === 'nonprofit' && selectedNonprofit && (
-          <NonprofitConfirmModal
-            isOpen
-            onClose={action.dismissConfirmation}
-            onConfirm={action.acceptNonprofit}
-            nonprofitName={selectedNonprofit.name}
-            ein={selectedNonprofit.ein}
-          />
-        )}
-
-        {action.pendingConfirmation === 'publish' &&
-          (publishConfirmation !== undefined ? (
-            publishConfirmation
-          ) : (
-            <ConfirmPublishModal
+          {action.pendingConfirmation === 'nonprofit' && selectedNonprofit && (
+            <NonprofitConfirmModal
               isOpen
               onClose={action.dismissConfirmation}
-              onConfirm={action.confirmPublish}
-              title={
-                publishTitle ??
-                (getDocumentTitleFromEditor(editor) ||
-                  (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research'))
-              }
-              isPublishing={action.isPublishing}
-              isUpdate={Boolean(workId)}
-              onTitleChange={
-                publishTitle === undefined ? (title) => setDocumentTitle(editor, title) : undefined
-              }
-              variant={articleType === 'grant' ? 'rfp' : 'default'}
-              documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
+              onConfirm={action.acceptNonprofit}
+              nonprofitName={selectedNonprofit.name}
+              ein={selectedNonprofit.ein}
             />
-          ))}
+          )}
+
+          {action.pendingConfirmation === 'publish' &&
+            (publishConfirmation !== undefined ? (
+              publishConfirmation
+            ) : (
+              <ConfirmPublishModal
+                isOpen
+                onClose={action.dismissConfirmation}
+                onConfirm={action.confirmPublish}
+                title={
+                  publishTitle ??
+                  (getDocumentTitleFromEditor(editor) ||
+                    (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research'))
+                }
+                isPublishing={action.isPublishing}
+                isUpdate={Boolean(workId)}
+                onTitleChange={
+                  publishTitle === undefined
+                    ? (title) => setDocumentTitle(editor, title)
+                    : undefined
+                }
+                variant={articleType === 'grant' ? 'rfp' : 'default'}
+                documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
+              />
+            ))}
+        </CoverImageGeneratorProvider>
       </FormProvider>
     </PublishingControllerContext.Provider>
   );
