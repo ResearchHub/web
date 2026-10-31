@@ -1,39 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useComments } from '@/contexts/CommentContext';
-import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 
 interface LoadMoreRepliesProps {
   commentId: number;
   remainingCount: number;
   isLoading?: boolean;
-  /**
-   * `feed`: a quiet text button in a feed thread's reply column, gone once the replies
-   * are in. `card`: the blue button, then "Replies loaded".
-   */
-  variant?: 'card' | 'feed';
 }
 
+/**
+ * A quiet text button in a thread's reply column, for replies not loaded yet. Gone
+ * once they are in, since nothing is left to load.
+ */
 const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   commentId,
   remainingCount,
   isLoading: externalLoading = false,
-  variant = 'card',
 }) => {
   const { loadMoreReplies } = useComments();
   const [loading, setLoading] = useState(false);
-  const [loadedReplies, setLoadedReplies] = useState(false);
-
-  // Reset loadedReplies state when commentId changes
-  useEffect(() => {
-    setLoadedReplies(false);
-  }, [commentId]);
 
   const handleLoadMore = async () => {
     setLoading(true);
     try {
       await loadMoreReplies(commentId);
-      setLoadedReplies(true);
     } catch (error) {
       console.error('[LoadMoreReplies] Error loading more replies:', error);
     } finally {
@@ -47,56 +37,19 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   }
 
   const isButtonLoading = loading || externalLoading;
-  const label = `Show ${remainingCount} more ${remainingCount === 1 ? 'reply' : 'replies'}`;
-
-  if (variant === 'feed') {
-    return (
-      <button
-        type="button"
-        onClick={handleLoadMore}
-        disabled={isButtonLoading}
-        className="mt-3 inline-flex min-h-8 items-center gap-1 text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-default disabled:opacity-60"
-      >
-        <ChevronDown className="h-4 w-4" aria-hidden />
-        {isButtonLoading ? 'Loading…' : label}
-      </button>
-    );
-  }
 
   return (
-    <div className="mt-2 mb-3 ml-2">
-      {loadedReplies ? (
-        <div className="text-sm text-green-600 mb-2 flex items-center">
-          <svg
-            className="w-4 h-4 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Replies loaded
-        </div>
-      ) : (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLoadMore}
-          disabled={isButtonLoading}
-          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 flex items-center text-sm font-medium border border-blue-200 bg-blue-50"
-        >
-          {isButtonLoading ? (
-            'Loading...'
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 mr-1" />
-              {label}
-            </>
-          )}
-        </Button>
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={handleLoadMore}
+      disabled={isButtonLoading}
+      className="mt-3 inline-flex min-h-8 items-center gap-1 text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-default disabled:opacity-60"
+    >
+      <ChevronDown className="h-4 w-4" aria-hidden />
+      {isButtonLoading
+        ? 'Loading…'
+        : `Show ${remainingCount} more ${remainingCount === 1 ? 'reply' : 'replies'}`}
+    </button>
   );
 };
 
