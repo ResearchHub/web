@@ -62,9 +62,11 @@ export function ProfileSocialLinks({
       )}
       <SocialIcon
         icon={<FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" />}
-        href={author.twitter}
-        label="Twitter"
-        className={author.twitter ? '[&>svg]:text-[#000] [&>svg]:hover:text-[#000] px-0' : 'px-0'}
+        href={author.isXConnected ? author.twitter : null}
+        label="X"
+        className={
+          author.isXConnected ? '[&>svg]:text-[#000] [&>svg]:hover:text-[#000] px-0' : 'px-0'
+        }
       />
     </div>
   );

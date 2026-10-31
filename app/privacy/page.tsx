@@ -196,7 +196,7 @@ const PrivacyPage = () => {
                 establish with the third party that provides the social sharing feature. For more
                 information about the purpose and scope of data collection and processing in
                 connection with social sharing features, please visit the privacy policies of the
-                third parties that provide these social sharing features (e.g.Twitter).
+                third parties that provide these social sharing features (e.g. X).
               </li>
             </ul>
 

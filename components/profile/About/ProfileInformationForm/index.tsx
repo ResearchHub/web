@@ -26,6 +26,7 @@ import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
 import Icon from '@/components/ui/icons/Icon';
 import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
+import { signIn } from 'next-auth/react';
 
 export type SocialLinkKey = 'linkedin' | 'google_scholar' | 'twitter' | 'orcid_id';
 
@@ -63,7 +64,7 @@ export function ProfileInformationForm({
     },
     twitter: {
       icon: <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6 text-[#000]" />,
-      label: 'X (Twitter) Profile URL',
+      label: 'X Profile URL',
     },
     orcid_id: {
       icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-orcid-500" />,
@@ -75,6 +76,7 @@ export function ProfileInformationForm({
 
   const authorProfile = user?.authorProfile;
   const isOrcidConnected = authorProfile?.isOrcidConnected ?? false;
+  const isXConnected = authorProfile?.isXConnected ?? false;
 
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema({ fields })),
@@ -261,6 +263,49 @@ export function ProfileInformationForm({
               .map((key) => {
                 const meta = socialLinkMeta[key];
                 const isOrcid = key === 'orcid_id';
+                const isX = key === 'twitter';
+
+                const renderSocialLinkField = () => {
+                  if (isOrcid && !isOrcidConnected) {
+                    return (
+                      <OrcidConnectButton
+                        variant="outlined"
+                        className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
+                        showIcon={false}
+                      />
+                    );
+                  }
+
+                  if (isX && !isXConnected) {
+                    return (
+                      <Button
+                        type="button"
+                        variant="dark"
+                        className="flex-grow"
+                        onClick={() => {
+                          const callbackUrl = new URL(window.location.href);
+                          callbackUrl.searchParams.set('x_connected', 'true');
+                          void signIn('x', { callbackUrl: callbackUrl.href });
+                        }}
+                      >
+                        Connect X
+                      </Button>
+                    );
+                  }
+
+                  return (
+                    <Input
+                      id={key}
+                      name={key}
+                      value={socialLinks[key] || ''}
+                      onChange={handleSocialLinkChange}
+                      error={errors[key]?.message}
+                      placeholder={meta.label}
+                      className="flex-grow"
+                      disabled={isOrcid || isX}
+                    />
+                  );
+                };
 
                 return (
                   <div key={key} className="flex items-center gap-3">
@@ -271,24 +316,7 @@ export function ProfileInformationForm({
                       size="sm"
                       className="text-gray-500"
                     />
-                    {isOrcid && !isOrcidConnected ? (
-                      <OrcidConnectButton
-                        variant="outlined"
-                        className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
-                        showIcon={false}
-                      />
-                    ) : (
-                      <Input
-                        id={key}
-                        name={key}
-                        value={socialLinks[key] || ''}
-                        onChange={handleSocialLinkChange}
-                        error={errors[key]?.message}
-                        placeholder={meta.label}
-                        className="flex-grow"
-                        disabled={isOrcid}
-                      />
-                    )}
+                    {renderSocialLinkField()}
                   </div>
                 );
               })}
