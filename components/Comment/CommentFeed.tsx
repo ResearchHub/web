@@ -14,13 +14,14 @@ import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
-import { MessageSquare, Plus, PenLine, User as UserIcon, Star } from 'lucide-react';
+import { Plus, PenLine, User as UserIcon, Star } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
 import { useStorageKey } from '@/utils/storageKeys';
 
 interface CommentFeedProps {
@@ -198,11 +199,13 @@ function CommentFeedContent({
             result.score = overallRating;
             result.reviewScore = overallRating;
             toast.success('Review submitted successfully!', { id: toastId });
-            showShareModal({
-              url: window.location.href,
-              docTitle: work?.title || 'the document',
-              action: 'USER_PEER_REVIEWED',
-            });
+            if (work && isPubliclyShareable(work)) {
+              showShareModal({
+                url: `${window.location.origin}${buildPublicSharePath(work)}`,
+                docTitle: work.title || 'the document',
+                action: 'USER_PEER_REVIEWED',
+              });
+            }
           } catch (reviewError) {
             console.error('Error creating community review:', reviewError);
             toast.success('Comment submitted, but review data could not be saved.', {
