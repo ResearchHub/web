@@ -1,11 +1,12 @@
 import type { ContentType, Work } from '@/types/work';
+import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { buildWorkUrl } from '@/utils/url';
 
 /** Content types that get an AI-written draft in the share modal. */
 const AI_SHARE_CONTENT_TYPES = new Set<ContentType>(['preregistration', 'funding_request']);
 
 type ShareVisibilityWork = Pick<Work, 'isPublic' | 'moderationStatus' | 'note' | 'grantSummary'>;
-type ShareUrlWork = Pick<Work, 'id' | 'contentType' | 'slug'>;
+type ShareUrlWork = Pick<Work, 'id' | 'contentType' | 'slug' | 'postType'>;
 
 const AWAITING_APPROVAL = 'Available to share after approval';
 
@@ -19,14 +20,15 @@ function isBlockedModerationStatus(status: string | undefined | null): boolean {
  * pending or private page poisons that URL for days.
  *
  * Proposals use `work.moderationStatus`. RFPs keep the post APPROVED and put
- * pending/declined on `grant.status` instead (`work.note.post.grant`).
+ * pending/declined on `grant.status` instead (`work.grantSummary` or
+ * `work.note.post.grant`, depending on the payload).
  */
 export function getPublicShareBlockReason(work: ShareVisibilityWork): string | null {
   if (isBlockedModerationStatus(work.moderationStatus)) {
     return AWAITING_APPROVAL;
   }
 
-  const grantStatus = work.note?.post?.grant?.status;
+  const grantStatus = work.grantSummary?.status ?? work.note?.post?.grant?.status;
   if (isBlockedModerationStatus(grantStatus)) {
     return AWAITING_APPROVAL;
   }
@@ -47,9 +49,13 @@ export function usesAiSharePost(contentType: ContentType): boolean {
 
 /** Canonical path for a public social share. */
 export function buildPublicSharePath(work: ShareUrlWork): string {
+  if (work.postType === 'REGISTERED_REPORT') {
+    return buildRegisteredReportUrl(work.id, work.slug);
+  }
+
   return buildWorkUrl({
     id: work.id,
-    contentType: work.contentType,
+    contentType: work.postType === 'QUESTION' ? 'question' : work.contentType,
     slug: work.slug,
   });
 }

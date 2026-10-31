@@ -21,7 +21,8 @@ import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 import { useShareModalContext } from '@/contexts/ShareContext';
-import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
+import { isPubliclyShareable } from '@/utils/share';
+import { buildWorkUrl } from '@/utils/url';
 import { useStorageKey } from '@/utils/storageKeys';
 
 interface CommentFeedProps {
@@ -201,7 +202,12 @@ function CommentFeedContent({
             toast.success('Review submitted successfully!', { id: toastId });
             if (work && isPubliclyShareable(work)) {
               showShareModal({
-                url: `${window.location.origin}${buildPublicSharePath(work)}`,
+                url: `${window.location.origin}${buildWorkUrl({
+                  id: work.id,
+                  contentType: work.contentType,
+                  slug: work.slug,
+                  tab: 'reviews',
+                })}#comment-${result.id}`,
                 docTitle: work.title || 'the document',
                 action: 'USER_PEER_REVIEWED',
               });
@@ -223,7 +229,7 @@ function CommentFeedContent({
         return false;
       }
     },
-    [commentType, createComment]
+    [commentType, createComment, showShareModal, unifiedDocumentId, work]
   );
 
   const handleLoadMore = useCallback(async () => {
@@ -251,6 +257,29 @@ function CommentFeedContent({
       setIsLoadingAssessedReviews(false);
     });
   }, [handleLoadMore, isLoadingAssessedReviews, loading, shouldLoadAssessedReviews]);
+
+  // Browser hash scroll runs before async comments mount; scroll once the target exists.
+  const hasScrolledToHashRef = useRef(false);
+  useEffect(() => {
+    if (loading || shouldLoadAssessedReviews || hasScrolledToHashRef.current) {
+      return;
+    }
+
+    const hash = window.location.hash;
+    if (!hash.startsWith('#comment-')) {
+      return;
+    }
+
+    const target = document.getElementById(hash.slice(1));
+    if (!target) {
+      return;
+    }
+
+    hasScrolledToHashRef.current = true;
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [displayedComments, loading, shouldLoadAssessedReviews]);
 
   // Handle bounty creation
   const handleCreateBounty = useCallback(() => {

@@ -69,11 +69,12 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
     IconComponent: Share,
     title: (docTitle, url) => {
       const getShareType = (url: string): string => {
+        if (url.includes('/question/')) return 'Question';
+        if (url.includes('/report/')) return 'Registered Report';
         if (url.includes('/post/')) return 'Preprint';
         if (url.includes('/paper/')) return 'Paper';
         if (url.includes('/proposal/')) return 'Proposal';
         if (url.includes('/rfp/')) return 'Request for Proposal';
-        if (url.includes('/report/')) return 'Registered Report';
         return '';
       };
       const type = getShareType(url);

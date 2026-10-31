@@ -206,7 +206,7 @@ export function WorkHeader({
   const shareButton = (
     <button
       onClick={shareAction}
-      disabled={!canPublicShare}
+      aria-disabled={!canPublicShare}
       className={cn(
         btnClass,
         !cover && '!hidden lg:!flex',
