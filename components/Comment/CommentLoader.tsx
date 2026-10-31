@@ -18,7 +18,7 @@ interface CommentLoaderProps {
 export const CommentLoader: FC<CommentLoaderProps> = ({
   count = 3,
   commentType = 'GENERIC_COMMENT',
-  rowStyle = 'card',
+  rowStyle = 'feed',
 }) => {
   if (rowStyle === 'feed') {
     return (
