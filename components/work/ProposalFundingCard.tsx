@@ -10,23 +10,29 @@ import {
   FundingTotal,
 } from '@/components/Funding/FundingCard';
 import { FundButton } from '@/components/Funding/FundButton';
+import { FundedConfetti } from '@/components/Funding/FundedConfetti';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
+import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import type { Fundraise } from '@/types/funding';
 
 /**
  * A proposal's fundraise as the navy card at the top of its sidebar, in the
  * RFP pool card's style: what it has raised against its goal, the bar, whose
  * hover lists the funders, their faces, which open the full list, and Fund.
+ * Fully funded, it bursts with confetti a second after the page loads.
  */
 export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
   const summary = useFundraiseSummary(fundraise);
   const [isFundersListOpen, setIsFundersListOpen] = useState(false);
   const hasFunders = summary.funders.length > 0;
+  // The phone's drawer mounts its copy of the card when it first opens; by
+  // then the action bar has had the confetti.
+  const { mobileSidebarOpen } = useWorkTab();
+  const [mountedInDrawer] = useState(mobileSidebarOpen);
 
   return (
     <FundingCard
       label="Funding"
-      status={summary.statusLabel}
       aside={
         summary.timeLeft && (
           // Counted from the server's clock first; the browser's can tip it over.
@@ -36,7 +42,10 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
         )
       }
       testId="proposal-funding"
+      className="relative"
     >
+      {summary.isCompleted && <FundedConfetti skip={mountedInDrawer} />}
+
       <FundingTotal amount={summary.raised} goal={summary.goal} />
 
       <FundingBar
@@ -81,11 +90,15 @@ export function ProposalFundingCard({ fundraise }: { fundraise: Fundraise }) {
         </span>
       </div>
 
-      {summary.isActive && (
-        <FundButton data-testid="proposal-fund" className="mt-4 w-full font-semibold">
-          Fund
-        </FundButton>
-      )}
+      {/* Kept once the fundraise ends, grayed out with the reason on hover. */}
+      <FundButton
+        data-testid="proposal-fund"
+        className="mt-4 w-full font-semibold"
+        unavailableReason={summary.fundUnavailableReason}
+        ground="navy"
+      >
+        Fund
+      </FundButton>
 
       {hasFunders && (
         <ContributorModal

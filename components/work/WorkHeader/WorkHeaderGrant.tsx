@@ -8,7 +8,7 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { ApplyToGrantPanel } from '@/components/modals/ApplyToGrantPanel';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
-import { CoverBadge } from '@/components/work/WorkCover';
+import { COVER_CHIP_CLASS, CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import type { FundingPool } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
@@ -56,7 +56,7 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
   const coverCard = <WorkCoverCard title={work.title} eyebrow={eyebrow} imageUrl={work.image} />;
 
   const badges = isPending ? (
-    <PendingReviewBadge />
+    <PendingReviewBadge className={COVER_CHIP_CLASS} />
   ) : !isActive ? (
     <CoverBadge>Closed</CoverBadge>
   ) : null;
@@ -68,12 +68,16 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
         metadata={metadata}
         preTitle={preTitle}
         hideVoteWidget
-        // The top bar already says it's an RFP; the cover names who funds it.
+        // The top bar already says it's an RFP; the cover names who funds it,
+        // linked to the organization's own account when it has one.
         cover={{
           imageUrl: work.image,
-          eyebrow: organization,
-          eyebrowFace: organization
-            ? { name: organization, image: organizationProfile?.profileImage }
+          eyebrow: organization
+            ? {
+                name: organization,
+                image: organizationProfile?.profileImage,
+                authorId: organizationProfile?.id,
+              }
             : undefined,
           badges,
         }}
