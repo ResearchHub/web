@@ -46,6 +46,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useHideFromFeed } from '@/hooks/useHideFromFeed';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import type { FeedEntry } from '@/types/feed';
+import { getFlagTarget } from './lib/flagTarget';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -209,6 +210,8 @@ interface FeedItemActionsProps {
   variant?: 'default' | 'inline' | 'card';
   /** Leave the ⋯ menu out, for cards that put their own elsewhere. */
   hideMoreMenu?: boolean;
+  /** Leave the copy-link button out, for rows that have no page of their own to link to. */
+  hideShareButton?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -250,6 +253,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   className,
   variant = 'default',
   hideMoreMenu = false,
+  hideShareButton = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -400,32 +404,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       // Close the dropdown menu before opening the modal
       setIsMenuOpen(false);
 
-      // Map feedContentType to ContentType
-      let contentType: ContentType;
-      let commentId: string | undefined;
-
-      if (feedContentType === 'PAPER') {
-        contentType = 'paper';
-      } else if (feedContentType === 'POST' || feedContentType === 'PREREGISTRATION') {
-        contentType = 'post';
-      } else if (feedContentType === 'BOUNTY' && relatedDocumentContentType) {
-        contentType = relatedDocumentContentType;
-        commentId = votableEntityId.toString(); // Use votableEntityId as commentId for bounties
-      } else if (feedContentType === 'COMMENT') {
-        contentType = relatedDocumentContentType || 'post';
-        commentId = votableEntityId.toString();
-      } else {
-        contentType = 'post'; // Default fallback
-      }
-
-      openFlagModal(
-        // For comments and bounties, use relatedDocumentId as the documentId
-        (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') && relatedDocumentId
-          ? relatedDocumentId.toString()
-          : votableEntityId.toString(),
-        contentType,
-        commentId
-      );
+      const { documentId, contentType, commentId } = getFlagTarget({
+        feedContentType,
+        votableEntityId,
+        relatedDocumentId,
+        relatedDocumentContentType,
+      });
+      openFlagModal(documentId, contentType, commentId);
     });
   };
 
@@ -481,7 +466,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     feedContentType !== 'APPLICATION' &&
     showPeerReviews;
 
-  const showShare = variant !== 'inline';
+  const showShare = variant !== 'inline' && !hideShareButton;
   const showMoreMenu =
     !hideMoreMenu &&
     (!!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
@@ -620,6 +605,65 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     )
   ) : null;
 
+  // Tips and awards: one control in every variant. With something received it reads
+  // as the amount, with a breakdown on hover; without, it offers "Tip". Read-only
+  // where tipping isn't offered, as on the author's own comment.
+  const showTipTooltip = showTooltips && totalAwarded > 0;
+  const tipIconClass = showTipTooltip || isCard ? 'h-[18px] w-[18px]' : 'h-4 w-4';
+  const tipContent = (
+    <>
+      <Icon name="tipRSC" size={showTipTooltip || isCard ? 18 : 16} className={tipIconClass} />
+      {totalAwarded > 0 ? (
+        <span>
+          {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
+        </span>
+      ) : (
+        <span>Tip</span>
+      )}
+    </>
+  );
+  const tipBaseClass = isCard
+    ? 'flex h-7 items-center gap-1 rounded-full px-2 text-[13px] font-medium text-gray-500'
+    : 'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700';
+  const tipControl = onTip ? (
+    <Button
+      variant="ghost"
+      size="sm"
+      className={cn(
+        isCard ? `${tipBaseClass} transition-colors` : `${tipBaseClass} transition-all`,
+        isCard ? cardIconButtonClass : 'hover:bg-white hover:text-gray-900 hover:shadow-sm'
+      )}
+      tooltip={showTooltips && !showTipTooltip ? 'Tip' : undefined}
+      onClick={handleTip}
+    >
+      {tipContent}
+    </Button>
+  ) : (
+    <div className={cn(tipBaseClass)}>{tipContent}</div>
+  );
+  const tipAction =
+    onTip || totalAwarded > 0 ? (
+      showTipTooltip ? (
+        <Tooltip
+          content={
+            <TipTooltip
+              tips={tips}
+              awardedBountyAmount={awardedBountyAmount}
+              totalAwarded={totalAwarded}
+              showUSD={showUSD}
+              exchangeRate={exchangeRate}
+            />
+          }
+          position="top"
+          width="w-[320px]"
+        >
+          {tipControl}
+        </Tooltip>
+      ) : (
+        tipControl
+      )
+    ) : null;
+
   const moreMenu = showMoreMenu ? (
     <BaseMenu
       trigger={moreMenuTrigger}
@@ -671,7 +715,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       <div className={cn('flex items-center justify-between', isFlat ? 'gap-3' : 'gap-2')}>
         <div
           className={cn(
-            'flex items-center flex-nowrap overflow-visible',
+            'flex items-center',
+            // A card's actions wrap rather than run past a narrow column.
+            isCard ? 'min-w-0 flex-wrap' : 'flex-nowrap',
+            'overflow-visible',
             isFlat ? 'gap-4' : undefined,
             className
           )}
@@ -760,103 +807,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               testId="feed-item-comment-action"
             />
           )}
-          {(onTip || totalAwarded > 0) &&
-            (showTooltips && totalAwarded > 0 ? (
-              <Tooltip
-                content={
-                  <TipTooltip
-                    tips={tips}
-                    awardedBountyAmount={awardedBountyAmount}
-                    totalAwarded={totalAwarded}
-                    showUSD={showUSD}
-                    exchangeRate={exchangeRate}
-                  />
-                }
-                position="top"
-                width="w-[320px]"
-              >
-                {onTip ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700 transition-all',
-                      'hover:bg-white hover:text-gray-900 hover:shadow-sm'
-                    )}
-                    onClick={handleTip}
-                  >
-                    <Icon name="tipRSC" size={18} className="h-[18px] w-[18px]" />
-                    {totalAwarded > 0 ? (
-                      <span>
-                        {formatCurrency({
-                          amount: totalAwarded,
-                          showUSD,
-                          exchangeRate,
-                          shorten: true,
-                        })}
-                      </span>
-                    ) : (
-                      <span>Tip</span>
-                    )}
-                  </Button>
-                ) : (
-                  <div
-                    className={cn(
-                      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700'
-                    )}
-                  >
-                    <Icon name="tipRSC" size={18} className="h-[18px] w-[18px]" />
-                    {totalAwarded > 0 ? (
-                      <span>
-                        {formatCurrency({
-                          amount: totalAwarded,
-                          showUSD,
-                          exchangeRate,
-                          shorten: true,
-                        })}
-                      </span>
-                    ) : (
-                      <span>Tip</span>
-                    )}
-                  </div>
-                )}
-              </Tooltip>
-            ) : onTip ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700 transition-all',
-                  'hover:bg-white hover:text-gray-900 hover:shadow-sm'
-                )}
-                tooltip={showTooltips ? 'Tip' : undefined}
-                onClick={handleTip}
-              >
-                <Icon name="tipRSC" size={16} className="h-4 w-4" />
-                {totalAwarded > 0 ? (
-                  <span>
-                    {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
-                  </span>
-                ) : (
-                  <span>Tip</span>
-                )}
-              </Button>
-            ) : (
-              <div
-                className={cn(
-                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700'
-                )}
-              >
-                <Icon name="tipRSC" size={16} className="h-4 w-4" />
-                {totalAwarded > 0 ? (
-                  <span>
-                    {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
-                  </span>
-                ) : (
-                  <span>Tip</span>
-                )}
-              </div>
-            ))}
+          {tipAction}
           {onExpand && (
             <ActionButton
               icon={Maximize2}
