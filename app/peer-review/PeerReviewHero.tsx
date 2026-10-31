@@ -178,7 +178,7 @@ const PeerReviewTimeline = () => (
 
 export const PeerReviewHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
-    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-10 tablet:!px-8 sm:py-12">
+    <div className="relative z-10 mx-auto max-w-[1012px] px-4 py-10 tablet:!px-8 sm:py-12">
       <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           <h1
@@ -214,7 +214,7 @@ export const PeerReviewHero = () => (
 export const PeerReviewHowItWorks = () => (
   <section
     aria-labelledby="peer-review-how-it-works"
-    className="mx-auto max-w-[1180px] px-4 pt-6 tablet:!px-8 lg:!pr-0"
+    className="mx-auto max-w-[1012px] px-4 pt-6 tablet:!px-8 lg:!pr-0"
   >
     <h2 id="peer-review-how-it-works" className="text-sm font-semibold text-gray-700">
       How it works
