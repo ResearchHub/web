@@ -15,6 +15,9 @@ interface UseActivityFeedOptions {
   commentTypes?: readonly ActivityCommentType[];
   scope?: ActivityScope;
   grantId?: number | string;
+  /** One document's activity, e.g. a proposal's. */
+  unifiedDocumentId?: number | string;
+  pageSize?: number;
   disableCache?: boolean;
   enabled?: boolean;
 }
@@ -25,15 +28,18 @@ export function useActivityFeed({
   commentTypes,
   scope,
   grantId,
+  unifiedDocumentId,
+  pageSize,
   disableCache = false,
   enabled = true,
 }: UseActivityFeedOptions = {}) {
   const restorationTab = useMemo(() => {
     const parts = ['activity'];
     if (grantId != null) parts.push(`grant-${grantId}`);
+    if (unifiedDocumentId != null) parts.push(`document-${unifiedDocumentId}`);
     if (scope) parts.push(scope);
     return parts.join('-');
-  }, [grantId, scope]);
+  }, [grantId, unifiedDocumentId, scope]);
 
   const { feedKey, restoredState, restoredScrollPosition, lastClickedEntryId } =
     useFeedStateRestoration({
@@ -62,13 +68,21 @@ export function useActivityFeed({
       authorId
         ? ActivityService.getAuthorActivity(authorId, {
             page: pageNumber,
+            pageSize,
             contentType,
             commentTypes,
             scope,
             disableCache,
           })
-        : ActivityService.getActivity({ page: pageNumber, scope, grantId, disableCache }),
-    [authorId, contentType, commentTypes, scope, grantId, disableCache]
+        : ActivityService.getActivity({
+            page: pageNumber,
+            pageSize,
+            scope,
+            grantId,
+            unifiedDocumentId,
+            disableCache,
+          }),
+    [authorId, contentType, commentTypes, scope, grantId, unifiedDocumentId, pageSize, disableCache]
   );
 
   const fetchInitial = useCallback(async () => {
