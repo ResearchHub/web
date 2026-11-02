@@ -5,6 +5,7 @@ import { Minus, Plus } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { VerifiedBadge } from './VerifiedBadge';
 import { Button } from './Button';
+import { AuthorLink } from './AuthorLink';
 import Link from 'next/link';
 
 export interface Author {
@@ -12,6 +13,8 @@ export interface Author {
   verified?: boolean;
   profileUrl?: string;
   authorUrl?: string;
+  /** Their profile's id: the name links to it and, with a mouse, opens their profile card on hover. */
+  authorId?: number;
 }
 
 interface AuthorListProps {
@@ -422,7 +425,17 @@ const AuthorItem = ({
   className?: string;
 }) => (
   <span className="flex items-center whitespace-nowrap overflow-hidden">
-    {author?.authorUrl ? (
+    {author?.authorId ? (
+      <AuthorLink
+        authorId={author.authorId}
+        name={author.name}
+        className={cn(
+          size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
+          'text-gray-900 hover:text-blue-800 font-semibold truncate',
+          className
+        )}
+      />
+    ) : author?.authorUrl ? (
       <Link
         href={author?.authorUrl}
         className={cn(

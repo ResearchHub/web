@@ -95,7 +95,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
           rightSidebarBare={Boolean(grant)}
           rightSidebar={
             grant ? (
-              <GrantSidebar currentDocumentId={work.id} />
+              <GrantSidebar currentDocumentId={work.id} doi={work.doi} />
             ) : (
               <Suspense fallback={<ActivitySidebarSkeleton />}>
                 <ActivitySidebarServer

@@ -2,21 +2,25 @@
 
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
+import { FundedConfetti } from '@/components/Funding/FundedConfetti';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
 
 /**
  * Fund, for the proposal page wherever its funding card is hidden: a bar as
  * wide as the page for how far the fundraise has come, then raised of the
- * goal, the funders and the time left beside the button.
+ * goal, the funders and the time left beside the button. Once the fundraise
+ * ends the bar stays, with Fund grayed out. Fully funded, it bursts with
+ * confetti a second after the page loads, as the sidebar's card does where
+ * that shows instead.
  */
 export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
   const summary = useFundraiseSummary(fundraise);
 
-  if (!summary.isActive) return null;
-
   return (
     <StickyActionBar>
+      {/* The bar is sticky, so the confetti fills it. */}
+      {summary.isCompleted && <FundedConfetti />}
       <div className="min-w-0 flex-1">
         <div
           role="img"
@@ -44,7 +48,7 @@ export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
                 : summary.fundersText}
             </p>
           </div>
-          <FundButton size="lg" className="px-6">
+          <FundButton size="lg" className="px-6" unavailableReason={summary.fundUnavailableReason}>
             Fund
           </FundButton>
         </div>

@@ -33,6 +33,7 @@ import { cn } from '@/utils/styles';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
+import { useWorkNonprofit } from '@/components/work/WorkInstitutionContext';
 import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 
 import AuthContent from '@/components/Auth/AuthContent';
@@ -176,12 +177,14 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     work,
     user,
   });
-  // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
-  // and EIN-search round trips on every open.
+  // The proposal page has already looked its nonprofit up. Elsewhere, skipping
+  // the id entirely when DAF is off avoids the hook's nonprofit-link and
+  // EIN-search round trips on every open.
+  const pageNonprofit = useWorkNonprofit(fundraise?.id);
   const { nonprofit } = useNonprofitByFundraiseId(
-    allowDafPayment && fundraise ? fundraise.id : undefined
+    allowDafPayment && fundraise && pageNonprofit === undefined ? fundraise.id : undefined
   );
-  const hasNonprofit = allowDafPayment && nonprofit !== null;
+  const hasNonprofit = allowDafPayment && (pageNonprofit ?? nonprofit) != null;
   const contributionSuccessMessage =
     successMessage ??
     (isPoolMode

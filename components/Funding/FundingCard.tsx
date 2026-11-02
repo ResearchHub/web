@@ -8,8 +8,6 @@ import { cn } from '@/utils/styles';
 
 interface FundingCardProps {
   label: string;
-  /** After the label, dimmed: "Closed", "Fully funded". */
-  status?: string;
   /** At the right end of the label's row, e.g. an info button or the time left. */
   aside?: ReactNode;
   children: ReactNode;
@@ -19,26 +17,15 @@ interface FundingCardProps {
 
 /**
  * The navy money card at the top of an RFP's or a proposal's sidebar: a small
- * label over the total, the bar, and whatever the card adds under them.
+ * label over the total, the bar, and whatever the card adds under them. The
+ * cover's badge says when it has closed, so the card doesn't say it again.
  */
-export function FundingCard({
-  label,
-  status,
-  aside,
-  children,
-  className,
-  testId,
-}: FundingCardProps) {
+export function FundingCard({ label, aside, children, className, testId }: FundingCardProps) {
   return (
     <div data-testid={testId} className={cn('w-full rounded-lg bg-navy p-4 text-white', className)}>
       <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.07em] text-white/65">
+        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-white/65">
           {label}
-          {status && (
-            <span className="font-semibold normal-case tracking-normal text-white/50">
-              · {status}
-            </span>
-          )}
         </span>
         {aside}
       </div>
