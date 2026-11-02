@@ -9,7 +9,7 @@ export interface TeamMember {
 }
 
 export const SOCIAL_LABELS: Record<SocialKey, string> = {
-  x: 'X / Twitter',
+  x: 'X',
   linkedin: 'LinkedIn',
   github: 'GitHub',
   rh: 'ResearchHub',
