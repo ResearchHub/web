@@ -1,5 +1,5 @@
 // Constants
-export { HIDDEN_PAYMENT_METHODS, type PaymentMethodType } from './constants';
+export { AWARD_PAYMENT_METHODS, HIDDEN_PAYMENT_METHODS, type PaymentMethodType } from './constants';
 
 // Hooks
 export { usePaymentMethod } from './usePaymentMethod';

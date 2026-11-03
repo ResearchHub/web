@@ -15,6 +15,7 @@ import { ApiError } from '@/services/types';
 import type { NoteWithContent } from '@/types/note';
 import { getFieldErrorMessage } from '@/utils/form';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { DEFAULT_FUNDRAISE_END_DAYS, getWorkPath, mapOptionsToIds } from './formMapping';
 import type { PublishingFormData } from './schema';
 
@@ -144,7 +145,7 @@ export function usePublishAction({
       return;
     }
 
-    const { articleType, selectedNonprofit } = methods.getValues();
+    const { articleType, selectedNonprofit, selectedGrant } = methods.getValues();
     if (
       articleType !== 'preregistration' &&
       articleType !== 'changelog' &&
@@ -155,7 +156,9 @@ export function usePublishAction({
       return;
     }
 
-    setPendingConfirmation(selectedNonprofit ? 'nonprofit' : 'publish');
+    const isAwardApplication =
+      articleType === 'preregistration' && isAwardMechanism(selectedGrant?.fundingMechanism);
+    setPendingConfirmation(selectedNonprofit && !isAwardApplication ? 'nonprofit' : 'publish');
   }, [readOnly, isNewPreprint, canPublishRegisteredReport, methods, hostConfirms]);
 
   const uploadCoverImage = useCallback(
@@ -186,7 +189,9 @@ export function usePublishAction({
       formData: PublishingFormData,
       fundraiseId: string | number | undefined
     ): Promise<boolean> => {
+      const isAwardApplication = isAwardMechanism(formData.selectedGrant?.fundingMechanism);
       if (
+        isAwardApplication ||
         !formData.selectedNonprofit ||
         !fundraiseId ||
         formData.articleType !== 'preregistration'
@@ -269,6 +274,8 @@ export function usePublishAction({
         }
 
         const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
+        const isAwardApplication =
+          isNewProposal && isAwardMechanism(formData.selectedGrant?.fundingMechanism);
         const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
         const proposalId = note.proposalId;
 
@@ -319,6 +326,11 @@ export function usePublishAction({
             grantId,
             applicationVisibility:
               formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
+            fundingMechanism:
+              formData.articleType === 'grant' && !formData.workId
+                ? (formData.fundingMechanism ?? 'FUNDING')
+                : undefined,
+            omitFundraiseGoal: isAwardApplication,
             isPublic: isNewProposal ? formData.isPublic : undefined,
           },
           formData.workId

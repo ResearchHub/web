@@ -2,6 +2,8 @@
 
 import type { WorkMetadata } from '@/services/metadata.service';
 import type { Work } from '@/types/work';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import { AwardProposalCard } from './AwardProposalCard';
 import { ProposalFundingCard } from './ProposalFundingCard';
 import { ProposalReviewsCard } from './ProposalReviewsCard';
 import { AiPeerReviewSection } from './components/AiPeerReviewSection';
@@ -19,10 +21,14 @@ interface ProposalSidebarProps {
  */
 export function ProposalSidebar({ work, metadata }: ProposalSidebarProps) {
   const fundraise = metadata.fundraising;
+  const isAward = isAwardMechanism(work.linkedGrant?.fundingMechanism);
 
   return (
     <div className="flex flex-col gap-3">
-      {fundraise && <ProposalFundingCard fundraise={fundraise} />}
+      {fundraise && isAward && work.linkedGrant && (
+        <AwardProposalCard fundraise={fundraise} linkedGrant={work.linkedGrant} />
+      )}
+      {fundraise && !isAward && <ProposalFundingCard fundraise={fundraise} />}
       <ProposalReviewsCard work={work} />
       <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />
       {fundraise && <NonprofitSection fundraiseId={fundraise.id} />}

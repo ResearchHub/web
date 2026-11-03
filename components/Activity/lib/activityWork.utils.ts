@@ -12,6 +12,7 @@ import {
 } from './activityDisplay.utils';
 import { formatCurrency } from '@/utils/currency';
 import { toOptionalNumber } from '@/utils/number';
+import { awardRaisedLabel, isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { getGrantBadgeAmount, type FundingPool } from '@/types/grant';
 import type {
   ActivityAction,
@@ -151,6 +152,21 @@ function formatAmount(
   });
 }
 
+export function getAwardCardStat(
+  fundraise: { status?: string; amountRaised?: { usd?: number; rsc?: number } },
+  showUSD: boolean,
+  exchangeRate: number
+): WorkCardStat | null {
+  const label = awardRaisedLabel(fundraise);
+  if (!label) return null;
+  const raised = (showUSD ? fundraise.amountRaised?.usd : fundraise.amountRaised?.rsc) ?? 0;
+  return {
+    label,
+    value: formatAmount(raised, showUSD, exchangeRate, true),
+    accent: true,
+  };
+}
+
 function resolveReviewScore(entry: FeedEntry): number | null {
   const entryScore = entry.metrics?.reviewScore;
   return entryScore && entryScore > 0 ? entryScore : null;
@@ -206,15 +222,42 @@ function buildBasePresentation(
   };
 }
 
+function isAwardFeedEntry(entry: FeedEntry): boolean {
+  if (isAwardMechanism(entry.relatedWork?.fundingMechanism)) return true;
+  return entry.associatedGrants?.some((grant) => isAwardMechanism(grant.fundingMechanism)) ?? false;
+}
+
+function isAwardFundraise(
+  fundraise: NonNullable<ActivityWork['fundraise']>,
+  entry?: FeedEntry
+): boolean {
+  if (entry != null && isAwardFeedEntry(entry)) return true;
+  const goalUsd = fundraise.goalAmount?.usd;
+  const goalRsc = fundraise.goalAmount?.rsc;
+  if (goalUsd == null && goalRsc == null) return false;
+  return (goalUsd ?? 0) <= 0 && (goalRsc ?? 0) <= 0;
+}
+
 function presentFundraise(
   base: WorkCardPresentation,
   fundraise: NonNullable<ActivityWork['fundraise']>,
   showUSD: boolean,
-  exchangeRate: number
+  exchangeRate: number,
+  entry: FeedEntry
 ): WorkCardPresentation {
   const goalUsd = fundraise.goalAmount?.usd ?? 0;
   const goalRsc = fundraise.goalAmount?.rsc ?? 0;
   const raisedUsd = fundraise.amountRaised?.usd ?? 0;
+
+  if (isAwardFundraise(fundraise, entry)) {
+    const stat = getAwardCardStat(fundraise, showUSD, exchangeRate);
+    return {
+      ...base,
+      stats: stat ? [stat] : base.stats,
+      progress: undefined,
+    };
+  }
+
   const goalAmount = showUSD ? goalUsd : goalRsc;
 
   return {
@@ -307,7 +350,7 @@ export function getWorkCardPresentation(
   const base = buildBasePresentation(entry, work, slot, { isReview });
 
   if (slot === 'fundraise' && work.fundraise) {
-    return presentFundraise(base, work.fundraise, showUSD, exchangeRate);
+    return presentFundraise(base, work.fundraise, showUSD, exchangeRate, entry);
   }
   if (slot === 'grant' && work.grant) {
     return presentGrant(base, work.grant, showUSD, exchangeRate);
@@ -393,6 +436,10 @@ function getSlotStat(
 ): WorkCoverStat | null {
   if (slot === 'fundraise' && work.fundraise) {
     const { goalAmount } = work.fundraise;
+    if (isAwardFundraise(work.fundraise)) {
+      const stat = getAwardCardStat(work.fundraise, showUSD, exchangeRate);
+      return stat ? { label: stat.label, value: stat.value } : null;
+    }
     const goal = (showUSD ? goalAmount?.usd : goalAmount?.rsc) ?? 0;
     return goal > 0
       ? { label: 'Raising', value: formatAmount(goal, showUSD, exchangeRate, true) }
@@ -538,7 +585,7 @@ export function getActivityCta(entry: FeedEntry, work: ActivityWork): ActivityCt
       : link('View RFP');
   }
 
-  if (openFundraise) {
+  if (openFundraise && !isAwardFundraise(openFundraise, entry)) {
     return {
       kind: 'fund-proposal',
       label: 'Fund proposal',

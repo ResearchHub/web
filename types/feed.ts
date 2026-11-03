@@ -13,7 +13,13 @@ import { UserVoteType } from './reaction';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
-import { FundingPool, GrantStatus, transformFundingPool } from './grant';
+import {
+  FundingPool,
+  GrantStatus,
+  parseFundingMechanism,
+  transformFundingPool,
+  type FundingMechanism,
+} from './grant';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -264,6 +270,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     createdBy: AuthorProfile;
     applicants: Application[];
     fundingPool: FundingPool | null;
+    fundingMechanism: FundingMechanism;
   };
   organization?: string;
   grantAmount?: {
@@ -373,6 +380,7 @@ export interface AssociatedGrant {
   description: string | null;
   image: string | null;
   numApplicants: number;
+  fundingMechanism: FundingMechanism;
 }
 
 export type ActivityAction =
@@ -500,6 +508,7 @@ export interface RawApiFeedEntry {
     description: string | null;
     image: string | null;
     num_applicants: number;
+    funding_mechanism?: string;
   }>;
   hot_score_breakdown?: {
     steps: string[];
@@ -619,6 +628,12 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
   return undefined;
 }
 
+/** Present only when the activity payload names the proposal's RFP type. */
+function readRelatedFundingMechanism(raw: unknown): FundingMechanism | undefined {
+  if (raw === 'AWARD' || raw === 'FUNDING') return raw;
+  return undefined;
+}
+
 function transformActivityRelatedWorkGrant(rawGrant: unknown): WorkGrantSummary | undefined {
   if (!rawGrant || typeof rawGrant !== 'object') return undefined;
 
@@ -690,6 +705,7 @@ export function transformActivityRelatedWork(raw: any): Work | undefined {
     unifiedDocumentId: raw.unified_document_id,
     image: raw.image_url ?? undefined,
     fundraise,
+    fundingMechanism: readRelatedFundingMechanism(raw.funding_mechanism),
     grantSummary: raw.grant ? transformActivityRelatedWorkGrant(raw.grant) : undefined,
     reviewMetrics: raw.review_metrics?.count
       ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count }
@@ -1123,6 +1139,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               fundingPool: content_object.grant.funding_pool
                 ? transformFundingPool(content_object.grant.funding_pool)
                 : null,
+              fundingMechanism: parseFundingMechanism(content_object.grant.funding_mechanism),
             },
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},
@@ -1385,6 +1402,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       description: g.description ?? null,
       image: g.image ?? null,
       numApplicants: g.num_applicants ?? 0,
+      fundingMechanism: parseFundingMechanism(g.funding_mechanism),
     })),
     journalPostIds: feedEntry.post_ids
       ? {

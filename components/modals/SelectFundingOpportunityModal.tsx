@@ -84,6 +84,7 @@ export function SelectFundingOpportunityModal({
       imageUrl: content.previewImage || '',
       fundingAmount: content.grant.amount?.usd || 0,
       organization: content.grant.organization || '',
+      fundingMechanism: content.grant.fundingMechanism,
     });
     onClose();
   };

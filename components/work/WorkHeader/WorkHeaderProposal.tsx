@@ -8,6 +8,7 @@ import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
@@ -54,6 +55,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   const router = useRouter();
 
   const displayedWork = updatedWork ?? work;
+  const isAward = isAwardMechanism(displayedWork.linkedGrant?.fundingMechanism);
   const fundraise = metadata.fundraising ?? null;
 
   const isActive = fundraise ? isFundraiseActive(fundraise) : false;
@@ -155,6 +157,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
           fundraise={fundraise}
           proposalTitle={displayedWork.title}
           work={displayedWork}
+          isAward={isAward}
           variant="panel"
           topContent={
             <WorkCoverCard
@@ -163,7 +166,11 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
               imageUrl={displayedWork.image}
             />
           }
-          successText="Your name now shows with this proposal's funders."
+          successText={
+            isAward
+              ? 'The award has been added to this proposal.'
+              : "Your name now shows with this proposal's funders."
+          }
         />
       )}
 
