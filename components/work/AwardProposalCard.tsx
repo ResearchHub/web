@@ -25,6 +25,8 @@ import { cn } from '@/utils/styles';
 interface TimelineStep {
   readonly key: string;
   readonly label: string;
+  /** When it happened, beside the label. */
+  readonly date?: string;
   /** The line under the label: the RFP's name, a date, what is waited on. */
   readonly detail?: ReactNode;
   /** The detail stays on one line, cut short: the RFP's name can run long. */
@@ -77,11 +79,16 @@ export function AwardProposalCard({
   const headlineLabel = awarded ? 'awarded' : 'in awards';
 
   const rfp = getLinkedGrantLink({ linkedGrant } as Work);
+  // The award is the funder's payment into the fundraise: its first
+  // contribution dates it.
+  const awardedDate = awarded ? firstContributionDate(fundraise) : undefined;
 
   const steps: TimelineStep[] = [
     {
       key: 'rfp',
       label: 'Applied to RFP',
+      // Publishing the proposal is what submits it to the RFP.
+      date: publishedDate,
       detail: rfp.title ? (
         rfp.href ? (
           <Link
@@ -99,15 +106,9 @@ export function AwardProposalCard({
       disabled: false,
     },
     {
-      key: 'published',
-      label: 'Proposal published',
-      detail: publishedDate ? formatTimestamp(publishedDate, false) : undefined,
-      done: true,
-      disabled: false,
-    },
-    {
       key: 'awarded',
       label: 'Awarded',
+      date: awardedDate,
       detail: awarded
         ? `${headline} from ${who}`
         : stillOpen
@@ -167,14 +168,26 @@ export function AwardProposalCard({
                 {step.done && <Check className="h-3 w-3" strokeWidth={3} />}
               </span>
               <div className="min-w-0 flex-1">
-                <p
-                  className={cn(
-                    'text-sm leading-5',
-                    isNext ? 'font-semibold text-white' : isLater ? 'text-white/40' : 'text-white'
+                <p className="flex items-baseline justify-between gap-2">
+                  <span
+                    className={cn(
+                      'text-sm leading-5',
+                      isNext ? 'font-semibold text-white' : isLater ? 'text-white/40' : 'text-white'
+                    )}
+                  >
+                    {step.label}
+                    <span className="sr-only">
+                      {step.done ? ' (done)' : isNext ? ' (next)' : ''}
+                    </span>
+                  </span>
+                  {step.date && (
+                    <time
+                      dateTime={step.date}
+                      className="shrink-0 text-xs tabular-nums text-white/50"
+                    >
+                      {formatTimestamp(step.date, false)}
+                    </time>
                   )}
-                >
-                  {step.label}
-                  <span className="sr-only">{step.done ? ' (done)' : isNext ? ' (next)' : ''}</span>
                 </p>
                 {step.detail && (
                   <p
@@ -198,5 +211,17 @@ export function AwardProposalCard({
         </FundButton>
       )}
     </FundingCard>
+  );
+}
+
+/** The earliest contribution to the fundraise, if its contributors carry dates. */
+function firstContributionDate(fundraise: Fundraise): string | undefined {
+  const dates = (fundraise.contributors?.topContributors ?? [])
+    .flatMap((contributor) => contributor.contributions ?? [])
+    .map((contribution) => contribution.date)
+    .filter((date) => date && !Number.isNaN(Date.parse(date)));
+  if (dates.length === 0) return undefined;
+  return dates.reduce((earliest, date) =>
+    Date.parse(date) < Date.parse(earliest) ? date : earliest
   );
 }
