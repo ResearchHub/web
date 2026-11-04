@@ -53,6 +53,9 @@ export class NotebookChatAgent extends HttpAgent {
    */
   load(): Promise<ApiError | null> {
     if (!this.loading) {
+      // `runAgent` makes a fresh controller but `connectAgent` does not, and
+      // `detach` aborted the last one.
+      if (this.abortController.signal.aborted) this.abortController = new AbortController();
       let loaded = false;
       this.loading = this.connectAgent(undefined, {
         onMessagesSnapshotEvent: () => {
