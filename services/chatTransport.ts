@@ -69,6 +69,39 @@ export function getChatTransport(scope: { noteId: ChatId | null }): ChatTranspor
   return transport;
 }
 
+const agentTransports = new Map<string, ChatTransport>();
+
+/**
+ * The notebook transport with sends routed through the chat's AG-UI agent, for
+ * the CopilotKit chat: the message starts its turn on the agent's run, which
+ * then streams that turn to CopilotKit. Everything else, and the key, is the
+ * plain notebook transport's, so drafts and attachments carry across.
+ */
+export function getAgentChatTransport(noteId: ChatId): ChatTransport {
+  const key = `notebook:${noteId}`;
+  let transport = agentTransports.get(key);
+  if (!transport) {
+    transport = {
+      ...notebookChatTransport(noteId),
+      sendMessage: async (chatId, message, generation, fileIds) => {
+        // Loaded on first send so the AG-UI client stays out of the bundles of
+        // pages that never use this chat.
+        const { notebookChatAgent } = await import('@/services/notebookChatAgent');
+        const agent = notebookChatAgent(String(noteId), Number(chatId));
+        const executionId = await agent.send(message, {
+          ...generation,
+          ...(fileIds && fileIds.length > 0 && { file_ids: fileIds }),
+        });
+        // Every accepted send starts a turn, so the id is always present; -1
+        // only keeps the type honest if a server ever omits it.
+        return { conversation_id: Number(chatId), execution_id: executionId ?? -1 };
+      },
+    };
+    agentTransports.set(key, transport);
+  }
+  return transport;
+}
+
 export function notebookChatTransport(noteId: ChatId): ChatTransport {
   return {
     key: `notebook:${noteId}`,

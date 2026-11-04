@@ -21,3 +21,12 @@ export function isProduction(): boolean {
     (nodeEnv === 'production' && vercelEnv !== 'preview' && vercelEnv !== 'development')
   );
 }
+
+/**
+ * Whether the notebook chat streams over AG-UI and renders through CopilotKit
+ * instead of the chat's own WebSocket transcript. Off unless
+ * `NEXT_PUBLIC_AGENT_CHAT_COPILOTKIT=true`.
+ */
+export function isCopilotKitChatEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_AGENT_CHAT_COPILOTKIT === 'true';
+}

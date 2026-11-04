@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Check, MessageSquarePlus, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +9,8 @@ import { cn } from '@/utils/styles';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAgentChatList } from '@/hooks/useAgentChat';
 import { useChatSession } from '@/hooks/useChatSession';
-import { getChatTransport } from '@/services/chatTransport';
+import { getAgentChatTransport, getChatTransport } from '@/services/chatTransport';
+import { isCopilotKitChatEnabled } from '@/utils/featureFlags';
 import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { MAX_AGENT_CHAT_WIDTH, MIN_AGENT_CHAT_WIDTH } from '@/hooks/useAgentChatWidth';
 import { isRfpNote } from '@/types/note';
@@ -26,6 +28,15 @@ import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
 import { CreditMeter } from '@/components/AgentChat/CreditMeter';
 import { canSelectAIModel } from '@/types/researchAI';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
+
+// CopilotKit is large; only the flagged chat pays for it.
+const CopilotNotebookChat = dynamic(
+  () =>
+    import('@/components/AgentChat/copilot/CopilotNotebookChat').then(
+      (module) => module.CopilotNotebookChat
+    ),
+  { ssr: false, loading: () => <CenteredLoader /> }
+);
 
 type PanelTab = 'chat' | 'sources';
 
@@ -106,8 +117,10 @@ export function AgentChatPanel({
   const noteIsEmpty = useEditorIsEmpty(editor);
   const noteIsRfp = isRfpNote(currentNote);
 
-  // One transport per note: the hooks reset on its identity.
-  const transport = getChatTransport({ noteId });
+  // One transport per note: the hooks reset on its identity. The CopilotKit
+  // chat sends through the chat's AG-UI agent instead of the messages endpoint.
+  const useCopilotKit = isCopilotKitChatEnabled();
+  const transport = useCopilotKit ? getAgentChatTransport(noteId) : getChatTransport({ noteId });
   const list = useAgentChatList(transport, open);
   // Null is the new-chat screen, and it is where a page visit starts: the
   // assistant opens on its own opening moves rather than dropping the reader
@@ -343,6 +356,9 @@ export function AgentChatPanel({
           chatState.chat.executions.length === 0 &&
           !chatState.pendingSend;
         if (isEmpty) return emptyState;
+        if (useCopilotKit) {
+          return <CopilotNotebookChat noteId={noteId} chatId={selectedChatId} />;
+        }
         return <ChatTranscript chat={chatState.chat} pendingSend={chatState.pendingSend} />;
       }
     }
