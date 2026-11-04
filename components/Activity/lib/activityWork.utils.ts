@@ -222,7 +222,8 @@ function buildBasePresentation(
   };
 }
 
-function isAwardFeedEntry(entry: FeedEntry): boolean {
+/** The entry is a proposal to an award RFP: the funder awards it, so it asks for nothing. */
+export function isAwardFeedEntry(entry: FeedEntry): boolean {
   if (isAwardMechanism(entry.relatedWork?.fundingMechanism)) return true;
   return entry.associatedGrants?.some((grant) => isAwardMechanism(grant.fundingMechanism)) ?? false;
 }

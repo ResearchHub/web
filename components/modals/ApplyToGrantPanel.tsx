@@ -4,11 +4,18 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { Lock } from 'lucide-react';
+import { untitledDraftTitle } from '@/components/AIMode/copy';
+import { rememberWorkspaceView } from '@/components/AIMode/shell/workspaceView';
 import { documentTarget, newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
+import {
+  createFundingDraft,
+  DOCUMENT_TYPE_BY_INTENT,
+} from '@/components/Funding/createFundingDraft';
 import { Button } from '@/components/ui/Button';
 import { PinnedFooter } from '@/components/ui/PinnedFooter';
 import { SidePanel } from '@/components/ui/SidePanel';
 import { FULL_DRAWER_HEIGHT, SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -35,7 +42,7 @@ const DraftsSkeleton = () => (
   </div>
 );
 
-/** A new proposal is drafted with AI in the workspace, or written in the editor. */
+/** A new proposal is drafted with AI in the workspace, or written there by hand. */
 type NewDraftMethod = 'ai' | 'editor';
 
 const NEW_DRAFT_OPTIONS: { method: NewDraftMethod; label: string; description: string }[] = [
@@ -47,7 +54,7 @@ const NEW_DRAFT_OPTIONS: { method: NewDraftMethod; label: string; description: s
   {
     method: 'editor',
     label: 'Write it yourself',
-    description: 'A blank proposal in the editor, with this RFP attached.',
+    description: 'A blank proposal in the workspace, with this RFP attached.',
   },
 ];
 
@@ -101,6 +108,7 @@ export function ApplyToGrantPanel({
   const [isSavingSelection, setIsSavingSelection] = useState(false);
   const { user } = useUser();
   const { selectedOrg } = useOrganizationContext();
+  const { addDraft } = useFundingNotes();
   const router = useRouter();
   const isMobile = useIsMobile();
 
@@ -116,15 +124,36 @@ export function ApplyToGrantPanel({
     setNewDraftMethod(null);
   };
 
-  // The workspace picks its RFP on its own start screen; it can't be handed one yet.
+  // The workspace's start screen opens with this RFP already picked.
   const handleDraftWithAI = () => {
     onClose();
-    router.push(workspaceHref(newDraftTarget('need_funding')));
+    router.push(workspaceHref(newDraftTarget('need_funding', grantId)));
   };
 
-  const handleDraftInEditor = () => {
-    onClose();
-    router.push(`/notebook?newFunding=true&selectedGrantId=${encodeURIComponent(grantId)}`);
+  // A blank proposal answering this RFP, opened in the workspace on the
+  // document alone, as its own "Start with a blank page" does.
+  const handleDraftInEditor = async () => {
+    if (!selectedOrg?.slug) return;
+
+    setIsSavingSelection(true);
+    try {
+      const note = await createFundingDraft({
+        orgSlug: selectedOrg.slug,
+        title: untitledDraftTitle('need_funding'),
+        documentType: DOCUMENT_TYPE_BY_INTENT.need_funding,
+        // Only its author sees it until it is published.
+        grouping: 'PRIVATE',
+        selectedGrantId: grantId,
+        onNoteCreated: addDraft,
+      });
+      rememberWorkspaceView(note.id, 'document');
+      onClose();
+      router.push(workspaceHref(documentTarget(note.id, 'new')));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Couldn’t start the proposal');
+    } finally {
+      setIsSavingSelection(false);
+    }
   };
 
   const handleContinueWithDraft = async () => {
@@ -144,7 +173,7 @@ export function ApplyToGrantPanel({
 
   const handleStart = () => {
     if (newDraftMethod === 'ai') handleDraftWithAI();
-    else if (newDraftMethod === 'editor') handleDraftInEditor();
+    else if (newDraftMethod === 'editor') void handleDraftInEditor();
     else void handleContinueWithDraft();
   };
 
@@ -305,11 +334,18 @@ export function ApplyToGrantPanel({
         <Button
           data-testid="apply-continue"
           onClick={handleStart}
-          disabled={!(newDraftMethod || selectedDraftNote) || isSavingSelection}
+          disabled={
+            !(newDraftMethod || selectedDraftNote) ||
+            isSavingSelection ||
+            // A blank proposal is created in the organization, once it has loaded.
+            (newDraftMethod === 'editor' && !selectedOrg?.slug)
+          }
           className="flex-1"
         >
           {isSavingSelection
-            ? 'Saving...'
+            ? newDraftMethod === 'editor'
+              ? 'Starting...'
+              : 'Saving...'
             : selectedDraftNote
               ? 'Continue with this draft'
               : 'Start a proposal'}

@@ -13,6 +13,7 @@ import {
   getActivityWork,
   getAwardCardStat,
   getWorkCardPresentation,
+  isAwardFeedEntry,
   type WorkCardStat,
 } from '@/components/Activity/lib/activityWork.utils';
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
@@ -129,7 +130,9 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   // from the fundraise rather than inferred from `activityAction` the way an
   // activity row has to.
   const base = getWorkCardPresentation(entry, work, { showUSD, exchangeRate });
-  const isAward = isAwardMechanism(grantAllocate?.fundingMechanism);
+  // On an award RFP's page the RFP says so; elsewhere (`/fund/proposals`) the
+  // entry names the RFP it answers. Either way it shows no ask.
+  const isAward = isAwardMechanism(grantAllocate?.fundingMechanism) || isAwardFeedEntry(entry);
   const awardStat =
     isAward && fundraise ? getAwardCardStat(fundraise, showUSD, exchangeRate) : null;
   const presentation = isAward
