@@ -1,5 +1,6 @@
 import { AssistantChatService } from './assistantChat.service';
 import { NotebookChatService } from './notebookChat.service';
+import { ApiError } from './types/api';
 import { WS_ROUTES } from './websocket';
 import type {
   CancelTurnResponse,
@@ -92,9 +93,12 @@ export function getAgentChatTransport(noteId: ChatId): ChatTransport {
           ...generation,
           ...(fileIds && fileIds.length > 0 && { file_ids: fileIds }),
         });
-        // Every accepted send starts a turn, so the id is always present; -1
-        // only keeps the type honest if a server ever omits it.
-        return { conversation_id: Number(chatId), execution_id: executionId ?? -1 };
+        // Every accepted send starts a turn and names it. Without the id the
+        // chat could never match the turn and would stay busy, so fail loudly.
+        if (executionId === null) {
+          throw new ApiError('The server did not say which turn it started.');
+        }
+        return { conversation_id: Number(chatId), execution_id: executionId };
       },
     };
     agentTransports.set(key, transport);
