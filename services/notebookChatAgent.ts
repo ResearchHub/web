@@ -75,33 +75,33 @@ export class NotebookChatAgent extends HttpAgent {
     const messageId = `client-${crypto.randomUUID()}`;
     this.addMessage({ id: messageId, role: 'user', content: text });
     return new Promise<number | null>((resolve, reject) => {
-      let started = false;
-      this.acceptance = {
-        resolve: () => undefined,
-        reject: (error) => {
-          this.setMessages(this.messages.filter((message) => message.id !== messageId));
-          reject(error);
-        },
+      let settled = false;
+      const fail = (error: ApiError) => {
+        if (settled) return;
+        settled = true;
+        if (this.acceptance === acceptance) this.acceptance = null;
+        this.setMessages(this.messages.filter((message) => message.id !== messageId));
+        reject(error);
       };
+      // The response being accepted only means the stream opened; `send`
+      // settles on RUN_STARTED, or fails if the run ends or errors first.
+      const acceptance: PendingAcceptance = { resolve: () => undefined, reject: fail };
+      this.acceptance = acceptance;
       this.runAgent(
         { forwardedProps },
         {
           onRunStartedEvent: ({ event }) => {
-            started = true;
+            if (settled) return;
+            settled = true;
             const executionId = (event.metadata as { execution_id?: unknown } | undefined)
               ?.execution_id;
             resolve(typeof executionId === 'number' ? executionId : null);
           },
         }
-      ).catch((error: unknown) => {
-        if (!started) {
-          this.settle(
-            error instanceof ApiError
-              ? error
-              : new ApiError(error instanceof Error ? error.message : 'The run failed.')
-          );
-        }
-      });
+      ).then(
+        () => fail(new ApiError('The run ended before the server accepted it.')),
+        (error: unknown) => fail(toApiError(error, 'The run failed.'))
+      );
     });
   }
 
@@ -140,7 +140,7 @@ export class NotebookChatAgent extends HttpAgent {
     try {
       response = await this.fetch(url, { ...init, headers });
     } catch (error) {
-      this.settle(new ApiError(error instanceof Error ? error.message : 'Network error.'));
+      this.settle(toApiError(error, 'Network error.'));
       throw error;
     }
     if (response.ok) {
@@ -169,6 +169,11 @@ export class NotebookChatAgent extends HttpAgent {
     if (error) acceptance.reject(error);
     else acceptance.resolve();
   }
+}
+
+function toApiError(error: unknown, fallback: string): ApiError {
+  if (error instanceof ApiError) return error;
+  return new ApiError(error instanceof Error ? error.message : fallback);
 }
 
 const agents = new Map<string, NotebookChatAgent>();
