@@ -66,7 +66,8 @@ interface ContributeModalCommonProps {
   /**
    * Award proposals. RSC, the RFP pool, and Stripe (card, Apple Pay, Google
    * Pay) stay: a Stripe charge buys RSC into the escrow. Donor-advised funds
-   * and PayPal stay hidden.
+   * and PayPal stay hidden. In fundingPool mode it only names the pool a
+   * prize pool; the payment options stay the pool's.
    */
   isAward?: boolean;
   /** Replaces the default contribution success toast. */
@@ -172,6 +173,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   // DAF is never offered for RFP funding pools.
   const allowDafPayment = isPoolMode ? false : (props.allowDafPayment ?? true);
   const isAward = !isPoolMode && isAwardProp;
+  const poolName = isPoolMode && isAwardProp ? 'prize pool' : 'funding pool';
 
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
@@ -193,7 +195,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const contributionSuccessMessage =
     successMessage ??
     (isPoolMode
-      ? 'Your contribution has been added to the RFP funding pool.'
+      ? `Your contribution has been added to the RFP ${poolName}.`
       : 'Your contribution has been successfully added to the fundraise.');
   // Opens on the usual amount, or on what's left when a cap is lower, so the
   // first amount shown can be paid.
@@ -615,7 +617,11 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     [logFunnelStep, finishSuccess, contributionSuccessMessage]
   );
 
-  const defaultTitle = isPoolMode ? 'Add to the funding pool' : isAward ? 'Award' : 'Fund Proposal';
+  const defaultTitle = isPoolMode
+    ? `Add to the ${poolName}`
+    : isAward
+      ? 'Award prize'
+      : 'Fund Proposal';
 
   // Get title based on current view
   const getTitle = () => {
@@ -783,8 +789,9 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                 <div className="flex gap-3 rounded-lg border border-primary-100 bg-primary-50 px-4 py-3 text-sm leading-snug text-primary-900">
                   <Coins className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
                   <p>
-                    Adding to the funding pool increases the funder’s funding budget and allows more
-                    funds to be allocated towards the best research proposals.
+                    {isAwardProp
+                      ? 'Adding to the prize pool grows the prize and lets the funder award more to the best results.'
+                      : 'Adding to the funding pool increases the funder’s funding budget and allows more funds to be allocated towards the best research proposals.'}
                   </p>
                 </div>
               )}

@@ -70,7 +70,12 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   // in the sidebar and an Apply and Fund bar where the sidebar is hidden.
   return (
     <FundPanelProvider>
-      <GrantPageProvider defaultTab="details" grant={grant}>
+      <GrantPageProvider
+        defaultTab="details"
+        grant={grant}
+        title={grantTitle}
+        imageUrl={work.image}
+      >
         <PageLayout
           contentWidth="narrow"
           // The pool card's top lines up with the byline's.

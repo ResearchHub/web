@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Check, Trophy } from 'lucide-react';
+import { Check, PenLine, Trophy } from 'lucide-react';
 import { FundButton } from '@/components/Funding/FundButton';
+import { Button } from '@/components/ui/Button';
 import { FundingCard } from '@/components/Funding/FundingCard';
 import { formatFundingAmount } from '@/components/Funding/lib/fundingAmounts';
 import {
@@ -13,6 +14,8 @@ import {
 } from '@/components/Funding/lib/fundingMechanism';
 import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
+import { isWorkAuthor } from '@/components/work/lib/workAuthors';
+import { useShowProposalTab } from '@/components/work/lib/workTabs';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useUser } from '@/contexts/UserContext';
@@ -37,21 +40,31 @@ interface TimelineStep {
 }
 
 /**
- * An award proposal's sidebar card. It shows the RFP's award and that nobody
+ * A prize proposal's sidebar card. It shows the RFP's prize and that nobody
  * fundraises on the proposal. Once money is in, the amount is what it received
- * and Awarded is done, even while the payout is still waiting. The grant
- * creator can still pay it while the RFP is open and the proposal has not expired.
+ * and Awarded is done, even while the payout is still waiting. Its last step
+ * is the authors' updates. The button is whoever is looking's next move: an
+ * author posts an update; the grant creator awards the prize while the RFP is
+ * open and the proposal has not expired.
  */
 export function AwardProposalCard({
+  work,
   fundraise,
   linkedGrant,
   publishedDate,
+  updatesCount = 0,
+  latestUpdateDate,
 }: {
+  work: Work;
   fundraise: Fundraise;
   linkedGrant: LinkedGrant;
   publishedDate?: string;
+  /** The authors' updates on the proposal, from the page's own fetch of them. */
+  updatesCount?: number;
+  latestUpdateDate?: string;
 }) {
   const { user } = useUser();
+  const showTab = useShowProposalTab(work);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const phase = getAwardPhase(fundraise);
@@ -76,7 +89,10 @@ export function AwardProposalCard({
           skipConversion: showUSD,
         })
       : formatFundingAmount(fundraise.amountRaised, showUSD);
-  const headlineLabel = awarded ? 'awarded' : 'in awards';
+  const headlineLabel = awarded ? 'awarded' : 'prize';
+  // An author who also opened the RFP is a candidate here: they post, not award.
+  const isAuthor = isWorkAuthor(work.authors, user?.authorProfile?.id);
+  const hasUpdates = updatesCount > 0;
 
   const rfp = getLinkedGrantLink({ linkedGrant } as Work);
   // The award is the funder's payment into the fundraise: its first
@@ -112,13 +128,32 @@ export function AwardProposalCard({
       detail: awarded
         ? `${headline} from ${who}`
         : stillOpen
-          ? `${who} picks who gets the award once results are posted.`
-          : 'No longer open for awards',
+          ? `${who} picks who wins the prize once results are posted.`
+          : 'The prize has closed',
       done: awarded,
       disabled: !awarded && !stillOpen,
     },
+    {
+      key: 'update',
+      label: 'Update posted',
+      date: hasUpdates ? latestUpdateDate : undefined,
+      detail: hasUpdates ? (
+        <button
+          type="button"
+          onClick={() => showTab('updates')}
+          className="underline decoration-white/30 underline-offset-2 transition-colors hover:text-white hover:decoration-white/70"
+        >
+          {updatesCount === 1 ? '1 update' : `${updatesCount} updates`}
+        </button>
+      ) : isAuthor ? (
+        'Share your progress and results.'
+      ) : (
+        'No updates yet'
+      ),
+      done: hasUpdates,
+      disabled: false,
+    },
   ];
-  const nextStep = steps.findIndex((step) => !step.done && !step.disabled);
 
   return (
     <FundingCard
@@ -126,7 +161,7 @@ export function AwardProposalCard({
       aside={
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/10 text-white">
           <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="sr-only">Award</span>
+          <span className="sr-only">Prize</span>
         </span>
       }
       testId="proposal-award"
@@ -139,8 +174,9 @@ export function AwardProposalCard({
       </p>
       <ol className="mt-4">
         {steps.map((step, index) => {
-          const isNext = index === nextStep;
-          const isLater = (nextStep !== -1 && index > nextStep) || step.disabled;
+          // Every step still to come reads at full strength; only one that can
+          // no longer happen fades.
+          const isOpen = !step.done && !step.disabled;
           const isLast = index === steps.length - 1;
           return (
             <li key={step.key} className={cn('relative flex gap-3', !isLast && 'pb-4')}>
@@ -150,7 +186,7 @@ export function AwardProposalCard({
                   aria-hidden="true"
                   className={cn(
                     'absolute bottom-0 left-[9px] top-5 w-px',
-                    steps[index + 1].done ? 'bg-emerald-400/60' : 'bg-white/15'
+                    step.done && steps[index + 1].done ? 'bg-emerald-400/60' : 'bg-white/15'
                   )}
                 />
               )}
@@ -160,7 +196,7 @@ export function AwardProposalCard({
                   'relative mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full',
                   step.done
                     ? 'bg-emerald-400 text-navy'
-                    : isNext
+                    : isOpen
                       ? 'border-2 border-white/70'
                       : 'border border-white/25'
                 )}
@@ -172,12 +208,16 @@ export function AwardProposalCard({
                   <span
                     className={cn(
                       'text-sm leading-5',
-                      isNext ? 'font-semibold text-white' : isLater ? 'text-white/40' : 'text-white'
+                      isOpen
+                        ? 'font-semibold text-white'
+                        : step.disabled
+                          ? 'text-white/40'
+                          : 'text-white'
                     )}
                   >
                     {step.label}
                     <span className="sr-only">
-                      {step.done ? ' (done)' : isNext ? ' (next)' : ''}
+                      {step.done ? ' (done)' : isOpen ? ' (to do)' : ''}
                     </span>
                   </span>
                   {step.date && (
@@ -194,7 +234,7 @@ export function AwardProposalCard({
                     className={cn(
                       'mt-0.5 text-[13px] leading-[18px]',
                       step.truncate && 'truncate',
-                      isLater ? 'text-white/30' : 'text-white/60'
+                      step.disabled ? 'text-white/30' : 'text-white/60'
                     )}
                   >
                     {step.detail}
@@ -205,10 +245,26 @@ export function AwardProposalCard({
           );
         })}
       </ol>
-      {canFund && (
-        <FundButton data-testid="proposal-fund" icon={Trophy} className="mt-4 w-full font-semibold">
-          {awardActionLabel(fundraise)}
-        </FundButton>
+      {isAuthor ? (
+        <Button
+          data-testid="proposal-post-update"
+          variant="default"
+          onClick={() => showTab('updates')}
+          className="mt-4 w-full gap-2 font-semibold"
+        >
+          <PenLine className="h-4 w-4" aria-hidden="true" />
+          Post update
+        </Button>
+      ) : (
+        canFund && (
+          <FundButton
+            data-testid="proposal-fund"
+            icon={Trophy}
+            className="mt-4 w-full font-semibold"
+          >
+            {awardActionLabel(fundraise)}
+          </FundButton>
+        )
       )}
     </FundingCard>
   );

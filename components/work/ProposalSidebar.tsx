@@ -12,6 +12,10 @@ import { NonprofitSection } from './components/NonprofitSection';
 interface ProposalSidebarProps {
   work: Work;
   metadata: WorkMetadata;
+  /** The authors' updates, counted from the layout's fetch of them. */
+  updatesCount?: number;
+  /** When the newest update was posted. */
+  latestUpdateDate?: string;
 }
 
 /**
@@ -19,7 +23,12 @@ interface ProposalSidebarProps {
  * card over who reviewed it, then the AI's key insights and the nonprofit the
  * money goes to, where it has them.
  */
-export function ProposalSidebar({ work, metadata }: ProposalSidebarProps) {
+export function ProposalSidebar({
+  work,
+  metadata,
+  updatesCount,
+  latestUpdateDate,
+}: ProposalSidebarProps) {
   const fundraise = metadata.fundraising;
   const isAward = isAwardMechanism(work.linkedGrant?.fundingMechanism);
 
@@ -27,9 +36,12 @@ export function ProposalSidebar({ work, metadata }: ProposalSidebarProps) {
     <div className="flex flex-col gap-3">
       {fundraise && isAward && work.linkedGrant && (
         <AwardProposalCard
+          work={work}
           fundraise={fundraise}
           linkedGrant={work.linkedGrant}
           publishedDate={work.publishedDate || work.createdDate}
+          updatesCount={updatesCount}
+          latestUpdateDate={latestUpdateDate}
         />
       )}
       {fundraise && !isAward && <ProposalFundingCard fundraise={fundraise} />}

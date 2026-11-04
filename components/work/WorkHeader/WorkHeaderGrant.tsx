@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
-import { ApplyToGrantPanel } from '@/components/modals/ApplyToGrantPanel';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
 import { CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
@@ -22,24 +22,22 @@ interface WorkHeaderGrantProps {
 
 /**
  * The RFP page's cover. The tabs, byline and pool card live in the page
- * beneath it; this keeps the Apply and Add to pool panels they open.
+ * beneath it; this keeps the Add to pool panel the pool card opens. Apply
+ * goes to the workspace instead.
  */
 export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantProps) {
   const router = useRouter();
   const {
-    grantId,
     organization,
     organizationProfile,
-    applicationVisibility,
-    grantAmount,
     isPending,
     isActive,
     fundingPool,
     setFundingPool,
-    isApplyPanelOpen,
-    setIsApplyPanelOpen,
+    fundingMechanism,
   } = useGrantPage();
   const { isFundPanelOpen, closeFundPanel } = useFundPanel();
+  const isPrize = isAwardMechanism(fundingMechanism);
 
   // The panel stays open on its "Added to the pool" screen; the page behind it
   // catches up with the new pool.
@@ -52,7 +50,7 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
   );
 
   const eyebrow = organization ? `RFP · ${organization}` : 'RFP';
-  // Both panels (fund the pool, apply) open on the RFP's cover, small.
+  // The Add to pool panel opens on the RFP's cover, small.
   const coverCard = <WorkCoverCard title={work.title} eyebrow={eyebrow} imageUrl={work.image} />;
 
   const badges = isPending ? (
@@ -82,18 +80,6 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
         hideSidebarButton
       />
 
-      {grantId && (
-        <ApplyToGrantPanel
-          isOpen={isApplyPanelOpen}
-          onClose={() => setIsApplyPanelOpen(false)}
-          grantId={grantId}
-          applicationVisibility={applicationVisibility}
-          cover={coverCard}
-          amountUsd={grantAmount?.usd}
-          organization={organization}
-        />
-      )}
-
       {fundingPool?.status === 'OPEN' && (
         <ContributeToFundraiseModal
           mode="fundingPool"
@@ -104,9 +90,10 @@ export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantPro
           proposalTitle={work.title}
           variant="panel"
           topContent={coverCard}
+          isAward={isPrize}
           successText={`Every dollar in the pool goes to the proposals ${
             organization || 'the funder'
-          } picks.`}
+          } ${isPrize ? 'awards' : 'picks'}.`}
         />
       )}
     </>

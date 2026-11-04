@@ -1,6 +1,7 @@
 'use client';
 
-import { Trophy } from 'lucide-react';
+import { PenLine, Trophy } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
 import {
@@ -9,27 +10,49 @@ import {
   isAwardMechanism,
 } from '@/components/Funding/lib/fundingMechanism';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
+import { isWorkAuthor } from '@/components/work/lib/workAuthors';
+import { useShowProposalTab } from '@/components/work/lib/workTabs';
 import { useUser } from '@/contexts/UserContext';
 import type { Fundraise } from '@/types/funding';
-import type { LinkedGrant } from '@/types/work';
+import type { LinkedGrant, Work } from '@/types/work';
 
 /**
  * Fund, for the proposal page wherever its funding card is hidden: a bar as
  * wide as the page for how far the fundraise has come, then raised of the
- * goal, the funders and the time left beside the button.
+ * goal, the funders and the time left beside the button. On a prize proposal
+ * it is the prize card's button instead: Post update for an author, Award
+ * prize for the grant creator.
  */
 export function ProposalActionBar({
+  work,
   fundraise,
   linkedGrant,
 }: {
+  work: Work;
   fundraise: Fundraise;
   linkedGrant?: LinkedGrant | null;
 }) {
   const { user } = useUser();
   const summary = useFundraiseSummary(fundraise);
+  const showTab = useShowProposalTab(work);
   const isAward = isAwardMechanism(linkedGrant?.fundingMechanism);
 
   if (isAward) {
+    if (isWorkAuthor(work.authors, user?.authorProfile?.id)) {
+      return (
+        <StickyActionBar>
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => showTab('updates')}
+            className="w-full gap-2 px-6"
+          >
+            <PenLine className="h-4 w-4" aria-hidden="true" />
+            Post update
+          </Button>
+        </StickyActionBar>
+      );
+    }
     if (
       !canAwardProposal({
         userId: user?.id,

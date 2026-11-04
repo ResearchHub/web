@@ -153,7 +153,7 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
       return { actor, verb: 'contributed', suffix: ' to the funding pool' };
     }
     return isAwardMechanism(entry.relatedWork?.fundingMechanism)
-      ? { actor, verb: 'awarded this proposal with' }
+      ? { actor, verb: 'awarded this proposal a prize of' }
       : { actor, verb: 'funded this proposal with' };
   }
 
@@ -580,7 +580,7 @@ export function getActivityActionLine(
       label: isFundingPoolContribution(entry)
         ? 'Added to an RFP’s funding pool'
         : awardedProposal
-          ? 'Awarded a proposal'
+          ? 'Awarded a prize'
           : 'Funded a proposal',
       value: contributionValue(getContribution(entry)),
     };
@@ -595,7 +595,7 @@ export function getActivityActionLine(
       (entry.associatedGrants?.some((grant) => isAwardMechanism(grant.fundingMechanism))
         ? 'AWARD'
         : undefined);
-    if (mechanism === 'AWARD') return { label: 'Submitted a proposal for an award' };
+    if (mechanism === 'AWARD') return { label: 'Submitted a proposal for a prize' };
     if (mechanism === 'FUNDING') return { label: 'Submitted a proposal for funding' };
     return { label: 'Submitted a proposal' };
   }

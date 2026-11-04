@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAIMode } from './AIModeContext';
 import { untitledDraftTitle } from './copy';
+import { readHandedOffRfp } from './rfpHandoff';
 import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
@@ -21,7 +22,6 @@ import { useUser } from '@/contexts/UserContext';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
 import { getChatTransport } from '@/services/chatTransport';
-import { GrantService } from '@/services/grant.service';
 import type { AgentChat, ChatNoteRef } from '@/types/agentChat';
 import type { SelectedGrantDetails } from '@/types/grant';
 import type { Note } from '@/types/note';
@@ -119,24 +119,16 @@ export function useAIModeChat(): AIModeChatState {
   const intent = urlIntent ?? rememberedIntent;
   const [selectedGrant, setSelectedGrant] = useState<SelectedGrantDetails | null>(null);
 
-  // An RFP page's Apply leads here with the RFP named (`?rfp=<id>`): it starts
-  // out picked, as if chosen on this screen, and can still be changed. The
-  // RFP is read signed in, so a visitor who logs in here gets it then.
-  const { user, isLoading: userLoading } = useUser();
-  const signedInUserId = user?.id ?? null;
+  // An RFP page's Apply leads here with the RFP named (`?rfp=<id>`) and hands
+  // over what it knows of it, so it starts out picked, as if chosen on this
+  // screen, with no request for it. It can still be changed. Without the
+  // handover (a link opened in another tab) nothing is picked.
   const urlGrantId = target.kind === 'new' ? (target.grantId ?? null) : null;
   useEffect(() => {
-    if (urlGrantId == null || signedInUserId == null) return;
-    let cancelled = false;
-    GrantService.getSelectedGrant(urlGrantId)
-      .then((grant) => {
-        if (!cancelled) setSelectedGrant(grant);
-      })
-      .catch((error) => console.error('Error loading the RFP to apply to:', error));
-    return () => {
-      cancelled = true;
-    };
-  }, [urlGrantId, signedInUserId]);
+    if (urlGrantId == null) return;
+    const handedOff = readHandedOffRfp(urlGrantId);
+    if (handedOff) setSelectedGrant(handedOff);
+  }, [urlGrantId]);
 
   // ---- the first message of a new draft ----
   // It creates the document, then a chat on it, then goes out there. A note
@@ -327,6 +319,7 @@ export function useAIModeChat(): AIModeChatState {
   // ---- a signed-out visitor ----
   // What would start a draft asks them to log in, and keeps what they typed
   // (or the suggestion they picked) in the box for when they are back.
+  const { user, isLoading: userLoading } = useUser();
   const { showAuthModal } = useAuthModalContext();
   const signedOut = user == null && !userLoading;
   const { setDraft } = session;

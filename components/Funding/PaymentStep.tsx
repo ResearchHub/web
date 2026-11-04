@@ -365,7 +365,7 @@ export function PaymentStep({
                   {isFundingPoolMethod
                     ? 'Allocation from pool'
                     : isAward
-                      ? 'Award'
+                      ? 'Prize'
                       : 'Funding contribution'}
                 </span>
                 <span className="text-sm text-gray-900">{formatUsd(amountInUsd)}</span>

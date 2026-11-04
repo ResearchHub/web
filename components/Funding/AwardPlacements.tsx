@@ -3,13 +3,8 @@
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { SidebarCard } from '@/components/ui/SidebarCard';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { formatFundingAmount } from '@/components/Funding/lib/fundingAmounts';
-import {
-  getAwardPhase,
-  isAwardMechanism,
-  type AwardPhase,
-} from '@/components/Funding/lib/fundingMechanism';
+import { getAwardPhase, isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { Application } from '@/types/funding';
@@ -19,29 +14,6 @@ const MAX_PLACES = 5;
 
 function raisedUsd(application: Application): number {
   return application.fundraise?.amountRaised.usd ?? 0;
-}
-
-const SET_ASIDE_NOTE =
-  'Set aside. Paid out once this proposal has been open for a week, on the next daily payout.';
-
-function AwardAmount({ amount, phase }: { amount: string; phase: AwardPhase }) {
-  const figure = (
-    <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-gray-900">
-      {phase === 'set-aside' ? (
-        <span className="cursor-help underline decoration-dotted decoration-gray-400 underline-offset-2">
-          {amount}
-        </span>
-      ) : (
-        amount
-      )}
-    </span>
-  );
-  if (phase !== 'set-aside') return figure;
-  return (
-    <Tooltip content={SET_ASIDE_NOTE} position="top" width="w-56" wrapperAs="span">
-      {figure}
-    </Tooltip>
-  );
 }
 
 function hasAwardMoney(application: Application): boolean {
@@ -59,9 +31,9 @@ function proposalHref(application: Application): string | null {
 }
 
 /**
- * The award RFP's top five, by what each proposal has received. Includes money
- * still set aside. There is no separate awardees list: this is the grant's
- * own applications.
+ * The prize RFP's top five, by what each proposal has been awarded, counting
+ * money still waiting on its payout. There is no separate winners list: this
+ * is the grant's own applications.
  */
 export function AwardPlacements() {
   const { fundingMechanism, applications } = useGrantPage();
@@ -81,12 +53,11 @@ export function AwardPlacements() {
   if (placed.length === 0) return null;
 
   return (
-    <SidebarCard title="Awardees">
+    <SidebarCard title="Prize winners">
       <ol className="mt-2 flex flex-col">
         {placed.map((application, index) => {
           const href = proposalHref(application);
           const title = application.fundraise?.title || 'Proposal';
-          const phase = getAwardPhase(application.fundraise);
           const amount = application.fundraise
             ? formatFundingAmount(application.fundraise.amountRaised, showUSD)
             : '';
@@ -108,7 +79,9 @@ export function AwardPlacements() {
                 </span>
                 <span className="block truncate text-xs text-gray-500">{title}</span>
               </span>
-              <AwardAmount amount={amount} phase={phase} />
+              <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-gray-900">
+                {amount}
+              </span>
             </>
           );
           const className = 'flex items-center gap-2.5 rounded-md py-2';
