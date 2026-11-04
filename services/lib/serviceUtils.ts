@@ -38,3 +38,20 @@ export function extractApiErrorMessage(error: unknown, defaultMessage: string): 
   if (error instanceof Error) return error.message;
   return defaultMessage;
 }
+
+/**
+ * Stable machine-readable `code` from an ApiError payload (full JSON is passed
+ * as ApiError.errors). Used for mailbox / outreach flows, e.g.
+ * `mailbox_not_allowed`, `gmail_not_connected`, `gmail_needs_reauth`.
+ */
+export function getApiErrorCode(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.errors == null || typeof error.errors !== 'object') {
+    return null;
+  }
+  const code = (error.errors as Record<string, unknown>).code;
+  if (typeof code === 'string' && code.trim()) return code.trim();
+  if (Array.isArray(code) && typeof code[0] === 'string' && code[0].trim()) {
+    return code[0].trim();
+  }
+  return null;
+}
