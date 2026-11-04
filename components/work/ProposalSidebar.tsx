@@ -26,7 +26,11 @@ export function ProposalSidebar({ work, metadata }: ProposalSidebarProps) {
   return (
     <div className="flex flex-col gap-3">
       {fundraise && isAward && work.linkedGrant && (
-        <AwardProposalCard fundraise={fundraise} linkedGrant={work.linkedGrant} />
+        <AwardProposalCard
+          fundraise={fundraise}
+          linkedGrant={work.linkedGrant}
+          publishedDate={work.publishedDate || work.createdDate}
+        />
       )}
       {fundraise && !isAward && <ProposalFundingCard fundraise={fundraise} />}
       <ProposalReviewsCard work={work} />

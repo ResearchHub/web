@@ -43,9 +43,11 @@ interface TimelineStep {
 export function AwardProposalCard({
   fundraise,
   linkedGrant,
+  publishedDate,
 }: {
   fundraise: Fundraise;
   linkedGrant: LinkedGrant;
+  publishedDate?: string;
 }) {
   const { user } = useUser();
   const { showUSD } = useCurrencyPreference();
@@ -75,7 +77,6 @@ export function AwardProposalCard({
   const headlineLabel = awarded ? 'awarded' : 'in awards';
 
   const rfp = getLinkedGrantLink({ linkedGrant } as Work);
-  const publishedAt = fundraise.startDate || fundraise.createdDate;
 
   const steps: TimelineStep[] = [
     {
@@ -100,7 +101,7 @@ export function AwardProposalCard({
     {
       key: 'published',
       label: 'Proposal published',
-      detail: publishedAt ? formatTimestamp(publishedAt, false) : undefined,
+      detail: publishedDate ? formatTimestamp(publishedDate, false) : undefined,
       done: true,
       disabled: false,
     },
