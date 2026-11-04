@@ -1,13 +1,8 @@
 name: Smoke Tests
 
 on:
-  # Runs on every pull request. Unlike deployment_status or repository_dispatch,
-  # this trigger works from a feature branch, so it takes effect without being
-  # merged to the default branch first.
-  pull_request:
-
-  # Manual runs against any environment. GitHub only surfaces this once the
-  # file is on the default branch, so it becomes available after merging.
+  # Manual runs only, from the Actions tab or `gh workflow run`, against any
+  # environment. Pull requests no longer trigger it.
   workflow_dispatch:
     inputs:
       base_url:
@@ -15,7 +10,7 @@ on:
         required: true
 
 concurrency:
-  group: smoke-${{ github.event.pull_request.number || github.ref }}
+  group: smoke-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -57,12 +52,8 @@ jobs:
 
       - name: Run smoke tests
         env:
-          # A manual run takes the URL from its input; a pull request falls back
-          # to the shared environment in the SMOKE_BASE_URL repository variable.
-          # To test each PR against its own Vercel preview instead, switch to
-          # Vercel's repository_dispatch event and read client_payload.url -
-          # that only works once this file is on the default branch.
-          SMOKE_BASE_URL: ${{ inputs.base_url || vars.SMOKE_BASE_URL }}
+          # The URL comes from the run's input.
+          SMOKE_BASE_URL: ${{ inputs.base_url }}
           SMOKE_USER_EMAIL: ${{ secrets.SMOKE_USER_EMAIL }}
           SMOKE_USER_PASSWORD: ${{ secrets.SMOKE_USER_PASSWORD }}
           # Ids of the fixture content, which is public.
