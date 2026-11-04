@@ -14,6 +14,9 @@ import {
   ExternalLink,
   MoreVertical,
   Octagon,
+  FileText,
+  Send,
+  Eye,
 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -33,13 +36,22 @@ import {
   isGeneratedEmailDraftLike,
   isGeneratedEmailPipelineBusy,
 } from '@/app/expert-finder/lib/generatedEmailStatus';
+import {
+  getOutreachSendErrorMessage,
+  isGmailConnectRequiredError,
+} from '@/app/expert-finder/lib/outreachSendErrors';
+import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { formatExactTime } from '@/utils/date';
 import { cn } from '@/utils/styles';
 import {
   useGeneratedEmailDetail,
   useUpdateGeneratedEmail,
   useDeleteGeneratedEmail,
+  useMailboxStatus,
+  usePreviewEmails,
+  useSendEmails,
 } from '@/hooks/useExpertFinder';
+import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 import { toast } from 'react-hot-toast';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import {
@@ -50,6 +62,9 @@ import {
 import type { OutreachChannel } from '@/types/expertFinder';
 import { OutreachDetailSkeleton } from '@/components/ExpertFinder/OutreachDetailSkeleton';
 import { OutreachChannelActions } from '@/app/expert-finder/library/[searchId]/outreach/components/OutreachChannelActions';
+import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfirmationModal';
+
+type SendModalMode = 'send' | 'preview' | null;
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
@@ -76,13 +91,19 @@ export function OutreachDetailPageContent({
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
   const [{ isLoading: isDeleting }, deleteEmail] = useDeleteGeneratedEmail();
+  const [{ status: mailboxStatus, isLoading: isMailboxLoading }] = useMailboxStatus();
+  const [{ isLoading: isSending }, sendEmails] = useSendEmails();
+  const [{ isLoading: isPreviewing }, previewEmails] = usePreviewEmails();
+  const { replyTo, setReplyTo } = useOutreachReplyTo();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showMarkDraftConfirm, setShowMarkDraftConfirm] = useState(false);
   const [showMarkSentConfirm, setShowMarkSentConfirm] = useState(false);
   const [markSentChannels, setMarkSentChannels] = useState<OutreachChannel[]>([]);
   const [showChannelConfirm, setShowChannelConfirm] = useState(false);
   const [confirmChannel, setConfirmChannel] = useState<OutreachChannel | null>(null);
+  const [sendModalMode, setSendModalMode] = useState<SendModalMode>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -169,6 +190,64 @@ export function OutreachDetailPageContent({
     }
   };
 
+  const ensureDraftSaved = async (): Promise<boolean> => {
+    if (!emailId || !hasEdits) return true;
+    setActionError(null);
+    try {
+      await updateEmail(emailId, {
+        email_subject: editSubject,
+        email_body: editBody,
+      });
+      refetch();
+      return true;
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Failed to save draft');
+      return false;
+    }
+  };
+
+  const handleSendOrPreviewConfirm = async () => {
+    if (!email || !sendModalMode) return;
+    const replyValidation = parseAndValidateReplyToInput(replyTo);
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
+      return;
+    }
+
+    const saved = await ensureDraftSaved();
+    if (!saved) return;
+
+    setActionError(null);
+    try {
+      const payload = {
+        generated_email_ids: [email.id],
+        reply_to: replyValidation.emails,
+      };
+      if (sendModalMode === 'preview') {
+        await previewEmails(payload);
+        toast.success('Preview sent to your inbox');
+      } else {
+        await sendEmails(payload);
+        toast.success('Outreach sent');
+        refetch();
+      }
+      setSendModalMode(null);
+    } catch (e) {
+      const message = getOutreachSendErrorMessage(
+        e,
+        sendModalMode === 'preview' ? 'Failed to send preview email' : 'Failed to send emails'
+      );
+      if (isGmailConnectRequiredError(e)) {
+        toast.error(message);
+        setSendModalMode(null);
+        router.push('/expert-finder/settings');
+        return;
+      }
+      toast.error(message);
+      setActionError(message);
+    }
+  };
+
   const saveChannels = async (channels: OutreachChannel[], successMessage: string) => {
     if (!emailId) return;
     setActionError(null);
@@ -245,6 +324,21 @@ export function OutreachDetailPageContent({
     }
   };
 
+  const handleMarkDraft = async () => {
+    if (!emailId) return;
+    setActionError(null);
+    try {
+      await updateEmail(emailId, {
+        status: 'draft',
+      });
+      setShowMarkDraftConfirm(false);
+      refetch();
+      toast.success('Marked as draft.');
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Failed to mark as draft');
+    }
+  };
+
   if (isLoading && !email) {
     return <OutreachDetailSkeleton />;
   }
@@ -267,11 +361,16 @@ export function OutreachDetailPageContent({
 
   const isClosed = isGeneratedEmailClosed(email.status);
   const isSent = email.status === 'sent';
+  const isSendingStatus = email.status === 'sending';
   const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
   const showOutreachMoreMenu = !isClosed;
   const channelLabels = isSent ? getOutreachChannelLabels(email.channels) : [];
   const showChannelActions = !isClosed && (isDraftLike || isSent);
+  const mailboxReady = mailboxStatus?.connected === true && mailboxStatus.status !== 'needs_reauth';
+  const mailboxNeedsReauth = mailboxStatus?.status === 'needs_reauth';
+  const showApiSendActions = isDraftLike && !pipelineBusy;
+  const isSendSubmitting = isSending || isPreviewing || isUpdating;
 
   const displaySubject = isDraftLike ? editSubject : (email.emailSubject ?? '');
   const displayTitle = displaySubject || `Outreach for ${email.expertName}`;
@@ -415,6 +514,17 @@ export function OutreachDetailPageContent({
                     <span>{isSent ? 'Update channels' : 'Mark as sent'}</span>
                   </BaseMenuItem>
                 )}
+                {isSendingStatus && (
+                  <BaseMenuItem
+                    disabled={isUpdating}
+                    onSelect={() => {
+                      setShowMarkDraftConfirm(true);
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+                    <span>Mark as draft</span>
+                  </BaseMenuItem>
+                )}
                 {!isSent && (
                   <BaseMenuItem
                     disabled={isUpdating}
@@ -536,16 +646,110 @@ export function OutreachDetailPageContent({
       </BaseSection>
 
       {showChannelActions && (
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-col items-stretch sm:!items-end gap-3 pt-2">
+          {showApiSendActions && (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {mailboxReady ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="sm"
+                    className="gap-2"
+                    disabled={isSendSubmitting || isMailboxLoading}
+                    onClick={() => setSendModalMode('preview')}
+                  >
+                    <Eye className="h-3.5 w-3.5" aria-hidden />
+                    Send preview
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    disabled={isSendSubmitting || isMailboxLoading || !email.expertEmail?.trim()}
+                    title={
+                      email.expertEmail?.trim()
+                        ? mailboxStatus?.email
+                          ? `Send from ${mailboxStatus.email}`
+                          : 'Send via connected Gmail'
+                        : 'No expert email available'
+                    }
+                    onClick={() => setSendModalMode('send')}
+                  >
+                    <Send className="h-3.5 w-3.5" aria-hidden />
+                    Send
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                  disabled={isMailboxLoading}
+                  onClick={() => router.push('/expert-finder/settings')}
+                >
+                  <Mail className="h-3.5 w-3.5" aria-hidden />
+                  {mailboxNeedsReauth ? 'Reconnect Gmail' : 'Connect Gmail'}
+                </Button>
+              )}
+            </div>
+          )}
           <OutreachChannelActions
             expertEmail={email.expertEmail}
             emailSubject={displaySubject}
             emailBody={isDraftLike ? editBody : (email.emailBody ?? '')}
             sources={email.sources}
             onChannelOpened={openChannelConfirm}
+            emailButtonMode={mailboxReady ? 'open' : 'compose'}
           />
         </div>
       )}
+
+      <SendConfirmationModal
+        isOpen={sendModalMode != null}
+        onClose={() => !isSendSubmitting && setSendModalMode(null)}
+        isSubmitting={isSendSubmitting}
+        title={sendModalMode === 'preview' ? 'Send preview to yourself?' : 'Send outreach?'}
+        description={
+          sendModalMode === 'preview' ? (
+            <p>
+              We&apos;ll send a copy to your inbox so you can review formatting before contacting
+              the expert.
+              {mailboxStatus?.email ? (
+                <>
+                  {' '}
+                  From: <span className="font-medium text-gray-900">{mailboxStatus.email}</span>.
+                </>
+              ) : null}
+            </p>
+          ) : (
+            <p>
+              This sends from your connected Gmail
+              {mailboxStatus?.email ? (
+                <>
+                  {' '}
+                  (<span className="font-medium text-gray-900">{mailboxStatus.email}</span>)
+                </>
+              ) : null}
+              . Experts who reply will use the Reply To addresses below.
+            </p>
+          )
+        }
+        replyTo={replyTo}
+        onReplyToChange={setReplyTo}
+        onConfirm={() => void handleSendOrPreviewConfirm()}
+        confirmLabel={sendModalMode === 'preview' ? 'Send preview' : 'Send'}
+        submittingLabel={sendModalMode === 'preview' ? 'Sending preview…' : 'Sending…'}
+        confirmIcon={
+          sendModalMode === 'preview' ? (
+            <Eye className="h-4 w-4" aria-hidden />
+          ) : (
+            <Send className="h-4 w-4" aria-hidden />
+          )
+        }
+      />
 
       <ConfirmationModal
         isOpen={showDeleteConfirm}
@@ -612,6 +816,17 @@ export function OutreachDetailPageContent({
           ))}
         </fieldset>
       </ConfirmationModal>
+
+      <ConfirmationModal
+        isOpen={showMarkDraftConfirm}
+        onClose={() => setShowMarkDraftConfirm(false)}
+        title="Mark as draft?"
+        description="Returns this outreach to draft so you can send it again."
+        descriptionClassName="mb-3"
+        confirmLabel="Mark as draft"
+        isConfirming={isUpdating}
+        onConfirm={() => void handleMarkDraft()}
+      />
 
       <ConfirmationModal
         isOpen={showCloseConfirm}

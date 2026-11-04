@@ -29,8 +29,8 @@ import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
 import { ApiError } from './types/api';
 
-// TEMP: Disable outreach while AWS sender provider is broken. Set to false to re-enable.
-const OUTREACH_SENDING_DISABLED = true;
+// Kill switch for platform send/preview (Gmail mailbox). Set true to disable.
+const OUTREACH_SENDING_DISABLED = false;
 const OUTREACH_DISABLED_MESSAGE =
   'Expert outreach is temporarily unavailable. Please try again later.';
 
@@ -442,7 +442,7 @@ export class ExpertFinderService {
   }
 
   /**
-   * Send generated email(s) to experts via SES.
+   * Send generated email(s) to experts via the connected Gmail mailbox.
    * POST /api/research_ai/expert-finder/emails/send/
    */
   static async sendEmails(payload: {

@@ -13,6 +13,8 @@ import {
   getSourceUrlByNetwork,
 } from '@/app/expert-finder/lib/outreachChannels';
 
+export type OutreachEmailButtonMode = 'compose' | 'open';
+
 export interface OutreachChannelActionsProps {
   expertEmail: string;
   emailSubject: string;
@@ -20,6 +22,11 @@ export interface OutreachChannelActionsProps {
   emailBody?: string;
   sources?: ExpertSourceLink[] | null;
   onChannelOpened?: (channel: OutreachChannel) => void;
+  /**
+   * When `open`, demote copy-to-Gmail to secondary “Open in Gmail”.
+   * When `compose` (default), label is “Send via Email”.
+   */
+  emailButtonMode?: OutreachEmailButtonMode;
   className?: string;
 }
 
@@ -29,11 +36,21 @@ export function OutreachChannelActions({
   emailBody = '',
   sources,
   onChannelOpened,
+  emailButtonMode = 'compose',
   className,
 }: OutreachChannelActionsProps) {
   const email = expertEmail.trim();
   const linkedinUrl = getSourceUrlByNetwork(sources, 'linkedin');
   const xUrl = getSourceUrlByNetwork(sources, 'x');
+  const emailLabel = emailButtonMode === 'open' ? 'Open in Gmail' : 'Send via Email';
+  const emailTitle =
+    emailButtonMode === 'open'
+      ? email
+        ? 'Copy body and open Gmail compose'
+        : 'No email available'
+      : email
+        ? 'Copy body and open Gmail'
+        : 'No email available';
 
   const handleSendClick = (channel: OutreachChannel, url: string) => {
     const win = window.open('about:blank', '_blank');
@@ -90,14 +107,14 @@ export function OutreachChannelActions({
         size="sm"
         className="gap-2"
         disabled={!email}
-        title={email ? 'Copy body and open Gmail' : 'No email available'}
+        title={emailTitle}
         onClick={() =>
           email &&
           handleSendClick('email', buildGmailComposeHref({ to: email, subject: emailSubject }))
         }
       >
         <Mail className="h-3.5 w-3.5 text-gray-600" aria-hidden />
-        Send via Email
+        {emailLabel}
       </Button>
     </div>
   );
