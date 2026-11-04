@@ -33,7 +33,7 @@ interface PendingAcceptance {
 export class NotebookChatAgent extends HttpAgent {
   private readonly connectUrl: string;
   private acceptance: PendingAcceptance | null = null;
-  private loading: Promise<void> | null = null;
+  private loading: Promise<ApiError | null> | null = null;
 
   constructor(
     readonly noteId: string,
@@ -46,13 +46,30 @@ export class NotebookChatAgent extends HttpAgent {
 
   /**
    * Load the chat's history, and follow its running turn if it has one. Safe
-   * to call again: a load already in flight is shared.
+   * to call again: a load already in flight, or one that finished, is shared.
+   *
+   * Resolves with the error when the history never arrived. A run that fails
+   * after its snapshot (a turn that errors) still loaded the chat.
    */
-  load(): Promise<void> {
-    this.loading ??= this.connectAgent()
-      .then(() => undefined)
-      .catch(() => undefined);
+  load(): Promise<ApiError | null> {
+    if (!this.loading) {
+      let loaded = false;
+      this.loading = this.connectAgent(undefined, {
+        onMessagesSnapshotEvent: () => {
+          loaded = true;
+        },
+      }).then(
+        () => null,
+        (error: unknown) => (loaded ? null : toApiError(error, 'The chat could not load.'))
+      );
+    }
     return this.loading;
+  }
+
+  /** Load the chat's history again, after a load that failed. */
+  reload(): Promise<ApiError | null> {
+    this.loading = null;
+    return this.load();
   }
 
   /**
@@ -67,10 +84,14 @@ export class NotebookChatAgent extends HttpAgent {
   async send(text: string, forwardedProps: Record<string, unknown>): Promise<number | null> {
     // A history load still streaming would make this a second concurrent run.
     // Wait it out, including one that restarted meanwhile (a remount).
+    // A run this agent is still following (an earlier send's turn) must end
+    // first too.
     for (;;) {
       const loading = this.load();
       await loading;
-      if (this.loading === loading && !this.isRunning) break;
+      if (this.loading !== loading) continue;
+      if (!this.isRunning) break;
+      await this.runEnded();
     }
     const messageId = `client-${crypto.randomUUID()}`;
     this.addMessage({ id: messageId, role: 'user', content: text });
@@ -102,6 +123,23 @@ export class NotebookChatAgent extends HttpAgent {
         () => fail(new ApiError('The run ended before the server accepted it.')),
         (error: unknown) => fail(toApiError(error, 'The run failed.'))
       );
+    });
+  }
+
+  /**
+   * Resolves when the run in progress ends, or after a short wait at most, so
+   * a caller re-checks `isRunning` without spinning on it.
+   */
+  private runEnded(): Promise<void> {
+    return new Promise((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        subscription.unsubscribe();
+        // Let the run's own finalisation clear `isRunning` first.
+        setTimeout(resolve, 0);
+      };
+      const timer = setTimeout(done, 250);
+      const subscription = this.subscribe({ onRunFinalized: done, onRunFailed: done });
     });
   }
 

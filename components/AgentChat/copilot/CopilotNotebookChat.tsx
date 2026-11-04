@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   CopilotKitProvider,
   useAgent,
@@ -11,6 +11,7 @@ import type { ActivityMessage, Message, ToolMessage } from '@ag-ui/core';
 import { ActivityFeed } from '@/components/AgentChat/ActivityFeed';
 import { MessageAttachments } from '@/components/AgentChat/ChatAttachments';
 import { MarkdownMessage } from '@/components/AgentChat/MarkdownMessage';
+import { Button } from '@/components/ui/Button';
 import { NOTEBOOK_CHAT_AGENT_ID, notebookChatAgent } from '@/services/notebookChatAgent';
 import type { ChatStreamItem } from '@/types/agentChat';
 import type { AgentFile } from '@/types/agentFile';
@@ -30,9 +31,21 @@ interface CopilotNotebookChatProps {
  */
 export function CopilotNotebookChat({ noteId, chatId }: CopilotNotebookChatProps) {
   const agent = useMemo(() => notebookChatAgent(noteId, chatId), [noteId, chatId]);
+  const [loadFailed, setLoadFailed] = useState(false);
   useEffect(() => {
-    void agent.load();
-    return () => agent.detach();
+    let current = true;
+    setLoadFailed(false);
+    void agent.load().then((error) => {
+      if (current) setLoadFailed(error !== null);
+    });
+    return () => {
+      current = false;
+      agent.detach();
+    };
+  }, [agent]);
+  const retry = useCallback(() => {
+    setLoadFailed(false);
+    void agent.reload().then((error) => setLoadFailed(error !== null));
   }, [agent]);
   const agents = useMemo(() => ({ [NOTEBOOK_CHAT_AGENT_ID]: agent }), [agent]);
 
@@ -49,6 +62,14 @@ export function CopilotNotebookChat({ noteId, chatId }: CopilotNotebookChatProps
       onError={() => undefined}
     >
       <Transcript />
+      {loadFailed && (
+        <div className="flex flex-col items-center gap-3 px-6 py-4 text-center">
+          <p className="text-sm text-gray-600">Couldn’t load this chat.</p>
+          <Button variant="outlined" size="sm" onClick={retry}>
+            Try again
+          </Button>
+        </div>
+      )}
     </CopilotKitProvider>
   );
 }
