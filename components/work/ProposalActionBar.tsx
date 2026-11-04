@@ -1,17 +1,54 @@
 'use client';
 
+import { Trophy } from 'lucide-react';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
+import {
+  awardActionLabel,
+  canAwardProposal,
+  isAwardMechanism,
+} from '@/components/Funding/lib/fundingMechanism';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
+import { useUser } from '@/contexts/UserContext';
 import type { Fundraise } from '@/types/funding';
+import type { LinkedGrant } from '@/types/work';
 
 /**
  * Fund, for the proposal page wherever its funding card is hidden: a bar as
  * wide as the page for how far the fundraise has come, then raised of the
  * goal, the funders and the time left beside the button.
  */
-export function ProposalActionBar({ fundraise }: { fundraise: Fundraise }) {
+export function ProposalActionBar({
+  fundraise,
+  linkedGrant,
+}: {
+  fundraise: Fundraise;
+  linkedGrant?: LinkedGrant | null;
+}) {
+  const { user } = useUser();
   const summary = useFundraiseSummary(fundraise);
+  const isAward = isAwardMechanism(linkedGrant?.fundingMechanism);
+
+  if (isAward) {
+    if (
+      !canAwardProposal({
+        userId: user?.id,
+        grantCreatorUserId: linkedGrant?.createdByUserId,
+        isAward,
+        grantOpen: linkedGrant?.status === 'OPEN',
+        fundraise,
+      })
+    ) {
+      return null;
+    }
+    return (
+      <StickyActionBar>
+        <FundButton size="lg" icon={Trophy} className="w-full px-6">
+          {awardActionLabel(fundraise)}
+        </FundButton>
+      </StickyActionBar>
+    );
+  }
 
   if (!summary.isActive) return null;
 

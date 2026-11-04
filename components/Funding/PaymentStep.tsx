@@ -23,6 +23,7 @@ import {
 } from './lib';
 import type { StripePaymentContext } from './CreditCardForm';
 import {
+  AWARD_PAYMENT_METHODS,
   PAYMENT_FEES,
   PLATFORM_FEE_PERCENTAGE_RSC,
   PAYMENT_PROCESSING_FEE,
@@ -73,6 +74,11 @@ interface PaymentStepProps {
    */
   canPay?: boolean;
   /**
+   * Award proposals. RSC, the RFP pool, and Stripe (card, Apple Pay, Google
+   * Pay) stay. Donor-advised funds and PayPal stay hidden.
+   */
+  isAward?: boolean;
+  /**
    * Pins the confirm button, with any error or balance alert just above it, to
    * the bottom of the drawer or side panel this step scrolls in.
    */
@@ -100,22 +106,30 @@ export function PaymentStep({
   onEndaomentPaymentConfirm,
   onStripeReady,
   canPay = true,
+  isAward = false,
   pinActionIn,
 }: PaymentStepProps) {
   const fundingPoolHoldingRsc = allocateFromPool?.fundingPool.amountHolding.rsc ?? null;
 
-  const defaultPaymentMethod = useMemo(
-    () =>
-      getDefaultPaymentMethod(
-        rscBalance,
-        fundingCreditsBalance,
-        amountInRsc,
-        PLATFORM_FEE_PERCENTAGE_RSC,
-        walletAvailability,
-        fundingPoolHoldingRsc
-      ),
-    [rscBalance, fundingCreditsBalance, amountInRsc, walletAvailability, fundingPoolHoldingRsc]
-  );
+  const defaultPaymentMethod = useMemo(() => {
+    const method = getDefaultPaymentMethod(
+      rscBalance,
+      fundingCreditsBalance,
+      amountInRsc,
+      PLATFORM_FEE_PERCENTAGE_RSC,
+      walletAvailability,
+      fundingPoolHoldingRsc
+    );
+    if (!isAward || (method != null && AWARD_PAYMENT_METHODS.includes(method))) return method;
+    return 'rsc';
+  }, [
+    rscBalance,
+    fundingCreditsBalance,
+    amountInRsc,
+    walletAvailability,
+    fundingPoolHoldingRsc,
+    isAward,
+  ]);
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
     defaultPaymentMethod
@@ -337,6 +351,7 @@ export function PaymentStep({
           hideButton
           walletAvailability={walletAvailability}
           hasNonprofit={hasNonprofit}
+          isAward={isAward}
         />
 
         {/* Receipt-style line items */}
@@ -347,7 +362,11 @@ export function PaymentStep({
               {/* Funding contribution (amount going to fundraise) */}
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-sm text-gray-600">
-                  {isFundingPoolMethod ? 'Allocation from pool' : 'Funding contribution'}
+                  {isFundingPoolMethod
+                    ? 'Allocation from pool'
+                    : isAward
+                      ? 'Award'
+                      : 'Funding contribution'}
                 </span>
                 <span className="text-sm text-gray-900">{formatUsd(amountInUsd)}</span>
               </div>

@@ -14,6 +14,7 @@ import { FundingSection } from './components/FundingSection';
 import { GrantApplicationVisibilitySection } from './components/GrantApplicationVisibilitySection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
+import { GrantFundingMechanismSection } from './components/GrantFundingMechanismSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import {
   PreregistrationPrivacyLockedAlert,
@@ -140,6 +141,7 @@ export function PublishingForm({
                   <DOISection doi={note.post.doi} />
                 </div>
               )}
+              {articleType === 'grant' && <GrantFundingMechanismSection />}
               {articleType === 'grant' && <GrantFundingAmountSection />}
               {articleType === 'grant' && <GrantApplicationVisibilitySection />}
               {articleType === 'preregistration' && <FundingSection note={note} />}

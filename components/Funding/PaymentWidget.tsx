@@ -11,6 +11,7 @@ import Image from 'next/image';
 import {
   usePaymentMethod,
   usePaymentCalculations,
+  AWARD_PAYMENT_METHODS,
   HIDDEN_PAYMENT_METHODS,
   type AllocateFromFundingPoolOption,
   type PaymentMethodType,
@@ -69,6 +70,11 @@ interface PaymentWidgetProps {
   walletAvailability: WalletAvailability;
   /** Whether the fundraise has a non-profit org attached */
   hasNonprofit?: boolean;
+  /**
+   * Award proposals. RSC, the RFP pool, and Stripe (card, Apple Pay, Google
+   * Pay) stay. A Stripe charge is an RSC purchase that lands in the escrow.
+   */
+  isAward?: boolean;
 }
 
 /**
@@ -94,6 +100,7 @@ export function PaymentWidget({
   hideButton = false,
   walletAvailability,
   hasNonprofit = false,
+  isAward = false,
 }: PaymentWidgetProps) {
   const selectedMethod = selectedPaymentMethod ?? null;
   const { isExpanded, toggleExpanded, selectMethod } = usePaymentMethod({
@@ -229,6 +236,7 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (isAward && !AWARD_PAYMENT_METHODS.includes(option.id)) return false;
     if (option.id === 'funding_pool') {
       return !!allocateFromPool && fundingPoolHoldingRsc > 0;
     }

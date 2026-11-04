@@ -16,6 +16,7 @@ import {
   isGrantActive,
   type FundingPool,
   type FundingPoolAmount,
+  type FundingMechanism,
   type Grant,
   type GrantApplicationVisibility,
 } from '@/types/grant';
@@ -37,6 +38,7 @@ interface GrantPageContextValue {
   /** The organization's own account, when one of the RFP's contacts is it: its face for the byline and cover. */
   organizationProfile?: AuthorProfile;
   applicationVisibility?: GrantApplicationVisibility;
+  fundingMechanism: FundingMechanism;
   /** The funder's own award, before backers add to the pool. */
   grantAmount: FundingPoolAmount | null;
   isPending: boolean;
@@ -139,6 +141,7 @@ export function GrantPageProvider({
       organization: grant?.organization,
       organizationProfile: grant ? findOrganizationProfile(grant) : undefined,
       applicationVisibility: grant?.applicationVisibility,
+      fundingMechanism: grant?.fundingMechanism ?? 'FUNDING',
       grantAmount: grant ? { usd: grant.amount.usd ?? 0, rsc: grant.amount.rsc ?? 0 } : null,
       isPending: grant?.status === 'PENDING',
       isActive,

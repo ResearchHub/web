@@ -1,3 +1,4 @@
+import { isGrantCreator } from '@/components/Funding/lib/fundingMechanism';
 import type { ID } from '@/types/root';
 
 /**
@@ -9,6 +10,5 @@ export function canManageGrantPool(
   grantCreatorUserId: ID | null | undefined
 ): boolean {
   if (user?.id == null) return false;
-  const isCreator = grantCreatorUserId != null && Number(user.id) === Number(grantCreatorUserId);
-  return isCreator || !!user.isModerator;
+  return isGrantCreator(user.id, grantCreatorUserId) || !!user.isModerator;
 }

@@ -1,5 +1,6 @@
 import { ApiClient } from './client';
 import { FeedEntry, transformFeedEntry, RawApiFeedEntry } from '@/types/feed';
+import { transformSelectedGrant, type SelectedGrantDetails } from '@/types/grant';
 
 interface GrantFeedResponse {
   count: number;
@@ -102,6 +103,12 @@ export class GrantService {
       console.error('Error fetching grant:', error);
       return null;
     }
+  }
+
+  /** An RFP as a proposal draft's RFP card draws it. */
+  static async getSelectedGrant(id: number | string): Promise<SelectedGrantDetails> {
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+    return transformSelectedGrant(response);
   }
 
   static async getAvailableFunding(): Promise<AvailableFunding> {

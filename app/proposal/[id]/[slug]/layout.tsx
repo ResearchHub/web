@@ -119,7 +119,9 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
         >
           <ProposalByline work={work} metadata={metadata} />
           <Suspense>{children}</Suspense>
-          {metadata.fundraising && <ProposalActionBar fundraise={metadata.fundraising} />}
+          {metadata.fundraising && (
+            <ProposalActionBar fundraise={metadata.fundraising} linkedGrant={work.linkedGrant} />
+          )}
         </PageLayout>
       </FundPanelProvider>
     </WorkTabProvider>
