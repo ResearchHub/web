@@ -22,7 +22,11 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { Button } from '@/components/ui/Button';
 import { useGrantAllocateContext } from '@/components/Funding/GrantPageContext';
 import { canManageGrantPool } from '@/components/Funding/lib/canManageGrantPool';
-import { canAwardProposal, isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import {
+  awardActionLabel,
+  canAwardProposal,
+  isAwardMechanism,
+} from '@/components/Funding/lib/fundingMechanism';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useFundraises } from '@/contexts/FundraiseContext';
@@ -186,7 +190,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
                 }}
               >
                 <Trophy className="h-3.5 w-3.5" />
-                Award
+                {awardActionLabel(fundraise)}
               </Button>
             )}
             {canAllocate && (

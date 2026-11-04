@@ -6,7 +6,11 @@ import { Check, Trophy } from 'lucide-react';
 import { FundButton } from '@/components/Funding/FundButton';
 import { FundingCard } from '@/components/Funding/FundingCard';
 import { formatFundingAmount } from '@/components/Funding/lib/fundingAmounts';
-import { canAwardProposal, getAwardPhase } from '@/components/Funding/lib/fundingMechanism';
+import {
+  awardActionLabel,
+  canAwardProposal,
+  getAwardPhase,
+} from '@/components/Funding/lib/fundingMechanism';
 import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
 import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -32,9 +36,9 @@ interface TimelineStep {
 
 /**
  * An award proposal's sidebar card. It shows the RFP's award and that nobody
- * fundraises on the proposal. Once this proposal has been paid, the amount is
- * what it received and Awarded is done. The grant creator can still pay it
- * while the RFP is open and the proposal has not expired.
+ * fundraises on the proposal. Once money is in, the amount is what it received
+ * and Awarded is done, even while the payout is still waiting. The grant
+ * creator can still pay it while the RFP is open and the proposal has not expired.
  */
 export function AwardProposalCard({
   fundraise,
@@ -47,7 +51,8 @@ export function AwardProposalCard({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const phase = getAwardPhase(fundraise);
-  const awarded = phase === 'awarded';
+  // Money in escrow counts. The payout can still be waiting.
+  const awarded = phase !== 'none';
   const grantOpen = linkedGrant.status === 'OPEN';
   const stillOpen = grantOpen && isFundraiseActive(fundraise);
   const canFund = canAwardProposal({
@@ -67,7 +72,7 @@ export function AwardProposalCard({
           skipConversion: showUSD,
         })
       : formatFundingAmount(fundraise.amountRaised, showUSD);
-  const headlineLabel = awarded ? 'awarded' : phase === 'set-aside' ? 'set aside' : 'in awards';
+  const headlineLabel = awarded ? 'awarded' : 'in awards';
 
   const rfp = getLinkedGrantLink({ linkedGrant } as Work);
   const publishedAt = fundraise.startDate || fundraise.createdDate;
@@ -115,7 +120,7 @@ export function AwardProposalCard({
 
   return (
     <FundingCard
-      label="Competing for"
+      label="Competitor"
       aside={
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/10 text-white">
           <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
@@ -188,7 +193,7 @@ export function AwardProposalCard({
       </ol>
       {canFund && (
         <FundButton data-testid="proposal-fund" icon={Trophy} className="mt-4 w-full font-semibold">
-          Award
+          {awardActionLabel(fundraise)}
         </FundButton>
       )}
     </FundingCard>

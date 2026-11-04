@@ -34,6 +34,13 @@ export function getAwardPhase(
   return fundraise?.status === 'COMPLETED' ? 'awarded' : 'set-aside';
 }
 
+/** Award the first time. Award more once this proposal already has money. */
+export function awardActionLabel(
+  fundraise?: { status?: string; amountRaised?: { usd?: number; rsc?: number } } | null
+): 'Award' | 'Award more' {
+  return getAwardPhase(fundraise) === 'none' ? 'Award' : 'Award more';
+}
+
 /** The card label for money on an award proposal, once any has been committed. */
 export function awardRaisedLabel(
   fundraise?: { status?: string; amountRaised?: { usd?: number; rsc?: number } } | null

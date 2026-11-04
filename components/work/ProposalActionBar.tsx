@@ -3,7 +3,11 @@
 import { Trophy } from 'lucide-react';
 import { StickyActionBar } from '@/components/ui/StickyActionBar';
 import { FundButton } from '@/components/Funding/FundButton';
-import { canAwardProposal, isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import {
+  awardActionLabel,
+  canAwardProposal,
+  isAwardMechanism,
+} from '@/components/Funding/lib/fundingMechanism';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import { useUser } from '@/contexts/UserContext';
 import type { Fundraise } from '@/types/funding';
@@ -40,7 +44,7 @@ export function ProposalActionBar({
     return (
       <StickyActionBar>
         <FundButton size="lg" icon={Trophy} className="w-full px-6">
-          Award
+          {awardActionLabel(fundraise)}
         </FundButton>
       </StickyActionBar>
     );
