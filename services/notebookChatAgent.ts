@@ -8,6 +8,7 @@ import {
 import type { Observable } from 'rxjs';
 import { ApiClient } from '@/services/client';
 import { ApiError } from '@/services/types/api';
+import type { AgentFile } from '@/types/agentFile';
 
 /** Agent id the notebook chat registers with CopilotKit. */
 export const NOTEBOOK_CHAT_AGENT_ID = 'notebook-chat';
@@ -84,7 +85,11 @@ export class NotebookChatAgent extends HttpAgent {
    * message. Refusals arrive before any event, with the REST API's bodies. A
    * refused message is taken back off the transcript.
    */
-  async send(text: string, forwardedProps: Record<string, unknown>): Promise<number | null> {
+  async send(
+    text: string,
+    forwardedProps: Record<string, unknown>,
+    attachments: AgentFile[] = []
+  ): Promise<number | null> {
     // A history load still streaming would make this a second concurrent run.
     // Wait it out, including one that restarted meanwhile (a remount).
     // A run this agent is still following (an earlier send's turn) must end
@@ -97,7 +102,13 @@ export class NotebookChatAgent extends HttpAgent {
       await this.runEnded();
     }
     const messageId = `client-${crypto.randomUUID()}`;
-    this.addMessage({ id: messageId, role: 'user', content: text });
+    // History messages carry their files the same way; the bubble reads them.
+    this.addMessage({
+      id: messageId,
+      role: 'user',
+      content: text,
+      ...(attachments.length > 0 && { metadata: { attachments } }),
+    });
     return new Promise<number | null>((resolve, reject) => {
       let settled = false;
       const fail = (error: ApiError) => {

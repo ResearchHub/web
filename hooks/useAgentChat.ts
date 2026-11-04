@@ -538,7 +538,8 @@ export function useAgentChat({
           chatId,
           text,
           canSelectAIModel(getSnapshot().budget?.tier) ? generation : undefined,
-          attachments.map((file) => file.id)
+          attachments.map((file) => file.id),
+          attachments
         );
         if (epoch === epochRef.current) {
           setPendingSend({ text, attachments, executionId: response.execution_id });

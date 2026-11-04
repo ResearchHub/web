@@ -8,6 +8,7 @@ import type {
   AgentChatListItem,
   SendMessageResponse,
 } from '@/types/agentChat';
+import type { AgentFile } from '@/types/agentFile';
 import type { GenerationRequest } from '@/types/agentModels';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 
@@ -43,7 +44,9 @@ export interface ChatTransport {
     chatId: ChatId,
     message: string,
     generation?: GenerationRequest,
-    fileIds?: number[]
+    fileIds?: number[],
+    /** The files behind `fileIds`, for a transport that shows the message itself. */
+    attachments?: AgentFile[]
   ): Promise<SendMessageResponse>;
   renameChat(chatId: ChatId, title: string): Promise<{ conversation_id: number; title: string }>;
   cancelTurn(chatId: ChatId): Promise<CancelTurnResponse>;
@@ -84,15 +87,19 @@ export function getAgentChatTransport(noteId: ChatId): ChatTransport {
   if (!transport) {
     transport = {
       ...notebookChatTransport(noteId),
-      sendMessage: async (chatId, message, generation, fileIds) => {
+      sendMessage: async (chatId, message, generation, fileIds, attachments) => {
         // Loaded on first send so the AG-UI client stays out of the bundles of
         // pages that never use this chat.
         const { notebookChatAgent } = await import('@/services/notebookChatAgent');
         const agent = notebookChatAgent(String(noteId), Number(chatId));
-        const executionId = await agent.send(message, {
-          ...generation,
-          ...(fileIds && fileIds.length > 0 && { file_ids: fileIds }),
-        });
+        const executionId = await agent.send(
+          message,
+          {
+            ...generation,
+            ...(fileIds && fileIds.length > 0 && { file_ids: fileIds }),
+          },
+          attachments
+        );
         // Every accepted send starts a turn and names it. Without the id the
         // chat could never match the turn and would stay busy, so fail loudly.
         if (executionId === null) {
