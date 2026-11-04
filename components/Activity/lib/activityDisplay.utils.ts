@@ -590,7 +590,11 @@ export function getActivityActionLine(
     return { label: 'Opened an RFP', value: amount ? { kind: 'grant', amount } : undefined };
   }
   if (entry.contentType === 'PREREGISTRATION') {
-    const mechanism = entry.relatedWork?.fundingMechanism;
+    const mechanism =
+      entry.relatedWork?.fundingMechanism ??
+      (entry.associatedGrants?.some((grant) => isAwardMechanism(grant.fundingMechanism))
+        ? 'AWARD'
+        : undefined);
     if (mechanism === 'AWARD') return { label: 'Submitted a proposal for an award' };
     if (mechanism === 'FUNDING') return { label: 'Submitted a proposal for funding' };
     return { label: 'Submitted a proposal' };
