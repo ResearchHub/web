@@ -237,8 +237,14 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
           </div>
           <div className="flex-shrink-0 self-stretch flex flex-col text-right">
             <div className="text-[9px] uppercase tracking-wider font-semibold text-white/70 whitespace-nowrap">
-              <span className="sm:hidden">Funding</span>
-              <span className="hidden sm:inline">Available Funding</span>
+              {isAward ? (
+                'Prize pool'
+              ) : (
+                <>
+                  <span className="sm:hidden">Funding</span>
+                  <span className="hidden sm:inline">Available Funding</span>
+                </>
+              )}
             </div>
             <div className="flex-1 flex items-center justify-end">
               <span className="text-base font-extrabold font-mono text-emerald-300 leading-snug">

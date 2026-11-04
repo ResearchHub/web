@@ -5,7 +5,7 @@ import { GrantPoolCard } from '@/components/Funding/GrantPoolCard';
 import { GrantActivityCard } from '@/components/Funding/GrantActivityCard';
 import { ID } from '@/types/root';
 
-/** The RFP page's right sidebar: the pool card, awardees when it is an award, then activity. */
+/** The RFP page's right sidebar: the pool card, prize winners on a prize RFP, then activity. */
 export function GrantSidebar({
   currentDocumentId,
 }: {

@@ -167,7 +167,8 @@ export function PaymentWidget({
   const paymentOptions: PaymentOption[] = [
     {
       id: 'funding_pool',
-      title: 'Funding pool',
+      // Paying a prize comes out of the RFP's prize pool.
+      title: isAward ? 'Prize pool' : 'Funding pool',
       description: renderRscBalance(fundingPoolHoldingRsc),
       icon: <Coins className="h-[18px] w-[18px] text-primary-600" />,
       badge: 'No fee',

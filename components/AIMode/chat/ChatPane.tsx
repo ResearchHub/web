@@ -263,6 +263,7 @@ export function ChatPane({
             composer={composer}
             greeting={AI_MODE_GREETING}
             intent={state.intent}
+            applyingTo={state.intent === 'need_funding' ? state.selectedGrant : null}
             presets={
               // A funder sees what to ask for; a researcher brings their own topic.
               state.intent === 'fund' ? (

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFeed } from '@/hooks/useFeed';
 import type { FundingKind } from '@/components/Funding/fundingKind';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import type { FeedEntry, FeedGrantContent, FeedPostContent } from '@/types/feed';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
@@ -73,7 +74,10 @@ function publishedDocument(entry: FeedEntry, kind: FundingKind): PublishedDocume
       ...base,
       active,
       detail: [active ? null : STATE_LABEL[grant.status], when].filter(Boolean).join(' · '),
-      money: { label: 'Funding', amount: grant.amount },
+      money: {
+        label: isAwardMechanism(grant.fundingMechanism) ? 'Prize pool' : 'Funding',
+        amount: grant.amount,
+      },
       count: { label: 'Proposals', value: grant.applicants?.length ?? 0 },
       endDate: grant.endDate || undefined,
     };

@@ -66,7 +66,9 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
   const isNewProposal = articleType === 'preregistration' && !isUpdate;
   const privateNeedsRfp = useShowPrivateWarning() && isNewProposal;
 
-  const action = isUpdate ? 'Update' : 'Publish';
+  // A new proposal that answers an RFP is the researcher's application to it.
+  const isApplication = isNewProposal && watch('selectedGrant') != null;
+  const action = isUpdate ? 'Update' : isApplication ? 'Submit' : 'Publish';
   const { missingNames } = readiness;
   const canPublish = readiness.ready && hasAgreed && !isPublishing && !privateNeedsRfp;
 
@@ -119,7 +121,9 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
                         as="h2"
                         className="text-lg font-semibold tracking-tight text-gray-900"
                       >
-                        {action} {isRfp ? 'RFP' : 'proposal'}
+                        {isApplication
+                          ? 'Submit application'
+                          : `${action} ${isRfp ? 'RFP' : 'proposal'}`}
                       </DialogTitle>
                       {/* On a phone the Required heading that counts them scrolls away. */}
                       {missingNames.length > 0 && (
@@ -204,7 +208,11 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
                         disabled={!canPublish}
                         className="h-12 w-full text-base disabled:cursor-not-allowed disabled:opacity-50 md:h-10 md:w-auto md:text-sm"
                       >
-                        {isPublishing ? 'Publishing...' : action}
+                        {isPublishing
+                          ? isApplication
+                            ? 'Submitting...'
+                            : 'Publishing...'
+                          : action}
                       </Button>
                     </div>
                   </div>

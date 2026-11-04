@@ -34,21 +34,22 @@ export function getAwardPhase(
   return fundraise?.status === 'COMPLETED' ? 'awarded' : 'set-aside';
 }
 
-/** Award the first time. Award more once this proposal already has money. */
+/** Award prize the first time. Award more once this proposal already has money. */
 export function awardActionLabel(
   fundraise?: { status?: string; amountRaised?: { usd?: number; rsc?: number } } | null
-): 'Award' | 'Award more' {
-  return getAwardPhase(fundraise) === 'none' ? 'Award' : 'Award more';
+): 'Award prize' | 'Award more' {
+  return getAwardPhase(fundraise) === 'none' ? 'Award prize' : 'Award more';
 }
 
-/** The card label for money on an award proposal, once any has been committed. */
+/**
+ * The card label for money on an award proposal, once any has been committed.
+ * Money still waiting on its payout reads as awarded too: the funder's pick
+ * is made either way.
+ */
 export function awardRaisedLabel(
   fundraise?: { status?: string; amountRaised?: { usd?: number; rsc?: number } } | null
-): 'Awarded' | 'Set aside' | null {
-  const phase = getAwardPhase(fundraise);
-  if (phase === 'awarded') return 'Awarded';
-  if (phase === 'set-aside') return 'Set aside';
-  return null;
+): 'Awarded' | null {
+  return getAwardPhase(fundraise) === 'none' ? null : 'Awarded';
 }
 
 /**

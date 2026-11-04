@@ -168,7 +168,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
           }
           successText={
             isAward
-              ? 'The award has been added to this proposal.'
+              ? 'The prize has been awarded to this proposal.'
               : "Your name now shows with this proposal's funders."
           }
         />

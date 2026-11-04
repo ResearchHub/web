@@ -222,7 +222,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
           proposalTitle={work.title}
           isAward
           variant="panel"
-          successText="The award has been added to this proposal."
+          successText="The prize has been awarded to this proposal."
           onContributeSuccess={() => {
             void refreshProposals();
             router.refresh();

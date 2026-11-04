@@ -7,7 +7,7 @@ import type { PublishingFormData } from '../schema';
 
 /** What the setting decides; shared with the workspace's publish dialog. */
 export const GRANT_FUNDING_MECHANISM_HELP =
-  'Both take proposals. Funding pays before the work; an award pays for results.';
+  'Both take proposals. Standard pays before the work; a prize pays for results.';
 
 const OPTIONS: {
   value: FundingMechanism;
@@ -17,20 +17,20 @@ const OPTIONS: {
 }[] = [
   {
     value: 'FUNDING',
-    label: 'Funding',
-    description: 'Proposals raise money before the work, with a funding bar.',
+    label: 'Standard',
+    description: 'Fund new science',
     icon: Gauge,
   },
   {
     value: 'AWARD',
-    label: 'Award',
-    description: 'Proposals compete for the award, paid once results are posted.',
+    label: 'Prize',
+    description: 'Award results submitted, competition style',
     icon: Trophy,
   },
 ];
 
 /**
- * Funding or Award, chosen once when an RFP is opened. A published RFP shows
+ * Standard or Prize, chosen once when an RFP is opened. A published RFP shows
  * the choice and does not send it again.
  */
 export function GrantFundingMechanismSection({ className }: SectionProps) {
@@ -40,9 +40,9 @@ export function GrantFundingMechanismSection({ className }: SectionProps) {
 
   return (
     <div className={cn('px-6 py-3', className)}>
-      <h3 className="text-[15px] font-semibold tracking-tight text-gray-900">Type</h3>
+      <h3 className="text-[15px] font-semibold tracking-tight text-gray-900">Funding type</h3>
       <p className="mb-2 text-sm text-gray-500">{GRANT_FUNDING_MECHANISM_HELP}</p>
-      <div className="mt-2 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Type">
+      <div className="mt-2 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Funding type">
         {OPTIONS.map((option) => {
           const selected = value === option.value;
           const Icon = option.icon;

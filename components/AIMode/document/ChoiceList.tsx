@@ -15,9 +15,9 @@ export interface ChoiceOption<T extends string> {
   /** What the option is, in a few words under its label, for someone new to the idea. */
   readonly description?: string;
   /**
-   * What the option means, said as plain points rather than weighed with
-   * checks and crosses: for an option whose upsides depend on what the person
-   * choosing wants. Takes the counts' place for this option.
+   * What the option means, said as plain points, each with a check rather
+   * than weighed yes or no: for an option whose upsides depend on what the
+   * person choosing wants. Takes the counts' place for this option.
    */
   readonly notes?: readonly string[];
   /** Shown under the option while it is the one picked: what picking it asks for next. */
@@ -134,12 +134,16 @@ export function ChoiceList<T extends string>({
                     {mark ? (
                       <MarkIcon mark={mark} label={markLabel(mark)} />
                     ) : (
-                      // A plain point, neither for nor against: the marks' circle, empty, in
-                      // blue so it reads as neither a check's green nor a cross's gray.
+                      // A plain point: the yes check, unlabelled, since it is not a yes to anything.
                       <span
                         aria-hidden="true"
-                        className="h-5 w-5 shrink-0 rounded-full bg-primary-100"
-                      />
+                        className={cn(
+                          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
+                          MARK_STYLE.yes.className
+                        )}
+                      >
+                        <Check className="h-3 w-3" strokeWidth={3} />
+                      </span>
                     )}
                     <span
                       className={cn(
