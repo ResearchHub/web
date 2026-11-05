@@ -39,7 +39,7 @@ export function useReferralShare() {
       return;
     }
 
-    navigator.clipboard.writeText(referralLink).then(
+    void navigator.clipboard.writeText(referralLink).then(
       () => {
         setIsCopied(true);
         toast.success('Referral link copied to clipboard!');
@@ -51,21 +51,21 @@ export function useReferralShare() {
       }
     );
 
-    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_URL, {
+    void AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_URL, {
       action: 'USER_SHARED_REFERRAL',
       referralCode,
     });
   }, [referralCode, referralLink, scrollToShare]);
 
   const logQrCodeClick = useCallback(() => {
-    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_QR_CODE, {
+    void AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_QR_CODE, {
       action: 'USER_SHARED_REFERRAL',
       referralCode,
     });
   }, [referralCode]);
 
   const shareOnX = useCallback(() => {
-    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_X, {
+    void AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_X, {
       action: 'USER_SHARED_REFERRAL',
       referralCode,
     });
@@ -82,7 +82,7 @@ Join with my link and we'll both receive a 10% bonus on every $RSC you donate ov
   }, [referralCode, referralLink]);
 
   const shareOnLinkedIn = useCallback(() => {
-    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_LINKEDIN, {
+    void AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_LINKEDIN, {
       action: 'USER_SHARED_REFERRAL',
       referralCode,
     });
@@ -93,7 +93,7 @@ Join with my link and we'll both receive a 10% bonus on every $RSC you donate ov
   }, [referralCode, referralLink]);
 
   const shareOnBlueSky = useCallback(() => {
-    AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_BLUESKY, {
+    void AnalyticsService.logEvent(LogEvent.CLICKED_SHARE_VIA_BLUESKY, {
       action: 'USER_SHARED_REFERRAL',
       referralCode,
     });

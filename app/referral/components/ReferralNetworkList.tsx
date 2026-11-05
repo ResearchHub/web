@@ -33,7 +33,7 @@ function NetworkSkeleton() {
   return (
     <div className="referral-net-card" aria-hidden>
       {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className="referral-net-row">
+        <div key={`skeleton-${index}`} className="referral-net-row">
           <div className="referral-net-skel-avatar" />
           <div className="referral-net-skel-info">
             <div className="referral-net-skel-name" />
@@ -114,9 +114,9 @@ export function ReferralNetworkList() {
         ) : (
           <>
             <div className="referral-net-card">
-              {displayUsers.map((user, index) => (
+              {displayUsers.map((user) => (
                 <div
-                  key={index}
+                  key={user.authorId}
                   className={`referral-net-row${user.isExpired ? ' referral-net-row-expired' : ''}`}
                 >
                   <AuthorTooltip authorId={user.authorId}>

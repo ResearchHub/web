@@ -84,9 +84,9 @@ export function ReferralNetworkGraphic() {
         <circle cx={HUB.x} cy={HUB.y} r={250} fill="url(#referralNgHubGlow)" opacity={0.7} />
 
         {/* Faint community ring between inner nodes */}
-        {RING_LINKS.map((l, i) => (
+        {RING_LINKS.map((l) => (
           <line
-            key={`ring-${i}`}
+            key={`ring-${l.x1}-${l.y1}-${l.x2}-${l.y2}`}
             x1={l.x1}
             y1={l.y1}
             x2={l.x2}
@@ -96,9 +96,9 @@ export function ReferralNetworkGraphic() {
         ))}
 
         {/* Base connections */}
-        {FLOW_LINKS.map((l, i) => (
+        {FLOW_LINKS.map((l) => (
           <line
-            key={`base-${i}`}
+            key={`base-${l.x1}-${l.y1}-${l.x2}-${l.y2}`}
             x1={l.x1}
             y1={l.y1}
             x2={l.x2}
@@ -110,7 +110,7 @@ export function ReferralNetworkGraphic() {
         {/* RSC-orange pulses flowing outward along each connection */}
         {FLOW_LINKS.map((l, i) => (
           <line
-            key={`flow-${i}`}
+            key={`flow-${l.x1}-${l.y1}-${l.x2}-${l.y2}`}
             x1={l.x1}
             y1={l.y1}
             x2={l.x2}
@@ -134,7 +134,7 @@ export function ReferralNetworkGraphic() {
         {/* Outer nodes (their referrals) */}
         {OUTER.map((n, i) => (
           <g
-            key={`outer-${i}`}
+            key={`outer-${n.x}-${n.y}`}
             className="referral-ng-node"
             style={{ animationDelay: `${i * 0.4 + 0.8}s` }}
           >
@@ -153,7 +153,7 @@ export function ReferralNetworkGraphic() {
         {/* Inner nodes (funders you refer) */}
         {INNER.map((n, i) => (
           <g
-            key={`inner-${i}`}
+            key={`inner-${n.x}-${n.y}`}
             className="referral-ng-node"
             style={{ animationDelay: `${i * 0.35}s` }}
           >

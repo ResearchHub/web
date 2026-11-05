@@ -18,7 +18,7 @@ const TAU = Math.PI * 2;
  * at the background level. Static (redraws on resize only) so it stays cheap
  * behind the animated network graphic.
  */
-export function ReferralMesh({ spacing = 132 }: { spacing?: number }) {
+export function ReferralMesh({ spacing = 132 }: Readonly<{ spacing?: number }>) {
   const ref = useRef<HTMLCanvasElement>(null);
   const pointsRef = useRef<MeshPoint[]>([]);
 
@@ -119,7 +119,7 @@ export function ReferralMesh({ spacing = 132 }: { spacing?: number }) {
 
   return (
     <>
-      <canvas ref={ref} className="referral-mesh" aria-hidden="true" />
+      <canvas ref={ref} className="referral-mesh" aria-hidden="true" tabIndex={-1} />
       <style jsx>{`
         .referral-mesh {
           position: absolute;
