@@ -141,9 +141,9 @@ export function ReferralImpact() {
                 position="top"
                 width="w-[320px]"
               >
-                <a href="#" onClick={(e) => e.preventDefault()} className="referral-impact-help">
+                <button type="button" className="referral-impact-help">
                   How can I use this?
-                </a>
+                </button>
               </Tooltip>
             </div>
 
