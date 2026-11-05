@@ -20,15 +20,24 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
 import { useAgentChatList, type UseAgentChatListResult } from '@/hooks/useAgentChat';
 import { useChatSession, type ChatSession } from '@/hooks/useChatSession';
-import { getChatTransport } from '@/services/chatTransport';
+import { getAgentChatTransport, getChatTransport } from '@/services/chatTransport';
 import type { AgentChat, ChatNoteRef } from '@/types/agentChat';
 import type { SelectedGrantDetails } from '@/types/grant';
 import type { Note } from '@/types/note';
+import { isCopilotKitChatEnabled } from '@/utils/featureFlags';
 
 /** Matches the chat hook's own poll cadence, so a background turn's dot clears as fast as the open one. */
 const LIST_POLL_INTERVAL_MS = 5000;
 
 const NOTICES: ChatNoticePolicy = { noun: 'chat', usageLimit: 'inline' };
+
+/**
+ * A document's chat transport. The CopilotKit chat sends through the chat's
+ * AG-UI agent, which then streams the turn it started to the transcript.
+ */
+function documentChatTransport(noteId: number) {
+  return isCopilotKitChatEnabled() ? getAgentChatTransport(noteId) : getChatTransport({ noteId });
+}
 
 export interface AIModeChatState extends ChatSession {
   readonly target: WorkspaceTarget;
@@ -90,7 +99,7 @@ export interface AIModeChatState extends ChatSession {
 export function useAIModeChat(): AIModeChatState {
   const { target: urlTarget, selectTarget } = useAIMode();
   const noteId = urlTarget.kind === 'document' ? urlTarget.noteId : null;
-  const documentTransport = noteId != null ? getChatTransport({ noteId }) : null;
+  const documentTransport = noteId != null ? documentChatTransport(noteId) : null;
   // The start screen has no document yet. Its session still holds the draft
   // text, the model choice and the budget, on the assistant's transport;
   // the first message creates its chat on the new document's instead.
@@ -152,7 +161,7 @@ export function useAIModeChat(): AIModeChatState {
   }, [addDraft]);
   const createDraftTransport = useCallback(async () => {
     const note = await createDraft();
-    return getChatTransport({ noteId: note.id });
+    return documentChatTransport(note.id);
   }, [createDraft]);
 
   // ---- a draft written without the assistant ----

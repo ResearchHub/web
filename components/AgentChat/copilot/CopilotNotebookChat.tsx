@@ -17,19 +17,30 @@ import type { ChatStreamItem } from '@/types/agentChat';
 import type { AgentFile } from '@/types/agentFile';
 import { ACTIVITY_RENDERERS, TOOL_CALL_RENDERERS, isPreviewId } from './renderers';
 
+/**
+ * Where the host can add to a turn: under a published answer (by the chat
+ * message's id), or under a turn's status line (running, failed, stopped, or
+ * answered by another model).
+ */
+export type TranscriptAnchor =
+  | { readonly kind: 'answer'; readonly chatMessageId: number }
+  | { readonly kind: 'status'; readonly executionId: number };
+
 interface CopilotNotebookChatProps {
   readonly noteId: string;
   readonly chatId: number;
+  /** What goes under an anchor, such as the document a turn wrote to. */
+  readonly renderAfter?: (anchor: TranscriptAnchor) => ReactNode;
 }
 
 /**
- * The notebook chat's transcript, streamed over AG-UI and rendered through
- * CopilotKit: messages come from the chat's agent, tool calls from the
- * registered tool renderers, and a turn's status line from the activity
- * renderer. Opening a chat loads its history and rejoins a running turn;
+ * A workspace document chat's transcript (the backend's notebook chat),
+ * streamed over AG-UI and rendered through CopilotKit: messages come from the
+ * chat's agent, tool calls from the registered tool renderers, and a turn's
+ * status line from the activity renderer. Opening a chat loads its history and rejoins a running turn;
  * leaving it only stops watching.
  */
-export function CopilotNotebookChat({ noteId, chatId }: CopilotNotebookChatProps) {
+export function CopilotNotebookChat({ noteId, chatId, renderAfter }: CopilotNotebookChatProps) {
   const agent = useMemo(() => notebookChatAgent(noteId, chatId), [noteId, chatId]);
   const [loadFailed, setLoadFailed] = useState(false);
   useEffect(() => {
@@ -61,7 +72,7 @@ export function CopilotNotebookChat({ noteId, chatId }: CopilotNotebookChatProps
       // erroring as well needs no second report.
       onError={() => undefined}
     >
-      <Transcript />
+      <Transcript renderAfter={renderAfter} />
       {loadFailed && (
         <div className="flex flex-col items-center gap-3 px-6 py-4 text-center">
           <p className="text-sm text-gray-600">Couldn’t load this chat.</p>
@@ -74,7 +85,11 @@ export function CopilotNotebookChat({ noteId, chatId }: CopilotNotebookChatProps
   );
 }
 
-function Transcript() {
+function Transcript({
+  renderAfter,
+}: {
+  readonly renderAfter?: (anchor: TranscriptAnchor) => ReactNode;
+}) {
   const { agent } = useAgent({ agentId: NOTEBOOK_CHAT_AGENT_ID });
   const renderToolCall = useRenderToolCall();
   const { renderActivityMessage } = useRenderActivityMessage();
@@ -93,18 +108,35 @@ function Transcript() {
 
   return (
     <div className="space-y-4">
-      {messages.map((message) => (
-        <Fragment key={message.id}>
-          {renderMessage(message, {
-            streaming: running && message.id === lastId && isPreviewId(message.id),
-            renderToolCall: (toolCall) =>
-              renderToolCall({ toolCall, toolMessage: toolResults.get(toolCall.id) }),
-            renderActivity: (activity) => renderActivityMessage(activity),
-          })}
-        </Fragment>
-      ))}
+      {messages.map((message) => {
+        const anchor = renderAfter ? anchorOf(message) : null;
+        return (
+          <Fragment key={message.id}>
+            {renderMessage(message, {
+              streaming: running && message.id === lastId && isPreviewId(message.id),
+              renderToolCall: (toolCall) =>
+                renderToolCall({ toolCall, toolMessage: toolResults.get(toolCall.id) }),
+              renderActivity: (activity) => renderActivityMessage(activity),
+            })}
+            {anchor && renderAfter?.(anchor)}
+          </Fragment>
+        );
+      })}
     </div>
   );
+}
+
+/** The anchor a message is, if hosts can add under it. */
+function anchorOf(message: Message): TranscriptAnchor | null {
+  if (message.role === 'assistant') {
+    const answer = /^msg-(\d+)$/.exec(message.id);
+    return answer ? { kind: 'answer', chatMessageId: Number(answer[1]) } : null;
+  }
+  if (message.role === 'activity') {
+    const executionId = (message.content as { execution_id?: unknown }).execution_id;
+    return typeof executionId === 'number' ? { kind: 'status', executionId } : null;
+  }
+  return null;
 }
 
 interface RenderContext {
