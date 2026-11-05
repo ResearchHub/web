@@ -42,8 +42,10 @@ export const EditorFooter = ({
     <div className="flex flex-col-reverse mobile:!flex-row justify-between items-start mobile:!items-center px-4 py-2 border-t border-gray-200 gap-2 mobile:!gap-0">
       {/* Left section: Draft status and word count */}
       <div className="flex items-center gap-3 text-xs text-gray-500">
-        {saveStatus === 'saved' && lastSaved && <span>Draft saved {formatLastSaved()}</span>}
-        {saveStatus === 'saving' && <span>Saving draft...</span>}
+        {saveStatus === 'saved' && lastSaved && (
+          <span data-testid="comment-draft-status">Draft saved {formatLastSaved()}</span>
+        )}
+        {saveStatus === 'saving' && <span data-testid="comment-draft-status">Saving draft...</span>}
         {showWordCount && (
           <span className={isOverLimit ? 'text-red-600 font-medium' : ''}>
             {wordCount.toLocaleString()} / {wordLimit.toLocaleString()} words
@@ -78,6 +80,7 @@ export const EditorFooter = ({
             size="sm"
             onClick={onSubmit}
             disabled={isSubmitting || !canSubmit}
+            data-testid="comment-editor-submit"
           >
             <span className="flex items-center justify-between w-full gap-3">
               <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>

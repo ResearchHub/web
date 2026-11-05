@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import AuthModal from '@/components/modals/Auth/AuthModal';
 import { useSession } from 'next-auth/react';
-import { ReactNode } from 'react';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 interface AuthModalContextType {
@@ -73,18 +72,3 @@ export function useAuthenticatedAction() {
 
   return { executeAuthenticatedAction };
 }
-
-interface AuthenticatedContentProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-export const AuthenticatedContent = ({ children, fallback = null }: AuthenticatedContentProps) => {
-  const { status } = useSession();
-
-  if (status !== 'authenticated') {
-    return fallback;
-  }
-
-  return <>{children}</>;
-};

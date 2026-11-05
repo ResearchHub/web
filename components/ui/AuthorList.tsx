@@ -2,7 +2,7 @@
 
 import { useState, Fragment, ReactNode } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { cn } from 'utils/styles';
+import { cn } from '@/utils/styles';
 import { VerifiedBadge } from './VerifiedBadge';
 import { Button } from './Button';
 import Link from 'next/link';

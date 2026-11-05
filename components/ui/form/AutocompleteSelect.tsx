@@ -2,7 +2,7 @@ import { useEffect, useState, useId, useCallback, ReactElement } from 'react';
 import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from '@headlessui/react';
 import { Check, X, Loader2, Plus } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { Button } from '@/components/ui/Button';
 
 export interface SelectOption<T = any> {

@@ -9,6 +9,8 @@ interface CarouselProps {
   className?: string;
   onReachEnd?: () => void;
   arrowOffset?: 'inset' | 'outset';
+  /** Leave the arrows out when everything fits, rather than show a disabled one. */
+  hideArrowsWhenStatic?: boolean;
 }
 
 const ARROW_POSITION = {
@@ -21,6 +23,7 @@ export const Carousel: FC<CarouselProps> = ({
   className,
   onReachEnd,
   arrowOffset = 'inset',
+  hideArrowsWhenStatic = false,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -29,6 +32,7 @@ export const Carousel: FC<CarouselProps> = ({
   const onReachEndRef = useRef(onReachEnd);
   onReachEndRef.current = onReachEnd;
   const hasScrolledRef = useRef(false);
+  const hasRequestedMoreRef = useRef(false);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -38,16 +42,23 @@ export const Carousel: FC<CarouselProps> = ({
     const atStart = el.scrollLeft <= paddingLeft + 1;
     setCanScrollLeft(!atStart);
     const isScrollable = el.scrollWidth > el.clientWidth + 1;
-    const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 100;
-    setCanScrollRight(!nearEnd && isScrollable);
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    const shouldLoadMore = el.scrollLeft + el.clientWidth >= el.scrollWidth - el.clientWidth;
+    setCanScrollRight(!atEnd && isScrollable);
     if (!atStart) hasScrolledRef.current = true;
-    if (nearEnd && hasScrolledRef.current && onReachEndRef.current) {
+    if (!shouldLoadMore) hasRequestedMoreRef.current = false;
+    if (
+      shouldLoadMore &&
+      !hasRequestedMoreRef.current &&
+      hasScrolledRef.current &&
+      onReachEndRef.current
+    ) {
+      hasRequestedMoreRef.current = true;
       onReachEndRef.current();
     }
   }, []);
 
   useEffect(() => {
-    checkScroll();
     const el = scrollRef.current;
     if (!el) return;
 
@@ -61,6 +72,11 @@ export const Carousel: FC<CarouselProps> = ({
     };
   }, [checkScroll]);
 
+  useEffect(() => {
+    // Appending a paginated page changes scrollWidth without resizing the container.
+    checkScroll();
+  }, [checkScroll, children]);
+
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
@@ -72,6 +88,7 @@ export const Carousel: FC<CarouselProps> = ({
   };
 
   const arrowPosition = ARROW_POSITION[arrowOffset];
+  const showRightArrow = canScrollRight || canScrollLeft || !hideArrowsWhenStatic;
 
   return (
     <div className={cn('group/carousel relative', className)}>
@@ -95,20 +112,22 @@ export const Carousel: FC<CarouselProps> = ({
         {children}
       </div>
 
-      <button
-        onClick={() => scroll('right')}
-        disabled={!canScrollRight}
-        className={cn(
-          'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
-          arrowPosition.right,
-          canScrollRight
-            ? 'text-gray-900 hover:bg-gray-200 active:scale-95 cursor-pointer'
-            : 'text-gray-300 opacity-50 cursor-default'
-        )}
-        aria-label="Scroll right"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
+      {showRightArrow && (
+        <button
+          onClick={() => scroll('right')}
+          disabled={!canScrollRight}
+          className={cn(
+            'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
+            arrowPosition.right,
+            canScrollRight
+              ? 'text-gray-900 hover:bg-gray-200 active:scale-95 cursor-pointer'
+              : 'text-gray-300 opacity-50 cursor-default'
+          )}
+          aria-label="Scroll right"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 };

@@ -14,10 +14,6 @@ export function isGeneratedEmailBounced(status: string): boolean {
   return status === 'bounced';
 }
 
-export function isGeneratedEmailFailed(status: string): boolean {
-  return status === 'failed' || status === 'send_failed';
-}
-
 export type GeneratedEmailStatusBadgeVariant =
   | 'default'
   | 'primary'

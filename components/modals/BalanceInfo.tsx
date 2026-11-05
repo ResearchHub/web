@@ -1,22 +1,23 @@
 'use client';
 
 import { useUser } from '@/contexts/UserContext';
+import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 
 interface BalanceInfoProps {
   amount: number;
   showWarning?: boolean;
-  includeLockedBalance?: boolean;
+  includePromotionalBalance?: boolean;
 }
 
 export function BalanceInfo({
   amount,
   showWarning,
-  includeLockedBalance = false,
+  includePromotionalBalance = false,
 }: BalanceInfoProps) {
   const { user } = useUser();
-  const userBalance = user?.balance || 0;
-  const lockedBalance = user?.lockedBalance || 0;
-  const totalAvailableBalance = includeLockedBalance ? userBalance + lockedBalance : userBalance;
+  const totalAvailableBalance = includePromotionalBalance
+    ? getAvailableAndPromotionalRscBalance(user)
+    : (user?.balance ?? 0);
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">

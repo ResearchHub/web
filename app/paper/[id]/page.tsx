@@ -1,6 +1,5 @@
-import { notFound } from 'next/navigation';
-import { PaperService } from '@/services/paper.service';
 import { handleMissingSlugRedirect } from '@/utils/navigation';
+import { getPaper } from '@/app/paper/getPaper';
 
 interface Props {
   params: Promise<{
@@ -9,20 +8,8 @@ interface Props {
 }
 
 export default async function PaperRedirectPage({ params }: Props) {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const { id } = await params;
+  const paper = await getPaper(id);
 
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
-
-  let paper;
-  try {
-    paper = await PaperService.get(id);
-  } catch (error) {
-    notFound();
-  }
-
-  // Redirect to the full URL with slug (outside try-catch)
   handleMissingSlugRedirect(paper, id, 'paper');
 }

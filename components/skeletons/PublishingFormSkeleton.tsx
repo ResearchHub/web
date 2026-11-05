@@ -20,14 +20,6 @@ export function PublishingFormSkeleton() {
             </div>
           </div>
 
-          {/* Topics Section */}
-          <div className="py-3 px-6">
-            <div className="h-5 w-24 bg-gray-200 rounded mb-4" />
-            <div className="space-y-2">
-              <div className="h-8 w-full bg-gray-100 rounded" />
-            </div>
-          </div>
-
           {/* Journal Section */}
           <div className="p-6">
             <div className="h-5 w-28 bg-gray-200 rounded mb-4" />

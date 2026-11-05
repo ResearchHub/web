@@ -9,16 +9,17 @@ export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
   private static readonly GRANT_PATH = '/api/grant_feed';
+  private static readonly JOURNAL_V2_PATH = '/api/journal_v2_feed';
   private static readonly PENDING_MODERATION_PATH = '/api/moderator_feed/pending_moderation';
 
   static async getFeed(params?: {
     page?: number;
     pageSize?: number;
-    feedView?: 'popular' | 'following' | 'latest' | 'personalized' | string;
+    feedView?: 'popular' | 'following' | 'latest' | string;
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
-    endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'pending_moderation';
+    endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'journal_v2_feed' | 'pending_moderation';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
@@ -28,7 +29,8 @@ export class FeedService {
     status?: string;
     userId?: string;
     viewAsUserId?: number;
-  }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
+    includePrivate?: boolean;
+  }): Promise<{ entries: FeedEntry[]; hasMore: boolean; count: number }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
@@ -52,11 +54,15 @@ export class FeedService {
     if (params?.viewAsUserId) {
       queryParams.append('view_as_user_id', params.viewAsUserId.toString());
     }
+    if (params?.includePrivate) {
+      queryParams.append('include_private', 'true');
+    }
 
     // Determine which endpoint to use
     const endpointToPath: Record<string, string> = {
       funding_feed: this.FUNDING_PATH,
       grant_feed: this.GRANT_PATH,
+      journal_v2_feed: this.JOURNAL_V2_PATH,
       pending_moderation: this.PENDING_MODERATION_PATH,
     };
     const basePath = endpointToPath[params?.endpoint ?? ''] ?? this.BASE_PATH;
@@ -84,6 +90,7 @@ export class FeedService {
       return {
         entries: transformedEntries,
         hasMore: !!response.next,
+        count: response.count ?? transformedEntries.length,
       };
     } catch (error) {
       console.error('Error fetching feed:', error);
@@ -91,6 +98,7 @@ export class FeedService {
       return {
         entries: [],
         hasMore: false,
+        count: 0,
       };
     }
   }

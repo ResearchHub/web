@@ -1,13 +1,26 @@
 import { ApiClient } from './client';
-import { transformNote, transformNoteContent, transformNoteWithContent } from '@/types/note';
-import type { Note, NoteAccess, NoteContent, NoteWithContent } from '@/types/note';
+import {
+  buildNoteDetailsPayload,
+  transformNote,
+  transformNoteContent,
+  transformNoteWithContent,
+} from '@/types/note';
+import type {
+  Note,
+  NoteAccess,
+  NoteContent,
+  NoteDetailsUpdate,
+  NoteWithContent,
+} from '@/types/note';
 import { ID } from '@/types/root';
 import { ApiError } from './types';
+import { extractApiErrorMessage } from './lib/serviceUtils';
 
 export class NoteError extends Error {
   constructor(
     message: string,
-    public readonly code?: string
+    public readonly code?: string,
+    public readonly status?: number
   ) {
     super(message);
     this.name = 'NoteError';
@@ -37,18 +50,29 @@ export interface UpdateNoteContentParams {
 
 export interface UpdateNoteParams {
   noteId: ID;
-  title?: string;
-  document_type?: string;
+  selectedGrantId?: ID;
+  details?: NoteDetailsUpdate;
 }
 
-export interface UpdateNoteTitleParams {
-  noteId: ID;
-  title: string;
-}
+export type OrganizationNoteDocumentType =
+  | 'PREREGISTRATION'
+  | 'GRANT'
+  | 'DISCUSSION'
+  | 'REGISTERED_REPORT';
 
 export interface GetOrganizationNotesParams {
   status?: 'DRAFT' | 'PUBLISHED';
-  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
+  /** One type, or several in one request. */
+  documentType?: OrganizationNoteDocumentType | readonly OrganizationNoteDocumentType[];
+  /** Latest edit first; servers that don't know it keep their newest-created order. */
+  ordering?: '-updated_date';
+  nextUrl?: string;
+}
+
+export interface NoteInvitePreview {
+  inviteType: string;
+  recipientEmail?: string;
+  note: NoteWithContent;
 }
 
 export class NoteService {
@@ -68,9 +92,65 @@ export class NoteService {
       const response = await ApiClient.get<any>(`${this.BASE_PATH}/note/${noteId}/`);
       return transformNoteWithContent(response);
     } catch (error) {
-      const { data = {} } = error instanceof ApiError ? JSON.parse(error.message) : {};
-      const errorMsg = data?.detail || 'Failed to fetch note content';
-      throw new NoteError(errorMsg);
+      throw new NoteError(
+        extractApiErrorMessage(error, 'Failed to fetch note content'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
+      );
+    }
+  }
+
+  /**
+   * Fetches a note by invitation key.
+   */
+  static async getNoteByInviteKey(inviteKey: string): Promise<NoteInvitePreview> {
+    if (!inviteKey) {
+      throw new NoteError('Missing invitation key', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.getPublic<any>(
+        `${this.BASE_PATH}/note/${inviteKey}/get_note_by_key/`
+      );
+
+      if (!response?.note) {
+        throw new NoteError('Invalid invitation response', 'INVALID_RESPONSE');
+      }
+
+      return {
+        inviteType: response.invite_type,
+        recipientEmail: response.recipient_email,
+        note: transformNoteWithContent(response.note),
+      };
+    } catch (error) {
+      if (error instanceof NoteError) {
+        throw error;
+      }
+
+      const errorMsg =
+        error instanceof ApiError && error.status === 403
+          ? 'This invitation link is invalid or has expired.'
+          : 'Failed to fetch invited note';
+      throw new NoteError(errorMsg, error instanceof Error ? error.message : 'UNKNOWN_ERROR');
+    }
+  }
+
+  /**
+   * Accepts a note invitation and grants the matching user access.
+   */
+  static async acceptNoteInvite(inviteKey: string): Promise<boolean> {
+    if (!inviteKey) {
+      throw new NoteError('Missing invitation key', 'INVALID_PARAMS');
+    }
+
+    try {
+      await ApiClient.post<any>(`${this.BASE_PATH}/invite/note/${inviteKey}/accept_invite/`);
+      return true;
+    } catch (error) {
+      throw new NoteError(
+        'Failed to accept note invitation',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
     }
   }
 
@@ -90,12 +170,20 @@ export class NoteService {
     try {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
-      if (params?.documentType) queryParams.append('type', params.documentType);
+      if (params?.documentType) {
+        const types = Array.isArray(params.documentType)
+          ? params.documentType
+          : [params.documentType];
+        if (types.length > 0) queryParams.append('type', types.join(','));
+      }
+      if (params?.ordering) queryParams.append('ordering', params.ordering);
       const qs = queryParams.toString();
 
-      const response = await ApiClient.get<any>(
-        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/${qs ? `?${qs}` : ''}`
-      );
+      const url =
+        params?.nextUrl ??
+        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/${qs ? `?${qs}` : ''}`;
+
+      const response = await ApiClient.get<any>(url);
 
       if (!response || !Array.isArray(response.results)) {
         throw new NoteError('Invalid response format', 'INVALID_RESPONSE');
@@ -133,8 +221,9 @@ export class NoteService {
       return transformNote(response);
     } catch (error) {
       throw new NoteError(
-        'Failed to create note',
-        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+        extractApiErrorMessage(error, 'Failed to create note'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
       );
     }
   }
@@ -156,6 +245,29 @@ export class NoteService {
       throw new NoteError(
         'Failed to update note content',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
+   * Fetches one specific content version of a note. Readable with the note's
+   * read permission, so it works even when newer autosaves exist — e.g. to
+   * load the assistant's exact version behind the conflict banner's Reload.
+   * @throws {NoteError} When the request fails or parameters are invalid
+   */
+  static async getNoteVersion(versionId: number): Promise<NoteContent> {
+    if (!versionId) {
+      throw new NoteError('Missing note version ID', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.get<any>(`${this.BASE_PATH}/note_content/${versionId}/`);
+      return transformNoteContent(response);
+    } catch (error) {
+      throw new NoteError(
+        extractApiErrorMessage(error, 'Failed to fetch note version'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
       );
     }
   }
@@ -186,21 +298,22 @@ export class NoteService {
       throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
-    const { noteId, ...fields } = params;
+    const { noteId, selectedGrantId, details } = params;
+    const payload = {
+      ...(selectedGrantId === undefined ? {} : { selected_grant: selectedGrantId }),
+      ...(details && buildNoteDetailsPayload(details)),
+    };
 
     try {
-      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${noteId}/`, fields);
+      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${noteId}/`, payload);
       return transformNoteWithContent(response);
     } catch (error) {
       throw new NoteError(
-        'Failed to update note',
-        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+        extractApiErrorMessage(error, 'Failed to update note'),
+        undefined,
+        error instanceof ApiError ? error.status : undefined
       );
     }
-  }
-
-  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
-    return this.updateNote({ noteId: params.noteId, title: params.title });
   }
 
   /**

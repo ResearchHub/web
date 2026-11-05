@@ -1,8 +1,8 @@
 import { createTransformer } from './transformer';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { transformApplication } from '@/types/funding';
-import { FeedEntry, FeedGrantContent, RawApiFeedEntry } from '@/types/feed';
-import type { GrantStatus } from '@/types/grant';
+import { FeedEntry, FeedGrantContent, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+import { parseFundingMechanism, transformFundingPool, type GrantStatus } from '@/types/grant';
 import { transformTopic } from '@/types/topic';
 import { stripHtml } from '@/utils/stringUtils';
 
@@ -119,6 +119,8 @@ export const transformPendingGrantToFeedEntry = (entry: RawApiFeedEntry): FeedEn
       shortTitle: grant.short_title || '',
       createdBy,
       applicants: (grant.applications || []).map(transformApplication),
+      fundingPool: grant.funding_pool ? transformFundingPool(grant.funding_pool) : null,
+      fundingMechanism: parseFundingMechanism(grant.funding_mechanism),
     },
     organization: grant.organization || '',
     grantAmount: grant.amount || {},
@@ -138,22 +140,42 @@ export const transformPendingGrantToFeedEntry = (entry: RawApiFeedEntry): FeedEn
   };
 };
 
+export function transformRegisteredReportCandidate(entry: RawApiFeedEntry): FeedEntry | null {
+  try {
+    const timestamp =
+      entry.action_date || entry.created_date || entry.content_object?.created_date || '';
+    const candidate = transformFeedEntry({
+      ...entry,
+      action: entry.action || 'PUBLISH',
+      action_date: timestamp,
+      created_date: entry.created_date || timestamp,
+      recommendation_id: entry.recommendation_id ?? null,
+    });
+
+    return candidate.content.contentType === 'PREREGISTRATION' ? candidate : null;
+  } catch {
+    return null;
+  }
+}
+
 // Hook state types
 export interface UserModerationState {
   isLoading: boolean;
   error: string | null;
-  lastAction: 'suspend' | 'reinstate' | 'flag' | null;
+  lastAction: 'suspend' | 'reinstate' | 'flag' | 'research_ai_invite' | null;
 }
 
 // Hook action types
 export type SuspendUserAction = (authorId: string) => Promise<void>;
 export type ReinstateUserAction = (authorId: string) => Promise<void>;
 export type MarkProbableSpammerAction = (authorId: string) => Promise<void>;
+export type SetResearchAiInvitedAction = (userId: string, invited: boolean) => Promise<void>;
 
 export type UserModerationActions = {
   suspendUser: SuspendUserAction;
   reinstateUser: ReinstateUserAction;
   markProbableSpammer: MarkProbableSpammerAction;
+  setResearchAiInvited: SetResearchAiInvitedAction;
 };
 
 export type UseUserModerationReturn = [UserModerationState, UserModerationActions];

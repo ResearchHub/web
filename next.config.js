@@ -1,3 +1,8 @@
+// Matches requests from AI agents asking for markdown instead of HTML
+// (`Accept: text/markdown`). Next anchors `has` values as a full-string regex,
+// hence the surrounding `.*`.
+const MARKDOWN_ACCEPT = { type: 'header', key: 'accept', value: '.*text/markdown.*' };
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -19,28 +24,89 @@ const nextConfig = {
     },
     {
       source: '/journal/:slug',
-      destination: '/topic/:slug',
+      destination: '/',
+      permanent: true,
+    },
+    // Topic (hub) pages and the topic browser are retired.
+    ...['/topic/:path*', '/browse'].map((source) => ({
+      source,
+      destination: '/',
+      permanent: true,
+    })),
+    {
+      source: '/trending',
+      destination: '/',
+      permanent: true,
+    },
+    // The leaderboard pages were removed; old links and search results land on home.
+    {
+      source: '/leaderboard/:path*',
+      destination: '/',
+      permanent: false,
+    },
+    {
+      source: '/popular',
+      destination: '/',
       permanent: true,
     },
     {
-      source: '/trending',
-      destination: '/popular',
+      source: '/latest',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/for-you',
+      destination: '/',
+      permanent: true,
+    },
+    {
+      source: '/following',
+      destination: '/',
+      permanent: true,
+    },
+    // Retired experiment route: /feed-v2 became the homepage, and its children
+    // map 1:1 onto the top-level equivalents (/feed-v2/fund -> /fund).
+    {
+      source: '/feed-v2',
+      destination: '/',
+      permanent: false,
+    },
+    {
+      source: '/feed-v2/:path*',
+      destination: '/:path*',
+      permanent: false,
+    },
+    {
+      source: '/fund/dashboard',
+      destination: '/my-funding',
       permanent: true,
     },
     {
       source: '/grant/:id(\\d+)/:slug/applications',
-      destination: '/grant/:id/:slug',
+      destination: '/rfp/:id/:slug',
       permanent: true,
     },
     {
       source: '/grant/:id(\\d+)/:slug/conversation',
-      destination: '/grant/:id/:slug',
+      destination: '/rfp/:id/:slug',
+      permanent: true,
+    },
+    // RFP pages moved from /grant to /rfp. Covers /grant/:id, /grant/:id/:slug
+    // and anything deeper; Next carries the query string over on its own.
+    {
+      source: '/grant/:path*',
+      destination: '/rfp/:path*',
       permanent: true,
     },
     {
-      source: '/earn/reviews',
-      destination: '/earn',
-      permanent: false,
+      source: '/earn',
+      destination: '/peer-review',
+      permanent: true,
+    },
+    {
+      source: '/earn/:path*',
+      destination: '/peer-review',
+      permanent: true,
     },
     {
       source: '/fund/:id(\\d+)',
@@ -62,8 +128,101 @@ const nextConfig = {
       destination: '/privacy',
       permanent: true,
     },
+    // Migrated ResearchHub Journal registered reports (paper → report)
+    {
+      source:
+        '/paper/11152100/effects-of-psilocybin-and-related-compounds-on-cerebroprotection-during-ischemic-stroke-stage-1-registered-report',
+      destination:
+        '/report/32656/effects-of-psilocybin-and-related-compounds-on-cerebroprotection-during-ischemic-stroke-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11187443/enhancing-engineered-cell-therapies-for-cns-conditions-final-stage-1-registered-report',
+      destination:
+        '/report/32654/enhancing-engineered-cell-therapies-for-cns-conditions-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11191504/sleep-fragmentation-in-neuronal-a42-expressing-drosophila-replication-study-stage-1-registered-report',
+      destination:
+        '/report/32653/sleep-fragmentation-in-neuronal-a42-expressing-drosophila-replication-study-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11181913/sirt6-deficiency-in-microvascular-mural-cells-as-a-driver-of-paracrine-senescence-and-impaired-regeneration-in-ischemic-limbs-stage-1-registered-report',
+      destination:
+        '/report/32651/sirt6-deficiency-in-microvascular-mural-cells-as-a-driver-of-paracrine-senescence-and-impaired-regeneration-in-ischemic-limbs-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11152101/de-novo-protein-binder-design-for-advanced-glycation-end-products-a-computational-approach-to-targeting-age-related-glycative-damage-stage-1-registered-report',
+      destination:
+        '/report/32652/de-novo-protein-binder-design-for-advanced-glycation-end-products-a-computational-approach-to-targeting-age-related-glycative-damage-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11186571/neurosc-leveraging-pretrained-single-cell-models-for-brain-cell-classification-stage-1-registered-report',
+      destination:
+        '/report/32655/neurosc-leveraging-pretrained-single-cell-models-for-brain-cell-classification-stage-1-registered-report',
+      permanent: true,
+    },
+    {
+      source:
+        '/paper/11257106/identifying-the-point-of-no-return-integrating-single-cell-transcriptomics-and-proteomics-to-map-irreversible-fibroblast-commitment-in-idiopathic-pulmonary-fibrosis-stage-1-registered-report',
+      destination:
+        '/report/32650/identifying-the-point-of-no-return-integrating-single-cell-transcriptomics-and-proteomics-to-map-irreversible-fibroblast-commitment-in-idiopathic-pulmonary-fibrosis-stage-1-registered-report',
+      permanent: true,
+    },
   ],
+  rewrites: async () => ({
+    // Markdown content negotiation: agents asking for markdown get llms.txt (a
+    // markdown summary of the site) instead of the homepage HTML. Browsers never
+    // send this Accept value, so they are unaffected. This has to run before
+    // files because `/` is itself a page, and afterFiles rewrites only apply to
+    // paths no page or file matches.
+    beforeFiles: [
+      {
+        source: '/',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/llms.txt',
+      },
+    ],
+    // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
+    // and Next still reserves app/sitemap.xml for it, so the index lives at
+    // another path and is rewritten to the URL crawlers expect.
+    afterFiles: [
+      {
+        source: '/sitemap.xml',
+        destination: '/sitemap-index.xml',
+      },
+    ],
+  }),
   headers: async () => [
+    // Link header (RFC 8288) pointing agents at the API catalog, so they can
+    // find it from the homepage response alone without parsing HTML.
+    {
+      source: '/',
+      headers: [{ key: 'Link', value: '</.well-known/api-catalog>; rel="api-catalog"' }],
+    },
+    // The markdown rewrite above serves llms.txt, which is labelled text/plain
+    // by default; agents need text/markdown to know they got markdown. Headers
+    // match the original request path, so this targets `/`, not `/llms.txt`.
+    {
+      source: '/',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    // ARD (agenticresourcediscovery.org) requires the capability manifest to be
+    // readable cross-origin.
+    {
+      source: '/.well-known/ai-catalog.json',
+      headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
+    },
     {
       source: '/:path*',
       headers: [
@@ -129,6 +288,7 @@ const nextConfig = {
       },
     ],
     formats: ['image/webp', 'image/avif'],
+    qualities: [75, 95],
   },
   productionBrowserSourceMaps: process.env.VERCEL_ENV === 'preview',
   modularizeImports: {
@@ -137,52 +297,13 @@ const nextConfig = {
     },
   },
   compress: true,
-  // compiler: {
-  //   removeConsole: process.env.VERCEL_ENV === 'production',
-  // },
   turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-      },
-    },
     resolveAlias: {
       '@': __dirname,
     },
   },
   experimental: {
-    optimizeCss: true,
     scrollRestoration: true,
-  },
-  webpack: (config, { isServer }) => {
-    // Preserve existing alias configuration
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': __dirname,
-      // Alias React Native modules to prevent build warnings
-      '@react-native-async-storage/async-storage': false,
-    };
-
-    if (!isServer) {
-      // Add fallbacks for client-side
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        canvas: false,
-        fs: false,
-        path: false,
-      };
-
-      // Handle PDF.js worker
-      config.module.rules.push({
-        test: /pdf\.worker\.(min\.)?js/,
-        type: 'asset/resource',
-        generator: {
-          filename: 'static/[hash][ext][query]',
-        },
-      });
-    }
-
-    return config;
   },
 };
 

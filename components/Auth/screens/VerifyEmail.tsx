@@ -1,25 +1,27 @@
 import { BaseScreenProps } from '../types';
+import { Button } from '@/components/ui/Button';
+import { AuthScreenHeader } from './AuthScreenHeader';
 
 export default function VerifyEmail({ email, onClose }: BaseScreenProps) {
   return (
-    <div className="text-center">
-      <h2 className="text-xl font-semibold mb-6">Check your email</h2>
-
-      <p className="text-gray-600 mb-6">
-        We sent a verification link to <strong>{email}</strong>
-      </p>
+    <div>
+      <AuthScreenHeader
+        title="Check your email"
+        subtitle={
+          <>
+            We sent a verification link to <strong className="text-gray-900">{email}</strong>
+          </>
+        }
+      />
 
       <p className="text-sm text-gray-500 mb-8">
         Click the link in the email to verify your account. If you don't see it, check your spam
         folder.
       </p>
 
-      <button
-        onClick={onClose}
-        className="w-full bg-gray-100 text-gray-600 p-3 rounded hover:bg-gray-200"
-      >
+      <Button onClick={onClose} variant="outlined" size="lg" className="w-full">
         Close
-      </button>
+      </Button>
     </div>
   );
 }

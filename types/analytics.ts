@@ -3,7 +3,7 @@ import { DeviceType } from '@/hooks/useDeviceType';
 import { DocumentType } from '@/services/reaction.service';
 import { FeedEntry } from './feed';
 import { Work } from './work';
-import { TabType } from '@/components/work/WorkTabs';
+import type { TabType } from '@/components/work/WorkHeader/WorkTabContext';
 import {
   mapAppContentTypeToApiType,
   mapAppFeedContentTypeToApiType,
@@ -29,11 +29,10 @@ interface RelatedWork {
 export type FeedSource =
   | 'home'
   | 'earn'
+  | 'peer-review'
   | 'fund'
   | 'journal'
-  | 'topic'
   | 'author'
-  | 'search'
   | 'list'
   | 'unknown';
 

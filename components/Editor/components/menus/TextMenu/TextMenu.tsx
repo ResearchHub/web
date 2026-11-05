@@ -2,8 +2,9 @@ import { Icon } from '@/components/Editor/components/ui/Icon';
 import { Toolbar } from '@/components/Editor/components/ui/Toolbar';
 import { useTextmenuCommands } from './hooks/useTextmenuCommands';
 import { useTextmenuStates } from './hooks/useTextmenuStates';
-import { BubbleMenu, Editor } from '@tiptap/react';
-import { memo } from 'react';
+import { Editor } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
+import { memo, useMemo } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Surface } from '@/components/Editor/components/ui/Surface';
 import { ColorPicker } from '@/components/Editor/components/panels';
@@ -11,7 +12,6 @@ import { FontFamilyPicker } from './components/FontFamilyPicker';
 import { FontSizePicker } from './components/FontSizePicker';
 import { useTextmenuContentTypes } from './hooks/useTextmenuContentTypes';
 import { ContentTypePicker } from './components/ContentTypePicker';
-import { AIDropdown } from './components/AIDropdown';
 import { EditLinkPopover } from './components/EditLinkPopover';
 
 // We memorize the button so each button is not rerendered
@@ -31,47 +31,30 @@ export const TextMenu = ({ editor }: TextMenuProps) => {
   const states = useTextmenuStates(editor);
   const blockOptions = useTextmenuContentTypes(editor);
 
+  // Must keep a stable identity: BubbleMenu dispatches a transaction whenever
+  // this prop changes, and TextMenu re-renders on every transaction, so an
+  // inline object here becomes an infinite render loop.
+  const bubbleMenuOptions = useMemo(
+    () => ({
+      placement: 'top-start' as const,
+      strategy: 'fixed' as const,
+      // Matches the v2 popper config: keep the menu inside the viewport with
+      // 8px padding, but never flip it below the selection.
+      flip: false,
+      shift: { padding: 8 },
+    }),
+    []
+  );
+
   return (
     <BubbleMenu
-      tippyOptions={{
-        popperOptions: {
-          placement: 'top-start',
-          modifiers: [
-            {
-              name: 'preventOverflow',
-              options: {
-                boundary: 'viewport',
-                padding: 8,
-              },
-            },
-            {
-              name: 'flip',
-              enabled: false,
-            },
-          ],
-          strategy: 'fixed',
-        },
-        maxWidth: 'calc(100vw - 16px)',
-        interactive: true,
-      }}
+      options={bubbleMenuOptions}
       editor={editor}
       pluginKey="textMenu"
       shouldShow={states.shouldShow}
       updateDelay={200}
     >
       <Toolbar.Wrapper className="!bg-white dark:!bg-neutral-900 !border-gray-200 dark:!border-neutral-700">
-        {/* <AIDropdown
-          onCompleteSentence={commands.onCompleteSentence}
-          onEmojify={commands.onEmojify}
-          onFixSpelling={commands.onFixSpelling}
-          onMakeLonger={commands.onMakeLonger}
-          onMakeShorter={commands.onMakeShorter}
-          onSimplify={commands.onSimplify}
-          onTldr={commands.onTldr}
-          onTone={commands.onTone}
-          onTranslate={commands.onTranslate}
-        />
-        <Toolbar.Divider /> */}
         <MemoContentTypePicker options={blockOptions} />
         <MemoFontFamilyPicker onChange={commands.onSetFont} value={states.currentFont || ''} />
         <MemoFontSizePicker onChange={commands.onSetFontSize} value={states.currentSize || ''} />

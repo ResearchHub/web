@@ -36,6 +36,7 @@ interface CommentItemProps {
   showTooltips?: boolean;
   includeReplies?: boolean;
   showDebugInfo?: boolean;
+  readOnly?: boolean;
 }
 
 export const CommentItem = ({
@@ -47,6 +48,7 @@ export const CommentItem = ({
   showTooltips = true,
   includeReplies = true,
   showDebugInfo = false,
+  readOnly = false,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -195,7 +197,7 @@ export const CommentItem = ({
     const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
 
     // If we're editing and the comment is not a legacy comment(QUILL_EDITOR), show the editor
-    if (isEditing && !isLegacyComment) {
+    if (isEditing && !isLegacyComment && !readOnly) {
       return (
         <CommentEditor
           initialContent={comment.content}
@@ -222,18 +224,23 @@ export const CommentItem = ({
               showSolutions={true}
               showRelatedWork={false}
               href={customHref}
-              hideActions={comment.isRemoved}
+              hideActions={readOnly || comment.isRemoved}
               showTooltips={showTooltips}
               isAuthor={isAuthor}
-              showCreatorActions={isAuthor}
-              canAwardBounty={canAwardBounty}
+              showCreatorActions={!readOnly && isAuthor}
+              canAwardBounty={!readOnly && canAwardBounty}
               showContributeButton={false}
-              onAward={(bountyId) => {
-                setSelectedBountyId(bountyId);
-                setShowAwardModal(true);
-              }}
-              onEdit={() => setEditingCommentId(comment.id)}
-              onReply={() => setReplyingToCommentId(comment.id)}
+              showSupportAndCTAButtons={!readOnly}
+              onAward={
+                readOnly
+                  ? undefined
+                  : (bountyId) => {
+                      setSelectedBountyId(bountyId);
+                      setShowAwardModal(true);
+                    }
+              }
+              onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
+              onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
               onContributeSuccess={() => {
                 // After successful contribution, refresh the comments
                 forceRefresh();
@@ -256,7 +263,7 @@ export const CommentItem = ({
             />
 
             {/* If we're replying, show the reply editor */}
-            {isReplying && (
+            {isReplying && !readOnly && (
               <div className="mt-4 border-t pt-4 px-4 pb-4">
                 <h4 className="text-sm font-medium mb-2">Your reply:</h4>
                 <CommentEditor
@@ -290,13 +297,13 @@ export const CommentItem = ({
       <div className="space-y-4">
         <FeedItemComment
           entry={feedEntry}
-          onReply={() => setReplyingToCommentId(comment.id)}
-          onEdit={() => setEditingCommentId(comment.id)}
-          onDelete={() => handleDelete()}
-          showCreatorActions={isAuthor}
+          onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
+          onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
+          onDelete={readOnly ? undefined : () => handleDelete()}
+          showCreatorActions={!readOnly && isAuthor}
           showTooltips={showTooltips}
           showRelatedWork={false}
-          hideActions={!includeReplies || comment.isRemoved}
+          hideActions={readOnly || !includeReplies || comment.isRemoved}
           actionLabels={{
             comment: 'Reply',
           }}
@@ -304,8 +311,8 @@ export const CommentItem = ({
         />
 
         {/* If we're replying, show the reply editor */}
-        {isReplying && (
-          <div className="mt-4 border-t pt-4 px-4 pb-4">
+        {isReplying && !readOnly && (
+          <div className="mt-4 border-t pt-4 px-4 pb-4" data-testid="comment-reply-editor">
             <h4 className="text-sm font-medium mb-2">Your reply:</h4>
             <CommentEditor
               onSubmit={handleReply}
@@ -321,7 +328,7 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="mt-4" id={`comment-${comment.id}`}>
+    <div className="mt-4" id={`comment-${comment.id}`} data-testid="comment-item">
       {/* Debug information for comment ID */}
       {showDebugInfo && (
         <div className="bg-gray-100 p-2 mb-2 rounded-md border border-gray-300">
@@ -419,6 +426,7 @@ export const CommentItem = ({
               onCommentDelete={onCommentDelete}
               showTooltips={showTooltips}
               includeReplies={includeReplies}
+              readOnly={readOnly}
             />
           ))}
 

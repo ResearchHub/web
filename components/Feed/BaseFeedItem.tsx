@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode } from 'react';
 import {
   FeedContentType,
   FeedEntry,
@@ -11,16 +11,12 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
-import { stripHtml, truncateText } from '@/utils/stringUtils';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { stripHtml } from '@/utils/stringUtils';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { Button } from '@/components/ui/Button';
-import { ChevronDown } from 'lucide-react';
 import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BountyInfo } from '../Bounty/BountyInfo';
-import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -36,7 +32,6 @@ export interface BaseFeedItemProps {
   onFeedItemClick?: () => void;
   showPeerReviews?: boolean;
   showBountyInfo?: boolean;
-  hideBountyActions?: boolean;
   hideReportButton?: boolean;
   badges?: ReactNode;
   cardImage?: ReactNode;
@@ -66,7 +61,6 @@ export interface BadgeSectionProps {
 // Title component interface
 export interface TitleSectionProps {
   title: string;
-  highlightedTitle?: string;
   className?: string;
   href?: string;
   onClick?: () => void;
@@ -75,7 +69,6 @@ export interface TitleSectionProps {
 // Content component interface
 export interface ContentSectionProps {
   content: string;
-  highlightedContent?: string;
   maxLength?: number;
   className?: string;
 }
@@ -99,66 +92,13 @@ export interface StatusSectionProps {
   className?: string;
 }
 
-// Subcomponents
-export const BadgeSection: FC<BadgeSectionProps> = ({
-  contentType,
-  topics = [],
-  className,
-  onClick,
-}) => {
-  return (
-    <div className={cn('flex flex-wrap gap-2 mb-1', className)}>
-      {/* Content type badge would be rendered here */}
-      {topics.map((topic) => (
-        <div
-          key={topic.slug ?? topic.name}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.(e);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              e.stopPropagation();
-              onClick?.(e as any);
-            }
-          }}
-          role={onClick ? 'button' : undefined}
-          tabIndex={onClick ? 0 : undefined}
-        >
-          <TopicAndJournalBadge
-            name={topic.name}
-            slug={topic.slug ?? topic.name}
-            disableLink={!topic.slug}
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
-
-export const TitleSection: FC<TitleSectionProps> = ({
-  title,
-  highlightedTitle,
-  className,
-  href,
-  onClick,
-}) => {
+export const TitleSection: FC<TitleSectionProps> = ({ title, className, href, onClick }) => {
   const titleStyles = cn(
     'text-md md:!text-lg font-semibold text-gray-900 mb-1 hover:underline',
     className
   );
 
-  const content = highlightedTitle ? (
-    <h2
-      className={titleStyles}
-      dangerouslySetInnerHTML={{
-        __html: sanitizeHighlightHtml(highlightedTitle),
-      }}
-    />
-  ) : (
-    <h2 className={titleStyles}>{title}</h2>
-  );
+  const content = <h2 className={titleStyles}>{title}</h2>;
 
   if (href) {
     return (
@@ -171,67 +111,11 @@ export const TitleSection: FC<TitleSectionProps> = ({
   return content;
 };
 
-export const ContentSection: FC<ContentSectionProps> = ({
-  content,
-  highlightedContent,
-  className,
-  maxLength = 200,
-}) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isTextTruncated = content && content.length > maxLength;
-
-  const handleToggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(!isExpanded);
-  };
-
-  // If we have highlighted HTML, render it (already truncated by backend)
-  if (highlightedContent) {
-    return (
-      <div className={cn('text-sm text-gray-700', className)}>
-        <p
-          dangerouslySetInnerHTML={{
-            __html: sanitizeHighlightHtml(highlightedContent),
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Default: render truncated plain text
-  return (
-    <div className={cn('text-sm text-gray-900 hidden md:!block leading-relaxed', className)}>
-      <p>{isExpanded ? content : truncateText(content, maxLength)}</p>
-      {isTextTruncated && (
-        <Button
-          variant="link"
-          size="sm"
-          onClick={handleToggleExpand}
-          className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
-        >
-          {isExpanded ? 'Show less' : 'Read more'}
-          <ChevronDown
-            size={14}
-            className={cn(
-              'transition-transform duration-200',
-              isExpanded && 'transform rotate-180'
-            )}
-          />
-        </Button>
-      )}
-    </div>
-  );
-};
-
 // Re-export ImageSection for backwards compatibility
-export { ImageSection, type ImageSectionProps } from './ImageSection';
+export { ImageSection } from './ImageSection';
 
 export const MetadataSection: FC<MetadataSectionProps> = ({ children, className }) => {
   return <div className={cn('mb-2', className)}>{children}</div>;
-};
-
-export const CTASection: FC<CTASectionProps> = ({ children, className }) => {
-  return <div className={cn('flex items-center gap-3', className)}>{children}</div>;
 };
 
 // Primary action component interface
@@ -244,7 +128,7 @@ export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, 
   return (
     <div
       className={cn(
-        'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-4 py-3.5 cursor-default',
+        'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-3 py-2.5 cursor-default',
         className
       )}
       onMouseDown={(e) => e.stopPropagation()}
@@ -252,35 +136,6 @@ export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, 
       onClick={(e) => e.stopPropagation()}
     >
       {children}
-    </div>
-  );
-};
-
-// Re-export FeedItemAbstractSection for backwards compatibility
-export {
-  FeedItemAbstractSection,
-  type FeedItemAbstractSectionProps,
-} from './FeedItemAbstractSection';
-
-export const StatusSection: FC<StatusSectionProps> = ({ status, statusText, className }) => {
-  if (!status) return null;
-
-  const statusConfig = {
-    open: { color: 'bg-emerald-500', textColor: 'text-emerald-700', text: 'Open' },
-    closed: { color: 'bg-gray-400', textColor: 'text-gray-500', text: 'Closed' },
-    expired: { color: 'bg-red-500', textColor: 'text-red-700', text: 'Expired' },
-    active: { color: 'bg-blue-500', textColor: 'text-blue-700', text: 'Active' },
-    inactive: { color: 'bg-gray-400', textColor: 'text-gray-500', text: 'Inactive' },
-  };
-
-  const config = statusConfig[status] ?? statusConfig.inactive;
-
-  return (
-    <div className={cn('flex items-center gap-1.5', className)}>
-      <span className={cn('h-2 w-2 rounded-full', config.color)} />
-      <span className={cn('text-sm font-medium', config.textColor)}>
-        {statusText ?? config.text}
-      </span>
     </div>
   );
 };
@@ -299,7 +154,6 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   onFeedItemClick,
   showPeerReviews = true,
   showBountyInfo,
-  hideBountyActions = false,
   hideReportButton = false,
   badges,
   cardImage,
@@ -390,7 +244,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Content area: image-left + main content side by side */}
         <div className={cn(cardImageLeft && 'md:!flex md:!flex-row')}>
           {cardImageLeft && (
-            <div className="hidden md:!block flex-shrink-0 w-[210px] p-4 pr-2">
+            <div className="hidden md:!block flex-shrink-0 w-[184px] p-4 pr-2">
               <div className="relative overflow-hidden rounded-xl w-full h-full">
                 {cardImageLeft}
               </div>
@@ -442,10 +296,10 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           </div>
         </div>
 
-        {/* Actions row — full width with divider */}
+        {/* Actions row — aligned with the card's content gutter */}
         {showActions && (
           <div
-            className="cursor-default"
+            className="cursor-default border-t border-gray-100 px-4 py-2.5"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
@@ -474,13 +328,12 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               relatedDocumentUnifiedDocumentId={
                 'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
               }
+              hideableEntries={[entry]}
               showPeerReviews={showPeerReviews}
               onFeedItemClick={onFeedItemClick}
-              bounties={showBountyInfo || hideBountyActions ? undefined : content.bounties}
               hideReportButton={hideReportButton}
               menuItems={menuItems}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
-              className="gap-1"
             />
           </div>
         )}

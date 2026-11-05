@@ -78,7 +78,7 @@ Join with my link and we'll both receive a 10% bonus on every $RSC you donate ov
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
       referralLink
     )}&text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   }, [referralCode, referralLink]);
 
   const shareOnLinkedIn = useCallback(() => {
@@ -89,7 +89,7 @@ Join with my link and we'll both receive a 10% bonus on every $RSC you donate ov
 
     const text = `Fund breakthrough science with me on ResearchHub!\n\nJoin with my link and we'll both receive a 10% bonus on every $RSC you donate over the next 6 months. Let's accelerate science together! 💰🧪\n\n${referralLink}`;
     const url = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   }, [referralCode, referralLink]);
 
   const shareOnBlueSky = useCallback(() => {
@@ -104,7 +104,7 @@ Join with my link and we'll both receive a 10% bonus on every $RSC you donate ov
 
 ${referralLink}`;
     const url = `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   }, [referralCode, referralLink]);
 
   return {

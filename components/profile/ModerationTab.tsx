@@ -10,6 +10,7 @@ import { useUser } from '@/contexts/UserContext';
 import { formatTimestamp } from '@/utils/date';
 import { snakeCaseToTitleCase } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
+import { FieldLabel } from '@/components/ui/FieldLabel';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { DetailValue } from '@/components/ui/CopyableText';
@@ -134,8 +135,10 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const [moderationState, { suspendUser, reinstateUser, markProbableSpammer }] =
-    useUserModeration();
+  const [
+    moderationState,
+    { suspendUser, reinstateUser, markProbableSpammer, setResearchAiInvited },
+  ] = useUserModeration();
 
   const refreshAfterAction = () => Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
 
@@ -168,6 +171,13 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       () => markProbableSpammer(authorId.toString()),
       'User flagged as probable spammer',
       'Failed to flag user'
+    );
+
+  const handleSetResearchAiInvited = (invited: boolean) =>
+    executeAction(
+      () => setResearchAiInvited(userId, invited),
+      invited ? 'Granted higher ResearchHub AI usage' : 'Removed higher ResearchHub AI usage',
+      'Failed to update ResearchHub AI usage'
     );
 
   const menuItems = [
@@ -210,7 +220,27 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'Verified name', value: verifiedName },
     { label: 'Verification ID', value: verificationId || 'N/A', copyable: !!verificationId },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
+    {
+      label: 'ResearchHub AI tier',
+      value: userDetails.researchAiTier ? snakeCaseToTitleCase(userDetails.researchAiTier) : 'N/A',
+    },
   ];
+
+  // Adding only changes the tier of a default-tier user; a manual grant can
+  // always be removed.
+  const researchAiInvitedButton = (userDetails.researchAiInvitedManually ||
+    userDetails.researchAiTier === 'default') && (
+    <Button
+      variant="outlined"
+      size="sm"
+      disabled={moderationState.isLoading}
+      onClick={() => handleSetResearchAiInvited(!userDetails.researchAiInvitedManually)}
+    >
+      {userDetails.researchAiInvitedManually
+        ? 'Remove higher ResearchHub AI usage'
+        : 'Grant higher ResearchHub AI usage'}
+    </Button>
+  );
 
   const hasMenu = menuItems.length > 0;
   const isProbableSpammer = userDetails.isProbableSpammer;
@@ -246,7 +276,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   return (
     <section className="flex flex-col gap-6 pb-20">
       <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
-        {(isModerator || hasMenu || isProbableSpammer) && (
+        {(isModerator || hasMenu || isProbableSpammer || researchAiInvitedButton) && (
           <div className={cn('px-5', isModerator ? 'pt-5 pb-0' : 'pt-4')}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
@@ -273,7 +303,10 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
                 )}
               </div>
 
-              {actionMenu}
+              <div className="flex items-center gap-2">
+                {researchAiInvitedButton}
+                {actionMenu}
+              </div>
             </div>
           </div>
         )}
@@ -281,9 +314,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
         <div className={cn('px-5 py-4', isModerator && 'border-t border-black/5 mt-4')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                Details
-              </span>
+              <FieldLabel as="span">Details</FieldLabel>
               <div className="flex flex-col gap-2 mt-2 text-sm">
                 {detailItems.map((item) => (
                   <div key={item.label} className="flex items-center gap-1.5 min-w-0">
@@ -300,9 +331,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
 
             {isModerator && insights.length > 0 && (
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Insights
-                </span>
+                <FieldLabel as="span">Insights</FieldLabel>
                 <div className="flex flex-col gap-2 mt-2">
                   {insights.map((insight) => (
                     <div

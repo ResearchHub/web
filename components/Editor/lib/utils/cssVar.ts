@@ -10,5 +10,3 @@ export const cssVar = (name: string, value?: string) => {
 
   return getComputedStyle(document.body).getPropertyValue(currentName);
 };
-
-export default cssVar;

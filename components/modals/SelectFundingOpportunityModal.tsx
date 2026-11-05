@@ -8,13 +8,12 @@ import { GrantService } from '@/services/grant.service';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Loader2 } from 'lucide-react';
 import { formatCompactAmount } from '@/utils/currency';
-import { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
-import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
+import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantDetails } from '@/types/grant';
 
 interface SelectFundingOpportunityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (grant: SelectedGrantData) => void;
+  onSelect: (grant: SelectedGrantDetails) => void;
 }
 
 const GrantCardSkeleton = () => (
@@ -85,6 +84,7 @@ export function SelectFundingOpportunityModal({
       imageUrl: content.previewImage || '',
       fundingAmount: content.grant.amount?.usd || 0,
       organization: content.grant.organization || '',
+      fundingMechanism: content.grant.fundingMechanism,
     });
     onClose();
   };
@@ -93,22 +93,20 @@ export function SelectFundingOpportunityModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="flex flex-col gap-1">
-          <span className="text-lg font-medium text-gray-900">Funding Opportunity</span>
-          <span className="text-sm text-gray-500">Apply to specific funding opportunity</span>
-        </div>
-      }
+      title="Select RFP to apply to"
       maxWidth="max-w-[600px]"
       padding="p-6"
       contentClassName="!pb-10"
     >
-      <div className="space-y-2">
+      {/* The panel sizes to its content on desktop, so ask for the panel's
+          full width from the start: the skeleton and the loaded list, with
+          its scrollbar, then share one width instead of the panel jumping. */}
+      <div className="w-[600px] max-w-full space-y-2">
         {grants.length === 0 && loading && <GrantCardSkeleton />}
 
         {grants.length === 0 && !loading && (
           <div className="text-center py-10">
-            <p className="text-sm text-gray-500">No open funding opportunities available</p>
+            <p className="text-sm text-gray-500">No open RFPs available</p>
           </div>
         )}
 
@@ -142,7 +140,7 @@ export function SelectFundingOpportunityModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-0.5">
-                      {grant.organization || 'Funding Opportunity'}
+                      {grant.organization || 'RFP'}
                     </div>
                     <div className="text-sm font-semibold text-gray-900 truncate">
                       {grant.shortTitle || content.title}

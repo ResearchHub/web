@@ -4,7 +4,7 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 import { useFeedStateRestoration } from './useFeedStateRestoration';
 
-export type FeedTab = 'following' | 'latest' | 'popular' | 'for-you';
+export type FeedTab = 'following' | 'latest' | 'popular' | 'journal';
 export type FundingTab = 'all' | 'open' | 'closed';
 export type FeedSource = 'all' | 'researchhub';
 
@@ -12,7 +12,7 @@ interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
   source?: FeedSource;
-  endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+  endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'journal_v2_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   grantId?: number;
   createdBy?: number;
@@ -46,6 +46,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
+  const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
@@ -121,19 +122,13 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setHasAttemptedLoad(true);
     setEntries([]);
     setIsLoading(true);
+    setError(null);
 
     try {
       const isHomeFeedTab =
-        activeTab === 'popular' ||
-        activeTab === 'following' ||
-        activeTab === 'latest' ||
-        activeTab === 'for-you';
+        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
-      const feedView = isHomeFeedTab
-        ? activeTab === 'for-you'
-          ? 'personalized'
-          : activeTab
-        : undefined;
+      const feedView = isHomeFeedTab ? activeTab : undefined;
 
       const result = await FeedService.getFeed({
         page: 1,
@@ -157,7 +152,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasMore(result.hasMore);
       setPage(1);
     } catch (error) {
-      console.error('Error loading feed:', error);
+      const nextError = error instanceof Error ? error : new Error('Failed to load feed');
+      console.error('Error loading feed:', nextError);
+      setError(nextError);
       setPage(1);
     } finally {
       setIsLoading(false);
@@ -168,19 +165,13 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     if (!hasMore || isLoading) return;
 
     setIsLoading(true);
+    setError(null);
     try {
       const nextPage = page + 1;
       const isHomeFeedTab =
-        activeTab === 'popular' ||
-        activeTab === 'following' ||
-        activeTab === 'latest' ||
-        activeTab === 'for-you';
+        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
-      const feedView = isHomeFeedTab
-        ? activeTab === 'for-you'
-          ? 'personalized'
-          : activeTab
-        : undefined;
+      const feedView = isHomeFeedTab ? activeTab : undefined;
 
       const result = await FeedService.getFeed({
         page: nextPage,
@@ -203,7 +194,10 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasMore(result.hasMore);
       setPage(nextPage);
     } catch (error) {
-      console.error('Error loading more feed items:', error);
+      const nextError =
+        error instanceof Error ? error : new Error('Failed to load more feed items');
+      console.error('Error loading more feed items:', nextError);
+      setError(nextError);
     } finally {
       setIsLoading(false);
     }
@@ -212,6 +206,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   return {
     entries,
     isLoading,
+    error,
     hasMore,
     loadMore,
     refresh: loadFeed,

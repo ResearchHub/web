@@ -10,8 +10,11 @@ import { CHAIN_IDS } from '@/constants/chains';
  * Application model interfaces - these match our frontend needs
  */
 export interface NonprofitAddress {
-  region: string;
-  country: string;
+  line1?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
 }
 
 export interface NonprofitDeployment {
@@ -128,7 +131,13 @@ export const transformNonprofitSearchResult = createTransformer<any, Omit<Nonpro
     nteeCode: raw.nteeCode,
     nteeDescription: raw.nteeDescription,
     description: raw.description,
-    address: { ...raw.address },
+    address: {
+      line1: raw.address?.line1 ?? undefined,
+      city: raw.address?.city ?? undefined,
+      state: raw.address?.state ?? undefined,
+      zip: raw.address?.zip ?? undefined,
+      country: raw.address?.country ?? undefined,
+    },
     endaomentUrl: raw.endaomentUrl,
     contributionCount: raw.contibutionCount, // Fix typo from API
     contributionTotal: raw.contibutionTotal, // Fix typo from API
@@ -156,7 +165,7 @@ export const transformNonprofitDetailsToOrg = createTransformer<any, Omit<Nonpro
       ein: raw.ein,
       deployments,
       baseWalletAddress: raw.base_wallet_address,
-      address: { region: '', country: '' },
+      address: {},
       nteeCode: '',
       nteeDescription: '',
       description: '',

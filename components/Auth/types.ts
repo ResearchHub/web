@@ -5,6 +5,9 @@ export type AuthScreen =
   | 'VERIFY_EMAIL'
   | 'FORGOT_PASSWORD';
 
+export type AuthAppearance = 'default' | 'catalyst';
+export type CatalystSurface = 'dark' | 'light';
+
 export interface BaseScreenProps {
   onBack?: () => void;
   onClose: () => void;

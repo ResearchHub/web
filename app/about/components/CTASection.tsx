@@ -45,7 +45,7 @@ export const CTASection = () => {
     {
       kind: 'action',
       label: 'Join ResearchHub',
-      onAction: () => showAuthModal(() => router.push('/popular')),
+      onAction: () => showAuthModal(() => router.push('/')),
     },
     { kind: 'link', href: '/fund', label: 'Fund science', external: true },
   ];

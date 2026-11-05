@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { withShareToken } from '@/lib/shareToken/url';
 import { Topic, transformTopic } from '@/types/topic';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
@@ -10,7 +11,7 @@ import { countActiveBounties, countClosedBounties } from '@/components/Bounty/li
 export interface WorkMetadata {
   id: number;
   score: number;
-  topics: Topic[];
+  topics?: Topic[];
   metrics: ContentMetrics;
   fundraising?: Fundraise;
   bounties: Bounty[];
@@ -19,8 +20,9 @@ export interface WorkMetadata {
 }
 
 function transformWorkMetadata(response: any): WorkMetadata {
-  // Handle both array and object document structures
-  const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
+  // Post documents are arrays; paper documents are objects.
+  const isPaper = !Array.isArray(response.documents);
+  const document = isPaper ? response.documents : response.documents[0];
 
   // Transform bounties if they exist using the existing transformer
   const bounties = document.bounties?.map((bounty: any) => transformBounty(bounty)) || [];
@@ -31,9 +33,11 @@ function transformWorkMetadata(response: any): WorkMetadata {
   return {
     id: response.id,
     score: response.score,
-    topics: response.hubs
-      .filter((hub: any) => hub.namespace !== 'journal')
-      .map((hub: any) => transformTopic(hub)),
+    ...(isPaper && {
+      topics: response.hubs
+        .filter((hub: any) => hub.namespace !== 'journal')
+        .map((hub: any) => transformTopic(hub)),
+    }),
     metrics: {
       votes: response.score,
       comments: document.discussion_aggregates.discussion_count,
@@ -53,9 +57,15 @@ function transformWorkMetadata(response: any): WorkMetadata {
 export class MetadataService {
   private static readonly BASE_PATH = '/api/researchhub_unified_document';
 
-  static async get(unifiedDocumentId: string): Promise<WorkMetadata> {
+  static async get(
+    unifiedDocumentId: string,
+    options?: { shareToken?: string | null }
+  ): Promise<WorkMetadata> {
     const response = await ApiClient.get<any>(
-      `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`
+      withShareToken(
+        `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`,
+        options?.shareToken
+      )
     );
     return transformWorkMetadata(response);
   }

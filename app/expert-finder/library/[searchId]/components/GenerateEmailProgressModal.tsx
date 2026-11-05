@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { Check, Loader2, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Progress } from '@/components/ui/Progress';
-import { ExpertFinderService } from '@/services/expertFinder.service';
+import {
+  ExpertFinderService,
+  PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+} from '@/services/expertFinder.service';
 import type { ExpertResult } from '@/types/expertFinder';
 import type { GenerateEmailConfirmPayload } from './GenerateEmailModal';
 
@@ -71,10 +74,14 @@ export function GenerateEmailProgressModal({
 
         try {
           if (generation.mode === 'ai') {
+            const isProposalInvitation = generation.template === PROPOSAL_DRAFT_OUTREACH_TEMPLATE;
             await ExpertFinderService.generateEmail({
               expert_search_id: Number(searchId),
               expert_email: expert.email?.trim() ?? '',
               template: generation.template,
+              ...(isProposalInvitation
+                ? { proposal_draft_id: expert.proposalDraft?.id ?? null }
+                : {}),
             });
           } else {
             await ExpertFinderService.generateEmail({
@@ -120,7 +127,7 @@ export function GenerateEmailProgressModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={isComplete ? 'Emails Generated' : 'Generating Emails'}
+      title={isComplete ? 'Outreach Generated' : 'Generating Outreach'}
       size="lg"
       showCloseButton={true}
     >
@@ -128,10 +135,10 @@ export function GenerateEmailProgressModal({
         <>
           <p className="text-sm text-gray-600 mb-4">
             {successCount > 0 && errorCount === 0
-              ? `All ${successCount} email${successCount === 1 ? '' : 's'} generated successfully.`
+              ? `All ${successCount} draft${successCount === 1 ? '' : 's'} generated successfully.`
               : successCount > 0 && errorCount > 0
-                ? `${successCount} email${successCount === 1 ? '' : 's'} generated. ${errorCount} failed.`
-                : `Generation finished. ${errorCount} email${errorCount === 1 ? '' : 's'} failed.`}
+                ? `${successCount} draft${successCount === 1 ? '' : 's'} generated. ${errorCount} failed.`
+                : `Generation finished. ${errorCount} draft${errorCount === 1 ? '' : 's'} failed.`}
           </p>
 
           <ul className="space-y-2 max-h-48 overflow-y-auto mb-4">
@@ -171,7 +178,7 @@ export function GenerateEmailProgressModal({
       ) : (
         <>
           <p className="text-sm text-gray-600 mb-4">
-            Please wait while emails are being generated. Do not close this window.
+            Please wait while outreach drafts are being generated. Do not close this window.
           </p>
 
           <div className="mb-4">
@@ -213,7 +220,7 @@ export function GenerateEmailProgressModal({
           </ul>
 
           <p className="text-xs text-gray-500 mt-4">
-            Generating personalized emails... This may take a few minutes.
+            Generating personalized outreach... This may take a few minutes.
           </p>
         </>
       )}

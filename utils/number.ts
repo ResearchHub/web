@@ -76,6 +76,26 @@ export function formatRSC({
   return valueToFormat.toLocaleString();
 }
 
+export function formatBadgeCount(count: number): string {
+  return count > 9 ? '9+' : count.toString();
+}
+
+/**
+ * Coerce a string/number id-like value to a finite number, or undefined.
+ *
+ * @example
+ * toOptionalNumber('42') // 42
+ * toOptionalNumber(7) // 7
+ * toOptionalNumber('') // undefined
+ * toOptionalNumber(null) // undefined
+ * toOptionalNumber('abc') // undefined
+ */
+export function toOptionalNumber(value: string | number | null | undefined): number | undefined {
+  if (value == null || value === '') return undefined;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 /**
  * Returns the number of decimal places in a number
  * @example
@@ -180,53 +200,55 @@ export function extractExchangeRate(
   return 0;
 }
 
-interface FormatCombinedBalanceOptions {
-  balance: BalanceData | null;
-  lockedBalance: BalanceData | null;
-  showUSD: boolean;
-  includeRSCSuffix?: boolean;
+/**
+ * Parse a decimal amount from user input. Accepts optional thousand separators
+ * (`,` or spaces) and a `.` decimal; rejects trailing/leading junk that
+ * `Number.parseFloat` would ignore (e.g. `"1,000"` → `1000`, `"1abc"` → `NaN`).
+ */
+export function parseStrictDecimal(value: string): number {
+  const trimmed = value.trim();
+  if (!trimmed) return NaN;
+
+  // Drop grouping separators that formatRSC / locale display may use.
+  const normalized = trimmed.replace(/[,\u00A0\u202F\s]/g, '');
+
+  // Entire string must be a decimal — no partial parse of "1abc" or "1,000x".
+  if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(normalized)) {
+    return NaN;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+export interface ValidatePositiveDecimalOptions {
+  /** When set, amounts above this value fail validation. */
+  max?: number;
+  /** Error when amount exceeds `max`. */
+  maxError?: string;
+  /** Error when the value is missing, non-numeric, or ≤ 0. */
+  invalidError?: string;
 }
 
 /**
- * Formats the combined balance (available + locked) in the preferred currency
- * @param options Formatting options
- * @returns Formatted string in the preferred currency
+ * Validate user-entered decimal input as a positive amount (optionally capped).
  */
-export function formatCombinedBalance({
-  balance,
-  lockedBalance,
-  showUSD,
-  includeRSCSuffix = true,
-}: FormatCombinedBalanceOptions): string {
-  const totalRaw = (balance?.raw || 0) + (lockedBalance?.raw || 0);
+export function validatePositiveDecimal(
+  value: string,
+  options: ValidatePositiveDecimalOptions = {}
+): { amount: number; error?: string } {
+  const {
+    max,
+    maxError = 'Amount exceeds the maximum',
+    invalidError = 'Enter a valid positive amount',
+  } = options;
 
-  if (showUSD) {
-    const exchangeRate = extractExchangeRate(balance, lockedBalance);
-    return exchangeRate > 0 ? formatUsdValue(totalRaw.toString(), exchangeRate) : '$0.00';
-  } else {
-    const formatted = formatRSC({ amount: totalRaw });
-    return includeRSCSuffix ? `${formatted} RSC` : formatted;
+  const amount = parseStrictDecimal(value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { amount: NaN, error: invalidError };
   }
-}
-
-/**
- * Gets the secondary currency display for combined balance
- * @param options Formatting options
- * @returns Formatted string in the secondary currency
- */
-export function formatCombinedBalanceSecondary({
-  balance,
-  lockedBalance,
-  showUSD,
-}: FormatCombinedBalanceOptions): string {
-  const totalRaw = (balance?.raw || 0) + (lockedBalance?.raw || 0);
-
-  if (showUSD) {
-    // Secondary is RSC when primary is USD
-    return `${formatRSC({ amount: totalRaw })} RSC`;
-  } else {
-    // Secondary is USD when primary is RSC
-    const exchangeRate = extractExchangeRate(balance, lockedBalance);
-    return exchangeRate > 0 ? formatUsdValue(totalRaw.toString(), exchangeRate) : '$0.00 USD';
+  if (max != null && amount > max) {
+    return { amount, error: maxError };
   }
+  return { amount };
 }

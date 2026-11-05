@@ -308,5 +308,4 @@ const proposalTemplate: Template = {
   ],
 };
 
-export type ProposalTemplate = typeof proposalTemplate;
 export default proposalTemplate;

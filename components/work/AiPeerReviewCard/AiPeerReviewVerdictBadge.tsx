@@ -14,7 +14,7 @@ export function AiPeerReviewVerdictBadge({ rating }: AiPeerReviewVerdictBadgePro
       width="w-64"
       position="top"
     >
-      <span className="inline-flex items-center gap-1 rounded-md border border-green-200 bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700">
+      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 text-xs font-medium leading-5 text-emerald-700">
         <Gem size={11} />
         Top rated
       </span>

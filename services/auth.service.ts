@@ -188,6 +188,34 @@ export class AuthService {
     };
   }
 
+  static async authenticateWithX(
+    credentials: {
+      code: string;
+      code_verifier: string;
+      redirect_uri: string;
+    },
+    authToken?: string
+  ): Promise<{ key: string; access_token: string }> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/x/login/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...(authToken && { Authorization: `Token ${authToken}` }),
+        },
+        body: JSON.stringify(credentials),
+      }
+    );
+
+    if (!response.ok) {
+      throw new AuthError('X authentication failed', response.status);
+    }
+
+    return response.json();
+  }
+
   static async googleLogin(tokens: { access_token?: string; id_token?: string }) {
     const url = `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/google/login/`;
 

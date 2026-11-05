@@ -2,7 +2,6 @@
 
 import { FC, useState } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
-import { Topic } from '@/types/topic';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import {
@@ -93,7 +92,6 @@ interface FeedItemBountyCommentProps {
   }; // Prop for customizing action labels
   showFooter?: boolean; // Prop to control footer visibility
   hideActions?: boolean; // Prop to hide actions, similar to FeedItemComment
-  onTopicClick?: (topic: Topic) => void;
   showSupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons
   showDeadline?: boolean; // Show deadline in metadata line
   maxLength?: number;
@@ -122,7 +120,6 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   actionLabels,
   showFooter = true, // Default to showing the footer
   hideActions = false, // Prop to hide actions, similar to FeedItemComment
-  onTopicClick,
   showSupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showDeadline = true, // Show deadline in metadata line
   maxLength,
@@ -334,12 +331,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
-            <RelatedWorkCard
-              size="sm"
-              work={entry.relatedWork}
-              onTopicClick={onTopicClick}
-              onFeedItemClick={onFeedItemClick}
-            />
+            <RelatedWorkCard size="sm" work={entry.relatedWork} onFeedItemClick={onFeedItemClick} />
           </div>
         )}
 

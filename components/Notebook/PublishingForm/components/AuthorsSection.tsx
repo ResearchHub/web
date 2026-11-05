@@ -1,10 +1,12 @@
 import { Users } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 import { useFormContext } from 'react-hook-form';
 import { getFieldErrorMessage } from '@/utils/form';
 import { SearchableUserSelect } from '@/components/ui/form/SearchableUserSelect';
 
-export function AuthorsSection() {
+export function AuthorsSection({ className }: SectionProps) {
   const {
     watch,
     setValue,
@@ -14,12 +16,14 @@ export function AuthorsSection() {
   const authors = watch('authors') || [];
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={Users}>Authors</SectionHeader>
       <SearchableUserSelect
         value={authors}
+        sortable
         onChange={(newAuthors) => setValue('authors', newAuthors, { shouldValidate: true })}
         placeholder="Search for authors..."
+        helperText="Drag and drop authors to arrange them in the order they should appear."
         error={getFieldErrorMessage(errors.authors, 'Invalid authors')}
       />
     </div>

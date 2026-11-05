@@ -4,7 +4,6 @@ import { useState, useCallback, ReactNode } from 'react';
 import {
   Edit,
   Flag,
-  FileUp,
   Octagon,
   CheckCircle,
   Download,
@@ -13,15 +12,14 @@ import {
   UserRoundPlus,
 } from 'lucide-react';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { Icon } from '@/components/ui/icons/Icon';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/hooks/useFundraise';
-import { PaperService } from '@/services/paper.service';
 import { GrantModerationService } from '@/services/grant-moderation.service';
 import { handleDownload } from '@/utils/download';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { FundraiseModalConfig } from './WorkHeaderModals';
 import toast from 'react-hot-toast';
 
@@ -37,7 +35,6 @@ interface UseWorkHeaderMenuItemsOptions {
     canEdit: boolean;
   };
   onOpenFlagModal: () => void;
-  onOpenWorkEditModal: () => void;
 }
 
 export function useWorkHeaderMenuItems({
@@ -45,14 +42,12 @@ export function useWorkHeaderMenuItems({
   metadata,
   permissions,
   onOpenFlagModal,
-  onOpenWorkEditModal,
 }: UseWorkHeaderMenuItemsOptions) {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
 
-  const { user, selectedOrg, isModerator, isHubEditor, isAuthor, canEdit } = permissions;
+  const { selectedOrg, isModerator, isHubEditor, canEdit } = permissions;
 
-  const [isPublishing, setIsPublishing] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
     null
   );
@@ -84,57 +79,20 @@ export function useWorkHeaderMenuItems({
     }
   }, [grant?.id, router]);
 
-  const latestVersion = work.versions?.find((v) => v.isLatest);
-  const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
   const handleEdit = useCallback(() => {
-    if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
-      onOpenWorkEditModal();
-    } else if (selectedOrg && work.note) {
-      router.push(`/notebook/${work.note.organization.slug}/${work.note.id}`);
+    if (selectedOrg && work.note) {
+      // RFPs are written in the workspace; the rest still open in the notebook.
+      router.push(
+        work.contentType === 'funding_request'
+          ? workspaceHref(documentTarget(work.note.id))
+          : `/notebook/${work.note.organization.slug}/${work.note.id}`
+      );
     } else {
       toast.error('Unable to edit');
     }
-  }, [
-    work.contentType,
-    work.note,
-    selectedOrg,
-    router,
-    isModerator,
-    isHubEditor,
-    onOpenWorkEditModal,
-  ]);
-
-  const handlePublish = useCallback(async () => {
-    if (isPublished) return;
-    setIsPublishing(true);
-    try {
-      await PaperService.publishPaper(work.id);
-      toast.success('Paper published to ResearchHub Journal');
-      router.refresh();
-    } catch (error: any) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to publish paper. Please try again.'
-      );
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [work.id, isPublished, router]);
-
-  const handleAddVersion = useCallback(() => {
-    if (!user) return;
-    let latestPaperId = work.id;
-    if (work.versions?.length) {
-      const latest = work.versions.find((v) => v.isLatest);
-      latestPaperId = latest
-        ? latest.paperId
-        : [...work.versions].sort(
-            (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-          )[0].paperId;
-    }
-    router.push(`/paper/${latestPaperId}/create/version`);
-  }, [work.id, work.versions, user, router]);
+  }, [work.note, work.contentType, selectedOrg, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
@@ -218,21 +176,6 @@ export function useWorkHeaderMenuItems({
         <BaseMenuItem onSelect={handleEdit}>
           <Edit className="h-4 w-4 mr-2" />
           <span>Edit</span>
-        </BaseMenuItem>
-      )}
-      {isAuthor && (
-        <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
-          <FileUp className="h-4 w-4 mr-2" />
-          <span>Upload New Version</span>
-        </BaseMenuItem>
-      )}
-      {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-        <BaseMenuItem
-          disabled={isPublishing}
-          onSelect={() => executeAuthenticatedAction(handlePublish)}
-        >
-          <Icon name="rhJournal1" size={16} className="mr-2" />
-          <span>Publish to Journal</span>
         </BaseMenuItem>
       )}
       {canInviteExperts && (

@@ -5,16 +5,15 @@ import { PaymentRequestButtonElement, useStripe } from '@stripe/react-stripe-js'
 import type { PaymentRequest, PaymentRequestPaymentMethodEvent } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/Button';
 import { StripeProvider } from './StripeProvider';
-import { PaymentService } from '@/services/payment.service';
-import { ID } from '@/types/root';
+import { PaymentService, type PaymentIntentTarget } from '@/services/payment.service';
 
 interface PaymentRequestButtonProps {
   /** Amount in cents */
   amountCents: number;
   /** Amount in RSC for creating payment intent */
   amountInRsc: number;
-  /** Fundraise ID for the contribution */
-  fundraiseId: ID;
+  /** Fundraise or funding pool target for the contribution */
+  paymentTarget: PaymentIntentTarget;
   /** Label shown in the payment sheet */
   label?: string;
   /** Button text to show when payment method is not available */
@@ -34,7 +33,7 @@ interface PaymentRequestButtonProps {
 function PaymentRequestButtonInner({
   amountCents,
   amountInRsc,
-  fundraiseId,
+  paymentTarget,
   label = 'Fund Research',
   unavailableText = 'Not available on this device',
   onSuccess,
@@ -46,9 +45,11 @@ function PaymentRequestButtonInner({
   const [canMakePayment, setCanMakePayment] = useState<boolean | null>(null); // null = checking
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Create and configure payment request
+  // Built once, not once per amount: a new amount updates the request (below)
+  // rather than building another and checking the wallet again on each keystroke.
+  const hasAmount = amountCents > 0;
   useEffect(() => {
-    if (!stripe || amountCents <= 0) {
+    if (!stripe || !hasAmount) {
       return;
     }
 
@@ -63,8 +64,11 @@ function PaymentRequestButtonInner({
       requestPayerEmail: true,
     });
 
-    // Check if the Payment Request is available
+    // Check if the Payment Request is available. A check that finishes after
+    // this request was replaced is dropped, so it can't overwrite the newer one.
+    let isCurrent = true;
     pr.canMakePayment().then((result) => {
+      if (!isCurrent) return;
       if (result) {
         setPaymentRequest(pr);
         setCanMakePayment(true);
@@ -78,10 +82,11 @@ function PaymentRequestButtonInner({
     });
 
     return () => {
-      // Cleanup
+      isCurrent = false;
       setPaymentRequest(null);
+      setCanMakePayment(null);
     };
-  }, [stripe, amountCents, label, onAvailabilityChange]);
+  }, [stripe, hasAmount, label, onAvailabilityChange]);
 
   // Update payment request amount when it changes
   useEffect(() => {
@@ -104,7 +109,10 @@ function PaymentRequestButtonInner({
 
       try {
         // Create payment intent on our backend
-        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, fundraiseId);
+        const { clientSecret } = await PaymentService.createPaymentIntent(
+          amountInRsc,
+          paymentTarget
+        );
 
         // Confirm the payment with the payment method from Apple Pay/Google Pay
         const { error: confirmError, paymentIntent } = await stripe!.confirmCardPayment(
@@ -147,7 +155,16 @@ function PaymentRequestButtonInner({
     return () => {
       paymentRequest.off('paymentmethod', handlePaymentMethod);
     };
-  }, [paymentRequest, stripe, amountInRsc, fundraiseId, onSuccess, onError]);
+  }, [paymentRequest, stripe, amountInRsc, paymentTarget, onSuccess, onError]);
+
+  // Nothing to pay yet: no request is built until there is an amount.
+  if (!hasAmount) {
+    return (
+      <Button type="button" variant="default" disabled className="w-full h-12 text-base">
+        Enter an amount
+      </Button>
+    );
+  }
 
   // Still checking availability
   if (canMakePayment === null) {

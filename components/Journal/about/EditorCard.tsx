@@ -32,12 +32,8 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
     (editor.socialLinks.linkedin || editor.socialLinks.website) &&
     (editor.name === 'Meet the Editor Team' || editor.name === 'Interested in joining?');
 
-  // Check if this editor should have collapsible functionality disabled
-  const disableCollapsible =
-    editor.name === 'Ruslan Rust, PhD' || editor.name === 'Attila Karsi, PhD';
-
   const bioPreviewLength = 150;
-  const showExpandButton = editor.bio.length > bioPreviewLength && !disableCollapsible;
+  const showExpandButton = editor.bio.length > bioPreviewLength;
 
   const handleCardClick = () => {
     if (isExternalLink && (editor.socialLinks.linkedin || editor.socialLinks.website)) {

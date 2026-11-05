@@ -1,17 +1,13 @@
 'use client';
 
 import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
-import { WorkEditModal } from '../WorkEditModal';
-import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
 import { ID } from '@/types/root';
-import type { GrantApplicationVisibility } from '@/types/grant';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -23,7 +19,6 @@ export interface FundraiseModalConfig {
 
 export interface WorkHeaderModalsProps {
   work: Work;
-  metadata: WorkMetadata;
   isFlagModalOpen: boolean;
   onCloseFlagModal: () => void;
   isTipModalOpen: boolean;
@@ -31,18 +26,10 @@ export interface WorkHeaderModalsProps {
   onTipSuccess: (amount: number) => void;
   isAddToListModalOpen: boolean;
   onCloseAddToListModal: () => void;
-  isWorkEditModalOpen: boolean;
-  onCloseWorkEditModal: () => void;
   showFundraiseActionModal: boolean;
   onCloseFundraiseModal: () => void;
   onConfirmFundraise: () => void;
   fundraiseModalConfig: FundraiseModalConfig;
-  isApplyToGrantModalOpen?: boolean;
-  onCloseApplyToGrantModal?: () => void;
-  grantId?: string;
-  grantAmountUsd?: number;
-  grantOrganization?: string;
-  grantApplicationVisibility?: GrantApplicationVisibility;
   showReopenModal?: boolean;
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
@@ -58,7 +45,6 @@ export interface WorkHeaderModalsProps {
 
 export function WorkHeaderModals({
   work,
-  metadata,
   isFlagModalOpen,
   onCloseFlagModal,
   isTipModalOpen,
@@ -66,18 +52,10 @@ export function WorkHeaderModals({
   onTipSuccess,
   isAddToListModalOpen,
   onCloseAddToListModal,
-  isWorkEditModalOpen,
-  onCloseWorkEditModal,
   showFundraiseActionModal,
   onCloseFundraiseModal,
   onConfirmFundraise,
   fundraiseModalConfig,
-  isApplyToGrantModalOpen = false,
-  onCloseApplyToGrantModal,
-  grantId,
-  grantAmountUsd,
-  grantOrganization,
-  grantApplicationVisibility,
   showReopenModal = false,
   onCloseReopenModal,
   onConfirmReopen,
@@ -110,14 +88,6 @@ export function WorkHeaderModals({
           isOpen={isAddToListModalOpen}
           onClose={onCloseAddToListModal}
           unifiedDocumentId={work.unifiedDocumentId}
-        />
-      )}
-      {work.contentType === 'paper' && (
-        <WorkEditModal
-          isOpen={isWorkEditModalOpen}
-          onClose={onCloseWorkEditModal}
-          work={work}
-          metadata={metadata}
         />
       )}
       <ConfirmModal
@@ -157,18 +127,6 @@ export function WorkHeaderModals({
           isOpen={showInviteExpertsModal}
           onClose={onCloseInviteExpertsModal}
           grantId={inviteExpertsGrantId}
-        />
-      )}
-      {grantId && onCloseApplyToGrantModal && (
-        <ApplyToGrantModal
-          isOpen={isApplyToGrantModalOpen}
-          onClose={onCloseApplyToGrantModal}
-          onUseSelected={onCloseApplyToGrantModal}
-          grantId={grantId}
-          grantTitle={work.title}
-          grantAmountUsd={grantAmountUsd}
-          grantOrganization={grantOrganization}
-          grantApplicationVisibility={grantApplicationVisibility}
         />
       )}
     </>

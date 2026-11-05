@@ -16,6 +16,8 @@ export default {
         gray: colors.gray,
         rhBlue: colors.rhBlue,
         orcid: colors.orcid,
+        // The funding cards' and work covers' dark blue.
+        navy: '#0b1530',
       },
       screens: {
         mobile: '480px',
@@ -28,11 +30,11 @@ export default {
         'content-lg': '1440px',
         'content-xl': '1580px',
         wide: '1200px',
-        // Funder dashboard: applicant-row key-insights side column needs enough
-        // horizontal room to not crowd the title. Below this, insights fall
-        // back to a single inline row under the author meta.
-        'funder-wide': '1100px',
         '3xl': '1600px',
+      },
+      fontSize: {
+        // Between sm (14px) and base (16px): chat prose.
+        md: ['0.9375rem', { lineHeight: '1.375rem' }],
       },
       fontWeight: {
         medium: '500',
@@ -57,6 +59,58 @@ export default {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        // The same loop upward, for a list rendered twice over.
+        'feed-scroll': {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-50%)' },
+        },
+        // A menu or popover growing out of its trigger, and shrinking back.
+        // Callers set `transform-origin` to the side the trigger is on.
+        'menu-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'menu-out': {
+          '0%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'scale(0.95)' },
+        },
+        // Light streak sweeping across an element. The skew is baked in because
+        // the animated transform would otherwise override a skew utility class.
+        shimmer: {
+          '0%': { transform: 'translateX(-150%) skewX(-20deg)' },
+          '100%': { transform: 'translateX(420%) skewX(-20deg)' },
+        },
+        // Sweeps `bg-text-shine` through text clipped to the glyphs. The held
+        // frames at each end pause the band off the word, so it reads as a
+        // repeating pulse rather than a continuous scroll.
+        'text-shine': {
+          '0%, 18%': { backgroundPosition: '100% 0' },
+          '82%, 100%': { backgroundPosition: '0% 0' },
+        },
+        // A paper plane leaving up and to the right, then coming back in from
+        // the lower left and settling with a small overshoot. Each leg has its
+        // own easing: it speeds up on the way out and slows on the way in.
+        'take-off': {
+          '0%': {
+            transform: 'translate(0, 0) scale(1)',
+            opacity: '1',
+            animationTimingFunction: 'cubic-bezier(0.55, 0, 1, 0.45)',
+          },
+          '38%': { transform: 'translate(160%, -160%) scale(0.6)', opacity: '0' },
+          '39%': {
+            transform: 'translate(-160%, 160%) scale(0.6)',
+            opacity: '0',
+            animationTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+          },
+          '100%': { transform: 'translate(0, 0) scale(1)', opacity: '1' },
+        },
+        // A heart floating up out of its box, drifting sideways by `--drift`
+        // and fading as it goes.
+        'heart-rise': {
+          '0%': { transform: 'translate(0, 0) scale(0.5)', opacity: '0' },
+          '15%': { opacity: '1' },
+          '100%': { transform: 'translate(var(--drift, 0px), -120px) scale(1.1)', opacity: '0' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -64,6 +118,32 @@ export default {
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
         'logo-marquee': 'logo-marquee 32s linear infinite',
+        'feed-scroll': 'feed-scroll 26s linear infinite',
+        // Single sweep. `both` keeps the streak parked off-screen during the
+        // delay instead of sitting mid-element until it starts.
+        shimmer: 'shimmer 1.6s ease-in-out 0.45s both',
+        // The same streak, answering a hover: no wait before it starts.
+        'shimmer-quick': 'shimmer 0.9s ease-out 0.05s both',
+        'take-off': 'take-off 0.8s both',
+        'menu-in': 'menu-in 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+        'menu-out': 'menu-out 0.1s ease-in both',
+        'text-shine': 'text-shine 2.25s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
+        // Callers stagger each heart with their own delay and duration; `both`
+        // keeps a heart hidden until its delay is up.
+        'heart-rise': 'heart-rise 2.8s ease-out infinite both',
+      },
+      backgroundImage: {
+        // Paired with `animate-text-shine` and `bg-clip-text`. Sized to 300% so
+        // the band starts and ends clear of the text. Callers set `--shine` to
+        // the label's own color (it can't be `currentColor` — the element's
+        // color is transparent so the clipped gradient can show through); the
+        // band is that same color faded rather than a lighter one, so it
+        // composites over whatever surface the label sits on.
+        'text-shine': `linear-gradient(90deg,
+          var(--shine) 0%, var(--shine) 30%,
+          color-mix(in srgb, var(--shine) 30%, transparent) 45%,
+          color-mix(in srgb, var(--shine) 30%, transparent) 55%,
+          var(--shine) 70%, var(--shine) 100%)`,
       },
     },
   },

@@ -2,7 +2,6 @@ import { ApiClient } from './client';
 import { ID, transformUnifiedDocument } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { FeedEntry, getUnifiedDocumentId, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
-import { Topic } from '@/types/topic';
 
 interface BountyAwardPayload {
   content_type: 'rhcommentmodel';
@@ -21,6 +20,25 @@ interface ContributeToBountyPayload {
   item_object_id: ID;
   bounty_type: BountyType;
   expiration_date: string;
+}
+
+interface RawBountyDocument {
+  id: number;
+  authors: Array<{
+    id: number;
+    first_name: string;
+    last_name: string;
+    user: any;
+    authorship: {
+      position: string;
+      is_corresponding: boolean;
+    };
+  }>;
+  title: string;
+  abstract: string;
+  renderable_text?: string;
+  slug: string;
+  image_url?: string | null;
 }
 
 // Raw bounty response from the API
@@ -50,31 +68,16 @@ interface RawBounty {
   total_amount: number;
   unified_document: {
     id: number;
-    documents: {
-      id: number;
-      authors: Array<{
-        id: number;
-        first_name: string;
-        last_name: string;
-        user: any;
-        authorship: {
-          position: string;
-          is_corresponding: boolean;
-        };
-      }>;
-      title: string;
-      abstract: string;
-      renderable_text?: string;
-      slug: string;
-    };
+    documents: RawBountyDocument | RawBountyDocument[];
     document_type: string;
+    // Present when the bounty sits on a proposal that is also raising funds.
+    fundraise?: any;
   };
   hubs: Array<{
     id: number;
     name: string;
     namespace: string | null;
     slug: string;
-    is_used_for_rep: boolean;
   }>;
   // Top-level category, subcategory, and journal from API
   category?: {
@@ -164,23 +167,20 @@ export class BountyService {
   }
 
   /**
-   * Fetches open bounties with personalization and sorts by creation date
+   * Fetches bounties with filters, sorting, and pagination
    * @param params Optional parameters to customize the bounty fetch
    * @returns An object containing the transformed bounty entries and pagination info
    */
   static async fetchBounties(params?: {
     status?: string;
-    personalized?: boolean;
     sort?: string;
     onlyParentBounties?: boolean;
     page?: number;
     pageSize?: number;
-    hubIds?: (string | number)[]; // Array of hub IDs to filter by
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean; total: number }> {
     // Set default parameters
     const defaultParams = {
       status: 'OPEN',
-      personalized: true,
       sort: '-created_date',
       only_parent_bounties: true,
       page: 1,
@@ -197,13 +197,6 @@ export class BountyService {
       queryParams.append('status', defaultParams.status);
     }
 
-    // Personalized parameter
-    if (params?.personalized !== undefined) {
-      queryParams.append('personalized', params.personalized.toString());
-    } else {
-      queryParams.append('personalized', defaultParams.personalized.toString());
-    }
-
     // Sort parameter
     if (params?.sort !== undefined) {
       queryParams.append('sort', params.sort);
@@ -216,15 +209,6 @@ export class BountyService {
       queryParams.append('only_parent_bounties', params.onlyParentBounties.toString());
     } else {
       queryParams.append('only_parent_bounties', defaultParams.only_parent_bounties.toString());
-    }
-
-    // hub_ids parameters (can appear multiple times)
-    if (params?.hubIds && params.hubIds.length > 0) {
-      params.hubIds.forEach((id) => {
-        if (id !== undefined && id !== null) {
-          queryParams.append('hub_ids', id.toString());
-        }
-      });
     }
 
     // Pagination parameters
@@ -253,6 +237,14 @@ export class BountyService {
 
         // Posts may lack an abstract; use renderableText as preview fallback
         const renderableText = transformedDoc?.document.renderableText || '';
+
+        // The work card leads with the document image and shows fundraise
+        // progress for proposals. `transformUnifiedDocument` carries neither,
+        // so read them off the raw payload.
+        const rawDocuments = rawBounty.unified_document?.documents;
+        const rawDocument = Array.isArray(rawDocuments) ? rawDocuments[0] : rawDocuments;
+        const imageUrl = rawDocument?.image_url || undefined;
+        const fundraise = rawBounty.unified_document?.fundraise;
 
         // Create the bounty object to attach to the paper/post
         const bountyData = {
@@ -309,6 +301,10 @@ export class BountyService {
             category: rawBounty.category,
             subcategory: rawBounty.subcategory,
             journal: rawBounty.journal,
+            // Image key differs per content type: papers read `primary_image`,
+            // posts read `image_url`.
+            ...(isPaper ? { primary_image: imageUrl } : { image_url: imageUrl }),
+            fundraise,
             // Attach the bounty to the paper/post
             bounties: [bountyData],
             // For non-paper types, include type info and renderable_text
@@ -344,8 +340,11 @@ export class BountyService {
             votes: rawBounty.metrics?.votes || 0,
             comments: rawBounty.metrics?.replies || 0,
           },
-          // Include user_vote from the API response
-          user_vote: rawBounty.user_vote,
+          // `user_vote` on this payload is the caller's vote on the bounty
+          // comment (the bounty's own `content_type` is `rhcommentmodel`), but
+          // the card votes on the document. Forwarding it would light up the
+          // arrows for a vote the user never cast on the document, so the card
+          // starts neutral until the API returns the document's own vote.
         };
 
         return transformFeedEntry(feedEntry);
@@ -364,25 +363,6 @@ export class BountyService {
         hasMore: false,
         total: 0,
       };
-    }
-  }
-
-  // Fetch all hubs available for bounties (no pagination, one call)
-  static async getBountyHubs(): Promise<Topic[]> {
-    const path = `${this.BASE_PATH}/bounty/hubs/`;
-    try {
-      const response = await ApiClient.get<any[]>(path);
-      // Use transformTopic to normalize
-      return response.map((raw) => ({
-        id: raw.id,
-        name: raw.name || '',
-        slug: raw.slug || '',
-        description: raw.description,
-        imageUrl: raw.hub_image || undefined,
-      }));
-    } catch (error) {
-      console.error('Error fetching bounty hubs', error);
-      return [];
     }
   }
 }

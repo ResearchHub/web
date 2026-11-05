@@ -1,46 +1,15 @@
 'use client';
 
-import { ReactNode, Suspense } from 'react';
-import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
+import { ReactNode, Suspense, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
-
-const RightSidebar = dynamic(() => import('../RightSidebar').then((mod) => mod.RightSidebar), {
-  ssr: true,
-});
-
-const RightSidebarSkeleton = () => (
-  <div className="p-4 pt-0">
-    <div className="mb-6 h-40 bg-gray-100 rounded-lg animate-pulse" />
-    <div className="space-y-2">
-      <div className="h-4 bg-gray-100 rounded w-1/2 animate-pulse" />
-      <div className="space-y-3">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-200 rounded-full" />
-              <div className="h-4 bg-gray-200 rounded w-20" />
-            </div>
-            <div className="h-7 bg-gray-200 rounded-full w-16" />
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+import { RecentlyVisited } from '@/components/RecentlyVisited/RecentlyVisited';
+import { FundingPowerCard } from '@/components/Funding/FundingPowerCard';
 
 function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNode }) {
-  const pathname = usePathname();
-
-  if (pathname.startsWith('/paper/create')) {
-    return <RHJRightSidebar showBanner={false} />;
-  }
-
   if (typeof rightSidebar === 'boolean') {
-    return <RightSidebar />;
+    return <RecentlyVisited />;
   }
 
   return <>{rightSidebar}</>;
@@ -48,34 +17,91 @@ function RightSidebarContent({ rightSidebar }: { rightSidebar: boolean | ReactNo
 
 interface RightSidebarContainerProps {
   rightSidebar: boolean | ReactNode;
-  isCompact: boolean;
   contentClassName?: string;
+  /** Align a custom sidebar's panel with the main column's padded content. */
+  topOffset?: 'default' | 'aligned';
+  aboveSidebar?: ReactNode;
+  /** Stretch the gray rail to the bottom of the column even with a card above it. */
+  fill?: boolean;
+  /** Render the sidebar's content as it is, without the gray rail around it. */
+  bare?: boolean;
+  /** The page's tabs stick above the row, so the sidebar sticks below them. */
+  belowPageTabs?: boolean;
 }
 
 export function RightSidebarContainer({
   rightSidebar,
-  isCompact,
   contentClassName,
+  topOffset = 'default',
+  aboveSidebar,
+  fill = false,
+  bare = false,
+  belowPageTabs = false,
 }: RightSidebarContainerProps) {
-  const sidebarHeight = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
   const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
+  // The drawer's copy of the sidebar mounts the first time the drawer opens.
+  // Mounted from the start, every card in it would load its data a second time.
+  const [hasOpenedDrawer, setHasOpenedDrawer] = useState(false);
+  if (mobileSidebarOpen && !hasOpenedDrawer) setHasOpenedDrawer(true);
+  const isDefaultSidebar = typeof rightSidebar === 'boolean';
+  const sidebarKey = isDefaultSidebar ? 'default' : 'custom';
+
+  // Pages on the default sidebar get the funding power card on top unless they
+  // supply their own card. Pages with a bespoke sidebar (papers, journal, etc.)
+  // are left alone.
+  const cardAboveSidebar =
+    aboveSidebar ?? (isDefaultSidebar ? <FundingPowerCard className="w-full" /> : undefined);
+
+  const sidebarContent = (
+    <Suspense fallback={null}>
+      <RightSidebarContent key={sidebarKey} rightSidebar={rightSidebar} />
+    </Suspense>
+  );
 
   return (
     <>
-      <aside
+      <div
         className={cn(
-          'sticky top-10 overflow-y-auto mt-10',
-          'lg:!block !hidden right-sidebar:!block',
-          'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30',
-          sidebarHeight
+          'sticky z-30',
+          topOffset === 'aligned' ? 'mt-6' : 'mt-10',
+          // When a card sits above the gray rail, or the sidebar is all cards
+          // of its own (bare), keep a gap under the top bar once sticky kicks
+          // in. Other pages keep top-0 so their sidebar position is unchanged.
+          // Page tabs stuck at the top are 55px tall on desktop (54px tabs and
+          // their rule); the sidebar keeps the same 1rem gap under them.
+          belowPageTabs
+            ? 'top-[calc(55px+1rem)] h-[calc(100vh-var(--top-bar-height)-55px-1rem)]'
+            : cardAboveSidebar || bare
+              ? 'top-4 h-[calc(100vh-var(--top-bar-height)-1rem)]'
+              : 'top-0 h-[calc(100vh-var(--top-bar-height))]',
+          'lg:!flex !hidden right-sidebar:!flex',
+          'w-80 flex-shrink-0 flex-col gap-3'
         )}
       >
-        <div className={cn('p-4 h-full', contentClassName)}>
-          <Suspense fallback={<RightSidebarSkeleton />}>
-            <RightSidebarContent rightSidebar={rightSidebar} />
-          </Suspense>
-        </div>
-      </aside>
+        {cardAboveSidebar}
+
+        {bare ? (
+          <div className={cn('min-h-0 overflow-y-auto scrollbar-on-hover', contentClassName)}>
+            {sidebarContent}
+          </div>
+        ) : (
+          <aside
+            className={cn(
+              'min-h-0 overflow-y-auto scrollbar-on-hover bg-gray-50/80 rounded-xl',
+              // With a card above it, the gray panel sizes to its content instead
+              // of filling the column — otherwise a short or empty sidebar leaves
+              // a tall empty rail hanging beneath that card. It still shrinks and
+              // scrolls when the content is taller than the space available.
+              // A page can ask for the full column anyway.
+              cardAboveSidebar && !fill ? 'flex-initial' : 'flex-1 h-full'
+            )}
+          >
+            <div className={cn('h-full', contentClassName)}>
+              <div className="p-4 empty:hidden">{sidebarContent}</div>
+            </div>
+          </aside>
+        )}
+      </div>
 
       <div className="lg:hidden">
         <SwipeableDrawer
@@ -83,9 +109,12 @@ export function RightSidebarContainer({
           onClose={() => setMobileSidebarOpen(false)}
           height="85vh"
         >
-          <Suspense fallback={<RightSidebarSkeleton />}>
-            <RightSidebarContent rightSidebar={rightSidebar} />
-          </Suspense>
+          {hasOpenedDrawer && (
+            <div className="space-y-3">
+              {aboveSidebar}
+              {sidebarContent}
+            </div>
+          )}
         </SwipeableDrawer>
       </div>
     </>

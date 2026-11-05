@@ -1,44 +1,64 @@
 'use client';
 
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
-import { cn } from '@/lib/utils';
-
-const LeftSidebar = dynamic(() => import('../LeftSidebar').then((mod) => mod.LeftSidebar), {
-  ssr: true,
-  loading: () => <div className="w-full h-screen bg-gray-100 animate-pulse" />,
-});
+import { useRef, useState } from 'react';
+import { SearchModal } from '@/components/Search/SearchModal';
+import { SidePanel } from '@/components/ui/SidePanel';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { LeftSidebar } from '../LeftSidebar';
 
 interface LeftSidebarContainerProps {
   isOpen: boolean;
-  isCompact: boolean;
+  /**
+   * Closes the menu, and once something in it is picked; see `LeftSidebar`'s
+   * `onNavigate`. Without it there is no menu, only the column.
+   */
+  onClose?: () => void;
 }
 
-export function LeftSidebarContainer({ isOpen, isCompact }: LeftSidebarContainerProps) {
-  const topOffset = isCompact ? 'top-[48px]' : 'top-[64px]';
-  const heightOffset = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
+/**
+ * The app's left column from 1240px up. Narrower than that there is no
+ * column: the top bar's menu button slides the whole sidebar in from the left,
+ * in the same panel the feed opens a review in.
+ */
+export function LeftSidebarContainer({ isOpen, onClose }: LeftSidebarContainerProps) {
+  // Widening the window past the breakpoint swaps an open menu for the column.
+  const hasColumn = useMediaQuery('(min-width: 1240px)');
+  // The menu's Search: the menu steps aside and the search opens in its place,
+  // once the menu is gone, so the focus it hands back to ☰ doesn't land after
+  // the search box has taken it.
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchAfterClose = useRef(false);
 
   return (
-    <div
-      className={cn(
-        // Shared base styles
-        'bg-white border-r border-gray-200 flex-shrink-0 z-50',
-        'transition-all duration-300 ease-in-out',
-        // Desktop: sticky, no transform transition
-        'tablet:!sticky tablet:!top-0 tablet:!h-screen tablet:!z-30',
-        'tablet:!transition-none tablet:!translate-x-0',
-        'tablet:sidebar-compact:!w-[240px] tablet:max-sidebar-compact:!w-[70px]',
-        'tablet:!block tablet:!w-[240px]',
-        // Mobile: fixed, slides in/out
-        'fixed duration-150 w-[240px]',
-        topOffset,
-        heightOffset,
-        isOpen ? '!translate-x-0' : '!-translate-x-full'
-      )}
-    >
-      <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse" />}>
+    <>
+      <div className="hidden sidebar-compact:!block sticky top-0 z-30 h-screen w-[240px] flex-shrink-0 border-r border-gray-200 bg-white">
         <LeftSidebar />
-      </Suspense>
-    </div>
+      </div>
+
+      {onClose && (
+        <SidePanel
+          isOpen={isOpen && hasColumn === false}
+          onClose={onClose}
+          side="left"
+          // A fifth wider than the column, so its rows are easier to tap.
+          widthClassName="w-[288px] max-w-[85vw]"
+          onAfterClose={() => {
+            if (!searchAfterClose.current) return;
+            searchAfterClose.current = false;
+            setIsSearchOpen(true);
+          }}
+        >
+          <LeftSidebar
+            onNavigate={onClose}
+            onSearch={() => {
+              searchAfterClose.current = true;
+              onClose();
+            }}
+          />
+        </SidePanel>
+      )}
+
+      {onClose && <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
+    </>
   );
 }

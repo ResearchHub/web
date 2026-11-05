@@ -12,6 +12,7 @@ import { NonprofitHeader } from './NonprofitHeader';
 import { NonprofitSearchBox } from './NonprofitSearchBox';
 import NonprofitDisplay from './NonprofitDisplay';
 import { Button } from '@/components/ui/Button';
+import { formatNonprofitAddress } from './formatNonprofitAddress';
 
 export interface NonprofitSelectionResult {
   nonprofit: NonprofitOrg | null;
@@ -26,6 +27,12 @@ interface NonprofitSearchSectionProps {
   initialNote?: string;
   onChange?: (result: NonprofitSelectionResult) => void;
   standalone?: boolean;
+  /**
+   * For a host that labels and explains the section itself (the workspace's
+   * publish dialog): no heading or hint, only a "How it works" link that opens
+   * the Endaoment explainer the heading's help button would.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -43,6 +50,7 @@ export function NonprofitSearchSection({
   initialNote = '',
   onChange,
   standalone = false,
+  compact = false,
 }: NonprofitSearchSectionProps) {
   const methods = useForm({
     defaultValues: {
@@ -59,6 +67,7 @@ export function NonprofitSearchSection({
           allowClear={allowClear}
           onClear={onClear}
           onChange={onChange}
+          compact={compact}
         />
       </FormProvider>
     );
@@ -70,6 +79,7 @@ export function NonprofitSearchSection({
       allowClear={allowClear}
       onClear={onClear}
       onChange={onChange}
+      compact={compact}
     />
   );
 }
@@ -79,6 +89,7 @@ function NonprofitSearchSectionInner({
   allowClear = false,
   onClear,
   onChange,
+  compact = false,
 }: Omit<NonprofitSearchSectionProps, 'initialNonprofit' | 'initialNote' | 'standalone'>) {
   const { setValue, watch } = useFormContext();
   const selectedNonprofit = watch('selectedNonprofit');
@@ -168,17 +179,33 @@ function NonprofitSearchSectionInner({
   };
 
   return (
-    <div className="space-y-3">
-      <NonprofitHeader
-        readOnly={readOnly}
-        showEndaomentInfo={showEndaomentInfo}
-        onInfoClick={() => setShowEndaomentInfo(true)}
-      />
+    <div className={compact ? 'space-y-2' : 'space-y-3'}>
+      {compact ? (
+        !readOnly && (
+          <p className="text-xs leading-snug">
+            <button
+              type="button"
+              onClick={() => setShowEndaomentInfo(true)}
+              className="font-medium text-primary-600 hover:text-primary-700"
+            >
+              How it works
+            </button>
+          </p>
+        )
+      ) : (
+        <>
+          <NonprofitHeader
+            readOnly={readOnly}
+            showEndaomentInfo={showEndaomentInfo}
+            onInfoClick={() => setShowEndaomentInfo(true)}
+          />
 
-      {!readOnly && (
-        <p className="text-xs text-gray-500 -mt-2 mb-2">
-          Check if your university has a nonprofit foundation to facilitate your donations
-        </p>
+          {!readOnly && (
+            <p className="text-xs text-gray-500 -mt-2 mb-2">
+              Check if your university has a nonprofit foundation to facilitate your donations
+            </p>
+          )}
+        </>
       )}
 
       {!selectedNonprofit && !readOnly && (
@@ -216,7 +243,7 @@ function NonprofitSearchSectionInner({
 
       {/* Nonprofit Info Dialog */}
       <Transition show={showInfoDialog && !!selectedInfoNonprofit} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowInfoDialog(false)}>
+        <Dialog as="div" className="relative z-[10000]" onClose={() => setShowInfoDialog(false)}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity duration-200"
@@ -294,11 +321,12 @@ function NonprofitSearchSectionInner({
                           </>
                         )}
 
-                        <span className="text-gray-500">Location:</span>
-                        <span>
-                          {selectedInfoNonprofit.address.region},{' '}
-                          {selectedInfoNonprofit.address.country}
-                        </span>
+                        {formatNonprofitAddress(selectedInfoNonprofit.address) && (
+                          <>
+                            <span className="text-gray-500">Location:</span>
+                            <span>{formatNonprofitAddress(selectedInfoNonprofit.address)}</span>
+                          </>
+                        )}
 
                         <span className="text-gray-500">Category:</span>
                         <span className="break-words">
@@ -330,7 +358,7 @@ function NonprofitSearchSectionInner({
 
       {/* Endaoment Info Dialog */}
       <Transition show={showEndaomentInfo} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowEndaomentInfo(false)}>
+        <Dialog as="div" className="relative z-[10000]" onClose={() => setShowEndaomentInfo(false)}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity duration-200"

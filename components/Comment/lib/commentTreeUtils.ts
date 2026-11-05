@@ -1,5 +1,4 @@
 import { Comment } from '@/types/comment';
-import { getRealId, recordParentChildRelationship } from './commentIdUtils';
 
 /**
  * This file contains utilities for manipulating comment trees, including
@@ -66,13 +65,6 @@ export const traverseCommentTree = (
  * @returns The found comment or null if not found
  */
 export const findCommentById = (comments: Comment[], commentId: number): Comment | null => {
-  // Check if the ID is an optimistic ID that has been replaced
-  const realCommentId = getRealId(commentId);
-
-  if (realCommentId !== commentId) {
-    console.log(`Looking for comment with real ID ${realCommentId} instead of ${commentId}`);
-  }
-
   // Helper function to search recursively
   const search = (commentsToSearch: Comment[], depth: number = 0): Comment | null => {
     if (!commentsToSearch || !Array.isArray(commentsToSearch)) {
@@ -81,7 +73,7 @@ export const findCommentById = (comments: Comment[], commentId: number): Comment
 
     // Check if the comment is in the current level
     for (const comment of commentsToSearch) {
-      if (comment.id === realCommentId) {
+      if (comment.id === commentId) {
         return comment;
       }
 
@@ -110,18 +102,13 @@ export const findCommentById = (comments: Comment[], commentId: number): Comment
 export const addReplyDeep = (comments: Comment[], parentId: number, reply: Comment): Comment[] => {
   // Make a deep copy to avoid mutation issues
   const result = JSON.parse(JSON.stringify(comments));
-  const realParentId = getRealId(parentId);
-
-  console.log(`Adding reply to parent ${parentId} (real ID: ${realParentId})`);
+  console.log(`Adding reply to parent ${parentId}`);
 
   // Ensure the reply has the correct parentId
   const replyToAdd = {
     ...reply,
-    parentId: realParentId,
+    parentId,
   };
-
-  // Record the parent-child relationship for future reference
-  recordParentChildRelationship(reply.id, realParentId);
 
   // Check if this reply already exists in the tree
   const existingReply = findCommentById(result, reply.id);
@@ -131,10 +118,10 @@ export const addReplyDeep = (comments: Comment[], parentId: number, reply: Comme
   }
 
   // Find the parent comment
-  const found = findCommentById(result, realParentId);
+  const found = findCommentById(result, parentId);
 
   if (found) {
-    console.log(`Found parent comment ${realParentId}, adding reply ${reply.id}`);
+    console.log(`Found parent comment ${parentId}, adding reply ${reply.id}`);
 
     // Initialize replies array if it doesn't exist
     if (!found.replies) {
@@ -147,7 +134,7 @@ export const addReplyDeep = (comments: Comment[], parentId: number, reply: Comme
     );
     if (alreadyExists) {
       console.log(
-        `Reply ${reply.id} already exists in parent ${realParentId}'s replies, skipping addition`
+        `Reply ${reply.id} already exists in parent ${parentId}'s replies, skipping addition`
       );
       return result;
     }
@@ -159,7 +146,7 @@ export const addReplyDeep = (comments: Comment[], parentId: number, reply: Comme
     found.replyCount = (found.replyCount || 0) + 1;
     found.childrenCount = (found.childrenCount || 0) + 1;
   } else {
-    console.error(`Could not find parent comment with ID ${realParentId}`);
+    console.error(`Could not find parent comment with ID ${parentId}`);
   }
 
   return result;
@@ -174,9 +161,7 @@ export const addReplyDeep = (comments: Comment[], parentId: number, reply: Comme
 export const updateReplyDeep = (comments: Comment[], updatedComment: Comment): Comment[] => {
   // Make a deep copy to avoid mutation issues
   const result = JSON.parse(JSON.stringify(comments));
-  const realCommentId = getRealId(updatedComment.id);
-
-  console.log(`Updating comment ${updatedComment.id} (real ID: ${realCommentId})`);
+  console.log(`Updating comment ${updatedComment.id}`);
 
   // Check if this is an optimistic comment being updated with real data
   const isOptimisticUpdate =
@@ -187,9 +172,8 @@ export const updateReplyDeep = (comments: Comment[], updatedComment: Comment): C
   const originalOptimisticId = updatedComment.metadata?.originalOptimisticId;
 
   return traverseCommentTree(result, (comment) => {
-    // Match by real ID
-    if (comment.id === realCommentId) {
-      console.log(`Found and updating comment ${realCommentId}`);
+    if (comment.id === updatedComment.id) {
+      console.log(`Found and updating comment ${updatedComment.id}`);
       return {
         ...comment,
         ...updatedComment,
@@ -201,12 +185,12 @@ export const updateReplyDeep = (comments: Comment[], updatedComment: Comment): C
     // If this is an optimistic update, also check for the original optimistic ID
     if (isOptimisticUpdate && originalOptimisticId && comment.id === originalOptimisticId) {
       console.log(
-        `Found optimistic comment ${originalOptimisticId} and updating with real data ${realCommentId}`
+        `Found optimistic comment ${originalOptimisticId} and updating with real data ${updatedComment.id}`
       );
       return {
         ...comment,
         ...updatedComment,
-        id: realCommentId, // Ensure the ID is updated to the real one
+        id: updatedComment.id, // Replace the optimistic id with the real one
         // Preserve replies
         replies: comment.replies || updatedComment.replies || [],
       };
@@ -214,46 +198,4 @@ export const updateReplyDeep = (comments: Comment[], updatedComment: Comment): C
 
     return comment;
   });
-};
-
-/**
- * Removes a comment from the comment tree
- * @param comments The comment tree
- * @param commentId The ID of the comment to remove
- * @returns The updated comment tree
- */
-export const removeCommentDeep = (comments: Comment[], commentId: number): Comment[] => {
-  // Make a deep copy to avoid mutation issues
-  const result = JSON.parse(JSON.stringify(comments));
-  const realCommentId = getRealId(commentId);
-
-  console.log(`Removing comment ${commentId} (real ID: ${realCommentId})`);
-
-  // Filter out the comment at the top level
-  let filteredComments = result.filter((comment: Comment) => comment.id !== realCommentId);
-
-  // If the length is the same, the comment wasn't at the top level
-  if (filteredComments.length === result.length) {
-    console.log(`Comment ${realCommentId} not found at top level, searching in replies`);
-
-    // Process each comment to filter out the target from replies
-    filteredComments = traverseCommentTree(filteredComments, (comment) => {
-      if (comment.replies && comment.replies.length > 0) {
-        const originalLength = comment.replies.length;
-        comment.replies = comment.replies.filter((reply) => reply.id !== realCommentId);
-
-        if (comment.replies.length < originalLength) {
-          console.log(`Removed comment ${realCommentId} from replies of comment ${comment.id}`);
-          // Update reply count
-          comment.replyCount = (comment.replyCount || 0) - 1;
-          comment.childrenCount = (comment.childrenCount || 0) - 1;
-        }
-      }
-      return comment;
-    });
-  } else {
-    console.log(`Removed top-level comment ${realCommentId}`);
-  }
-
-  return filteredComments;
 };

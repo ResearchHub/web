@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
@@ -25,6 +24,10 @@ interface YearDropdownProps {
   className?: string;
 }
 
+/**
+ * A native select: with ~90 years to scroll through, phones show their own
+ * year picker, which beats any menu.
+ */
 export function YearDropdown({
   value,
   onChange,
@@ -32,49 +35,39 @@ export function YearDropdown({
   required = false,
   className,
 }: YearDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const id = useId();
 
   return (
-    <Dropdown
-      label={label}
-      required={required}
-      trigger={
-        <button
-          type="button"
+    <div className="w-full">
+      {label && (
+        <label htmlFor={id} className="mb-1 block text-sm font-semibold text-gray-700">
+          {label} {required && <span className="text-gray-700">*</span>}
+        </label>
+      )}
+      <div className="relative">
+        <select
+          id={id}
+          value={value?.value ?? ''}
+          onChange={(e) => onChange(yearOptions.find((option) => option.value === e.target.value))}
           className={cn(
-            'flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
+            'w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-9 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-primary-500',
             !value && 'text-gray-500',
             className
           )}
         >
-          {value ? value.label : 'Select Year'}
-          <ChevronDown
-            className={cn('ml-2 h-4 w-4 transition-transform', isOpen && 'rotate-180')}
-          />
-        </button>
-      }
-      className="max-h-60 overflow-y-auto py-1"
-      onOpenChange={setIsOpen}
-    >
-      <div className="py-1 max-h-60 overflow-y-auto">
-        <DropdownItem
-          onClick={() => onChange(undefined)}
-          className={!value ? 'bg-gray-100 font-medium' : ''}
-        >
-          No year
-        </DropdownItem>
-
-        {/* Year options in reverse chronological order (newest first) */}
-        {[...yearOptions].reverse().map((option) => (
-          <DropdownItem
-            key={option.value}
-            onClick={() => onChange(option)}
-            className={value?.value === option.value ? 'bg-gray-100 font-medium' : ''}
-          >
-            {option.label}
-          </DropdownItem>
-        ))}
+          <option value="">{value ? 'No year' : 'Select Year'}</option>
+          {/* Newest first */}
+          {[...yearOptions].reverse().map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          aria-hidden="true"
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+        />
       </div>
-    </Dropdown>
+    </div>
   );
 }

@@ -1,0 +1,68 @@
+import 'cal-sans/index.css';
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
+import { PageLayout } from '@/app/layouts/PageLayout';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { PeerReviewHero, PeerReviewHowItWorks } from './PeerReviewHero';
+import { MobilePeerReviewDetails, PeerReviewSidebar } from './PeerReviewSidebar';
+import { ReviewsPageContent } from './ReviewsPageContent';
+
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'Peer Review',
+  description:
+    'Browse open peer-review bounties and earn ResearchCoin for reviewing scientific research proposals.',
+  url: '/peer-review',
+});
+
+export default async function PeerReviewPage() {
+  return (
+    <PageLayout
+      topBanner={
+        <>
+          <PeerReviewHero />
+          <PeerReviewHowItWorks />
+        </>
+      }
+      rightSidebar={<PeerReviewSidebar />}
+      rightSidebarTopOffset="aligned"
+    >
+      <section className="sr-only">
+        <p>
+          ResearchHub compensates researchers for peer-reviewing scientific proposals. Unlike
+          traditional academic peer review, which is typically unpaid and can take months, reviews
+          on ResearchHub are paid $150 each after quality check from established researchers, with
+          turn-around times of around 10 days.
+        </p>
+        <p>
+          Browse open peer-review bounties below to find proposals in your field of expertise. Each
+          listing includes the proposal, reward amount, and submission deadline. When you find a
+          match, submit a structured review following our peer review guidelines. Reviews are
+          evaluated by the requesting author or our editorial team, and approved submissions receive
+          compensation promptly.
+        </p>
+        <p>
+          Quality peer review is essential to the scientific process, and we believe reviewers
+          deserve to be compensated accordingly. By attaching real compensation to reviews,
+          ResearchHub incentivizes faster, more thorough feedback — feedback that helps authors
+          strengthen their work and helps readers assess new research. Reviewers also build a public
+          track record of contributions that strengthens their academic profile over time.
+        </p>
+        <p>
+          Whether you are a graduate student engaging with the latest research, a postdoc building
+          your review track record, or an experienced scientist who wants fair compensation for work
+          you would do regardless, ResearchHub makes peer review worth your time. Browse the open
+          bounties to get started. Researchers are not required to use any peer reviews and funding
+          opportunities never use peer reviews to gatekeep. Instead, peer reviews on ResearchHub are
+          to provide the audience of authors, funders, and users with context about the research and
+          ways it can improve.
+        </p>
+      </section>
+      <MobilePeerReviewDetails />
+      <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+        <RadiatingDot ring color="bg-orange-500" />
+        Open peer-review bounties
+      </h2>
+      <ReviewsPageContent />
+    </PageLayout>
+  );
+}

@@ -13,7 +13,7 @@ import {
 } from '@/types/nonprofit';
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
-import { ApiError } from './types';
+import { extractApiErrorMessage } from './lib/serviceUtils';
 
 export class NonprofitServiceError extends Error {
   constructor(message: string) {
@@ -83,20 +83,9 @@ export class NonprofitService {
       const response = await ApiClient.post<any>(endpoint, apiParams);
       return transformNonprofitDetails(response);
     } catch (error: unknown) {
-      if (error instanceof ApiError) {
-        try {
-          const errorData = JSON.parse(error.message);
-          if (errorData.data && errorData.data.error) {
-            throw new NonprofitServiceError(errorData.data.error);
-          } else if (errorData.error) {
-            throw new NonprofitServiceError(errorData.error);
-          }
-        } catch (parseError) {}
-      }
-
-      throw error instanceof Error
-        ? new NonprofitServiceError(error.message)
-        : new NonprofitServiceError('Failed to create nonprofit organization');
+      throw new NonprofitServiceError(
+        extractApiErrorMessage(error, 'Failed to create nonprofit organization')
+      );
     }
   }
 
@@ -120,28 +109,9 @@ export class NonprofitService {
       const response = await ApiClient.post<any>(endpoint, apiParams);
       return transformNonprofitFundraiseLink(response);
     } catch (error: unknown) {
-      if (error instanceof ApiError) {
-        try {
-          const errorData = JSON.parse(error.message);
-          if (
-            errorData.status === 404 &&
-            errorData.data &&
-            errorData.data.error === 'Fundraise not found'
-          ) {
-            throw new NonprofitServiceError('Fundraise not found');
-          }
-
-          if (errorData.data && errorData.data.error) {
-            throw new NonprofitServiceError(errorData.data.error);
-          } else if (errorData.error) {
-            throw new NonprofitServiceError(errorData.error);
-          }
-        } catch (parseError) {}
-      }
-
-      throw error instanceof Error
-        ? new NonprofitServiceError(error.message)
-        : new NonprofitServiceError('Failed to link nonprofit to fundraise');
+      throw new NonprofitServiceError(
+        extractApiErrorMessage(error, 'Failed to link nonprofit to fundraise')
+      );
     }
   }
 
@@ -159,20 +129,9 @@ export class NonprofitService {
       const response = await ApiClient.get<any[]>(endpoint);
       return response.map(transformNonprofitLink);
     } catch (error: unknown) {
-      if (error instanceof ApiError) {
-        try {
-          const errorData = JSON.parse(error.message);
-          if (errorData.data && errorData.data.error) {
-            throw new NonprofitServiceError(errorData.data.error);
-          } else if (errorData.error) {
-            throw new NonprofitServiceError(errorData.error);
-          }
-        } catch (parseError) {}
-      }
-
-      throw error instanceof Error
-        ? new NonprofitServiceError(error.message)
-        : new NonprofitServiceError('Failed to get nonprofits by fundraise ID');
+      throw new NonprofitServiceError(
+        extractApiErrorMessage(error, 'Failed to get nonprofits by fundraise ID')
+      );
     }
   }
 }

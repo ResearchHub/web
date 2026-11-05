@@ -9,12 +9,16 @@ interface SearchHistoryTrackerProps {
   work: Work;
 }
 
+/** Papers and posts number their ids separately, so a visit is keyed by both. */
+function isSameWork(item: SearchSuggestion, work: Work): boolean {
+  if (item.entityType !== 'paper' || item.id !== work.id) return false;
+  return (item.contentType ?? 'paper') === work.contentType;
+}
+
 export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
   useEffect(() => {
-    // Get existing history
-    const history = getSearchHistory();
+    const history = [...getSearchHistory()];
 
-    // Create new suggestion from work
     const newSuggestion: SearchSuggestion = {
       id: work.id,
       entityType: 'paper',
@@ -27,25 +31,24 @@ export function SearchHistoryTracker({ work }: SearchHistoryTrackerProps) {
       isRecent: true,
       slug: work.slug,
       contentType: work.contentType,
+      lastVisited: new Date().toISOString(),
+      imageUrl: work.image || work.figures?.[0]?.url || undefined,
+      authorImage:
+        work.authors.find((a) => a.authorProfile?.profileImage)?.authorProfile.profileImage ||
+        undefined,
     };
 
-    // Update or add the current suggestion
-    const existingIndex = history.findIndex((item) => item.id === work.id);
-
+    const existingIndex = history.findIndex((item) => isSameWork(item, work));
     if (existingIndex !== -1) {
-      // Remove from current position
       history.splice(existingIndex, 1);
     }
 
-    // Add to the start of history
     history.unshift(newSuggestion);
 
-    // Keep only the most recent suggestions
     if (history.length > MAX_HISTORY_ITEMS) {
-      history.pop();
+      history.length = MAX_HISTORY_ITEMS;
     }
 
-    // Save updated history
     saveSearchHistory(history);
   }, [work]);
 

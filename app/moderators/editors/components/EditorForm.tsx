@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { BaseMenu, BaseMenuRadioGroup, BaseMenuRadioItem } from '@/components/ui/form/BaseMenu';
 import {
   SearchableMultiSelect,
   MultiSelectOption,
@@ -218,7 +218,13 @@ export function EditorForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Dropdown
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
+          Editor Type <span className="text-gray-700">*</span>
+        </label>
+        <BaseMenu
+          align="start"
+          sameWidth
+          disabled={isLoading}
           trigger={
             <Button
               type="button"
@@ -235,22 +241,22 @@ export function EditorForm({
               <ChevronDown className="h-4 w-4" />
             </Button>
           }
-          label="Editor Type"
-          required
-          error={errors.editorType}
         >
-          {editorTypeOptions.map((option) => (
-            <DropdownItem
-              key={option.value}
-              onClick={() => handleEditorTypeChange(option)}
-              className={
-                formData.editorType?.value === option.value ? 'bg-slate-50 font-semibold' : ''
-              }
-            >
-              {option.label}
-            </DropdownItem>
-          ))}
-        </Dropdown>
+          <BaseMenuRadioGroup
+            value={formData.editorType?.value ?? ''}
+            onValueChange={(value) => {
+              const option = editorTypeOptions.find((o) => o.value === value);
+              if (option) handleEditorTypeChange(option);
+            }}
+          >
+            {editorTypeOptions.map((option) => (
+              <BaseMenuRadioItem key={option.value} value={option.value}>
+                {option.label}
+              </BaseMenuRadioItem>
+            ))}
+          </BaseMenuRadioGroup>
+        </BaseMenu>
+        {errors.editorType && <p className="mt-1 text-xs text-red-500">{errors.editorType}</p>}
       </div>
 
       <div>

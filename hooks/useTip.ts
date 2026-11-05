@@ -2,10 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-// Remove useSession import if no longer needed directly in this hook
-// import { useSession } from 'next-auth/react';
-// Remove uuid import, it will be generated in the service
-// import { v4 as uuidv4 } from 'uuid';
 import { ApiError } from '@/services/types';
 import { TransactionService } from '@/services/transaction.service';
 import { FeedContentType } from '@/types/feed';

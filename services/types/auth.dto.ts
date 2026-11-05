@@ -55,11 +55,12 @@ export interface RegisterApiRequest {
   first_name: string;
   last_name: string;
   referral_code?: string;
+  turnstile_token?: string;
 }
 
 export interface CheckAccountApiResponse {
   exists: boolean;
-  auth?: 'google' | 'email';
+  auth?: 'google' | 'x_oauth2' | 'email';
   is_verified?: boolean;
 }
 

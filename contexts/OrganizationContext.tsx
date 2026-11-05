@@ -67,9 +67,13 @@ function OrganizationProvider({ children }: { children: ReactNode }) {
         const orgs = await OrganizationService.getUserOrganizations(session);
         setOrganizations(orgs);
 
-        // If we don't have a selected org yet but have orgs, select one based on priority
-        if (!selectedOrgIdRef.current && orgs.length > 0) {
-          const orgToSelect = selectOrganization(orgs, targetOrgSlug);
+        const targetOrganization = orgs.find((organization) => organization.slug === targetOrgSlug);
+
+        // Prefer the route organization, then fall back to the normal selection priority.
+        if (targetOrganization) {
+          handleSetSelectedOrg(targetOrganization);
+        } else if (!selectedOrgIdRef.current && orgs.length > 0) {
+          const orgToSelect = selectOrganization(orgs);
           if (orgToSelect) {
             handleSetSelectedOrg(orgToSelect);
           }
@@ -113,6 +117,19 @@ function OrganizationProvider({ children }: { children: ReactNode }) {
 
     fetchOrganizations();
   }, [session, status]);
+
+  useEffect(() => {
+    if (!targetOrgSlug) return;
+
+    const targetOrganization = organizations.find(
+      (organization) => organization.slug === targetOrgSlug
+    );
+
+    if (targetOrganization && targetOrganization.id !== selectedOrgIdRef.current) {
+      setSelectedOrg(targetOrganization);
+      saveSelectedOrganization(targetOrganization);
+    }
+  }, [organizations, targetOrgSlug]);
 
   const value = {
     organizations,

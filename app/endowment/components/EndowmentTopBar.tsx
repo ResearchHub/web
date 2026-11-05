@@ -111,6 +111,14 @@ export function EndowmentTopBar() {
             opacity 0.25s ease,
             transform 0.25s ease;
         }
+        /* Clear the app's left column, which is 240px from sidebar-compact
+           up. Narrower, the sidebar is off-canvas, so the bar spans the full
+           width. */
+        @media (min-width: 1240px) {
+          .endowment-topbar {
+            left: 240px;
+          }
+        }
         .endowment-topbar-visible {
           opacity: 1;
           transform: translateY(0);

@@ -2,24 +2,30 @@ import { useEffect, useRef, useState } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 import { PublishingFormData } from '../schema';
-
-const ACCEPT = ['image/jpeg', 'image/png'];
-const MAX_SIZE_MB = 10;
+import {
+  COVER_IMAGE_ACCEPT,
+  COVER_IMAGE_MAX_MB,
+  coverImageFileError,
+  useCoverImageUpload,
+} from '../useCoverImageUpload';
 
 const isValidFile = (file: unknown): file is File =>
   Boolean(file instanceof File && file.name && file.size > 0);
 
-export function WorkImageSection() {
+export function WorkImageSection({ className }: SectionProps) {
   const {
     control,
     formState: { errors },
   } = useFormContext<PublishingFormData>();
 
   const [error, setError] = useState<string | null>(null);
+  const coverImage = useCoverImageUpload();
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={ImageIcon}>Cover Image</SectionHeader>
       <Controller
         name="coverImage"
@@ -35,11 +41,11 @@ export function WorkImageSection() {
               error={error || (errors.coverImage?.message as string) || null}
               onSelect={(selected) => {
                 setError(null);
-                field.onChange({ file: selected, url: null });
+                void coverImage.select(selected);
               }}
               onRemove={() => {
                 setError(null);
-                field.onChange(null);
+                coverImage.remove();
               }}
               onError={setError}
             />
@@ -86,12 +92,9 @@ function CoverImageControl({
     const picked = e.target.files?.[0];
     e.target.value = ''; // allow re-selecting the same file
     if (!picked) return;
-    if (!ACCEPT.includes(picked.type)) {
-      onError('Only JPG or PNG files are accepted');
-      return;
-    }
-    if (picked.size > MAX_SIZE_MB * 1024 * 1024) {
-      onError(`Image must be under ${MAX_SIZE_MB}MB`);
+    const fileError = coverImageFileError(picked);
+    if (fileError) {
+      onError(fileError);
       return;
     }
     onSelect(picked);
@@ -130,15 +133,16 @@ function CoverImageControl({
             Add cover image
           </button>
           {!error && (
-            <p className="mt-1 text-xs text-gray-500">JPG or PNG · up to {MAX_SIZE_MB}MB</p>
+            <p className="mt-1 text-xs text-gray-500">JPG or PNG · up to {COVER_IMAGE_MAX_MB}MB</p>
           )}
         </>
       )}
 
       <input
+        data-testid="cover-image-input"
         ref={inputRef}
         type="file"
-        accept={ACCEPT.join(',')}
+        accept={COVER_IMAGE_ACCEPT.join(',')}
         onChange={handleChange}
         className="hidden"
       />

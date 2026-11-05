@@ -1,19 +1,15 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useRef } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { FeedItemSkeleton } from './FeedItemSkeleton';
+import { FeedItemSkeleton, FeedSkeletonVariant } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
-import { FeedTab, FundingTab } from '@/hooks/useFeed';
-import { TabType } from '@/components/Journal/JournalTabs';
-import { FeedEntryItem, Highlight } from './FeedEntryItem';
-import { getFeedKey } from '@/contexts/NavigationContext';
+import { FeedEntryItem } from './FeedEntryItem';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
-import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
-import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+import { useContentTabsVisibilitySentinel } from '@/hooks/useContentTabsVisibilitySentinel';
+import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
 
 interface InsertContentItem {
   index: number;
@@ -29,7 +25,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode;
   banner?: ReactNode;
-  activeTab?: FeedTab | FundingTab | TabType | string;
+  activeTab?: string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;
@@ -39,20 +35,30 @@ interface FeedContentProps {
   showFundraiseHeaders?: boolean;
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  grantCardVariant?: 'default' | 'comprehensive';
+  showGrantApplyCta?: boolean;
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
   lastClickedEntryId?: string;
+  persistedFilters?: Record<string, string>;
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
+  renderEntry?: (props: {
+    entry: FeedEntry;
+    index: number;
+    ordering?: string;
+    registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
+    unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
+    getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  }) => ReactNode;
   /**
    * Drop the default `max-w-4xl` cap on the feed list so it fills its parent.
    * Use when the surrounding layout is already wider (e.g. sidebar-less pages).
    */
   wideContent?: boolean;
+  skeletonVariant?: FeedSkeletonVariant;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -74,40 +80,30 @@ export const FeedContent: FC<FeedContentProps> = ({
   showFundraiseHeaders = true,
   showPostHeaders = true,
   showReadMoreCTA = false,
-  grantCardVariant = 'default',
+  showGrantApplyCta = true,
   ordering,
   restoredScrollPosition,
   page,
   lastClickedEntryId,
+  persistedFilters,
   insertContent,
   shouldRenderBountyAsComment,
   showBountyInfo = false,
   abstractCollapsedByDefault,
+  renderEntry,
   wideContent = false,
+  skeletonVariant,
 }) => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { setContentTabsHidden } = useFeedTabsVisibility();
-  const scrollContainerRef = useScrollContainer();
-  const tabsSentinelRef = useRef<HTMLDivElement>(null);
+  const tabsSentinelRef = useContentTabsVisibilitySentinel(!!tabs);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     rootMargin: '100px',
   });
 
-  // Build query params from URL for feed key
-  const queryParams: Record<string, string> = {};
-  for (const [key, value] of searchParams) {
-    queryParams[key] = value;
-  }
-
-  // Generate feed key from pathname/tab/queryParams
-  // For search pages, explicitly exclude tab portion
-  const feedKey = getFeedKey({
-    pathname,
-    tab: pathname === '/search' ? undefined : activeTab,
-    queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+  const { feedKey } = useFeedStateRestoration({
+    activeTab,
+    shouldRestore: () => false,
   });
 
   useFeedScrollTracking({
@@ -117,6 +113,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     page,
     restoredScrollPosition,
     lastClickedEntryId,
+    filters: persistedFilters,
   });
 
   const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
@@ -125,33 +122,13 @@ export const FeedContent: FC<FeedContentProps> = ({
   const displayEntries = entries;
   const showLoadingSkeletons = isLoading || isLoadingMore;
   const skeletonCount = 3;
+  const resolvedSkeletonVariant = skeletonVariant ?? 'paper';
 
   useEffect(() => {
     if (inView && hasMore && !showLoadingSkeletons) {
       loadMore();
     }
   }, [inView, hasMore, showLoadingSkeletons, loadMore]);
-
-  useEffect(() => {
-    const sentinel = tabsSentinelRef.current;
-    if (!sentinel || !tabs) return;
-
-    const root = scrollContainerRef?.current ?? null;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setContentTabsHidden(!entry.isIntersecting);
-      },
-      { root, threshold: 0 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [tabs, scrollContainerRef, setContentTabsHidden]);
-
-  useEffect(() => {
-    if (!tabs) return;
-    return () => setContentTabsHidden(false);
-  }, [tabs, setContentTabsHidden]);
 
   return (
     <>
@@ -169,25 +146,19 @@ export const FeedContent: FC<FeedContentProps> = ({
             displayEntries.map((entry, index) => {
               const contentToInsert = insertContent?.find((item) => item.index === index);
 
-              // Extract highlights from searchMetadata if present
-              const highlights: Highlight[] = [];
-              if (entry.searchMetadata) {
-                if (entry.searchMetadata.highlightedTitle) {
-                  highlights.push({ field: 'title', value: entry.searchMetadata.highlightedTitle });
-                }
-                if (entry.searchMetadata.highlightedSnippet) {
-                  highlights.push({
-                    field: 'snippet',
-                    value: entry.searchMetadata.highlightedSnippet,
-                  });
-                }
-              }
-
-              const feedItem = (
+              const feedItem = renderEntry ? (
+                renderEntry({
+                  entry,
+                  index,
+                  ordering,
+                  registerVisibleItem,
+                  unregisterVisibleItem,
+                  getVisibleItems,
+                })
+              ) : (
                 <FeedEntryItem
                   showPostHeaders={showPostHeaders}
                   showBountyInfo={showBountyInfo}
-                  highlights={highlights}
                   shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                   entry={entry}
                   index={index}
@@ -197,7 +168,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   showGrantHeaders={showGrantHeaders}
                   showFundraiseHeaders={showFundraiseHeaders}
                   showReadMoreCTA={showReadMoreCTA}
-                  grantCardVariant={grantCardVariant}
+                  showGrantApplyCta={showGrantApplyCta}
                   feedOrdering={ordering}
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
@@ -222,7 +193,13 @@ export const FeedContent: FC<FeedContentProps> = ({
             <div className={displayEntries.length > 0 ? 'mt-8' : ''}>
               <div className="space-y-8">
                 {[...Array(skeletonCount)].map((_, index) => (
-                  <FeedItemSkeleton key={`skeleton-${index}`} />
+                  <FeedItemSkeleton
+                    key={`skeleton-${index}`}
+                    variant={resolvedSkeletonVariant}
+                    hideActions={hideActions}
+                    showHeader={showPostHeaders}
+                    showGrantApplyCta={showGrantApplyCta}
+                  />
                 ))}
               </div>
             </div>

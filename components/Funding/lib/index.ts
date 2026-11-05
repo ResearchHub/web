@@ -1,10 +1,5 @@
 // Constants
-export {
-  PAYMENT_FEES,
-  PAYMENT_METHOD_LABELS,
-  HIDDEN_PAYMENT_METHODS,
-  type PaymentMethodType,
-} from './constants';
+export { AWARD_PAYMENT_METHODS, HIDDEN_PAYMENT_METHODS, type PaymentMethodType } from './constants';
 
 // Hooks
 export { usePaymentMethod } from './usePaymentMethod';
@@ -13,3 +8,7 @@ export { useWalletAvailability, type WalletAvailability } from './useWalletAvail
 
 // Utilities
 export { getDefaultPaymentMethod } from './getDefaultPaymentMethod';
+export {
+  useAllocateFromFundingPool,
+  type AllocateFromFundingPoolOption,
+} from './useAllocateFromFundingPool';

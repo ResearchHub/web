@@ -17,8 +17,8 @@ import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
-import { isDeadlineInFuture } from '@/utils/date';
-import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { getGrantBadgeAmount, isGrantActive } from '@/types/grant';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -31,7 +31,6 @@ interface FeedItemGrantProps {
   showHeader?: boolean;
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
-  highlights?: Highlight[];
   footer?: ReactNode;
 }
 
@@ -45,7 +44,6 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
-  highlights,
   footer,
 }) => {
   const router = useRouter();
@@ -65,9 +63,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   const imageUrl = grant.previewImage ?? undefined;
 
   const isPending = grant.grant?.status === 'PENDING';
-  const isActive =
-    grant.grant?.status === 'OPEN' &&
-    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
+  const isActive = grant.grant ? isGrantActive(grant.grant) : false;
 
   const applicants =
     grant.grant?.applicants?.map(({ profile }) => ({
@@ -77,9 +73,8 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       authorId: profile.id || undefined,
     })) || [];
 
-  const budgetAmount = showUSD
-    ? Math.round(grant.grant?.amount?.usd || 0)
-    : Math.round(grant.grant?.amount?.rsc || 0);
+  const badgeAmount = grant.grant ? getGrantBadgeAmount(grant.grant) : { usd: 0, rsc: 0 };
+  const budgetAmount = showUSD ? Math.round(badgeAmount.usd) : Math.round(badgeAmount.rsc);
 
   return (
     <BaseFeedItem
@@ -121,7 +116,9 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-start gap-6 min-w-0">
               <div className="flex flex-col leading-tight whitespace-nowrap">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Funding</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                  {isAwardMechanism(grant.grant.fundingMechanism) ? 'Prize pool' : 'Funding'}
+                </span>
                 <span className="font-mono font-semibold text-primary-600 text-xl">
                   {formatCurrency({
                     amount: budgetAmount,

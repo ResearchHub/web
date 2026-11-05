@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Dialog } from '@headlessui/react';
 import {
@@ -18,9 +18,14 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import dynamic from 'next/dynamic';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
-import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 import { cn } from '@/utils/styles';
+
+const DocumentUploadStep = dynamic(
+  () => import('@/components/Funding/DocumentUploadStep').then((mod) => mod.DocumentUploadStep),
+  { ssr: false }
+);
 
 export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
 
@@ -50,7 +55,7 @@ const BENEFITS: Benefit[] = [
     id: 'scientists',
     title: 'The best scientists within reach',
     description:
-      'We source the best scientists in the world to apply for your funding opportunity.',
+      'We source the best scientists in the world to apply for your request for proposal.',
     icon: <Award className="h-[22px] w-[22px] text-rhBlue-600" />,
     learnMoreHref: '/give',
   },
@@ -86,7 +91,7 @@ const CREATION_OPTIONS: CreationOption[] = [
   {
     id: 'template',
     title: 'From a template',
-    description: 'Start with our funding opportunity template',
+    description: 'Start with our RFP template',
     icon: <FileText className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
   {
@@ -97,7 +102,8 @@ const CREATION_OPTIONS: CreationOption[] = [
   },
 ];
 
-const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
+/** Where a funder books time with the ResearchHub team to shape an RFP together. */
+export const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
 
 type Step = 'benefits' | 'method' | 'upload';
 
@@ -109,17 +115,36 @@ export const OpenFundingOpportunityModal = ({
 }: OpenFundingOpportunityModalProps) => {
   const initialStep: Step = minimal ? 'method' : 'benefits';
   const [step, setStep] = useState<Step>(initialStep);
+  const [pendingMethod, setPendingMethod] = useState<FundingOpportunityCreationMethod | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleClose = () => {
+    if (isPending) return;
+    onClose();
+  };
+
+  const handleConfirmMethod = (method: FundingOpportunityCreationMethod) => {
+    setPendingMethod(method);
+    startTransition(() => {
+      onConfirm(method);
+    });
+  };
 
   // Reset to the first step whenever the modal is reopened so a returning user
   // always starts from the configured entry step rather than a stale step.
+  // Skip while a route transition is pending so the method step doesn't flash
+  // back to the initial step before navigation completes.
   useEffect(() => {
-    if (!isOpen) setStep(initialStep);
-  }, [isOpen, initialStep]);
+    if (!isOpen && !isPending) {
+      setStep(initialStep);
+      setPendingMethod(null);
+    }
+  }, [isOpen, initialStep, isPending]);
 
   return (
     <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
+      isOpen={isOpen || isPending}
+      onClose={handleClose}
       showCloseButton={false}
       padding="p-0"
       className={cn(
@@ -127,14 +152,14 @@ export const OpenFundingOpportunityModal = ({
         minimal ? 'md:!max-w-[520px]' : 'md:!max-w-[860px]'
       )}
     >
-      <div className="flex h-full flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row">
         {/* Left gradient rail */}
         {!minimal && (
-          <div className="relative flex flex-shrink-0 flex-col justify-center bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
+          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
             {/* Mobile close button (lives in the title section on small screens) */}
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
               aria-label="Close"
             >
@@ -152,14 +177,14 @@ export const OpenFundingOpportunityModal = ({
               style={{ background: '#bcd2ff' }}
             />
             <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="mb-4 flex h-[235px] items-center justify-center">
+              <div className="mb-4 flex h-[235px] w-[235px] items-center justify-center">
                 <AnimatedGlobe size={235} />
               </div>
               <Dialog.Title
                 as="h2"
                 className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
               >
-                Open a funding opportunity
+                Open a request for proposal
               </Dialog.Title>
               <p className="mt-3 text-base leading-[1.5] text-gray-600">
                 The most efficient way to fund science.
@@ -172,7 +197,7 @@ export const OpenFundingOpportunityModal = ({
         <div className="relative flex flex-1 flex-col p-6 md:p-10">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 z-10 hidden h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 md:inline-flex"
             aria-label="Close"
           >
@@ -252,9 +277,10 @@ export const OpenFundingOpportunityModal = ({
                     key={option.id}
                     type="button"
                     onClick={() =>
-                      option.id === 'upload' ? setStep('upload') : onConfirm(option.id)
+                      option.id === 'upload' ? setStep('upload') : handleConfirmMethod(option.id)
                     }
-                    className="group flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50/50"
+                    disabled={pendingMethod === option.id}
+                    className="group flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50/50 disabled:pointer-events-none disabled:opacity-60"
                   >
                     <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
                       {option.icon}
@@ -282,7 +308,7 @@ export const OpenFundingOpportunityModal = ({
                 href={WHITE_GLOVE_BOOKING_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={onClose}
+                onClick={handleClose}
                 className="group flex w-full items-center gap-4 rounded-xl border border-rhBlue-200 bg-blue-50/60 px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50"
               >
                 <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-rhBlue-600">
@@ -302,10 +328,10 @@ export const OpenFundingOpportunityModal = ({
           ) : (
             <DocumentUploadStep
               title="Upload your document"
-              description="Import a Word, OpenDocument, or Markdown file and we'll set up your funding opportunity from it."
+              description="Import a Word, OpenDocument, or Markdown file and we'll set up your RFP from it."
               documentType="GRANT"
               onBack={() => setStep('method')}
-              onClose={onClose}
+              onClose={handleClose}
             />
           )}
         </div>

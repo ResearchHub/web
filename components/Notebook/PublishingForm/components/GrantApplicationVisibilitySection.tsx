@@ -12,11 +12,15 @@ const CommunityMatchBadge = () => (
   </CommunityMatchTooltip>
 );
 
-const OPTIONS = [
+/** What the setting decides; shared with the workspace's publish dialog. */
+export const GRANT_APPLICATION_VISIBILITY_HELP = 'Choose how applicants submit proposals';
+
+/** How an RFP lets its applicants submit; shared with the workspace's publish dialog. */
+export const GRANT_APPLICATION_VISIBILITY_OPTIONS = [
   {
     value: 'OPTIONAL',
     label: 'Applicant chooses',
-    description: 'Applicants can submit either a public or a private proposals.',
+    description: 'Applicants can submit either a public or a private proposal.',
   },
   {
     value: 'PUBLIC',
@@ -38,10 +42,10 @@ export function GrantApplicationVisibilitySection() {
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={Eye}>Application Visibility</SectionHeader>
-      <p className="mb-2 text-sm text-gray-500">Choose how applicants submit proposals</p>
+      <p className="mb-2 text-sm text-gray-500">{GRANT_APPLICATION_VISIBILITY_HELP}</p>
       <div className="mt-2">
         <RadioGroup
-          options={OPTIONS}
+          options={GRANT_APPLICATION_VISIBILITY_OPTIONS}
           value={value}
           onChange={(next) => setValue('applicationVisibility', next, { shouldValidate: true })}
           size="sm"

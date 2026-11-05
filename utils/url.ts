@@ -1,21 +1,14 @@
+import { withShareToken } from '@/lib/shareToken/url';
 import type { ContentType } from '@/types/work';
 
-export const ALL_CONTENT_TYPES: readonly ContentType[] = [
-  'paper',
-  'post',
-  'preregistration',
-  'question',
-  'discussion',
-  'funding_request',
-];
-
-// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /grant/
+// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /rfp/ (and legacy /grant/)
 const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
   paper: 'paper',
   post: 'post',
   question: 'question',
   proposal: 'preregistration',
   fund: 'preregistration',
+  rfp: 'funding_request',
   grant: 'funding_request',
 };
 
@@ -39,6 +32,11 @@ export const URL_REGEX = /https?:\/\/[^\s<>"'`)]+/gi;
  * "https://x.com").
  */
 export const trimUrlTrailingPunctuation = (url: string): string => url.replace(/[.,;:!?)\]]+$/, '');
+
+export function appendQueryString(path: string, searchParams?: URLSearchParams): string {
+  const query = searchParams?.toString();
+  return query ? `${path}?${query}` : path;
+}
 
 /**
  * Removes all HTTP/HTTPS URLs from a text blob. Whitespace left behind is not
@@ -79,7 +77,7 @@ export interface DetectedUrl {
 export function classifyUrl(url: string): DetectedUrl | null {
   let u: URL;
   try {
-    u = new URL(url);
+    u = new URL(ensureAbsoluteHttpUrl(url) || url);
   } catch {
     return null;
   }
@@ -105,11 +103,18 @@ export function classifyUrl(url: string): DetectedUrl | null {
     if (m) return { kind: 'tiktok', url, videoId: m[1] };
     return { kind: 'tiktok', url };
   }
-  if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com') {
+  if (
+    host === 'x.com' ||
+    host === 'twitter.com' ||
+    host === 't.co' ||
+    host === 'mobile.twitter.com' ||
+    host.endsWith('.x.com') ||
+    host.endsWith('.twitter.com')
+  ) {
     const m = u.pathname.match(/\/status\/(\d+)/);
     return { kind: 'x', url, tweetId: m ? m[1] : undefined };
   }
-  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+  if (host === 'linkedin.com' || host.endsWith('.linkedin.com') || host === 'lnkd.in') {
     // LinkedIn carries the URN type in two places:
     //   1. Explicit URN form `urn:li:<type>:<id>` (used in /feed/update/ paths).
     //   2. Share-URL slug `…/posts/<slug>-<type>-<id>-<XYZA>?…` where <type>
@@ -163,15 +168,48 @@ function hostnameWithoutWww(hostname: string): string {
 
 /**
  * Adds https:// when the string has no scheme so URL() accepts pastes like
- * `www.researchhub.com/paper/123` or `researchhub.com/paper/123`.
+ * `www.researchhub.com/paper/123`, `linkedin.com/in/…`, or protocol-relative
+ * `//example.com/path`.
  */
-function normalizeUrlInputForParsing(input: string): string {
+export function ensureAbsoluteHttpUrl(input: string): string {
   const t = input.trim();
   if (!t) return t;
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(t)) {
     return t;
   }
+  if (t.startsWith('//')) {
+    return `https:${t}`;
+  }
   return `https://${t}`;
+}
+
+/**
+ * True when `url` (and optional label `text`) points at a LinkedIn profile/page.
+ * Prefer hostname classification; `text` covers labeled sources without a clean host.
+ */
+export function isLinkedInUrl(url: string, text?: string): boolean {
+  const normalized = ensureAbsoluteHttpUrl(url);
+  if (classifyUrl(normalized)?.kind === 'linkedin') return true;
+  const combined = `${normalized} ${text ?? ''}`.toLowerCase();
+  return combined.includes('linkedin') || combined.includes('lnkd.in');
+}
+
+/**
+ * True when `url` (and optional label `text`) points at an X / Twitter profile.
+ */
+export function isXUrl(url: string, text?: string): boolean {
+  const normalized = ensureAbsoluteHttpUrl(url);
+  if (classifyUrl(normalized)?.kind === 'x') return true;
+  const combined = `${normalized} ${text ?? ''}`.toLowerCase();
+  const label = (text ?? '').trim().toLowerCase();
+  return (
+    combined.includes('twitter.com') ||
+    combined.includes('x.com/') ||
+    /\btwitter\b/.test(combined) ||
+    label === 'x' ||
+    label === 'x/twitter' ||
+    label === 'twitter/x'
+  );
 }
 
 function urlMatchesConfiguredSite(userUrl: URL, siteUrlString: string): boolean {
@@ -199,7 +237,7 @@ export function validateResearchHubUrl(
     return { success: false, error: 'URL is required' };
   }
 
-  const toParse = normalizeUrlInputForParsing(trimmedUrl);
+  const toParse = ensureAbsoluteHttpUrl(trimmedUrl);
 
   let parsed: URL;
   try {
@@ -278,15 +316,15 @@ export function generateSlug(text: string): string {
 export const buildWorkUrl = ({
   id,
   contentType,
-  doi,
   slug,
   tab,
+  shareToken,
 }: {
   id?: string | number | null;
   contentType: ContentType;
-  doi?: string | null;
   slug?: string;
   tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
+  shareToken?: string | null;
 }) => {
   let baseUrl = '';
 
@@ -298,7 +336,7 @@ export const buildWorkUrl = ({
       break;
     case 'funding_request':
       if (!id) return '#';
-      baseUrl = slug ? `/grant/${id}/${slug}` : `/grant/${id}`;
+      baseUrl = slug ? `/rfp/${id}/${slug}` : `/rfp/${id}`;
       break;
     case 'preregistration':
       if (!id) return '#';
@@ -309,24 +347,13 @@ export const buildWorkUrl = ({
       baseUrl = slug ? `/question/${id}/${slug}` : `/question/${id}`;
       break;
     case 'paper':
-      if (id) {
-        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-      } else if (doi) {
-        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-      } else {
-        return '#'; // Return a safe fallback URL when neither id nor doi is available
-      }
+      // Only journal papers still have pages; any other paper's page is a 404.
+      if (!id) return '#';
+      baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
       break;
     default:
-      // Fallback for unknown content types
-      if (id) {
-        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-      } else if (doi) {
-        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-      } else {
-        return '#'; // Return a safe fallback URL when neither id nor doi is available
-      }
-      break;
+      // Unknown content types have no page: no link.
+      return '#';
   }
 
   // Append tab if provided
@@ -334,7 +361,7 @@ export const buildWorkUrl = ({
     baseUrl += `/${tab}`;
   }
 
-  return baseUrl;
+  return withShareToken(baseUrl, shareToken);
 };
 
 /**
@@ -342,11 +369,4 @@ export const buildWorkUrl = ({
  */
 export const buildAuthorUrl = (id: string | number) => {
   return `/author/${id}`;
-};
-
-/**
- * Builds a topic URL from a slug
- */
-export const buildTopicUrl = (slug: string) => {
-  return `/topic/${slug}`;
 };

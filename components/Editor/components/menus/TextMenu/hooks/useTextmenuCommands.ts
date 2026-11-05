@@ -1,4 +1,3 @@
-import type { Language } from '@/components/Editor/extensions/Ai';
 import { Editor } from '@tiptap/react';
 import { useCallback } from 'react';
 
@@ -48,54 +47,17 @@ export const useTextmenuCommands = (editor: Editor) => {
   );
 
   const onSetInlineMath = useCallback(() => {
+    // v3 represents math as an inlineMath node rather than a `$...$` string.
     editor
       .chain()
       .focus()
-      .insertContent(
-        '$\\text{Total Supply} = \\sum_{i=0}^{32} \\left( 210{,}000 \\times \\frac{50}{2^i} \\right)$'
-      )
+      .insertInlineMath({
+        latex:
+          '\\text{Total Supply} = \\sum_{i=0}^{32} \\left( 210{,}000 \\times \\frac{50}{2^i} \\right)',
+      })
       .run();
   }, [editor]);
 
-  const onSimplify = useCallback(
-    () => editor.chain().focus().aiSimplify({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onEmojify = useCallback(
-    () => editor.chain().focus().aiEmojify({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onCompleteSentence = useCallback(
-    () => editor.chain().focus().aiComplete({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onFixSpelling = useCallback(
-    () =>
-      editor.chain().focus().aiFixSpellingAndGrammar({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onMakeLonger = useCallback(
-    () => editor.chain().focus().aiExtend({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onMakeShorter = useCallback(
-    () => editor.chain().focus().aiShorten({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onTldr = useCallback(
-    () => editor.chain().focus().aiTldr({ stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onTone = useCallback(
-    (tone: string) =>
-      editor.chain().focus().aiAdjustTone(tone, { stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
-  const onTranslate = useCallback(
-    (language: Language) =>
-      editor.chain().focus().aiTranslate(language, { stream: true, format: 'rich-text' }).run(),
-    [editor]
-  );
   const onLink = useCallback(
     (url: string, inNewTab?: boolean) =>
       editor
@@ -146,15 +108,6 @@ export const useTextmenuCommands = (editor: Editor) => {
     onSetInlineMath,
     onSetFont,
     onSetFontSize,
-    onSimplify,
-    onEmojify,
-    onCompleteSentence,
-    onFixSpelling,
-    onMakeLonger,
-    onMakeShorter,
-    onTldr,
-    onTone,
-    onTranslate,
     onLink,
   };
 };

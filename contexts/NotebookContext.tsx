@@ -8,12 +8,17 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from 'react';
 import { NoteService } from '@/services/note.service';
 import { OrganizationService } from '@/services/organization.service';
+import { PublishingHostProvider, type PublishingHost } from '@/contexts/PublishingHostContext';
 import type { Note, NoteWithContent } from '@/types/note';
+import type { ID } from '@/types/root';
 import type { OrganizationUsers } from '@/types/organization';
 import { useOrganizationContext } from './OrganizationContext';
+import { useNoteDetailsSaver, type NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
+import { useOrganizationNotes } from '@/hooks/useOrganizationNotes';
 import { Editor } from '@tiptap/core';
 import { useParams } from 'next/navigation';
 
@@ -22,9 +27,12 @@ interface NotebookContextType {
   notes: Note[];
   setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   isLoadingNotes: boolean;
+  isLoadingMoreNotes: boolean;
   notesError: Error | null;
   totalCount: number;
+  hasMoreNotes: boolean;
   refreshNotes: () => Promise<void>;
+  loadMoreNotes: () => void;
 
   // Organization users state
   users: OrganizationUsers | null;
@@ -37,7 +45,14 @@ interface NotebookContextType {
   isLoadingNote: boolean;
   noteError: Error | null;
   loadNote: (noteId: string) => Promise<void>;
-  updateNoteTitle: (newTitle: string) => void;
+  updateNoteTitle: (newTitle: string, noteId: ID) => void;
+
+  /**
+   * The one writer for the current note's own fields. Shared so the editor's
+   * title and the publishing form's Details cannot patch the note at once.
+   */
+  saveDetailsSoon: NoteDetailsSaver['saveDetailsSoon'];
+  saveDetailsNow: NoteDetailsSaver['saveDetailsNow'];
 
   // Editor state
   editor: Editor | null;
@@ -65,11 +80,9 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
 
-  // Notes list state
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [isLoadingNotes, setIsLoadingNotes] = useState(true);
-  const [notesError, setNotesError] = useState<Error | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
+  // The organization's notes, loaded as soon as the organization is known.
+  const notesList = useOrganizationNotes(selectedOrg?.slug, { waiting: isLoadingOrg });
+  const { setNotes, refresh: refreshNotes } = notesList;
 
   // Organization users state
   const [users, setUsers] = useState<OrganizationUsers | null>(null);
@@ -85,28 +98,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  const fetchNotes = useCallback(async (slug?: string) => {
-    if (!slug) {
-      setNotesError(new Error('No organization slug provided'));
-      return;
-    }
-
-    setIsLoadingNotes(true);
-    setNotesError(null);
-
-    try {
-      const data = await NoteService.getOrganizationNotes(slug);
-
-      setNotes(data.results);
-      setTotalCount(data.count);
-    } catch (err) {
-      setNotesError(err instanceof Error ? err : new Error('Failed to load notes'));
-      setNotes([]);
-      setTotalCount(0);
-    } finally {
-      setIsLoadingNotes(false);
-    }
-  }, []);
+  const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(currentNote?.id);
 
   const fetchUsers = useCallback(async (orgId: string, silently = false) => {
     if (!silently) {
@@ -141,14 +133,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     [selectedOrg?.id, fetchUsers]
   );
 
-  const refreshNotes = useCallback(async () => {
-    if (!selectedOrg?.slug) {
-      setNotesError(new Error('No organization slug provided'));
-      return;
-    }
-    await fetchNotes(selectedOrg.slug);
-  }, [selectedOrg?.slug, fetchNotes]);
-
   const loadNote = useCallback(async (noteId: string) => {
     if (noteId === lastLoadedNoteIdRef.current) {
       return;
@@ -170,61 +154,57 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
   }, []);
 
-  const updateNoteTitle = useCallback(
-    (newTitle: string) => {
-      if (!activeNoteId) return;
+  // The save that reports a title can complete — or a pending autosave can
+  // flush — after the user moved to another note, so the reported id is the
+  // only trustworthy scope: both the list row and the current note update
+  // only when they are the note that actually saved.
+  const updateNoteTitle = useCallback((newTitle: string, noteId: ID) => {
+    if (noteId == null) return;
+    const savedId = noteId.toString();
 
-      setNotes((prevNotes) =>
-        prevNotes.map((note) =>
-          note.id.toString() === activeNoteId
-            ? {
-                ...note,
-                title: newTitle,
-              }
-            : note
-        )
-      );
+    setNotes((prevNotes) =>
+      prevNotes.map((note) =>
+        note.id.toString() === savedId
+          ? {
+              ...note,
+              title: newTitle,
+            }
+          : note
+      )
+    );
 
-      if (currentNote) {
-        setCurrentNote((prev) => (prev ? { ...prev, title: newTitle } : null));
-      }
-    },
-    [activeNoteId, currentNote]
-  );
+    setCurrentNote((prev) =>
+      prev && prev.id.toString() === savedId ? { ...prev, title: newTitle } : prev
+    );
+  }, []);
 
   const refreshAll = useCallback(async () => {
     if (!selectedOrg?.slug || !selectedOrg?.id) return;
 
-    const promises = [fetchNotes(selectedOrg.slug), fetchUsers(selectedOrg.id.toString())];
+    const promises = [refreshNotes(), fetchUsers(selectedOrg.id.toString())];
     if (activeNoteId) {
       promises.push(loadNote(activeNoteId));
     }
 
     await Promise.all(promises);
-  }, [selectedOrg?.slug, selectedOrg?.id, activeNoteId, fetchNotes, fetchUsers, loadNote]);
+  }, [selectedOrg?.slug, selectedOrg?.id, activeNoteId, refreshNotes, fetchUsers, loadNote]);
 
-  // Initial data loading when organization changes
+  // Users load when the organization changes; the notes list does the same on its own.
   useEffect(() => {
     if (isLoadingOrg) {
-      setIsLoadingNotes(true);
       setIsLoadingUsers(true);
       return;
     }
 
     if (!selectedOrg) {
-      setNotes([]);
-      setTotalCount(0);
       setUsers(null);
-      setNotesError(null);
       setUsersError(null);
-      setIsLoadingNotes(false);
       setIsLoadingUsers(false);
       return;
     }
 
-    fetchNotes(selectedOrg.slug);
     fetchUsers(selectedOrg.id.toString());
-  }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
+  }, [selectedOrg?.id, isLoadingOrg, fetchUsers]);
 
   useEffect(() => {
     if (activeNoteId) {
@@ -233,15 +213,18 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   }, [activeNoteId, loadNote]);
 
   // Calculate overall loading state ignoring isLoadingNote
-  const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;
+  const isLoading = notesList.isLoading || isLoadingUsers || isLoadingOrg;
 
   const value = {
-    notes,
+    notes: notesList.notes,
     setNotes,
-    isLoadingNotes,
-    notesError,
-    totalCount,
+    isLoadingNotes: notesList.isLoading,
+    isLoadingMoreNotes: notesList.isLoadingMore,
+    notesError: notesList.error,
+    totalCount: notesList.totalCount,
+    hasMoreNotes: notesList.hasMore,
     refreshNotes,
+    loadMoreNotes: notesList.loadMore,
     users,
     isLoadingUsers,
     usersError,
@@ -251,6 +234,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     noteError,
     loadNote,
     updateNoteTitle,
+    saveDetailsSoon,
+    saveDetailsNow,
     editor,
     setEditor,
     isLoading,
@@ -258,7 +243,18 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     activeNoteId,
   };
 
-  return <NotebookContext.Provider value={value}>{children}</NotebookContext.Provider>;
+  // The publishing form reads a narrow host rather than this whole context,
+  // so the AI Mode document pane can host it too.
+  const publishingHost = useMemo<PublishingHost>(
+    () => ({ note: currentNote, editor, isLoading, saveDetailsSoon, saveDetailsNow }),
+    [currentNote, editor, isLoading, saveDetailsSoon, saveDetailsNow]
+  );
+
+  return (
+    <NotebookContext.Provider value={value}>
+      <PublishingHostProvider value={publishingHost}>{children}</PublishingHostProvider>
+    </NotebookContext.Provider>
+  );
 }
 
 export function useNotebookContext() {

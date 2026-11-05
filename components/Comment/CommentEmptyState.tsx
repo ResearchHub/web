@@ -9,6 +9,7 @@ interface CommentEmptyStateProps {
   onCreateBounty: () => void;
   canCreateBounty?: boolean;
   work?: Work;
+  readOnly?: boolean;
 }
 
 export const CommentEmptyState = ({
@@ -16,27 +17,36 @@ export const CommentEmptyState = ({
   onCreateBounty,
   canCreateBounty = false,
   work,
+  readOnly = false,
 }: CommentEmptyStateProps) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const message =
     commentType === 'REVIEW'
-      ? 'No reviews yet.'
+      ? readOnly
+        ? 'No peer reviews available.'
+        : 'No reviews yet.'
       : commentType === 'BOUNTY'
         ? 'No bounties yet.'
         : commentType === 'AUTHOR_UPDATE'
-          ? 'No updates from the authors'
+          ? readOnly
+            ? 'No author updates available.'
+            : 'No updates from the authors'
           : work?.postType === 'QUESTION'
             ? 'No answers yet. Submit the first one!'
             : 'No comments yet. Start the conversation!';
 
   const description =
     commentType === 'REVIEW'
-      ? 'Be the first to review this paper.'
+      ? readOnly
+        ? 'The source proposal has not received any peer reviews.'
+        : 'Be the first to review this paper.'
       : commentType === 'BOUNTY'
         ? 'Bounties help attract experts to solve problems or contribute to research.'
         : commentType === 'AUTHOR_UPDATE'
-          ? 'Authors will be providing regular monthly updates'
+          ? readOnly
+            ? 'The source proposal has no author updates.'
+            : 'Authors will be providing regular monthly updates'
           : work?.postType === 'QUESTION'
             ? 'Help the community by providing an answer.'
             : 'Your contribution could help open science.';
@@ -53,12 +63,15 @@ export const CommentEmptyState = ({
     );
 
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div
+      className="flex flex-col items-center justify-center py-12 text-center"
+      data-testid="comment-empty-state"
+    >
       <div className="mb-4 rounded-full bg-gray-100 p-3">{icon}</div>
       <h3 className="mb-2 text-lg font-medium text-gray-900">{message}</h3>
       <p className="text-sm text-gray-500">{description}</p>
 
-      {commentType === 'BOUNTY' && canCreateBounty && (
+      {!readOnly && commentType === 'BOUNTY' && canCreateBounty && (
         <div className="mt-6">
           <Button
             onClick={() => executeAuthenticatedAction(onCreateBounty)}

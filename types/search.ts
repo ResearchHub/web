@@ -1,13 +1,11 @@
-import { createTransformer, BaseTransformed } from './transformer';
-import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
+import { createTransformer } from './transformer';
+import { buildWorkUrl, buildAuthorUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
 import { AuthorProfile, extractHeadline } from './authorProfile';
 import { ID } from './root';
-import { transformTopic } from './topic';
 import { ContentType } from './work';
 
-export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
-export type EntityType = 'user' | 'paper' | 'author' | 'post' | 'hub';
+export type EntityType = 'user' | 'paper' | 'author' | 'post';
 
 export interface BaseSuggestion {
   entityType: EntityType;
@@ -28,6 +26,10 @@ export interface WorkSuggestion extends BaseSuggestion {
   slug?: string;
   publishedDate?: string;
   contentType?: ContentType;
+  /** Cover image, or a paper's first PDF page, for the Recently visited thumbnail. */
+  imageUrl?: string;
+  /** The first author photo found, the thumbnail's fallback when there is no image. */
+  authorImage?: string;
 }
 
 export interface UserSuggestion extends BaseSuggestion {
@@ -46,28 +48,7 @@ export interface PostSuggestion extends BaseSuggestion {
   documentType?: string;
 }
 
-export interface TopicSuggestion extends BaseSuggestion {
-  entityType: 'hub';
-  displayName: string;
-  id: number;
-  slug: string;
-  imageUrl?: string;
-  description?: string;
-  paperCount?: number;
-}
-
-export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion | TopicSuggestion;
-
-export interface RecentPageView {
-  id: number;
-  title: string;
-  doi?: string;
-  authors: string[];
-  lastVisited: string;
-  slug: string;
-}
-
-export type TransformedSearchSuggestion = SearchSuggestion & BaseTransformed;
+export type SearchSuggestion = WorkSuggestion | UserSuggestion | PostSuggestion;
 
 export const transformSearchSuggestion = createTransformer<any, SearchSuggestion>((raw: any) => {
   try {
@@ -90,7 +71,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         url: buildWorkUrl({
           id: raw.id,
           contentType: raw.contentType || 'paper',
-          doi: raw.doi,
           slug: raw.slug,
         }),
       };
@@ -182,36 +162,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
             : undefined,
         };
       }
-      case 'hub':
-        try {
-          // Transform hub using topic transformer and adapt to SearchSuggestion format
-          const topicData = transformTopic(raw);
-          return {
-            entityType: 'hub',
-            id: topicData.id,
-            displayName: topicData.name || raw.name || raw.display_name || 'Untitled Topic',
-            slug: topicData.slug || '',
-            source: raw.source || 'api',
-            isRecent: false,
-            imageUrl: topicData.imageUrl,
-            description: topicData.description,
-            paperCount: topicData.paperCount,
-            url: buildTopicUrl(topicData.slug),
-          };
-        } catch (error) {
-          console.error('Error transforming topic:', error, raw);
-          // Fallback if topic transformation fails
-          return {
-            entityType: 'hub',
-            id: raw.id || 0,
-            displayName: raw.name || raw.display_name || 'Untitled Topic',
-            slug: raw.slug || '',
-            source: raw.source || 'api',
-            isRecent: false,
-            url: raw.slug ? buildTopicUrl(raw.slug) : '#',
-          };
-        }
-
       case 'paper':
       default:
         return {
@@ -228,7 +178,6 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           url: buildWorkUrl({
             id: raw.id,
             contentType: 'paper',
-            doi: raw.doi,
           }),
         };
     }
@@ -274,71 +223,4 @@ export function mapUserSuggestionToAuthorSuggestion(suggestion: UserSuggestion):
     education: [],
     reputationHubs: [],
   };
-}
-
-export interface ApiDocumentSearchResult {
-  id: number;
-  type: 'paper' | 'post';
-  title: string;
-  snippet: string; // with <mark> tags for highlighting
-  abstract?: string; // Full abstract text (new field from backend)
-  matched_field: string; // 'title', 'abstract', etc.
-  authors: Array<{
-    first_name: string;
-    last_name: string;
-    full_name: string;
-  }>; // array of author objects
-  created_date: string | null;
-  paper_publish_date: string | null;
-  hot_score: number;
-  score: number; // upvotes
-  _search_score: number; // relevance score
-  hubs: any[]; // hub objects
-  unified_document_id: number | null;
-  doi: string | null;
-  citations: number;
-  is_open_access: boolean | null;
-  slug: string | null;
-  document_type: string | null; // 'GRANT', etc.
-}
-
-export interface PersonSearchResult {
-  id: number;
-  full_name: string;
-  profile_image: string;
-  snippet: string | null; // with <mark> tags
-  matched_field: string | null;
-  headline: { title: string | null };
-  institutions: Array<{ id: number; name: string }>;
-  user_reputation: number;
-  user_id: number | null;
-  _search_score: number;
-}
-
-export interface SearchResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  documents: ApiDocumentSearchResult[];
-  people: PersonSearchResult[];
-  aggregations: {
-    years: Array<{ key: string; doc_count: number }>;
-    hubs: Array<{ key: string; doc_count: number }>;
-    content_types: Array<{ key: string; doc_count: number }>;
-  };
-}
-
-// Search Filter Types
-export interface SearchFilters {
-  yearMin?: number;
-  yearMax?: number;
-  contentTypes?: string[];
-  authors?: string[];
-}
-
-export type SearchSortOption = 'relevance' | 'newest' | 'hot' | 'upvoted';
-
-export interface SearchPreferences {
-  filters: SearchFilters;
-  sortBy: SearchSortOption;
 }

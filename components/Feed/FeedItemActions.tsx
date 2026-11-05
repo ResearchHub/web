@@ -9,9 +9,11 @@ import {
   MoreHorizontal,
   ArrowUp,
   ArrowDown,
+  Bookmark,
   Maximize2,
   Share,
   Trash2,
+  EyeOff,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -29,22 +31,21 @@ import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
-import { Bounty } from '@/types/bounty';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
-import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { Topic } from '@/types/topic';
-import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
-import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { Tip } from '@/types/tip';
 import { formatCurrency } from '@/utils/currency';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { useUser } from '@/contexts/UserContext';
+import { useHideFromFeed } from '@/hooks/useHideFromFeed';
+import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import type { FeedEntry } from '@/types/feed';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -98,6 +99,9 @@ interface ActionButtonProps {
   showLabel?: boolean;
   showTooltip?: boolean;
   hideIcon?: boolean;
+  /** Bare icon and count instead of the pill chrome. */
+  flat?: boolean;
+  testId?: string;
 }
 
 // Export ActionButton so it can be used in other components
@@ -113,15 +117,26 @@ export const ActionButton: FC<ActionButtonProps> = ({
   showLabel = false,
   showTooltip = true,
   hideIcon = false,
+  flat = false,
+  testId,
 }) => (
   <Button
+    data-testid={testId}
     variant="ghost"
     size="sm"
     className={cn(
-      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-all',
-      isActive
-        ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
-        : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm',
+      'flex items-center text-xs font-medium transition-all',
+      flat
+        ? cn(
+            'h-6 gap-1 !px-0 hover:bg-transparent',
+            isActive ? 'text-green-600' : 'text-gray-500 hover:text-gray-800'
+          )
+        : cn(
+            'h-8 gap-1.5 rounded-full px-3',
+            isActive
+              ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
+              : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+          ),
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -129,7 +144,12 @@ export const ActionButton: FC<ActionButtonProps> = ({
     disabled={isDisabled}
   >
     {!hideIcon && Icon && (
-      <Icon className={cn('h-[18px] w-[18px]', isActive ? 'text-green-600' : '')} />
+      <Icon
+        className={cn(
+          flat ? 'h-4 w-4' : 'h-[18px] w-[18px]',
+          isActive && !flat ? 'text-green-600' : ''
+        )}
+      />
     )}
     {showLabel ? <span>{label}</span> : count !== undefined ? <span>{count}</span> : null}
   </Button>
@@ -162,19 +182,33 @@ interface FeedItemActionsProps {
     className?: string; // Add optional className for styling menu items
   }>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
+  /**
+   * Keep share, save and the menu beside the votes on the left, leaving the right
+   * side to `rightSideActionButton` alone.
+   */
+  groupUtilityActions?: boolean;
   href?: string; // URL to use for navigation
   reviews?: Review[]; // New property for reviews
-  bounties?: Bounty[]; // Updated to use imported Bounty type
   awardedBountyAmount?: number; // Add awarded bounty amount
   tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
+  /** Feed entries that can be hidden from this row (one → confirm, many → picker). */
+  hideableEntries?: FeedEntry[];
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
   onExpand?: (e?: React.MouseEvent) => void;
   isExpanded?: boolean;
   className?: string;
-  variant?: 'default' | 'inline';
+  /**
+   * `default` — flat icon row used by feed cards.
+   * `inline` — pill chrome for comment rows.
+   * `card` — for activity cards: bare votes with share and save kept beside them, every
+   * icon in the same round button and drawn to the same size.
+   */
+  variant?: 'default' | 'inline' | 'card';
+  /** Leave the ⋯ menu out, for cards that put their own elsewhere. */
+  hideMoreMenu?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -201,30 +235,34 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   hideReportButton = false,
   menuItems = [],
   rightSideActionButton,
+  groupUtilityActions = false,
   href,
   reviews = [],
-  bounties = [],
   awardedBountyAmount,
   tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
+  hideableEntries,
   showPeerReviews = true,
   onFeedItemClick,
   onExpand,
   isExpanded = false,
   className,
   variant = 'default',
+  hideMoreMenu = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { user } = useUser();
+  const { hideFromFeed, isHiding } = useHideFromFeed();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const listDetailContext = useContext(ListDetailContext);
+  const [isHideFromFeedModalOpen, setIsHideFromFeedModalOpen] = useState(false);
   const [localVoteCount, setLocalVoteCount] = useState(
     metrics?.adjustedScore ?? metrics?.votes ?? 0
   );
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-  const isTouchDevice = useIsTouchDevice();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
@@ -335,15 +373,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  const handleBountyClick = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    if (href) {
-      navigateToTab('bounties');
-    }
-  };
-
   const handleCloseAddToListModal = () => {
     setIsAddToListModalOpen(false);
   };
@@ -400,6 +429,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  const handleOpenHideFromFeed = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIsMenuOpen(false);
+    setIsHideFromFeedModalOpen(true);
+  };
+
+  const handleConfirmHideFromFeed = async () => {
+    if (!hideableEntries?.length) return;
+    const success = await hideFromFeed(hideableEntries.map((entry) => entry.id));
+    if (success) {
+      setIsHideFromFeedModalOpen(false);
+    }
+  };
+
   const handleCopyDocumentUrl = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
 
@@ -413,75 +456,295 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  // Check if we have open bounties
-  const openBounties = bounties ? bounties.filter((b) => b.status === 'OPEN') : [];
-  const hasOpenBounties = openBounties.length > 0;
-
-  // Calculate total bounty amount for open bounties (handles Foundation bounties with flat $150 USD)
-  const { amount: totalBountyAmount } = getTotalBountyDisplayAmount(
-    openBounties,
-    exchangeRate,
-    showUSD
-  );
-
   // Use media queries to determine screen size
   const isMobile = useMediaQuery('(max-width: 480px)');
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
 
   // Add separator if needed before Report
-  const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
-
-  const showInlineBounties = hasOpenBounties;
+  const canHideFromFeed =
+    !!user?.isModerator &&
+    (hideableEntries?.length ?? 0) > 0 &&
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    feedContentType !== 'APPLICATION';
+  const showSeparator =
+    !hideReportButton && (menuItems.length > 0 || canHideFromFeed) && !isTabletOrSmaller;
 
   // Calculate total awarded amount (tips + bounty awards)
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
   const totalAwarded = tipAmount + (awardedBountyAmount || 0);
 
-  return (
-    <>
-      <div
+  const canSave =
+    !!relatedDocumentUnifiedDocumentId &&
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    feedContentType !== 'APPLICATION' &&
+    showPeerReviews;
+
+  const showShare = variant !== 'inline';
+  const showMoreMenu =
+    !hideMoreMenu &&
+    (!!(listDetailContext && relatedDocumentUnifiedDocumentId) ||
+      menuItems.length > 0 ||
+      !hideReportButton ||
+      canHideFromFeed);
+  // Feed cards use bare icons; comment rows keep the pill chrome.
+  const isFlat = variant === 'default';
+  const isCard = variant === 'card';
+  // Activity cards size each icon by the glyph it draws rather than by its box, so the
+  // arrows, share and save all come out about 15px tall at one stroke weight.
+  const cardIcon = { absoluteStrokeWidth: true, strokeWidth: 1.75 } as const;
+  const arrowIconProps = isCard
+    ? { ...cardIcon, size: 22 }
+    : { className: isFlat ? 'h-4 w-4' : 'h-[18px] w-[18px]' };
+  const cardIconButtonClass = 'text-gray-500 hover:bg-gray-100 hover:text-gray-900';
+
+  const shareButton = showShare ? (
+    isFlat ? (
+      <button
+        type="button"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={handleCopyDocumentUrl}
+        className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800"
+        aria-label="Share"
+        title={showTooltips ? 'Copy link' : undefined}
+      >
+        <Share className="h-4 w-4" />
+      </button>
+    ) : (
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip={showTooltips ? 'Copy link' : undefined}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={handleCopyDocumentUrl}
         className={cn(
-          'flex items-center justify-between gap-2',
-          variant === 'default' && 'bg-gray-50 px-3 py-1.5'
+          'flex !p-0 items-center justify-center rounded-full transition-colors',
+          isCard ? 'h-7 w-7' : 'h-8 w-8',
+          isCard
+            ? cardIconButtonClass
+            : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
         )}
       >
-        <div className={cn('flex items-center flex-nowrap overflow-visible', className)}>
+        {isCard ? <Share {...cardIcon} size={16} /> : <Share className="h-[18px] w-[18px]" />}
+      </Button>
+    )
+  ) : null;
+
+  // Note the test id rather than the label: FeedItemComment renders this whole
+  // bar inside an aria-hidden wrapper, which takes every control in it out of
+  // the accessibility tree and so out of reach of a role-based locator.
+  const moreMenuTrigger = isFlat ? (
+    <button
+      type="button"
+      data-testid="feed-item-more-options"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800"
+      aria-label="More options"
+    >
+      <MoreHorizontal className="h-4 w-4" />
+    </button>
+  ) : (
+    <Button
+      data-testid="feed-item-more-options"
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      variant="ghost"
+      size="sm"
+      className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
+      aria-label="More options"
+    >
+      <MoreHorizontal className="h-[18px] w-[18px]" />
+    </Button>
+  );
+
+  const saveButton = canSave ? (
+    isFlat ? (
+      <button
+        type="button"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={handleAddToList}
+        disabled={isTogglingDefaultList}
+        className={cn(
+          'flex h-6 w-6 items-center justify-center transition-colors',
+          isDocumentInList ? 'text-green-600' : 'text-gray-500 hover:text-gray-800',
+          isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
+        )}
+        aria-label={isDocumentInList ? 'Remove from list' : 'Save'}
+        title={showTooltips ? 'Save' : undefined}
+      >
+        <FontAwesomeIcon
+          icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+          className="h-3.5 w-3.5"
+        />
+      </button>
+    ) : (
+      <Button
+        variant="ghost"
+        size="sm"
+        tooltip={showTooltips ? 'Save' : undefined}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
+        onClick={handleAddToList}
+        disabled={isTogglingDefaultList}
+        className={cn(
+          'flex !p-0 items-center justify-center rounded-full transition-colors',
+          isCard ? 'h-7 w-7' : 'h-8 w-8',
+          isDocumentInList
+            ? isCard
+              ? 'text-green-600 hover:bg-green-50 hover:text-green-700'
+              : 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
+            : isCard
+              ? cardIconButtonClass
+              : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+        )}
+      >
+        {isCard ? (
+          // Drawn with the same set as the arrows and share; Font Awesome's fills its box.
+          <Bookmark {...cardIcon} size={18} fill={isDocumentInList ? 'currentColor' : 'none'} />
+        ) : (
+          <FontAwesomeIcon
+            icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+            className="h-[18px] w-[18px]"
+          />
+        )}
+      </Button>
+    )
+  ) : null;
+
+  const moreMenu = showMoreMenu ? (
+    <BaseMenu
+      trigger={moreMenuTrigger}
+      align={groupUtilityActions ? 'start' : 'end'}
+      open={isMenuOpen}
+      onOpenChange={setIsMenuOpen}
+    >
+      {listDetailContext && relatedDocumentUnifiedDocumentId && (
+        <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+          <Trash2 className="w-4 h-4" />
+          <span>Remove from list</span>
+        </BaseMenuItem>
+      )}
+
+      {canHideFromFeed && (
+        <BaseMenuItem onClick={handleOpenHideFromFeed} className="flex items-center gap-2">
+          <EyeOff className="w-4 h-4" />
+          <span>Hide from feed</span>
+        </BaseMenuItem>
+      )}
+
+      {menuItems.map((item, index) => (
+        <BaseMenuItem
+          key={`menu-item-${index}`}
+          onClick={(e) => {
+            setIsMenuOpen(false);
+            item.onClick(e);
+          }}
+          className={cn('flex items-center gap-2', item.className)}
+        >
+          {item.icon && <item.icon className="w-4 h-4" />}
+          <span>{item.label}</span>
+        </BaseMenuItem>
+      ))}
+
+      {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+
+      {!hideReportButton && (
+        <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+          <Flag className="w-4 h-4" />
+          <span>{actionLabels?.report || 'Report'}</span>
+        </BaseMenuItem>
+      )}
+    </BaseMenu>
+  ) : null;
+
+  return (
+    <>
+      <div className={cn('flex items-center justify-between', isFlat ? 'gap-3' : 'gap-2')}>
+        <div
+          className={cn(
+            'flex items-center flex-nowrap overflow-visible',
+            isFlat ? 'gap-4' : undefined,
+            className
+          )}
+        >
           <div
             className={cn(
-              'flex h-8 items-center rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80 transition-all',
-              isVoting ? 'opacity-50' : ''
+              'flex items-center transition-all',
+              isFlat
+                ? cn('gap-2', isVoting && 'opacity-50')
+                : cn(
+                    // Activity cards leave the votes bare, like the icons beside them.
+                    !isCard && 'h-8 rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80',
+                    isVoting && 'opacity-50'
+                  )
             )}
           >
             <button
               onClick={(e) => handleVote(e, 'up')}
               disabled={isVoting}
               className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
-                localUserVote === 'UPVOTE'
-                  ? 'bg-green-50 text-green-600'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                'flex items-center justify-center transition-colors',
+                isFlat
+                  ? cn(
+                      'h-6 w-6',
+                      localUserVote === 'UPVOTE'
+                        ? 'text-green-600'
+                        : 'text-gray-500 hover:text-gray-800'
+                    )
+                  : cn(
+                      'h-7 w-7 rounded-full',
+                      localUserVote === 'UPVOTE'
+                        ? 'bg-green-50 text-green-600'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    ),
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className="h-[18px] w-[18px]" />
+              <ArrowUp {...arrowIconProps} />
             </button>
-            <span className="min-w-[1.75rem] px-1 text-center text-xs font-semibold text-gray-900">
+            <span
+              className={cn(
+                'text-center text-xs font-medium',
+                isFlat
+                  ? 'min-w-[1.1rem] text-gray-700'
+                  : 'min-w-[1.75rem] px-1 font-semibold text-gray-900'
+              )}
+            >
               {localVoteCount}
             </span>
             <button
               onClick={(e) => handleVote(e, 'down')}
               disabled={isVoting}
               className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
-                localUserVote === 'DOWNVOTE'
-                  ? 'bg-red-50 text-red-600'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                'flex items-center justify-center transition-colors',
+                isFlat
+                  ? cn(
+                      'h-6 w-6',
+                      localUserVote === 'DOWNVOTE'
+                        ? 'text-red-600'
+                        : 'text-gray-500 hover:text-gray-800'
+                    )
+                  : cn(
+                      'h-7 w-7 rounded-full',
+                      localUserVote === 'DOWNVOTE'
+                        ? 'bg-red-50 text-red-600'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    ),
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className="h-[18px] w-[18px]" />
+              <ArrowDown {...arrowIconProps} />
             </button>
           </div>
           {!hideCommentButton && (
@@ -493,6 +756,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={handleComment}
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
+              flat={isFlat}
+              testId="feed-item-comment-action"
             />
           )}
           {(onTip || totalAwarded > 0) &&
@@ -592,73 +857,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 )}
               </div>
             ))}
-          {showInlineBounties &&
-            (showTooltips ? (
-              <Tooltip
-                content={
-                  <BountyTooltip
-                    totalAmount={totalBountyAmount}
-                    href={href}
-                    showUSD={showUSD}
-                    skipConversion={showUSD}
-                  />
-                }
-                position="top"
-                width="w-[320px]"
-              >
-                <ActionButton
-                  hideIcon={true}
-                  tooltip=""
-                  label="Bounties"
-                  className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
-                  count={
-                    <CurrencyBadge
-                      amount={totalBountyAmount}
-                      variant="text"
-                      size="xs"
-                      className="!text-xs px-0"
-                      textColor="inherit"
-                      iconColor="inherit"
-                      iconSize={18}
-                      currency={showUSD ? 'USD' : 'RSC'}
-                      shorten={true}
-                      showExchangeRate={false}
-                      showIcon={true}
-                      showText={false}
-                      skipConversion={showUSD}
-                    />
-                  }
-                  showTooltip={false}
-                  onClick={!isTouchDevice ? handleBountyClick : undefined}
-                />
-              </Tooltip>
-            ) : (
-              <ActionButton
-                hideIcon={true}
-                tooltip="Bounties"
-                label="Bounties"
-                className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
-                count={
-                  <CurrencyBadge
-                    amount={totalBountyAmount}
-                    variant="text"
-                    size="xs"
-                    className="!text-xs"
-                    textColor="inherit"
-                    iconColor="inherit"
-                    iconSize={18}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    shorten={true}
-                    showExchangeRate={false}
-                    showIcon={true}
-                    showText={false}
-                    skipConversion={showUSD}
-                  />
-                }
-                showTooltip={false}
-                onClick={handleBountyClick}
-              />
-            ))}
           {onExpand && (
             <ActionButton
               icon={Maximize2}
@@ -669,105 +867,29 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 onExpand(e);
               }}
               showTooltip={showTooltips}
+              flat={isFlat}
             />
           )}
           {children}
+          {groupUtilityActions && shareButton}
+          {groupUtilityActions && saveButton}
+          {groupUtilityActions && moreMenu}
         </div>
 
-        <div className="flex flex-shrink-0 items-center justify-end gap-1">
-          {rightSideActionButton}
-          <BaseMenu
-            trigger={
-              <Button
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                variant="ghost"
-                size="sm"
-                className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
-              >
-                <MoreHorizontal className="h-[18px] w-[18px]" />
-              </Button>
-            }
-            align="end"
-            open={isMenuOpen}
-            onOpenChange={setIsMenuOpen}
+        {/* Left out when it would be empty, so it doesn't add a gap after the votes. */}
+        {(rightSideActionButton || !groupUtilityActions) && (
+          <div
+            className={cn(
+              'flex flex-shrink-0 items-center justify-end',
+              isFlat ? 'gap-3' : 'gap-1'
+            )}
           >
-            {listDetailContext && relatedDocumentUnifiedDocumentId && (
-              <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
-                <Trash2 className="w-4 h-4" />
-                <span>Remove from list</span>
-              </BaseMenuItem>
-            )}
-
-            {menuItems.map((item, index) => (
-              <BaseMenuItem
-                key={`menu-item-${index}`}
-                onClick={(e) => {
-                  setIsMenuOpen(false);
-                  item.onClick(e);
-                }}
-                className={cn('flex items-center gap-2', item.className)}
-              >
-                {item.icon && <item.icon className="w-4 h-4" />}
-                <span>{item.label}</span>
-              </BaseMenuItem>
-            ))}
-
-            {showSeparator && <div className="h-px my-1 bg-gray-200" />}
-
-            {!hideReportButton && (
-              <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
-                <Flag className="w-4 h-4" />
-                <span>{actionLabels?.report || 'Report'}</span>
-              </BaseMenuItem>
-            )}
-          </BaseMenu>
-          {variant !== 'inline' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              tooltip={showTooltips ? 'Copy link' : undefined}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-              }}
-              onClick={handleCopyDocumentUrl}
-              className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
-            >
-              <Share className="h-[18px] w-[18px]" />
-            </Button>
-          )}
-          {relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews && (
-              <Button
-                variant="ghost"
-                size="sm"
-                tooltip={showTooltips ? 'Save' : undefined}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-                onClick={handleAddToList}
-                disabled={isTogglingDefaultList}
-                className={cn(
-                  'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
-                  isDocumentInList
-                    ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
-                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
-                )}
-              >
-                <FontAwesomeIcon
-                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-                  className="h-[18px] w-[18px]"
-                />
-              </Button>
-            )}
-        </div>
+            {rightSideActionButton}
+            {!groupUtilityActions && shareButton}
+            {!groupUtilityActions && saveButton}
+            {!groupUtilityActions && moreMenu}
+          </div>
+        )}
       </div>
 
       {contentToFlag && (
@@ -777,6 +899,23 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
+        />
+      )}
+
+      {canHideFromFeed && (
+        <ConfirmationModal
+          isOpen={isHideFromFeedModalOpen}
+          onClose={() => setIsHideFromFeedModalOpen(false)}
+          title="Hide from feed"
+          description={
+            (hideableEntries?.length ?? 0) > 1
+              ? 'All feed entries will be hidden from activity feed.'
+              : 'This feed entry will be hidden from activity feed.'
+          }
+          confirmLabel="Hide from feed"
+          confirmVariant="destructive"
+          isConfirming={isHiding}
+          onConfirm={handleConfirmHideFromFeed}
         />
       )}
 

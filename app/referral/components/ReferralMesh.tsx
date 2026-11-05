@@ -37,7 +37,8 @@ export function ReferralMesh({ spacing = 132 }: { spacing?: number }) {
       const points: MeshPoint[] = [];
       for (let i = 0; i <= cols; i++) {
         for (let j = 0; j <= rows; j++) {
-          // Jitter each node off its grid slot so links read organically.
+          // Math.random() is intentionally used here for non-security-sensitive
+          // visual randomization of decorative mesh positioning and appearance.
           const jitter = spacing * 0.34;
           points.push({
             x: i * spacing + (Math.random() - 0.5) * 2 * jitter,

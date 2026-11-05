@@ -86,5 +86,3 @@ export const Figcaption = Node.create({
     return ['figcaption', mergeAttributes(HTMLAttributes), 0];
   },
 });
-
-export default Figcaption;

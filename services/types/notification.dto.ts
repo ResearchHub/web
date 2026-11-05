@@ -12,7 +12,6 @@ export interface NotificationCountResponse {
   count: number;
 }
 
-export type TransformedNotificationListResponse = NotificationListResponse & BaseTransformed;
 export type TransformedNotificationCountResponse = NotificationCountResponse & BaseTransformed;
 
 export const transformNotificationListResponse = createTransformer<any, NotificationListResponse>(

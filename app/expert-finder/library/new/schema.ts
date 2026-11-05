@@ -9,7 +9,6 @@ import {
 const INPUT_TYPES: InputType[] = ['abstract', 'pdf', 'full_content'];
 
 export const EXPERT_COUNT_OPTIONS = [5, 10, 25, 50, 100] as const;
-export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
 
 export const DEFAULT_STATE = 'All States';
 
@@ -35,7 +34,6 @@ export const advancedConfigSchema = z.object({
   expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
   region: z.enum(REGION_VALUES),
   state: z.string(),
-  excludedSearchIds: z.array(z.number().int().positive()).default([]),
   inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
   searchName: z.string().optional().default(''),
 });

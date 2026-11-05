@@ -8,7 +8,9 @@ import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Review } from '@/types/feed';
-import { buildWorkUrl, generateSlug } from '@/utils/url';
+import { getWorkReviewScore } from '@/components/work/lib/reviewScore';
+import { toAuthorListAuthors } from '@/components/work/lib/workAuthors';
+import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 
 interface WorkHeaderSubtitleProps {
   work: Work;
@@ -17,17 +19,13 @@ interface WorkHeaderSubtitleProps {
 }
 
 export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSubtitleProps) {
-  const authors = work.authors.map((a) => ({
-    name: a.authorProfile.fullName,
-    verified: a.authorProfile.user?.isVerified,
-    profileUrl: `/author/${a.authorProfile.id}`,
-    authorUrl: a.authorProfile.user ? `/author/${a.authorProfile.id}` : undefined,
-  }));
+  const authors = toAuthorListAuthors(work.authors);
 
-  const reviewScore = metadata?.metrics?.reviewScore;
-  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
+  const peerReviews = work.peerReviews ?? [];
+  const reviewScore = getWorkReviewScore(work, metadata);
+  const hasReviewScore = reviewScore !== undefined;
 
-  const reviews: Review[] = (work.peerReviews ?? []).map((pr) => ({
+  const reviews: Review[] = peerReviews.map((pr) => ({
     id: pr.id,
     score: pr.score,
     author: {
@@ -45,19 +43,8 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
   }));
 
   const isPrivate = work.isPublic === false && work.contentType === 'preregistration';
-  const linkedGrant = work.linkedGrant;
-  const linkedGrantTitle =
-    linkedGrant?.title ||
-    linkedGrant?.shortTitle ||
-    linkedGrant?.organization ||
-    'a funding opportunity';
-  const linkedGrantHref = linkedGrant?.postId
-    ? buildWorkUrl({
-        id: linkedGrant.postId,
-        slug: generateSlug(linkedGrantTitle),
-        contentType: 'funding_request',
-      })
-    : null;
+  const { title: grantTitle, href: linkedGrantHref } = getLinkedGrantLink(work);
+  const linkedGrantTitle = grantTitle || 'an RFP';
 
   return (
     <div className="flex flex-col gap-2">

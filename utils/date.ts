@@ -19,6 +19,23 @@ export function formatTimeAgo(timestamp: string, withoutSuffix?: boolean): strin
 }
 
 /**
+ * Compact relative time for bylines: "now", "5m", "2h", "3d", then a date
+ * ("Oct 3", or "Oct 3, 2025" outside the current year) once it's a week old.
+ */
+export function formatTimeAgoShort(timestamp: string): string {
+  const time = dayjs(timestamp);
+  const now = dayjs();
+  const minutes = now.diff(time, 'minute');
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes}m`;
+  const hours = now.diff(time, 'hour');
+  if (hours < 24) return `${hours}h`;
+  const days = now.diff(time, 'day');
+  if (days < 7) return `${days}d`;
+  return time.format(time.year() === now.year() ? 'MMM D' : 'MMM D, YYYY');
+}
+
+/**
  * Checks if a timestamp is within the last 24 hours
  * @param timestamp ISO timestamp string
  * @returns boolean
@@ -135,6 +152,13 @@ export function isDeadlineInFuture(deadline: string): boolean {
   return deadlineDate.isAfter(now);
 }
 
+/** Open, and before its end date if it has one: an RFP or a fundraise still taking part. */
+export function isOpenBeforeDeadline(item: { status?: string; endDate?: string | null }): boolean {
+  return item.status === 'OPEN' && (item.endDate ? isDeadlineInFuture(item.endDate) : true);
+}
+
+export const MEMBERSHIP_JUST_JOINED = 'just joined';
+
 export function specificTimeSince(dateInput: string | Date): string {
   const now = dayjs.utc();
   const joined = dayjs.utc(dateInput);
@@ -157,7 +181,7 @@ export function specificTimeSince(dateInput: string | Date): string {
   if (days > 0) result.push(`${days} day${days > 1 ? 's' : ''}`);
 
   if (result.length === 0) {
-    return 'just joined';
+    return MEMBERSHIP_JUST_JOINED;
   } else if (result.length === 1) {
     return result[0];
   } else if (result.length === 2) {

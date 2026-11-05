@@ -1,25 +1,31 @@
+import { Skeleton } from '@/components/ui/Skeleton';
+
+interface NotificationSkeletonListProps {
+  count?: number;
+}
+
 export function NotificationSkeleton() {
   return (
-    <div className="group">
-      <div className="relative py-3 px-4 -mx-4">
-        <div className="flex items-center">
-          <div className="pl-1 flex-shrink-0 flex items-center justify-center self-center">
-            <div className="w-2 h-2 rounded-full bg-gray-200"></div>
-          </div>
-          <div className="ml-3 flex gap-3 items-center">
-            <div className="flex-shrink-0">
-              <div className="w-[40px] h-[40px] bg-gray-200 rounded-full animate-pulse" />
-            </div>
-            <div className="flex-grow min-w-0 space-y-2">
-              <div className="h-5 bg-gray-200 rounded w-48 animate-pulse" />
-              <div className="flex items-center gap-2 mt-0.5">
-                <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
-                <div className="h-6 bg-gray-200 rounded-full w-16 animate-pulse" />
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="flex items-center gap-3 py-4 pl-2.5 pr-4">
+      <span className="w-2 flex-shrink-0" aria-hidden />
+      <Skeleton className="h-8 w-8 flex-shrink-0 rounded-full" />
+
+      <div className="ml-1 min-w-0 flex-1 space-y-2">
+        <Skeleton className="h-3.5 w-40 max-w-full" />
+        <Skeleton className="h-3 w-[85%]" />
       </div>
+
+      <Skeleton className="h-3 w-12 flex-shrink-0" />
+    </div>
+  );
+}
+
+export function NotificationSkeletonList({ count = 10 }: Readonly<NotificationSkeletonListProps>) {
+  return (
+    <div className="divide-y divide-gray-100 overflow-hidden rounded-xl bg-white ring-1 ring-gray-200">
+      {Array.from({ length: count }).map((_, skeletonIndex) => (
+        <NotificationSkeleton key={'notification-skeleton-' + skeletonIndex} />
+      ))}
     </div>
   );
 }

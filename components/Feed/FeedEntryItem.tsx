@@ -2,31 +2,18 @@
 
 import { FC, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
-import {
-  FeedCommentContent,
-  FeedEntry,
-  FeedPostContent,
-  FeedPaperContent,
-  FeedGrantContent,
-} from '@/types/feed';
-import { FeedItemFundraise } from './items/FeedItemFundraise';
-import { FeedItemPaper } from './items/FeedItemPaper';
+import { FeedCommentContent, FeedEntry, FeedPostContent, FeedGrantContent } from '@/types/feed';
+import { FeedItemFundraise } from './items/DeprecatedFeedItemFundraise';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { FeedItemGrantWithApplicants } from './items/FeedItemGrantWithApplicants';
-import { FeedItemGrantComprehensive } from './items/FeedItemGrantComprehensive';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
-import { FeedItemBounty } from './items/FeedItemBounty';
+import { DeprecatedFeedItemBounty } from './items/DeprecatedFeedItemBounty';
 import { buildWorkUrl } from '@/utils/url';
 import { ContentType } from '@/types/work';
-
-export interface Highlight {
-  field: string;
-  value: string;
-}
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -38,18 +25,12 @@ interface FeedEntryItemProps {
   showFundraiseHeaders?: boolean;
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  /**
-   * Which grant card to render for GRANT entries. `comprehensive` adds the
-   * deployment progress bar, community match and key insights, and is used on
-   * the funder dashboard. Defaults to the simpler public-facing card.
-   */
-  grantCardVariant?: 'default' | 'comprehensive';
+  showGrantApplyCta?: boolean;
   feedOrdering?: string;
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
   shouldRenderBountyAsComment?: boolean;
-  highlights?: Highlight[];
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
 }
@@ -65,13 +46,12 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showFundraiseHeaders = true,
   showPostHeaders = true,
   showReadMoreCTA = false,
-  grantCardVariant = 'default',
+  showGrantApplyCta = true,
   feedOrdering,
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
   shouldRenderBountyAsComment = false,
-  highlights,
   abstractCollapsedByDefault,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
@@ -110,6 +90,11 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     return null;
   }
 
+  // Paper pages are retired, so paper entries have nowhere to go.
+  if (entry.contentType === 'PAPER') {
+    return null;
+  }
+
   // Apply appropriate spacing based on position
   const spacingClass = index !== 0 ? 'mt-8' : '';
 
@@ -133,15 +118,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             contentType: 'preregistration',
           });
         }
-        case 'PAPER': {
-          const paperContent = entry.content as FeedPaperContent;
-          return buildWorkUrl({
-            id: paperContent.id,
-            slug: paperContent.slug,
-            contentType: 'paper',
-          });
-        }
-
         case 'BOUNTY':
           if (entry.relatedWork) {
             let contentType = entry.relatedWork.contentType;
@@ -215,12 +191,10 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     // When showBountyInfo is set and the entry has open bounties, render as a uniform bounty card
     if (
       shouldRenderAsBountyCard &&
-      (entry.contentType === 'POST' ||
-        entry.contentType === 'PAPER' ||
-        entry.contentType === 'PREREGISTRATION')
+      (entry.contentType === 'POST' || entry.contentType === 'PREREGISTRATION')
     ) {
       content = (
-        <FeedItemBounty
+        <DeprecatedFeedItemBounty
           entry={entry}
           href={href}
           showActions={!hideActions}
@@ -240,7 +214,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               maxLength={maxLength}
               onFeedItemClick={handleFeedItemClick}
               onAbstractExpanded={handleAbstractExpanded}
-              highlights={highlights}
               showBountyInfo={showBountyInfo}
             />
           );
@@ -256,22 +229,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               maxLength={maxLength}
               onFeedItemClick={handleFeedItemClick}
               showBountyInfo={showBountyInfo}
-            />
-          );
-          break;
-
-        case 'PAPER':
-          content = (
-            <FeedItemPaper
-              entry={entry}
-              href={href}
-              showActions={!hideActions}
-              maxLength={maxLength}
-              onFeedItemClick={handleFeedItemClick}
-              onAbstractExpanded={handleAbstractExpanded}
-              highlights={highlights}
-              showBountyInfo={showBountyInfo}
-              abstractCollapsedByDefault={abstractCollapsedByDefault}
             />
           );
           break;
@@ -293,7 +250,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             );
           } else {
             content = (
-              <FeedItemBounty
+              <DeprecatedFeedItemBounty
                 entry={entry}
                 href={href}
                 showActions={showBountyFooter}
@@ -322,12 +279,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           break;
 
         case 'GRANT':
-          content =
-            grantCardVariant === 'comprehensive' ? (
-              <FeedItemGrantComprehensive entry={entry} />
-            ) : (
-              <FeedItemGrantWithApplicants entry={entry} />
-            );
+          content = <FeedItemGrantWithApplicants entry={entry} showApplyCta={showGrantApplyCta} />;
           break;
 
         default:

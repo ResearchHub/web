@@ -1,19 +1,18 @@
 import { useFormContext } from 'react-hook-form';
-import { Upload, Image as ImageIcon, Gift, X, Plus } from 'lucide-react';
+import { Upload, Image as ImageIcon, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
 import { useRef, useState, useEffect } from 'react';
-import { Note } from '@/types/note';
+import type { Note } from '@/types/note';
 import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
-import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
-import { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
-import { formatCompactAmount } from '@/utils/currency';
-import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import { FundingGoalField } from './FundingGoalField';
+import { FundingOpportunityField } from './FundingOpportunityField';
 
 interface FundingSectionProps {
   note: Note;
@@ -21,85 +20,8 @@ interface FundingSectionProps {
 
 const FEATURE_FLAG_NFT_REWARDS = false;
 
-function FundingOpportunitySection() {
-  const { watch, setValue } = useFormContext();
-  const selectedGrant: SelectedGrantData | null = watch('selectedGrant');
-  const workId = watch('workId');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  if (workId) return null;
-
-  return (
-    <>
-      <div>
-        <h3 className="text-[15px] font-semibold tracking-tight text-gray-900 mb-2">
-          Funding Opportunity <span className="font-normal text-gray-500 text-xs">(Optional)</span>
-        </h3>
-        {selectedGrant ? (
-          <div className="flex gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50 relative">
-            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0 relative">
-              {selectedGrant.imageUrl ? (
-                <Image
-                  src={selectedGrant.imageUrl}
-                  alt={selectedGrant.shortTitle}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
-              ) : (
-                <div
-                  className="absolute inset-0"
-                  style={{ background: GRANT_IMAGE_FALLBACK_GRADIENT }}
-                />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                {selectedGrant.organization || 'Funding Opportunity'}
-              </div>
-              <div className="text-sm font-semibold text-gray-900 truncate">
-                {selectedGrant.shortTitle}
-              </div>
-              <div className="text-xs font-medium text-emerald-600">
-                {formatCompactAmount(selectedGrant.fundingAmount)} Funding
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setValue('selectedGrant', null)}
-              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Select Funding Opportunity
-          </button>
-        )}
-      </div>
-
-      <SelectFundingOpportunityModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSelect={(grant) => setValue('selectedGrant', grant)}
-      />
-    </>
-  );
-}
-
 export function FundingSection({ note }: Readonly<FundingSectionProps>) {
-  const {
-    register,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useFormContext();
+  const { register, watch, setValue } = useFormContext();
   const rewardFunders = watch('rewardFunders');
   const budget = watch('budget');
   const nftSupply = watch('nftSupply');
@@ -107,6 +29,8 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isEditingNonprofit, setIsEditingNonprofit] = useState(false);
 
+  const selectedGrant = watch('selectedGrant');
+  const isAwardApplication = isAwardMechanism(selectedGrant?.fundingMechanism);
   const fundraise = note.post?.fundraise;
   const {
     nonprofit,
@@ -178,10 +102,10 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
 
   return (
     <div className="py-3 px-6 space-y-6">
-      <FundingOpportunitySection />
+      <FundingOpportunityField noteId={note.id} />
 
-      {fundraise ? (
-        <>
+      {!isAwardApplication &&
+        (fundraise ? (
           <div className="pt-4 border-t border-gray-200">
             {isLoadingNonprofit && (
               <p className="text-sm text-gray-500 px-1">Loading nonprofit information...</p>
@@ -197,43 +121,14 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
               />
             )}
           </div>
-        </>
-      ) : (
-        <>
-          <div>
-            <Input
-              {...register('budget')}
-              label="Funding Goal"
-              required
-              placeholder="1,000"
-              type="text"
-              inputMode="numeric"
-              className="w-full"
-              error={errors.budget?.message?.toString()}
-              rightElement={
-                <div className="flex items-center pr-4 font-medium text-sm text-gray-900">USD</div>
-              }
-              helperText="Set your total funding goal for this research project"
-              onChange={(e) => {
-                const numericValue = e.target.value.replaceAll(/\D/g, '');
-                setValue('budget', numericValue, { shouldValidate: true });
-
-                if (numericValue) {
-                  e.target.value = new Intl.NumberFormat('en-US').format(
-                    Number.parseInt(numericValue)
-                  );
-                } else {
-                  e.target.value = '';
-                }
-              }}
-            />
-          </div>
-
-          <div className="pt-4 border-t border-gray-200">
-            <NonprofitSearchSection />
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <FundingGoalField />
+            <div className="pt-4 border-t border-gray-200">
+              <NonprofitSearchSection />
+            </div>
+          </>
+        ))}
 
       {FEATURE_FLAG_NFT_REWARDS && (
         <>

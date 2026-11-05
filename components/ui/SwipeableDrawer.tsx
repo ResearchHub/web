@@ -1,8 +1,11 @@
 'use client';
 
 import { X as CloseIcon } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+
+/** As tall as the screen allows, with a strip of the page left above it so it reads as a sheet. */
+export const FULL_DRAWER_HEIGHT = 'calc(100dvh - 2rem)';
 
 interface SwipeableDrawerProps {
   /**
@@ -65,7 +68,6 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   swipeThreshold = 50,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -107,19 +109,10 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
     setTouchEnd(null);
   };
 
-  // Close the drawer when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (drawerRef.current && !drawerRef.current.contains(event.target as Node) && isOpen) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+  // A tap outside the drawer lands on the backdrop, which closes it. Not a
+  // document-wide listener: a dialog opened from inside the drawer renders in
+  // a portal outside it, and every tap in that dialog would close the drawer
+  // (and the dialog with it).
 
   // Handle ESC key press
   useEffect(() => {
@@ -152,7 +145,6 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
 
       {/* Drawer */}
       <div
-        ref={drawerRef}
         className={`fixed bottom-0 left-0 right-0 z-[1001] bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         } ${className}`}
@@ -196,5 +188,3 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   // Use createPortal to mount drawer to body
   return createPortal(drawerContent, document.body);
 };
-
-export default SwipeableDrawer;

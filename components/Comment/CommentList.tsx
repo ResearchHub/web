@@ -9,6 +9,7 @@ interface CommentListProps {
   isRootList?: boolean;
   contentType: ContentType;
   commentType?: CommentType;
+  readOnly?: boolean;
 }
 
 const CommentList: React.FC<CommentListProps> = ({
@@ -17,15 +18,17 @@ const CommentList: React.FC<CommentListProps> = ({
   isRootList = false,
   contentType,
   commentType,
+  readOnly = false,
 }) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid={isRootList ? 'comment-list' : undefined}>
       {comments.map((comment) => (
         <CommentItem
           commentType={commentType}
           key={`comment-${comment.id}`}
           comment={comment}
           contentType={contentType}
+          readOnly={readOnly}
         />
       ))}
     </div>

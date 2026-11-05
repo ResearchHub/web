@@ -1,169 +1,158 @@
+import { KeyboardEvent } from 'react';
 import { Notification } from '@/types/notification';
-import { formatTimestamp } from '@/utils/date';
+import { formatTimeAgo } from '@/utils/date';
 import {
-  getNotificationInfo,
-  formatNotificationMessage,
-  getHubDetailsFromNotification,
   formatNavigationUrl,
-  getRSCAmountFromNotification,
+  formatNotificationMessage,
+  getNotificationInfo,
+  getNotificationTitle,
+  getNotificationTone,
+  type NotificationTone,
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
-import clsx from 'clsx';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
-import { ChevronRight } from 'lucide-react';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+const TONE_STYLES: Record<NotificationTone, { iconBg: string; iconColor: string }> = {
+  blue: { iconBg: 'bg-primary-50', iconColor: '#2563eb' },
+  green: { iconBg: 'bg-emerald-50', iconColor: '#059669' },
+  amber: { iconBg: 'bg-amber-50', iconColor: '#d97706' },
+  violet: { iconBg: 'bg-violet-50', iconColor: '#7c3aed' },
+  red: { iconBg: 'bg-rose-50', iconColor: '#e11d48' },
+};
 
 interface NotificationItemProps {
   notification: Notification;
 }
 
-export function NotificationItem({ notification }: NotificationItemProps) {
+export function NotificationItem({ notification }: Readonly<NotificationItemProps>) {
   const router = useRouter();
   const notificationInfo = getNotificationInfo(notification);
   const { exchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
+  const title = getNotificationTitle(notification);
   const message = formatNotificationMessage(notification, exchangeRate, showUSD);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
-  const rscAmount = getRSCAmountFromNotification(notification);
+  const toneStyles = TONE_STYLES[getNotificationTone(notification)];
+  const timeAgo = formatTimeAgo(notification.createdDate.toISOString());
+  const isUnread = !notification.read;
 
-  const hubDetails = getHubDetailsFromNotification(notification);
+  const handleClick = () => {
+    if (hasNavigationUrl && formattedNavigationUrl) {
+      router.push(formattedNavigationUrl);
+    }
+  };
 
-  // Add helper to determine if notification is a received type
-  const isReceivedRSC = [
-    'FUNDRAISE_PAYOUT',
-    'RSC_SUPPORT_ON_DIS',
-    'RSC_SUPPORT_ON_DOC',
-    'RSC_WITHDRAWAL_COMPLETE',
-    'BOUNTY_PAYOUT',
-  ].includes(notification.type);
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Ignore Enter on nested controls (avatar, "Learn more") bubbling up to the item.
+    if (event.key === 'Enter' && event.target === event.currentTarget) {
+      handleClick();
+    }
+  };
 
-  const IndicatorSection = (
-    <div className="w-2 flex-shrink-0 flex items-center justify-center self-center">
-      <div
-        className={clsx(
-          'w-2 h-2 rounded-full',
-          !notification.read ? 'bg-primary-500' : 'bg-transparent'
-        )}
-      ></div>
-    </div>
-  );
+  const navigationProps = hasNavigationUrl
+    ? { role: 'link', tabIndex: 0, onClick: handleClick, onKeyDown: handleKeyDown }
+    : {};
 
-  const AvatarSection =
+  const visual =
     notification.actionUser && notificationInfo.useAvatar ? (
-      <div className="flex-shrink-0 w-[40px] h-[40px]" onClick={(e) => e.stopPropagation()}>
-        <Avatar
-          src={notification.actionUser?.authorProfile?.profileImage}
-          alt={notification.actionUser?.fullName || 'User'}
-          size="md"
-          authorId={notification.actionUser?.authorProfile?.id}
-        />
-      </div>
+      <Avatar
+        className="flex-shrink-0"
+        src={notification.actionUser?.authorProfile?.profileImage}
+        alt={notification.actionUser?.fullName || 'User'}
+        size="sm"
+        authorId={notification.actionUser?.authorProfile?.id}
+        onClick={(e) => e.stopPropagation()}
+      />
     ) : (
       <div
-        className={clsx(
-          'w-[40px] h-[40px] flex items-center justify-center rounded-full bg-white flex-shrink-0'
+        className={cn(
+          'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
+          toneStyles.iconBg
         )}
       >
-        <Icon name={notificationInfo.icon} size={18} />
+        {notification.type === 'FUNDING_CREDITS_REMINDER' ? (
+          <ResearchCoinIcon variant="green" size={18} outlined />
+        ) : (
+          <Icon name={notificationInfo.icon} size={16} color={toneStyles.iconColor} />
+        )}
       </div>
     );
 
-  const ContentSection = (
-    <div className="flex-grow min-w-0">
-      <div className="flex items-center gap-2 mb-1">
-        {hubDetails && (
-          <div className="inline-block">
-            <TopicAndJournalBadge name={hubDetails.name} slug={hubDetails.slug} size="sm" />
-          </div>
-        )}
-        {rscAmount && (
-          <div className="inline-block">
-            <CurrencyBadge
-              amount={rscAmount}
-              size="xs"
-              variant={isReceivedRSC ? 'received' : 'badge'}
-              showText
-              className="py-0.5"
-            />
-          </div>
-        )}
-      </div>
-      <div className="text-sm font-medium text-gray-900">
-        {message}
-        {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
-          <Tooltip
-            content={
-              <p className="text-xs text-left p-1">
-                ResearchHub incentivizes scientists to share ongoing updates as their experiments
-                progress. There are no format or length requirements - interesting insights
-                described with brevity are preferred for keeping our community of funders informed
-                and interested in your work.
-              </p>
-            }
-            position="bottom"
-            width="w-72"
-          >
-            <Button
-              variant="ghost"
-              className="text-xs font-medium text-gray-600 cursor-help ml-1 h-auto w-auto p-0 rounded-none"
-              style={{ borderBottom: '1px dotted currentColor' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Learn more
-            </Button>
-          </Tooltip>
-        )}
-      </div>
-      <div className="text-xs text-gray-500 mt-1">
-        {formatTimestamp(notification.createdDate.toISOString())}
-      </div>
-    </div>
+  const titleRow = (
+    <h3 className="min-w-0 break-words text-[15px] font-semibold text-gray-900">{title}</h3>
   );
 
-  const NavigationIndicator = hasNavigationUrl && (
-    <div className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0">
-      <ChevronRight size={16} />
-    </div>
+  const learnMore = notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
+    <Tooltip
+      content={
+        <p className="text-xs text-left p-1">
+          ResearchHub incentivizes scientists to share ongoing updates as their experiments
+          progress. There are no format or length requirements - interesting insights described with
+          brevity are preferred for keeping our community of funders informed and interested in your
+          work.
+        </p>
+      }
+      position="bottom"
+      width="w-72"
+    >
+      <Button
+        variant="ghost"
+        className="h-auto w-auto cursor-help rounded-none p-0 text-xs font-medium text-gray-600"
+        style={{ borderBottom: '1px dotted currentColor' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        Learn more
+      </Button>
+    </Tooltip>
   );
 
   return (
-    <div className="group">
-      <div
-        className={clsx(
-          'relative py-3 px-2 border-b border-gray-200',
-          notification.read
-            ? hasNavigationUrl
-              ? 'hover:bg-gray-50'
-              : ''
-            : hasNavigationUrl
-              ? 'bg-primary-50/40 hover:bg-primary-50/60'
-              : 'bg-primary-50/40',
-          hasNavigationUrl ? 'cursor-pointer' : ''
+    <div
+      className={cn(
+        'flex items-center gap-3 py-4 pl-2.5 pr-4 transition-colors',
+        hasNavigationUrl && 'cursor-pointer hover:bg-gray-50'
+      )}
+      {...navigationProps}
+    >
+      {/* Read rows keep the empty slot so every avatar lines up. */}
+      <span className="flex w-2 flex-shrink-0">
+        {isUnread && (
+          <>
+            <span className="h-2 w-2 rounded-full bg-primary-500" aria-hidden />
+            <span className="sr-only">Unread</span>
+          </>
         )}
-        onClick={() => {
-          if (hasNavigationUrl && formattedNavigationUrl) {
-            router.push(formattedNavigationUrl);
-          }
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            {IndicatorSection}
-            <div className="ml-2 flex gap-3 items-center">
-              {AvatarSection}
-              {ContentSection}
-            </div>
-          </div>
-          {hasNavigationUrl && NavigationIndicator}
+      </span>
+      {visual}
+      {/* The time sits beside the text when there's room and wraps below it on narrow screens. */}
+      <div className="ml-1 flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="min-w-0 flex-1 basis-64">
+          {titleRow}
+          <p className="mt-0.5 text-sm leading-snug text-gray-500">
+            {message.before}
+            {message.amount && (
+              <span className="font-semibold text-green-600">{message.amount}</span>
+            )}
+            {message.after}
+          </p>
+          {learnMore && <div className="mt-1">{learnMore}</div>}
         </div>
+        <span className="flex-shrink-0 text-xs text-gray-400">{timeAgo}</span>
       </div>
+      {hasNavigationUrl ? (
+        <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" aria-hidden />
+      ) : (
+        <span className="w-4 flex-shrink-0" aria-hidden />
+      )}
     </div>
   );
 }

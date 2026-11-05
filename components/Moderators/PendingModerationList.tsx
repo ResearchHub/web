@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { DeclineModal } from '@/components/Moderators/DeclineModal';
 import { FeedItemGrantWithApplicants } from '@/components/Feed/items/FeedItemGrantWithApplicants';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
-import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
 import {
   PendingModerationService,
   PENDING_MODULE_CONFIG,
@@ -69,21 +68,14 @@ function renderPendingGrantItem(entry: FeedEntry, footer: ReactNode): ReactNode 
 
 function renderFeedItem(module: PendingModule, entry: FeedEntry, footer: ReactNode): ReactNode {
   const commonProps = { entry, showActions: false, footer };
-  switch (module) {
-    case 'funding_opportunities':
-      return renderPendingGrantItem(entry, footer);
-    case 'journal_entries':
-      return <FeedItemPaper {...commonProps} />;
-    case 'proposals':
-    case 'posts':
-    default:
-      return <FeedItemPost {...commonProps} showHeader={false} />;
-  }
+  if (module === 'funding_opportunities') return renderPendingGrantItem(entry, footer);
+
+  return <FeedItemPost {...commonProps} showHeader={false} />;
 }
 
 export function PendingModerationList({ module }: Readonly<PendingModerationListProps>) {
   const { itemLabel } = PENDING_MODULE_CONFIG[module];
-  const { refresh: refreshCounts } = usePendingCounts();
+  const { refreshPendingCounts } = usePendingCounts();
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -109,7 +101,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    refreshCounts();
+    refreshPendingCounts({ force: true }).catch(() => undefined);
     await fetchEntries();
   };
 
@@ -119,7 +111,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
       await PendingModerationService.approve(module, id);
       toast.success(`${itemLabel} approved`);
       setEntries((prev) => prev.filter((e) => e.id !== entryId));
-      refreshCounts();
+      refreshPendingCounts({ force: true }).catch(() => undefined);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to approve ${itemLabel}`);
     } finally {
@@ -138,7 +130,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
       toast.success(`${itemLabel} declined`);
       setEntries((prev) => prev.filter((e) => e.id !== declineTarget.entryId));
       setDeclineTarget(null);
-      refreshCounts();
+      refreshPendingCounts({ force: true }).catch(() => undefined);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to decline ${itemLabel}`);
     } finally {

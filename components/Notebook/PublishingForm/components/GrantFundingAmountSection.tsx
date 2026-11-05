@@ -2,8 +2,10 @@ import { useFormContext } from 'react-hook-form';
 import { DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/form/Input';
 import { SectionHeader } from './SectionHeader';
+import { cn } from '@/utils/styles';
+import type { SectionProps } from './SectionProps';
 
-export function GrantFundingAmountSection() {
+export function GrantFundingAmountSection({ className }: SectionProps) {
   const {
     register,
     setValue,
@@ -11,10 +13,11 @@ export function GrantFundingAmountSection() {
   } = useFormContext();
 
   return (
-    <div className="py-3 px-6">
+    <div className={cn('py-3 px-6', className)}>
       <SectionHeader icon={DollarSign}>Funding Amount</SectionHeader>
       <div className="mt-2">
         <Input
+          data-testid="grant-amount-input"
           {...register('budget')}
           placeholder="10,000"
           type="text"
@@ -24,7 +27,7 @@ export function GrantFundingAmountSection() {
           rightElement={
             <div className="flex items-center pr-4 font-medium text-sm text-orange-600">USD</div>
           }
-          helperText="How much money you are giving for this funding opportunity"
+          helperText="How much money you are giving for this RFP"
           required
           onChange={(e) => {
             const numericValue = e.target.value.replaceAll(/\D/g, '');

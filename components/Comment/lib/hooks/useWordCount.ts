@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Editor } from '@tiptap/react';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { countWords } from '@/utils/stringUtils';
 
 interface UseWordCountOptions {

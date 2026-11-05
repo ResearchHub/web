@@ -1,9 +1,3 @@
-import {
-  Achievement,
-  AuthorSummaryStats,
-  transformAuthorAchievements,
-  transformAuthorSummaryStats,
-} from '@/types/authorProfile';
 import { ApiClient } from './client';
 import { User, transformUser } from '@/types/user';
 
@@ -31,16 +25,6 @@ interface AuthorProfileResponse {
   [key: string]: any; // Allow other properties
 }
 
-// Add this interface for the achievements response
-interface AuthorAchievementsResponse {
-  id: number;
-  name: string;
-  description: string;
-  image: string;
-  date_earned: string;
-  // Add any other fields that come from the API
-}
-
 export interface AuthorUpdatePayload {
   first_name?: string;
   last_name?: string;
@@ -57,11 +41,6 @@ export interface AuthorUpdatePayload {
   twitter?: string | null;
   orcid_id?: string | null;
   google_scholar?: string | null;
-}
-
-// Interface for the update payload parameters
-export interface AuthorUpdateParams extends AuthorUpdatePayload {
-  profileImageDataUrl?: string | null; // Add image data URL
 }
 
 export class AuthorService {
@@ -81,6 +60,14 @@ export class AuthorService {
 
   static async unfollowAuthor(authorId: number): Promise<void> {
     await ApiClient.post(`${this.AUTHORS_PATH}/${authorId}/unfollow/`);
+  }
+
+  /**
+   * Soft-delete an author profile. The API also deactivates any linked user.
+   */
+  static async deleteAuthor(authorId: number): Promise<void> {
+    await ApiClient.deleteNoContent(`${this.AUTHORS_PATH}/${authorId}/`);
+    delete this.authorCache[authorId];
   }
 
   /**
@@ -218,33 +205,5 @@ export class AuthorService {
    */
   static clearCache(): void {
     this.authorCache = {};
-  }
-
-  /**
-   * Fetch achievements for a specific author
-   */
-  static async getAuthorAchievements(authorId: number): Promise<Achievement[]> {
-    try {
-      const response = await ApiClient.get<Achievement[]>(
-        `${this.AUTHORS_PATH}/${authorId}/achievements/`
-      );
-      return transformAuthorAchievements(response);
-    } catch (error) {
-      console.error(`Error fetching achievements for author ID ${authorId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Fetch summary statistics for a specific author
-   */
-  static async getAuthorSummaryStats(authorId: number): Promise<AuthorSummaryStats> {
-    try {
-      const response = await ApiClient.get<any>(`${this.AUTHORS_PATH}/${authorId}/summary_stats/`);
-      return transformAuthorSummaryStats(response);
-    } catch (error) {
-      console.error(`Error fetching summary stats for author ID ${authorId}:`, error);
-      throw error;
-    }
   }
 }

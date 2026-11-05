@@ -1,8 +1,16 @@
 import { formatRSC } from './number';
+import type { Currency } from '@/types/root';
 
+/**
+ * Dollars short enough for a chip or a narrow cell: $850, $2.4K, $10.2K, $250K,
+ * $1.2M. Each unit starts where rounding would carry into it, so $999,999 reads
+ * $1M rather than $1000K.
+ */
 export function formatCompactAmount(usd: number): string {
-  if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
-  if (usd >= 1_000) return `$${Math.round(usd / 1_000)}K`;
+  const oneDecimal = (n: number) => parseFloat(n.toFixed(1));
+  if (usd >= 999_500) return `$${oneDecimal(usd / 1_000_000)}M`;
+  if (usd >= 99_500) return `$${Math.round(usd / 1_000)}K`;
+  if (usd >= 1_000) return `$${oneDecimal(usd / 1_000)}K`;
   return `$${Math.round(usd).toLocaleString()}`;
 }
 
@@ -42,4 +50,48 @@ export const formatCurrency = ({
   }
 
   return formatRSC({ amount, shorten });
+};
+
+export interface CurrencyAmount {
+  amount: number;
+  currency: Currency;
+}
+
+interface FormatCurrencyAmountOptions extends CurrencyAmount {
+  showUSD: boolean;
+  exchangeRate: number;
+  shorten?: boolean;
+}
+
+function toDisplayPrecision(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
+
+/**
+ * Formats an amount whose source currency is known, converting only when the
+ * preferred display currency differs. Without an exchange rate the amount stays
+ * in its source currency instead of being mislabeled.
+ */
+export const formatCurrencyAmount = ({
+  amount,
+  currency,
+  showUSD,
+  exchangeRate,
+  shorten = false,
+}: FormatCurrencyAmountOptions): string => {
+  const sourceIsUSD = currency === 'USD';
+  const inUSD = exchangeRate > 0 ? showUSD : sourceIsUSD;
+
+  let displayed = amount;
+  if (sourceIsUSD !== inUSD) {
+    displayed = sourceIsUSD ? amount / exchangeRate : amount * exchangeRate;
+  }
+
+  return formatCurrency({
+    amount: toDisplayPrecision(displayed),
+    showUSD: inUSD,
+    exchangeRate: 1,
+    skipConversion: true,
+    shorten,
+  });
 };

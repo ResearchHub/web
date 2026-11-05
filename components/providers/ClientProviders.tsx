@@ -8,23 +8,22 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import { ExchangeRateProvider } from '@/contexts/ExchangeRateContext';
 import { CurrencyPreferenceProvider } from '@/contexts/CurrencyPreferenceContext';
 import { AuthModalProvider } from '@/contexts/AuthModalContext';
+import { FundingPowerProvider } from '@/contexts/FundingPowerContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
-import { FollowProvider } from '@/contexts/FollowContext';
-import { ClickProvider } from '@/contexts/ClickContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import { ShareModalProvider } from '@/contexts/ShareContext';
 import ApmProvider from '@/components/ApmProvider';
-import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
-import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
+import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
+import { FundingNotesProvider } from '@/contexts/FundingNotesContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -35,46 +34,54 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
   return (
     <>
       <ApmProvider />
-      <ClickProvider>
-        <NavigationProvider>
-          <OnchainProvider>
-            <NextAuthProvider session={session}>
-              <ReferralProvider>
-                <AuthSharingWrapper>
-                  <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
+      <NavigationProvider>
+        <OnchainProvider>
+          <NextAuthProvider session={session}>
+            <ReferralProvider>
+              <AuthSharingWrapper>
+                <AuthModalProvider>
+                  <>
+                    <UserProvider>
+                      <PendingCountsProvider>
                         <VerificationProvider>
                           <ExchangeRateProvider>
                             <CurrencyPreferenceProvider>
-                              <NotificationProvider>
-                                <OrganizationProvider>
-                                  <PreferencesProvider>
-                                    <UserListsProvider>
-                                      <LeaderboardProvider>
+                              {/* Above the layouts because the left sidebar
+                                  carries the funding power card and mounts
+                                  outside PageLayout on some routes. */}
+                              <FundingPowerProvider>
+                                <NotificationProvider>
+                                  <OrganizationProvider>
+                                    {/* Above the layouts: every page's left
+                                        sidebar lists these documents, and
+                                        navigating must not fetch them again. */}
+                                    <FundingNotesProvider>
+                                      <UserListsProvider>
                                         <DismissedFeaturesProvider>
-                                          <FollowProvider>{children}</FollowProvider>
+                                          {/* Inside the user providers: the share
+                                              modal's post preview shows the sharer. */}
+                                          <ShareModalProvider>{children}</ShareModalProvider>
                                           <FeatureNotifications />
                                         </DismissedFeaturesProvider>
-                                      </LeaderboardProvider>
-                                    </UserListsProvider>
-                                  </PreferencesProvider>
-                                </OrganizationProvider>
-                              </NotificationProvider>
+                                      </UserListsProvider>
+                                    </FundingNotesProvider>
+                                  </OrganizationProvider>
+                                </NotificationProvider>
+                              </FundingPowerProvider>
                             </CurrencyPreferenceProvider>
                           </ExchangeRateProvider>
                         </VerificationProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                    </ShareModalProvider>
-                  </AuthModalProvider>
-                </AuthSharingWrapper>
-              </ReferralProvider>
-            </NextAuthProvider>
-            <ToasterProvider />
-          </OnchainProvider>
-        </NavigationProvider>
-      </ClickProvider>
+                      </PendingCountsProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
+                  </>
+                </AuthModalProvider>
+              </AuthSharingWrapper>
+            </ReferralProvider>
+          </NextAuthProvider>
+          <ToasterProvider />
+        </OnchainProvider>
+      </NavigationProvider>
     </>
   );
 }

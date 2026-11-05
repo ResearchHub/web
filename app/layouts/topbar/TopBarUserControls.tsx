@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
 import UserMenu from '@/components/menus/UserMenu';
 import type { User } from '@/types/user';
 import { TopBarSearchButton } from './TopBarSearchButton';
-import { formatRSC } from '@/utils/number';
+import { TopBarPublishButton } from './TopBarPublishButton';
+import { formatBadgeCount, formatRSC } from '@/utils/number';
 import { UserService } from '@/services/user.service';
 
 interface TopBarUserControlsProps {
@@ -15,19 +16,22 @@ interface TopBarUserControlsProps {
   unreadCount: number;
   pendingModerationCount: number;
   avatarSize: number;
-  profilePercent: number;
   onViewProfile: () => void;
   onAuth: () => void;
   onSearchOpen: () => void;
-  currentSearchQuery: string | null;
-  shortcutText: string;
   variant: 'mobile' | 'desktop';
+  /** Only the account menu (or the sign-up and log-in buttons): no search, notifications or ResearchCoin. */
+  accountOnly?: boolean;
 }
 
-const AvatarSkeleton = () => (
+const AvatarSkeleton = ({ className = 'w-8 h-8' }: { className?: string }) => (
   <div className="flex items-center">
-    <div className="bg-gray-300 rounded-full animate-pulse w-10 h-10" />
+    <div className={`${className} bg-gray-300 rounded-full animate-pulse`} />
   </div>
+);
+
+const DesktopIconSkeleton = () => (
+  <div className="h-9 w-9 bg-gray-100 rounded-md animate-pulse flex-shrink-0" />
 );
 
 export const TopBarUserControls = ({
@@ -36,19 +40,17 @@ export const TopBarUserControls = ({
   unreadCount,
   pendingModerationCount,
   avatarSize,
-  profilePercent,
   onViewProfile,
   onAuth,
   onSearchOpen,
-  currentSearchQuery,
-  shortcutText,
   variant,
+  accountOnly = false,
 }: TopBarUserControlsProps) => {
   const isMobile = variant === 'mobile';
   const rscDelta = user?.balanceHistory ?? 0;
   const [showDelta, setShowDelta] = useState(rscDelta > 0);
   const isModerator = !!user?.isModerator;
-  const pendingModerationLabel = pendingModerationCount > 9 ? '9+' : pendingModerationCount;
+  const pendingModerationLabel = formatBadgeCount(pendingModerationCount);
 
   useEffect(() => {
     setShowDelta(rscDelta > 0);
@@ -63,19 +65,18 @@ export const TopBarUserControls = ({
 
   if (isMobile) {
     return (
-      <div className="flex tablet:!hidden items-center space-x-1 h-full">
-        <button onClick={onSearchOpen} className="rounded-lg hover:bg-gray-100 p-2">
-          <SearchIcon className="text-gray-600 h-6 w-6" />
-        </button>
+      // Search is in the ☰ menu on a phone; the bar keeps Publish and the account.
+      <div className="flex tablet:!hidden items-center gap-2 h-full">
+        {!accountOnly && <TopBarPublishButton />}
 
         {isLoading ? (
-          <AvatarSkeleton />
+          <AvatarSkeleton className="w-10 h-10" />
         ) : user ? (
           <UserMenu
             user={user}
             onViewProfile={onViewProfile}
             avatarSize={avatarSize}
-            percent={profilePercent}
+            variant="panel"
           />
         ) : (
           <Button
@@ -93,81 +94,85 @@ export const TopBarUserControls = ({
 
   return (
     <div className="hidden tablet:!flex items-center space-x-2 h-full">
-      <TopBarSearchButton
-        onClick={onSearchOpen}
-        currentSearchQuery={currentSearchQuery}
-        shortcutText={shortcutText}
-      />
-
-      {user && (
-        <>
-          {isModerator && (
-            <Link href="/moderators" className="flex items-center">
-              <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
-                <Shield size={28} className="text-gray-500" />
-                {pendingModerationCount > 0 && (
-                  <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
-                    <span className="font-medium text-[9px]">{pendingModerationLabel}</span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          )}
-
-          <Link href="/researchcoin" className="flex items-center" onClick={handleRscClick}>
-            <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
-              <Icon name="rscThin" size={28} className="text-gray-500" />
-              {showDelta && (
-                <div className="absolute -top-1 -right-2 bg-green-100 text-green-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm whitespace-nowrap">
-                  + {formatRSC({ amount: Math.round(rscDelta * 100) / 100, shorten: true })}
-                </div>
-              )}
-            </div>
-          </Link>
-
-          <Link href="/notifications" className="flex items-center">
-            <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
-              <Icon name="notification" size={28} className="text-gray-500" />
-              {unreadCount > 0 && (
-                <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
-                  <span className="font-medium text-[9px]">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                </div>
-              )}
-            </div>
-          </Link>
-        </>
-      )}
+      {!accountOnly && <TopBarSearchButton onClick={onSearchOpen} />}
 
       {isLoading ? (
-        <AvatarSkeleton />
-      ) : user ? (
-        <UserMenu
-          user={user}
-          onViewProfile={onViewProfile}
-          avatarSize={avatarSize}
-          percent={profilePercent}
-        />
+        <>
+          {!accountOnly && (
+            <>
+              <DesktopIconSkeleton />
+              <DesktopIconSkeleton />
+            </>
+          )}
+          <AvatarSkeleton />
+        </>
       ) : (
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={onAuth}
-            className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
-          >
-            Log in
-          </Button>
-          <Button
-            variant="default"
-            size="md"
-            onClick={onAuth}
-            className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
-          >
-            Sign up
-          </Button>
-        </div>
+        <>
+          {user && !accountOnly && (
+            <>
+              {isModerator && (
+                <Link href="/moderators" className="flex items-center">
+                  <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
+                    <Shield size={28} className="text-gray-500" />
+                    {pendingModerationCount > 0 && (
+                      <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
+                        <span className="font-medium text-[9px]">{pendingModerationLabel}</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )}
+
+              <Link href="/researchcoin" className="flex items-center" onClick={handleRscClick}>
+                <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
+                  <Icon name="rscThin" size={28} className="text-gray-500" />
+                  {showDelta && (
+                    <div className="absolute -top-1 -right-2 bg-green-100 text-green-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                      + {formatRSC({ amount: Math.round(rscDelta * 100) / 100, shorten: true })}
+                    </div>
+                  )}
+                </div>
+              </Link>
+
+              <Link href="/notifications" className="flex items-center">
+                <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
+                  <Icon name="notification" size={28} className="text-gray-500" />
+                  {unreadCount > 0 && (
+                    <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
+                      <span className="font-medium text-[9px]">
+                        {formatBadgeCount(unreadCount)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            </>
+          )}
+
+          {user ? (
+            <UserMenu user={user} onViewProfile={onViewProfile} avatarSize={avatarSize} />
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={onAuth}
+                className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                data-testid="topbar-login-button"
+              >
+                Log in
+              </Button>
+              <Button
+                variant="default"
+                size="md"
+                onClick={onAuth}
+                className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
+              >
+                Sign up
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

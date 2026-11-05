@@ -49,7 +49,6 @@ const defaultValues: ExpertFinderFormValues = {
     expertiseLevel: [],
     region: DEFAULT_REGION,
     state: DEFAULT_STATE,
-    excludedSearchIds: [],
     inputType: 'full_content',
     searchName: '',
   },
@@ -177,7 +176,6 @@ export function ExpertFinderForm() {
           expertiseLevel,
           region,
           state,
-          excludedSearchIds: search.excludedSearchIds ?? [],
           inputType,
           searchName: current.advanced.searchName ?? '',
         },
@@ -218,7 +216,6 @@ export function ExpertFinderForm() {
           region: adv.region,
           state: adv.state,
         },
-        excluded_search_ids: adv.excludedSearchIds.length > 0 ? adv.excludedSearchIds : undefined,
         ...(adv.searchName?.trim() && { name: adv.searchName.trim() }),
         ...(trimmedAdditionalContext && { additional_context: trimmedAdditionalContext }),
       };

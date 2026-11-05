@@ -13,6 +13,8 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Switch } from '@/components/ui/Switch';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
+import { stripUsdSuffix } from './lib/display';
+import { getAvailableAndPromotionalRscBalance } from './lib/promotionalBalance';
 
 const EMPTY = '—';
 
@@ -33,10 +35,8 @@ export function StakingOverview() {
   }, []);
 
   const isOptedIn = user?.isStakingOptedIn ?? false;
-  // The endowment yields on the user's available RSC balance. If they hold
-  // none, the endowment effectively cannot earn, so we surface a dedicated
-  // empty state instead of a row of dashes.
-  const hasNoRsc = !!user && (user.balance ?? 0) <= 0;
+  // Available and promotional RSC both earn yield; funding credits do not.
+  const hasNoRsc = !!user && getAvailableAndPromotionalRscBalance(user) <= 0;
 
   const handleStakingToggle = async (checked: boolean) => {
     if (!user || isUpdatingStaking) return;
@@ -82,20 +82,26 @@ export function StakingOverview() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header */}
           <div className="px-4 sm:px-6 py-4 flex items-start justify-between gap-3 border-b border-gray-100">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <Sprout className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
               <div className="min-w-0">
                 <div className="text-sm sm:text-base font-bold text-gray-900">
                   <span className="sm:hidden">Endowment</span>
                   <span className="hidden sm:inline">ResearchHub Endowment</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  Earn funding credits by holding ResearchCoin
+                <div className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="sm:hidden">Earn credits by holding RSC</span>
+                  <span className="hidden sm:inline">
+                    Earn funding credits by holding ResearchCoin
+                  </span>
                 </div>
               </div>
             </div>
             {isUserLoading || !user ? (
-              <div className="flex items-center gap-2 shrink-0" aria-label="Loading earning status">
+              <div
+                className="flex items-center gap-2 shrink-0 self-start sm:self-auto"
+                aria-label="Loading earning status"
+              >
                 <span className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
                 <span className="h-6 w-11 bg-gray-200 rounded-full animate-pulse" />
               </div>
@@ -126,10 +132,10 @@ export function StakingOverview() {
                     className="bg-gray-900 text-white border-gray-900 text-left"
                     disableTouchClick
                   >
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
                       <span
                         className={cn(
-                          'text-xs font-semibold',
+                          'hidden sm:inline text-xs font-semibold',
                           switchChecked ? 'text-emerald-700' : 'text-gray-500'
                         )}
                       >
@@ -171,10 +177,12 @@ export function StakingOverview() {
                 value={
                   fundingCreditsTop ? (
                     <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">{fundingCreditsTop}</div>
+                      <div className="text-sm font-bold text-gray-900">
+                        {stripUsdSuffix(fundingCreditsTop)}
+                      </div>
                       {fundingCreditsBottom && (
                         <div className="text-[11px] text-gray-500 mt-0.5">
-                          {fundingCreditsBottom}
+                          {stripUsdSuffix(fundingCreditsBottom)}
                         </div>
                       )}
                     </div>
@@ -185,7 +193,8 @@ export function StakingOverview() {
                   )
                 }
               />
-              <StatRow
+              {/* TODO: Re-enable this when we have a way to display the multiplier that is clear */}
+              {/* <StatRow
                 label={
                   <span className="inline-flex items-center gap-1.5">
                     Current multiplier
@@ -217,7 +226,7 @@ export function StakingOverview() {
                   )
                 }
                 isLast
-              />
+              /> */}
             </ul>
           )}
         </div>
@@ -247,9 +256,9 @@ function StatRow({
 }) {
   const borderClass = isLast ? '' : 'border-b border-gray-100';
   return (
-    <li className={`px-4 sm:px-6 py-3 flex items-center justify-between gap-3 ${borderClass}`}>
-      <div className="text-xs sm:text-sm text-gray-700">{label}</div>
-      <div className="shrink-0">{value}</div>
+    <li className={`px-4 sm:px-6 py-3 flex items-start justify-between gap-3 ${borderClass}`}>
+      <div className="text-xs sm:text-sm text-gray-700 min-w-0 flex-1">{label}</div>
+      <div className="shrink-0 min-w-0 max-w-[52%] overflow-hidden text-right">{value}</div>
     </li>
   );
 }

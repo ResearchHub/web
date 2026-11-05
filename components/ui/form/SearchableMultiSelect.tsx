@@ -8,9 +8,10 @@ import {
 } from '@headlessui/react';
 import { Check, ChevronDown, X, Loader2 } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { SortableMultiSelectOptions } from './SortableMultiSelectOptions';
 
 export interface MultiSelectOption {
   value: string;
@@ -34,11 +35,20 @@ export interface SearchableMultiSelectProps {
   className?: string;
   debounceMs?: number;
   disabled?: boolean;
+  sortable?: boolean;
   minSearchLength?: number;
   renderOption?: (
     option: MultiSelectOption,
     context: { focus: boolean; selected: boolean }
   ) => React.ReactElement;
+  /** Seated inside the field, before the chosen options: an icon, say. */
+  leading?: React.ReactNode;
+  /** Shown in the search input once something is chosen; nothing by default. */
+  placeholderWhenFilled?: string;
+  /** Put the caret in the search input when the field mounts. */
+  autoFocus?: boolean;
+  /** Restyles the panel the results drop in. */
+  optionsClassName?: string;
 }
 
 export function SearchableMultiSelect({
@@ -54,8 +64,13 @@ export function SearchableMultiSelect({
   className,
   debounceMs = 300,
   disabled,
+  sortable = false,
   minSearchLength = 2,
   renderOption,
+  leading,
+  placeholderWhenFilled = '',
+  autoFocus = false,
+  optionsClassName,
 }: SearchableMultiSelectProps) {
   const id = useId();
   const [query, setQuery] = useState('');
@@ -149,7 +164,13 @@ export function SearchableMultiSelect({
   };
 
   const removeOption = (optionToRemove: MultiSelectOption) => {
+    setFocusedValueIndex(null);
     onChange(value.filter((option) => option.value !== optionToRemove.value));
+  };
+
+  const reorderOptions = (reorderedOptions: MultiSelectOption[]) => {
+    setFocusedValueIndex(null);
+    onChange(reorderedOptions);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -159,13 +180,20 @@ export function SearchableMultiSelect({
       if (focusedValueIndex === null) {
         setFocusedValueIndex(value.length - 1);
       } else {
-        removeOption(value[focusedValueIndex]);
-        setFocusedValueIndex(null);
+        const focusedOption = value[focusedValueIndex];
+        if (focusedOption) {
+          removeOption(focusedOption);
+        } else {
+          setFocusedValueIndex(null);
+        }
       }
     } else {
       setFocusedValueIndex(null);
     }
   };
+
+  const ComboboxContainer = sortable ? 'div' : 'label';
+  const SearchInputContainer = sortable ? 'label' : 'div';
 
   return (
     <div className="w-full">
@@ -178,7 +206,7 @@ export function SearchableMultiSelect({
         </label>
       )}
       <Combobox value={value} onChange={handleChange} by="value" multiple disabled={disabled}>
-        <label htmlFor={id} className="relative">
+        <ComboboxContainer htmlFor={sortable ? undefined : id} className="relative">
           <div
             ref={comboboxRef}
             className={cn(
@@ -190,36 +218,52 @@ export function SearchableMultiSelect({
               className
             )}
           >
-            {value.map((option, index) => (
-              <span
-                key={option.value}
-                className={cn(
-                  'inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md',
-                  focusedValueIndex === index ? 'bg-gray-200 ring-2 ring-gray-400' : 'bg-gray-100'
-                )}
-              >
-                {option.label}
-                <button
-                  type="button"
-                  onClick={() => removeOption(option)}
-                  className="text-gray-400 hover:text-gray-600"
+            {leading}
+            {sortable ? (
+              <SortableMultiSelectOptions
+                options={value}
+                focusedOptionIndex={focusedValueIndex}
+                disabled={disabled}
+                onRemove={removeOption}
+                onReorder={reorderOptions}
+              />
+            ) : (
+              value.map((option, index) => (
+                <span
+                  key={option.value}
+                  className={cn(
+                    'inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md',
+                    focusedValueIndex === index ? 'bg-gray-200 ring-2 ring-gray-400' : 'bg-gray-100'
+                  )}
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            ))}
-            <div className="flex-1 flex min-w-[120px] items-center">
+                  {option.label}
+                  <button
+                    type="button"
+                    onClick={() => removeOption(option)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))
+            )}
+            <SearchInputContainer
+              htmlFor={sortable ? id : undefined}
+              className="flex-1 flex min-w-[120px] items-center"
+            >
               <ComboboxInput
                 id={id}
+                aria-label={sortable ? label || placeholder : undefined}
                 autoComplete="off"
+                autoFocus={autoFocus}
                 className="w-full bg-transparent border-none p-1 text-sm outline-none"
-                placeholder={value.length === 0 ? placeholder : ''}
+                placeholder={value.length === 0 ? placeholder : placeholderWhenFilled}
                 onChange={(e) => setQuery(e.target.value.trim())}
                 onKeyDown={handleKeyDown}
                 displayValue={() => query}
               />
               {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400 mr-2" />}
-            </div>
+            </SearchInputContainer>
             {!onAsyncSearch && (
               <ComboboxButton className="absolute right-2 top-1/2 -translate-y-1/2">
                 <ChevronDown className="h-4 w-4" />
@@ -230,7 +274,8 @@ export function SearchableMultiSelect({
           <ComboboxOptions
             className={cn(
               'absolute z-10 mt-1 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60',
-              renderOption ? 'py-1' : 'p-2'
+              renderOption ? 'py-1' : 'p-2',
+              optionsClassName
             )}
             style={{ width: `${dropdownWidth}px` }}
           >
@@ -285,7 +330,7 @@ export function SearchableMultiSelect({
               );
             })()}
           </ComboboxOptions>
-        </label>
+        </ComboboxContainer>
       </Combobox>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       {helperText && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}

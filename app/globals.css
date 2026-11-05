@@ -6,6 +6,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Desktop/tablet title row. Mobile override below. */
+  --top-bar-height: 4rem;
+}
+
+/* Mobile title row matches the existing 70px bar (logo 44px / avatar 40px). */
+@media (max-width: 767px) {
+  :root {
+    --top-bar-height: 4.375rem;
+  }
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -32,6 +41,37 @@ body {
     sans-serif;
 }
 
+/* Height for the app shell, which fills the viewport and hosts its own
+   scrollport rather than scrolling the document.
+
+   Must not be `100vh`. On iOS Safari (and Chrome on Android) `vh` resolves to
+   the *large* viewport — the height the page would have with the browser
+   toolbars retracted — so a `100vh` shell leaves the document itself 60-115px
+   taller than what is actually visible while the toolbars show. That slack is
+   a real but invisible document scroll range, and because a touch drag that
+   starts on a `position: fixed` element scrolls the document instead of the
+   nested scrollport, any drag over the fixed bottom chrome spends that slack
+   and then dead-ends without the feed ever moving.
+
+   `svh` is the small viewport, so the document has no slack to spend. It is
+   also stable, unlike `dvh`, which would resize the shell mid-scroll as the
+   toolbars animate.
+
+   The `@supports` guard rather than two `height` declarations in one block:
+   the optimizer drops a plain fallback whenever its targets all understand
+   `svh`, and a browser that then falls through to `height: auto` doesn't
+   degrade to the old behaviour, it collapses the shell — the scrollport stops
+   scrolling internally, taking the scroll listeners hung off it with it. */
+.app-shell-viewport {
+  height: 100vh;
+}
+
+@supports (height: 100svh) {
+  .app-shell-viewport {
+    height: 100svh;
+  }
+}
+
 @layer utilities {
   .animate-in {
     animation: slideIn 0.2s ease-out;
@@ -48,6 +88,28 @@ body {
     }
   }
 
+  /* The workspace page's lists and panes arrive by opacity alone, while the
+     logo, the Publish button and the top bar around them hold still. Not
+     `.animate-in`, which also slides. */
+  .workspace-fade-in {
+    animation: workspaceFadeIn 0.2s ease-out;
+  }
+
+  @keyframes workspaceFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workspace-fade-in {
+      animation: none;
+    }
+  }
+
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
@@ -57,6 +119,29 @@ body {
   .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+  }
+
+  /* Scrollbar visible only while the element is hovered */
+  .scrollbar-on-hover {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-on-hover:hover {
+    scrollbar-color: rgb(209 213 219) transparent; /* gray-300 */
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-on-hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(209 213 219); /* gray-300 */
   }
 }
 
@@ -80,37 +165,84 @@ body {
   font-weight: 600;
 }
 
-/* Custom animation for slow spin */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* A post's editor leaves its padding to the card around it (PostBlockEditor). */
+.post-content .ProseMirror {
+  padding: 0 !important;
 }
 
-.animate-spin-slow {
-  animation: spin-slow 3s linear infinite;
+/*
+ * Comment and review text previewed in a feed card, as plain words: the author's
+ * formatting (headings, bold, italics, underlines, strikes, quotes, code, Quill
+ * sizes) is dropped so every preview reads at the card's own size and weight and
+ * never outweighs its headline. Links keep their colour so they still read as
+ * links. The side panel that "Read more" opens shows the text as written. The
+ * doubled class outranks CommentReadOnly's own `!text-[14px]` and QuillRenderer's
+ * global heading sizes, both of which are `!important`.
+ */
+.feed-comment-preview.feed-comment-preview
+  :is(
+    p,
+    li,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    blockquote,
+    pre,
+    span,
+    strong,
+    b,
+    em,
+    i,
+    u,
+    s,
+    del,
+    mark,
+    a,
+    code
+  ) {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+  font-family: inherit !important;
+  font-weight: inherit !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+}
+
+.feed-comment-preview.feed-comment-preview
+  :is(h1, h2, h3, h4, h5, h6, blockquote, pre, strong, b, em, i, u, s, del, mark, code) {
+  color: inherit !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.feed-comment-preview.feed-comment-preview pre {
+  white-space: pre-wrap !important;
+}
+
+/* Typography's backticks around inline code and quotation marks around quotes. */
+.feed-comment-preview.feed-comment-preview :is(code, blockquote p)::before,
+.feed-comment-preview.feed-comment-preview :is(code, blockquote p)::after {
+  content: none !important;
+}
+
+.feed-comment-preview.feed-comment-preview
+  :is(p, ul, ol, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, hr) {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
 }
 
 /* Search result highlighting */
 mark {
-  background-color: #FEF9C3;
+  background-color: #fef9c3;
   color: inherit;
   padding: 0.125rem 0;
   border-radius: 0.125rem;
   font-weight: 500;
-}
-
-/* When the EndowmentPromoBanner is rendered above the TopBar (mobile only),
-   the scroll content container needs extra top padding to clear the banner +
-   topbar stack. The banner is hidden at >= 768px (tablet:!hidden), so the
-   override only applies below that breakpoint. 56px is the banner height
-   (icon row + stacked title/sub at the chosen typography); combined with
-   the existing 64px topbar padding it lands at 120px. */
-@media (max-width: 767px) {
-  .page-layout-with-promo-banner {
-    padding-top: 120px !important;
-  }
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 
 const optionSchema = z.object({
   value: z.string(),
@@ -13,7 +14,7 @@ const parseBudget = (budget?: string): number =>
   Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
 
 const validatePreregistration = (data: any, ctx: z.RefinementCtx) => {
-  if (parseBudget(data.budget) <= 0) {
+  if (!isAwardMechanism(data.selectedGrant?.fundingMechanism) && parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding goal must be greater than 0');
   }
   if (!data.coverImage?.file && !data.coverImage?.url) {
@@ -31,18 +32,23 @@ const validateGrant = (data: any, ctx: z.RefinementCtx) => {
   if (parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding amount must be greater than 0');
   }
+  if (!data.coverImage?.file && !data.coverImage?.url) {
+    addIssue(ctx, 'coverImage', 'Cover image is required for a Request for Proposal');
+  }
 };
 
 export const publishingFormSchema = z
   .object({
     workId: z.string().optional(),
-    articleType: z.enum(['discussion', 'preregistration', 'grant'] as const, {
-      required_error: 'Please select a work type',
-      invalid_type_error: 'Please select a valid work type',
-    }),
+    articleType: z.enum(
+      ['changelog', 'discussion', 'preregistration', 'grant', 'registered_report'] as const,
+      {
+        required_error: 'Please select a work type',
+        invalid_type_error: 'Please select a valid work type',
+      }
+    ),
     authors: z.array(optionSchema),
     contacts: z.array(optionSchema),
-    topics: z.array(optionSchema),
     budget: z.string().optional(),
     rewardFunders: z.boolean(),
     nftArt: z.any().nullable(),
@@ -54,25 +60,23 @@ export const publishingFormSchema = z
     coverImage: z
       .object({
         file: z.instanceof(File).nullable().optional(),
+        key: z.string().nullable().optional(),
         url: z.string().nullable().optional(),
       })
       .nullable()
       .optional(),
-    isJournalEnabled: z.boolean().optional(),
     selectedNonprofit: z.any().nullable().optional(),
     selectedGrant: z.any().nullable().optional(),
     departmentLabName: z.string().optional(),
     shortDescription: z.string().optional(),
     organization: z.string().optional(),
     applicationDeadline: z.date().nullable().optional(),
+    fundraiseEndDays: z.enum(['30', '60', '90']).optional(),
     applicationVisibility: z.enum(['OPTIONAL', 'PRIVATE', 'PUBLIC'] as const).optional(),
+    fundingMechanism: z.enum(['FUNDING', 'AWARD'] as const).optional(),
     isPublic: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.topics.length === 0) {
-      addIssue(ctx, 'topics', 'At least one topic is required');
-    }
-
     if (data.articleType === 'grant') {
       if (data.contacts.length === 0) {
         addIssue(ctx, 'contacts', 'At least one contact is required for grants');
@@ -84,10 +88,16 @@ export const publishingFormSchema = z
     if (data.articleType === 'preregistration') {
       validatePreregistration(data, ctx);
     }
+    if (data.articleType === 'registered_report') {
+      if (!data.coverImage?.file && !data.coverImage?.url) {
+        addIssue(ctx, 'coverImage', 'Cover image is required for a registered report');
+      }
+    }
     if (data.articleType === 'grant') {
       validateGrant(data, ctx);
     }
   });
 
 export type PublishingFormData = z.infer<typeof publishingFormSchema>;
+export type ArticleType = PublishingFormData['articleType'];
 export type SelectOption = z.infer<typeof optionSchema>;

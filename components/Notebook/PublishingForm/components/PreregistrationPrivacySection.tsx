@@ -3,7 +3,8 @@ import { Lock, AlertTriangle } from 'lucide-react';
 import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { SectionHeader } from './SectionHeader';
 
-const OPTIONS = [
+/** Who can see a proposal; shared with the workspace's publish dialog. */
+export const PROPOSAL_VISIBILITY_OPTIONS = [
   {
     value: 'public',
     label: 'Public',
@@ -16,7 +17,8 @@ const OPTIONS = [
   },
 ];
 
-function useIsLockedPrivate() {
+/** The chosen RFP only takes private proposals, so the proposal cannot be public. */
+export function useIsLockedPrivate() {
   const { watch } = useFormContext();
   const selectedGrant = watch('selectedGrant');
   return selectedGrant?.applicationVisibility === 'PRIVATE';
@@ -67,7 +69,7 @@ export function PreregistrationPrivacySection() {
       <SectionHeader icon={Lock}>Visibility</SectionHeader>
       <div className="mt-2">
         <RadioGroup
-          options={OPTIONS}
+          options={PROPOSAL_VISIBILITY_OPTIONS}
           value={value}
           onChange={(next) => setValue('isPublic', next === 'public', { shouldValidate: true })}
           size="sm"
@@ -76,7 +78,7 @@ export function PreregistrationPrivacySection() {
           <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
             <p className="text-xs text-amber-800">
-              In order to submit a private proposal, you must select a funding opportunity.
+              In order to submit a private proposal, you must select an RFP.
             </p>
           </div>
         )}

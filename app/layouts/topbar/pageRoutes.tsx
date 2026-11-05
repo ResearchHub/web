@@ -3,38 +3,29 @@ import {
   faHouse as faHouseLight,
   faBookmark as faBookmarkLight,
   faCommentsQuestion,
-  faGrid3 as faGrid3Light,
-  faMagnifyingGlass,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity, Settings } from 'lucide-react';
-import Image from 'next/image';
+import { Shield, Users, Activity, Settings } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
-import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
-import { toTitleCase } from '@/utils/stringUtils';
-import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { HOME_TAB_PATHS, isHomeTabPath } from '@/hooks/useFundTabs';
 
 export interface PageInfo {
   title: string;
+  /** Stands in for the title where the bar has no room for it: phones and narrow tablets. */
+  compactTitle?: string;
   icon?: React.ReactNode;
+  /** The page names what it has open and has not yet: a placeholder stands in. */
+  loading?: boolean;
 }
 
 export const ROOT_NAVIGATION_PATHS = new Set([
-  '/',
-  '/following',
-  '/latest',
-  '/popular',
-  '/for-you',
-  '/feed',
-  '/earn',
-  '/fund',
-  '/fund/proposals',
+  ...HOME_TAB_PATHS,
+  '/peer-review',
   '/journal',
   '/notebook',
-  '/browse',
-  '/leaderboard',
   '/lists',
   '/settings',
   '/endowment',
+  '/my-funding',
 ]);
 
 export const isRootNavigationPage = (pathname: string): boolean =>
@@ -47,25 +38,26 @@ interface RouteRule {
 
 const ROUTE_RULES: RouteRule[] = [
   {
-    match: (p) => ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(p),
+    match: (p) => isHomeTabPath(p),
     getInfo: () => ({
-      title: 'Home',
+      title: 'Fund Scientific Research',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     }),
   },
   {
-    match: (p) => p === '/browse',
+    match: (p) => p === '/my-funding',
     getInfo: () => ({
-      title: 'Browse',
-      icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
+      title: 'My Funding',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {
-    match: (p) => p === '/search',
-    getInfo: () => ({
-      title: 'Search',
-      icon: <FontAwesomeIcon icon={faMagnifyingGlass} fontSize={24} color="#000" />,
-    }),
+    // Not a root navigation page, so the top bar gives it the back arrow:
+    // that arrow is the way out of the workspace. It always names what it has
+    // open (a document, or the draft it will start) rather than itself, so
+    // until it does, the title is a placeholder rather than "Workspace".
+    match: (p) => p === '/workspace',
+    getInfo: () => ({ title: '', loading: true }),
   },
   {
     match: (p) => p === '/notifications',
@@ -89,16 +81,9 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/paper/create'),
+    match: (p) => p.startsWith('/peer-review'),
     getInfo: () => ({
-      title: 'Submit your paper',
-      icon: <Icon name="submit2" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/earn'),
-    getInfo: () => ({
-      title: 'Earn',
+      title: 'Peer Review',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     }),
   },
@@ -110,16 +95,9 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/leaderboard'),
-    getInfo: () => ({
-      title: 'Leaderboard',
-      icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/moderators'),
     getInfo: () => ({
-      title: 'Moderation Dashboard',
+      title: 'Moderation',
       icon: <Shield size={24} className="text-gray-900" />,
     }),
   },
@@ -152,9 +130,10 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/fund' || p.startsWith('/fund/') || p.startsWith('/grant/'),
+    match: (p) => p.startsWith('/rfp/'),
     getInfo: () => ({
-      title: 'Fund',
+      title: 'Request for Proposal',
+      compactTitle: 'RFP',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
@@ -163,6 +142,13 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Proposal',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p.startsWith('/report/'),
+    getInfo: () => ({
+      title: 'Registered Report',
+      icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
     }),
   },
   {
@@ -199,42 +185,6 @@ const ROUTE_RULES: RouteRule[] = [
       title: 'Profile',
       icon: <Icon name="profile" size={24} className="text-gray-900" />,
     }),
-  },
-  {
-    match: (p) => p.startsWith('/topic/'),
-    getInfo: (pathname) => {
-      const topicSlug = pathname.split('/topic/')[1]?.split('/')[0];
-      if (!topicSlug) return { title: '' };
-
-      const preprintLogo = getSourceLogo(topicSlug);
-      if (preprintLogo && preprintLogo !== 'rhJournal2') {
-        return {
-          title: '',
-          icon: (
-            <Image
-              src={preprintLogo}
-              alt={getPreprintDisplayName(topicSlug)}
-              width={80}
-              height={24}
-              className="object-contain"
-              style={{ maxHeight: '24px' }}
-            />
-          ),
-        };
-      }
-
-      const emoji = getTopicEmoji(topicSlug);
-      const topicName = toTitleCase(topicSlug.replace(/-/g, ' '));
-
-      return {
-        title: topicName,
-        icon: emoji ? (
-          <span className="text-2xl">{emoji}</span>
-        ) : (
-          <Hash className="w-6 h-6 text-gray-400" />
-        ),
-      };
-    },
   },
 ];
 

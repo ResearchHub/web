@@ -1,5 +1,11 @@
 import { ApiClient } from './client';
+import { withShareToken } from '@/lib/shareToken/url';
 import { Work, transformPost } from '@/types/work';
+import {
+  transformRegisteredReportWorkResponse,
+  type RawRegisteredReportWorkResponse,
+  type RegisteredReportWorkResponse,
+} from '@/types/registeredReport';
 import sanitizeHtml, { Attributes } from 'sanitize-html';
 
 interface GetContentOptions {
@@ -36,20 +42,47 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
   };
 };
 
-export type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT';
+export type ArticleTypeApi =
+  | 'CHANGELOG'
+  | 'DISCUSSION'
+  | 'PREREGISTRATION'
+  | 'GRANT'
+  | 'REGISTERED_REPORT';
 
 export const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
+  changelog: 'CHANGELOG',
   preregistration: 'PREREGISTRATION',
   grant: 'GRANT',
   discussion: 'DISCUSSION',
+  registered_report: 'REGISTERED_REPORT',
 };
+
+export interface ChangelogPage {
+  entries: Work[];
+  hasMore: boolean;
+  total: number;
+}
+
+export interface LatestChangelog {
+  id: number;
+  createdDate: string;
+}
 
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
-  static async get(id: string): Promise<Work> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+  static async get(id: string, options?: { shareToken?: string | null }): Promise<Work> {
+    const response = await ApiClient.get<any>(
+      withShareToken(`${this.BASE_PATH}/${id}/`, options?.shareToken)
+    );
     return transformPost(response);
+  }
+
+  static async getRegisteredReportWork(id: string | number): Promise<RegisteredReportWorkResponse> {
+    const response = await ApiClient.get<RawRegisteredReportWorkResponse>(
+      `${this.BASE_PATH}/${id}/registered_report_work/`
+    );
+    return transformRegisteredReportWorkResponse(response);
   }
 
   static async getPublic(id: string): Promise<Work> {
@@ -57,8 +90,39 @@ export class PostService {
     return transformPost(response);
   }
 
+  /** Published changelog entries, newest first. */
+  static async getChangelog(
+    params: { page?: number; pageSize?: number } = {}
+  ): Promise<ChangelogPage> {
+    const query = new URLSearchParams({
+      page: String(params.page ?? 1),
+      page_size: String(params.pageSize ?? 20),
+    });
+    const response = await ApiClient.getPublic<ProposalListResponse>(
+      `${this.BASE_PATH}/changelog/?${query}`
+    );
+    return {
+      entries: response.results.map(transformPost),
+      hasMore: !!response.next,
+      total: response.count,
+    };
+  }
+
+  /** The newest changelog entry, or null when none is published. */
+  static async getLatestChangelog(): Promise<LatestChangelog | null> {
+    const response = await ApiClient.getPublic<{ id: number; created_date: string } | null>(
+      `${this.BASE_PATH}/changelog/latest/`
+    );
+    return response ? { id: response.id, createdDate: response.created_date } : null;
+  }
+
   static async upsert(payload: any): Promise<Work> {
     const rawResponse = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
+    return transformPost(rawResponse);
+  }
+
+  static async makePublic(id: string | number): Promise<Work> {
+    const rawResponse = await ApiClient.post<any>(`${this.BASE_PATH}/${id}/make_public/`);
     return transformPost(rawResponse);
   }
 

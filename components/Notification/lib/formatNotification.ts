@@ -1,185 +1,288 @@
 import { type IconName } from '@/components/ui/icons/Icon';
 import { Notification } from '@/types/notification';
-import { formatUsdValue, formatRSC } from '@/utils/number';
+import { formatCurrencyAmount, type CurrencyAmount } from '@/utils/currency';
+import { formatRSC } from '@/utils/number';
 import { buildWorkUrl } from '@/utils/url';
+import { stripHtml, truncateText } from '@/utils/stringUtils';
 
 export interface NotificationTypeInfo {
   icon: IconName;
   useAvatar: boolean;
+  title: string;
 }
 
 const PROPOSAL_UPDATE_REWARD_USD = 50;
 
-export interface HubDetails {
-  name: string;
-  slug: string;
-  imageUrl?: string;
-}
-
-const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
+const NOTIFICATION_TYPE_MAP = {
   // Account notifications
   IDENTITY_VERIFICATION_UPDATED: {
     icon: 'verify2',
     useAvatar: false,
+    title: 'Verification updated',
   },
   ACCOUNT_VERIFIED: {
     icon: 'verify2',
     useAvatar: false,
+    title: 'Account verified',
   },
 
   // Bounty-related notifications
   BOUNTY_FOR_YOU: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Bounty opportunity',
   },
   BOUNTY_EXPIRING_SOON: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty expiring soon',
   },
   BOUNTY_ENTERED_ASSESSMENT: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty in assessment',
   },
   BOUNTY_ASSESSMENT_EXPIRING_SOON: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty assessment expiring',
   },
   BOUNTY_SOLUTION_IN_ASSESSMENT: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'Bounty solution in review',
   },
   BOUNTY_HUB_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Bounty expiring soon',
   },
   BOUNTY_PAYOUT: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Bounty payout',
   },
   FLAGGED_CONTENT_VERDICT: {
     icon: 'report',
     useAvatar: false,
+    title: 'Moderation decision',
   },
 
   // Paper-related notifications
   PAPER_CLAIM_PAYOUT: {
     icon: 'claimPaper',
     useAvatar: false,
+    title: 'Paper claim approved',
   },
   PAPER_CLAIMED: {
     icon: 'submit2',
     useAvatar: false,
+    title: 'Paper claim submitted',
   },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
     useAvatar: false,
+    title: 'New publications',
   },
 
   // Comment and thread notifications
   COMMENT: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New comment',
   },
   COMMENT_ON_COMMENT: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New reply',
   },
   COMMENT_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New thread reply',
   },
   REPLY_ON_THREAD: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New thread reply',
   },
   COMMENT_USER_MENTION: {
     icon: 'profile',
     useAvatar: true,
+    title: 'You were mentioned',
   },
   THREAD_ON_DOC: {
     icon: 'comment',
     useAvatar: true,
+    title: 'New thread',
   },
 
   // Financial notifications
   RSC_WITHDRAWAL_COMPLETE: {
     icon: 'wallet1',
     useAvatar: false,
+    title: 'Withdrawal complete',
   },
   FUNDRAISE_PAYOUT: {
     icon: 'fundYourRsc2',
     useAvatar: false,
+    title: 'Fundraise payout',
+  },
+  FUNDRAISE_CONTRIBUTION: {
+    icon: 'fund',
+    useAvatar: true,
+    title: 'New contribution',
+  },
+  FUNDING_POOL_CONTRIBUTION: {
+    icon: 'fund',
+    useAvatar: true,
+    title: 'New contribution',
   },
   RSC_SUPPORT_ON_DIS: {
     icon: 'fund',
     useAvatar: true,
+    title: 'Comment supported',
   },
   RSC_SUPPORT_ON_DOC: {
     icon: 'fund',
     useAvatar: true,
+    title: 'Peer review supported',
   },
 
   // Proposal notifications
   PREREGISTRATION_UPDATE: {
     icon: 'edit',
     useAvatar: true,
+    title: 'Proposal update',
   },
   PREREGISTRATION_UPDATE_REMINDER: {
     icon: 'earn1',
     useAvatar: false,
+    title: 'Proposal update reminder',
   },
 
   // Grant moderation notifications
   GRANT_APPROVED: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'RFP approved',
   },
   GRANT_DECLINED: {
     icon: 'openGrant',
     useAvatar: false,
+    title: 'RFP declined',
+  },
+
+  // RFP owner notifications
+  GRANT_APPLICATION_SUBMITTED: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'New proposal submitted',
+  },
+  PROPOSAL_PEER_REVIEW: {
+    icon: 'openGrant',
+    useAvatar: true,
+    title: 'Peer review on proposal',
   },
 
   // Content moderation notifications (papers, posts, proposals)
   CONTENT_APPROVED: {
     icon: 'verify2',
     useAvatar: false,
+    title: 'Content approved',
   },
   CONTENT_DECLINED: {
     icon: 'report',
     useAvatar: false,
+    title: 'Content declined',
   },
 
   // RSC yield notifications
   RSC_YIELD_OPT_IN: {
     icon: 'fundYourRsc2',
     useAvatar: false,
+    title: 'Earn yield on RSC',
   },
+
+  // Funding credits reminder
+  FUNDING_CREDITS_REMINDER: {
+    icon: 'fundYourRsc2',
+    useAvatar: false,
+    title: 'You earned funding credits!',
+  },
+} satisfies Record<string, NotificationTypeInfo>;
+
+const DEFAULT_NOTIFICATION_INFO: NotificationTypeInfo = {
+  icon: 'notification',
+  useAvatar: false,
+  title: 'Notification',
 };
 
-export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
+/** Color family a notification's icon is tinted in. */
+export type NotificationTone = 'blue' | 'green' | 'amber' | 'violet' | 'red';
+
+const NOTIFICATION_TONE_BY_TYPE: Partial<
+  Record<keyof typeof NOTIFICATION_TYPE_MAP, NotificationTone>
+> = {
+  BOUNTY_PAYOUT: 'green',
+  RSC_WITHDRAWAL_COMPLETE: 'green',
+  FUNDRAISE_PAYOUT: 'green',
+  FUNDRAISE_CONTRIBUTION: 'green',
+  FUNDING_POOL_CONTRIBUTION: 'green',
+  RSC_SUPPORT_ON_DIS: 'green',
+  RSC_SUPPORT_ON_DOC: 'green',
+  RSC_YIELD_OPT_IN: 'green',
+  FUNDING_CREDITS_REMINDER: 'green',
+
+  BOUNTY_FOR_YOU: 'amber',
+  BOUNTY_EXPIRING_SOON: 'amber',
+  BOUNTY_ENTERED_ASSESSMENT: 'amber',
+  BOUNTY_ASSESSMENT_EXPIRING_SOON: 'amber',
+  BOUNTY_SOLUTION_IN_ASSESSMENT: 'amber',
+  BOUNTY_HUB_EXPIRING_SOON: 'amber',
+  PREREGISTRATION_UPDATE_REMINDER: 'amber',
+
+  GRANT_APPROVED: 'violet',
+  GRANT_APPLICATION_SUBMITTED: 'violet',
+  PROPOSAL_PEER_REVIEW: 'violet',
+
+  GRANT_DECLINED: 'red',
+  CONTENT_DECLINED: 'red',
+  FLAGGED_CONTENT_VERDICT: 'red',
+};
+
+export function getNotificationTone(notification: Notification): NotificationTone {
   return (
-    NOTIFICATION_TYPE_MAP[notification.type] || {
-      icon: 'notification',
-      useAvatar: false,
-    }
+    NOTIFICATION_TONE_BY_TYPE[notification.type as keyof typeof NOTIFICATION_TYPE_MAP] ?? 'blue'
   );
 }
 
-export function getHubDetailsFromNotification(notification: Notification): HubDetails | null {
-  // For hub-related notifications, extract hub details
-  if (notification.extra?.hub) {
-    try {
-      return {
-        name: notification.extra.hub.name || '',
-        slug: notification.extra.hub.slug || '',
-        imageUrl: undefined,
-      };
-    } catch (error) {
-      console.error('Failed to parse hub details', error);
-      return null;
-    }
+function formatTypeFallbackTitle(type: string): string {
+  return type
+    .split('_')
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function lookupNotificationTypeInfo(type: string): NotificationTypeInfo | undefined {
+  if (type in NOTIFICATION_TYPE_MAP) {
+    return NOTIFICATION_TYPE_MAP[type as keyof typeof NOTIFICATION_TYPE_MAP];
   }
-  return null;
+  return undefined;
+}
+
+export function getNotificationTitle(notification: Notification): string {
+  if (notification.type === 'RSC_SUPPORT_ON_DOC' && !isPeerReviewTip(notification)) {
+    return 'Post supported';
+  }
+  return (
+    lookupNotificationTypeInfo(notification.type)?.title ??
+    formatTypeFallbackTitle(notification.type)
+  );
+}
+
+export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
+  return lookupNotificationTypeInfo(notification.type) ?? DEFAULT_NOTIFICATION_INFO;
 }
 
 /**
@@ -204,6 +307,23 @@ export function getRSCAmountFromNotification(notification: Notification): number
   }
 
   return null;
+}
+
+/** Return the notification's RSC amount, if it has one. */
+export function getNotificationAmount(notification: Notification): CurrencyAmount | null {
+  const amount = getRSCAmountFromNotification(notification);
+  return amount ? { amount, currency: 'RSC' } : null;
+}
+
+/**
+ * `RSC_SUPPORT_ON_DOC` used to mean a tip on a post; it now means a tip on a peer review.
+ * Only peer review tips link to the reviews tab.
+ */
+function isPeerReviewTip(notification: Notification): boolean {
+  return (
+    notification.type === 'RSC_SUPPORT_ON_DOC' &&
+    !!notification.navigationUrl?.replace(/\/$/, '').endsWith('/reviews')
+  );
 }
 
 /**
@@ -238,10 +358,14 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     return '/researchcoin';
   }
 
+  if (notification.type === 'FUNDING_CREDITS_REMINDER') {
+    return '/fund/proposals';
+  }
+
   if (notification.type === 'GRANT_APPROVED' && notification.work) {
     const { id, slug } = notification.work;
     if (id && slug) {
-      return `/grant/${id}/${slug}`;
+      return `/rfp/${id}/${slug}`;
     }
   }
 
@@ -324,31 +448,124 @@ function getBountyTypeAction(bountyType: string): string {
   }
 }
 
+/** A notification message, split around the amount so it can be styled separately. */
+export interface NotificationMessage {
+  before: string;
+  amount: string | null;
+  after: string;
+}
+
+/** The text on either side of the amount in a sentence that names it. */
+type AmountSentence = [before: string, after: string];
+
+function getUserName(notification: Notification): string {
+  return notification.actionUser?.fullName ?? 'A user';
+}
+
+function getTruncatedTitle(notification: Notification): string {
+  return truncateText(stripHtml(notification.work?.title || 'an item'), 60);
+}
+
+function formatAmount(amount: CurrencyAmount, exchangeRate: number, showUSD: boolean): string {
+  const formatted = formatCurrencyAmount({ ...amount, showUSD, exchangeRate, shorten: true });
+  const inUSD = exchangeRate > 0 && showUSD;
+  return inUSD ? formatted : `${formatted} RSC`;
+}
+
+/**
+ * Build the notification message. Types whose sentence names the amount place it
+ * inline; any other notification with an amount ends in "for <amount>".
+ */
 export function formatNotificationMessage(
   notification: Notification,
   exchangeRate: number = 0,
   showUSD: boolean = true
-): string {
-  const { type, actionUser, work } = notification;
+): NotificationMessage {
+  const rawAmount = getNotificationAmount(notification);
+  const text = buildMessageText(notification, exchangeRate, showUSD);
+  if (!rawAmount) {
+    return { before: text, amount: null, after: '' };
+  }
 
-  const userName = actionUser ? actionUser.fullName : 'A user';
-  const docTitle = work?.title || 'an item';
-  const truncatedTitle = docTitle.length > 60 ? `${docTitle.slice(0, 60)}...` : docTitle;
+  const amount = formatAmount(rawAmount, exchangeRate, showUSD);
+  const [before, after] = buildAmountSentence(notification) ?? [`${text} for `, ''];
+  return { before, amount, after };
+}
+
+function buildAmountSentence(notification: Notification): AmountSentence | null {
+  const userName = getUserName(notification);
+  const truncatedTitle = getTruncatedTitle(notification);
+
+  switch (notification.type) {
+    case 'RSC_WITHDRAWAL_COMPLETE':
+      return ['Your withdrawal of ', ' has been completed'];
+
+    case 'BOUNTY_PAYOUT':
+      return [`${userName} awarded you `, ` for your thread in "${truncatedTitle}"`];
+
+    case 'BOUNTY_FOR_YOU': {
+      const bountyTypeAction = getBountyTypeAction(notification.extra?.bounty_type || '');
+      return ['Your expertise is needed! Earn ', ` for ${bountyTypeAction} "${truncatedTitle}"`];
+    }
+
+    case 'BOUNTY_EXPIRING_SOON':
+    case 'BOUNTY_ASSESSMENT_EXPIRING_SOON':
+      return [
+        'Your ',
+        ` bounty on "${truncatedTitle}" is expiring soon! Please award the best answer`,
+      ];
+
+    case 'BOUNTY_ENTERED_ASSESSMENT':
+      return ['Your ', ` bounty on "${truncatedTitle}" has entered assessment`];
+
+    case 'BOUNTY_SOLUTION_IN_ASSESSMENT':
+      return ['Your solution to the ', ` bounty on "${truncatedTitle}" is in assessment`];
+
+    case 'BOUNTY_HUB_EXPIRING_SOON':
+      return ['A bounty of ', ` on "${truncatedTitle}" is expiring soon`];
+
+    case 'PAPER_CLAIM_PAYOUT':
+      return [`Your paper claim for "${truncatedTitle}" has been approved and you earned `, ''];
+
+    case 'FUNDRAISE_CONTRIBUTION':
+      return [`${userName} contributed `, ` to your proposal "${truncatedTitle}"`];
+
+    case 'FUNDING_POOL_CONTRIBUTION':
+      return [`${userName} contributed `, ` to your RFP "${truncatedTitle}"`];
+
+    case 'FUNDRAISE_PAYOUT':
+      return [
+        `Your fundraise for "${truncatedTitle}" has been fulfilled and `,
+        ' was paid out to you',
+      ];
+
+    default:
+      return null;
+  }
+}
+
+function buildMessageText(
+  notification: Notification,
+  exchangeRate: number,
+  showUSD: boolean
+): string {
+  const { type, work } = notification;
+
+  const userName = getUserName(notification);
+  const truncatedTitle = getTruncatedTitle(notification);
 
   switch (type) {
     // Financial notifications
     case 'RSC_WITHDRAWAL_COMPLETE':
-      return 'Your RSC withdrawal has been completed';
+      return 'Your withdrawal has been completed';
 
     case 'BOUNTY_PAYOUT':
-      return `${userName} awarded you RSC for your work on "${truncatedTitle}"`;
+      return `${userName} awarded you a bounty for your thread in "${truncatedTitle}"`;
 
     case 'BOUNTY_FOR_YOU': {
-      const amount = notification.extra?.amount || '0';
       const bountyType = notification.extra?.bounty_type || '';
       const bountyTypeAction = getBountyTypeAction(bountyType);
-      const usdValue = formatUsdValue(amount, exchangeRate);
-      return `Your expertise is needed! Earn ${usdValue} for ${bountyTypeAction} "${truncatedTitle}"`;
+      return `Your expertise is needed! Earn a bounty for ${bountyTypeAction} "${truncatedTitle}"`;
     }
 
     case 'BOUNTY_EXPIRING_SOON':
@@ -364,14 +581,14 @@ export function formatNotificationMessage(
       return `Your solution to the bounty on "${truncatedTitle}" is in assessment`;
 
     case 'BOUNTY_HUB_EXPIRING_SOON':
-      return `A bounty on "${truncatedTitle}" is expiring soon `;
+      return `A bounty on "${truncatedTitle}" is expiring soon`;
 
     // Paper-related notifications
     case 'PAPER_CLAIM_PAYOUT':
       return `Your paper claim for "${truncatedTitle}" has been approved`;
 
     case 'PAPER_CLAIMED':
-      return `Your paper claim for "${truncatedTitle} has been submitted`;
+      return `Your paper claim for "${truncatedTitle}" has been submitted`;
 
     case 'PUBLICATIONS_ADDED':
       return 'New publications were added to your profile';
@@ -400,12 +617,20 @@ export function formatNotificationMessage(
 
     // RSC Support notifications
     case 'RSC_SUPPORT_ON_DIS':
+      return `${userName} supported your comment on "${truncatedTitle}"`;
+
     case 'RSC_SUPPORT_ON_DOC':
-      return `${userName} supported your work "${truncatedTitle}" with RSC`;
+      return isPeerReviewTip(notification)
+        ? `${userName} supported your peer review on "${truncatedTitle}"`
+        : `${userName} supported your post "${truncatedTitle}"`;
 
     // Fundraising notifications
+    case 'FUNDRAISE_CONTRIBUTION':
+    case 'FUNDING_POOL_CONTRIBUTION':
+      return `${userName} submitted a contribution to your ${type === 'FUNDRAISE_CONTRIBUTION' ? 'proposal' : 'RFP'} "${truncatedTitle}"`;
+
     case 'FUNDRAISE_PAYOUT':
-      return 'Your fundraising payout has been processed';
+      return `Your fundraise for "${truncatedTitle}" has been fulfilled and paid out to you`;
 
     // Moderation notifications
     case 'FLAGGED_CONTENT_VERDICT':
@@ -424,10 +649,17 @@ export function formatNotificationMessage(
 
     // Grant moderation notifications
     case 'GRANT_APPROVED':
-      return `Your funding opportunity has been approved.`;
+      return `Your RFP has been approved.`;
 
     case 'GRANT_DECLINED':
-      return `Your funding opportunity has been declined.`;
+      return `Your RFP has been declined.`;
+
+    // RFP owner notifications
+    case 'GRANT_APPLICATION_SUBMITTED':
+      return `${userName} submitted a new proposal to your RFP: "${truncatedTitle}"`;
+
+    case 'PROPOSAL_PEER_REVIEW':
+      return `${userName} peer reviewed a proposal linked to your RFP`;
 
     // Content moderation notifications (papers, posts, proposals)
     case 'CONTENT_APPROVED':
@@ -438,6 +670,9 @@ export function formatNotificationMessage(
 
     case 'RSC_YIELD_OPT_IN':
       return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';
+
+    case 'FUNDING_CREDITS_REMINDER':
+      return 'You have unspent funding credits. Use them to fund science.';
 
     default:
       console.warn(`Unhandled notification type: ${type}`);

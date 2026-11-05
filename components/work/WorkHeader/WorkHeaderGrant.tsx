@@ -1,134 +1,101 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { ArrowUpFromLine, Lock } from 'lucide-react';
+import { type ReactNode, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { Button } from '@/components/ui/Button';
-import { Tabs } from '@/components/ui/Tabs';
-import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
-import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
-import type { GrantApplicationVisibility } from '@/types/grant';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { useGrantPage } from '@/components/Funding/GrantPageContext';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { CoverBadge } from '@/components/work/WorkCover';
+import { WorkCoverCard } from '@/components/work/WorkCoverCard';
+import type { FundingPool } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
-import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
+import { PendingReviewBadge } from './PendingReviewBadge';
 
 interface WorkHeaderGrantProps {
   work: Work;
   metadata: WorkMetadata;
-  amountUsd?: number;
-  grantId?: string;
-  isActive?: boolean;
-  isPending?: boolean;
-  organization?: string;
-  applicationVisibility?: GrantApplicationVisibility;
-  className?: string;
+  preTitle?: ReactNode;
 }
 
-export function WorkHeaderGrant({
-  work,
-  metadata,
-  amountUsd,
-  grantId,
-  isActive = true,
-  isPending = false,
-  organization,
-  applicationVisibility,
-  className,
-}: WorkHeaderGrantProps) {
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const { activeTab, setActiveTab, activity } = useGrantTab();
+/**
+ * The RFP page's cover. The tabs, byline and pool card live in the page
+ * beneath it; this keeps the Add to pool panel the pool card opens. Apply
+ * goes to the workspace instead.
+ */
+export function WorkHeaderGrant({ work, metadata, preTitle }: WorkHeaderGrantProps) {
+  const router = useRouter();
+  const {
+    organization,
+    organizationProfile,
+    isPending,
+    isActive,
+    fundingPool,
+    setFundingPool,
+    fundingMechanism,
+  } = useGrantPage();
+  const { isFundPanelOpen, closeFundPanel } = useFundPanel();
+  const isPrize = isAwardMechanism(fundingMechanism);
 
-  const handleTabChange = useCallback(
-    (tabId: string) => setActiveTab(tabId as GrantBannerTab),
-    [setActiveTab]
-  );
-
-  const eyebrow = (
-    <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
-  );
-
-  const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
-
-  const subtitle = organization ? (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <span className="text-base text-gray-500">Offered by</span>
-      <span className="text-base text-gray-600 font-medium">{organization}</span>
-    </div>
-  ) : undefined;
-
-  const primaryAction =
-    grantId && isActive ? (
-      <>
-        <SubmitProposalTooltip isPrivate={requiresPrivateApplications}>
-          <Button
-            variant="default"
-            size="lg"
-            onClick={() => setIsApplyModalOpen(true)}
-            className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
-          >
-            Submit Proposal
-            <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
-        </SubmitProposalTooltip>
-        {requiresPrivateApplications && (
-          <div className="hidden sm:flex items-center justify-center gap-1.5 text-xs text-gray-500">
-            <Lock className="h-3 w-3 shrink-0" />
-            <span>Your proposal will be submitted privately</span>
-          </div>
-        )}
-      </>
-    ) : undefined;
-
-  const activityCount = activity.count;
-
-  const grantTabs = [
-    { id: 'details' as const, label: 'Details' },
-    { id: 'proposals' as const, label: 'Proposals' },
-    {
-      id: 'activity' as const,
-      label: (
-        <div className="flex items-center">
-          <span>Updates</span>
-          {activityCount > 0 && (
-            <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                activeTab === 'activity'
-                  ? 'bg-primary-100 text-primary-600'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {activityCount}
-            </span>
-          )}
-        </div>
-      ),
+  // The panel stays open on its "Added to the pool" screen; the page behind it
+  // catches up with the new pool.
+  const handleContributeSuccess = useCallback(
+    (updatedPool?: FundingPool) => {
+      if (updatedPool) setFundingPool(updatedPool);
+      router.refresh();
     },
-  ];
+    [router, setFundingPool]
+  );
 
-  const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
+  const eyebrow = organization ? `RFP · ${organization}` : 'RFP';
+  // The Add to pool panel opens on the RFP's cover, small.
+  const coverCard = <WorkCoverCard title={work.title} eyebrow={eyebrow} imageUrl={work.image} />;
+
+  const badges = isPending ? (
+    <PendingReviewBadge />
+  ) : !isActive ? (
+    <CoverBadge>Closed</CoverBadge>
+  ) : null;
 
   return (
-    <WorkHeader
-      work={work}
-      metadata={metadata}
-      className={className}
-      eyebrow={eyebrow}
-      subtitle={subtitle}
-      tabs={tabs}
-      primaryAction={primaryAction}
-      hideVoteWidget
-      grantModalProps={
-        grantId
-          ? {
-              isApplyToGrantModalOpen: isApplyModalOpen,
-              onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
-              grantId,
-              grantAmountUsd: amountUsd,
-              grantOrganization: organization,
-              grantApplicationVisibility: applicationVisibility,
-            }
-          : undefined
-      }
-    />
+    <>
+      <WorkHeader
+        work={work}
+        metadata={metadata}
+        preTitle={preTitle}
+        hideVoteWidget
+        // The top bar already says it's an RFP; the cover names who funds it.
+        cover={{
+          imageUrl: work.image,
+          eyebrow: organization,
+          eyebrowFace: organization
+            ? { name: organization, image: organizationProfile?.profileImage }
+            : undefined,
+          badges,
+        }}
+        // Its phone page has the pool (byline, action bar) and the activity
+        // (Activity tab) already.
+        hideSidebarButton
+      />
+
+      {fundingPool?.status === 'OPEN' && (
+        <ContributeToFundraiseModal
+          mode="fundingPool"
+          isOpen={isFundPanelOpen}
+          onClose={closeFundPanel}
+          onContributeSuccess={handleContributeSuccess}
+          fundingPool={fundingPool}
+          proposalTitle={work.title}
+          variant="panel"
+          topContent={coverCard}
+          isAward={isPrize}
+          successText={`Every dollar in the pool goes to the proposals ${
+            organization || 'the funder'
+          } ${isPrize ? 'awards' : 'picks'}.`}
+        />
+      )}
+    </>
   );
 }

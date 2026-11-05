@@ -1,11 +1,10 @@
-import { PaperService } from '@/services/paper.service';
-import { MetadataService } from '@/services/metadata.service';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { MetadataService } from '@/services/metadata.service';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
+import { getPaper } from '@/app/paper/getPaper';
 
 interface Props {
   params: Promise<{
@@ -14,36 +13,20 @@ interface Props {
   }>;
 }
 
-async function getWork(id: string) {
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
-
-  try {
-    return await PaperService.get(id);
-  } catch (error) {
-    notFound();
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const resolvedParams = await params;
-  const work = await getWork(resolvedParams.id);
+  const { id, slug } = await params;
+  const work = await getPaper(id);
 
   return getWorkMetadata({
-    work: work,
-    url: `/paper/${resolvedParams.id}/${resolvedParams.slug}`,
+    work,
+    url: `/paper/${id}/${slug}`,
   });
 }
 
-export default async function WorkPage({ params }: Props) {
-  const resolvedParams = await params;
-  const work = await getWork(resolvedParams.id);
+export default async function PaperPage({ params }: Props) {
+  const { id } = await params;
+  const work = await getPaper(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
-
-  if (!work) {
-    notFound();
-  }
 
   return (
     <>

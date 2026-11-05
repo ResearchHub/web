@@ -26,22 +26,31 @@ import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
 import Icon from '@/components/ui/icons/Icon';
 import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
+import { signIn } from 'next-auth/react';
+
+export type SocialLinkKey = 'linkedin' | 'google_scholar' | 'twitter' | 'orcid_id';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
   fields?: FormField[];
+  /** Which of the social links to show; all of them by default. */
+  socialLinks?: readonly SocialLinkKey[];
   formId?: string;
   showAvatar?: boolean;
   useAccordion?: boolean;
+  /** Without an accordion, each section's heading; off when the host's own title already says it. */
+  showSectionTitles?: boolean;
   autoFocusField?: FormField;
 }
 
 export function ProfileInformationForm({
   onSubmit,
   fields = ALL_PROFILE_FIELDS,
+  socialLinks: shownSocialLinks,
   formId,
   showAvatar = true,
   useAccordion = false,
+  showSectionTitles = true,
   autoFocusField,
 }: ProfileInformationFormProps) {
   const socialLinkMeta = {
@@ -55,7 +64,7 @@ export function ProfileInformationForm({
     },
     twitter: {
       icon: <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6 text-[#000]" />,
-      label: 'X (Twitter) Profile URL',
+      label: 'X Profile URL',
     },
     orcid_id: {
       icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-orcid-500" />,
@@ -67,6 +76,7 @@ export function ProfileInformationForm({
 
   const authorProfile = user?.authorProfile;
   const isOrcidConnected = authorProfile?.isOrcidConnected ?? false;
+  const isXConnected = authorProfile?.isXConnected ?? false;
 
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema({ fields })),
@@ -248,26 +258,42 @@ export function ProfileInformationForm({
       const socialContent = (
         <div>
           <div className="space-y-3">
-            {(Object.keys(socialLinkMeta) as Array<keyof typeof socialLinkMeta>).map((key) => {
-              const meta = socialLinkMeta[key];
-              const isOrcid = key === 'orcid_id';
+            {(Object.keys(socialLinkMeta) as SocialLinkKey[])
+              .filter((key) => shownSocialLinks?.includes(key) ?? true)
+              .map((key) => {
+                const meta = socialLinkMeta[key];
+                const isOrcid = key === 'orcid_id';
+                const isX = key === 'twitter';
 
-              return (
-                <div key={key} className="flex items-center gap-3">
-                  <SocialIcon
-                    icon={meta.icon}
-                    label={meta.label}
-                    href={null}
-                    size="sm"
-                    className="text-gray-500"
-                  />
-                  {isOrcid && !isOrcidConnected ? (
-                    <OrcidConnectButton
-                      variant="outlined"
-                      className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
-                      showIcon={false}
-                    />
-                  ) : (
+                const renderSocialLinkField = () => {
+                  if (isOrcid && !isOrcidConnected) {
+                    return (
+                      <OrcidConnectButton
+                        variant="outlined"
+                        className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
+                        showIcon={false}
+                      />
+                    );
+                  }
+
+                  if (isX && !isXConnected) {
+                    return (
+                      <Button
+                        type="button"
+                        variant="dark"
+                        className="flex-grow"
+                        onClick={() => {
+                          const callbackUrl = new URL(window.location.href);
+                          callbackUrl.searchParams.set('x_connected', 'true');
+                          void signIn('x', { callbackUrl: callbackUrl.href });
+                        }}
+                      >
+                        Connect X
+                      </Button>
+                    );
+                  }
+
+                  return (
                     <Input
                       id={key}
                       name={key}
@@ -276,12 +302,24 @@ export function ProfileInformationForm({
                       error={errors[key]?.message}
                       placeholder={meta.label}
                       className="flex-grow"
-                      disabled={isOrcid}
+                      disabled={isOrcid || isX}
                     />
-                  )}
-                </div>
-              );
-            })}
+                  );
+                };
+
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <SocialIcon
+                      icon={meta.icon}
+                      label={meta.label}
+                      href={null}
+                      size="sm"
+                      className="text-gray-500"
+                    />
+                    {renderSocialLinkField()}
+                  </div>
+                );
+              })}
           </div>
         </div>
       );
@@ -324,7 +362,7 @@ export function ProfileInformationForm({
         <div className="space-y-6">
           {sections.map((section) => (
             <div key={section.id}>
-              <div className="mb-4">{section.title}</div>
+              {showSectionTitles && <div className="mb-4">{section.title}</div>}
               {section.content}
             </div>
           ))}

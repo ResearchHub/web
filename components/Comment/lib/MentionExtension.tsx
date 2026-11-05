@@ -13,7 +13,7 @@ import { MentionList } from './MentionList';
 import tippy, { Instance, Props } from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import './mention.css';
-import { DOMOutputSpec } from 'prosemirror-model';
+import { DOMOutputSpec } from '@tiptap/pm/model';
 import { MentionItem, MentionListRef } from './types';
 import { buildWorkUrl } from '@/utils/url';
 import { buildAuthorUrl } from '@/utils/url';
@@ -46,7 +46,7 @@ const createDebouncedSearch = () => {
         }
 
         try {
-          const suggestions = await SearchService.getSuggestions(query, ['user', 'paper']);
+          const suggestions = await SearchService.getSuggestions(query, ['user']);
           const items = suggestions.map(transformSuggestionToMentionItem);
           resolve(items);
         } catch (error) {
@@ -193,7 +193,6 @@ export const MentionExtension = Mention.extend({
       const url = buildWorkUrl({
         id: node.attrs.id,
         contentType: 'paper',
-        doi: node.attrs.doi,
       });
 
       // If we got a fallback URL, render as a span instead of a link

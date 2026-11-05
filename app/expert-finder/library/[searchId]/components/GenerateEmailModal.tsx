@@ -1,15 +1,23 @@
 'use client';
 
-import { useState, useEffect, useId } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, FileText, Sparkles } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
-import { Checkbox } from '@/components/ui/form/Checkbox';
-import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import {
+  BaseMenu,
+  BaseMenuItem,
+  BaseMenuRadioGroup,
+  BaseMenuRadioItem,
+} from '@/components/ui/form/BaseMenu';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
-import type { EmailTemplateKind } from '@/services/expertFinder.service';
+import { isProposalDraftComplete } from '@/types/expertFinder';
+import {
+  PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+  type EmailTemplateKind,
+} from '@/services/expertFinder.service';
 
 export type GenerateEmailConfirmPayload =
   | { mode: 'ai'; template: string }
@@ -20,6 +28,8 @@ interface GenerateEmailModalProps {
   onClose: () => void;
   experts: ExpertResult[];
   onConfirm: (payload: GenerateEmailConfirmPayload) => void;
+  /** Whether the search is linked to a grant/funding round (enables proposal invitations). */
+  isGrantLinked?: boolean;
 }
 
 export interface EmailTemplateOption {
@@ -29,6 +39,11 @@ export interface EmailTemplateOption {
 }
 
 export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
+  {
+    value: PROPOSAL_DRAFT_OUTREACH_TEMPLATE,
+    label: 'Proposal Invitation',
+    description: 'Invite them to review and edit an AI-drafted proposal for this funding round',
+  },
   {
     value: 'rfp-outreach',
     label: 'Call for Proposals',
@@ -61,8 +76,8 @@ export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
   },
   {
     value: 'custom',
-    label: 'Custom Message',
-    description: 'Write your own purpose or use case for the email',
+    label: 'Custom Outreach',
+    description: 'Write your own purpose or use case for the outreach',
   },
 ];
 
@@ -96,17 +111,64 @@ export function getTemplateDescription(value: string | null | undefined): string
 const CUSTOM_PLACEHOLDER =
   'e.g. Invitation to join an advisory board for a new research initiative';
 
+type CreationMode = 'ai' | 'template';
+
+interface CreationModeCardProps {
+  selected: boolean;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+}
+
+function CreationModeCard({ selected, icon, title, description, onClick }: CreationModeCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
+        selected
+          ? 'border-primary-600 bg-primary-50'
+          : 'border-gray-200 bg-white hover:border-gray-300'
+      )}
+    >
+      <div className={cn('mb-2', selected ? 'text-primary-600' : 'text-gray-500')}>{icon}</div>
+      <span
+        className={cn('text-sm font-semibold', selected ? 'text-primary-900' : 'text-gray-900')}
+      >
+        {title}
+      </span>
+      <span className="mt-1 text-sm leading-snug text-gray-500">{description}</span>
+    </button>
+  );
+}
+
 export function GenerateEmailModal({
   isOpen,
   onClose,
   experts,
   onConfirm,
+  isGrantLinked = false,
 }: GenerateEmailModalProps) {
-  const aiCheckboxId = useId();
-  const [useAiGeneration, setUseAiGeneration] = useState(false);
-  const [purpose, setPurpose] = useState<EmailTemplateKind>(
-    EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration'
+  // Proposal invitations are offered only on grant-linked searches, and are
+  // selectable only when every selected expert has a completed proposal draft.
+  const proposalOptionVisible = isGrantLinked;
+  const proposalSelectable =
+    proposalOptionVisible &&
+    experts.length > 0 &&
+    experts.every((expert) => isProposalDraftComplete(expert.proposalDraft));
+
+  const visibleOptions = EMAIL_TEMPLATE_OPTIONS.filter(
+    (option) => option.value !== PROPOSAL_DRAFT_OUTREACH_TEMPLATE || proposalOptionVisible
   );
+  const defaultPurpose: EmailTemplateKind = proposalSelectable
+    ? PROPOSAL_DRAFT_OUTREACH_TEMPLATE
+    : (visibleOptions.find((option) => option.value !== PROPOSAL_DRAFT_OUTREACH_TEMPLATE)?.value ??
+      'collaboration');
+
+  const [creationMode, setCreationMode] = useState<CreationMode>('template');
+  const [purpose, setPurpose] = useState<EmailTemplateKind>(defaultPurpose);
   const [customUseCase, setCustomUseCase] = useState('');
   const [savedTemplateId, setSavedTemplateId] = useState<number | null>(null);
   const [purposeDropdownOpen, setPurposeDropdownOpen] = useState(false);
@@ -115,11 +177,13 @@ export function GenerateEmailModal({
 
   useEffect(() => {
     if (isOpen) {
-      setUseAiGeneration(false);
-      setPurpose(EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration');
+      setCreationMode(proposalSelectable ? 'ai' : 'template');
+      setPurpose(defaultPurpose);
       setCustomUseCase('');
       setSavedTemplateId(null);
     }
+    // Only reset when the modal opens; eligibility is fixed for the session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const count = experts.length;
@@ -127,13 +191,13 @@ export function GenerateEmailModal({
   const customTrimmed = customUseCase.trim();
   const canSubmitAi = !isCustom || customTrimmed.length > 0;
   const canSubmitFixed = savedTemplateId != null;
-  const canSubmit = useAiGeneration ? canSubmitAi : canSubmitFixed;
+  const canSubmit = creationMode === 'ai' ? canSubmitAi : canSubmitFixed;
 
   const selectedPurpose =
-    EMAIL_TEMPLATE_OPTIONS.find((option) => option.value === purpose) ?? EMAIL_TEMPLATE_OPTIONS[0];
+    visibleOptions.find((option) => option.value === purpose) ?? visibleOptions[0];
 
   const handleSubmit = () => {
-    if (useAiGeneration) {
+    if (creationMode === 'ai') {
       const template: string = isCustom ? `${CUSTOM_PREFIX} ${customTrimmed}` : purpose;
       onConfirm({ mode: 'ai', template });
     } else if (savedTemplateId != null) {
@@ -146,104 +210,104 @@ export function GenerateEmailModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Generate Outreach Emails"
-      size="lg"
+      title="Generate Outreach"
+      size="xl"
       footer={
         <div className="flex items-center justify-end gap-2">
           <Button variant="outlined" size="sm" onClick={onClose}>
             Cancel
           </Button>
           <Button variant="default" size="sm" onClick={handleSubmit} disabled={!canSubmit}>
-            {count === 1 ? 'Generate 1 Email' : `Generate ${count} Emails`}
+            {count === 1 ? 'Generate 1 draft' : `Generate ${count} drafts`}
           </Button>
         </div>
       }
     >
-      <div className="space-y-4">
-        {!useAiGeneration ? (
-          <Dropdown
-            label="Choose email template"
-            trigger={
-              <button
-                type="button"
-                className={cn(
-                  'flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
-                  savedTemplateId == null && 'text-gray-500'
-                )}
-              >
-                {savedTemplateId == null
-                  ? 'Choose email template…'
-                  : (templates.find((t) => t.id === savedTemplateId)?.name ??
-                    'Choose email template…')}
-                <ChevronDown
-                  className={cn(
-                    'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
-                    templateDropdownOpen && 'rotate-180'
-                  )}
-                />
-              </button>
-            }
-            onOpenChange={setTemplateDropdownOpen}
-            className="max-h-60 overflow-y-auto"
-          >
-            {templates.length === 0 ? (
-              <DropdownItem onClick={() => {}} className="text-gray-500 cursor-default" disabled>
-                No saved templates yet
-              </DropdownItem>
-            ) : (
-              templates.map((t) => (
-                <DropdownItem
-                  key={t.id}
-                  onClick={() => setSavedTemplateId(t.id)}
-                  className={savedTemplateId === t.id ? 'bg-gray-100 font-medium' : ''}
-                >
-                  {t.name}
-                </DropdownItem>
-              ))
-            )}
-          </Dropdown>
-        ) : (
+      <div className="space-y-5">
+        <div>
+          <p className="text-sm font-semibold text-gray-900 mb-3">
+            How would you like to create this outreach?
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <CreationModeCard
+              selected={creationMode === 'template'}
+              icon={<FileText className="h-5 w-5" aria-hidden />}
+              title="Use a template"
+              description="Reuse one of your saved outreach templates"
+              onClick={() => setCreationMode('template')}
+            />
+            <CreationModeCard
+              selected={creationMode === 'ai'}
+              icon={<Sparkles className="h-5 w-5" aria-hidden />}
+              title="Generate with AI"
+              description="Personalized for each expert based on the purpose you choose"
+              onClick={() => setCreationMode('ai')}
+            />
+          </div>
+        </div>
+
+        {creationMode === 'ai' ? (
           <>
-            <Dropdown
-              label="Email purpose"
-              trigger={
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-gray-900">{selectedPurpose.label}</div>
-                    <div className="truncate text-xs text-gray-500">
-                      {selectedPurpose.description}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Outreach purpose
+              </label>
+              <BaseMenu
+                align="start"
+                sameWidth
+                className="max-h-72"
+                onOpenChange={setPurposeDropdownOpen}
+                trigger={
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-gray-900">
+                        {selectedPurpose.label}
+                      </div>
+                      <div className="truncate text-xs text-gray-500">
+                        {selectedPurpose.description}
+                      </div>
                     </div>
-                  </div>
-                  <ChevronDown
-                    className={cn(
-                      'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
-                      purposeDropdownOpen && 'rotate-180'
-                    )}
-                  />
-                </button>
-              }
-              onOpenChange={setPurposeDropdownOpen}
-              className="max-h-72 overflow-y-auto"
-            >
-              {EMAIL_TEMPLATE_OPTIONS.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  onClick={() => setPurpose(option.value)}
-                  className={cn(
-                    'items-start text-left',
-                    purpose === option.value && 'bg-gray-100 font-medium'
-                  )}
+                    <ChevronDown
+                      className={cn(
+                        'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
+                        purposeDropdownOpen && 'rotate-180'
+                      )}
+                    />
+                  </button>
+                }
+              >
+                <BaseMenuRadioGroup
+                  value={purpose}
+                  onValueChange={(value) => setPurpose(value as EmailTemplateKind)}
                 >
-                  <div className="w-full text-left">
-                    <div className="text-sm text-gray-900">{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.description}</div>
-                  </div>
-                </DropdownItem>
-              ))}
-            </Dropdown>
+                  {visibleOptions.map((option) => {
+                    const isProposalOption = option.value === PROPOSAL_DRAFT_OUTREACH_TEMPLATE;
+                    const optionDisabled = isProposalOption && !proposalSelectable;
+                    return (
+                      <BaseMenuRadioItem
+                        key={option.value}
+                        value={option.value}
+                        disabled={optionDisabled}
+                        className="items-start"
+                      >
+                        <div className="w-full text-left">
+                          <div className="text-sm text-gray-900">{option.label}</div>
+                          <div className="text-xs text-gray-500">{option.description}</div>
+                          {optionDisabled ? (
+                            <div className="mt-0.5 text-xs text-amber-700">
+                              Every selected expert needs a completed proposal draft
+                            </div>
+                          ) : null}
+                        </div>
+                      </BaseMenuRadioItem>
+                    );
+                  })}
+                </BaseMenuRadioGroup>
+              </BaseMenu>
+            </div>
 
             {isCustom && (
               <div>
@@ -251,7 +315,8 @@ export function GenerateEmailModal({
                   Custom use case <span className="text-red-600">*</span>
                 </label>
                 <p className="text-xs text-gray-500 mb-2">
-                  Describe the purpose for the email. This is sent to the AI as the template prompt.
+                  Describe the purpose for the outreach. This is sent to the AI as the template
+                  prompt.
                 </p>
                 <textarea
                   className="w-full min-h-[100px] rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
@@ -264,14 +329,56 @@ export function GenerateEmailModal({
               </div>
             )}
           </>
+        ) : (
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-gray-700">
+              Choose outreach template
+            </label>
+            <BaseMenu
+              align="start"
+              sameWidth
+              className="max-h-60"
+              onOpenChange={setTemplateDropdownOpen}
+              trigger={
+                <button
+                  type="button"
+                  className={cn(
+                    'flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
+                    savedTemplateId == null && 'text-gray-500'
+                  )}
+                >
+                  {savedTemplateId == null
+                    ? 'Choose outreach template…'
+                    : (templates.find((t) => t.id === savedTemplateId)?.name ??
+                      'Choose outreach template…')}
+                  <ChevronDown
+                    className={cn(
+                      'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
+                      templateDropdownOpen && 'rotate-180'
+                    )}
+                  />
+                </button>
+              }
+            >
+              {templates.length === 0 ? (
+                <BaseMenuItem disabled className="text-gray-500">
+                  No saved templates yet
+                </BaseMenuItem>
+              ) : (
+                <BaseMenuRadioGroup
+                  value={savedTemplateId == null ? '' : String(savedTemplateId)}
+                  onValueChange={(value) => setSavedTemplateId(Number(value))}
+                >
+                  {templates.map((t) => (
+                    <BaseMenuRadioItem key={t.id} value={String(t.id)}>
+                      {t.name}
+                    </BaseMenuRadioItem>
+                  ))}
+                </BaseMenuRadioGroup>
+              )}
+            </BaseMenu>
+          </div>
         )}
-
-        <Checkbox
-          id={aiCheckboxId}
-          checked={useAiGeneration}
-          onCheckedChange={setUseAiGeneration}
-          label="Use AI to generate the email"
-        />
       </div>
     </BaseModal>
   );

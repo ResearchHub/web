@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from '@headlessui/react';
 import { Search as SearchIcon, X, Loader2 } from 'lucide-react';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 import { cn } from '@/utils/styles';
 import { SearchService } from '@/services/search.service';
 import { UserSuggestion } from '@/types/search';

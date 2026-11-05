@@ -1,43 +1,152 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+  type ReactNode,
+} from 'react';
 import {
   PendingModerationService,
   type PendingModuleCounts,
 } from '@/services/content-moderation.service';
+import { useUser } from '@/contexts/UserContext';
 
-interface PendingCountsValue {
+type RefreshPendingCountsOptions = { force?: boolean };
+
+interface PendingCountsState {
   counts: PendingModuleCounts | null;
-  refresh: () => void;
+  totalCount: number;
 }
 
-const PendingCountsContext = createContext<PendingCountsValue | null>(null);
+interface PendingCountsValue extends PendingCountsState {
+  refreshPendingCounts: (options?: RefreshPendingCountsOptions) => Promise<void>;
+}
+
+type PendingCountsAction = { type: 'reset' } | { type: 'set-counts'; counts: PendingModuleCounts };
+
+interface PendingCountsRequest {
+  id: number;
+  inFlight: Promise<void> | null;
+  hasLoaded: boolean;
+}
+
+const INITIAL_PENDING_COUNTS_STATE: PendingCountsState = {
+  counts: null,
+  totalCount: 0,
+};
+
+const PendingCountsStateContext = createContext<PendingCountsState | null>(null);
+const RefreshPendingCountsContext = createContext<
+  PendingCountsValue['refreshPendingCounts'] | null
+>(null);
+
+function sumPendingCounts(counts: PendingModuleCounts): number {
+  return Object.values(counts).reduce((sum, count) => sum + count, 0);
+}
+
+function resetPendingCountsRequest(request: PendingCountsRequest): void {
+  request.id += 1;
+  request.inFlight = null;
+  request.hasLoaded = false;
+}
+
+function pendingCountsReducer(
+  state: PendingCountsState,
+  action: PendingCountsAction
+): PendingCountsState {
+  switch (action.type) {
+    case 'reset':
+      return INITIAL_PENDING_COUNTS_STATE;
+    case 'set-counts':
+      return {
+        counts: action.counts,
+        totalCount: sumPendingCounts(action.counts),
+      };
+  }
+}
 
 export function PendingCountsProvider({ children }: Readonly<{ children: ReactNode }>) {
-  const [counts, setCounts] = useState<PendingModuleCounts | null>(null);
+  const { user, isLoading: isUserLoading } = useUser();
+  const [state, dispatch] = useReducer(pendingCountsReducer, INITIAL_PENDING_COUNTS_STATE);
+  const isModerator = !!(user?.isModerator || user?.moderator);
+  // Tracks in-flight de-duping and latest-response wins.
+  const requestRef = useRef<PendingCountsRequest>({
+    id: 0,
+    inFlight: null,
+    hasLoaded: false,
+  });
 
-  const refresh = useCallback(() => {
-    // Badges are a non-critical enhancement: on failure keep the last-known counts.
-    PendingModerationService.fetchCounts()
-      .then(setCounts)
-      .catch(() => {});
-  }, []);
+  const refreshPendingCounts = useCallback(
+    (options: RefreshPendingCountsOptions = {}) => {
+      const force = options.force ?? false;
+      const request = requestRef.current;
+
+      if (!isModerator) {
+        resetPendingCountsRequest(request);
+        dispatch({ type: 'reset' });
+        return Promise.resolve();
+      }
+
+      if (!force && request.hasLoaded) {
+        return Promise.resolve();
+      }
+
+      if (!force && request.inFlight) {
+        return request.inFlight;
+      }
+
+      const requestId = ++request.id;
+
+      const inFlight = (async () => {
+        try {
+          const nextCounts = await PendingModerationService.fetchCounts();
+          if (request.id !== requestId) return;
+
+          request.hasLoaded = true;
+          dispatch({ type: 'set-counts', counts: nextCounts });
+        } finally {
+          if (request.id === requestId) {
+            request.inFlight = null;
+          }
+        }
+      })();
+
+      request.inFlight = inFlight;
+      return inFlight;
+    },
+    [isModerator]
+  );
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (isUserLoading) return;
+
+    if (!isModerator) {
+      resetPendingCountsRequest(requestRef.current);
+      dispatch({ type: 'reset' });
+      return;
+    }
+
+    refreshPendingCounts().catch(() => undefined);
+  }, [isModerator, isUserLoading, refreshPendingCounts]);
 
   return (
-    <PendingCountsContext.Provider value={{ counts, refresh }}>
-      {children}
-    </PendingCountsContext.Provider>
+    <RefreshPendingCountsContext.Provider value={refreshPendingCounts}>
+      <PendingCountsStateContext.Provider value={state}>
+        {children}
+      </PendingCountsStateContext.Provider>
+    </RefreshPendingCountsContext.Provider>
   );
 }
 
 export function usePendingCounts(): PendingCountsValue {
-  const context = useContext(PendingCountsContext);
-  if (!context) {
+  const state = useContext(PendingCountsStateContext);
+  const refreshPendingCounts = useContext(RefreshPendingCountsContext);
+  if (!state || !refreshPendingCounts) {
     throw new Error('usePendingCounts must be used within a PendingCountsProvider');
   }
-  return context;
+  return { ...state, refreshPendingCounts };
 }

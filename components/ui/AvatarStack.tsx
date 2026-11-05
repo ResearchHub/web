@@ -38,6 +38,10 @@ interface AvatarStackProps {
   }[];
   /** Label for the extra count tooltip */
   extraCountLabel?: string;
+  /** Overrides the +N avatar's default gray fill, e.g. to tint it to a legend color. */
+  extraCountClassName?: string;
+  /** Overrides the +N avatar's default label color. */
+  extraCountLabelClassName?: string;
   /** When true, shows the label text after avatars */
   showLabel?: boolean;
 }
@@ -55,6 +59,8 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   totalItemsCount,
   allItems,
   extraCountLabel = 'Others',
+  extraCountClassName,
+  extraCountLabelClassName,
   showLabel = true,
 }) => {
   // Determine how many items to display
@@ -190,10 +196,10 @@ export const AvatarStack: FC<AvatarStackProps> = ({
                 src={null}
                 alt={`+${extraCount}`}
                 size={size}
-                className={`${getRingWidth()} ${ringColorClass} bg-gray-100`}
+                className={cn(getRingWidth(), ringColorClass, 'bg-gray-100', extraCountClassName)}
                 disableTooltip
                 label={`+${extraCount}`}
-                labelClassName="font-semibold"
+                labelClassName={cn('font-semibold', extraCountLabelClassName)}
                 labelStyle={{ fontSize: getExtraCountFontSize() }}
               />
             ) : (
@@ -206,10 +212,10 @@ export const AvatarStack: FC<AvatarStackProps> = ({
                   src={null}
                   alt={`+${extraCount}`}
                   size={size}
-                  className={`${getRingWidth()} ${ringColorClass} bg-gray-100`}
+                  className={cn(getRingWidth(), ringColorClass, 'bg-gray-100', extraCountClassName)}
                   disableTooltip
                   label={`+${extraCount}`}
-                  labelClassName="font-semibold"
+                  labelClassName={cn('font-semibold', extraCountLabelClassName)}
                   labelStyle={{ fontSize: getExtraCountFontSize() }}
                 />
               </Tooltip>

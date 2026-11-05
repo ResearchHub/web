@@ -1,75 +1,122 @@
-import { useState, useEffect, useRef, RefObject } from 'react';
+import { useEffect, RefObject } from 'react';
+
+/** From the tablet breakpoint up the top bar never hides, so nothing is tracked there. */
+const TABLET_UP_QUERY = '(min-width: 768px)';
+const DEBOUNCE_MS = 100;
 
 interface UseMobileNavScrollOptions {
   scrollContainerRef: RefObject<HTMLDivElement | null>;
+  /**
+   * Marked `data-top-bar-hidden` while the bar is hidden. The bar and anything
+   * that moves with it style themselves from that attribute, in CSS.
+   */
+  shellRef: RefObject<HTMLElement | null>;
   threshold?: number;
   hideAfterScrollY?: number;
 }
 
 /**
- * Hook to handle mobile top navigation hide/show on scroll
- * - Hides nav when scrolling down (after passing initial threshold)
- * - Shows nav when scrolling up
+ * Hides the phone top bar on scrolling down and shows it again on scrolling up:
+ * - only once the page is taller than the screen (with nothing to scroll, it stays)
+ * - at most once a frame, and without React state, so a scroll re-renders nothing
  */
 export function useMobileNavScroll({
   scrollContainerRef,
+  shellRef,
   threshold = 10,
   hideAfterScrollY = 64,
 }: UseMobileNavScrollOptions) {
-  const [isHidden, setIsHidden] = useState(false);
-  const lastScrollY = useRef(0);
-  const lastToggleTime = useRef(0);
-  const debounceMs = 100; // Minimum time between state changes
-
   useEffect(() => {
-    const handleScroll = () => {
-      if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const tabletUp = window.matchMedia(TABLET_UP_QUERY);
 
-      const container = scrollContainerRef.current;
-      const currentScrollY = container.scrollTop;
-      const scrollDelta = currentScrollY - lastScrollY.current;
+    let lastScrollY = container.scrollTop;
+    let lastToggleTime = 0;
+    let scrollFrame = 0;
+    let contentFrame = 0;
 
-      // Check if we're near the bottom (within 50px) - ignore scroll events to prevent bounce loop
-      const isNearBottom = container.scrollHeight - container.clientHeight - currentScrollY < 50;
-
-      // Only trigger if scroll exceeds threshold and not near bottom
-      if (Math.abs(scrollDelta) >= threshold && !isNearBottom) {
-        const now = Date.now();
-
-        // Debounce rapid state changes
-        if (now - lastToggleTime.current >= debounceMs) {
-          // Scrolling down - hide nav (only if we've scrolled past the initial threshold)
-          if (scrollDelta > 0 && currentScrollY > hideAfterScrollY) {
-            if (!isHidden) {
-              setIsHidden(true);
-              lastToggleTime.current = now;
-            }
-          }
-          // Scrolling up - show nav
-          else if (scrollDelta < 0) {
-            if (isHidden) {
-              setIsHidden(false);
-              lastToggleTime.current = now;
-            }
-          }
-        }
-
-        lastScrollY.current = currentScrollY;
-      } else if (isNearBottom) {
-        // Update lastScrollY even when near bottom to prevent jump when scrolling back up
-        lastScrollY.current = currentScrollY;
-      }
+    // The shell's attribute is the only record of whether the bar is hidden.
+    // Setting it to the state it already has changes nothing.
+    const setHidden = (hidden: boolean) => {
+      shellRef.current?.toggleAttribute('data-top-bar-hidden', hidden);
     };
 
-    const scrollContainer = scrollContainerRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    const isScrollable = () => container.scrollHeight > container.clientHeight;
 
-      return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, [scrollContainerRef, threshold, hideAfterScrollY, isHidden]);
+    const update = () => {
+      scrollFrame = 0;
+      const currentScrollY = container.scrollTop;
 
-  return { isHidden, setIsHidden };
+      if (!isScrollable()) {
+        setHidden(false);
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      const scrollDelta = currentScrollY - lastScrollY;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      const isNearBottom = maxScroll - currentScrollY < 50;
+
+      if (Math.abs(scrollDelta) < threshold) return;
+
+      // Ignore rubber-band bounce near the bottom
+      if (isNearBottom && scrollDelta > 0) {
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      const now = Date.now();
+      if (now - lastToggleTime < DEBOUNCE_MS) {
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      if (scrollDelta > 0 && currentScrollY > hideAfterScrollY) {
+        setHidden(true);
+        lastToggleTime = now;
+      } else if (scrollDelta < 0) {
+        setHidden(false);
+        lastToggleTime = now;
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    const handleScroll = () => {
+      if (tabletUp.matches || scrollFrame) return;
+      scrollFrame = requestAnimationFrame(update);
+    };
+
+    // Tab or body content can swap without a scroll event (an empty Conversation
+    // tab, say). Once a frame, not on every change, take the new scroll position
+    // as the baseline and bring the bar back if the page no longer scrolls.
+    const handleContentChange = () => {
+      if (tabletUp.matches || contentFrame) return;
+      contentFrame = requestAnimationFrame(() => {
+        contentFrame = 0;
+        if (!isScrollable()) setHidden(false);
+        lastScrollY = container.scrollTop;
+      });
+    };
+
+    const handleBreakpointChange = () => {
+      if (tabletUp.matches) setHidden(false);
+      lastScrollY = container.scrollTop;
+    };
+
+    const mutationObserver = new MutationObserver(handleContentChange);
+    mutationObserver.observe(container, { childList: true, subtree: true });
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    tabletUp.addEventListener('change', handleBreakpointChange);
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      tabletUp.removeEventListener('change', handleBreakpointChange);
+      mutationObserver.disconnect();
+      cancelAnimationFrame(scrollFrame);
+      cancelAnimationFrame(contentFrame);
+    };
+  }, [scrollContainerRef, shellRef, threshold, hideAfterScrollY]);
 }

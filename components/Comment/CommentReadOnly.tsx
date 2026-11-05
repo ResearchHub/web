@@ -4,7 +4,7 @@ import { ContentFormat, Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import 'highlight.js/styles/atom-one-dark.css';
 import React, { ReactNode, useState } from 'react';
-import { Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { parseContent, extractTextFromTipTap } from './lib/commentContentUtils';
@@ -25,9 +25,15 @@ interface CommentReadOnlyProps {
   maxLength?: number;
   initiallyExpanded?: boolean;
   showReadMoreButton?: boolean;
+  showLinkPreviews?: boolean;
   createdDate?: string | Date;
   updatedDate?: string | Date;
   className?: string;
+  /**
+   * Replaces the in-place expand: "Read more" calls this instead, e.g. to open
+   * the full text somewhere else.
+   */
+  onReadMore?: () => void;
 }
 
 // Simple read-only stars component for displaying review score
@@ -68,9 +74,11 @@ export const CommentReadOnly = ({
   maxLength = 1000,
   initiallyExpanded = false,
   showReadMoreButton = true,
+  showLinkPreviews = true,
   createdDate,
   updatedDate,
   className,
+  onReadMore,
 }: CommentReadOnlyProps) => {
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
@@ -79,7 +87,8 @@ export const CommentReadOnly = ({
   // Embeds derived from the comment doc — surfaced as a carousel below the
   // body so a single saved comment can show multiple link previews without
   // breaking the prose flow. Only meaningful for TipTap content.
-  const carouselEmbeds = contentFormat === 'TIPTAP' ? extractDocEmbeds(parsedContent) : [];
+  const carouselEmbeds =
+    showLinkPreviews && contentFormat === 'TIPTAP' ? extractDocEmbeds(parsedContent) : [];
 
   const textContent =
     contentFormat === 'TIPTAP'
@@ -147,6 +156,7 @@ export const CommentReadOnly = ({
             truncate={shouldTruncate && !isExpanded}
             maxLength={maxLength}
             debug={debugEnabled}
+            showLinkPreviews={showLinkPreviews}
           />,
         ];
       } catch (error) {
@@ -249,11 +259,21 @@ export const CommentReadOnly = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (onReadMore) {
+                    onReadMore();
+                    return;
+                  }
                   setIsExpanded(!isExpanded);
                 }}
               >
                 {isExpanded ? 'Show less' : 'Read more'}
-                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {onReadMore ? (
+                  <ChevronRight size={14} />
+                ) : isExpanded ? (
+                  <ChevronUp size={14} />
+                ) : (
+                  <ChevronDown size={14} />
+                )}
               </button>
             ) : showEditedStatus ? (
               /* Spacer to push edited status to the right if no button */

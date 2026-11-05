@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Search as SearchIcon, X, ArrowLeft, Filter, FilterX } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
-import { SearchSuggestionFilters, AVAILABLE_INDICES } from './SearchSuggestionFilters';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
 import type { EntityType } from '@/types/search';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
@@ -17,43 +16,18 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
+const SEARCH_INDICES: EntityType[] = ['post', 'user'];
+
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
-  const [selectedIndices, setSelectedIndices] = useState<EntityType[]>([]);
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const hasPrefetchedRef = useRef(false);
-  const navigatingToSearchRef = useRef(false);
-
-  const indicesToUse = useMemo(() => {
-    if (selectedIndices.length === 0) {
-      return AVAILABLE_INDICES;
-    }
-
-    return selectedIndices;
-  }, [selectedIndices]);
-
-  const hasActiveFilters = useMemo(() => {
-    return selectedIndices.length > 0;
-  }, [selectedIndices]);
-
-  const prefetchSearchRoute = () => {
-    if (!hasPrefetchedRef.current) {
-      try {
-        router.prefetch('/search');
-        hasPrefetchedRef.current = true;
-      } catch {}
-    }
-  };
 
   // Get search suggestions
   const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions({
     query,
-    indices: indicesToUse,
+    indices: SEARCH_INDICES,
     includeLocalSuggestions: true,
   });
 
@@ -64,7 +38,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         inputRef.current?.focus();
         inputRef.current?.select();
       }, 100);
-      prefetchSearchRoute();
     }
   }, [isOpen]);
 
@@ -75,25 +48,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
       // Navigate based on suggestion type
       if (suggestion.entityType === 'paper') {
-        if (suggestion.isRecent && suggestion.contentType && suggestion.contentType !== 'paper') {
-          if (suggestion.id) {
-            router.push(`/post/${suggestion.id}`);
-          } else {
-            router.push('/');
-          }
-        } else if (suggestion.id) {
-          router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
-        } else if ('doi' in suggestion && suggestion.doi) {
-          router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
+        if (suggestion.contentType === 'preregistration' && suggestion.id) {
+          router.push(`/proposal/${suggestion.id}/${suggestion.slug || ''}`);
+        } else if (suggestion.contentType && suggestion.contentType !== 'paper' && suggestion.id) {
+          router.push(`/post/${suggestion.id}`);
+        } else {
+          // Paper pages are retired.
+          router.push('/');
         }
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
         navigateToAuthorProfile(suggestion.authorProfile.id);
-      } else if (suggestion.entityType === 'hub') {
-        if ('slug' in suggestion && suggestion.slug) {
-          router.push(`/topic/${suggestion.slug}`);
-        } else {
-          router.push(`/topic/${suggestion.id}`);
-        }
       } else if (suggestion.entityType === 'post') {
         router.push(`/post/${suggestion.id}`);
       }
@@ -103,33 +67,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     }
   };
 
-  // Reset query and filters when modal closes (but preserve if navigating to search page)
+  // A fresh query each time the modal opens.
   useEffect(() => {
-    if (!isOpen) {
-      if (!navigatingToSearchRef.current) {
-        setQuery('');
-        setSelectedIndices([]);
-        setIsFiltersExpanded(false);
-      }
-      navigatingToSearchRef.current = false;
-    }
+    if (!isOpen) setQuery('');
   }, [isOpen]);
-
-  // Restore query from URL when modal opens on search page
-  useEffect(() => {
-    if (isOpen) {
-      if (pathname === '/search') {
-        const urlQuery = searchParams.get('q');
-        if (urlQuery) {
-          setQuery(urlQuery);
-        } else {
-          setQuery('');
-        }
-      } else if (!navigatingToSearchRef.current) {
-        setQuery('');
-      }
-    }
-  }, [isOpen, pathname, searchParams]);
 
   // Detect OS for keyboard shortcut display
   const isMac = typeof window !== 'undefined' && navigator.userAgent.toUpperCase().includes('MAC');
@@ -161,68 +102,31 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     >
       {/* Search Input */}
       <div className="border-b border-gray-200 p-4">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Search papers, topics, authors..."
-              className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onClick={(e) => {
-                (e.target as HTMLInputElement).select();
-              }}
-              onFocus={() => {
-                setIsFocused(true);
-                prefetchSearchRoute();
-                inputRef.current?.select();
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.shiftKey && query.trim()) {
-                  e.preventDefault();
-                  navigatingToSearchRef.current = true;
-                  router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
-                  onClose();
-                }
-              }}
-            />
-            {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
-              >
-                <X className="h-4 w-4 text-gray-400" />
-              </button>
-            )}
-          </div>
-          {/* Settings/Filter Button */}
-          <Button
-            variant="outlined"
-            size="icon"
-            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-            className="flex-shrink-0 h-12 w-12"
-            aria-label="Toggle filters"
-          >
-            {hasActiveFilters ? (
-              <FilterX className="h-4 w-4 text-gray-500" />
-            ) : (
-              <Filter className="h-4 w-4 text-gray-500" />
-            )}
-          </Button>
-        </div>
-        {/* Filter Section */}
-        <div
-          className="grid transition-[grid-template-rows] duration-[500ms] ease-in-out"
-          style={{ gridTemplateRows: isFiltersExpanded ? '1fr' : '0fr' }}
-        >
-          <div className="overflow-hidden">
-            <SearchSuggestionFilters
-              selectedIndices={selectedIndices}
-              onIndicesChange={setSelectedIndices}
-            />
-          </div>
+        <div className="relative">
+          <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search posts and people..."
+            className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onClick={(e) => {
+              (e.target as HTMLInputElement).select();
+            }}
+            onFocus={() => {
+              setIsFocused(true);
+              inputRef.current?.select();
+            }}
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+            >
+              <X className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -244,29 +148,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           <div className="p-8 text-center text-gray-500">
             <SearchIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
             <p className="text-lg font-medium mb-2">Search ResearchHub</p>
-            <p className="text-sm">Find papers, topics, authors, and more</p>
+            <p className="text-sm">Find posts and people</p>
           </div>
         )}
       </div>
-
-      {/* Show All Results Button - appears when user has typed a search query */}
-      {/* Hide for now as functionality is in progress */}
-      {/* {query.trim().length >= 2 && !loading && (
-        <div className="border-t border-gray-200 py-4 bg-white">
-          <Button
-            variant="ghost"
-            className="w-full justify-center text-primary-700 hover:text-primary-900 hover:bg-gray-100"
-            onClick={() => {
-              navigatingToSearchRef.current = true;
-              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-              onClose();
-            }}
-          >
-            <span>Show all results</span>
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-      )} */}
     </BaseModal>
   );
 }

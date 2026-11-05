@@ -12,9 +12,6 @@ interface UseFundraiseState {
   error: string | null;
 }
 
-type CreateContributionFn = (id: ID, payload: any) => Promise<void>;
-type UseCreateContributionReturn = [UseFundraiseState, CreateContributionFn];
-
 type CloseFundraiseFn = (id: ID) => Promise<void>;
 type UseCloseFundraiseReturn = [UseFundraiseState, CloseFundraiseFn];
 
@@ -23,31 +20,6 @@ type UseCompleteFundraiseReturn = [UseFundraiseState, CompleteFundraiseFn];
 
 type ReopenFundraiseFn = (id: ID, durationDays: number) => Promise<void>;
 type UseReopenFundraiseReturn = [UseFundraiseState, ReopenFundraiseFn];
-
-export const useCreateContribution = (): UseCreateContributionReturn => {
-  const [data, setData] = useState<Fundraise | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createContribution = async (id: ID, payload: any) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await FundraiseService.createContribution(id, payload);
-      setData(response);
-    } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.message || 'Failed to create contribution';
-      setError(errorMsg);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ data, isLoading, error }, createContribution];
-};
 
 export const useCloseFundraise = (): UseCloseFundraiseReturn => {
   const [data, setData] = useState<Fundraise | null>(null);

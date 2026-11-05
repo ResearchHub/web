@@ -1,28 +1,18 @@
-import { notFound } from 'next/navigation';
-import { PostService } from '@/services/post.service';
+import { getProposalOrNotFound } from '@/components/work/proposalRouteServer';
 import { handleMissingSlugRedirect } from '@/utils/navigation';
+import { createUrlSearchParams, type NextSearchParams } from '@/utils/registeredReportRoute';
 
 interface Props {
   params: Promise<{
     id: string;
   }>;
+  searchParams?: Promise<NextSearchParams>;
 }
 
-export default async function FundRedirectPage({ params }: Props) {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+export default async function FundRedirectPage({ params, searchParams }: Props) {
+  const [{ id }, resolvedSearchParams] = await Promise.all([params, searchParams]);
 
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
+  const fund = await getProposalOrNotFound(id);
 
-  let fund;
-  try {
-    fund = await PostService.get(id);
-  } catch (error) {
-    notFound();
-  }
-
-  // Redirect to the full URL with slug (outside try-catch)
-  handleMissingSlugRedirect(fund, id, 'proposal');
+  handleMissingSlugRedirect(fund, id, 'proposal', createUrlSearchParams(resolvedSearchParams));
 }

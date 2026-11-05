@@ -61,5 +61,3 @@ export const Columns = Node.create({
     ];
   },
 });
-
-export default Columns;

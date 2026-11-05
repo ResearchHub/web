@@ -9,3 +9,6 @@ export const FOUNDATION_USER_ID = process.env.NEXT_PUBLIC_FOUNDATION_USER_ID
 
 // Flat USD amount to display for Foundation bounties (regardless of actual RSC amount)
 export const FOUNDATION_BOUNTY_FLAT_USD = 150;
+
+// Cloudflare Turnstile sitekey
+export const TURNSTILE_SITEKEY = process.env.NEXT_PUBLIC_TURNSTILE_SITEKEY || null;

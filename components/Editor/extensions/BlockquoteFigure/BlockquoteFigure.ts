@@ -76,5 +76,3 @@ export const BlockquoteFigure = Figure.extend({
     };
   },
 });
-
-export default BlockquoteFigure;

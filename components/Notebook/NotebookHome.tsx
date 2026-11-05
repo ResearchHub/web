@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBullhorn, faFileSignature } from '@fortawesome/pro-light-svg-icons';
 import { NoteList } from '@/components/Notebook/LeftSidebar/NoteList';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import {
@@ -13,9 +15,9 @@ import {
   OpenProposalModal,
   type ProposalCreationMethod,
 } from '@/components/Funding/OpenProposalModal';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import Icon from '@/components/ui/icons/Icon';
 import { NotePaperWrapper } from './NotePaperWrapper';
+import { useUser } from '@/contexts/UserContext';
 
 interface CreateOption {
   id: string;
@@ -33,6 +35,8 @@ interface CreateOption {
 export function NotebookHome() {
   const router = useRouter();
   const { notes, isLoading: isLoadingNotes } = useNotebookContext();
+  const { user } = useUser();
+  const isModerator = !!user?.isModerator;
 
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
@@ -52,28 +56,34 @@ export function NotebookHome() {
   const createOptions: CreateOption[] = [
     {
       id: 'funding-opportunity',
-      title: 'Funding Opportunity',
+      title: 'Request for Proposal',
       description: 'Fund specific research you care about',
-      icon: <Icon name="fund" size={24} color="#2563eb" />,
+      icon: <FontAwesomeIcon icon={faBullhorn} className="h-6 w-6 text-blue-600" />,
       onClick: () => setIsFundingOpportunityModalOpen(true),
     },
     {
       id: 'proposal',
       title: 'Proposal',
-      description: 'Crowdfund your research',
-      icon: <FundingIcon size={24} color="#2563eb" />,
+      description: 'Raise money for your research',
+      icon: <FontAwesomeIcon icon={faFileSignature} className="h-6 w-6 text-blue-600" />,
       onClick: () => setIsProposalModalOpen(true),
     },
-    {
-      id: 'preprint',
-      title: 'Preprint',
-      description: 'Publish your research as a preprint',
-      icon: <Icon name="submit1" size={24} color="#2563eb" />,
-      onClick: () => router.push('/notebook?newResearch=true'),
-    },
+    ...(isModerator
+      ? [
+          {
+            id: 'changelog',
+            title: 'ChangeLog',
+            description: 'Publish a ResearchHub product update',
+            icon: <Icon name="submit1" size={24} color="#2563eb" />,
+            onClick: () => router.push('/notebook?newChangelog=true'),
+          },
+        ]
+      : []),
   ];
 
-  const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const hasNotes = notes?.some(
+    (note) => note.access === 'WORKSPACE' || note.access === 'SHARED' || note.access === 'PRIVATE'
+  );
 
   return (
     <NotePaperWrapper canvas={false} className="pb-12 pr-6 lg:!pr-16">
@@ -115,7 +125,7 @@ export function NotebookHome() {
             <NoteList notes={notes || []} isLoading={isLoadingNotes} />
           ) : (
             <div className="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400">
-              No files yet. Create a funding opportunity, proposal, or preprint to get started.
+              No files yet. Create an RFP or proposal to get started.
             </div>
           )}
         </div>

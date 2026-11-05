@@ -20,6 +20,9 @@ const buttonVariants = cva(
         contribute:
           'bg-white bg-orange-100 text-orange-600 border border-orange-100 hover:bg-orange-200 hover:border-orange-200',
         dark: 'bg-gray-900 text-white border border-gray-900 hover:bg-gray-800 focus-visible:ring-gray-900 shadow-sm',
+        // White, for a dark ground such as the navy funding card.
+        inverse:
+          'bg-white text-gray-900 border border-white hover:bg-gray-100 focus-visible:ring-white focus-visible:ring-offset-navy',
       },
       size: {
         default: 'h-10 px-4 py-2',

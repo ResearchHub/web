@@ -16,15 +16,19 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
+import { getGrantBadgeAmount } from '@/types/grant';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
   className?: string;
+  /** Apply footer is for public browse contexts (`/fund`). Hide it on owner dashboards. */
+  showApplyCta?: boolean;
 }
 
 const VISIBLE_PROPOSALS = 3;
 
-export function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
+function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): string {
   return formatCurrency({ amount, showUSD, exchangeRate, skipConversion: true, shorten: true });
 }
 
@@ -33,9 +37,17 @@ interface ProposalRowProps {
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
+  /** An award RFP's proposals ask for nothing: the funder sets the award. */
+  showAsk: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
+const ProposalRow: FC<ProposalRowProps> = ({
+  application,
+  showUSD,
+  exchangeRate,
+  isLast,
+  showAsk,
+}) => {
   const { profile, fundraise: fundraiseRaw } = application;
   const fundraise = fundraiseRaw!;
 
@@ -60,23 +72,25 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
     <Link
       href={proposalHref}
       className={cn(
-        'grid grid-cols-[75px_1fr] items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        'grid items-center gap-3 pr-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        showAsk ? 'grid-cols-[56px_1fr] sm:grid-cols-[72px_1fr]' : 'grid-cols-1 pl-5',
         !isLast && 'border-b border-gray-100'
       )}
     >
-      {/* Ask amount */}
-      <div className="text-center py-1 px-0.5  border-r border-gray-200">
-        <div className="text-sm font-extrabold font-mono tracking-tight text-gray-900">
-          {formatCompact(askAmount, showUSD, exchangeRate)}
+      {/* Ask amount — no left padding on the row, so the value sits equidistant
+          between the card edge and the divider */}
+      {showAsk && (
+        <div className="text-center py-1 border-r border-gray-200">
+          <div className="text-sm font-extrabold font-mono tracking-tight text-gray-900">
+            {formatCompact(askAmount, showUSD, exchangeRate)}
+          </div>
+          <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">ask</div>
         </div>
-        <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">
-          requested
-        </div>
-      </div>
+      )}
 
       {/* Title + author + org + score */}
       <div className="min-w-0">
-        <p className="text-[12.5px] font-bold text-gray-900 truncate leading-snug mb-0.5">
+        <p className="text-[12.5px] font-bold text-gray-900 line-clamp-2 sm:truncate leading-snug mb-0.5">
           {fundraise.title || profile.fullName}
         </p>
         <div className="flex items-center gap-1.5">
@@ -129,6 +143,7 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
 export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> = ({
   entry,
   className,
+  showApplyCta = true,
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -147,9 +162,8 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
     slug: content.slug,
   });
 
-  const budgetAmount = showUSD
-    ? Math.round(grant.amount?.usd || 0)
-    : Math.round(grant.amount?.rsc || 0);
+  const badgeAmount = getGrantBadgeAmount(grant);
+  const budgetAmount = showUSD ? Math.round(badgeAmount.usd) : Math.round(badgeAmount.rsc);
 
   const allProposals = grant.applicants?.filter((a) => a.fundraise) ?? [];
   const shown = expanded ? allProposals : allProposals.slice(0, VISIBLE_PROPOSALS);
@@ -157,6 +171,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const hasProposals = allProposals.length > 0;
 
   const isClosed = grant.status === 'CLOSED' || grant.isExpired || !grant.isActive;
+  const isAward = isAwardMechanism(grant.fundingMechanism);
 
   const totalRequested = allProposals.reduce((sum, a) => {
     const ask = showUSD ? (a.fundraise?.goalAmount.usd ?? 0) : (a.fundraise?.goalAmount.rsc ?? 0);
@@ -169,12 +184,10 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         'bg-white rounded-[14px] overflow-hidden border border-gray-200 shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
         className
       )}
+      data-testid="grant-card"
     >
       {/* Frosted header */}
-      <Link
-        href={href}
-        className="group block relative h-[200px] sm:h-[160px] overflow-hidden bg-gray-900"
-      >
+      <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-900">
         {content.previewImage ? (
           <Image
             src={content.previewImage}
@@ -207,7 +220,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 
         {/* Frosted metadata bar */}
         <div
-          className="absolute bottom-0 inset-x-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0 px-5 py-2.5 border-t border-white/[0.06]"
+          className="absolute bottom-0 inset-x-0 flex items-start justify-between gap-4 px-5 py-2.5 border-t border-white/[0.06]"
           style={{
             backdropFilter: 'blur(16px) saturate(1.4)',
             WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
@@ -215,37 +228,29 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
           }}
         >
           <div className="min-w-0">
-            <div className="text-[9px] font-semibold uppercase tracking-wider text-white/40 mb-0.5">
+            <div className="text-[9px] uppercase tracking-wider font-semibold text-white/80 truncate">
               {grant.organization || content.organization || 'ResearchHub Grant'}
             </div>
-            <div className="text-base font-extrabold text-white tracking-tight">
+            <div className="text-base font-extrabold text-white tracking-tight leading-snug line-clamp-2">
               {grant.shortTitle || content.title}
             </div>
           </div>
-          <div className="flex gap-5 flex-shrink-0">
-            {[
-              {
-                label: 'Available Funding',
-                value: formatCompact(budgetAmount, showUSD, exchangeRate),
-                accent: true,
-              },
-              { label: 'Proposals', value: String(allProposals.length), accent: false },
-              { label: 'Duration', value: 'Rolling', accent: false },
-            ].map((stat) => (
-              <div key={stat.label} className="sm:text-right">
-                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
-                  {stat.label}
-                </div>
-                <div
-                  className={cn(
-                    'font-extrabold font-mono',
-                    stat.accent ? 'text-base text-emerald-300' : 'text-base text-white/80'
-                  )}
-                >
-                  {stat.value}
-                </div>
-              </div>
-            ))}
+          <div className="flex-shrink-0 self-stretch flex flex-col text-right">
+            <div className="text-[9px] uppercase tracking-wider font-semibold text-white/70 whitespace-nowrap">
+              {isAward ? (
+                'Prize pool'
+              ) : (
+                <>
+                  <span className="sm:hidden">Funding</span>
+                  <span className="hidden sm:inline">Available Funding</span>
+                </>
+              )}
+            </div>
+            <div className="flex-1 flex items-center justify-end">
+              <span className="text-base font-extrabold font-mono text-emerald-300 leading-snug">
+                {formatCompact(budgetAmount, showUSD, exchangeRate)}
+              </span>
+            </div>
           </div>
         </div>
       </Link>
@@ -265,6 +270,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
                 application={application}
                 showUSD={showUSD}
                 exchangeRate={exchangeRate}
+                showAsk={!isAward}
                 isLast={
                   i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
                 }
@@ -294,7 +300,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 
       {/* No proposals — experts invited state */}
       {!hasProposals && !isClosed && (
-        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+        <div className={cn('px-5 py-4 bg-gray-50/50', showApplyCta && 'border-b border-gray-100')}>
           <div className="flex items-center justify-center gap-2 mb-1.5">
             <RadiatingDot color="bg-emerald-500" size="sm" />
             <span className="text-[11px] font-semibold text-gray-700">
@@ -308,11 +314,15 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       )}
 
       {/* Footer — Apply CTA */}
-      {!isClosed && (
+      {showApplyCta && !isClosed && (
         <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">
             {hasProposals
-              ? `${allProposals.length} proposal${allProposals.length !== 1 ? 's' : ''} · ${formatCompact(Math.round(totalRequested), showUSD, exchangeRate)} total requested`
+              ? `${allProposals.length} proposal${allProposals.length !== 1 ? 's' : ''}${
+                  isAward
+                    ? ''
+                    : ` · ${formatCompact(Math.round(totalRequested), showUSD, exchangeRate)} total requested`
+                }`
               : 'Rolling funding · Apply anytime'}
           </span>
           <Link href={href}>

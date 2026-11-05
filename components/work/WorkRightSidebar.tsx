@@ -2,10 +2,6 @@
 
 import { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
-import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
-import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
-import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
-import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
@@ -43,7 +39,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
           })}
         />
       )}
-      <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />

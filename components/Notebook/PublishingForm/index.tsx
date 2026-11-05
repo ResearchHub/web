@@ -1,646 +1,178 @@
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { publishingFormSchema } from './schema';
-import type { PublishingFormData } from './schema';
-import { WorkImageSection } from './components/WorkImageSection';
-import { FundingSection } from './components/FundingSection';
+'use client';
+
+import { useFormContext } from 'react-hook-form';
+import { Loader2 } from 'lucide-react';
+import { getAvailableNotebookWorkTypes } from '@/components/Notebook/NotebookPrimaryNavigation';
+import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
+import { Button } from '@/components/ui/Button';
+import { DOISection } from '@/components/work/components/DOISection';
+import { cn } from '@/utils/styles';
 import { AuthorsSection } from './components/AuthorsSection';
 import { ContactsSection } from './components/ContactsSection';
-import { TopicsSection } from './components/TopicsSection';
-import { JournalSection } from './components/JournalSection';
-import { GrantDescriptionSection } from './components/GrantDescriptionSection';
-import { GrantOrganizationSection } from './components/GrantOrganizationSection';
-import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
+import { EndDateSection } from './components/EndDateSection';
+import { FundingSection } from './components/FundingSection';
 import { GrantApplicationVisibilitySection } from './components/GrantApplicationVisibilitySection';
+import { GrantDescriptionSection } from './components/GrantDescriptionSection';
+import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
+import { GrantFundingMechanismSection } from './components/GrantFundingMechanismSection';
+import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import {
-  PreregistrationPrivacySection,
   PreregistrationPrivacyLockedAlert,
+  PreregistrationPrivacySection,
 } from './components/PreregistrationPrivacySection';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/utils/styles';
-import { buildWorkUrl } from '@/utils/url';
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useUpsertPost } from '@/hooks/useDocument';
-import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
-import {
-  getDocumentTitleFromEditor,
-  setDocumentTitle,
-} from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
-import { toast } from 'react-hot-toast';
-import {
-  loadPublishingFormFromStorage,
-  savePublishingFormToStorage,
-  getPendingGrant,
-  clearPendingGrant,
-} from '@/components/Editor/lib/utils/publishingFormStorage';
-import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
-import { Loader2 } from 'lucide-react';
-import { DOISection } from '@/components/work/components/DOISection';
-import { getFieldErrorMessage } from '@/utils/form';
-import { useNotebookContext } from '@/contexts/NotebookContext';
-import { useUser } from '@/contexts/UserContext';
-import { useAssetUpload } from '@/hooks/useAssetUpload';
-import { useNonprofitLink } from '@/hooks/useNonprofitLink';
-import { NonprofitConfirmModal } from '@/components/Nonprofit';
-import { ApiError } from '@/services/types';
-import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
+import { WorkImageSection } from './components/WorkImageSection';
+import { PublishButton } from './PublishButton';
+import { usePublishingController } from './PublishingFormProvider';
+import type { PublishingFormData } from './schema';
+
+export { PublishingFormProvider, usePublishingController } from './PublishingFormProvider';
+export { usePublishingCompletion } from './completion';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
-const FEATURE_FLAG_JOURNAL = false;
 
-const PUBLISH_LABEL: Record<string, string> = {
-  preregistration: 'Proposal',
-  grant: 'Funding Opportunity',
-};
+const PUBLISHING_FORM_WORK_TYPES = getAvailableNotebookWorkTypes(false);
 
 interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
-  defaultArticleType?: string;
+  /** Off when the host places the publish button somewhere else. */
+  showFooter?: boolean;
 }
 
-const getButtonText = ({
-  isLoadingUpsert,
-  isRedirecting,
-  isLinkingNonprofit,
-  articleType,
-  isJournalEnabled,
-  hasWorkId,
-}: {
-  isLoadingUpsert: boolean;
-  isRedirecting: boolean;
-  isLinkingNonprofit: boolean;
-  articleType: string;
-  isJournalEnabled: boolean;
-  hasWorkId: boolean;
-}) => {
-  switch (true) {
-    case isLoadingUpsert:
-      return 'Publishing...';
-    case isLinkingNonprofit:
-      return 'Linking nonprofit...';
-    case isRedirecting:
-      return 'Redirecting...';
-    case hasWorkId:
-      return 'Publish';
-    case Boolean(FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled):
-      return 'Pay & Publish';
-    default:
-      return 'Publish';
-  }
-};
-
-const FORM_DEFAULTS = {
-  authors: [],
-  contacts: [],
-  topics: [],
-  rewardFunders: false,
-  nftSupply: '1000',
-  isJournalEnabled: false,
-  budget: '',
-  coverImage: null,
-  selectedNonprofit: null,
-  selectedGrant: null,
-  departmentLabName: '',
-  shortDescription: '',
-  organization: '',
-  applicationDeadline: null,
-  applicationVisibility: 'OPTIONAL' as const,
-  isPublic: true,
-};
-
-const mapContentTypeToArticleType = (contentType: string): PublishingFormData['articleType'] => {
-  if (contentType === 'preregistration') return 'preregistration';
-  if (contentType === 'funding_request') return 'grant';
-  return 'discussion';
-};
-
-const mapDocumentTypeToArticleType = (
-  documentType: string
-): PublishingFormData['articleType'] | null => {
-  const map: Record<string, PublishingFormData['articleType']> = {
-    DISCUSSION: 'discussion',
-    GRANT: 'grant',
-    PREREGISTRATION: 'preregistration',
-  };
-  return map[documentType] ?? null;
-};
-
-const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
-  if (!grant) return;
-  if (grant.endDate) setValue('applicationDeadline', new Date(grant.endDate));
-  if (grant.description) setValue('shortDescription', grant.description);
-  if (grant.organization) setValue('organization', grant.organization);
-  if (grant.amount) setValue('budget', grant.amount.usd.toString());
-  if (grant.contacts?.length > 0) {
-    setValue(
-      'contacts',
-      grant.contacts.map((c: any) => ({
-        value: c.id.toString(),
-        label: c.authorProfile?.fullName || c.name,
-      }))
-    );
-  }
-  if (grant.applicationVisibility) {
-    setValue('applicationVisibility', grant.applicationVisibility);
-  }
-};
-
-const populateFromPost = (post: any, setValue: (name: any, value: any) => void) => {
-  setValue('workId', post.id.toString());
-  setValue('articleType', mapContentTypeToArticleType(post.contentType));
-
-  if (post.contentType === 'preregistration') {
-    setValue('budget', post.fundraise?.goalAmount.usd.toString());
-  }
-  if (post.contentType === 'funding_request') {
-    populateGrantFields(post.grant, setValue);
-  }
-  if (post.image) {
-    setValue('coverImage', { file: null, url: post.image });
-  }
-  if (post.topics?.length > 0) {
-    setValue(
-      'topics',
-      post.topics.map((t: any) => ({ value: t.id.toString(), label: t.name }))
-    );
-  }
-  if (post.authors?.length > 0) {
-    setValue(
-      'authors',
-      post.authors.map((a: any) => ({ value: a.authorId.toString(), label: a.name }))
-    );
-  }
-};
-
-const restoreFromStorage = (
-  data: Record<string, any>,
-  setValue: (name: any, value: any) => void
-) => {
-  for (const [key, value] of Object.entries(data)) {
-    setValue(key, key === 'applicationDeadline' && value ? new Date(value) : value);
-  }
-};
-
-const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) => void) => {
-  if (getValues('articleType') === 'grant') {
-    setValue('applicationDeadline', new Date('2029-12-31'));
-  }
-};
-
-const autoAddCurrentUser = (
-  getValues: any,
-  setValue: (name: any, value: any) => void,
-  currentUser: any
-) => {
-  if (!currentUser) return;
-
-  const isGrant = getValues('articleType') === 'grant';
-  const field = isGrant ? 'contacts' : 'authors';
-
-  if (getValues(field).length === 0) {
-    const profile = currentUser.authorProfile;
-    setValue(field, [
-      {
-        value: isGrant
-          ? currentUser.id.toString()
-          : profile?.id?.toString() || currentUser.id.toString(),
-        label: currentUser.fullName || currentUser.email || 'Unknown User',
-      },
-    ]);
-  }
-};
-
-interface ArticleTypeResult {
-  type: PublishingFormData['articleType'];
-  source: 'searchParam' | 'template' | 'default';
-}
-
-const resolveArticleType = (
-  params: { get(key: string): string | null } | null,
-  defaultArticleType?: string
-): ArticleTypeResult | null => {
-  if (params?.get('newFunding') === 'true')
-    return { type: 'preregistration', source: 'searchParam' };
-  if (params?.get('newResearch') === 'true') return { type: 'discussion', source: 'searchParam' };
-  if (params?.get('newGrant') === 'true') return { type: 'grant', source: 'searchParam' };
-
-  const template = params?.get('template');
-  if (template === 'preregistration') return { type: 'preregistration', source: 'template' };
-  if (template === 'grant') return { type: 'grant', source: 'template' };
-  if (template) return { type: 'discussion', source: 'template' };
-
-  if (defaultArticleType) {
-    return { type: defaultArticleType as PublishingFormData['articleType'], source: 'default' };
-  }
-  return null;
-};
-
-const getRedirectPath = (articleType: string, responseId: string, slug: string): string => {
-  if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
-  if (articleType === 'grant')
-    return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
-  return `/post/${responseId}/${slug}`;
-};
-
+/**
+ * The publishing details for a note: its work type, then the sections that
+ * type needs, with the publish button in a sticky footer. Renders inside a
+ * `PublishingFormProvider`, which holds the values and the publish flow.
+ */
 export function PublishingForm({
   bountyAmount,
   onBountyClick,
-  defaultArticleType,
+  showFooter = true,
 }: Readonly<PublishingFormProps>) {
-  const { currentNote: note, editor } = useNotebookContext();
-  const { user: currentUser } = useUser();
-  const searchParams = useSearchParams();
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
-  const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
-  const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
-
-  const methods = useForm<PublishingFormData>({
-    defaultValues: FORM_DEFAULTS,
-    resolver: zodResolver(publishingFormSchema),
-    mode: 'onChange',
-  });
-
-  const noteId = note?.id;
-
-  useEffect(() => {
-    if (!note) return;
-
-    methods.reset(FORM_DEFAULTS);
-
-    if (note.post) {
-      populateFromPost(note.post, methods.setValue);
-    } else {
-      const storedData = loadPublishingFormFromStorage(note.id.toString());
-      if (storedData) {
-        restoreFromStorage(storedData, methods.setValue);
-      } else {
-        const articleType =
-          (note.documentType && mapDocumentTypeToArticleType(note.documentType)) ??
-          resolveArticleType(searchParams, defaultArticleType)?.type;
-        if (articleType) {
-          methods.setValue('articleType', articleType);
-        }
-      }
-    }
-
-    applyGrantDefaults(methods.getValues, methods.setValue);
-    autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
-
-    const pending = getPendingGrant();
-    if (pending) {
-      methods.setValue('selectedGrant', pending);
-      if (pending.applicationVisibility === 'PRIVATE') {
-        methods.setValue('isPublic', false);
-      }
-      clearPendingGrant();
-    }
-
-    savePublishingFormToStorage(
-      note.id.toString(),
-      methods.getValues() as Partial<PublishingFormData>
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteId]);
-
-  useEffect(() => {
-    if (!noteId) return;
-
-    const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [noteId, methods]);
-
-  const { watch, clearErrors } = methods;
-  const articleType = watch('articleType');
-  const isJournalEnabled = watch('isJournalEnabled');
-  const selectedNonprofit = watch('selectedNonprofit');
-
-  const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
-
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const router = useRouter();
-
-  const isDeclined = note?.post?.grant?.status === 'DECLINED';
-  const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
-  const isPublicValue = watch('isPublic');
-  const selectedGrantValue = watch('selectedGrant');
-  const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
-  const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
-
-  useEffect(() => {
-    clearErrors();
-  }, [articleType, clearErrors]);
-
-  const handlePublishClick = async () => {
-    const result = await methods.trigger();
-
-    if (!result) {
-      const errors = methods.formState.errors;
-
-      if (Object.keys(errors).length > 0) {
-        Object.entries(errors).forEach(([field, error]) => {
-          const errorMessage = getFieldErrorMessage(error, `Invalid ${field}`);
-          if (errorMessage) {
-            toast.error(errorMessage, {
-              style: { width: '300px' },
-            });
-          }
-        });
-      } else {
-        toast.error('Unable to publish. Please check all fields and try again.', {
-          style: { width: '300px' },
-        });
-      }
-      return;
-    }
-
-    if (
-      articleType !== 'preregistration' &&
-      articleType !== 'discussion' &&
-      articleType !== 'grant'
-    ) {
-      return;
-    }
-
-    if (selectedNonprofit) {
-      setShowNonprofitConfirmModal(true);
-    } else {
-      setShowConfirmModal(true);
-    }
-  };
-
-  const handleNonprofitConfirm = () => {
-    setShowNonprofitConfirmModal(false);
-    setShowConfirmModal(true);
-  };
-
-  const uploadCoverImage = async (formData: PublishingFormData): Promise<string | null | false> => {
-    const needsImage =
-      formData.articleType === 'preregistration' || formData.articleType === 'grant';
-    const file = needsImage ? formData.coverImage?.file : null;
-    if (!file) return null;
-
-    try {
-      const result = await uploadAsset(file, 'post');
-      return result.objectKey;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image. Please try again.');
-      return false;
-    }
-  };
-
-  const tryLinkNonprofit = async (
-    formData: PublishingFormData,
-    fundraiseId: string | number | undefined
-  ): Promise<boolean> => {
-    if (!formData.selectedNonprofit || !fundraiseId || formData.articleType !== 'preregistration') {
-      return true;
-    }
-
-    try {
-      await linkNonprofitToFundraise(
-        {
-          name: formData.selectedNonprofit.name,
-          ein: formData.selectedNonprofit.ein,
-          endaomentOrgId:
-            formData.selectedNonprofit.endaomentOrgId || formData.selectedNonprofit.id,
-          baseWalletAddress: formData.selectedNonprofit.baseWalletAddress,
-        },
-        fundraiseId,
-        formData.departmentLabName || ''
-      );
-      return true;
-    } catch (error: unknown) {
-      console.error('Error linking nonprofit:', error);
-      if (error instanceof Error && error.message.includes('Fundraise not found')) {
-        toast.error('The fundraise was not found. Please try publishing again.');
-        return false;
-      }
-      toast.error('Nonprofit organization was not linked successfully.');
-      return true;
-    }
-  };
-
-  const handleConfirmPublish = async (editedTitle: string) => {
-    try {
-      setDocumentTitle(editor, editedTitle);
-
-      const text = editor?.getText();
-      const json = editor?.getJSON();
-      const html = editor?.getHTML();
-      const formData = methods.getValues();
-
-      const imagePath = await uploadCoverImage(formData);
-      if (imagePath === false) {
-        setShowConfirmModal(false);
-        return;
-      }
-
-      let budgetValue = '0';
-      if (formData.articleType === 'preregistration' || formData.articleType === 'grant') {
-        budgetValue = formData.budget || '0';
-      }
-
-      const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
-      const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
-
-      const response = await upsertPost(
-        {
-          budget: budgetValue,
-          rewardFunders: formData.rewardFunders,
-          nftSupply: formData.nftSupply || '1000',
-          title: editedTitle,
-          noteId: note?.id.toString(),
-          renderableText: text || '',
-          fullJSON: JSON.stringify(json),
-          fullSrc: html || '',
-          assignDOI: !formData.workId,
-          topics: formData.topics.map((topic) => topic.value),
-          authors: formData.authors
-            .map((author) => author.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
-          contacts: formData.contacts
-            .map((contact) => contact.value)
-            .map(Number)
-            .filter((id) => !Number.isNaN(id)),
-          articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
-          image: imagePath,
-          organization: formData.organization,
-          description: formData.shortDescription,
-          applicationDeadline:
-            formData.articleType === 'grant'
-              ? new Date('2029-12-31')
-              : formData.applicationDeadline,
-          grantId,
-          applicationVisibility:
-            formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
-          isPublic:
-            formData.articleType === 'preregistration' && !formData.workId
-              ? formData.isPublic
-              : undefined,
-        },
-        formData.workId
-      );
-
-      const fundraiseId = response.fundraiseId || note?.post?.fundraise?.id || undefined;
-      const linked = await tryLinkNonprofit(formData, fundraiseId);
-      if (!linked) {
-        setIsRedirecting(false);
-        setShowConfirmModal(false);
-        return;
-      }
-
-      setIsRedirecting(true);
-      const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
-      const isNewGrant = formData.articleType === 'grant' && !formData.workId;
-      const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
-
-      if (isNewGrantPending) {
-        toast.success(
-          'Your Funding Opportunity has been submitted and is pending moderator review.',
-          {
-            duration: 5000,
-          }
-        );
-      } else if (!isNewGrant && response.moderationStatus === 'PENDING') {
-        toast.success(`Your ${publishLabel} has been submitted and is pending moderator review.`, {
-          duration: 5000,
-        });
-      } else {
-        toast.success(`${publishLabel} published successfully!`);
-      }
-      router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
-    } catch (error: unknown) {
-      const fallback = 'Error publishing. Please try again.';
-      if (error instanceof ApiError) {
-        const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
-      } else {
-        toast.error(fallback);
-      }
-      console.error('Error publishing:', error);
-    } finally {
-      setShowConfirmModal(false);
-    }
-  };
+  const {
+    note,
+    readOnly,
+    articleType,
+    workId,
+    isDeclined,
+    isPublishing,
+    isLinkingNonprofit,
+    isRedirecting,
+    blockedMessage,
+  } = usePublishingController();
+  const { setValue } = useFormContext<PublishingFormData>();
 
   if (!note) {
     return <PublishingFormSkeleton />;
   }
 
   return (
-    <FormProvider {...methods}>
-      <div className="flex w-full flex-col bg-white relative h-full">
-        {isPublishing && (
-          <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
-            {isLinkingNonprofit && (
-              <p className="text-sm text-gray-600">Linking nonprofit organization...</p>
-            )}
-          </div>
-        )}
+    <div className="flex w-full flex-col bg-white relative h-full">
+      {isPublishing && (
+        <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
+          <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
+          {isLinkingNonprofit && (
+            <p className="text-sm text-gray-600">Linking nonprofit organization...</p>
+          )}
+        </div>
+      )}
 
-        <div
+      <div
+        className={cn(
+          'flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative',
+          isRedirecting ? 'overflow-hidden' : 'overflow-y-auto',
+          isDeclined && 'pointer-events-none opacity-60'
+        )}
+      >
+        <fieldset
+          disabled={readOnly}
           className={cn(
-            'flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative',
-            isRedirecting ? 'overflow-hidden' : 'overflow-y-auto',
-            isDeclined && 'pointer-events-none opacity-60'
+            'm-0 mx-auto w-full max-w-2xl min-w-0 border-0 p-0 pb-6',
+            readOnly && 'pointer-events-none opacity-60'
           )}
         >
-          <div className="mx-auto w-full max-w-2xl pb-6">
-            {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
-            {articleType === 'grant' && (
-              <>
-                <GrantDescriptionSection />
-                <GrantOrganizationSection />
-              </>
-            )}
-            {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
-            <TopicsSection />
-            {note.post?.doi && (
-              <div className="py-3 px-6 space-y-6">
-                <DOISection doi={note.post.doi} />
+          {!articleType ? (
+            <div className="px-4 py-5 lg:px-6">
+              <h3 className="text-sm font-semibold text-gray-900">Select work type</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Choose how you want to publish this note.
+              </p>
+              <div className="mt-4 space-y-2">
+                {PUBLISHING_FORM_WORK_TYPES.map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    variant="outlined"
+                    onClick={() =>
+                      setValue('articleType', option.value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                    className="h-auto w-full justify-start border-gray-200 px-4 py-3 text-left hover:border-primary-300 hover:bg-primary-50 focus-visible:ring-primary-500"
+                  >
+                    <span>
+                      <span className="block text-sm font-medium text-gray-900">
+                        {option.label}
+                      </span>
+                      <span className="mt-0.5 block text-xs font-normal text-gray-500">
+                        {option.description}
+                      </span>
+                    </span>
+                  </Button>
+                ))}
               </div>
-            )}
-            {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && <GrantApplicationVisibilitySection />}
-            {articleType === 'preregistration' && <FundingSection note={note} />}
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacySection />
-            )}
-            {FEATURE_FLAG_RESEARCH_COIN &&
-              articleType !== 'preregistration' &&
-              articleType !== 'grant' && (
-                <ResearchCoinSection
-                  bountyAmount={bountyAmount ?? null}
-                  onBountyClick={onBountyClick ?? (() => {})}
-                />
+            </div>
+          ) : (
+            <>
+              {(articleType === 'preregistration' ||
+                articleType === 'grant' ||
+                articleType === 'registered_report') && <WorkImageSection />}
+              {articleType === 'grant' && (
+                <>
+                  <GrantDescriptionSection />
+                  <GrantOrganizationSection />
+                </>
               )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
-          </div>
-        </div>
-
-        <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
-          <div className="mx-auto w-full max-w-2xl space-y-3">
-            {articleType === 'preregistration' && !methods.watch('workId') && (
-              <PreregistrationPrivacyLockedAlert />
-            )}
-            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Payment due:</span>
-                <span className="font-medium text-gray-900">$1,000 USD</span>
-              </div>
-            )}
-            <Button
-              variant="default"
-              onClick={handlePublishClick}
-              className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isPublishing || isDeclined || showPrivateWarning}
-            >
-              {getButtonText({
-                isLoadingUpsert: isLoadingUpsert || isUploadingImage,
-                isRedirecting,
-                isLinkingNonprofit,
-                articleType,
-                isJournalEnabled: isJournalEnabled ?? false,
-                hasWorkId: Boolean(methods.watch('workId')),
-              })}
-            </Button>
-          </div>
-        </div>
+              {articleType === 'grant' ? <ContactsSection /> : <AuthorsSection />}
+              {note.post?.doi && (
+                <div className="py-3 px-6 space-y-6">
+                  <DOISection doi={note.post.doi} />
+                </div>
+              )}
+              {articleType === 'grant' && <GrantFundingMechanismSection />}
+              {articleType === 'grant' && <GrantFundingAmountSection />}
+              {articleType === 'grant' && <GrantApplicationVisibilitySection />}
+              {articleType === 'preregistration' && <FundingSection note={note} />}
+              {articleType === 'preregistration' && !workId && (
+                <div className="py-3 px-6">
+                  <EndDateSection />
+                </div>
+              )}
+              {articleType === 'preregistration' && !workId && <PreregistrationPrivacySection />}
+              {FEATURE_FLAG_RESEARCH_COIN &&
+                articleType !== 'preregistration' &&
+                articleType !== 'grant' && (
+                  <ResearchCoinSection
+                    bountyAmount={bountyAmount ?? null}
+                    onBountyClick={onBountyClick ?? (() => {})}
+                  />
+                )}
+            </>
+          )}
+        </fieldset>
       </div>
 
-      {showNonprofitConfirmModal && selectedNonprofit && (
-        <NonprofitConfirmModal
-          isOpen={showNonprofitConfirmModal}
-          onClose={() => setShowNonprofitConfirmModal(false)}
-          onConfirm={handleNonprofitConfirm}
-          nonprofitName={selectedNonprofit.name}
-          ein={selectedNonprofit.ein}
-        />
+      {showFooter && (
+        <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
+          <div className="mx-auto w-full max-w-2xl space-y-3">
+            {articleType === 'preregistration' && !workId && <PreregistrationPrivacyLockedAlert />}
+            {blockedMessage && <p className="text-sm text-red-600">{blockedMessage}</p>}
+            <PublishButton className="w-full" />
+          </div>
+        </div>
       )}
-
-      {showConfirmModal && (
-        <ConfirmPublishModal
-          isOpen={showConfirmModal}
-          onClose={() => setShowConfirmModal(false)}
-          onConfirm={handleConfirmPublish}
-          title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isPublishing}
-          isUpdate={Boolean(methods.watch('workId'))}
-          onTitleChange={(title) => setDocumentTitle(editor, title)}
-          variant={articleType === 'grant' ? 'rfp' : 'default'}
-          zIndex={100}
-        />
-      )}
-    </FormProvider>
+    </div>
   );
 }

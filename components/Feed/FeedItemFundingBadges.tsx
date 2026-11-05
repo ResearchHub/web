@@ -14,6 +14,8 @@ interface FeedItemFundingBadgesProps {
   href: string;
   isNonprofit?: boolean;
   fundraiseStatus?: FundraiseStatus;
+  /** Replaces "Funded" on a completed fundraise. Award RFPs say "Awarded". */
+  completedLabel?: string;
   variant?: 'default' | 'overlay';
 }
 
@@ -26,6 +28,7 @@ export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
   href,
   isNonprofit,
   fundraiseStatus,
+  completedLabel = 'Funded',
   variant = 'default',
 }) => {
   const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
@@ -66,7 +69,7 @@ export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
           }`}
         >
           <CheckCircle size={12} className="text-white" />
-          Funded
+          {completedLabel}
         </span>
       ) : (
         isNonprofit && (

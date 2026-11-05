@@ -1,6 +1,5 @@
-import { buildWorkUrl, extractFirstUrl, stripUrls, type DetectedUrl } from '@/utils/url';
+import { extractFirstUrl, stripUrls, type DetectedUrl } from '@/utils/url';
 import type { Comment, ContentFormat } from '@/types/comment';
-import type { FeedEntry, FeedCommentContent } from '@/types/feed';
 import { extractTextFromTipTap, parseContent } from './commentContentUtils';
 
 interface PostCardBase {
@@ -18,7 +17,7 @@ interface PostCardBase {
 
 export interface PostCardPost extends PostCardBase {
   kind: 'post';
-  embed: DetectedUrl;
+  embed?: DetectedUrl;
   onEdit?: () => void;
 }
 
@@ -82,68 +81,5 @@ export const commentToPostCard = (
     snippet: getCommentSnippet(comment),
     embed,
     onEdit: options.onEdit,
-  };
-};
-
-export const feedEntryToPostCard = (entry: FeedEntry): PostCardData | null => {
-  if (entry.contentType !== 'COMMENT') return null;
-  const content = entry.content as FeedCommentContent;
-  const commentType = content.comment?.commentType;
-  if (commentType !== 'AUTHOR_UPDATE' && commentType !== 'REVIEW') return null;
-
-  const author = content.createdBy;
-  const baseAuthor = {
-    id: author?.user?.id,
-    fullName: author?.fullName,
-    profileImage: author?.profileImage,
-    authorProfileId: author?.id,
-  };
-
-  const relatedWork = entry.relatedWork
-    ? {
-        title: entry.relatedWork.title,
-        href: buildWorkUrl({
-          id: entry.relatedWork.id,
-          slug: entry.relatedWork.slug,
-          contentType: entry.relatedWork.contentType,
-          tab: commentType === 'REVIEW' ? 'reviews' : 'updates',
-        }),
-      }
-    : undefined;
-
-  const rawContent = content.comment.content;
-  const contentFormat = content.comment.contentFormat;
-
-  const snippet = getCommentSnippet({
-    content: rawContent,
-    contentFormat,
-  } as Comment);
-
-  if (commentType === 'REVIEW') {
-    return {
-      kind: 'review',
-      key: entry.id,
-      author: baseAuthor,
-      createdDate: entry.timestamp,
-      snippet,
-      relatedWork,
-      score: content.review?.score ?? content.comment.reviewScore,
-      reviewContent: rawContent,
-      reviewContentFormat: contentFormat,
-    };
-  }
-
-  const text = typeof rawContent === 'string' ? rawContent : JSON.stringify(rawContent ?? '');
-  const embed = extractFirstUrl(text);
-  if (!embed) return null;
-
-  return {
-    kind: 'post',
-    key: entry.id,
-    author: baseAuthor,
-    createdDate: entry.timestamp,
-    snippet,
-    relatedWork,
-    embed,
   };
 };

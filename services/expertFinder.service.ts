@@ -10,6 +10,8 @@ import {
   transformGeneratedEmail,
   transformSavedTemplate,
   transformInvitedExperts,
+  transformProposalDraft,
+  type ProposalDraft,
   type InvitedExperts,
   type ExpertResult,
   type ExpertSearchCreated,
@@ -18,12 +20,25 @@ import {
   type ExpertSearchListResponse,
   type GeneratedEmail,
   type GeneratedEmailListResponse,
+  type OutreachChannel,
   type SavedTemplate,
   type SavedTemplateListResponse,
 } from '@/types/expertFinder';
 import type { ContentType, Work } from '@/types/work';
 import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
+import { ApiError } from './types/api';
+
+// TEMP: Disable outreach while AWS sender provider is broken. Set to false to re-enable.
+const OUTREACH_SENDING_DISABLED = true;
+const OUTREACH_DISABLED_MESSAGE =
+  'Expert outreach is temporarily unavailable. Please try again later.';
+
+function assertExpertFinderOutreachEnabled(): void {
+  if (OUTREACH_SENDING_DISABLED) {
+    throw new ApiError(OUTREACH_DISABLED_MESSAGE, 503);
+  }
+}
 
 // ── API enum values and display labels ─────────────
 
@@ -77,7 +92,6 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_search_ids?: number[];
   additional_context?: string;
 }
 
@@ -104,7 +118,11 @@ export type EmailTemplateKind =
   | 'peer-review'
   | 'publication'
   | 'rfp-outreach'
+  | 'proposal-draft-outreach'
   | 'custom';
+
+/** Purpose that links a completed proposal draft and embeds a note invite link. */
+export const PROPOSAL_DRAFT_OUTREACH_TEMPLATE: EmailTemplateKind = 'proposal-draft-outreach';
 
 // ── Generated emails API ───────────────────────────────────────────────────
 
@@ -126,6 +144,8 @@ export interface GenerateEmailPayload {
   expert_email: string;
   template?: string | null;
   template_id?: number | null;
+  /** Requires template 'proposal-draft-outreach'; the draft must be completed. */
+  proposal_draft_id?: number | null;
 }
 
 export interface CreateDraftEmailPayload {
@@ -140,6 +160,7 @@ export interface CreateDraftEmailPayload {
   template?: string;
   status?: GeneratedEmailStatus;
   notes?: string;
+  channels?: OutreachChannel[];
 }
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
@@ -313,6 +334,51 @@ export class ExpertFinderService {
     return transformInvitedExperts(raw);
   }
 
+  // ── Proposal drafts ──────────────────────────────────────────────────────
+
+  /**
+   * Kick off an AI proposal draft for one expert in a search.
+   * POST /api/research_ai/expert-finder/proposal-drafts/
+   */
+  static async createProposalDraft(searchExpertId: number): Promise<ProposalDraft> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/proposal-drafts/`,
+      { search_expert_id: searchExpertId }
+    );
+    return transformProposalDraft(raw);
+  }
+
+  /**
+   * Fetch the current state of a proposal draft (used for polling).
+   * GET /api/research_ai/expert-finder/proposal-drafts/:draftId/
+   */
+  static async getProposalDraft(draftId: number | string): Promise<ProposalDraft> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/proposal-drafts/${draftId}/`
+    );
+    return transformProposalDraft(raw);
+  }
+
+  /**
+   * Start a proposal draft, attaching to the already-running one if the API
+   * answers 409 with the active draft's id.
+   */
+  static async startProposalDraft(searchExpertId: number): Promise<ProposalDraft> {
+    try {
+      return await this.createProposalDraft(searchExpertId);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        const existingId = Number(
+          (err.errors as Record<string, unknown> | undefined)?.proposal_draft_id
+        );
+        if (Number.isInteger(existingId) && existingId >= 1) {
+          return this.getProposalDraft(existingId);
+        }
+      }
+      throw err;
+    }
+  }
+
   // ── Generated emails ─────────────────────────────────────────────────────
 
   static async generateEmail(payload: GenerateEmailPayload): Promise<GeneratedEmail> {
@@ -384,6 +450,7 @@ export class ExpertFinderService {
     reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
       reply_to: payload.reply_to,
@@ -401,6 +468,7 @@ export class ExpertFinderService {
     generated_email_ids: number[];
     reply_to: string[];
   }): Promise<{ sent: number }> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
       reply_to: payload.reply_to,
@@ -473,6 +541,7 @@ export class ExpertFinderService {
     grantId: string | number,
     params: { emails: string[]; replyTo?: string; cc?: string[] }
   ): Promise<InviteApplicantsResponse> {
+    assertExpertFinderOutreachEnabled();
     const body: Record<string, unknown> = { emails: params.emails };
     if (params.replyTo) body.reply_to = params.replyTo;
     if (params.cc && params.cc.length) body.cc = params.cc;

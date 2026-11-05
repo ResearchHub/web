@@ -53,10 +53,13 @@ export interface ApplicationFundraise {
 
 /**
  * When a fundraise is COMPLETED, derive USD from the ratio (goalUsd / raisedRsc)
- * so the displayed total matches the goal. Returns null for active fundraises (use live rate).
+ * so the displayed total matches the goal. Returns null for active fundraises
+ * (use the reported amount), and when the goal is 0. An award has no goal, so
+ * pinning its total to that goal would show 0 after the payout.
  */
 export function computeGoalRate(status: string, goalUsd: number, raisedRsc: number): number | null {
-  return status === 'COMPLETED' && raisedRsc > 0 ? goalUsd / raisedRsc : null;
+  if (status !== 'COMPLETED' || raisedRsc <= 0 || goalUsd <= 0) return null;
+  return goalUsd / raisedRsc;
 }
 
 /**
@@ -152,6 +155,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
 }
 
 export interface Application {
+  id: number;
   profile: AuthorProfile;
   preregistrationPostId?: number;
   fundraise?: ApplicationFundraise;
@@ -161,6 +165,7 @@ export interface Application {
 
 export function transformApplication(raw: any): Application {
   return {
+    id: raw.id,
     profile: transformAuthorProfile(raw.applicant),
     preregistrationPostId: raw.preregistration_post_id ?? undefined,
     keyInsight: transformKeyInsight(raw.key_insight),
@@ -230,6 +235,8 @@ export interface Fundraise {
   postSlug?: string;
   postImage?: string | null;
   reviewMetrics?: ReviewMetrics;
+  /** Institution receiving the funds when the fundraise is routed through a nonprofit. */
+  nonprofit?: { id: number; name: string };
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
@@ -276,5 +283,6 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
       raw.review_metrics?.avg != null
         ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
         : undefined,
+    nonprofit: raw.nonprofit ? { id: raw.nonprofit.id, name: raw.nonprofit.name } : undefined,
   };
 });

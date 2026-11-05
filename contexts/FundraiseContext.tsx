@@ -10,18 +10,27 @@ import {
   useRef,
   ReactNode,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
-import type {
-  ProposalStatusFilter,
-  ProposalSortOption,
+import {
+  STATUS_OPTIONS,
+  SORT_OPTIONS,
+  type ProposalStatusFilter,
+  type ProposalSortOption,
 } from '@/components/Funding/lib/proposalSortAndFilterConfig';
+import { useFeedStateRestoration } from '@/hooks/useFeedStateRestoration';
+
+function isTruthyQueryParam(value: string | null): boolean {
+  return value === 'true' || value === '1';
+}
 
 interface FundraiseContextValue {
   entries: FeedEntry[];
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
+  page: number;
   loadMore: () => Promise<void>;
   proposalCount: number;
 
@@ -31,17 +40,36 @@ interface FundraiseContextValue {
   setTaxDeductible: (value: boolean) => void;
   sortBy: ProposalSortOption;
   setSortBy: (value: ProposalSortOption) => void;
+  isGrantScoped: boolean;
 
   /** Call once from the consuming component to trigger the initial fetch. */
   activate: () => void;
+  /** Refetch the current proposals page (e.g. after pool allocate updates raised). */
+  refresh: () => Promise<void>;
 
-  sidebarFundraises: FeedEntry[];
-  isSidebarLoading: boolean;
-  fetchSidebarFundraises: () => Promise<void>;
+  restoredScrollPosition: number | null;
+  lastClickedEntryId: string | null;
+  restorationTab: string;
 }
 
 const PAGE_SIZE = 20;
+const DEFAULT_STATUS: ProposalStatusFilter = 'all';
+const DEFAULT_SORT: ProposalSortOption = 'best';
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
+
+function resolveRestoredStatus(value: string | undefined): ProposalStatusFilter {
+  if (STATUS_OPTIONS.some((option) => option.value === value)) {
+    return value as ProposalStatusFilter;
+  }
+  return DEFAULT_STATUS;
+}
+
+function resolveRestoredSort(value: string | undefined): ProposalSortOption {
+  if (SORT_OPTIONS.some((option) => option.value === value)) {
+    return value as ProposalSortOption;
+  }
+  return DEFAULT_SORT;
+}
 
 interface FundraiseProviderProps {
   children: ReactNode;
@@ -49,20 +77,38 @@ interface FundraiseProviderProps {
 }
 
 export function FundraiseProvider({ children, grantId }: FundraiseProviderProps) {
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const isGrantScoped = grantId != null;
+  const includePrivate = isGrantScoped || isTruthyQueryParam(searchParams.get('include_private'));
+
+  const restorationTab = useMemo(() => {
+    const parts = ['proposals'];
+    if (grantId != null) parts.push(`grant-${grantId}`);
+    return parts.join('-');
+  }, [grantId]);
+
+  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
+    activeTab: restorationTab,
+  });
+
+  const hasRestoredEntries = restoredState !== null && (restoredState.entries?.length ?? 0) > 0;
+  const initialEntries = restoredState?.entries ?? [];
+  const initialHasMore = restoredState?.hasMore ?? false;
+  const initialPage = restoredState?.page ?? 1;
+  const initialStatusFilter = resolveRestoredStatus(restoredState?.filters?.statusFilter);
+  const initialSortBy = resolveRestoredSort(restoredState?.filters?.sortBy);
+
+  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
+  const [totalCount, setTotalCount] = useState(initialEntries.length);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [page, setPage] = useState(initialPage);
+  const pageRef = useRef(initialPage);
 
-  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>(initialStatusFilter);
   const [taxDeductible, setTaxDeductible] = useState(false);
-  const [sortBy, setSortBy] = useState<ProposalSortOption>('best');
-
-  // Sidebar lazy-loaded data (ref-guarded, fetched at most once)
-  const [sidebarFundraises, setSidebarFundraises] = useState<FeedEntry[]>([]);
-  const [isSidebarLoading, setIsSidebarLoading] = useState(false);
-  const hasSidebarDataRef = useRef(false);
+  const [sortBy, setSortBy] = useState<ProposalSortOption>(initialSortBy);
 
   const feedParams = useMemo(() => {
     const isStatusCompleted = statusFilter === 'completed';
@@ -78,12 +124,21 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     };
   }, [statusFilter, sortBy]);
 
-  const [activated, setActivated] = useState(false);
+  const [activated, setActivated] = useState(hasRestoredEntries);
   const activate = useCallback(() => setActivated(true), []);
+  const skipFetchAfterRestoreRef = useRef(hasRestoredEntries);
+
+  useEffect(() => {
+    if (grantId != null) {
+      setActivated(true);
+    }
+  }, [grantId]);
 
   const fetchProposals = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
+    pageRef.current = 1;
+    setPage(1);
     try {
       const result = await FeedService.getFeed({
         page: 1,
@@ -93,28 +148,32 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         grantId,
         fundraiseStatus: feedParams.fundraiseStatus,
         ordering: feedParams.ordering,
+        includePrivate,
       });
       setEntries(result.entries);
+      setTotalCount(result.count);
       setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
-      setPage(1);
     } catch (error) {
       console.error('Error fetching fundraises:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [grantId, feedParams]);
+  }, [grantId, feedParams, includePrivate]);
 
   useEffect(() => {
-    if (activated) {
-      fetchProposals();
+    if (!activated) return;
+    if (skipFetchAfterRestoreRef.current) {
+      skipFetchAfterRestoreRef.current = false;
+      return;
     }
+    fetchProposals();
   }, [activated, fetchProposals]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
 
     setIsLoadingMore(true);
-    const nextPage = page + 1;
+    const nextPage = pageRef.current + 1;
     try {
       const result = await FeedService.getFeed({
         page: nextPage,
@@ -124,72 +183,60 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         grantId,
         fundraiseStatus: feedParams.fundraiseStatus,
         ordering: feedParams.ordering,
+        includePrivate,
       });
       setEntries((prev) => [...prev, ...result.entries]);
+      setTotalCount(result.count);
       setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
+      pageRef.current = nextPage;
       setPage(nextPage);
     } catch (error) {
       console.error('Error loading more fundraises:', error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore, page, grantId, feedParams]);
-
-  const fetchSidebarFundraises = useCallback(async () => {
-    if (hasSidebarDataRef.current) return;
-    hasSidebarDataRef.current = true;
-
-    setIsSidebarLoading(true);
-    try {
-      const result = await FeedService.getFeed({
-        page: 1,
-        pageSize: 5,
-        contentType: 'PREREGISTRATION',
-        endpoint: 'funding_feed',
-        fundraiseStatus: 'OPEN',
-        ordering: 'best',
-      });
-      setSidebarFundraises(result.entries);
-    } catch (error) {
-      console.error('Error fetching sidebar fundraises:', error);
-    } finally {
-      setIsSidebarLoading(false);
-    }
-  }, []);
+  }, [isLoading, isLoadingMore, hasMore, grantId, feedParams, includePrivate]);
 
   const value = useMemo<FundraiseContextValue>(
     () => ({
       entries,
-      isLoading: activated ? isLoading : false,
+      isLoading: !activated || isLoading,
       isLoadingMore,
       hasMore,
+      page,
       loadMore,
-      proposalCount: entries.length,
+      proposalCount: totalCount,
       statusFilter,
       setStatusFilter,
       taxDeductible,
       setTaxDeductible,
       sortBy,
       setSortBy,
+      isGrantScoped,
       activate,
-      sidebarFundraises,
-      isSidebarLoading,
-      fetchSidebarFundraises,
+      refresh: fetchProposals,
+      restoredScrollPosition,
+      lastClickedEntryId,
+      restorationTab,
     }),
     [
       entries,
+      totalCount,
       activated,
       isLoading,
       isLoadingMore,
       hasMore,
+      page,
       loadMore,
       statusFilter,
       taxDeductible,
       sortBy,
+      isGrantScoped,
       activate,
-      sidebarFundraises,
-      isSidebarLoading,
-      fetchSidebarFundraises,
+      fetchProposals,
+      restoredScrollPosition,
+      lastClickedEntryId,
+      restorationTab,
     ]
   );
 

@@ -1,20 +1,33 @@
 'use client';
 
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Search as SearchIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import toast from 'react-hot-toast';
 import { PublishMenu } from './PublishMenu';
 import { Logo } from '@/components/ui/Logo';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
+import { FundingPowerRailButton } from '@/components/Funding/FundingPowerRailButton';
+import { SidebarDocuments } from './components/SidebarDocuments';
+import { SidebarHelpMenu } from './components/SidebarHelpMenu';
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
+  /**
+   * Runs once something in it is picked: below 1240px the sidebar is a menu,
+   * and a pick that changes the page in place must still close it.
+   */
+  onNavigate?: () => void;
+  /** The menu's Search row, on a phone, where the top bar has no search. */
+  onSearch?: () => void;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({
+  forceMinimize = false,
+  onNavigate,
+  onSearch,
+}) => {
   const pathname = usePathname();
 
   const handleUnimplementedFeature = (featureName: string) => {
@@ -42,37 +55,57 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
 
   return (
     <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
-      <div
-        className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'} pt-[10px]`}
-      >
-        <Link href="/">
-          <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden ml-1'}>
-            <Logo size={38} color="text-primary-600" />
+      <div className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : ''} pt-[10px]`}>
+        <Link href="/" onClick={onNavigate}>
+          <div className={forceMinimize ? '!hidden' : 'ml-1'}>
+            {/* The top of every page: loaded at once, not when the lazy loader gets to it. */}
+            <Logo size={38} color="text-primary-600" loading="eager" />
           </div>
-          <div className={forceMinimize ? '!block' : 'hidden tablet:max-sidebar-compact:!block'}>
+          <div className={forceMinimize ? '!block' : 'hidden'}>
             <Icon name="flaskFrame" size={38} color="#3971ff" />
           </div>
         </Link>
       </div>
 
-      <div className={`px-4 mt-6 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}>
-        <PublishMenu forceMinimize={forceMinimize} />
-      </div>
-
-      <div className="flex-1 mt-2 overflow-y-auto">
-        <div
-          className={`px-4 py-4 ${forceMinimize ? '!px-2' : 'tablet:max-sidebar-compact:!px-2'}`}
-        >
-          <Navigation
-            currentPath={pathname || ''}
-            onUnimplementedFeature={handleUnimplementedFeature}
-            forceMinimize={forceMinimize}
-          />
+      {onSearch && (
+        <div className="mt-3 px-3 tablet:!hidden">
+          <button
+            type="button"
+            onClick={onSearch}
+            className="flex h-10 w-full items-center gap-3 rounded-full bg-gray-100 px-4 text-left text-sm text-gray-500 transition-colors hover:bg-gray-200"
+          >
+            <SearchIcon className="h-4 w-4 shrink-0 text-gray-600" aria-hidden="true" />
+            Search
+          </button>
         </div>
+      )}
+
+      <div className={`mt-6 px-3 ${forceMinimize ? '!flex !justify-center !px-2' : ''}`}>
+        <PublishMenu forceMinimize={forceMinimize} onItemSelected={onNavigate} />
       </div>
 
-      <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden'}>
-        <FooterLinks />
+      {/* The nav and the user's documents scroll together, so a long list
+          never squeezes the nav. A forced icon rail has no room for them. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <Navigation
+          currentPath={pathname || ''}
+          onUnimplementedFeature={handleUnimplementedFeature}
+          forceMinimize={forceMinimize}
+          inScrollArea
+          onNavigate={onNavigate}
+        />
+        <SidebarDocuments onNavigate={onNavigate} className={forceMinimize ? '!hidden' : ''} />
+      </div>
+
+      {/* The scroll area above is flex-1, so this sits at the bottom of the column.
+          Only covers 768px to the right sidebar's breakpoint: above it the
+          funding power card is in the right sidebar. */}
+      <div className={`px-2 pb-3 ${forceMinimize ? '!block' : 'hidden tablet:max-lg:!block'}`}>
+        <FundingPowerRailButton />
+      </div>
+
+      <div className={forceMinimize ? '!hidden' : ''}>
+        <SidebarHelpMenu />
       </div>
     </div>
   );

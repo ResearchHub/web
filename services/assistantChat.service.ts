@@ -1,0 +1,91 @@
+import { ApiClient } from './client';
+import type {
+  CancelTurnResponse,
+  AgentChat,
+  AgentChatListItem,
+  SendMessageResponse,
+} from '@/types/agentChat';
+import type { GenerationRequest } from '@/types/agentModels';
+import { ID } from '@/types/root';
+import type { ChatCreateInit } from './chatTransport';
+
+const BASE_PATH = '/api/research_ai/assistant/chats/';
+
+/** `GET /api/research_ai/usage-budget/` — the user's daily Research AI budget. */
+export interface UsageBudget {
+  tier: string;
+  daily_budget: string;
+  spent_today: string;
+  remaining: string;
+  turns_used: number;
+  turn_cap: number;
+  /** ISO timestamp of the next daily reset. */
+  resets_at: string;
+  credits?: { daily_limit: number; used: number; remaining: number };
+}
+
+/**
+ * REST layer for the research assistant chat — the notebook chat without a
+ * note. Same representation and semantics as {@link NotebookChatService};
+ * only the URL prefix differs, plus the `notes` field the assistant surface
+ * adds to a chat (the documents the agent created from it).
+ */
+export class AssistantChatService {
+  /** Every chat the user has, the notebook's included, each saying where it lives. */
+  static async listChats(): Promise<AgentChatListItem[]> {
+    const response = await ApiClient.get<{ chats: AgentChatListItem[] }>(
+      `${BASE_PATH}?include=notebook`
+    );
+    return response.chats ?? [];
+  }
+
+  static async createChat(init?: ChatCreateInit): Promise<AgentChat> {
+    return ApiClient.post<AgentChat>(BASE_PATH, {
+      ...(init?.title ? { title: init.title } : {}),
+      ...(init?.intent ? { intent: init.intent } : {}),
+      ...(init?.selectedGrantId != null ? { selected_grant: init.selectedGrantId } : {}),
+    });
+  }
+
+  static async getChat(chatId: ID, options?: { live?: boolean }): Promise<AgentChat> {
+    const suffix = options?.live ? '?activity=live' : '';
+    return ApiClient.get<AgentChat>(`${BASE_PATH}${chatId}/${suffix}`);
+  }
+
+  static async sendMessage(
+    chatId: ID,
+    message: string,
+    generation?: GenerationRequest,
+    fileIds: number[] = []
+  ): Promise<SendMessageResponse> {
+    return ApiClient.post<SendMessageResponse>(`${BASE_PATH}${chatId}/messages/`, {
+      message,
+      ...generation,
+      ...(fileIds.length > 0 && { file_ids: fileIds }),
+    });
+  }
+
+  static async renameChat(
+    chatId: ID,
+    title: string
+  ): Promise<{ conversation_id: number; title: string }> {
+    return ApiClient.patch(`${BASE_PATH}${chatId}/`, { title });
+  }
+
+  static async cancelTurn(chatId: ID): Promise<CancelTurnResponse> {
+    return ApiClient.post<CancelTurnResponse>(`${BASE_PATH}${chatId}/cancel/`);
+  }
+
+  /**
+   * Deletes the conversation and its messages. Notes it created are kept
+   * unless `deleteNotes` asks for them too (the notebook's soft delete).
+   */
+  static async deleteChat(chatId: ID, options?: { deleteNotes?: boolean }): Promise<void> {
+    const suffix = options?.deleteNotes ? '?delete_notes=true' : '';
+    await ApiClient.deleteNoContent(`${BASE_PATH}${chatId}/${suffix}`);
+  }
+
+  static async getUsageBudget(): Promise<UsageBudget> {
+    return ApiClient.get<UsageBudget>('/api/research_ai/usage-budget/');
+  }
+}

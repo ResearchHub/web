@@ -1,45 +1,116 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
-import { PaymentService } from '@/services/payment.service';
-import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { FundingPoolService } from '@/services/funding-pool.service';
+import { PaymentService, type PaymentIntentTarget } from '@/services/payment.service';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import AnalyticsService, { LogEvent, type LogEventValue } from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
+import { FundingPool } from '@/types/grant';
 import { Work } from '@/types/work';
-import { ArrowLeft, MoveRight, DollarSign } from 'lucide-react';
+import { ArrowLeft, Check, MoveRight, DollarSign, Coins } from 'lucide-react';
 import {
   PaymentStep,
   FundingImpactPreview,
   QuickAmountSelector,
   StripeProvider,
   useWalletAvailability,
+  useAllocateFromFundingPool,
   type PaymentMethodType,
   type StripePaymentContext,
 } from '@/components/Funding';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { PinnedFooter, type PinnedFooterContainer } from '@/components/ui/PinnedFooter';
+import { FULL_DRAWER_HEIGHT, SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { SidePanel } from '@/components/ui/SidePanel';
+import { cn } from '@/utils/styles';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
+import { getAvailableAndPromotionalRscBalance } from '@/components/ResearchCoin/lib/promotionalBalance';
 
 import AuthContent from '@/components/Auth/AuthContent';
-interface ContributeToFundraiseModalProps {
+
+interface ContributeModalCommonProps {
   isOpen: boolean;
   onClose: () => void;
-  onContributeSuccess?: () => void;
-  fundraise: Fundraise;
-  /** Title of the proposal being funded */
+  /**
+   * Called after a contribution lands. In fundingPool mode, RSC and credit
+   * contributions pass back the pool the API returned so the page can update
+   * without a refetch; card and wallet payments settle server-side and pass nothing.
+   */
+  onContributeSuccess?: (updatedPool?: FundingPool) => void;
+  /** Title of the proposal / RFP being funded */
   proposalTitle?: string;
-  /** Work object containing author information */
+  /** Work object containing author information (proposal fundraise only) */
   work?: Work;
+  /** Replaces the default heading. */
+  headerTitle?: string;
+  /** Replaces the `proposalTitle` subtitle. */
+  headerSubtitle?: string;
+  /**
+   * Progress figures to show instead of the fundraise's own (e.g. app/pool campaigns).
+   */
+  progressOverride?: { currentAmountUsd: number; goalAmountUsd: number };
+  /**
+   * Whether to offer the Endaoment donor-advised fund option. Forced off in
+   * fundingPool mode (RSC / credits / card / Apple Pay only).
+   */
+  allowDafPayment?: boolean;
+  /**
+   * Award proposals. RSC, the RFP pool, and Stripe (card, Apple Pay, Google
+   * Pay) stay: a Stripe charge buys RSC into the escrow. Donor-advised funds
+   * and PayPal stay hidden. In fundingPool mode it only names the pool a
+   * prize pool; the payment options stay the pool's.
+   */
+  isAward?: boolean;
+  /** Replaces the default contribution success toast. */
+  successMessage?: string;
+  /**
+   * Upper bound on the contribution, in USD. Unset leaves the amount
+   * unbounded, which is how single-proposal funding behaves.
+   */
+  maxAmountUsd?: number;
+  /**
+   * `modal`, the default: the amount, then the payment, in a centred modal.
+   * `panel`: the amount with the payment methods, fees and confirm button right
+   * under it, ending on a done screen, in a panel that slides in from the right
+   * and runs the window's full height. Phones get the bottom drawer either way.
+   */
+  variant?: 'modal' | 'panel';
+  /**
+   * Panel only: shown at the top of the panel and its done screen, in place of
+   * the title line under the heading (e.g. the RFP's cover card).
+   */
+  topContent?: ReactNode;
+  /** Panel only: the line under "You added $X to the pool" once it lands. */
+  successText?: string;
 }
 
-type ModalView = 'funding' | 'auth' | 'payment';
+export type ContributeToFundraiseModalProps = ContributeModalCommonProps &
+  (
+    | {
+        /** @default 'fundraise' */
+        mode?: 'fundraise';
+        fundraise: Fundraise;
+        fundingPool?: never;
+      }
+    | {
+        mode: 'fundingPool';
+        fundingPool: FundingPool;
+        fundraise?: never;
+      }
+  );
+
+type ModalView = 'funding' | 'auth' | 'payment' | 'done';
+
+const DEFAULT_AMOUNT_USD = 1000;
 
 /**
  * Outer wrapper that lazily provides StripeProvider context.
@@ -76,49 +147,141 @@ export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProp
   );
 }
 
-function ContributeToFundraiseModalInner({
-  isOpen,
-  onClose,
-  onContributeSuccess,
-  fundraise,
-  proposalTitle,
-  work,
-}: Readonly<ContributeToFundraiseModalProps>) {
+function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseModalProps>) {
+  const {
+    isOpen,
+    onClose,
+    onContributeSuccess,
+    proposalTitle,
+    work,
+    headerTitle,
+    headerSubtitle,
+    progressOverride,
+    successMessage,
+    maxAmountUsd,
+    variant = 'modal',
+    topContent,
+    successText,
+    isAward: isAwardProp = false,
+  } = props;
+
+  const isPanel = variant === 'panel';
+
+  const isPoolMode = props.mode === 'fundingPool';
+  const fundraise = !isPoolMode ? props.fundraise : undefined;
+  const fundingPool = isPoolMode ? props.fundingPool : undefined;
+  // DAF is never offered for RFP funding pools.
+  const allowDafPayment = isPoolMode ? false : (props.allowDafPayment ?? true);
+  const isAward = !isPoolMode && isAwardProp;
+  const poolName = isPoolMode && isAwardProp ? 'prize pool' : 'funding pool';
+
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
-  const { nonprofit } = useNonprofitByFundraiseId(fundraise.id);
-  const hasNonprofit = nonprofit !== null;
-  const [amountUsd, setAmountUsd] = useState(100);
+
+  // Grant creators/mods can allocate from the linked RFP pool on proposal fundraises.
+  const { allocateFromPool } = useAllocateFromFundingPool({
+    enabled: isOpen && !isPoolMode && !!work?.linkedGrant,
+    work,
+    user,
+  });
+  // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
+  // and EIN-search round trips on every open.
+  const { nonprofit } = useNonprofitByFundraiseId(
+    allowDafPayment && fundraise ? fundraise.id : undefined
+  );
+  const hasNonprofit = allowDafPayment && nonprofit !== null;
+  const contributionSuccessMessage =
+    successMessage ??
+    (isPoolMode
+      ? `Your contribution has been added to the RFP ${poolName}.`
+      : 'Your contribution has been successfully added to the fundraise.');
+  // Opens on the usual amount, or on what's left when a cap is lower, so the
+  // first amount shown can be paid.
+  const startAmountUsd =
+    maxAmountUsd != null && maxAmountUsd < DEFAULT_AMOUNT_USD
+      ? Math.floor(maxAmountUsd)
+      : DEFAULT_AMOUNT_USD;
+  const startQuickAmount = startAmountUsd === DEFAULT_AMOUNT_USD ? DEFAULT_AMOUNT_USD : null;
+  const [amountUsd, setAmountUsd] = useState(startAmountUsd);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
-  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
+  /** What the panel's done screen says was added, and whether it came out of the RFP's pool. */
+  const [paid, setPaid] = useState({ usd: 0, fromPool: false });
+  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(startQuickAmount);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
+
+  // Each opening starts fresh. Resetting as it opens rather than as it closes
+  // keeps the closing panel on the screen it showed (the done screen) while it
+  // slides out.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      setCurrentView('funding');
+      setSelectedQuickAmount(startQuickAmount);
+      setAmountUsd(startAmountUsd);
+      setError(null);
+      setAmountError(undefined);
+      setIsSliderControlled(false);
+    }
+  }
 
   // Store Stripe context for credit card payments
   const stripeContextRef = useRef<StripePaymentContext | null>(null);
+
+  const paymentTarget: PaymentIntentTarget = useMemo(() => {
+    if (isPoolMode && fundingPool) {
+      return { fundingPoolId: fundingPool.id };
+    }
+    return { fundraiseId: fundraise!.id };
+  }, [isPoolMode, fundingPool, fundraise]);
+
+  const analyticsTarget = useMemo(() => {
+    if (isPoolMode && fundingPool) {
+      return { funding_pool_id: fundingPool.id };
+    }
+    return { fundraise_id: fundraise!.id };
+  }, [isPoolMode, fundingPool, fundraise]);
 
   // Handle Stripe context updates from CreditCardForm
   const handleStripeReady = useCallback((context: StripePaymentContext | null) => {
     stripeContextRef.current = context;
   }, []);
 
-  // Spendable RSC (available balance, excluding locked/earned credits)
-  const rscBalance = user?.balance ?? 0;
-  // Earned funding credits (locked RSC) — offered as its own payment method
-  const lockedBalance = user?.lockedBalance ?? 0;
+  // ResearchCoin available for funding includes withdrawable and promotional RSC.
+  const rscBalance = getAvailableAndPromotionalRscBalance(user);
+  // Funding credits are a separate payment pool from promotional RSC.
+  const fundingCreditsBalance = user?.fundingCredits ?? 0;
 
   // Calculate conversions
-  const rscToUsd = (rsc: number) => (exchangeRate ? rsc * exchangeRate : 0);
   const usdToRsc = (usd: number) => (exchangeRate ? usd / exchangeRate : 0);
 
   // Get amount in RSC (derived from USD amount)
   const amountInRsc = usdToRsc(amountUsd);
 
   const minAmountUsd = 1;
+
+  /** Why an amount can't be paid, with the reason analytics logs; null when it can. */
+  const getAmountProblem = (usd: number): { message: string; reason: string } | null => {
+    if (usd < minAmountUsd) {
+      return {
+        message: `Minimum contribution is $${minAmountUsd}`,
+        reason: 'Amount below minimum',
+      };
+    }
+    if (maxAmountUsd != null && usd > maxAmountUsd) {
+      const max = maxAmountUsd.toLocaleString('en-US', { maximumFractionDigits: 0 });
+      return { message: `Maximum contribution is $${max}`, reason: 'Amount above maximum' };
+    }
+    return null;
+  };
+  // Every way to pay waits on this, including the wallet and Endaoment
+  // buttons, which the panel shows right under the amount.
+  const canPay = !amountError && getAmountProblem(amountUsd) === null;
 
   // Format helpers
   const formatUsd = (amount: number) => {
@@ -127,6 +290,24 @@ function ContributeToFundraiseModalInner({
       maximumFractionDigits: 2,
     })}`;
   };
+  /** "1,250", or "1,250.5" with cents only when there are any. */
+  const formatDollars = (usd: number) => usd.toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+  /** A step of the contribution funnel, with what is being funded and how much. */
+  const logFunnelStep = useCallback(
+    (event: LogEventValue, properties?: Record<string, string>) => {
+      AnalyticsService.logEvent(event, {
+        ...analyticsTarget,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+        // The panel shows the amount and the payment methods on one screen,
+        // so its amount and payment steps fire together.
+        flow: isPanel ? 'one_step' : 'two_step',
+        ...properties,
+      });
+    },
+    [analyticsTarget, amountUsd, amountInRsc, isPanel]
+  );
 
   // Handlers
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,34 +318,21 @@ function ContributeToFundraiseModalInner({
       setAmountUsd(numValue);
       setSelectedQuickAmount(null);
       setIsSliderControlled(false); // Input sets scaled visual mode
-
-      if (numValue < minAmountUsd) {
-        setAmountError(`Minimum contribution is $${minAmountUsd}`);
-      } else {
-        setAmountError(undefined);
-      }
+      setAmountError(getAmountProblem(numValue)?.message);
     } else {
       setAmountUsd(0);
       setAmountError('Please enter a valid amount');
     }
   };
 
-  const getFormattedInputValue = () => {
-    if (amountUsd === 0) return '';
-    return amountUsd.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
+  const getFormattedInputValue = () => (amountUsd === 0 ? '' : formatDollars(amountUsd));
 
   // Track when modal/drawer opens
   useEffect(() => {
     if (isOpen) {
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT_STEP, {
-        fundraise_id: fundraise.id,
-        amount_usd: amountUsd,
-        amount_rsc: amountInRsc,
-      });
+      logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT_STEP);
+      // In the panel, a signed-in funder sees the payment methods straight away.
+      if (isPanel && user) logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP);
     }
     // Only fire when isOpen changes to true, not when amounts change
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,35 +342,50 @@ function ContributeToFundraiseModalInner({
     if (!user) {
       setCurrentView('auth');
     } else {
-      // Track funnel step: user reached payment step
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
-        fundraise_id: fundraise.id,
-        amount_usd: amountUsd,
-        amount_rsc: amountInRsc,
-      });
+      logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP);
       setCurrentView('payment');
     }
-  }, [user, fundraise.id, amountUsd, amountInRsc]);
+  }, [user, logFunnelStep]);
 
   const handleAuthSuccess = useCallback(async () => {
-    AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
-      fundraise_id: fundraise.id,
-      amount_usd: amountUsd,
-      amount_rsc: amountInRsc,
-    });
+    logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP);
     refreshUser?.();
-    setCurrentView('payment');
-  }, [fundraise.id, amountUsd, amountInRsc, refreshUser]);
+    // The panel goes back to its one screen, now with the payment methods.
+    setCurrentView(isPanel ? 'funding' : 'payment');
+  }, [logFunnelStep, refreshUser, isPanel]);
+
+  // A payment in flight finishes on the panel that started it.
+  const handleClose = () => {
+    if (!isContributing) onClose();
+  };
+
+  // Every way of paying ends here once the money has landed: the panel turns
+  // to its done screen, and the modal closes on a toast.
+  const finishSuccess = useCallback(
+    (message: string, updatedPool?: FundingPool, fromPool = false) => {
+      refreshUser?.();
+      onContributeSuccess?.(updatedPool);
+      if (isPanel) {
+        setPaid({ usd: amountUsd, fromPool });
+        setCurrentView('done');
+      } else {
+        toast.success(message);
+        onClose();
+      }
+    },
+    [refreshUser, onContributeSuccess, isPanel, amountUsd, onClose]
+  );
 
   const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
-      if (amountUsd < minAmountUsd) {
-        setError(`Minimum contribution is $${minAmountUsd}`);
+      const amountProblem = getAmountProblem(amountUsd);
+      if (amountProblem) {
+        setError(amountProblem.message);
         AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-          fundraise_id: fundraise.id,
+          ...analyticsTarget,
           payment_method: paymentMethod,
           error_type: 'validation',
-          error_message: 'Amount below minimum',
+          error_message: amountProblem.reason,
         });
         return;
       }
@@ -210,17 +393,50 @@ function ContributeToFundraiseModalInner({
       setIsContributing(true);
       setError(null);
 
-      if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
-        // RSC-based contribution. Locked funding credits are consumed when the
-        // user picks the Funding Credits option; otherwise the backend draws
-        // from spendable balance only.
-        await FundraiseService.contributeToFundraise(
-          fundraise.id,
-          amountInRsc,
-          'rsc',
-          paymentMethod === 'funding_credits'
-        );
-        toast.success('Your contribution has been successfully added to the fundraise.');
+      let updatedPool: FundingPool | undefined;
+      let toastMessage = contributionSuccessMessage;
+
+      if (paymentMethod === 'funding_pool') {
+        if (!allocateFromPool) {
+          setError('Funding pool is not available for allocation.');
+          setIsContributing(false);
+          return;
+        }
+
+        const holdingRsc = allocateFromPool.fundingPool.amountHolding.rsc;
+        if (amountInRsc > holdingRsc) {
+          setError('Amount exceeds the funding pool balance available to allocate.');
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            ...analyticsTarget,
+            payment_method: paymentMethod,
+            error_type: 'validation',
+            error_message: 'Amount exceeds funding pool holding',
+          });
+          setIsContributing(false);
+          return;
+        }
+
+        updatedPool = await FundingPoolService.distribute(allocateFromPool.fundingPool.id, {
+          amount: amountInRsc,
+          applicationId: allocateFromPool.applicationId,
+        });
+        toastMessage = 'Allocated to proposal';
+      } else if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
+        // The backend draws from funding credits only when that payment method
+        // is selected. Otherwise it draws from available and promotional RSC.
+        if (isPoolMode && fundingPool) {
+          updatedPool = await FundingPoolService.createContribution(fundingPool.id, {
+            amount: amountInRsc,
+            useCredits: paymentMethod === 'funding_credits',
+          });
+        } else if (fundraise) {
+          await FundraiseService.contributeToFundraise(
+            fundraise.id,
+            amountInRsc,
+            'rsc',
+            paymentMethod === 'funding_credits'
+          );
+        }
       } else if (paymentMethod === 'credit_card') {
         // Credit card payment flow:
         // 1. Create payment intent (backend adds fees)
@@ -231,7 +447,7 @@ function ContributeToFundraiseModalInner({
         if (!stripeContext) {
           setError('Payment form is not ready. Please try again.');
           AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-            fundraise_id: fundraise.id,
+            ...analyticsTarget,
             payment_method: paymentMethod,
             error_type: 'stripe',
             error_message: 'Payment form not ready',
@@ -242,10 +458,10 @@ function ContributeToFundraiseModalInner({
 
         const { stripe, cardElement } = stripeContext;
 
-        // Step 1: Create payment intent with amount and fundraise ID (backend adds fees and handles contribution)
+        // Step 1: Create payment intent (backend adds fees and handles contribution)
         const { clientSecret } = await PaymentService.createPaymentIntent(
           amountInRsc,
-          fundraise.id
+          paymentTarget
         );
 
         // Step 2: Confirm payment with Stripe
@@ -261,7 +477,7 @@ function ContributeToFundraiseModalInner({
             'We had an issue processing your credit card. Choose a different payment method.'
           );
           AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-            fundraise_id: fundraise.id,
+            ...analyticsTarget,
             payment_method: paymentMethod,
             error_type: 'stripe',
             error_message: 'Card payment failed',
@@ -275,7 +491,7 @@ function ContributeToFundraiseModalInner({
             'We had an issue processing your credit card. Choose a different payment method.'
           );
           AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-            fundraise_id: fundraise.id,
+            ...analyticsTarget,
             payment_method: paymentMethod,
             error_type: 'stripe',
             error_message: 'Payment not succeeded',
@@ -285,7 +501,6 @@ function ContributeToFundraiseModalInner({
         }
 
         // Payment succeeded - backend handles contribution automatically
-        toast.success('Your contribution has been successfully added to the fundraise.');
       } else if (paymentMethod === 'paypal') {
         // PayPal not yet implemented
         toast.error('PayPal is not yet available. Please use Credit Card or ResearchCoin.');
@@ -294,26 +509,14 @@ function ContributeToFundraiseModalInner({
       }
       // Note: apple_pay and google_pay are handled by PaymentRequestButton
 
-      // Track successful payment
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
-        fundraise_id: fundraise.id,
+      logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
         payment_method: paymentMethod,
-        amount_usd: amountUsd,
-        amount_rsc: amountInRsc,
       });
-
-      // Refresh user data to update balance
-      refreshUser?.();
-
-      if (onContributeSuccess) {
-        onContributeSuccess();
-      }
-
-      handleClose();
+      finishSuccess(toastMessage, updatedPool, paymentMethod === 'funding_pool');
     } catch (err) {
-      console.error('Failed to contribute to fundraise:', err);
+      console.error('Failed to contribute:', err);
       AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-        fundraise_id: fundraise.id,
+        ...analyticsTarget,
         payment_method: paymentMethod,
         error_type: 'api',
         error_message: 'Request failed',
@@ -321,7 +524,7 @@ function ContributeToFundraiseModalInner({
       if (paymentMethod === 'credit_card') {
         setError('We had an issue processing your credit card. Choose a different payment method.');
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(extractApiErrorMessage(err, 'Something went wrong. Please try again.'));
       }
     } finally {
       setIsContributing(false);
@@ -336,29 +539,35 @@ function ContributeToFundraiseModalInner({
     setIsSliderControlled(false); // Quick buttons set scaled visual mode
   }, []);
 
-  // Calculate amounts in USD for display
-  const currentAmountUsd = fundraise.amountRaised?.usd ?? 0;
-  const goalAmountUsd = fundraise.goalAmount?.usd ?? 0;
+  // Calculate amounts in USD for display.
+  const poolRaisedUsd = fundingPool?.amountRaised.usd ?? 0;
+  const currentAmountUsd = isPoolMode
+    ? poolRaisedUsd
+    : (progressOverride?.currentAmountUsd ?? fundraise?.amountRaised?.usd ?? 0);
+  const goalAmountUsd = isPoolMode
+    ? 0
+    : (progressOverride?.goalAmountUsd ?? fundraise?.goalAmount?.usd ?? 0);
   const remainingGoalUsd = Math.max(0, goalAmountUsd - currentAmountUsd);
-
-  const handleBack = useCallback(() => {
-    if (currentView === 'payment' || currentView === 'auth') {
-      setCurrentView('funding');
-    }
-  }, [currentView]);
-
-  const handleClose = useCallback(() => {
-    setCurrentView('funding');
-    setSelectedQuickAmount(100);
-    setAmountUsd(100);
-    setError(null);
-    setAmountError(undefined);
-    setIsSliderControlled(false);
-    onClose();
-  }, [onClose]);
+  // An award escrow has no goal, so the amount is not capped at what is left.
+  const hasGoal = !isPoolMode && goalAmountUsd > 0;
+  const quickAmountCeilingUsd = hasGoal ? remainingGoalUsd : 10000;
 
   const handleEndaomentPaymentConfirm = useCallback(
     async (originFundId: string) => {
+      if (!fundraise) return;
+
+      const amountProblem = getAmountProblem(amountUsd);
+      if (amountProblem) {
+        setError(amountProblem.message);
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          ...analyticsTarget,
+          payment_method: 'endaoment',
+          error_type: 'validation',
+          error_message: amountProblem.reason,
+        });
+        return;
+      }
+
       try {
         setIsContributing(true);
         setError(null);
@@ -369,24 +578,14 @@ function ContributeToFundraiseModalInner({
           Math.round(amountUsd * 100) // must be in cents
         );
 
-        // Track successful payment
-        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
-          fundraise_id: fundraise.id,
+        logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
           payment_method: 'endaoment',
-          amount_usd: amountUsd,
-          amount_rsc: amountInRsc,
         });
-
-        toast.success('Your contribution has been successfully added to the fundraise.');
-        refreshUser?.();
-        if (onContributeSuccess) {
-          onContributeSuccess();
-        }
-        handleClose();
+        finishSuccess(contributionSuccessMessage);
       } catch (err) {
         console.error('Failed to contribute via Endaoment:', err);
         AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
-          fundraise_id: fundraise.id,
+          ...analyticsTarget,
           payment_method: 'endaoment',
           error_type: 'api',
           error_message: 'Request failed',
@@ -396,80 +595,176 @@ function ContributeToFundraiseModalInner({
         setIsContributing(false);
       }
     },
-    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+    [
+      fundraise,
+      analyticsTarget,
+      amountUsd,
+      maxAmountUsd,
+      logFunnelStep,
+      finishSuccess,
+      contributionSuccessMessage,
+    ]
   );
 
   // Handle Apple Pay / Google Pay success
   const handlePaymentRequestSuccess = useCallback(
     (paymentMethod?: 'apple_pay' | 'google_pay') => {
-      // Track successful payment
-      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
-        fundraise_id: fundraise.id,
+      logFunnelStep(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
         payment_method: paymentMethod || 'payment_request',
-        amount_usd: amountUsd,
-        amount_rsc: amountInRsc,
       });
-
-      toast.success('Your contribution has been successfully added to the fundraise.');
-      refreshUser?.();
-      if (onContributeSuccess) {
-        onContributeSuccess();
-      }
-      handleClose();
+      finishSuccess(contributionSuccessMessage);
     },
-    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+    [logFunnelStep, finishSuccess, contributionSuccessMessage]
   );
+
+  const defaultTitle = isPoolMode
+    ? `Add to the ${poolName}`
+    : isAward
+      ? 'Award prize'
+      : 'Fund Proposal';
 
   // Get title based on current view
   const getTitle = () => {
     switch (currentView) {
       case 'funding':
-        return 'Fund Proposal';
+        return headerTitle ?? defaultTitle;
       case 'auth':
         return 'Sign in to continue';
       case 'payment':
         return 'Select Payment Method';
+      case 'done':
+        return isPoolMode ? 'Added to the pool' : 'Thank you';
       default:
-        return 'Fund Proposal';
+        return headerTitle ?? defaultTitle;
     }
   };
 
-  // Get subtitle - show proposal title on funding and payment screens
+  // Get subtitle - show proposal/RFP title on funding and payment screens,
+  // unless the top content (the RFP's cover card) already shows it.
   const getSubtitle = () => {
+    if (topContent) return undefined;
     if (currentView === 'funding' || currentView === 'payment') {
-      return proposalTitle;
+      return headerSubtitle ?? proposalTitle;
     }
     return undefined;
   };
 
-  // Get amount display for payment widget
-  const getAmountDisplay = () => {
-    return formatUsd(amountUsd);
-  };
+  // Locked while a payment goes through, so the amount on screen is the one charged.
+  const amountFields = (
+    <fieldset disabled={isContributing} className="min-w-0 space-y-3">
+      <Input
+        type="text"
+        inputMode="decimal"
+        autoComplete="off"
+        value={getFormattedInputValue()}
+        onChange={handleAmountChange}
+        icon={<DollarSign className="h-5 w-5 text-gray-500" />}
+        error={amountError}
+        // The $ in the field already says the currency.
+        label={isPanel ? 'Amount' : 'Amount in USD'}
+        className="text-lg"
+      />
+      <QuickAmountSelector
+        selectedAmount={selectedQuickAmount}
+        onAmountSelect={handleQuickAmountSelect}
+        remainingGoalUsd={quickAmountCeilingUsd}
+        showRemaining={hasGoal}
+      />
+    </fieldset>
+  );
+
+  const paymentStep = (pinActionIn?: PinnedFooterContainer) => (
+    <PaymentStep
+      amountInRsc={amountInRsc}
+      amountInUsd={amountUsd}
+      amountDisplay={formatUsd(amountUsd)}
+      rscBalance={rscBalance}
+      fundingCreditsBalance={fundingCreditsBalance}
+      allocateFromPool={allocateFromPool}
+      paymentTarget={paymentTarget}
+      isProcessing={isContributing}
+      error={error}
+      walletAvailability={walletAvailability}
+      hasNonprofit={hasNonprofit}
+      isAward={isAward}
+      onConfirmPayment={handleConfirmPayment}
+      onPaymentRequestSuccess={handlePaymentRequestSuccess}
+      onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
+      onStripeReady={handleStripeReady}
+      canPay={canPay}
+      pinActionIn={pinActionIn}
+    />
+  );
+
+  // The panel's bottom bar runs edge to edge along the drawer or side panel it scrolls in.
+  const footerContainer: PinnedFooterContainer = isMobile ? 'drawer' : 'panel';
 
   // Render content based on current view
   const renderContent = () => {
+    const paidDisplay = `$${formatDollars(paid.usd)}`;
+
+    if (isPanel && currentView === 'done') {
+      return (
+        <div className="flex flex-1 flex-col">
+          {topContent}
+          <div className="flex flex-col items-center px-2 pt-7 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600">
+              <Check className="h-8 w-8" strokeWidth={2.6} aria-hidden="true" />
+            </span>
+            <p className="mt-3.5 text-[22px] font-extrabold tracking-tight text-gray-900">
+              {paid.fromPool
+                ? `You allocated ${paidDisplay} from the pool`
+                : isPoolMode
+                  ? `You added ${paidDisplay} to the pool`
+                  : isAward
+                    ? `You awarded ${paidDisplay}`
+                    : `You funded ${paidDisplay}`}
+            </p>
+            {/* The page's line is about the funder's own money, which an allocation isn't. */}
+            {successText && !paid.fromPool && (
+              <p className="mt-1.5 text-sm leading-5 text-gray-600">{successText}</p>
+            )}
+          </div>
+          <PinnedFooter container={footerContainer}>
+            <Button
+              type="button"
+              variant="default"
+              className="h-12 w-full text-base"
+              onClick={onClose}
+            >
+              Done
+            </Button>
+          </PinnedFooter>
+        </div>
+      );
+    }
+
+    if (isPanel && currentView === 'funding') {
+      return (
+        <div className="flex flex-1 flex-col gap-6">
+          {topContent}
+          {amountFields}
+          {user ? (
+            paymentStep(footerContainer)
+          ) : (
+            <PinnedFooter container={footerContainer}>
+              <Button
+                type="button"
+                variant="default"
+                className="h-12 w-full text-base"
+                onClick={() => setCurrentView('auth')}
+              >
+                Sign in to continue
+              </Button>
+            </PinnedFooter>
+          )}
+        </div>
+      );
+    }
+
     switch (currentView) {
       case 'payment':
-        return (
-          <PaymentStep
-            amountInRsc={amountInRsc}
-            amountInUsd={amountUsd}
-            amountDisplay={getAmountDisplay()}
-            rscBalance={rscBalance}
-            lockedBalance={lockedBalance}
-            fundraiseId={fundraise.id}
-            isProcessing={isContributing}
-            error={error}
-            walletAvailability={walletAvailability}
-            hasNonprofit={hasNonprofit}
-            onConfirmPayment={handleConfirmPayment}
-            onPaymentRequestSuccess={handlePaymentRequestSuccess}
-            onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
-            onStripeReady={handleStripeReady}
-          />
-        );
-
+        return paymentStep();
       case 'auth':
         return (
           <AuthContent
@@ -487,29 +782,22 @@ function ContributeToFundraiseModalInner({
             {/* Content area */}
             <div className="space-y-10 flex-1">
               {/* Amount Input + Quick Amount Selector grouped together */}
-              <div className="space-y-3">
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  value={getFormattedInputValue()}
-                  onChange={handleAmountChange}
-                  icon={<DollarSign className="h-5 w-5 text-gray-500" />}
-                  error={amountError}
-                  label="Funding amount"
-                  className="text-lg"
-                />
+              {amountFields}
 
-                {/* Quick Amount Selector */}
-                <QuickAmountSelector
-                  selectedAmount={selectedQuickAmount}
-                  onAmountSelect={handleQuickAmountSelect}
-                  remainingGoalUsd={remainingGoalUsd}
-                />
-              </div>
+              {/* What a pool contribution does, under the amount. */}
+              {isPoolMode && (
+                <div className="flex gap-3 rounded-lg border border-primary-100 bg-primary-50 px-4 py-3 text-sm leading-snug text-primary-900">
+                  <Coins className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
+                  <p>
+                    {isAwardProp
+                      ? 'Adding to the prize pool grows the prize and lets the funder award more to the best results.'
+                      : 'Adding to the funding pool increases the funder’s funding budget and allows more funds to be allocated towards the best research proposals.'}
+                  </p>
+                </div>
+              )}
 
-              {/* Funding Impact Preview with Slider */}
-              {goalAmountUsd > 0 && (
+              {/* Goal progress + slider — proposal fundraises only (pool has no goal). */}
+              {!isPoolMode && goalAmountUsd > 0 && (
                 <FundingImpactPreview
                   currentAmountUsd={currentAmountUsd}
                   goalAmountUsd={goalAmountUsd}
@@ -536,7 +824,7 @@ function ContributeToFundraiseModalInner({
               <Button
                 type="button"
                 variant="default"
-                disabled={amountUsd < minAmountUsd || !!amountError}
+                disabled={!canPay}
                 className="w-full h-12 text-base"
                 onClick={handleContinueToPayment}
               >
@@ -549,13 +837,13 @@ function ContributeToFundraiseModalInner({
     }
   };
 
-  // Back button for header
+  // Back to the amount, from the payment methods or sign-in.
   const headerAction =
-    currentView !== 'funding' ? (
+    currentView === 'payment' || currentView === 'auth' ? (
       <button
         type="button"
         className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
-        onClick={handleBack}
+        onClick={() => setCurrentView('funding')}
       >
         <ArrowLeft className="h-5 w-5" />
       </button>
@@ -564,10 +852,16 @@ function ContributeToFundraiseModalInner({
   // Custom title element with optional subtitle
   const subtitle = getSubtitle();
   const modalTitle = (
-    <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+    <span className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <span className="text-lg font-semibold text-gray-900">{getTitle()}</span>
-      {subtitle && <span className="text-sm text-gray-500 truncate">{subtitle}</span>}
-    </div>
+      {/* Wraps rather than cuts off, so the whole title of what is funded shows.
+          The side panel's heading is semibold; its subtitle stays regular. */}
+      {subtitle && (
+        <span className={cn('break-words text-sm text-gray-500', isPanel && 'font-normal')}>
+          {subtitle}
+        </span>
+      )}
+    </span>
   );
 
   return (
@@ -576,19 +870,11 @@ function ContributeToFundraiseModalInner({
         <SwipeableDrawer
           isOpen={isOpen}
           onClose={handleClose}
-          height="72vh"
+          height={FULL_DRAWER_HEIGHT}
           showCloseButton={true}
           header={
             <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
-              {currentView !== 'funding' && (
-                <button
-                  type="button"
-                  className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  onClick={handleBack}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-              )}
+              {headerAction}
               {modalTitle}
             </div>
           }
@@ -597,6 +883,20 @@ function ContributeToFundraiseModalInner({
             <div className="flex-1 flex flex-col">{renderContent()}</div>
           </div>
         </SwipeableDrawer>
+      ) : isPanel ? (
+        <SidePanel
+          isOpen={isOpen}
+          onClose={handleClose}
+          widthClassName="w-full tablet:max-w-[440px]"
+          title={
+            <span className="flex min-w-0 items-center gap-2">
+              {headerAction}
+              {modalTitle}
+            </span>
+          }
+        >
+          <div className="flex min-h-full flex-col p-6">{renderContent()}</div>
+        </SidePanel>
       ) : (
         <BaseModal
           isOpen={isOpen}

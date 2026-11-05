@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode } from 'react';
-import dynamic from 'next/dynamic';
 import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
@@ -9,130 +8,166 @@ import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
 import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
 import { TopBarContainer } from './components/TopBarContainer';
-import { MobileOverlay } from './components/MobileOverlay';
 import { LeftSidebarContainer } from './components/LeftSidebarContainer';
 import { RightSidebarContainer } from './components/RightSidebarContainer';
-
-const ENDOWMENT_PROMO_BANNER = 'endowment_promo_banner';
-
-const MobileBottomNav = dynamic(
-  () => import('./MobileBottomNav').then((mod) => mod.MobileBottomNav),
-  { ssr: false }
-);
+import { PullToRefresh } from './components/PullToRefresh';
 
 interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
+  /** Align a custom sidebar with the main column's padded content. */
+  rightSidebarTopOffset?: 'default' | 'aligned';
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
   /**
-   * Drop the 860px main-content cap and let content fill the page container
-   * (~1180px). Useful when `rightSidebar` is false and the page wants the
-   * extra horizontal space.
+   * Tabs under the banner, as wide as the page: the main column and the
+   * sidebar. A sibling of the row rather than inside it, so they can stick to
+   * the top across the whole page as it scrolls (see WorkPageTabs).
    */
-  wideContent?: boolean;
+  pageTabs?: ReactNode;
+  rightSidebarAbove?: ReactNode;
+  /**
+   * With a card above it the gray rail normally sizes to its content; this
+   * keeps it stretched to the bottom of the column regardless.
+   */
+  rightSidebarFill?: boolean;
+  /** The sidebar brings its own cards: no gray rail around it. */
+  rightSidebarBare?: boolean;
+  fundraiseGrantId?: number;
+  /**
+   * `default` centers the page in a 1180px container and lets the main column
+   * fill whatever the right sidebar doesn't use. `narrow` keeps the older
+   * 1012px container with an 860px cap on the main column (used by the home tabs).
+   */
+  contentWidth?: 'default' | 'narrow';
+  /**
+   * Drop the 1180px page-container cap too, so the row spans the scrollport.
+   * For pages that reserve a gutter of their own — the container's centring
+   * margins would otherwise stack on top of that gutter and strand a wide band
+   * of empty space beside the content.
+   */
+  wideRow?: boolean;
+  /**
+   * The page is an app surface, not a document: it fills the area beside the
+   * left column and under the top bar edge to edge and manages its own
+   * scrolling. No page container, padding or right sidebar.
+   */
+  fullBleed?: boolean;
 }
 
 function PageLayoutInner({
   children,
   rightSidebar = true,
+  rightSidebarTopOffset = 'default',
   className,
   sidebarContentClassName,
   topBanner,
-  wideContent = false,
+  pageTabs,
+  rightSidebarAbove,
+  rightSidebarFill = false,
+  rightSidebarBare = false,
+  contentWidth = 'default',
+  wideRow = false,
+  fullBleed = false,
 }: PageLayoutProps) {
-  const {
-    scrollContainerRef,
-    isLeftSidebarOpen,
-    isCompact,
-    showOverlay,
-    overlayVisible,
-    toggleLeftSidebar,
-    closeLeftSidebar,
-  } = usePageLayoutState();
+  const isNarrow = contentWidth === 'narrow';
 
-  const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
+  const { scrollContainerRef, shellRef, isLeftSidebarOpen, toggleLeftSidebar, closeLeftSidebar } =
+    usePageLayoutState();
 
-  // Mirror the EndowmentPromoBanner's visibility so we can reserve space for it
-  // on mobile while it's shown above the TopBar. The banner itself only renders
-  // below the tablet breakpoint, so the extra padding is also mobile-only.
-  const { isDismissed: isPromoDismissed, dismissStatus: promoDismissStatus } =
-    useDismissableFeature(ENDOWMENT_PROMO_BANNER);
-  const isPromoBannerVisible = promoDismissStatus === 'checked' && !isPromoDismissed;
+  useMobileNavScroll({ scrollContainerRef, shellRef });
 
   return (
-    <ScrollContainerProvider
-      scrollContainerRef={scrollContainerRef}
-      isMobileTopNavHidden={isMobileTopNavHidden}
-    >
-      <div className="flex h-screen">
-        <TopBarContainer
-          isMobileTopNavHidden={isMobileTopNavHidden}
-          isLeftSidebarOpen={isLeftSidebarOpen}
-          onMenuClick={toggleLeftSidebar}
-        />
+    <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+      {/* Marked data-top-bar-hidden while the phone top bar is slid away. The
+          bar and whatever moves with it follow that in CSS, so a scroll that
+          hides or shows the bar re-renders nothing. */}
+      <div ref={shellRef} className="group/shell flex app-shell-viewport">
+        <TopBarContainer isLeftSidebarOpen={isLeftSidebarOpen} onMenuClick={toggleLeftSidebar} />
 
-        <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
+        <LeftSidebarContainer isOpen={isLeftSidebarOpen} onClose={closeLeftSidebar} />
 
-        <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
+        {fullBleed ? (
+          // Offset from the fixed top bar exactly as the scrollport below is,
+          // but nothing here scrolls: the page lays out its own panes in the
+          // height that is left, so the top bar never hides on a phone.
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              'relative flex min-w-0 flex-1 flex-col overflow-hidden',
+              'pt-[var(--top-bar-height)] mt-0',
+              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]'
+            )}
+          >
+            {children}
+          </div>
+        ) : (
+          /* The scrollport. Padding clears the fixed top bar on phones, where it
+             hides on scroll; a margin does from the tablet breakpoint up. */
+          <div
+            ref={scrollContainerRef}
+            className={cn(
+              'flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain relative transition-all duration-150',
+              'pt-[var(--top-bar-height)] mt-0',
+              'tablet:!pt-0 tablet:!mt-[var(--top-bar-height)]'
+            )}
+          >
+            {/* First, so the gap it opens sits above everything on the page. A
+                full-bleed page never scrolls, so it has nothing to pull down. */}
+            <PullToRefresh scrollContainerRef={scrollContainerRef} />
 
-        {/* Scrollable content area.
-            When the EndowmentPromoBanner is visible above the TopBar on mobile
-            we add ~56px to the existing top padding to clear the extra strip.
-            The banner itself is hidden at >= 768px (tablet:!hidden) so the
-            offset is reset by the inner media query below. */}
-        <div
-          ref={scrollContainerRef}
-          className={cn(
-            'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-            isCompact ? 'pt-12' : 'pt-16',
-            isPromoBannerVisible && 'page-layout-with-promo-banner'
-          )}
-        >
-          {topBanner && <div className="w-full">{topBanner}</div>}
+            {topBanner && <div className="w-full">{topBanner}</div>}
+            {pageTabs}
 
-          <div className="flex mx-auto w-full max-w-[1180px]">
-            <main
+            <div
               className={cn(
-                'flex-1 min-w-0 px-4 tablet:!px-8 pb-20 tablet:!pb-4',
-                topBanner ? 'py-3 sm:py-6' : 'py-6 mt-4'
+                'flex mx-auto w-full transition-[max-width] duration-200 ease-out',
+                wideRow ? 'max-w-none' : isNarrow ? 'max-w-[1012px]' : 'max-w-[1180px]'
               )}
             >
-              <div
+              <main
                 className={cn(
-                  'w-full max-w-full',
-                  !wideContent && 'tablet:!max-w-[860px]',
-                  className
+                  'flex-1 min-w-0 px-4 tablet:!px-8 pb-4',
+                  topBanner ? 'py-3 sm:py-6' : 'py-6'
                 )}
               >
-                {children}
-              </div>
-            </main>
+                <div
+                  className={cn(
+                    'w-full max-w-full',
+                    isNarrow && 'tablet:!max-w-[860px]',
+                    className
+                  )}
+                >
+                  {children}
+                </div>
+              </main>
 
-            {rightSidebar && (
-              <RightSidebarContainer
-                rightSidebar={rightSidebar}
-                isCompact={isCompact}
-                contentClassName={sidebarContentClassName}
-              />
-            )}
+              {rightSidebar && (
+                <RightSidebarContainer
+                  rightSidebar={rightSidebar}
+                  topOffset={rightSidebarTopOffset}
+                  contentClassName={sidebarContentClassName}
+                  aboveSidebar={rightSidebarAbove}
+                  fill={rightSidebarFill}
+                  bare={rightSidebarBare}
+                  belowPageTabs={Boolean(pageTabs)}
+                />
+              )}
+            </div>
           </div>
-
-          <MobileBottomNav />
-        </div>
+        )}
       </div>
     </ScrollContainerProvider>
   );
 }
 
-export function PageLayout(props: PageLayoutProps) {
+export function PageLayout({ fundraiseGrantId, ...props }: PageLayoutProps) {
   return (
     <GrantProvider>
-      <FundraiseProvider>
+      <FundraiseProvider grantId={fundraiseGrantId}>
         <FeedTabsVisibilityProvider>
           <TopBarSlotProvider>
             <PageLayoutInner {...props} />

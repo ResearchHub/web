@@ -9,6 +9,7 @@ interface UseFeedStateRestorationOptions {
 }
 
 interface UseFeedStateRestorationReturn {
+  feedKey: string;
   queryParams: Record<string, string>;
   restoredState: StoredFeedState | null;
   initialEntries: FeedEntry[];
@@ -31,6 +32,16 @@ export function useFeedStateRestoration(
     return params;
   }, [searchParams]);
 
+  const feedKey = useMemo(
+    () =>
+      getFeedKey({
+        pathname,
+        tab: options.activeTab,
+        queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+      }),
+    [pathname, options.activeTab, queryParams]
+  );
+
   const restoredState = useMemo(() => {
     const shouldRestore = options.shouldRestore
       ? options.shouldRestore(isBackNavigation)
@@ -40,12 +51,6 @@ export function useFeedStateRestoration(
       return null;
     }
 
-    const feedKey = getFeedKey({
-      pathname,
-      tab: options.activeTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    });
-
     const savedState = getFeedState(feedKey);
     if (savedState) {
       clearFeedState(feedKey);
@@ -53,21 +58,14 @@ export function useFeedStateRestoration(
     }
 
     return null;
-  }, [
-    isBackNavigation,
-    pathname,
-    options.activeTab,
-    queryParams,
-    getFeedState,
-    clearFeedState,
-    options.shouldRestore,
-  ]);
+  }, [isBackNavigation, feedKey, getFeedState, clearFeedState, options.shouldRestore]);
 
   const initialEntries = restoredState?.entries || [];
   const restoredScrollPosition = restoredState?.scrollPosition ?? null;
   const lastClickedEntryId = restoredState?.lastClickedEntryId ?? null;
 
   return {
+    feedKey,
     queryParams,
     restoredState,
     initialEntries,

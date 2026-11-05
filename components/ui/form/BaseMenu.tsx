@@ -2,18 +2,16 @@
 
 import { FC, ReactNode, useState, useEffect } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import * as Portal from '@radix-ui/react-portal';
-import { Transition } from '@headlessui/react';
 import { cn } from '@/utils/styles';
 
 interface BaseMenuProps {
   children: ReactNode;
   trigger: ReactNode;
+  /** Which side of the trigger the menu opens on; below it unless there is no room. */
+  side?: 'top' | 'right' | 'bottom' | 'left';
   align?: 'start' | 'center' | 'end';
   className?: string;
-  withOverlay?: boolean;
   sideOffset?: number;
-  animate?: boolean;
   onOpenChange?: (open: boolean) => void;
   disabled?: boolean;
   sameWidth?: boolean;
@@ -23,11 +21,10 @@ interface BaseMenuProps {
 export const BaseMenu: FC<BaseMenuProps> = ({
   children,
   trigger,
+  side,
   align = 'end',
   className,
-  withOverlay = false,
   sideOffset = 5,
-  animate = false,
   onOpenChange,
   disabled = false,
   sameWidth = false,
@@ -53,50 +50,38 @@ export const BaseMenu: FC<BaseMenuProps> = ({
   };
 
   return (
-    <>
-      {withOverlay && (
-        <Portal.Root>
-          <Transition
-            show={isOpen}
-            enter="transition-opacity duration-200"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div
-              className="fixed inset-0 bg-black/[0.15]"
-              style={{ zIndex: 99999 }}
-              onClick={() => handleOpenChange(false)}
-            />
-          </Transition>
-        </Portal.Root>
-      )}
-      <DropdownMenu.Root open={isOpen} onOpenChange={handleOpenChange}>
-        <DropdownMenu.Trigger disabled={disabled} asChild>
-          {trigger}
-        </DropdownMenu.Trigger>
+    <DropdownMenu.Root open={isOpen} onOpenChange={handleOpenChange}>
+      <DropdownMenu.Trigger disabled={disabled} asChild>
+        {trigger}
+      </DropdownMenu.Trigger>
 
-        <DropdownMenu.Portal>
-          <DropdownMenu.Content
-            align={align}
-            sideOffset={sideOffset}
-            className={cn(
-              'z-50 min-w-[8rem] overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md',
-              animate && 'animate-in fade-in-0 slide-in-from-top-8 duration-200',
-              className
-            )}
-            style={{
-              zIndex: 100000,
-              ...(sameWidth && { width: 'var(--radix-dropdown-menu-trigger-width)' }),
-            }}
-          >
-            {children}
-          </DropdownMenu.Content>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
-    </>
+      <DropdownMenu.Portal>
+        {/*
+          Grows out of the trigger at every screen width. On a phone it stays
+          anchored like on desktop: kept 8px inside the screen edges, and
+          scrolling inside itself rather than running off the bottom.
+        */}
+        <DropdownMenu.Content
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+          collisionPadding={8}
+          className={cn(
+            'z-50 min-w-[8rem] max-w-[calc(100vw-16px)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md',
+            'origin-[var(--radix-dropdown-menu-content-transform-origin)] animate-menu-in data-[state=closed]:animate-menu-out',
+            // Finger-sized rows on touch screens; mouse users keep the compact ones.
+            '[@media(pointer:coarse)]:[&_[role^=menuitem]]:min-h-11',
+            className
+          )}
+          style={{
+            zIndex: 100000,
+            ...(sameWidth && { width: 'var(--radix-dropdown-menu-trigger-width)' }),
+          }}
+        >
+          {children}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 };
 
@@ -115,5 +100,36 @@ export const BaseMenuItem = ({
     >
       {children}
     </DropdownMenu.Item>
+  );
+};
+
+export const BaseMenuRadioGroup = DropdownMenu.RadioGroup;
+
+/**
+ * A single-choice row: radio ring, dot while checked. Radix keeps the checked
+ * state and closes the menu on pick; the group above it takes the value.
+ */
+export const BaseMenuRadioItem = ({
+  children,
+  className,
+  ...props
+}: DropdownMenu.DropdownMenuRadioItemProps) => {
+  return (
+    <DropdownMenu.RadioItem
+      className={cn(
+        'group relative flex cursor-pointer select-none items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-800 outline-none transition-colors',
+        'focus:bg-gray-50 data-[highlighted]:bg-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      {...props}
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 transition-colors group-data-[state=checked]:border-primary-500"
+      >
+        <DropdownMenu.ItemIndicator className="h-2 w-2 rounded-full bg-primary-500" />
+      </span>
+      {children}
+    </DropdownMenu.RadioItem>
   );
 };

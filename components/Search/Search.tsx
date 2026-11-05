@@ -6,7 +6,6 @@ import { Search as SearchIcon, X } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
-import type { EntityType } from '@/types/search';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface SearchProps {
@@ -15,7 +14,6 @@ interface SearchProps {
   showSuggestionsOnFocus?: boolean;
   className?: string;
   placeholder?: string;
-  indices?: EntityType[];
 }
 
 export function Search({
@@ -24,7 +22,6 @@ export function Search({
   showSuggestionsOnFocus = true,
   className,
   placeholder = 'Search',
-  indices,
 }: SearchProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -67,30 +64,16 @@ export function Search({
 
       // Default behavior
       if (suggestion.entityType === 'paper') {
-        // Check if this is a funding request
-        if (suggestion.contentType === 'preregistration') {
+        if (suggestion.contentType === 'preregistration' && suggestion.id) {
           router.push(`/proposal/${suggestion.id}/${suggestion.slug || ''}`);
-        } else if (suggestion.isRecent) {
-          router.push(`/paper/${suggestion.id}/${suggestion.slug}`);
+        } else if (suggestion.contentType && suggestion.contentType !== 'paper' && suggestion.id) {
+          router.push(`/post/${suggestion.id}`);
         } else {
-          if (suggestion.id) {
-            router.push(`/paper/${suggestion.id}/${suggestion.slug || ''}`);
-          } else if ('doi' in suggestion && suggestion.doi) {
-            router.push(`/paper?doi=${encodeURIComponent(suggestion.doi)}`);
-          } else {
-            // Fallback if no identifiers are available
-            router.push('/');
-          }
+          // Paper pages are retired.
+          router.push('/');
         }
       } else if (suggestion.entityType === 'user' || suggestion.entityType === 'author') {
         navigateToAuthorProfile(suggestion.authorProfile.id);
-      } else if (suggestion.entityType === 'hub') {
-        // Handle topic navigation
-        if ('slug' in suggestion && suggestion.slug) {
-          router.push(`/topic/${suggestion.slug}`);
-        } else {
-          router.push(`/topic/${suggestion.id}`);
-        }
       } else if (suggestion.entityType === 'post') {
         router.push(`/post/${suggestion.id}`);
       } else {

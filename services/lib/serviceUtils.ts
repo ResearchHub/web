@@ -18,14 +18,19 @@ export const roundRscAmount = (amount: number): number => {
   return Math.round(amount * 1000) / 1000;
 };
 
+/** Message from a parsed API error body: `error` (string or array) or DRF `detail`. */
+function messageFromApiErrorBody(errors: any): string | null {
+  const errorMsg = errors?.error;
+  if (Array.isArray(errorMsg) && errorMsg.length > 0) return errorMsg[0];
+  if (typeof errorMsg === 'string' && errorMsg) return errorMsg;
+  if (typeof errors?.detail === 'string' && errors.detail.trim()) return errors.detail;
+  return null;
+}
+
 export function extractApiErrorMessage(error: unknown, defaultMessage: string): string {
   if (error instanceof ApiError) {
-    const errors = error.errors as any;
-    if (errors?.error) {
-      const errorMsg = errors.error;
-      if (Array.isArray(errorMsg) && errorMsg.length > 0) return errorMsg[0];
-      if (typeof errorMsg === 'string') return errorMsg;
-    }
+    const bodyMessage = messageFromApiErrorBody(error.errors);
+    if (bodyMessage) return bodyMessage;
     if ((error as any).error && typeof (error as any).error === 'string') {
       return (error as any).error;
     }

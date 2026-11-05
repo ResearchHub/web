@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LinkPreviewService, InvalidUrlError } from '@/services/linkPreview.service';
 
-export const runtime = 'edge';
-
 // 24h CDN cache for full previews. 1h for host-only fallbacks (so a failing
 // upstream gets a retry chance sooner) and for invalid-URL errors (so a
 // caller spamming `?url=garbage` hits the CDN instead of re-invoking the

@@ -1,49 +1,53 @@
-import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
-import { FundraiseSection } from './components/FundraiseSection';
-import { FundingOpportunitySection } from './components/FundingOpportunitySection';
-import { TopicsSection } from './components/TopicsSection';
-import { NonprofitSection } from './components/NonprofitSection';
-import { FundersSection } from './components/FundersSection';
-import { PeerReviewsSection } from './components/PeerReviewsSection';
+'use client';
+
+import type { WorkMetadata } from '@/services/metadata.service';
+import type { Work } from '@/types/work';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import { AwardProposalCard } from './AwardProposalCard';
+import { ProposalFundingCard } from './ProposalFundingCard';
+import { ProposalReviewsCard } from './ProposalReviewsCard';
 import { AiPeerReviewSection } from './components/AiPeerReviewSection';
-import { buildWorkUrl } from '@/utils/url';
-import { DOISection } from './components/DOISection';
+import { NonprofitSection } from './components/NonprofitSection';
 
 interface ProposalSidebarProps {
   work: Work;
   metadata: WorkMetadata;
+  /** The authors' updates, counted from the layout's fetch of them. */
+  updatesCount?: number;
+  /** When the newest update was posted. */
+  latestUpdateDate?: string;
 }
 
-export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
+/**
+ * The proposal page's right sidebar, in the RFP sidebar's style: the funding
+ * card over who reviewed it, then the AI's key insights and the nonprofit the
+ * money goes to, where it has them.
+ */
+export function ProposalSidebar({
+  work,
+  metadata,
+  updatesCount,
+  latestUpdateDate,
+}: ProposalSidebarProps) {
+  const fundraise = metadata.fundraising;
+  const isAward = isAwardMechanism(work.linkedGrant?.fundingMechanism);
+
   return (
-    <div className="space-y-12">
-      {work.aiPeerReview && <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />}
-      {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
-      {metadata.fundraising &&
-        metadata.fundraising.contributors &&
-        metadata.fundraising.contributors.numContributors > 0 && (
-          <FundersSection
-            fundraise={metadata.fundraising}
-            fundraiseTitle={work.title}
-            work={work}
-          />
-        )}
-      {work.peerReviews && work.peerReviews.length > 0 && (
-        <PeerReviewsSection
-          peerReviews={work.peerReviews}
-          reviewsUrl={buildWorkUrl({
-            id: work.id,
-            contentType: work.contentType,
-            slug: work.slug,
-            tab: 'reviews',
-          })}
+    <div className="flex flex-col gap-3">
+      {fundraise && isAward && work.linkedGrant && (
+        <AwardProposalCard
+          work={work}
+          fundraise={fundraise}
+          linkedGrant={work.linkedGrant}
+          publishedDate={work.publishedDate || work.createdDate}
+          updatesCount={updatesCount}
+          latestUpdateDate={latestUpdateDate}
         />
       )}
-      {work.linkedGrant && <FundingOpportunitySection grant={work.linkedGrant} />}
-      {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
-      <TopicsSection topics={metadata.topics || []} />
-      {work.doi && <DOISection doi={work.doi} />}
+      {fundraise && !isAward && <ProposalFundingCard fundraise={fundraise} />}
+      <ProposalReviewsCard work={work} />
+      <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />
+      {fundraise && <NonprofitSection fundraiseId={fundraise.id} />}
     </div>
   );
-};
+}

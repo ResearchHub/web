@@ -1,15 +1,41 @@
 'use client';
 
-import { useState } from 'react';
-import { Award, Building2, ExternalLink, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  Award,
+  Building2,
+  FileText,
+  GraduationCap,
+  Info,
+  Loader2,
+  Mail,
+  Pencil,
+  Sparkles,
+} from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
+import { Progress } from '@/components/ui/Progress';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
-import type { ExpertResult } from '@/types/expertFinder';
+import type { ExpertResult, ProposalDraft } from '@/types/expertFinder';
+import {
+  buildExpertSearchHref,
+  buildOutreachDocumentHref,
+  expertHasOutreachHistory,
+  isProposalDraftActive,
+  isProposalDraftComplete,
+  outreachDocumentLabel,
+  proposalDraftStepProgress,
+} from '@/types/expertFinder';
+import { useProposalDraft } from '@/hooks/useExpertFinder';
+import { NoteService } from '@/services/note.service';
 import { ExpertFormModal } from './ExpertFormModal';
+import { ExpertSourceLinkIcon } from './ExpertSourceLinkIcon';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
@@ -19,6 +45,8 @@ interface ExpertResultCardProps {
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
   onSuccess?: () => Promise<void>;
+  /** Enables AI proposal drafts (grant-linked searches only). */
+  proposalDraftsEnabled?: boolean;
 }
 
 function empty(value: string | undefined): string {
@@ -28,6 +56,107 @@ function empty(value: string | undefined): string {
 /** Show Read more when notes are longer than this */
 const NOTES_READ_MORE_MIN_LENGTH = 25;
 
+interface ProposalDraftSectionProps {
+  draft: ProposalDraft | null;
+  isStarting: boolean;
+  startError: string | null;
+  isOpeningNote: boolean;
+  onStart: () => void;
+  onOpenNote: () => void;
+}
+
+function ProposalDraftSection({
+  draft,
+  isStarting,
+  startError,
+  isOpeningNote,
+  onStart,
+  onOpenNote,
+}: Readonly<ProposalDraftSectionProps>) {
+  if (draft && isProposalDraftActive(draft)) {
+    const progress = proposalDraftStepProgress(draft);
+    return (
+      <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5" aria-live="polite">
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary-600" aria-hidden />
+          <span>Drafting proposal…</span>
+          <span className="ml-auto text-xs font-normal tabular-nums text-gray-500">
+            {progress.position}/{progress.total}
+          </span>
+        </div>
+        <Progress value={progress.position} max={progress.total} size="sm" className="mt-2" />
+        <p className="mt-1.5 text-xs text-gray-500">{progress.label}</p>
+      </div>
+    );
+  }
+
+  if (startError || draft?.status === 'FAILED') {
+    return (
+      <div className="flex flex-col gap-2">
+        <Alert variant="error" className="py-2.5 px-3">
+          <p>Proposal draft failed</p>
+          <p className="font-normal">
+            {startError || draft?.errorMessage || 'An error occurred while drafting the proposal.'}
+          </p>
+        </Alert>
+        <Button
+          type="button"
+          variant="outlined"
+          size="sm"
+          className="w-full gap-2"
+          onClick={onStart}
+          disabled={isStarting}
+        >
+          {isStarting ? (
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+          ) : (
+            <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+          )}
+          Retry proposal draft
+        </Button>
+      </div>
+    );
+  }
+
+  if (isProposalDraftComplete(draft)) {
+    return (
+      <Button
+        type="button"
+        variant="outlined"
+        size="sm"
+        className="w-full gap-2"
+        onClick={onOpenNote}
+        disabled={isOpeningNote}
+      >
+        {isOpeningNote ? (
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+        ) : (
+          <FileText className="h-4 w-4 shrink-0" aria-hidden />
+        )}
+        Open proposal
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outlined"
+      size="sm"
+      className="w-full gap-2"
+      onClick={onStart}
+      disabled={isStarting}
+    >
+      {isStarting ? (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+      ) : (
+        <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+      )}
+      Draft proposal
+    </Button>
+  );
+}
+
 export function ExpertResultCard({
   expert,
   index,
@@ -36,8 +165,39 @@ export function ExpertResultCard({
   onToggleSelect,
   onGenerateEmail,
   onSuccess,
+  proposalDraftsEnabled,
 }: ExpertResultCardProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
+  const [isOpeningNote, setIsOpeningNote] = useState(false);
+
+  // Refresh the search detail once a draft settles so selection-based flows
+  // (e.g. proposal invitation emails) see the latest draft state.
+  const handleDraftSettled = useCallback(() => {
+    void onSuccess?.();
+  }, [onSuccess]);
+  const [{ draft, isStarting, startError }, startDraft] = useProposalDraft(
+    expert.proposalDraft,
+    handleDraftSettled
+  );
+  const showProposalDraft = Boolean(proposalDraftsEnabled) && expert.searchExpertId != null;
+
+  const handleStartDraft = useCallback(() => {
+    if (expert.searchExpertId != null) void startDraft(expert.searchExpertId);
+  }, [expert.searchExpertId, startDraft]);
+
+  const handleOpenNote = useCallback(async () => {
+    if (draft?.noteId == null) return;
+    setIsOpeningNote(true);
+    try {
+      const note = await NoteService.getNote(String(draft.noteId));
+      router.push(`/notebook/${note.organization.slug}/${draft.noteId}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to open the proposal note');
+    } finally {
+      setIsOpeningNote(false);
+    }
+  }, [draft?.noteId, router]);
   const name = empty(expert.name);
   const canEditContact = expert.expertId != null && Boolean(onSuccess);
   const title = empty(expert.title);
@@ -55,7 +215,9 @@ export function ExpertResultCard({
 
   const [notesExpanded, setNotesExpanded] = useState(false);
   const showNotesToggle = notes.length > NOTES_READ_MORE_MIN_LENGTH || notesExpanded;
-  const emailedBefore = Boolean(expert.lastEmailSentAt);
+  const emailedForCurrentDocument = expert.emailedForCurrentDocument;
+  const emailedOnOtherDocuments = expert.emailedOnOtherDocuments ?? [];
+  const hasOutreachHistory = expertHasOutreachHistory(expert);
 
   return (
     <article
@@ -63,7 +225,7 @@ export function ExpertResultCard({
         'flex h-full min-h-0 flex-col rounded-lg border bg-white p-5 shadow-sm',
         selected
           ? 'border-primary-600 ring-2 ring-primary-200'
-          : emailedBefore
+          : hasOutreachHistory
             ? 'border-yellow-300'
             : 'border-gray-200'
       )}
@@ -89,27 +251,29 @@ export function ExpertResultCard({
               {name || '—'}
             </h3>
             {sources.length > 0
-              ? sources.map((src, i) => (
-                  <Tooltip
-                    key={`${src.url}-${i}`}
-                    content={src.text}
-                    position="top"
-                    width="w-72"
-                    className="text-left"
-                    wrapperClassName="inline-flex shrink-0 items-center"
-                  >
-                    <a
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
-                      aria-label={src.text}
-                      title={src.text}
+              ? sources.map((src, i) => {
+                  const label = src.text?.trim() || 'Source';
+                  return (
+                    <Tooltip
+                      key={`${src.url}-${i}`}
+                      content={label}
+                      position="top"
+                      className="text-left"
+                      wrapperClassName="inline-flex shrink-0 items-center"
                     >
-                      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
-                    </a>
-                  </Tooltip>
-                ))
+                      <a
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex rounded p-0.5 text-gray-600 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                        aria-label={label}
+                        title={label}
+                      >
+                        <ExpertSourceLinkIcon url={src.url} text={src.text} />
+                      </a>
+                    </Tooltip>
+                  );
+                })
               : null}
           </div>
           {title ? (
@@ -207,18 +371,85 @@ export function ExpertResultCard({
           </div>
         ) : null}
 
-        {expert.lastEmailSentAt ? (
+        {emailedForCurrentDocument ? (
           <Alert variant="warning" className="py-2.5 px-3">
-            Emailed before
+            Outreach sent for this RFP
+            {emailedForCurrentDocument.searchId > 0 &&
+            String(emailedForCurrentDocument.searchId) !== searchId ? (
+              <>
+                {' · '}
+                <Link
+                  href={buildExpertSearchHref(emailedForCurrentDocument.searchId)}
+                  className="font-medium underline-offset-2 hover:underline"
+                >
+                  Search #{emailedForCurrentDocument.searchId}
+                </Link>
+              </>
+            ) : null}
             <span className="font-normal text-yellow-800/90">
               {' '}
-              · {formatTimestamp(expert.lastEmailSentAt)}
+              · {formatTimestamp(emailedForCurrentDocument.sentAt)}
             </span>
+          </Alert>
+        ) : null}
+
+        {emailedOnOtherDocuments.length > 0 ? (
+          <Alert variant="info" className="py-2.5 px-3">
+            <div className="space-y-1">
+              <p>
+                {emailedOnOtherDocuments.length === 1
+                  ? 'Outreach on another document'
+                  : 'Outreach on other documents'}
+              </p>
+              <ul className="space-y-1 font-normal">
+                {emailedOnOtherDocuments.map((entry) => {
+                  const documentHref = buildOutreachDocumentHref(entry);
+                  const documentLabel = outreachDocumentLabel(entry);
+
+                  return (
+                    <li key={`${entry.unifiedDocumentId}-${entry.sentAt}`}>
+                      {documentHref ? (
+                        <Link
+                          href={documentHref}
+                          className="font-medium underline-offset-2 hover:underline"
+                        >
+                          {documentLabel}
+                        </Link>
+                      ) : (
+                        <span>{documentLabel}</span>
+                      )}
+                      {entry.searchId > 0 ? (
+                        <>
+                          <span className="text-blue-800/90"> · </span>
+                          <Link
+                            href={buildExpertSearchHref(entry.searchId)}
+                            className="font-medium underline-offset-2 hover:underline"
+                          >
+                            Search #{entry.searchId}
+                          </Link>
+                        </>
+                      ) : null}
+                      <span className="text-blue-800/90"> · {formatTimestamp(entry.sentAt)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </Alert>
         ) : null}
       </div>
 
       <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
+        {showProposalDraft ? (
+          <ProposalDraftSection
+            draft={draft}
+            isStarting={isStarting}
+            startError={startError}
+            isOpeningNote={isOpeningNote}
+            onStart={handleStartDraft}
+            onOpenNote={() => void handleOpenNote()}
+          />
+        ) : null}
         {onGenerateEmail && (
           <Button
             type="button"
@@ -228,7 +459,7 @@ export function ExpertResultCard({
             onClick={() => onGenerateEmail(expert)}
           >
             <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            Generate email
+            Generate outreach
           </Button>
         )}
         {email && !onGenerateEmail && (

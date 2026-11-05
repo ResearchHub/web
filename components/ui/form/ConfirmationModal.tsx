@@ -20,6 +20,7 @@ export interface ConfirmationModalProps {
   confirmClassName?: string;
   confirmIcon?: ReactNode;
   isConfirming?: boolean;
+  confirmDisabled?: boolean;
   /**
    * When true (default), cancel, backdrop, and the header close control do nothing while
    * `isConfirming` is true.
@@ -41,6 +42,7 @@ export function ConfirmationModal({
   confirmClassName,
   confirmIcon,
   isConfirming = false,
+  confirmDisabled = false,
   blockDismissWhileConfirming = true,
   onConfirm,
 }: ConfirmationModalProps) {
@@ -67,7 +69,7 @@ export function ConfirmationModal({
           variant={confirmVariant}
           size="sm"
           onClick={() => void Promise.resolve(onConfirm())}
-          disabled={isConfirming}
+          disabled={isConfirming || confirmDisabled}
           className={cn('gap-2', confirmClassName)}
         >
           {isConfirming ? (

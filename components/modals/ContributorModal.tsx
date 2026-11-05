@@ -24,8 +24,6 @@ interface ContributorModalProps {
   isOpen: boolean;
   onClose: () => void;
   contributors: Contributor[];
-  onContribute?: () => void;
-  disableContribute?: boolean;
   isCompleted?: boolean;
   /**
    * Rate used to combine RSC + direct USD contributions.

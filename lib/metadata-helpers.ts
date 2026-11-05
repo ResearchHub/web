@@ -1,7 +1,25 @@
-import { buildArticleMetadata, buildOpenGraphMetadata } from '@/lib/metadata';
+import {
+  buildArticleMetadata,
+  buildDefaultOgImageUrl,
+  buildOpenGraphMetadata,
+} from '@/lib/metadata';
 import { generateDocumentStructuredData } from '@/lib/structured-data';
 import { Work } from '@/types/work';
 import { stripHtml } from '@/utils/stringUtils';
+
+function getWorkDescription(work: Work): string {
+  const previewText = stripHtml(work.previewContent || '').substring(0, 155);
+  return work.abstract || previewText || work.title;
+}
+
+function getWorkImage(work: Work): string | undefined {
+  return work.image || work.figures?.[0]?.url;
+}
+
+/** The image social sites show in a work's link card: the same one its page metadata sets. */
+export function getWorkShareImageUrl(work: Work): string {
+  return getWorkImage(work) || buildDefaultOgImageUrl(work.title, getWorkDescription(work));
+}
 
 export function getWorkMetadata({
   work,
@@ -13,8 +31,8 @@ export function getWorkMetadata({
   titleSuffix?: string;
 }) {
   const title = `${work.title}${titleSuffix ? ` - ${titleSuffix}` : ''}`;
-  const previewText = stripHtml(work.previewContent || '').substring(0, 155);
-  const description = work.abstract || previewText || work.title;
+  const description = getWorkDescription(work);
+  const topics = work.contentType === 'paper' ? work.topics : undefined;
 
   const structuredData = generateDocumentStructuredData({
     ...work,
@@ -28,12 +46,12 @@ export function getWorkMetadata({
     title,
     description,
     url,
-    image: work.image || work.figures?.[0]?.url,
+    image: getWorkImage(work),
     publishedTime: work.publishedDate || work.createdDate,
     modifiedTime: work.updatedDate,
     authors: work.authors?.map((a) => a.authorProfile?.fullName) || [],
-    section: work.topics?.[0]?.name,
-    tags: work.topics?.map((t) => t.name) || [],
+    section: topics?.[0]?.name,
+    tags: topics?.map((topic) => topic.name),
   });
 
   return {
@@ -102,22 +120,4 @@ export function getReferralMetadata({
       },
     },
   };
-}
-
-export function getBrowsePageMetadata() {
-  return buildOpenGraphMetadata({
-    title: 'Browse Topics - ResearchHub',
-    description:
-      'Explore research topics and communities on ResearchHub. Join discussions, follow your interests, and contribute to scientific advancement.',
-    url: '/browse',
-    type: 'website',
-    tags: [
-      'Research Topics',
-      'Scientific Communities',
-      'ResearchHub',
-      'Academic Topics',
-      'Science Categories',
-    ],
-    section: 'Browse',
-  });
 }

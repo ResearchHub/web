@@ -142,29 +142,6 @@ export const getCellsInRow = (rowIndex: number | number[]) => (selection: Select
   return null;
 };
 
-export const getCellsInTable = (selection: Selection) => {
-  const table = findTable(selection);
-
-  if (table) {
-    const map = TableMap.get(table.node);
-    const cells = map.cellsInRect({
-      left: 0,
-      right: map.width,
-      top: 0,
-      bottom: map.height,
-    });
-
-    return cells.map((nodePos) => {
-      const node = table.node.nodeAt(nodePos);
-      const pos = nodePos + table.start;
-
-      return { pos, start: pos + 1, node };
-    });
-  }
-
-  return null;
-};
-
 export const findParentNodeClosestToPos = (
   $pos: ResolvedPos,
   predicate: (node: Node) => boolean
@@ -183,13 +160,6 @@ export const findParentNodeClosestToPos = (
   }
 
   return null;
-};
-
-export const findCellClosestToPos = ($pos: ResolvedPos) => {
-  const predicate = (node: Node) =>
-    node.type.spec.tableRole && /cell/i.test(node.type.spec.tableRole);
-
-  return findParentNodeClosestToPos($pos, predicate);
 };
 
 const select = (type: 'row' | 'column') => (index: number) => (tr: Transaction) => {
@@ -237,22 +207,3 @@ const select = (type: 'row' | 'column') => (index: number) => (tr: Transaction) 
 export const selectColumn = select('column');
 
 export const selectRow = select('row');
-
-export const selectTable = (tr: Transaction) => {
-  const table = findTable(tr.selection);
-
-  if (table) {
-    const { map } = TableMap.get(table.node);
-
-    if (map && map.length) {
-      const head = table.start + map[0];
-      const anchor = table.start + map[map.length - 1];
-      const $head = tr.doc.resolve(head);
-      const $anchor = tr.doc.resolve(anchor);
-
-      return tr.setSelection(new CellSelection($anchor, $head));
-    }
-  }
-
-  return tr;
-};

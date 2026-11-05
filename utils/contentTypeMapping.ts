@@ -6,6 +6,7 @@ import { DocumentType } from '@/services/reaction.service';
  * Django document type from API (src/researchhub_document/related_models/constants/document_type.py)
  */
 export type ApiDocumentType =
+  | 'CHANGELOG'
   | 'DISCUSSION'
   | 'ELN'
   | 'GRANT'
@@ -36,6 +37,7 @@ export function mapApiDocumentTypeToClientType(
       return 'question';
     case 'GRANT':
       return 'funding_request';
+    case 'CHANGELOG':
     case 'DISCUSSION':
       return 'post';
     case 'ELN':

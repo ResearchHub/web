@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { ReactionService } from '@/services/reaction.service';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { useUser } from '@/contexts/UserContext';
 import { Vote } from '@/types/reaction';
-import { ApiError } from '@/services/types';
 
 interface UseUserVotesOptions {
   paperIds?: (string | number)[];
@@ -11,9 +12,11 @@ interface UseUserVotesOptions {
 }
 
 /**
- * Hook to fetch user votes for papers and posts
+ * Hook to fetch the signed-in user's votes for papers and posts.
+ * Signed-out visitors have no votes (the endpoint answers 401), so nothing is requested for them.
  */
 export const useUserVotes = ({ paperIds, postIds }: UseUserVotesOptions) => {
+  const { user } = useUser();
   const [data, setData] = useState<{
     papers: Record<string, Vote>;
     posts: Record<string, Vote>;
@@ -22,6 +25,7 @@ export const useUserVotes = ({ paperIds, postIds }: UseUserVotesOptions) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchVotes = async () => {
+    if (!user) return;
     if (!paperIds?.length && !postIds?.length) return;
 
     setIsLoading(true);
@@ -34,9 +38,7 @@ export const useUserVotes = ({ paperIds, postIds }: UseUserVotesOptions) => {
       });
       setData(response);
     } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.message || 'Failed to fetch votes';
-      setError(errorMsg);
+      setError(extractApiErrorMessage(err, 'Failed to fetch votes'));
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +46,7 @@ export const useUserVotes = ({ paperIds, postIds }: UseUserVotesOptions) => {
 
   useEffect(() => {
     fetchVotes();
-  }, [paperIds?.join(','), postIds?.join(',')]);
+  }, [user?.id, paperIds?.join(','), postIds?.join(',')]);
 
   return { data, isLoading, error, refresh: fetchVotes };
 };

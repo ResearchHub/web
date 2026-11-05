@@ -2,11 +2,9 @@
 
 import { Editor, JSONContent } from '@tiptap/core';
 import type { AnyExtension } from '@tiptap/core';
-import { TextAlign } from '@tiptap/extension-text-align';
-import { History } from '@tiptap/extension-history';
+import { UndoRedo } from '@tiptap/extensions';
 import { Import } from '@tiptap-pro/extension-import';
 
-import { ExtensionKit } from '@/components/Editor/extensions/extension-kit';
 import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 
 /**
@@ -106,8 +104,8 @@ export const importDocumentToTiptap = async (
   options: { fallbackTitle?: string } = {}
 ): Promise<DocumentImportResult> => {
   // The Tiptap Cloud App ID is account-wide and shared across products
-  // (Content AI, Convert, Collab). Each product has its own JWT secret on
-  // the server, but the App ID is the same value used by `Ai.ts`.
+  // (Content AI, Convert, Collab); each product has its own JWT secret on
+  // the server.
   const appId = process.env.NEXT_PUBLIC_TIPTAP_APP_ID;
   if (!appId) {
     throw new Error(
@@ -128,6 +126,8 @@ export const importDocumentToTiptap = async (
 
   const token = await fetchConvertToken();
 
+  const { ExtensionKit } = await import('@/components/Editor/extensions/extension-kit');
+
   // The headless import editor uses the *default* Document node (which
   // accepts `block+`) rather than the live editor's `heading block+` custom
   // document. Two reasons:
@@ -140,8 +140,7 @@ export const importDocumentToTiptap = async (
   //      coercion explicitly below by prepending a title heading if needed.
   const extensions: AnyExtension[] = [
     ...ExtensionKit({}),
-    TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    History.configure({ depth: 100 }),
+    UndoRedo.configure({ depth: 100 }),
     Import.configure({
       appId,
       token,

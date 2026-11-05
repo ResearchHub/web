@@ -10,7 +10,7 @@ export function useWorkVote(work: Work) {
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
-    relatedDocumentTopics: work.topics,
+    relatedDocumentTopics: work.contentType === 'paper' ? work.topics : undefined,
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,
   });
@@ -106,7 +106,9 @@ export function useWorkPermissions(work: Work) {
 
   const isModerator = !!user?.isModerator;
   const isHubEditor = !!user?.authorProfile?.isHubEditor;
+  const isRegisteredReport = work.postType === 'REGISTERED_REPORT';
   const isAuthor =
+    !isRegisteredReport &&
     user?.authorProfile != null &&
     work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
   const isGrantContact =
@@ -117,9 +119,13 @@ export function useWorkPermissions(work: Work) {
     );
 
   const canEdit = (() => {
+    if (isRegisteredReport) {
+      return false;
+    }
+
     switch (work.contentType) {
       case 'paper':
-        return isModerator || isHubEditor;
+        return false;
       case 'funding_request':
         return isGrantContact || isAuthor || isModerator;
       case 'post':

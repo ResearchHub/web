@@ -1,11 +1,5 @@
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { WorkSkeleton, WorkHeaderSkeleton } from '@/components/work/WorkSkeleton';
-import { WorkRightSidebarSkeleton } from '@/components/work/WorkRightSidebarSkeleton';
+import { FundingPageSkeleton } from '@/components/Funding/FundingPageSkeleton';
 
 export default function ProposalLoading() {
-  return (
-    <PageLayout topBanner={<WorkHeaderSkeleton />} rightSidebar={<WorkRightSidebarSkeleton />}>
-      <WorkSkeleton />
-    </PageLayout>
-  );
+  return <FundingPageSkeleton />;
 }

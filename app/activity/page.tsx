@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useInView } from 'react-intersection-observer';
 import { LayoutList, Star, Coins, Reply } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { PillTabs } from '@/components/ui/PillTabs';
-import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
+import { ActivityCard, ActivityFeedList } from '@/components/Activity';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { ActivityScope } from '@/services/activity.service';
 import { GrantService } from '@/services/grant.service';
 
@@ -49,19 +49,28 @@ export default function ActivityPage() {
     });
   }, [grantIdParam]);
 
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useActivityFeed({
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    page,
+    loadMore,
+    feedKey,
+    restoredScrollPosition,
+    lastClickedEntryId,
+  } = useActivityFeed({
     scope,
     grantId: grantIdParam || undefined,
   });
 
-  const { ref: sentinelRef } = useInView({
-    threshold: 0,
-    rootMargin: '200px',
-    onChange: (inView) => {
-      if (inView && hasMore && !isLoading && !isLoadingMore) {
-        loadMore();
-      }
-    },
+  useFeedScrollTracking({
+    feedKey,
+    entries,
+    hasMore,
+    page,
+    restoredScrollPosition,
+    lastClickedEntryId: lastClickedEntryId ?? undefined,
   });
 
   const handleTabChange = useCallback(
@@ -101,35 +110,18 @@ export default function ActivityPage() {
         {tabsElement}
 
         <div className="mt-4">
-          {entries.map((entry) => (
-            <ActivityCardFull key={entry.id} entry={entry} />
-          ))}
-
-          {(isLoading || isLoadingMore) && (
-            <div className="py-8 space-y-6">
-              {[...Array(15)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="flex gap-2.5">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-1/3" />
-                      <div className="h-3 bg-gray-200 rounded w-2/3" />
-                      <div className="h-3 bg-gray-200 rounded w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!isLoading && !isLoadingMore && entries.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-gray-500">No activity found</p>
-            </div>
-          )}
+          <ActivityFeedList
+            isLoading={isLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore}
+            loadMore={loadMore}
+            isEmpty={entries.length === 0}
+          >
+            {entries.map((entry) => (
+              <ActivityCard key={entry.id} entry={entry} />
+            ))}
+          </ActivityFeedList>
         </div>
-
-        {!isLoading && !isLoadingMore && hasMore && <div ref={sentinelRef} className="h-10" />}
       </div>
     </PageLayout>
   );

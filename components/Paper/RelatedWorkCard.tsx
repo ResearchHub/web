@@ -2,19 +2,14 @@ import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { truncateText } from '@/utils/stringUtils';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { Topic } from '@/types/topic';
-import { useClickContext } from '@/contexts/ClickContext';
-import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { Fundraise } from '@/types/feed';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
-import { usePathname } from 'next/navigation';
+import { buildWorkUrl } from '@/utils/url';
 
 interface RelatedWorkCardProps {
   work: Work;
   onClick?: () => void;
-  onTopicClick?: (topic: Topic) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   fundraiseData?: Fundraise;
   onFeedItemClick?: () => void;
@@ -23,14 +18,11 @@ interface RelatedWorkCardProps {
 export const RelatedWorkCard = ({
   work,
   onClick,
-  onTopicClick,
   size = 'default',
   fundraiseData,
   onFeedItemClick,
 }: RelatedWorkCardProps) => {
-  const { triggerEvent } = useClickContext();
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
-  const pathname = usePathname();
 
   if (!work) return null;
 
@@ -41,6 +33,17 @@ export const RelatedWorkCard = ({
       verified: author.authorProfile.user?.isVerified,
       profileUrl: author.authorProfile.profileUrl,
     })) || [];
+
+  const getWorkUrl = () => {
+    if (!work.id) return null;
+
+    let contentType = work.contentType;
+    if (work.postType === 'QUESTION' && contentType === 'post') {
+      contentType = 'question';
+    }
+
+    return buildWorkUrl({ id: work.id, slug: work.slug, contentType });
+  };
 
   // Handle click on the paper card
   const handleClick = (e: React.MouseEvent) => {
@@ -53,25 +56,11 @@ export const RelatedWorkCard = ({
 
     if (onClick) {
       onClick();
-    } else if (work.id && work.slug) {
-      // Default behavior: open the document in a new tab
-      let path;
-      if (work.contentType === 'preregistration') {
-        path = `/proposal/${work.id}/${work.slug}`;
-      } else if (work.contentType === 'post') {
-        // Check if it's a question based on postType
-        if (work.postType === 'QUESTION') {
-          path = `/question/${work.id}/${work.slug}`;
-        } else {
-          path = `/post/${work.id}/${work.slug}`;
-        }
-      } else if (work.contentType === 'paper') {
-        path = `/paper/${work.id}/${work.slug}`;
-      } else {
-        // For other content types like 'discussion', 'funding_request'
-        path = `/post/${work.id}/${work.slug}`;
+    } else {
+      const path = getWorkUrl();
+      if (path && path !== '#') {
+        window.open(path, '_blank');
       }
-      window.open(path, '_blank');
     }
   };
 
@@ -84,7 +73,12 @@ export const RelatedWorkCard = ({
     | 'article'
     | 'preprint'
     | 'published'
-    | 'question' => {
+    | 'question'
+    | 'grant' => {
+    if (work.contentType === 'funding_request') {
+      return 'grant';
+    }
+
     // If it's a fundraise proposal, show funding badge
     if (work.contentType === 'preregistration') {
       return 'funding';
@@ -107,8 +101,6 @@ export const RelatedWorkCard = ({
           return 'paper';
         }
         return 'paper';
-      case 'funding_request':
-        return 'funding';
       default:
         return 'paper';
     }
@@ -151,40 +143,9 @@ export const RelatedWorkCard = ({
       className={`bg-gray-50 rounded-lg border !border-l-2 !border-l-gray-600 border-gray-200 !rounded-tl-none !rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
       onClick={handleClick}
     >
-      {/* Badge and Topics */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      {/* Badge */}
+      <div className="flex flex-wrap gap-2 items-center mb-3">
         <ContentTypeBadge size={size} type={getBadgeType()} />
-        {(work.topics || [])
-          .filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug))
-          .slice(0, 2)
-          .map((topic) => {
-            // Check if we have custom handlers or if we're on the earn page
-            const hasCustomHandler = onTopicClick;
-            const isEarnPage = pathname === '/earn';
-            const shouldUseClickContext = isEarnPage && !hasCustomHandler;
-
-            return (
-              <div
-                key={topic.id || topic.slug}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onTopicClick) {
-                    onTopicClick(topic);
-                  } else if (shouldUseClickContext) {
-                    // On earn page without custom handlers, use ClickContext for filtering
-                    triggerEvent({ type: 'topic', payload: topic });
-                  }
-                  // Otherwise, let the TopicAndJournalBadge handle navigation
-                }}
-              >
-                <TopicAndJournalBadge
-                  name={topic.name}
-                  slug={topic.slug}
-                  disableLink={!!hasCustomHandler || shouldUseClickContext}
-                />
-              </div>
-            );
-          })}
       </div>
 
       {/* Paper title */}

@@ -4,6 +4,8 @@ import { createTransformer } from './transformer';
 import type { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
+import { buildWorkUrl, ensureAbsoluteHttpUrl, isLinkedInUrl, isXUrl } from '@/utils/url';
+import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 
 export interface CreatedByInfo {
   userId: number;
@@ -23,6 +25,88 @@ export interface ExpertSourceLink {
   text: string;
 }
 
+export interface ExpertEmailedForCurrentDocument {
+  sentAt: string;
+  searchId: number;
+}
+
+export interface ExpertEmailedOnOtherDocument {
+  unifiedDocumentId: number;
+  documentType: string;
+  title: string;
+  slug: string;
+  id: number;
+  sentAt: string;
+  searchId: number;
+}
+
+// ── Proposal drafts ──────────────────────────────────
+
+/** ProposalDraft.status (wire values are uppercase). */
+export type ProposalDraftStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+/** ProposalDraft.step — ordered pipeline steps of a draft run. */
+export const PROPOSAL_DRAFT_STEPS = [
+  { value: 'QUEUED', label: 'Queued' },
+  { value: 'BUILDING_PROFILE', label: 'Building expert profile' },
+  { value: 'DRAFTING', label: 'Drafting proposal' },
+  { value: 'JUDGING', label: 'Evaluating draft' },
+  { value: 'REVISING', label: 'Revising draft' },
+  { value: 'VERIFYING', label: 'Verifying' },
+  { value: 'WRITING_NOTE', label: 'Writing note' },
+  { value: 'DONE', label: 'Done' },
+] as const;
+
+export type ProposalDraftStep = (typeof PROPOSAL_DRAFT_STEPS)[number]['value'];
+
+/** AI-generated proposal draft job for one expert in a search. */
+export interface ProposalDraft {
+  id: number;
+  searchExpertId: number;
+  /** Resulting notebook note id; null until the run writes the note. */
+  noteId: number | null;
+  status: ProposalDraftStatus;
+  step: ProposalDraftStep;
+  roundsUsed: number;
+  errorMessage: string;
+  createdDate: string;
+  completedAt: string | null;
+}
+
+export function isProposalDraftActive(draft: ProposalDraft | null | undefined): boolean {
+  return draft != null && (draft.status === 'PENDING' || draft.status === 'PROCESSING');
+}
+
+export function isProposalDraftComplete(draft: ProposalDraft | null | undefined): boolean {
+  return draft?.status === 'COMPLETED' && draft.noteId != null;
+}
+
+/** 1-based position of the draft's current step, for progress display. */
+export function proposalDraftStepProgress(draft: ProposalDraft): {
+  label: string;
+  position: number;
+  total: number;
+} {
+  const index = PROPOSAL_DRAFT_STEPS.findIndex((s) => s.value === draft.step);
+  return {
+    label: index >= 0 ? PROPOSAL_DRAFT_STEPS[index].label : 'Processing',
+    position: index >= 0 ? index + 1 : 1,
+    total: PROPOSAL_DRAFT_STEPS.length,
+  };
+}
+
+export const transformProposalDraft = createTransformer<any, ProposalDraft>((raw) => ({
+  id: raw.id ?? 0,
+  searchExpertId: raw.search_expert ?? 0,
+  noteId: raw.note ?? null,
+  status: raw.status ?? 'PENDING',
+  step: raw.step ?? 'QUEUED',
+  roundsUsed: raw.rounds_used ?? 0,
+  errorMessage: raw.error_message ?? '',
+  createdDate: raw.created_date ?? '',
+  completedAt: raw.completed_at ?? null,
+}));
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   expertId: number | null;
@@ -36,10 +120,16 @@ export interface ExpertResult {
   affiliation: string;
   expertise: string;
   email: string;
-  /** ISO timestamp when an outreach email was last sent to this expert (any search), if known. */
+  /** @deprecated Legacy global timestamp; do not use for "emailed before" UI. */
   lastEmailSentAt: string | null;
+  emailedForCurrentDocument: ExpertEmailedForCurrentDocument | null;
+  emailedOnOtherDocuments: ExpertEmailedOnOtherDocument[];
   notes?: string;
   sources?: ExpertSourceLink[] | null;
+  /** SearchExpert row id — used to start proposal drafts. Null if missing from the payload. */
+  searchExpertId: number | null;
+  /** Latest proposal draft for this expert in this search, if any. */
+  proposalDraft: ProposalDraft | null;
 }
 
 export interface ReportUrls {
@@ -54,7 +144,6 @@ export interface ExpertSearchResult {
   query: string;
   inputType: InputType;
   config: Record<string, unknown>;
-  excludedSearchIds: number[];
   llmModel: string;
   status: SearchStatus;
   progress: number;
@@ -81,7 +170,6 @@ export interface ExpertSearchListItem {
   query: string;
   status: SearchStatus;
   expertCount: number;
-  excludedSearchIds: number[];
   createdAt: string;
   completedAt: string | null;
   createdBy: CreatedByInfo | null;
@@ -113,21 +201,50 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function defaultSourceLabel(url: string, text: string): string {
+  if (text) return text;
+  if (isLinkedInUrl(url)) return 'LinkedIn';
+  if (isXUrl(url)) return 'X';
+  try {
+    return new URL(url).hostname.replace(/^www\./, '') || 'Source';
+  } catch {
+    return 'Source';
+  }
+}
+
 function transformExpertSource(raw: string | Record<string, unknown>): ExpertSourceLink | null {
   if (typeof raw === 'string') {
-    const url = raw.trim();
-    if (!url) return null;
-    try {
-      const host = new URL(url).hostname.replace(/^www\./, '');
-      return { url, text: host || 'Source' };
-    } catch {
-      return { url, text: 'Source' };
-    }
+    const normalized = ensureAbsoluteHttpUrl(raw);
+    if (!normalized) return null;
+    return { url: normalized, text: defaultSourceLabel(normalized, '') };
   }
-  const url = String(raw?.url ?? '').trim();
-  if (!url) return null;
-  const text = String(raw?.text ?? '').trim() || 'Source';
-  return { url, text };
+
+  const obj = raw as Record<string, unknown>;
+  const rawUrl = String(obj.url ?? obj.href ?? obj.link ?? obj.profile_url ?? '').trim();
+  const normalized = ensureAbsoluteHttpUrl(rawUrl);
+  if (!normalized) return null;
+
+  const typeHint = String(obj.type ?? obj.network ?? obj.platform ?? '')
+    .trim()
+    .toLowerCase();
+  const rawText = String(obj.text ?? obj.title ?? obj.label ?? obj.name ?? '').trim();
+  let text = rawText;
+  if (!text && (typeHint === 'linkedin' || typeHint.includes('linkedin'))) {
+    text = 'LinkedIn';
+  } else if (
+    !text &&
+    (typeHint === 'x' || typeHint === 'twitter' || typeHint.includes('twitter'))
+  ) {
+    text = 'X';
+  }
+
+  return { url: normalized, text: defaultSourceLabel(normalized, text) };
+}
+
+function parseSearchExpertId(raw: unknown): number | null {
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
 function parseExpertId(raw: any): number | null {
@@ -135,6 +252,81 @@ function parseExpertId(raw: any): number | null {
   if (idRaw == null || idRaw === '') return null;
   const n = Number(idRaw);
   return Number.isInteger(n) && n >= 1 ? n : null;
+}
+
+function transformEmailedForCurrentDocument(raw: unknown): ExpertEmailedForCurrentDocument | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const sentAt = obj.sent_at != null ? String(obj.sent_at).trim() : '';
+  if (!sentAt) return null;
+  const searchId = Number(obj.search_id);
+  return {
+    sentAt,
+    searchId: Number.isInteger(searchId) ? searchId : 0,
+  };
+}
+
+function transformEmailedOnOtherDocument(raw: unknown): ExpertEmailedOnOtherDocument | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const id = Number(obj.id);
+  const sentAt = obj.sent_at != null ? String(obj.sent_at).trim() : '';
+  if (!Number.isInteger(id) || id < 1 || !sentAt) return null;
+  const unifiedDocumentId = Number(obj.unified_document_id);
+  const searchId = Number(obj.search_id);
+  return {
+    unifiedDocumentId: Number.isInteger(unifiedDocumentId) ? unifiedDocumentId : 0,
+    documentType: String(obj.document_type ?? '').trim(),
+    title: String(obj.title ?? '').trim(),
+    slug: String(obj.slug ?? '').trim(),
+    id,
+    sentAt,
+    searchId: Number.isInteger(searchId) ? searchId : 0,
+  };
+}
+
+function transformEmailedOnOtherDocuments(raw: unknown): ExpertEmailedOnOtherDocument[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ExpertEmailedOnOtherDocument[] = [];
+  for (const item of raw) {
+    const entry = transformEmailedOnOtherDocument(item);
+    if (entry) out.push(entry);
+  }
+  return out;
+}
+
+export function buildOutreachDocumentHref(entry: ExpertEmailedOnOtherDocument): string | null {
+  const contentType = mapApiDocumentTypeToClientType(
+    entry.documentType.toUpperCase() as ApiDocumentType
+  );
+  if (!contentType || entry.id < 1) return null;
+
+  const href = buildWorkUrl({
+    id: entry.id,
+    slug: entry.slug || undefined,
+    contentType,
+  });
+  return href === '#' ? null : href;
+}
+
+export function buildExpertSearchHref(searchId: number): string {
+  if (!Number.isInteger(searchId) || searchId < 1) return '#';
+  return `/expert-finder/library/${searchId}`;
+}
+
+export function outreachDocumentLabel(entry: ExpertEmailedOnOtherDocument): string {
+  const title = entry.title.trim();
+  if (title) return title;
+  const slug = entry.slug.trim();
+  if (slug) return slug;
+  return `${entry.documentType || 'Document'} #${entry.id}`;
+}
+
+/** True if this expert already has outreach on this document or another. */
+export function expertHasOutreachHistory(expert: ExpertResult): boolean {
+  return (
+    Boolean(expert.emailedForCurrentDocument) || (expert.emailedOnOtherDocuments?.length ?? 0) > 0
+  );
 }
 
 export function transformExpertResult(raw: any): ExpertResult {
@@ -169,23 +361,13 @@ export function transformExpertResult(raw: any): ExpertResult {
       raw.last_email_sent_at != null && String(raw.last_email_sent_at).trim() !== ''
         ? String(raw.last_email_sent_at).trim()
         : null,
+    emailedForCurrentDocument: transformEmailedForCurrentDocument(raw.emailed_for_current_document),
+    emailedOnOtherDocuments: transformEmailedOnOtherDocuments(raw.emailed_on_other_documents),
     notes: raw.notes ?? raw.recommendation_notes,
     sources: sources?.length ? sources : null,
+    searchExpertId: parseSearchExpertId(raw.search_expert_id),
+    proposalDraft: raw.proposal_draft ? transformProposalDraft(raw.proposal_draft) : null,
   };
-}
-
-function transformExcludedSearchIds(raw: any): number[] {
-  if (!Array.isArray(raw)) return [];
-  const out: number[] = [];
-  const seen = new Set<number>();
-  for (const v of raw) {
-    const n = Number(v);
-    if (Number.isInteger(n) && n >= 1 && !seen.has(n)) {
-      seen.add(n);
-      out.push(n);
-    }
-  }
-  return out;
 }
 
 function pickExpertRows(raw: any): any[] {
@@ -201,7 +383,6 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
     query: raw.query ?? '',
     inputType: raw.input_type ?? 'abstract',
     config: raw.config ?? {},
-    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     llmModel: raw.llm_model ?? '',
     status: raw.status ?? 'pending',
     progress: raw.progress ?? 0,
@@ -229,7 +410,6 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     query: raw.query ?? '',
     status: raw.status ?? 'pending',
     expertCount: raw.expert_count ?? 0,
-    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
     createdBy: transformCreatedBy(raw.created_by),
@@ -288,6 +468,26 @@ function transformGeneratedEmailListNavigation(raw: any): GeneratedEmailListNavi
   return { total, position, previousId, nextId };
 }
 
+export type OutreachChannel = 'email' | 'linkedin' | 'x';
+
+export const OUTREACH_CHANNEL_VALUES = ['email', 'linkedin', 'x'] as const;
+
+export function parseOutreachChannel(raw: unknown): OutreachChannel | '' {
+  const value = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  return (OUTREACH_CHANNEL_VALUES as readonly string[]).includes(value)
+    ? (value as OutreachChannel)
+    : '';
+}
+
+export function parseOutreachChannels(raw: unknown): OutreachChannel[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => parseOutreachChannel(item))
+    .filter((channel): channel is OutreachChannel => Boolean(channel));
+}
+
 export interface GeneratedEmail {
   id: number;
   expertSearch: number | null;
@@ -301,6 +501,13 @@ export interface GeneratedEmail {
   template: string | null;
   status: string;
   notes: string;
+  channels: OutreachChannel[];
+  /** Expert profile links for outreach CTAs (LinkedIn, X, etc.). */
+  sources: ExpertSourceLink[] | null;
+  /** ProposalDraft id this email links to, when generated as a proposal invitation. */
+  proposalDraftId: number | null;
+  /** Invite URL granting the expert editor access to the proposal note, when present. */
+  proposalInviteUrl: string | null;
   bouncedAt: string | null;
   openedAt: string | null;
   openCount: number;
@@ -317,27 +524,43 @@ export interface GeneratedEmailListResponse {
   offset: number;
 }
 
-export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => ({
-  id: raw.id ?? 0,
-  expertSearch: raw.expert_search ?? null,
-  expertName: raw.expert_name ?? '',
-  expertTitle: raw.expert_title ?? '',
-  expertAffiliation: raw.expert_affiliation ?? '',
-  expertEmail: raw.expert_email ?? '',
-  expertise: raw.expertise ?? '',
-  emailSubject: raw.email_subject ?? '',
-  emailBody: raw.email_body ?? '',
-  template: raw.template ?? '',
-  status: raw.status ?? 'draft',
-  notes: raw.notes ?? '',
-  bouncedAt: raw.bounced_at ?? null,
-  openedAt: raw.opened_at ?? null,
-  openCount: raw.open_count ?? 0,
-  createdAt: raw.created_at ?? '',
-  updatedAt: raw.updated_at ?? '',
-  createdBy: transformCreatedBy(raw.created_by),
-  listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
-}));
+export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((raw) => {
+  const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
+  const sources = sourcesRaw
+    ? sourcesRaw
+        .map((item: string | Record<string, unknown>) => transformExpertSource(item))
+        .filter((s: ExpertSourceLink | null): s is ExpertSourceLink => s != null)
+    : null;
+
+  return {
+    id: raw.id ?? 0,
+    expertSearch: raw.expert_search ?? null,
+    expertName: raw.expert_name ?? '',
+    expertTitle: raw.expert_title ?? '',
+    expertAffiliation: raw.expert_affiliation ?? '',
+    expertEmail: raw.expert_email ?? '',
+    expertise: raw.expertise ?? '',
+    emailSubject: raw.email_subject ?? '',
+    emailBody: raw.email_body ?? '',
+    template: raw.template ?? '',
+    status: raw.status ?? 'draft',
+    notes: raw.notes ?? '',
+    channels: parseOutreachChannels(raw.channels),
+    sources: sources?.length ? sources : null,
+    bouncedAt: raw.bounced_at ?? null,
+    openedAt: raw.opened_at ?? null,
+    openCount: raw.open_count ?? 0,
+    createdAt: raw.created_at ?? '',
+    updatedAt: raw.updated_at ?? '',
+    createdBy: transformCreatedBy(raw.created_by),
+    listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
+    proposalDraftId: raw.proposal_draft ?? null,
+    proposalInviteUrl:
+      raw.proposal_invite_url != null && String(raw.proposal_invite_url).trim() !== ''
+        ? String(raw.proposal_invite_url).trim()
+        : null,
+  };
+});
 
 // ── Document invited experts (app-level, camelCase) ───────────────────────────
 

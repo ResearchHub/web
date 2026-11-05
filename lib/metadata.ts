@@ -26,6 +26,17 @@ export interface OpenGraphData {
   locale?: string;
 }
 
+const truncateOgTitle = (title: string) =>
+  title.length > 60 ? title.substring(0, 57) + '...' : title;
+
+const truncateOgDescription = (description: string) =>
+  description.length > 155 ? description.substring(0, 152) + '...' : description;
+
+/** The generated card image a page gets when it has no image of its own. */
+export function buildDefaultOgImageUrl(title: string, description: string): string {
+  return `${SITE_CONFIG.url}/api/og?title=${encodeURIComponent(truncateOgTitle(title))}&description=${encodeURIComponent(truncateOgDescription(description))}`;
+}
+
 export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
   const {
     title,
@@ -40,14 +51,11 @@ export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
     locale = SITE_CONFIG.locale,
   } = data;
 
-  const truncatedTitle = title.length > 60 ? title.substring(0, 57) + '...' : title;
-  const truncatedDescription =
-    description.length > 155 ? description.substring(0, 152) + '...' : description;
+  const truncatedTitle = truncateOgTitle(title);
+  const truncatedDescription = truncateOgDescription(description);
 
   // Use dynamic OG image generation if no custom image is provided
-  const ogImage =
-    image ||
-    `${SITE_CONFIG.url}/api/og?title=${encodeURIComponent(truncatedTitle)}&description=${encodeURIComponent(truncatedDescription)}`;
+  const ogImage = image || buildDefaultOgImageUrl(title, description);
 
   const fullUrl = url ? `${SITE_CONFIG.url}${url}` : SITE_CONFIG.url;
 

@@ -1,5 +1,9 @@
 import { useCallback } from 'react';
-import { SearchableMultiSelect, MultiSelectOption } from './SearchableMultiSelect';
+import {
+  SearchableMultiSelect,
+  MultiSelectOption,
+  type SearchableMultiSelectProps,
+} from './SearchableMultiSelect';
 import { SearchService } from '@/services/search.service';
 import { UserSuggestion } from '@/types/search';
 import { Avatar } from '@/components/ui/Avatar';
@@ -61,7 +65,16 @@ export interface SearchableUserSelectProps {
   error?: string;
   helperText?: string;
   debounceMs?: number;
+  sortable?: boolean;
   getOptionValue?: (user: UserSuggestion) => string;
+  /** How a result row looks; the avatar, name, headline and profile link by default. */
+  renderOption?: SearchableMultiSelectProps['renderOption'];
+  /** Restyles the field itself. */
+  className?: string;
+  leading?: SearchableMultiSelectProps['leading'];
+  placeholderWhenFilled?: string;
+  autoFocus?: boolean;
+  optionsClassName?: string;
 }
 
 export function SearchableUserSelect({
@@ -71,7 +84,14 @@ export function SearchableUserSelect({
   error,
   helperText,
   debounceMs = 300,
+  sortable = false,
   getOptionValue = defaultGetOptionValue,
+  renderOption = renderUserOption,
+  className,
+  leading,
+  placeholderWhenFilled,
+  autoFocus,
+  optionsClassName,
 }: Readonly<SearchableUserSelectProps>) {
   const handleAsyncSearch = useCallback(
     async (query: string) => {
@@ -103,7 +123,13 @@ export function SearchableUserSelect({
       error={error}
       helperText={helperText}
       debounceMs={debounceMs}
-      renderOption={renderUserOption}
+      sortable={sortable}
+      renderOption={renderOption}
+      className={className}
+      leading={leading}
+      placeholderWhenFilled={placeholderWhenFilled}
+      autoFocus={autoFocus}
+      optionsClassName={optionsClassName}
     />
   );
 }

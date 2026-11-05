@@ -5,11 +5,18 @@ import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
-import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
-import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
+import {
+  parseFundingMechanism,
+  transformFundingPool,
+  type FundingMechanism,
+  type FundingPool,
+  type GrantApplicationVisibility,
+} from './grant';
+import { Fundraise, ReviewMetrics, transformFundraise } from './funding';
+import type { Review } from './feed';
 
 export interface PeerReview {
   id: number;
@@ -72,22 +79,6 @@ export type DocumentVersion = {
 export interface FormatType {
   type: string;
   url: string;
-  /**
-   * This is a proxied URL for internal use (e.g., to avoid CORS issues when rendering PDFs).
-   */
-  internalUrl?: string;
-}
-
-export interface Enrichment {
-  source: string;
-  citationCount?: number | null;
-  influentialCitationCount?: number | null;
-  altmetricScore?: number | null;
-  impactScore?: number | null;
-  journal?: string | null;
-  tldr?: string | null;
-  twitterMentions?: number | null;
-  newsMentions?: number | null;
 }
 
 export interface Work {
@@ -97,6 +88,7 @@ export interface Work {
   title: string;
   slug: string;
   createdDate: string;
+  createdByUserId?: number;
   updatedDate?: string;
   publishedDate?: string;
   authors: Authorship[];
@@ -105,7 +97,7 @@ export interface Work {
   journal?: Journal;
   category?: Topic;
   subcategory?: Topic;
-  topics: Topic[];
+  topics?: Topic[];
   formats: FormatType[];
   license?: string;
   pdfCopyrightAllowsDisplay?: boolean;
@@ -119,8 +111,13 @@ export interface Work {
   previewContent?: string;
   contentUrl?: string;
   unifiedDocumentId?: number | null;
+  registeredReportId?: number | null;
   postType?: string;
-  fundraise?: any;
+  fundraise?: Fundraise;
+  /** The average score and count of the work's assessed peer reviews. */
+  reviewMetrics?: ReviewMetrics;
+  /** The first few of those reviews, with who wrote them. */
+  assessedReviews?: Review[];
   tips?: Tip[];
   peerReviews?: PeerReview[];
   /**
@@ -128,8 +125,9 @@ export interface Work {
    * Currently we take **only the first** `grants[0]` row’s review.
    */
   aiPeerReview?: ProposalReview | null;
-  enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
+  fundingMechanism?: FundingMechanism;
+  grantSummary?: WorkGrantSummary;
   moderationStatus?: ModerationStatus;
   isPublic?: boolean;
 }
@@ -143,26 +141,25 @@ export interface LinkedGrant {
   fundingAmount: number;
   currency: string;
   status: string;
+  applicationVisibility: GrantApplicationVisibility;
+  fundingMechanism: FundingMechanism;
   imageUrl: string | null;
   applicantCount: number;
+  fundingPool?: FundingPool | null;
+  createdByUserId?: number | null;
+  applicationId?: number | null;
 }
 
-export interface FundingRequest extends Work {
-  type: 'funding_request';
-  contentType: 'funding_request';
-  status: 'OPEN' | 'CLOSED' | 'FUNDED';
-  amount: number;
-  goalAmount: number;
-  deadline: string;
-  preregistered?: boolean;
-  image?: string;
+export interface WorkGrantSummary {
+  status: string;
+  organization: string;
+  amount: { usd: number; rsc: number | null };
+  fundingPool?: FundingPool | null;
+  numApplicants: number;
+  endDate?: string;
 }
 
-// Transformed types
-export type TransformedAuthorship = Authorship & BaseTransformed;
 export type TransformedJournal = Journal & BaseTransformed;
-export type TransformedTopic = Topic & BaseTransformed;
-export type TransformedDocumentVersion = DocumentVersion & BaseTransformed;
 export type TransformedWork = Work & BaseTransformed;
 
 // Transformers
@@ -258,6 +255,23 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
   return apr ? transformProposalReview(apr) : null;
 }
 
+function pickLinkedGrantCreatedByUserId(g: any): number | null {
+  const rawId = g?.created_by?.id;
+  if (rawId == null || rawId === '') return null;
+  const id = Number(rawId);
+  return Number.isFinite(id) ? id : null;
+}
+
+function pickLinkedGrantApplicationId(g: any): number | null {
+  const candidates = [g?.application_id, g?.proposal?.application_id];
+  for (const value of candidates) {
+    if (value == null || value === '') continue;
+    const id = Number(value);
+    if (Number.isFinite(id)) return id;
+  }
+  return null;
+}
+
 function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
   if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
   const g = raw.grants[0];
@@ -271,8 +285,13 @@ function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
     fundingAmount: Number(g.amount) || 0,
     currency: g.currency ?? 'USD',
     status: g.status ?? '',
+    applicationVisibility: (g.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
+    fundingMechanism: parseFundingMechanism(g.funding_mechanism),
     imageUrl: g.image_url ?? null,
     applicantCount: g.applicant_count ?? 0,
+    fundingPool: g.funding_pool ? transformFundingPool(g.funding_pool) : null,
+    createdByUserId: pickLinkedGrantCreatedByUserId(g),
+    applicationId: pickLinkedGrantApplicationId(g),
   };
 }
 
@@ -306,43 +325,21 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     title: stripHtml(raw.title || raw.paper_title || ''),
     slug: raw.slug,
     createdDate: raw.created_date,
+    createdByUserId:
+      typeof raw.created_by === 'number'
+        ? raw.created_by
+        : (raw.created_by?.user?.id ?? raw.created_by?.id),
     updatedDate: raw.updated_date || undefined,
     publishedDate: raw.paper_publish_date,
     authors: processedAuthors,
     abstract: stripHtml(raw.abstract || raw.renderable_text || ''),
     doi: raw.doi,
     journal: transformJournal(raw),
-    topics: Array.isArray(raw.hubs)
-      ? raw.hubs.map((hub: Hub) => ({
-          id: hub.id,
-          name: hub.name || '',
-          slug: hub.slug,
-        }))
-      : raw.hub
-        ? [
-            {
-              id: raw.hub.id || 0,
-              name: raw.hub.name || '',
-              slug: raw.hub.slug,
-            },
-          ]
-        : [],
     formats: raw.file
-      ? [...(raw.formats || []), { type: 'PDF', url: raw.file, internalUrl: raw.file }]
+      ? [...(raw.formats || []), { type: 'PDF', url: raw.file }]
       : raw.pdf_url
-        ? [
-            ...(raw.formats || []),
-            {
-              type: 'PDF',
-              url: raw.pdf_url,
-              internalUrl: ProxyService.generateProxyUrl(raw.pdf_url),
-            },
-          ]
-        : (raw.formats || []).map((format: FormatType) => ({
-            ...format,
-            internalUrl:
-              format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : undefined,
-          })),
+        ? [...(raw.formats || []), { type: 'PDF', url: raw.pdf_url }]
+        : raw.formats || [],
     license: raw.pdf_license,
     pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,
     figures: raw.first_preview
@@ -364,22 +361,24 @@ export const transformWork = createTransformer<any, Work>((raw) => {
       views: raw.metrics?.views || raw.views_count || 0,
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
-    postType: raw.type || raw.unified_document?.document_type,
-    fundraise: raw.fundraise,
+    registeredReportId: raw.registered_report_id ?? null,
+    postType: raw.document_type || raw.type || raw.unified_document?.document_type,
+    fundraise: raw.fundraise ? transformFundraise(raw.fundraise) : undefined,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
     previewContent: raw.full_markdown || '',
     contentUrl: raw.post_src,
     tips: tips,
     peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
     image: raw.image_url || raw.primary_image,
-    enrichments: raw.enrichments || [],
     moderationStatus: raw.status as ModerationStatus | undefined,
   };
 });
 
 export const transformPost = createTransformer<any, Work>((raw) => {
   const isPreregistration =
-    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION';
+    raw.document_type === 'PREREGISTRATION' ||
+    raw.unified_document?.document_type === 'PREREGISTRATION' ||
+    raw.type === 'PREREGISTRATION';
 
   const base = transformWork(raw);
 
@@ -387,7 +386,9 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     ...base,
     contentType: isPreregistration
       ? 'preregistration'
-      : raw.unified_document?.document_type === 'GRANT' || raw.type === 'GRANT'
+      : raw.document_type === 'GRANT' ||
+          raw.unified_document?.document_type === 'GRANT' ||
+          raw.type === 'GRANT'
         ? 'funding_request'
         : 'post',
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
@@ -407,6 +408,21 @@ export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
   contentType: 'paper',
   journal: transformJournal(raw),
+  topics: Array.isArray(raw.hubs)
+    ? raw.hubs.map((hub: Hub) => ({
+        id: hub.id,
+        name: hub.name || '',
+        slug: hub.slug,
+      }))
+    : raw.hub
+      ? [
+          {
+            id: raw.hub.id || 0,
+            name: raw.hub.name || '',
+            slug: raw.hub.slug,
+          },
+        ]
+      : [],
   category: raw.category ? transformTopic(raw.category) : undefined,
   subcategory: raw.subcategory ? transformTopic(raw.subcategory) : undefined,
 }));
