@@ -8,8 +8,10 @@ import {
   Grant,
   GrantApplicationVisibility,
   SelectedGrantDetails,
+  parseFundingMechanism,
   transformGrant,
   transformSelectedGrant,
+  type FundingMechanism,
 } from './grant';
 import { NonprofitOrg, transformNonprofitDetailsToOrg } from './nonprofit';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
@@ -53,6 +55,7 @@ export interface NoteGrantSettings {
   organization: string | null;
   description: string | null;
   applicationVisibility: GrantApplicationVisibility | null;
+  fundingMechanism: FundingMechanism;
   contacts: Contact[];
 }
 
@@ -98,6 +101,7 @@ export interface NoteGrantSettingsUpdate {
   organization?: string;
   description?: string;
   applicationVisibility?: GrantApplicationVisibility;
+  fundingMechanism?: FundingMechanism;
   /** User ids, not author profile ids. */
   contactIds?: number[];
 }
@@ -141,6 +145,7 @@ const GRANT_SETTINGS_KEYS: Record<keyof NoteGrantSettingsUpdate, string> = {
   organization: 'organization',
   description: 'description',
   applicationVisibility: 'application_visibility',
+  fundingMechanism: 'funding_mechanism',
   contactIds: 'contact_ids',
 };
 
@@ -246,6 +251,7 @@ const transformNoteGrantSettings = createTransformer<any, NoteGrantSettings>((ra
   organization: raw.organization ?? null,
   description: raw.description ?? null,
   applicationVisibility: raw.application_visibility ?? null,
+  fundingMechanism: parseFundingMechanism(raw.funding_mechanism),
   // Saved grant contacts are users, so they arrive as names rather than a label.
   contacts: (raw.contacts ?? []).map((contact: any) => ({
     id: contact.id,

@@ -36,6 +36,8 @@ interface GrantFundingPoolWidgetProps {
   isPrivate: boolean;
   /** Grant creators and moderators also see what is still waiting to be allocated. */
   canManagePool: boolean;
+  /** A prize RFP: the pool is the prize, paid to the proposals the funder awards. */
+  isPrize?: boolean;
   onApply: () => void;
   className?: string;
 }
@@ -55,9 +57,11 @@ export function GrantFundingPoolWidget({
   canApply,
   isPrivate,
   canManagePool,
+  isPrize = false,
   onApply,
   className,
 }: GrantFundingPoolWidgetProps) {
+  const poolName = isPrize ? 'Prize pool' : 'Funding pool';
   const { showUSD } = useCurrencyPreference();
   const format = (amount: FundingPoolAmount) => formatFundingAmount(amount, showUSD);
 
@@ -101,10 +105,14 @@ export function GrantFundingPoolWidget({
       <p className="text-sm font-bold tracking-tight text-gray-900">One pool, many backers</p>
       <p className="mt-1 text-xs leading-[18px] text-gray-600">
         {funderLabel} put up the first {format(grantAmount)}. Anyone can add to it, and every dollar
-        funds the proposals {funderLabel} picks.
+        {isPrize ? ' goes to the proposals ' : ' funds the proposals '}
+        {funderLabel} {isPrize ? 'awards' : 'picks'}.
       </p>
       <div className="mt-3 space-y-1 border-t border-gray-100 pt-2.5 text-xs">
-        {breakdownRow('Allocated to proposals', format(fundingPool.amountDistributed))}
+        {breakdownRow(
+          isPrize ? 'Awarded to proposals' : 'Allocated to proposals',
+          format(fundingPool.amountDistributed)
+        )}
         {canManagePool &&
           isOpen &&
           breakdownRow('Available to allocate', format(fundingPool.amountHolding), true)}
@@ -123,7 +131,7 @@ export function GrantFundingPoolWidget({
       <button
         type="button"
         className="flex items-center text-white/50 transition-colors hover:text-white/80"
-        aria-label="How the funding pool works"
+        aria-label={`How the ${poolName.toLowerCase()} works`}
         data-testid="grant-funding-pool-info"
       >
         <Info className="h-4 w-4" />
@@ -133,7 +141,7 @@ export function GrantFundingPoolWidget({
 
   return (
     <FundingCard
-      label="Funding pool"
+      label={poolName}
       status={isOpen ? undefined : 'Closed'}
       aside={infoButton}
       testId="grant-funding-pool"

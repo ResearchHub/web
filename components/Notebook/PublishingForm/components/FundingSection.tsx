@@ -10,6 +10,7 @@ import type { Note } from '@/types/note';
 import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { FundingGoalField } from './FundingGoalField';
 import { FundingOpportunityField } from './FundingOpportunityField';
 
@@ -28,6 +29,8 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isEditingNonprofit, setIsEditingNonprofit] = useState(false);
 
+  const selectedGrant = watch('selectedGrant');
+  const isAwardApplication = isAwardMechanism(selectedGrant?.fundingMechanism);
   const fundraise = note.post?.fundraise;
   const {
     nonprofit,
@@ -101,8 +104,8 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
     <div className="py-3 px-6 space-y-6">
       <FundingOpportunityField noteId={note.id} />
 
-      {fundraise ? (
-        <>
+      {!isAwardApplication &&
+        (fundraise ? (
           <div className="pt-4 border-t border-gray-200">
             {isLoadingNonprofit && (
               <p className="text-sm text-gray-500 px-1">Loading nonprofit information...</p>
@@ -118,16 +121,14 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
               />
             )}
           </div>
-        </>
-      ) : (
-        <>
-          <FundingGoalField />
-
-          <div className="pt-4 border-t border-gray-200">
-            <NonprofitSearchSection />
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <FundingGoalField />
+            <div className="pt-4 border-t border-gray-200">
+              <NonprofitSearchSection />
+            </div>
+          </>
+        ))}
 
       {FEATURE_FLAG_NFT_REWARDS && (
         <>

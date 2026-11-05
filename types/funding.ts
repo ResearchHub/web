@@ -53,10 +53,13 @@ export interface ApplicationFundraise {
 
 /**
  * When a fundraise is COMPLETED, derive USD from the ratio (goalUsd / raisedRsc)
- * so the displayed total matches the goal. Returns null for active fundraises (use live rate).
+ * so the displayed total matches the goal. Returns null for active fundraises
+ * (use the reported amount), and when the goal is 0. An award has no goal, so
+ * pinning its total to that goal would show 0 after the payout.
  */
 export function computeGoalRate(status: string, goalUsd: number, raisedRsc: number): number | null {
-  return status === 'COMPLETED' && raisedRsc > 0 ? goalUsd / raisedRsc : null;
+  if (status !== 'COMPLETED' || raisedRsc <= 0 || goalUsd <= 0) return null;
+  return goalUsd / raisedRsc;
 }
 
 /**

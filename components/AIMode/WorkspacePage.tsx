@@ -14,7 +14,11 @@ import { ChatPane, chatPaneContent } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
 import { newDraftTitle } from './copy';
 import { DocumentPane } from './document/DocumentPane';
-import { PublishAction, type PublishRequestOutcome } from './document/PublishPill';
+import {
+  PublishAction,
+  SUBMIT_APPLICATION_LABEL,
+  type PublishRequestOutcome,
+} from './document/PublishPill';
 import { useAIModeDocument, type AIModeDocument } from './document/useAIModeDocument';
 import { usePaneReveal } from './shell/usePaneReveal';
 import { ViewSwitch } from './shell/ViewSwitch';
@@ -308,6 +312,8 @@ export function WorkspacePage() {
   // be accepted or rejected), the document comes into view instead.
   const loadedNote = doc.details ?? doc.content;
   const published = loadedNote != null && isPublishedNote(loadedNote);
+  // A draft proposal that answers an RFP is submitted, not published.
+  const applying = loadedNote?.selectedGrant != null;
   const writing = doc.status === 'drafting' || doc.status === 'working';
   // Held with the document it was for, so it never carries over to another.
   const [publishRequestedFor, setPublishRequestedFor] = useState<number | null>(null);
@@ -324,7 +330,7 @@ export function WorkspacePage() {
     () =>
       documentHidden ? (
         <PublishAction
-          label={published ? 'Update' : 'Publish'}
+          label={published ? 'Update' : applying ? SUBMIT_APPLICATION_LABEL : 'Publish'}
           busy={false}
           // Not while the assistant writes: the document would only say to wait.
           disabled={loadedNote == null || writing}
@@ -334,7 +340,7 @@ export function WorkspacePage() {
           className={isBelowTablet ? 'h-8 gap-1.5 pl-3 pr-3.5 text-[13px]' : undefined}
         />
       ) : null,
-    [documentHidden, published, loadedNote, writing, requestPublish, isBelowTablet]
+    [documentHidden, published, applying, loadedNote, writing, requestPublish, isBelowTablet]
   );
   const topBarEnd = useMemo(
     () =>

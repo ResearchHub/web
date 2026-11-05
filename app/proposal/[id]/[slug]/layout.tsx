@@ -115,11 +115,25 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
           pageTabs={
             <ProposalTabs work={work} metadata={metadata} updatesCount={authorPosts.length} />
           }
-          rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
+          rightSidebar={
+            <ProposalSidebar
+              work={work}
+              metadata={metadata}
+              updatesCount={authorPosts.length}
+              // Newest first, so the first is the latest.
+              latestUpdateDate={authorPosts[0]?.createdDate}
+            />
+          }
         >
           <ProposalByline work={work} metadata={metadata} />
           <Suspense>{children}</Suspense>
-          {metadata.fundraising && <ProposalActionBar fundraise={metadata.fundraising} />}
+          {metadata.fundraising && (
+            <ProposalActionBar
+              work={work}
+              fundraise={metadata.fundraising}
+              linkedGrant={work.linkedGrant}
+            />
+          )}
         </PageLayout>
       </FundPanelProvider>
     </WorkTabProvider>

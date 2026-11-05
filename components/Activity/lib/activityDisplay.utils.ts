@@ -1,3 +1,4 @@
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { buildWorkUrl } from '@/utils/url';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 import type { CurrencyAmount } from '@/utils/currency';
@@ -148,8 +149,11 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return isFundingPoolContribution(entry)
-      ? { actor, verb: 'contributed', suffix: ' to the funding pool' }
+    if (isFundingPoolContribution(entry)) {
+      return { actor, verb: 'contributed', suffix: ' to the funding pool' };
+    }
+    return isAwardMechanism(entry.relatedWork?.fundingMechanism)
+      ? { actor, verb: 'awarded this proposal a prize of' }
       : { actor, verb: 'funded this proposal with' };
   }
 
@@ -570,10 +574,14 @@ export function getActivityActionLine(
     return { label: 'Contributed to a bounty' };
   }
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
+    const awardedProposal =
+      !isFundingPoolContribution(entry) && isAwardMechanism(entry.relatedWork?.fundingMechanism);
     return {
       label: isFundingPoolContribution(entry)
         ? 'Added to an RFP’s funding pool'
-        : 'Funded a proposal',
+        : awardedProposal
+          ? 'Awarded a prize'
+          : 'Funded a proposal',
       value: contributionValue(getContribution(entry)),
     };
   }
@@ -582,7 +590,14 @@ export function getActivityActionLine(
     return { label: 'Opened an RFP', value: amount ? { kind: 'grant', amount } : undefined };
   }
   if (entry.contentType === 'PREREGISTRATION') {
-    return { label: 'Submitted a proposal for funding' };
+    const mechanism =
+      entry.relatedWork?.fundingMechanism ??
+      (entry.associatedGrants?.some((grant) => isAwardMechanism(grant.fundingMechanism))
+        ? 'AWARD'
+        : undefined);
+    if (mechanism === 'AWARD') return { label: 'Submitted a proposal for a prize' };
+    if (mechanism === 'FUNDING') return { label: 'Submitted a proposal for funding' };
+    return { label: 'Submitted a proposal' };
   }
   if (entry.contentType === 'PAPER') {
     return { label: 'Published a preprint' };

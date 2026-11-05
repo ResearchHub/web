@@ -58,13 +58,7 @@ export function useFeedStateRestoration(
     }
 
     return null;
-  }, [
-    isBackNavigation,
-    feedKey,
-    getFeedState,
-    clearFeedState,
-    options.shouldRestore,
-  ]);
+  }, [isBackNavigation, feedKey, getFeedState, clearFeedState, options.shouldRestore]);
 
   const initialEntries = restoredState?.entries || [];
   const restoredScrollPosition = restoredState?.scrollPosition ?? null;

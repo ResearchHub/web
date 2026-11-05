@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 
 const optionSchema = z.object({
   value: z.string(),
@@ -13,7 +14,7 @@ const parseBudget = (budget?: string): number =>
   Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
 
 const validatePreregistration = (data: any, ctx: z.RefinementCtx) => {
-  if (parseBudget(data.budget) <= 0) {
+  if (!isAwardMechanism(data.selectedGrant?.fundingMechanism) && parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding goal must be greater than 0');
   }
   if (!data.coverImage?.file && !data.coverImage?.url) {
@@ -72,6 +73,7 @@ export const publishingFormSchema = z
     applicationDeadline: z.date().nullable().optional(),
     fundraiseEndDays: z.enum(['30', '60', '90']).optional(),
     applicationVisibility: z.enum(['OPTIONAL', 'PRIVATE', 'PUBLIC'] as const).optional(),
+    fundingMechanism: z.enum(['FUNDING', 'AWARD'] as const).optional(),
     isPublic: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {

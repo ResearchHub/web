@@ -4,6 +4,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { FaceStack } from '@/components/ui/FaceStack';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { formatFundingAmount, toBackers } from '@/components/Funding/lib/fundingAmounts';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { BYLINE_BOX_CLASS, BYLINE_CHIP_CLASS } from '@/components/work/lib/bylineChip';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { formatCurrency } from '@/utils/currency';
@@ -13,7 +14,7 @@ import { cn } from '@/utils/styles';
 
 /**
  * Over an RFP's Details tab, as a proposal's byline sits over its own: who
- * funds it and since when, then chips for the award, the proposals so far and
+ * funds it and since when, then chips for the money (the prize, on a prize RFP), the proposals so far and
  * the deadline. Where the sidebar's pool card is hidden, a chip shows the
  * backers. The other tabs open straight on their lists.
  */
@@ -28,7 +29,9 @@ export function GrantByline({ openedDate }: { openedDate?: string }) {
     applications,
     isActive,
     isPending,
+    fundingMechanism,
   } = useGrantPage();
+  const isPrize = isAwardMechanism(fundingMechanism);
 
   // One face per applicant, however many proposals they sent.
   const applicants = [...new Map(applications.map((a) => [a.profile.id, a.profile])).values()];
@@ -52,7 +55,8 @@ export function GrantByline({ openedDate }: { openedDate?: string }) {
             {openedDate && (
               // Formatted in the server's time zone first; the browser's can read a day apart.
               <p suppressHydrationWarning className="truncate text-[13px] text-gray-500">
-                Funds this call · since {formatTimestamp(openedDate, false)}
+                {isPrize ? 'Offers this prize' : 'Funds this call'} · since{' '}
+                {formatTimestamp(openedDate, false)}
               </p>
             )}
           </div>
@@ -71,7 +75,7 @@ export function GrantByline({ openedDate }: { openedDate?: string }) {
                 skipConversion: true,
               })}
             </span>
-            {isClosed ? 'in funding' : 'available'}
+            {isPrize ? 'prize' : isClosed ? 'in funding' : 'available'}
           </li>
         ) : null}
         {fundingPool && backerCount > 0 && (

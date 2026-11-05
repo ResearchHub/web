@@ -67,7 +67,7 @@ export default function UserMenu({
   // Common avatar button with adjusted sizing for avatar-only mode
   const avatarButton = (
     <button
-      className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative"
+      className="hover:ring-2 hover:ring-gray-200 rounded-full p-1 relative outline-none"
       data-testid="user-menu-button"
       onClick={() => setMenuOpenState(true)}
       onKeyDown={(e) => {

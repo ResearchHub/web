@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { GrantFundingPoolWidget } from '@/components/Funding/GrantFundingPoolWidget';
 import { useGrantPage } from '@/components/Funding/GrantPageContext';
 import { canManageGrantPool } from '@/components/Funding/lib/canManageGrantPool';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { useUser } from '@/contexts/UserContext';
 
 /**
- * The RFP's funding pool with Add to pool and Apply, at the top of its right
- * sidebar. An RFP without a pool gets a plain Apply button instead.
+ * The RFP's funding pool (a prize RFP's prize pool) with Add to pool and
+ * Apply, at the top of its right sidebar. An RFP without a pool gets a plain
+ * Apply button instead.
  */
 export function GrantPoolCard() {
   const { user } = useUser();
@@ -21,7 +23,8 @@ export function GrantPoolCard() {
     isPoolOpen,
     fundingPool,
     grantCreatedByUserId,
-    setIsApplyPanelOpen,
+    fundingMechanism,
+    applyToRfp,
   } = useGrantPage();
 
   if (fundingPool && grantAmount) {
@@ -34,7 +37,8 @@ export function GrantPoolCard() {
         canApply={canApply}
         isPrivate={applicationVisibility === 'PRIVATE'}
         canManagePool={canManageGrantPool(user, grantCreatedByUserId)}
-        onApply={() => setIsApplyPanelOpen(true)}
+        isPrize={isAwardMechanism(fundingMechanism)}
+        onApply={applyToRfp}
       />
     );
   }
@@ -47,7 +51,7 @@ export function GrantPoolCard() {
         data-testid="grant-submit-proposal"
         variant="default"
         size="lg"
-        onClick={() => setIsApplyPanelOpen(true)}
+        onClick={applyToRfp}
         className="w-full gap-2"
       >
         Apply

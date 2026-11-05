@@ -7,6 +7,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import type { PublishingFieldKey } from '@/components/Notebook/PublishingForm/completion';
 import type {
   ArticleType,
@@ -83,6 +84,8 @@ const FUNDING_GOAL: MastheadWidgetConfig = {
   hint: 'How much you are raising for this work. It cannot be changed once the fundraise is open.',
   // A fundraise that is open keeps the goal it opened with.
   lockedWhen: (values) => Boolean(values.workId),
+  // An award application has no goal. The server opens its escrow at 0.
+  hiddenWhen: (values) => isAwardMechanism(values.selectedGrant?.fundingMechanism),
 };
 
 const APPLYING_TO: MastheadWidgetConfig = {
