@@ -34,7 +34,35 @@ interface CommentReadOnlyProps {
    * the full text somewhere else.
    */
   onReadMore?: () => void;
+  /**
+   * `default`: the comment's long-standing look. `preview`: the homepage card's flat
+   * preview, every block at the card's body size. `full`: a thread's own row, a 15px
+   * body with stepped, semibold headings and the first block flush with the top.
+   */
+  variant?: CommentReadOnlyVariant;
 }
+
+export type CommentReadOnlyVariant = 'default' | 'preview' | 'full';
+
+const DEFAULT_CLASSES =
+  'comment-content prose prose-sm max-w-none [&_.tiptap-paragraph]:!text-[14px] [&_.tiptap-list-item]:!text-[14px] [&_.tiptap-blockquote]:!text-[14px]';
+
+/** Replaces the default classes, so none of their forced 14px sizes reach it. */
+const BASE_CLASSES: Record<CommentReadOnlyVariant, string> = {
+  default: DEFAULT_CLASSES,
+  preview: DEFAULT_CLASSES,
+  full: 'comment-content comment-body-full prose max-w-none text-[15px] leading-6 text-gray-900',
+};
+
+/** Added after the format's class; `.feed-comment-preview` lives in globals.css. */
+const EXTRA_CLASSES: Record<CommentReadOnlyVariant, string | undefined> = {
+  default: undefined,
+  preview: 'feed-comment-preview text-[15px] leading-6 text-gray-900',
+  full: undefined,
+};
+
+const READ_MORE_CLASSES =
+  'text-blue-600 hover:text-blue-800 hover:underline text-[14px] cursor-pointer inline-flex items-center gap-0.5';
 
 // Simple read-only stars component for displaying review score
 const ReadOnlyStars = ({ rating }: { rating: number }) => {
@@ -79,6 +107,7 @@ export const CommentReadOnly = ({
   updatedDate,
   className,
   onReadMore,
+  variant = 'default',
 }: CommentReadOnlyProps) => {
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
@@ -255,7 +284,11 @@ export const CommentReadOnly = ({
             {/* Left side: Button or Spacer */}
             {shouldTruncate && showReadMoreButton ? (
               <button
-                className="text-blue-600 hover:text-blue-800 hover:underline text-[14px] cursor-pointer inline-flex items-center gap-0.5"
+                className={
+                  variant === 'full'
+                    ? 'inline-flex cursor-pointer items-center gap-0.5 text-[15px] leading-6 text-primary-600 hover:text-primary-700 hover:underline'
+                    : READ_MORE_CLASSES
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -297,8 +330,9 @@ export const CommentReadOnly = ({
   return (
     <div
       className={cn(
-        'comment-content prose prose-sm max-w-none [&_.tiptap-paragraph]:!text-[14px] [&_.tiptap-list-item]:!text-[14px] [&_.tiptap-blockquote]:!text-[14px]',
+        BASE_CLASSES[variant],
         contentFormat === 'QUILL_EDITOR' && 'quill-content',
+        EXTRA_CLASSES[variant],
         className
       )}
     >

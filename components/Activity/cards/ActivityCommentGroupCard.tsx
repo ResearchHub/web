@@ -95,7 +95,7 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                 showReadMoreButton
                 showLinkPreviews={false}
                 onReadMore={comment ? () => openPanel(entryId, false) : undefined}
-                className="feed-comment-preview text-[15px] leading-6 text-gray-900"
+                variant="preview"
               />
             </div>
           ))}

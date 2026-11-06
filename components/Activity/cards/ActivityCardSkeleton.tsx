@@ -4,7 +4,12 @@ import { FC } from 'react';
 import { cn } from '@/utils/styles';
 import { ACTIVITY_ROW_DIVIDER } from './ActivityCardShell';
 
-export const ActivityCardSkeleton: FC = () => (
+interface ActivityCardSkeletonProps {
+  /** The work's cover under the words; comment rows have none. */
+  showCover?: boolean;
+}
+
+export const ActivityCardSkeleton: FC<ActivityCardSkeletonProps> = ({ showCover = true }) => (
   <div className={cn(ACTIVITY_ROW_DIVIDER, 'animate-pulse py-4')} aria-hidden>
     <div className="flex gap-3">
       <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200" />
@@ -18,12 +23,14 @@ export const ActivityCardSkeleton: FC = () => (
           <div className="h-3.5 w-2/3 rounded bg-gray-200" />
         </div>
 
-        <div className="relative mt-3 aspect-[3/2] rounded-xl border border-gray-200 bg-gray-200 tablet:aspect-[2/1]">
-          <div className="absolute inset-x-0 bottom-0 rounded-b-[11px] bg-black/10 px-3.5 pb-2.5 pt-2 tablet:px-4">
-            <div className="h-2.5 w-24 rounded bg-white/50" />
-            <div className="mt-1.5 h-3.5 w-3/4 rounded bg-white/60" />
+        {showCover && (
+          <div className="relative mt-3 aspect-[3/2] rounded-xl border border-gray-200 bg-gray-200 tablet:aspect-[2/1]">
+            <div className="absolute inset-x-0 bottom-0 rounded-b-[11px] bg-black/10 px-3.5 pb-2.5 pt-2 tablet:px-4">
+              <div className="h-2.5 w-24 rounded bg-white/50" />
+              <div className="mt-1.5 h-3.5 w-3/4 rounded bg-white/60" />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-center justify-between gap-3 pt-3">
           <div className="h-6 w-20 rounded bg-gray-200" />
