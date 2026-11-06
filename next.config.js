@@ -122,7 +122,7 @@ const nextConfig = {
     // "new RFP" and "new proposal" open the matching draft screen, and
     // anything else lands on the start screen.
     {
-      source: '/notebook/:orgSlug/:noteId(\\d+)',
+      source: String.raw`/notebook/:orgSlug/:noteId(\d+)`,
       destination: '/workspace?note=:noteId',
       permanent: true,
     },
