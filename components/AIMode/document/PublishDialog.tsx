@@ -4,7 +4,6 @@ import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { Landmark, User, X } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { PublishGuidelines } from '@/components/modals/ConfirmPublishModal';
 import { NonprofitConfirmModal, NonprofitSearchSection } from '@/components/Nonprofit';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { FUNDRAISE_DURATION_HELP } from '@/components/Notebook/PublishingForm/components/EndDateSection';
@@ -23,6 +22,7 @@ import { cn } from '@/utils/styles';
 import { joinNames } from './masthead/mastheadWidgets';
 import { usePublishReadiness } from './masthead/usePublishReadiness';
 import { PublishDetails } from './PublishDetails';
+import { PublishGuidelines } from './PublishGuidelines';
 import { ChoiceList } from './ChoiceList';
 import { ApplicationVisibilityChoice, ProposalVisibilityChoice } from './VisibilityChoices';
 
@@ -153,12 +153,7 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
                     {isRfp && <GrantFundingMechanismSection className="px-0 py-0" />}
                     {isRfp && !isUpdate && <RfpSettings />}
 
-                    {showGuidelines && (
-                      <PublishGuidelines
-                        variant={isRfp ? 'rfp' : 'default'}
-                        iconClassName="text-gray-600"
-                      />
-                    )}
+                    {showGuidelines && <PublishGuidelines variant={isRfp ? 'rfp' : 'default'} />}
                   </div>
 
                   <div className="flex shrink-0 flex-col gap-3 border-t border-gray-200 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 md:px-6 md:pb-6 md:pt-4">
@@ -246,7 +241,7 @@ function missingSentence(names: readonly string[]): string {
 
 /**
  * A setting with a default: its name, a line on what it decides, and its
- * choices, each saying what it means, as the notebook's Details tab has them.
+ * choices, each saying what it means.
  */
 function SettingSection({
   label,

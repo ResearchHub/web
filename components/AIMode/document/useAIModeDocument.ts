@@ -82,7 +82,6 @@ export interface AIModeDocument {
   readonly draftKey: string;
   /** What the assistant is doing, for the in-progress row when there is no draft. */
   readonly phaseLabel: string | null;
-  /** Deep link to the note in the notebook, once its organization is known. */
   readonly reload: () => void;
 }
 

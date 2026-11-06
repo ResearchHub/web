@@ -47,14 +47,6 @@ export function canSelectAIModel(tier: ResearchAIBudget['tier'] | undefined): bo
   return tier === 'privileged';
 }
 
-/** Display credits with comma grouping and exactly two decimal places. */
-export function formatCredits(value: string): string {
-  return Number(value).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 export function formatBudgetReset(resetsAt: string): string {
   return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(
     new Date(resetsAt)

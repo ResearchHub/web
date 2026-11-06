@@ -33,9 +33,7 @@ export interface CreateFundingDraftOptions {
 
 /**
  * A new draft: the note, then the RFP it answers, then its first content.
- * Shared by the notebook, which starts drafts from templates, and the
- * workspace, which starts them empty for the assistant to write. Throws if
- * any step fails; the steps after creation can be run again.
+ * Throws if any step fails; the steps after creation can be run again.
  */
 export async function createFundingDraft({
   orgSlug,
