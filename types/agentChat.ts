@@ -64,6 +64,25 @@ export interface ChatCodeExecution {
   output_count?: number;
 }
 
+/** The artifact version a succeeded `create_artifact` or `update_artifact` wrote. */
+export interface ChatArtifactRef {
+  id: number;
+  version: number;
+  /** See `ArtifactKind`; open-ended. */
+  kind: string;
+  title: string;
+}
+
+/**
+ * What a `create_artifact` draft has written of its title, kind and language
+ * so far; each appears once the model has started writing it.
+ */
+export interface ChatArtifactDraftFields {
+  title?: string;
+  kind?: string;
+  language?: string;
+}
+
 export interface ChatToolCallActivity {
   type: 'tool_call';
   /** Machine name (e.g. `web_search`). Only used to pick an icon — new tools appear without notice. */
@@ -84,6 +103,8 @@ export interface ChatToolCallActivity {
   note_title?: string | null;
   /** Citations (≤5), only on success. */
   sources?: ChatActivitySource[] | null;
+  /** Present only on a succeeded artifact create or update. */
+  artifact?: ChatArtifactRef | null;
 }
 
 /**
@@ -99,6 +120,8 @@ export interface ChatToolDraftActivity {
   type: 'tool_draft';
   /** Complete formatted preview snapshot; replaces itself on each frame. */
   blocks?: JSONContent[];
+  /** `create_artifact` only; `text` is then the artifact's content so far. */
+  artifact?: ChatArtifactDraftFields;
   /**
    * The prose extracted from the arguments so far. Empty for tools whose
    * arguments aren't prose — a search query is written in an instant, so only
@@ -295,6 +318,8 @@ export type ChatStreamDelta =
       type: 'tool_draft';
       /** Complete formatted preview snapshot, not an appended delta. */
       blocks?: JSONContent[];
+      /** `create_artifact` only; replaces the item's fields, like `blocks`. */
+      artifact?: ChatArtifactDraftFields;
       /** Machine name; empty when the provider skipped the block-start event. */
       tool: string;
       /** Human copy supplied by the backend; always rendered verbatim. */

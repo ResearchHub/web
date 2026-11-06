@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ComponentType } from 'react';
 import {
+  AppWindow,
   Ban,
   BookOpen,
   Brain,
@@ -23,12 +24,15 @@ import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 import { MarkdownMessage } from './MarkdownMessage';
 import { CodeExecutionPanel } from './CodeExecutionPanel';
+import { ArtifactCard } from './artifacts/ArtifactCard';
+import { useArtifactViewer } from './artifacts/ArtifactViewer';
 import { answerRevealKey, isRevealable, narrationRevealKey } from '@/hooks/useTextReveal';
 import type {
   ActivityCallStatus,
   ChatFeedItem,
   ChatActivitySource,
   ChatToolCallActivity,
+  ChatToolDraftActivity,
 } from '@/types/agentChat';
 
 /**
@@ -47,6 +51,9 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   get_work_fulltext: FileSearch,
   code_execution: SquareTerminal,
   bash_code_execution: SquareTerminal,
+  create_artifact: AppWindow,
+  update_artifact: AppWindow,
+  read_artifact: AppWindow,
 };
 
 /**
@@ -151,6 +158,8 @@ const TEXT_SHINE = cn(
  */
 function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
   const ToolIcon = TOOL_ICONS[call.tool] ?? Wrench;
+  const viewer = useArtifactViewer();
+  const artifact = call.artifact;
 
   return (
     <div className="flex items-start gap-2">
@@ -169,13 +178,70 @@ function ToolCallRow({ call }: { readonly call: ChatToolCallActivity }) {
             {humanizeLabel(call.label)}
           </span>
         </div>
-        {call.detail && (
+        {/* An artifact's card names it, so its title isn't repeated as detail. */}
+        {call.detail && !artifact && (
           <p className="mt-1.5 break-words leading-relaxed text-gray-500">{call.detail}</p>
+        )}
+        {artifact && (
+          <ArtifactCard
+            title={artifact.title}
+            kind={artifact.kind}
+            caption={`Version ${artifact.version}`}
+            onOpen={viewer ? () => viewer.openArtifact(artifact) : undefined}
+          />
         )}
         {call.code_execution && (
           <CodeExecutionPanel execution={call.code_execution} tool={call.tool} />
         )}
         {call.sources && call.sources.length > 0 && <SourceLinks sources={call.sources} />}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * An artifact the agent is writing: its label with the sweep, and a card
+ * that opens the viewer on the content as it streams. The content is a page
+ * or a program, not prose, so it never unfolds into the feed.
+ */
+function ArtifactDraftRow({
+  draft,
+  streaming,
+  executionId,
+}: {
+  readonly draft: ChatToolDraftActivity & { id?: string };
+  readonly streaming: boolean;
+  readonly executionId?: number;
+}) {
+  const viewer = useArtifactViewer();
+  const lines = draft.text ? draft.text.split('\n').length : 0;
+  const itemId = draft.id;
+  return (
+    <div className="flex items-start gap-2">
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 font-medium text-gray-800">
+          <AppWindow className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+          <span
+            className={cn(
+              'min-w-0 truncate',
+              streaming && cn('[--shine:theme(colors.gray.800)]', TEXT_SHINE)
+            )}
+          >
+            {humanizeLabel(draft.label)}
+          </span>
+        </div>
+        <ArtifactCard
+          title={draft.artifact?.title || 'Untitled artifact'}
+          kind={draft.artifact?.kind}
+          caption={lines === 1 ? '1 line' : `${lines} lines`}
+          live={streaming}
+          onOpen={
+            viewer && executionId != null && itemId
+              ? () => viewer.openDraft(executionId, itemId)
+              : undefined
+          }
+        />
       </div>
     </div>
   );
@@ -398,6 +464,9 @@ function ActivityItemBody({
         bodyClassName="text-sm italic text-gray-500"
       />
     );
+  }
+  if (item.type === 'tool_draft' && item.tool === 'create_artifact') {
+    return <ArtifactDraftRow draft={item} streaming={streaming} executionId={executionId} />;
   }
   if (item.type === 'tool_draft') {
     // Coloured and iconed like the tool row it becomes, so the draft and the
