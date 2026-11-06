@@ -2,8 +2,15 @@
 
 import { FC, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FeedCommentContent, FeedEntry, FeedPostContent, FeedGrantContent } from '@/types/feed';
+import {
+  FeedCommentContent,
+  FeedEntry,
+  FeedFundraiseContent,
+  FeedPostContent,
+  FeedGrantContent,
+} from '@/types/feed';
 import { FeedItemFundraise } from './items/DeprecatedFeedItemFundraise';
+import { FeedItemFundraiseCompleted } from './items/FeedItemFundraiseCompleted';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
@@ -170,6 +177,16 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           });
         }
 
+        case 'FUNDRAISE': {
+          const fundraiseContent = entry.content as FeedFundraiseContent;
+          if (fundraiseContent.postId == null) return undefined;
+          return buildWorkUrl({
+            id: fundraiseContent.postId,
+            slug: fundraiseContent.proposalSlug || undefined,
+            contentType: 'preregistration',
+          });
+        }
+
         default:
           return undefined;
       }
@@ -280,6 +297,18 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
         case 'GRANT':
           content = <FeedItemGrantWithApplicants entry={entry} showApplyCta={showGrantApplyCta} />;
+          break;
+
+        case 'FUNDRAISE':
+          content = (
+            <FeedItemFundraiseCompleted
+              entry={entry}
+              href={href}
+              showActions={!hideActions}
+              maxLength={maxLength}
+              onFeedItemClick={handleFeedItemClick}
+            />
+          );
           break;
 
         default:
