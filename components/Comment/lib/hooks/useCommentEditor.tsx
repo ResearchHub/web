@@ -1,6 +1,7 @@
 import { useEditor, Content, JSONContent } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
+import { Mathematics, migrateMathStrings } from '@tiptap/extension-mathematics';
 import { CommentLink } from '../extensions/CommentLink';
 import { Image } from '@tiptap/extension-image';
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
@@ -147,6 +148,9 @@ export const useCommentEditor = ({
         },
       }),
       MentionExtension,
+      Mathematics.configure({
+        katexOptions: { throwOnError: false },
+      }),
       Placeholder.configure({
         placeholder,
         emptyEditorClass: 'is-editor-empty',
@@ -166,6 +170,11 @@ export const useCommentEditor = ({
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] px-4 py-2',
       },
+    },
+    onCreate: ({ editor }) => {
+      // Convert legacy `$...$` text (and drafts saved before Mathematics)
+      // into inlineMath nodes so KaTeX can render them.
+      migrateMathStrings(editor);
     },
     onUpdate: ({ editor }) => {
       if (!isReadOnly) {
@@ -214,6 +223,7 @@ export const useCommentEditor = ({
         // upgraded into richLink nodes when the draft is restored.
         if (debug) console.log('Loading content from localStorage:', loadedContent);
         editor.commands.setContent(normalizeRichLinks(loadedContent), { emitUpdate: false });
+        migrateMathStrings(editor);
       } else if (initialContent) {
         // If format is HTML, set the content directly. TipTap's HTML parser
         // will route any `a[data-type="rich-link"]` tags through the
@@ -234,6 +244,7 @@ export const useCommentEditor = ({
 
           editor.commands.setContent(normalized, { emitUpdate: false });
         }
+        migrateMathStrings(editor);
       }
     }
   }, [editor, initialContent, loadedContent, isReadOnly, debug, format]);

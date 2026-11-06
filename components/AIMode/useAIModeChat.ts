@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAIMode } from './AIModeContext';
 import { untitledDraftTitle } from './copy';
+import { readHandedOffRfp } from './rfpHandoff';
 import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
@@ -117,6 +118,17 @@ export function useAIModeChat(): AIModeChatState {
   }, [urlIntent, rememberIntent]);
   const intent = urlIntent ?? rememberedIntent;
   const [selectedGrant, setSelectedGrant] = useState<SelectedGrantDetails | null>(null);
+
+  // An RFP page's Apply leads here with the RFP named (`?rfp=<id>`) and hands
+  // over what it knows of it, so it starts out picked, as if chosen on this
+  // screen, with no request for it. It can still be changed. Without the
+  // handover (a link opened in another tab) nothing is picked.
+  const urlGrantId = target.kind === 'new' ? (target.grantId ?? null) : null;
+  useEffect(() => {
+    if (urlGrantId == null) return;
+    const handedOff = readHandedOffRfp(urlGrantId);
+    if (handedOff) setSelectedGrant(handedOff);
+  }, [urlGrantId]);
 
   // ---- the first message of a new draft ----
   // It creates the document, then a chat on it, then goes out there. A note

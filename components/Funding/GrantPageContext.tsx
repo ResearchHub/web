@@ -9,6 +9,9 @@ import {
   useState,
   ReactNode,
 } from 'react';
+import { useRouter } from 'next/navigation';
+import { handOffRfp } from '@/components/AIMode/rfpHandoff';
+import { newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { FeedEntry } from '@/types/feed';
 import type { Application } from '@/types/funding';
@@ -16,6 +19,7 @@ import {
   isGrantActive,
   type FundingPool,
   type FundingPoolAmount,
+  type FundingMechanism,
   type Grant,
   type GrantApplicationVisibility,
 } from '@/types/grant';
@@ -33,10 +37,19 @@ interface GrantPageContextValue {
   /** Opens a tab from elsewhere on the page, and scrolls the tabs into view. */
   showTab: (tab: GrantBannerTab) => void;
   grantId?: string;
+  /**
+   * Who funds the RFP: its organization, or, when it names none, the person
+   * who opened it.
+   */
   organization?: string;
-  /** The organization's own account, when one of the RFP's contacts is it: its face for the byline and cover. */
+  /**
+   * The funder's own account: the contact named for the organization, as
+   * funders' own accounts are, or the person who opened an RFP that names no
+   * organization. Its face is the byline's and the cover's.
+   */
   organizationProfile?: AuthorProfile;
   applicationVisibility?: GrantApplicationVisibility;
+  fundingMechanism: FundingMechanism;
   /** The funder's own award, before backers add to the pool. */
   grantAmount: FundingPoolAmount | null;
   isPending: boolean;
@@ -51,9 +64,11 @@ interface GrantPageContextValue {
   setFundingPool: (pool: FundingPool | null) => void;
   applications: Application[];
   grantCreatedByUserId: ID | null;
-  /** Apply opens from the pool card and the phone's action bar alike. */
-  isApplyPanelOpen: boolean;
-  setIsApplyPanelOpen: (open: boolean) => void;
+  /**
+   * Apply, from the pool card and the phone's action bar alike: the workspace's
+   * new-proposal screen, with this RFP already picked.
+   */
+  applyToRfp: () => void;
 }
 
 /** The RFP's activity feed, which the Activity tab, its count and the sidebar card show. */
@@ -74,7 +89,7 @@ const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLower
 
 /** The contact whose account is named for the organization, as funders' own accounts are. */
 function findOrganizationProfile(grant: Grant): AuthorProfile | undefined {
-  if (!grant.organization) return undefined;
+  if (!grant.organization?.trim()) return undefined;
   const organization = normalizeName(grant.organization);
   return grant.contacts?.find(
     (contact) =>
@@ -85,7 +100,7 @@ function findOrganizationProfile(grant: Grant): AuthorProfile | undefined {
 const GrantPageContext = createContext<GrantPageContextValue | null>(null);
 const GrantActivityContext = createContext<GrantActivity | null>(null);
 
-/** The RFP page's state: its grant, the live pool, the open tab and the Apply panel. */
+/** The RFP page's state: its grant, the live pool and the open tab. */
 export function useGrantPage() {
   const ctx = useContext(GrantPageContext);
   if (!ctx) throw new Error('useGrantPage must be used within GrantPageProvider');
@@ -108,14 +123,19 @@ export function GrantPageProvider({
   children,
   defaultTab = 'details',
   grant,
+  title,
+  imageUrl,
 }: {
   children: ReactNode;
   defaultTab?: GrantBannerTab;
   grant?: Grant;
+  /** The RFP's name and cover, which its post holds rather than its grant. */
+  title?: string;
+  imageUrl?: string | null;
 }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<GrantBannerTab>(defaultTab);
   const [fundingPool, setFundingPool] = useState<FundingPool | null>(grant?.fundingPool ?? null);
-  const [isApplyPanelOpen, setIsApplyPanelOpen] = useState(false);
 
   // A refresh brings the server's pool, which wins over the one kept here.
   useEffect(() => {
@@ -129,6 +149,32 @@ export function GrantPageProvider({
     document.getElementById(GRANT_TABS_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
+  // An RFP that names no organization is funded by whoever opened it.
+  const organizationName = grant?.organization?.trim() || undefined;
+  const opener = grant?.createdBy?.authorProfile;
+  const organization = organizationName ?? (opener?.fullName || undefined);
+  const organizationProfile = grant
+    ? organizationName
+      ? findOrganizationProfile(grant)
+      : opener
+    : undefined;
+
+  // The workspace's start screen opens with the RFP picked: it is handed over
+  // here, so the workspace need not ask the server for what this page has.
+  const applyToRfp = useCallback(() => {
+    if (!grant || !grantId) return;
+    handOffRfp({
+      id: grantId,
+      shortTitle: grant.shortTitle || title || '',
+      imageUrl: imageUrl ?? '',
+      fundingAmount: grant.amount.usd ?? 0,
+      organization: organization ?? '',
+      applicationVisibility: grant.applicationVisibility,
+      fundingMechanism: grant.fundingMechanism ?? 'FUNDING',
+    });
+    router.push(workspaceHref(newDraftTarget('need_funding', grantId)));
+  }, [grant, grantId, title, imageUrl, organization, router]);
+
   const page = useMemo((): GrantPageContextValue => {
     const isActive = grant ? isGrantActive(grant) : false;
     return {
@@ -136,9 +182,10 @@ export function GrantPageProvider({
       setActiveTab,
       showTab,
       grantId,
-      organization: grant?.organization,
-      organizationProfile: grant ? findOrganizationProfile(grant) : undefined,
+      organization,
+      organizationProfile,
       applicationVisibility: grant?.applicationVisibility,
+      fundingMechanism: grant?.fundingMechanism ?? 'FUNDING',
       grantAmount: grant ? { usd: grant.amount.usd ?? 0, rsc: grant.amount.rsc ?? 0 } : null,
       isPending: grant?.status === 'PENDING',
       isActive,
@@ -148,10 +195,18 @@ export function GrantPageProvider({
       setFundingPool,
       applications: grant?.applications ?? [],
       grantCreatedByUserId: grant?.createdBy?.id ?? null,
-      isApplyPanelOpen,
-      setIsApplyPanelOpen,
+      applyToRfp,
     };
-  }, [activeTab, showTab, grant, grantId, fundingPool, isApplyPanelOpen]);
+  }, [
+    activeTab,
+    showTab,
+    grant,
+    grantId,
+    fundingPool,
+    organization,
+    organizationProfile,
+    applyToRfp,
+  ]);
 
   const {
     entries,

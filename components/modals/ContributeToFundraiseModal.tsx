@@ -63,6 +63,13 @@ interface ContributeModalCommonProps {
    * fundingPool mode (RSC / credits / card / Apple Pay only).
    */
   allowDafPayment?: boolean;
+  /**
+   * Award proposals. RSC, the RFP pool, and Stripe (card, Apple Pay, Google
+   * Pay) stay: a Stripe charge buys RSC into the escrow. Donor-advised funds
+   * and PayPal stay hidden. In fundingPool mode it only names the pool a
+   * prize pool; the payment options stay the pool's.
+   */
+  isAward?: boolean;
   /** Replaces the default contribution success toast. */
   successMessage?: string;
   /**
@@ -155,6 +162,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     variant = 'modal',
     topContent,
     successText,
+    isAward: isAwardProp = false,
   } = props;
 
   const isPanel = variant === 'panel';
@@ -164,6 +172,8 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const fundingPool = isPoolMode ? props.fundingPool : undefined;
   // DAF is never offered for RFP funding pools.
   const allowDafPayment = isPoolMode ? false : (props.allowDafPayment ?? true);
+  const isAward = !isPoolMode && isAwardProp;
+  const poolName = isPoolMode && isAwardProp ? 'prize pool' : 'funding pool';
 
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
@@ -185,7 +195,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   const contributionSuccessMessage =
     successMessage ??
     (isPoolMode
-      ? 'Your contribution has been added to the RFP funding pool.'
+      ? `Your contribution has been added to the RFP ${poolName}.`
       : 'Your contribution has been successfully added to the fundraise.');
   // Opens on the usual amount, or on what's left when a cap is lower, so the
   // first amount shown can be paid.
@@ -538,7 +548,9 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     ? 0
     : (progressOverride?.goalAmountUsd ?? fundraise?.goalAmount?.usd ?? 0);
   const remainingGoalUsd = Math.max(0, goalAmountUsd - currentAmountUsd);
-  const quickAmountCeilingUsd = isPoolMode ? 10000 : remainingGoalUsd;
+  // An award escrow has no goal, so the amount is not capped at what is left.
+  const hasGoal = !isPoolMode && goalAmountUsd > 0;
+  const quickAmountCeilingUsd = hasGoal ? remainingGoalUsd : 10000;
 
   const handleEndaomentPaymentConfirm = useCallback(
     async (originFundId: string) => {
@@ -605,7 +617,11 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     [logFunnelStep, finishSuccess, contributionSuccessMessage]
   );
 
-  const defaultTitle = isPoolMode ? 'Add to the funding pool' : 'Fund Proposal';
+  const defaultTitle = isPoolMode
+    ? `Add to the ${poolName}`
+    : isAward
+      ? 'Award prize'
+      : 'Fund Proposal';
 
   // Get title based on current view
   const getTitle = () => {
@@ -652,7 +668,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
         selectedAmount={selectedQuickAmount}
         onAmountSelect={handleQuickAmountSelect}
         remainingGoalUsd={quickAmountCeilingUsd}
-        showRemaining={!isPoolMode}
+        showRemaining={hasGoal}
       />
     </fieldset>
   );
@@ -670,6 +686,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       error={error}
       walletAvailability={walletAvailability}
       hasNonprofit={hasNonprofit}
+      isAward={isAward}
       onConfirmPayment={handleConfirmPayment}
       onPaymentRequestSuccess={handlePaymentRequestSuccess}
       onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
@@ -699,7 +716,9 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                 ? `You allocated ${paidDisplay} from the pool`
                 : isPoolMode
                   ? `You added ${paidDisplay} to the pool`
-                  : `You funded ${paidDisplay}`}
+                  : isAward
+                    ? `You awarded ${paidDisplay}`
+                    : `You funded ${paidDisplay}`}
             </p>
             {/* The page's line is about the funder's own money, which an allocation isn't. */}
             {successText && !paid.fromPool && (
@@ -770,8 +789,9 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
                 <div className="flex gap-3 rounded-lg border border-primary-100 bg-primary-50 px-4 py-3 text-sm leading-snug text-primary-900">
                   <Coins className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" aria-hidden="true" />
                   <p>
-                    Adding to the funding pool increases the funder’s funding budget and allows more
-                    funds to be allocated towards the best research proposals.
+                    {isAwardProp
+                      ? 'Adding to the prize pool grows the prize and lets the funder award more to the best results.'
+                      : 'Adding to the funding pool increases the funder’s funding budget and allows more funds to be allocated towards the best research proposals.'}
                   </p>
                 </div>
               )}

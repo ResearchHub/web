@@ -34,6 +34,7 @@ export interface AuthorProfile {
   createdDate?: string;
   education?: Education[];
   twitter?: string | null;
+  isXConnected?: boolean;
   facebook?: string | null;
   linkedin?: string | null;
   googleScholar?: string | null;
@@ -91,6 +92,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     createdDate: raw.created_date || undefined,
     education: raw.education || undefined,
     twitter: raw.twitter || undefined,
+    isXConnected: raw.is_x_connected || false,
     facebook: raw.facebook || undefined,
     linkedin: raw.linkedin || undefined,
     googleScholar: raw.google_scholar || undefined,

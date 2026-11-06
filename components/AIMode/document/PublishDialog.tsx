@@ -9,6 +9,8 @@ import { NonprofitConfirmModal, NonprofitSearchSection } from '@/components/Nonp
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { FUNDRAISE_DURATION_HELP } from '@/components/Notebook/PublishingForm/components/EndDateSection';
 import { GRANT_APPLICATION_VISIBILITY_HELP } from '@/components/Notebook/PublishingForm/components/GrantApplicationVisibilitySection';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
+import { GrantFundingMechanismSection } from '@/components/Notebook/PublishingForm/components/GrantFundingMechanismSection';
 import {
   useIsLockedPrivate,
   useShowPrivateWarning,
@@ -64,13 +66,16 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
   const isNewProposal = articleType === 'preregistration' && !isUpdate;
   const privateNeedsRfp = useShowPrivateWarning() && isNewProposal;
 
-  const action = isUpdate ? 'Update' : 'Publish';
+  // A new proposal that answers an RFP is the researcher's application to it.
+  const isApplication = isNewProposal && watch('selectedGrant') != null;
+  const action = isUpdate ? 'Update' : isApplication ? 'Submit' : 'Publish';
   const { missingNames } = readiness;
   const canPublish = readiness.ready && hasAgreed && !isPublishing && !privateNeedsRfp;
 
   const publish = () => {
     if (!canPublish) return;
-    if (isNewProposal && selectedNonprofit) setConfirmingNonprofit(true);
+    const isAwardApplication = isAwardMechanism(watch('selectedGrant')?.fundingMechanism);
+    if (isNewProposal && selectedNonprofit && !isAwardApplication) setConfirmingNonprofit(true);
     else void confirmPublish(title);
   };
 
@@ -116,7 +121,9 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
                         as="h2"
                         className="text-lg font-semibold tracking-tight text-gray-900"
                       >
-                        {action} {isRfp ? 'RFP' : 'proposal'}
+                        {isApplication
+                          ? 'Submit application'
+                          : `${action} ${isRfp ? 'RFP' : 'proposal'}`}
                       </DialogTitle>
                       {/* On a phone the Required heading that counts them scrolls away. */}
                       {missingNames.length > 0 && (
@@ -143,6 +150,7 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
                     <PublishDetails readiness={readiness} title={title} onRename={onRename} />
 
                     {isNewProposal && <ProposalSettings />}
+                    {isRfp && <GrantFundingMechanismSection className="px-0 py-0" />}
                     {isRfp && !isUpdate && <RfpSettings />}
 
                     {showGuidelines && (
@@ -200,7 +208,11 @@ export function PublishDialog({ title, onRename }: PublishDialogProps) {
                         disabled={!canPublish}
                         className="h-12 w-full text-base disabled:cursor-not-allowed disabled:opacity-50 md:h-10 md:w-auto md:text-sm"
                       >
-                        {isPublishing ? 'Publishing...' : action}
+                        {isPublishing
+                          ? isApplication
+                            ? 'Submitting...'
+                            : 'Publishing...'
+                          : action}
                       </Button>
                     </div>
                   </div>
@@ -316,7 +328,8 @@ function ChoiceBox({
 
 /**
  * A new proposal's settings: who can see it, how long it stays open, and a
- * nonprofit to receive the funds. Two rules come with the first, and the
+ * nonprofit to receive the funds. An award has no nonprofit: the funder pays
+ * for results. Two rules come with the first, and the
  * first of them holds back the dialog's Publish: a private proposal needs an
  * RFP, and an RFP that only takes private proposals makes the proposal private.
  */
@@ -324,6 +337,7 @@ function ProposalSettings() {
   const { watch, setValue } = useFormContext<PublishingFormData>();
   const isPublic = watch('isPublic');
   const days = watch('fundraiseEndDays') ?? DEFAULT_FUNDRAISE_END_DAYS;
+  const isAwardApplication = isAwardMechanism(watch('selectedGrant')?.fundingMechanism);
   const isLockedPrivate = useIsLockedPrivate();
   const privateNeedsRfp = useShowPrivateWarning();
   // The RFP may have been chosen since the form loaded, which is the only
@@ -361,7 +375,7 @@ function ProposalSettings() {
         />
       </SettingSection>
 
-      <FundsRecipient />
+      {!isAwardApplication && <FundsRecipient />}
     </>
   );
 }

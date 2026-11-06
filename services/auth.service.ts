@@ -188,22 +188,29 @@ export class AuthService {
     };
   }
 
-  static async loginWithX(credentials: {
-    code: string;
-    code_verifier: string;
-    redirect_uri: string;
-  }): Promise<{ key: string; access_token: string }> {
+  static async authenticateWithX(
+    credentials: {
+      code: string;
+      code_verifier: string;
+      redirect_uri: string;
+    },
+    authToken?: string
+  ): Promise<{ key: string; access_token: string }> {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/auth/x/login/`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...(authToken && { Authorization: `Token ${authToken}` }),
+        },
         body: JSON.stringify(credentials),
       }
     );
 
     if (!response.ok) {
-      throw new AuthError('X sign-in failed', response.status);
+      throw new AuthError('X authentication failed', response.status);
     }
 
     return response.json();

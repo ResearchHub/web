@@ -64,3 +64,11 @@ export type PaymentMethodType =
  * These can be re-enabled when the integration is complete.
  */
 export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['paypal'];
+
+export const AWARD_PAYMENT_METHODS: readonly PaymentMethodType[] = [
+  'rsc',
+  'funding_pool',
+  'credit_card',
+  'apple_pay',
+  'google_pay',
+];

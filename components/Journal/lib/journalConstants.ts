@@ -44,7 +44,7 @@ export const editors: Editor[] = [
   },
   {
     name: 'Scott Nelson, PhD',
-    role: 'Associate Editor',
+    role: 'Editor',
     bio: '',
     affiliation: 'Iowa State University',
     image: '/people/scott.jpeg',

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { FileText, History, Sparkles } from 'lucide-react';
+import { FileText, MessagesSquare, Sparkles } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
@@ -263,6 +263,7 @@ export function ChatPane({
             composer={composer}
             greeting={AI_MODE_GREETING}
             intent={state.intent}
+            applyingTo={state.intent === 'need_funding' ? state.selectedGrant : null}
             presets={
               // A funder sees what to ask for; a researcher brings their own topic.
               state.intent === 'fund' ? (
@@ -366,7 +367,7 @@ export function ChatPane({
                   title="Chat history"
                   className="flex h-[34px] w-[34px] items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900"
                 >
-                  <History className="h-[18px] w-[18px]" aria-hidden="true" />
+                  <MessagesSquare className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
               }
             />

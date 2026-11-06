@@ -15,6 +15,7 @@ import {
   Link2,
   ImageIcon,
   AtSign,
+  Calculator,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -222,6 +223,27 @@ const InsertButtons = ({
       >
         <ImageIcon className="h-4 w-4" />
         {inDropdown && <span className="ml-2">Add Image</span>}
+      </ToolbarButton>
+
+      <ToolbarButton
+        onClick={() => {
+          const { from, to, empty } = editor.state.selection;
+          const selected = empty ? '' : editor.state.doc.textBetween(from, to, ' ');
+          const latex = window.prompt('Enter a LaTeX equation', selected || 'E = mc^2');
+          if (latex == null || !latex.trim()) return;
+          const chain = editor.chain().focus();
+          if (!empty) {
+            chain.deleteSelection();
+          }
+          chain.insertInlineMath({ latex: latex.trim() }).run();
+        }}
+        isActive={editor.isActive('inlineMath')}
+        tooltip="Insert equation"
+        className={buttonClasses}
+        inDropdown={inDropdown}
+      >
+        <Calculator className="h-4 w-4" />
+        {inDropdown && <span className="ml-2">Equation</span>}
       </ToolbarButton>
 
       {showMentions && (
