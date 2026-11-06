@@ -230,6 +230,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                 storageKey: `${storageKey}-comment-feed-${work.id}`,
               }}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
