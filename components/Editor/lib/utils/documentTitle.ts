@@ -26,9 +26,16 @@ export const setDocumentTitle = (editor: Editor | null, newTitle: string): void 
     .run();
 };
 
+// [\s\S] rather than `.`, so a title that spans lines is found too.
+const HTML_TITLE = /<h1[^>]*>([\s\S]*?)<\/h1>/i;
+
+/** The title of a document as HTML, its first h1, with whatever markup it holds. */
+export function getTitleFromHTML(html: string): string {
+  return html.match(HTML_TITLE)?.[1] ?? '';
+}
+
 export function removeTitleFromHTML(html: string): string {
-  // [\s\S] rather than `.`, so a title that spans lines goes too.
-  return html.replace(/<h1[^>]*>[\s\S]*?<\/h1>/i, '');
+  return html.replace(HTML_TITLE, '');
 }
 
 /** Extract a plain-text string from a TipTap-style JSON template (top-level blocks only). */

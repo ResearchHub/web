@@ -153,6 +153,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
             <DocumentSections
               content={work.previewContent || content}
               emptyText="No content available"
+              bylineNames={work.authors.map((a) => a.authorProfile.fullName)}
             />
           </div>
         );
