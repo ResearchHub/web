@@ -188,6 +188,8 @@ interface FeedItemActionsProps {
    */
   groupUtilityActions?: boolean;
   href?: string; // URL to use for navigation
+  /** When set, the share control stays visible but does not copy the link. */
+  shareBlockReason?: string | null;
   reviews?: Review[]; // New property for reviews
   awardedBountyAmount?: number; // Add awarded bounty amount
   tips?: Tip[]; // Tips received on this content
@@ -237,6 +239,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   rightSideActionButton,
   groupUtilityActions = false,
   href,
+  shareBlockReason = null,
   reviews = [],
   awardedBountyAmount,
   tips = [],
@@ -446,6 +449,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const handleCopyDocumentUrl = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
 
+    if (shareBlockReason) {
+      toast.error(shareBlockReason);
+      return;
+    }
+
     const url = href ? new URL(href, window.location.origin).toString() : window.location.href;
 
     try {
@@ -505,9 +513,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         type="button"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={handleCopyDocumentUrl}
-        className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800"
-        aria-label="Share"
-        title={showTooltips ? 'Copy link' : undefined}
+        aria-disabled={!!shareBlockReason}
+        className={cn(
+          'flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-gray-800',
+          shareBlockReason && 'opacity-50 cursor-not-allowed hover:text-gray-500'
+        )}
+        aria-label={shareBlockReason ?? 'Share'}
+        title={showTooltips ? (shareBlockReason ?? 'Copy link') : undefined}
       >
         <Share className="h-4 w-4" />
       </button>
@@ -515,17 +527,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       <Button
         variant="ghost"
         size="sm"
-        tooltip={showTooltips ? 'Copy link' : undefined}
+        tooltip={showTooltips ? (shareBlockReason ?? 'Copy link') : undefined}
         onMouseDown={(e) => {
           e.stopPropagation();
         }}
         onClick={handleCopyDocumentUrl}
+        aria-disabled={!!shareBlockReason}
         className={cn(
           'flex !p-0 items-center justify-center rounded-full transition-colors',
           isCard ? 'h-7 w-7' : 'h-8 w-8',
           isCard
             ? cardIconButtonClass
-            : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+            : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm',
+          shareBlockReason && 'opacity-50 cursor-not-allowed'
         )}
       >
         {isCard ? <Share {...cardIcon} size={16} /> : <Share className="h-[18px] w-[18px]" />}

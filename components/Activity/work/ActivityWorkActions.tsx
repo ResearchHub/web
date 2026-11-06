@@ -4,6 +4,7 @@ import { FC } from 'react';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import type { ActivityWork } from '../lib/activityWork.utils';
 import type { FeedContentType, FeedEntry } from '@/types/feed';
+import { getPublicShareBlockReason } from '@/utils/share';
 
 interface ActivityWorkActionsProps {
   entry: FeedEntry;
@@ -40,6 +41,7 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
   hideMoreMenu,
 }) => {
   const voteCount = entry.metrics?.adjustedScore ?? entry.metrics?.votes ?? 0;
+  const shareBlockReason = getPublicShareBlockReason({ grantSummary: work.grant });
 
   return (
     <FeedItemActions
@@ -52,6 +54,7 @@ export const ActivityWorkActions: FC<ActivityWorkActionsProps> = ({
       hideableEntries={hideableEntries ?? [entry]}
       userVote={entry.userVote}
       href={work.href}
+      shareBlockReason={shareBlockReason}
       actionLabels={{ report: 'Flag Content' }}
       hideCommentButton
       groupUtilityActions={groupUtilityActions}
