@@ -6,11 +6,6 @@ export const getDocumentTitle = (content: JSONContent | undefined): string => {
   return firstHeading?.content?.[0]?.text || '';
 };
 
-export const getDocumentTitleFromEditor = (editor: Editor | null): string => {
-  if (!editor) return '';
-  return getDocumentTitle(editor.getJSON());
-};
-
 export const setDocumentTitle = (editor: Editor | null, newTitle: string): void => {
   if (!editor) return;
   editor

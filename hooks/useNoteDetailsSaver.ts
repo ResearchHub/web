@@ -22,9 +22,9 @@ interface QueuedNoteDetails {
 
 /**
  * The single writer for a note's own fields — the editor's title as much as the
- * publishing form's Details, which is why one instance is shared through
- * NotebookContext. A burst of edits becomes one request, and requests run in the
- * order they were made so a slow save cannot land on top of the edit after it.
+ * publishing form's Details, which is why one instance is shared through the
+ * publishing host. A burst of edits becomes one request, and requests run in
+ * the order they were made so a slow save cannot land on top of the edit after it.
  */
 export const useNoteDetailsSaver = (noteId?: number): NoteDetailsSaver => {
   const queuedDetailsRef = useRef<QueuedNoteDetails | null>(null);
@@ -89,7 +89,7 @@ export const useNoteDetailsSaver = (noteId?: number): NoteDetailsSaver => {
     return sendQueuedDetails();
   }, [sendQueuedDetails, sendQueuedDetailsSoon]);
 
-  // Leaving the notebook must not cost the user the edits still inside the
+  // Leaving the document must not cost the user the edits still inside the
   // debounce. A closing or backgrounded tab never runs the cleanup below, so it
   // is flushed while the page is still alive enough to send the request.
   useEffect(() => {

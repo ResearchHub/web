@@ -25,7 +25,7 @@ export const NotePaper = ({
   );
 };
 
-/** Full-page wrapper for notebook routes. Adds gray background, shadow, and optional banner. */
+/** Full-page wrapper for a note. Adds gray background, shadow, and optional banner. */
 interface NotePaperWrapperProps {
   children: ReactNode;
   className?: string;
@@ -51,9 +51,7 @@ export const NotePaperWrapper = ({
           {showBanner}
         </output>
       )}
-      <NotePaper className={cn('shadow-md', className)} data-tour="notebook-editor">
-        {children}
-      </NotePaper>
+      <NotePaper className={cn('shadow-md', className)}>{children}</NotePaper>
     </>
   );
 

@@ -77,11 +77,10 @@ interface DocumentPaneProps {
  * a Publish button floating over it. The same in the column beside the chat
  * and on its own.
  * Each version the assistant writes is spliced into the editor as an in-note
- * review (highlighted insertions, struck removals, accept/reject), exactly as
- * in the notebook. The user can edit once the turn has settled; edits
- * autosave. While a section is being written the streaming prose is appended
- * below the editor, and a turn with no draft shows an in-progress row so the
- * page never sits frozen.
+ * review (highlighted insertions, struck removals, accept/reject). The user
+ * can edit once the turn has settled; edits autosave. While a section is
+ * being written the streaming prose is appended below the editor, and a turn
+ * with no draft shows an in-progress row so the page never sits frozen.
  */
 export function DocumentPane({
   document,
@@ -113,9 +112,8 @@ export function DocumentPane({
     [noteId]
   );
   const editor = heldEditor.noteId === noteId ? heldEditor.editor : null;
-  // The details form is the notebook's own, hosted here: it reads the note,
-  // the live editor and the note's single details writer through the host
-  // seam rather than the notebook context.
+  // The details form reads the note, the live editor and the note's single
+  // details writer through the host seam.
   const { saveDetailsSoon, saveDetailsNow } = useNoteDetailsSaver(noteId ?? undefined);
   // A save whose heading changed brings the note's saved title along. The
   // title hook that does it needs this save in turn, so it is reached
@@ -151,8 +149,7 @@ export function DocumentPane({
       if (editorRef.current !== instance) return;
       // An empty document is never a save this surface should make: not on a
       // fresh note (the assistant's first edit_note would go stale), and not
-      // on a written one (it would erase it). Clearing everything on purpose
-      // is the notebook's job.
+      // on a written one (it would erase it).
       if (instance.state.doc.textContent.trim().length === 0) return;
       updateNote(instance);
     },
@@ -303,8 +300,7 @@ export function DocumentPane({
                     <Masthead slots={mastheadSlots} />
                     {editorLostContent && (
                       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                        This document couldn’t be displayed here. Open it in the notebook to view
-                        it; nothing has been changed.
+                        This document couldn’t be displayed here; nothing has been changed.
                       </div>
                     )}
                     {status === 'empty' && review.review == null && hasChats && <EmptyDocument />}

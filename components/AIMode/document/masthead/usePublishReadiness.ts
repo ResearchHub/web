@@ -1,5 +1,5 @@
 import { useWatch } from 'react-hook-form';
-import { MIN_PUBLISH_TITLE_LENGTH } from '@/components/modals/ConfirmPublishModal';
+import { MIN_PUBLISH_TITLE_LENGTH } from '@/components/AIMode/document/PublishGuidelines';
 import {
   usePublishingCompletion,
   usePublishingController,

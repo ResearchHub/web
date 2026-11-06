@@ -61,7 +61,7 @@ async function fetchReloadContent(
 
 /**
  * Applying a fetched version isn't a user edit — emitUpdate=false so it never
- * triggers the notebook autosave.
+ * triggers the autosave.
  */
 function applyEditorContent(editor: Editor | null, content: string | object): void {
   if (!editor || editor.isDestroyed) return;
@@ -173,8 +173,7 @@ export interface UseNoteAgentReviewResult {
  * through `noteDiffPersistableDoc`, so the server only ever sees the
  * accept-projection.
  *
- * Shared by the notebook's chat panel and the AI Mode document pane; the host
- * renders the controls and the failure banner wherever fits its layout.
+ * The host renders the controls and the failure banner wherever fits its layout.
  */
 export function useNoteAgentReview({
   noteId,

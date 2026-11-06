@@ -118,6 +118,31 @@ const nextConfig = {
       destination: '/proposal/:id/:path*',
       permanent: true,
     },
+    // Old notebook links, as in emails: a note opens as a workspace document,
+    // "new RFP" and "new proposal" open the matching draft screen, and
+    // anything else lands on the start screen.
+    {
+      source: '/notebook/:orgSlug/:noteId(\\d+)',
+      destination: '/workspace?note=:noteId',
+      permanent: true,
+    },
+    {
+      source: '/notebook/:path*',
+      has: [{ type: 'query', key: 'newGrant', value: 'true' }],
+      destination: '/workspace?new=rfp',
+      permanent: true,
+    },
+    {
+      source: '/notebook/:path*',
+      has: [{ type: 'query', key: 'newFunding', value: 'true' }],
+      destination: '/workspace?new=proposal',
+      permanent: true,
+    },
+    {
+      source: '/notebook/:path*',
+      destination: '/workspace',
+      permanent: true,
+    },
     {
       source: '/about/tos',
       destination: '/tos',

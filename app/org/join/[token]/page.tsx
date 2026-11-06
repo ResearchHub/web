@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useTransition } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
+import { WORKSPACE_PATH } from '@/components/AIMode/workspaceUrl';
 
 export default function JoinOrganizationPage() {
   const params = useParams();
@@ -52,7 +53,7 @@ export default function JoinOrganizationPage() {
 
       // Use startTransition for the navigation
       startTransition(() => {
-        router.push(`/notebook/${organization.slug}`);
+        router.push(WORKSPACE_PATH);
       });
     } catch (error) {
       toast.error('Failed to join organization. The invitation may be invalid or expired.');

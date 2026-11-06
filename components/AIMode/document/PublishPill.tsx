@@ -26,8 +26,6 @@ export function PublishPill() {
 
   if (!articleType || !hasPublishButton(controller)) return null;
 
-  const handleClick = () => void controller.requestPublish();
-
   const busyLabel = controller.isUpserting
     ? applying && !isPublished
       ? 'Submitting...'
@@ -61,7 +59,7 @@ export function PublishPill() {
             label={busyLabel ?? 'Update'}
             busy={busyLabel != null}
             disabled={disabled}
-            onClick={handleClick}
+            onClick={controller.requestPublish}
             size="sm"
           />
         </div>
@@ -70,7 +68,7 @@ export function PublishPill() {
           label={busyLabel ?? (applying ? SUBMIT_APPLICATION_LABEL : 'Publish')}
           busy={busyLabel != null}
           disabled={disabled}
-          onClick={handleClick}
+          onClick={controller.requestPublish}
           size="lg"
           className="pointer-events-auto"
         />
@@ -137,7 +135,7 @@ export function PublishRequest({
     const go = () => {
       const { canPublish: can, requestPublish, onHandled: handled } = latest.current;
       handled(can ? 'opened' : 'blocked');
-      if (can) void requestPublish();
+      if (can) requestPublish();
     };
     if (readyWhenAsked.current) {
       go();

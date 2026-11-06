@@ -31,7 +31,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   // Playwright parallelises by file, which takes the wall clock from the sum of
-  // the files to the longest one — worth a lot here, where the notebook specs
+  // the files to the longest one — worth a lot here, where the publishing specs
   // run minutes and the rest run seconds.
   //
   // Only off against a local dev server, which compiles routes on demand and

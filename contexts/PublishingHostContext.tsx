@@ -7,9 +7,8 @@ import type { NoteWithContent } from '@/types/note';
 
 /**
  * What the publishing form needs from whoever hosts it: the note, the live
- * editor holding its content, and the note's single details writer. The
- * notebook page and the AI Mode document pane both host the form; this is
- * the seam between them so the form itself knows nothing about either.
+ * editor holding its content, and the note's single details writer, so the
+ * form itself knows nothing about its host.
  */
 export interface PublishingHost {
   readonly note: NoteWithContent | null;

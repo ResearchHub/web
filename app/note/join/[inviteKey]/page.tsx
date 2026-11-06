@@ -10,6 +10,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { Button } from '@/components/ui/Button';
 import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEditor/components/BlockEditorClientWrapper';
 import { NotePaperWrapper } from '@/components/Notebook/NotePaperWrapper';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useAcceptNoteInvite, useNoteInvite } from '@/hooks/useNote';
 
@@ -34,12 +35,12 @@ export default function JoinNotePage() {
   }, [fetchInvite, inviteKey]);
 
   const openEditableNote = useCallback(() => {
-    if (!note?.organization?.slug || !note?.id) return;
+    if (!note?.id) return;
 
     startTransition(() => {
-      router.push(`/notebook/${note.organization.slug}/${note.id}`);
+      router.push(workspaceHref(documentTarget(note.id)));
     });
-  }, [note?.id, note?.organization?.slug, router]);
+  }, [note?.id, router]);
 
   const handleAcceptInvite = useCallback(async () => {
     if (!inviteKey || !note) return;
