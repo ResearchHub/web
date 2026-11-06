@@ -308,7 +308,9 @@ export function usePublishAction({
         }
         // The document has a post now: the sidebar moves it from Drafts to Published.
         void refreshFundingNotes();
-        router.push(getWorkPath(formData.articleType, String(response.id), response.slug));
+        const workPath = getWorkPath(formData.articleType, String(response.id), response.slug);
+        // `?new=true` opens the proposal page's celebration, for a first publish only.
+        router.push(isNewProposal ? `${workPath}?new=true` : workPath);
       } catch (error: unknown) {
         const fallback = 'Error publishing. Please try again.';
         if (
