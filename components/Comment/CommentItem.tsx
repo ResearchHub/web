@@ -90,7 +90,7 @@ export const CommentItem = ({
   includeReplies = true,
   showDebugInfo = false,
   readOnly = false,
-  rowStyle = 'card',
+  rowStyle = 'feed',
   depth = 0,
   replyTo,
 }: CommentItemProps) => {
