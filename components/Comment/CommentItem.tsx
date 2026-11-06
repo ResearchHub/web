@@ -167,24 +167,16 @@ export const CommentItem = ({
   };
 
   const confirmDelete = async () => {
-    try {
-      // Show loading toast
-      const loadingToastId = toast.loading('Deleting comment...');
+    const loadingToastId = toast.loading('Deleting comment...');
+    const deleted = await deleteComment(comment.id);
 
-      // Make the API call through the context
-      await deleteComment(comment.id);
-
-      // Call the onCommentDelete callback
-      if (onCommentDelete) {
-        onCommentDelete(comment.id);
-      }
-
-      // Show success toast
-      toast.success('Comment deleted successfully!', { id: loadingToastId });
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment. Please try again.');
+    if (!deleted) {
+      toast.error('Failed to delete comment. Please try again.', { id: loadingToastId });
+      return;
     }
+
+    onCommentDelete?.(comment.id);
+    toast.success('Comment deleted successfully!', { id: loadingToastId });
   };
 
   // Render the comment content based on whether it's being edited
