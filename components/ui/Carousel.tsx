@@ -2,6 +2,7 @@
 
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 
 interface CarouselProps {
@@ -106,21 +107,21 @@ export const Carousel: FC<CarouselProps> = ({
   return (
     <div className={cn('group/carousel relative', className)}>
       {overflows && (
-        <button
+        <Button
+          type="button"
+          variant="outlined"
+          size="icon"
           onClick={() => scroll('left')}
           disabled={!canScrollLeft}
-          className={cn(
-            'absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center',
-            'rounded-full border border-gray-200 bg-white shadow-md transition-all',
-            arrowPosition.left,
-            canScrollLeft
-              ? 'cursor-pointer text-gray-800 hover:bg-gray-50 active:scale-95'
-              : 'cursor-default text-gray-300 opacity-50'
-          )}
           aria-label="Scroll left"
+          className={cn(
+            'absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-md',
+            arrowPosition.left,
+            !canScrollLeft && 'text-gray-300'
+          )}
         >
           <ChevronLeft className="h-5 w-5" />
-        </button>
+        </Button>
       )}
 
       <div
@@ -137,20 +138,21 @@ export const Carousel: FC<CarouselProps> = ({
       </div>
 
       {showRightArrow && (
-        <button
+        <Button
+          type="button"
+          variant="outlined"
+          size="icon"
           onClick={() => scroll('right')}
           disabled={!canScrollRight}
-          className={cn(
-            'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
-            arrowPosition.right,
-            canScrollRight
-              ? 'text-gray-900 hover:bg-gray-200 active:scale-95 cursor-pointer'
-              : 'text-gray-300 opacity-50 cursor-default'
-          )}
           aria-label="Scroll right"
+          className={cn(
+            'absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-lg',
+            arrowPosition.right,
+            canScrollRight ? 'text-gray-900' : 'text-gray-300'
+          )}
         >
           <ChevronRight className="h-6 w-6" />
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import { DraftMenu } from '@/components/Funding/DraftMenu';
 import { FUNDING_KIND_ICON, type FundingKind } from '@/components/Funding/fundingKind';
 import { NewDraftMenu } from '@/components/Funding/NewDraftMenu';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
+import { Button } from '@/components/ui/Button';
 import { Carousel } from '@/components/ui/Carousel';
 import { Input } from '@/components/ui/form/Input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
@@ -16,7 +17,6 @@ import { formatTimeAgo } from '@/utils/date';
 import { cn } from '@/utils/styles';
 import { DashboardSection } from './DashboardSection';
 
-/** The sidebar's "See all" lands here. */
 export const DRAFTS_SECTION_ID = 'drafts';
 
 /**
@@ -68,10 +68,15 @@ function DraftCard({ note }: { readonly note: Note }) {
 
   return (
     <div className="relative w-[280px] shrink-0 snap-start">
-      <button
+      <Button
         type="button"
+        variant="outlined"
         onClick={() => openDraft(note)}
-        className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-left transition-colors hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        className={cn(
+          'h-full w-full flex-col items-stretch justify-start gap-0 overflow-hidden p-0',
+          'rounded-xl border-gray-200 text-left font-normal',
+          'hover:border-gray-300 hover:bg-gray-50'
+        )}
       >
         <span className="relative h-28 shrink-0 bg-gray-100">
           {cover ? (
@@ -105,7 +110,7 @@ function DraftCard({ note }: { readonly note: Note }) {
             {title}
           </span>
         </span>
-      </button>
+      </Button>
       <div className="absolute right-2 top-2 z-10">
         <DraftMenu
           noteId={note.id}
@@ -139,19 +144,17 @@ function DraftFilter({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           aria-label="Filter drafts"
           title="Filter drafts"
           aria-pressed={active}
-          className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-md',
-            'transition-colors hover:bg-gray-100',
-            active ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900'
-          )}
+          className={cn('h-8 w-8', active ? 'text-primary-600' : 'text-gray-500')}
         >
           <ListFilter className="h-5 w-5" aria-hidden="true" />
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72">
         <Input
@@ -163,14 +166,16 @@ function DraftFilter({
           aria-label="Search drafts by title"
           rightElement={
             active ? (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 aria-label="Clear search"
                 onClick={() => onQueryChange('')}
-                className="mr-2 flex items-center text-gray-400 hover:text-gray-700"
+                className="mr-1 h-8 w-8 text-gray-400 hover:text-gray-700"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
-              </button>
+              </Button>
             ) : undefined
           }
         />
@@ -250,17 +255,16 @@ export function DraftsCarousel({ drafts }: DraftsCarouselProps) {
               align="end"
               onSelect={startNew}
               trigger={
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   aria-label="New draft"
                   title="New draft"
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-md text-gray-500',
-                    'transition-colors hover:bg-gray-100 hover:text-gray-900'
-                  )}
+                  className="h-8 w-8 text-gray-500"
                 >
                   <Plus className="h-5 w-5" aria-hidden="true" />
-                </button>
+                </Button>
               }
             />
           </div>
