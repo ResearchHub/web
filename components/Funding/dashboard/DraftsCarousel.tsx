@@ -42,6 +42,7 @@ const KIND_TONE = {
   },
 } as const;
 
+/** An RFP when the note is a grant, a proposal when it is a preregistration. */
 function draftKind(note: Note): FundingKind | null {
   const type = note.documentType?.trim().toUpperCase();
   if (type === 'GRANT') return 'rfp';
@@ -57,6 +58,7 @@ function coverSrc(note: Note): string | null {
   return null;
 }
 
+/** One draft in the row: its cover, kind, and last edit. Opening it resumes the draft. */
 function DraftCard({ note }: { readonly note: Note }) {
   const { openDraft } = useFundingDrafting();
   const kind = draftKind(note);
@@ -116,6 +118,7 @@ function DraftCard({ note }: { readonly note: Note }) {
   );
 }
 
+/** The title the card shows, so a blank note still matches a search for "Untitled". */
 function draftTitle(note: Note): string {
   return note.title?.trim() || 'Untitled';
 }

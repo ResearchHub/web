@@ -24,6 +24,7 @@ const ARROW_POSITION = {
   outset: { left: '-left-8', right: '-right-11' },
 } as const;
 
+/** A horizontal row that snaps. Arrows stay once it overflows, and grey out at either end. */
 export const Carousel: FC<CarouselProps> = ({
   children,
   className,
@@ -41,6 +42,7 @@ export const Carousel: FC<CarouselProps> = ({
   const hasScrolledRef = useRef(false);
   const hasRequestedMoreRef = useRef(false);
 
+  /** Whether the row can still move, and whether the end should load another page. */
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -84,6 +86,7 @@ export const Carousel: FC<CarouselProps> = ({
     checkScroll();
   }, [checkScroll, children]);
 
+  /** Move about one view left or right. */
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
