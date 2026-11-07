@@ -11,6 +11,12 @@ interface CarouselProps {
   arrowOffset?: 'inset' | 'outset';
   /** Leave the arrows out when everything fits, rather than show a disabled one. */
   hideArrowsWhenStatic?: boolean;
+  /**
+   * Keep the row's left inset. Mandatory snapping otherwise scrolls that
+   * padding away after the first paint, and `scroll-smooth` turns the
+   * correction into a visible jump.
+   */
+  keepInset?: boolean;
 }
 
 const ARROW_POSITION = {
@@ -24,6 +30,7 @@ export const Carousel: FC<CarouselProps> = ({
   onReachEnd,
   arrowOffset = 'inset',
   hideArrowsWhenStatic = false,
+  keepInset = false,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -88,16 +95,24 @@ export const Carousel: FC<CarouselProps> = ({
   };
 
   const arrowPosition = ARROW_POSITION[arrowOffset];
-  const showRightArrow = canScrollRight || canScrollLeft || !hideArrowsWhenStatic;
+  // Once the row overflows, both arrows stay up. A direction with nowhere
+  // left to go is greyed, the same at either end.
+  const overflows = canScrollLeft || canScrollRight;
+  const showRightArrow = overflows || !hideArrowsWhenStatic;
 
   return (
     <div className={cn('group/carousel relative', className)}>
-      {canScrollLeft && (
+      {overflows && (
         <button
           onClick={() => scroll('left')}
+          disabled={!canScrollLeft}
           className={cn(
-            'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-800 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer',
-            arrowPosition.left
+            'absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center',
+            'rounded-full border border-gray-200 bg-white shadow-md transition-all',
+            arrowPosition.left,
+            canScrollLeft
+              ? 'cursor-pointer text-gray-800 hover:bg-gray-50 active:scale-95'
+              : 'cursor-default text-gray-300 opacity-50'
           )}
           aria-label="Scroll left"
         >
@@ -107,7 +122,13 @@ export const Carousel: FC<CarouselProps> = ({
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide py-3 px-3 -mx-3"
+        className={cn(
+          'flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory',
+          'scrollbar-hide py-3 px-3 -mx-3',
+          // Inset the snapport by the same padding, so the first card is already
+          // snapped at scrollLeft 0 and the browser does not scroll the padding off.
+          keepInset && 'scroll-px-3'
+        )}
       >
         {children}
       </div>
