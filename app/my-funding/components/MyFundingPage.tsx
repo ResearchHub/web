@@ -200,7 +200,7 @@ export function MyFundingPage() {
     documents.isSettled &&
     !viewedAuthor.isLoading &&
     !earnings.isLoading &&
-    // The draft the empty state offers to pick up.
+    // The drafts the overview lists, so the carousel does not pop in later.
     (!isOwnPage || draftsStatus !== 'loading') &&
     (!readsReviews || !reviews.isLoading);
 
@@ -376,7 +376,7 @@ export function MyFundingPage() {
     />
   );
 
-  const latestDraft = isOwnPage ? drafts[0] : undefined;
+  const ownDrafts = isOwnPage ? drafts : [];
 
   return (
     <PageLayout
@@ -404,7 +404,7 @@ export function MyFundingPage() {
           tab={activeTab === 'activity' || isEmpty ? 'overview' : activeTab}
           isSettled={isSettled && !activity.isLoading}
           isEmpty={isEmpty}
-          latestDraft={latestDraft}
+          drafts={ownDrafts}
           lead={copy.lead}
           upNext={upNext}
           fundedRows={fundedRows}
