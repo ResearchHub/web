@@ -7,7 +7,6 @@ import {
   isBudgetNotice,
   isBudgetNoticeWithoutReset,
   noticeFromOutcome,
-  type ChatNoticePolicy,
   type FailedSend,
 } from '@/components/AgentChat/chatNotices';
 import { useAgentChat, type UseAgentChatResult } from '@/hooks/useAgentChat';
@@ -19,7 +18,7 @@ import {
   type HeldAttachments,
 } from '@/hooks/useChatAttachments';
 import { useResearchAI } from '@/hooks/useResearchAI';
-import type { ChatCreateInit, ChatTransport } from '@/services/chatTransport';
+import type { ChatTransport } from '@/services/chatTransport';
 import { chatErrorDetail } from '@/services/notebookChat.service';
 import { isActiveExecutionStatus, type AgentChat } from '@/types/agentChat';
 import type { GenerationRequest } from '@/types/agentModels';
@@ -42,14 +41,10 @@ export interface UseChatSessionOptions {
   readonly transport: ChatTransport;
   /** The open chat, or null for the new-chat screen. */
   readonly chatId: number | null;
-  /** False while the surface is closed — suspends fetching and the socket. */
-  readonly enabled: boolean;
   /** A chat was just created for the first message; the surface selects it. */
   readonly onChatCreated: (chat: AgentChat) => void;
   /** The chat's row in a listing may be out of date: a title landed, a turn settled. */
   readonly onListStale?: () => void;
-  /** Extra fields for the chat the first message creates. */
-  readonly getCreateInit?: () => ChatCreateInit | undefined;
   /**
    * Where the first message's chat is created, when that is not `transport`:
    * a surface whose chats live on something the first message brings into
@@ -57,7 +52,6 @@ export interface UseChatSessionOptions {
    * creation's. Without it the chat is created on `transport`.
    */
   readonly transportForNewChat?: () => Promise<ChatTransport>;
-  readonly notices: ChatNoticePolicy;
 }
 
 export interface ChatSession {
@@ -105,12 +99,9 @@ const sessionKeyFor = (transport: ChatTransport, chatId: number | null) =>
 export function useChatSession({
   transport,
   chatId,
-  enabled,
   onChatCreated,
   onListStale,
-  getCreateInit,
   transportForNewChat,
-  notices,
 }: UseChatSessionOptions): ChatSession {
   const sessionKey = sessionKeyFor(transport, chatId);
 
@@ -119,11 +110,11 @@ export function useChatSession({
   // creation state with nothing to move it on.
   const [createdChat, setCreatedChat] = useState<AgentChat | null>(null);
   const initialChat = createdChat?.conversation_id === chatId ? createdChat : null;
-  const chat = useAgentChat({ transport, chatId, enabled, initialChat });
+  const chat = useAgentChat({ transport, chatId, enabled: true, initialChat });
 
   // User-wide allowances and the model catalog load as soon as the surface
-  // mounts, open or not, so the composer is ready when it shows; the
-  // selection hook reads them from the same store rather than fetching again.
+  // mounts, so the composer is ready when it shows; the selection hook reads
+  // them from the same store rather than fetching again.
   const researchAI = useResearchAI(true);
   const hasModelSelection = canSelectAIModel(researchAI.budget?.tier);
   const canSelectModel = hasModelSelection && researchAI.catalog !== null;
@@ -201,11 +192,11 @@ export function useChatSession({
 
   const getBudgetSnapshot = researchAI.getSnapshot;
   const failureNotice = useCallback(
-    (outcome: FailedSend): ComposerNotice | null => {
+    (outcome: FailedSend): ComposerNotice => {
       const snapshot = getBudgetSnapshot();
-      return noticeFromOutcome(outcome, notices, snapshot.budget?.resets_at ?? null);
+      return noticeFromOutcome(outcome, snapshot.budget?.resets_at ?? null);
     },
-    [getBudgetSnapshot, notices]
+    [getBudgetSnapshot]
   );
 
   const composerBusy =
@@ -239,7 +230,7 @@ export function useChatSession({
         let creationTransport = transport;
         try {
           if (transportForNewChat) creationTransport = await transportForNewChat();
-          created = await creationTransport.createChat(getCreateInit?.());
+          created = await creationTransport.createChat();
         } catch (error) {
           failure = chatErrorDetail(error) ?? null;
         }
@@ -259,7 +250,7 @@ export function useChatSession({
           setDraft(text);
           setNotice({
             tone: 'error',
-            text: failure ?? `Couldn’t start a ${notices.noun}. Please try again.`,
+            text: failure ?? 'Couldn’t start a chat. Please try again.',
           });
           return;
         }
@@ -306,11 +297,9 @@ export function useChatSession({
       modelSelection.adoptConversation,
       setDraft,
       isCurrentSession,
-      getCreateInit,
       transportForNewChat,
       onListStale,
       onChatCreated,
-      notices.noun,
       failureNotice,
     ]
   );
@@ -365,7 +354,6 @@ export function useChatSession({
   const budgetResetsAt = researchAI.budget?.resets_at ?? null;
   const budgetAvailable = researchAI.budget !== null && !isBudgetExhausted(researchAI.budget);
   useEffect(() => {
-    if (notices.usageLimit !== 'inline') return;
     if (budgetAvailable) {
       setNotice((current) => (isBudgetNotice(current) ? null : current));
       return;
@@ -374,7 +362,7 @@ export function useChatSession({
     setNotice((current) =>
       isBudgetNoticeWithoutReset(current) ? budgetSpentNotice(budgetResetsAt) : current
     );
-  }, [budgetAvailable, budgetResetsAt, notices.usageLimit]);
+  }, [budgetAvailable, budgetResetsAt]);
 
   // Stop is only offered once something cancellable exists server-side. While
   // the message POST is still in flight or the chat is being created, cancel

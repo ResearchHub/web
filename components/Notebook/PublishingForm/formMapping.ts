@@ -274,20 +274,6 @@ export const autoAddCurrentUser = (
   return field;
 };
 
-/** The work type a notebook route asked for (`?newFunding=true`, `?template=grant`…). */
-export const resolveArticleType = (
-  params: { get(key: string): string | null } | null
-): ArticleType | null => {
-  if (params?.get('newFunding') === 'true') return 'preregistration';
-  if (params?.get('newChangelog') === 'true') return 'changelog';
-  if (params?.get('newGrant') === 'true') return 'grant';
-
-  const template = params?.get('template');
-  if (template === 'preregistration') return 'preregistration';
-  if (template === 'grant') return 'grant';
-  return null;
-};
-
 /** Where a work of this type lives once published. */
 export const getWorkPath = (articleType: string, workId: string, slug: string): string => {
   if (articleType === 'preregistration') return `/proposal/${workId}/${slug}?new=true`;

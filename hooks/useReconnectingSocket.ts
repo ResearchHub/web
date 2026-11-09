@@ -106,7 +106,7 @@ export function useReconnectingSocket({
       if (!token) {
         // Usually session hydration or a transient getSession() failure —
         // keep retrying on the backoff instead of staying dark until a
-        // remount. For a genuinely signed-out user the notebook itself is
+        // remount. For a genuinely signed-out user the workspace document is
         // unreachable, so the capped retry idles harmlessly.
         setStatus('closed');
         scheduleReconnect();

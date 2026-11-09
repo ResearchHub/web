@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteService, NoteError, type NoteInvitePreview } from '@/services/note.service';
-import { isChangelogNote, type Note, type NoteAccess, type NoteContent } from '@/types/note';
 import { ID } from '@/types/root';
 import { Editor } from '@tiptap/react';
 import { getHTMLFromFragment, getText, getTextSerializersFromSchema } from '@tiptap/core';
@@ -78,132 +77,6 @@ export function useAcceptNoteInvite(): UseAcceptNoteInviteReturn {
   return [{ isLoading, error }, acceptInvite];
 }
 
-interface CreateNoteInput {
-  title: string;
-  grouping: NoteAccess;
-  organizationSlug: string;
-  documentType?: string;
-}
-
-interface UseCreateNoteState {
-  note: Note | null;
-  isLoading: boolean;
-  error: Error | null;
-}
-
-type CreateNoteFn = (params: CreateNoteInput) => Promise<Note>;
-type UseCreateNoteReturn = [UseCreateNoteState, CreateNoteFn];
-
-export const useCreateNote = (): UseCreateNoteReturn => {
-  const [note, setNote] = useState<Note | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const createNote = async (params: CreateNoteInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await NoteService.createNote({
-        title: params.title,
-        grouping: params.grouping,
-        organization_slug: params.organizationSlug,
-        document_type: params.documentType,
-      });
-      setNote(response);
-      return response;
-    } catch (err) {
-      const errorMsg = err instanceof NoteError ? err.message : 'Failed to create note';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ note, isLoading, error }, createNote];
-};
-
-interface UseNoteContentState {
-  note: NoteContent | null;
-  isLoading: boolean;
-  error: Error | null;
-}
-
-interface UpdateNoteContentInput {
-  note: ID;
-  fullSrc?: string;
-  plainText?: string;
-  fullJson?: string;
-}
-
-type UpdateNoteContentFn = (params: UpdateNoteContentInput) => Promise<NoteContent>;
-type UseNoteContentReturn = [UseNoteContentState, UpdateNoteContentFn];
-
-export const useNoteContent = (): UseNoteContentReturn => {
-  const [note, setNote] = useState<NoteContent | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const updateNoteContent = async (params: UpdateNoteContentInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await NoteService.updateNoteContent({
-        note: params.note,
-        full_src: params.fullSrc,
-        plain_text: params.plainText,
-        full_json: params.fullJson,
-      });
-      setNote(response);
-      return response;
-    } catch (err) {
-      const errorMsg = err instanceof NoteError ? err.message : 'Failed to update note content';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ note, isLoading, error }, updateNoteContent];
-};
-
-interface UseDeleteNoteState {
-  isLoading: boolean;
-  error: Error | null;
-}
-
-type DeleteNoteFn = (noteId: ID) => Promise<Note>;
-type UseDeleteNoteReturn = [UseDeleteNoteState, DeleteNoteFn];
-
-export const useDeleteNote = (): UseDeleteNoteReturn => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const deleteNote = async (noteId: ID) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await NoteService.deleteNote(noteId);
-      return response;
-    } catch (err) {
-      const errorMsg = err instanceof NoteError ? err.message : 'Failed to delete note';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ isLoading, error }, deleteNote];
-};
-
 interface UseUpdateNoteState {
   isLoading: boolean;
   error: Error | null;
@@ -225,9 +98,8 @@ interface UpdateNoteOptions {
   registeredReportProposalId?: number | null;
   /**
    * The document a save should persist, when it isn't the editor's current
-   * one — the notebook uses this to strip in-note review content (assistant
-   * diff ranges pending a decision) out of saves. Defaults to the editor's
-   * live document.
+   * one — used to strip in-note review content (assistant diff ranges
+   * pending a decision) out of saves. Defaults to the editor's live document.
    */
   docToPersist?: (editor: Editor) => ProseMirrorNode;
 }
@@ -399,56 +271,4 @@ export const useUpdateNote = (noteId: ID, options: UpdateNoteOptions = {}): UseU
   }, []);
 
   return [{ isLoading, error }, updateNote, saveNoteNow];
-};
-
-interface UseDuplicateNoteState {
-  isLoading: boolean;
-  error: Error | null;
-}
-
-type DuplicateNoteFn = (noteId: string, organizationSlug: string) => Promise<Note>;
-type UseDuplicateNoteReturn = [UseDuplicateNoteState, DuplicateNoteFn];
-
-export const useDuplicateNote = (): UseDuplicateNoteReturn => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const duplicateNote = async (noteId: string, organizationSlug: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // 1. Get the original note with content
-      const originalNote = await NoteService.getNote(noteId);
-
-      // 2. Create a new note with the same title
-      const newNote = await NoteService.createNote({
-        title: `${originalNote.title} (Copy)`,
-        grouping: originalNote.access,
-        organization_slug: organizationSlug,
-        document_type: isChangelogNote(originalNote) ? 'CHANGELOG' : undefined,
-      });
-
-      // 3. Copy the content to the new note
-      if (originalNote.content || originalNote.contentJson) {
-        await NoteService.updateNoteContent({
-          note: newNote.id,
-          full_src: originalNote.content,
-          plain_text: originalNote.plainText,
-          full_json: originalNote.contentJson,
-        });
-      }
-
-      return newNote;
-    } catch (err) {
-      const errorMsg = err instanceof NoteError ? err.message : 'Failed to duplicate note';
-      const error = new Error(errorMsg);
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return [{ isLoading, error }, duplicateNote];
 };

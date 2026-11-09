@@ -8,6 +8,7 @@ import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-b
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { ContactModal } from '@/components/modals/ContactModal';
 import { colors } from '@/app/styles/colors';
+import { WORKSPACE_PATH } from '@/components/AIMode/workspaceUrl';
 
 export function LandingPageFooter() {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
@@ -124,14 +125,14 @@ export function LandingPageFooter() {
                   </Link>
                 </li>
               ))}
-              <li key="notebook">
+              <li key="workspace">
                 <button
-                  onClick={() => handleAuthenticatedLink('/notebook')}
+                  onClick={() => handleAuthenticatedLink(WORKSPACE_PATH)}
                   className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
                   onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
                   onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
                 >
-                  Notebook
+                  Workspace
                 </button>
               </li>
             </ul>

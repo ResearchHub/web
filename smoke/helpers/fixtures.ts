@@ -22,9 +22,9 @@ import { requiredEnv } from './env';
  * that only an open RFP renders.
  *
  * The specs that edit a title deliberately do not use these. Editing means
- * reopening the notebook note behind the post, which lives in the personal
- * notebook of whoever drafted it and cannot be shared, so those specs publish
- * their own content first rather than depending on who owns a fixture.
+ * reopening the workspace document behind the post, which belongs to whoever
+ * drafted it, so those specs publish their own content first rather than
+ * depending on who owns a fixture.
  */
 export function grantPostId(): string {
   return requiredEnv('SMOKE_GRANT_POST_ID');

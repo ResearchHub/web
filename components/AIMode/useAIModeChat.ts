@@ -9,7 +9,6 @@ import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
 import { documentTarget, type WorkspaceTarget } from './workspaceUrl';
-import type { ChatNoticePolicy } from '@/components/AgentChat/chatNotices';
 import {
   createFundingDraft,
   DOCUMENT_TYPE_BY_INTENT,
@@ -28,8 +27,6 @@ import type { Note } from '@/types/note';
 
 /** Matches the chat hook's own poll cadence, so a background turn's dot clears as fast as the open one. */
 const LIST_POLL_INTERVAL_MS = 5000;
-
-const NOTICES: ChatNoticePolicy = { noun: 'chat', usageLimit: 'inline' };
 
 export interface AIModeChatState extends ChatSession {
   readonly target: WorkspaceTarget;
@@ -85,8 +82,7 @@ export interface AIModeChatState extends ChatSession {
  * chat's session, selection through the URL, renames and deletes, and the
  * first message of a new draft, which creates the document and then its
  * chat. The session itself — the chat, its draft and the send path — is
- * `useChatSession`, shared with the notebook's panel; every chat here is the
- * notebook's kind, scoped to its document.
+ * `useChatSession`; every chat here is scoped to its document.
  */
 export function useAIModeChat(): AIModeChatState {
   const { target: urlTarget, selectTarget } = useAIMode();
@@ -204,11 +200,9 @@ export function useAIModeChat(): AIModeChatState {
   const session = useChatSession({
     transport,
     chatId,
-    enabled: true,
     onChatCreated,
     onListStale: refreshList,
     transportForNewChat: target.kind === 'new' ? createDraftTransport : undefined,
-    notices: NOTICES,
   });
   const { chat } = session;
   const clearAttachments = session.attachments.clear;

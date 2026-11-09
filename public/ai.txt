@@ -13,7 +13,6 @@ Disallow: /api/
 Disallow: /auth/
 Disallow: /verify/
 Disallow: /reset/
-Disallow: /org/join/
 Disallow: /note/join/
 Disallow: /notifications/
 Disallow: /activity/

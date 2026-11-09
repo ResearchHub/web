@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pencil, RefreshCw, Sparkles, X, type LucideIcon } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
-import { MIN_PUBLISH_TITLE_LENGTH } from '@/components/modals/ConfirmPublishModal';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { getRequiredFields } from '@/components/Notebook/PublishingForm/completion';
 import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
@@ -26,6 +25,7 @@ import { SelectGrantForNoteModal } from './masthead/SelectGrantForNoteModal';
 import { TextEditor } from './masthead/TextWidget';
 import { useLeaveToCommit } from './masthead/useLeaveToCommit';
 import type { PublishReadiness } from './masthead/usePublishReadiness';
+import { MIN_PUBLISH_TITLE_LENGTH } from './PublishGuidelines';
 
 const TITLE_ROW = 'title';
 

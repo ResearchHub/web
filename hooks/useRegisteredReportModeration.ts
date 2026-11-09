@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { documentTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { NoteError, NoteService } from '@/services/note.service';
 import {
@@ -146,7 +147,7 @@ export function useRegisteredReportModeration(): UseRegisteredReportModerationRe
         setEntries((currentEntries) =>
           currentEntries.filter((entry) => entry.content.id !== proposalId)
         );
-        router.replace(`/notebook/${organization.slug}/${noteId}`);
+        router.replace(workspaceHref(documentTarget(noteId)));
       } catch (error) {
         const accessDenied = isModeratorAccessError(error);
         const message = getDraftFailureMessage(error, noteId);

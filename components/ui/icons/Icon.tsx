@@ -13,10 +13,6 @@ export type IconName =
   | 'home1'
   | 'home2'
   | 'home3'
-  // Lab notebook icons
-  | 'labNotebook'
-  | 'labNotebook2'
-  | 'notebookBold'
   // Fund icons
   | 'fund'
   | 'fund2'
@@ -43,7 +39,6 @@ export type IconName =
   | 'RSC'
   // Solid icons
   | 'solidHand'
-  | 'solidNotebook'
   | 'solidCoin'
   | 'solidBook'
   // Peer review icons
