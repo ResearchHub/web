@@ -51,7 +51,9 @@ interface PaymentStepProps {
   paymentTarget: PaymentIntentTarget;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
   walletAvailability: WalletAvailability;
-  /** Whether the fundraise has a non-profit org (shows Endaoment option) */
+  /** Whether to list the Endaoment (DAF) option at all */
+  offerEndaoment?: boolean;
+  /** Whether the fundraise has a non-profit org (enables the Endaoment option) */
   hasNonprofit?: boolean;
   /** Whether the action is being processed */
   isProcessing?: boolean;
@@ -98,6 +100,7 @@ export function PaymentStep({
   allocateFromPool = null,
   paymentTarget,
   walletAvailability,
+  offerEndaoment = false,
   hasNonprofit = false,
   isProcessing = false,
   error,
@@ -350,6 +353,7 @@ export function PaymentStep({
           onStripeReady={onStripeReady}
           hideButton
           walletAvailability={walletAvailability}
+          offerEndaoment={offerEndaoment}
           hasNonprofit={hasNonprofit}
           isAward={isAward}
         />
