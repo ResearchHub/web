@@ -6,6 +6,7 @@ import {
   getEndaomentFunds,
   type EndaomentFund,
 } from '@/services/endaoment.service';
+import { ApiError } from '@/services/types';
 
 interface EndaomentContextType {
   connected: boolean;
@@ -37,9 +38,13 @@ export function EndaomentProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await getEndaomentFunds();
       setFunds(result);
-    } catch {
-      // Funds fetch failure is non-critical; funds will remain empty
+    } catch (err) {
       setFunds([]);
+      // The backend drops a connection whose token Endaoment no longer
+      // accepts and answers 404, so the user has to connect again.
+      if (err instanceof ApiError && err.status === 404) {
+        setConnected(false);
+      }
     } finally {
       setIsFundsLoading(false);
     }
