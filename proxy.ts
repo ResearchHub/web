@@ -60,5 +60,6 @@ export const config = {
     '/lists',
     '/list/:path*',
     '/proposal/:path*',
+    '/oauth/authorize',
   ],
 };
