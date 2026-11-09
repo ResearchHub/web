@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { ExternalLink, Send } from 'lucide-react';
 import { usePublishingController } from '@/components/Notebook/PublishingForm';
 import { getWorkPath } from '@/components/Notebook/PublishingForm/formMapping';
+import type { PublishingFormData } from '@/components/Notebook/PublishingForm/schema';
 import { Loader } from '@/components/ui/Loader';
 import { cn } from '@/utils/styles';
 
@@ -17,13 +19,17 @@ import { cn } from '@/utils/styles';
 export function PublishPill() {
   const controller = usePublishingController();
   const { note, editor, articleType, workId, isPublished } = controller;
+  const { watch } = useFormContext<PublishingFormData>();
+  // A proposal that answers an RFP is the researcher's application to it:
+  // publishing it is what submits it.
+  const applying = articleType === 'preregistration' && watch('selectedGrant') != null;
 
   if (!articleType || !hasPublishButton(controller)) return null;
 
-  const handleClick = () => void controller.requestPublish();
-
   const busyLabel = controller.isUpserting
-    ? 'Publishing...'
+    ? applying && !isPublished
+      ? 'Submitting...'
+      : 'Publishing...'
     : controller.isLinkingNonprofit
       ? 'Linking nonprofit...'
       : controller.isRedirecting
@@ -53,16 +59,16 @@ export function PublishPill() {
             label={busyLabel ?? 'Update'}
             busy={busyLabel != null}
             disabled={disabled}
-            onClick={handleClick}
+            onClick={controller.requestPublish}
             size="sm"
           />
         </div>
       ) : (
         <PublishAction
-          label={busyLabel ?? 'Publish'}
+          label={busyLabel ?? (applying ? SUBMIT_APPLICATION_LABEL : 'Publish')}
           busy={busyLabel != null}
           disabled={disabled}
-          onClick={handleClick}
+          onClick={controller.requestPublish}
           size="lg"
           className="pointer-events-auto"
         />
@@ -70,6 +76,9 @@ export function PublishPill() {
     </div>
   );
 }
+
+/** Publish, for a draft proposal that answers an RFP. */
+export const SUBMIT_APPLICATION_LABEL = 'Submit application';
 
 type PublishingController = ReturnType<typeof usePublishingController>;
 
@@ -126,7 +135,7 @@ export function PublishRequest({
     const go = () => {
       const { canPublish: can, requestPublish, onHandled: handled } = latest.current;
       handled(can ? 'opened' : 'blocked');
-      if (can) void requestPublish();
+      if (can) requestPublish();
     };
     if (readyWhenAsked.current) {
       go();

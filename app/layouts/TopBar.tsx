@@ -47,7 +47,7 @@ export function TopBar({ onMenuClick, isMenuOpen = false }: TopBarProps) {
   const { contentTabsHidden } = useFeedTabsVisibility();
   const showTopBarFundTabs = isFundPage && contentTabsHidden;
 
-  // A page (e.g. the notebook) can inject a custom control here in place of the
+  // A page (e.g. the workspace) can inject a custom control here in place of the
   // default breadcrumb.
   const topBarSlot = useTopBarSlot();
   const leftSlot = topBarSlot?.leftSlot;

@@ -83,16 +83,11 @@ export function useWorkHeaderMenuItems({
 
   const handleEdit = useCallback(() => {
     if (selectedOrg && work.note) {
-      // RFPs are written in the workspace; the rest still open in the notebook.
-      router.push(
-        work.contentType === 'funding_request'
-          ? workspaceHref(documentTarget(work.note.id))
-          : `/notebook/${work.note.organization.slug}/${work.note.id}`
-      );
+      router.push(workspaceHref(documentTarget(work.note.id)));
     } else {
       toast.error('Unable to edit');
     }
-  }, [work.note, work.contentType, selectedOrg, router]);
+  }, [work.note, selectedOrg, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();

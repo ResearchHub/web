@@ -8,8 +8,10 @@ import {
   Grant,
   GrantApplicationVisibility,
   SelectedGrantDetails,
+  parseFundingMechanism,
   transformGrant,
   transformSelectedGrant,
+  type FundingMechanism,
 } from './grant';
 import { NonprofitOrg, transformNonprofitDetailsToOrg } from './nonprofit';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
@@ -53,6 +55,7 @@ export interface NoteGrantSettings {
   organization: string | null;
   description: string | null;
   applicationVisibility: GrantApplicationVisibility | null;
+  fundingMechanism: FundingMechanism;
   contacts: Contact[];
 }
 
@@ -98,6 +101,7 @@ export interface NoteGrantSettingsUpdate {
   organization?: string;
   description?: string;
   applicationVisibility?: GrantApplicationVisibility;
+  fundingMechanism?: FundingMechanism;
   /** User ids, not author profile ids. */
   contactIds?: number[];
 }
@@ -141,6 +145,7 @@ const GRANT_SETTINGS_KEYS: Record<keyof NoteGrantSettingsUpdate, string> = {
   organization: 'organization',
   description: 'description',
   applicationVisibility: 'application_visibility',
+  fundingMechanism: 'funding_mechanism',
   contactIds: 'contact_ids',
 };
 
@@ -246,6 +251,7 @@ const transformNoteGrantSettings = createTransformer<any, NoteGrantSettings>((ra
   organization: raw.organization ?? null,
   description: raw.description ?? null,
   applicationVisibility: raw.application_visibility ?? null,
+  fundingMechanism: parseFundingMechanism(raw.funding_mechanism),
   // Saved grant contacts are users, so they arrive as names rather than a label.
   contacts: (raw.contacts ?? []).map((contact: any) => ({
     id: contact.id,
@@ -310,12 +316,6 @@ const transformRegisteredReportPrefill = (raw: any): RegisteredReportPrefill | n
 
 const isRegisteredReportDocumentType = (documentType?: string | null): boolean =>
   documentType?.trim().toUpperCase() === 'REGISTERED_REPORT';
-
-const isGrantDocumentType = (documentType?: string | null): boolean =>
-  documentType?.trim().toUpperCase() === 'GRANT';
-
-const isPreregistrationDocumentType = (documentType?: string | null): boolean =>
-  documentType?.trim().toUpperCase() === 'PREREGISTRATION';
 
 const isChangelogDocumentType = (documentType?: string | null): boolean =>
   documentType?.trim().toUpperCase() === 'CHANGELOG';
@@ -409,51 +409,6 @@ export const isRegisteredReportNote = (note?: ClassifiableNote | null): boolean 
 
 /** A note that has been published: it carries the post it became. Anything else is a draft. */
 export const isPublishedNote = (note?: ClassifiableNote | null): boolean => Boolean(note?.post?.id);
-
-export const isPublishedRegisteredReportNote = (note?: ClassifiableNote | null): boolean =>
-  isPublishedNote(note) && isRegisteredReportNote(note);
-
-/**
- * A Request for Proposal — the funder's call for work, as opposed to the
- * proposals answering it. Reads the same signals as the editor's work-type
- * label, including `contentType`, which is where a note carrying only a post
- * records it.
- */
-export const isRfpNote = (note?: ClassifiableNote | null): boolean =>
-  isGrantDocumentType(note?.documentType) ||
-  isGrantDocumentType(note?.post?.documentType) ||
-  note?.post?.contentType === 'funding_request';
-
-/** A research proposal — the researcher's ask, which may answer an RFP. */
-export const isProposalNote = (note?: ClassifiableNote | null): boolean =>
-  isPreregistrationDocumentType(note?.documentType) ||
-  isPreregistrationDocumentType(note?.post?.documentType) ||
-  note?.post?.contentType === 'preregistration';
-
-/**
- * What a note is, for anything that shows notes by kind. A Registered Report
- * comes first because it carries a proposal's type underneath; `preprint`
- * is a note that was published as an ordinary post; `other` has no type
- * yet. ChangeLogs are told apart by `isChangelogNote`.
- */
-export type NoteKind = 'proposal' | 'rfp' | 'registered_report' | 'preprint' | 'other';
-
-export const getNoteKind = (note?: ClassifiableNote | null): NoteKind => {
-  if (!note) return 'other';
-  if (isRegisteredReportNote(note)) return 'registered_report';
-  if (isRfpNote(note)) return 'rfp';
-  if (isProposalNote(note)) return 'proposal';
-  if (note.documentType?.trim().toUpperCase() === 'DISCUSSION' || note.post) return 'preprint';
-  return 'other';
-};
-
-/** The kind's name as the editor shows it above the document. */
-export const NOTE_KIND_LABELS: Record<Exclude<NoteKind, 'other'>, string> = {
-  proposal: 'Proposal',
-  rfp: 'Request for Proposal',
-  registered_report: 'Registered Report',
-  preprint: 'Preprint',
-};
 
 export const isChangelogNote = (note?: ClassifiableNote | null): boolean =>
   isChangelogDocumentType(note?.documentType) || isChangelogDocumentType(note?.post?.documentType);

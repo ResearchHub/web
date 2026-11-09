@@ -1,16 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react';
-import { useSearchParams } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  getDocumentTitleFromEditor,
-  setDocumentTitle,
-} from '@/components/Editor/lib/utils/documentTitle';
-import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
-import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { usePublishingHost } from '@/contexts/PublishingHostContext';
 import { useUser } from '@/contexts/UserContext';
 import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
@@ -24,7 +17,6 @@ import {
   populateFormFromNoteDetails,
   populateFromPost,
   populateRegisteredReportPrefill,
-  resolveArticleType,
   saveSelectedNonprofit,
 } from './formMapping';
 import { publishingFormSchema, type ArticleType, type PublishingFormData } from './schema';
@@ -46,7 +38,7 @@ export interface PublishingController extends PublishAction {
   readonly isChangelog: boolean;
   /** A declined Request for Proposal: shown, but no longer editable. */
   readonly isDeclined: boolean;
-  /** Publishing is allowed right now; the footer button follows this. */
+  /** Publishing is allowed right now; the Publish button follows this. */
   readonly canPublish: boolean;
   /** Why publishing is refused, when the reason is worth showing next to the button. */
   readonly blockedMessage: string | null;
@@ -59,19 +51,17 @@ const PublishingControllerContext = createContext<PublishingController | null>(n
 interface PublishingFormProviderProps {
   readonly readOnly?: boolean;
   /**
-   * The title the work is published under, for a host that keeps it outside
-   * the document (the workspace shows the note's own title above the text).
-   * Without it the title is the document's first heading, which the
-   * confirmation edits in place: the notebook.
+   * The title the work is published under, which the host keeps outside the
+   * document (the workspace shows the note's own title above the text).
    */
-  readonly publishTitle?: string;
+  readonly publishTitle: string;
   /**
-   * The host's own publish confirmation, shown in place of the notebook's
-   * dialog as soon as publishing is asked for. Nothing is validated first:
-   * it reads the form and the flow from `usePublishingController()`, shows
-   * what is still missing, and is where a nonprofit is chosen and confirmed.
+   * The host's publish confirmation, shown as soon as publishing is asked
+   * for. Nothing is validated first: it reads the form and the flow from
+   * `usePublishingController()`, shows what is still missing, and is where a
+   * nonprofit is chosen and confirmed.
    */
-  readonly publishConfirmation?: ReactNode;
+  readonly publishConfirmation: ReactNode;
   /**
    * The note as the server has it now, fetched again after something other
    * than this form changed it (the assistant filling in an RFP's details).
@@ -95,9 +85,8 @@ function noteDetailValues(note: NoteWithContent): Map<string, unknown> {
 /**
  * Owns the publishing form for the note the host provides: its values, how
  * they load from the note and save back to it, and the publish flow. Anything
- * that reads or drives the form — the form body, a publish button placed
- * elsewhere, a single section shown on its own — renders inside it and asks
- * `usePublishingController()`.
+ * that reads or drives the form — the masthead, the Publish button, the
+ * publish dialog — renders inside it and asks `usePublishingController()`.
  */
 export function PublishingFormProvider({
   readOnly = false,
@@ -108,7 +97,6 @@ export function PublishingFormProvider({
 }: PublishingFormProviderProps) {
   const { note, editor, saveDetailsSoon, saveDetailsNow } = usePublishingHost();
   const { user: currentUser } = useUser();
-  const searchParams = useSearchParams();
 
   const methods = useForm<PublishingFormData>({
     defaultValues: FORM_DEFAULTS,
@@ -139,10 +127,9 @@ export function PublishingFormProvider({
         populateRegisteredReportPrefill(note, methods.getValues, methods.setValue);
       }
 
-      const articleType =
-        (note.documentType ? mapDocumentTypeToArticleType(note.documentType) : null) ??
-        resolveArticleType(searchParams) ??
-        null;
+      const articleType = note.documentType
+        ? mapDocumentTypeToArticleType(note.documentType)
+        : null;
 
       if (articleType) {
         methods.setValue('articleType', articleType);
@@ -208,7 +195,6 @@ export function PublishingFormProvider({
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
   const workId = watch('workId');
-  const selectedNonprofit = watch('selectedNonprofit');
   const isPublicValue = watch('isPublic');
   const selectedGrantValue = watch('selectedGrant');
 
@@ -225,10 +211,7 @@ export function PublishingFormProvider({
   const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
   const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
 
-  const getTitle = useCallback(
-    () => publishTitle ?? getDocumentTitleFromEditor(editor),
-    [publishTitle, editor]
-  );
+  const getTitle = useCallback(() => publishTitle, [publishTitle]);
 
   const action = usePublishAction({
     methods,
@@ -240,8 +223,6 @@ export function PublishingFormProvider({
     isChangelog,
     canPublishChangelog,
     canPublishRegisteredReport,
-    titleInDocument: publishTitle === undefined,
-    hostConfirms: publishConfirmation !== undefined,
   });
 
   const canPublish =
@@ -283,41 +264,7 @@ export function PublishingFormProvider({
       <FormProvider {...methods}>
         <CoverImageGeneratorProvider>
           {children}
-
-          {action.pendingConfirmation === 'nonprofit' && selectedNonprofit && (
-            <NonprofitConfirmModal
-              isOpen
-              onClose={action.dismissConfirmation}
-              onConfirm={action.acceptNonprofit}
-              nonprofitName={selectedNonprofit.name}
-              ein={selectedNonprofit.ein}
-            />
-          )}
-
-          {action.pendingConfirmation === 'publish' &&
-            (publishConfirmation !== undefined ? (
-              publishConfirmation
-            ) : (
-              <ConfirmPublishModal
-                isOpen
-                onClose={action.dismissConfirmation}
-                onConfirm={action.confirmPublish}
-                title={
-                  publishTitle ??
-                  (getDocumentTitleFromEditor(editor) ||
-                    (isChangelog ? 'Untitled ChangeLog' : 'Untitled Research'))
-                }
-                isPublishing={action.isPublishing}
-                isUpdate={Boolean(workId)}
-                onTitleChange={
-                  publishTitle === undefined
-                    ? (title) => setDocumentTitle(editor, title)
-                    : undefined
-                }
-                variant={articleType === 'grant' ? 'rfp' : 'default'}
-                documentLabel={isChangelog ? 'ChangeLog entry' : undefined}
-              />
-            ))}
+          {action.isConfirming && publishConfirmation}
         </CoverImageGeneratorProvider>
       </FormProvider>
     </PublishingControllerContext.Provider>

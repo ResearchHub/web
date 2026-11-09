@@ -8,6 +8,7 @@ import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { useFundPanel } from '@/components/Funding/FundPanelContext';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { CoverBadge } from '@/components/work/WorkCover';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { ShareLinkModal } from '@/components/modals/ShareLinkModal';
@@ -17,8 +18,8 @@ import { useRouter } from 'next/navigation';
 import { isFundraiseActive, getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
 import { PostService } from '@/services/post.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import { stripShareToken } from '@/lib/shareToken/url';
 import { buildWorkUrl } from '@/utils/url';
+import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
 import toast from 'react-hot-toast';
 import { WorkHeader } from './WorkHeader';
 
@@ -54,6 +55,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
   const router = useRouter();
 
   const displayedWork = updatedWork ?? work;
+  const isAward = isAwardMechanism(displayedWork.linkedGrant?.fundingMechanism);
   const fundraise = metadata.fundraising ?? null;
 
   const isActive = fundraise ? isFundraiseActive(fundraise) : false;
@@ -84,8 +86,10 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
     closeFundPanel();
     if (!hasJustFundedRef.current) return;
     hasJustFundedRef.current = false;
+    if (!isPubliclyShareable(displayedWork)) return;
+
     showShareModal({
-      url: stripShareToken(globalThis.location.href),
+      url: `${globalThis.location.origin}${buildPublicSharePath(displayedWork)}`,
       docTitle: displayedWork.title,
       action: 'USER_FUNDED_PROPOSAL',
     });
@@ -155,6 +159,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
           fundraise={fundraise}
           proposalTitle={displayedWork.title}
           work={displayedWork}
+          isAward={isAward}
           variant="panel"
           topContent={
             <WorkCoverCard
@@ -163,7 +168,11 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
               imageUrl={displayedWork.image}
             />
           }
-          successText="Your name now shows with this proposal's funders."
+          successText={
+            isAward
+              ? 'The prize has been awarded to this proposal.'
+              : "Your name now shows with this proposal's funders."
+          }
         />
       )}
 

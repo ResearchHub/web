@@ -4,11 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAIMode } from './AIModeContext';
 import { untitledDraftTitle } from './copy';
+import { readHandedOffRfp } from './rfpHandoff';
 import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
 import { documentTarget, type WorkspaceTarget } from './workspaceUrl';
-import type { ChatNoticePolicy } from '@/components/AgentChat/chatNotices';
 import {
   createFundingDraft,
   DOCUMENT_TYPE_BY_INTENT,
@@ -28,8 +28,6 @@ import { isCopilotKitChatEnabled } from '@/utils/featureFlags';
 
 /** Matches the chat hook's own poll cadence, so a background turn's dot clears as fast as the open one. */
 const LIST_POLL_INTERVAL_MS = 5000;
-
-const NOTICES: ChatNoticePolicy = { noun: 'chat', usageLimit: 'inline' };
 
 /**
  * A document's chat transport. The CopilotKit chat sends through the chat's
@@ -93,8 +91,7 @@ export interface AIModeChatState extends ChatSession {
  * chat's session, selection through the URL, renames and deletes, and the
  * first message of a new draft, which creates the document and then its
  * chat. The session itself — the chat, its draft and the send path — is
- * `useChatSession`, shared with the notebook's panel; every chat here is the
- * notebook's kind, scoped to its document.
+ * `useChatSession`; every chat here is scoped to its document.
  */
 export function useAIModeChat(): AIModeChatState {
   const { target: urlTarget, selectTarget } = useAIMode();
@@ -126,6 +123,17 @@ export function useAIModeChat(): AIModeChatState {
   }, [urlIntent, rememberIntent]);
   const intent = urlIntent ?? rememberedIntent;
   const [selectedGrant, setSelectedGrant] = useState<SelectedGrantDetails | null>(null);
+
+  // An RFP page's Apply leads here with the RFP named (`?rfp=<id>`) and hands
+  // over what it knows of it, so it starts out picked, as if chosen on this
+  // screen, with no request for it. It can still be changed. Without the
+  // handover (a link opened in another tab) nothing is picked.
+  const urlGrantId = target.kind === 'new' ? (target.grantId ?? null) : null;
+  useEffect(() => {
+    if (urlGrantId == null) return;
+    const handedOff = readHandedOffRfp(urlGrantId);
+    if (handedOff) setSelectedGrant(handedOff);
+  }, [urlGrantId]);
 
   // ---- the first message of a new draft ----
   // It creates the document, then a chat on it, then goes out there. A note
@@ -201,11 +209,9 @@ export function useAIModeChat(): AIModeChatState {
   const session = useChatSession({
     transport,
     chatId,
-    enabled: true,
     onChatCreated,
     onListStale: refreshList,
     transportForNewChat: target.kind === 'new' ? createDraftTransport : undefined,
-    notices: NOTICES,
   });
   const { chat } = session;
   const clearAttachments = session.attachments.clear;

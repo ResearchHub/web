@@ -17,6 +17,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
 import { getGrantBadgeAmount } from '@/types/grant';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -36,9 +37,17 @@ interface ProposalRowProps {
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
+  /** An award RFP's proposals ask for nothing: the funder sets the award. */
+  showAsk: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
+const ProposalRow: FC<ProposalRowProps> = ({
+  application,
+  showUSD,
+  exchangeRate,
+  isLast,
+  showAsk,
+}) => {
   const { profile, fundraise: fundraiseRaw } = application;
   const fundraise = fundraiseRaw!;
 
@@ -63,18 +72,21 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
     <Link
       href={proposalHref}
       className={cn(
-        'grid grid-cols-[56px_1fr] sm:grid-cols-[72px_1fr] items-center gap-3 pr-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        'grid items-center gap-3 pr-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
+        showAsk ? 'grid-cols-[56px_1fr] sm:grid-cols-[72px_1fr]' : 'grid-cols-1 pl-5',
         !isLast && 'border-b border-gray-100'
       )}
     >
       {/* Ask amount — no left padding on the row, so the value sits equidistant
           between the card edge and the divider */}
-      <div className="text-center py-1 border-r border-gray-200">
-        <div className="text-sm font-extrabold font-mono tracking-tight text-gray-900">
-          {formatCompact(askAmount, showUSD, exchangeRate)}
+      {showAsk && (
+        <div className="text-center py-1 border-r border-gray-200">
+          <div className="text-sm font-extrabold font-mono tracking-tight text-gray-900">
+            {formatCompact(askAmount, showUSD, exchangeRate)}
+          </div>
+          <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">ask</div>
         </div>
-        <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">ask</div>
-      </div>
+      )}
 
       {/* Title + author + org + score */}
       <div className="min-w-0">
@@ -159,6 +171,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const hasProposals = allProposals.length > 0;
 
   const isClosed = grant.status === 'CLOSED' || grant.isExpired || !grant.isActive;
+  const isAward = isAwardMechanism(grant.fundingMechanism);
 
   const totalRequested = allProposals.reduce((sum, a) => {
     const ask = showUSD ? (a.fundraise?.goalAmount.usd ?? 0) : (a.fundraise?.goalAmount.rsc ?? 0);
@@ -224,8 +237,14 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
           </div>
           <div className="flex-shrink-0 self-stretch flex flex-col text-right">
             <div className="text-[9px] uppercase tracking-wider font-semibold text-white/70 whitespace-nowrap">
-              <span className="sm:hidden">Funding</span>
-              <span className="hidden sm:inline">Available Funding</span>
+              {isAward ? (
+                'Prize pool'
+              ) : (
+                <>
+                  <span className="sm:hidden">Funding</span>
+                  <span className="hidden sm:inline">Available Funding</span>
+                </>
+              )}
             </div>
             <div className="flex-1 flex items-center justify-end">
               <span className="text-base font-extrabold font-mono text-emerald-300 leading-snug">
@@ -251,6 +270,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
                 application={application}
                 showUSD={showUSD}
                 exchangeRate={exchangeRate}
+                showAsk={!isAward}
                 isLast={
                   i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
                 }
@@ -298,7 +318,11 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">
             {hasProposals
-              ? `${allProposals.length} proposal${allProposals.length !== 1 ? 's' : ''} · ${formatCompact(Math.round(totalRequested), showUSD, exchangeRate)} total requested`
+              ? `${allProposals.length} proposal${allProposals.length !== 1 ? 's' : ''}${
+                  isAward
+                    ? ''
+                    : ` · ${formatCompact(Math.round(totalRequested), showUSD, exchangeRate)} total requested`
+                }`
               : 'Rolling funding · Apply anytime'}
           </span>
           <Link href={href}>

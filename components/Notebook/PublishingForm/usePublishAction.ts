@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import type { Editor } from '@tiptap/react';
 import type { UseFormReturn } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { setDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
 import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useUpsertPost } from '@/hooks/useDocument';
@@ -13,14 +12,14 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { ApiError } from '@/services/types';
 import type { NoteWithContent } from '@/types/note';
-import { getFieldErrorMessage } from '@/utils/form';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { DEFAULT_FUNDRAISE_END_DAYS, getWorkPath, mapOptionsToIds } from './formMapping';
 import type { PublishingFormData } from './schema';
 
 export const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
 const REGISTERED_REPORT_MODERATOR_MESSAGE = 'Only moderators can publish Registered Reports.';
-const PREPRINT_MESSAGE = 'Preprints can no longer be created in the notebook.';
+const PREPRINT_MESSAGE = 'Preprints cannot be created in the workspace.';
 
 const PUBLISH_LABEL: Record<string, string> = {
   changelog: 'ChangeLog',
@@ -28,9 +27,6 @@ const PUBLISH_LABEL: Record<string, string> = {
   grant: 'Request for Proposal',
   registered_report: 'Registered Report',
 };
-
-/** Which confirmation, if any, is waiting on the user before the work is published. */
-export type PendingConfirmation = 'nonprofit' | 'publish' | null;
 
 interface PublishActionOptions {
   readonly methods: UseFormReturn<PublishingFormData>;
@@ -42,29 +38,18 @@ interface PublishActionOptions {
   readonly isChangelog: boolean;
   readonly canPublishChangelog: boolean;
   readonly canPublishRegisteredReport: boolean;
-  /**
-   * The title is the document's first heading, so the one confirmed is
-   * written back into it. Off for a host that keeps the title outside the
-   * document: there the first heading is a section and is left alone.
-   */
-  readonly titleInDocument: boolean;
-  /**
-   * The host shows its own confirmation, which is where whatever is still
-   * missing gets filled in and where a nonprofit is chosen. A request to
-   * publish then opens it straight away, without the validation that names
-   * each missing field in a toast; the work is validated when that
-   * confirmation is confirmed, and the nonprofit is the host's to confirm.
-   */
-  readonly hostConfirms: boolean;
 }
 
 export interface PublishAction {
-  /** Validates the form and, if it passes, asks the user to confirm. */
-  readonly requestPublish: () => Promise<void>;
-  readonly pendingConfirmation: PendingConfirmation;
+  /**
+   * Opens the host's confirmation, which is where whatever is still missing
+   * gets filled in and where a nonprofit is chosen and confirmed. A work that
+   * cannot be published here is refused with a toast instead.
+   */
+  readonly requestPublish: () => void;
+  /** The host's confirmation is open. */
+  readonly isConfirming: boolean;
   readonly dismissConfirmation: () => void;
-  /** The nonprofit was confirmed; the publish confirmation comes next. */
-  readonly acceptNonprofit: () => void;
   /** Publishes under the title the user confirmed. */
   readonly confirmPublish: (title: string) => Promise<void>;
   /** Any step of publishing is in flight. */
@@ -76,9 +61,9 @@ export interface PublishAction {
 }
 
 /**
- * The publish flow: validate, confirm (the nonprofit first when one is
- * selected), then write the work from the editor and the form and leave for
- * its page. Errors surface as toasts; the caller only renders the modals.
+ * The publish flow: confirm, validate, then write the work from the editor
+ * and the form and leave for its page. Errors surface as toasts; the caller
+ * only renders the confirmation.
  */
 export function usePublishAction({
   methods,
@@ -90,21 +75,18 @@ export function usePublishAction({
   isChangelog,
   canPublishChangelog,
   canPublishRegisteredReport,
-  titleInDocument,
-  hostConfirms,
 }: PublishActionOptions): PublishAction {
   const router = useRouter();
-  const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
   const { refresh: refreshFundingNotes } = useFundingNotes();
 
-  const dismissConfirmation = useCallback(() => setPendingConfirmation(null), []);
-  const acceptNonprofit = useCallback(() => setPendingConfirmation('publish'), []);
+  const dismissConfirmation = useCallback(() => setIsConfirming(false), []);
 
-  const requestPublish = useCallback(async () => {
+  const requestPublish = useCallback(() => {
     if (readOnly) return;
 
     if (isNewPreprint) {
@@ -117,46 +99,8 @@ export function usePublishAction({
       return;
     }
 
-    if (hostConfirms) {
-      setPendingConfirmation('publish');
-      return;
-    }
-
-    const result = await methods.trigger();
-
-    if (!result) {
-      const errors = methods.formState.errors;
-
-      if (Object.keys(errors).length > 0) {
-        Object.entries(errors).forEach(([field, error]) => {
-          const errorMessage = getFieldErrorMessage(error, `Invalid ${field}`);
-          if (errorMessage) {
-            toast.error(errorMessage, {
-              style: { width: '300px' },
-            });
-          }
-        });
-      } else {
-        toast.error('Unable to publish. Please check all fields and try again.', {
-          style: { width: '300px' },
-        });
-      }
-      return;
-    }
-
-    const { articleType, selectedNonprofit } = methods.getValues();
-    if (
-      articleType !== 'preregistration' &&
-      articleType !== 'changelog' &&
-      articleType !== 'discussion' &&
-      articleType !== 'grant' &&
-      articleType !== 'registered_report'
-    ) {
-      return;
-    }
-
-    setPendingConfirmation(selectedNonprofit ? 'nonprofit' : 'publish');
-  }, [readOnly, isNewPreprint, canPublishRegisteredReport, methods, hostConfirms]);
+    setIsConfirming(true);
+  }, [readOnly, isNewPreprint, canPublishRegisteredReport]);
 
   const uploadCoverImage = useCallback(
     async (formData: PublishingFormData): Promise<string | null | false> => {
@@ -186,7 +130,9 @@ export function usePublishAction({
       formData: PublishingFormData,
       fundraiseId: string | number | undefined
     ): Promise<boolean> => {
+      const isAwardApplication = isAwardMechanism(formData.selectedGrant?.fundingMechanism);
       if (
+        isAwardApplication ||
         !formData.selectedNonprofit ||
         !fundraiseId ||
         formData.articleType !== 'preregistration'
@@ -237,9 +183,7 @@ export function usePublishAction({
       try {
         // The host's confirmation holds its own Publish back until the work
         // is complete; this is the same check, where it cannot be skipped.
-        if (hostConfirms && !(await methods.trigger())) return;
-
-        if (titleInDocument) setDocumentTitle(editor, editedTitle);
+        if (!(await methods.trigger())) return;
 
         // Drain the queue now: publishing supersedes the draft, and the API
         // rejects Details on a published note.
@@ -269,6 +213,8 @@ export function usePublishAction({
         }
 
         const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
+        const isAwardApplication =
+          isNewProposal && isAwardMechanism(formData.selectedGrant?.fundingMechanism);
         const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
         const proposalId = note.proposalId;
 
@@ -319,6 +265,11 @@ export function usePublishAction({
             grantId,
             applicationVisibility:
               formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
+            fundingMechanism:
+              formData.articleType === 'grant' && !formData.workId
+                ? (formData.fundingMechanism ?? 'FUNDING')
+                : undefined,
+            omitFundraiseGoal: isAwardApplication,
             isPublic: isNewProposal ? formData.isPublic : undefined,
           },
           formData.workId
@@ -357,7 +308,9 @@ export function usePublishAction({
         }
         // The document has a post now: the sidebar moves it from Drafts to Published.
         void refreshFundingNotes();
-        router.push(getWorkPath(formData.articleType, String(response.id), response.slug));
+        const workPath = getWorkPath(formData.articleType, String(response.id), response.slug);
+        // `?new=true` opens the proposal page's celebration, for a first publish only.
+        router.push(isNewProposal ? `${workPath}?new=true` : workPath);
       } catch (error: unknown) {
         const fallback = 'Error publishing. Please try again.';
         if (
@@ -376,7 +329,7 @@ export function usePublishAction({
         }
         console.error('Error publishing:', error);
       } finally {
-        setPendingConfirmation(null);
+        setIsConfirming(false);
       }
     },
     [
@@ -384,8 +337,6 @@ export function usePublishAction({
       note,
       isNewPreprint,
       canPublishChangelog,
-      hostConfirms,
-      titleInDocument,
       editor,
       saveDetailsNow,
       methods,
@@ -402,9 +353,8 @@ export function usePublishAction({
 
   return {
     requestPublish,
-    pendingConfirmation,
+    isConfirming,
     dismissConfirmation,
-    acceptNonprofit,
     confirmPublish,
     isPublishing: isUpserting || isRedirecting || isLinkingNonprofit,
     isUpserting,

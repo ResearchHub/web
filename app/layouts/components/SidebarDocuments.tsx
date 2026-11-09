@@ -6,6 +6,7 @@ import { FileText, MoveRight, Plus } from 'lucide-react';
 import { useOptionalAIMode } from '@/components/AIMode/AIModeContext';
 import { AssistantActivityDot } from '@/components/AgentChat/AssistantActivityDot';
 import { DraftMenu } from '@/components/Funding/DraftMenu';
+import { SHOW_DRAFTS_EVENT } from '@/components/Funding/dashboard/DraftsCarousel';
 import { NewDraftMenu } from '@/components/Funding/NewDraftMenu';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
@@ -153,8 +154,15 @@ export function SidebarDocuments({ onNavigate, className }: SidebarDocumentsProp
 
       {ready && (drafts.length > 0 || hasPublished) && (
         <Link
-          href="/my-funding"
-          onClick={onNavigate}
+          href={drafts.length > 0 ? '/my-funding#drafts' : '/my-funding'}
+          onClick={() => {
+            onNavigate?.();
+            // Already on this page: the section is mounted, and a client
+            // navigation does not remount it. Elsewhere, the hash does the scroll.
+            if (drafts.length > 0 && window.location.pathname === '/my-funding') {
+              window.dispatchEvent(new Event(SHOW_DRAFTS_EVENT));
+            }
+          }}
           className="ml-2.5 mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-gray-600 transition-colors hover:text-gray-900"
         >
           See all

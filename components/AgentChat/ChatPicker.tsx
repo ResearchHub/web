@@ -35,10 +35,6 @@ interface ChatPickerProps {
 /**
  * A dropdown for switching between a document's chats. Built on the cheap
  * listing projection: title, preview, activity dot — never full chats.
- *
- * In the notebook it is the header's title and switching is all it does;
- * starting a chat lives on the header button beside it, where it is one tap
- * rather than two. The workspace opens it from an icon, with "New chat" first.
  */
 export function ChatPicker({
   chats,

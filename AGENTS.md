@@ -18,9 +18,9 @@ Next.js frontend for ResearchHub. All data comes from the Django API in
 
 ## Dependencies
 
-- `@tiptap-pro/*` and Font Awesome Pro install from private registries. Their
-  tokens live in a gitignored `.npmrc` at the repo root, so a fresh clone or git
-  worktree needs a copy of it before `npm install` works.
+- Font Awesome Pro installs from a private registry. Its token lives in a
+  gitignored `.npmrc` at the repo root, so a fresh clone or git worktree needs a
+  copy of it before `npm install` works.
 - Use npm 11 for `npm install` and `npm ci`.
 
 ## Conventions

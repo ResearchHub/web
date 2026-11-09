@@ -11,7 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         '/auth/',
         '/verify/',
         '/reset/',
-        '/org/join/',
         '/note/join/',
         '/notifications/',
         '/activity/',

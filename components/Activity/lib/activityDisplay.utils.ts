@@ -1,3 +1,4 @@
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { buildWorkUrl } from '@/utils/url';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 import type { CurrencyAmount } from '@/utils/currency';
@@ -7,6 +8,7 @@ import type {
   FeedCommentContent,
   FeedContentType,
   FeedEntry,
+  FeedFundraiseContent,
   FeedFundingActivityContent,
   FeedGrantContent,
   FeedPaperContent,
@@ -148,9 +150,16 @@ function getDefaultActivityMessage(entry: FeedEntry): ActivityHeaderMessage {
   }
 
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
-    return isFundingPoolContribution(entry)
-      ? { actor, verb: 'contributed', suffix: ' to the funding pool' }
+    if (isFundingPoolContribution(entry)) {
+      return { actor, verb: 'contributed', suffix: ' to the funding pool' };
+    }
+    return isAwardMechanism(entry.relatedWork?.fundingMechanism)
+      ? { actor, verb: 'awarded this proposal a prize of' }
       : { actor, verb: 'funded this proposal with' };
+  }
+
+  if (isProposalFullyFunded(entry)) {
+    return { actor: getProposalFullyFundedActor(entry), verb: 'reached their funding goal' };
   }
 
   // Registered reports arrive as `post` entries; only the document type sets them apart,
@@ -174,6 +183,17 @@ export function isProposalSubmission(entry: FeedEntry): boolean {
 /** An organization or author publishing their own RFP. */
 export function isGrantOpened(entry: FeedEntry): boolean {
   return entry.activityAction === 'grant_opened' || entry.contentType === 'GRANT';
+}
+
+/** Proposal reached its fundraise goal. */
+export function isProposalFullyFunded(entry: FeedEntry): boolean {
+  return entry.activityAction === 'proposal_fully_funded' || entry.contentType === 'FUNDRAISE';
+}
+
+export function getProposalFullyFundedActor(entry: FeedEntry): AuthorProfile {
+  const relatedAuthor = entry.relatedWork?.authors?.[0]?.authorProfile;
+  if (relatedAuthor?.fullName?.trim()) return relatedAuthor;
+  return entry.content.createdBy;
 }
 
 /** A document's own publication, which all of its authors share credit for. */
@@ -344,6 +364,9 @@ export function getActionIcon(entry: FeedEntry): ActivityActionIconName {
   ) {
     return 'coins';
   }
+  if (entry.contentType === 'FUNDRAISE' || entry.activityAction === 'proposal_fully_funded') {
+    return 'fund';
+  }
   if (entry.contentType === 'BOUNTY') return 'coins';
   if (entry.contentType !== 'COMMENT') return null;
 
@@ -404,6 +427,18 @@ export function getGrantAmount(entry: FeedEntry): ActivityGrantAmount | undefine
   const grant = (entry.content as FeedGrantContent).grant;
   if (!grant?.amount) return undefined;
   return grant.amount;
+}
+
+/** Raised total on a goal-met FUNDRAISE event. */
+export function getFundraiseFullyFundedAmount(entry: FeedEntry): CurrencyAmount | undefined {
+  if (!isProposalFullyFunded(entry)) return undefined;
+  const content = entry.content as FeedFundraiseContent;
+  const usd = content.amountRaised?.usd ?? 0;
+  const rsc = content.amountRaised?.rsc ?? 0;
+  if (usd <= 0 && rsc <= 0) return undefined;
+  // Prefer the goal currency when present.
+  if (usd > 0) return { amount: usd, currency: 'USD' };
+  return { amount: rsc, currency: 'RSC' };
 }
 
 export interface ActivityCommentPreview {
@@ -570,11 +605,21 @@ export function getActivityActionLine(
     return { label: 'Contributed to a bounty' };
   }
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
+    const awardedProposal =
+      !isFundingPoolContribution(entry) && isAwardMechanism(entry.relatedWork?.fundingMechanism);
     return {
       label: isFundingPoolContribution(entry)
         ? 'Added to an RFP’s funding pool'
-        : 'Funded a proposal',
+        : awardedProposal
+          ? 'Awarded a prize'
+          : 'Funded a proposal',
       value: contributionValue(getContribution(entry)),
+    };
+  }
+  if (isProposalFullyFunded(entry)) {
+    return {
+      label: 'Proposal reached its goal',
+      value: contributionValue(getFundraiseFullyFundedAmount(entry)),
     };
   }
   if (entry.contentType === 'GRANT') {
@@ -582,7 +627,14 @@ export function getActivityActionLine(
     return { label: 'Opened an RFP', value: amount ? { kind: 'grant', amount } : undefined };
   }
   if (entry.contentType === 'PREREGISTRATION') {
-    return { label: 'Submitted a proposal for funding' };
+    const mechanism =
+      entry.relatedWork?.fundingMechanism ??
+      (entry.associatedGrants?.some((grant) => isAwardMechanism(grant.fundingMechanism))
+        ? 'AWARD'
+        : undefined);
+    if (mechanism === 'AWARD') return { label: 'Submitted a proposal for a prize' };
+    if (mechanism === 'FUNDING') return { label: 'Submitted a proposal for funding' };
+    return { label: 'Submitted a proposal' };
   }
   if (entry.contentType === 'PAPER') {
     return { label: 'Published a preprint' };

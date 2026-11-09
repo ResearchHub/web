@@ -7,13 +7,25 @@ import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/co
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import type { CommentContent } from '@/components/Comment/lib/types';
-import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
+import {
+  Fundraise,
+  FundraiseStatus,
+  transformFundraise,
+  Application,
+  transformApplication,
+} from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
-import { FundingPool, GrantStatus, transformFundingPool } from './grant';
+import {
+  FundingPool,
+  GrantStatus,
+  parseFundingMechanism,
+  transformFundingPool,
+  type FundingMechanism,
+} from './grant';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -264,6 +276,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     createdBy: AuthorProfile;
     applicants: Application[];
     fundingPool: FundingPool | null;
+    fundingMechanism: FundingMechanism;
   };
   organization?: string;
   grantAmount?: {
@@ -298,6 +311,23 @@ export interface FeedFundingActivityContent extends BaseFeedContent {
   peerReview?: FeedFundingActivityPeerReview;
 }
 
+/**
+ * One-shot “proposal fully funded” event (`content_type: FUNDRAISE`).
+ * Emitted when raised amount meets the goal.
+ */
+export interface FeedFundraiseContent extends BaseFeedContent {
+  contentType: 'FUNDRAISE';
+  status: FundraiseStatus;
+  amountRaised: { usd: number; rsc: number };
+  goalAmount: { usd: number; rsc: number | null };
+  postId: number | null;
+  proposalTitle: string | null;
+  proposalSlug: string | null;
+  hub?: Topic | null;
+  category?: Topic;
+  subcategory?: Topic;
+}
+
 // Update the Content union type to include the base interface
 export type Content =
   | FeedPostContent
@@ -306,7 +336,8 @@ export type Content =
   | FeedCommentContent
   | FeedApplicationContent
   | FeedGrantContent
-  | FeedFundingActivityContent;
+  | FeedFundingActivityContent
+  | FeedFundraiseContent;
 
 export type FeedContentType =
   | 'PAPER'
@@ -318,7 +349,8 @@ export type FeedContentType =
   | 'GRANT'
   | 'USDFUNDRAISECONTRIBUTION'
   | 'PURCHASE'
-  | 'FUNDINGACTIVITY';
+  | 'FUNDINGACTIVITY'
+  | 'FUNDRAISE';
 
 export interface ExternalMetrics {
   score: number;
@@ -373,12 +405,14 @@ export interface AssociatedGrant {
   description: string | null;
   image: string | null;
   numApplicants: number;
+  fundingMechanism: FundingMechanism;
 }
 
 export type ActivityAction =
   | 'tip_review'
   | 'bounty_payout'
   | 'fundraise_contribution'
+  | 'proposal_fully_funded'
   | 'bounty_opened'
   | 'bounty_contributed'
   | 'peer_review_published'
@@ -414,6 +448,8 @@ export function deriveActivityAction(feedEntry: RawApiFeedEntry): ActivityAction
     case 'PURCHASE':
     case 'USDFUNDRAISECONTRIBUTION':
       return 'fundraise_contribution';
+    case 'FUNDRAISE':
+      return 'proposal_fully_funded';
     case 'FUNDINGACTIVITY': {
       const sourceType = obj.source_type as string | undefined;
       if (sourceType === 'BOUNTY_PAYOUT') return 'bounty_payout';
@@ -500,6 +536,7 @@ export interface RawApiFeedEntry {
     description: string | null;
     image: string | null;
     num_applicants: number;
+    funding_mechanism?: string;
   }>;
   hot_score_breakdown?: {
     steps: string[];
@@ -619,6 +656,12 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
   return undefined;
 }
 
+/** Present only when the activity payload names the proposal's RFP type. */
+function readRelatedFundingMechanism(raw: unknown): FundingMechanism | undefined {
+  if (raw === 'AWARD' || raw === 'FUNDING') return raw;
+  return undefined;
+}
+
 function transformActivityRelatedWorkGrant(rawGrant: unknown): WorkGrantSummary | undefined {
   if (!rawGrant || typeof rawGrant !== 'object') return undefined;
 
@@ -690,6 +733,7 @@ export function transformActivityRelatedWork(raw: any): Work | undefined {
     unifiedDocumentId: raw.unified_document_id,
     image: raw.image_url ?? undefined,
     fundraise,
+    fundingMechanism: readRelatedFundingMechanism(raw.funding_mechanism),
     grantSummary: raw.grant ? transformActivityRelatedWorkGrant(raw.grant) : undefined,
     reviewMetrics: raw.review_metrics?.count
       ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count }
@@ -1123,6 +1167,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               fundingPool: content_object.grant.funding_pool
                 ? transformFundingPool(content_object.grant.funding_pool)
                 : null,
+              fundingMechanism: parseFundingMechanism(content_object.grant.funding_mechanism),
             },
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},
@@ -1246,6 +1291,65 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         throw new Error(`Failed to transform ${content_type}: ${error}`);
       }
       break;
+
+    case 'FUNDRAISE': {
+      contentType = 'FUNDRAISE';
+      try {
+        const relatedWorkRaw = feedEntry.related_work;
+        const createdBy = transformAuthorProfile(author);
+        const hubTopic = content_object.hub
+          ? content_object.hub.id
+            ? transformTopic(content_object.hub)
+            : {
+                id: 0,
+                name: content_object.hub.name || '',
+                slug: content_object.hub.slug || '',
+              }
+          : null;
+        const rawStatus = (content_object.status as string | undefined)?.toUpperCase();
+        const status: FundraiseStatus =
+          rawStatus === 'COMPLETED' || rawStatus === 'CLOSED' ? rawStatus : 'OPEN';
+        const fundraiseEntry: FeedFundraiseContent = {
+          id: content_object.id ?? id,
+          contentType: 'FUNDRAISE',
+          status,
+          createdDate: action_date || created_date,
+          createdBy,
+          unifiedDocumentId: String(
+            content_object.unified_document_id ?? relatedWorkRaw?.unified_document_id ?? ''
+          ),
+          amountRaised: {
+            usd: Number(content_object.amount_raised?.usd) || 0,
+            rsc: Number(content_object.amount_raised?.rsc) || 0,
+          },
+          goalAmount: {
+            usd: Number(content_object.goal_amount?.usd) || 0,
+            rsc:
+              content_object.goal_amount?.rsc != null &&
+              Number.isFinite(Number(content_object.goal_amount.rsc))
+                ? Number(content_object.goal_amount.rsc)
+                : null,
+          },
+          postId:
+            content_object.post_id != null && Number.isFinite(Number(content_object.post_id))
+              ? Number(content_object.post_id)
+              : (relatedWorkRaw?.id ?? null),
+          proposalTitle:
+            stripHtml(content_object.proposal_title || relatedWorkRaw?.title || '') || null,
+          proposalSlug: content_object.proposal_slug || relatedWorkRaw?.slug || null,
+          hub: hubTopic,
+          category: content_object.category ? transformTopic(content_object.category) : undefined,
+          subcategory: content_object.subcategory
+            ? transformTopic(content_object.subcategory)
+            : undefined,
+        };
+        content = fundraiseEntry;
+      } catch (error) {
+        console.error('Error transforming FUNDRAISE:', error);
+        throw new Error(`Failed to transform FUNDRAISE: ${error}`);
+      }
+      break;
+    }
 
     case 'FUNDINGACTIVITY':
       contentType = 'FUNDINGACTIVITY';
@@ -1385,6 +1489,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       description: g.description ?? null,
       image: g.image ?? null,
       numApplicants: g.num_applicants ?? 0,
+      fundingMechanism: parseFundingMechanism(g.funding_mechanism),
     })),
     journalPostIds: feedEntry.post_ids
       ? {
@@ -1602,6 +1707,10 @@ export function mapFeedContentTypeToContentType(
       return 'post';
     case 'GRANT':
       return 'funding_request';
+    case 'FUNDRAISE':
+    case 'PURCHASE':
+    case 'USDFUNDRAISECONTRIBUTION':
+      return 'preregistration';
     default:
       return undefined;
   }

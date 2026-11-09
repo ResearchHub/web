@@ -4,17 +4,6 @@ import type { ComposerNotice } from './ChatComposer';
 
 export type FailedSend = Extract<SendOutcome, { ok: false }>;
 
-/** How a surface words its notices and who shows a spent budget. */
-export interface ChatNoticePolicy {
-  /** What the surface calls a chat: "conversation" in the workspace, "chat" in the notebook. */
-  readonly noun: 'conversation' | 'chat';
-  /**
-   * A spent budget is announced by the composer notice, or left to a meter
-   * rendered beside the composer that already says so.
-   */
-  readonly usageLimit: 'inline' | 'meter';
-}
-
 /** The spent-budget notice, naming the reset time when it is known. */
 export function budgetSpentNotice(budgetResetsAt: string | null): ComposerNotice {
   return {
@@ -41,9 +30,8 @@ export function isBudgetNoticeWithoutReset(notice: ComposerNotice | null): boole
  */
 export function noticeFromOutcome(
   outcome: FailedSend,
-  policy: ChatNoticePolicy,
   budgetResetsAt: string | null
-): ComposerNotice | null {
+): ComposerNotice {
   switch (outcome.reason) {
     case 'account_busy':
       return {
@@ -58,7 +46,6 @@ export function noticeFromOutcome(
         text: outcome.detail ?? 'The assistant is still working on a previous message.',
       };
     case 'usage_limit':
-      if (policy.usageLimit === 'meter') return null;
       return budgetResetsAt
         ? budgetSpentNotice(budgetResetsAt)
         : { tone: 'warning', text: outcome.detail ?? budgetSpentNotice(null).text };
@@ -71,7 +58,7 @@ export function noticeFromOutcome(
     case 'invalid':
       return { tone: 'error', text: outcome.detail ?? 'That message can’t be sent.' };
     case 'not_found':
-      return { tone: 'error', text: `This ${policy.noun} is no longer available.` };
+      return { tone: 'error', text: 'This chat is no longer available.' };
     case 'unauthorized':
       return {
         tone: 'error',

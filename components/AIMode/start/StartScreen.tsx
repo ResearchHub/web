@@ -2,7 +2,9 @@
 
 import { useId, useState, type ReactNode } from 'react';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
+import type { SelectedGrantDetails } from '@/types/grant';
 import { INTENT_COPY } from '../copy';
+import { ApplyingToCard } from './ApplyingToCard';
 import { ConciergeCard } from './ConciergeCard';
 import { HowItWorksCard, HowItWorksSteps } from './HowItWorks';
 import { VisibilityCard } from './VisibilityCard';
@@ -21,6 +23,8 @@ interface StartScreenProps {
   readonly composer: ReactNode;
   /** Examples to send, under the composer. */
   readonly presets?: ReactNode;
+  /** The RFP a researcher is applying to, said over the composer. */
+  readonly applyingTo?: SelectedGrantDetails | null;
 }
 
 /**
@@ -29,13 +33,15 @@ interface StartScreenProps {
  * — an RFP or a proposal — was settled by the way in, before a word is
  * typed. One column; the document appears beside the chat once it exists.
  */
-export function StartScreen({ greeting, intent, composer, presets }: StartScreenProps) {
+export function StartScreen({ greeting, intent, composer, presets, applyingTo }: StartScreenProps) {
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-[680px] flex-col justify-center gap-5">
       <div className="flex flex-col gap-1">
         <h2 className="font-serif text-4xl tracking-tight text-gray-900">{greeting}</h2>
         <p className="text-[15px] text-gray-500">{INTENT_COPY[intent].tagline}</p>
       </div>
+
+      {applyingTo && <ApplyingToCard grant={applyingTo} />}
 
       <div className="-mx-3">{composer}</div>
 

@@ -31,6 +31,7 @@ export const FORM_DEFAULTS = {
   applicationDeadline: null,
   fundraiseEndDays: DEFAULT_FUNDRAISE_END_DAYS as '60',
   applicationVisibility: 'OPTIONAL' as const,
+  fundingMechanism: 'FUNDING' as const,
   isPublic: true,
 };
 
@@ -71,6 +72,9 @@ const populateGrantFields = (grant: any, setValue: SetValue) => {
   }
   if (grant.applicationVisibility) {
     setValue('applicationVisibility', grant.applicationVisibility);
+  }
+  if (grant.fundingMechanism) {
+    setValue('fundingMechanism', grant.fundingMechanism);
   }
 };
 
@@ -129,6 +133,7 @@ export const populateFormFromNoteDetails = (note: NoteWithContent, setValue: Set
     if (grantSettings.applicationVisibility) {
       setValue('applicationVisibility', grantSettings.applicationVisibility);
     }
+    setValue('fundingMechanism', grantSettings.fundingMechanism);
     if (grantSettings.contacts.length > 0) {
       setValue(
         'contacts',
@@ -192,6 +197,8 @@ export const buildNoteDetailsUpdate = (
       return isGrant
         ? { grantSettings: { applicationVisibility: values.applicationVisibility } }
         : null;
+    case 'fundingMechanism':
+      return isGrant ? { grantSettings: { fundingMechanism: values.fundingMechanism } } : null;
     case 'fundraiseEndDays':
       return isProposal
         ? { preregistrationSettings: { durationDays: Number(values.fundraiseEndDays) } }
@@ -267,23 +274,10 @@ export const autoAddCurrentUser = (
   return field;
 };
 
-/** The work type a notebook route asked for (`?newFunding=true`, `?template=grant`…). */
-export const resolveArticleType = (
-  params: { get(key: string): string | null } | null
-): ArticleType | null => {
-  if (params?.get('newFunding') === 'true') return 'preregistration';
-  if (params?.get('newChangelog') === 'true') return 'changelog';
-  if (params?.get('newGrant') === 'true') return 'grant';
-
-  const template = params?.get('template');
-  if (template === 'preregistration') return 'preregistration';
-  if (template === 'grant') return 'grant';
-  return null;
-};
-
 /** Where a work of this type lives once published. */
 export const getWorkPath = (articleType: string, workId: string, slug: string): string => {
-  if (articleType === 'preregistration') return `/proposal/${workId}/${slug}?new=true`;
+  if (articleType === 'preregistration')
+    return buildWorkUrl({ id: workId, slug, contentType: 'preregistration' });
   if (articleType === 'grant')
     return buildWorkUrl({ id: workId, slug, contentType: 'funding_request' });
   if (articleType === 'registered_report') return buildRegisteredReportUrl(workId, slug);

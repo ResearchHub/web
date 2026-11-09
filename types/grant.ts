@@ -2,10 +2,16 @@ import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { Contact, transformContact } from './note';
-import type { Application } from './funding';
+import { transformApplication, type Application } from './funding';
 import { isOpenBeforeDeadline } from '@/utils/date';
 
 export type GrantStatus = 'OPEN' | 'CLOSED' | 'PENDING' | 'DECLINED' | 'COMPLETED';
+
+export type FundingMechanism = 'FUNDING' | 'AWARD';
+
+export function parseFundingMechanism(raw: unknown): FundingMechanism {
+  return raw === 'AWARD' ? 'AWARD' : 'FUNDING';
+}
 
 export type GrantApplicationVisibility = 'OPTIONAL' | 'PRIVATE' | 'PUBLIC';
 
@@ -121,6 +127,7 @@ export interface SelectedGrantDetails {
   fundingAmount: number;
   organization: string;
   applicationVisibility?: GrantApplicationVisibility;
+  fundingMechanism: FundingMechanism;
 }
 
 export const transformSelectedGrant = createTransformer<any, SelectedGrantDetails>((raw) => ({
@@ -130,6 +137,7 @@ export const transformSelectedGrant = createTransformer<any, SelectedGrantDetail
   fundingAmount: raw.amount?.usd ?? 0,
   organization: raw.organization || '',
   applicationVisibility: raw.application_visibility,
+  fundingMechanism: parseFundingMechanism(raw.funding_mechanism),
 }));
 
 export interface Grant {
@@ -150,6 +158,7 @@ export interface Grant {
   endDate: string;
   contacts: Contact[];
   applicationVisibility: GrantApplicationVisibility;
+  fundingMechanism: FundingMechanism;
   fundingPool: FundingPool | null;
   applicants?: AuthorProfile[];
   applications?: Application[];
@@ -165,11 +174,7 @@ export interface Grant {
 
 export const transformGrant = createTransformer<any, Grant>((raw) => {
   const applications: Application[] | undefined = Array.isArray(raw.applications)
-    ? raw.applications.map((application: any) => ({
-        id: application.id,
-        profile: transformAuthorProfile(application.applicant),
-        preregistrationPostId: application.preregistration_post_id ?? undefined,
-      }))
+    ? raw.applications.map((application: any) => transformApplication(application))
     : undefined;
 
   return {
@@ -196,6 +201,7 @@ export const transformGrant = createTransformer<any, Grant>((raw) => {
       ? raw.contacts.map((contact: any) => transformContact(contact))
       : undefined,
     applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
+    fundingMechanism: parseFundingMechanism(raw.funding_mechanism),
     fundingPool: raw.funding_pool ? transformFundingPool(raw.funding_pool) : null,
     applications,
     applicants: applications?.map((application) => application.profile),

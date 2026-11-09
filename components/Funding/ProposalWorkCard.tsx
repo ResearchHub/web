@@ -2,7 +2,7 @@
 
 import { FC, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Coins } from 'lucide-react';
+import { Coins, Trophy } from 'lucide-react';
 import {
   ActivityTimestamp,
   ActivityWorkActions,
@@ -11,14 +11,22 @@ import {
 } from '@/components/Activity';
 import {
   getActivityWork,
+  getAwardCardStat,
   getWorkCardPresentation,
+  isAwardFeedEntry,
   type WorkCardStat,
 } from '@/components/Activity/lib/activityWork.utils';
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
 import { AllocateFundingPoolModal } from '@/components/modals/AllocateFundingPoolModal';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { Button } from '@/components/ui/Button';
 import { useGrantAllocateContext } from '@/components/Funding/GrantPageContext';
 import { canManageGrantPool } from '@/components/Funding/lib/canManageGrantPool';
+import {
+  awardActionLabel,
+  canAwardProposal,
+  isAwardMechanism,
+} from '@/components/Funding/lib/fundingMechanism';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useFundraises } from '@/contexts/FundraiseContext';
@@ -76,6 +84,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   const grantAllocate = useGrantAllocateContext();
 
   const [isAllocateOpen, setIsAllocateOpen] = useState(false);
+  const [isAwardOpen, setIsAwardOpen] = useState(false);
 
   const work = getActivityWork(entry);
 
@@ -96,6 +105,15 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
     fundingPool?.status === 'OPEN' &&
     work?.fundraise?.status === 'OPEN' &&
     applicationId != null;
+  const canAward =
+    isGrantScoped &&
+    canAwardProposal({
+      userId: user?.id,
+      grantCreatorUserId: grantAllocate?.grantCreatedByUserId,
+      isAward: isAwardMechanism(grantAllocate?.fundingMechanism),
+      grantOpen: grantAllocate?.isActive === true,
+      fundraise: work?.fundraise,
+    });
 
   const handleAllocateSuccess = useCallback(
     (updatedPool: FundingPool) => {
@@ -116,16 +134,23 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
   // from the fundraise rather than inferred from `activityAction` the way an
   // activity row has to.
   const base = getWorkCardPresentation(entry, work, { showUSD, exchangeRate });
-  const presentation = fundraise
-    ? {
-        ...base,
-        stats: buildFundraiseStats(fundraise, showUSD, exchangeRate),
-        progress:
-          fundraise.goalAmount.usd > 0
-            ? fundraise.amountRaised.usd / fundraise.goalAmount.usd
-            : undefined,
-      }
-    : base;
+  // On an award RFP's page the RFP says so; elsewhere (`/fund/proposals`) the
+  // entry names the RFP it answers. Either way it shows no ask.
+  const isAward = isAwardMechanism(grantAllocate?.fundingMechanism) || isAwardFeedEntry(entry);
+  const awardStat =
+    isAward && fundraise ? getAwardCardStat(fundraise, showUSD, exchangeRate) : null;
+  const presentation = isAward
+    ? { ...base, stats: awardStat ? [awardStat] : base.stats, progress: undefined }
+    : fundraise
+      ? {
+          ...base,
+          stats: buildFundraiseStats(fundraise, showUSD, exchangeRate),
+          progress:
+            fundraise.goalAmount.usd > 0
+              ? fundraise.amountRaised.usd / fundraise.goalAmount.usd
+              : undefined,
+        }
+      : base;
 
   const handleNavigate = () => {
     updateLastClickedEntryId(entryId);
@@ -140,6 +165,7 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
             href={work.href}
             isNonprofit={isNonprofit}
             fundraiseStatus={fundraise?.status}
+            completedLabel={isAward ? 'Awarded' : 'Funded'}
             variant="overlay"
           />
         </WorkPreviewCard.Overlay>
@@ -151,6 +177,22 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
             <div className="min-w-0 flex-1">
               <ActivityWorkActions entry={entry} work={work} />
             </div>
+            {canAward && fundraise && (
+              <Button
+                data-testid="award-proposal"
+                variant="dark"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsAwardOpen(true);
+                }}
+              >
+                <Trophy className="h-3.5 w-3.5" />
+                {awardActionLabel(fundraise)}
+              </Button>
+            )}
             {canAllocate && (
               <Button
                 data-testid="allocate-funding-pool"
@@ -171,6 +213,22 @@ export const ProposalWorkCard: FC<ProposalWorkCardProps> = ({ entry, onNavigate 
         </WorkPreviewCard.Actions>
       </WorkPreviewCard>
       <ActivityTimestamp timestamp={entry.timestamp} className="mt-3" />
+
+      {canAward && fundraise && (
+        <ContributeToFundraiseModal
+          isOpen={isAwardOpen}
+          onClose={() => setIsAwardOpen(false)}
+          fundraise={fundraise}
+          proposalTitle={work.title}
+          isAward
+          variant="panel"
+          successText="The prize has been awarded to this proposal."
+          onContributeSuccess={() => {
+            void refreshProposals();
+            router.refresh();
+          }}
+        />
+      )}
 
       {canAllocate && fundingPool && applicationId != null && (
         <AllocateFundingPoolModal

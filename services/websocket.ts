@@ -1,6 +1,5 @@
 // WebSocket routes
 export const WS_ROUTES = {
-  NOTE: (orgSlug: string) => `${getWebSocketBaseUrl()}${orgSlug}/notebook/`,
   NOTIFICATIONS: (userId: string | number) => `${getWebSocketBaseUrl()}/notifications/${userId}/`,
   NOTEBOOK_CHAT: (noteId: string | number, chatId: string | number) =>
     `${getWebSocketBaseUrl()}/notebook/notes/${noteId}/chats/${chatId}/`,

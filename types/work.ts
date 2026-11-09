@@ -8,7 +8,13 @@ import { NoteWithContent, transformNoteWithContent } from './note';
 import { stripHtml } from '../utils/stringUtils';
 import { transformTip, Tip } from './tip';
 import { transformProposalReview, type ProposalReview } from './aiPeerReview';
-import { transformFundingPool, type FundingPool, type GrantApplicationVisibility } from './grant';
+import {
+  parseFundingMechanism,
+  transformFundingPool,
+  type FundingMechanism,
+  type FundingPool,
+  type GrantApplicationVisibility,
+} from './grant';
 import { Fundraise, ReviewMetrics, transformFundraise } from './funding';
 import type { Review } from './feed';
 
@@ -120,6 +126,7 @@ export interface Work {
    */
   aiPeerReview?: ProposalReview | null;
   linkedGrant?: LinkedGrant | null;
+  fundingMechanism?: FundingMechanism;
   grantSummary?: WorkGrantSummary;
   moderationStatus?: ModerationStatus;
   isPublic?: boolean;
@@ -135,6 +142,7 @@ export interface LinkedGrant {
   currency: string;
   status: string;
   applicationVisibility: GrantApplicationVisibility;
+  fundingMechanism: FundingMechanism;
   imageUrl: string | null;
   applicantCount: number;
   fundingPool?: FundingPool | null;
@@ -278,6 +286,7 @@ function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
     currency: g.currency ?? 'USD',
     status: g.status ?? '',
     applicationVisibility: (g.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
+    fundingMechanism: parseFundingMechanism(g.funding_mechanism),
     imageUrl: g.image_url ?? null,
     applicantCount: g.applicant_count ?? 0,
     fundingPool: g.funding_pool ? transformFundingPool(g.funding_pool) : null,

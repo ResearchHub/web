@@ -18,6 +18,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { getGrantBadgeAmount, isGrantActive } from '@/types/grant';
+import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -115,7 +116,9 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-start gap-6 min-w-0">
               <div className="flex flex-col leading-tight whitespace-nowrap">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Funding</span>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                  {isAwardMechanism(grant.grant.fundingMechanism) ? 'Prize pool' : 'Funding'}
+                </span>
                 <span className="font-mono font-semibold text-primary-600 text-xl">
                   {formatCurrency({
                     amount: budgetAmount,
