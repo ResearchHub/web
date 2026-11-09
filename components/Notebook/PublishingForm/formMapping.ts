@@ -276,7 +276,8 @@ export const autoAddCurrentUser = (
 
 /** Where a work of this type lives once published. */
 export const getWorkPath = (articleType: string, workId: string, slug: string): string => {
-  if (articleType === 'preregistration') return `/proposal/${workId}/${slug}?new=true`;
+  if (articleType === 'preregistration')
+    return buildWorkUrl({ id: workId, slug, contentType: 'preregistration' });
   if (articleType === 'grant')
     return buildWorkUrl({ id: workId, slug, contentType: 'funding_request' });
   if (articleType === 'registered_report') return buildRegisteredReportUrl(workId, slug);
