@@ -3,7 +3,6 @@
 import { ReactNode, useState } from 'react';
 import './globals.css';
 import 'cal-sans/index.css';
-import 'katex/dist/katex.min.css';
 
 import '@fontsource/inter/100.css';
 import '@fontsource/inter/200.css';
