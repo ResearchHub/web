@@ -274,6 +274,15 @@ const nextConfig = {
         },
       ],
     },
+    {
+      // The OAuth consent page must never be framed or indexed
+      source: '/oauth/authorize',
+      headers: [
+        { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'X-Robots-Tag', value: 'noindex' },
+      ],
+    },
   ],
   images: {
     unoptimized: false,

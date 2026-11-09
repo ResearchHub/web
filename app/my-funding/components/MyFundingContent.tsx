@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { DraftsCarousel } from '@/components/Funding/dashboard/DraftsCarousel';
 import { FundedResearchList } from '@/components/Funding/dashboard/FundedResearchList';
 import { OwnProposalCards, RfpCards } from '@/components/Funding/dashboard/FundingWorkCards';
 import { MyFundingEmptyState } from '@/components/Funding/dashboard/MyFundingEmptyState';
@@ -28,7 +29,8 @@ interface MyFundingContentProps {
   readonly tab: Exclude<MyFundingTab, 'activity'>;
   readonly isSettled: boolean;
   readonly isEmpty: boolean;
-  readonly latestDraft?: Note;
+  /** The signed-in user's drafts. Empty when this page is someone else's. */
+  readonly drafts: readonly Note[];
   /** The side the user is mostly on, whose sections come first. */
   readonly lead: 'giving' | 'raising';
   readonly upNext: readonly UpNextItem[];
@@ -52,15 +54,16 @@ interface MyFundingContentProps {
 }
 
 /**
- * The column of My Funding under its hero. The Overview leads with what needs
- * the user, then each side they are on, the bigger one first, and ends with a
- * preview of the activity; the other tabs show one of those lists in full.
+ * The column of My Funding under its hero. The Overview starts with the user's
+ * drafts, then what needs them, then each side they are on, the bigger one
+ * first, and ends with a preview of the activity. The other tabs show one of
+ * those lists in full.
  */
 export function MyFundingContent({
   tab,
   isSettled,
   isEmpty,
-  latestDraft,
+  drafts,
   lead,
   upNext,
   fundedRows,
@@ -75,7 +78,7 @@ export function MyFundingContent({
   onTabChange,
 }: MyFundingContentProps) {
   if (!isSettled) return <ContentSkeleton />;
-  if (isEmpty) return <MyFundingEmptyState latestDraft={latestDraft} />;
+  if (isEmpty) return <MyFundingEmptyState drafts={drafts} />;
 
   const markReviewed = (rfp: { postId: number; proposalIds: readonly number[] }) =>
     seen.markProposalsSeen(rfp.postId, rfp.proposalIds);
@@ -144,6 +147,7 @@ export function MyFundingContent({
 
   return (
     <div className="mb-6 space-y-12">
+      {overview && <DraftsCarousel drafts={drafts} />}
       {overview && (
         <UpNext items={upNext} onFollow={(item) => item.rfp && markReviewed(item.rfp)} />
       )}

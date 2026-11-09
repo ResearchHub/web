@@ -1,16 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileText } from 'lucide-react';
 import { FeedWorkCard } from '@/components/Funding/dashboard/FundingWorkCards';
 import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
+import { DraftsCarousel } from '@/components/Funding/dashboard/DraftsCarousel';
 import { UpNext } from '@/components/Funding/dashboard/UpNext';
 import { STARTER_UP_NEXT } from '@/components/Funding/dashboard/lib/myFundingModel';
-import { useFundingDrafting } from '@/components/Funding/useFundingDrafting';
 import { FeedService } from '@/services/feed.service';
 import type { FeedEntry } from '@/types/feed';
 import type { Note } from '@/types/note';
-import { formatTimeAgo } from '@/utils/date';
 
 const SAMPLE_SIZE = 2;
 
@@ -83,64 +81,47 @@ function Samples({
 }
 
 interface MyFundingEmptyStateProps {
-  /** The user's latest draft, when they have started one but published nothing. */
-  readonly latestDraft?: Note;
+  /** The user's drafts. The same carousel the overview shows once they have activity. */
+  readonly drafts?: readonly Note[];
 }
 
 /**
- * My Funding before the user has done anything, or signed in: drafting an RFP
- * or a proposal, the draft they started if any, and the proposals and RFPs
- * open right now to start from.
+ * My Funding before the user has done anything: their drafts, if they have
+ * started one, then proposals and RFPs open right now to start from.
  */
-export function MyFundingEmptyState({ latestDraft }: MyFundingEmptyStateProps) {
+export function MyFundingEmptyState({ drafts = [] }: MyFundingEmptyStateProps) {
   const { proposals, rfps, isLoading } = useOpenFunding();
-  const { openDraft } = useFundingDrafting();
-
-  // Everything at once, so the samples do not pop in under the rest.
-  if (isLoading) return <EmptyStateSkeleton />;
 
   return (
     <div className="mb-6 space-y-12">
-      <UpNext items={STARTER_UP_NEXT} />
-      {latestDraft && (
-        <button
-          type="button"
-          onClick={() => openDraft(latestDraft)}
-          className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition-colors hover:bg-gray-50"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-            <FileText className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1 text-sm text-gray-700">
-            <span className="font-semibold text-gray-900">
-              {latestDraft.title?.trim() || 'Your draft'}
-            </span>{' '}
-            · edited {formatTimeAgo(latestDraft.updatedDate)}. It is waiting under Drafts in the
-            sidebar.
-          </span>
-          <span className="shrink-0 text-sm font-semibold text-primary-600">Pick it up</span>
-        </button>
+      <DraftsCarousel drafts={drafts} />
+      {isLoading ? (
+        <EmptyStateSkeleton />
+      ) : (
+        <>
+          <UpNext items={STARTER_UP_NEXT} />
+          <Samples
+            title="Raising now"
+            href="/fund/proposals"
+            linkLabel="All proposals"
+            entries={proposals}
+          />
+          <Samples
+            title="RFPs looking for proposals"
+            href="/fund"
+            linkLabel="All open RFPs"
+            entries={rfps}
+          />
+        </>
       )}
-      <Samples
-        title="Raising now"
-        href="/fund/proposals"
-        linkLabel="All proposals"
-        entries={proposals}
-      />
-      <Samples
-        title="RFPs looking for proposals"
-        href="/fund"
-        linkLabel="All open RFPs"
-        entries={rfps}
-      />
     </div>
   );
 }
 
-/** The empty state's shape while the samples load: Up next, then two lists of cards. */
+/** The rest of the empty state while the samples load: Up next, then two lists of cards. */
 function EmptyStateSkeleton() {
   return (
-    <div className="mb-6 animate-pulse space-y-12" aria-hidden="true">
+    <div className="animate-pulse space-y-12" aria-hidden="true">
       <div>
         <div className="h-5 w-20 rounded bg-gray-200" />
         <div className="mt-3 grid gap-3 sm:grid-cols-2">

@@ -14,6 +14,7 @@ import {
   getActivityHeaderMessage,
   getContribution,
   getEntryMeta,
+  getFundraiseFullyFundedAmount,
   getGrantAmount,
   getReviewEarning,
   getReviewScore,
@@ -75,11 +76,17 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({
   const reviewScore = getReviewScore(entry);
   const reviewEarning = getReviewEarning(entry);
   const grantAmount = getGrantAmount(entry);
+  const fullyFundedAmount = getFundraiseFullyFundedAmount(entry);
   const contribution = getContribution(entry);
   const bounty = entry.activityAction === 'bounty_opened' ? getActivityBounty(entry) : undefined;
 
   const hasAmount = Boolean(
-    grantAmount || contribution || reviewEarning || bounty || reviewScore != null
+    grantAmount ||
+    fullyFundedAmount ||
+    contribution ||
+    reviewEarning ||
+    bounty ||
+    reviewScore != null
   );
 
   const titleEl = href ? (
@@ -96,6 +103,17 @@ export const ActivityCardCompact: FC<ActivityCardCompactProps> = ({
         <>
           {' '}
           <GrantFundingAmount amount={grantAmount} size="sm" className="align-middle" />
+        </>
+      )}
+      {fullyFundedAmount && (
+        <>
+          {' '}
+          <ContributionAmount
+            contribution={fullyFundedAmount}
+            showSign={false}
+            size="sm"
+            className="align-middle"
+          />
         </>
       )}
       {contribution && (

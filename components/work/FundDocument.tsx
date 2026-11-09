@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Comment } from '@/types/comment';
@@ -14,6 +14,7 @@ import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { NewlyCreatedProposalModal } from '@/components/modals/NewlyCreatedProposalModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface FundDocumentProps {
@@ -30,7 +31,6 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
   const { showShareModal } = useShareModalContext();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const [isProposalVideoModalOpen, setIsProposalVideoModalOpen] = useState(false);
   const [videoModalInitialStep, setVideoModalInitialStep] = useState<1 | 2>(1);
   // Whether the author has dismissed the rich "Show funders who you are" CTA.
@@ -76,10 +76,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
 
     // Skip share/celebration modals for private proposals — the URL is not
     // publicly accessible so there is nothing meaningful to share.
-    if (work.isPublic === false) return;
-
-    // Don't prompt the author to share a proposal that's still pending moderation.
-    if (work.moderationStatus === 'PENDING') return;
+    if (!isPubliclyShareable(work)) return;
 
     if (isAuthorPostsExpEnabled) {
       setVideoModalInitialStep(1);
@@ -88,20 +85,11 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
       showShareModal({
         action: 'USER_OPENED_PROPOSAL',
         docTitle: work.title,
-        url: `${window.location.origin}${pathname}`,
+        url: `${window.location.origin}${buildPublicSharePath(work)}`,
         shouldShowConfetti: true,
       });
     }
-  }, [
-    searchParams,
-    router,
-    pathname,
-    work.title,
-    work.moderationStatus,
-    work.isPublic,
-    showShareModal,
-    isAuthorPostsExpEnabled,
-  ]);
+  }, [searchParams, router, work, showShareModal, isAuthorPostsExpEnabled]);
 
   const persistVideoCtaDismissal = () => {
     try {
