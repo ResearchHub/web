@@ -6,8 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { WorkCover, type CoverEyebrowFace } from '@/components/work/WorkCover';
-import { ContentType, Work } from '@/types/work';
+import { Work } from '@/types/work';
 import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
@@ -16,6 +17,7 @@ import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { buildWorkUrl } from '@/utils/url';
+import { buildPublicSharePath, getPublicShareBlockReason, usesAiSharePost } from '@/utils/share';
 import { formatRSC } from '@/utils/number';
 import {
   findLatestFoundationBounty,
@@ -23,7 +25,6 @@ import {
 } from '@/components/Bounty/lib/bountyUtil';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useShareToken } from '@/hooks/useShareToken';
-import { stripShareToken } from '@/lib/shareToken/url';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
@@ -36,13 +37,6 @@ import { PendingReviewBadge } from './PendingReviewBadge';
 import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
-
-// Proposals and RFPs get an AI-written post in the share modal, shared under
-// a bare /<route>/<id> link that redirects to the slugged page.
-const AI_POST_ROUTES: Partial<Record<ContentType, string>> = {
-  preregistration: 'proposal',
-  funding_request: 'grant',
-};
 
 interface WorkHeaderProps {
   work: Work;
@@ -160,17 +154,20 @@ export function WorkHeader({
 
   const { setMobileSidebarOpen } = useWorkTab();
 
+  const shareBlockReason = getPublicShareBlockReason(work);
+  const canPublicShare = shareBlockReason === null;
+
   const shareAction = () => {
-    const aiPostRoute = AI_POST_ROUTES[work.contentType];
+    if (!canPublicShare) return;
+
+    const useAiPost = usesAiSharePost(work.contentType);
     showShareModal({
-      url: aiPostRoute
-        ? `${globalThis.location.origin}/${aiPostRoute}/${work.id}`
-        : stripShareToken(globalThis.location.href),
+      url: `${globalThis.location.origin}${buildPublicSharePath(work)}`,
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
-      aiPostId: aiPostRoute ? work.id : undefined,
-      previewImageUrl: aiPostRoute ? getWorkShareImageUrl(work) : undefined,
+      aiPostId: useAiPost ? work.id : undefined,
+      previewImageUrl: useAiPost ? getWorkShareImageUrl(work) : undefined,
     });
   };
 
@@ -206,6 +203,21 @@ export function WorkHeader({
     cover ? 'hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'
   );
 
+  const shareButton = (
+    <button
+      onClick={shareAction}
+      aria-disabled={!canPublicShare}
+      className={cn(
+        btnClass,
+        !cover && '!hidden lg:!flex',
+        !canPublicShare && 'opacity-50 cursor-not-allowed'
+      )}
+      aria-label={shareBlockReason ?? 'Share'}
+    >
+      <Share className="h-5 w-5" />
+    </button>
+  );
+
   const actionBar = (
     <div className={cn('flex items-center', cover ? 'gap-0.5' : 'gap-3')}>
       {!hideVoteWidget && (
@@ -235,13 +247,13 @@ export function WorkHeader({
         </button>
       )}
       {/* A cover keeps Share in its chip on every screen; elsewhere phones find it in the menu. */}
-      <button
-        onClick={shareAction}
-        className={cn(btnClass, !cover && '!hidden lg:!flex')}
-        aria-label="Share"
-      >
-        <Share className="h-5 w-5" />
-      </button>
+      {canPublicShare ? (
+        shareButton
+      ) : (
+        <Tooltip content={shareBlockReason} position="bottom" width="w-52" theme="dark">
+          <span className={cn(!cover && 'hidden lg:inline-flex')}>{shareButton}</span>
+        </Tooltip>
+      )}
       <BaseMenu
         align="start"
         trigger={
@@ -252,9 +264,14 @@ export function WorkHeader({
       >
         {!cover && (
           <div className="lg:hidden">
-            <BaseMenuItem onSelect={shareAction}>
-              <Share className="h-4 w-4 mr-2" />
-              Share
+            <BaseMenuItem disabled={!canPublicShare} onSelect={shareAction}>
+              <Share className="h-4 w-4 mr-2 shrink-0" />
+              <span className="flex flex-col items-start">
+                <span>Share</span>
+                {shareBlockReason && (
+                  <span className="text-xs text-gray-500 font-normal">{shareBlockReason}</span>
+                )}
+              </span>
             </BaseMenuItem>
           </div>
         )}

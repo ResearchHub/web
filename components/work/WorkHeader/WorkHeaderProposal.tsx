@@ -18,8 +18,8 @@ import { useRouter } from 'next/navigation';
 import { isFundraiseActive, getEffectiveStatus } from '@/components/Fund/lib/fundraiseUtils';
 import { PostService } from '@/services/post.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import { stripShareToken } from '@/lib/shareToken/url';
 import { buildWorkUrl } from '@/utils/url';
+import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
 import toast from 'react-hot-toast';
 import { WorkHeader } from './WorkHeader';
 
@@ -86,8 +86,10 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
     closeFundPanel();
     if (!hasJustFundedRef.current) return;
     hasJustFundedRef.current = false;
+    if (!isPubliclyShareable(displayedWork)) return;
+
     showShareModal({
-      url: stripShareToken(globalThis.location.href),
+      url: `${globalThis.location.origin}${buildPublicSharePath(displayedWork)}`,
       docTitle: displayedWork.title,
       action: 'USER_FUNDED_PROPOSAL',
     });

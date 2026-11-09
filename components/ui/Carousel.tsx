@@ -2,6 +2,7 @@
 
 import { FC, ReactNode, useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 
 interface CarouselProps {
@@ -11,6 +12,12 @@ interface CarouselProps {
   arrowOffset?: 'inset' | 'outset';
   /** Leave the arrows out when everything fits, rather than show a disabled one. */
   hideArrowsWhenStatic?: boolean;
+  /**
+   * Keep the row's left inset. Mandatory snapping otherwise scrolls that
+   * padding away after the first paint, and `scroll-smooth` turns the
+   * correction into a visible jump.
+   */
+  keepInset?: boolean;
 }
 
 const ARROW_POSITION = {
@@ -18,12 +25,14 @@ const ARROW_POSITION = {
   outset: { left: '-left-8', right: '-right-11' },
 } as const;
 
+/** A horizontal row that snaps. Arrows stay once it overflows, and grey out at either end. */
 export const Carousel: FC<CarouselProps> = ({
   children,
   className,
   onReachEnd,
   arrowOffset = 'inset',
   hideArrowsWhenStatic = false,
+  keepInset = false,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -34,6 +43,7 @@ export const Carousel: FC<CarouselProps> = ({
   const hasScrolledRef = useRef(false);
   const hasRequestedMoreRef = useRef(false);
 
+  /** Whether the row can still move, and whether the end should load another page. */
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -77,6 +87,7 @@ export const Carousel: FC<CarouselProps> = ({
     checkScroll();
   }, [checkScroll, children]);
 
+  /** Move about one view left or right. */
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
@@ -88,45 +99,60 @@ export const Carousel: FC<CarouselProps> = ({
   };
 
   const arrowPosition = ARROW_POSITION[arrowOffset];
-  const showRightArrow = canScrollRight || canScrollLeft || !hideArrowsWhenStatic;
+  // Once the row overflows, both arrows stay up. A direction with nowhere
+  // left to go is greyed, the same at either end.
+  const overflows = canScrollLeft || canScrollRight;
+  const showRightArrow = overflows || !hideArrowsWhenStatic;
 
   return (
     <div className={cn('group/carousel relative', className)}>
-      {canScrollLeft && (
-        <button
+      {overflows && (
+        <Button
+          type="button"
+          variant="outlined"
+          size="icon"
           onClick={() => scroll('left')}
-          className={cn(
-            'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-800 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer',
-            arrowPosition.left
-          )}
+          disabled={!canScrollLeft}
           aria-label="Scroll left"
+          className={cn(
+            'absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-md',
+            arrowPosition.left,
+            !canScrollLeft && 'text-gray-300'
+          )}
         >
           <ChevronLeft className="h-5 w-5" />
-        </button>
+        </Button>
       )}
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide py-3 px-3 -mx-3"
+        className={cn(
+          'flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory',
+          'scrollbar-hide py-3 px-3 -mx-3',
+          // Inset the snapport by the same padding, so the first card is already
+          // snapped at scrollLeft 0 and the browser does not scroll the padding off.
+          keepInset && 'scroll-px-3'
+        )}
       >
         {children}
       </div>
 
       {showRightArrow && (
-        <button
+        <Button
+          type="button"
+          variant="outlined"
+          size="icon"
           onClick={() => scroll('right')}
           disabled={!canScrollRight}
-          className={cn(
-            'absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
-            arrowPosition.right,
-            canScrollRight
-              ? 'text-gray-900 hover:bg-gray-200 active:scale-95 cursor-pointer'
-              : 'text-gray-300 opacity-50 cursor-default'
-          )}
           aria-label="Scroll right"
+          className={cn(
+            'absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-lg',
+            arrowPosition.right,
+            canScrollRight ? 'text-gray-900' : 'text-gray-300'
+          )}
         >
           <ChevronRight className="h-6 w-6" />
-        </button>
+        </Button>
       )}
     </div>
   );
