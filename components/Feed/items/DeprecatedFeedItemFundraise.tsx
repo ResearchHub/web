@@ -90,7 +90,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const handleContributeSuccess = () => {
     setIsContributeModalOpen(false);
     showShareModal({
-      url: window.location.href,
+      url: `${window.location.origin}${fundingPageUrl}`,
       docTitle: post.title,
       action: 'USER_FUNDED_PROPOSAL',
     });
