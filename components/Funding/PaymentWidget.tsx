@@ -85,6 +85,18 @@ interface PaymentWidgetProps {
   isAward?: boolean;
 }
 
+/** Subtitle for the Endaoment (DAF) option, by availability and connection state. */
+function getEndaomentDescription(
+  hasNonprofit: boolean,
+  connected: boolean,
+  fund: EndaomentFund | null
+): string {
+  if (!hasNonprofit) return 'Not available for this proposal';
+  if (!connected) return 'Via Endaoment';
+  if (!fund) return 'Select a fund';
+  return `Balance:  ${formatUsdValue(fund.usdcBalance, 0, false)}`;
+}
+
 /**
  * Payment method selection widget.
  * Click header to expand/collapse. Selection auto-collapses.
@@ -197,13 +209,7 @@ export function PaymentWidget({
     {
       id: 'endaoment',
       title: 'Donor-Advised Fund (DAF)',
-      description: !hasNonprofit
-        ? 'Not available for this proposal'
-        : connected && selectedEndaomentFund
-          ? `Balance:  ${formatUsdValue(selectedEndaomentFund.usdcBalance, 0, false)}`
-          : connected
-            ? 'Select a fund'
-            : 'Via Endaoment',
+      description: getEndaomentDescription(hasNonprofit, connected, selectedEndaomentFund),
       disabledReason: hasNonprofit
         ? undefined
         : "This proposal isn't linked to a nonprofit, so it can't accept donor-advised fund donations.",
@@ -403,12 +409,8 @@ export function PaymentWidget({
                     'flex items-center gap-2.5',
                     'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset',
                     index !== visiblePaymentOptions.length - 1 && 'border-b border-gray-200',
-                    isDisabled
-                      ? 'bg-white cursor-not-allowed'
-                      : cn(
-                          'hover:bg-primary-50',
-                          selectedMethod === option.id ? 'bg-primary-50' : 'bg-white'
-                        )
+                    isDisabled ? 'cursor-not-allowed' : 'hover:bg-primary-50',
+                    !isDisabled && selectedMethod === option.id ? 'bg-primary-50' : 'bg-white'
                   )}
                 >
                   {/* Icon - no circular container */}
