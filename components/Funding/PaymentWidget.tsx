@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { CreditCard, Plus, Minus, Check, Coins } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
@@ -170,6 +170,7 @@ export function PaymentWidget({
     onEndaomentFundSelected?.(selectedEndaomentFund);
   }, [selectedEndaomentFund, onEndaomentFundSelected]);
 
+  const disabledReasonIdPrefix = useId();
   const { exchangeRate } = useExchangeRate();
   const formatWhole = (amount: number) =>
     amount.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -394,6 +395,7 @@ export function PaymentWidget({
           <div className="border-t border-gray-200 animate-in slide-in-from-top-2 duration-200">
             {visiblePaymentOptions.map((option, index) => {
               const isDisabled = !!option.disabledReason;
+              const disabledReasonId = `${disabledReasonIdPrefix}-${option.id}-reason`;
               const row = (
                 <button
                   key={option.id}
@@ -401,6 +403,9 @@ export function PaymentWidget({
                   // aria-disabled rather than disabled: a disabled button gets
                   // no pointer events, so its tooltip would never open.
                   aria-disabled={isDisabled || undefined}
+                  // The tooltip is visual only, so the reason is also given
+                  // to screen readers as the button's description.
+                  aria-describedby={isDisabled ? disabledReasonId : undefined}
                   onClick={() => {
                     if (!isDisabled) selectMethod(option.id);
                   }}
@@ -448,6 +453,12 @@ export function PaymentWidget({
                       </span>
                     )}
                   </div>
+
+                  {isDisabled && (
+                    <span id={disabledReasonId} hidden>
+                      {option.disabledReason}
+                    </span>
+                  )}
 
                   {/* Checkmark for selected option */}
                   {!isDisabled && selectedMethod === option.id && (
