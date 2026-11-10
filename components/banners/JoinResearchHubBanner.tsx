@@ -16,7 +16,7 @@ const HIDE_AT_SCROLL_Y = 48;
 
 /**
  * The banner's height while it is up, 0 otherwise, so things fixed to the
- * bottom of the screen (the Draft with AI toast) can sit above it.
+ * bottom of the screen (the homepage promo toast) can sit above it.
  */
 const HEIGHT_VARIABLE = '--join-banner-height';
 
