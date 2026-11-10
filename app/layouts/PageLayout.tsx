@@ -28,7 +28,7 @@ interface PageLayoutProps {
    * the top across the whole page as it scrolls (see WorkPageTabs).
    */
   pageTabs?: ReactNode;
-  /** A card above the right sidebar; null drops the default funding power card. */
+  /** A card above the right sidebar; false drops the default funding power card. */
   rightSidebarAbove?: ReactNode;
   /**
    * With a card above it the gray rail normally sizes to its content; this

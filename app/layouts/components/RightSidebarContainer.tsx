@@ -47,10 +47,10 @@ export function RightSidebarContainer({
   const sidebarKey = isDefaultSidebar ? 'default' : 'custom';
 
   // Pages on the default sidebar get the funding power card on top unless they
-  // supply their own card, or null for none. Pages with a bespoke sidebar
-  // (papers, journal, etc.) are left alone.
-  const defaultCard = isDefaultSidebar ? <FundingPowerCard className="w-full" /> : undefined;
-  const cardAboveSidebar = aboveSidebar === undefined ? defaultCard : aboveSidebar;
+  // supply their own card. Pages with a bespoke sidebar (papers, journal, etc.)
+  // are left alone.
+  const cardAboveSidebar =
+    aboveSidebar ?? (isDefaultSidebar ? <FundingPowerCard className="w-full" /> : undefined);
 
   const sidebarContent = (
     <Suspense fallback={null}>

@@ -9,7 +9,7 @@ import {
 
 export default function HomeLayout({ children }: { children: ReactNode }) {
   return (
-    <PageLayout contentWidth="narrow" rightSidebarAbove={null}>
+    <PageLayout contentWidth="narrow" rightSidebarAbove={false}>
       <HomeFeedsProvider>
         <HomeTabs />
         {/* Phones; from the tablet breakpoint up it is the toast instead. */}
