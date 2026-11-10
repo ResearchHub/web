@@ -37,8 +37,9 @@ export function EndowmentDepositPromo({ variant, className }: HomePromoSlotProps
         label="Earn on your ResearchCoin"
         eyebrow={{ icon: Sprout, text: 'ResearchHub Endowment' }}
         preview={<EarningPreview />}
-        title="Put your RSC to work"
-        description="Deposit RSC and earn daily yield in funding credits."
+        // Kept together so the heading never leaves "work" alone on a line.
+        title={'Put your RSC to\u00a0work'}
+        description="Deposit RSC, earn daily yield in funding credits."
         primaryAction={{
           label: 'Deposit RSC',
           // A deposit address belongs to an account, so a signed-out visitor
@@ -63,7 +64,7 @@ function EarningPreview() {
       <div className="flex flex-col gap-1 rounded-md border border-gray-200 bg-white p-1.5">
         <p className="flex items-center gap-1 text-[8px] font-semibold tracking-wide text-emerald-700">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          ENDOWMENT · EARNING
+          EARNING · DAILY
         </p>
         <div className="flex h-6 items-end gap-[3px]">
           {YIELD_BAR_HEIGHTS.map((height) => (
