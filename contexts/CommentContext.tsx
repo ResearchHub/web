@@ -706,7 +706,6 @@ export const CommentProvider = ({
       } catch (error) {
         console.error('Error deleting comment:', error);
         dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to delete comment' });
-        dispatch({ type: CommentActionType.SET_LOADING, payload: false });
         return false;
       }
 
