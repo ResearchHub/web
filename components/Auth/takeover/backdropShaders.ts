@@ -5,8 +5,9 @@
  * and its motion repeats every eight seconds.
  */
 
+/** The sign-in takeover picks one of these at random. */
 export const BACKDROP_IDS = ['helix', 'threads', 'film'] as const;
-export type BackdropId = (typeof BACKDROP_IDS)[number];
+export type BackdropId = (typeof BACKDROP_IDS)[number] | 'spinningHelix';
 
 const COMMON = `
 #define PI 3.14159265359
@@ -45,9 +46,11 @@ vec3 bokeh(vec2 uv, float t, vec3 tint) {
 /**
  * B-DNA at true proportions (radius 1, 0.34 rise and 36 degrees of twist per
  * base pair, strands offset to open the major and minor grooves), ray-marched.
- * It screws one base pair along its axis per loop.
+ * `phase` and `slide` are GLSL expressions in `t` for its spin and its travel
+ * along the axis; both must return to their start, modulo one base pair, at `LOOP`.
+ * `panelX` places it across the desktop panel: positive is right of centre.
  */
-const HELIX = `
+const buildHelixShader = (phase: string, slide: string, panelX = 1.8) => `
 const float RISE = 0.34;
 const float TWIST = 0.6283185;
 const float GROOVE = 2.35;
@@ -85,10 +88,10 @@ vec3 baseColor(float i, float side) {
 vec3 shade(vec2 fc) {
   vec2 uv = (fc - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  PHASE = t / LOOP * TWIST;
-  SLIDE = t / LOOP * RISE;
+  PHASE = ${phase};
+  SLIDE = ${slide};
   vec3 w = normalize(mix(vec3(-0.28, 1.0, -0.55), vec3(-1.0, 0.3, -0.55), uLayout));
-  ORI = mix(vec3(1.8, -1.1, -11.5), vec3(1.6, 0.25, -10.0), uLayout);
+  ORI = mix(vec3(${panelX.toFixed(2)}, -1.1, -11.5), vec3(1.6, 0.25, -10.0), uLayout);
   vec3 u = normalize(cross(w, vec3(0.0, 0.0, 1.0))), v = cross(u, w);
   FR = mat3(u, v, w);
   vec3 rd = normalize(vec3(uv, -1.7));
@@ -203,7 +206,10 @@ vec3 shade(vec2 fc) {
 `;
 
 export const BACKDROP_SHADERS: Record<BackdropId, string> = {
-  helix: COMMON + HELIX,
+  // Screws one base pair along its axis per loop.
+  helix: COMMON + buildHelixShader('t / LOOP * TWIST', 't / LOOP * RISE'),
+  // Turns once around its axis per loop, left of centre so a wide panel leaves room on the right.
+  spinningHelix: COMMON + buildHelixShader('t / LOOP * TAU', '0.0', -1.5),
   threads: COMMON + THREADS,
   film: COMMON + FILM,
 };
@@ -211,6 +217,7 @@ export const BACKDROP_SHADERS: Record<BackdropId, string> = {
 /** The helix is ray-marched, so it draws at a lower pixel ratio than the 2D fields. */
 export const BACKDROP_MAX_PIXEL_RATIO: Record<BackdropId, number> = {
   helix: 1,
+  spinningHelix: 1,
   threads: 1.5,
   film: 1.5,
 };
