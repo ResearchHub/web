@@ -133,7 +133,7 @@ function FundingCreditsContent({
 
       <p className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.07em] text-green-700">
         <Sparkle className="h-3.5 w-3.5 text-green-500" />
-        New · Funding Credits
+        ResearchHub Endowment
       </p>
 
       <CreditsWeekChart />
