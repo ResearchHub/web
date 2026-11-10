@@ -2,7 +2,10 @@ import { ReactNode } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { HomeTabs } from '@/components/Funding/HomeTabs';
 import { HomeFeedsProvider } from '@/components/Funding/HomeFeedsProvider';
-import { DraftWithAICard, DraftWithAIToast } from '@/components/AIMode/DraftWithAICard';
+import {
+  HomeAnnouncementCard,
+  HomeAnnouncementToast,
+} from '@/components/ResearchCoin/HomeAnnouncement';
 
 export default function HomeLayout({ children }: { children: ReactNode }) {
   return (
@@ -10,8 +13,8 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
       <HomeFeedsProvider>
         <HomeTabs />
         {/* Phones; from the tablet breakpoint up it is the toast instead. */}
-        <DraftWithAICard className="mb-6 tablet:!hidden" />
-        <DraftWithAIToast />
+        <HomeAnnouncementCard className="mb-6 tablet:!hidden" />
+        <HomeAnnouncementToast />
         {children}
       </HomeFeedsProvider>
     </PageLayout>
