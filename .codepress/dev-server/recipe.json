@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "bootstrapped_at": "2026-08-13T19:44:28Z",
+  "discovery_branch": "codepress/bootstrap/dev-server/d490d803ac824db5",
+  "frontends": [
+    {
+      "label": "web",
+      "working_dir": "",
+      "description": "ResearchHub's public research platform",
+      "dockerfile_path": ".codepress/dev-server/Dockerfile.web",
+      "dev_command": "npm run dev",
+      "prebuild_command": "",
+      "prebuild_inputs": [],
+      "framework": "next",
+      "package_manager": "npm",
+      "install_command": "npm install",
+      "dependency_manifests": ["package-lock.json"],
+      "dev_port": 3000,
+      "system_packages": ["procps"],
+      "size": "medium"
+    }
+  ]
+}
