@@ -378,15 +378,14 @@ export const CommentProvider = ({
   const handleCommentDeleted = useCallback(
     (data: { comment: Comment; contentType: ContentType; documentId: number }) => {
       if (data.documentId === documentId && data.contentType === contentType) {
-        // Remove the deleted comment from the list
+        // Remove the deleted comment from the tree; the reducer keeps the count in step.
         dispatch({
           type: CommentActionType.DELETE_COMMENT_SUCCESS,
           payload: { comment: data.comment },
         });
-        dispatch({ type: CommentActionType.SET_COUNT, payload: state.count - 1 });
       }
     },
-    [documentId, contentType, state.count]
+    [documentId, contentType]
   );
 
   // Function to emit comment events
@@ -686,78 +685,39 @@ export const CommentProvider = ({
     [state.comments, documentId, contentType]
   );
 
-  // Delete a comment
+  // Delete a comment, at any depth. No optimistic update: it leaves the list only once the
+  // API has removed it, and stays put if the call fails.
   const deleteComment = useCallback(
     async (commentId: number): Promise<boolean> => {
+      const commentToDelete = findCommentById(state.comments, commentId);
+      if (!commentToDelete) {
+        return false;
+      }
+
       dispatch({ type: CommentActionType.DELETE_COMMENT_START });
       dispatch({ type: CommentActionType.SET_ERROR, payload: null });
 
       try {
-        // Find the comment to delete
-        const commentToDelete = findCommentById(state.comments, commentId);
-
-        // If we couldn't find the comment to delete, return false
-        if (!commentToDelete) {
-          return false;
-        }
-
-        // Check if this is a reply (has a parentId)
-        const isReply = !!commentToDelete.parentId;
-
-        // Set loading state
-        dispatch({ type: CommentActionType.DELETE_COMMENT_START });
-
-        try {
-          // Make the API call first - no optimistic updates for deletion
-          await CommentService.deleteComment({
-            commentId,
-            documentId,
-            contentType,
-          });
-
-          // Only update the UI after successful API response
-          if (isReply) {
-            // For replies, we need to update the parent's replies array
-            dispatch({
-              type: CommentActionType.DELETE_COMMENT_SUCCESS,
-              payload: { comment: commentToDelete },
-            });
-          } else {
-            // For top-level comments, filter them out from the list
-            dispatch({
-              type: CommentActionType.DELETE_COMMENT_SUCCESS,
-              payload: { comment: commentToDelete },
-            });
-          }
-
-          // Update the total count
-          dispatch({ type: CommentActionType.SET_COUNT, payload: state.count - 1 });
-
-          // Emit the event for backward compatibility
-          emitCommentEvent('comment_deleted', {
-            comment: commentToDelete,
-            contentType,
-            documentId,
-          });
-
-          return true;
-        } catch (error) {
-          console.error('Error deleting comment:', error);
-          dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to delete comment' });
-          return false;
-        } finally {
-          dispatch({
-            type: CommentActionType.DELETE_COMMENT_SUCCESS,
-            payload: { comment: commentToDelete },
-          });
-        }
-      } catch (err) {
-        console.error('Error in deleteComment:', err);
+        await CommentService.deleteComment({
+          commentId,
+          documentId,
+          contentType,
+        });
+      } catch (error) {
+        console.error('Error deleting comment:', error);
         dispatch({ type: CommentActionType.SET_ERROR, payload: 'Failed to delete comment' });
+        dispatch({ type: CommentActionType.SET_LOADING, payload: false });
         return false;
       }
+
+      // Removes it from the tree and lowers the count when it was a top-level comment.
+      dispatch({
+        type: CommentActionType.DELETE_COMMENT_SUCCESS,
+        payload: { comment: commentToDelete },
+      });
+      return true;
     },
-    [documentId, contentType, state.comments, emitCommentEvent]
+    [documentId, contentType, state.comments]
   );
 
   // Helper function to set editing comment ID
