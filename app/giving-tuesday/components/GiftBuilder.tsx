@@ -8,28 +8,31 @@ import { Button } from '@/components/ui/Button';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
 import type { FeedGrantContent, FeedPostContent } from '@/types/feed';
-import { GRANT_IMAGE_FALLBACK_GRADIENT, type FundingPool } from '@/types/grant';
+import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 import { formatCompactAmount } from '@/utils/currency';
 import { cn } from '@/utils/styles';
 
 type Cause = FeedGrantContent | FeedPostContent;
 
 interface GiftBuilderProps {
-  scienceFundPool: FundingPool | null;
   rfps: FeedGrantContent[];
   proposals: FeedPostContent[];
   className?: string;
 }
 
 const PATHS = [
-  { id: 'science', label: 'Give to science', hint: 'We send it where it’s needed most' },
+  {
+    id: 'science',
+    label: 'Give to science',
+    hint: 'We send it to the project closest to its goal',
+  },
   { id: 'cause', label: 'Pick a cause', hint: 'Choose the RFP or project you care about' },
 ] as const;
 
 type GiftPath = (typeof PATHS)[number]['id'];
 
-/** The two ways to give: to the ResearchHub science fund, or to one RFP or project the donor picks. */
-export function GiftBuilder({ scienceFundPool, rfps, proposals, className }: GiftBuilderProps) {
+/** The two ways to give: to the project closest to its goal, or to one RFP or project the donor picks. */
+export function GiftBuilder({ rfps, proposals, className }: GiftBuilderProps) {
   const causes: Cause[] = [...rfps, ...proposals];
   const [path, setPath] = useState<GiftPath>('science');
   const [causeId, setCauseId] = useState(causes[0]?.id);
@@ -38,7 +41,9 @@ export function GiftBuilder({ scienceFundPool, rfps, proposals, className }: Gif
 
   const isScience = path === 'science';
   const isRfp = cause?.contentType === 'GRANT';
-  const canGive = isScience ? !!scienceFundPool : !!cause;
+  // The page sorts proposals closest to their goal first.
+  const closestToGoal = proposals[0];
+  const target: Cause | undefined = isScience ? closestToGoal : cause;
   const modalState = { isOpen: isModalOpen, onClose: () => setIsModalOpen(false) };
 
   return (
@@ -79,10 +84,16 @@ export function GiftBuilder({ scienceFundPool, rfps, proposals, className }: Gif
       </div>
 
       {isScience ? (
-        <p className="text-sm text-gray-600">
-          Your gift goes into the ResearchHub Science Fund, and we direct it to the proposals that
-          need it most.
-        </p>
+        <>
+          <p className="text-sm text-gray-600">
+            We send your gift to the open project closest to being fully funded.
+          </p>
+          {closestToGoal && (
+            <div className="mt-4 rounded-xl bg-gray-50 p-4">
+              <ProposalDetails proposal={closestToGoal} />
+            </div>
+          )}
+        </>
       ) : !cause ? (
         <p className="text-sm text-gray-600">Open RFPs and projects will show here.</p>
       ) : (
@@ -109,43 +120,34 @@ export function GiftBuilder({ scienceFundPool, rfps, proposals, className }: Gif
 
       <Button
         size="lg"
-        disabled={!canGive}
+        disabled={!target}
         onClick={() => setIsModalOpen(true)}
         className="mt-5 w-full font-semibold"
       >
         {isScience ? 'Give to science' : `Give to this ${isRfp ? 'RFP' : 'project'}`}
       </Button>
-      {!canGive && (
+      {!target && (
         <p className="mt-3 text-center text-xs text-gray-500">
           Giving isn’t available right now. Please check back soon.
         </p>
       )}
 
-      {isScience
-        ? scienceFundPool && (
-            <ContributeToFundraiseModal
-              {...modalState}
-              mode="fundingPool"
-              fundingPool={scienceFundPool}
-              headerTitle="Give to science"
-              proposalTitle="ResearchHub Science Fund"
-            />
-          )
-        : cause &&
-          (cause.contentType === 'GRANT' ? (
-            <ContributeToFundraiseModal
-              {...modalState}
-              mode="fundingPool"
-              fundingPool={cause.grant.fundingPool!}
-              proposalTitle={cause.title}
-            />
-          ) : (
-            <ContributeToFundraiseModal
-              {...modalState}
-              fundraise={cause.fundraise!}
-              proposalTitle={cause.title}
-            />
-          ))}
+      {target &&
+        (target.contentType === 'GRANT' ? (
+          <ContributeToFundraiseModal
+            {...modalState}
+            mode="fundingPool"
+            fundingPool={target.grant.fundingPool!}
+            proposalTitle={target.title}
+          />
+        ) : (
+          <ContributeToFundraiseModal
+            {...modalState}
+            fundraise={target.fundraise!}
+            headerTitle={isScience ? 'Give to science' : undefined}
+            proposalTitle={target.title}
+          />
+        ))}
     </div>
   );
 }

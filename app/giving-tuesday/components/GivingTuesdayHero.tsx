@@ -3,7 +3,6 @@ import { Bell, FileText } from 'lucide-react';
 import { ShaderBackdrop } from '@/components/Auth/takeover/ShaderBackdrop';
 import { Logo } from '@/components/ui/Logo';
 import type { FeedGrantContent, FeedPostContent } from '@/types/feed';
-import type { FundingPool } from '@/types/grant';
 import { GiftBuilder } from '@/app/giving-tuesday/components/GiftBuilder';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
 
@@ -13,13 +12,12 @@ const TRUST_POINTS = [
 ];
 
 interface GivingTuesdayHeroProps {
-  scienceFundPool: FundingPool | null;
   rfps: FeedGrantContent[];
   proposals: FeedPostContent[];
 }
 
 /** The pitch on the left of the spinning helix, and the two ways to give on the right. */
-export function GivingTuesdayHero({ scienceFundPool, rfps, proposals }: GivingTuesdayHeroProps) {
+export function GivingTuesdayHero({ rfps, proposals }: GivingTuesdayHeroProps) {
   return (
     <section className="relative grid lg:min-h-[800px] lg:grid-cols-[46%_1fr]">
       <ShaderBackdrop backdrop="spinningHelix" layout="panel" className="absolute inset-0" />
@@ -47,12 +45,7 @@ export function GivingTuesdayHero({ scienceFundPool, rfps, proposals }: GivingTu
 
       <div className="relative flex flex-col justify-center px-5 py-8 lg:px-14 lg:py-14">
         <div className="mx-auto w-full max-w-[520px]">
-          <GiftBuilder
-            scienceFundPool={scienceFundPool}
-            rfps={rfps}
-            proposals={proposals}
-            className="shadow-2xl"
-          />
+          <GiftBuilder rfps={rfps} proposals={proposals} className="shadow-2xl" />
           <ul className="mt-8 grid grid-cols-2 gap-4">
             {TRUST_POINTS.map(({ label, Icon }) => (
               <li key={label} className="flex items-center gap-2.5">

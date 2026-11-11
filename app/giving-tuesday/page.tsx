@@ -1,6 +1,4 @@
-import { GIVING_TUESDAY_FUND_POST_ID } from '@/config/constants';
 import { FeedService } from '@/services/feed.service';
-import { PostService } from '@/services/post.service';
 import type { FeedGrantContent, FeedPostContent } from '@/types/feed';
 import { LandingPageFooter } from '@/components/landing/LandingPageFooter';
 import { GivingTuesdayHero } from '@/app/giving-tuesday/components/GivingTuesdayHero';
@@ -12,19 +10,7 @@ import { GivingTuesdayGlance } from '@/app/giving-tuesday/components/GivingTuesd
 const RFP_COUNT = 5;
 const PROPOSAL_COUNT = 3;
 
-/** The ResearchHub-run RFP that general gifts go into, or null when it isn't set up or can't load. */
-async function fetchScienceFund() {
-  if (!GIVING_TUESDAY_FUND_POST_ID) return null;
-  try {
-    const work = await PostService.get(GIVING_TUESDAY_FUND_POST_ID);
-    return work.note?.post?.grant ?? null;
-  } catch (error) {
-    console.error('Failed to fetch the Giving Tuesday science fund:', error);
-    return null;
-  }
-}
-
-/** Open RFPs, largest first. */
+/** Open RFPs taking gifts into their pool, largest first. */
 async function fetchRfps() {
   const { entries } = await FeedService.getFeed({
     endpoint: 'grant_feed',
@@ -32,7 +18,10 @@ async function fetchRfps() {
     status: 'OPEN',
     ordering: 'amount_raised',
   });
-  return entries.map((entry) => entry.content as FeedGrantContent);
+  return entries
+    .map((entry) => entry.content as FeedGrantContent)
+    .filter((rfp) => rfp.grant.fundingPool?.status === 'OPEN')
+    .slice(0, RFP_COUNT);
 }
 
 /** Open proposals, closest to their goal first. */
@@ -53,20 +42,11 @@ function getFundedShare({ fundraise }: FeedPostContent) {
 }
 
 export default async function GivingTuesdayPage() {
-  const [scienceFund, allRfps, proposals] = await Promise.all([
-    fetchScienceFund(),
-    fetchRfps(),
-    fetchProposals(),
-  ]);
-  const scienceFundPool =
-    scienceFund?.fundingPool?.status === 'OPEN' ? scienceFund.fundingPool : null;
-  const rfps = allRfps
-    .filter((rfp) => rfp.grant.fundingPool?.status === 'OPEN' && rfp.grant.id !== scienceFund?.id)
-    .slice(0, RFP_COUNT);
+  const [rfps, proposals] = await Promise.all([fetchRfps(), fetchProposals()]);
 
   return (
     <>
-      <GivingTuesdayHero scienceFundPool={scienceFundPool} rfps={rfps} proposals={proposals} />
+      <GivingTuesdayHero rfps={rfps} proposals={proposals} />
       <GivingTuesdayRfps rfps={rfps} />
       <GivingTuesdayClosing />
       <GivingTuesdayFAQ />
