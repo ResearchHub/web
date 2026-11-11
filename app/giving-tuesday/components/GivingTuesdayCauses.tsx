@@ -47,7 +47,9 @@ export function GivingTuesdayCauses({ proposals }: { proposals: GiftProposal[] }
         </p>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:-mx-5 sm:flex sm:snap-x sm:overflow-x-auto sm:px-5 sm:pb-3 lg:mx-0 lg:px-0">
-          {CAUSES.map((candidate) => (
+          {CAUSES.filter((candidate) =>
+            proposals.some((proposal) => proposal.causeId === candidate.id)
+          ).map((candidate) => (
             <CauseCard
               key={candidate.id}
               cause={candidate}

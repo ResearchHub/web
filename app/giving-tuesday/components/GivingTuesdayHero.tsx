@@ -27,8 +27,9 @@ export function GivingTuesdayHero({ proposals }: { proposals: GiftProposal[] }) 
             Fund the <span className="text-primary-600">science</span> you care about.
           </h1>
           <p className="mt-3 text-lg text-gray-600">
-            Give to a real research project at a nonprofit, in cancer, aging, brain health and more.
-            Your gift is tax-deductible, and every gift in December is matched 1:1.
+            Give to a real research project at a nonprofit, in cancer, brain health, infectious
+            disease and more. Your gift is tax-deductible, and every gift in December is matched
+            1:1.
           </p>
           {neededUsd > 0 && (
             <p className="mt-5 text-gray-600">

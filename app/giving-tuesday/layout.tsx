@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
     title: 'Give to science on Giving Tuesday 2026',
     description:
-      'Fund the science you care about this Giving Tuesday. Pick a cause, like cancer or aging, and give to a real research project. Every gift is matched 1:1.',
+      'Fund the science you care about this Giving Tuesday. Pick a cause, like cancer or brain health, and give to a real research project. Every gift is matched 1:1.',
     url: '/giving-tuesday',
   }),
   title: {
