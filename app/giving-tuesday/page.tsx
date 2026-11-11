@@ -24,7 +24,10 @@ async function fetchRfps() {
     .slice(0, RFP_COUNT);
 }
 
-/** Open proposals, closest to their goal first. */
+/**
+ * Open proposals still short of their goal, closest to it first. Award proposals
+ * have no goal, and a funded proposal can stay open until it completes.
+ */
 async function fetchProposals() {
   const { entries } = await FeedService.getFeed({
     endpoint: 'funding_feed',
@@ -32,7 +35,7 @@ async function fetchProposals() {
   });
   return entries
     .map((entry) => entry.content as FeedPostContent)
-    .filter((proposal) => proposal.fundraise)
+    .filter((proposal) => proposal.fundraise && getFundedShare(proposal) < 1)
     .sort((a, b) => getFundedShare(b) - getFundedShare(a))
     .slice(0, PROPOSAL_COUNT);
 }
