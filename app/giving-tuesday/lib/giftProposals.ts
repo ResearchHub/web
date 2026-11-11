@@ -51,25 +51,27 @@ export async function fetchGiftProposals(): Promise<GiftProposal[]> {
 /** Every open fundraise, by post id. The post endpoint leaves the fundraise out. */
 async function fetchOpenFundraises() {
   const fundraises = new Map<number, Fundraise>();
-  let url: string | null =
-    `${ACTIVE_API_ORIGIN}/api/funding_feed/?fundraise_status=OPEN&page_size=100`;
-
   try {
-    while (url) {
-      const res: Response = await fetch(url, {
-        headers: { Accept: 'application/json' },
-        next: { revalidate: 300 },
-      });
-      if (!res.ok) break;
-      const data: { results: RawApiFeedEntry[]; next: string | null } = await res.json();
-      for (const entry of data.results) {
-        const { id, fundraise } = transformFeedEntry(entry).content as FeedPostContent;
-        if (fundraise) fundraises.set(id, fundraise);
-      }
-      url = data.next;
+    const entries = await fetchFeedPages(
+      `${ACTIVE_API_ORIGIN}/api/funding_feed/?fundraise_status=OPEN&page_size=100`
+    );
+    for (const entry of entries) {
+      const { id, fundraise } = transformFeedEntry(entry).content as FeedPostContent;
+      if (fundraise) fundraises.set(id, fundraise);
     }
   } catch (error) {
     console.error('Failed to load Giving Tuesday fundraises:', error);
   }
   return fundraises;
+}
+
+/** Each page links the next, so the pages load one after another. */
+async function fetchFeedPages(url: string): Promise<RawApiFeedEntry[]> {
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json' },
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) return [];
+  const data: { results: RawApiFeedEntry[]; next: string | null } = await res.json();
+  return data.next ? [...data.results, ...(await fetchFeedPages(data.next))] : data.results;
 }

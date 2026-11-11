@@ -21,7 +21,7 @@ const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
 type Cause = (typeof CAUSES)[number];
 
 /** The causes carousel, the chosen cause's proposals, and a gift to one of them in place. */
-export function GivingTuesdayCauses({ proposals }: { proposals: GiftProposal[] }) {
+export function GivingTuesdayCauses({ proposals }: Readonly<{ proposals: GiftProposal[] }>) {
   const [causeId, setCauseId] = useState<CauseId>();
   const [giftTarget, setGiftTarget] = useState<GiftProposal>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,13 +115,14 @@ function CauseCard({
   proposals,
   isSelected,
   onSelect,
-}: {
+}: Readonly<{
   cause: Cause;
   proposals: GiftProposal[];
   isSelected: boolean;
   onSelect: () => void;
-}) {
+}>) {
   const neededUsd = proposals.reduce((sum, proposal) => sum + getNeededUsd(proposal), 0);
+  const projectCount = `${proposals.length} ${proposals.length === 1 ? 'project' : 'projects'}`;
 
   return (
     <button
@@ -141,9 +142,7 @@ function CauseCard({
       <span className="mt-3 block font-semibold leading-tight text-navy">{cause.label}</span>
       <span className="mt-1 block text-[13px] leading-snug text-gray-500">{cause.blurb}</span>
       <span className="mt-3 block text-xs font-medium text-gray-400">
-        {neededUsd > 0
-          ? `${formatCompactAmount(neededUsd)} needed`
-          : `${proposals.length} ${proposals.length === 1 ? 'project' : 'projects'}`}
+        {neededUsd > 0 ? `${formatCompactAmount(neededUsd)} needed` : projectCount}
       </span>
     </button>
   );
@@ -155,12 +154,12 @@ function ProposalRow({
   cause,
   delayMs,
   onGive,
-}: {
+}: Readonly<{
   proposal: GiftProposal;
   cause: Cause;
   delayMs: number;
   onGive: () => void;
-}) {
+}>) {
   const canGive = isGiftable(proposal.fundraise);
 
   return (
@@ -201,7 +200,7 @@ function ProposalRow({
   );
 }
 
-function FundingProgress({ fundraise }: { fundraise: Fundraise }) {
+function FundingProgress({ fundraise }: Readonly<{ fundraise: Fundraise }>) {
   const { raised, goal, barPercent } = useFundraiseSummary(fundraise);
   return (
     <>
@@ -216,7 +215,7 @@ function FundingProgress({ fundraise }: { fundraise: Fundraise }) {
 }
 
 /** An open fundraise that has met its goal has no status label of its own. */
-function FundedLabel({ fundraise }: { fundraise: Fundraise }) {
+function FundedLabel({ fundraise }: Readonly<{ fundraise: Fundraise }>) {
   const { statusLabel } = useFundraiseSummary(fundraise);
   return (
     <p className="mt-3 text-center text-sm font-semibold text-gray-500">

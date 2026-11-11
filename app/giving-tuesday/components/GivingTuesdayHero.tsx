@@ -6,7 +6,7 @@ import { getNeededUsd, type GiftProposal } from '@/app/giving-tuesday/lib/giftPr
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
 
 /** The pitch beside the spinning helix, with one way in: down to the causes. */
-export function GivingTuesdayHero({ proposals }: { proposals: GiftProposal[] }) {
+export function GivingTuesdayHero({ proposals }: Readonly<{ proposals: GiftProposal[] }>) {
   const neededUsd = proposals.reduce((sum, proposal) => sum + getNeededUsd(proposal), 0);
   const openCount = proposals.filter((proposal) => getNeededUsd(proposal) > 0).length;
 
