@@ -25,7 +25,7 @@ const COMPARISONS = [
 
 const STATS = [
   {
-    label: 'Contributed to research since 2024',
+    label: 'Contributed since 2024',
     value: formatMoney(TRACK_RECORD.contributedUsd, true),
   },
   { label: 'Proposals fully funded', value: TRACK_RECORD.proposalsFunded.toLocaleString() },

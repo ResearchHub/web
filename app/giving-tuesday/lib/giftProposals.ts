@@ -1,6 +1,6 @@
 import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
+import { transformFeedEntry, type FeedPostContent, type RawApiFeedEntry } from '@/types/feed';
 import type { Fundraise } from '@/types/funding';
-import { transformPost } from '@/types/work';
 import { ACTIVE_API_ORIGIN, ALLOW_MISMATCHED_ORIGIN, normalizeOrigin } from '@/app/pool/lib/env';
 import type { CauseId } from '@/app/giving-tuesday/lib/causes';
 import giftProposalEntries from '@/app/giving-tuesday/lib/giftProposals.json';
@@ -38,29 +38,38 @@ export function getNeededUsd({ fundraise }: GiftProposal): number {
 
 /**
  * The listed nonprofit proposals with their live fundraise, the ones needing the
- * most first and the ones that can't take a gift last. A proposal whose post
- * fails to load keeps its listing.
+ * most first and the ones that can't take a gift last. A proposal missing from
+ * the open feed, completed or not loaded, keeps its listing without a fundraise.
  */
 export async function fetchGiftProposals(): Promise<GiftProposal[]> {
-  const proposals = await Promise.all(
-    (giftProposalEntries as Omit<GiftProposal, 'fundraise'>[]).map(async (entry) => ({
-      ...entry,
-      fundraise: (await fetchPost(entry.id))?.fundraise,
-    }))
-  );
-  return proposals.sort((a, b) => getNeededUsd(b) - getNeededUsd(a));
+  const fundraises = await fetchOpenFundraises();
+  return (giftProposalEntries as Omit<GiftProposal, 'fundraise'>[])
+    .map((entry) => ({ ...entry, fundraise: fundraises.get(entry.id) }))
+    .sort((a, b) => getNeededUsd(b) - getNeededUsd(a));
 }
 
-async function fetchPost(id: number) {
+/** Every open fundraise, by post id. The post endpoint leaves the fundraise out. */
+async function fetchOpenFundraises() {
+  const fundraises = new Map<number, Fundraise>();
+  let url: string | null =
+    `${ACTIVE_API_ORIGIN}/api/funding_feed/?fundraise_status=OPEN&page_size=100`;
+
   try {
-    const res = await fetch(`${ACTIVE_API_ORIGIN}/api/researchhubpost/${id}/`, {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 300 },
-    });
-    if (!res.ok) return undefined;
-    return transformPost(await res.json());
+    while (url) {
+      const res: Response = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) break;
+      const data: { results: RawApiFeedEntry[]; next: string | null } = await res.json();
+      for (const entry of data.results) {
+        const { id, fundraise } = transformFeedEntry(entry).content as FeedPostContent;
+        if (fundraise) fundraises.set(id, fundraise);
+      }
+      url = data.next;
+    }
   } catch (error) {
-    console.error(`Failed to load Giving Tuesday proposal ${id}:`, error);
-    return undefined;
+    console.error('Failed to load Giving Tuesday fundraises:', error);
   }
+  return fundraises;
 }
