@@ -31,9 +31,15 @@ export function isGiftable(fundraise: Fundraise | undefined): fundraise is Fundr
   );
 }
 
+/** What a proposal can still take, in USD. Zero once it can't take a gift. */
+export function getNeededUsd({ fundraise }: GiftProposal): number {
+  return isGiftable(fundraise) ? fundraise.goalAmount.usd - fundraise.amountRaised.usd : 0;
+}
+
 /**
- * The listed nonprofit proposals with their live fundraise, the ones that can't
- * take a gift last. A proposal whose post fails to load keeps its listing.
+ * The listed nonprofit proposals with their live fundraise, the ones needing the
+ * most first and the ones that can't take a gift last. A proposal whose post
+ * fails to load keeps its listing.
  */
 export async function fetchGiftProposals(): Promise<GiftProposal[]> {
   const proposals = await Promise.all(
@@ -42,9 +48,7 @@ export async function fetchGiftProposals(): Promise<GiftProposal[]> {
       fundraise: (await fetchPost(entry.id))?.fundraise,
     }))
   );
-  return proposals.sort(
-    (a, b) => Number(isGiftable(b.fundraise)) - Number(isGiftable(a.fundraise))
-  );
+  return proposals.sort((a, b) => getNeededUsd(b) - getNeededUsd(a));
 }
 
 async function fetchPost(id: number) {

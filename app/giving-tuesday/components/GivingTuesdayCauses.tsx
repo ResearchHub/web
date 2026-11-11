@@ -5,10 +5,12 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { Button } from '@/components/ui/Button';
 import { useFundraiseSummary } from '@/components/Funding/lib/useFundraiseSummary';
 import type { Fundraise } from '@/types/funding';
+import { formatCompactAmount } from '@/utils/currency';
 import { cn } from '@/utils/styles';
 import { CAUSES, type CauseId } from '@/app/giving-tuesday/lib/causes';
 import {
   IS_GIVING_ENABLED,
+  getNeededUsd,
   isGiftable,
   type GiftProposal,
 } from '@/app/giving-tuesday/lib/giftProposals';
@@ -20,11 +22,10 @@ type Cause = (typeof CAUSES)[number];
 
 /** The causes carousel, the chosen cause's proposals, and a gift to one of them in place. */
 export function GivingTuesdayCauses({ proposals }: { proposals: GiftProposal[] }) {
-  const [causeId, setCauseId] = useState<CauseId>(CAUSES[0].id);
+  const [causeId, setCauseId] = useState<CauseId>();
   const [giftTarget, setGiftTarget] = useState<GiftProposal>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const cause = CAUSES.find((candidate) => candidate.id === causeId)!;
-  const causeProposals = proposals.filter((proposal) => proposal.causeId === causeId);
+  const cause = CAUSES.find((candidate) => candidate.id === causeId);
 
   function openGift(proposal: GiftProposal) {
     setGiftTarget(proposal);
@@ -45,31 +46,35 @@ export function GivingTuesdayCauses({ proposals }: { proposals: GiftProposal[] }
           work itself: the people, the supplies and the experiments.
         </p>
 
-        <div className="-mx-5 mt-8 flex snap-x gap-3 overflow-x-auto px-5 pb-3 lg:mx-0 lg:px-0">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:-mx-5 sm:flex sm:snap-x sm:overflow-x-auto sm:px-5 sm:pb-3 lg:mx-0 lg:px-0">
           {CAUSES.map((candidate) => (
             <CauseCard
               key={candidate.id}
               cause={candidate}
-              projectCount={
-                proposals.filter((proposal) => proposal.causeId === candidate.id).length
-              }
+              proposals={proposals.filter((proposal) => proposal.causeId === candidate.id)}
               isSelected={candidate.id === causeId}
               onSelect={() => setCauseId(candidate.id)}
             />
           ))}
         </div>
 
-        <ul key={causeId} className="mt-6 space-y-3">
-          {causeProposals.map((proposal, index) => (
-            <ProposalRow
-              key={proposal.id}
-              proposal={proposal}
-              cause={cause}
-              delayMs={index * 60}
-              onGive={() => openGift(proposal)}
-            />
-          ))}
-        </ul>
+        {cause ? (
+          <ul key={cause.id} className="mt-6 space-y-3">
+            {proposals
+              .filter((proposal) => proposal.causeId === cause.id)
+              .map((proposal, index) => (
+                <ProposalRow
+                  key={proposal.id}
+                  proposal={proposal}
+                  cause={cause}
+                  delayMs={index * 60}
+                  onGive={() => openGift(proposal)}
+                />
+              ))}
+          </ul>
+        ) : (
+          <p className="mt-6 text-gray-500">Pick a cause above to see its projects.</p>
+        )}
         <p className="mt-6 text-sm text-gray-600">
           Giving from a donor-advised fund that isn’t held at Endaoment?{' '}
           <a
@@ -94,31 +99,35 @@ export function GivingTuesdayCauses({ proposals }: { proposals: GiftProposal[] }
           onClose={() => setIsModalOpen(false)}
           fundraise={giftTarget.fundraise}
           proposalTitle={giftTarget.title}
-          maxAmountUsd={giftTarget.fundraise.goalAmount.usd - giftTarget.fundraise.amountRaised.usd}
+          maxAmountUsd={getNeededUsd(giftTarget)}
+          variant="panel"
         />
       )}
     </section>
   );
 }
 
+/** Shows what the cause still needs, or how many projects it has once none can take a gift. */
 function CauseCard({
   cause,
-  projectCount,
+  proposals,
   isSelected,
   onSelect,
 }: {
   cause: Cause;
-  projectCount: number;
+  proposals: GiftProposal[];
   isSelected: boolean;
   onSelect: () => void;
 }) {
+  const neededUsd = proposals.reduce((sum, proposal) => sum + getNeededUsd(proposal), 0);
+
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-pressed={isSelected}
       className={cn(
-        'w-[200px] shrink-0 snap-start rounded-2xl border-2 bg-white p-4 text-left transition-colors',
+        'rounded-2xl border-2 bg-white p-4 text-left transition-colors sm:w-[200px] sm:shrink-0 sm:snap-start',
         isSelected ? 'border-navy' : 'border-gray-200 hover:border-gray-300'
       )}
     >
@@ -130,7 +139,9 @@ function CauseCard({
       <span className="mt-3 block font-semibold leading-tight text-navy">{cause.label}</span>
       <span className="mt-1 block text-[13px] leading-snug text-gray-500">{cause.blurb}</span>
       <span className="mt-3 block text-xs font-medium text-gray-400">
-        {projectCount} {projectCount === 1 ? 'project' : 'projects'}
+        {neededUsd > 0
+          ? `${formatCompactAmount(neededUsd)} needed`
+          : `${proposals.length} ${proposals.length === 1 ? 'project' : 'projects'}`}
       </span>
     </button>
   );

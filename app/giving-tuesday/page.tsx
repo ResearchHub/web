@@ -11,7 +11,7 @@ export default async function GivingTuesdayPage() {
 
   return (
     <>
-      <GivingTuesdayHero />
+      <GivingTuesdayHero proposals={proposals} />
       <GivingTuesdayCauses proposals={proposals} />
       <GivingTuesdayWhyGive />
       <GivingTuesdayFAQ />

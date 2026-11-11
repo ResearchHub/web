@@ -48,9 +48,8 @@ vec3 bokeh(vec2 uv, float t, vec3 tint) {
  * base pair, strands offset to open the major and minor grooves), ray-marched.
  * `phase` and `slide` are GLSL expressions in `t` for its spin and its travel
  * along the axis; both must return to their start, modulo one base pair, at `LOOP`.
- * `panelX` places it across the desktop panel: positive is right of centre.
  */
-const buildHelixShader = (phase: string, slide: string, panelX = 1.8) => `
+const buildHelixShader = (phase: string, slide: string) => `
 const float RISE = 0.34;
 const float TWIST = 0.6283185;
 const float GROOVE = 2.35;
@@ -91,7 +90,7 @@ vec3 shade(vec2 fc) {
   PHASE = ${phase};
   SLIDE = ${slide};
   vec3 w = normalize(mix(vec3(-0.28, 1.0, -0.55), vec3(-1.0, 0.3, -0.55), uLayout));
-  ORI = mix(vec3(${panelX.toFixed(2)}, -1.1, -11.5), vec3(1.6, 0.25, -10.0), uLayout);
+  ORI = mix(vec3(1.8, -1.1, -11.5), vec3(1.6, 0.25, -10.0), uLayout);
   vec3 u = normalize(cross(w, vec3(0.0, 0.0, 1.0))), v = cross(u, w);
   FR = mat3(u, v, w);
   vec3 rd = normalize(vec3(uv, -1.7));
@@ -208,8 +207,8 @@ vec3 shade(vec2 fc) {
 export const BACKDROP_SHADERS: Record<BackdropId, string> = {
   // Screws one base pair along its axis per loop.
   helix: COMMON + buildHelixShader('t / LOOP * TWIST', 't / LOOP * RISE'),
-  // Turns once around its axis per loop, left of centre so a wide panel leaves room on the right.
-  spinningHelix: COMMON + buildHelixShader('t / LOOP * TAU', '0.0', -1.5),
+  // Turns once around its axis per loop.
+  spinningHelix: COMMON + buildHelixShader('t / LOOP * TAU', '0.0'),
   threads: COMMON + THREADS,
   film: COMMON + FILM,
 };

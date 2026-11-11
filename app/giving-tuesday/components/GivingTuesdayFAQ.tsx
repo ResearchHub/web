@@ -11,7 +11,7 @@ const FAQ_ITEMS: FundingFAQItem[] = [
   },
   {
     q: 'Is my gift matched?',
-    a: 'Yes. Every gift made through December 31 is matched 1:1, so $100 becomes $200 for research.',
+    a: 'Yes. ResearchHub matches every gift made to these projects in December 1:1, so $100 becomes $200 for research.',
   },
   {
     q: 'How will I know what my gift did?',
