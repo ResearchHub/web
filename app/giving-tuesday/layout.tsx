@@ -5,13 +5,14 @@ export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
     title: 'Give to science on Giving Tuesday 2026',
     description:
-      'Fund real research this Giving Tuesday. Give to science, or pick the RFP or project you care about. Every gift is matched 1:1.',
+      'Fund the science you care about this Giving Tuesday. Pick a cause, like cancer or aging, and give to a real research project. Every gift is matched 1:1.',
     url: '/giving-tuesday',
   }),
   title: {
     default: 'Give to science on Giving Tuesday 2026',
     template: `%s | ${SITE_CONFIG.name}`,
   },
+  robots: { index: false, follow: false },
 };
 
 export default function GivingTuesdayLayout({ children }: Readonly<{ children: React.ReactNode }>) {

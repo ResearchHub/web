@@ -5,7 +5,7 @@ const FACTS = [
   { label: 'Name', value: 'ResearchHub' },
   {
     label: 'What it is',
-    value: 'An open platform where donors fund preregistered research projects and RFPs.',
+    value: 'An open platform where donors fund preregistered research projects.',
   },
   {
     label: 'Receiving charity',
