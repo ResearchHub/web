@@ -15,6 +15,7 @@ import type { NoteWithContent } from '@/types/note';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { DEFAULT_FUNDRAISE_END_DAYS, getWorkPath, mapOptionsToIds } from './formMapping';
+import { creatorRemovalMessage, pinnedCreatorValue } from './pinnedCreator';
 import type { PublishingFormData } from './schema';
 
 export const CHANGELOG_PUBLISH_ERROR_MESSAGE = 'Cannot publish changelog';
@@ -38,6 +39,7 @@ interface PublishActionOptions {
   readonly isChangelog: boolean;
   readonly canPublishChangelog: boolean;
   readonly canPublishRegisteredReport: boolean;
+  readonly canOverrideLockedDetails?: boolean;
 }
 
 export interface PublishAction {
@@ -75,6 +77,7 @@ export function usePublishAction({
   isChangelog,
   canPublishChangelog,
   canPublishRegisteredReport,
+  canOverrideLockedDetails = false,
 }: PublishActionOptions): PublishAction {
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
@@ -212,6 +215,17 @@ export function usePublishAction({
           budgetValue = formData.budget || '0';
         }
 
+        const pinnedCreator = pinnedCreatorValue(note, formData.articleType);
+        const people = formData.articleType === 'grant' ? formData.contacts : formData.authors;
+        if (
+          pinnedCreator &&
+          formData.workId &&
+          !people.some((person) => person.value === pinnedCreator)
+        ) {
+          toast.error(creatorRemovalMessage(formData.articleType));
+          return;
+        }
+
         const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
         const isAwardApplication =
           isNewProposal && isAwardMechanism(formData.selectedGrant?.fundingMechanism);
@@ -271,6 +285,11 @@ export function usePublishAction({
                 : undefined,
             omitFundraiseGoal: isAwardApplication,
             isPublic: isNewProposal ? formData.isPublic : undefined,
+            updateFundraiseGoal:
+              canOverrideLockedDetails &&
+              formData.articleType === 'preregistration' &&
+              Boolean(formData.workId) &&
+              !isAwardMechanism(formData.selectedGrant?.fundingMechanism),
           },
           formData.workId
         );
@@ -337,6 +356,7 @@ export function usePublishAction({
       note,
       isNewPreprint,
       canPublishChangelog,
+      canOverrideLockedDetails,
       editor,
       saveDetailsNow,
       methods,

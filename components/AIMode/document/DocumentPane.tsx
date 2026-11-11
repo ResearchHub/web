@@ -26,6 +26,7 @@ import { DocumentPaneSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { useUpdateNote } from '@/hooks/useNote';
 import type { AgentChat } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
+import { EditingOnBehalfBanner } from './EditingOnBehalfBanner';
 import { Masthead } from './masthead/Masthead';
 import { useMastheadSlots } from './masthead/useMastheadSlots';
 import { PublishDialog } from './PublishDialog';
@@ -270,6 +271,7 @@ export function DocumentPane({
           {menu && <div className="absolute right-3 top-3 z-10 flex">{menu}</div>}
           {/* The document is the pane: no gutter, no card, just the page. */}
           <div className="min-h-0 flex-1 overflow-y-auto">
+            <EditingOnBehalfBanner className="mx-6 mt-4" />
             <NoteReviewBanner review={review} className="mx-6 mt-4" />
 
             {failedToLoad ? (

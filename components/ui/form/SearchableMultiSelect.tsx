@@ -47,6 +47,7 @@ export interface SearchableMultiSelectProps {
   placeholderWhenFilled?: string;
   /** Put the caret in the search input when the field mounts. */
   autoFocus?: boolean;
+  lockedValues?: readonly string[];
   /** Restyles the panel the results drop in. */
   optionsClassName?: string;
 }
@@ -71,6 +72,7 @@ export function SearchableMultiSelect({
   placeholderWhenFilled = '',
   autoFocus = false,
   optionsClassName,
+  lockedValues,
 }: SearchableMultiSelectProps) {
   const id = useId();
   const [query, setQuery] = useState('');
@@ -154,16 +156,32 @@ export function SearchableMultiSelect({
     return () => ro.disconnect();
   }, []);
 
+  const isLocked = (optionValue: string) => lockedValues?.includes(optionValue) ?? false;
+
+  const keepLocked = (next: MultiSelectOption[]) => {
+    const missing = value.filter(
+      (option) => isLocked(option.value) && !next.some((item) => item.value === option.value)
+    );
+    if (missing.length === 0) return next;
+    const merged = [...next];
+    for (const option of missing) {
+      const index = value.findIndex((item) => item.value === option.value);
+      merged.splice(Math.min(Math.max(index, 0), merged.length), 0, option);
+    }
+    return merged;
+  };
+
   const handleChange = (newValue: MultiSelectOption[]) => {
     const uniqueValues = newValue.filter(
       (option, index, self) => index === self.findIndex((o) => o.value === option.value)
     );
 
     setQuery('');
-    onChange(uniqueValues);
+    onChange(keepLocked(uniqueValues));
   };
 
   const removeOption = (optionToRemove: MultiSelectOption) => {
+    if (isLocked(optionToRemove.value)) return;
     setFocusedValueIndex(null);
     onChange(value.filter((option) => option.value !== optionToRemove.value));
   };
@@ -224,6 +242,7 @@ export function SearchableMultiSelect({
                 options={value}
                 focusedOptionIndex={focusedValueIndex}
                 disabled={disabled}
+                lockedValues={lockedValues}
                 onRemove={removeOption}
                 onReorder={reorderOptions}
               />
@@ -231,19 +250,22 @@ export function SearchableMultiSelect({
               value.map((option, index) => (
                 <span
                   key={option.value}
+                  title={isLocked(option.value) ? 'This person stays on the work' : undefined}
                   className={cn(
                     'inline-flex items-center gap-1 px-2 py-1 text-sm rounded-md',
                     focusedValueIndex === index ? 'bg-gray-200 ring-2 ring-gray-400' : 'bg-gray-100'
                   )}
                 >
                   {option.label}
-                  <button
-                    type="button"
-                    onClick={() => removeOption(option)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  {!isLocked(option.value) && (
+                    <button
+                      type="button"
+                      onClick={() => removeOption(option)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </span>
               ))
             )}
