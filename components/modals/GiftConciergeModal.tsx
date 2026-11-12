@@ -49,8 +49,7 @@ export function GiftConciergeModal({ isOpen, onClose, topic }: Readonly<GiftConc
           rel="noopener noreferrer"
           className={cn(BLUE_BUTTON, 'h-12 w-full text-[15px]')}
         >
-          <CalendarCheck className="h-5 w-5" />
-          Schedule a call with Tyler
+          <CalendarCheck className="h-5 w-5" /> Schedule a call with Tyler
         </a>
       }
     >

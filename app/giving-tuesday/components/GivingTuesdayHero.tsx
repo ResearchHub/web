@@ -58,14 +58,14 @@ export function GivingTuesdayHero() {
       <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-6 pb-20 pt-8 lg:grid-cols-[1.05fr_1fr] lg:pb-0 lg:pt-0">
         <div className="lg:py-28">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-[13px] font-medium text-white/80 backdrop-blur">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            Giving Tuesday · December 1
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" /> Giving Tuesday ·
+            December 1
           </span>
           <h1
             className="mt-7 text-[52px] font-bold leading-[0.98] tracking-[-0.035em] text-white md:text-[80px]"
             style={DISPLAY_FONT}
           >
-            Give to science.
+            Give to science.{' '}
             <span
               className={cn('block pb-2 drop-shadow-[0_0_40px_rgba(57,113,255,0.45)]', BLUE_TEXT)}
             >
@@ -78,8 +78,7 @@ export function GivingTuesdayHero() {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-5">
             <a href="#fields" className={BLUE_BUTTON}>
-              Choose a field
-              <ArrowDown className="h-5 w-5" />
+              Choose a field <ArrowDown className="h-5 w-5" />
             </a>
             <a href="#match" className="text-[15px] font-semibold text-white/80 hover:text-white">
               How the match works →

@@ -39,8 +39,7 @@ export function GivingTuesdayClosing() {
             Every gift before 2027 is matched 1:1.
           </p>
           <a href="#fields" className={cn(BLUE_BUTTON, 'mt-9')}>
-            Choose a field
-            <ArrowUpRight className="h-5 w-5" />
+            Choose a field <ArrowUpRight className="h-5 w-5" />
           </a>
         </div>
       </div>
