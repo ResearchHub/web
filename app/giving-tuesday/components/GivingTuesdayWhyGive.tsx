@@ -31,7 +31,7 @@ export function GivingTuesdayWhyGive() {
             style={DISPLAY_FONT}
           >
             Science in the open,{' '}
-            <span className="text-[#6b7690]">funded in weeks instead of years.</span>
+            <span className={BLUE_TEXT}>funded in weeks instead of years.</span>
           </h2>
           <p className="mt-6 max-w-[520px] text-lg leading-relaxed text-[#98a4ba]">
             We’re advocates for open science. Every project shares its plan before the work starts
@@ -83,7 +83,10 @@ export function GivingTuesdayWhyGive() {
       <div className="mx-auto mt-16 max-w-[1240px]">
         <dl className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
           {STATS.map((stat) => (
-            <div key={stat.label} className="flex flex-col-reverse justify-end">
+            <div
+              key={stat.label}
+              className="flex flex-col-reverse items-center justify-end text-center"
+            >
               <dt className="mt-2 text-[13px] text-[#98a4ba] sm:text-sm">{stat.label}</dt>
               <dd
                 className="text-[26px] font-bold leading-none tracking-[-0.03em] text-white sm:text-[36px] md:text-[44px]"
@@ -94,7 +97,7 @@ export function GivingTuesdayWhyGive() {
             </div>
           ))}
         </dl>
-        <p className="mt-8 text-xs text-[#6b7690]">As of {TRACK_RECORD.asOf}</p>
+        <p className="mt-8 text-center text-xs text-[#6b7690]">As of {TRACK_RECORD.asOf}</p>
       </div>
     </section>
   );

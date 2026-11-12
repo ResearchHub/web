@@ -27,17 +27,12 @@ export function GivingTuesdayTopics() {
   return (
     <section id="fields" className="scroll-mt-4 px-6 pb-24 md:pb-32">
       <div className="mx-auto max-w-[1240px]">
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <h2
-            className="max-w-[620px] text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[56px]"
-            style={DISPLAY_FONT}
-          >
-            What science do you want to fund?
-          </h2>
-          <p className="max-w-[380px] text-[#98a4ba]">
-            Pick a field to start. Your gift and its match go to open research in that area.
-          </p>
-        </div>
+        <h2
+          className="max-w-[620px] text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[56px]"
+          style={DISPLAY_FONT}
+        >
+          What science do you want to fund?
+        </h2>
         <div className="mt-12 grid auto-rows-[200px] grid-flow-dense grid-cols-2 gap-4 lg:auto-rows-[240px] lg:grid-cols-4">
           {TOPICS.map((candidate) => (
             <button

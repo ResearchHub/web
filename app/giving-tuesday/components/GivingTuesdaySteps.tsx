@@ -16,7 +16,7 @@ export function GivingTuesdaySteps() {
           className="text-center text-[36px] font-bold tracking-[-0.03em] text-white md:text-[52px]"
           style={DISPLAY_FONT}
         >
-          Three steps. <span className="text-[#6b7690]">About fifteen minutes.</span>
+          Three steps. <span className={BLUE_TEXT}>About fifteen minutes.</span>
         </h2>
         <ol className="mt-14 grid gap-4 md:grid-cols-3">
           {STEPS.map((step, index) => (
