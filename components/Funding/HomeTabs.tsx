@@ -20,7 +20,7 @@ export function HomeTabs() {
   ) : activeTab === 'proposals' ? (
     <IncludePrivateProposalsControl />
   ) : activeTab === 'fund' ? (
-    <IncludePrivateProposalsControl locked />
+    <IncludePrivateProposalsControl locked showAllRfpsToggle />
   ) : undefined;
 
   return (
