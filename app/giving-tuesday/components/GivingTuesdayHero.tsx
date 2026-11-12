@@ -4,7 +4,7 @@ import { cn } from '@/utils/styles';
 import { TOPICS } from '@/app/giving-tuesday/lib/topics';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
 import { BLUE_BUTTON, BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
-import { ANIMATE_ART_ON_HOVER, TopicArt } from '@/app/giving-tuesday/components/TopicArt';
+import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
 
 const PERKS = [
   { label: 'Matched 1:1 before 2027', Icon: Sparkles },
@@ -93,12 +93,7 @@ export function GivingTuesdayHero() {
             >
               {[...column.topics, ...column.topics].map((item, index) => (
                 <div key={`${item.id}-${index}`} className="pb-3 lg:pb-4">
-                  <div
-                    className={cn(
-                      'relative aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-white/10 transition hover:ring-white/40',
-                      ANIMATE_ART_ON_HOVER
-                    )}
-                  >
+                  <div className="group relative aspect-[3/4] overflow-hidden rounded-2xl ring-1 ring-white/10 transition hover:ring-white/40">
                     <TopicArt topicId={item.id} className="h-full w-full" />
                     <span className="absolute bottom-3 left-3 right-3 w-fit rounded-full bg-black/40 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
                       {item.label}

@@ -111,40 +111,6 @@ export default {
           '15%': { opacity: '1' },
           '100%': { transform: 'translate(var(--drift, 0px), -120px) scale(1.1)', opacity: '0' },
         },
-        // A signal running the length of an SVG stroke. The stroke sets
-        // `pathLength={100}` and a dash pattern that adds up to 100.
-        'trace-flow': {
-          '0%': { strokeDashoffset: '100' },
-          '100%': { strokeDashoffset: '0' },
-        },
-        // A leaf in the wind, rocking around its transform origin.
-        sway: {
-          '0%, 100%': { transform: 'rotate(0deg)' },
-          '50%': { transform: 'rotate(-7deg)' },
-        },
-        // Drifting up and back down, like something floating.
-        bob: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
-        // Slides sideways by one repeat of a pattern, set as `--period`, so
-        // it loops seamlessly.
-        'scroll-x': {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(var(--period))' },
-        },
-        // Sand running out: shrinks toward its transform origin. Play it in
-        // reverse for the pile that fills up.
-        drain: {
-          '0%': { transform: 'scaleY(1)' },
-          '100%': { transform: 'scaleY(0.3)' },
-        },
-        // A ring closing in on its target, then fading to start again.
-        'lock-on': {
-          '0%': { transform: 'scale(1.6)', opacity: '0' },
-          '55%': { transform: 'scale(1)', opacity: '1' },
-          '100%': { transform: 'scale(1)', opacity: '0' },
-        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

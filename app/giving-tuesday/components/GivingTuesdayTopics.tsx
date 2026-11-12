@@ -7,7 +7,7 @@ import { cn } from '@/utils/styles';
 import { TOPICS, type Topic } from '@/app/giving-tuesday/lib/topics';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
 import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
-import { ANIMATE_ART_ON_HOVER, TopicArt } from '@/app/giving-tuesday/components/TopicArt';
+import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
 
 /** Sized so the eleven cards fill a 4-by-4 grid on desktop and pair up on phones. */
 const CARD_SPANS: Partial<Record<Topic['id'], string>> = {
@@ -41,16 +41,12 @@ export function GivingTuesdayTopics() {
               type="button"
               onClick={() => pickTopic(candidate)}
               className={cn(
-                'relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40',
-                ANIMATE_ART_ON_HOVER,
+                'group relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40',
                 CARD_SPANS[candidate.id]
               )}
             >
-              <TopicArt
-                topicId={candidate.id}
-                className="absolute inset-0 -z-10 h-full w-full transition-transform duration-700 group-hover:scale-105"
-              />
-              <span className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+              <TopicArt topicId={candidate.id} className="absolute inset-0 -z-10 h-full w-full" />
+              <span className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
               <span className="flex items-end justify-between gap-3 p-4 sm:p-5">
                 <span>
                   <span
