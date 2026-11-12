@@ -1,5 +1,6 @@
 import { getCommentPreview, getContribution } from './activityDisplay.utils';
 import { getActivityWork, type ActivityWork } from './activityWork.utils';
+import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 import type { AuthorProfile } from '@/types/authorProfile';
 import type { CurrencyAmount } from '@/utils/currency';
 import type { FeedCommentContent, FeedEntry } from '@/types/feed';
@@ -15,6 +16,14 @@ const DEFAULT_LOOKAHEAD = 3;
 const DEFAULT_MAX_SPAN_MS = 24 * 60 * 60 * 1000;
 
 const MIN_GROUP_SIZE = 2;
+
+/**
+ * The Foundation publishes proposals in bulk, so its bursts are folded across a
+ * whole feed page (20 entries) and a wider time span, keeping it to about one card
+ * per page instead of one card per proposal.
+ */
+const FOUNDATION_PROPOSALS_LOOKAHEAD = 20;
+const FOUNDATION_PROPOSALS_MAX_SPAN_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface ActivityFundingTotals {
   usd: number;
@@ -46,23 +55,53 @@ export interface ActivityFundingGroupRow {
 }
 
 /**
- * Several comments one author left on the same work, collapsed into a single row.
+ * Several comments one author left back to back, collapsed into a single row.
  * Nothing is summarized away: every comment keeps its own body, and only the work
- * card that each one used to repeat is dropped.
+ * card that each one used to repeat is dropped. The comments may sit on one work or
+ * on several; `works` tells the card which.
  */
 export interface ActivityCommentGroupRow {
   kind: 'comment-group';
   key: string;
+  /** Plain comments or peer reviews; a group never mixes the two. */
+  variant: 'comment' | 'review';
   /** Members in feed order. */
   entries: FeedEntry[];
   /** Newest member, used for the timestamp and the work card's vote/share actions. */
   latestEntry: FeedEntry;
   work: ActivityWork;
+  /** Each member's work, aligned with `entries`. */
+  works: ActivityWork[];
+  /** True when the comments are on more than one work. */
+  spansWorks: boolean;
   /** The single author every member shares. */
   author: AuthorProfile;
 }
 
-export type ActivityRow = ActivityEntryRow | ActivityFundingGroupRow | ActivityCommentGroupRow;
+/**
+ * Several proposals the ResearchHub Foundation account published, collapsed into
+ * one row so a bulk upload does not take over the feed. Unlike the other groups
+ * the members are different works: the row shows the newest in full and lists the
+ * rest.
+ */
+export interface ActivityFoundationProposalsGroupRow {
+  kind: 'foundation-proposals-group';
+  key: string;
+  /** Members in feed order. */
+  entries: FeedEntry[];
+  /** Newest member, shown with the full work cover. */
+  latestEntry: FeedEntry;
+  work: ActivityWork;
+  /** Every member's work in feed order, the newest included. */
+  works: ActivityWork[];
+  author: AuthorProfile;
+}
+
+export type ActivityRow =
+  | ActivityEntryRow
+  | ActivityFundingGroupRow
+  | ActivityCommentGroupRow
+  | ActivityFoundationProposalsGroupRow;
 
 export interface GroupActivityRowsOptions {
   lookahead?: number;
@@ -73,7 +112,7 @@ export interface GroupActivityRowsOptions {
  * Which kind of repetition an entry can take part in. Members only ever join an
  * anchor of their own kind, and the kind picks the row that gets built.
  */
-type ActivityGroupKind = 'funding' | 'comment';
+type ActivityGroupKind = 'funding' | 'comment' | 'review' | 'foundation-proposals';
 
 interface GroupCandidate {
   kind: ActivityGroupKind;
@@ -110,19 +149,24 @@ function resolveWorkKey(work: ActivityWork): string {
  * Tips and bounty payouts (`FUNDINGACTIVITY`) target a review rather than a
  * fundraise and credit the recipient rather than the actor, so they never group.
  *
- * Only plain comments group. `deriveActivityAction` reroutes bounty comments and
- * reviews tagged `PEER_REVIEW`, but reviews tagged `REVIEW` still arrive as
- * `comment_published`, so the comment type is checked against an allowlist rather
- * than the action alone. Reviews and author updates are substantial enough to earn
- * their own row even back to back.
+ * Plain comments and peer reviews group, each only with their own kind. Reviews
+ * tagged `PEER_REVIEW` arrive as `peer_review_published`, but those tagged `REVIEW`
+ * still arrive as `comment_published`, so the comment type is checked against an
+ * allowlist rather than the action alone. Bounty comments and author updates keep
+ * their own row.
  */
 function toGroupKind(entry: FeedEntry): ActivityGroupKind | null {
   if (entry.activityAction === 'fundraise_contribution') {
     return 'funding';
   }
+  if (entry.activityAction === 'proposal_submitted') {
+    return isFoundationUser(entry.content.createdBy?.user?.id) ? 'foundation-proposals' : null;
+  }
+  if (entry.activityAction === 'peer_review_published') return 'review';
   if (entry.activityAction !== 'comment_published') return null;
 
   const { comment } = entry.content as FeedCommentContent;
+  if (comment?.commentType === 'REVIEW') return 'review';
   return comment?.commentType === 'GENERIC_COMMENT' ? 'comment' : null;
 }
 
@@ -144,7 +188,7 @@ function toCandidate(entry: FeedEntry): GroupCandidate | null {
 
   // A comment group is nothing but its bodies, so one that cannot render a body
   // has nothing to contribute to it.
-  if (kind === 'comment' && !getCommentPreview(entry)) return null;
+  if ((kind === 'comment' || kind === 'review') && !getCommentPreview(entry)) return null;
 
   return {
     kind,
@@ -206,19 +250,43 @@ function toCommentGroupRow(groupMembers: GroupCandidate[]): ActivityCommentGroup
   return {
     kind: 'comment-group',
     key: `comment-group:${first.workKey}:${first.entry.id}`,
+    variant: first.kind === 'review' ? 'review' : 'comment',
     entries: groupMembers.map((member) => member.entry),
     latestEntry: latest.entry,
     work: latest.work,
+    works: groupMembers.map((member) => member.work),
+    spansWorks: groupMembers.some((member) => member.workKey !== first.workKey),
     author: first.actor,
   };
 }
 
-function toGroupRow(
+function toFoundationProposalsGroupRow(
   groupMembers: GroupCandidate[]
-): ActivityFundingGroupRow | ActivityCommentGroupRow {
-  return groupMembers[0].kind === 'comment'
-    ? toCommentGroupRow(groupMembers)
-    : toFundingGroupRow(groupMembers);
+): ActivityFoundationProposalsGroupRow {
+  const [first] = groupMembers;
+  const latest = findLatestMember(groupMembers);
+
+  return {
+    kind: 'foundation-proposals-group',
+    key: `foundation-proposals-group:${first.entry.id}`,
+    entries: groupMembers.map((member) => member.entry),
+    latestEntry: latest.entry,
+    work: latest.work,
+    works: groupMembers.map((member) => member.work),
+    author: first.actor,
+  };
+}
+
+function toGroupRow(groupMembers: GroupCandidate[]): Exclude<ActivityRow, ActivityEntryRow> {
+  switch (groupMembers[0].kind) {
+    case 'comment':
+    case 'review':
+      return toCommentGroupRow(groupMembers);
+    case 'foundation-proposals':
+      return toFoundationProposalsGroupRow(groupMembers);
+    default:
+      return toFundingGroupRow(groupMembers);
+  }
 }
 
 /**
@@ -242,8 +310,19 @@ function canJoinGroup(
   maxSpanMs: number
 ): boolean {
   if (candidate.kind !== groupAnchor.kind) return false;
-  if (candidate.workKey !== groupAnchor.workKey) return false;
-  if (groupAnchor.kind === 'comment' && !hasSameActor(groupAnchor, candidate)) return false;
+  // Foundation proposals are different works by design; sharing the actor is the point.
+  if (groupAnchor.kind === 'foundation-proposals') {
+    return (
+      Math.abs(candidate.timestampMs - groupAnchor.timestampMs) <= FOUNDATION_PROPOSALS_MAX_SPAN_MS
+    );
+  }
+  // One author's comments group even across works: several in a row are the
+  // repetition being collapsed, whatever they are on.
+  if (groupAnchor.kind === 'comment' || groupAnchor.kind === 'review') {
+    if (!hasSameActor(groupAnchor, candidate)) return false;
+  } else if (candidate.workKey !== groupAnchor.workKey) {
+    return false;
+  }
   return Math.abs(candidate.timestampMs - groupAnchor.timestampMs) <= maxSpanMs;
 }
 
@@ -266,7 +345,11 @@ function planGroupAt(
   const groupAnchor = candidates[anchorIndex];
   if (!groupAnchor) return null;
 
-  const { lookahead, maxSpanMs, groupedIndexes } = options;
+  const { maxSpanMs, groupedIndexes } = options;
+  const lookahead =
+    groupAnchor.kind === 'foundation-proposals'
+      ? Math.max(options.lookahead, FOUNDATION_PROPOSALS_LOOKAHEAD)
+      : options.lookahead;
   const lookaheadEnd = Math.min(candidates.length, anchorIndex + 1 + lookahead);
   const groupMembers = [groupAnchor];
   const memberIndexes: number[] = [];
@@ -288,7 +371,8 @@ function planGroupAt(
 
 /**
  * Collapse nearby repetitive activity into a single row: contributions to the same
- * fundraise, or plain comments one author left on the same work.
+ * fundraise, plain comments one author left back to back, or proposals the
+ * ResearchHub Foundation published in bulk.
  *
  * Each group is led by an anchor: the first entry of a burst. The anchor's position
  * becomes the row's position, and the anchor decides what may join it.
