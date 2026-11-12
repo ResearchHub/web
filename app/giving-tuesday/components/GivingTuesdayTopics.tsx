@@ -6,7 +6,7 @@ import { GiftConciergeModal } from '@/components/modals/GiftConciergeModal';
 import { cn } from '@/utils/styles';
 import { TOPICS, type Topic } from '@/app/giving-tuesday/lib/topics';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
-import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
+import { ANIMATE_ART_ON_HOVER, TopicArt } from '@/app/giving-tuesday/components/TopicArt';
 
 /** Sized so the eleven cards fill a 4-by-4 grid on desktop and pair up on phones. */
 const CARD_SPANS: Partial<Record<Topic['id'], string>> = {
@@ -45,7 +45,8 @@ export function GivingTuesdayTopics() {
               type="button"
               onClick={() => pickTopic(candidate)}
               className={cn(
-                'group relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40 [&:not(:hover):not(:focus-visible)_*]:[animation-play-state:paused]',
+                'relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40',
+                ANIMATE_ART_ON_HOVER,
                 CARD_SPANS[candidate.id]
               )}
             >

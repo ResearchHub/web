@@ -23,6 +23,10 @@ const PALETTES: Record<TopicId, { deep: string; bright: string; accent: string }
   other: { deep: '#0b0f19', bright: '#475569', accent: '#e2e8f0' },
 };
 
+/** For the box around a `TopicArt`: the art animates only while the box is hovered or focused. */
+export const ANIMATE_ART_ON_HOVER =
+  'group [&:not(:hover):not(:focus-visible)_*]:[animation-play-state:paused]';
+
 /** Lets a shape inside the SVG spin or pulse around its own center. */
 const OWN_CENTER = 'origin-center [transform-box:fill-box] motion-reduce:animate-none';
 
@@ -231,10 +235,7 @@ function drawCells(accent: string) {
           fill="none"
           stroke="#fff"
           strokeWidth={3}
-          className={cn(
-            OWN_CENTER,
-            'opacity-0 group-hover:animate-[lock-on_1.8s_ease-out_infinite]'
-          )}
+          className={cn(OWN_CENTER, 'animate-[lock-on_1.8s_ease-out_infinite] opacity-0')}
           style={{ animationDelay: `${ring * 0.9}s` }}
         />
       ))}
@@ -452,14 +453,15 @@ function drawVirus(center: Point, radius: number, accent: string, className?: st
   );
 }
 
-const DRIFT = 'animate-[bob_3s_ease-in-out_infinite] motion-reduce:animate-none';
+/** A small virus floating up and down; each one sets its own duration so they drift apart. */
+const BOB = 'animate-[bob_3s_ease-in-out_infinite] motion-reduce:animate-none';
 
 function drawViruses(accent: string) {
   return (
     <>
-      {drawVirus({ x: 80, y: 70 }, 22, accent, cn(DRIFT, '[animation-duration:2.6s]'))}
-      {drawVirus({ x: 350, y: 250 }, 18, accent, cn(DRIFT, '[animation-duration:3.2s]'))}
-      {drawVirus({ x: 95, y: 240 }, 14, accent, cn(DRIFT, '[animation-duration:2.2s]'))}
+      {drawVirus({ x: 80, y: 70 }, 22, accent, cn(BOB, '[animation-duration:2.6s]'))}
+      {drawVirus({ x: 350, y: 250 }, 18, accent, cn(BOB, '[animation-duration:3.2s]'))}
+      {drawVirus({ x: 95, y: 240 }, 14, accent, cn(BOB, '[animation-duration:2.2s]'))}
       {drawVirus(
         { x: 235, y: 150 },
         56,

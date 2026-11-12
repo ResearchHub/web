@@ -127,7 +127,8 @@ export default {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
         },
-        // Slides sideways by one repeat of a pattern, set as `--period`, so it loops seamlessly.
+        // Slides sideways by one repeat of a pattern, set as `--period`, so
+        // it loops seamlessly.
         'scroll-x': {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(var(--period))' },

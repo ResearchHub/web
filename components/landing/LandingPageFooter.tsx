@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { ContactModal } from '@/components/modals/ContactModal';
 import { colors } from '@/app/styles/colors';
+
 export function LandingPageFooter() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
