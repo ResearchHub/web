@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { ArrowRight, Clock } from 'lucide-react';
 import { formatMoney } from '@/components/Funding/lib/fundingAmounts';
 import { cn } from '@/utils/styles';
@@ -9,6 +10,9 @@ const COMPARISONS = [
   { label: 'Time to get funded', traditional: '9+ months', researchHub: 'Weeks' },
   { label: 'Time to peer review', traditional: '3+ months', researchHub: '~2 weeks' },
 ];
+
+/** The display face, kept to one line so a time like "9+ months" never splits. */
+const ONE_LINE: CSSProperties = { ...DISPLAY_FONT, textWrap: 'nowrap' };
 
 const STATS = [
   { label: 'Contributed since 2024', value: formatMoney(TRACK_RECORD.contributedUsd, true) },
@@ -36,32 +40,37 @@ export function GivingTuesdayWhyGive() {
         </div>
         <div className="space-y-4">
           {COMPARISONS.map((row) => (
-            <div key={row.label} className="rounded-3xl border border-white/10 bg-white/[0.03] p-7">
+            <div
+              key={row.label}
+              className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-7"
+            >
               <p className="flex items-center gap-2.5 font-semibold text-white">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3971ff]/15 text-[#7fb0ff]">
                   <Clock className="h-4 w-4" />
                 </span>
                 {row.label}
               </p>
-              <div className="mt-6 flex items-end gap-5">
-                <div className="flex-1">
-                  <p className="text-sm text-[#6b7690]">Traditional</p>
+              <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
+                <div className="rounded-2xl bg-white/[0.03] px-3.5 py-4 ring-1 ring-white/5 sm:px-5">
+                  <p className="text-[13px] text-[#6b7690]">Traditional</p>
                   <p
-                    className="mt-1 text-[24px] font-bold leading-none text-[#6b7690] md:text-[28px]"
-                    style={DISPLAY_FONT}
+                    className="mt-1.5 text-[20px] font-bold leading-none text-[#6b7690] sm:text-[24px] md:text-[30px]"
+                    style={ONE_LINE}
                   >
                     {row.traditional}
                   </p>
                 </div>
-                <ArrowRight className="mb-1 h-5 w-5 shrink-0 text-[#6b7690]" />
-                <div className="flex-1">
-                  <p className="text-sm text-[#7fb0ff]">ResearchHub</p>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-[#98a4ba]">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+                <div className="rounded-2xl bg-[#3971ff]/10 px-3.5 py-4 ring-1 ring-[#3971ff]/40 sm:px-5">
+                  <p className="text-[13px] text-[#7fb0ff]">ResearchHub</p>
                   <p
                     className={cn(
-                      'mt-1 text-[32px] font-bold leading-none md:text-[40px]',
+                      'mt-1.5 text-[20px] font-bold leading-none sm:text-[24px] md:text-[30px]',
                       BLUE_TEXT
                     )}
-                    style={DISPLAY_FONT}
+                    style={ONE_LINE}
                   >
                     {row.researchHub}
                   </p>
