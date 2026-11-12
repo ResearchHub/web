@@ -25,6 +25,27 @@ const MODAL_SIZE_TO_MIN_WIDTH: Record<string, string> = {
 
 export type ModalSize = keyof typeof MODAL_SIZE_TO_MAX_WIDTH;
 
+const MODAL_TONE_CLASSES = {
+  light: {
+    overlay: 'bg-black/15',
+    panel: 'bg-white',
+    border: 'border-gray-200',
+    title: 'text-gray-900',
+    close: 'text-gray-400 hover:text-gray-500',
+    footer: 'bg-white',
+    footerShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
+  },
+  dark: {
+    overlay: 'bg-black/60',
+    panel: 'bg-[#070b18] ring-1 ring-white/10',
+    border: 'border-white/10',
+    title: 'text-white',
+    close: 'text-white/50 hover:bg-white/10 hover:text-white',
+    footer: 'bg-[#070b18]',
+    footerShadow: 'none',
+  },
+};
+
 interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -45,6 +66,8 @@ interface BaseModalProps {
   /** Optional banner image displayed above the header */
   headerImage?: string;
   headerImageHeight?: string;
+  /** `dark` is for pages on a dark ground, such as the giving pages. */
+  tone?: keyof typeof MODAL_TONE_CLASSES;
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -63,7 +86,9 @@ export const BaseModal: FC<BaseModalProps> = ({
   contentClassName,
   headerImage,
   headerImageHeight = 'h-[100px]',
+  tone = 'light',
 }) => {
+  const toneClasses = MODAL_TONE_CLASSES[tone];
   const effectiveMaxWidth = size ? MODAL_SIZE_TO_MAX_WIDTH[size] : (maxWidth ?? 'max-w-tablet');
   const effectiveMinWidth = size ? MODAL_SIZE_TO_MIN_WIDTH[size] : undefined;
 
@@ -109,7 +134,7 @@ export const BaseModal: FC<BaseModalProps> = ({
           leaveTo="opacity-0"
         >
           <div
-            className="fixed inset-0 bg-black/15"
+            className={cn('fixed inset-0', toneClasses.overlay)}
             onClick={(e) => {
               e.stopPropagation();
             }}
@@ -142,7 +167,8 @@ export const BaseModal: FC<BaseModalProps> = ({
               {/* Dialog Panel with Responsive Styles */}
               <Dialog.Panel
                 className={cn(
-                  'transform overflow-hidden text-left align-middle shadow-xl transition-all bg-white',
+                  'transform overflow-hidden text-left align-middle shadow-xl transition-all',
+                  toneClasses.panel,
                   // Full width on mobile, constrained width on larger screens
                   isFullScreen ? 'w-full' : 'w-full md:!w-auto',
                   // Full height on mobile, constrained height on md+
@@ -182,13 +208,21 @@ export const BaseModal: FC<BaseModalProps> = ({
                 )}
                 {!headerImage && (showCloseButton || title) && (
                   <div ref={headerRef} className="relative">
-                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-4">
+                    <div
+                      className={cn(
+                        'border-b px-6 py-4 flex items-center justify-between gap-4',
+                        toneClasses.border
+                      )}
+                    >
                       <div className="flex items-center min-w-0 flex-1">
                         {headerAction}
                         {title && (
                           <Dialog.Title
                             as="h2"
-                            className="text-lg font-medium text-gray-900 ml-2 min-w-0 flex-1"
+                            className={cn(
+                              'text-lg font-medium ml-2 min-w-0 flex-1',
+                              toneClasses.title
+                            )}
                           >
                             {title}
                           </Dialog.Title>
@@ -199,7 +233,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                           onClick={onClose}
                           variant="ghost"
                           size="icon"
-                          className="text-gray-400 hover:text-gray-500"
+                          className={toneClasses.close}
                           aria-label="Close"
                         >
                           <X className="h-5 w-5" />
@@ -225,9 +259,13 @@ export const BaseModal: FC<BaseModalProps> = ({
                 {footer && (
                   <div
                     ref={footerRef}
-                    className="border-t border-gray-200 px-6 py-4 bg-white sticky bottom-0 z-10"
+                    className={cn(
+                      'border-t px-6 py-4 sticky bottom-0 z-10',
+                      toneClasses.border,
+                      toneClasses.footer
+                    )}
                     style={{
-                      boxShadow: '0 -4px 12px -4px rgba(0,0,0,0.10)', // Only top shadow
+                      boxShadow: toneClasses.footerShadow,
                     }}
                   >
                     {footer}
