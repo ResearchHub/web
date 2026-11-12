@@ -11,7 +11,9 @@ import { ApplyingToWidget } from './ApplyingToWidget';
 import { CoverBanner, useCoverImagePicker } from './CoverImage';
 import { AddDetail, DetailHint } from './MastheadLine';
 import {
+  canUnlockMastheadWidget,
   detailValue,
+  FUNDING_GOAL_EDITOR_HINT,
   mastheadWidgetsFor,
   peopleOf,
   type MastheadWidgetConfig,
@@ -42,7 +44,13 @@ interface MastheadProps {
  * missing: the publish dialog lists what is still empty.
  */
 export function Masthead({ slots }: MastheadProps) {
-  const { note, articleType, readOnly: formReadOnly, isDeclined } = usePublishingController();
+  const {
+    note,
+    articleType,
+    readOnly: formReadOnly,
+    isDeclined,
+    canOverrideLockedDetails,
+  } = usePublishingController();
   const values = useWatch<PublishingFormData>() as PublishingFormData;
   const canEdit = !formReadOnly && !isDeclined;
 
@@ -54,7 +62,15 @@ export function Masthead({ slots }: MastheadProps) {
   }, [noteId]);
 
   const widgets = mastheadWidgetsFor(articleType).filter((widget) => !widget.hiddenWhen?.(values));
-  const isEditable = (config: MastheadWidgetConfig) => canEdit && !config.lockedWhen?.(values);
+  const isEditable = (config: MastheadWidgetConfig) => {
+    if (!canEdit) return false;
+    if (!config.lockedWhen?.(values)) return true;
+    return canUnlockMastheadWidget(config, canOverrideLockedDetails);
+  };
+  const hintFor = (config: MastheadWidgetConfig) =>
+    canUnlockMastheadWidget(config, canOverrideLockedDetails) && config.lockedWhen?.(values)
+      ? FUNDING_GOAL_EDITOR_HINT
+      : config.hint;
 
   const coverConfig = widgets.find((widget) => widget.kind === 'cover');
   const cover = useCoverImagePicker(values.coverImage);
@@ -128,7 +144,7 @@ export function Masthead({ slots }: MastheadProps) {
     const widget = renderWidget(config);
     if (widget == null || editingId === config.id) return widget;
     return (
-      <DetailHint key={config.id} id={config.id} name={config.name} hint={config.hint}>
+      <DetailHint key={config.id} id={config.id} name={config.name} hint={hintFor(config)}>
         {widget}
       </DetailHint>
     );

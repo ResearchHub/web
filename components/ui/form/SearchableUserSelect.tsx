@@ -75,6 +75,7 @@ export interface SearchableUserSelectProps {
   placeholderWhenFilled?: string;
   autoFocus?: boolean;
   optionsClassName?: string;
+  lockedValues?: readonly string[];
 }
 
 export function SearchableUserSelect({
@@ -92,6 +93,7 @@ export function SearchableUserSelect({
   placeholderWhenFilled,
   autoFocus,
   optionsClassName,
+  lockedValues,
 }: Readonly<SearchableUserSelectProps>) {
   const handleAsyncSearch = useCallback(
     async (query: string) => {
@@ -130,6 +132,7 @@ export function SearchableUserSelect({
       placeholderWhenFilled={placeholderWhenFilled}
       autoFocus={autoFocus}
       optionsClassName={optionsClassName}
+      lockedValues={lockedValues}
     />
   );
 }

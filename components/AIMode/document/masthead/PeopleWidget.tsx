@@ -3,6 +3,8 @@
 import { useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Users } from 'lucide-react';
+import { usePublishingController } from '@/components/Notebook/PublishingForm';
+import { pinnedCreatorValue } from '@/components/Notebook/PublishingForm/pinnedCreator';
 import type { PublishingFormData, SelectOption } from '@/components/Notebook/PublishingForm/schema';
 import { Avatar } from '@/components/ui/Avatar';
 import type { MultiSelectOption } from '@/components/ui/form/SearchableMultiSelect';
@@ -84,8 +86,15 @@ export function PeopleEditor({
   readonly className?: string;
 }) {
   const { setValue } = useFormContext<PublishingFormData>();
+  const { note, articleType } = usePublishingController();
   const field = config.field === 'contacts' ? 'contacts' : 'authors';
-  const write = (people: SelectOption[]) => setValue(field, people, { shouldValidate: true });
+  const pinned = pinnedCreatorValue(note, articleType);
+  const write = (people: SelectOption[]) => {
+    const creator = pinned ? value.find((person) => person.value === pinned) : undefined;
+    const next =
+      creator && !people.some((person) => person.value === pinned) ? [creator, ...people] : people;
+    setValue(field, next, { shouldValidate: true });
+  };
   const openedWithRef = useRef(value);
   const ref = useRef<HTMLDivElement>(null);
   useLeaveToCommit(ref, onClose);
@@ -115,6 +124,7 @@ export function PeopleEditor({
         sortable={field === 'authors'}
         getOptionValue={field === 'contacts' ? getContactId : undefined}
         autoFocus
+        lockedValues={pinned ? [pinned] : undefined}
         placeholder="Search by name…"
         placeholderWhenFilled="Add another…"
         leading={<Users className="h-4 w-4 shrink-0 text-gray-600" aria-hidden="true" />}

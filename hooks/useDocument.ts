@@ -36,6 +36,7 @@ export interface PreregistrationPostParams {
   // Preregistration specific (create-only — server marks it read-only on update)
   isPublic?: boolean;
   omitFundraiseGoal?: boolean;
+  updateFundraiseGoal?: boolean;
 
   // RFP attachment
   grantId?: string | null;
@@ -104,6 +105,14 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
 
       if (postId) {
         payload.post_id = postId;
+        if (
+          postParams.articleType === 'PREREGISTRATION' &&
+          postParams.updateFundraiseGoal &&
+          !postParams.omitFundraiseGoal
+        ) {
+          payload.fundraise_goal_currency = 'USD';
+          payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+        }
       } else if (postParams.articleType === 'PREREGISTRATION') {
         // Include fundraise fields for creation of proposals and grants
         payload.reward_funders = postParams.rewardFunders;
