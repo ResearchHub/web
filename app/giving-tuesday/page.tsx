@@ -6,7 +6,7 @@ import { GivingTuesdayTopics } from '@/app/giving-tuesday/components/GivingTuesd
 import { GivingTuesdaySteps } from '@/app/giving-tuesday/components/GivingTuesdaySteps';
 import { GivingTuesdayWhyGive } from '@/app/giving-tuesday/components/GivingTuesdayWhyGive';
 import { GivingTuesdayFAQ } from '@/app/giving-tuesday/components/GivingTuesdayFAQ';
-import { GivingTuesdayClosing } from '@/app/giving-tuesday/components/GivingTuesdayClosing';
+
 export default function GivingTuesdayPage() {
   return (
     <>
@@ -19,7 +19,6 @@ export default function GivingTuesdayPage() {
         <GivingTuesdaySteps />
         <GivingTuesdayWhyGive />
         <GivingTuesdayFAQ />
-        <GivingTuesdayClosing />
       </div>
       <LandingPageFooter />
     </>

@@ -1,11 +1,13 @@
+import { ArrowRight, Clock } from 'lucide-react';
 import { formatMoney } from '@/components/Funding/lib/fundingAmounts';
 import { cn } from '@/utils/styles';
 import { TRACK_RECORD } from '@/app/giving-tuesday/lib/trackRecord';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
+import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
 
 const COMPARISONS = [
-  { label: 'Time to get funded', traditional: '9+ months', researchHub: 'Weeks', share: 11 },
-  { label: 'Time to peer review', traditional: '3+ months', researchHub: '~2 weeks', share: 17 },
+  { label: 'Time to get funded', traditional: '9+ months', researchHub: 'Weeks' },
+  { label: 'Time to peer review', traditional: '3+ months', researchHub: '~2 weeks' },
 ];
 
 const STATS = [
@@ -35,10 +37,35 @@ export function GivingTuesdayWhyGive() {
         <div className="space-y-4">
           {COMPARISONS.map((row) => (
             <div key={row.label} className="rounded-3xl border border-white/10 bg-white/[0.03] p-7">
-              <p className="font-semibold text-white">{row.label}</p>
-              <div className="mt-5 space-y-3">
-                <Gauge label="Traditional" value={row.traditional} share={100} isMuted />
-                <Gauge label="ResearchHub" value={row.researchHub} share={row.share} />
+              <p className="flex items-center gap-2.5 font-semibold text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3971ff]/15 text-[#7fb0ff]">
+                  <Clock className="h-4 w-4" />
+                </span>
+                {row.label}
+              </p>
+              <div className="mt-6 flex items-end gap-5">
+                <div className="flex-1">
+                  <p className="text-sm text-[#6b7690]">Traditional</p>
+                  <p
+                    className="mt-1 text-[24px] font-bold leading-none text-[#6b7690] md:text-[28px]"
+                    style={DISPLAY_FONT}
+                  >
+                    {row.traditional}
+                  </p>
+                </div>
+                <ArrowRight className="mb-1 h-5 w-5 shrink-0 text-[#6b7690]" />
+                <div className="flex-1">
+                  <p className="text-sm text-[#7fb0ff]">ResearchHub</p>
+                  <p
+                    className={cn(
+                      'mt-1 text-[32px] font-bold leading-none md:text-[40px]',
+                      BLUE_TEXT
+                    )}
+                    style={DISPLAY_FONT}
+                  >
+                    {row.researchHub}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
@@ -61,28 +88,5 @@ export function GivingTuesdayWhyGive() {
         <p className="mt-8 text-xs text-[#6b7690]">As of {TRACK_RECORD.asOf}</p>
       </div>
     </section>
-  );
-}
-
-function Gauge({
-  label,
-  value,
-  share,
-  isMuted = false,
-}: Readonly<{ label: string; value: string; share: number; isMuted?: boolean }>) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="w-[96px] shrink-0 text-sm text-[#98a4ba]">{label}</span>
-      <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/10">
-        <span
-          className={cn(
-            'block h-full rounded-full',
-            isMuted ? 'bg-white/25' : 'bg-gradient-to-r from-[#4a7fff] to-[#22d3ee]'
-          )}
-          style={{ width: `${share}%` }}
-        />
-      </span>
-      <span className="w-[80px] shrink-0 text-right text-sm font-semibold text-white">{value}</span>
-    </div>
   );
 }

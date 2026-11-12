@@ -14,11 +14,11 @@ const FAQ_ITEMS: FundingFAQItem[] = [
   },
   {
     q: 'How do I give?',
-    a: 'Pick an area of science and schedule a 15-minute call with Tyler from our team. He’ll share how to give by wire transfer or from your donor-advised fund. We never post bank details on a public page.',
+    a: 'Pick an area of science and book a short call with us. We’ll help you give by wire transfer or from your donor-advised fund.',
   },
   {
     q: 'Is my gift tax-deductible?',
-    a: 'Your gift goes to Endaoment, a 501(c)(3) public charity, so it’s generally tax-deductible in the US. Tyler can help with the paperwork you need.',
+    a: 'Your gift goes to Endaoment, a 501(c)(3) public charity, so it’s generally tax-deductible in the US. We can help with the paperwork you need.',
   },
 ];
 

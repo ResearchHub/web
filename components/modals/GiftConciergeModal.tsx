@@ -11,9 +11,9 @@ import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
 const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
 
 const PERKS = [
-  { label: 'Matched 1:1', detail: 'On every gift before 2027', Icon: Sparkles },
-  { label: 'Tax-deductible', detail: 'Through Endaoment, a 501(c)(3)', Icon: Landmark },
-  { label: 'Wire or DAF', detail: 'Details shared on the call', Icon: Lock },
+  { label: 'Matched 1:1', Icon: Sparkles },
+  { label: 'Tax-deductible', Icon: Landmark },
+  { label: 'Wire or DAF', Icon: Lock },
 ];
 
 interface GiftConciergeModalProps {
@@ -49,36 +49,20 @@ export function GiftConciergeModal({ isOpen, onClose, topic }: Readonly<GiftConc
           rel="noopener noreferrer"
           className={cn(BLUE_BUTTON, 'h-12 w-full text-[15px]')}
         >
-          <CalendarCheck className="h-5 w-5" /> Schedule a call with Tyler
+          <CalendarCheck className="h-5 w-5" /> Book a call with us
         </a>
       }
     >
-      <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-        <span className="h-20 w-28 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/10">
-          <TopicArt topicId={topic.id} className="h-full w-full" />
-        </span>
-        <span>
-          <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-[#7fb0ff]">
-            Your field
-          </span>
-          <span className="block text-lg font-bold text-white">{topic.label}</span>
-          <span className="block text-sm text-[#98a4ba]">{topic.blurb}</span>
-        </span>
+      <div className="h-40 overflow-hidden rounded-2xl ring-1 ring-white/10">
+        <TopicArt topicId={topic.id} className="h-full w-full" />
       </div>
-      <p className="mt-5 text-[15px] leading-relaxed text-[#98a4ba]">
-        The next step is a 15-minute call with Tyler from our team. He’ll walk you through giving
-        and confirm your match. Wire details are shared on the call, never on a public page.
-      </p>
-      <ul className="mt-5 space-y-2.5">
-        {PERKS.map(({ label, detail, Icon }) => (
-          <li key={label} className="flex items-center gap-3 text-sm">
+      <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-3">
+        {PERKS.map(({ label, Icon }) => (
+          <li key={label} className="flex items-center gap-2 text-sm font-semibold text-white">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#3971ff]/15 text-[#7fb0ff]">
               <Icon className="h-4 w-4" />
             </span>
-            <span className="flex flex-col sm:flex-row sm:gap-3">
-              <span className="font-semibold text-white">{label}</span>
-              <span className="text-[#6b7690]">{detail}</span>
-            </span>
+            {label}
           </li>
         ))}
       </ul>

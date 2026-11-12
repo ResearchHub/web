@@ -45,7 +45,7 @@ export function GivingTuesdayTopics() {
               type="button"
               onClick={() => pickTopic(candidate)}
               className={cn(
-                'group relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40',
+                'group relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40 [&:not(:hover):not(:focus-visible)_*]:[animation-play-state:paused]',
                 CARD_SPANS[candidate.id]
               )}
             >

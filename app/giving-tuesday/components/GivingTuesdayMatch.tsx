@@ -1,3 +1,6 @@
+import type { ReactNode } from 'react';
+import { User } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
 import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
@@ -7,9 +10,8 @@ export function GivingTuesdayMatch() {
   return (
     <section id="match" className="scroll-mt-4 px-6 py-24 md:py-32">
       <div className="mx-auto max-w-[1100px] text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#7fb0ff]">The match</p>
         <h2
-          className="mt-4 text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[60px]"
+          className="text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[60px]"
           style={DISPLAY_FONT}
         >
           Your gift, <span className={BLUE_TEXT}>doubled.</span>
@@ -19,9 +21,18 @@ export function GivingTuesdayMatch() {
           you choose.
         </p>
         <div className="mt-14 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
-          <EquationCard amount="$100,000" label="Your gift" />
+          <EquationCard
+            amount="$100,000"
+            label="Your gift"
+            badge={<User className="h-5 w-5 text-white" />}
+          />
           <Operator symbol="+" />
-          <EquationCard amount="$100,000" label="Our match" isMatch />
+          <EquationCard
+            amount="$100,000"
+            label="Our match"
+            badge={<Logo noText variant="white" size={24} />}
+            isMatch
+          />
           <Operator symbol="=" />
           <div className="relative flex-[1.3] overflow-hidden rounded-3xl bg-gradient-to-br from-[#4a7fff] to-[#1d4ed8] p-8 text-left shadow-[0_30px_80px_-20px_rgba(57,113,255,0.7)]">
             <TopicArt
@@ -47,8 +58,9 @@ export function GivingTuesdayMatch() {
 function EquationCard({
   amount,
   label,
+  badge,
   isMatch = false,
-}: Readonly<{ amount: string; label: string; isMatch?: boolean }>) {
+}: Readonly<{ amount: string; label: string; badge: ReactNode; isMatch?: boolean }>) {
   return (
     <div
       className={cn(
@@ -58,11 +70,24 @@ function EquationCard({
           : 'border-white/10 bg-white/[0.03]'
       )}
     >
-      <p className={cn('text-sm font-semibold', isMatch ? 'text-emerald-300' : 'text-[#98a4ba]')}>
+      <p
+        className={cn(
+          'flex items-center gap-3 text-[15px] font-semibold',
+          isMatch ? 'text-emerald-300' : 'text-[#98a4ba]'
+        )}
+      >
+        <span
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-full',
+            isMatch ? 'bg-emerald-400/25' : 'bg-white/10'
+          )}
+        >
+          {badge}
+        </span>
         {label}
       </p>
       <p
-        className="mt-2 text-[36px] font-bold leading-none tracking-[-0.03em] text-white md:text-[40px]"
+        className="mt-4 text-[36px] font-bold leading-none tracking-[-0.03em] text-white md:text-[40px]"
         style={DISPLAY_FONT}
       >
         {amount}

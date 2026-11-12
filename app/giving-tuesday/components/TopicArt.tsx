@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useId, type CSSProperties, type ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 import type { Topic } from '@/app/giving-tuesday/lib/topics';
 
@@ -26,6 +26,13 @@ const PALETTES: Record<TopicId, { deep: string; bright: string; accent: string }
 /** Lets a shape inside the SVG spin or pulse around its own center. */
 const OWN_CENTER = 'origin-center [transform-box:fill-box] motion-reduce:animate-none';
 
+/**
+ * A bright pulse running along a stroke drawn with `pathLength={100}`, shown only while its card
+ * is hovered.
+ */
+const SIGNAL =
+  'opacity-0 transition-opacity group-hover:opacity-100 animate-[trace-flow_1.6s_linear_infinite] motion-reduce:hidden';
+
 const TAU = Math.PI * 2;
 
 /** The same value for the same seed on the server and in the browser. */
@@ -42,76 +49,123 @@ function formatPoints(points: Point[]) {
   return points.map((point) => `${round(point.x)},${round(point.y)}`).join(' ');
 }
 
-function drawNetwork(accent: string) {
-  const layers = [3, 5, 5, 3].map((count, layer) =>
-    Array.from({ length: count }, (_, index) => ({
-      x: 70 + layer * 88,
-      y: 150 + (index - (count - 1) / 2) * 46,
-    }))
+const CHIP_SIDES = [
+  { x: 1, y: 0 },
+  { x: -1, y: 0 },
+  { x: 0, y: 1 },
+  { x: 0, y: -1 },
+];
+
+function drawChip(accent: string) {
+  const center = { x: 230, y: 140 };
+  const traces = CHIP_SIDES.flatMap((side, sideIndex) =>
+    [-2, -1, 0, 1, 2].map((pin) => {
+      const seed = sideIndex * 5 + pin;
+      const across = { x: Math.abs(side.y) * pin * 20, y: Math.abs(side.x) * pin * 20 };
+      const start = { x: center.x + side.x * 58 + across.x, y: center.y + side.y * 58 + across.y };
+      const out = 18 + hashSeed(seed) * 36;
+      const bend = { x: start.x + side.x * out, y: start.y + side.y * out };
+      const reach = 22 + hashSeed(seed + 40) * 34;
+      const end = {
+        x: bend.x + side.x * reach + Math.sign(across.x) * reach,
+        y: bend.y + side.y * reach + Math.sign(across.y) * reach,
+      };
+      return { points: [start, bend, end], end };
+    })
   );
-  const edges = layers
-    .slice(1)
-    .flatMap((layer, index) => layer.flatMap((to) => layers[index].map((from) => ({ from, to }))));
-  const lit = [layers[0][1], layers[1][3], layers[2][1], layers[3][2]];
 
   return (
     <>
-      {edges.map(({ from, to }) => (
-        <line
-          key={`${from.x}-${from.y}-${to.y}`}
-          x1={from.x}
-          y1={from.y}
-          x2={to.x}
-          y2={to.y}
-          stroke={accent}
-          strokeOpacity={0.25}
-        />
+      {traces.map(({ points, end }, index) => (
+        <g key={formatPoints(points)}>
+          <polyline
+            points={formatPoints(points)}
+            fill="none"
+            stroke={accent}
+            strokeOpacity={0.7}
+            strokeWidth={2.5}
+          />
+          <polyline
+            points={formatPoints(points)}
+            pathLength={100}
+            fill="none"
+            stroke="#fff"
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeDasharray="22 78"
+            className={SIGNAL}
+            style={{ animationDelay: `${round(hashSeed(index + 60) * 1.6)}s` }}
+          />
+          <circle cx={round(end.x)} cy={round(end.y)} r={4.5} fill="#fff" />
+        </g>
       ))}
-      <polyline points={formatPoints(lit)} fill="none" stroke="#fff" strokeWidth={2.5} />
-      {layers.flat().map((node) => (
-        <circle key={`${node.x}-${node.y}`} cx={node.x} cy={node.y} r={7} fill="#fff" />
-      ))}
-      {lit.map((node, index) => (
-        <circle
-          key={node.x}
-          cx={node.x}
-          cy={node.y}
-          r={15}
-          fill={accent}
-          fillOpacity={0.4}
-          className={cn(OWN_CENTER, 'animate-pulse-dot')}
-          style={{ animationDelay: `${index * 0.45}s` }}
-        />
-      ))}
+      <rect
+        x={center.x - 58}
+        y={center.y - 58}
+        width={116}
+        height={116}
+        rx={14}
+        fill={accent}
+        fillOpacity={0.15}
+        stroke="#fff"
+        strokeWidth={2.5}
+      />
+      <rect
+        x={center.x - 30}
+        y={center.y - 30}
+        width={60}
+        height={60}
+        rx={6}
+        fill={accent}
+        fillOpacity={0.55}
+        stroke="#fff"
+        strokeWidth={2}
+        className={cn(OWN_CENTER, 'animate-pulse-slow')}
+      />
     </>
   );
 }
 
-function drawRings(accent: string) {
+/** Sand settling out of the top bulb; the bottom pile plays it in reverse to fill up. */
+const SAND =
+  'animate-[drain_4s_linear_infinite] [transform-box:fill-box] motion-reduce:animate-none';
+
+function drawHourglass(accent: string) {
   return (
     <>
-      {Array.from({ length: 13 }, (_, ring) => {
-        const base = 16 + ring * 15;
-        const points = Array.from({ length: 72 }, (_, step) => {
-          const angle = (step / 72) * TAU;
-          const radius =
-            base *
-            (1 + 0.05 * Math.sin(angle * 3 + ring * 0.7) + 0.03 * Math.sin(angle * 7 + ring));
-          return { x: 250 + Math.cos(angle) * radius * 1.1, y: 160 + Math.sin(angle) * radius };
-        });
-        const isHeavy = ring % 4 === 3;
-        return (
-          <polygon
-            key={ring}
-            points={formatPoints(points)}
-            fill="none"
-            stroke={isHeavy ? '#fff' : accent}
-            strokeOpacity={isHeavy ? 0.85 : 0.45}
-            strokeWidth={isHeavy ? 2.5 : 1.5}
-          />
-        );
-      })}
-      <circle cx={250} cy={160} r={6} fill="#fff" />
+      <line x1={166} y1={58} x2={166} y2={242} stroke="#fff" strokeOpacity={0.6} strokeWidth={4} />
+      <line x1={274} y1={58} x2={274} y2={242} stroke="#fff" strokeOpacity={0.6} strokeWidth={4} />
+      <path
+        d="M178 64C178 118 212 134 212 150C212 166 178 182 178 236H262C262 182 228 166 228 150C228 134 262 118 262 64Z"
+        fill="#fff"
+        fillOpacity={0.08}
+        stroke="#fff"
+        strokeWidth={2.5}
+      />
+      <path
+        d="M190 104C197 124 214 138 220 147C226 138 243 124 250 104Z"
+        fill={accent}
+        className={cn(SAND, 'origin-bottom')}
+      />
+      <line
+        x1={220}
+        y1={150}
+        x2={220}
+        y2={232}
+        pathLength={100}
+        stroke={accent}
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray="6 14"
+        className="animate-[trace-flow_0.8s_linear_infinite] motion-reduce:animate-none"
+      />
+      <path
+        d="M184 233Q220 190 256 233Z"
+        fill={accent}
+        className={cn(SAND, 'origin-bottom [animation-direction:reverse]')}
+      />
+      <rect x={152} y={50} width={136} height={12} rx={6} fill="#fff" />
+      <rect x={152} y={238} width={136} height={12} rx={6} fill="#fff" />
     </>
   );
 }
@@ -167,8 +221,23 @@ function drawCells(accent: string) {
         stroke="#fff"
         strokeWidth={2}
         strokeDasharray="6 10"
-        className={cn(OWN_CENTER, 'animate-[spin_24s_linear_infinite]')}
       />
+      {[0, 1].map((ring) => (
+        <circle
+          key={ring}
+          cx={220}
+          cy={150}
+          r={68}
+          fill="none"
+          stroke="#fff"
+          strokeWidth={3}
+          className={cn(
+            OWN_CENTER,
+            'opacity-0 group-hover:animate-[lock-on_1.8s_ease-out_infinite]'
+          )}
+          style={{ animationDelay: `${ring * 0.9}s` }}
+        />
+      ))}
     </>
   );
 }
@@ -179,7 +248,7 @@ function growBranches(
   length: number,
   depth: number,
   seed: number
-): { d: string; width: number; tip?: Point }[] {
+): { d: string; depth: number; tip?: Point }[] {
   const end = { x: start.x + Math.cos(angle) * length, y: start.y + Math.sin(angle) * length };
   const bend = (hashSeed(seed) - 0.5) * length * 0.5;
   const control = {
@@ -188,7 +257,7 @@ function growBranches(
   };
   const segment = {
     d: `M${round(start.x)} ${round(start.y)}Q${round(control.x)} ${round(control.y)} ${round(end.x)} ${round(end.y)}`,
-    width: 1 + depth * 1.3,
+    depth,
     tip: depth === 0 ? end : undefined,
   };
   if (depth === 0) return [segment];
@@ -215,8 +284,22 @@ function drawNeuron(accent: string) {
           fill="none"
           stroke={accent}
           strokeOpacity={0.8}
-          strokeWidth={branch.width}
+          strokeWidth={1 + branch.depth * 1.3}
           strokeLinecap="round"
+        />
+      ))}
+      {branches.map((branch) => (
+        <path
+          key={`signal-${branch.d}`}
+          d={branch.d}
+          pathLength={100}
+          fill="none"
+          stroke="#fff"
+          strokeWidth={2 + branch.depth}
+          strokeLinecap="round"
+          strokeDasharray="35 65"
+          className={SIGNAL}
+          style={{ animationDelay: `${(3 - branch.depth) * 0.4}s` }}
         />
       ))}
       {branches.map(
@@ -289,15 +372,6 @@ function drawHeartbeat(accent: string) {
           strokeOpacity={0.07}
         />
       ))}
-      <circle
-        cx={170}
-        cy={110}
-        r={44}
-        fill="none"
-        stroke={accent}
-        strokeWidth={2}
-        className={cn(OWN_CENTER, 'animate-radiate')}
-      />
       <polyline
         points={formatPoints(line)}
         fill="none"
@@ -312,6 +386,18 @@ function drawHeartbeat(accent: string) {
         stroke="#fff"
         strokeWidth={3}
         strokeLinejoin="round"
+        className="transition-opacity duration-500 group-hover:opacity-25"
+      />
+      <polyline
+        points={formatPoints(line)}
+        pathLength={100}
+        fill="none"
+        stroke="#fff"
+        strokeWidth={5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="22 78"
+        className={cn(SIGNAL, '[animation-duration:2.4s]')}
       />
     </>
   );
@@ -366,36 +452,45 @@ function drawVirus(center: Point, radius: number, accent: string, className?: st
   );
 }
 
+const DRIFT = 'animate-[bob_3s_ease-in-out_infinite] motion-reduce:animate-none';
+
 function drawViruses(accent: string) {
   return (
     <>
-      {drawVirus({ x: 80, y: 70 }, 22, accent)}
-      {drawVirus({ x: 350, y: 250 }, 18, accent)}
-      {drawVirus({ x: 95, y: 240 }, 14, accent)}
+      {drawVirus({ x: 80, y: 70 }, 22, accent, cn(DRIFT, '[animation-duration:2.6s]'))}
+      {drawVirus({ x: 350, y: 250 }, 18, accent, cn(DRIFT, '[animation-duration:3.2s]'))}
+      {drawVirus({ x: 95, y: 240 }, 14, accent, cn(DRIFT, '[animation-duration:2.2s]'))}
       {drawVirus(
         { x: 235, y: 150 },
         56,
         accent,
-        cn(OWN_CENTER, 'animate-[spin_60s_linear_infinite]')
+        cn(OWN_CENTER, 'animate-[spin_16s_linear_infinite]')
       )}
     </>
   );
 }
 
+/** One full twist, in SVG units. The helix is drawn a twist wider than the frame and slides by one. */
+const HELIX_PERIOD = 264;
+
 function drawHelix(accent: string) {
+  const twist = (x: number) => (x / HELIX_PERIOD) * TAU;
   const strand = (sign: number) =>
-    Array.from({ length: 111 }, (_, index) => {
-      const x = -20 + index * 4;
-      return { x, y: 150 + sign * Math.sin(x / 42) * 72 };
+    Array.from({ length: 177 }, (_, index) => {
+      const x = -284 + index * 4;
+      return { x, y: 150 + sign * Math.sin(twist(x)) * 72 };
     });
 
   return (
-    <>
-      {Array.from({ length: 28 }, (_, index) => {
-        const x = -16 + index * 16;
-        const top = 150 + Math.sin(x / 42) * 72;
-        const bottom = 150 - Math.sin(x / 42) * 72;
-        const opacity = round(0.25 + 0.6 * Math.abs(Math.cos(x / 42)));
+    <g
+      className="animate-[scroll-x_5s_linear_infinite] motion-reduce:animate-none"
+      style={{ '--period': `${HELIX_PERIOD}px` } as CSSProperties}
+    >
+      {Array.from({ length: 43 }, (_, index) => {
+        const x = -280 + index * (HELIX_PERIOD / 16);
+        const top = 150 + Math.sin(twist(x)) * 72;
+        const bottom = 150 - Math.sin(twist(x)) * 72;
+        const opacity = round(0.25 + 0.6 * Math.abs(Math.cos(twist(x))));
         return (
           <g key={x} strokeWidth={4} strokeLinecap="round" strokeOpacity={opacity}>
             <line x1={x} y1={round(top)} x2={x} y2={150} stroke={accent} />
@@ -405,48 +500,62 @@ function drawHelix(accent: string) {
       })}
       <polyline points={formatPoints(strand(1))} fill="none" stroke="#fff" strokeWidth={5} />
       <polyline points={formatPoints(strand(-1))} fill="none" stroke={accent} strokeWidth={5} />
-    </>
+    </g>
   );
 }
 
-function drawContours(accent: string) {
-  const peaks = [
-    { center: { x: 260, y: 170 }, rings: 12, step: 17 },
-    { center: { x: 70, y: 60 }, rings: 6, step: 15 },
-  ];
+function drawLeaf(accent: string) {
+  const veins = [0.22, 0.36, 0.5, 0.64, 0.78].flatMap((along) => {
+    const start = { x: 120 + along * 200, y: 230 - along * 160 };
+    const length = 70 * Math.sin(along * Math.PI);
+    return [1, -1].map((side) => ({
+      start,
+      end: {
+        x: start.x + length * (0.55 + side * 0.45),
+        y: start.y - length * (0.55 - side * 0.45),
+      },
+    }));
+  });
 
   return (
-    <>
-      {peaks.flatMap(({ center, rings, step }) =>
-        Array.from({ length: rings }, (_, ring) => {
-          const base = 12 + ring * step;
-          const points = Array.from({ length: 90 }, (_, index) => {
-            const angle = (index / 90) * TAU;
-            const radius =
-              base *
-              (1 +
-                0.14 * Math.sin(3 * angle + ring * 0.35) +
-                0.07 * Math.sin(5 * angle - ring * 0.5));
-            return {
-              x: center.x + Math.cos(angle) * radius,
-              y: center.y + Math.sin(angle) * radius,
-            };
-          });
-          const isHeavy = ring % 5 === 4;
-          return (
-            <polygon
-              key={`${center.x}-${ring}`}
-              points={formatPoints(points)}
-              fill="none"
-              stroke={isHeavy ? '#fff' : accent}
-              strokeOpacity={isHeavy ? 0.9 : 0.5}
-              strokeWidth={isHeavy ? 2.5 : 1.5}
-            />
-          );
-        })
-      )}
-      <circle cx={260} cy={170} r={5} fill="#fff" />
-    </>
+    <g className="animate-[sway_3s_ease-in-out_infinite] [transform-origin:120px_230px] motion-reduce:animate-none">
+      <path
+        d="M120 230Q102 254 86 282"
+        fill="none"
+        stroke="#fff"
+        strokeWidth={5}
+        strokeLinecap="round"
+      />
+      <path
+        d="M120 230C108 140 200 66 320 70C330 176 236 246 120 230Z"
+        fill={accent}
+        fillOpacity={0.3}
+        stroke="#fff"
+        strokeWidth={2.5}
+      />
+      <line
+        x1={120}
+        y1={230}
+        x2={320}
+        y2={70}
+        stroke="#fff"
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      {veins.map(({ start, end }) => (
+        <line
+          key={formatPoints([end])}
+          x1={round(start.x)}
+          y1={round(start.y)}
+          x2={round(end.x)}
+          y2={round(end.y)}
+          stroke="#fff"
+          strokeOpacity={0.7}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      ))}
+    </g>
   );
 }
 
@@ -465,7 +574,7 @@ function drawAtom(accent: string) {
           fillOpacity={0.7}
         />
       ))}
-      <g className={cn(OWN_CENTER, 'animate-[spin_40s_linear_infinite]')}>
+      <g className={cn(OWN_CENTER, 'animate-[spin_10s_linear_infinite]')}>
         {[0, 60, 120].map((angle, index) => (
           <g key={angle} transform={`rotate(${angle} ${center.x} ${center.y})`}>
             <ellipse
@@ -527,7 +636,7 @@ function drawMolecule(accent: string) {
   ];
 
   return (
-    <>
+    <g className={cn(OWN_CENTER, 'animate-[spin_14s_linear_infinite]')}>
       {rings.map(({ center, corners }, index) => (
         <g key={formatPoints([center])}>
           <polygon
@@ -561,70 +670,85 @@ function drawMolecule(accent: string) {
           strokeWidth={2}
         />
       ))}
-    </>
+    </g>
   );
 }
 
-const CONSTELLATION = [
-  { x: 60, y: 210 },
-  { x: 110, y: 160 },
-  { x: 170, y: 175 },
-  { x: 220, y: 120 },
-  { x: 290, y: 110 },
-  { x: 330, y: 170 },
-  { x: 300, y: 230 },
-];
+function drawBulb(accent: string) {
+  const center = { x: 220, y: 118 };
+  const rays = Array.from({ length: 9 }, (_, index) => {
+    const angle = Math.PI + (index / 8) * Math.PI;
+    return {
+      x1: round(center.x + Math.cos(angle) * 78),
+      y1: round(center.y + Math.sin(angle) * 78),
+      x2: round(center.x + Math.cos(angle) * 102),
+      y2: round(center.y + Math.sin(angle) * 102),
+    };
+  });
 
-function traceSparkle(center: Point, size: number) {
-  const { x, y } = center;
-  return `M${x} ${y - size}Q${x} ${y} ${x + size} ${y}Q${x} ${y} ${x} ${y + size}Q${x} ${y} ${x - size} ${y}Q${x} ${y} ${x} ${y - size}Z`;
-}
-
-function drawConstellation(accent: string) {
   return (
     <>
-      {Array.from({ length: 60 }, (_, index) => (
+      <g
+        className={cn(
+          OWN_CENTER,
+          'scale-90 opacity-40 transition duration-500 group-hover:scale-100 group-hover:opacity-100'
+        )}
+      >
+        {rays.map((ray) => (
+          <line
+            key={`${ray.x1}-${ray.y1}`}
+            {...ray}
+            stroke={accent}
+            strokeWidth={4}
+            strokeLinecap="round"
+          />
+        ))}
+      </g>
+      <g className="opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         <circle
-          key={index}
-          cx={round(hashSeed(index + 3) * 400)}
-          cy={round(hashSeed(index + 71) * 300)}
-          r={round(0.6 + hashSeed(index + 13) * 1.6)}
-          fill="#fff"
-          fillOpacity={0.65}
+          cx={center.x}
+          cy={center.y}
+          r={56}
+          fill={accent}
+          fillOpacity={0.6}
+          className={cn(OWN_CENTER, 'animate-pulse-dot')}
         />
-      ))}
+      </g>
+      <path
+        d="M196 182C196 160 168 148 168 116A52 52 0 1 1 272 116C272 148 244 160 244 182Z"
+        fill="#fff"
+        fillOpacity={0.12}
+        stroke="#fff"
+        strokeWidth={2.5}
+        className="transition-[fill-opacity] duration-500 group-hover:[fill-opacity:0.45]"
+      />
       <polyline
-        points={formatPoints(CONSTELLATION)}
+        points="206,180 206,140 213,128 220,140 227,128 234,140 234,180"
         fill="none"
         stroke={accent}
-        strokeOpacity={0.7}
-        strokeWidth={1.5}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+        className="transition-colors duration-500 group-hover:stroke-white"
       />
-      {CONSTELLATION.map((star) => (
-        <circle key={star.x} cx={star.x} cy={star.y} r={4} fill="#fff" />
-      ))}
-      <path
-        d={traceSparkle({ x: 290, y: 110 }, 46)}
-        fill="#fff"
-        className={cn(OWN_CENTER, 'animate-pulse-slow')}
-      />
-      <path d={traceSparkle({ x: 110, y: 160 }, 18)} fill={accent} />
+      <rect x={194} y={188} width={52} height={10} rx={5} fill="#fff" />
+      <rect x={198} y={202} width={44} height={10} rx={5} fill="#fff" fillOpacity={0.8} />
+      <rect x={208} y={216} width={24} height={8} rx={4} fill="#fff" fillOpacity={0.6} />
     </>
   );
 }
 
 const ARTWORK: Record<TopicId, (accent: string) => ReactNode> = {
-  ai: drawNetwork,
-  longevity: drawRings,
+  ai: drawChip,
+  longevity: drawHourglass,
   cancer: drawCells,
   neuroscience: drawNeuron,
   heart: drawHeartbeat,
   infections: drawViruses,
   genetics: drawHelix,
-  environment: drawContours,
+  environment: drawLeaf,
   physics: drawAtom,
   chemistry: drawMolecule,
-  other: drawConstellation,
+  other: drawBulb,
 };
 
 /** A field's illustration, drawn in its own colors. It fills its box and crops to fit. */
@@ -647,9 +771,6 @@ export function TopicArt({
           <stop offset="0%" stopColor={bright} />
           <stop offset="100%" stopColor={deep} />
         </radialGradient>
-        <pattern id={`${id}dots`} width="16" height="16" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1" fill="#fff" fillOpacity="0.14" />
-        </pattern>
         <filter id={`${id}glow`} x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="5" result="blur" />
           <feMerge>
@@ -659,7 +780,6 @@ export function TopicArt({
         </filter>
       </defs>
       <rect width="400" height="300" fill={`url(#${id}bg)`} />
-      <rect width="400" height="300" fill={`url(#${id}dots)`} />
       <g filter={`url(#${id}glow)`}>{ARTWORK[topicId](accent)}</g>
     </svg>
   );

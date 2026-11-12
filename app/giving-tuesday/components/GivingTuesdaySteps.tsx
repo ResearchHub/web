@@ -4,14 +4,8 @@ import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
 
 const STEPS = [
   { title: 'Pick a field', body: 'Choose the area of science you care about most.' },
-  {
-    title: 'Book a call with Tyler',
-    body: 'Fifteen minutes to answer questions and set up your gift.',
-  },
-  {
-    title: 'Give by wire or DAF',
-    body: 'Details are shared on the call, and your gift is matched 1:1.',
-  },
+  { title: 'Book a call with us', body: 'We’ll set up your gift together.' },
+  { title: 'Give by wire or DAF', body: 'Your gift is matched 1:1.' },
 ];
 
 export function GivingTuesdaySteps() {
