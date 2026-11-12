@@ -16,7 +16,7 @@ const STEPS = [
 
 export function GivingTuesdaySteps() {
   return (
-    <section id="how" className="scroll-mt-4 px-6 py-24 md:py-32">
+    <section id="how" className="scroll-mt-4 px-6 pb-24 md:pb-32">
       <div className="mx-auto max-w-[1240px]">
         <h2
           className="text-center text-[36px] font-bold tracking-[-0.03em] text-white md:text-[52px]"

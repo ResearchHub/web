@@ -25,7 +25,7 @@ const FAQ_ITEMS: FundingFAQItem[] = [
 /** The site's "Funding, explained." accordion, on the page's dark ground. */
 export function GivingTuesdayFAQ() {
   return (
-    <section className="px-6 py-24 md:py-32">
+    <section className="px-6 pb-24 md:pb-32">
       <div className="mx-auto max-w-[1100px]">
         <h2
           className="text-center text-[38px] font-bold leading-[1.08] tracking-[-0.024em] text-white md:text-[52px]"

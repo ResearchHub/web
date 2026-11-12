@@ -17,7 +17,7 @@ const STATS = [
 
 export function GivingTuesdayWhyGive() {
   return (
-    <section className="px-6 py-24 md:py-32">
+    <section className="px-6 pb-24 md:pb-32">
       <div className="mx-auto grid max-w-[1240px] gap-14 lg:grid-cols-2">
         <div>
           <h2
