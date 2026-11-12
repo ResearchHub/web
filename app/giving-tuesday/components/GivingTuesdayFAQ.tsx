@@ -2,20 +2,20 @@ import { FundingFAQSection, type FundingFAQItem } from '@/components/landing/Fun
 
 const FAQ_ITEMS: FundingFAQItem[] = [
   {
-    q: 'What does my gift pay for?',
-    a: 'The project you pick: the researcher’s time, supplies and experiments laid out in its public plan. Every project is run at a nonprofit institution, and your gift goes to that one project.',
-  },
-  {
-    q: 'Can I give from my donor-advised fund (DAF)?',
-    a: 'Yes, if your DAF is held at Endaoment: choose the DAF option when you pay and grant straight from your fund. If your DAF is with another sponsor, use the link under the projects to schedule a call with Tyler, and he’ll help you set up your gift.',
+    q: 'Where does my gift go?',
+    a: 'To the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3) public charity. From there it funds open research in the area of science you choose.',
   },
   {
     q: 'Is my gift matched?',
-    a: 'Yes. ResearchHub matches every gift made to these projects in December 1:1, so $100 becomes $200 for research.',
+    a: 'Yes. ResearchHub matches every gift made before 2027 dollar for dollar, so $100,000 becomes $200,000 for research.',
   },
   {
-    q: 'How will I know what my gift did?',
-    a: 'Every project publishes its plan before the work starts, and researchers post updates as the work moves from funded to published.',
+    q: 'How do I give?',
+    a: 'Pick an area of science and schedule a 15-minute call with Tyler from our team. He’ll share how to give by wire transfer or from your donor-advised fund. We never post bank details on a public page.',
+  },
+  {
+    q: 'Is my gift tax-deductible?',
+    a: 'Your gift goes to Endaoment, a 501(c)(3) public charity, so it’s generally tax-deductible in the US. Tyler can help with the paperwork you need.',
   },
 ];
 

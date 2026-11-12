@@ -9,14 +9,14 @@ const FACTS = [
   },
   {
     label: 'Receiving charity',
-    value: 'Endaoment, a 501(c)(3) public charity, [EIN]; fund name ResearchHub Charitable Fund.',
+    value: 'Endaoment, a 501(c)(3) public charity, [EIN]; fund name ResearchHub Foundation.',
   },
   {
     label: 'Funds go to',
-    value: 'Researchers’ universities, as gifts restricted to their research.',
+    value: 'Open research in the area of science each donor chooses.',
   },
-  { label: 'Ways to give', value: 'Cash, card, Apple Pay, crypto, RSC, DAF grants.' },
-  { label: 'Fees', value: '9%' },
+  { label: 'Ways to give', value: 'Wire transfer and DAF grants, set up on a call with our team.' },
+  { label: 'Matching', value: 'Every gift made before 2027 is matched 1:1.' },
   {
     label: 'Totals',
     value: `${formatMoney(TRACK_RECORD.contributedUsd, true)} contributed to research proposals since 2024; ${TRACK_RECORD.proposalsFunded} proposals fully funded; as of ${TRACK_RECORD.asOf}.`,
