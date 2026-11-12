@@ -19,9 +19,8 @@ const PALETTES: Record<TopicId, { deep: string; bright: string }> = {
 };
 
 /**
- * A field's photo, tinted with its own colors. The photos are public domain or CC0, from
- * Wikimedia Commons. It fills its box and crops to fit, and zooms in slowly while the nearest
- * `group` is hovered or focused.
+ * A field's paper sculpture image, tinted with its own colors. It fills its box and crops to
+ * fit, and zooms in slowly while the nearest `group` is hovered or focused.
  */
 export function TopicArt({
   topicId,
@@ -36,7 +35,7 @@ export function TopicArt({
       aria-hidden
     >
       <Image
-        src={`/giving-tuesday/topics/${topicId}.jpg`}
+        src={`/giving-tuesday/topics/${topicId}-paper.jpg`}
         alt=""
         fill
         sizes="(min-width: 1024px) 40vw, 50vw"

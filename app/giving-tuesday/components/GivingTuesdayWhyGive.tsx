@@ -33,7 +33,7 @@ export function GivingTuesdayWhyGive() {
             Science in the open,{' '}
             <span className={BLUE_TEXT}>funded in weeks instead of years.</span>
           </h2>
-          <p className="mt-6 max-w-[520px] text-lg leading-relaxed text-[#98a4ba]">
+          <p className="mt-6 max-w-[520px] text-lg leading-relaxed text-white/80">
             We’re advocates for open science. Every project shares its plan before the work starts
             and publishes what it finds, and experts are paid to review it in public.
           </p>
@@ -45,26 +45,26 @@ export function GivingTuesdayWhyGive() {
               className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-7"
             >
               <p className="flex items-center gap-2.5 font-semibold text-white">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3971ff]/15 text-[#7fb0ff]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-[#bcd3ff]">
                   <Clock className="h-4 w-4" />
                 </span>
                 {row.label}
               </p>
               <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
                 <div className="rounded-2xl bg-white/[0.03] px-3.5 py-4 ring-1 ring-white/5 sm:px-5">
-                  <p className="text-[13px] text-[#6b7690]">Traditional</p>
+                  <p className="text-[13px] text-white/60">Traditional</p>
                   <p
-                    className="mt-1.5 text-[20px] font-bold leading-none text-[#6b7690] sm:text-[24px] md:text-[30px]"
+                    className="mt-1.5 text-[20px] font-bold leading-none text-white/60 sm:text-[24px] md:text-[30px]"
                     style={ONE_LINE}
                   >
                     {row.traditional}
                   </p>
                 </div>
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-[#98a4ba]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-white/80">
                   <ArrowRight className="h-4 w-4" />
                 </span>
-                <div className="rounded-2xl bg-[#3971ff]/10 px-3.5 py-4 ring-1 ring-[#3971ff]/40 sm:px-5">
-                  <p className="text-[13px] text-[#7fb0ff]">ResearchHub</p>
+                <div className="rounded-2xl bg-white/10 px-3.5 py-4 ring-1 ring-white/30 sm:px-5">
+                  <p className="text-[13px] text-[#bcd3ff]">ResearchHub</p>
                   <p
                     className={cn(
                       'mt-1.5 text-[20px] font-bold leading-none sm:text-[24px] md:text-[30px]',
@@ -87,7 +87,7 @@ export function GivingTuesdayWhyGive() {
               key={stat.label}
               className="flex flex-col-reverse items-center justify-end text-center"
             >
-              <dt className="mt-2 text-[13px] text-[#98a4ba] sm:text-sm">{stat.label}</dt>
+              <dt className="mt-2 text-[13px] text-white/80 sm:text-sm">{stat.label}</dt>
               <dd
                 className="text-[26px] font-bold leading-none tracking-[-0.03em] text-white sm:text-[36px] md:text-[44px]"
                 style={DISPLAY_FONT}
@@ -97,7 +97,7 @@ export function GivingTuesdayWhyGive() {
             </div>
           ))}
         </dl>
-        <p className="mt-8 text-center text-xs text-[#6b7690]">As of {TRACK_RECORD.asOf}</p>
+        <p className="mt-8 text-center text-xs text-white/60">As of {TRACK_RECORD.asOf}</p>
       </div>
     </section>
   );

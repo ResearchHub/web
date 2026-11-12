@@ -22,7 +22,7 @@ export function GivingTuesdaySteps() {
           {STEPS.map((step, index) => (
             <li
               key={step.title}
-              className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 transition hover:border-[#3971ff]/60 hover:bg-white/[0.05]"
+              className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 transition hover:border-white/40 hover:bg-white/[0.05]"
             >
               <span
                 className={cn('text-[64px] font-bold leading-none', BLUE_TEXT)}
@@ -31,7 +31,7 @@ export function GivingTuesdaySteps() {
                 {index + 1}
               </span>
               <p className="mt-6 text-xl font-bold text-white">{step.title}</p>
-              <p className="mt-2 text-[#98a4ba]">{step.body}</p>
+              <p className="mt-2 text-white/80">{step.body}</p>
             </li>
           ))}
         </ol>

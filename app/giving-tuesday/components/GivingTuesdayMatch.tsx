@@ -16,7 +16,7 @@ export function GivingTuesdayMatch() {
         >
           Your gift, <span className={BLUE_TEXT}>doubled.</span>
         </h2>
-        <p className="mx-auto mt-5 max-w-[560px] text-lg text-[#98a4ba]">
+        <p className="mx-auto mt-5 max-w-[560px] text-lg text-white/80">
           ResearchHub matches every dollar given before 2027, and the match goes to the same field
           you choose.
         </p>
@@ -73,7 +73,7 @@ function EquationCard({
       <p
         className={cn(
           'flex items-center gap-3 text-[15px] font-semibold',
-          isMatch ? 'text-emerald-300' : 'text-[#98a4ba]'
+          isMatch ? 'text-emerald-300' : 'text-white/80'
         )}
       >
         <span
@@ -97,5 +97,5 @@ function EquationCard({
 }
 
 function Operator({ symbol }: Readonly<{ symbol: string }>) {
-  return <span className="text-center text-4xl font-bold text-[#6b7690]">{symbol}</span>;
+  return <span className="text-center text-4xl font-bold text-white/60">{symbol}</span>;
 }

@@ -39,7 +39,7 @@ export function GivingTuesdayHero() {
       />
       <header className="relative mx-auto flex max-w-[1240px] items-center justify-between px-6 py-6">
         <Logo size={28} variant="white" loading="eager" />
-        <nav className="flex items-center gap-7 text-sm font-medium text-white/70">
+        <nav className="flex items-center gap-7 text-sm font-medium text-white/85">
           <a href="#match" className="hidden hover:text-white sm:inline">
             The match
           </a>
@@ -65,7 +65,7 @@ export function GivingTuesdayHero() {
               We’ll match it.
             </span>
           </h1>
-          <p className="mt-6 max-w-[520px] text-lg leading-relaxed text-[#98a4ba]">
+          <p className="mt-6 max-w-[520px] text-lg leading-relaxed text-white/80">
             Every gift made before 2027 is matched dollar for dollar. Pick the science you care
             about, and we’ll take it from there.
           </p>
@@ -74,8 +74,8 @@ export function GivingTuesdayHero() {
           </a>
           <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3">
             {PERKS.map(({ label, Icon }) => (
-              <li key={label} className="flex items-center gap-2 text-sm text-white/70">
-                <Icon className="h-4 w-4 text-[#7fb0ff]" />
+              <li key={label} className="flex items-center gap-2 text-sm text-white/85">
+                <Icon className="h-4 w-4 text-[#bcd3ff]" />
                 {label}
               </li>
             ))}

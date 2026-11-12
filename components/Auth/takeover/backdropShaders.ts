@@ -208,9 +208,9 @@ const BOKEH = `
 vec3 shade(vec2 fc) {
   vec2 uv = (fc - 0.5 * uRes) / uRes.y;
   float t = uTime;
-  vec3 bg = mix(vec3(0.0008, 0.0015, 0.005), vec3(0.004, 0.01, 0.035), smoothstep(1.1, 0.0, length(uv - vec2(0.2, 0.05))));
+  vec3 bg = mix(vec3(0.0027, 0.0125, 0.079), vec3(0.015, 0.069, 0.52), smoothstep(1.1, 0.0, length(uv - vec2(0.2, 0.05))));
   vec3 col = bg + bokeh(uv, t, vec3(0.05, 0.12, 0.35)) * 0.35;
-  return tonemap(col) + grain(fc, t) * 0.012;
+  return tonemap(col * 0.95) + grain(fc, t) * 0.012;
 }
 `;
 

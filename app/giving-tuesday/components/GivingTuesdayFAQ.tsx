@@ -38,15 +38,15 @@ export function GivingTuesdayFAQ() {
             <details
               key={item.q}
               open={index === 0}
-              className="group rounded-[14px] border border-white/10 bg-white/[0.03] transition hover:border-[#3971ff]/50 open:border-[#3971ff] open:bg-[#3971ff]/[0.06] open:shadow-[0_8px_24px_-12px_rgba(57,113,255,0.5)]"
+              className="group rounded-[14px] border border-white/10 bg-white/[0.03] transition hover:border-white/40 open:border-white/50 open:bg-white/[0.06] open:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)]"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-[22px] text-[17px] font-semibold text-white [&::-webkit-details-marker]:hidden">
                 {item.q}
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/70 transition group-open:rotate-45 group-open:bg-[#3971ff] group-open:text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/85 transition group-open:rotate-45 group-open:bg-white group-open:text-[#3971ff]">
                   <Plus className="h-4 w-4" strokeWidth={2.5} />
                 </span>
               </summary>
-              <p className="max-w-[800px] px-6 pb-[22px] text-[15px] leading-[1.65] text-[#98a4ba]">
+              <p className="max-w-[800px] px-6 pb-[22px] text-[15px] leading-[1.65] text-white/80">
                 {item.a}
               </p>
             </details>
