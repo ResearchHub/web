@@ -37,6 +37,7 @@ export function GiftConciergeModal({ isOpen, onClose, topic }: Readonly<GiftConc
       onClose={onClose}
       tone="dark"
       size="lg"
+      className="!h-[100dvh] md:!h-auto"
       title={
         <span className="font-semibold" style={DISPLAY_FONT}>
           Give to <span className={BLUE_TEXT}>{topic.label}</span>
