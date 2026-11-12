@@ -6,6 +6,7 @@ import { GiftConciergeModal } from '@/components/modals/GiftConciergeModal';
 import { cn } from '@/utils/styles';
 import { TOPICS, type Topic } from '@/app/giving-tuesday/lib/topics';
 import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
+import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
 import { ANIMATE_ART_ON_HOVER, TopicArt } from '@/app/giving-tuesday/components/TopicArt';
 
 /** Sized so the eleven cards fill a 4-by-4 grid on desktop and pair up on phones. */
@@ -28,10 +29,10 @@ export function GivingTuesdayTopics() {
     <section id="fields" className="scroll-mt-4 px-6 pb-24 md:pb-32">
       <div className="mx-auto max-w-[1240px]">
         <h2
-          className="max-w-[620px] text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[56px]"
+          className="text-center text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[56px]"
           style={DISPLAY_FONT}
         >
-          What science do you want to fund?
+          What science <span className={BLUE_TEXT}>do you want to fund?</span>
         </h2>
         <div className="mt-12 grid auto-rows-[200px] grid-flow-dense grid-cols-2 gap-4 lg:auto-rows-[240px] lg:grid-cols-4">
           {TOPICS.map((candidate) => (
