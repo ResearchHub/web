@@ -46,7 +46,7 @@ function ConnectedAppList({ apps, isLoading, error, onRevoke }: Readonly<Connect
         {apps.map((app) => (
           <li
             key={app.id}
-            className="flex items-start justify-between gap-4 py-4 first:pt-0 last:pb-0"
+            className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
           >
             <div className="min-w-0">
               <h3 className="truncate text-base font-semibold text-gray-900">{app.name}</h3>
@@ -55,7 +55,7 @@ function ConnectedAppList({ apps, isLoading, error, onRevoke }: Readonly<Connect
               </p>
               <p className="text-sm text-gray-400">Last used {formatTimeAgo(app.lastUsedAt)}</p>
             </div>
-            <Button variant="outlined" size="sm" onClick={() => onRevoke(app)}>
+            <Button variant="outlined" onClick={() => onRevoke(app)}>
               Revoke
             </Button>
           </li>
