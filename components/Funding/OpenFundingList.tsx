@@ -54,7 +54,7 @@ function OpenFundingRow({ entry }: { readonly entry: FeedEntry }) {
   const work = getActivityWork(entry);
   if (!work) return null;
 
-  const { stats, progress } = getWorkCardPresentation(entry, work, { showUSD, exchangeRate });
+  const { stats } = getWorkCardPresentation(entry, work, { showUSD, exchangeRate });
   const figure = stats?.find((stat) => stat.accent);
 
   return (
@@ -67,9 +67,6 @@ function OpenFundingRow({ entry }: { readonly entry: FeedEntry }) {
           {figure && (
             <span className="text-[11px] leading-tight text-gray-500">
               {figure.label} <span className="font-semibold text-gray-700">{figure.value}</span>
-              {progress != null && progress > 0 && (
-                <> · {Math.min(100, Math.round(progress * 100))}% funded</>
-              )}
             </span>
           )}
           <span className="line-clamp-2 text-[13px] font-medium leading-snug text-gray-900">
