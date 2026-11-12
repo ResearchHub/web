@@ -183,7 +183,14 @@ export function RecentlyVisitedCard({ pages, clear, className }: RecentlyVisited
 }
 
 /** Placeholder shown until localStorage history is readable after hydration. */
-export function RecentlyVisitedCardSkeleton({ className }: { className?: string }) {
+export function RecentlyVisitedCardSkeleton({
+  rows,
+  className,
+}: {
+  /** How many placeholder rows; all of them by default. */
+  rows?: number;
+  className?: string;
+}) {
   return (
     <aside className={cn('w-[250px] animate-pulse', className)} aria-hidden>
       <div className="flex items-center justify-between gap-2">
@@ -191,7 +198,7 @@ export function RecentlyVisitedCardSkeleton({ className }: { className?: string 
         <div className="h-3 w-10 rounded bg-gray-200" />
       </div>
       <ul className="-mx-2 mt-2 flex flex-col gap-0.5">
-        {SKELETON_ROWS.map((row) => (
+        {SKELETON_ROWS.slice(0, rows).map((row) => (
           <li key={row.meta + row.title[0]} className="flex items-start gap-3 p-2">
             <div className="min-w-0 flex-1 space-y-1.5 pt-px">
               <div className={cn('h-2.5 rounded bg-gray-200', row.meta)} />

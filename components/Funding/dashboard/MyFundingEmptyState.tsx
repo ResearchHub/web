@@ -1,59 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { FeedWorkCard } from '@/components/Funding/dashboard/FundingWorkCards';
 import { DashboardSection, SeeAllButton } from '@/components/Funding/dashboard/DashboardSection';
 import { DraftsCarousel } from '@/components/Funding/dashboard/DraftsCarousel';
 import { UpNext } from '@/components/Funding/dashboard/UpNext';
 import { STARTER_UP_NEXT } from '@/components/Funding/dashboard/lib/myFundingModel';
-import { FeedService } from '@/services/feed.service';
+import { useOpenFunding } from '@/hooks/useOpenFunding';
 import type { FeedEntry } from '@/types/feed';
 import type { Note } from '@/types/note';
 
 const SAMPLE_SIZE = 2;
-
-/**
- * A couple of proposals raising now and RFPs taking proposals, to start from.
- * Loading until both lists have answered, whether or not they succeeded.
- */
-function useOpenFunding() {
-  const [proposals, setProposals] = useState<FeedEntry[]>([]);
-  const [rfps, setRfps] = useState<FeedEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    const sample = (load: Promise<{ entries: FeedEntry[] }>, set: (entries: FeedEntry[]) => void) =>
-      load
-        .then((result) => !cancelled && set(result.entries.slice(0, SAMPLE_SIZE)))
-        .catch(() => undefined);
-    Promise.all([
-      sample(
-        FeedService.getFeed({
-          endpoint: 'funding_feed',
-          contentType: 'PREREGISTRATION',
-          fundraiseStatus: 'OPEN',
-          pageSize: SAMPLE_SIZE,
-        }),
-        setProposals
-      ),
-      sample(
-        FeedService.getFeed({
-          endpoint: 'grant_feed',
-          contentType: 'GRANT',
-          status: 'OPEN',
-          pageSize: SAMPLE_SIZE,
-        }),
-        setRfps
-      ),
-    ]).then(() => !cancelled && setIsLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { proposals, rfps, isLoading };
-}
 
 function Samples({
   title,
@@ -90,7 +46,7 @@ interface MyFundingEmptyStateProps {
  * started one, then proposals and RFPs open right now to start from.
  */
 export function MyFundingEmptyState({ drafts = [] }: MyFundingEmptyStateProps) {
-  const { proposals, rfps, isLoading } = useOpenFunding();
+  const { proposals, rfps, isLoading } = useOpenFunding(SAMPLE_SIZE);
 
   return (
     <div className="mb-6 space-y-12">
