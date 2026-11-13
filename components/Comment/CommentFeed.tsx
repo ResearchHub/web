@@ -60,7 +60,7 @@ function CommentFeed({
   belowEditor,
   readOnly = false,
   onlyAssessedReviews = false,
-  rowStyle = 'card',
+  rowStyle = 'feed',
 }: CommentFeedProps) {
   const effectiveRowStyle = useCommentRowStyle(rowStyle);
 
@@ -128,7 +128,7 @@ function CommentFeed({
 // Remove memo wrapper but keep useCallback optimizations
 function CommentFeedContent({
   className,
-  rowStyle = 'card',
+  rowStyle = 'feed',
   editorProps = {},
   renderCommentActions = true,
   hideEditor = false,
