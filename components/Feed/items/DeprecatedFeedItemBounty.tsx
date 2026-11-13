@@ -16,10 +16,15 @@ import { Bounty } from '@/types/bounty';
 import { BountyDetailsModal } from '@/components/Bounty/BountyInfo';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { getBountyDisplayAmount, isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import {
+  getBountyDisplayAmount,
+  getBountyStatus,
+  isExpiringSoon,
+} from '@/components/Bounty/lib/bountyUtil';
+import { BountyStatus } from '@/components/Bounty/BountyStatus';
 import { cn } from '@/utils/styles';
 import { formatCurrency } from '@/utils/currency';
-import { isDeadlineInFuture, getRemainingDays } from '@/utils/date';
+import { isDeadlineInFuture } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType, ApiDocumentType } from '@/utils/contentTypeMapping';
 import { ArrowRight, Info } from 'lucide-react';
@@ -172,22 +177,7 @@ export const DeprecatedFeedItemBounty: FC<DeprecatedFeedItemBountyProps> = ({
     return bounty.status === 'ASSESSMENT';
   }, [bounty.status, bounty.expirationDate]);
 
-  const statusInfo = useMemo(() => {
-    if (bounty.status === 'OPEN' && isActive) {
-      const days = getRemainingDays(bounty.expirationDate ?? null);
-      const remaining =
-        days !== null
-          ? days < 1
-            ? '< 1 day remaining'
-            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'} remaining`
-          : null;
-      return { label: 'Open', color: 'bg-green-500', remaining, urgent: days !== null && days < 3 };
-    }
-    if (bounty.status === 'ASSESSMENT') {
-      return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
-    }
-    return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
-  }, [bounty.status, bounty.expirationDate, isActive]);
+  const statusInfo = useMemo(() => getBountyStatus(bounty, isActive), [bounty, isActive]);
 
   const { amount: displayAmount } = useMemo(
     () => getBountyDisplayAmount(bounty, exchangeRate, showUSD),
@@ -318,36 +308,7 @@ export const DeprecatedFeedItemBounty: FC<DeprecatedFeedItemBountyProps> = ({
                 </span>
               </div>
 
-              <div className="hidden sm:flex flex-col leading-tight">
-                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
-                <div className="flex items-center gap-1.5">
-                  <RadiatingDot color={statusInfo.color} size="sm" isRadiating={isActive} />
-                  {bounty.status === 'ASSESSMENT' ? (
-                    <Tooltip
-                      content="Editors are reviewing any submissions and will award top reviews."
-                      position="top"
-                    >
-                      <span className="text-sm font-medium text-gray-700 whitespace-nowrap border-b border-dashed border-gray-400 cursor-help">
-                        {statusInfo.label}
-                      </span>
-                    </Tooltip>
-                  ) : (
-                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                      {statusInfo.label}
-                    </span>
-                  )}
-                  {statusInfo.remaining && (
-                    <span
-                      className={cn(
-                        'text-xs whitespace-nowrap',
-                        statusInfo.urgent ? 'text-amber-600 font-medium' : 'text-gray-500'
-                      )}
-                    >
-                      ({statusInfo.remaining})
-                    </span>
-                  )}
-                </div>
-              </div>
+              <BountyStatus status={statusInfo} isActive={isActive} />
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">

@@ -1,6 +1,7 @@
 import { Bounty } from '@/types/bounty';
 import type { User } from '@/types/user';
 import { FOUNDATION_USER_ID, FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
+import { getRemainingDays } from '@/utils/date';
 
 /**
  * Checks if a bounty is open and not a contribution
@@ -377,3 +378,40 @@ export const findLatestFoundationBounty = (bounties: Bounty[]): Bounty | undefin
 
   return activeReviewBounties[0];
 };
+
+/** A bounty's status as its action row shows it, with a dot colour and the time left. */
+export interface BountyStatusInfo {
+  label: 'Open' | 'Assessment' | 'Completed';
+  /** Tailwind background class for the status dot. */
+  color: string;
+  /** "3 days remaining" while open; null otherwise. */
+  remaining: string | null;
+  /** Under three days left. */
+  urgent: boolean;
+}
+
+function formatDaysRemaining(days: number): string {
+  if (days < 1) return '< 1 day remaining';
+  const wholeDays = Math.floor(days);
+  return `${wholeDays} day${wholeDays === 1 ? '' : 's'} remaining`;
+}
+
+/**
+ * Open (with the days left), Assessment or Completed. `isActive` is the caller's own
+ * rule for an open bounty still taking submissions, which differs between cards.
+ */
+export function getBountyStatus(bounty: Bounty, isActive: boolean): BountyStatusInfo {
+  if (bounty.status === 'OPEN' && isActive) {
+    const days = getRemainingDays(bounty.expirationDate ?? null);
+    return {
+      label: 'Open',
+      color: 'bg-green-500',
+      remaining: days === null ? null : formatDaysRemaining(days),
+      urgent: days !== null && days < 3,
+    };
+  }
+  if (bounty.status === 'ASSESSMENT') {
+    return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
+  }
+  return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
+}

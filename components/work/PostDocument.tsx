@@ -90,6 +90,7 @@ export const PostDocument = ({ work, metadata, content }: PostDocumentProps) => 
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
