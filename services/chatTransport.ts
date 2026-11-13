@@ -1,5 +1,6 @@
 import { AssistantChatService } from './assistantChat.service';
 import { NotebookChatService } from './notebookChat.service';
+import { ApiError } from './types/api';
 import { WS_ROUTES } from './websocket';
 import type {
   CancelTurnResponse,
@@ -7,6 +8,7 @@ import type {
   AgentChatListItem,
   SendMessageResponse,
 } from '@/types/agentChat';
+import type { AgentFile } from '@/types/agentFile';
 import type { GenerationRequest } from '@/types/agentModels';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 
@@ -42,7 +44,9 @@ export interface ChatTransport {
     chatId: ChatId,
     message: string,
     generation?: GenerationRequest,
-    fileIds?: number[]
+    fileIds?: number[],
+    /** The files behind `fileIds`, for a transport that shows the message itself. */
+    attachments?: AgentFile[]
   ): Promise<SendMessageResponse>;
   renameChat(chatId: ChatId, title: string): Promise<{ conversation_id: number; title: string }>;
   cancelTurn(chatId: ChatId): Promise<CancelTurnResponse>;
@@ -65,6 +69,46 @@ export function getChatTransport(scope: { noteId: ChatId | null }): ChatTranspor
     transport =
       scope.noteId == null ? assistantChatTransport() : notebookChatTransport(scope.noteId);
     transports.set(key, transport);
+  }
+  return transport;
+}
+
+const agentTransports = new Map<string, ChatTransport>();
+
+/**
+ * The notebook transport with sends routed through the chat's AG-UI agent, for
+ * the CopilotKit chat: the message starts its turn on the agent's run, which
+ * then streams that turn to CopilotKit. Everything else, and the key, is the
+ * plain notebook transport's, so drafts and attachments carry across.
+ */
+export function getAgentChatTransport(noteId: ChatId): ChatTransport {
+  const key = `notebook:${noteId}`;
+  let transport = agentTransports.get(key);
+  if (!transport) {
+    transport = {
+      ...notebookChatTransport(noteId),
+      sendMessage: async (chatId, message, generation, fileIds, attachments) => {
+        // Loaded on first send so the AG-UI client stays out of the bundles of
+        // pages that never use this chat.
+        const { notebookChatAgent } = await import('@/services/notebookChatAgent');
+        const agent = notebookChatAgent(String(noteId), Number(chatId));
+        const executionId = await agent.send(
+          message,
+          {
+            ...generation,
+            ...(fileIds && fileIds.length > 0 && { file_ids: fileIds }),
+          },
+          attachments
+        );
+        // Every accepted send starts a turn and names it. Without the id the
+        // chat could never match the turn and would stay busy, so fail loudly.
+        if (executionId === null) {
+          throw new ApiError('The server did not say which turn it started.');
+        }
+        return { conversation_id: Number(chatId), execution_id: executionId };
+      },
+    };
+    agentTransports.set(key, transport);
   }
   return transport;
 }

@@ -17,6 +17,11 @@ export class ApiClient {
     return this.globalAuthToken;
   }
 
+  /** The signed-in user's API token, resolving it from the session if needed. */
+  static resolveAuthToken(): Promise<string | null> {
+    return this.getAuthToken();
+  }
+
   private static async getAuthToken() {
     if (typeof window === 'undefined') {
       return this.initializeToken();
