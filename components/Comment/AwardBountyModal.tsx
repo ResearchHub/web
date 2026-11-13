@@ -148,7 +148,6 @@ const AwardableCommentCard: FC<{
         contentType={contentType}
         showTooltips={false}
         includeReplies={false}
-        rowStyle="feed"
       />
     ),
     [comment, contentType]
