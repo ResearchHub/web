@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function GivingTuesdayLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="min-h-screen bg-white">
-      <main className="relative">{children}</main>
+      <main>{children}</main>
     </div>
   );
 }

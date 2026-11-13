@@ -26,10 +26,10 @@ export function GivingTuesdayTopics() {
   }
 
   return (
-    <section id="fields" className="scroll-mt-4 px-6 pb-24 md:pb-32">
+    <section id="fields" className="scroll-mt-4 bg-white px-6 py-24 md:py-32">
       <div className="mx-auto max-w-[1240px]">
         <h2
-          className="text-center text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-white md:text-[56px]"
+          className="text-center text-[40px] font-bold leading-[1.05] tracking-[-0.03em] text-[#0b1530] md:text-[56px]"
           style={DISPLAY_FONT}
         >
           What science <span className={BLUE_TEXT}>do you want to fund?</span>
@@ -41,7 +41,7 @@ export function GivingTuesdayTopics() {
               type="button"
               onClick={() => pickTopic(candidate)}
               className={cn(
-                'group relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left ring-1 ring-white/10 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-white/40',
+                'group relative isolate flex flex-col justify-end overflow-hidden rounded-3xl text-left shadow-[0_18px_40px_-20px_rgba(13,30,80,0.35)] ring-1 ring-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-24px_rgba(57,113,255,0.6)] hover:ring-[#3971ff]/40',
                 CARD_SPANS[candidate.id]
               )}
             >
