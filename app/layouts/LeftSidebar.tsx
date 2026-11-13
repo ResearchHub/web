@@ -11,6 +11,7 @@ import { Icon } from '@/components/ui/icons';
 import { FundingPowerRailButton } from '@/components/Funding/FundingPowerRailButton';
 import { SidebarDocuments } from './components/SidebarDocuments';
 import { SidebarHelpMenu } from './components/SidebarHelpMenu';
+import { NewToResearchHubSidebarCard } from '@/components/NewToResearchHub/NewToResearchHubSidebarCard';
 
 interface LeftSidebarProps {
   forceMinimize?: boolean;
@@ -105,6 +106,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       <div className={forceMinimize ? '!hidden' : ''}>
+        <NewToResearchHubSidebarCard inMenu={Boolean(onNavigate)} />
         <SidebarHelpMenu />
       </div>
     </div>
