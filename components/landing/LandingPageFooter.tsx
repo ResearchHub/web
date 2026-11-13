@@ -5,13 +5,10 @@ import { useState } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { ContactModal } from '@/components/modals/ContactModal';
 import { colors } from '@/app/styles/colors';
-import { WORKSPACE_PATH } from '@/components/AIMode/workspaceUrl';
 
 export function LandingPageFooter() {
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const platformLinks = [
@@ -68,12 +65,6 @@ export function LandingPageFooter() {
     },
   ];
 
-  const handleAuthenticatedLink = (href: string) => {
-    executeAuthenticatedAction(() => {
-      window.location.href = href;
-    });
-  };
-
   return (
     <footer className="bg-white border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -125,16 +116,6 @@ export function LandingPageFooter() {
                   </Link>
                 </li>
               ))}
-              <li key="workspace">
-                <button
-                  onClick={() => handleAuthenticatedLink(WORKSPACE_PATH)}
-                  className="text-gray-600 hover:opacity-80 transition-colors duration-200 text-left"
-                  onMouseEnter={(e) => (e.currentTarget.style.color = colors.rhBlue[500])}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = '#4b5563')}
-                >
-                  Workspace
-                </button>
-              </li>
             </ul>
           </div>
 
