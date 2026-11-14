@@ -216,6 +216,18 @@ const nextConfig = {
         has: [MARKDOWN_ACCEPT],
         destination: '/llms.txt',
       },
+      // The page and a markdown response cannot share a segment, so the same
+      // Accept header used for the homepage is rewritten to a route handler.
+      {
+        source: '/rfp/:id/:slug',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/rfp/:id',
+      },
+      {
+        source: '/proposal/:id/:slug',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/proposal/:id',
+      },
     ],
     // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
     // and Next still reserves app/sitemap.xml for it, so the index lives at
@@ -239,6 +251,16 @@ const nextConfig = {
     // match the original request path, so this targets `/`, not `/llms.txt`.
     {
       source: '/',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/rfp/:id/:slug',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/proposal/:id/:slug',
       has: [MARKDOWN_ACCEPT],
       headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
     },

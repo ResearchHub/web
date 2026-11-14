@@ -19,7 +19,7 @@ ResearchHub is an open science platform where researchers publish, peer review, 
 ## URL patterns
 
 - Proposals: `/proposal/{id}/{slug}`
-- Grants: `/grant/{id}/{slug}`
+- RFPs (grants): `/rfp/{id}/{slug}`
 - Posts: `/post/{id}/{slug}`
 - Authors: `/author/{id}`
 
@@ -27,7 +27,8 @@ ResearchHub is an open science platform where researchers publish, peer review, 
 
 - `https://researchhub.com/llms.txt`: site overview, also served for `Accept: text/markdown` requests to `/`
 - `https://researchhub.com/llms-full.txt`: extended site overview
-- `https://researchhub.com/sitemap.xml`: public proposals and grants
+- `https://researchhub.com/sitemap.xml`: static pages, public proposals (`/proposal/`), and RFPs (`/rfp/`). Papers and authors are not listed.
+- RFP and proposal URLs return markdown when the request sends `Accept: text/markdown`
 - `https://researchhub.com/.well-known/api-catalog`: API catalog (RFC 9727)
 - `https://docs.researchhub.com/`: documentation
 

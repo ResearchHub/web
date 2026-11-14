@@ -17,6 +17,8 @@ Dynamic content follows these URL patterns: authors at `/author/{id}`, posts at 
 
 - [Requests for Proposals](https://researchhub.com/fund): Browse open funding opportunities and apply for research funding
 - [Proposals](https://researchhub.com/fund/proposals): Community research proposals seeking funding
+- Each public RFP page includes MonetaryGrant structured data (amount, funder, deadline, status)
+- RFP and proposal URLs return that page as markdown when the request sends `Accept: text/markdown`
 - [Endowment](https://researchhub.com/endowment): Hold RSC on the platform to earn Funding Credits — yield distributed daily that can only be spent on funding preregistered research proposals. No lockups, principal is always revocable.
 
 ## Peer Review & Publishing

@@ -18,6 +18,8 @@ interface Document {
   tags?: string[];
   section?: string;
   type?: string;
+  /** schema.org type for the page, e.g. ScholarlyArticle. Defaults to Article. */
+  schemaType?: string;
 }
 
 export function generateDocumentStructuredData(document: Document) {
@@ -158,17 +160,157 @@ export function generateFAQStructuredData(items: Array<{ question: string; answe
   };
 }
 
+export interface GrantStructuredDataInput {
+  /** Full title. Unlike the article headline, this is not truncated. */
+  title: string;
+  description?: string;
+  /** Absolute canonical URL of the RFP page. */
+  url: string;
+  organization?: string;
+  amount?: { value: number; currency: string };
+  /** Grant status, e.g. OPEN, CLOSED, COMPLETED. */
+  status: string;
+  /** Application deadline, ISO 8601. */
+  endDate?: string;
+  /** FUNDING is a community goal. AWARD is a pool the funder pays from directly. */
+  fundingMechanism?: string;
+  /** Cover image. MonetaryGrant inherits image from Thing. */
+  image?: string;
+  /** Short title, when it differs from the page title. */
+  alternateName?: string;
+  /** Proposals this grant has already put money toward. */
+  fundedItems?: Array<{ name: string; url: string }>;
+}
+
+/**
+ * schema.org MonetaryGrant for a public RFP. Schema.org has no deadline or
+ * status property on Grant, so those go in additionalProperty.
+ */
+export interface ProposalStructuredDataInput {
+  title: string;
+  description?: string;
+  /** Absolute canonical URL of the proposal page. */
+  url: string;
+  /** The RFP's funder, when the proposal applies to one. */
+  funder?: string;
+  /** Funding goal in the goal's currency. */
+  goal?: { value: number; currency: string };
+  /** Fundraise status, e.g. OPEN, COMPLETED. */
+  status?: string;
+  /** Fundraise deadline, ISO 8601. */
+  endDate?: string;
+  /** FUNDING when the proposal sets a goal. AWARD when the funder pays it directly. */
+  fundingMechanism?: string;
+  /** Title of the RFP this proposal applies to. */
+  fundingName?: string;
+  /** Absolute URL of that RFP. */
+  fundingUrl?: string;
+  /** Cover image. ResearchProject inherits image from Thing. */
+  image?: string;
+  /** People on the project. ResearchProject has member, not author. */
+  members?: Array<{ name: string; url?: string }>;
+}
+
+/**
+ * schema.org ResearchProject for a proposal. The goal is what the project asks
+ * for. Amount raised is left out because it changes after the HTML is cached.
+ * Peer review content is never included here.
+ */
+export function generateProposalStructuredData(proposal: ProposalStructuredDataInput) {
+  const additionalProperty = [
+    ...(proposal.fundingMechanism
+      ? [{ '@type': 'PropertyValue', name: 'fundingMechanism', value: proposal.fundingMechanism }]
+      : []),
+    ...(proposal.status
+      ? [{ '@type': 'PropertyValue', name: 'fundraiseStatus', value: proposal.status }]
+      : []),
+    ...(proposal.endDate
+      ? [{ '@type': 'PropertyValue', name: 'fundingDeadline', value: proposal.endDate }]
+      : []),
+  ];
+
+  const funding =
+    proposal.goal || proposal.fundingName || proposal.fundingUrl || proposal.funder
+      ? {
+          '@type': 'MonetaryGrant',
+          ...(proposal.fundingName && { name: proposal.fundingName }),
+          ...(proposal.fundingUrl && { url: proposal.fundingUrl }),
+          ...(proposal.funder && {
+            funder: { '@type': 'Organization', name: proposal.funder },
+          }),
+          ...(proposal.goal && {
+            amount: {
+              '@type': 'MonetaryAmount',
+              currency: proposal.goal.currency,
+              value: proposal.goal.value,
+            },
+          }),
+        }
+      : undefined;
+
+  const members = proposal.members?.filter((member) => member.name) ?? [];
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ResearchProject',
+    name: proposal.title,
+    ...(proposal.description && { description: proposal.description }),
+    url: proposal.url,
+    ...(proposal.image && { image: proposal.image }),
+    ...(proposal.funder && {
+      funder: { '@type': 'Organization', name: proposal.funder },
+    }),
+    ...(funding && { funding }),
+    ...(members.length > 0 && {
+      member: members.map((member) => ({
+        '@type': 'Person',
+        name: member.name,
+        ...(member.url && { url: member.url }),
+      })),
+    }),
+    ...(additionalProperty.length > 0 && { additionalProperty }),
+  };
+}
+
+export function generateGrantStructuredData(grant: GrantStructuredDataInput) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'MonetaryGrant',
+    name: grant.title,
+    ...(grant.description && { description: grant.description }),
+    url: grant.url,
+    ...(grant.image && { image: grant.image }),
+    ...(grant.alternateName && { alternateName: grant.alternateName }),
+    ...(grant.organization && {
+      funder: { '@type': 'Organization', name: grant.organization },
+    }),
+    ...(grant.amount && {
+      amount: {
+        '@type': 'MonetaryAmount',
+        currency: grant.amount.currency,
+        value: grant.amount.value,
+      },
+    }),
+    ...(grant.fundedItems &&
+      grant.fundedItems.length > 0 && {
+        fundedItem: grant.fundedItems.map((item) => ({
+          '@type': 'ResearchProject',
+          name: item.name,
+          url: item.url,
+        })),
+      }),
+    additionalProperty: [
+      { '@type': 'PropertyValue', name: 'status', value: grant.status },
+      ...(grant.fundingMechanism
+        ? [{ '@type': 'PropertyValue', name: 'fundingMechanism', value: grant.fundingMechanism }]
+        : []),
+      ...(grant.endDate
+        ? [{ '@type': 'PropertyValue', name: 'applicationDeadline', value: grant.endDate }]
+        : []),
+    ],
+  };
+}
+
 function getSchemaType(document: Document): string {
-  switch (document.type) {
-    case 'Paper':
-      return 'ScholarlyArticle';
-    case 'Grant Proposal':
-      return 'Grant';
-    case 'Proposal':
-      return 'CreativeWork';
-    case 'Post':
-      return 'Article';
-    default:
-      return 'Article';
-  }
+  return document.schemaType ?? 'Article';
 }
