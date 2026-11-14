@@ -7,8 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { Icon } from '@/components/ui/icons/Icon';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
 import { Starfield } from './Starfield';
-
-const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
+import { CONCIERGE } from '@/constants/concierge';
 
 export function GiveHero() {
   // The AnimatedGlobe canvas is sized in px, so we measure its column and clamp
@@ -96,7 +95,7 @@ export function GiveHero() {
           </div>
           <div className="give-hero-ctas">
             <a
-              href={TALK_TO_TEAM_URL}
+              href={CONCIERGE.bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="give-hero-talk-btn"
