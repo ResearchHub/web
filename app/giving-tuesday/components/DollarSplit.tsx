@@ -7,7 +7,7 @@ import styles from '@/app/giving-tuesday/components/DollarSplit.module.css';
 
 /**
  * One dollar that splits into your gift and our match. The animation waits on the single
- * bill until the stage is on screen, and pauses again when it scrolls away.
+ * bill until the stage is on screen, then plays once and stays on the two bills.
  */
 export function DollarSplit() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -17,7 +17,9 @@ export function DollarSplit() {
     if (!stage) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        stage.toggleAttribute('data-playing', entry.isIntersecting);
+        if (!entry.isIntersecting) return;
+        stage.setAttribute('data-playing', '');
+        observer.disconnect();
       },
       { threshold: 0.6 }
     );
