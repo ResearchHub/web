@@ -18,7 +18,7 @@ export function DollarSplit() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        stage.setAttribute('data-playing', '');
+        stage.dataset.playing = '';
         observer.disconnect();
       },
       { threshold: 0.6 }
