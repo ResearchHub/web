@@ -1,46 +1,108 @@
-import Image from 'next/image';
+import type { CSSProperties, ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 import type { Topic } from '@/app/giving-tuesday/lib/topics';
+import {
+  TOPIC_PALETTES,
+  TOPIC_SYMBOLS,
+  type SymbolPart,
+  type TopicPalette,
+} from '@/app/giving-tuesday/lib/topicSymbols';
+import styles from './TopicArt.module.css';
 
 type TopicId = Topic['id'];
 
-const PALETTES: Record<TopicId, { deep: string; bright: string }> = {
-  ai: { deep: '#0b1a4a', bright: '#3971ff' },
-  longevity: { deep: '#03302a', bright: '#10b981' },
-  cancer: { deep: '#4c0519', bright: '#f43f5e' },
-  neuroscience: { deep: '#2a0653', bright: '#8b5cf6' },
-  heart: { deep: '#450a0a', bright: '#ef4444' },
-  infections: { deep: '#4a1d04', bright: '#f59e0b' },
-  genetics: { deep: '#042f2e', bright: '#14b8a6' },
-  environment: { deep: '#052e16', bright: '#22c55e' },
-  physics: { deep: '#0f0c33', bright: '#6366f1' },
-  chemistry: { deep: '#082f3d', bright: '#06b6d4' },
-  other: { deep: '#0b0f19', bright: '#475569' },
-};
+/** Small dots in the topic's accent color, in the corners of the 400 by 300 canvas. */
+const DOTS = [
+  [64, 68, 5],
+  [338, 244, 6],
+  [350, 64, 4],
+  [56, 236, 3.5],
+] as const;
+
+/** Mixes two #rrggbb colors; `amount` 0 is `from`, 1 is `to`. */
+function mixColors(from: string, to: string, amount: number) {
+  const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const a = channels(from);
+  const b = channels(to);
+  return (
+    '#' +
+    a
+      .map((value, i) =>
+        Math.round(value + (b[i] - value) * amount)
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('')
+  );
+}
+
+function renderParts(parts: SymbolPart[], palette: TopicPalette): ReactNode[] {
+  return parts.map((part, index) => {
+    const motion = part.motion
+      ? {
+          className: cn(styles.moving, styles[part.motion]),
+          style: part.delay ? ({ '--delay': `${part.delay}s` } as CSSProperties) : undefined,
+        }
+      : {};
+
+    if (part.kind === 'group') {
+      return (
+        <g key={index} {...motion}>
+          {renderParts(part.parts, palette)}
+        </g>
+      );
+    }
+
+    const color = palette[part.role] ?? palette.main;
+    if (part.kind === 'shape') {
+      return <path key={index} d={part.d} fill={color} transform={part.transform} {...motion} />;
+    }
+    return (
+      <path
+        key={index}
+        d={part.d}
+        fill="none"
+        stroke={color}
+        strokeWidth={part.width}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        transform={part.transform}
+        pathLength={part.motion === 'draw' ? 1 : undefined}
+        {...motion}
+      />
+    );
+  });
+}
 
 /**
- * A field's paper sculpture image, tinted with its own colors. It fills its box and crops to
- * fit, and zooms in slowly while the nearest `group` is hovered or focused.
+ * A topic's flat illustration on its own background color. The symbol keeps its proportions and
+ * sits centered in the box, and moves a little while the nearest `group` is hovered or focused.
  */
 export function TopicArt({
   topicId,
   className,
 }: Readonly<{ topicId: TopicId; className?: string }>) {
-  const { deep, bright } = PALETTES[topicId];
+  const palette = TOPIC_PALETTES[topicId];
+  const disc = mixColors(palette.background, '#ffffff', palette.isDark ? 0.1 : 0.55);
 
   return (
     <div
       className={cn('relative overflow-hidden', className)}
-      style={{ background: `radial-gradient(circle at 72% 25%, ${bright}, ${deep} 95%)` }}
+      style={{ background: palette.background }}
       aria-hidden
     >
-      <Image
-        src={`/giving-tuesday/topics/${topicId}-paper.jpg`}
-        alt=""
-        fill
-        sizes="(min-width: 1024px) 40vw, 50vw"
-        className="object-cover opacity-70 mix-blend-luminosity transition-transform duration-[1400ms] ease-[cubic-bezier(.2,.8,.2,1)] group-hover:scale-[1.08] group-focus-visible:scale-[1.08] motion-reduce:transition-none"
-      />
+      {/* Cropped to the disc, so the symbol stays large in short cards. */}
+      <svg
+        viewBox="50 20 300 260"
+        preserveAspectRatio="xMidYMid meet"
+        className="absolute inset-0 h-full w-full"
+      >
+        <circle cx={200} cy={150} r={118} fill={disc} />
+        {DOTS.map(([x, y, r]) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r={r} fill={palette.accent} opacity={0.7} />
+        ))}
+        {renderParts(TOPIC_SYMBOLS[topicId], palette)}
+      </svg>
     </div>
   );
 }

@@ -1,0 +1,200 @@
+/*
+ * One dollar in the middle splits into two: your gift slides left, our match slides right,
+ * they hold apart, then come back together. The loop starts on the single bill and stays
+ * paused there until the stage scrolls into view (DollarSplit sets data-playing).
+ * With reduced motion the two bills just sit apart.
+ */
+.stage {
+  --split: 188px;
+  position: relative;
+  height: 236px;
+  max-width: 860px;
+  margin: 48px auto 0;
+}
+
+.side {
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 340px;
+  margin-left: -170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.gift,
+.match,
+.tag,
+.one {
+  animation-duration: 6s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-play-state: paused;
+}
+
+.stage[data-playing] .gift,
+.stage[data-playing] .match,
+.stage[data-playing] .tag,
+.stage[data-playing] .one {
+  animation-play-state: running;
+}
+
+.gift {
+  z-index: 2;
+  animation-name: gift;
+}
+
+.match {
+  z-index: 1;
+  animation-name: match;
+}
+
+.bill {
+  display: block;
+  width: 340px;
+  height: 145px;
+  filter: drop-shadow(0 16px 22px rgba(30, 45, 25, 0.3));
+}
+
+.tag {
+  font-size: 15px;
+  font-weight: 700;
+  animation-name: tag;
+}
+
+.one {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 186px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2f5130;
+  animation-name: one;
+}
+
+/* 0-16% one bill, 16-30% split, 30-78% two bills, 78-92% back together. */
+@keyframes gift {
+  0%,
+  10% {
+    transform: translateX(0) scale(1);
+  }
+  13% {
+    transform: translateX(0) scale(1.04);
+  }
+  16% {
+    transform: translateX(0) scale(1);
+  }
+  30%,
+  78% {
+    transform: translateX(calc(var(--split) * -1)) rotate(-2deg);
+  }
+  92%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+}
+
+@keyframes match {
+  0%,
+  16% {
+    transform: translateX(0);
+  }
+  30%,
+  78% {
+    transform: translateX(var(--split)) rotate(2deg);
+  }
+  92%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+}
+
+@keyframes tag {
+  0%,
+  26% {
+    opacity: 0;
+  }
+  34%,
+  74% {
+    opacity: 1;
+  }
+  80%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes one {
+  0%,
+  16% {
+    opacity: 1;
+  }
+  22%,
+  88% {
+    opacity: 0;
+  }
+  96%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .stage {
+    --split: 116px;
+    height: 176px;
+  }
+  .side {
+    width: 220px;
+    margin-left: -110px;
+  }
+  .bill {
+    width: 220px;
+    height: 94px;
+  }
+  .one {
+    top: 136px;
+  }
+}
+
+/* Phones: small enough that both bills stay on screen once they split. */
+@media (max-width: 480px) {
+  .stage {
+    --split: 86px;
+    height: 146px;
+  }
+  .side {
+    width: 160px;
+    margin-left: -80px;
+  }
+  .bill {
+    width: 160px;
+    height: 68px;
+  }
+  .one {
+    top: 110px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gift,
+  .match,
+  .tag,
+  .one {
+    animation: none;
+  }
+  .gift {
+    transform: translateX(calc(var(--split) * -1)) rotate(-2deg);
+  }
+  .match {
+    transform: translateX(var(--split)) rotate(2deg);
+  }
+  .one {
+    opacity: 0;
+  }
+}

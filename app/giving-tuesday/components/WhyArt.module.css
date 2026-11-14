@@ -1,0 +1,259 @@
+/* Motion for the three Why ResearchHub illustrations and the racing bars. */
+
+.spin {
+  transform-origin: 200px 160px;
+  animation: spin 6s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dash {
+  stroke-dasharray: 14 12;
+  animation: dash 1.6s linear infinite;
+}
+.flow {
+  stroke-dasharray: 6 8;
+  animation: dash 1.2s linear infinite;
+}
+@keyframes dash {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+
+.pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 3.6s ease-in-out infinite;
+}
+@keyframes pop {
+  0%,
+  55%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.14);
+  }
+}
+
+/* The ResearchHub bar is done in a blink; the typical grant takes the whole loop. */
+.barFast {
+  width: 7%;
+  animation: barFast 8s ease-out infinite;
+}
+.barSlow {
+  width: 62%;
+  animation: barSlow 8s ease-in-out infinite;
+}
+@keyframes barFast {
+  0%,
+  6% {
+    width: 7%;
+  }
+  12% {
+    width: 0;
+  }
+  20%,
+  100% {
+    width: 7%;
+  }
+}
+@keyframes barSlow {
+  0%,
+  6% {
+    width: 62%;
+  }
+  12% {
+    width: 0;
+  }
+  84%,
+  100% {
+    width: 62%;
+  }
+}
+
+/* AI and experts: the highlight and the AI's beam move down the proposal line by line,
+   and the scientist ticks each line once it has been looked at. */
+.highlight {
+  animation: highlight 6s ease-in-out infinite;
+}
+@keyframes highlight {
+  0%,
+  20% {
+    transform: translateY(0);
+  }
+  25%,
+  45% {
+    transform: translateY(22px);
+  }
+  50%,
+  70% {
+    transform: translateY(44px);
+  }
+  75%,
+  95% {
+    transform: translateY(66px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.beam {
+  transform-origin: 122px 128px;
+  animation: beam 6s ease-in-out infinite;
+}
+@keyframes beam {
+  0%,
+  20% {
+    transform: rotate(-18deg);
+  }
+  25%,
+  45% {
+    transform: rotate(7deg);
+  }
+  50%,
+  70% {
+    transform: rotate(30deg);
+  }
+  75%,
+  95% {
+    transform: rotate(46deg);
+  }
+  100% {
+    transform: rotate(-18deg);
+  }
+}
+
+.check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: 6s linear infinite;
+}
+.check1 {
+  animation-name: check1;
+}
+.check2 {
+  animation-name: check2;
+}
+.check3 {
+  animation-name: check3;
+}
+.check4 {
+  animation-name: check4;
+}
+@keyframes check1 {
+  0%,
+  13% {
+    stroke-dashoffset: 1;
+  }
+  19%,
+  96% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes check2 {
+  0%,
+  38% {
+    stroke-dashoffset: 1;
+  }
+  44%,
+  96% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes check3 {
+  0%,
+  63% {
+    stroke-dashoffset: 1;
+  }
+  69%,
+  96% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes check4 {
+  0%,
+  88% {
+    stroke-dashoffset: 1;
+  }
+  94%,
+  96% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+.pen {
+  animation: pen 6s ease-in-out infinite;
+}
+@keyframes pen {
+  0%,
+  12%,
+  20%,
+  37%,
+  45%,
+  62%,
+  70%,
+  87%,
+  95%,
+  100% {
+    transform: translate(0, 0);
+  }
+  16%,
+  41%,
+  66%,
+  91% {
+    transform: translate(-4px, 4px);
+  }
+}
+
+.blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 3s infinite;
+}
+@keyframes blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin,
+  .dash,
+  .flow,
+  .pop,
+  .barFast,
+  .barSlow,
+  .highlight,
+  .beam,
+  .check,
+  .pen,
+  .blink {
+    animation: none;
+  }
+  .check {
+    stroke-dashoffset: 0;
+  }
+}
