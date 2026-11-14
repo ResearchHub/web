@@ -50,12 +50,12 @@ export function GivingTuesdayWhy() {
             artBackground="#DDF6F0"
             kicker="The best network"
             kickerClassName="text-[#1f8a6f]"
-            big={TRACK_RECORD.peerReviewers.toLocaleString('en-US')}
-            title="expert peer reviewers from top institutions"
+            big={TRACK_RECORD.peerReviews.toLocaleString('en-US')}
+            title="peer reviews from qualified scientists"
           >
             <p className="text-[15px] leading-relaxed text-[#4b5563]">
-              {TRACK_RECORD.peerReviews.toLocaleString('en-US')} peer reviews so far, from
-              scientists at leading universities and labs.
+              Each proposal is reviewed by scientists who know the field, from leading universities
+              and labs.
             </p>
             <p className="mt-auto text-xs text-[#6b7280]">As of {TRACK_RECORD.asOf}</p>
           </WhyCard>
