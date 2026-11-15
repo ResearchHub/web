@@ -7,6 +7,8 @@ import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDe
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
+import { ProposalFeedItem } from '@/components/Funding/ProposalFeedItem';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -166,6 +168,13 @@ export default function ListDetailPage() {
                 isLoadingMore={isLoadingMore}
                 hasMore={hasMore}
                 loadMore={loadMore}
+                renderEntry={(props) =>
+                  props.entry.contentType === 'PREREGISTRATION' ? (
+                    <ProposalFeedItem {...props} />
+                  ) : (
+                    <FeedEntryItem {...props} />
+                  )
+                }
                 noEntriesElement={
                   <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                     <FontAwesomeIcon

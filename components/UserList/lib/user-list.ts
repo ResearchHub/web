@@ -149,6 +149,27 @@ export const transformUserList = (raw: ApiUserList): UserList => ({
   itemCount: raw.item_count ?? 0,
 });
 
+/**
+ * The list endpoint omits an RFP's `funding_mechanism`, but drops `goal_amount`
+ * from every proposal answering an award. An award without proposals still
+ * reads as funding.
+ */
+const addInferredFundingMechanism = (document: any) => {
+  const grant = document?.content_object?.grant;
+  const isAward =
+    grant?.applications.length > 0 &&
+    grant.applications.every(({ fundraise }: any) => fundraise && !fundraise.goal_amount);
+  if (!isAward) return document;
+
+  return {
+    ...document,
+    content_object: {
+      ...document.content_object,
+      grant: { ...grant, funding_mechanism: 'AWARD' },
+    },
+  };
+};
+
 export const transformUserListItem = (raw: ApiUserListItemDTO): UserListItem => ({
   id: raw.id,
   parentList: raw.parent_list,
@@ -158,7 +179,7 @@ export const transformUserListItem = (raw: ApiUserListItemDTO): UserListItem => 
   createdBy: raw.created_by,
   updatedBy: raw.updated_by,
   document: {
-    ...raw.document,
+    ...addInferredFundingMechanism(raw.document),
     id: raw.document?.id ?? raw.document?.content_object?.id ?? raw.unified_document,
     action: raw.document?.action ?? 'publish',
     action_date: raw.document?.action_date ?? raw.document?.created_date ?? raw.created_date,
