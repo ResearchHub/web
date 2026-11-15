@@ -224,7 +224,17 @@ const nextConfig = {
         destination: '/md/rfp/:id',
       },
       {
+        source: '/rfp/:id(\\d+)',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/rfp/:id',
+      },
+      {
         source: '/proposal/:id/:slug',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/proposal/:id',
+      },
+      {
+        source: '/proposal/:id(\\d+)',
         has: [MARKDOWN_ACCEPT],
         destination: '/md/proposal/:id',
       },
@@ -260,7 +270,17 @@ const nextConfig = {
       headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
     },
     {
+      source: '/rfp/:id(\\d+)',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
       source: '/proposal/:id/:slug',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/proposal/:id(\\d+)',
       has: [MARKDOWN_ACCEPT],
       headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
     },

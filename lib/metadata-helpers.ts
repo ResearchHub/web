@@ -31,7 +31,7 @@ export function getWorkShareImageUrl(work: Work): string {
  * A community proposal's funding goal. Award applications publish a budget of 0
  * because the funder pays them directly, and a zero amount is not a goal.
  */
-function proposalGoal(
+export function proposalGoal(
   fundraise: Work['fundraise'],
   fundingMechanism: string | undefined
 ): { value: number; currency: string } | undefined {
@@ -40,6 +40,19 @@ function proposalGoal(
     fundraise.goalCurrency === 'USD' ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
   if (value <= 0) return undefined;
   return { value, currency: fundraise.goalCurrency };
+}
+
+/**
+ * The grant's stored amount. `usd` is float(grant.amount); `rsc` is an exchange
+ * conversion of that number, so the published value stays `usd`. `currency` is
+ * the unit of the stored amount.
+ */
+export function storedGrantAmount(
+  amount: { usd: number } | undefined,
+  currency: string | undefined
+): { value: number; currency: string } | undefined {
+  if (!amount || !currency) return undefined;
+  return { value: amount.usd, currency };
 }
 
 /** Proposals this grant has put money toward. Open applications with nothing raised are not funded yet. */
@@ -68,9 +81,7 @@ function buildWorkStructuredData(work: Work, url: string, description: string) {
         description: stripHtml(grant.description || ''),
         url: absoluteUrl,
         organization: grant.organization,
-        // amount.usd is the stored amount, labelled USD by the API even when
-        // grant.currency is RSC, so the value is paired with the real currency.
-        amount: grant.amount ? { value: grant.amount.usd, currency: grant.currency } : undefined,
+        amount: storedGrantAmount(grant.amount, grant.currency),
         status: grant.status,
         endDate: grant.endDate,
         fundingMechanism: grant.fundingMechanism,

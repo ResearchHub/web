@@ -1,4 +1,5 @@
 import { SITE_CONFIG } from '@/lib/metadata';
+import { proposalGoal, storedGrantAmount } from '@/lib/metadata-helpers';
 import type { Work } from '@/types/work';
 import { stripHtml } from '@/utils/stringUtils';
 
@@ -13,17 +14,9 @@ function lines(rows: Array<[string, string | undefined]>): string {
     .join('\n');
 }
 
-/**
- * A community proposal's funding goal. Award applications publish a budget of 0
- * because the funder pays them directly, and a zero amount is not a goal.
- */
-function proposalGoal(work: Work): string | undefined {
-  const fundraise = work.fundraise;
-  if (!fundraise || work.linkedGrant?.fundingMechanism === 'AWARD') return undefined;
-  const value =
-    fundraise.goalCurrency === 'USD' ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
-  if (value <= 0) return undefined;
-  return `${value} ${fundraise.goalCurrency}`;
+function goalLabel(work: Work): string | undefined {
+  const goal = proposalGoal(work.fundraise, work.linkedGrant?.fundingMechanism);
+  return goal ? `${goal.value} ${goal.currency}` : undefined;
 }
 
 function body(work: Work): string {
@@ -34,11 +27,12 @@ function body(work: Work): string {
 /** Public RFP as markdown. Peer review text is never included. */
 export function renderRfpMarkdown(work: Work, path: string): string {
   const grant = work.note?.post?.grant;
-  const amount = grant?.amount ? `${grant.amount.usd} ${grant.currency}` : undefined;
+  const amount = storedGrantAmount(grant?.amount, grant?.currency);
+  const amountLabel = amount ? `${amount.value} ${amount.currency}` : undefined;
   const facts = lines([
     ['URL', pageUrl(path)],
     ['Funder', grant?.organization || undefined],
-    ['Amount', amount],
+    ['Amount', amountLabel],
     ['Status', grant?.status],
     ['Application deadline', grant?.endDate || undefined],
     ['Funding', grant?.fundingMechanism],
@@ -55,7 +49,7 @@ export function renderProposalMarkdown(work: Work, path: string): string {
     ['URL', pageUrl(path)],
     ['Funder', linked?.organization || undefined],
     ['Request for Proposal', rfpUrl],
-    ['Goal', proposalGoal(work)],
+    ['Goal', goalLabel(work)],
     ['Status', work.fundraise?.status],
     ['Funding deadline', work.fundraise?.endDate],
     ['Funding', linked?.fundingMechanism],

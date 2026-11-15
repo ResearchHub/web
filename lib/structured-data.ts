@@ -182,10 +182,6 @@ export interface GrantStructuredDataInput {
   fundedItems?: Array<{ name: string; url: string }>;
 }
 
-/**
- * schema.org MonetaryGrant for a public RFP. Schema.org has no deadline or
- * status property on Grant, so those go in additionalProperty.
- */
 export interface ProposalStructuredDataInput {
   title: string;
   description?: string;
@@ -272,6 +268,10 @@ export function generateProposalStructuredData(proposal: ProposalStructuredDataI
   };
 }
 
+/**
+ * schema.org MonetaryGrant for a public RFP. Schema.org has no deadline or
+ * status property on Grant, so those go in additionalProperty.
+ */
 export function generateGrantStructuredData(grant: GrantStructuredDataInput) {
   return {
     '@context': 'https://schema.org',
