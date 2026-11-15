@@ -199,6 +199,7 @@ const JournalHero = () => (
 export default function JournalNewPage() {
   return (
     <PageLayout
+      contentWidth="narrow"
       topBanner={<JournalHero />}
       rightSidebar={
         <div className="space-y-3">

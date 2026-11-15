@@ -104,7 +104,7 @@ export default function ListDetailPage() {
   };
 
   return (
-    <PageLayout>
+    <PageLayout contentWidth="narrow">
       <div className="py-4">
         {list ? (
           <>
