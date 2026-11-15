@@ -65,7 +65,7 @@ export function GiftConciergeModal({ isOpen, onClose, topic }: Readonly<GiftConc
           />
           <div>
             <h3 className="text-[22px] leading-tight text-[#0b1530]" style={DISPLAY_FONT}>
-              Jump on a quick call with {CONCIERGE.name}
+              Jump on a quick call with us
             </h3>
             <p className="mt-1 text-sm leading-relaxed text-[#4b5563]">
               We’ll make sure your money goes to the research you care about.
