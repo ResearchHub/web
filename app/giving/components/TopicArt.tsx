@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { cn } from '@/utils/styles';
-import type { Topic } from '@/app/giving-tuesday/lib/topics';
+import type { Topic } from '@/app/giving/lib/topics';
 import {
   TOPIC_PALETTES,
   TOPIC_SYMBOLS,
   type SymbolPart,
   type TopicPalette,
-} from '@/app/giving-tuesday/lib/topicSymbols';
+} from '@/app/giving/lib/topicSymbols';
 import styles from './TopicArt.module.css';
 
 type TopicId = Topic['id'];

@@ -5,11 +5,11 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Avatar } from '@/components/ui/Avatar';
 import { CONCIERGE } from '@/constants/concierge';
 import { cn } from '@/utils/styles';
-import type { Topic } from '@/app/giving-tuesday/lib/topics';
-import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
-import { BLUE_BUTTON } from '@/app/giving-tuesday/components/accents';
-import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
-import { GiftChecks } from '@/app/giving-tuesday/components/GiftChecks';
+import type { Topic } from '@/app/giving/lib/topics';
+import { DISPLAY_FONT } from '@/app/giving/components/displayFont';
+import { BLUE_BUTTON } from '@/app/giving/components/accents';
+import { TopicArt } from '@/app/giving/components/TopicArt';
+import { GiftChecks } from '@/app/giving/components/GiftChecks';
 
 interface GiftConciergeModalProps {
   isOpen: boolean;
@@ -65,7 +65,7 @@ export function GiftConciergeModal({ isOpen, onClose, topic }: Readonly<GiftConc
           />
           <div>
             <h3 className="text-[22px] leading-tight text-[#0b1530]" style={DISPLAY_FONT}>
-              Jump on a quick call with {CONCIERGE.name}
+              Jump on a quick call with us
             </h3>
             <p className="mt-1 text-sm leading-relaxed text-[#4b5563]">
               We’ll make sure your money goes to the research you care about.

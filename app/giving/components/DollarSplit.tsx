@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import { cn } from '@/utils/styles';
-import { DollarBill } from '@/app/giving-tuesday/components/DollarBill';
-import styles from '@/app/giving-tuesday/components/DollarSplit.module.css';
+import { DollarBill } from '@/app/giving/components/DollarBill';
+import styles from '@/app/giving/components/DollarSplit.module.css';
 
 /**
  * One dollar that splits into your gift and our match. The animation waits on the single

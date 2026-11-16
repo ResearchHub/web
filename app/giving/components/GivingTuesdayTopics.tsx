@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { GiftConciergeModal } from '@/components/modals/GiftConciergeModal';
 import { cn } from '@/utils/styles';
-import { TOPICS, type Topic } from '@/app/giving-tuesday/lib/topics';
-import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
-import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
-import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
-import { TOPIC_PALETTES } from '@/app/giving-tuesday/lib/topicSymbols';
+import { TOPICS, type Topic } from '@/app/giving/lib/topics';
+import { DISPLAY_FONT } from '@/app/giving/components/displayFont';
+import { BLUE_TEXT } from '@/app/giving/components/accents';
+import { TopicArt } from '@/app/giving/components/TopicArt';
+import { TOPIC_PALETTES } from '@/app/giving/lib/topicSymbols';
 
 /** Sized so the eleven cards fill a 4-by-4 grid on desktop and pair up on phones. */
 const CARD_SPANS: Partial<Record<Topic['id'], string>> = {

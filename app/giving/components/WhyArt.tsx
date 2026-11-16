@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/utils/styles';
-import styles from '@/app/giving-tuesday/components/WhyArt.module.css';
+import styles from '@/app/giving/components/WhyArt.module.css';
 
 /** All three share one frame so the cards line up. */
 function ArtFrame({ label, children }: { label?: string; children: ReactNode }) {

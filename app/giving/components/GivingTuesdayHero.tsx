@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { ArrowDown } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
-import { TOPICS } from '@/app/giving-tuesday/lib/topics';
-import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
-import { BLUE_BUTTON, BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
-import { TopicArt } from '@/app/giving-tuesday/components/TopicArt';
-import { FadedPixels } from '@/app/giving-tuesday/components/FadedPixels';
-import { GiftChecks } from '@/app/giving-tuesday/components/GiftChecks';
+import { TOPICS } from '@/app/giving/lib/topics';
+import { DISPLAY_FONT } from '@/app/giving/components/displayFont';
+import { BLUE_BUTTON, BLUE_TEXT } from '@/app/giving/components/accents';
+import { TopicArt } from '@/app/giving/components/TopicArt';
+import { FadedPixels } from '@/app/giving/components/FadedPixels';
+import { GiftChecks } from '@/app/giving/components/GiftChecks';
 
 /**
  * Each column is its cards twice over, scrolled by half its height so the loop is seamless.
