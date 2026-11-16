@@ -1,14 +1,9 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/utils/styles';
-import { TRACK_RECORD } from '@/app/giving-tuesday/lib/trackRecord';
-import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
-import { BLUE_TEXT } from '@/app/giving-tuesday/components/accents';
-import {
-  FastArt,
-  NetworkArt,
-  RacingBars,
-  TogetherArt,
-} from '@/app/giving-tuesday/components/WhyArt';
+import { TRACK_RECORD } from '@/app/giving/lib/trackRecord';
+import { DISPLAY_FONT } from '@/app/giving/components/displayFont';
+import { BLUE_TEXT } from '@/app/giving/components/accents';
+import { FastArt, NetworkArt, RacingBars, TogetherArt } from '@/app/giving/components/WhyArt';
 
 export function GivingTuesdayWhy() {
   return (

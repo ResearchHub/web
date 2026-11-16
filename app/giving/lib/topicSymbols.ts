@@ -1,4 +1,4 @@
-import type { Topic } from '@/app/giving-tuesday/lib/topics';
+import type { Topic } from '@/app/giving/lib/topics';
 
 /**
  * Flat illustrations for the Giving Tuesday topics. Each symbol is drawn on a 400 by 300

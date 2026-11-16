@@ -1,8 +1,8 @@
 import { cn } from '@/utils/styles';
-import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
-import { BLUE_TEXT, PALE_BAND } from '@/app/giving-tuesday/components/accents';
-import { FadedPixels } from '@/app/giving-tuesday/components/FadedPixels';
-import { DollarSplit } from '@/app/giving-tuesday/components/DollarSplit';
+import { DISPLAY_FONT } from '@/app/giving/components/displayFont';
+import { BLUE_TEXT, PALE_BAND } from '@/app/giving/components/accents';
+import { FadedPixels } from '@/app/giving/components/FadedPixels';
+import { DollarSplit } from '@/app/giving/components/DollarSplit';
 
 export function GivingTuesdayMatch() {
   return (
