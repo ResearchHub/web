@@ -16,7 +16,7 @@ interface PublishMenuProps {
 }
 
 /**
- * The sidebar's Publish button: a Request for Proposal or a Proposal, either
+ * The sidebar's Draft button: a Request for Proposal or a Proposal, either
  * of which leads straight to a new draft in the workspace for that side of
  * the money. A popover at every width, phones included, since on one it opens
  * inside the menu panel.
@@ -39,7 +39,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({
       className={`flex items-center px-5 py-3.5 gap-2.5 text-[15px] font-medium rounded-lg bg-gray-100 hover:bg-gray-50 text-gray-800 shadow-[rgba(0,_0,_0,_0.15)_1.95px_1.95px_2.6px] ${forceMinimize ? '!hidden' : ''}`}
     >
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>Publish</span>
+      <span>Draft</span>
     </button>
   );
 

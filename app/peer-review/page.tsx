@@ -16,7 +16,9 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default async function PeerReviewPage() {
   return (
+    // The homepage's width, as on My Funding and the RFP and proposal pages.
     <PageLayout
+      contentWidth="narrow"
       topBanner={
         <>
           <PeerReviewHero />

@@ -13,7 +13,7 @@ import { useFundraises } from '@/contexts/FundraiseContext';
 export function GrantTabs() {
   const { activeTab, setActiveTab } = useGrantPage();
   const activity = useGrantActivity();
-  const { proposalCount } = useFundraises();
+  const { proposalCount, isLoading: isLoadingProposals, isGrantScoped } = useFundraises();
 
   // The feed counts what it has loaded so far; with more to load it is a floor.
   const activityCount = activity.hasMore ? `${activity.count}+` : activity.count;
@@ -25,8 +25,20 @@ export function GrantTabs() {
       onTabChange={(tab) => setActiveTab(tab as GrantBannerTab)}
       tabs={[
         { id: 'details', label: 'Details' },
-        { id: 'proposals', label: 'Proposals', count: proposalCount },
-        { id: 'activity', label: 'Activity', count: activityCount },
+        // Both counts arrive after the page: until the first one does, a blank
+        // pill keeps its place. Proposals only load for an RFP with a grant.
+        {
+          id: 'proposals',
+          label: 'Proposals',
+          count: proposalCount,
+          countLoading: isGrantScoped && isLoadingProposals && proposalCount === 0,
+        },
+        {
+          id: 'activity',
+          label: 'Activity',
+          count: activityCount,
+          countLoading: activity.isLoading && activity.count === 0,
+        },
       ]}
     />
   );
