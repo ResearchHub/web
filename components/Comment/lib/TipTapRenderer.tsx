@@ -513,7 +513,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
   // Handle heading nodes
   if (node.type === 'heading') {
-    const HeadingTag = `h${node.attrs?.level || 1}` as keyof React.JSX.IntrinsicElements;
+    const HeadingTag = `h${node.attrs?.level || 1}` as `h${1 | 2 | 3 | 4 | 5 | 6}`;
     const { children } = renderChildrenWithTruncation(node.content, {
       debug,
       renderSectionHeader,
