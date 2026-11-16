@@ -1,0 +1,248 @@
+import Image from 'next/image';
+import { ArrowLeft, Lightbulb, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { cn } from '@/utils/styles';
+import { LINKS, TIMELINE, type Moment } from '../data/content';
+import { Sequence, TimelineScroller } from './Motion';
+import { Rich } from './Rich';
+import { TenetIcon } from './TenetIcons';
+
+export function Wrap({
+  children,
+  className,
+  id,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  id?: string;
+}) {
+  return (
+    <div
+      id={id}
+      className={cn('mx-auto w-full max-w-[1200px] px-5 tablet:px-10 content-lg:px-12', className)}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Numbered links to the source list at the foot of the page. */
+export function Refs({ ids }: { ids: number[] }) {
+  if (ids.length === 0) return null;
+  return (
+    <span className="ml-1 whitespace-nowrap text-[0.8em] text-[var(--o-mute)]">
+      {ids.map((id, i) => (
+        <a
+          key={id}
+          href={`#source-${id}`}
+          className="hover:text-[var(--o-text)]"
+          aria-label={`Source ${id}`}
+        >
+          {i === 0 ? '[' : ''}
+          {id}
+          {i === ids.length - 1 ? ']' : ','}
+        </a>
+      ))}
+    </span>
+  );
+}
+
+/** The theory as four tenets, linked in a chain. */
+export function Claim() {
+  return (
+    <section aria-labelledby="claim-title" className="py-24 tablet:py-32">
+      <Wrap>
+        <h2
+          id="claim-title"
+          className="o-reveal o-serif max-w-[14em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
+        >
+          The Tenets of Orch OR Theory
+        </h2>
+        <p className="o-reveal o-prose mt-5 max-w-[36em]">
+          Orchestrated objective reduction was proposed in 1996 by the physicist Roger Penrose and
+          the anesthesiologist Stuart Hameroff. It is a chain of four claims; any one can break.
+        </p>
+
+        <Sequence>
+          <ol className="mt-14 grid grid-cols-1 gap-x-10 gap-y-10 tablet:grid-cols-2 content-md:grid-cols-4">
+            {LINKS.map((link, i) => (
+              <li
+                key={link.n}
+                style={{ '--i': i } as React.CSSProperties}
+                className="relative pt-6"
+              >
+                {/* The chain: a quiet rule, and a gold one a signal draws over it. */}
+                <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-[var(--o-line)]" />
+                <span
+                  aria-hidden
+                  className="o-chain-rule absolute inset-x-0 top-0 h-px bg-[rgb(var(--o-gold-rgb)/0.55)]"
+                />
+                <span
+                  aria-hidden
+                  className="o-chain-spark absolute top-0 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--o-gold)] shadow-[0_0_14px_3px_rgb(var(--o-gold-rgb)/0.8)]"
+                />
+                <div className="flex items-end justify-between gap-4">
+                  <span className="o-chain-n o-serif block text-[44px] italic leading-none text-[var(--o-gold)]">
+                    {link.n}
+                  </span>
+                  <TenetIcon index={i} />
+                </div>
+                <div className="o-chain-body">
+                  <h3 className="o-serif mt-4 text-[24px] leading-tight">{link.name}</h3>
+                  <p className="mt-2 text-[15px] leading-[1.6] text-[var(--o-soft)]">
+                    <Rich>{link.claim}</Rich>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Sequence>
+      </Wrap>
+    </section>
+  );
+}
+
+const SIDE = {
+  for: { Icon: ThumbsUp, tone: 'text-[var(--o-gold)]', label: 'Supports' },
+  // The pair to Supports: a result that counts against the theory.
+  against: { Icon: ThumbsDown, tone: 'text-[var(--o-ice)]', label: 'Challenges' },
+  // An idea, the theory's own or a competing one.
+  theory: { Icon: Lightbulb, tone: 'text-[var(--o-white)]', label: 'The theory' },
+  rival: { Icon: Lightbulb, tone: 'text-[var(--o-mute)]', label: 'A rival theory' },
+} as const;
+
+/** A drawn stand-in for a paper's first page: journal and title, no reproduced page. */
+function PaperThumb({ journal, title }: { journal: string; title: string }) {
+  return (
+    <span
+      aria-hidden
+      className="flex h-[72px] w-[56px] flex-col overflow-hidden rounded-[3px] bg-[var(--o-text)] px-1.5 pb-1.5 pt-1 text-[var(--o-ink)] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.8)]"
+    >
+      <span className="truncate text-[5.5px] font-semibold uppercase tracking-[0.06em] opacity-60">
+        {journal}
+      </span>
+      <span className="mt-1 font-[family-name:var(--font-orch-serif)] text-[6.5px] leading-[1.15]">
+        {title}
+      </span>
+      <span className="mt-auto space-y-[3px]">
+        {[1, 0.9, 1, 0.7].map((w, i) => (
+          <span
+            key={i}
+            className="block h-[2px] rounded bg-[var(--o-ink)] opacity-20"
+            style={{ width: `${w * 100}%` }}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function MomentItem({ m, i, last }: { m: Moment; i: number; last: boolean }) {
+  const side = SIDE[m.side];
+  return (
+    <li
+      style={{ '--i': i } as React.CSSProperties}
+      className="relative w-[64vw] max-w-[240px] shrink-0 snap-start sidebar-compact:w-auto sidebar-compact:max-w-none sidebar-compact:shrink"
+    >
+      {/* The line the faces sit on: from this face to the next, so it ends at the newest. */}
+      {!last && (
+        <span
+          aria-hidden
+          className="o-tl-line absolute left-9 top-9 h-px w-[calc(100%+1.5rem)] bg-[var(--o-line-2)]"
+        />
+      )}
+      <div className="o-tl-face relative z-10 flex h-[72px] items-center">
+        {m.person ? (
+          <Image
+            src={m.person.photo.src}
+            alt={m.person.name}
+            width={72}
+            height={72}
+            className="h-[72px] w-[72px] rounded-full object-cover ring-1 ring-[color:var(--o-line-2)] grayscale-[35%]"
+          />
+        ) : m.paper ? (
+          <PaperThumb journal={m.paper.journal} title={m.paper.title} />
+        ) : null}
+      </div>
+      <div className="o-tl-body">
+        <p className="mt-4 flex items-center gap-2.5">
+          <span className="o-serif text-[26px] leading-none">{m.year}</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap text-[12px] text-[var(--o-mute)]">
+            <side.Icon aria-hidden strokeWidth={2} className={cn('h-3.5 w-3.5', side.tone)} />
+            {side.label}
+          </span>
+        </p>
+        <p className="mt-2 text-[14.5px] leading-[1.5] text-[var(--o-soft)]">{m.text}</p>
+        <p className="mt-2 text-[12.5px] text-[var(--o-mute)]">
+          {m.cite}
+          <Refs ids={m.sources} />
+        </p>
+      </div>
+    </li>
+  );
+}
+
+/** The argument so far, oldest on the left, newest on the right. */
+export function Timeline() {
+  return (
+    <section aria-labelledby="timeline-title" className="o-rule border-t py-24 tablet:py-32">
+      <Wrap>
+        <h2
+          id="timeline-title"
+          className="o-reveal o-serif max-w-[16em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
+        >
+          The research so far
+        </h2>
+        {/* Below 1240px the row opens on the newest work; say where the rest is. */}
+        <p className="mt-4 flex items-center gap-2 text-[13px] text-[var(--o-mute)] sidebar-compact:hidden">
+          <ArrowLeft aria-hidden className="h-3.5 w-3.5" />
+          Swipe for earlier work, back to 1996
+        </p>
+      </Wrap>
+      <Sequence className="mx-auto mt-10 w-full max-w-[1200px] tablet:px-10 content-lg:px-12">
+        <TimelineScroller>
+          <div className="relative w-max px-5 pb-2 tablet:px-0 sidebar-compact:w-auto">
+            <ol className="relative flex gap-6 sidebar-compact:grid sidebar-compact:grid-cols-6">
+              {TIMELINE.map((m, i) => (
+                <MomentItem
+                  key={`${m.year}-${m.cite}`}
+                  m={m}
+                  i={i}
+                  last={i === TIMELINE.length - 1}
+                />
+              ))}
+            </ol>
+          </div>
+        </TimelineScroller>
+      </Sequence>
+    </section>
+  );
+}
+
+/** Photo credits for the timeline, shown with the sources. */
+export function PhotoCredits() {
+  const people = TIMELINE.flatMap((m) => (m.person ? [m.person] : []));
+  return (
+    <p className="mt-10 text-[12.5px] leading-[1.6] text-[var(--o-mute)]">
+      Photos, from Wikimedia Commons, show authors of the work cited, not endorsers of this call:{' '}
+      {people.map((p, i) => (
+        <span key={p.name}>
+          {p.name} by{' '}
+          <a
+            href={p.photo.sourceUrl}
+            className="underline underline-offset-2 hover:text-[var(--o-text)]"
+          >
+            {p.photo.author}
+          </a>
+          ,{' '}
+          <a
+            href={p.photo.licenceUrl}
+            className="underline underline-offset-2 hover:text-[var(--o-text)]"
+          >
+            {p.photo.licence}
+          </a>
+          , cropped{i < people.length - 1 ? '; ' : '.'}
+        </span>
+      ))}
+    </p>
+  );
+}
