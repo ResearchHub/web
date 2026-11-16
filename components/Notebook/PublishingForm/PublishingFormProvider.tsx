@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { usePublishingHost } from '@/contexts/PublishingHostContext';
 import { useUser } from '@/contexts/UserContext';
 import { isChangelogNote, isRegisteredReportNote, type NoteWithContent } from '@/types/note';
+import type { User } from '@/types/user';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import { CoverImageGeneratorProvider } from './CoverImageGenerator';
 import {
   applyGrantDefaults,
@@ -38,12 +40,46 @@ export interface PublishingController extends PublishAction {
   readonly isChangelog: boolean;
   /** A declined Request for Proposal: shown, but no longer editable. */
   readonly isDeclined: boolean;
+  readonly canOverrideLockedDetails: boolean;
+  readonly isEditingOnBehalf: boolean;
   /** Publishing is allowed right now; the Publish button follows this. */
   readonly canPublish: boolean;
   /** Why publishing is refused, when the reason is worth showing next to the button. */
   readonly blockedMessage: string | null;
   /** The title the work would be published under right now; empty when it has none. */
   readonly getTitle: () => string;
+}
+
+/** Author or grant contact already listed on the note / published work. */
+function isNaturalNoteEditor(
+  note: NoteWithContent | null,
+  user: User | null | undefined,
+  articleType: ArticleType | undefined
+): boolean {
+  if (!note || !user) return false;
+  const authorProfileId = user.authorProfile?.id;
+
+  const isGrant =
+    articleType === 'grant' ||
+    note.documentType === 'GRANT' ||
+    note.post?.contentType === 'funding_request';
+
+  if (isGrant) {
+    const contacts = note.post?.grant?.contacts ?? note.grantSettings?.contacts ?? [];
+    if (
+      contacts.some(
+        (contact) =>
+          (authorProfileId != null && contact.authorProfile?.id === authorProfileId) ||
+          contact.id === user.id
+      )
+    ) {
+      return true;
+    }
+  }
+
+  if (authorProfileId == null) return false;
+  const authors = note.post?.authors ?? note.authors ?? [];
+  return authors.some((author) => author.authorId === authorProfileId);
 }
 
 const PublishingControllerContext = createContext<PublishingController | null>(null);
@@ -120,6 +156,9 @@ export function PublishingFormProvider({
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
+      if (note.selectedGrant) {
+        methods.setValue('selectedGrant', note.selectedGrant);
+      }
     } else {
       populateFormFromNoteDetails(note, methods.setValue);
 
@@ -204,6 +243,11 @@ export function PublishingFormProvider({
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isModerator = !!currentUser?.isModerator;
+  const canOverrideLockedDetails = isHubEditorOrModerator(currentUser);
+  const isNaturalEditor = isNaturalNoteEditor(note, currentUser, articleType);
+  const isFundingDocument = articleType === 'preregistration' || articleType === 'grant';
+  const isEditingOnBehalf =
+    canOverrideLockedDetails && isFundingDocument && isPublished && !isNaturalEditor && !readOnly;
   const isChangelog = isChangelogNote(note);
   const isNewPreprint = articleType === 'discussion' && !workId && !isChangelog;
   const canPublishChangelog = !isChangelog || isModerator;
@@ -223,6 +267,7 @@ export function PublishingFormProvider({
     isChangelog,
     canPublishChangelog,
     canPublishRegisteredReport,
+    canOverrideLockedDetails,
   });
 
   const canPublish =
@@ -254,6 +299,8 @@ export function PublishingFormProvider({
     isPublished,
     isChangelog,
     isDeclined,
+    canOverrideLockedDetails,
+    isEditingOnBehalf,
     canPublish,
     blockedMessage,
     getTitle,

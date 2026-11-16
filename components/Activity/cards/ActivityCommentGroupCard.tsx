@@ -10,9 +10,17 @@ import { ActivityActor } from './ActivityActor';
 import { ActivityCardMenu } from './ActivityCardMenu';
 import { ACTIVITY_CONTENT_DIVIDER, ActivityCardShell } from './ActivityCardShell';
 import { ActivityQuotedComment } from './ActivityQuotedComment';
+import { ReviewScoreStars } from '../amounts/ReviewScoreStars';
 import { ActivityCardFooter } from '../work/ActivityCardFooter';
 import { ActivityWorkCover } from '../work/ActivityWorkCover';
-import { getActivityComment, getCommentPreview, getWorkNoun } from '../lib/activityDisplay.utils';
+import { ActivityWorkLink } from '../work/ActivityWorkLink';
+import {
+  getActivityComment,
+  getCommentPreview,
+  getReviewScore,
+  getWorkNoun,
+  toReviewVerdictPreview,
+} from '../lib/activityDisplay.utils';
 import {
   getActivityCta,
   getWorkCoverPresentation,
@@ -28,16 +36,22 @@ import { cn } from '@/utils/styles';
  */
 const GROUPED_COMMENT_MAX_LENGTH = 120;
 
+/** How many comments or reviews show before the rest fold behind "See all". */
+const PREVIEW_COUNT = 2;
+
 interface ActivityCommentGroupCardProps {
   row: ActivityCommentGroupRow;
 }
 
 /**
- * A single row standing in for several comments one author left on the same work:
- * every comment body, stacked above one shared work cover.
+ * A single row standing in for several comments one author left back to back:
+ * every comment body, stacked above one shared work cover when they are all on one
+ * work, or each under a small link to its own work when they are not.
  */
 export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ row }) => {
-  const { entries, latestEntry, work, author } = row;
+  const { entries, latestEntry, work, works, spansWorks, author, variant } = row;
+  const isReview = variant === 'review';
+  const [isExpanded, setIsExpanded] = useState(false);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const { updateLastClickedEntryId } = useNavigation();
@@ -53,15 +67,27 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
   };
 
   const latestEntryId = String(latestEntry.id);
-  const cover = getWorkCoverPresentation(latestEntry, work, { showUSD, exchangeRate });
+  const cover = getWorkCoverPresentation(latestEntry, work, { showUSD, exchangeRate, isReview });
 
-  const comments = entries.flatMap((entry) => {
+  const comments = entries.flatMap((entry, index) => {
     const preview = getCommentPreview(entry);
     return preview
-      ? [{ entryId: String(entry.id), preview, comment: getActivityComment(entry) }]
+      ? [
+          {
+            entryId: String(entry.id),
+            preview,
+            comment: getActivityComment(entry),
+            commentWork: works[index] ?? work,
+            score: isReview ? getReviewScore(entry) : undefined,
+          },
+        ]
       : [];
   });
   const activeComment = comments.find(({ entryId }) => entryId === activeEntryId)?.comment;
+  const activeWork = comments.find(({ entryId }) => entryId === activeEntryId)?.commentWork ?? work;
+  const visibleComments = isExpanded ? comments : comments.slice(0, PREVIEW_COUNT);
+  const hiddenCount = comments.length - visibleComments.length;
+  const noun = isReview ? 'reviews' : 'comments';
   const panelComment =
     panelShowsParent && activeComment?.parent ? activeComment.parent : activeComment;
 
@@ -73,14 +99,29 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
     >
       <ActivityActor
         authors={[author]}
-        action={{ label: `Left ${comments.length} comments on ${getWorkNoun(work)}` }}
+        action={{
+          label: isReview
+            ? spansWorks
+              ? `Peer reviewed ${comments.length} works`
+              : `Wrote ${comments.length} peer reviews on ${getWorkNoun(work)}`
+            : spansWorks
+              ? `Left ${comments.length} comments`
+              : `Left ${comments.length} comments on ${getWorkNoun(work)}`,
+        }}
         timestamp={latestEntry.timestamp}
         isAuthor={shouldShowAuthorBadge(latestEntry, author.id)}
         menu={<ActivityCardMenu work={work} hideableEntries={entries} />}
       >
         <div className={cn(ACTIVITY_CONTENT_DIVIDER, 'divide-y divide-gray-100')}>
-          {comments.map(({ entryId, preview, comment }) => (
+          {visibleComments.map(({ entryId, preview, comment, commentWork, score }) => (
             <div key={entryId} className="py-2.5 first:pt-0 last:pb-0">
+              {spansWorks && (
+                <ActivityWorkLink
+                  work={commentWork}
+                  onNavigate={() => updateLastClickedEntryId(entryId)}
+                  className="mb-1 pt-0"
+                />
+              )}
               {comment?.parent && (
                 <ActivityQuotedComment
                   comment={comment.parent}
@@ -88,8 +129,9 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
                   className="mb-3"
                 />
               )}
+              {!!score && <ReviewScoreStars score={score} size="sm" className="mb-1" />}
               <CommentReadOnly
-                content={preview.content}
+                content={isReview ? toReviewVerdictPreview(preview.content) : preview.content}
                 contentFormat={preview.format}
                 maxLength={GROUPED_COMMENT_MAX_LENGTH}
                 showReadMoreButton
@@ -101,19 +143,34 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
           ))}
         </div>
 
-        <ActivityWorkCover
-          work={work}
-          cover={cover}
-          onNavigate={() => updateLastClickedEntryId(latestEntryId)}
-          className="mt-3"
-        />
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            className="mt-2 text-sm font-medium text-primary-600 hover:text-primary-700"
+          >
+            See all {comments.length} {noun}
+          </button>
+        )}
 
-        <ActivityCardFooter
-          entry={latestEntry}
-          work={work}
-          cta={getActivityCta(latestEntry, work)}
-          hideableEntries={entries}
-        />
+        {/* Across several works there is no one work to show or act on. */}
+        {!spansWorks && (
+          <>
+            <ActivityWorkCover
+              work={work}
+              cover={cover}
+              onNavigate={() => updateLastClickedEntryId(latestEntryId)}
+              className="mt-3"
+            />
+
+            <ActivityCardFooter
+              entry={latestEntry}
+              work={work}
+              cta={getActivityCta(latestEntry, work)}
+              hideableEntries={entries}
+            />
+          </>
+        )}
       </ActivityActor>
 
       {panelComment && activeEntryId && (
@@ -121,7 +178,7 @@ export const ActivityCommentGroupCard: FC<ActivityCommentGroupCardProps> = ({ ro
           isOpen={isPanelOpen}
           onClose={() => setIsPanelOpen(false)}
           comment={panelComment}
-          work={work}
+          work={activeWork}
           onOpenParent={
             !panelShowsParent && activeComment?.parent
               ? () => openPanel(activeEntryId, true)

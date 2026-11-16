@@ -15,6 +15,7 @@ import { useCoverImagePicker } from './masthead/CoverImage';
 import { EDITING_FIELD_CLASS, EDITING_INPUT_CLASS } from './masthead/MastheadLine';
 import { MAX_TITLE_LENGTH, normalizeTitle } from './masthead/title';
 import {
+  canUnlockMastheadWidget,
   detailValue,
   mastheadWidgetsFor,
   peopleOf,
@@ -304,10 +305,12 @@ function DetailRow({
   readonly attention: boolean;
   readonly optional: boolean;
 }) {
+  const { canOverrideLockedDetails } = usePublishingController();
   const open = () => onEditingChange(true);
   const close = () => onEditingChange(false);
   const value = detailValue(config, values);
-  const locked = Boolean(value) && Boolean(config.lockedWhen?.(values));
+  const wouldLock = Boolean(value) && Boolean(config.lockedWhen?.(values));
+  const locked = wouldLock && !canUnlockMastheadWidget(config, canOverrideLockedDetails);
   const shared = {
     label: config.name,
     optional,

@@ -88,6 +88,16 @@ const FUNDING_GOAL: MastheadWidgetConfig = {
   hiddenWhen: (values) => isAwardMechanism(values.selectedGrant?.fundingMechanism),
 };
 
+export const FUNDING_GOAL_EDITOR_HINT =
+  'How much this work is raising. Editors can update the goal after publish.';
+
+export function canUnlockMastheadWidget(
+  config: MastheadWidgetConfig,
+  canOverrideLockedDetails: boolean
+): boolean {
+  return canOverrideLockedDetails && config.id === 'fundingGoal';
+}
+
 const APPLYING_TO: MastheadWidgetConfig = {
   id: 'applyingTo',
   field: 'selectedGrant',

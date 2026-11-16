@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { ActivityCard } from './cards/ActivityCard';
 import { ActivityCommentGroupCard } from './cards/ActivityCommentGroupCard';
+import { ActivityFoundationProposalsGroupCard } from './cards/ActivityFoundationProposalsGroupCard';
 import { ActivityFundingGroupCard } from './cards/ActivityFundingGroupCard';
 import type { ActivityRow as ActivityRowType } from './lib/activityGrouping.utils';
 import type { AuthorProfile } from '@/types/authorProfile';
@@ -20,6 +21,8 @@ export const ActivityRow: FC<ActivityRowProps> = ({ row, profileAuthor }) => {
       return <ActivityFundingGroupCard row={row} />;
     case 'comment-group':
       return <ActivityCommentGroupCard row={row} />;
+    case 'foundation-proposals-group':
+      return <ActivityFoundationProposalsGroupCard row={row} />;
     default:
       return <ActivityCard entry={row.entry} profileAuthor={profileAuthor} />;
   }

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { CreditCard, Plus, Minus, Check, Coins } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Button } from '@/components/ui/Button';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import {
@@ -31,6 +32,8 @@ interface PaymentOption {
   description?: React.ReactNode; // Optional - only for RSC and Endaoment
   icon: React.ReactNode;
   badge?: string;
+  /** When set, the option is shown but can't be picked; shown on hover */
+  disabledReason?: string;
 }
 
 interface PaymentWidgetProps {
@@ -68,13 +71,30 @@ interface PaymentWidgetProps {
   hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
-  /** Whether the fundraise has a non-profit org attached */
+  /** Whether to list the Endaoment (DAF) option at all */
+  offerEndaoment?: boolean;
+  /**
+   * Whether the fundraise has a non-profit org attached. Without one the
+   * Endaoment option is listed but disabled.
+   */
   hasNonprofit?: boolean;
   /**
    * Award proposals. RSC, the RFP pool, and Stripe (card, Apple Pay, Google
    * Pay) stay. A Stripe charge is an RSC purchase that lands in the escrow.
    */
   isAward?: boolean;
+}
+
+/** Subtitle for the Endaoment (DAF) option, by availability and connection state. */
+function getEndaomentDescription(
+  hasNonprofit: boolean,
+  connected: boolean,
+  fund: EndaomentFund | null
+): string {
+  if (!hasNonprofit) return 'Not available for this proposal';
+  if (!connected) return 'Via Endaoment';
+  if (!fund) return 'Select a fund';
+  return `Balance:  ${formatUsdValue(fund.usdcBalance, 0, false)}`;
 }
 
 /**
@@ -99,6 +119,7 @@ export function PaymentWidget({
   onStripeReady,
   hideButton = false,
   walletAvailability,
+  offerEndaoment = false,
   hasNonprofit = false,
   isAward = false,
 }: PaymentWidgetProps) {
@@ -149,6 +170,7 @@ export function PaymentWidget({
     onEndaomentFundSelected?.(selectedEndaomentFund);
   }, [selectedEndaomentFund, onEndaomentFundSelected]);
 
+  const disabledReasonIdPrefix = useId();
   const { exchangeRate } = useExchangeRate();
   const formatWhole = (amount: number) =>
     amount.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -188,12 +210,10 @@ export function PaymentWidget({
     {
       id: 'endaoment',
       title: 'Donor-Advised Fund (DAF)',
-      description:
-        connected && selectedEndaomentFund
-          ? `Balance:  ${formatUsdValue(selectedEndaomentFund.usdcBalance, 0, false)}`
-          : connected
-            ? 'Select a fund'
-            : 'Via Endaoment',
+      description: getEndaomentDescription(hasNonprofit, connected, selectedEndaomentFund),
+      disabledReason: hasNonprofit
+        ? undefined
+        : "This proposal isn't linked to a nonprofit, so it can't accept donor-advised fund donations.",
       icon: (
         <Image
           src="/logos/endaoment_color.svg"
@@ -228,7 +248,8 @@ export function PaymentWidget({
 
   // Filter payment methods based on actual device capabilities from Stripe.
   // - Hide Funding pool unless the user can allocate from the linked RFP pool
-  // - Hide Endaoment if the fundraise has no associated non-profit
+  // - Hide Endaoment unless the caller offers it (disabled, not hidden, when
+  //   the fundraise has no associated non-profit)
   // - Hide Apple Pay if not available on this device
   // - Hide Google Pay if not available OR if Apple Pay is available
   //   (Stripe's PaymentRequestButtonElement renders Apple Pay preferentially
@@ -245,7 +266,7 @@ export function PaymentWidget({
       return fundingCreditsBalance > 0;
     }
     if (option.id === 'endaoment') {
-      return hasNonprofit;
+      return offerEndaoment;
     }
     if (option.id === 'apple_pay') {
       return !walletAvailability.checking && walletAvailability.applePay;
@@ -372,48 +393,96 @@ export function PaymentWidget({
         {/* Expanded payment options - compact single-line layout */}
         {isExpanded && (
           <div className="border-t border-gray-200 animate-in slide-in-from-top-2 duration-200">
-            {visiblePaymentOptions.map((option, index) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => selectMethod(option.id)}
-                className={cn(
-                  'w-full py-2.5 px-3 transition-all duration-200',
-                  'flex items-center gap-2.5',
-                  'hover:bg-primary-50',
-                  'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset',
-                  index !== visiblePaymentOptions.length - 1 && 'border-b border-gray-200',
-                  selectedMethod === option.id ? 'bg-primary-50' : 'bg-white'
-                )}
-              >
-                {/* Icon - no circular container */}
-                <div className="flex-shrink-0 w-5 flex items-center justify-center">
-                  {option.icon}
-                </div>
+            {visiblePaymentOptions.map((option, index) => {
+              const isDisabled = !!option.disabledReason;
+              const disabledReasonId = `${disabledReasonIdPrefix}-${option.id}-reason`;
+              const row = (
+                <button
+                  key={option.id}
+                  type="button"
+                  // aria-disabled rather than disabled: a disabled button gets
+                  // no pointer events, so its tooltip would never open.
+                  aria-disabled={isDisabled || undefined}
+                  // The tooltip is visual only, so the reason is also given
+                  // to screen readers as the button's description.
+                  aria-describedby={isDisabled ? disabledReasonId : undefined}
+                  onClick={() => {
+                    if (!isDisabled) selectMethod(option.id);
+                  }}
+                  className={cn(
+                    'w-full py-2.5 px-3 transition-all duration-200',
+                    'flex items-center gap-2.5',
+                    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset',
+                    index !== visiblePaymentOptions.length - 1 && 'border-b border-gray-200',
+                    isDisabled ? 'cursor-not-allowed' : 'hover:bg-primary-50',
+                    !isDisabled && selectedMethod === option.id ? 'bg-primary-50' : 'bg-white'
+                  )}
+                >
+                  {/* Icon - no circular container */}
+                  <div
+                    className={cn(
+                      'flex-shrink-0 w-5 flex items-center justify-center',
+                      isDisabled && 'opacity-50 grayscale'
+                    )}
+                  >
+                    {option.icon}
+                  </div>
 
-                {/* Title and optional description */}
-                <div className="flex-1 flex flex-col text-left min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900 text-sm">{option.title}</span>
-                    {option.badge && (
-                      <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 whitespace-nowrap">
-                        {option.badge}
+                  {/* Title and optional description */}
+                  <div className="flex-1 flex flex-col text-left min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'font-medium text-sm',
+                          isDisabled ? 'text-gray-400' : 'text-gray-900'
+                        )}
+                      >
+                        {option.title}
+                      </span>
+                      {option.badge && (
+                        <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 whitespace-nowrap">
+                          {option.badge}
+                        </span>
+                      )}
+                    </div>
+                    {option.description && (
+                      <span
+                        className={cn('text-xs', isDisabled ? 'text-gray-400' : 'text-gray-500')}
+                      >
+                        {option.description}
                       </span>
                     )}
                   </div>
-                  {option.description && (
-                    <span className="text-xs text-gray-500">{option.description}</span>
-                  )}
-                </div>
 
-                {/* Checkmark for selected option */}
-                {selectedMethod === option.id && (
-                  <div className="flex-shrink-0">
-                    <Check className="h-4 w-4 text-primary-600" />
-                  </div>
-                )}
-              </button>
-            ))}
+                  {isDisabled && (
+                    <span id={disabledReasonId} hidden>
+                      {option.disabledReason}
+                    </span>
+                  )}
+
+                  {/* Checkmark for selected option */}
+                  {!isDisabled && selectedMethod === option.id && (
+                    <div className="flex-shrink-0">
+                      <Check className="h-4 w-4 text-primary-600" />
+                    </div>
+                  )}
+                </button>
+              );
+
+              return isDisabled ? (
+                <Tooltip
+                  key={option.id}
+                  content={option.disabledReason}
+                  position="top"
+                  width="w-72"
+                  wrapperClassName="flex w-full h-auto"
+                >
+                  {row}
+                </Tooltip>
+              ) : (
+                row
+              );
+            })}
           </div>
         )}
       </div>

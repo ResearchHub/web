@@ -86,6 +86,7 @@ export interface Note {
   preregistrationSettings?: NotePreregistrationSettings | null;
   selectedGrant?: SelectedGrantDetails | null;
   registeredReportPrefill?: RegisteredReportPrefill | null;
+  createdByUserId?: number | null;
   /**
    * The signed-in user's chat on the document with the newest activity, as
    * the documents listing reports it; null when they have none. Absent from
@@ -231,6 +232,17 @@ export interface NoteVersionEvent {
 
 export const NOTE_VERSION_CREATED = 'note_version_created';
 
+const readId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value !== '' && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+  if (value && typeof value === 'object' && 'id' in value) {
+    return readId((value as { id: unknown }).id);
+  }
+  return null;
+};
+
 const buildFullName = (raw: any): string =>
   `${raw.first_name || ''} ${raw.last_name || ''}`.trim() || 'Unknown';
 
@@ -368,6 +380,7 @@ export const transformNote = createTransformer<any, Note>((raw) => {
     selectedGrant: raw.selected_grant_details
       ? transformSelectedGrant(raw.selected_grant_details)
       : null,
+    createdByUserId: readId(raw.created_by),
     // Undefined where the response doesn't say.
     latestChatId: raw.latest_chat_id,
   };

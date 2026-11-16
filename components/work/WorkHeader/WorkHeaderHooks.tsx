@@ -4,6 +4,7 @@ import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
 import { useUser } from '@/contexts/UserContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { isHubEditorOrModerator } from '@/utils/permissions';
 import toast from 'react-hot-toast';
 
 export function useWorkVote(work: Work) {
@@ -106,6 +107,7 @@ export function useWorkPermissions(work: Work) {
 
   const isModerator = !!user?.isModerator;
   const isHubEditor = !!user?.authorProfile?.isHubEditor;
+  const isPrivilegedEditor = isHubEditorOrModerator(user);
   const isRegisteredReport = work.postType === 'REGISTERED_REPORT';
   const isAuthor =
     !isRegisteredReport &&
@@ -126,15 +128,30 @@ export function useWorkPermissions(work: Work) {
     switch (work.contentType) {
       case 'paper':
         return false;
-      case 'funding_request':
-        return isGrantContact || isAuthor || isModerator;
+      case 'funding_request': {
+        const isNaturalEditor = isGrantContact || isAuthor;
+        return isNaturalEditor || isPrivilegedEditor;
+      }
       case 'post':
-      case 'preregistration':
         return isAuthor;
+      case 'preregistration':
+        return isAuthor || isPrivilegedEditor;
       default:
         return !!(selectedOrg && work.note);
     }
   })();
 
-  return { user, selectedOrg, isModerator, isHubEditor, isAuthor, canEdit };
+  const isNaturalEditor =
+    work.contentType === 'funding_request' ? isGrantContact || isAuthor : isAuthor;
+  const isEditingOnBehalf = canEdit && isPrivilegedEditor && !isNaturalEditor;
+
+  return {
+    user,
+    selectedOrg,
+    isModerator,
+    isHubEditor,
+    isAuthor,
+    canEdit,
+    isEditingOnBehalf,
+  };
 }

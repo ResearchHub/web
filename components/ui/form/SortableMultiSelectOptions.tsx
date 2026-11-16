@@ -20,6 +20,7 @@ interface SortableMultiSelectOptionsProps {
   options: MultiSelectOption[];
   focusedOptionIndex: number | null;
   disabled?: boolean;
+  lockedValues?: readonly string[];
   onRemove: (option: MultiSelectOption) => void;
   onReorder: (options: MultiSelectOption[]) => void;
 }
@@ -36,6 +37,7 @@ interface MultiSelectOptionPillProps {
   setHandleRef?: (element: Element | null) => void;
   isDragging?: boolean;
   isDropping?: boolean;
+  locked?: boolean;
   onRemove: (option: MultiSelectOption) => void;
 }
 
@@ -219,6 +221,7 @@ function MultiSelectOptionPill({
   setHandleRef,
   isDragging,
   isDropping,
+  locked,
   onRemove,
 }: Readonly<MultiSelectOptionPillProps>) {
   const gripIcon = <GripVertical className="h-4 w-4" aria-hidden="true" />;
@@ -231,6 +234,7 @@ function MultiSelectOptionPill({
   return (
     <span
       ref={setPillRef}
+      title={locked ? 'The person who created this stays on it' : undefined}
       className={cn(
         'inline-flex max-w-full cursor-pointer items-center gap-1 rounded-md bg-gray-100 py-0.5 pl-0.5 pr-2 text-sm',
         isFocused && 'bg-gray-200 ring-2 ring-gray-400',
@@ -264,17 +268,21 @@ function MultiSelectOptionPill({
         <Avatar src={option.avatarUrl} alt={option.label} size="xxs" disableTooltip />
       </span>
       <span className="min-w-0 truncate">{option.label}</span>
-      <button
-        type="button"
-        disabled={disabled}
-        aria-label={`Remove ${option.label}`}
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
-        onPointerDown={stopComboboxPropagation}
-        onKeyDown={stopComboboxPropagation}
-        onClick={removeOption}
-      >
-        <X className="h-3 w-3" aria-hidden="true" />
-      </button>
+      {locked ? (
+        <span className="sr-only">Stays on this work</span>
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          aria-label={`Remove ${option.label}`}
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:text-gray-300"
+          onPointerDown={stopComboboxPropagation}
+          onKeyDown={stopComboboxPropagation}
+          onClick={removeOption}
+        >
+          <X className="h-3 w-3" aria-hidden="true" />
+        </button>
+      )}
     </span>
   );
 }
@@ -314,6 +322,7 @@ function SortableOptionList({
   options,
   focusedOptionIndex,
   disabled,
+  lockedValues,
   onRemove,
   onReorder,
 }: Readonly<SortableMultiSelectOptionsProps>) {
@@ -411,6 +420,7 @@ function SortableOptionList({
               optionCount={options.length}
               isFocused={focusedOptionIndex === index}
               disabled={disabled}
+              locked={lockedValues?.includes(option.value)}
               handleId={getDragHandleId(handleIdPrefix, option.value)}
               optionOrderKey={optionOrderKey}
               onRemove={onRemove}
@@ -434,7 +444,7 @@ function SortableOptionList({
 }
 
 export function SortableMultiSelectOptions(props: Readonly<SortableMultiSelectOptionsProps>) {
-  const { options, focusedOptionIndex, disabled, onRemove } = props;
+  const { options, focusedOptionIndex, disabled, lockedValues, onRemove } = props;
   if (options.length > 1) return <SortableOptionList {...props} />;
 
   return options.map((option, index) => (
@@ -445,6 +455,7 @@ export function SortableMultiSelectOptions(props: Readonly<SortableMultiSelectOp
       optionCount={options.length}
       isFocused={focusedOptionIndex === index}
       disabled={disabled}
+      locked={lockedValues?.includes(option.value)}
       isGripDecorative
       onRemove={onRemove}
     />

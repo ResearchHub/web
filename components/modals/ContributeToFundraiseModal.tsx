@@ -188,10 +188,13 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
   });
   // Skipping the id entirely when DAF is off avoids the hook's nonprofit-link
   // and EIN-search round trips on every open.
-  const { nonprofit } = useNonprofitByFundraiseId(
+  const { nonprofit, isLoading: isNonprofitLoading } = useNonprofitByFundraiseId(
     allowDafPayment && fundraise ? fundraise.id : undefined
   );
   const hasNonprofit = allowDafPayment && nonprofit !== null;
+  // Listed once we know whether there is a nonprofit: enabled with one,
+  // disabled with a reason without one.
+  const offerEndaoment = allowDafPayment && !isNonprofitLoading;
   const contributionSuccessMessage =
     successMessage ??
     (isPoolMode
@@ -685,6 +688,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
       isProcessing={isContributing}
       error={error}
       walletAvailability={walletAvailability}
+      offerEndaoment={offerEndaoment}
       hasNonprofit={hasNonprofit}
       isAward={isAward}
       onConfirmPayment={handleConfirmPayment}

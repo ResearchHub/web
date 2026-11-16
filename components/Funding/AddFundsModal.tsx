@@ -14,8 +14,8 @@ import { DepositRscPanel } from '@/components/modals/ResearchCoin/DepositRscPane
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/utils/styles';
+import { CONCIERGE } from '@/constants/concierge';
 
-const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
 const PROPOSALS_URL = '/fund/proposals';
 
 type FundingMethodId = 'cash' | 'crypto' | 'daf';
@@ -150,7 +150,7 @@ function MethodPicker({ onSelect }: { onSelect: (method: FundingMethodId) => voi
       </div>
 
       <a
-        href={TALK_TO_TEAM_URL}
+        href={CONCIERGE.bookingUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3.5 transition-colors hover:bg-gray-100"
@@ -309,7 +309,7 @@ function DafView({ onClose }: { onClose: () => void }) {
             We don&apos;t support {provider} yet. Endaoment is our only DAF integration today.
           </Alert>
           <a
-            href={TALK_TO_TEAM_URL}
+            href={CONCIERGE.bookingUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(buttonVariants({ variant: 'outlined' }), 'mt-5 w-full gap-1.5')}
