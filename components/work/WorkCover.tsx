@@ -151,7 +151,7 @@ export function WorkCover({
               <CoverEyebrow className="text-[10.5px] sm:text-xs">{eyebrow}</CoverEyebrow>
             </div>
           )}
-          <h1 className="mt-1.5 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
+          <h1 className="mt-1.5 text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-3xl">
             {title}
           </h1>
         </div>
