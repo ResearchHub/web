@@ -178,9 +178,9 @@ const PeerReviewTimeline = () => (
 
 export const PeerReviewHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
-    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-10 tablet:!px-8 sm:py-12">
-      <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-        <div className="max-w-2xl">
+    <div className="relative z-10 mx-auto max-w-[1012px] px-4 py-10 tablet:!px-8 sm:py-12">
+      <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center lg:gap-0">
+        <div className="min-w-0">
           <h1
             className="text-4xl font-bold leading-[1.05] tracking-[-0.032em] text-[#0b1530] sm:text-5xl"
             style={{
@@ -190,15 +190,16 @@ export const PeerReviewHero = () => (
           >
             Where <span className="text-orange-600">peer review</span> finally pays.
           </h1>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-base text-gray-600">
             Expert, public reviews of submitted proposals. $150 for every accepted review.
           </p>
 
           <PeerReviewTimeline />
         </div>
 
-        {/* Wide screens only, and no taller than the text beside it, as on My Funding. */}
-        <div className="hidden lg:flex lg:justify-end lg:pr-6">
+        {/* Wide screens only, in the sidebar's column as on My Funding: pushed past
+            the right padding so the cards center over the sidebar below. */}
+        <div className="hidden lg:-mr-8 lg:flex lg:justify-center lg:pl-8">
           <PeerReviewCards />
         </div>
       </div>
@@ -214,7 +215,7 @@ export const PeerReviewHero = () => (
 export const PeerReviewHowItWorks = () => (
   <section
     aria-labelledby="peer-review-how-it-works"
-    className="mx-auto max-w-[1180px] px-4 pt-6 tablet:!px-8 lg:!pr-0"
+    className="mx-auto max-w-[1012px] px-4 pt-6 tablet:!px-8 lg:!pr-0"
   >
     <h2 id="peer-review-how-it-works" className="text-sm font-semibold text-gray-700">
       How it works

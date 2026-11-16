@@ -110,7 +110,7 @@ export default function ListsPage() {
   };
 
   return (
-    <PageLayout>
+    <PageLayout contentWidth="narrow">
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20 py-4">
         {isLoadingLists ? (
           <ListsPageHeaderSkeleton />

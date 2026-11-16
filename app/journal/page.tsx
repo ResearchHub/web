@@ -168,9 +168,9 @@ const MobileJournalDetails = () => (
 
 const JournalHero = () => (
   <div className="relative border-b border-gray-200 bg-gray-50">
-    <div className="relative z-10 mx-auto max-w-[1180px] px-4 py-10 tablet:!px-8 sm:py-12">
-      <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
-        <div className="max-w-2xl">
+    <div className="relative z-10 mx-auto max-w-[1012px] px-4 py-10 tablet:!px-8 sm:py-12">
+      <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center lg:gap-0">
+        <div className="min-w-0">
           <h1
             className="text-4xl font-bold leading-[1.05] tracking-[-0.032em] text-[#0b1530] sm:text-5xl"
             style={{
@@ -187,8 +187,9 @@ const JournalHero = () => (
           <JournalTimeline />
         </div>
 
-        {/* Wide screens only, and no taller than the text beside it, as on My Funding. */}
-        <div className="hidden lg:flex lg:justify-end lg:pr-6">
+        {/* Wide screens only, in the sidebar's column as on My Funding: pushed past
+            the right padding so the cards center over the sidebar below. */}
+        <div className="hidden lg:-mr-8 lg:flex lg:justify-center lg:pl-8">
           <JournalIssueCards />
         </div>
       </div>
@@ -199,6 +200,7 @@ const JournalHero = () => (
 export default function JournalNewPage() {
   return (
     <PageLayout
+      contentWidth="narrow"
       topBanner={<JournalHero />}
       rightSidebar={
         <div className="space-y-3">
