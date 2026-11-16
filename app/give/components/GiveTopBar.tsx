@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { useSmartBack } from '@/hooks/useSmartBack';
-
-const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
+import { CONCIERGE } from '@/constants/concierge';
 
 export function GiveTopBar() {
   const goBack = useSmartBack();
@@ -63,7 +62,7 @@ export function GiveTopBar() {
 
         <div className="give-topbar-right">
           <a
-            href={TALK_TO_TEAM_URL}
+            href={CONCIERGE.bookingUrl}
             target="_blank"
             rel="noopener noreferrer"
             tabIndex={scrolled ? 0 : -1}
