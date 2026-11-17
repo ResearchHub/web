@@ -7,7 +7,7 @@ import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { RfpMenu } from './RfpMenu';
-import { PhaseBox, StatusPill, headline, type BoxId, type HeadlineId } from './HeroVariants';
+import { HeroPhase } from './HeroPhase';
 import { daysLeft } from './PoolPanel';
 import { ORCH_OR_RFP } from '../data/mockRfp';
 import type { Work } from '@/types/work';
@@ -19,75 +19,14 @@ import type { WorkMetadata } from '@/services/metadata.service';
  */
 const SHOW_TALK_LINK = false;
 
-/**
- * The hero's text: headline, line, buttons and the phase box. `box` and
- * `headlineId` pick a mock treatment (HeroVariants.tsx); the mocks page
- * renders this same column for each one.
- */
-export function HeroCopy({
-  box = 'A',
-  headlineId = '1',
-  work = null,
-  metadata = null,
-  titleId,
-}: {
-  box?: BoxId;
-  headlineId?: HeadlineId;
-  work?: Work | null;
-  metadata?: WorkMetadata | null;
-  titleId?: string;
-}) {
-  const h = headline(headlineId);
-  return (
-    <>
-      {box === 'F' && <StatusPill />}
-      <h1
-        id={titleId}
-        className="o-rise o-serif max-w-[11em] text-balance text-[clamp(34px,4.4vw,64px)] leading-[1.02]"
-      >
-        {h.lead} <em className="block">{h.emph}</em>
-      </h1>
-
-      <p className="o-rise o-prose mt-6 max-w-[33em] text-[16px] tablet:text-[17.5px]">
-        Could an AI be conscious? Does experience need quantum physics? We are raising funds to test
-        the leading theories of how consciousness arises.
-      </p>
-
-      <div data-orch-hero-cta className="o-rise mt-7 flex flex-wrap gap-3">
-        <AddToPoolButton size="lg" />
-        <SubmitProposalButton size="lg" />
-        <div className="flex gap-2 tablet:ml-1">
-          <RfpMenu work={work} metadata={metadata} />
-        </div>
-        {SHOW_TALK_LINK && (
-          <a
-            href="#talk-to-us"
-            data-talk-link
-            className="flex h-12 items-center gap-2 px-2 text-[14.5px] text-[var(--o-soft)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
-          >
-            <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={2} />
-            Talk to us
-          </a>
-        )}
-      </div>
-
-      <PhaseBox box={box} daysLeft={daysLeft(ORCH_OR_RFP.pool.goalBy)} />
-    </>
-  );
-}
-
 export function Hero({
   set = 'ink',
   hero = DEFAULT_HERO,
-  box = 'A',
-  headlineId = '1',
   work = null,
   metadata = null,
 }: {
   set?: SetId;
   hero?: HeroId;
-  box?: BoxId;
-  headlineId?: HeadlineId;
   work?: Work | null;
   metadata?: WorkMetadata | null;
 }) {
@@ -120,13 +59,37 @@ export function Hero({
       </header>
 
       <div className="relative z-10 mt-auto px-5 pb-12 pt-[40svh] tablet:my-auto tablet:w-[min(760px,62%)] tablet:px-10 tablet:py-24 content-lg:px-16">
-        <HeroCopy
-          box={box}
-          headlineId={headlineId}
-          work={work}
-          metadata={metadata}
-          titleId="orch-title"
-        />
+        <h1
+          id="orch-title"
+          className="o-rise o-serif max-w-[11em] text-balance text-[clamp(34px,4.4vw,64px)] leading-[1.02]"
+        >
+          Fund the experiments that could explain consciousness.
+        </h1>
+
+        <p className="o-rise o-prose mt-6 max-w-[33em] text-[16px] tablet:text-[17.5px]">
+          Could an AI be conscious? Does experience need quantum physics? We are raising funds to
+          test the leading theories of how consciousness arises.
+        </p>
+
+        <div data-orch-hero-cta className="o-rise mt-7 flex flex-wrap gap-3">
+          <AddToPoolButton size="lg" />
+          <SubmitProposalButton size="lg" />
+          <div className="flex gap-2 tablet:ml-1">
+            <RfpMenu work={work} metadata={metadata} />
+          </div>
+          {SHOW_TALK_LINK && (
+            <a
+              href="#talk-to-us"
+              data-talk-link
+              className="flex h-12 items-center gap-2 px-2 text-[14.5px] text-[var(--o-soft)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
+            >
+              <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={2} />
+              Talk to us
+            </a>
+          )}
+        </div>
+
+        <HeroPhase daysLeft={daysLeft(ORCH_OR_RFP.pool.goalBy)} />
       </div>
 
       <p className="absolute bottom-6 right-8 z-10 hidden max-w-[300px] text-right text-[12px] leading-[1.5] text-[var(--o-mute)] content-md:block">

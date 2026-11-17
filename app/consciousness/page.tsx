@@ -15,7 +15,6 @@ import { SetSwitcher } from './components/SetSwitcher';
 import { Claim, Timeline } from './components/Story';
 import { parseSet } from './theme';
 import { parseHero } from './sets/heroes';
-import { parseBox, parseHeadline } from './components/HeroVariants';
 import { ORCH_OR_RFP } from './data/mockRfp';
 import { PostService } from '@/services/post.service';
 import { MetadataService, type WorkMetadata } from '@/services/metadata.service';
@@ -65,20 +64,10 @@ export default async function OrchOrPage({
   const params = await searchParams;
   const set = parseSet(params.set);
   const hero = parseHero(params.hero);
-  // Mock treatments to compare (see /consciousness/mocks).
-  const box = parseBox(params.box);
-  const headlineId = parseHeadline(params.h);
   const live = await loadRfp(params.rfp);
   return (
     <>
-      <Hero
-        set={set}
-        hero={hero}
-        box={box}
-        headlineId={headlineId}
-        work={live?.work ?? null}
-        metadata={live?.metadata ?? null}
-      />
+      <Hero set={set} hero={hero} work={live?.work ?? null} metadata={live?.metadata ?? null} />
       <Claim />
       <Timeline />
       <Questions set={set} />

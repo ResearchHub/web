@@ -53,7 +53,7 @@ const FONT_VARS = [serif, poster, clay, spectral, engraved, micrograph]
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
-    title: 'How does a brain make a mind? Fund the experiments.',
+    title: 'Fund the experiments that could explain consciousness.',
     description:
       'Fund experiments and theory on how consciousness arises, from whether an AI could be conscious to whether experience needs quantum physics. Evidence for and against any answer is funded on equal terms.',
     url: '/consciousness',
