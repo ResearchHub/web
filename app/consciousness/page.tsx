@@ -1,5 +1,6 @@
 import { ActionDock } from './components/ActionDock';
 import { Hero } from './components/Hero';
+import { HowItWorks } from './components/HowItWorks';
 import { Faq, OrchFooter, Proposals, Sources } from './components/Process';
 import { Questions } from './components/Questions';
 import { SetSwitcher } from './components/SetSwitcher';
@@ -62,6 +63,7 @@ export default async function OrchOrPage({
       <Claim />
       <Timeline />
       <Questions set={set} />
+      <HowItWorks />
       <Proposals live={live && { grantId: live.grantId, rfpHref: live.rfpHref }} />
       <Faq />
       <Sources />

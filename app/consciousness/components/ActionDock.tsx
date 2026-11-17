@@ -55,7 +55,7 @@ export function ActionDock() {
       inert={ctaInView}
     >
       {/* Wide screens: a floating bar. */}
-      <div className="pointer-events-auto hidden w-full max-w-[860px] items-center gap-4 rounded-full border border-[color:var(--o-line)] bg-[rgb(var(--o-ink-2-rgb)/0.88)] py-2 pl-2 pr-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl tablet:flex">
+      <div className="pointer-events-auto hidden w-full max-w-[860px] items-center gap-4 rounded-full border border-[color:var(--o-line)] bg-[rgb(var(--o-ink2-rgb)/0.88)] py-2 pl-2 pr-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl tablet:flex">
         <span className="pl-2">
           <BackerFaces size={30} />
         </span>
@@ -81,7 +81,7 @@ export function ActionDock() {
       </div>
 
       {/* Phones: a full-width bar. */}
-      <div className="pointer-events-auto w-full border-t border-[color:var(--o-line)] bg-[rgb(var(--o-ink-2-rgb)/0.94)] px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl tablet:hidden">
+      <div className="pointer-events-auto w-full border-t border-[color:var(--o-line)] bg-[rgb(var(--o-ink2-rgb)/0.94)] px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl tablet:hidden">
         <p className="mb-2 flex items-center justify-between text-[12px] text-[var(--o-mute)]">
           <span>
             <span className="tabular-nums text-[var(--o-text)]">

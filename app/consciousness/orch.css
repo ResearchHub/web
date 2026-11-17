@@ -460,6 +460,134 @@
   transform: rotate(45deg);
 }
 
+/* How it works (HowItWorks.tsx). Finished state by default: a dotted track,
+   a still flask, closed rings. Under a run the stages arrive in turn, the
+   track draws, then dots travel along it, coins drop into the flask, its
+   liquid ripples, and the six rings close one by one. */
+.orch .o-hiw-track {
+  background-image: radial-gradient(circle, var(--o-gold) 1.5px, transparent 2px);
+  background-size: 14px 3px;
+  background-repeat: repeat-x;
+  transform-origin: left;
+  opacity: 0.55;
+}
+.orch .o-hiw-track-y {
+  background-size: 3px 14px;
+  background-repeat: repeat-y;
+  transform-origin: top;
+}
+.orch .o-hiw-coin {
+  opacity: 0;
+  transform-box: fill-box;
+}
+.orch .o-hiw-card {
+  transform: rotate(var(--r));
+}
+.orch [data-seq='armed'] .o-hiw-step,
+.orch [data-seq='armed'] .o-hiw-face,
+.orch [data-seq='armed'] .o-hiw-card {
+  opacity: 0;
+}
+.orch [data-seq='armed'] .o-hiw-track {
+  transform: scaleX(0);
+}
+.orch [data-seq='armed'] .o-hiw-track-y {
+  transform: scaleY(0);
+}
+.orch [data-seq='armed'] .o-hiw-ring {
+  stroke-dashoffset: 100;
+}
+.orch [data-seq='run'] .o-hiw-step {
+  animation: o-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 0.45s);
+}
+.orch [data-seq='run'] .o-hiw-face {
+  animation: o-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation-delay: calc(var(--i) * 0.12s + 0.2s);
+}
+.orch [data-seq='run'] .o-hiw-card {
+  animation: o-hiw-deal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.1) both;
+  animation-delay: calc(var(--i) * 0.14s + 1.1s);
+}
+.orch [data-seq='run'] .o-hiw-track {
+  animation:
+    o-draw-x 1.8s cubic-bezier(0.45, 0, 0.25, 1) 0.2s both,
+    o-hiw-flow-x 1.4s linear 2s infinite;
+}
+.orch [data-seq='run'] .o-hiw-track-y {
+  animation:
+    o-hiw-draw-y 1.8s cubic-bezier(0.45, 0, 0.25, 1) 0.2s both,
+    o-hiw-flow-y 1.4s linear 2s infinite;
+}
+.orch [data-seq='run'] .o-hiw-coin {
+  animation: o-hiw-drop 2.4s cubic-bezier(0.5, 0, 0.75, 0.4) infinite;
+  animation-delay: calc(var(--i) * 0.8s + 0.8s);
+}
+.orch [data-seq='run'] .o-hiw-wave {
+  animation: o-hiw-ripple 2.6s linear infinite;
+}
+.orch [data-seq='run'] .o-hiw-ring {
+  animation: o-hiw-close 0.9s cubic-bezier(0.45, 0, 0.25, 1) both;
+  animation-delay: calc(var(--i) * 0.28s + 1.8s);
+}
+@keyframes o-hiw-deal {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(0deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--r));
+  }
+}
+@keyframes o-hiw-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes o-hiw-flow-x {
+  to {
+    background-position: 14px 0;
+  }
+}
+@keyframes o-hiw-flow-y {
+  to {
+    background-position: 0 14px;
+  }
+}
+@keyframes o-hiw-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(124px);
+  }
+}
+@keyframes o-hiw-ripple {
+  to {
+    transform: translateX(60px);
+  }
+}
+@keyframes o-hiw-close {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orch .o-btn,
   .orch .o-btn:active {

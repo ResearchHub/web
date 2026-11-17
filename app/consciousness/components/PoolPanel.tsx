@@ -80,6 +80,13 @@ export function HeroPool({ proposals }: { proposals: number }) {
         {deadlineLabel(rfp)}
         <span className="mx-2 opacity-50">·</span>
         {proposals === 0 ? 'No proposals yet' : `${proposals} proposals`}
+        <span className="mx-2 opacity-50">·</span>
+        <a
+          href="#how-it-works"
+          className="underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
+        >
+          How it works
+        </a>
       </p>
     </div>
   );
