@@ -140,28 +140,18 @@ const KIND = {
   test: { Icon: Scale, tone: 'text-[var(--o-white)]', label: 'A test' },
 } as const;
 
-/** A drawn stand-in for a paper's first page: journal and title, no reproduced page. */
-function PaperThumb({ journal, title }: { journal: string; title: string }) {
+/** An author without a freely licensed photo: their initials in the same circle. */
+function Initials({ name }: { name: string }) {
+  const letters = name
+    .split(' ')
+    .map((w) => w[0])
+    .join('');
   return (
     <span
       aria-hidden
-      className="flex h-[72px] w-[56px] flex-col overflow-hidden rounded-[3px] bg-[var(--o-text)] px-1.5 pb-1.5 pt-1 text-[var(--o-ink)] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.8)]"
+      className="o-serif flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--o-text-rgb)/0.06)] text-[19px] tracking-[0.02em] text-[var(--o-soft)] ring-1 ring-[color:var(--o-line-2)] transition-colors duration-500 group-hover:text-[var(--o-text)]"
     >
-      <span className="truncate text-[5.5px] font-semibold uppercase tracking-[0.06em] opacity-60">
-        {journal}
-      </span>
-      <span className="mt-1 line-clamp-4 font-[family-name:var(--font-orch-serif)] text-[6.5px] leading-[1.15]">
-        {title}
-      </span>
-      <span className="mt-auto space-y-[3px]">
-        {[1, 0.9, 1, 0.7].map((w, i) => (
-          <span
-            key={i}
-            className="block h-[2px] rounded bg-[var(--o-ink)] opacity-20"
-            style={{ width: `${w * 100}%` }}
-          />
-        ))}
-      </span>
+      {letters}
     </span>
   );
 }
@@ -211,20 +201,23 @@ function MomentItem({ m, i }: { m: Moment; i: number }) {
       </span>
 
       <div className="o-tl-face flex items-center gap-3">
-        {m.person ? (
+        {m.person.photo ? (
           <Image
             src={m.person.photo.src}
-            alt={m.person.name}
+            alt=""
             width={56}
             height={56}
             className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-[color:var(--o-line-2)] grayscale-[35%] transition-[filter] duration-500 group-hover:grayscale-0"
           />
-        ) : m.paper ? (
-          <PaperThumb journal={m.paper.journal} title={m.paper.title} />
-        ) : null}
-        <span className="flex items-center gap-1.5 whitespace-nowrap text-[12px] text-[var(--o-mute)]">
-          <side.Icon aria-hidden strokeWidth={2} className={cn('h-3.5 w-3.5', side.tone)} />
-          {side.label}
+        ) : (
+          <Initials name={m.person.name} />
+        )}
+        <span className="min-w-0">
+          <span className="block truncate text-[13.5px] text-[var(--o-text)]">{m.person.name}</span>
+          <span className="mt-1 flex items-center gap-1.5 whitespace-nowrap text-[12px] text-[var(--o-mute)]">
+            <side.Icon aria-hidden strokeWidth={2} className={cn('h-3.5 w-3.5', side.tone)} />
+            {side.label}
+          </span>
         </span>
       </div>
       <div className="o-tl-body">
@@ -288,7 +281,9 @@ export function Timeline() {
 
 /** Photo credits for the timeline, shown with the sources. */
 export function PhotoCredits() {
-  const people = TIMELINE.flatMap((m) => (m.person ? [m.person] : []));
+  const people = TIMELINE.flatMap(({ person: { name, photo } }) =>
+    photo ? [{ name, photo }] : []
+  ).filter((p, i, all) => all.findIndex((q) => q.name === p.name) === i);
   return (
     <p className="mt-10 text-[12.5px] leading-[1.6] text-[var(--o-mute)]">
       Photos, from Wikimedia Commons, show authors of the work cited, not endorsers of this call:{' '}

@@ -304,10 +304,11 @@ export interface Moment {
   /** Who wrote the cited work, as shown under the entry. */
   cite: string;
   sources: number[];
-  /** A freely licensed photo of an author of the cited work... */
-  person?: { name: string; photo: Photo };
-  /** ...or, where there is none, the paper. */
-  paper?: { journal: string; title: string };
+  /**
+   * An author of the cited work, with a freely licensed photo where one
+   * exists; without one, the page shows their initials.
+   */
+  person: { name: string; photo?: Photo };
 }
 
 /**
@@ -319,8 +320,8 @@ export interface Moment {
  * two leading theories. Not everything, just the turns the field still talks
  * about. People appear as authors of the work cited, not as endorsers of
  * this call. Photos: Wikimedia Commons, credited on the page and in
- * public/orch-or/CREDITS.md; entries with no freely licensed photo show the
- * paper or book instead.
+ * public/orch-or/CREDITS.md; authors with no freely licensed photo show as
+ * initials.
  */
 export const TIMELINE: Moment[] = [
   {
@@ -329,9 +330,15 @@ export const TIMELINE: Moment[] = [
     text: 'An organism is conscious if there is something it is like to be it: a point of view that physical theories seem to leave out.',
     cite: 'Nagel, Philosophical Review',
     sources: [32],
-    paper: {
-      journal: 'Philosophical Review',
-      title: 'What is it like to be a bat?',
+    person: {
+      name: 'Thomas Nagel',
+      photo: {
+        src: '/orch-or/people/nagel.jpg',
+        author: 'Jmd442',
+        licence: 'CC BY-SA 3.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Thomas_Nagel_teaching_Ethics.JPG',
+      },
     },
   },
   {
@@ -357,10 +364,7 @@ export const TIMELINE: Moment[] = [
     text: 'Global workspace theory: we become conscious of information when it is broadcast widely to the brain’s many specialised, unconscious processes.',
     cite: 'Baars, Cambridge University Press',
     sources: [34],
-    paper: {
-      journal: 'Cambridge University Press',
-      title: 'A Cognitive Theory of Consciousness',
-    },
+    person: { name: 'Bernard Baars' },
   },
   {
     year: '1989',
@@ -368,9 +372,15 @@ export const TIMELINE: Moment[] = [
     text: 'Penrose argues from Gödel’s theorem that human understanding is not computable, and looks to a future theory of quantum gravity. Logicians widely dispute the argument.',
     cite: 'Penrose, Oxford University Press',
     sources: [35, 21, 22],
-    paper: {
-      journal: 'Oxford University Press',
-      title: 'The Emperor’s New Mind',
+    person: {
+      name: 'Roger Penrose',
+      photo: {
+        src: '/orch-or/people/penrose.jpg',
+        author: 'Andrej Bauer',
+        licence: 'CC BY-SA 2.5 SI',
+        licenceUrl: 'https://creativecommons.org/licenses/by-sa/2.5/si/deed.en',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Roger_Penrose_June_2007.jpg',
+      },
     },
   },
   {
@@ -464,9 +474,16 @@ export const TIMELINE: Moment[] = [
     text: 'Integrated information theory: consciousness corresponds to a system’s capacity to integrate information, measured as Φ.',
     cite: 'Tononi, BMC Neuroscience',
     sources: [37],
-    paper: {
-      journal: 'BMC Neuroscience',
-      title: 'An information integration theory of consciousness',
+    person: {
+      name: 'Giulio Tononi',
+      photo: {
+        src: '/orch-or/people/tononi.jpg',
+        author: 'NIH',
+        licence: 'Public domain (US government work)',
+        licenceUrl: 'https://commons.wikimedia.org/wiki/Template:PD-USGov',
+        sourceUrl:
+          'https://commons.wikimedia.org/wiki/File:Giulio_Tononi_at_NIH_PioneerAwardg_2005.jpg',
+      },
     },
   },
   {
@@ -492,10 +509,15 @@ export const TIMELINE: Moment[] = [
     text: 'Stimulate the cortex with a magnetic pulse and measure how complex the brain’s response is: a gauge of consciousness that needs no report.',
     cite: 'Casali, …, Massimini, Sci. Transl. Med.',
     sources: [39],
-    paper: {
-      journal: 'Science Translational Medicine',
-      title:
-        'A theoretically based index of consciousness independent of sensory processing and behavior',
+    person: {
+      name: 'Steven Laureys',
+      photo: {
+        src: '/orch-or/people/laureys.jpg',
+        author: 'MatiasLaureys',
+        licence: 'CC BY-SA 4.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Dr._Steven_Laureys_(2022).jpg',
+      },
     },
   },
   {
@@ -504,9 +526,15 @@ export const TIMELINE: Moment[] = [
     text: 'Nineteen researchers turn leading theories into indicators to check AI against. Their analysis suggests no current system is conscious, and finds no obvious barrier to building one that meets them.',
     cite: 'Butlin, Long et al., arXiv',
     sources: [25],
-    paper: {
-      journal: 'arXiv',
-      title: 'Consciousness in artificial intelligence: insights from the science of consciousness',
+    person: {
+      name: 'Yoshua Bengio',
+      photo: {
+        src: '/orch-or/people/bengio.jpg',
+        author: 'Maryse Boyce',
+        licence: 'CC BY 4.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by/4.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Yoshua_Bengio_2019_cropped.jpg',
+      },
     },
   },
   {
@@ -515,11 +543,7 @@ export const TIMELINE: Moment[] = [
     text: 'Rats given a microtubule-stabilising drug took about a minute longer to go under with an anesthetic. A small study, not yet replicated.',
     cite: 'Khan, Wiest et al., eNeuro',
     sources: [11],
-    paper: {
-      journal: 'eNeuro',
-      title:
-        'Microtubule-stabilizer epothilone B delays anesthetic-induced unconsciousness in rats',
-    },
+    person: { name: 'Sana Khan' },
   },
   {
     year: '2025',
