@@ -4,11 +4,10 @@ import { Logo } from '@/components/ui/Logo';
 import { isLightSet, type SetId } from '../theme';
 import { SET_INFO } from '../sets/registry';
 import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
-import { ORCH_OR_RFP } from '../data/mockRfp';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { RfpMenu } from './RfpMenu';
-import { HeroPool } from './PoolPanel';
+import { HeroPhase } from './PoolPanel';
 import type { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 
@@ -29,9 +28,7 @@ export function Hero({
   work?: Work | null;
   metadata?: WorkMetadata | null;
 }) {
-  const rfp = ORCH_OR_RFP;
   const words = SET_INFO[set].words;
-  const proposals = rfp.proposals.length;
 
   return (
     <section
@@ -87,7 +84,7 @@ export function Hero({
           )}
         </div>
 
-        <HeroPool proposals={proposals} />
+        <HeroPhase />
       </div>
 
       <p className="absolute bottom-6 right-8 z-10 hidden max-w-[300px] text-right text-[12px] leading-[1.5] text-[var(--o-mute)] content-md:block">

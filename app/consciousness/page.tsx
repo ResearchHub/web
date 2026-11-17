@@ -68,12 +68,12 @@ export default async function OrchOrPage({
   return (
     <>
       <Hero set={set} hero={hero} work={live?.work ?? null} metadata={live?.metadata ?? null} />
-      <Phases />
       <Claim />
       <Timeline />
       <Questions set={set} />
       <HowItWorks />
       <Proposals live={live && { grantId: live.grantId, rfpHref: live.rfpHref }} />
+      <Phases />
       <AboutResearchHub />
       <TalkToUs />
       <Faq />

@@ -595,3 +595,23 @@
     transform: none;
   }
 }
+
+/* The hero's "Phase 1 · raising now" dot: a slow blink, steady when motion
+   is not welcome. */
+.orch .o-live {
+  background: #22a35a;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orch .o-live {
+    animation: o-blink 1.4s ease-in-out infinite;
+  }
+}
+@keyframes o-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}

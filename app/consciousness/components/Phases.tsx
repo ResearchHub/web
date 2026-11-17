@@ -1,13 +1,7 @@
 import { cn } from '@/utils/styles';
 import { ORCH_OR_RFP, formatDate, formatUsd, poolPercent, type OrchOrRfp } from '../data/mockRfp';
-import { PoolBar } from './PoolPanel';
+import { PoolBar, daysLeft } from './PoolPanel';
 import { Wrap } from './Story';
-
-/** Whole days from now to the end of `iso` (UTC), never below zero. */
-function daysLeft(iso: string): number {
-  const end = Date.parse(`${iso}T23:59:59Z`);
-  return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-}
 
 /** A fact a donor would check: a short label and its answer. */
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -132,7 +126,8 @@ function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
 }
 
 /**
- * Where the programme stands, just under the hero: Phase 1 raises the pool
+ * Where the programme stands, in full, near the end of the page (the hero
+ * carries the short version and links here): Phase 1 raises the pool
  * (target, date, progress and the facts a donor checks), Phase 2 funds and
  * runs the experiments (the proposal window, review, who decides, award
  * size, decision date). The programme's timeline, not the reader's steps;
@@ -141,7 +136,11 @@ function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
 export function Phases() {
   const rfp = ORCH_OR_RFP;
   return (
-    <section id="phases" aria-labelledby="phases-title" className="py-20 tablet:py-24">
+    <section
+      id="phases"
+      aria-labelledby="phases-title"
+      className="o-rule scroll-mt-10 border-t py-24 tablet:py-32"
+    >
       <Wrap>
         <h2
           id="phases-title"

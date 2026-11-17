@@ -54,41 +54,54 @@ export function BackerFaces({ size }: { size: number }) {
   );
 }
 
+/** Whole days from now to the end of `iso` (UTC), never below zero. */
+export function daysLeft(iso: string): number {
+  const end = Date.parse(`${iso}T23:59:59Z`);
+  return Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+}
+
 /**
- * The pool in the hero, under the calls to action: raised against the goal,
- * the backers' faces, then the deadline and the proposal count.
+ * The phase snippet in the hero, under the calls to action: a blinking dot
+ * and "Phase 1 of 2 · Raising now", the amount raised against the goal, the
+ * backers and days left, and a link down to both phases in full.
  */
-export function HeroPool({ proposals }: { proposals: number }) {
-  const { rfp, pool, pct, backersLabel } = poolFacts();
+export function HeroPhase() {
+  const { pool, pct, backersLabel } = poolFacts();
+  const left = daysLeft(pool.goalBy);
   return (
-    <div className="o-rise mt-8 max-w-[460px]">
-      <p className="flex flex-wrap items-baseline gap-x-2">
-        <span className="o-serif text-[30px] leading-none tabular-nums">
+    <div className="o-rise mt-8 max-w-[480px] rounded-[16px] bg-[rgb(var(--o-ink-rgb)/0.78)] p-5 ring-1 ring-[color:var(--o-line-2)] backdrop-blur-md">
+      <p className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.12em]">
+        <span aria-hidden className="o-live h-2 w-2 shrink-0 rounded-full" />
+        <span className="text-[var(--o-text)]">Phase 1 of 2</span>
+        <span className="text-[var(--o-mute)]">·</span>
+        <span className="text-[var(--o-soft)]">Raising now</span>
+      </p>
+      <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
+        <span className="o-serif text-[28px] leading-none tabular-nums">
           {formatUsd(pool.raisedUsd)}
         </span>
-        <span className="text-[14px] text-[var(--o-mute)]">
+        <span className="text-[14px] text-[var(--o-soft)]">
           raised toward {formatUsdShort(pool.goalUsd)} by {formatDate(pool.goalBy)}
         </span>
       </p>
       <PoolBar className="mt-3 h-2" />
-      <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-[13.5px] text-[var(--o-soft)]">
+      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-[13.5px] text-[var(--o-soft)]">
         <BackerFaces size={22} />
         {pool.backerCount > 0 ? backersLabel : 'Be the first backer'}
         <span className="opacity-50">·</span>
+        <span className="tabular-nums">{Math.round(pct)}%</span>
+        <span className="opacity-50">·</span>
         <span className="tabular-nums">
-          {Math.round(pct)}% of the {formatUsdShort(pool.goalUsd)} target
+          {left} {left === 1 ? 'day' : 'days'} left
         </span>
-      </p>
-      <p className="mt-4 text-[13px] text-[var(--o-mute)]">
-        Proposals {deadlinePhrase(rfp)}
-        <span className="mx-2 opacity-50">·</span>
-        {proposals === 0 ? 'No proposals yet' : `${proposals} proposals`}
-        <span className="mx-2 opacity-50">·</span>
+      </div>
+      <p className="o-rule mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t pt-3 text-[13px] text-[var(--o-mute)]">
+        <span>Then Phase 2: fund and run the experiments</span>
         <a
-          href="#how-it-works"
-          className="underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
+          href="#phases"
+          className="font-medium text-[var(--o-text)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:decoration-current"
         >
-          How it works
+          See both phases ↓
         </a>
       </p>
     </div>
@@ -116,13 +129,13 @@ export function PoolPanel() {
       </p>
 
       <PoolBar className="mt-6" />
-      <p className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[14px] text-[var(--o-soft)]">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[14px] text-[var(--o-soft)]">
         <span className="flex items-center gap-2.5">
           <BackerFaces size={26} />
           {pool.backerCount > 0 ? backersLabel : 'Be the first backer'}
         </span>
         <span className="tabular-nums text-[var(--o-mute)]">{Math.round(pct)}%</span>
-      </p>
+      </div>
 
       <p className="mt-5 text-[13.5px] leading-relaxed text-[var(--o-mute)]">
         One pool, many backers. Every dollar goes to the experiments and theory funded under this
