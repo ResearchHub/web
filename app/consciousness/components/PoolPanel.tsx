@@ -61,46 +61,6 @@ export function daysLeft(iso: string): number {
 }
 
 /**
- * The phase snippet in the hero, under the calls to action: a radiating
- * dot and "Phase 1 of 2", the amount raised against the goal, the backers
- * and days left. Both phases in full are further down the page.
- */
-export function HeroPhase() {
-  const { pool, pct, backersLabel } = poolFacts();
-  const left = daysLeft(pool.goalBy);
-  return (
-    <div className="o-rise mt-8 max-w-[480px] rounded-[16px] bg-[rgb(var(--o-ink-rgb)/0.78)] p-5 ring-1 ring-[color:var(--o-line-2)] backdrop-blur-md">
-      <p className="flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--o-text)]">
-        <span aria-hidden className="o-live relative flex h-2.5 w-2.5 shrink-0">
-          <span className="o-live-ring absolute inset-0 rounded-full bg-[var(--o-gold)]" />
-          <span className="relative h-2.5 w-2.5 rounded-full bg-[var(--o-gold)]" />
-        </span>
-        Phase 1 of 2
-      </p>
-      <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
-        <span className="o-serif text-[28px] leading-none tabular-nums">
-          {formatUsd(pool.raisedUsd)}
-        </span>
-        <span className="text-[14px] text-[var(--o-soft)]">
-          raised toward {formatUsdShort(pool.goalUsd)} by {formatDate(pool.goalBy)}
-        </span>
-      </p>
-      <PoolBar className="mt-3 h-2" />
-      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-[13.5px] text-[var(--o-soft)]">
-        <BackerFaces size={22} />
-        {pool.backerCount > 0 ? backersLabel : 'Be the first backer'}
-        <span className="opacity-50">·</span>
-        <span className="tabular-nums">{Math.round(pct)}%</span>
-        <span className="opacity-50">·</span>
-        <span className="tabular-nums">
-          {left} {left === 1 ? 'day' : 'days'} left
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/**
  * The funding pool beside the proposals: raised against the goal, what the
  * pool pays for, the top backers, and the button to add to it. The figures
  * come from `data/mockRfp.ts` (mock backers for now); live, they are the

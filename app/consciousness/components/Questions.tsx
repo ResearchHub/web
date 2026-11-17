@@ -66,7 +66,7 @@ function QuestionBlock({ q, n, flip, set }: { q: Question; n: number; flip: bool
 }
 
 /**
- * The open questions: six with a figure, alternating sides, then a short
+ * The open questions, each with a figure, alternating sides, then a short
  * text-only coda inviting any other proposal on the topic.
  */
 export function Questions({ set = 'ink' }: { set?: SetId }) {
@@ -77,12 +77,8 @@ export function Questions({ set = 'ink' }: { set?: SetId }) {
           id="questions-title"
           className="o-reveal o-serif max-w-[13em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
         >
-          Six unanswered questions
+          Unanswered questions about consciousness
         </h2>
-        <p className="o-reveal o-prose mt-5 max-w-[34em]">
-          For each, we say in advance what would count as a yes and what would count as a no. The
-          funding follows the experiment, not the side.
-        </p>
 
         <div className="mt-16 space-y-24 tablet:mt-20 tablet:space-y-32">
           {QUESTIONS.map((q, i) => (
@@ -102,7 +98,7 @@ export function Questions({ set = 'ink' }: { set?: SetId }) {
             Have a different idea?
           </h3>
           <p className="o-reveal mx-auto mt-4 max-w-[34em] text-[16px] leading-[1.65] text-[var(--o-soft)]">
-            The six questions are a start, not a limit. Any rigorous proposal on how consciousness
+            These questions are a start, not a limit. Any rigorous proposal on how consciousness
             arises is welcome, quantum or not: an experiment we did not list, a replication, a
             critique, or a new theory with a way to test it. Each is judged on the same terms.
           </p>

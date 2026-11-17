@@ -2,9 +2,9 @@ import Image from 'next/image';
 import {
   ArrowRight,
   Brain,
-  CircleHelp,
+  CircleAlert,
   Lightbulb,
-  MessageSquareQuote,
+  MessagesSquare,
   Microscope,
   Scale,
   ThumbsDown,
@@ -104,8 +104,8 @@ export function Claim() {
 /** How each moment moved the field: an icon and a short label. */
 const KIND = {
   approach: { Icon: Microscope, tone: 'text-[var(--o-white)]', label: 'An approach' },
-  problem: { Icon: CircleHelp, tone: 'text-[var(--o-white)]', label: 'A problem' },
-  argument: { Icon: MessageSquareQuote, tone: 'text-[var(--o-white)]', label: 'An argument' },
+  problem: { Icon: CircleAlert, tone: 'text-[var(--o-white)]', label: 'A problem' },
+  argument: { Icon: MessagesSquare, tone: 'text-[var(--o-white)]', label: 'An argument' },
   theory: { Icon: Lightbulb, tone: 'text-[var(--o-white)]', label: 'A theory' },
   objection: { Icon: ThumbsDown, tone: 'text-[var(--o-ice)]', label: 'An objection' },
   finding: { Icon: Brain, tone: 'text-[var(--o-white)]', label: 'A finding' },

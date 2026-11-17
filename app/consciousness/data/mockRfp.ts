@@ -59,7 +59,7 @@ export interface OrchOrRfp {
     backers: MockBacker[];
     /** Already allocated to funded proposals. */
     distributedUsd: number;
-    /** PLACEHOLDER: unknown whether contributions are tax-deductible. */
+    /** As the Giving Tuesday FAQ puts it (`app/giving-tuesday`). To confirm for this pool. */
     taxDeductibleNote: string;
   };
   status: RfpStatus;
@@ -95,7 +95,8 @@ export const ORCH_OR_RFP: OrchOrRfp = {
       { name: 'Lena Fischer', amountUsd: 2_500, avatarUrl: null },
     ],
     distributedUsd: 0,
-    taxDeductibleNote: '[Placeholder] Whether contributions are tax-deductible is to be confirmed.',
+    taxDeductibleNote:
+      'Gifts go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3), so they are generally tax-deductible in the US.',
   },
   status: 'OPEN',
   deadline: '2027-03-31',
@@ -198,7 +199,6 @@ export function deadlineLabel(rfp: OrchOrRfp): string {
 /** Where to talk to the team (Tyler's booking link, as on /give). */
 export const TALK_TO_TEAM = {
   bookingUrl: 'https://cal.com/tyler-diorio/15min',
-  email: 'hello@researchhub.com',
 };
 
 /** The deadline mid-sentence: "open until 31 March 2027". */

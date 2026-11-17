@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarDays, Mail, Plus } from 'lucide-react';
+import { ArrowRight, CalendarDays, Plus } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { TRACK_RECORD } from '@/app/giving-tuesday/lib/trackRecord';
 import { FAQ, QUESTIONS, SOURCES } from '../data/content';
@@ -48,10 +48,7 @@ export function Proposals({ live }: { live?: { grantId: number; rfpHref: string 
   return (
     <section aria-labelledby="proposals-title" className="o-rule border-t py-24 tablet:py-32">
       <Wrap>
-        <div
-          data-orch-cta
-          className="grid grid-cols-1 gap-14 content-md:grid-cols-12 content-md:gap-16"
-        >
+        <div className="grid grid-cols-1 gap-14 content-md:grid-cols-12 content-md:gap-16">
           <div className="content-md:col-span-7">
             {live ? (
               <LiveProposals grantId={live.grantId} rfpHref={live.rfpHref} empty={<OpenSlots />} />
@@ -173,7 +170,7 @@ export function AboutResearchHub() {
 /**
  * A way to reach the team: for larger gifts, questions about how the money
  * is used, or a lab that could run one of the experiments. A 15-minute call
- * (Tyler's booking link, as on /give) or email.
+ * (Tyler's booking link, as on /give).
  */
 export function TalkToUs() {
   return (
@@ -201,14 +198,7 @@ export function TalkToUs() {
               className="o-btn o-btn-gold h-12 w-full px-6 text-[15px] content-md:w-auto"
             >
               <CalendarDays aria-hidden className="h-4 w-4" strokeWidth={2.2} />
-              Book a 15-minute call
-            </a>
-            <a
-              href={`mailto:${TALK_TO_TEAM.email}`}
-              className="o-btn o-btn-ghost h-12 w-full px-6 text-[15px] content-md:w-auto"
-            >
-              <Mail aria-hidden className="h-4 w-4" strokeWidth={2.2} />
-              {TALK_TO_TEAM.email}
+              Book a call
             </a>
           </div>
         </div>
@@ -276,11 +266,9 @@ export function Sources() {
 }
 
 export function OrchFooter() {
-  const rfp = ORCH_OR_RFP;
   return (
     <footer className="o-rule border-t px-5 py-8 text-[12.5px] text-[var(--o-mute)] tablet:px-10">
       A request for proposals, hosted on ResearchHub.
-      {rfp.isMock && ' Preview: amounts, backers and dates are placeholders.'}
     </footer>
   );
 }

@@ -7,7 +7,9 @@ import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { RfpMenu } from './RfpMenu';
-import { HeroPhase } from './PoolPanel';
+import { HeroPhase } from './HeroPhase';
+import { daysLeft } from './PoolPanel';
+import { ORCH_OR_RFP } from '../data/mockRfp';
 import type { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 
@@ -65,12 +67,11 @@ export function Hero({
         </h1>
 
         <p className="o-rise o-prose mt-6 max-w-[33em] text-[16px] tablet:text-[17.5px]">
-          Could an AI be conscious? Does experience need quantum physics? Six open questions have
-          experiments that could answer them, and few have been run. Every dollar in the pool pays
-          for them, <span className="text-[var(--o-text)]">whichever answer they favour.</span>
+          Could an AI be conscious? Does experience need quantum physics? We are raising funds to
+          test the leading theories of how consciousness arises.
         </p>
 
-        <div data-orch-cta className="o-rise mt-7 flex flex-wrap gap-3">
+        <div data-orch-hero-cta className="o-rise mt-7 flex flex-wrap gap-3">
           <AddToPoolButton size="lg" />
           <SubmitProposalButton size="lg" />
           <div className="flex gap-2 tablet:ml-1">
@@ -88,7 +89,7 @@ export function Hero({
           )}
         </div>
 
-        <HeroPhase />
+        <HeroPhase daysLeft={daysLeft(ORCH_OR_RFP.pool.goalBy)} />
       </div>
 
       <p className="absolute bottom-6 right-8 z-10 hidden max-w-[300px] text-right text-[12px] leading-[1.5] text-[var(--o-mute)] content-md:block">

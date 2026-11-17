@@ -705,7 +705,6 @@ export const QUESTIONS: Question[] = [
 export interface Faq {
   q: string;
   a: string;
-  placeholder?: boolean;
 }
 
 export const FAQ: Faq[] = [
@@ -723,22 +722,19 @@ export const FAQ: Faq[] = [
   },
   {
     q: 'Who can apply?',
-    a: '[Placeholder] Eligibility (academic and non-academic applicants, countries, career stage) is to be confirmed.',
-    placeholder: true,
+    a: 'Anyone with a rigorous plan: university labs, institutes, independent researchers and companies, in any country and at any career stage. Teams that include people who expect different outcomes are welcome.',
   },
   {
     q: 'How large are awards, and is overhead allowed?',
-    a: '[Placeholder] Award range and overhead policy are to be confirmed.',
-    placeholder: true,
+    a: 'Awards range from $50k to $250k, sized to the experiment. Indirect costs of up to 10% are allowed.',
   },
   {
     q: 'How are decisions made?',
-    a: 'Proposals are published on ResearchHub and open to peer review. [Placeholder: who chooses which to fund, and any named reviewers or advisors.]',
+    a: 'Proposals are published on ResearchHub and peer reviewed in the open. The ResearchHub Foundation picks which to fund, guided by those reviews.',
   },
   {
     q: 'What about IP and publishing?',
-    a: '[Placeholder] To be confirmed. ResearchHub proposals are public, and open data and methods are expected of funded work.',
-    placeholder: true,
+    a: 'Researchers keep their IP. Funded work is published openly on ResearchHub, with its data and code, whatever the result.',
   },
   {
     q: 'Where does money added to the pool go?',

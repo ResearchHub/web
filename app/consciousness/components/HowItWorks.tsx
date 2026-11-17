@@ -1,9 +1,8 @@
 import Image from 'next/image';
 import { Avatar } from '@/components/ui/Avatar';
 import { QUESTIONS } from '../data/content';
-import { ORCH_OR_RFP, formatDate, formatUsd, formatUsdShort, poolPercent } from '../data/mockRfp';
+import { ORCH_OR_RFP, poolPercent } from '../data/mockRfp';
 import { Sequence } from './Motion';
-import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { Wrap } from './Story';
 
 /** Stage art: a round plate of one size, so the four stages sit on one line and the track passes behind them. */
@@ -214,13 +213,9 @@ const STEPS = [
  * How it works from the reader's side: what a backer and a scientist each
  * do, in four stages on one dotted track (you give, scientists propose,
  * peers review and the pool pays, results are published). The programme's
- * dates and targets are in the phases under the hero, not here. Sits just
- * before the pool, with its own buttons.
+ * dates and targets are in the phases, not here.
  */
 export function HowItWorks() {
-  const rfp = ORCH_OR_RFP;
-  const { pool } = rfp;
-  const pct = Math.round(poolPercent(rfp));
   return (
     <section
       id="how-it-works"
@@ -232,7 +227,7 @@ export function HowItWorks() {
           id="how-title"
           className="o-reveal o-serif max-w-[16em] text-[clamp(28px,3vw,40px)] leading-[1.1]"
         >
-          Your money becomes experiments. <em className="block">Experiments become answers.</em>
+          How the pool works
         </h2>
 
         <Sequence className="relative mt-10 tablet:mt-14">
@@ -271,27 +266,6 @@ export function HowItWorks() {
             ))}
           </ol>
         </Sequence>
-
-        <div
-          data-orch-cta
-          className="o-reveal mt-12 flex flex-col items-start gap-5 rounded-[18px] bg-[rgb(var(--o-gold-rgb)/0.07)] p-6 ring-1 ring-[color:rgb(var(--o-gold-rgb)/0.2)] tablet:mt-14 tablet:flex-row tablet:items-center tablet:justify-between tablet:p-7"
-        >
-          <div>
-            <p className="o-serif text-[24px] leading-tight tablet:text-[28px]">
-              Help complete Phase 1: {formatUsdShort(pool.goalUsd)} by {formatDate(pool.goalBy)}.
-            </p>
-            <p className="mt-2 text-[15px] text-[var(--o-soft)]">
-              <span className="tabular-nums text-[var(--o-text)]">{formatUsd(pool.raisedUsd)}</span>{' '}
-              raised from {pool.backerCount} backers
-              <span className="mx-2 opacity-50">·</span>
-              {pct}% of the target
-            </p>
-          </div>
-          <div className="flex w-full shrink-0 flex-col gap-3 tablet:w-auto tablet:flex-row">
-            <SubmitProposalButton size="lg" className="w-full tablet:w-auto" />
-            <AddToPoolButton size="lg" className="w-full tablet:w-auto" />
-          </div>
-        </div>
       </Wrap>
     </section>
   );

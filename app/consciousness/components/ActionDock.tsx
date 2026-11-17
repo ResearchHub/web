@@ -7,33 +7,25 @@ import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { BackerFaces, PoolBar } from './PoolPanel';
 
 /**
- * Both actions and the pool's progress, pinned to the bottom of the screen
- * for the whole page. It steps aside while a section with its own pair of
- * buttons (marked `data-orch-cta`) is on screen, so there is never a second
- * copy in view. A floating bar on wide screens, a full-width bar on phones.
+ * Both actions and the pool's progress, pinned to the bottom of the screen.
+ * It shows as soon as the hero's buttons (marked `data-orch-hero-cta`) scroll
+ * off screen and stays for the rest of the page. A floating bar on wide
+ * screens, a full-width bar on phones.
  */
 export function ActionDock() {
   const rfp = ORCH_OR_RFP;
   const [ctaInView, setCtaInView] = useState(true);
 
   useEffect(() => {
-    const targets = Array.from(document.querySelectorAll('[data-orch-cta]'));
-    if (targets.length === 0) {
+    const hero = document.querySelector('[data-orch-hero-cta]');
+    if (!hero) {
       setCtaInView(false);
       return;
     }
-    const inView = new Set<Element>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) inView.add(e.target);
-          else inView.delete(e.target);
-        }
-        setCtaInView(inView.size > 0);
-      },
-      { threshold: 0.4 }
-    );
-    targets.forEach((t) => io.observe(t));
+    const io = new IntersectionObserver(([e]) => setCtaInView(e.isIntersecting), {
+      threshold: 0,
+    });
+    io.observe(hero);
     return () => io.disconnect();
   }, []);
 

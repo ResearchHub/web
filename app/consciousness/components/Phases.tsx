@@ -1,5 +1,12 @@
 import { cn } from '@/utils/styles';
-import { ORCH_OR_RFP, formatDate, formatUsd, poolPercent, type OrchOrRfp } from '../data/mockRfp';
+import {
+  ORCH_OR_RFP,
+  deadlineLabel,
+  formatDate,
+  formatUsd,
+  poolPercent,
+  type OrchOrRfp,
+} from '../data/mockRfp';
 import { PoolBar, daysLeft } from './PoolPanel';
 import { Wrap } from './Story';
 
@@ -11,11 +18,6 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
       <dd className="text-[var(--o-text)]">{children}</dd>
     </div>
   );
-}
-
-/** Marks an answer the team still has to give. */
-function Placeholder({ children }: { children: React.ReactNode }) {
-  return <span className="text-[var(--o-mute)]">[Placeholder] {children}</span>;
 }
 
 function PhaseCard({
@@ -93,10 +95,11 @@ function PhaseOne({ rfp }: { rfp: OrchOrRfp }) {
       <dl className="o-rule mt-6 divide-y divide-[color:var(--o-line)] border-t">
         <Fact label="Where it goes">Only to research funded under this call.</Fact>
         <Fact label="If it falls short">
-          <Placeholder>What happens if the target is not met is to be confirmed.</Placeholder>
+          Everything raised still funds experiments under this call; we fund fewer of them.
         </Fact>
         <Fact label="Tax receipts">
-          <Placeholder>Whether gifts are tax-deductible is to be confirmed.</Placeholder>
+          Gifts go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3) public charity, so
+          they are generally tax-deductible in the US.
         </Fact>
       </dl>
     </PhaseCard>
@@ -105,15 +108,13 @@ function PhaseOne({ rfp }: { rfp: OrchOrRfp }) {
 
 function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
   return (
-    <PhaseCard n={2} status="next" title="Fund and run the experiments">
+    <PhaseCard n={2} status="next" title="Pick proposals, run the experiments">
       <p className="mt-6 text-[15px] leading-[1.6] text-[var(--o-soft)]">
-        Scientists propose experiments on the six open questions. The pool pays for the strongest,
-        and every result is published, whichever way it points.
+        Reviewers score the proposals in the open. The pool funds the strongest, and the results are
+        published.
       </p>
       <dl className="o-rule mt-6 divide-y divide-[color:var(--o-line)] border-t">
-        <Fact label="Proposals">
-          Open {formatDate(rfp.opensOn)} to {rfp.deadline ? formatDate(rfp.deadline) : 'rolling'}
-        </Fact>
+        <Fact label="Proposals">{deadlineLabel(rfp)}</Fact>
         <Fact label="Review">In the open on ResearchHub, by peer reviewers</Fact>
         <Fact label="Awards">{rfp.awardRangeLabel} each</Fact>
       </dl>
@@ -126,7 +127,7 @@ function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
  * carries the short version and links here): Phase 1 raises the pool
  * (target, date, progress and the facts a donor checks), Phase 2 funds and
  * runs the experiments (the proposal window, review and award size). The
- * programme's timeline, not the reader's steps; those are in How it works. Unknown answers are marked as placeholders.
+ * programme's timeline, not the reader's steps; those are in How it works.
  */
 export function Phases() {
   const rfp = ORCH_OR_RFP;
@@ -141,7 +142,7 @@ export function Phases() {
           id="phases-title"
           className="o-reveal o-serif max-w-[20em] text-[clamp(28px,3vw,40px)] leading-[1.1]"
         >
-          Two phases. First the money, then the experiments.
+          Two phases
         </h2>
         <div className="mt-10 grid grid-cols-1 gap-5 tablet:grid-cols-2 tablet:gap-6">
           <PhaseOne rfp={rfp} />
