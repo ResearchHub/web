@@ -75,7 +75,9 @@ export function HeroPool({ proposals }: { proposals: number }) {
         <BackerFaces size={22} />
         {pool.backerCount > 0 ? backersLabel : 'Be the first backer'}
         <span className="opacity-50">·</span>
-        <span className="tabular-nums">{Math.round(pct)}% of Goal 1</span>
+        <span className="tabular-nums">
+          {Math.round(pct)}% of the {formatUsdShort(pool.goalUsd)} target
+        </span>
       </p>
       <p className="mt-4 text-[13px] text-[var(--o-mute)]">
         Proposals {deadlinePhrase(rfp)}

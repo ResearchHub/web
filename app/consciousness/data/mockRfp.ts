@@ -49,9 +49,9 @@ export interface OrchOrRfp {
     currency: 'USD';
     /** Raised so far, from everyone who has added to the pool. */
     raisedUsd: number;
-    /** Goal 1: what the pool is raising (Kobe, 2026-11-17: $1M). */
+    /** Phase 1's target: what the pool is raising (Kobe, 2026-11-17: $1M). */
     goalUsd: number;
-    /** Goal 1's date, ISO (Kobe, 2026-11-17: 31 December 2026). */
+    /** Phase 1's end date, ISO (Kobe, 2026-11-17: 31 December 2026). */
     goalBy: string;
     /** Everyone who has added to the pool. */
     backerCount: number;

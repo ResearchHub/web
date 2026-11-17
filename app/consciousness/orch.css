@@ -483,7 +483,6 @@
 .orch .o-hiw-card {
   transform: rotate(var(--r));
 }
-.orch [data-seq='armed'] .o-hiw-goal,
 .orch [data-seq='armed'] .o-hiw-step,
 .orch [data-seq='armed'] .o-hiw-face,
 .orch [data-seq='armed'] .o-hiw-card {
@@ -497,12 +496,6 @@
 }
 .orch [data-seq='armed'] .o-hiw-ring {
   stroke-dashoffset: 100;
-}
-.orch [data-seq='run'] .o-hiw-goal {
-  animation: o-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.orch [data-seq='run'] .o-hiw-goal + .o-hiw-goal {
-  animation-delay: 0.9s;
 }
 .orch [data-seq='run'] .o-hiw-step {
   animation: o-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;

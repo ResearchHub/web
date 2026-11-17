@@ -60,11 +60,7 @@ export function ActionDock() {
             </span>{' '}
             raised toward {formatUsdShort(pool.goalUsd)}
             <span className="mx-2 opacity-50">·</span>
-            Goal 1 by {formatDateShort(pool.goalBy)}
-            <span className="hidden content-md:inline">
-              <span className="mx-2 opacity-50">·</span>
-              {pool.backerCount} backers
-            </span>
+            Phase 1 ends {formatDateShort(pool.goalBy)}
           </p>
           <PoolBar className="mt-2 h-1.5 max-w-[300px]" />
         </div>
@@ -83,7 +79,7 @@ export function ActionDock() {
             </span>{' '}
             raised toward {formatUsdShort(pool.goalUsd)}
           </span>
-          <span>Goal 1 by {formatDateShort(pool.goalBy)}</span>
+          <span>Phase 1 ends {formatDateShort(pool.goalBy)}</span>
         </p>
         <PoolBar className="mb-2.5 h-1" />
         <div className="flex gap-2">

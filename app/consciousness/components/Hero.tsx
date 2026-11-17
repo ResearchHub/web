@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MessageCircle } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { isLightSet, type SetId } from '../theme';
 import { SET_INFO } from '../sets/registry';
@@ -10,6 +11,12 @@ import { RfpMenu } from './RfpMenu';
 import { HeroPool } from './PoolPanel';
 import type { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
+
+/**
+ * A quiet "Talk to us" link beside the hero's buttons, pointing to the Talk
+ * to us section. On trial (Kobe, 2026-11-17): set to false to remove it.
+ */
+const SHOW_TALK_LINK = true;
 
 export function Hero({
   set = 'ink',
@@ -49,13 +56,9 @@ export function Hero({
       </Link>
 
       <div className="relative z-10 mt-auto px-5 pb-12 pt-[40svh] tablet:my-auto tablet:w-[min(760px,62%)] tablet:px-10 tablet:py-24 content-lg:px-16">
-        <p className="o-rise text-[14px] text-[var(--o-soft)]">
-          A crowdfunded call for research on consciousness
-        </p>
-
         <h1
           id="orch-title"
-          className="o-rise o-serif mt-5 max-w-[11em] text-balance text-[clamp(34px,4.4vw,64px)] leading-[1.02]"
+          className="o-rise o-serif max-w-[11em] text-balance text-[clamp(34px,4.4vw,64px)] leading-[1.02]"
         >
           How does a brain make a mind? <em className="block">Fund the experiments.</em>
         </h1>
@@ -72,6 +75,16 @@ export function Hero({
           <div className="flex gap-2 tablet:ml-1">
             <RfpMenu work={work} metadata={metadata} />
           </div>
+          {SHOW_TALK_LINK && (
+            <a
+              href="#talk-to-us"
+              data-talk-link
+              className="flex h-12 items-center gap-2 px-2 text-[14.5px] text-[var(--o-soft)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
+            >
+              <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={2} />
+              Talk to us
+            </a>
+          )}
         </div>
 
         <HeroPool proposals={proposals} />

@@ -1,6 +1,8 @@
-import { CalendarDays, Mail, Plus } from 'lucide-react';
+import { ArrowRight, CalendarDays, Mail, Plus } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
+import { TRACK_RECORD } from '@/app/giving-tuesday/lib/trackRecord';
 import { FAQ, QUESTIONS, SOURCES } from '../data/content';
-import { ORCH_OR_RFP, TALK_TO_TEAM } from '../data/mockRfp';
+import { ORCH_OR_RFP, TALK_TO_TEAM, formatUsdShort } from '../data/mockRfp';
 import { LiveProposals } from './LiveProposals';
 import { PoolPanel } from './PoolPanel';
 import { ProposalRow } from './ProposalRow';
@@ -103,13 +105,83 @@ export function Proposals({ live }: { live?: { grantId: number; rfpHref: string 
 }
 
 /**
+ * Who hosts the call, in the slot the funder section used to fill. The
+ * description and mission are ResearchHub's own words (researchhub.com
+ * and /about); the figures are the dated track record the Giving Tuesday
+ * page shows (`app/giving-tuesday/lib/trackRecord.ts`).
+ */
+export function AboutResearchHub() {
+  const stats = [
+    { value: formatUsdShort(TRACK_RECORD.contributedUsd), label: 'Contributed since 2024' },
+    {
+      value: TRACK_RECORD.proposalsFunded.toLocaleString('en-US'),
+      label: 'Proposals fully funded',
+    },
+    { value: TRACK_RECORD.peerReviewers.toLocaleString('en-US'), label: 'Peer reviewers' },
+    { value: TRACK_RECORD.peerReviews.toLocaleString('en-US'), label: 'Peer reviews' },
+  ];
+  return (
+    <section aria-labelledby="about-title" className="o-rule border-t py-20 tablet:py-28">
+      <Wrap>
+        <div className="grid grid-cols-1 gap-8 content-md:grid-cols-12 content-md:gap-16">
+          <div className="content-md:col-span-5">
+            <Logo size={34} />
+            <h2 id="about-title" className="o-serif mt-6 text-[clamp(28px,3vw,40px)] leading-tight">
+              About ResearchHub
+            </h2>
+            <p className="mt-1 text-[14px] text-[var(--o-mute)]">Where this call is hosted</p>
+          </div>
+          <div className="content-md:col-span-7">
+            <p className="o-prose">
+              ResearchHub is an open science platform where researchers publish, peer review, fund
+              and discuss scientific research. Its mission is to accelerate the pace of scientific
+              research.
+            </p>
+            <p className="o-prose mt-4">
+              It is built for reproducible science: researchers publicly register their study design
+              before they start, locking in their methods, and publish openly, with no paywalls.
+            </p>
+            <dl className="o-rule mt-8 grid grid-cols-2 gap-x-6 gap-y-6 border-t pt-6 tablet:grid-cols-4">
+              {stats.map((s) => (
+                <div key={s.label}>
+                  <dt className="sr-only">{s.label}</dt>
+                  <dd className="o-serif text-[28px] leading-none tabular-nums">{s.value}</dd>
+                  <dd aria-hidden className="mt-2 text-[13px] text-[var(--o-mute)]">
+                    {s.label}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-4 text-[12.5px] text-[var(--o-mute)]">As of {TRACK_RECORD.asOf}</p>
+            <a
+              href="/about"
+              className="group mt-6 inline-flex items-center gap-2 text-[15px] font-medium text-[var(--o-gold)] hover:text-[var(--o-text)]"
+            >
+              Read more about ResearchHub
+              <ArrowRight
+                aria-hidden
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+              />
+            </a>
+          </div>
+        </div>
+      </Wrap>
+    </section>
+  );
+}
+
+/**
  * A way to reach the team: for larger gifts, questions about how the money
  * is used, or a lab that could run one of the experiments. A 15-minute call
  * (Tyler's booking link, as on /give) or email.
  */
 export function TalkToUs() {
   return (
-    <section aria-labelledby="talk-title" className="o-rule border-t py-20 tablet:py-28">
+    <section
+      id="talk-to-us"
+      aria-labelledby="talk-title"
+      className="o-rule scroll-mt-10 border-t py-20 tablet:py-28"
+    >
       <Wrap>
         <div className="grid grid-cols-1 gap-8 rounded-[24px] bg-[var(--o-ink2)] p-7 ring-1 ring-[color:var(--o-line)] content-md:grid-cols-12 content-md:items-center content-md:gap-12 tablet:p-12">
           <div className="content-md:col-span-7">
@@ -207,7 +279,7 @@ export function OrchFooter() {
   const rfp = ORCH_OR_RFP;
   return (
     <footer className="o-rule border-t px-5 py-8 text-[12.5px] text-[var(--o-mute)] tablet:px-10">
-      A crowdfunded request for proposals, hosted on ResearchHub.
+      A request for proposals, hosted on ResearchHub.
       {rfp.isMock && ' Preview: amounts, backers and dates are placeholders.'}
     </footer>
   );

@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
     title: 'How does a brain make a mind? Fund the experiments.',
     description:
-      'A crowdfunded call for experiments and theory on how consciousness arises, from whether an AI could be conscious to whether experience needs quantum physics. Evidence for and against any answer is funded on equal terms.',
+      'Fund experiments and theory on how consciousness arises, from whether an AI could be conscious to whether experience needs quantum physics. Evidence for and against any answer is funded on equal terms.',
     url: '/consciousness',
   }),
   title: {
