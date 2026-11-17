@@ -62,8 +62,6 @@ export const metadata: Metadata = {
     default: 'Consciousness research: request for proposals',
     template: `%s | ${SITE_CONFIG.name}`,
   },
-  // A preview with placeholder figures.
-  robots: { index: false, follow: false },
 };
 
 export default function OrchOrLayout({ children }: Readonly<{ children: React.ReactNode }>) {
