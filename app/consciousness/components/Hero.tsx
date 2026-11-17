@@ -7,6 +7,7 @@ import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { RfpMenu } from './RfpMenu';
+import { BackButton } from './BackButton';
 import { HeroPhase } from './HeroPhase';
 import { daysLeft } from './PoolPanel';
 import { ORCH_OR_RFP } from '../data/mockRfp';
@@ -47,14 +48,18 @@ export function Hero({
       <div aria-hidden className="o-grain" />
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-4 px-5 pt-5 tablet:px-10 tablet:pt-6 content-lg:px-16">
-        <Link href="/" aria-label="ResearchHub home" className="flex h-10 items-center">
-          <Logo size={30} variant={isLightSet(set) ? undefined : 'white'} />
-        </Link>
+        <div className="-ml-2.5 flex items-center gap-1">
+          <BackButton />
+          <Link href="/" aria-label="ResearchHub home" className="flex h-10 items-center">
+            <Logo size={30} variant={isLightSet(set) ? undefined : 'white'} />
+          </Link>
+        </div>
         <a
           href="#how-it-works"
-          className="text-[14.5px] font-medium text-[var(--o-text)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:decoration-current"
+          className="whitespace-nowrap text-[14.5px] font-medium text-[var(--o-text)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:decoration-current"
         >
-          Learn about our process
+          <span className="tablet:hidden">Our process</span>
+          <span className="hidden tablet:inline">Learn about our process</span>
         </a>
       </header>
 
@@ -63,7 +68,7 @@ export function Hero({
           id="orch-title"
           className="o-rise o-serif max-w-[11em] text-balance text-[clamp(34px,4.4vw,64px)] leading-[1.02]"
         >
-          Fund the experiments that could explain consciousness.
+          Fund the experiments that could explain <em>consciousness.</em>
         </h1>
 
         <p className="o-rise o-prose mt-6 max-w-[33em] text-[16px] tablet:text-[17.5px]">

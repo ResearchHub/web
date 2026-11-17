@@ -8,7 +8,8 @@ import { DEFAULT_HERO, HERO_IDS, HERO_INFO, type HeroId } from '../sets/heroes';
  * A small fixed control for comparing the graphic sets: each option is a
  * link to `?set=…`, so the server renders the whole page, palette included,
  * in that set. Names show from tablet up; phones get the swatches. In the
- * Poster set a second row picks the hero candidate (`?hero=`).
+ * Poster set a second row picks the hero candidate (`?hero=`). Hidden from
+ * visitors: the page shows it only with `?design=1`, which its links keep.
  */
 export function SetSwitcher({
   current,
@@ -34,7 +35,7 @@ export function SetSwitcher({
           return (
             <Link
               key={s.id}
-              href={s.id === DEFAULT_SET ? base : `${base}?set=${s.id}`}
+              href={s.id === DEFAULT_SET ? `${base}?design=1` : `${base}?design=1&set=${s.id}`}
               scroll={false}
               aria-current={active ? 'true' : undefined}
               title={s.phrase}
@@ -68,7 +69,7 @@ export function SetSwitcher({
           {HERO_IDS.map((id) => (
             <Link
               key={id}
-              href={id === DEFAULT_HERO ? base : `${base}?hero=${id}`}
+              href={id === DEFAULT_HERO ? `${base}?design=1` : `${base}?design=1&hero=${id}`}
               scroll={false}
               aria-current={id === hero ? 'true' : undefined}
               title={HERO_INFO[id].idea}

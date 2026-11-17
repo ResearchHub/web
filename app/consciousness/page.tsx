@@ -80,7 +80,8 @@ export default async function OrchOrPage({
       <Sources />
       <ActionDock />
       <OrchFooter />
-      <SetSwitcher current={set} hero={hero} />
+      {/* Design review only: `?design=1` shows the graphic and hero pickers. */}
+      {params.design === '1' && <SetSwitcher current={set} hero={hero} />}
     </>
   );
 }
