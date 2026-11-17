@@ -151,11 +151,27 @@
 .orch .o-scroll-x[data-fade-left][data-fade-right] {
   mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
 }
-@media (min-width: 1240px) {
-  .orch .o-scroll-x[data-fade-left],
-  .orch .o-scroll-x[data-fade-right] {
-    mask-image: none;
+/* The timeline row runs edge to edge, but its first card lines up under
+   the heading (the 1200px column's padding), and so does its last. */
+.orch .o-tl-row {
+  --o-tl-pad: 20px;
+  scroll-padding-inline: var(--o-tl-pad);
+}
+@media (min-width: 768px) {
+  .orch .o-tl-row {
+    --o-tl-pad: max(40px, calc((100% - 1200px) / 2 + 40px));
   }
+}
+@media (min-width: 1440px) {
+  .orch .o-tl-row {
+    --o-tl-pad: calc((100% - 1200px) / 2 + 48px);
+  }
+}
+.orch .o-tl-row:focus-visible {
+  box-shadow: inset 0 0 0 2px rgb(var(--o-text-rgb) / 0.25);
+}
+.orch .o-tl-pad {
+  padding-inline: var(--o-tl-pad);
 }
 
 /* ---------- Sequences (components/Motion.tsx) ----------
@@ -403,33 +419,35 @@
 .orch [data-seq='armed'] .o-tl-line {
   transform: scaleX(0);
 }
+.orch [data-seq='armed'] .o-tl-node,
 .orch [data-seq='armed'] .o-tl-face,
 .orch [data-seq='armed'] .o-tl-body {
   opacity: 0;
 }
+/* The axis draws left to right and each moment arrives as the line reaches
+   it: a wave along the row. Moments past the screen's edge have arrived by
+   the time anyone scrolls to them. */
 .orch [data-seq='run'] .o-tl-line {
-  animation: o-draw-x 0.9s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: o-draw-x 2.4s cubic-bezier(0.45, 0, 0.25, 1) both;
+}
+.orch [data-seq='run'] .o-tl-node {
+  animation: o-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation-delay: calc(var(--i) * 0.13s + 0.15s);
 }
 .orch [data-seq='run'] .o-tl-face {
-  animation: o-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
-  animation-delay: 0.3s;
+  animation: o-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 0.13s + 0.25s);
 }
 .orch [data-seq='run'] .o-tl-body {
   animation: o-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: 0.45s;
+  animation-delay: calc(var(--i) * 0.13s + 0.35s);
 }
-@media (min-width: 1240px) {
-  .orch [data-seq='run'] .o-tl-line {
-    animation-duration: 0.36s;
-    animation-timing-function: linear;
-    animation-delay: calc(var(--i) * 0.36s + 0.1s);
-  }
-  .orch [data-seq='run'] .o-tl-face {
-    animation-delay: calc(var(--i) * 0.36s + 0.1s);
-  }
-  .orch [data-seq='run'] .o-tl-body {
-    animation-delay: calc(var(--i) * 0.36s + 0.25s);
-  }
+
+/* Dragging the timeline with a mouse: free movement, no text selection. */
+.orch .o-tl-row[data-dragging] {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
 }
 
 .orch details > summary {

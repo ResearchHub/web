@@ -194,6 +194,48 @@ export const SOURCES: Source[] = [
       'Lenharo, “Decades-long bet on consciousness ends — and it’s philosopher 1, neuroscientist 0”, Nature news, 2023',
     url: 'https://doi.org/10.1038/d41586-023-02120-8',
   },
+  {
+    id: 32,
+    label: 'Nagel, “What is it like to be a bat?”, Philosophical Review, 1974',
+    url: 'https://doi.org/10.2307/2183914',
+  },
+  {
+    id: 33,
+    label: 'Searle, “Minds, brains, and programs”, Behavioral and Brain Sciences, 1980',
+    url: 'https://doi.org/10.1017/S0140525X00005756',
+  },
+  {
+    id: 34,
+    label: 'Baars, A Cognitive Theory of Consciousness, Cambridge University Press, 1988',
+    url: 'https://openlibrary.org/works/OL3254300W',
+  },
+  {
+    id: 35,
+    label: 'Penrose, The Emperor’s New Mind, Oxford University Press, 1989',
+    url: 'https://doi.org/10.1093/oso/9780198519737.001.0001',
+  },
+  {
+    id: 36,
+    label:
+      'Dehaene and Naccache, “Towards a cognitive neuroscience of consciousness: basic evidence and a workspace framework”, Cognition, 2001',
+    url: 'https://doi.org/10.1016/S0010-0277(00)00123-2',
+  },
+  {
+    id: 37,
+    label: 'Tononi, “An information integration theory of consciousness”, BMC Neuroscience, 2004',
+    url: 'https://doi.org/10.1186/1471-2202-5-42',
+  },
+  {
+    id: 38,
+    label: 'Owen et al., “Detecting awareness in the vegetative state”, Science, 2006',
+    url: 'https://doi.org/10.1126/science.1130197',
+  },
+  {
+    id: 39,
+    label:
+      'Casali, …, Tononi, Massimini, “A theoretically based index of consciousness independent of sensory processing and behavior”, Science Translational Medicine, 2013',
+    url: 'https://doi.org/10.1126/scitranslmed.3006294',
+  },
 ];
 
 export interface OpenPart {
@@ -249,7 +291,15 @@ export interface Photo {
 export interface Moment {
   year: string;
   /** What kind of step it was for the field. */
-  kind: 'approach' | 'problem' | 'theory' | 'objection' | 'evidence' | 'test';
+  kind:
+    | 'approach'
+    | 'problem'
+    | 'argument'
+    | 'theory'
+    | 'objection'
+    | 'finding'
+    | 'evidence'
+    | 'test';
   text: string;
   /** Who wrote the cited work, as shown under the entry. */
   cite: string;
@@ -261,15 +311,68 @@ export interface Moment {
 }
 
 /**
- * Six moments in consciousness science, oldest first (the row reads left to
- * right, newest on the right): the experimental programme, the hard problem,
- * the quantum thread (Orch OR, the decoherence objection, a recent
- * microtubule result) and the first head-to-head test of two leading
- * theories. People appear as authors of the work cited, not as endorsers of
+ * The main moments in consciousness science, oldest first (the row reads
+ * left to right, newest on the right): the problem as philosophers posed it,
+ * the arguments about computation, the leading theories, ways to detect and
+ * measure consciousness, the quantum thread (Orch OR, the decoherence
+ * objection, a recent microtubule result) and the first head-to-head test of
+ * two leading theories. Not everything, just the turns the field still talks
+ * about. People appear as authors of the work cited, not as endorsers of
  * this call. Photos: Wikimedia Commons, credited on the page and in
- * public/orch-or/CREDITS.md.
+ * public/orch-or/CREDITS.md; entries with no freely licensed photo show the
+ * paper or book instead.
  */
 export const TIMELINE: Moment[] = [
+  {
+    year: '1974',
+    kind: 'problem',
+    text: 'An organism is conscious if there is something it is like to be it: a point of view that physical theories seem to leave out.',
+    cite: 'Nagel, Philosophical Review',
+    sources: [32],
+    paper: {
+      journal: 'Philosophical Review',
+      title: 'What is it like to be a bat?',
+    },
+  },
+  {
+    year: '1980',
+    kind: 'argument',
+    text: 'The Chinese room: running the right program, Searle argues, is not by itself enough for understanding.',
+    cite: 'Searle, Behavioral and Brain Sciences',
+    sources: [33],
+    person: {
+      name: 'John Searle',
+      photo: {
+        src: '/orch-or/people/searle.jpg',
+        author: 'Matthew Breindel',
+        licence: 'CC BY-SA 3.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:John_searle2_(cropped).jpg',
+      },
+    },
+  },
+  {
+    year: '1988',
+    kind: 'theory',
+    text: 'Global workspace theory: we become conscious of information when it is broadcast widely to the brain’s many specialised, unconscious processes.',
+    cite: 'Baars, Cambridge University Press',
+    sources: [34],
+    paper: {
+      journal: 'Cambridge University Press',
+      title: 'A Cognitive Theory of Consciousness',
+    },
+  },
+  {
+    year: '1989',
+    kind: 'argument',
+    text: 'Penrose argues from Gödel’s theorem that human understanding is not computable, and looks to a future theory of quantum gravity. Logicians widely dispute the argument.',
+    cite: 'Penrose, Oxford University Press',
+    sources: [35, 21, 22],
+    paper: {
+      journal: 'Oxford University Press',
+      title: 'The Emperor’s New Mind',
+    },
+  },
   {
     year: '1990',
     kind: 'approach',
@@ -336,6 +439,74 @@ export const TIMELINE: Moment[] = [
         licenceUrl: 'https://creativecommons.org/licenses/by/2.0',
         sourceUrl: 'https://commons.wikimedia.org/wiki/File:Max_Tegmark_2024_(cropped).jpg',
       },
+    },
+  },
+  {
+    year: '2001',
+    kind: 'theory',
+    text: 'The global neuronal workspace: information becomes conscious when it is amplified into a sudden, brain-scale state that makes it widely available.',
+    cite: 'Dehaene and Naccache, Cognition',
+    sources: [36],
+    person: {
+      name: 'Stanislas Dehaene',
+      photo: {
+        src: '/orch-or/people/dehaene.jpg',
+        author: 'Per Henning/NTNU',
+        licence: 'CC BY 2.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by/2.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Stanislas_Dehaene_2014.jpg',
+      },
+    },
+  },
+  {
+    year: '2004',
+    kind: 'theory',
+    text: 'Integrated information theory: consciousness corresponds to a system’s capacity to integrate information, measured as Φ.',
+    cite: 'Tononi, BMC Neuroscience',
+    sources: [37],
+    paper: {
+      journal: 'BMC Neuroscience',
+      title: 'An information integration theory of consciousness',
+    },
+  },
+  {
+    year: '2006',
+    kind: 'finding',
+    text: 'A patient diagnosed as vegetative, asked to imagine playing tennis, activated the same brain areas as healthy volunteers.',
+    cite: 'Owen et al., Science',
+    sources: [38],
+    person: {
+      name: 'Adrian Owen',
+      photo: {
+        src: '/orch-or/people/owen.jpg',
+        author: 'Simon Strangeways',
+        licence: 'Public domain',
+        licenceUrl: 'https://commons.wikimedia.org/wiki/Template:PD-author',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Adrianowen.jpg',
+      },
+    },
+  },
+  {
+    year: '2013',
+    kind: 'approach',
+    text: 'Stimulate the cortex with a magnetic pulse and measure how complex the brain’s response is: a gauge of consciousness that needs no report.',
+    cite: 'Casali, …, Massimini, Sci. Transl. Med.',
+    sources: [39],
+    paper: {
+      journal: 'Science Translational Medicine',
+      title:
+        'A theoretically based index of consciousness independent of sensory processing and behavior',
+    },
+  },
+  {
+    year: '2023',
+    kind: 'approach',
+    text: 'Nineteen researchers turn leading theories into indicators to check AI against. Their analysis suggests no current system is conscious, and finds no obvious barrier to building one that meets them.',
+    cite: 'Butlin, Long et al., arXiv',
+    sources: [25],
+    paper: {
+      journal: 'arXiv',
+      title: 'Consciousness in artificial intelligence: insights from the science of consciousness',
     },
   },
   {
