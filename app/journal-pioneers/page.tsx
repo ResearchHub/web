@@ -15,7 +15,7 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default function PioneersPage() {
   return (
-    <PageLayout rightSidebar={<RHJRightSidebar />}>
+    <PageLayout contentWidth="narrow" rightSidebar={<RHJRightSidebar />}>
       <div className="mb-6">
         <Link
           href="/journal"

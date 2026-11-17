@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     title: 'Give to science on Giving Tuesday 2026',
     description:
       'Give to the science you care about this Giving Tuesday, from AI to cancer research. Every gift made before 2027 is matched 1:1.',
-    url: '/giving-tuesday',
+    url: '/giving',
   }),
   title: {
     default: 'Give to science on Giving Tuesday 2026',

@@ -1,14 +1,14 @@
 import { Plus } from 'lucide-react';
 import type { FundingFAQItem } from '@/components/landing/FundingFAQSection';
-import { DISPLAY_FONT } from '@/app/giving-tuesday/components/displayFont';
+import { DISPLAY_FONT } from '@/app/giving/components/displayFont';
 import { cn } from '@/utils/styles';
-import { BLUE_TEXT, PALE_BAND } from '@/app/giving-tuesday/components/accents';
-import { FadedPixels } from '@/app/giving-tuesday/components/FadedPixels';
+import { BLUE_TEXT, PALE_BAND } from '@/app/giving/components/accents';
+import { FadedPixels } from '@/app/giving/components/FadedPixels';
 
 const FAQ_ITEMS: FundingFAQItem[] = [
   {
     q: 'Where does my gift go?',
-    a: 'To the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3) public charity. From there it funds open research in the area of science you choose.',
+    a: 'Directly to Endaoment, a 501(c)(3) public charity. From there it funds open research in the area of science you choose. ResearchHub never holds your gift.',
   },
   {
     q: 'Is my gift matched?',
