@@ -63,6 +63,50 @@ export class ApiClient {
     log('API request failed:', error);
   }
 
+  private static readonly STATUS_MESSAGES: Record<number, string> = {
+    400: 'The request was invalid.',
+    401: 'Please sign in and try again.',
+    403: "You don't have permission to do that.",
+    404: 'Not found.',
+    409: 'This conflicts with the current state. Refresh and try again.',
+    429: 'Too many requests. Please wait and try again.',
+  };
+
+  private static messageForStatus(status: number): string {
+    if (status >= 500) return 'Something went wrong on our end. Please try again.';
+    return this.STATUS_MESSAGES[status] ?? 'Request failed.';
+  }
+
+  /** Message from a parsed error body: `error` (string or array), DRF `detail`, or `message`. */
+  private static messageFromBody(body: Record<string, any>): string | null {
+    if (Array.isArray(body.error) && typeof body.error[0] === 'string' && body.error[0]) {
+      return body.error[0];
+    }
+    if (typeof body.error === 'string' && body.error.trim()) return body.error;
+    if (typeof body.detail === 'string' && body.detail.trim()) return body.detail;
+    if (typeof body.message === 'string' && body.message.trim()) return body.message;
+    return null;
+  }
+
+  /**
+   * Builds an ApiError from a non-2xx response. Handles empty bodies, HTML error pages,
+   * and JSON bodies; falls back to a message based on the HTTP status.
+   */
+  private static async toApiError(response: Response): Promise<ApiError> {
+    const text = await response.text().catch(() => '');
+    let body: Record<string, any> = {};
+    if (text) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === 'object') body = parsed;
+      } catch {
+        // Not JSON (for example an HTML error page); use the status-based message.
+      }
+    }
+    const message = this.messageFromBody(body) ?? this.messageForStatus(response.status);
+    return new ApiError(message, response.status, body as Record<string, string[]>);
+  }
+
   private static async getHeaders(method: string) {
     const headers: Record<string, string> = {
       Accept: 'application/json',
@@ -134,13 +178,7 @@ export class ApiClient {
       const response = await fetch(url, this.getFetchOptions('GET', headers));
 
       if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          errorData = { message: 'Invalid JSON response from server' };
-        }
-        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+        throw await this.toApiError(response);
       }
 
       return response.json();
@@ -182,7 +220,7 @@ export class ApiClient {
       });
 
       if (!response.ok) {
-        throw new ApiError(`HTTP error! status: ${response.status}`, response.status);
+        throw await this.toApiError(response);
       }
 
       return response.blob();
@@ -200,13 +238,7 @@ export class ApiClient {
     );
 
     if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        errorData = { message: 'Invalid JSON response from server' };
-      }
-      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+      throw await this.toApiError(response);
     }
 
     // Try to parse JSON, but don't fail if there's nothing to parse
@@ -229,13 +261,7 @@ export class ApiClient {
     );
 
     if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        errorData = { message: 'Invalid JSON response from server' };
-      }
-      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+      throw await this.toApiError(response);
     }
 
     return response.json();
@@ -250,13 +276,7 @@ export class ApiClient {
       );
 
       if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (e) {
-          errorData = { message: 'Invalid JSON response from server' };
-        }
-        throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+        throw await this.toApiError(response);
       }
 
       return response.json();
@@ -270,13 +290,7 @@ export class ApiClient {
     const headers = await this.getHeaders('DELETE');
     const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('DELETE', headers));
     if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch (e) {
-        errorData = { message: 'Invalid JSON response from server' };
-      }
-      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+      throw await this.toApiError(response);
     }
   }
 }
