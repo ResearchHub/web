@@ -61,6 +61,8 @@ export interface RfpView {
   backers: Backer[];
   /** Already paid out to funded proposals. */
   distributedUsd: number;
+  /** Proposals submitted to the RFP (its grant's applications). */
+  proposalCount: number;
   status: RfpStatus;
   /** The proposal deadline as an ISO date, or null for rolling review. */
   deadline: string | null;
@@ -87,6 +89,7 @@ export function rfpView(work: Work | null): RfpView {
       avatarUrl: c.profileImage || null,
     })),
     distributedUsd: pool?.amountDistributed.usd ?? 0,
+    proposalCount: grant?.applications?.length ?? 0,
     status: !grant
       ? 'OPEN'
       : grant.status === 'PENDING'

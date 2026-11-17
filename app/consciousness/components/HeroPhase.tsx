@@ -1,11 +1,12 @@
+import { BackerFaces } from './PoolPanel';
 import { formatDate, formatUsd, formatUsdShort, poolPercent, type RfpView } from '../data/rfp';
 
 /**
  * The phases in the hero, under the calls to action: the amount raised, then
  * one track in two parts. Phase 1 (raising the pool, a radiating dot) fills
  * as money comes in; Phase 2 (the experiments, a hollow dot) waits, hatched.
- * Picked from the hero mocks as B (Kobe, 2026-11-17). `daysLeft` comes from
- * the server.
+ * Picked from the hero mocks as B (Kobe, 2026-11-17). Under it, the backers'
+ * faces with the backer and proposal counts. `daysLeft` comes from the server.
  */
 export function HeroPhase({ rfp, daysLeft }: { rfp: RfpView; daysLeft: number }) {
   const pool = rfp;
@@ -61,6 +62,22 @@ export function HeroPhase({ rfp, daysLeft }: { rfp: RfpView; daysLeft: number })
             </span>
           </span>
         </p>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2 text-[13.5px] text-[var(--o-soft)]">
+        <BackerFaces rfp={rfp} size={22} />
+        <span className="tabular-nums">
+          {rfp.backerCount > 0
+            ? `${rfp.backerCount} ${rfp.backerCount === 1 ? 'backer' : 'backers'}`
+            : 'Be the first backer'}
+        </span>
+        <span aria-hidden className="opacity-50">
+          ·
+        </span>
+        <span className="tabular-nums">
+          {rfp.proposalCount > 0
+            ? `${rfp.proposalCount} ${rfp.proposalCount === 1 ? 'proposal' : 'proposals'}`
+            : 'No proposals yet'}
+        </span>
       </div>
     </div>
   );
