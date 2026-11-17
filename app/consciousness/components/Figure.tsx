@@ -148,11 +148,11 @@ function InkArt({ sceneId }: { sceneId: SceneId }) {
 }
 
 const hasStill = (set: SetId, file: string) =>
-  existsSync(join(process.cwd(), 'public', 'orch-or', 'sets', set, file));
+  existsSync(join(process.cwd(), 'public', 'consciousness', 'sets', set, file));
 
 /**
  * A new set's figure: a static image (a frame captured from the live
- * figure, `public/orch-or/sets/<set>/<fig>.webp`) over a soft wash in the
+ * figure, `public/consciousness/sets/<set>/<fig>.webp`) over a soft wash in the
  * set's colours, and the live layer over both. The static image is the
  * figure with reduced motion, without WebGL, or before the script loads.
  */
@@ -167,7 +167,7 @@ function SetArt({
 }) {
   // Only the Poster set has hero candidates; the others keep `hero.webp`.
   const file = fig === 'hero' && set === 'poster' ? heroStillName(hero) : fig;
-  const base = `/orch-or/sets/${set}/${file}`;
+  const base = `/consciousness/sets/${set}/${file}`;
   const phone = fig === 'hero' && hasStill(set, `${file}-phone.webp`);
   return (
     <>

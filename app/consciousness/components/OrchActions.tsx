@@ -4,7 +4,6 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import toast from 'react-hot-toast';
 import { ArrowRight, Plus } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { ORCH_OR_RFP } from '../data/mockRfp';
 
 interface OrchActions {
   /** Start a proposal for this RFP, optionally from one question. */
@@ -16,7 +15,8 @@ interface OrchActions {
 const OrchActionsContext = createContext<OrchActions | null>(null);
 
 /**
- * The page's two actions. This preview round only says where each would go.
+ * The page's two actions: adding to the pool (the primary one) and
+ * submitting a proposal. This preview round only says where each would go.
  *
  * Live wiring, once the RFP exists (see docs/orch-or-rfp-landing-plan.md §7):
  * - Wrap the page in `FundPanelProvider` → `GrantPageProvider` →
@@ -41,9 +41,7 @@ export function OrchActionsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToPool = useCallback(() => {
-    toast(`Preview: this opens the panel for adding to the ${ORCH_OR_RFP.funder.name} pool.`, {
-      id: 'orch-action',
-    });
+    toast('Preview: this opens the panel for adding to the pool.', { id: 'orch-action' });
   }, []);
 
   const value = useMemo(() => ({ submitProposal, addToPool }), [submitProposal, addToPool]);
@@ -80,7 +78,7 @@ export function SubmitProposalButton({
     <button
       type="button"
       onClick={() => submitProposal(trackId)}
-      className={cn('o-btn o-btn-gold', SIZES[size], className)}
+      className={cn('o-btn o-btn-ghost', SIZES[size], className)}
     >
       {label}
       <ArrowRight aria-hidden className="h-4 w-4" strokeWidth={2.2} />
@@ -102,7 +100,7 @@ export function AddToPoolButton({
     <button
       type="button"
       onClick={addToPool}
-      className={cn('o-btn o-btn-ghost', SIZES[size], className)}
+      className={cn('o-btn o-btn-gold', SIZES[size], className)}
     >
       <Plus aria-hidden className="h-4 w-4" strokeWidth={2.2} />
       {label}

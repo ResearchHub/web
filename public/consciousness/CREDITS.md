@@ -1,4 +1,4 @@
-# Image credits for /orch-or
+# Image credits for /consciousness
 
 Photos of authors of work cited in the consciousness-science timeline. Each
 is shown as an author of the cited work, not as an endorser of the request
@@ -33,4 +33,4 @@ The Commons page for Crick's photo dates it 2004, the date it was published in P
 does not caption it with a date.
 
 The same credits are listed on the page under Sources (`TIMELINE` in
-`app/orch-or/data/content.ts`).
+`app/consciousness/data/content.ts`).

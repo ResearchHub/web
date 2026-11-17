@@ -4,7 +4,7 @@
  * same values as RGB. Change a colour here and the page and every figure in
  * that set follow.
  *
- * There is one palette per graphic set (`?set=` on /orch-or): the page
+ * There is one palette per graphic set (`?set=` on /consciousness): the page
  * chrome follows the set, so each set is seen on its own ground. In every
  * set, gold and ice are the two branches of a superposition in the figures,
  * and on the page "would support it" (gold) and "would count against it"
@@ -190,7 +190,7 @@ export const DISPLAY: Record<SetId, DisplayType> = {
   },
 };
 
-/** The set `/orch-or` opens in when no `?set=` is given. */
+/** The set `/consciousness` opens in when no `?set=` is given. */
 export const DEFAULT_SET: SetId = 'poster';
 
 /** The original palette, which the original figures read. */

@@ -1,6 +1,6 @@
 import { ActionDock } from './components/ActionDock';
 import { Hero } from './components/Hero';
-import { Faq, Funder, OrchFooter, Proposals, Sources } from './components/Process';
+import { Faq, OrchFooter, Proposals, Sources } from './components/Process';
 import { Questions } from './components/Questions';
 import { SetSwitcher } from './components/SetSwitcher';
 import { Claim, Timeline } from './components/Story';
@@ -45,7 +45,7 @@ async function loadRfp(param: string | string[] | undefined) {
  * are server-drawn stills that come alive once their script loads.
  * It opens in the Poster set; `?set=ink|clay|spectral|engraved|micrograph`
  * swaps every figure and the palette for another graphic set (compare them
- * all at /orch-or/figures).
+ * all at /consciousness/figures).
  */
 export default async function OrchOrPage({
   searchParams,
@@ -63,7 +63,6 @@ export default async function OrchOrPage({
       <Timeline />
       <Questions set={set} />
       <Proposals live={live && { grantId: live.grantId, rfpHref: live.rfpHref }} />
-      <Funder />
       <Faq />
       <Sources />
       <ActionDock />

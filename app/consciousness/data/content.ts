@@ -2,7 +2,7 @@
  * The science on the page: the open problem in four parts (with Orch OR's
  * answer to each), the open questions, the timeline, the FAQ and the sources. Facts come from
  * docs/orch-or-rfp-landing-plan.md (sections 2 to 4 and 10). RFP facts
- * (amount, deadline, funder) are not here; they live in `mockRfp.ts`.
+ * (pool, deadline) are not here; they live in `mockRfp.ts`.
  */
 
 export type SceneId = 'superradiance' | 'wigner' | 'anesthesia' | 'spacetime' | 'raster';
@@ -320,7 +320,7 @@ export interface Moment {
  * two leading theories. Not everything, just the turns the field still talks
  * about. People appear as authors of the work cited, not as endorsers of
  * this call. Photos: Wikimedia Commons, credited on the page and in
- * public/orch-or/CREDITS.md; authors with no freely licensed photo show
+ * public/consciousness/CREDITS.md; authors with no freely licensed photo show
  * the moment's icon instead.
  */
 export const TIMELINE: Moment[] = [
@@ -333,7 +333,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Thomas Nagel',
       photo: {
-        src: '/orch-or/people/nagel.jpg',
+        src: '/consciousness/people/nagel.jpg',
         author: 'Jmd442',
         licence: 'CC BY-SA 3.0',
         licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
@@ -350,7 +350,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'John Searle',
       photo: {
-        src: '/orch-or/people/searle.jpg',
+        src: '/consciousness/people/searle.jpg',
         author: 'Matthew Breindel',
         licence: 'CC BY-SA 3.0',
         licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
@@ -375,7 +375,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Roger Penrose',
       photo: {
-        src: '/orch-or/people/penrose.jpg',
+        src: '/consciousness/people/penrose.jpg',
         author: 'Andrej Bauer',
         licence: 'CC BY-SA 2.5 SI',
         licenceUrl: 'https://creativecommons.org/licenses/by-sa/2.5/si/deed.en',
@@ -392,7 +392,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Francis Crick',
       photo: {
-        src: '/orch-or/people/crick.jpg',
+        src: '/consciousness/people/crick.jpg',
         author: 'Marc Lieberman',
         licence: 'CC BY 2.5',
         licenceUrl: 'https://creativecommons.org/licenses/by/2.5',
@@ -409,7 +409,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'David Chalmers',
       photo: {
-        src: '/orch-or/people/chalmers.jpg',
+        src: '/consciousness/people/chalmers.jpg',
         author: 'David Orban',
         licence: 'CC BY 2.0',
         licenceUrl: 'https://creativecommons.org/licenses/by/2.0',
@@ -426,7 +426,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Roger Penrose',
       photo: {
-        src: '/orch-or/people/penrose.jpg',
+        src: '/consciousness/people/penrose.jpg',
         author: 'Andrej Bauer',
         licence: 'CC BY-SA 2.5 SI',
         licenceUrl: 'https://creativecommons.org/licenses/by-sa/2.5/si/deed.en',
@@ -443,7 +443,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Max Tegmark',
       photo: {
-        src: '/orch-or/people/tegmark.jpg',
+        src: '/consciousness/people/tegmark.jpg',
         author: 'Web Summit',
         licence: 'CC BY 2.0',
         licenceUrl: 'https://creativecommons.org/licenses/by/2.0',
@@ -460,7 +460,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Stanislas Dehaene',
       photo: {
-        src: '/orch-or/people/dehaene.jpg',
+        src: '/consciousness/people/dehaene.jpg',
         author: 'Per Henning/NTNU',
         licence: 'CC BY 2.0',
         licenceUrl: 'https://creativecommons.org/licenses/by/2.0',
@@ -477,7 +477,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Giulio Tononi',
       photo: {
-        src: '/orch-or/people/tononi.jpg',
+        src: '/consciousness/people/tononi.jpg',
         author: 'NIH',
         licence: 'Public domain (US government work)',
         licenceUrl: 'https://commons.wikimedia.org/wiki/Template:PD-USGov',
@@ -495,7 +495,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Adrian Owen',
       photo: {
-        src: '/orch-or/people/owen.jpg',
+        src: '/consciousness/people/owen.jpg',
         author: 'Simon Strangeways',
         licence: 'Public domain',
         licenceUrl: 'https://commons.wikimedia.org/wiki/Template:PD-author',
@@ -512,7 +512,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Steven Laureys',
       photo: {
-        src: '/orch-or/people/laureys.jpg',
+        src: '/consciousness/people/laureys.jpg',
         author: 'MatiasLaureys',
         licence: 'CC BY-SA 4.0',
         licenceUrl: 'https://creativecommons.org/licenses/by-sa/4.0',
@@ -529,7 +529,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Yoshua Bengio',
       photo: {
-        src: '/orch-or/people/bengio.jpg',
+        src: '/consciousness/people/bengio.jpg',
         author: 'Maryse Boyce',
         licence: 'CC BY 4.0',
         licenceUrl: 'https://creativecommons.org/licenses/by/4.0',
@@ -554,7 +554,7 @@ export const TIMELINE: Moment[] = [
     person: {
       name: 'Liad Mudrik',
       photo: {
-        src: '/orch-or/people/mudrik.jpg',
+        src: '/consciousness/people/mudrik.jpg',
         author: 'Shani Shalgi',
         licence: 'CC BY-SA 3.0',
         licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
@@ -723,17 +723,17 @@ export const FAQ: Faq[] = [
   },
   {
     q: 'Who can apply?',
-    a: '[Placeholder] Eligibility (academic and non-academic applicants, countries, career stage) is to be confirmed with the Athanatos Foundation.',
+    a: '[Placeholder] Eligibility (academic and non-academic applicants, countries, career stage) is to be confirmed.',
     placeholder: true,
   },
   {
     q: 'How large are awards, and is overhead allowed?',
-    a: '[Placeholder] Award range and overhead policy are to be confirmed with the Athanatos Foundation.',
+    a: '[Placeholder] Award range and overhead policy are to be confirmed.',
     placeholder: true,
   },
   {
     q: 'How are decisions made?',
-    a: 'Proposals are published on ResearchHub and open to peer review. The Athanatos Foundation chooses which to fund. [Placeholder: named reviewers or advisors, if any.]',
+    a: 'Proposals are published on ResearchHub and open to peer review. [Placeholder: who chooses which to fund, and any named reviewers or advisors.]',
   },
   {
     q: 'What about IP and publishing?',
@@ -742,6 +742,6 @@ export const FAQ: Faq[] = [
   },
   {
     q: 'Where does money added to the pool go?',
-    a: 'Only to proposals the Athanatos Foundation funds under this call.',
+    a: 'Only to proposals funded under this call: the experiments and theory that test these questions. The pool is the call’s whole budget, built by everyone who adds to it.',
   },
 ];

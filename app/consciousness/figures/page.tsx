@@ -29,7 +29,9 @@ function pickSets(value: unknown): SetId[] {
 }
 
 const setsHref = (ids: SetId[]) =>
-  ids.length === SET_IDS.length ? '/orch-or/figures' : `/orch-or/figures?sets=${ids.join(',')}`;
+  ids.length === SET_IDS.length
+    ? '/consciousness/figures'
+    : `/consciousness/figures?sets=${ids.join(',')}`;
 
 /**
  * Every figure in every graphic set, side by side: one row per figure, one
@@ -72,7 +74,7 @@ export default async function FiguresGallery({
     <div className="pb-24">
       <header className="px-5 pb-8 pt-16 tablet:px-10 content-lg:px-16">
         <p className="text-[13px] text-[var(--o-mute)]">
-          <Link href="/orch-or" className="underline-offset-4 hover:underline">
+          <Link href="/consciousness" className="underline-offset-4 hover:underline">
             Orch OR landing page
           </Link>{' '}
           · preview
@@ -117,7 +119,7 @@ export default async function FiguresGallery({
           })}
           {shown.length < SETS.length && (
             <Link
-              href="/orch-or/figures"
+              href="/consciousness/figures"
               scroll={false}
               className="ml-1 text-[13px] text-[var(--o-mute)] underline-offset-4 hover:underline"
             >
@@ -149,7 +151,7 @@ export default async function FiguresGallery({
               <p className="mt-3 text-[12.5px] font-medium text-[var(--o-gold)]">{s.library}</p>
               <p className="mt-2 text-[13px] leading-[1.6] text-[var(--o-soft)]">{s.note}</p>
               <Link
-                href={s.id === DEFAULT_SET ? '/orch-or' : `/orch-or?set=${s.id}`}
+                href={s.id === DEFAULT_SET ? '/consciousness' : `/consciousness?set=${s.id}`}
                 className="mt-auto inline-flex items-center gap-1 pt-4 text-[13px] font-semibold text-[var(--o-text)] underline-offset-4 hover:underline"
               >
                 Page in {s.name} <ArrowUpRight className="h-3.5 w-3.5" />

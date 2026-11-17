@@ -53,10 +53,10 @@ const FONT_VARS = [serif, poster, clay, spectral, engraved, micrograph]
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
-    title: 'Is consciousness a quantum process? Request for proposals',
+    title: 'How does a brain make a mind? Fund the experiments.',
     description:
-      'The Athanatos Foundation funds experiments and theory on how consciousness arises, from whether it can be computed to whether it needs quantum physics. Evidence for and against any answer is funded on equal terms.',
-    url: '/orch-or',
+      'A crowdfunded call for experiments and theory on how consciousness arises, from whether an AI could be conscious to whether experience needs quantum physics. Evidence for and against any answer is funded on equal terms.',
+    url: '/consciousness',
   }),
   title: {
     default: 'Consciousness research: request for proposals',

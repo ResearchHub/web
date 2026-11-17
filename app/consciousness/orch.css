@@ -1,6 +1,6 @@
 /* The Orch OR page. Everything is scoped under .orch. The colours are CSS
    variables (--o-ink, --o-gold, ... and --o-*-rgb triplets for alpha), set
-   on .orch from app/orch-or/theme.ts, which the figures read too. */
+   on .orch from app/consciousness/theme.ts, which the figures read too. */
 
 .orch,
 .orch .o-set {

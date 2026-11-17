@@ -4,8 +4,8 @@
  * The real RFP does not exist on ResearchHub yet, so each value below is a
  * placeholder. When it does, replace this object with the live grant
  * (`work.note.post.grant` from `PostService.get(id)`, as
- * `app/rfp/[id]/[slug]/layout.tsx` loads it) and the funder's organization
- * profile from `useGrantPage()`. Nothing else on the page hard-codes an RFP fact.
+ * `app/rfp/[id]/[slug]/layout.tsx` loads it). Nothing else on the page
+ * hard-codes an RFP fact.
  */
 
 export type RfpStatus = 'OPEN' | 'CLOSED';
@@ -40,35 +40,18 @@ export interface OrchOrRfp {
    */
   postId: number | null;
   title: string;
-  funder: {
-    name: string;
-    /** Two letters for the monogram until a real logo exists. PLACEHOLDER. */
-    monogram: string;
-    /** ResearchHub organization profile URL. PLACEHOLDER: none found yet. */
-    profileUrl: string | null;
-    /**
-     * The funder's ResearchHub avatar (square; shown round beside its name).
-     * A storage.prod.researchhub.com URL or a file under /public/orch-or/.
-     * Null shows the monogram. PLACEHOLDER: account not found yet.
-     */
-    avatarUrl: string | null;
-    /**
-     * The funder's logo (any shape), shown in the funder section; falls back
-     * to the avatar, then the monogram. PLACEHOLDER: account not found yet.
-     */
-    logoUrl: string | null;
-    /** One paragraph from the funder. PLACEHOLDER. */
-    description: string;
-    /** PLACEHOLDER. */
-    contactEmail: string | null;
-  };
+  /**
+   * The account that creates the RFP on ResearchHub. Not shown on the page:
+   * the money comes from many donors, so the page names no single funder.
+   */
+  author: { name: string; profileUrl: string | null };
   pool: {
     currency: 'USD';
-    /** The funder's own commitment. PLACEHOLDER amount. */
-    funderCommitmentUsd: number;
-    /** Added by everyone else. Launch day: 0. */
-    othersUsd: number;
-    /** Everyone who has added to the pool, besides the funder. */
+    /** Raised so far, from everyone who has added to the pool. */
+    raisedUsd: number;
+    /** What the pool is trying to reach. PLACEHOLDER amount. */
+    goalUsd: number;
+    /** Everyone who has added to the pool. */
     backerCount: number;
     /** The top backers by amount, largest first (production sends the top few). */
     backers: MockBacker[];
@@ -94,25 +77,12 @@ export const ORCH_OR_RFP: OrchOrRfp = {
   grantId: null,
   postId: null,
   title: 'How does consciousness arise? Testing the open questions, quantum and otherwise',
-  funder: {
-    name: 'Athanatos Foundation',
-    monogram: 'AF',
-    // The foundation's ResearchHub account (author 8622267), which will create the RFP.
-    profileUrl: '/author/8622267',
-    avatarUrl:
-      'https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/27/blob_Mi9heek',
-    // Its avatar is the logo itself (gold wordmark on charcoal), so both use it.
-    logoUrl:
-      'https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/27/blob_Mi9heek',
-    description:
-      '[Placeholder] One paragraph from the Athanatos Foundation on who they are and why they are funding research on consciousness goes here.',
-    contactEmail: null,
-  },
+  author: { name: 'ResearchHub Foundation', profileUrl: null },
   pool: {
     currency: 'USD',
-    funderCommitmentUsd: 1_000_000,
-    // MOCK backers, to show the pool as it will look once others join in.
-    othersUsd: 68_450,
+    // MOCK backers, to show the pool as it will look once people join in.
+    raisedUsd: 68_450,
+    goalUsd: 1_000_000,
     backerCount: 23,
     backers: [
       { name: 'Maya Chen', amountUsd: 25_000, avatarUrl: null },
@@ -174,8 +144,9 @@ export const ORCH_OR_RFP: OrchOrRfp = {
   ],
 };
 
-export function poolTotalUsd(rfp: OrchOrRfp): number {
-  return rfp.pool.funderCommitmentUsd + rfp.pool.othersUsd;
+/** Share of the goal raised, 0–100. */
+export function poolPercent(rfp: OrchOrRfp): number {
+  return rfp.pool.goalUsd > 0 ? Math.min(100, (rfp.pool.raisedUsd / rfp.pool.goalUsd) * 100) : 0;
 }
 
 /** "$1,000,000" */

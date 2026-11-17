@@ -163,5 +163,5 @@ export function parseHero(value: unknown): HeroId {
   return (HERO_IDS as readonly unknown[]).includes(v) ? (v as HeroId) : DEFAULT_HERO;
 }
 
-/** The hero's captured stills, wide and phone: `public/orch-or/sets/poster/<file>`. */
+/** The hero's captured stills, wide and phone: `public/consciousness/sets/poster/<file>`. */
 export const heroStillName = (hero: HeroId) => (hero === 'beads' ? 'hero' : `hero-${hero}`);

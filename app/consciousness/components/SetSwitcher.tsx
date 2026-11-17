@@ -13,7 +13,7 @@ import { DEFAULT_HERO, HERO_IDS, HERO_INFO, type HeroId } from '../sets/heroes';
 export function SetSwitcher({
   current,
   hero = DEFAULT_HERO,
-  base = '/orch-or',
+  base = '/consciousness',
 }: {
   current: SetId;
   hero?: HeroId;

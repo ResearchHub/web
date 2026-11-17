@@ -1,7 +1,6 @@
 import { Plus } from 'lucide-react';
 import { FAQ, QUESTIONS, SOURCES } from '../data/content';
-import { ORCH_OR_RFP, deadlineLabel, formatUsd, poolTotalUsd } from '../data/mockRfp';
-import { FunderMark } from './FunderMark';
+import { ORCH_OR_RFP } from '../data/mockRfp';
 import { LiveProposals } from './LiveProposals';
 import { PoolPanel } from './PoolPanel';
 import { ProposalRow } from './ProposalRow';
@@ -77,7 +76,7 @@ export function Proposals({ live }: { live?: { grantId: number; rfpHref: string 
                           p={{
                             href: '#proposals-title',
                             title: p.title,
-                            imageUrl: q ? `/orch-or/sets/poster/${q.scene}.webp` : null,
+                            imageUrl: q ? `/consciousness/sets/poster/${q.scene}.webp` : null,
                             authors: p.authors,
                             raisedUsd: p.raisedUsd,
                             goalUsd: p.goalUsd,
@@ -97,44 +96,6 @@ export function Proposals({ live }: { live?: { grantId: number; rfpHref: string 
           </div>
 
           <PoolPanel />
-        </div>
-      </Wrap>
-    </section>
-  );
-}
-
-/** The funder and author of the call. Placeholder copy until Athanatos provides its own. */
-export function Funder() {
-  const { funder } = ORCH_OR_RFP;
-  return (
-    <section aria-labelledby="funder-title" className="o-rule border-t py-20 tablet:py-28">
-      <Wrap>
-        <div className="grid grid-cols-1 gap-8 content-md:grid-cols-12 content-md:gap-16">
-          <div className="flex items-center gap-5 content-md:col-span-5">
-            <FunderMark size={88} logo />
-            <div>
-              <h2 id="funder-title" className="o-serif text-[clamp(28px,3vw,40px)] leading-tight">
-                {funder.name}
-              </h2>
-              <p className="mt-1 text-[14px] text-[var(--o-mute)]">
-                Author and funder of this request for proposals
-              </p>
-            </div>
-          </div>
-          <div className="content-md:col-span-7">
-            <p className="o-prose">{funder.description}</p>
-            <p className="mt-4 text-[14px] text-[var(--o-mute)]">
-              {funder.profileUrl ? (
-                <a href={funder.profileUrl} className="underline underline-offset-4">
-                  Profile on ResearchHub
-                </a>
-              ) : (
-                '[Placeholder] Profile on ResearchHub'
-              )}
-              <span className="mx-3 opacity-50">·</span>
-              {funder.contactEmail ?? '[Placeholder] Contact'}
-            </p>
-          </div>
         </div>
       </Wrap>
     </section>
@@ -203,8 +164,8 @@ export function OrchFooter() {
   const rfp = ORCH_OR_RFP;
   return (
     <footer className="o-rule border-t px-5 py-8 text-[12.5px] text-[var(--o-mute)] tablet:px-10">
-      A request for proposals by the {rfp.funder.name}, hosted on ResearchHub.
-      {rfp.isMock && ' Preview: amounts, dates and funder details are placeholders.'}
+      A crowdfunded request for proposals, hosted on ResearchHub.
+      {rfp.isMock && ' Preview: amounts, backers and dates are placeholders.'}
     </footer>
   );
 }
