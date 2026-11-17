@@ -1,6 +1,6 @@
-import { Plus } from 'lucide-react';
+import { CalendarDays, Mail, Plus } from 'lucide-react';
 import { FAQ, QUESTIONS, SOURCES } from '../data/content';
-import { ORCH_OR_RFP } from '../data/mockRfp';
+import { ORCH_OR_RFP, TALK_TO_TEAM } from '../data/mockRfp';
 import { LiveProposals } from './LiveProposals';
 import { PoolPanel } from './PoolPanel';
 import { ProposalRow } from './ProposalRow';
@@ -96,6 +96,49 @@ export function Proposals({ live }: { live?: { grantId: number; rfpHref: string 
           </div>
 
           <PoolPanel />
+        </div>
+      </Wrap>
+    </section>
+  );
+}
+
+/**
+ * A way to reach the team: for larger gifts, questions about how the money
+ * is used, or a lab that could run one of the experiments. A 15-minute call
+ * (Tyler's booking link, as on /give) or email.
+ */
+export function TalkToUs() {
+  return (
+    <section aria-labelledby="talk-title" className="o-rule border-t py-20 tablet:py-28">
+      <Wrap>
+        <div className="grid grid-cols-1 gap-8 rounded-[24px] bg-[var(--o-ink2)] p-7 ring-1 ring-[color:var(--o-line)] content-md:grid-cols-12 content-md:items-center content-md:gap-12 tablet:p-12">
+          <div className="content-md:col-span-7">
+            <h2 id="talk-title" className={`${H2} max-w-[12em]`}>
+              Talk to us
+            </h2>
+            <p className="o-prose mt-5 max-w-[34em]">
+              Thinking about a larger gift, want to know exactly how the money will be used, or run
+              a lab that could take on one of these experiments? We would like to hear from you.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 content-md:col-span-5 content-md:items-end">
+            <a
+              href={TALK_TO_TEAM.bookingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="o-btn o-btn-gold h-12 w-full px-6 text-[15px] content-md:w-auto"
+            >
+              <CalendarDays aria-hidden className="h-4 w-4" strokeWidth={2.2} />
+              Book a 15-minute call
+            </a>
+            <a
+              href={`mailto:${TALK_TO_TEAM.email}`}
+              className="o-btn o-btn-ghost h-12 w-full px-6 text-[15px] content-md:w-auto"
+            >
+              <Mail aria-hidden className="h-4 w-4" strokeWidth={2.2} />
+              {TALK_TO_TEAM.email}
+            </a>
+          </div>
         </div>
       </Wrap>
     </section>

@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cn } from '@/utils/styles';
-import {
-  ORCH_OR_RFP,
-  deadlineLabel,
-  formatDateShort,
-  formatUsd,
-  formatUsdShort,
-} from '../data/mockRfp';
+import { ORCH_OR_RFP, formatDateShort, formatUsd, formatUsdShort } from '../data/mockRfp';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { BackerFaces, PoolBar } from './PoolPanel';
 
@@ -55,47 +49,43 @@ export function ActionDock() {
       inert={ctaInView}
     >
       {/* Wide screens: a floating bar. */}
-      <div className="pointer-events-auto hidden w-full max-w-[860px] items-center gap-4 rounded-full border border-[color:var(--o-line)] bg-[rgb(var(--o-ink2-rgb)/0.88)] py-2 pl-2 pr-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl tablet:flex">
+      <div className="pointer-events-auto hidden w-full max-w-[920px] items-center gap-4 rounded-full border border-[color:rgb(var(--o-gold-rgb)/0.3)] bg-[rgb(var(--o-ink2-rgb)/0.96)] py-2.5 pl-2.5 pr-2.5 shadow-[0_18px_50px_-14px_rgb(var(--o-text-rgb)/0.45),0_0_0_4px_rgb(var(--o-gold-rgb)/0.06)] backdrop-blur-xl tablet:flex">
         <span className="pl-2">
           <BackerFaces size={30} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13.5px] leading-tight text-[var(--o-soft)]">
-            <span className="text-[var(--o-text)]">{formatUsd(pool.raisedUsd)}</span> raised of{' '}
-            {formatUsdShort(pool.goalUsd)}
+          <p className="truncate text-[14.5px] leading-tight text-[var(--o-soft)]">
+            <span className="font-semibold tabular-nums text-[var(--o-text)]">
+              {formatUsd(pool.raisedUsd)}
+            </span>{' '}
+            raised toward {formatUsdShort(pool.goalUsd)}
             <span className="mx-2 opacity-50">·</span>
-            {pool.backerCount} backers
+            Goal 1 by {formatDateShort(pool.goalBy)}
             <span className="hidden content-md:inline">
               <span className="mx-2 opacity-50">·</span>
-              {rfp.status === 'OPEN' && rfp.deadline
-                ? `Until ${formatDateShort(rfp.deadline)}`
-                : deadlineLabel(rfp)}
+              {pool.backerCount} backers
             </span>
           </p>
-          <PoolBar className="mt-1.5 h-1 max-w-[260px]" />
+          <PoolBar className="mt-2 h-1.5 max-w-[300px]" />
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          <SubmitProposalButton size="sm" />
-          <AddToPoolButton size="sm" />
+          <SubmitProposalButton size="sm" className="h-11 px-5" />
+          <AddToPoolButton size="md" />
         </div>
       </div>
 
       {/* Phones: a full-width bar. */}
-      <div className="pointer-events-auto w-full border-t border-[color:var(--o-line)] bg-[rgb(var(--o-ink2-rgb)/0.94)] px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-xl tablet:hidden">
+      <div className="pointer-events-auto w-full border-t border-[color:rgb(var(--o-gold-rgb)/0.3)] bg-[rgb(var(--o-ink2-rgb)/0.97)] px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-12px_32px_-12px_rgb(var(--o-text-rgb)/0.3)] backdrop-blur-xl tablet:hidden">
         <p className="mb-2 flex items-center justify-between text-[12px] text-[var(--o-mute)]">
           <span>
-            <span className="tabular-nums text-[var(--o-text)]">
+            <span className="font-semibold tabular-nums text-[var(--o-text)]">
               {formatUsdShort(pool.raisedUsd)}
             </span>{' '}
-            raised of {formatUsdShort(pool.goalUsd)} · {pool.backerCount} backers
+            raised toward {formatUsdShort(pool.goalUsd)}
           </span>
-          <span className="flex items-center gap-1.5">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--o-open)]" />
-            {rfp.status === 'OPEN' && rfp.deadline
-              ? `Until ${formatDateShort(rfp.deadline)}`
-              : deadlineLabel(rfp)}
-          </span>
+          <span>Goal 1 by {formatDateShort(pool.goalBy)}</span>
         </p>
+        <PoolBar className="mb-2.5 h-1" />
         <div className="flex gap-2">
           <AddToPoolButton size="md" className="flex-[3] px-3" />
           <SubmitProposalButton size="md" className="flex-[2] px-3" label="Propose" />

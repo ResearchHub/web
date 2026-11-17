@@ -2,7 +2,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
 import {
   ORCH_OR_RFP,
-  deadlineLabel,
+  deadlinePhrase,
+  formatDate,
   formatUsd,
   formatUsdShort,
   poolPercent,
@@ -66,7 +67,7 @@ export function HeroPool({ proposals }: { proposals: number }) {
           {formatUsd(pool.raisedUsd)}
         </span>
         <span className="text-[14px] text-[var(--o-mute)]">
-          raised of {formatUsdShort(pool.goalUsd)}
+          raised toward {formatUsdShort(pool.goalUsd)} by {formatDate(pool.goalBy)}
         </span>
       </p>
       <PoolBar className="mt-3 h-2" />
@@ -74,10 +75,10 @@ export function HeroPool({ proposals }: { proposals: number }) {
         <BackerFaces size={22} />
         {pool.backerCount > 0 ? backersLabel : 'Be the first backer'}
         <span className="opacity-50">·</span>
-        <span className="tabular-nums">{Math.round(pct)}% of the goal</span>
+        <span className="tabular-nums">{Math.round(pct)}% of Goal 1</span>
       </p>
       <p className="mt-4 text-[13px] text-[var(--o-mute)]">
-        {deadlineLabel(rfp)}
+        Proposals {deadlinePhrase(rfp)}
         <span className="mx-2 opacity-50">·</span>
         {proposals === 0 ? 'No proposals yet' : `${proposals} proposals`}
         <span className="mx-2 opacity-50">·</span>
@@ -109,7 +110,7 @@ export function PoolPanel() {
         {formatUsd(pool.raisedUsd)}
       </p>
       <p className="mt-2 text-[15px] text-[var(--o-soft)]">
-        raised of a {formatUsd(pool.goalUsd)} goal
+        raised toward our {formatUsd(pool.goalUsd)} goal for {formatDate(pool.goalBy)}
       </p>
 
       <PoolBar className="mt-6" />
@@ -128,7 +129,7 @@ export function PoolPanel() {
       </p>
       <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px] text-[var(--o-mute)]">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--o-open)]" />
-        {deadlineLabel(rfp)}
+        Proposals {deadlinePhrase(rfp)}
         <span className="whitespace-nowrap">
           <span className="mr-2 opacity-50">·</span>
           Awards {rfp.awardRangeLabel}

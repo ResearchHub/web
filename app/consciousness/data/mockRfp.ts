@@ -49,8 +49,10 @@ export interface OrchOrRfp {
     currency: 'USD';
     /** Raised so far, from everyone who has added to the pool. */
     raisedUsd: number;
-    /** What the pool is trying to reach. PLACEHOLDER amount. */
+    /** Goal 1: what the pool is raising (Kobe, 2026-11-17: $1M). */
     goalUsd: number;
+    /** Goal 1's date, ISO (Kobe, 2026-11-17: 31 December 2026). */
+    goalBy: string;
     /** Everyone who has added to the pool. */
     backerCount: number;
     /** The top backers by amount, largest first (production sends the top few). */
@@ -83,6 +85,7 @@ export const ORCH_OR_RFP: OrchOrRfp = {
     // MOCK backers, to show the pool as it will look once people join in.
     raisedUsd: 68_450,
     goalUsd: 1_000_000,
+    goalBy: '2026-12-31',
     backerCount: 23,
     backers: [
       { name: 'Maya Chen', amountUsd: 25_000, avatarUrl: null },
@@ -190,4 +193,16 @@ export function formatDateShort(iso: string): string {
 export function deadlineLabel(rfp: OrchOrRfp): string {
   if (rfp.status === 'CLOSED') return 'Closed';
   return rfp.deadline ? `Open until ${formatDate(rfp.deadline)}` : 'Open · rolling review';
+}
+
+/** Where to talk to the team (Tyler's booking link, as on /give). */
+export const TALK_TO_TEAM = {
+  bookingUrl: 'https://cal.com/tyler-diorio/15min',
+  email: 'hello@researchhub.com',
+};
+
+/** The deadline mid-sentence: "open until 31 March 2027". */
+export function deadlinePhrase(rfp: OrchOrRfp): string {
+  const label = deadlineLabel(rfp);
+  return label.charAt(0).toLowerCase() + label.slice(1);
 }

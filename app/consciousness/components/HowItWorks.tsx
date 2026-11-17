@@ -2,9 +2,17 @@ import Image from 'next/image';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
 import { QUESTIONS } from '../data/content';
-import { ORCH_OR_RFP, formatUsd, formatUsdShort, poolPercent } from '../data/mockRfp';
+import {
+  ORCH_OR_RFP,
+  deadlinePhrase,
+  formatDate,
+  formatUsd,
+  formatUsdShort,
+  poolPercent,
+} from '../data/mockRfp';
 import { Sequence } from './Motion';
 import { AddToPoolButton } from './OrchActions';
+import { PoolBar } from './PoolPanel';
 import { Wrap } from './Story';
 
 /** Stage art: a round plate of one size, so the four stages sit on one line and the track passes behind them. */
@@ -211,15 +219,62 @@ const STEPS = [
   },
 ];
 
+/** A goal over its two stages: a numbered tag, the aim, where it stands, and a bracket down to the stages. */
+function GoalHead({
+  n,
+  title,
+  current,
+  children,
+  className,
+}: {
+  n: number;
+  title: string;
+  current: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('o-hiw-goal flex flex-col tablet:col-span-2', className)}>
+      <p
+        className={cn(
+          'self-start rounded-full px-3 py-1 text-[12.5px] font-semibold',
+          current
+            ? 'bg-[var(--o-gold)] text-[var(--o-onGold)]'
+            : 'text-[var(--o-gold)] ring-1 ring-inset ring-[color:rgb(var(--o-gold-rgb)/0.5)]'
+        )}
+      >
+        Goal {n}
+        {current && <span className="font-normal opacity-80"> · now</span>}
+      </p>
+      <h3 className="o-serif mt-3 max-w-[18em] text-[24px] leading-tight tablet:text-[30px]">
+        {title}
+      </h3>
+      <div className="mt-2 text-[14.5px] leading-[1.55] text-[var(--o-soft)]">{children}</div>
+      {/* On wide screens, a bracket from the goal down to its two stages. */}
+      <span
+        aria-hidden
+        className="mx-[24%] mt-auto hidden h-3 rounded-t-[10px] border-x border-t border-[color:var(--o-line-2)] pt-6 tablet:block"
+      />
+    </div>
+  );
+}
+
+/** Phone order: goal 1, its stages, goal 2, its stages. Wide screens: both goals above all four stages. */
+const PHONE_ORDER = ['order-2', 'order-3', 'order-5', 'order-6'];
+
 /**
- * How giving turns into answers, in four stages on one line: backers fill
- * the pool, the pool funds experiments, scientists run them, and the
- * results close the six open questions. A track with moving dots (money,
- * then results) joins the stages: across on wide screens, down between
- * the plates on phones. Sits just before the pool, with its own button.
+ * How giving turns into answers, in two goals. Goal 1 (now): raise the
+ * pool by its date; backers add to it and it fills. Goal 2: run the
+ * experiments; scientists propose and run them, and the results close the
+ * six open questions. On wide screens the goals sit above the four stages,
+ * each bracketing its two; on phones each goal heads its own stages. A
+ * dotted track with moving dots joins the stages. Sits just before the
+ * pool, with its own button.
  */
 export function HowItWorks() {
-  const { pool } = ORCH_OR_RFP;
+  const rfp = ORCH_OR_RFP;
+  const { pool } = rfp;
+  const pct = Math.round(poolPercent(rfp));
   return (
     <section
       id="how-it-works"
@@ -227,7 +282,7 @@ export function HowItWorks() {
       className="o-rule scroll-mt-10 border-t py-24 tablet:py-32"
     >
       <Wrap>
-        <p className="o-reveal text-[14px] text-[var(--o-mute)]">How it works</p>
+        <p className="o-reveal text-[14px] text-[var(--o-mute)]">How it works, in two goals</p>
         <h2
           id="how-title"
           className="o-reveal o-serif mt-3 max-w-[16em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
@@ -235,39 +290,65 @@ export function HowItWorks() {
           Your money becomes experiments. <em className="block">Experiments become answers.</em>
         </h2>
 
-        <Sequence className="relative mt-14 tablet:mt-20">
-          {/* The track: across, through the middle of the art on wide screens. */}
-          <span
-            aria-hidden
-            className="o-hiw-track absolute left-[12.5%] right-[12.5%] top-[91px] hidden h-[3px] tablet:block"
-          />
-          <ol className="relative grid grid-cols-1 gap-10 tablet:grid-cols-4 tablet:gap-8">
-            {STEPS.map(({ Art: StepArt, title, text }, i) => (
-              <li
-                key={title}
-                style={{ '--i': i } as React.CSSProperties}
-                className="o-hiw-step relative flex items-start gap-5 tablet:flex-col tablet:items-stretch tablet:gap-0 tablet:text-center"
-              >
-                {/* On phones, a stretch of track from this plate down to the next. */}
-                {i < STEPS.length - 1 && (
-                  <span
-                    aria-hidden
-                    className="o-hiw-track o-hiw-track-y absolute left-[54.5px] top-[112px] h-[calc(100%-112px+2.5rem)] w-[3px] tablet:hidden"
-                  />
-                )}
-                <StepArt />
-                <div className="pt-3 tablet:mt-6 tablet:px-2 tablet:pt-0">
-                  <p className="text-[13px] font-semibold tabular-nums text-[var(--o-gold)]">
-                    {i + 1}
-                  </p>
-                  <h3 className="o-serif mt-1 text-[22px] leading-tight tablet:text-[24px]">
-                    {title}
-                  </h3>
-                  <p className="mt-2 text-[15px] leading-[1.55] text-[var(--o-soft)]">{text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+        <Sequence className="mt-14 grid grid-cols-1 gap-10 tablet:mt-20 tablet:grid-cols-4 tablet:gap-x-8 tablet:gap-y-4">
+          <GoalHead
+            n={1}
+            current
+            title={`Raise ${formatUsdShort(pool.goalUsd)} by ${formatDate(pool.goalBy)}`}
+            className="order-1 tablet:order-none"
+          >
+            <PoolBar className="mb-2.5 mt-1 h-1.5 max-w-[320px]" />
+            <span className="tabular-nums text-[var(--o-text)]">
+              {formatUsd(pool.raisedUsd)}
+            </span>{' '}
+            raised from {pool.backerCount} backers
+            <span className="mx-2 opacity-50">·</span>
+            {pct}%
+          </GoalHead>
+          <GoalHead
+            n={2}
+            current={false}
+            title="Run the experiments that answer the six questions"
+            className="order-4 mt-4 tablet:order-none tablet:mt-0"
+          >
+            Proposals are {deadlinePhrase(rfp)}. The pool pays for the strongest.
+          </GoalHead>
+
+          {STEPS.map(({ Art: StepArt, title, text }, i) => (
+            <div
+              key={title}
+              style={{ '--i': i } as React.CSSProperties}
+              className={cn(
+                'o-hiw-step relative flex items-start gap-5 tablet:order-none tablet:flex-col tablet:items-stretch tablet:gap-0 tablet:text-center',
+                PHONE_ORDER[i]
+              )}
+            >
+              {/* Wide screens: track from this plate across to the next. */}
+              {i < STEPS.length - 1 && (
+                <span
+                  aria-hidden
+                  className="o-hiw-track absolute left-1/2 top-[91px] hidden h-[3px] w-[calc(100%+2rem)] tablet:block"
+                />
+              )}
+              {/* Phones: track down to the next plate in the same goal. */}
+              {i % 2 === 0 && (
+                <span
+                  aria-hidden
+                  className="o-hiw-track o-hiw-track-y absolute left-[54.5px] top-[112px] h-[calc(100%-112px+2.5rem)] w-[3px] tablet:hidden"
+                />
+              )}
+              <StepArt />
+              <div className="pt-3 tablet:mt-6 tablet:px-2 tablet:pt-0">
+                <p className="text-[13px] font-semibold tabular-nums text-[var(--o-gold)]">
+                  {i + 1}
+                </p>
+                <h4 className="o-serif mt-1 text-[22px] leading-tight tablet:text-[24px]">
+                  {title}
+                </h4>
+                <p className="mt-2 text-[15px] leading-[1.55] text-[var(--o-soft)]">{text}</p>
+              </div>
+            </div>
+          ))}
         </Sequence>
 
         <div
@@ -276,16 +357,16 @@ export function HowItWorks() {
         >
           <div>
             <p className="o-serif text-[24px] leading-tight tablet:text-[28px]">
-              Start the first experiments.
+              Help reach Goal 1: {formatUsdShort(pool.goalUsd)} by {formatDate(pool.goalBy)}.
             </p>
             <p className="mt-2 text-[15px] text-[var(--o-soft)]">
               <span className="tabular-nums text-[var(--o-text)]">{formatUsd(pool.raisedUsd)}</span>{' '}
-              raised of {formatUsdShort(pool.goalUsd)} from {pool.backerCount} backers
+              raised from {pool.backerCount} backers
               <span className="mx-2 opacity-50">·</span>
-              {Math.round(poolPercent(ORCH_OR_RFP))}% of the goal
+              {pct}% of the goal
             </p>
           </div>
-          <AddToPoolButton size="lg" className="w-full tablet:w-auto" />
+          <AddToPoolButton size="lg" className="w-full shrink-0 tablet:w-auto" />
         </div>
       </Wrap>
     </section>
