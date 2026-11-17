@@ -140,27 +140,13 @@ const KIND = {
   test: { Icon: Scale, tone: 'text-[var(--o-white)]', label: 'A test' },
 } as const;
 
-/** An author without a freely licensed photo: their initials in the same circle. */
-function Initials({ name }: { name: string }) {
-  const letters = name
-    .split(' ')
-    .map((w) => w[0])
-    .join('');
-  return (
-    <span
-      aria-hidden
-      className="o-serif flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--o-text-rgb)/0.06)] text-[19px] tracking-[0.02em] text-[var(--o-soft)] ring-1 ring-[color:var(--o-line-2)] transition-colors duration-500 group-hover:text-[var(--o-text)]"
-    >
-      {letters}
-    </span>
-  );
-}
-
 /**
  * One moment on the axis. Moments alternate above and below the line, each
  * starting half a card after the last, so the row reads as one continuous
- * timeline. The dot sits on the axis with the year on its far side; a short
- * stem joins it to the card.
+ * timeline. Cards on each side share a top line, so faces and text align
+ * across moments; above the axis the stem runs from the card down to the
+ * dot. The dot sits on the axis with the year on its far side. Authors with
+ * no freely licensed photo show the moment's icon in the photo's place.
  */
 function MomentItem({ m, i }: { m: Moment; i: number }) {
   const side = KIND[m.kind];
@@ -171,8 +157,8 @@ function MomentItem({ m, i }: { m: Moment; i: number }) {
         { '--i': i, gridColumn: `${i + 1} / span 2`, gridRow: above ? 1 : 3 } as React.CSSProperties
       }
       className={cn(
-        'group relative w-[256px] snap-start tablet:w-[300px]',
-        above ? 'self-end' : 'self-start'
+        'group relative flex w-[256px] snap-start flex-col tablet:w-[300px]',
+        above ? 'self-stretch' : 'self-start'
       )}
     >
       {/* Stem, dot and year, in the axis row. */}
@@ -183,7 +169,8 @@ function MomentItem({ m, i }: { m: Moment; i: number }) {
           above ? 'top-full' : 'bottom-full flex-col-reverse'
         )}
       >
-        <span className="block h-[30px] w-px bg-[var(--o-line-2)]" />
+        {/* Above the axis, the card's own stem reaches the dot. */}
+        <span className={cn('block h-8 w-px', !above && 'bg-[var(--o-line-2)]')} />
         <span
           className={cn(
             'block h-3 w-3 shrink-0 rounded-full bg-current ring-[5px] ring-[var(--o-ink)] transition-transform duration-300 group-hover:scale-125',
@@ -210,12 +197,22 @@ function MomentItem({ m, i }: { m: Moment; i: number }) {
             className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-[color:var(--o-line-2)] grayscale-[35%] transition-[filter] duration-500 group-hover:grayscale-0"
           />
         ) : (
-          <Initials name={m.person.name} />
+          <span
+            aria-hidden
+            className={cn(
+              'flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--o-text-rgb)/0.06)] ring-1 ring-[color:var(--o-line-2)]',
+              side.tone
+            )}
+          >
+            <side.Icon strokeWidth={1.75} className="h-6 w-6" />
+          </span>
         )}
         <span className="min-w-0">
           <span className="block truncate text-[13.5px] text-[var(--o-text)]">{m.person.name}</span>
           <span className="mt-1 flex items-center gap-1.5 whitespace-nowrap text-[12px] text-[var(--o-mute)]">
-            <side.Icon aria-hidden strokeWidth={2} className={cn('h-3.5 w-3.5', side.tone)} />
+            {m.person.photo && (
+              <side.Icon aria-hidden strokeWidth={2} className={cn('h-3.5 w-3.5', side.tone)} />
+            )}
             {side.label}
           </span>
         </span>
@@ -230,6 +227,12 @@ function MomentItem({ m, i }: { m: Moment; i: number }) {
           <Refs ids={m.sources} />
         </p>
       </div>
+      {/* Above the axis, cards share a top line; the stem runs down to it. */}
+      {above && (
+        <span aria-hidden className="o-tl-body relative min-h-0 flex-1">
+          <span className="absolute -bottom-8 left-7 top-3 w-px -translate-x-1/2 bg-[var(--o-line-2)]" />
+        </span>
+      )}
     </li>
   );
 }

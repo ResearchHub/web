@@ -23,7 +23,7 @@ original.
 | people/mudrik.jpg | Liad Mudrik (co-lead, Cogitate Consortium 2025) | https://commons.wikimedia.org/wiki/File:Liad_Mudrik.jpg | Shani Shalgi | CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0) |
 
 Penrose's photo is used for both 1989 and 1996. Two authors have no freely
-licensed photo on Commons and show as initials: Bernard Baars (1988) and Sana
+licensed photo on Commons and show the moment's icon instead: Bernard Baars (1988) and Sana
 Khan (first author, Khan et al. 2024). Nagel's photo is a 2008 classroom
 shot (576 px original), not the 1978 portrait on Commons, whose licence
 rests on an unverified "own work" claim; Tononi's is a 113 px original, so

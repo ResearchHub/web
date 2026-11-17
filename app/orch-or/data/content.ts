@@ -306,7 +306,7 @@ export interface Moment {
   sources: number[];
   /**
    * An author of the cited work, with a freely licensed photo where one
-   * exists; without one, the page shows their initials.
+   * exists; without one, the page shows the moment's icon in its place.
    */
   person: { name: string; photo?: Photo };
 }
@@ -320,8 +320,8 @@ export interface Moment {
  * two leading theories. Not everything, just the turns the field still talks
  * about. People appear as authors of the work cited, not as endorsers of
  * this call. Photos: Wikimedia Commons, credited on the page and in
- * public/orch-or/CREDITS.md; authors with no freely licensed photo show as
- * initials.
+ * public/orch-or/CREDITS.md; authors with no freely licensed photo show
+ * the moment's icon instead.
  */
 export const TIMELINE: Moment[] = [
   {
