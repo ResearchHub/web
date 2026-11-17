@@ -36,9 +36,7 @@ export function HeroHeader({
         <h1
           className={cn(
             'font-semibold tracking-tight leading-snug text-gray-900',
-            typeof title === 'string' && title.length > 100
-              ? 'text-2xl sm:text-3xl'
-              : 'text-2xl sm:text-4xl'
+            typeof title === 'string' && title.length > 100 ? 'text-2xl' : 'text-2xl sm:text-3xl'
           )}
         >
           {title}
