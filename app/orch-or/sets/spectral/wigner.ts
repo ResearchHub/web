@@ -2,7 +2,7 @@ import { smoothstep } from '../../visuals/palette';
 import type { SpectralFigure } from './glsl';
 
 /**
- * Q3, decoherence. The Wigner function of a cat state, one particle in two
+ * Q4, decoherence. The Wigner function of a cat state, one particle in two
  * places (x = ±a), as a luminous field seen from above with contour lines:
  * magenta and cyan peaks are the two branches; between them the
  * interference term 2·D·e^{-x²-p²}·cos(2ap) shows as fringes, bright where

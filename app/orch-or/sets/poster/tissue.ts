@@ -4,7 +4,7 @@ import { INK, RGB, rgba } from './inks';
 import type { PaperDraw, PaperFigure } from './paperFigure';
 
 /**
- * Q5, from microtubule to mind, after the Spectral set's figure, printed.
+ * Q6, from microtubule to mind, after the Spectral set's figure, printed.
  * Neurons as cells in a sheet of tissue (a jittered Voronoi tiling): each
  * cell a membrane outline and one neuron drawn for looks rather than
  * anatomy (a round body, swaying, forking dendrites, a long axon) whose
@@ -170,7 +170,7 @@ function bake(w: number, h: number, dpr: number): Plate {
   const knock = hexToRgb(INK.knock);
   for (const c of cells) {
     if (c.edge < 0.02) continue;
-    // The cell: a yellow knock-out tile, like the tubulin beads in Q1 and Q2.
+    // The cell: a yellow knock-out tile, like the tubulin beads in Q1 and Q3.
     g.fillStyle = rgba(knock, 0.9 * c.tone * c.edge);
     g.fill(c.path);
     // Membrane: a paper gap between cells, with the indigo printed a hair

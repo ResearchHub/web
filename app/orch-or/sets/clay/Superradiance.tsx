@@ -9,7 +9,7 @@ import type { ClaySceneProps } from './ClayLive';
 import { BEAD, C, TUBE_R, lattice, orbit, tubeLength, useSceneTime } from './common';
 
 /**
- * Q2, quantum states in microtubules (superradiance). A microtubule with
+ * Q3, quantum states in microtubules (superradiance). A microtubule with
  * its open end toward us: 13 beads round the hollow core. First the
  * tryptophans emit on their own: scattered, faint teal flashes. Then an
  * excitation runs along the tube, every site pulses apricot in step, and

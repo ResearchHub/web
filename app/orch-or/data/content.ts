@@ -273,7 +273,7 @@ export const OPEN_PROBLEM: OpenPart[] = [
   {
     n: 4,
     name: 'Whether it can be computed',
-    text: 'If it can, a computer running the right program would be conscious. If not, a brain does something no computer does. Q6 asks how to tell.',
+    text: 'If it can, a computer running the right program would be conscious. If not, a brain does something no computer does. Q2 asks how to tell.',
     orchOr: 'no: understanding, Penrose argues, is not an algorithm.',
   },
 ];
@@ -575,6 +575,28 @@ export const QUESTIONS: Question[] = [
     sources: [11, 12],
   },
   {
+    id: 'computation',
+    scene: 'turing',
+    name: 'Machine consciousness',
+    question: 'Could an AI be conscious by computing alone?',
+    known:
+      'Today’s AI computes. On some leading theories, a computer running the right processes would be conscious; on others, no conventional computer would be, whatever it ran. Penrose argues from Gödel’s theorem that computing alone cannot give understanding, an argument logicians widely dispute. Either answer would change how AI is built, and how we treat what we build.',
+    countsFor:
+      'Experience tracks only the computation a brain performs: change the physics, keep the computation, and nothing changes.',
+    countsAgainst:
+      'Experience depends on physical properties a computation leaves out, such as the quantum states in Q3–Q5.',
+    figure: {
+      caption:
+        'A Turing machine writing one symbol per step; each symbol is the size of one dot, so row by row the steps compute a picture of a sunset. Whether a machine running them could ever see it is the question. Schematic.',
+      legend: [
+        { label: 'Symbols on the tape', tone: 'w' },
+        { label: 'Read/write head', tone: 'b' },
+        { label: 'The picture it computes', tone: 'a' },
+      ],
+    },
+    sources: [21, 22, 23, 24, 25],
+  },
+  {
     id: 'quantum-states',
     scene: 'superradiance',
     name: 'Quantum states in microtubules',
@@ -653,28 +675,6 @@ export const QUESTIONS: Question[] = [
       ],
     },
     sources: [1, 19],
-  },
-  {
-    id: 'computation',
-    scene: 'turing',
-    name: 'Computation',
-    question: 'Can you compute your way to consciousness?',
-    known:
-      'Penrose’s case for “no” rests on Gödel’s theorem, and logicians have widely disputed it. Theories split as well: on some, a computer running the right processes would be conscious; on others, no conventional computer would be, whatever it ran.',
-    countsFor:
-      'Experience tracks only the computation a brain performs: change the physics, keep the computation, and nothing changes.',
-    countsAgainst:
-      'Experience depends on physical properties a computation leaves out, such as the quantum states in Q2–Q4.',
-    figure: {
-      caption:
-        'A Turing machine writing one symbol per step; each symbol is the size of one dot, so row by row the steps compute a picture of a sunset. Whether running them could ever be seeing it is the question. Schematic.',
-      legend: [
-        { label: 'Symbols on the tape', tone: 'w' },
-        { label: 'Read/write head', tone: 'b' },
-        { label: 'The picture it computes', tone: 'a' },
-      ],
-    },
-    sources: [21, 22, 23, 24],
   },
 ];
 

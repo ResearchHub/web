@@ -17,7 +17,7 @@ import type { ClaySceneProps } from './ClayLive';
 import { C, orbit, useSceneTime } from './common';
 
 /**
- * Q3, decoherence. The Wigner function of a "cat" state (one particle in
+ * Q4, decoherence. The Wigner function of a "cat" state (one particle in
  * two places, x = ±a) as a clay sheet: an apricot hill and a teal hill are
  * the two branches; the violet ripples between them are the interference
  * term 2·D·e^{-x²-p²}·cos(2ap), whose dark dips go below zero, which no

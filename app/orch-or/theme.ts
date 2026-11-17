@@ -29,7 +29,7 @@ export interface Theme {
   onGold: string; // text on a gold button
   accent: string; // a third colour some figures use for fields and light
   goldDeep?: string; // the primary colour pressed or hovered
-  fire?: string; // a neuron firing (Q5); falls back to `white`
+  fire?: string; // a neuron firing (Q6); falls back to `white`
 }
 
 /**

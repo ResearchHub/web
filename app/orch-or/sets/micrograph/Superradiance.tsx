@@ -20,7 +20,7 @@ import {
 import { pxPerUnitAt, writeTube } from './tube';
 
 /**
- * Q2, quantum states: superradiance. A microtubule with its open end toward
+ * Q3, quantum states: superradiance. A microtubule with its open end toward
  * the viewer, 13 strands round the hollow core. First the tryptophans emit
  * on their own: scattered violet flashes, a low slow decay on the trace.
  * Then an excitation runs down the tube, every site pulses chartreuse in

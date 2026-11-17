@@ -4,7 +4,7 @@ import { printFonts } from './type';
 import type { PaperDraw, PaperFigure } from './paperFigure';
 
 /**
- * Q6, can you compute your way to consciousness: a Turing machine at work.
+ * Q2, can you compute your way to consciousness: a Turing machine at work.
  * Its head steps along a tape, writing one symbol per step (a digit 0–9);
  * each digit is the size of one dot, so every pass along the tape is one
  * row of a halftone picture, printed above in blue as it is written. Row by

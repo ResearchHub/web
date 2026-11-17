@@ -238,7 +238,7 @@ function Print({ fig, onReady }: { fig: FigureId; onReady: () => void }) {
 
 /**
  * Figures drawn for this set rather than overprinted from the Ink scenes:
- * Q1 after the Spectral figure and Q5 after the Micrograph one, both
+ * Q1 after the Spectral figure and Q6 after the Micrograph one, both
  * reworked into the Poster's inks.
  */
 const PAPER_FIGURES: Partial<Record<PosterFigureId, PaperFigure>> = {

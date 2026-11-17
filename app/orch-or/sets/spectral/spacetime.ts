@@ -2,7 +2,7 @@ import { hash2, smoothstep } from '../../visuals/palette';
 import type { SpectralFigure } from './glsl';
 
 /**
- * Q4, objective reduction. Spacetime as a grid of light lensed by a mass.
+ * Q5, objective reduction. Spacetime as a grid of light lensed by a mass.
  * The mass is in two places at once, so there are two geometries: a
  * magenta grid bent by the mass on the left, a cyan grid bent by the mass
  * on the right, superposed (where they disagree they make a moiré). The

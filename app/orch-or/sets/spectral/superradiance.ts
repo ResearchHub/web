@@ -17,7 +17,7 @@ const SITES = Array.from({ length: 64 }, () => ({
 }));
 
 /**
- * Q2, quantum states in microtubules: superradiance. A microtubule side-on,
+ * Q3, quantum states in microtubules: superradiance. A microtubule side-on,
  * its open end showing 13 protofilaments round the hollow core; every
  * tubulin carries tryptophan. First the sites emit on their own: sparse dim
  * cyan flickers, and the trace below decays slowly. Then an excitation

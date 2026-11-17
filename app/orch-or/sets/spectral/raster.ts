@@ -1,7 +1,7 @@
 import type { SpectralFigure } from './glsl';
 
 /**
- * Q5, from microtubule to mind. Neurons as cells in a sheet of tissue
+ * Q6, from microtubule to mind. Neurons as cells in a sheet of tissue
  * (a jittered Voronoi field): each soma flashes white when it fires. Firing
  * drifts from scattered to locked to 25 ms gamma cycles (40 Hz, slowed for
  * display) and back; when locked, the flashes sweep across the sheet in

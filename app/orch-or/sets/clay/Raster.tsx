@@ -18,7 +18,7 @@ import type { ClaySceneProps } from './ClayLive';
 import { C, orbit, softSpot, useSceneTime } from './common';
 
 /**
- * Q5, from microtubule to mind. Thirty neurons as clay beads in rows on a
+ * Q6, from microtubule to mind. Thirty neurons as clay beads in rows on a
  * shelf; each pops up violet when it fires. Firing drifts from scattered
  * to locked to 25 ms gamma cycles (40 Hz, slowed for display): then the
  * whole population pops together, row on row, and a faint apricot glow on

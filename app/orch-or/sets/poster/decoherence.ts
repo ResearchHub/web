@@ -4,7 +4,7 @@ import type { PaperDraw, PaperFigure } from './paperFigure';
 import { drawRuns, pow10, printFonts, type Run } from './type';
 
 /**
- * Q3, decoherence: two published estimates on one clock.
+ * Q4, decoherence: two published estimates on one clock.
  *
  * Two lanes share one time ruler, from a femtosecond to a second on a log
  * scale (each tick ten times the last). In each lane the same quantum state

@@ -9,7 +9,7 @@ import { GREY, LIN, clamp, fract, hash2, semMaterial, smoothstep, substrateMater
 import { pxPerUnitAt } from './tube';
 
 /**
- * Q4, objective reduction: a membrane in relief stands for spacetime. One
+ * Q5, objective reduction: a membrane in relief stands for spacetime. One
  * mass in superposition sits in two places at once, so the membrane is
  * dented two ways: geometry A (chartreuse) and geometry B (violet), the
  * mass shown as a pale ghost in each. The gauge accumulates E_G·t/ħ; when it

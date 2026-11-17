@@ -18,7 +18,7 @@ import type { ClaySceneProps } from './ClayLive';
 import { C, orbit, useSceneTime } from './common';
 
 /**
- * Q4, objective reduction. A rubber sheet for spacetime, dented by one mass
+ * Q5, objective reduction. A rubber sheet for spacetime, dented by one mass
  * in two places at once: an apricot ball and a teal ball, each half the
  * mass, each making half a dent (the two geometries). The gauge at the side
  * fills with E_G·t/ħ; when it reaches the top (t ≈ τ = ħ/E_G) one geometry

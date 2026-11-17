@@ -19,7 +19,7 @@ import {
 import { pxPerUnitAt } from './tube';
 
 /**
- * Q3, decoherence: the Wigner function of a "cat" state (one particle in
+ * Q4, decoherence: the Wigner function of a "cat" state (one particle in
  * two places, x = ±a) as a surface in relief. The two peaks are the two
  * branches, painted chartreuse and violet; the ripples between are the
  * interference term 2·D·e^{-x²-p²}·cos(2ap), grey, with dips below zero

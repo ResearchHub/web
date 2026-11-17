@@ -19,7 +19,7 @@ import {
 import { pxPerUnitAt } from './tube';
 
 /**
- * Q5, gamma synchrony: cultured neurons as a scanning micrograph sees them,
+ * Q6, gamma synchrony: cultured neurons as a scanning micrograph sees them,
  * cell bodies and neurites lying on a coverslip. Each cell lights when it
  * fires and the spike runs down its axon. A spike that lands in phase with
  * the population's 40 Hz gamma cycle is painted chartreuse, one out of phase
