@@ -15,7 +15,7 @@ import type { WorkMetadata } from '@/services/metadata.service';
  * A quiet "Talk to us" link beside the hero's buttons, pointing to the Talk
  * to us section. On trial (Kobe, 2026-11-17): set to false to remove it.
  */
-const SHOW_TALK_LINK = true;
+const SHOW_TALK_LINK = false;
 
 export function Hero({
   set = 'ink',
@@ -44,13 +44,17 @@ export function Hero({
       />
       <div aria-hidden className="o-grain" />
 
-      <Link
-        href="/"
-        aria-label="ResearchHub home"
-        className="absolute left-5 top-5 z-10 flex h-10 items-center tablet:left-10 tablet:top-6 content-lg:left-16"
-      >
-        <Logo size={30} variant={isLightSet(set) ? undefined : 'white'} />
-      </Link>
+      <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-4 px-5 pt-5 tablet:px-10 tablet:pt-6 content-lg:px-16">
+        <Link href="/" aria-label="ResearchHub home" className="flex h-10 items-center">
+          <Logo size={30} variant={isLightSet(set) ? undefined : 'white'} />
+        </Link>
+        <a
+          href="#how-it-works"
+          className="text-[14.5px] font-medium text-[var(--o-text)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:decoration-current"
+        >
+          Learn about our process
+        </a>
+      </header>
 
       <div className="relative z-10 mt-auto px-5 pb-12 pt-[40svh] tablet:my-auto tablet:w-[min(760px,62%)] tablet:px-10 tablet:py-24 content-lg:px-16">
         <h1

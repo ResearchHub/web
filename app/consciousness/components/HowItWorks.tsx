@@ -10,7 +10,7 @@ import { Wrap } from './Story';
 function Art({ children }: { children: React.ReactNode }) {
   return (
     <div aria-hidden className="relative z-10 flex shrink-0 justify-center tablet:w-full">
-      <div className="flex h-[112px] w-[112px] items-center justify-center rounded-full bg-[var(--o-ink2)] ring-1 ring-[color:var(--o-line)] tablet:h-[184px] tablet:w-[184px]">
+      <div className="flex h-[112px] w-[112px] items-center justify-center rounded-full bg-[var(--o-ink2)] ring-1 ring-[color:var(--o-line)] tablet:h-[148px] tablet:w-[148px]">
         {children}
       </div>
     </div>
@@ -30,7 +30,7 @@ function BackersArt() {
             className="o-hiw-face rounded-full bg-[var(--o-ink)] ring-[3px] ring-[var(--o-ink)]"
           >
             <span className="hidden tablet:block">
-              <Avatar src={b.avatarUrl} alt={b.name} size={48} disableTooltip />
+              <Avatar src={b.avatarUrl} alt={b.name} size={40} disableTooltip />
             </span>
             <span className="tablet:hidden">
               <Avatar src={b.avatarUrl} alt={b.name} size={30} disableTooltip />
@@ -39,7 +39,7 @@ function BackersArt() {
         ))}
         <span
           style={{ '--i': 3 } as React.CSSProperties}
-          className="o-hiw-face flex h-[30px] w-[30px] items-center justify-center rounded-full border-2 border-dashed border-[var(--o-gold)] bg-[var(--o-ink)] text-[9.5px] font-semibold text-[var(--o-gold)] tablet:h-[48px] tablet:w-[48px] tablet:text-[13px]"
+          className="o-hiw-face flex h-[30px] w-[30px] items-center justify-center rounded-full border-2 border-dashed border-[var(--o-gold)] bg-[var(--o-ink)] text-[9.5px] font-semibold text-[var(--o-gold)] tablet:h-[40px] tablet:w-[40px] tablet:text-[11.5px]"
         >
           You
         </span>
@@ -103,7 +103,7 @@ function ExperimentsArt() {
   const cards = [QUESTIONS[0], QUESTIONS[2], QUESTIONS[3]];
   return (
     <Art>
-      <div className="relative h-[64px] w-[76px] tablet:h-[104px] tablet:w-[124px]">
+      <div className="relative h-[64px] w-[76px] tablet:h-[84px] tablet:w-[100px]">
         {cards.map((q, i) => (
           <span
             key={q.id}
@@ -146,7 +146,7 @@ function AnswersArt() {
           <svg
             key={q.id}
             viewBox="0 0 44 44"
-            className="h-[24px] w-[24px] tablet:h-[38px] tablet:w-[38px]"
+            className="h-[24px] w-[24px] tablet:h-[30px] tablet:w-[30px]"
           >
             <circle
               cx={22}
@@ -191,22 +191,22 @@ const STEPS = [
   {
     Art: BackersArt,
     title: 'You add to the pool',
-    text: 'Any amount. Your gift joins everyone else’s in one pool, the whole budget for this call.',
+    text: 'Any amount, pooled with every other backer.',
   },
   {
     Art: ExperimentsArt,
     title: 'Scientists submit proposals',
-    text: 'Labs post their experiments on ResearchHub: the methods, the budget, and what result would count against their own view.',
+    text: 'Labs post their methods, budget, and what would prove them wrong.',
   },
   {
     Art: PoolArt,
     title: 'Peers review, the pool pays',
-    text: 'Proposals are reviewed in the open on ResearchHub, and the strongest are paid for from the pool.',
+    text: 'Open review on ResearchHub. The strongest get funded.',
   },
   {
     Art: AnswersArt,
     title: 'Results are published',
-    text: 'Data, code and results go up on ResearchHub, whichever way they point, so anyone can check them.',
+    text: 'Data and code go public, whichever way they point.',
   },
 ];
 
@@ -225,18 +225,17 @@ export function HowItWorks() {
     <section
       id="how-it-works"
       aria-labelledby="how-title"
-      className="o-rule scroll-mt-10 border-t py-24 tablet:py-32"
+      className="o-rule scroll-mt-10 border-t py-20 tablet:py-24"
     >
       <Wrap>
-        <p className="o-reveal text-[14px] text-[var(--o-mute)]">How it works</p>
         <h2
           id="how-title"
-          className="o-reveal o-serif mt-3 max-w-[16em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
+          className="o-reveal o-serif max-w-[16em] text-[clamp(28px,3vw,40px)] leading-[1.1]"
         >
           Your money becomes experiments. <em className="block">Experiments become answers.</em>
         </h2>
 
-        <Sequence className="relative mt-14 tablet:mt-20">
+        <Sequence className="relative mt-10 tablet:mt-14">
           <ol className="relative grid grid-cols-1 gap-10 tablet:grid-cols-4 tablet:gap-8">
             {STEPS.map(({ Art: StepArt, title, text }, i) => (
               <li
@@ -249,7 +248,7 @@ export function HowItWorks() {
                     {/* Wide screens: track from this plate across to the next. */}
                     <span
                       aria-hidden
-                      className="o-hiw-track absolute left-1/2 top-[91px] hidden h-[3px] w-[calc(100%+2rem)] tablet:block"
+                      className="o-hiw-track absolute left-1/2 top-[72.5px] hidden h-[3px] w-[calc(100%+2rem)] tablet:block"
                     />
                     {/* Phones: track down to the next plate. */}
                     <span
@@ -259,14 +258,14 @@ export function HowItWorks() {
                   </>
                 )}
                 <StepArt />
-                <div className="pt-3 tablet:mt-6 tablet:px-2 tablet:pt-0">
+                <div className="pt-3 tablet:mt-5 tablet:px-2 tablet:pt-0">
                   <p className="text-[13px] font-semibold tabular-nums text-[var(--o-gold)]">
                     {i + 1}
                   </p>
-                  <h3 className="o-serif mt-1 text-[22px] leading-tight tablet:text-[24px]">
+                  <h3 className="o-serif mt-1 text-[20px] leading-tight tablet:text-[21px]">
                     {title}
                   </h3>
-                  <p className="mt-2 text-[15px] leading-[1.55] text-[var(--o-soft)]">{text}</p>
+                  <p className="mt-1.5 text-[14.5px] leading-[1.5] text-[var(--o-soft)]">{text}</p>
                 </div>
               </li>
             ))}
@@ -275,7 +274,7 @@ export function HowItWorks() {
 
         <div
           data-orch-cta
-          className="o-reveal mt-16 flex flex-col items-start gap-5 rounded-[18px] bg-[rgb(var(--o-gold-rgb)/0.07)] p-6 ring-1 ring-[color:rgb(var(--o-gold-rgb)/0.2)] tablet:mt-20 tablet:flex-row tablet:items-center tablet:justify-between tablet:p-8"
+          className="o-reveal mt-12 flex flex-col items-start gap-5 rounded-[18px] bg-[rgb(var(--o-gold-rgb)/0.07)] p-6 ring-1 ring-[color:rgb(var(--o-gold-rgb)/0.2)] tablet:mt-14 tablet:flex-row tablet:items-center tablet:justify-between tablet:p-7"
         >
           <div>
             <p className="o-serif text-[24px] leading-tight tablet:text-[28px]">

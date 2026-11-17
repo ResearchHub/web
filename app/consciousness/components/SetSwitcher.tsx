@@ -20,7 +20,7 @@ export function SetSwitcher({
   base?: string;
 }) {
   return (
-    <div className="fixed right-3 top-3 z-50 flex flex-col items-end gap-1.5 tablet:right-5 tablet:top-5">
+    <div className="fixed right-3 top-16 z-50 flex flex-col items-end gap-1.5 tablet:right-5 tablet:top-20">
       <nav
         aria-label="Graphic set"
         className="flex items-center gap-0.5 rounded-full border border-[color:var(--o-line-2)] bg-[rgb(var(--o-ink2-rgb)/0.86)] p-1 shadow-[0_8px_30px_-12px_rgb(0_0_0/0.5)] backdrop-blur-xl"

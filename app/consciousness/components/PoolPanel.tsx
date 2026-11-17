@@ -61,20 +61,21 @@ export function daysLeft(iso: string): number {
 }
 
 /**
- * The phase snippet in the hero, under the calls to action: a blinking dot
- * and "Phase 1 of 2 · Raising now", the amount raised against the goal, the
- * backers and days left, and a link down to both phases in full.
+ * The phase snippet in the hero, under the calls to action: a radiating
+ * dot and "Phase 1 of 2", the amount raised against the goal, the backers
+ * and days left. Both phases in full are further down the page.
  */
 export function HeroPhase() {
   const { pool, pct, backersLabel } = poolFacts();
   const left = daysLeft(pool.goalBy);
   return (
     <div className="o-rise mt-8 max-w-[480px] rounded-[16px] bg-[rgb(var(--o-ink-rgb)/0.78)] p-5 ring-1 ring-[color:var(--o-line-2)] backdrop-blur-md">
-      <p className="flex items-center gap-2.5 text-[12px] font-semibold uppercase tracking-[0.12em]">
-        <span aria-hidden className="o-live h-2 w-2 shrink-0 rounded-full" />
-        <span className="text-[var(--o-text)]">Phase 1 of 2</span>
-        <span className="text-[var(--o-mute)]">·</span>
-        <span className="text-[var(--o-soft)]">Raising now</span>
+      <p className="flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--o-text)]">
+        <span aria-hidden className="o-live relative flex h-2.5 w-2.5 shrink-0">
+          <span className="o-live-ring absolute inset-0 rounded-full bg-[var(--o-gold)]" />
+          <span className="relative h-2.5 w-2.5 rounded-full bg-[var(--o-gold)]" />
+        </span>
+        Phase 1 of 2
       </p>
       <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
         <span className="o-serif text-[28px] leading-none tabular-nums">
@@ -95,15 +96,6 @@ export function HeroPhase() {
           {left} {left === 1 ? 'day' : 'days'} left
         </span>
       </div>
-      <p className="o-rule mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t pt-3 text-[13px] text-[var(--o-mute)]">
-        <span>Then Phase 2: fund and run the experiments</span>
-        <a
-          href="#phases"
-          className="font-medium text-[var(--o-text)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:decoration-current"
-        >
-          See both phases ↓
-        </a>
-      </p>
     </div>
   );
 }

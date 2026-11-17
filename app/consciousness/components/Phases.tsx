@@ -115,11 +115,7 @@ function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
           Open {formatDate(rfp.opensOn)} to {rfp.deadline ? formatDate(rfp.deadline) : 'rolling'}
         </Fact>
         <Fact label="Review">In the open on ResearchHub, by peer reviewers</Fact>
-        <Fact label="Who decides">
-          <Placeholder>Who chooses which proposals are funded is to be confirmed.</Placeholder>
-        </Fact>
         <Fact label="Awards">{rfp.awardRangeLabel} each</Fact>
-        <Fact label="Decisions by">{formatDate(rfp.decisionsBy)}</Fact>
       </dl>
     </PhaseCard>
   );
@@ -129,9 +125,8 @@ function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
  * Where the programme stands, in full, near the end of the page (the hero
  * carries the short version and links here): Phase 1 raises the pool
  * (target, date, progress and the facts a donor checks), Phase 2 funds and
- * runs the experiments (the proposal window, review, who decides, award
- * size, decision date). The programme's timeline, not the reader's steps;
- * those are in How it works. Unknown answers are marked as placeholders.
+ * runs the experiments (the proposal window, review and award size). The
+ * programme's timeline, not the reader's steps; those are in How it works. Unknown answers are marked as placeholders.
  */
 export function Phases() {
   const rfp = ORCH_OR_RFP;

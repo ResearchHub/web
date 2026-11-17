@@ -69,32 +69,13 @@ export function Claim() {
           id="claim-title"
           className="o-reveal o-serif max-w-[14em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
         >
-          An open problem, in four parts
+          Consciousness is an open problem
         </h2>
-        <p className="o-reveal o-prose mt-5 max-w-[36em]">
-          How a brain gives rise to experience is one of the largest unanswered questions in
-          science. It breaks into four parts, and none has an agreed answer.
-          <Refs ids={[26]} />
-        </p>
 
         <Sequence>
-          <ol className="mt-14 grid grid-cols-1 gap-x-10 gap-y-10 tablet:grid-cols-2 content-md:grid-cols-4">
+          <ol className="mt-12 grid grid-cols-1 gap-x-10 gap-y-10 tablet:grid-cols-2 content-md:grid-cols-4">
             {OPEN_PROBLEM.map((part, i) => (
-              <li
-                key={part.n}
-                style={{ '--i': i } as React.CSSProperties}
-                className="relative pt-6"
-              >
-                {/* A quiet rule, and a gold one a signal draws over it. */}
-                <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-[var(--o-line)]" />
-                <span
-                  aria-hidden
-                  className="o-chain-rule absolute inset-x-0 top-0 h-px bg-[rgb(var(--o-gold-rgb)/0.55)]"
-                />
-                <span
-                  aria-hidden
-                  className="o-chain-spark absolute top-0 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--o-gold)] shadow-[0_0_14px_3px_rgb(var(--o-gold-rgb)/0.8)]"
-                />
+              <li key={part.n} style={{ '--i': i } as React.CSSProperties} className="relative">
                 <div className="flex items-end justify-between gap-4">
                   <span className="o-chain-n o-serif block text-[44px] italic leading-none text-[var(--o-gold)]">
                     {part.n}
@@ -115,14 +96,6 @@ export function Claim() {
             ))}
           </ol>
         </Sequence>
-
-        <p className="o-reveal o-prose mt-14 max-w-[40em]">
-          Orch OR, proposed in 1996 by the physicist Roger Penrose and the anesthesiologist Stuart
-          Hameroff, is the most developed quantum proposal, and it answers all four in a single
-          chain. Every link can be tested, which makes it a good place to start, though not the only
-          one: this call funds the experiments, whichever answer they favour.
-          <Refs ids={[1, 18]} />
-        </p>
       </Wrap>
     </section>
   );
@@ -145,8 +118,9 @@ const KIND = {
  * starting half a card after the last, so the row reads as one continuous
  * timeline. Cards on each side share a top line, so faces and text align
  * across moments; above the axis the stem runs from the card down to the
- * dot. The dot sits on the axis with the year on its far side. Authors with
- * no freely licensed photo show the moment's icon in the photo's place.
+ * dot. The dot sits on the axis with the year on its far side. Moments whose
+ * author has no freely licensed photo are left out (`MOMENTS`); the icon
+ * fallback stays in case one is shown again.
  */
 function MomentItem({ m, i }: { m: Moment; i: number }) {
   const side = KIND[m.kind];
@@ -237,10 +211,13 @@ function MomentItem({ m, i }: { m: Moment; i: number }) {
   );
 }
 
+/** Moments with a photo of their author; those without are left out (Kobe, 2026-11-17). */
+const MOMENTS = TIMELINE.filter((m) => m.person.photo);
+
 /** Consciousness science so far, oldest on the left, newest on the right. */
 export function Timeline() {
-  const first = TIMELINE[0].year;
-  const last = TIMELINE[TIMELINE.length - 1].year;
+  const first = MOMENTS[0].year;
+  const last = MOMENTS[MOMENTS.length - 1].year;
   return (
     <section aria-labelledby="timeline-title" className="o-rule border-t py-24 tablet:py-32">
       <Sequence>
@@ -266,12 +243,12 @@ export function Timeline() {
               <li
                 aria-hidden
                 role="presentation"
-                style={{ gridColumn: `1 / ${TIMELINE.length + 2}`, gridRow: 2 }}
+                style={{ gridColumn: `1 / ${MOMENTS.length + 2}`, gridRow: 2 }}
                 className="relative"
               >
                 <span className="o-tl-line absolute left-7 right-[calc(2*var(--c)-1.75rem)] top-1/2 block h-px bg-[var(--o-line-2)]" />
               </li>
-              {TIMELINE.map((m, i) => (
+              {MOMENTS.map((m, i) => (
                 <MomentItem key={`${m.year}-${m.cite}`} m={m} i={i} />
               ))}
             </ol>
