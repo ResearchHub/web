@@ -13,8 +13,7 @@ import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { useWorkPermissions } from '@/components/work/WorkHeader/WorkHeaderHooks';
 import { useWorkHeaderMenuItems } from '@/components/work/WorkHeader/useWorkHeaderMenu';
 import { WorkHeaderModals } from '@/components/work/WorkHeader/WorkHeaderModals';
-import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
-import { buildPublicSharePath, getPublicShareBlockReason, usesAiSharePost } from '@/utils/share';
+import { aiShareModalParams, buildPublicSharePath, getPublicShareBlockReason } from '@/utils/share';
 import type { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { cn } from '@/utils/styles';
@@ -77,14 +76,12 @@ function LiveRfpMenu({ work, metadata }: { work: Work; metadata: WorkMetadata })
   const shareBlockReason = getPublicShareBlockReason(work);
   const share = () => {
     if (shareBlockReason) return;
-    const useAiPost = usesAiSharePost(work.contentType);
     showShareModal({
       url: `${globalThis.location.origin}${buildPublicSharePath(work)}`,
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
-      aiPostId: useAiPost ? work.id : undefined,
-      previewImageUrl: useAiPost ? getWorkShareImageUrl(work) : undefined,
+      ...aiShareModalParams(work),
     });
   };
 

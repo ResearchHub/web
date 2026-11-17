@@ -21,7 +21,7 @@ import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 import { useShareModalContext } from '@/contexts/ShareContext';
-import { isPubliclyShareable } from '@/utils/share';
+import { aiShareModalParams, isPubliclyShareable } from '@/utils/share';
 import { buildWorkUrl } from '@/utils/url';
 import { useStorageKey } from '@/utils/storageKeys';
 
@@ -210,6 +210,7 @@ function CommentFeedContent({
                 })}#comment-${result.id}`,
                 docTitle: work.title || 'the document',
                 action: 'USER_PEER_REVIEWED',
+                ...aiShareModalParams(work),
               });
             }
           } catch (reviewError) {

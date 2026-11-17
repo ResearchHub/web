@@ -1,3 +1,4 @@
+import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import type { ContentType, Work } from '@/types/work';
 import { buildRegisteredReportUrl } from '@/utils/registeredReportRoute';
 import { buildWorkUrl } from '@/utils/url';
@@ -45,6 +46,18 @@ export function isPubliclyShareable(work: ShareVisibilityWork): boolean {
 
 export function usesAiSharePost(contentType: ContentType): boolean {
   return AI_SHARE_CONTENT_TYPES.has(contentType);
+}
+
+/** Share-modal fields that turn on the AI post preview, or nothing for other content types. */
+export function aiShareModalParams(work: Work): {
+  aiPostId?: number;
+  previewImageUrl?: string;
+} {
+  if (!usesAiSharePost(work.contentType)) return {};
+  return {
+    aiPostId: work.id,
+    previewImageUrl: getWorkShareImageUrl(work),
+  };
 }
 
 /** Canonical path for a public social share. */
