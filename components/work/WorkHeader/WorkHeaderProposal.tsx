@@ -149,6 +149,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
           eyebrowFace: lead && { name: lead.fullName, image: lead.profileImage },
           badges: closedBadge,
         }}
+        hideSidebarButton
       />
 
       {fundraise && isActive && (

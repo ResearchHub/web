@@ -17,12 +17,11 @@ export const GrantSortAndFilters: FC<GrantSortAndFiltersProps> = ({
   onSortChange,
 }) => {
   return (
-    <div className={cn('flex items-center justify-end mt-1 sm:mt-3 -mb-1', className)}>
+    <div className={cn('flex items-center justify-end', className)}>
       <SortMenu
         options={GRANT_SORT_OPTIONS}
         value={sortBy}
         onChange={onSortChange}
-        triggerVariant="touch"
         triggerProps={{ 'data-testid': 'feed-sort-trigger' }}
       />
     </div>
