@@ -187,7 +187,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       data-testid="grant-card"
     >
       {/* Frosted header */}
-      <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-900">
+      <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-300">
         {content.previewImage ? (
           <Image
             src={content.previewImage}

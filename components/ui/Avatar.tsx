@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, CSSProperties, MouseEvent } from 'react';
+import { FC, useState, useLayoutEffect, CSSProperties, MouseEvent } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
 import Link from 'next/link';
@@ -30,6 +30,8 @@ const sizeMap = {
   md: 40,
 };
 
+const loadedSrcs = new Set<string>();
+
 export const Avatar: FC<AvatarProps> = ({
   src,
   alt,
@@ -45,13 +47,16 @@ export const Avatar: FC<AvatarProps> = ({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (src && src.trim() !== '') {
       setImageError(false);
-      setIsLoading(true);
+      setIsLoading(!loadedSrcs.has(src));
       const img = new Image();
       img.src = src;
-      img.onload = () => setIsLoading(false);
+      img.onload = () => {
+        loadedSrcs.add(src);
+        setIsLoading(false);
+      };
       img.onerror = () => {
         setImageError(true);
         setIsLoading(false);

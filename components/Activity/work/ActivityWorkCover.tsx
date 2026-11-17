@@ -69,7 +69,7 @@ export const ActivityWorkCover: FC<ActivityWorkCoverProps> = ({
       onClick={onNavigate}
       className={cn(
         // `isolate` keeps the image's hover zoom inside the rounded corners in Safari.
-        'group relative isolate block aspect-[3/2] overflow-hidden rounded-xl border border-gray-200 bg-gray-900 tablet:aspect-[2/1]',
+        'group relative isolate block aspect-[3/2] overflow-hidden rounded-xl border border-gray-200 bg-gray-200 tablet:aspect-[2/1]',
         className
       )}
     >

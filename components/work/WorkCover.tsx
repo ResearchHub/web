@@ -103,7 +103,7 @@ export function WorkCover({
             width={1200}
             height={630}
             priority
-            className="block h-auto w-full tablet:absolute tablet:inset-0 tablet:!h-full tablet:object-cover"
+            className="block h-auto w-full bg-gray-100 tablet:absolute tablet:inset-0 tablet:!h-full tablet:object-cover"
             sizes="(min-width: 1012px) 980px, 100vw"
           />
         )}
