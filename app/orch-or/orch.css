@@ -222,7 +222,7 @@
   }
 }
 
-/* Tenets: a signal runs down the chain. Each link's rule draws in turn, a
+/* The open problem's four parts: a signal runs down the row. Each link's rule draws in turn, a
    spark rides its head, and the numeral lights as the spark arrives. */
 .orch .o-chain-rule {
   transform-origin: left;
@@ -265,10 +265,14 @@
   opacity: 0;
 }
 .orch .o-tenet-icon .o-ti-tiles,
-.orch .o-tenet-icon .o-ti-bead,
 .orch .o-tenet-icon .o-ti-soma {
   transform-box: fill-box;
   transform-origin: center;
+}
+.orch .o-tenet-icon .o-ti-needle {
+  transform-box: view-box;
+  transform-origin: 32px 44px;
+  transform: rotate(-22deg);
 }
 .orch [data-seq='armed'] .o-tenet-icon {
   opacity: 0;
@@ -289,9 +293,8 @@
 .orch [data-seq='run'] .o-ti-or-merged {
   animation: o-ti-or-merged 7s ease-in-out 2.8s infinite;
 }
-.orch [data-seq='run'] .o-ti-bead {
-  animation: o-ti-bead 3.2s ease-in-out infinite;
-  animation-delay: calc(var(--k) * 0.16s + 3s);
+.orch [data-seq='run'] .o-ti-needle {
+  animation: o-ti-needle 9s ease-in-out 2.4s infinite;
 }
 .orch [data-seq='run'] .o-ti-wave {
   animation: o-ti-wave 2.8s linear 3.2s infinite;
@@ -352,14 +355,25 @@
     opacity: 0;
   }
 }
-@keyframes o-ti-bead {
+@keyframes o-ti-needle {
   0%,
-  30%,
   100% {
-    transform: none;
+    transform: rotate(-22deg);
   }
-  15% {
-    transform: scale(1.35);
+  22% {
+    transform: rotate(38deg);
+  }
+  34% {
+    transform: rotate(26deg);
+  }
+  58% {
+    transform: rotate(-48deg);
+  }
+  72% {
+    transform: rotate(-30deg);
+  }
+  86% {
+    transform: rotate(8deg);
   }
 }
 @keyframes o-ti-wave {

@@ -1,5 +1,7 @@
 /**
- * Flat, printed icons for the four tenets, one per link of the chain. Each
+ * Flat, printed icons for the four parts of the open problem (what
+ * consciousness is, where it arises, whether it needs quantum physics,
+ * whether it can be computed). Each
  * is two or three flat inks (the set's blue, pink, indigo and yellow from
  * the CSS variables), slightly out of register like a risograph. They are
  * still when the server renders them; once the chain has run (`data-seq`
@@ -39,7 +41,7 @@ function penrosePatch(r: number) {
 
 const PENROSE = penrosePatch(27);
 
-/** 1. Non-computability: a patch of Penrose tiling. Penrose's own example
+/** 4. Whether it can be computed: a patch of Penrose tiling. Penrose's own example
  *  of a question no algorithm settles is whether shapes like these tile
  *  the plane; these never repeat. Thick tiles in blue, thin in pink, a
  *  yellow ground printed a little off, the patch turning slowly. */
@@ -80,8 +82,8 @@ function NonComputability() {
   );
 }
 
-/** 2. Objective reduction: two states of one thing, side by side over a
- *  dip in spacetime, that fall together into one. */
+/** 3. Whether it needs quantum physics: two states of one thing, side by
+ *  side, that fall together into one. */
 function ObjectiveReduction() {
   return (
     <>
@@ -119,39 +121,7 @@ function ObjectiveReduction() {
   );
 }
 
-/** 3. Microtubules: a short tube of tubulin beads, its open end a ring of
- *  thirteen; a wave runs along it. */
-const RING = Array.from({ length: 13 }, (_, i) => {
-  const a = (i / 13) * Math.PI * 2;
-  return [13 + Math.cos(a) * 7.5, 32 + Math.sin(a) * 17] as const;
-});
-function Microtubules() {
-  const rows = [19, 26.5, 34, 41.5];
-  return (
-    <>
-      <rect x="13" y="15" width="49" height="34" rx="5" fill={YELLOW} opacity="0.6" />
-      {rows.map((y, r) =>
-        Array.from({ length: 6 }, (_, i) => (
-          <circle
-            key={`${r}-${i}`}
-            className="o-ti-bead"
-            style={{ '--k': i } as React.CSSProperties}
-            cx={24 + i * 6.4 + (r % 2) * 3.2}
-            cy={y + 2.2}
-            r="2.8"
-            fill={(i + r) % 2 ? BLUE : INDIGO}
-          />
-        ))
-      )}
-      <ellipse cx="13" cy="32" rx="10" ry="20" fill="var(--o-ink)" />
-      {RING.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="2.6" fill={i % 2 ? PINK : BLUE} />
-      ))}
-    </>
-  );
-}
-
-/** 4. Orchestration: a neuron, and under it a rhythm that sets when it
+/** 2. Where it arises: a neuron, and under it a rhythm that sets when it
  *  fires: the wave scrolls and the cell pulses on each crest. */
 function Orchestration() {
   return (
@@ -186,7 +156,55 @@ function Orchestration() {
   );
 }
 
-const ICONS = [NonComputability, ObjectiveReduction, Microtubules, Orchestration];
+/** 1. What it is: a meter with no agreed scale, its needle never settling. */
+function Measure() {
+  const ticks = Array.from({ length: 9 }, (_, i) => {
+    const a = Math.PI * (1 + i / 8);
+    return [
+      32 + Math.cos(a) * 21,
+      44 + Math.sin(a) * 21,
+      32 + Math.cos(a) * 25.5,
+      44 + Math.sin(a) * 25.5,
+    ];
+  });
+  return (
+    <>
+      <path
+        d="M5 44 A27 27 0 0 1 59 44 Z"
+        transform="translate(2.2 2.4)"
+        fill={YELLOW}
+        opacity="0.75"
+      />
+      <path
+        d="M11 44 A21 21 0 0 1 32 23"
+        fill="none"
+        stroke={BLUE}
+        strokeWidth="6"
+        opacity="0.92"
+      />
+      <path
+        d="M32 23 A21 21 0 0 1 53 44"
+        fill="none"
+        stroke={PINK}
+        strokeWidth="6"
+        opacity="0.9"
+        style={{ mixBlendMode: 'multiply' }}
+      />
+      <g stroke={INDIGO} strokeWidth="1.6" strokeLinecap="round" opacity="0.7">
+        {ticks.map(([x1, y1, x2, y2], i) => (
+          <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />
+        ))}
+      </g>
+      <g className="o-ti-needle">
+        <path d="M32 44 L32 18" stroke={INDIGO} strokeWidth="2.8" strokeLinecap="round" />
+      </g>
+      <circle cx="32" cy="44" r="3.6" fill={INDIGO} />
+      <path d="M4 52 L60 52" stroke={INDIGO} strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+    </>
+  );
+}
+
+const ICONS = [Measure, Orchestration, ObjectiveReduction, NonComputability];
 
 export function TenetIcon({ index }: { index: number }) {
   const Art = ICONS[index];

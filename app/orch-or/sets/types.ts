@@ -1,8 +1,14 @@
-import type { SceneId } from '../data/content';
+import type { PosterOnlySceneId, SceneId } from '../data/content';
 import type { HeroId } from './heroes';
 
 /** The six figures every set draws: the hero and one per question (Q1–Q5). */
 export type FigureId = 'hero' | SceneId;
+
+/** Figures only the Poster set draws (Q6); the other sets show its version. */
+export const POSTER_ONLY: PosterOnlySceneId[] = ['turing'];
+export type PosterFigureId = FigureId | PosterOnlySceneId;
+export const isPosterOnly = (fig: string): fig is PosterOnlySceneId =>
+  (POSTER_ONLY as string[]).includes(fig);
 
 export const FIGURE_IDS: FigureId[] = [
   'hero',

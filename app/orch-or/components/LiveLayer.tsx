@@ -12,12 +12,17 @@ import {
 } from 'react';
 import { cn } from '@/utils/styles';
 import type { SetId } from '../theme';
-import type { FigureId, LiveFigureProps } from '../sets/types';
+import {
+  isPosterOnly,
+  type FigureId,
+  type LiveFigureProps,
+  type PosterFigureId,
+} from '../sets/types';
 import type { HeroId } from '../sets/heroes';
 
 // Each set's library loads in its own chunk, only when that set is shown.
-const LIVE: Record<Exclude<SetId, 'ink'>, ComponentType<LiveFigureProps>> = {
-  poster: dynamic(() => import('../sets/poster/PosterLive'), { ssr: false }),
+const PosterLive = dynamic(() => import('../sets/poster/PosterLive'), { ssr: false });
+const LIVE: Record<Exclude<SetId, 'ink' | 'poster'>, ComponentType<LiveFigureProps>> = {
   clay: dynamic(() => import('../sets/clay/ClayLive'), { ssr: false }),
   spectral: dynamic(() => import('../sets/spectral/SpectralLive'), { ssr: false }),
   engraved: dynamic(() => import('../sets/engraved/EngravedLive'), { ssr: false }),
@@ -65,7 +70,7 @@ export function LiveLayer({
   hero,
 }: {
   set: Exclude<SetId, 'ink'>;
-  fig: FigureId;
+  fig: PosterFigureId;
   hero?: HeroId;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -111,7 +116,6 @@ export function LiveLayer({
     };
   }, [set]);
 
-  const Live = LIVE[set];
   return (
     <div
       ref={ref}
@@ -124,9 +128,25 @@ export function LiveLayer({
     >
       {mode !== 'off' && near && (
         <FigureBoundary>
-          <Live fig={fig} hero={hero} still={mode === 'capture'} onReady={onReady} />
+          {set === 'poster' || isPosterOnly(fig) ? (
+            <PosterLive fig={fig} hero={hero} still={mode === 'capture'} onReady={onReady} />
+          ) : (
+            <OtherLive
+              set={set}
+              fig={fig as FigureId}
+              hero={hero}
+              still={mode === 'capture'}
+              onReady={onReady}
+            />
+          )}
         </FigureBoundary>
       )}
     </div>
   );
+}
+
+/** One of the sets other than Poster, which draw the shared figures only. */
+function OtherLive({ set, ...props }: LiveFigureProps & { set: Exclude<SetId, 'ink' | 'poster'> }) {
+  const Live = LIVE[set];
+  return <Live {...props} />;
 }

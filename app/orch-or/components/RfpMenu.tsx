@@ -43,7 +43,7 @@ function SharePageButton() {
       onClick={() =>
         showShareModal({
           url: globalThis.location.href.split('?')[0],
-          docTitle: 'Is consciousness a quantum process? Request for proposals',
+          docTitle: 'How does consciousness arise? Request for proposals',
           action: 'USER_SHARED_DOCUMENT',
           shouldShowConfetti: false,
         })

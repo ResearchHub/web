@@ -1,11 +1,14 @@
 /**
- * The science on the Orch OR page: the theory's four links, the open
- * questions, the timeline, the FAQ and the sources. Facts come from
+ * The science on the page: the open problem in four parts (with Orch OR's
+ * answer to each), the open questions, the timeline, the FAQ and the sources. Facts come from
  * docs/orch-or-rfp-landing-plan.md (sections 2 to 4 and 10). RFP facts
  * (amount, deadline, funder) are not here; they live in `mockRfp.ts`.
  */
 
 export type SceneId = 'superradiance' | 'wigner' | 'anesthesia' | 'spacetime' | 'raster';
+/** Figures drawn only in the Poster set; every set shows the Poster one. */
+export type PosterOnlySceneId = 'turing';
+export type QuestionSceneId = SceneId | PosterOnlySceneId;
 
 export interface Source {
   id: number;
@@ -73,7 +76,7 @@ export const SOURCES: Source[] = [
   {
     id: 11,
     label:
-      'Microtubule-stabilizer epothilone B delays anesthetic-induced unconsciousness in rats, eNeuro, 2024',
+      'Khan, …, Wiest, “Microtubule-stabilizer epothilone B delays anesthetic-induced unconsciousness in rats”, eNeuro, 2024',
     url: 'https://www.eneuro.org/content/11/8/eneuro.0291-24.2024',
   },
   {
@@ -127,39 +130,109 @@ export const SOURCES: Source[] = [
       'Physics World, “Quantum theory of consciousness put in doubt by underground experiment”, 2020',
     url: 'https://physicsworld.com/a/quantum-theory-of-consciousness-put-in-doubt-by-underground-experiment/',
   },
+  {
+    id: 21,
+    label:
+      'Penrose–Lucas argument, Wikipedia (Penrose’s argument from Gödel’s theorem, and its critics)',
+    url: 'https://en.wikipedia.org/wiki/Penrose%E2%80%93Lucas_argument',
+  },
+  {
+    id: 22,
+    label: 'Feferman, “Penrose’s Gödelian argument”, Psyche, 1995',
+    url: 'https://math.stanford.edu/~feferman/papers/penrose.pdf',
+  },
+  {
+    id: 23,
+    label:
+      'Dehaene, Lau and Kouider, “What is consciousness, and could machines have it?”, Science, 2017',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/29074769/',
+  },
+  {
+    id: 24,
+    label:
+      'Tononi and Koch, “Consciousness: here, there and everywhere?”, Phil. Trans. R. Soc. B, 2015',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4387509/',
+  },
+  {
+    id: 25,
+    label:
+      'Butlin, Long et al., “Consciousness in artificial intelligence: insights from the science of consciousness”, 2023',
+    url: 'https://arxiv.org/abs/2308.08708',
+  },
+  {
+    id: 26,
+    label: 'Van Gulick, “Consciousness”, Stanford Encyclopedia of Philosophy',
+    url: 'https://plato.stanford.edu/entries/consciousness/',
+  },
+  {
+    id: 27,
+    label:
+      'Crick and Koch, “Towards a neurobiological theory of consciousness”, Seminars in the Neurosciences, 1990',
+    url: 'https://authors.library.caltech.edu/records/7fap3-5v118',
+  },
+  {
+    id: 28,
+    label:
+      'Chalmers, “Facing up to the problem of consciousness”, Journal of Consciousness Studies, 1995',
+    url: 'https://consc.net/papers/facing.html',
+  },
+  {
+    id: 29,
+    label:
+      'Hameroff and Penrose, “Orchestrated reduction of quantum coherence in brain microtubules: a model for consciousness”, Mathematics and Computers in Simulation, 1996',
+    url: 'https://doi.org/10.1016/0378-4754(96)80476-9',
+  },
+  {
+    id: 30,
+    label:
+      'Cogitate Consortium, “Adversarial testing of global neuronal workspace and integrated information theories of consciousness”, Nature, 2025',
+    url: 'https://doi.org/10.1038/s41586-025-08888-1',
+  },
+  {
+    id: 31,
+    label:
+      'Lenharo, “Decades-long bet on consciousness ends — and it’s philosopher 1, neuroscientist 0”, Nature news, 2023',
+    url: 'https://doi.org/10.1038/d41586-023-02120-8',
+  },
 ];
 
-export interface Link {
+export interface OpenPart {
   n: number;
   name: string;
-  claim: string;
+  text: string;
+  /** Orch OR's answer, one line. */
+  orchOr: string;
 }
 
-/** The theory as a chain of four claims. */
-export const LINKS: Link[] = [
+/**
+ * The open problem of consciousness in four parts, each still unsettled.
+ * Orch OR answers all four in one chain; other theories answer them
+ * differently, and the page names no camps.
+ */
+export const OPEN_PROBLEM: OpenPart[] = [
   {
     n: 1,
-    name: 'Non-computability',
-    claim:
-      'Penrose argues from Gödel’s theorem that understanding is not an algorithm, so the brain must use physics beyond computation.',
+    name: 'What it is',
+    text: 'Science can measure what a brain does. Whether, and what, it feels can only be reported, and there is no agreed test for it.',
+    orchOr: 'a stream of discrete moments, each one a quantum event.',
   },
   {
     n: 2,
-    name: 'Objective reduction',
-    claim:
-      'Gravity makes a quantum superposition unstable, so it collapses on its own. Each collapse, Penrose proposes, is a moment of experience.',
+    name: 'Where it arises',
+    text: 'Leading theories point to different places: networks spanning the brain, the back of the cortex, or structures inside neurons. Tests have not settled it.',
+    orchOr: 'inside neurons, in microtubules, timed by brain rhythms.',
   },
   {
     n: 3,
-    name: 'Microtubules',
-    claim:
-      'In the brain, those collapses happen in microtubules: protein tubes 25 nm wide inside every neuron.',
+    name: 'Whether it needs quantum physics',
+    text: 'Most neuroscientists expect ordinary neural activity to be enough. Others argue it is not, against the objection that the brain is too warm for quantum states to last.',
+    orchOr: 'yes: experience comes from quantum states that gravity makes collapse.',
   },
   {
     n: 4,
-    name: 'Orchestration',
-    claim:
-      'Brain activity tunes the collapses into rhythms that shape neuron firing. Anesthetics, on this view, work by damping them.',
+    name: 'Whether it can be computed',
+    text: 'If it can, a computer running the right program would be conscious. If not, a brain does something no computer does. Q6 asks how to tell.',
+    orchOr: 'no: understanding, Penrose argues, is not an algorithm.',
   },
 ];
 
@@ -175,8 +248,8 @@ export interface Photo {
 
 export interface Moment {
   year: string;
-  /** Supports the theory, challenges it, or neither: the theory itself, or a rival. */
-  side: 'for' | 'against' | 'theory' | 'rival';
+  /** What kind of step it was for the field. */
+  kind: 'approach' | 'problem' | 'theory' | 'objection' | 'evidence' | 'test';
   text: string;
   /** Who wrote the cited work, as shown under the entry. */
   cite: string;
@@ -188,20 +261,55 @@ export interface Moment {
 }
 
 /**
- * Six moments, oldest first (the row reads left to right, newest on the
- * right): the theory itself, two results that support it, two that challenge
- * it, and a rival. People appear as authors of the work cited, not as
- * endorsers of this call. Where the first author has no freely licensed
- * photo, a co-author's is used and named in `cite`. Photos: Wikimedia
- * Commons, credited on the page and in public/orch-or/CREDITS.md.
+ * Six moments in consciousness science, oldest first (the row reads left to
+ * right, newest on the right): the experimental programme, the hard problem,
+ * the quantum thread (Orch OR, the decoherence objection, a recent
+ * microtubule result) and the first head-to-head test of two leading
+ * theories. People appear as authors of the work cited, not as endorsers of
+ * this call. Photos: Wikimedia Commons, credited on the page and in
+ * public/orch-or/CREDITS.md.
  */
 export const TIMELINE: Moment[] = [
   {
+    year: '1990',
+    kind: 'approach',
+    text: 'Consciousness can be studied by experiment, starting with what we see. The paper helped launch the search for its neural correlates.',
+    cite: 'Crick and Koch, Seminars in the Neurosciences',
+    sources: [27],
+    person: {
+      name: 'Francis Crick',
+      photo: {
+        src: '/orch-or/people/crick.jpg',
+        author: 'Marc Lieberman',
+        licence: 'CC BY 2.5',
+        licenceUrl: 'https://creativecommons.org/licenses/by/2.5',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Francis_Crick.png',
+      },
+    },
+  },
+  {
+    year: '1995',
+    kind: 'problem',
+    text: 'Explaining what the brain does is the “easy” part. The hard problem, named in print: why any of it feels like something.',
+    cite: 'Chalmers, J. Consciousness Studies',
+    sources: [28],
+    person: {
+      name: 'David Chalmers',
+      photo: {
+        src: '/orch-or/people/chalmers.jpg',
+        author: 'David Orban',
+        licence: 'CC BY 2.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by/2.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:David_Chalmers_.jpg',
+      },
+    },
+  },
+  {
     year: '1996',
-    side: 'theory',
-    text: 'Orch OR is proposed: moments of experience as gravity-driven collapses in microtubules.',
-    cite: 'Hameroff and Penrose',
-    sources: [18],
+    kind: 'theory',
+    text: 'Orch OR is proposed: moments of experience as gravity-related quantum state reductions in the microtubules of neurons.',
+    cite: 'Hameroff and Penrose, Math. Comput. Simul.',
+    sources: [29],
     person: {
       name: 'Roger Penrose',
       photo: {
@@ -215,10 +323,10 @@ export const TIMELINE: Moment[] = [
   },
   {
     year: '2000',
-    side: 'against',
-    text: 'A quantum state in a microtubule should decohere in about 10⁻¹³ s, far too fast to matter.',
+    kind: 'objection',
+    text: 'Quantum states in the brain should decohere within about 10⁻¹³ s, far too fast to matter. Orch OR’s authors dispute the model.',
     cite: 'Tegmark, Phys. Rev. E',
-    sources: [2],
+    sources: [2, 3],
     person: {
       name: 'Max Tegmark',
       photo: {
@@ -231,71 +339,31 @@ export const TIMELINE: Moment[] = [
     },
   },
   {
-    year: '2002',
-    side: 'for',
-    text: 'A corrected model: coherence could last 10⁻⁵ to 10⁻⁴ s, not 10⁻¹³ s.',
-    cite: 'Hagan, Hameroff and Tuszyński, Phys. Rev. E',
-    sources: [3],
-    person: {
-      name: 'Stuart Hameroff',
-      photo: {
-        src: '/orch-or/people/hameroff.jpg',
-        author: 'Zereshk',
-        licence: 'CC BY 3.0',
-        licenceUrl: 'https://creativecommons.org/licenses/by/3.0',
-        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Stuart_Hameroff_TASC2008.JPG',
-      },
-    },
-  },
-  {
-    year: '2020',
-    side: 'against',
-    text: 'Underground, no sign of collapse radiation: the simplest gravity-collapse model is ruled out. Penrose’s own version survives.',
-    cite: 'Donadi, Curceanu et al., Nature Physics',
-    sources: [6, 7],
-    person: {
-      name: 'Catalina Curceanu',
-      photo: {
-        src: '/orch-or/people/curceanu.jpg',
-        author: 'Libreria Assaggi',
-        licence: 'CC BY 3.0',
-        licenceUrl: 'https://creativecommons.org/licenses/by/3.0',
-        sourceUrl:
-          'https://commons.wikimedia.org/wiki/File:Catalina_Curceanu,_Nelle_segrete_stanze_V.jpg',
-      },
-    },
-  },
-  {
     year: '2024',
-    side: 'for',
-    text: 'Tryptophan networks in tubulin radiate together, a quantum effect that survives heat. In vitro.',
-    cite: 'Babcock, Chergui, Kurian et al., J. Phys. Chem. B',
-    sources: [9],
-    person: {
-      name: 'Majed Chergui',
-      photo: {
-        src: '/orch-or/people/chergui.jpg',
-        author: 'EPFL-MEDIACOM',
-        licence: 'CC BY 4.0',
-        licenceUrl: 'https://creativecommons.org/licenses/by/4.0',
-        sourceUrl: 'https://commons.wikimedia.org/wiki/File:EPFL_2020_Majed_Chergui_Portrait_1.jpg',
-      },
+    kind: 'evidence',
+    text: 'Rats given a microtubule-stabilising drug took about a minute longer to go under with an anesthetic. A small study, not yet replicated.',
+    cite: 'Khan, Wiest et al., eNeuro',
+    sources: [11],
+    paper: {
+      journal: 'eNeuro',
+      title:
+        'Microtubule-stabilizer epothilone B delays anesthetic-induced unconsciousness in rats',
     },
   },
   {
-    year: '2024',
-    side: 'rival',
-    text: 'A rival test: experience arises when superpositions form, not when they collapse.',
-    cite: 'Neven, Koch et al., Entropy',
-    sources: [14],
+    year: '2025',
+    kind: 'test',
+    text: 'Integrated information and global workspace theory, tested head to head: results challenge key predictions of both. First shown in 2023, when Koch lost a 25-year bet to Chalmers.',
+    cite: 'Cogitate Consortium (Mudrik, Melloni et al.), Nature',
+    sources: [30, 31],
     person: {
-      name: 'Christof Koch',
+      name: 'Liad Mudrik',
       photo: {
-        src: '/orch-or/people/koch.jpg',
-        author: 'Zereshk',
-        licence: 'CC BY 3.0',
-        licenceUrl: 'https://creativecommons.org/licenses/by/3.0',
-        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Koch_TASC2008.JPG',
+        src: '/orch-or/people/mudrik.jpg',
+        author: 'Shani Shalgi',
+        licence: 'CC BY-SA 3.0',
+        licenceUrl: 'https://creativecommons.org/licenses/by-sa/3.0',
+        sourceUrl: 'https://commons.wikimedia.org/wiki/File:Liad_Mudrik.jpg',
       },
     },
   },
@@ -303,7 +371,7 @@ export const TIMELINE: Moment[] = [
 
 export interface Question {
   id: string;
-  scene: SceneId;
+  scene: QuestionSceneId;
   /** Short name, for the empty proposal slots. */
   name: string;
   question: string;
@@ -314,7 +382,7 @@ export interface Question {
   sources: number[];
 }
 
-/** Five open questions, each with a figure. The sixth, the case against, is text only. */
+/** Six open questions, each with a figure, then a text-only invitation to anything else. */
 export const QUESTIONS: Question[] = [
   {
     id: 'anesthesia',
@@ -415,6 +483,28 @@ export const QUESTIONS: Question[] = [
     },
     sources: [1, 19],
   },
+  {
+    id: 'computation',
+    scene: 'turing',
+    name: 'Computation',
+    question: 'Can you compute your way to consciousness?',
+    known:
+      'Penrose’s case for “no” rests on Gödel’s theorem, and logicians have widely disputed it. Theories split as well: on some, a computer running the right processes would be conscious; on others, no conventional computer would be, whatever it ran.',
+    countsFor:
+      'Experience tracks only the computation a brain performs: change the physics, keep the computation, and nothing changes.',
+    countsAgainst:
+      'Experience depends on physical properties a computation leaves out, such as the quantum states in Q2–Q4.',
+    figure: {
+      caption:
+        'A Turing machine writing one symbol per step; each symbol is the size of one dot, so row by row the steps compute a picture of a sunset. Whether running them could ever be seeing it is the question. Schematic.',
+      legend: [
+        { label: 'Symbols on the tape', tone: 'w' },
+        { label: 'Read/write head', tone: 'b' },
+        { label: 'The picture it computes', tone: 'a' },
+      ],
+    },
+    sources: [21, 22, 23, 24],
+  },
 ];
 
 export interface Faq {
@@ -429,12 +519,12 @@ export const FAQ: Faq[] = [
     a: 'It says, before the data, what result would count against its own view. It is pre-registered, reruns a single-lab claim before building on it, shares data and code, and is sized to the question. A collaborator who expects the opposite outcome makes it stronger.',
   },
   {
-    q: 'Do you fund critics of Orch OR?',
-    a: 'Yes, on the same terms as supporters. A proposal designed to break a link in the theory is as welcome as one designed to support it, and a well-run null result is a result.',
+    q: 'Is this only for work on Orch OR?',
+    a: 'No. Orch OR is where the questions start, but any rigorous work on how consciousness arises is in scope, quantum or not. Critics are funded on the same terms as supporters, and a well-run null result is a result.',
   },
   {
     q: 'Is theory-only work in scope?',
-    a: 'Yes, when it tightens or breaks a link: a calculation of E_G for tubulin, a decoherence model both sides accept, or a formal analysis of the Gödel argument.',
+    a: 'Yes, when it makes a claim testable or tests one: a calculation of E_G for tubulin, a decoherence model both sides accept, a formal analysis of the Gödel argument, or a way to tell theories’ predictions apart.',
   },
   {
     q: 'Who can apply?',

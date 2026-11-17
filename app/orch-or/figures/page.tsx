@@ -6,7 +6,7 @@ import { cn } from '@/utils/styles';
 import { QUESTIONS } from '../data/content';
 import { FigureArt } from '../components/Figure';
 import { SETS } from '../sets/registry';
-import { FIGURE_IDS, type FigureId } from '../sets/types';
+import { FIGURE_IDS, isPosterOnly, type FigureId, type PosterFigureId } from '../sets/types';
 import { parseHero } from '../sets/heroes';
 import { DEFAULT_SET, SET_IDS, THEMES, parseSet, themeVars, type SetId } from '../theme';
 
@@ -49,9 +49,9 @@ export default async function FiguresGallery({
   const params = await searchParams;
   const solo = params.solo;
   if (typeof solo === 'string' && solo.includes('-')) {
-    const [setId, fig] = solo.split('-') as [string, FigureId];
+    const [setId, fig] = solo.split('-') as [string, PosterFigureId];
     const set = parseSet(setId);
-    if (FIGURE_IDS.includes(fig)) {
+    if (FIGURE_IDS.includes(fig as FigureId) || isPosterOnly(fig)) {
       return (
         <div
           style={themeVars(set)}

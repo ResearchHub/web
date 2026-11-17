@@ -1,5 +1,5 @@
 /**
- * MOCK RFP DATA: every RFP fact the Orch OR landing page shows lives here.
+ * MOCK RFP DATA: every RFP fact the consciousness landing page shows lives here.
  *
  * The real RFP does not exist on ResearchHub yet, so each value below is a
  * placeholder. When it does, replace this object with the live grant
@@ -93,7 +93,7 @@ export const ORCH_OR_RFP: OrchOrRfp = {
   isMock: true,
   grantId: null,
   postId: null,
-  title: 'Testing Orch OR: is consciousness a quantum process?',
+  title: 'How does consciousness arise? Testing the open questions, quantum and otherwise',
   funder: {
     name: 'Athanatos Foundation',
     monogram: 'AF',
@@ -105,7 +105,7 @@ export const ORCH_OR_RFP: OrchOrRfp = {
     logoUrl:
       'https://storage.prod.researchhub.com/uploads/author_profile_images/2026/04/27/blob_Mi9heek',
     description:
-      '[Placeholder] One paragraph from the Athanatos Foundation on who they are and why they are funding a test of Orch OR goes here.',
+      '[Placeholder] One paragraph from the Athanatos Foundation on who they are and why they are funding research on consciousness goes here.',
     contactEmail: null,
   },
   pool: {

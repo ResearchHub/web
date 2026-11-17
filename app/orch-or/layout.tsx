@@ -55,11 +55,11 @@ export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
     title: 'Is consciousness a quantum process? Request for proposals',
     description:
-      'The Athanatos Foundation funds experiments and theory that test Orch OR, the Penrose–Hameroff theory of consciousness. Evidence for and against is funded on equal terms.',
+      'The Athanatos Foundation funds experiments and theory on how consciousness arises, from whether it can be computed to whether it needs quantum physics. Evidence for and against any answer is funded on equal terms.',
     url: '/orch-or',
   }),
   title: {
-    default: 'Test Orch OR: request for proposals',
+    default: 'Consciousness research: request for proposals',
     template: `%s | ${SITE_CONFIG.name}`,
   },
   // A preview with placeholder figures.

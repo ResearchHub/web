@@ -2,9 +2,9 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import Image from 'next/image';
 import { cn } from '@/utils/styles';
-import type { Question, SceneId } from '../data/content';
+import type { Question, QuestionSceneId, SceneId } from '../data/content';
 import type { SetId } from '../theme';
-import type { FigureId } from '../sets/types';
+import { isPosterOnly, type PosterFigureId } from '../sets/types';
 import { DEFAULT_HERO, heroStillName, type HeroId } from '../sets/heroes';
 import {
   HERO_STILL_T,
@@ -40,7 +40,7 @@ export function Figure({
   className,
 }: {
   set?: SetId;
-  sceneId: SceneId;
+  sceneId: QuestionSceneId;
   figure: Question['figure'];
   className?: string;
 }) {
@@ -162,7 +162,7 @@ function SetArt({
   hero = DEFAULT_HERO,
 }: {
   set: Exclude<SetId, 'ink'>;
-  fig: FigureId;
+  fig: PosterFigureId;
   hero?: HeroId;
 }) {
   // Only the Poster set has hero candidates; the others keep `hero.webp`.
@@ -199,7 +199,9 @@ function SetArt({
 }
 
 /** Any set's art for one figure, filling a positioned box. */
-export function FigureArt({ set, fig, hero }: { set: SetId; fig: FigureId; hero?: HeroId }) {
+export function FigureArt({ set, fig, hero }: { set: SetId; fig: PosterFigureId; hero?: HeroId }) {
+  // A figure only the Poster set draws shows in its Poster version everywhere.
+  if (isPosterOnly(fig)) return <SetArt set="poster" fig={fig} />;
   if (set !== 'ink') return <SetArt set={set} fig={fig} hero={hero} />;
   if (fig === 'hero') return <HeroFigure />;
   return <InkArt sceneId={fig} />;

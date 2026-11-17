@@ -15,6 +15,7 @@ import { decoherence } from './decoherence';
 import { PAPER, T, YELLOW, tint } from './inks';
 import { PaperCanvas, type PaperFigure } from './paperFigure';
 import { tissue } from './tissue';
+import { turing } from './turing';
 import { CanvasPen } from '../../visuals/pen';
 import { withPalette } from '../../visuals/palette';
 import {
@@ -26,7 +27,7 @@ import {
 } from '../../visuals/heroModel';
 import { SCENES } from '../../visuals/scenes';
 import { useFigureLoop } from '../../visuals/useFigureLoop';
-import type { FigureId, LiveFigureProps } from '../types';
+import { isPosterOnly, type FigureId, type LiveFigureProps, type PosterFigureId } from '../types';
 import type { HeroId } from '../heroes';
 import { heroPlates } from './heroPlates';
 import { heroRing } from './heroRing';
@@ -68,7 +69,7 @@ const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.1 0 0 0 0 0.2 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
 /** The colour field under each figure. Paper renders it in its own canvas. */
-function Field({ fig, hero, still }: { fig: FigureId; hero?: HeroId; still: boolean }) {
+function Field({ fig, hero, still }: { fig: PosterFigureId; hero?: HeroId; still: boolean }) {
   const common = {
     className: 'absolute inset-0',
     minPixelRatio: 1,
@@ -155,6 +156,19 @@ function Field({ fig, hero, still }: { fig: FigureId; hero?: HeroId; still: bool
           shape="circle"
         />
       );
+    case 'turing':
+      // A cool, even wash: the machine's picture carries the warmth.
+      return (
+        <MeshGradient
+          {...common}
+          colors={[tint(T.gold, 0.12), PAPER, tint(T.accent, 0.32), PAPER, tint(T.ice, 0.1)]}
+          distortion={0.6}
+          swirl={0.15}
+          grainMixer={0.2}
+          grainOverlay={0.1}
+          speed={speed(0.1)}
+        />
+      );
     case 'raster':
       // A warm bloom under the sheet of cells.
       return (
@@ -227,8 +241,9 @@ function Print({ fig, onReady }: { fig: FigureId; onReady: () => void }) {
  * Q1 after the Spectral figure and Q5 after the Micrograph one, both
  * reworked into the Poster's inks.
  */
-const PAPER_FIGURES: Partial<Record<FigureId, PaperFigure>> = {
+const PAPER_FIGURES: Partial<Record<PosterFigureId, PaperFigure>> = {
   anesthesia,
+  turing,
   wigner: decoherence,
   raster: tissue,
 };
@@ -295,7 +310,12 @@ const HERO_FIGURES: Partial<Record<HeroId, PaperFigure>> = {
   r: heroMindWaves,
 };
 
-export default function PosterLive({ fig, hero = 'beads', still, onReady }: LiveFigureProps) {
+export default function PosterLive({
+  fig,
+  hero = 'beads',
+  still,
+  onReady,
+}: Omit<LiveFigureProps, 'fig'> & { fig: PosterFigureId }) {
   const [flat, setFlat] = useState(false);
   const onFail = useCallback(() => setFlat(true), []);
   return (
@@ -307,7 +327,7 @@ export default function PosterLive({ fig, hero = 'beads', still, onReady }: Live
         <Beads onReady={onReady} onFail={onFail} />
       ) : PAPER_FIGURES[fig] ? (
         <PaperCanvas figure={PAPER_FIGURES[fig]} onReady={onReady} />
-      ) : (
+      ) : isPosterOnly(fig) ? null : (
         <Print fig={fig} onReady={onReady} />
       )}
       <div

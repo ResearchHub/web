@@ -1,7 +1,15 @@
 import Image from 'next/image';
-import { ArrowLeft, Lightbulb, ThumbsDown, ThumbsUp } from 'lucide-react';
+import {
+  ArrowLeft,
+  CircleHelp,
+  Lightbulb,
+  Microscope,
+  Scale,
+  ThumbsDown,
+  ThumbsUp,
+} from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { LINKS, TIMELINE, type Moment } from '../data/content';
+import { OPEN_PROBLEM, TIMELINE, type Moment } from '../data/content';
 import { Sequence, TimelineScroller } from './Motion';
 import { Rich } from './Rich';
 import { TenetIcon } from './TenetIcons';
@@ -46,7 +54,11 @@ export function Refs({ ids }: { ids: number[] }) {
   );
 }
 
-/** The theory as four tenets, linked in a chain. */
+/**
+ * The open problem of consciousness in four parts, none settled, with Orch
+ * OR's answer to each beneath it: the most developed quantum proposal, and
+ * the one that answers all four in one chain.
+ */
 export function Claim() {
   return (
     <section aria-labelledby="claim-title" className="py-24 tablet:py-32">
@@ -55,22 +67,23 @@ export function Claim() {
           id="claim-title"
           className="o-reveal o-serif max-w-[14em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
         >
-          The Tenets of Orch OR Theory
+          An open problem, in four parts
         </h2>
         <p className="o-reveal o-prose mt-5 max-w-[36em]">
-          Orchestrated objective reduction was proposed in 1996 by the physicist Roger Penrose and
-          the anesthesiologist Stuart Hameroff. It is a chain of four claims; any one can break.
+          How a brain gives rise to experience is one of the largest unanswered questions in
+          science. It breaks into four parts, and none has an agreed answer.
+          <Refs ids={[26]} />
         </p>
 
         <Sequence>
           <ol className="mt-14 grid grid-cols-1 gap-x-10 gap-y-10 tablet:grid-cols-2 content-md:grid-cols-4">
-            {LINKS.map((link, i) => (
+            {OPEN_PROBLEM.map((part, i) => (
               <li
-                key={link.n}
+                key={part.n}
                 style={{ '--i': i } as React.CSSProperties}
                 className="relative pt-6"
               >
-                {/* The chain: a quiet rule, and a gold one a signal draws over it. */}
+                {/* A quiet rule, and a gold one a signal draws over it. */}
                 <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-[var(--o-line)]" />
                 <span
                   aria-hidden
@@ -82,32 +95,45 @@ export function Claim() {
                 />
                 <div className="flex items-end justify-between gap-4">
                   <span className="o-chain-n o-serif block text-[44px] italic leading-none text-[var(--o-gold)]">
-                    {link.n}
+                    {part.n}
                   </span>
                   <TenetIcon index={i} />
                 </div>
                 <div className="o-chain-body">
-                  <h3 className="o-serif mt-4 text-[24px] leading-tight">{link.name}</h3>
+                  <h3 className="o-serif mt-4 text-[24px] leading-tight">{part.name}</h3>
                   <p className="mt-2 text-[15px] leading-[1.6] text-[var(--o-soft)]">
-                    <Rich>{link.claim}</Rich>
+                    <Rich>{part.text}</Rich>
+                  </p>
+                  <p className="mt-3 text-[13.5px] leading-[1.55] text-[var(--o-mute)]">
+                    <span className="text-[var(--o-text)]">Orch OR:</span>{' '}
+                    <Rich>{part.orchOr}</Rich>
                   </p>
                 </div>
               </li>
             ))}
           </ol>
         </Sequence>
+
+        <p className="o-reveal o-prose mt-14 max-w-[40em]">
+          Orch OR, proposed in 1996 by the physicist Roger Penrose and the anesthesiologist Stuart
+          Hameroff, is the most developed quantum proposal, and it answers all four in a single
+          chain. Every link can be tested, which makes it a good place to start, though not the only
+          one: this call funds the experiments, whichever answer they favour.
+          <Refs ids={[1, 18]} />
+        </p>
       </Wrap>
     </section>
   );
 }
 
-const SIDE = {
-  for: { Icon: ThumbsUp, tone: 'text-[var(--o-gold)]', label: 'Supports' },
-  // The pair to Supports: a result that counts against the theory.
-  against: { Icon: ThumbsDown, tone: 'text-[var(--o-ice)]', label: 'Challenges' },
-  // An idea, the theory's own or a competing one.
-  theory: { Icon: Lightbulb, tone: 'text-[var(--o-white)]', label: 'The theory' },
-  rival: { Icon: Lightbulb, tone: 'text-[var(--o-mute)]', label: 'A rival theory' },
+/** How each moment moved the field: an icon and a short label. */
+const KIND = {
+  approach: { Icon: Microscope, tone: 'text-[var(--o-white)]', label: 'An approach' },
+  problem: { Icon: CircleHelp, tone: 'text-[var(--o-white)]', label: 'The problem' },
+  theory: { Icon: Lightbulb, tone: 'text-[var(--o-white)]', label: 'A theory' },
+  objection: { Icon: ThumbsDown, tone: 'text-[var(--o-ice)]', label: 'An objection' },
+  evidence: { Icon: ThumbsUp, tone: 'text-[var(--o-gold)]', label: 'Evidence' },
+  test: { Icon: Scale, tone: 'text-[var(--o-white)]', label: 'A test' },
 } as const;
 
 /** A drawn stand-in for a paper's first page: journal and title, no reproduced page. */
@@ -120,7 +146,7 @@ function PaperThumb({ journal, title }: { journal: string; title: string }) {
       <span className="truncate text-[5.5px] font-semibold uppercase tracking-[0.06em] opacity-60">
         {journal}
       </span>
-      <span className="mt-1 font-[family-name:var(--font-orch-serif)] text-[6.5px] leading-[1.15]">
+      <span className="mt-1 line-clamp-4 font-[family-name:var(--font-orch-serif)] text-[6.5px] leading-[1.15]">
         {title}
       </span>
       <span className="mt-auto space-y-[3px]">
@@ -137,7 +163,7 @@ function PaperThumb({ journal, title }: { journal: string; title: string }) {
 }
 
 function MomentItem({ m, i, last }: { m: Moment; i: number; last: boolean }) {
-  const side = SIDE[m.side];
+  const side = KIND[m.kind];
   return (
     <li
       style={{ '--i': i } as React.CSSProperties}
@@ -181,7 +207,7 @@ function MomentItem({ m, i, last }: { m: Moment; i: number; last: boolean }) {
   );
 }
 
-/** The argument so far, oldest on the left, newest on the right. */
+/** Consciousness science so far, oldest on the left, newest on the right. */
 export function Timeline() {
   return (
     <section aria-labelledby="timeline-title" className="o-rule border-t py-24 tablet:py-32">
@@ -190,12 +216,12 @@ export function Timeline() {
           id="timeline-title"
           className="o-reveal o-serif max-w-[16em] text-[clamp(32px,4vw,56px)] leading-[1.06]"
         >
-          The research so far
+          Consciousness science, so far
         </h2>
         {/* Below 1240px the row opens on the newest work; say where the rest is. */}
         <p className="mt-4 flex items-center gap-2 text-[13px] text-[var(--o-mute)] sidebar-compact:hidden">
           <ArrowLeft aria-hidden className="h-3.5 w-3.5" />
-          Swipe for earlier work, back to 1996
+          Swipe for earlier work, back to 1990
         </p>
       </Wrap>
       <Sequence className="mx-auto mt-10 w-full max-w-[1200px] tablet:px-10 content-lg:px-12">
