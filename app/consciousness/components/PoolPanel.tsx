@@ -1,26 +1,18 @@
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
-import {
-  ORCH_OR_RFP,
-  deadlinePhrase,
-  formatDate,
-  formatUsd,
-  formatUsdShort,
-  poolPercent,
-} from '../data/mockRfp';
+import { deadlinePhrase, formatDate, formatUsd, poolPercent, type RfpView } from '../data/rfp';
 import { AddToPoolButton } from './OrchActions';
 
-function poolFacts() {
-  const rfp = ORCH_OR_RFP;
-  const { pool } = rfp;
+function poolFacts(rfp: RfpView) {
+  const pool = rfp;
   const pct = poolPercent(rfp);
   const backersLabel = `${pool.backerCount} ${pool.backerCount === 1 ? 'backer' : 'backers'}`;
   return { rfp, pool, pct, backersLabel };
 }
 
 /** Progress toward the goal; a sliver always shows once anyone has given. */
-export function PoolBar({ className }: { className?: string }) {
-  const { pool, pct } = poolFacts();
+export function PoolBar({ rfp, className }: { rfp: RfpView; className?: string }) {
+  const { pool, pct } = poolFacts(rfp);
   const shown = pct > 0 ? Math.max(pct, 1.5) : 0;
   return (
     <div
@@ -40,13 +32,13 @@ export function PoolBar({ className }: { className?: string }) {
 }
 
 /** The top backers' faces, overlapping. */
-export function BackerFaces({ size }: { size: number }) {
-  const { pool } = poolFacts();
+export function BackerFaces({ rfp, size }: { rfp: RfpView; size: number }) {
+  const { pool } = poolFacts(rfp);
   if (pool.backers.length === 0) return null;
   return (
     <span className="flex shrink-0 -space-x-2">
       {pool.backers.slice(0, 4).map((b) => (
-        <span key={b.name} className="rounded-full ring-2 ring-[var(--o-ink)]">
+        <span key={b.id} className="rounded-full ring-2 ring-[var(--o-ink)]">
           <Avatar src={b.avatarUrl} alt={b.name} size={size} disableTooltip />
         </span>
       ))}
@@ -62,12 +54,11 @@ export function daysLeft(iso: string): number {
 
 /**
  * The funding pool beside the proposals: raised against the goal, what the
- * pool pays for, the top backers, and the button to add to it. The figures
- * come from `data/mockRfp.ts` (mock backers for now); live, they are the
+ * pool pays for, the top backers, and the button to add to it, from the
  * grant's `fundingPool`.
  */
-export function PoolPanel() {
-  const { rfp, pool, pct, backersLabel } = poolFacts();
+export function PoolPanel({ rfp }: { rfp: RfpView }) {
+  const { pool, pct, backersLabel } = poolFacts(rfp);
   const more = pool.backerCount - pool.backers.length;
 
   return (
@@ -80,10 +71,10 @@ export function PoolPanel() {
         raised toward our {formatUsd(pool.goalUsd)} goal for {formatDate(pool.goalBy)}
       </p>
 
-      <PoolBar className="mt-6" />
+      <PoolBar rfp={rfp} className="mt-6" />
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[14px] text-[var(--o-soft)]">
         <span className="flex items-center gap-2.5">
-          <BackerFaces size={26} />
+          <BackerFaces rfp={rfp} size={26} />
           {pool.backerCount > 0 ? backersLabel : 'Be the first backer'}
         </span>
         <span className="tabular-nums text-[var(--o-mute)]">{Math.round(pct)}%</span>
@@ -113,7 +104,7 @@ export function PoolPanel() {
           <p className="text-[13px] text-[var(--o-mute)]">Top backers</p>
           <ul className="mt-3 space-y-3">
             {pool.backers.map((b) => (
-              <li key={b.name} className="flex items-center gap-3 text-[15px]">
+              <li key={b.id} className="flex items-center gap-3 text-[15px]">
                 <Avatar src={b.avatarUrl} alt={b.name} size={30} disableTooltip />
                 <span className="min-w-0 flex-1 truncate">{b.name}</span>
                 <span className="tabular-nums text-[var(--o-soft)]">{formatUsd(b.amountUsd)}</span>

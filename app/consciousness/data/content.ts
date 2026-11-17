@@ -2,7 +2,7 @@
  * The science on the page: the open problem in four parts (with Orch OR's
  * answer to each), the open questions, the timeline, the FAQ and the sources. Facts come from
  * docs/orch-or-rfp-landing-plan.md (sections 2 to 4 and 10). RFP facts
- * (pool, deadline) are not here; they live in `mockRfp.ts`.
+ * (pool, deadline) are not here; they come from the live RFP (`rfp.ts`).
  */
 
 export type SceneId = 'superradiance' | 'wigner' | 'anesthesia' | 'spacetime' | 'raster';

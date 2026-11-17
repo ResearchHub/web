@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { cn } from '@/utils/styles';
-import { ORCH_OR_RFP, formatDateShort, formatUsd, formatUsdShort } from '../data/mockRfp';
+import { formatDateShort, formatUsd, formatUsdShort, type RfpView } from '../data/rfp';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { BackerFaces, PoolBar } from './PoolPanel';
 
@@ -12,8 +12,7 @@ import { BackerFaces, PoolBar } from './PoolPanel';
  * off screen and stays for the rest of the page. A floating bar on wide
  * screens, a full-width bar on phones.
  */
-export function ActionDock() {
-  const rfp = ORCH_OR_RFP;
+export function ActionDock({ rfp }: { rfp: RfpView }) {
   const [ctaInView, setCtaInView] = useState(true);
 
   useEffect(() => {
@@ -29,7 +28,7 @@ export function ActionDock() {
     return () => io.disconnect();
   }, []);
 
-  const { pool } = rfp;
+  const pool = rfp;
 
   return (
     <div
@@ -43,7 +42,7 @@ export function ActionDock() {
       {/* Wide screens: a floating bar. */}
       <div className="pointer-events-auto hidden w-full max-w-[920px] items-center gap-4 rounded-full border border-[color:rgb(var(--o-gold-rgb)/0.3)] bg-[rgb(var(--o-ink2-rgb)/0.96)] py-2.5 pl-2.5 pr-2.5 shadow-[0_18px_50px_-14px_rgb(var(--o-text-rgb)/0.45),0_0_0_4px_rgb(var(--o-gold-rgb)/0.06)] backdrop-blur-xl tablet:flex">
         <span className="pl-2">
-          <BackerFaces size={30} />
+          <BackerFaces rfp={rfp} size={30} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14.5px] leading-tight text-[var(--o-soft)]">
@@ -54,7 +53,7 @@ export function ActionDock() {
             <span className="mx-2 opacity-50">·</span>
             Phase 1 ends {formatDateShort(pool.goalBy)}
           </p>
-          <PoolBar className="mt-2 h-1.5 max-w-[300px]" />
+          <PoolBar rfp={rfp} className="mt-2 h-1.5 max-w-[300px]" />
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <SubmitProposalButton size="sm" className="h-11 px-5" />
@@ -73,7 +72,7 @@ export function ActionDock() {
           </span>
           <span>Phase 1 ends {formatDateShort(pool.goalBy)}</span>
         </p>
-        <PoolBar className="mb-2.5 h-1" />
+        <PoolBar rfp={rfp} className="mb-2.5 h-1" />
         <div className="flex gap-2">
           <AddToPoolButton size="md" className="flex-[3] px-3" />
           <SubmitProposalButton size="md" className="flex-[2] px-3" label="Propose" />

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Avatar } from '@/components/ui/Avatar';
 import { QUESTIONS } from '../data/content';
-import { ORCH_OR_RFP, poolPercent } from '../data/mockRfp';
+import { poolPercent, type RfpView } from '../data/rfp';
 import { Sequence } from './Motion';
 import { Wrap } from './Story';
 
@@ -16,15 +16,15 @@ function Art({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** 1. Backers, and a dashed seat for you. */
-function BackersArt() {
-  const { backers } = ORCH_OR_RFP.pool;
+/** 1. The first backers, and a dashed seat for you. */
+function BackersArt({ rfp }: { rfp: RfpView }) {
+  const { backers } = rfp;
   return (
     <Art>
       <div className="grid grid-cols-2 gap-1.5 tablet:gap-2.5">
         {backers.slice(0, 3).map((b, i) => (
           <span
-            key={b.name}
+            key={b.id}
             style={{ '--i': i } as React.CSSProperties}
             className="o-hiw-face rounded-full bg-[var(--o-ink)] ring-[3px] ring-[var(--o-ink)]"
           >
@@ -48,8 +48,8 @@ function BackersArt() {
 }
 
 /** 2. The pool: a flask (the ResearchHub mark) filled to the share of the goal raised. */
-function PoolArt() {
-  const pct = poolPercent(ORCH_OR_RFP);
+function PoolArt({ rfp }: { rfp: RfpView }) {
+  const pct = poolPercent(rfp);
   // The body of the flask runs from y=50 to y=132; never draw it bone dry.
   const level = 132 - (82 * Math.max(pct, 12)) / 100;
   return (
@@ -186,7 +186,11 @@ function AnswersArt() {
   );
 }
 
-const STEPS = [
+const STEPS: {
+  Art: (props: { rfp: RfpView }) => React.ReactElement;
+  title: string;
+  text: string;
+}[] = [
   {
     Art: BackersArt,
     title: 'You add to the pool',
@@ -215,7 +219,7 @@ const STEPS = [
  * peers review and the pool pays, results are published). The programme's
  * dates and targets are in the phases, not here.
  */
-export function HowItWorks() {
+export function HowItWorks({ rfp }: { rfp: RfpView }) {
   return (
     <section
       id="how-it-works"
@@ -252,7 +256,7 @@ export function HowItWorks() {
                     />
                   </>
                 )}
-                <StepArt />
+                <StepArt rfp={rfp} />
                 <div className="pt-3 tablet:mt-5 tablet:px-2 tablet:pt-0">
                   <p className="text-[13px] font-semibold tabular-nums text-[var(--o-gold)]">
                     {i + 1}

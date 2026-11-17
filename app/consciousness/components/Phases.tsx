@@ -1,12 +1,5 @@
 import { cn } from '@/utils/styles';
-import {
-  ORCH_OR_RFP,
-  deadlineLabel,
-  formatDate,
-  formatUsd,
-  poolPercent,
-  type OrchOrRfp,
-} from '../data/mockRfp';
+import { deadlineLabel, formatDate, formatUsd, poolPercent, type RfpView } from '../data/rfp';
 import { PoolBar, daysLeft } from './PoolPanel';
 import { Wrap } from './Story';
 
@@ -68,8 +61,8 @@ function PhaseCard({
   );
 }
 
-function PhaseOne({ rfp }: { rfp: OrchOrRfp }) {
-  const { pool } = rfp;
+function PhaseOne({ rfp }: { rfp: RfpView }) {
+  const pool = rfp;
   const left = daysLeft(pool.goalBy);
   return (
     <PhaseCard
@@ -86,11 +79,12 @@ function PhaseOne({ rfp }: { rfp: OrchOrRfp }) {
             <span className="text-[14px] text-[var(--o-mute)]">raised</span>
           </span>
           <span className="text-[14px] tabular-nums text-[var(--o-soft)]">
-            {Math.round(poolPercent(rfp))}% · {pool.backerCount} backers · {left}{' '}
-            {left === 1 ? 'day' : 'days'} left
+            {Math.round(poolPercent(rfp))}% · {pool.backerCount}{' '}
+            {pool.backerCount === 1 ? 'backer' : 'backers'} · {left} {left === 1 ? 'day' : 'days'}{' '}
+            left
           </span>
         </p>
-        <PoolBar className="mt-3 h-2" />
+        <PoolBar rfp={rfp} className="mt-3 h-2" />
       </div>
       <dl className="o-rule mt-6 divide-y divide-[color:var(--o-line)] border-t">
         <Fact label="Where it goes">Only to research funded under this call.</Fact>
@@ -106,7 +100,7 @@ function PhaseOne({ rfp }: { rfp: OrchOrRfp }) {
   );
 }
 
-function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
+function PhaseTwo({ rfp }: { rfp: RfpView }) {
   return (
     <PhaseCard n={2} status="next" title="Pick proposals, run the experiments">
       <p className="mt-6 text-[15px] leading-[1.6] text-[var(--o-soft)]">
@@ -129,8 +123,7 @@ function PhaseTwo({ rfp }: { rfp: OrchOrRfp }) {
  * runs the experiments (the proposal window, review and award size). The
  * programme's timeline, not the reader's steps; those are in How it works.
  */
-export function Phases() {
-  const rfp = ORCH_OR_RFP;
+export function Phases({ rfp }: { rfp: RfpView }) {
   return (
     <section
       id="phases"

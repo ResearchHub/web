@@ -12,36 +12,20 @@ interface OrchActions {
   addToPool: () => void;
 }
 
-const OrchActionsContext = createContext<OrchActions | null>(null);
+export const OrchActionsContext = createContext<OrchActions | null>(null);
 
 /**
- * The page's two actions: adding to the pool (the primary one) and
- * submitting a proposal. This preview round only says where each would go.
- *
- * Live wiring, once the RFP exists (see docs/orch-or-rfp-landing-plan.md §7):
- * - Wrap the page in `FundPanelProvider` → `GrantPageProvider` →
- *   `FundraiseProvider`, as `app/rfp/[id]/[slug]/layout.tsx` does, ideally by
- *   rendering this page from that layout when the RFP id matches, so the
- *   canonical /rfp/:id/:slug URL and its data fetch are kept.
- * - `submitProposal` = `useGrantPage().applyToRfp`: it stores the RFP in
- *   sessionStorage and routes to `/workspace?new=proposal&rfp=<grantId>`.
- *   The question id is not passed today; it could prefill the workspace later.
- * - `addToPool` = `useFundPanel().openFundPanel`, and this provider must mount
- *   `<ContributeToFundraiseModal mode="fundingPool" variant="panel" … />`
- *   itself (as `WorkHeaderGrant` does), because this page has no WorkHeader.
+ * The page's two actions, adding to the pool (the primary one) and submitting
+ * a proposal, before any RFP is loaded: each only says it opens soon. With
+ * the RFP loaded, `LiveRfpActions` replaces both with the real flows.
  */
 export function OrchActionsProvider({ children }: { children: ReactNode }) {
-  const submitProposal = useCallback((trackId?: string) => {
-    toast(
-      `Preview: this opens the AI proposal workspace for this RFP${
-        trackId ? ` (question: ${trackId})` : ''
-      }.`,
-      { id: 'orch-action' }
-    );
+  const submitProposal = useCallback(() => {
+    toast('Proposals open soon.', { id: 'orch-action' });
   }, []);
 
   const addToPool = useCallback(() => {
-    toast('Preview: this opens the panel for adding to the pool.', { id: 'orch-action' });
+    toast('The pool opens soon.', { id: 'orch-action' });
   }, []);
 
   const value = useMemo(() => ({ submitProposal, addToPool }), [submitProposal, addToPool]);

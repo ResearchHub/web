@@ -2,10 +2,9 @@ import { ArrowRight, CalendarDays, Plus } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { TRACK_RECORD } from '@/app/giving-tuesday/lib/trackRecord';
 import { FAQ, QUESTIONS, SOURCES } from '../data/content';
-import { ORCH_OR_RFP, TALK_TO_TEAM, formatUsdShort } from '../data/mockRfp';
+import { TALK_TO_TEAM, formatUsdShort, type RfpView } from '../data/rfp';
 import { LiveProposals } from './LiveProposals';
 import { PoolPanel } from './PoolPanel';
-import { ProposalRow } from './ProposalRow';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { Rich } from './Rich';
 import { PhotoCredits, Wrap } from './Story';
@@ -38,63 +37,33 @@ function OpenSlots() {
 }
 
 /**
- * Proposals and backers. With the RFP live on ResearchHub (`live`), its
- * proposals and activity load in; until then, the mock proposals (each with
- * its question's figure as a cover), or the launch-day slots when there are none.
+ * Proposals and backers: the RFP's proposals and activity from ResearchHub,
+ * or the launch-day slots while it has none (or none is configured), beside
+ * the funding pool.
  */
-export function Proposals({ live }: { live?: { grantId: number; rfpHref: string } | null }) {
-  const rfp = ORCH_OR_RFP;
-  const empty = rfp.proposals.length === 0;
+export function Proposals({ rfp }: { rfp: RfpView }) {
+  const { grantId, rfpHref } = rfp;
   return (
     <section aria-labelledby="proposals-title" className="o-rule border-t py-24 tablet:py-32">
       <Wrap>
         <div className="grid grid-cols-1 gap-14 content-md:grid-cols-12 content-md:gap-16">
           <div className="content-md:col-span-7">
-            {live ? (
-              <LiveProposals grantId={live.grantId} rfpHref={live.rfpHref} empty={<OpenSlots />} />
+            {grantId != null && rfpHref ? (
+              <LiveProposals grantId={grantId} rfpHref={rfpHref} empty={<OpenSlots />} />
             ) : (
               <>
                 <h2 id="proposals-title" className={`${H2} max-w-[12em]`}>
-                  {empty ? (
-                    <>
-                      No proposals yet. <em>The first one sets the bar.</em>
-                    </>
-                  ) : (
-                    `${rfp.proposals.length} ${rfp.proposals.length === 1 ? 'proposal' : 'proposals'} so far.`
-                  )}
+                  No proposals yet. <em>The first one sets the bar.</em>
                 </h2>
-                {empty ? (
-                  <OpenSlots />
-                ) : (
-                  <ul className="o-rule mt-10 divide-y divide-[color:var(--o-line)] border-y">
-                    {rfp.proposals.map((p) => {
-                      const q = QUESTIONS.find((x) => x.id === p.trackId);
-                      return (
-                        <ProposalRow
-                          key={p.id}
-                          p={{
-                            href: '#proposals-title',
-                            title: p.title,
-                            imageUrl: q ? `/consciousness/sets/poster/${q.scene}.webp` : null,
-                            authors: p.authors,
-                            raisedUsd: p.raisedUsd,
-                            goalUsd: p.goalUsd,
-                          }}
-                        />
-                      );
-                    })}
-                  </ul>
-                )}
+                <OpenSlots />
               </>
             )}
             <div className="mt-8">
-              <SubmitProposalButton
-                label={live || !empty ? 'Submit a proposal' : 'Be the first to submit'}
-              />
+              <SubmitProposalButton />
             </div>
           </div>
 
-          <PoolPanel />
+          <PoolPanel rfp={rfp} />
         </div>
       </Wrap>
     </section>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { formatUsdShort } from '../data/mockRfp';
+import { formatUsdShort } from '../data/rfp';
 
 export interface ProposalRowData {
   href: string;

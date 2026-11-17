@@ -1,4 +1,4 @@
-import { ORCH_OR_RFP, formatDate, formatUsd, formatUsdShort, poolPercent } from '../data/mockRfp';
+import { formatDate, formatUsd, formatUsdShort, poolPercent, type RfpView } from '../data/rfp';
 
 /**
  * The phases in the hero, under the calls to action: the amount raised, then
@@ -7,9 +7,8 @@ import { ORCH_OR_RFP, formatDate, formatUsd, formatUsdShort, poolPercent } from 
  * Picked from the hero mocks as B (Kobe, 2026-11-17). `daysLeft` comes from
  * the server.
  */
-export function HeroPhase({ daysLeft }: { daysLeft: number }) {
-  const rfp = ORCH_OR_RFP;
-  const { pool } = rfp;
+export function HeroPhase({ rfp, daysLeft }: { rfp: RfpView; daysLeft: number }) {
+  const pool = rfp;
   const pct = poolPercent(rfp);
   return (
     <div className="o-rise mt-9 max-w-[480px]">

@@ -3,10 +3,35 @@
 // hence the surrounding `.*`.
 const MARKDOWN_ACCEPT = { type: 'header', key: 'accept', value: '.*text/markdown.*' };
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- next.config.js is CommonJS
+const consciousnessRfp = require('./app/consciousness/data/rfp.config.json');
+
+/**
+ * The RFP post that the /consciousness landing page stands in for: the one in
+ * `rfp.config.json` on production deploys, `CONSCIOUSNESS_RFP_POST_ID`
+ * anywhere else (post ids differ between environments). Must match
+ * `rfpPostId` in `app/consciousness/data/rfp.ts`.
+ */
+const CONSCIOUSNESS_RFP_POST_ID =
+  process.env.CONSCIOUSNESS_RFP_POST_ID ||
+  (process.env.VERCEL_ENV === 'production' ? String(consciousnessRfp.productionPostId) : null);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
+    // The consciousness RFP's own page sends visitors to its landing page.
+    // `?view=rfp` still opens the RFP page, for its author and moderators.
+    ...(CONSCIOUSNESS_RFP_POST_ID
+      ? [
+          {
+            source: `/rfp/${CONSCIOUSNESS_RFP_POST_ID}/:path*`,
+            missing: [{ type: 'query', key: 'view' }],
+            destination: '/consciousness',
+            permanent: false,
+          },
+        ]
+      : []),
     {
       source: '/funding',
       destination: '/fund',

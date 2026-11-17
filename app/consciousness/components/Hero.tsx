@@ -10,7 +10,7 @@ import { RfpMenu } from './RfpMenu';
 import { BackButton } from './BackButton';
 import { HeroPhase } from './HeroPhase';
 import { daysLeft } from './PoolPanel';
-import { ORCH_OR_RFP } from '../data/mockRfp';
+import type { RfpView } from '../data/rfp';
 import type { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 
@@ -23,11 +23,13 @@ const SHOW_TALK_LINK = false;
 export function Hero({
   set = 'ink',
   hero = DEFAULT_HERO,
+  rfp,
   work = null,
   metadata = null,
 }: {
   set?: SetId;
   hero?: HeroId;
+  rfp: RfpView;
   work?: Work | null;
   metadata?: WorkMetadata | null;
 }) {
@@ -94,7 +96,7 @@ export function Hero({
           )}
         </div>
 
-        <HeroPhase daysLeft={daysLeft(ORCH_OR_RFP.pool.goalBy)} />
+        <HeroPhase rfp={rfp} daysLeft={daysLeft(rfp.goalBy)} />
       </div>
 
       <p className="absolute bottom-6 right-8 z-10 hidden max-w-[300px] text-right text-[12px] leading-[1.5] text-[var(--o-mute)] content-md:block">
