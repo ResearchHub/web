@@ -1,6 +1,6 @@
 import { ArrowRight, CalendarDays, Plus } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
-import { TRACK_RECORD } from '@/app/giving-tuesday/lib/trackRecord';
+import { TRACK_RECORD } from '@/app/giving/lib/trackRecord';
 import { FAQ, QUESTIONS, SOURCES } from '../data/content';
 import { TALK_TO_TEAM, formatUsdShort, type RfpView } from '../data/rfp';
 import { LiveProposals } from './LiveProposals';
@@ -73,8 +73,8 @@ export function Proposals({ rfp }: { rfp: RfpView }) {
 /**
  * Who hosts the call, in the slot the funder section used to fill. The
  * description and mission are ResearchHub's own words (researchhub.com
- * and /about); the figures are the dated track record the Giving Tuesday
- * page shows (`app/giving-tuesday/lib/trackRecord.ts`).
+ * and /about); the figures are the dated track record the Giving page
+ * shows (`app/giving/lib/trackRecord.ts`).
  */
 export function AboutResearchHub() {
   const stats = [
@@ -83,7 +83,6 @@ export function AboutResearchHub() {
       value: TRACK_RECORD.proposalsFunded.toLocaleString('en-US'),
       label: 'Proposals fully funded',
     },
-    { value: TRACK_RECORD.peerReviewers.toLocaleString('en-US'), label: 'Peer reviewers' },
     { value: TRACK_RECORD.peerReviews.toLocaleString('en-US'), label: 'Peer reviews' },
   ];
   return (
@@ -107,7 +106,7 @@ export function AboutResearchHub() {
               It is built for reproducible science: researchers publicly register their study design
               before they start, locking in their methods, and publish openly, with no paywalls.
             </p>
-            <dl className="o-rule mt-8 grid grid-cols-2 gap-x-6 gap-y-6 border-t pt-6 tablet:grid-cols-4">
+            <dl className="o-rule mt-8 grid grid-cols-3 gap-x-6 gap-y-6 border-t pt-6">
               {stats.map((s) => (
                 <div key={s.label}>
                   <dt className="sr-only">{s.label}</dt>
