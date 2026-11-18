@@ -6,13 +6,10 @@ import { SET_INFO } from '../sets/registry';
 import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
-import { RfpMenu } from './RfpMenu';
 import { BackButton } from './BackButton';
 import { HeroPhase } from './HeroPhase';
 import { daysLeft } from './PoolPanel';
 import type { RfpView } from '../data/rfp';
-import type { Work } from '@/types/work';
-import type { WorkMetadata } from '@/services/metadata.service';
 
 /**
  * A quiet "Talk to us" link beside the hero's buttons, pointing to the Talk
@@ -20,18 +17,18 @@ import type { WorkMetadata } from '@/services/metadata.service';
  */
 const SHOW_TALK_LINK = false;
 
+/** The hero's two buttons on phones: sharing one row, back to `lg` from tablet up. */
+const PHONE_CTA =
+  'flex-auto px-3 text-[13.5px] !gap-1.5 min-[380px]:text-[14px] tablet:flex-none tablet:px-6 tablet:text-[15px] tablet:!gap-2';
+
 export function Hero({
   set = 'ink',
   hero = DEFAULT_HERO,
   rfp,
-  work = null,
-  metadata = null,
 }: {
   set?: SetId;
   hero?: HeroId;
   rfp: RfpView;
-  work?: Work | null;
-  metadata?: WorkMetadata | null;
 }) {
   const words = SET_INFO[set].words;
 
@@ -65,7 +62,11 @@ export function Hero({
         </a>
       </header>
 
-      <div className="relative z-10 mt-auto px-5 pb-12 pt-[40svh] tablet:my-auto tablet:w-[min(760px,62%)] tablet:px-10 tablet:py-24 content-lg:px-16">
+      {/* On phones the figure takes the top 40% of min(hero height, 2.16 ×
+          width) (`phoneArt` in sets/poster/heroKit.ts), so the text starts at
+          least that far down: 40svh alone puts the headline on the figure
+          wherever the browser's bars make the viewport short. */}
+      <div className="relative z-10 mt-auto px-5 pb-12 pt-[max(40svh,min(86.4vw,380px))] tablet:my-auto tablet:w-[min(760px,62%)] tablet:px-10 tablet:py-24 content-lg:px-16">
         <h1
           id="orch-title"
           className="o-rise o-serif max-w-[11em] text-balance text-[clamp(34px,4.4vw,64px)] leading-[1.02]"
@@ -79,10 +80,12 @@ export function Hero({
         </p>
 
         <div data-orch-hero-cta className="o-rise mt-7 flex flex-wrap gap-3">
-          <AddToPoolButton size="lg" />
-          <SubmitProposalButton size="lg" />
-          <div className="flex gap-2 tablet:ml-1">
-            <RfpMenu work={work} metadata={metadata} />
+          {/* Side by side on phones too: tighter type and padding so both
+              fit in one row at 360px. No Share, Save or More here (Kobe,
+              2026-11-17): the RFP page keeps them. */}
+          <div className="flex w-full gap-2 tablet:w-auto tablet:gap-3">
+            <AddToPoolButton size="lg" className={PHONE_CTA} />
+            <SubmitProposalButton size="lg" className={PHONE_CTA} />
           </div>
           {SHOW_TALK_LINK && (
             <a

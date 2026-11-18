@@ -18,16 +18,13 @@ import { parseHero } from './sets/heroes';
 import { rfpPostId, rfpView } from './data/rfp';
 import { LiveRfpActions } from './components/LiveRfpActions';
 import { PostService } from '@/services/post.service';
-import { MetadataService, type WorkMetadata } from '@/services/metadata.service';
 import type { Work } from '@/types/work';
 
 /**
- * The RFP's post and metadata, the same two requests the RFP page's layout
- * makes (`app/rfp/[id]/[slug]/layout.tsx`), for the post `rfpPostId` picks
- * in this environment. Null when there is none or the post fails to load
- * (a pending RFP is not public yet); the page then shows an empty pool that
- * opens soon. Metadata only feeds the More menu, so failing it alone keeps
- * the post.
+ * The RFP's post, as the RFP page's layout loads it
+ * (`app/rfp/[id]/[slug]/layout.tsx`), for the post `rfpPostId` picks in this
+ * environment. Null when there is none or the post fails to load (a pending
+ * RFP is not public yet); the page then shows an empty pool that opens soon.
  */
 async function loadRfp(preview: string | string[] | undefined) {
   const postId = rfpPostId(preview);
@@ -36,10 +33,7 @@ async function loadRfp(preview: string | string[] | undefined) {
     const work: Work = await PostService.get(String(postId));
     const grant = work.note?.post?.grant;
     if (!grant?.id) return null;
-    const metadata: WorkMetadata | null = await MetadataService.get(
-      work.unifiedDocumentId?.toString() || ''
-    ).catch(() => null);
-    return { work, grant, metadata };
+    return { work, grant };
   } catch {
     return null;
   }
@@ -70,13 +64,7 @@ export default async function OrchOrPage({
   const rfp = rfpView(live?.work ?? null);
   const page = (
     <>
-      <Hero
-        set={set}
-        hero={hero}
-        rfp={rfp}
-        work={live?.work ?? null}
-        metadata={live?.metadata ?? null}
-      />
+      <Hero set={set} hero={hero} rfp={rfp} />
       <Claim />
       <Timeline />
       <Questions set={set} />
