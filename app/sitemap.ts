@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/lib/metadata';
+import { rfpPostId } from '@/app/consciousness/data/rfp';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,13 +63,17 @@ async function buildPostSitemap(
   const posts = await fetchAllPages<SitemapPost>(
     `/api/researchhubpost/sitemap/?document_type=${documentType}`
   );
+  // The consciousness RFP's own URL redirects to /consciousness, listed below.
+  const redirected = rfpPostId();
   return dedupe(
-    posts.map((post) => ({
-      url: SITE_URL + urlPrefix + post.id + (post.slug ? '/' + post.slug : ''),
-      lastModified: post.updated_date,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
+    posts
+      .filter((post) => post.id !== redirected)
+      .map((post) => ({
+        url: SITE_URL + urlPrefix + post.id + (post.slug ? '/' + post.slug : ''),
+        lastModified: post.updated_date,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }))
   );
 }
 
@@ -78,6 +83,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: SITE_URL, changeFrequency: 'hourly', priority: 1 },
   { url: `${SITE_URL}/fund`, changeFrequency: 'daily', priority: 0.9 },
   { url: `${SITE_URL}/fund/proposals`, changeFrequency: 'daily', priority: 0.8 },
+  { url: `${SITE_URL}/consciousness`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/peer-review`, changeFrequency: 'daily', priority: 0.8 },
   { url: `${SITE_URL}/journal`, changeFrequency: 'daily', priority: 0.7 },
   { url: `${SITE_URL}/about`, changeFrequency: 'monthly', priority: 0.5 },

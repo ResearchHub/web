@@ -9,9 +9,8 @@ type TabsVariant = 'primary' | 'pill' | 'page';
 /** A tab's icon: a Lucide icon, or any component that takes a class name. */
 type TabIcon = ComponentType<{ className?: string }>;
 
-/** A tab's count: plain grey text on page tabs, the tab's colour on an active underlined one. */
+/** A tab's count: the sidebar's count chip on page tabs, the tab's colour on an active underlined one. */
 function countBadgeClass(variant: TabsVariant, isActive: boolean) {
-  if (variant === 'page') return 'bg-transparent px-0 font-medium text-gray-400';
   if (variant === 'primary') {
     return cn(
       'rounded-full px-2',
@@ -44,8 +43,8 @@ interface TabsProps {
   className?: string;
   /**
    * `primary` underlines the active tab and `pill` rings it. `page` is a work
-   * page's own sections: larger labels, no icons, plain counts and a navy
-   * underline; on phones the tabs share the width edge to edge.
+   * page's own sections: larger labels, no icons, counts as sidebar-style
+   * chips and a navy underline; on phones the tabs share the width edge to edge.
    */
   variant?: TabsVariant;
   disabled?: boolean;

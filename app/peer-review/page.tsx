@@ -17,6 +17,7 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 export default async function PeerReviewPage() {
   return (
     <PageLayout
+      contentWidth="narrow"
       topBanner={
         <>
           <PeerReviewHero />

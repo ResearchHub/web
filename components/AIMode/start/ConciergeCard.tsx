@@ -3,13 +3,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
-
-/** Where a funder books time with the ResearchHub team to shape an RFP together. */
-const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
-
-/** The PhD on the team who takes funders' calls. */
-const CONCIERGE_AVATAR_URL =
-  'https://storage.prod.researchhub.com/uploads/author_profile_images/2022/08/09/blob_im4Dh4d';
+import { CONCIERGE } from '@/constants/concierge';
 
 interface ConciergeCardProps {
   readonly className?: string;
@@ -23,7 +17,7 @@ interface ConciergeCardProps {
 export function ConciergeCard({ className }: ConciergeCardProps) {
   return (
     <a
-      href={WHITE_GLOVE_BOOKING_URL}
+      href={CONCIERGE.bookingUrl}
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
@@ -31,7 +25,7 @@ export function ConciergeCard({ className }: ConciergeCardProps) {
         className
       )}
     >
-      <Avatar src={CONCIERGE_AVATAR_URL} alt="ResearchHub concierge" size={40} />
+      <Avatar src={CONCIERGE.avatarUrl} alt="ResearchHub concierge" size={40} />
       <span className="min-w-0 flex-1">
         <span className="block text-[11px] font-medium uppercase tracking-[0.07em] text-gray-500">
           Concierge
