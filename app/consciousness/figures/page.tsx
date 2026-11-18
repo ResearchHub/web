@@ -11,7 +11,7 @@ import { parseHero } from '../sets/heroes';
 import { DEFAULT_SET, SET_IDS, THEMES, parseSet, themeVars, type SetId } from '../theme';
 
 export const metadata: Metadata = {
-  title: 'Orch OR figures: graphic sets',
+  title: 'Consciousness figures: graphic sets',
   robots: { index: false, follow: false },
 };
 

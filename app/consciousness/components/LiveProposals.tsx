@@ -54,7 +54,7 @@ function Inner({
   const activity = useActivityFeed({ scope: 'grants', grantId, enabled: tab === 'activity' });
 
   const tabs = (
-    <div role="tablist" aria-label="Proposals and activity" className="mt-8 flex gap-1">
+    <div role="group" aria-label="Show proposals or activity" className="mt-8 flex gap-1">
       {(
         [
           ['proposals', 'Proposals', isLoading ? null : proposalCount],
@@ -64,8 +64,7 @@ function Inner({
         <button
           key={id}
           type="button"
-          role="tab"
-          aria-selected={tab === id}
+          aria-pressed={tab === id}
           onClick={() => setTab(id)}
           className={cn(
             'rounded-full px-4 py-1.5 text-[14px] transition-colors',
@@ -113,7 +112,7 @@ function Inner({
       {tabs}
 
       {tab === 'proposals' && (
-        <div role="tabpanel" className="mt-6">
+        <div className="mt-6">
           {isLoading ? (
             <RowsSkeleton />
           ) : entries.length === 0 ? (
@@ -132,7 +131,7 @@ function Inner({
       )}
 
       {tab === 'activity' && (
-        <div role="tabpanel" className="mt-6">
+        <div className="mt-6">
           {activity.isLoading ? (
             <RowsSkeleton />
           ) : activity.entries.length === 0 ? (

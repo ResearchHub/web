@@ -90,8 +90,9 @@ export function rfpView(work: Work | null): RfpView {
     })),
     distributedUsd: pool?.amountDistributed.usd ?? 0,
     proposalCount: grant?.applications?.length ?? 0,
+    // No RFP loaded reads as opening soon, as the page's buttons then say.
     status: !grant
-      ? 'OPEN'
+      ? 'PENDING'
       : grant.status === 'PENDING'
         ? 'PENDING'
         : isGrantActive(grant)

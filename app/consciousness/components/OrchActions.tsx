@@ -6,8 +6,11 @@ import { ArrowRight, Plus } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
 interface OrchActions {
-  /** Start a proposal for this RFP, optionally from one question. */
-  submitProposal: (trackId?: string) => void;
+  /**
+   * Start a proposal for this RFP. The workspace cannot be told which of the
+   * page's questions it answers, so every entry point starts the same draft.
+   */
+  submitProposal: () => void;
   /** Open the contribute panel for the RFP's funding pool. */
   addToPool: () => void;
 }
@@ -48,12 +51,10 @@ const SIZES: Record<Size, string> = {
 
 export function SubmitProposalButton({
   size = 'md',
-  trackId,
   label = 'Submit a proposal',
   className,
 }: {
   size?: Size;
-  trackId?: string;
   label?: string;
   className?: string;
 }) {
@@ -61,7 +62,7 @@ export function SubmitProposalButton({
   return (
     <button
       type="button"
-      onClick={() => submitProposal(trackId)}
+      onClick={submitProposal}
       className={cn('o-btn o-btn-ghost', SIZES[size], className)}
     >
       {label}
@@ -93,12 +94,12 @@ export function AddToPoolButton({
 }
 
 /** A quiet text link that starts a proposal on one question. */
-export function TrackApplyLink({ trackId, label }: { trackId: string; label: string }) {
+export function TrackApplyLink({ label }: { label: string }) {
   const { submitProposal } = useOrchActions();
   return (
     <button
       type="button"
-      onClick={() => submitProposal(trackId)}
+      onClick={submitProposal}
       className="group inline-flex items-center gap-2 text-[15px] font-medium text-[var(--o-gold)] hover:text-[var(--o-text)]"
     >
       {label}

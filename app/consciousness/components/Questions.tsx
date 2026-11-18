@@ -58,7 +58,7 @@ function QuestionBlock({ q, n, flip, set }: { q: Question; n: number; flip: bool
           <Outcome side="against">{q.countsAgainst}</Outcome>
         </div>
         <div className="mt-6">
-          <TrackApplyLink trackId={q.id} label="Propose an experiment" />
+          <TrackApplyLink label="Propose an experiment" />
         </div>
       </div>
     </article>
@@ -103,7 +103,7 @@ export function Questions({ set = 'ink' }: { set?: SetId }) {
             critique, or a new theory with a way to test it. Each is judged on the same terms.
           </p>
           <div className="mt-6">
-            <TrackApplyLink trackId="critique" label="Propose something else" />
+            <TrackApplyLink label="Propose something else" />
           </div>
         </article>
       </Wrap>

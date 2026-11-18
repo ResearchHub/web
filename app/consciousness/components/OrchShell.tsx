@@ -16,8 +16,10 @@ export function OrchShell({
   children: ReactNode;
   fontClassName: string;
 }) {
-  // The palette follows the graphic set (`?set=`), as the page's figures do.
-  const set = parseSet(useSearchParams().get('set'));
+  // The palette follows the graphic set, as the page's figures do; like the
+  // page, it only reads `?set=` with `?design=1`.
+  const params = useSearchParams();
+  const set = parseSet(params.get('design') === '1' ? params.get('set') : null);
 
   return (
     <main className={`orch relative min-h-screen min-w-0 ${fontClassName}`} style={themeVars(set)}>

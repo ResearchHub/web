@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
 import { deadlinePhrase, formatDate, formatUsd, poolPercent, type RfpView } from '../data/rfp';
@@ -98,6 +100,17 @@ export function PoolPanel({ rfp }: { rfp: RfpView }) {
         <AddToPoolButton size="lg" className="w-full" />
       </div>
       <p className="mt-3 text-[12.5px] text-[var(--o-mute)]">{pool.taxDeductibleNote}</p>
+      {/* The RFP's own page, which /rfp/<id> otherwise redirects away from:
+          its full proposal list, details, and the author's and moderators' tools. */}
+      {rfp.rfpHref && (
+        <Link
+          href={rfp.rfpHref}
+          className="mt-3 inline-flex items-center gap-1.5 text-[13.5px] font-medium text-[var(--o-gold)] hover:text-[var(--o-text)]"
+        >
+          View the RFP page
+          <ArrowUpRight aria-hidden className="h-3.5 w-3.5" />
+        </Link>
+      )}
 
       {pool.backers.length > 0 && (
         <div className="o-rule mt-8 border-t pt-5">

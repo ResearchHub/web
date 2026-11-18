@@ -32,6 +32,17 @@ const nextConfig = {
           },
         ]
       : []),
+    // The page's first address, from its preview (PR #1298).
+    {
+      source: '/orch-or/figures',
+      destination: '/consciousness/figures',
+      permanent: true,
+    },
+    {
+      source: '/orch-or/:path*',
+      destination: '/consciousness',
+      permanent: true,
+    },
     {
       source: '/funding',
       destination: '/fund',
