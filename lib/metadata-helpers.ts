@@ -70,11 +70,10 @@ function fundedGrantItems(
 }
 
 /** schema.org data for a work page: a grant, a proposal, a paper, or the generic article. */
-function buildWorkStructuredData(work: Work, url: string, description: string) {
+function buildWorkStructuredData(work: Work, url: string, description: string, grant?: Grant) {
   const absoluteUrl = `${SITE_CONFIG.url}${url}`;
 
   if (work.contentType === 'funding_request') {
-    const grant = work.note?.post?.grant;
     if (grant) {
       return generateGrantStructuredData({
         title: work.title,
@@ -133,17 +132,19 @@ function buildWorkStructuredData(work: Work, url: string, description: string) {
 export function getWorkMetadata({
   work,
   url,
+  grant = work.note?.post?.grant,
   titleSuffix = '',
 }: {
   work: Work;
   url: string;
+  grant?: Grant;
   titleSuffix?: string;
 }) {
   const title = `${work.title}${titleSuffix ? ` - ${titleSuffix}` : ''}`;
   const description = getWorkDescription(work);
   const topics = work.contentType === 'paper' ? work.topics : undefined;
 
-  const structuredData = buildWorkStructuredData(work, url, description);
+  const structuredData = buildWorkStructuredData(work, url, description, grant);
 
   const articleMetadata = buildArticleMetadata({
     title,

@@ -1,8 +1,5 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { PostService } from '@/services/post.service';
-import { MetadataService } from '@/services/metadata.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
@@ -16,6 +13,7 @@ import { GrantSidebar } from '@/components/Funding/GrantSidebar';
 import { GrantByline } from '@/components/Funding/GrantByline';
 import { GrantTabs } from '@/components/Funding/GrantTabs';
 import { GrantActionBar } from '@/components/Funding/GrantActionBar';
+import { getRfpPageData } from './getRfpPageData';
 
 interface Props {
   params: Promise<{
@@ -27,7 +25,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   try {
-    const work = await PostService.get(id);
+    const { work, metadata } = await getRfpPageData(id);
     const previewText = stripHtml(work.previewContent || '').substring(0, 155);
     const description = work.abstract || previewText || 'View this research grant on ResearchHub.';
     return buildArticleMetadata({
@@ -37,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       image: work.image,
       publishedTime: work.publishedDate || work.createdDate,
       modifiedTime: work.updatedDate,
-      expirationTime: work.note?.post?.grant?.endDate,
+      expirationTime: metadata.grant?.endDate,
       authors: work.authors.map((a) => a.authorProfile.fullName),
     });
   } catch {
@@ -48,22 +46,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function GrantSlugLayout({ params, children }: Props) {
   const { id } = await params;
 
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
-
-  let work;
-  try {
-    work = await PostService.get(id);
-  } catch {
-    notFound();
-  }
-
-  const grant = work.note?.post?.grant;
+  const { work, metadata } = await getRfpPageData(id);
+  const grant = metadata.grant;
   const grantId = grant?.id ?? undefined;
   const grantTitle = grant?.shortTitle || work.title;
-
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   // Laid out as the proposal page is: the cover with the tabs across the
   // page under it, then the byline over each tab's content, with the pool card

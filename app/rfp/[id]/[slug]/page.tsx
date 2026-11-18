@@ -1,8 +1,7 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { PostService } from '@/services/post.service';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
+import { getRfpPageData } from './getRfpPageData';
 
 interface Props {
   params: Promise<{
@@ -11,34 +10,24 @@ interface Props {
   }>;
 }
 
-async function getGrant(id: string) {
-  if (!id.match(/^\d+$/)) {
-    notFound();
-  }
-  try {
-    return await PostService.get(id);
-  } catch {
-    notFound();
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, slug } = await params;
-  const grant = await getGrant(id);
+  const { work, metadata } = await getRfpPageData(id);
   return getWorkMetadata({
-    work: grant,
+    work,
+    grant: metadata.grant,
     url: `/rfp/${id}/${slug}`,
   });
 }
 
 export default async function GrantSlugPage({ params }: Props) {
   const { id } = await params;
-  const work = await getGrant(id);
+  const { work, metadata } = await getRfpPageData(id);
 
   return (
     <GrantContentSwitcher
       content={work.previewContent}
-      showProposalFilters={Boolean(work.note?.post?.grant?.description)}
+      showProposalFilters={Boolean(metadata.grant?.description)}
     />
   );
 }
