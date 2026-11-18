@@ -13,12 +13,17 @@ import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
-import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
+import { CommentRow } from '@/components/Comment/CommentRow';
+import { ACTIVITY_ROW_DIVIDER } from '@/components/Activity/cards/ActivityCardShell';
 import { transformCommentToFeedItem, transformBountyCommentToFeedItem } from '@/types/feed';
 import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { cn } from '@/utils/styles';
+
+/** Lines replies up with the text beside a 40px avatar and its 12px gap. */
+const REPLY_INDENT = 'ml-[52px]';
 
 // Define the SolutionViewEvent interface (previously in BountyCard)
 interface SolutionViewEvent {
@@ -79,6 +84,7 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
+  const isReply = typeof comment.parentId === 'number';
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -289,31 +295,25 @@ export const CommentItem = ({
       }
     }
 
-    // For regular comments, use FeedItemComment
-    // Transform the comment to a feed entry
     const feedEntry = transformCommentToFeedItem(comment, contentType, work);
 
     return (
-      <div className="space-y-4">
-        <FeedItemComment
+      <>
+        <CommentRow
           entry={feedEntry}
+          isReply={isReply}
           onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
           onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
           onDelete={readOnly ? undefined : () => handleDelete()}
-          showCreatorActions={!readOnly && isAuthor}
+          isCurrentUserAuthor={isAuthor}
           showTooltips={showTooltips}
-          showRelatedWork={false}
-          hideActions={readOnly || !includeReplies || comment.isRemoved}
-          actionLabels={{
-            comment: 'Reply',
-          }}
+          hideActions={readOnly || !includeReplies || !!comment.isRemoved}
           workContentType={workContentType}
         />
 
         {/* If we're replying, show the reply editor */}
         {isReplying && !readOnly && (
-          <div className="mt-4 border-t pt-4 px-4 pb-4" data-testid="comment-reply-editor">
-            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
+          <div className={cn(REPLY_INDENT, 'mt-3')} data-testid="comment-reply-editor">
             <CommentEditor
               onSubmit={handleReply}
               onCancel={() => setReplyingToCommentId(null)}
@@ -323,12 +323,16 @@ export const CommentItem = ({
             />
           </div>
         )}
-      </div>
+      </>
     );
   };
 
   return (
-    <div className="mt-4" id={`comment-${comment.id}`} data-testid="comment-item">
+    <div
+      className={isReply ? 'pt-4' : cn(ACTIVITY_ROW_DIVIDER, 'py-4')}
+      id={`comment-${comment.id}`}
+      data-testid="comment-item"
+    >
       {/* Debug information for comment ID */}
       {showDebugInfo && (
         <div className="bg-gray-100 p-2 mb-2 rounded-md border border-gray-300">
@@ -412,7 +416,7 @@ export const CommentItem = ({
 
       {/* Replies section - conditionally rendered based on includeReplies prop */}
       {includeReplies && comment.replies && comment.replies.length > 0 ? (
-        <div className="-mt-1 pt-5 pl-6 border-l border-gray-200">
+        <div className={cn(REPLY_INDENT, 'border-l border-gray-200 pl-4')}>
           {comment.replies.map((reply) => (
             <CommentItem
               key={`reply-${reply.id}`}
@@ -443,7 +447,7 @@ export const CommentItem = ({
         </div>
       ) : includeReplies && comment.childrenCount > 0 ? (
         // No replies loaded yet, but there are replies to load
-        <div className="mt-4">
+        <div className={cn(REPLY_INDENT, 'mt-2')}>
           <div className="mt-2">
             <LoadMoreReplies
               commentId={comment.id}
