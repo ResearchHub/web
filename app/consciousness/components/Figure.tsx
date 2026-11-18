@@ -184,14 +184,19 @@ function SetArt({
           className={cn('object-cover', phone && 'hidden tablet:block')}
         />
       )}
+      {/* The phone still was drawn at 390 × 844, its art sized from the
+          width (`phoneArt`), so it keeps that shape at the top rather than
+          stretching to the hero's height, and lines up with the live figure. */}
       {phone && (
-        <Image
-          src={`${base}-phone.webp`}
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-top tablet:hidden"
-        />
+        <div className="absolute inset-x-0 top-0 aspect-[390/844] tablet:hidden">
+          <Image
+            src={`${base}-phone.webp`}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover object-top"
+          />
+        </div>
       )}
       <LiveLayer set={set} fig={fig} hero={hero} />
     </>
