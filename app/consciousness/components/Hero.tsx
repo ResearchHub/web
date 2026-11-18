@@ -6,13 +6,10 @@ import { SET_INFO } from '../sets/registry';
 import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
-import { RfpMenu } from './RfpMenu';
 import { BackButton } from './BackButton';
 import { HeroPhase } from './HeroPhase';
 import { daysLeft } from './PoolPanel';
 import type { RfpView } from '../data/rfp';
-import type { Work } from '@/types/work';
-import type { WorkMetadata } from '@/services/metadata.service';
 
 /**
  * A quiet "Talk to us" link beside the hero's buttons, pointing to the Talk
@@ -28,14 +25,10 @@ export function Hero({
   set = 'ink',
   hero = DEFAULT_HERO,
   rfp,
-  work = null,
-  metadata = null,
 }: {
   set?: SetId;
   hero?: HeroId;
   rfp: RfpView;
-  work?: Work | null;
-  metadata?: WorkMetadata | null;
 }) {
   const words = SET_INFO[set].words;
 
@@ -88,13 +81,11 @@ export function Hero({
 
         <div data-orch-hero-cta className="o-rise mt-7 flex flex-wrap gap-3">
           {/* Side by side on phones too: tighter type and padding so both
-              fit in one row at 360px; Share, Save and More wrap below. */}
+              fit in one row at 360px. No Share, Save or More here (Kobe,
+              2026-11-17): the RFP page keeps them. */}
           <div className="flex w-full gap-2 tablet:w-auto tablet:gap-3">
             <AddToPoolButton size="lg" className={PHONE_CTA} />
             <SubmitProposalButton size="lg" className={PHONE_CTA} />
-          </div>
-          <div className="flex gap-2 tablet:ml-1">
-            <RfpMenu work={work} metadata={metadata} />
           </div>
           {SHOW_TALK_LINK && (
             <a
