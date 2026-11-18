@@ -353,6 +353,10 @@ const nextConfig = {
       ],
     },
     {
+      source: '/md/:path*',
+      headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+    },
+    {
       // The OAuth consent page must never be framed or indexed
       source: '/oauth/authorize',
       headers: [
