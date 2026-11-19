@@ -563,14 +563,17 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         loading: true,
         error: null,
       };
-    case CommentActionType.DELETE_COMMENT_SUCCESS:
+    case CommentActionType.DELETE_COMMENT_SUCCESS: {
+      // The count is top-level comments only, so it drops only when one is removed here.
+      const comments = state.comments.filter((comment) => comment.id !== action.payload.comment.id);
       return {
         ...state,
-        comments: state.comments.filter((comment) => comment.id !== action.payload.comment.id),
-        count: state.count - 1,
+        comments,
+        count: comments.length < state.comments.length ? state.count - 1 : state.count,
         loading: false,
         error: null,
       };
+    }
     default:
       return state;
   }

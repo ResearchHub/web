@@ -19,40 +19,14 @@ import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyCom
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { flattenThread } from '@/components/Comment/lib/commentTreeUtils';
 import { cn } from '@/utils/styles';
 
 /**
- * One line of a comment's thread. Replies show one level deep under the comment
- * they belong to, so replies to replies are flattened into the same column in
- * reading order.
+ * The curved line joining the thread to an entry, from under the parent's avatar.
+ * The elbow meets a reply at its avatar and the shorter "show more" link at its text.
  */
-type ThreadEntry =
-  | { kind: 'reply'; comment: Comment }
-  | { kind: 'more'; parentId: number; remaining: number };
-
-const flattenThread = (parent: Comment): ThreadEntry[] => {
-  const entries: ThreadEntry[] = [];
-  for (const reply of parent.replies ?? []) {
-    entries.push(
-      { kind: 'reply', comment: { ...reply, parentId: parent.id } },
-      ...flattenThread(reply)
-    );
-  }
-  const loaded = parent.replies?.length ?? 0;
-  if (parent.childrenCount > loaded) {
-    entries.push({ kind: 'more', parentId: parent.id, remaining: parent.childrenCount - loaded });
-  }
-  return entries;
-};
-
-/** The curved line joining the thread to an entry, from under the parent's avatar. */
-const ThreadConnector = ({
-  isLast,
-  elbowClassName,
-}: {
-  isLast: boolean;
-  elbowClassName: string;
-}) => (
+const ThreadConnector = ({ isLast, isLoadMore }: { isLast: boolean; isLoadMore: boolean }) => (
   <>
     {!isLast && (
       <span aria-hidden="true" className="absolute -left-7 top-0 bottom-0 w-px bg-gray-300" />
@@ -61,7 +35,7 @@ const ThreadConnector = ({
       aria-hidden="true"
       className={cn(
         'absolute -left-7 top-0 w-6 rounded-bl-[10px] border-b border-l border-gray-300',
-        elbowClassName
+        isLoadMore ? 'h-[22px]' : 'h-8'
       )}
     />
   </>
@@ -84,8 +58,6 @@ interface CommentItemProps {
   includeReplies?: boolean;
   showDebugInfo?: boolean;
   readOnly?: boolean;
-  /** Set on a reply drawn inside its top-level comment's flattened thread. */
-  isThreadReply?: boolean;
 }
 
 export const CommentItem = ({
@@ -98,7 +70,6 @@ export const CommentItem = ({
   includeReplies = true,
   showDebugInfo = false,
   readOnly = false,
-  isThreadReply = false,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -134,7 +105,8 @@ export const CommentItem = ({
     comment.commentType === 'BOUNTY' ||
     (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
   // Only a top-level comment draws a thread; its replies come flattened beneath it.
-  const threadEntries = includeReplies && !isThreadReply ? flattenThread(comment) : [];
+  const isReply = typeof comment.parentId === 'number';
+  const threadEntries = includeReplies && !isReply ? flattenThread(comment) : [];
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -343,7 +315,6 @@ export const CommentItem = ({
     return (
       <CommentRow
         comment={comment}
-        isReply={typeof comment.parentId === 'number'}
         isCurrentUserAuthor={isAuthor}
         work={work}
         contentType={contentType}
@@ -460,9 +431,7 @@ export const CommentItem = ({
             if (entry.kind === 'more') {
               return (
                 <div key={`more-${entry.parentId}`} className="relative pt-3">
-                  {!isBountyComment && (
-                    <ThreadConnector isLast={isLast} elbowClassName="h-[22px]" />
-                  )}
+                  {!isBountyComment && <ThreadConnector isLast={isLast} isLoadMore />}
                   <LoadMoreReplies
                     commentId={entry.parentId}
                     remainingCount={entry.remaining}
@@ -473,7 +442,7 @@ export const CommentItem = ({
             }
             return (
               <div key={`reply-${entry.comment.id}`} className="relative pt-4">
-                {!isBountyComment && <ThreadConnector isLast={isLast} elbowClassName="h-8" />}
+                {!isBountyComment && <ThreadConnector isLast={isLast} isLoadMore={false} />}
                 <CommentItem
                   comment={entry.comment}
                   contentType={contentType}
@@ -483,7 +452,6 @@ export const CommentItem = ({
                   showTooltips={showTooltips}
                   includeReplies={includeReplies}
                   readOnly={readOnly}
-                  isThreadReply
                 />
               </div>
             );

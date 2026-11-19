@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useComments } from '@/contexts/CommentContext';
-import { Button } from '@/components/ui/Button';
 
 interface LoadMoreRepliesProps {
   commentId: number;
@@ -57,12 +56,11 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
           Replies loaded
         </div>
       ) : (
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           onClick={handleLoadMore}
           disabled={isButtonLoading}
-          className="-mx-1 h-auto px-1 py-0.5 text-xs font-semibold text-gray-600 hover:text-gray-900"
+          className="rounded text-xs font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           {isButtonLoading ? (
             'Loading...'
@@ -71,7 +69,7 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
               Show {remainingCount} more {remainingCount === 1 ? 'reply' : 'replies'}
             </>
           )}
-        </Button>
+        </button>
       )}
     </div>
   );

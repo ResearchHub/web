@@ -18,7 +18,6 @@ import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
-import { FOUNDATION_USER_ID } from '@/config/constants';
 import {
   FundingPool,
   GrantStatus,
@@ -1550,84 +1549,6 @@ function getReviewScore(
   // Default to 0 if no review score is found
   return 0;
 }
-
-/**
- * Transforms a Comment object into a FeedEntry that can be used with FeedItemComment component
- * @param comment The Comment object to transform
- * @param contentType The content type of the related document (paper, post, etc.)
- * @param relatedDocument Optional related work (paper or post) to include with the comment
- * @returns A FeedEntry object with the comment as content
- */
-export const transformCommentToFeedItem = (
-  comment: Comment,
-  contentType: ContentType,
-  relatedDocument?: Work
-): FeedEntry => {
-  // The structure of the createdBy property needs to include user as a sub-property and authorProfile on higher level to
-  // be compatible with the rest of the feed items.
-  const createdByAuthorProfile = {
-    ...comment.createdBy.authorProfile,
-    user: { ...comment.createdBy },
-  };
-
-  // Create a FeedCommentContent object from the comment
-  const commentContent: FeedCommentContent = {
-    id: comment.id,
-    contentType: 'COMMENT',
-    createdDate: comment.createdDate,
-    updatedDate: comment.updatedDate,
-    createdBy: createdByAuthorProfile as AuthorProfile,
-    isRemoved: comment.isRemoved,
-    comment: {
-      id: comment.id,
-      content: comment.content,
-      contentFormat: comment.contentFormat || 'QUILL_EDITOR',
-      commentType: comment.commentType,
-      score: comment.score,
-      reviewScore: comment.reviewScore,
-      isAssessed: comment.isAssessed ?? false,
-      thread: comment.thread
-        ? {
-            id: comment.thread.id,
-            threadType: comment.thread.threadType,
-            objectId: comment.thread.objectId,
-          }
-        : undefined,
-    },
-    relatedDocumentId: comment.thread?.objectId,
-    relatedDocumentContentType: contentType,
-  };
-
-  // Add review data if this is a review comment
-  if (comment.commentType === 'REVIEW') {
-    commentContent.review = {
-      score: comment.reviewScore || comment.score || 0,
-    };
-  }
-
-  // Create a FeedEntry with the comment content
-  return {
-    id: `comment-${comment.id}`,
-    recommendationId: null, // TODO: will we have recommendation id for comments?
-    timestamp: comment.createdDate,
-    action: 'contribute', // Default action for comments
-    content: commentContent,
-    contentType: 'COMMENT',
-    relatedWork: relatedDocument, // Add the related document if provided
-    metrics: {
-      votes: comment.score || 0,
-      comments: comment.childrenCount || 0,
-      saves: 0, // Required property
-      reviewScore: comment.commentType === 'REVIEW' ? comment.reviewScore || comment.score || 0 : 0,
-    },
-    userVote: comment.userVote,
-    tips: comment.tips,
-    awardedBountyAmount: comment.awardedBountyAmount,
-    isAwardedForFoundationBounty:
-      comment.bountyCreatorId?.toString() === FOUNDATION_USER_ID?.toString(),
-    isAssessed: comment.isAssessed ?? false,
-  };
-};
 
 /**
  * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBountyComment component

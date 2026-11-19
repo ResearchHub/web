@@ -2,49 +2,31 @@
 
 import { FC, ReactNode, useState } from 'react';
 import Link from 'next/link';
-import {
-  ArrowDown,
-  ArrowUp,
-  CheckCircle,
-  Flag,
-  MessageCircle,
-  MoreHorizontal,
-  Pen,
-  Star,
-  Trash2,
-} from 'lucide-react';
+import { CheckCircle, Flag, MoreHorizontal, Pen, Star, Trash2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { EditorBadge } from '@/components/ui/EditorBadge';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { Icon } from '@/components/ui/icons/Icon';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { TipTooltip } from '@/components/tooltips/TipTooltip';
+import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useUser } from '@/contexts/UserContext';
 import { useFlagModal } from '@/hooks/useFlagging';
-import { useVote } from '@/hooks/useVote';
 import type { Comment } from '@/types/comment';
-import { UserVoteType } from '@/types/reaction';
 import type { ContentType, Work } from '@/types/work';
-import { formatCurrency } from '@/utils/currency';
 import { formatTimeAgoShort } from '@/utils/date';
-import { cn } from '@/utils/styles';
 
 interface CommentRowProps {
   comment: Comment;
-  /** Replies get a smaller avatar; the thread connector is drawn by the parent. */
-  isReply: boolean;
   /** The signed-in user wrote the comment: they can edit and delete it, not tip or report it. */
   isCurrentUserAuthor: boolean;
   /** The work being discussed, used for the Author badge and vote bookkeeping. */
@@ -62,20 +44,13 @@ interface CommentRowProps {
   children?: ReactNode;
 }
 
-const ACTION_BUTTON = '-mx-1.5 gap-1.5 rounded-md px-1.5 text-sm font-normal hover:text-gray-900';
-
-const VOTE_BUTTON = 'h-7 w-7 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900';
-
-const VOTE_SCORES: Record<UserVoteType, number> = { UPVOTE: 1, NEUTRAL: 0, DOWNVOTE: -1 };
-
 /**
  * A comment, reply or peer review laid out like a professional-network thread:
  * avatar, name with headline under it, time and menu on the right, the words,
- * then icon-and-count actions (votes, reply, tip) with tips on the far right.
+ * then the vote, reply and tip actions.
  */
 export const CommentRow: FC<CommentRowProps> = ({
   comment,
-  isReply,
   isCurrentUserAuthor,
   work,
   contentType,
@@ -89,18 +64,16 @@ export const CommentRow: FC<CommentRowProps> = ({
 }) => {
   const { user } = useUser();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { showUSD } = useCurrencyPreference();
-  const { exchangeRate } = useExchangeRate();
   const { isOpen: isFlagOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
-  const [score, setScore] = useState(comment.score);
-  const [userVote, setUserVote] = useState<UserVoteType | undefined>(comment.userVote);
 
   const { createdBy } = comment;
   const author = createdBy.authorProfile;
   const authorId = author?.id;
+  const isReply = typeof comment.parentId === 'number';
   const isWorkAuthor = !!work?.authors?.some((a) => a.authorProfile.id === authorId);
+  const isEditor = !isWorkAuthor && !!author?.editorOfHubs?.length;
   const isVerified = createdBy.isVerified || author?.isVerified;
   const isReview = comment.commentType === 'REVIEW';
   const canTip = isFoundationUser(user?.id) && !isCurrentUserAuthor;
@@ -108,31 +81,9 @@ export const CommentRow: FC<CommentRowProps> = ({
     isReview &&
     comment.isAssessed &&
     String(createdBy.id) !== process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
-  const tips = comment.tips ?? [];
-  const totalAwarded =
-    tips.reduce((total, tip) => total + tip.amount, 0) + (comment.awardedBountyAmount ?? 0);
   const relatedDocumentId = comment.thread?.objectId?.toString();
-
-  const { vote, isVoting } = useVote({
-    votableEntityId: comment.id,
-    feedContentType: 'COMMENT',
-    relatedDocumentId,
-    relatedDocumentContentType: contentType,
-    relatedDocumentTopics: work?.topics,
-    onVoteError: () => {
-      setScore(comment.score);
-      setUserVote(comment.userVote);
-    },
-  });
-
-  const handleVote = (direction: UserVoteType) => {
-    executeAuthenticatedAction(() => {
-      const nextVote: UserVoteType = userVote === direction ? 'NEUTRAL' : direction;
-      setScore((prev) => prev + VOTE_SCORES[nextVote] - VOTE_SCORES[userVote ?? 'NEUTRAL']);
-      setUserVote(nextVote);
-      vote(nextVote);
-    });
-  };
+  const canReport = !isCurrentUserAuthor && !!relatedDocumentId;
+  const showMenu = !hideActions && (isCurrentUserAuthor || canReport);
 
   const handleReport = () => {
     executeAuthenticatedAction(() => {
@@ -141,11 +92,6 @@ export const CommentRow: FC<CommentRowProps> = ({
       }
     });
   };
-
-  const canEdit = isCurrentUserAuthor && !!onEdit;
-  const canDelete = isCurrentUserAuthor && !!onDelete;
-  const canReport = !isCurrentUserAuthor && !!relatedDocumentId;
-  const showMenu = !hideActions && (canEdit || canDelete || canReport);
 
   return (
     <div className="flex gap-2" data-testid="comment-row">
@@ -180,6 +126,7 @@ export const CommentRow: FC<CommentRowProps> = ({
               )}
               {isVerified && <VerifiedBadge size="sm" showTooltip />}
               {isWorkAuthor && <AuthorBadge size="sm" />}
+              {isEditor && <EditorBadge hubs={author?.editorOfHubs} size="sm" />}
               {isReview && (
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <span aria-hidden="true">•</span>
@@ -239,7 +186,7 @@ export const CommentRow: FC<CommentRowProps> = ({
                 </Button>
               }
             >
-              {canEdit && (
+              {isCurrentUserAuthor && (
                 <BaseMenuItem
                   onClick={() =>
                     comment.contentFormat === 'QUILL_EDITOR'
@@ -253,8 +200,8 @@ export const CommentRow: FC<CommentRowProps> = ({
                   </div>
                 </BaseMenuItem>
               )}
-              {canDelete && (
-                <BaseMenuItem onClick={() => onDelete?.()}>
+              {isCurrentUserAuthor && (
+                <BaseMenuItem onClick={onDelete}>
                   <div className="flex items-center gap-2 text-red-600">
                     <Trash2 className="h-4 w-4" />
                     <span>Delete</span>
@@ -291,93 +238,23 @@ export const CommentRow: FC<CommentRowProps> = ({
         </div>
 
         {!hideActions && (
-          <div className="mt-1 flex items-center gap-5">
-            <div
-              className={cn(
-                'flex h-8 items-center rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80 transition-all',
-                isVoting && 'opacity-50'
-              )}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleVote('UPVOTE')}
-                disabled={isVoting}
-                aria-pressed={userVote === 'UPVOTE'}
-                aria-label="Upvote"
-                className={cn(
-                  VOTE_BUTTON,
-                  userVote === 'UPVOTE' && 'bg-green-50 text-green-600 hover:bg-green-50'
-                )}
-              >
-                <ArrowUp className="h-[18px] w-[18px]" />
-              </Button>
-              <span className="min-w-[1.75rem] px-1 text-center text-xs font-semibold text-gray-900">
-                {score}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleVote('DOWNVOTE')}
-                disabled={isVoting}
-                aria-pressed={userVote === 'DOWNVOTE'}
-                aria-label="Downvote"
-                className={cn(
-                  VOTE_BUTTON,
-                  userVote === 'DOWNVOTE' && 'bg-red-50 text-red-600 hover:bg-red-50'
-                )}
-              >
-                <ArrowDown className="h-[18px] w-[18px]" />
-              </Button>
-            </div>
-
-            {onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => executeAuthenticatedAction(onReply)}
-                data-testid="feed-item-comment-action"
-                aria-label="Reply"
-                className={ACTION_BUTTON}
-              >
-                <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
-                {comment.childrenCount > 0 && <span>{comment.childrenCount}</span>}
-              </Button>
-            )}
-
-            {canTip && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsTipModalOpen(true)}
-                aria-label="Tip"
-                className={ACTION_BUTTON}
-              >
-                <Icon name="tipRSC" size={20} className="h-5 w-5" />
-              </Button>
-            )}
-
-            {totalAwarded > 0 && (
-              <Tooltip
-                content={
-                  <TipTooltip
-                    tips={tips}
-                    awardedBountyAmount={comment.awardedBountyAmount}
-                    totalAwarded={totalAwarded}
-                    showUSD={showUSD}
-                    exchangeRate={exchangeRate}
-                  />
-                }
-                position="top"
-                width="w-[320px]"
-                wrapperClassName="ml-auto"
-              >
-                <span className="flex cursor-default items-center gap-1 text-xs font-medium text-amber-800">
-                  <Icon name="tipRSC" size={16} className="h-4 w-4" />
-                  {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
-                </span>
-              </Tooltip>
-            )}
+          <div className="mt-1">
+            <FeedItemActions
+              metrics={{ votes: comment.score, comments: comment.childrenCount }}
+              userVote={comment.userVote}
+              feedContentType="COMMENT"
+              votableEntityId={comment.id}
+              relatedDocumentId={relatedDocumentId}
+              relatedDocumentContentType={contentType}
+              relatedDocumentTopics={work?.topics}
+              actionLabels={{ comment: 'Reply' }}
+              onComment={onReply && (() => executeAuthenticatedAction(onReply))}
+              onTip={canTip ? () => setIsTipModalOpen(true) : undefined}
+              tips={comment.tips}
+              awardedBountyAmount={comment.awardedBountyAmount}
+              hideMoreMenu
+              variant="inline"
+            />
           </div>
         )}
 

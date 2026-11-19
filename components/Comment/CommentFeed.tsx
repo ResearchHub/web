@@ -14,7 +14,7 @@ import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
-import { Plus, Maximize2 } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 import { CollapsedCommentEditor } from './CollapsedCommentEditor';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
@@ -382,17 +382,17 @@ function CommentFeedContent({
 
             {hasMoreComments && (
               <div className="mt-6">
-                <Button
-                  variant="ghost"
+                <button
+                  type="button"
                   onClick={handleLoadMore}
                   disabled={loading}
-                  className="group h-auto gap-3 rounded-full p-0 pr-3 text-[13px] font-semibold hover:bg-transparent hover:text-gray-900"
+                  className="group flex items-center gap-3 rounded-full pr-3 text-[13px] font-semibold text-gray-700 hover:text-gray-900 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 group-hover:bg-gray-200">
-                    <Maximize2 className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4" />
                   </span>
                   {loading ? 'Loading...' : moreCommentsLabel}
-                </Button>
+                </button>
               </div>
             )}
           </>

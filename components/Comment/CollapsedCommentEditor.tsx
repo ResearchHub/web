@@ -2,7 +2,7 @@
 
 import { Avatar } from '@/components/ui/Avatar';
 import { useUser } from '@/contexts/UserContext';
-import { PenLine, Star } from 'lucide-react';
+import { PenLine, Star, User as UserIcon } from 'lucide-react';
 import { CommentType } from '@/types/comment';
 
 interface CollapsedCommentEditorProps {
@@ -23,13 +23,13 @@ export const CollapsedCommentEditor = ({ commentType, onExpand }: CollapsedComme
 
   return (
     <div className="flex items-center gap-2">
-      <Avatar
-        src={authorProfile?.profileImage}
-        alt={authorProfile?.fullName || 'You'}
-        authorId={authorProfile?.id}
-        size="md"
-        disableTooltip
-      />
+      {authorProfile ? (
+        <Avatar src={authorProfile.profileImage} alt={authorProfile.fullName} size="md" />
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200">
+          <UserIcon className="h-5 w-5 text-gray-500" />
+        </div>
+      )}
       <button
         type="button"
         onClick={onExpand}

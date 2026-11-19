@@ -383,13 +383,9 @@ export const CommentProvider = ({
           type: CommentActionType.DELETE_COMMENT_SUCCESS,
           payload: { comment: data.comment },
         });
-        dispatch({
-          type: CommentActionType.SET_COUNT,
-          payload: data.comment.parentId ? state.count : state.count - 1,
-        });
       }
     },
-    [documentId, contentType, state.count]
+    [documentId, contentType]
   );
 
   // Function to emit comment events
@@ -732,12 +728,6 @@ export const CommentProvider = ({
               payload: { comment: commentToDelete },
             });
           }
-
-          // Update the total count; it counts top-level comments only
-          dispatch({
-            type: CommentActionType.SET_COUNT,
-            payload: isReply ? state.count : state.count - 1,
-          });
 
           // Emit the event for backward compatibility
           emitCommentEvent('comment_deleted', {
