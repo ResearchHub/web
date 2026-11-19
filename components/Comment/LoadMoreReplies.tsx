@@ -32,6 +32,8 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   }
 
   const isButtonLoading = loading || externalLoading;
+  const noun = remainingCount === 1 ? 'reply' : 'replies';
+  const label = isButtonLoading ? 'Loading replies…' : `See ${remainingCount} more ${noun}`;
 
   return (
     <button
@@ -40,9 +42,7 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
       disabled={isButtonLoading}
       className="-mx-1 rounded px-1 py-0.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-default disabled:hover:bg-transparent"
     >
-      {isButtonLoading
-        ? 'Loading replies…'
-        : `See ${remainingCount} more ${remainingCount === 1 ? 'reply' : 'replies'}`}
+      {label}
     </button>
   );
 };

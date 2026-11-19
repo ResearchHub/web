@@ -33,8 +33,10 @@ type ThreadEntry =
 const flattenThread = (parent: Comment): ThreadEntry[] => {
   const entries: ThreadEntry[] = [];
   for (const reply of parent.replies ?? []) {
-    entries.push({ kind: 'reply', comment: { ...reply, parentId: parent.id }, parent });
-    entries.push(...flattenThread(reply));
+    entries.push(
+      { kind: 'reply', comment: { ...reply, parentId: parent.id }, parent },
+      ...flattenThread(reply)
+    );
   }
   const loaded = parent.replies?.length ?? 0;
   if (parent.childrenCount > loaded) {

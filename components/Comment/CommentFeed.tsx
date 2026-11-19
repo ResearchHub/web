@@ -156,6 +156,10 @@ function CommentFeedContent({
     ? filteredComments.filter((comment) => comment.isAssessed)
     : filteredComments;
   const hasMoreComments = filteredComments.length < count;
+  const remainingComments = count - filteredComments.length;
+  const moreCommentsLabel = `See ${remainingComments} more ${
+    remainingComments === 1 ? 'comment' : 'comments'
+  }`;
   const shouldShowEmptyState =
     displayedComments.length === 0 && (!onlyAssessedReviews || !hasMoreComments);
   const shouldLoadAssessedReviews =
@@ -409,11 +413,7 @@ function CommentFeedContent({
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200">
                   <Maximize2 className="h-4 w-4" aria-hidden="true" />
                 </span>
-                {loading
-                  ? 'Loading comments…'
-                  : `See ${count - filteredComments.length} more ${
-                      count - filteredComments.length === 1 ? 'comment' : 'comments'
-                    }`}
+                {loading ? 'Loading comments…' : moreCommentsLabel}
               </button>
             )}
           </>

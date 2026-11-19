@@ -58,6 +58,45 @@ interface CommentRowProps {
   children?: ReactNode;
 }
 
+const VOTE_VALUE: Partial<Record<UserVoteType, number>> = { UPVOTE: 1, DOWNVOTE: -1 };
+
+/** How much a vote adds to the score: +1 up, -1 down, 0 for none. */
+const voteValue = (vote?: UserVoteType): number => (vote ? (VOTE_VALUE[vote] ?? 0) : 0);
+
+const replyLabel = (count: number): string => {
+  if (count <= 0) return 'Reply';
+  return `Reply, ${count} ${count === 1 ? 'reply' : 'replies'} so far`;
+};
+
+const isAuthorOfWork = (work: Work | undefined, authorId: number | undefined): boolean =>
+  !!authorId && !!work?.authors?.some((a) => a.authorProfile.id === authorId);
+
+/** Everything the row shows about the comment and its author, read off the comment. */
+const getCommentDetails = (comment: Comment) => {
+  const author = comment.createdBy?.authorProfile;
+  const isReview = comment.commentType === 'REVIEW';
+  const aiReviewUserId = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
+  const isAiReviewer =
+    aiReviewUserId != null && String(comment.createdBy?.id ?? '') === String(aiReviewUserId);
+  const tips = comment.tips ?? [];
+  const tipTotal = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
+
+  return {
+    authorId: author?.id,
+    authorName: author?.fullName || comment.createdBy?.fullName || 'Unknown',
+    headline: author?.headline,
+    profileImage: author?.profileImage,
+    isVerified: Boolean(comment.createdBy?.isVerified || author?.isVerified),
+    isRemoved: Boolean(comment.isRemoved),
+    isReview,
+    reviewScore: comment.reviewScore || 0,
+    isAssessedByFoundation: isReview && Boolean(comment.isAssessed) && !isAiReviewer,
+    tips,
+    totalAwarded: tipTotal + (comment.awardedBountyAmount || 0),
+    relatedDocumentId: comment.thread?.objectId?.toString(),
+  };
+};
+
 const ACTION_BUTTON =
   'flex h-8 items-center gap-1.5 rounded-md px-1.5 -mx-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:cursor-default';
 
@@ -90,25 +129,23 @@ export const CommentRow: FC<CommentRowProps> = ({
   const [score, setScore] = useState(comment.score || 0);
   const [userVote, setUserVote] = useState<UserVoteType | undefined>(comment.userVote);
 
-  const author = comment.createdBy?.authorProfile;
-  const authorId = author?.id;
-  const authorName = author?.fullName || comment.createdBy?.fullName || 'Unknown';
-  const headline = author?.headline;
-  const isVerified = Boolean(comment.createdBy?.isVerified || author?.isVerified);
-  const isWorkAuthor = !!authorId && !!work?.authors?.some((a) => a.authorProfile.id === authorId);
-  const isCurrentUserAuthor = !!user?.authorProfile?.id && user.authorProfile.id === authorId;
+  const {
+    authorId,
+    authorName,
+    headline,
+    profileImage,
+    isVerified,
+    isRemoved,
+    isReview,
+    reviewScore,
+    isAssessedByFoundation,
+    tips,
+    totalAwarded,
+    relatedDocumentId,
+  } = getCommentDetails(comment);
+  const isWorkAuthor = isAuthorOfWork(work, authorId);
+  const isCurrentUserAuthor = !!authorId && user?.authorProfile?.id === authorId;
   const canTip = isFoundationUser(user?.id) && !isCurrentUserAuthor;
-  const isRemoved = Boolean(comment.isRemoved);
-  const isReview = comment.commentType === 'REVIEW';
-  const reviewScore = comment.reviewScore || 0;
-  const aiReviewUserId = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
-  const isAiReviewer =
-    aiReviewUserId != null && String(comment.createdBy?.id ?? '') === String(aiReviewUserId);
-  const isAssessedByFoundation = isReview && Boolean(comment.isAssessed) && !isAiReviewer;
-  const tips = comment.tips ?? [];
-  const totalAwarded =
-    tips.reduce((total, tip) => total + (tip.amount || 0), 0) + (comment.awardedBountyAmount || 0);
-  const relatedDocumentId = comment.thread?.objectId?.toString();
 
   const { vote, isVoting } = useVote({
     votableEntityId: comment.id,
@@ -126,9 +163,8 @@ export const CommentRow: FC<CommentRowProps> = ({
   const handleVote = (direction: 'UPVOTE' | 'DOWNVOTE') => {
     if (isVoting) return;
     executeAuthenticatedAction(() => {
-      const value = (vote?: UserVoteType) => (vote === 'UPVOTE' ? 1 : vote === 'DOWNVOTE' ? -1 : 0);
       const next: UserVoteType = userVote === direction ? 'NEUTRAL' : direction;
-      setScore((prev) => prev + value(next) - value(userVote));
+      setScore((prev) => prev + voteValue(next) - voteValue(userVote));
       setUserVote(next);
       vote(next);
     });
@@ -154,7 +190,7 @@ export const CommentRow: FC<CommentRowProps> = ({
   return (
     <div className="flex gap-2" data-testid="comment-row">
       <div className="flex shrink-0 flex-col items-center">
-        <Avatar src={author?.profileImage} alt={authorName} size={avatarSize} authorId={authorId} />
+        <Avatar src={profileImage} alt={authorName} size={avatarSize} authorId={authorId} />
         {showThreadLine && <span aria-hidden="true" className="mt-1 w-px flex-1 bg-gray-300" />}
       </div>
 
@@ -316,11 +352,7 @@ export const CommentRow: FC<CommentRowProps> = ({
                 type="button"
                 onClick={() => executeAuthenticatedAction(onReply)}
                 data-testid="feed-item-comment-action"
-                aria-label={
-                  comment.childrenCount > 0
-                    ? `Reply, ${comment.childrenCount} ${comment.childrenCount === 1 ? 'reply' : 'replies'} so far`
-                    : 'Reply'
-                }
+                aria-label={replyLabel(comment.childrenCount)}
                 className={ACTION_BUTTON}
               >
                 <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
