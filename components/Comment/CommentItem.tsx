@@ -132,7 +132,7 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
-  const isReply = isThreadReply || typeof comment.parentId === 'number';
+  const isReply = typeof comment.parentId === 'number';
   // Bounties keep their own card, reply box and plain indented thread.
   const isBountyComment =
     comment.commentType === 'BOUNTY' ||
@@ -350,30 +350,32 @@ export const CommentItem = ({
       <CommentRow
         comment={comment}
         isReply={isReply}
+        isCurrentUserAuthor={isAuthor}
         work={work}
         contentType={contentType}
         onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
         onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
         onDelete={readOnly ? undefined : () => handleDelete()}
         hideActions={readOnly || (!includeReplies && !isThreadReply)}
+        showTooltips={showTooltips}
         workContentType={workContentType}
         replyingTo={replyingTo}
         showThreadLine={hasThread}
       >
         {/* A reply's own reply box opens under it; the top-level one opens at the thread's end. */}
-        {isReplying && isThreadReply && !readOnly && renderReplyEditor(false)}
+        {isReplying && isThreadReply && !readOnly && renderReplyEditor()}
       </CommentRow>
     );
   };
 
-  const renderReplyEditor = (isBountyReply: boolean) => (
+  const renderReplyEditor = () => (
     <div className="mt-3" data-testid="comment-reply-editor">
       <CommentEditor
         onSubmit={handleReply}
         onCancel={() => setReplyingToCommentId(null)}
         placeholder="Add a reply…"
         autoFocus={true}
-        isBountyReply={isBountyReply}
+        isBountyReply={false}
       />
     </div>
   );
@@ -505,7 +507,7 @@ export const CommentItem = ({
           {isRootReplying && (
             <div className="relative pt-1">
               <ThreadConnector isLast elbowClassName="h-8" />
-              {renderReplyEditor(false)}
+              {renderReplyEditor()}
             </div>
           )}
         </div>

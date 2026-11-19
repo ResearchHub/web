@@ -7,6 +7,9 @@ export interface Tip {
   raw: any;
 }
 
+export const sumTips = (tips: Tip[] = []): number =>
+  tips.reduce((total, tip) => total + tip.amount, 0);
+
 export const transformTip: BaseTransformer<any, Tip> = (raw) => {
   if (!raw || !raw.user || !raw.amount) {
     console.error('Invalid raw tip data:', raw);

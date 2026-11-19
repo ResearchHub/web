@@ -14,7 +14,8 @@ import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
-import { Plus, PenLine, User as UserIcon, Star, Maximize2 } from 'lucide-react';
+import { Plus, Maximize2 } from 'lucide-react';
+import { CollapsedCommentEditor } from './CollapsedCommentEditor';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
@@ -307,34 +308,10 @@ function CommentFeedContent({
       }
 
       return (
-        <button
-          type="button"
-          onClick={() => executeAuthenticatedAction(() => {})}
-          className="group w-full flex items-center gap-2 text-left"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 shrink-0">
-            <UserIcon className="h-5 w-5 text-gray-500" />
-          </div>
-          <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full border border-gray-400 px-4 transition-colors group-hover:border-gray-600 group-hover:bg-gray-50">
-            <div className="flex flex-1 items-center gap-3 min-w-0">
-              <span className="text-sm text-gray-600 group-hover:text-gray-800 truncate">
-                {commentType === 'REVIEW'
-                  ? 'Sign in to write a peer review…'
-                  : commentType === 'AUTHOR_UPDATE'
-                    ? 'Sign in to post an update…'
-                    : 'Sign in to write a comment…'}
-              </span>
-              {commentType === 'REVIEW' && (
-                <div className="flex items-center gap-0.5">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <Star key={i} className="h-3.5 w-3.5 text-gray-300" />
-                  ))}
-                </div>
-              )}
-            </div>
-            <PenLine className="h-4 w-4 text-gray-500" />
-          </div>
-        </button>
+        <CollapsedCommentEditor
+          commentType={commentType}
+          onExpand={() => executeAuthenticatedAction(() => {})}
+        />
       );
     },
     [executeAuthenticatedAction, isCurrentUserAuthor]

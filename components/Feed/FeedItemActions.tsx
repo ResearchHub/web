@@ -21,7 +21,7 @@ import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
-import { UserVoteType } from '@/types/reaction';
+import { UserVoteType, toggleVote } from '@/types/reaction';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
@@ -37,7 +37,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
-import { Tip } from '@/types/tip';
+import { Tip, sumTips } from '@/types/tip';
 import { formatCurrency } from '@/utils/currency';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
@@ -306,45 +306,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     if (isVoting) return;
 
     executeAuthenticatedAction(() => {
-      let newVoteType: UserVoteType;
-      let countDelta: number;
-
-      if (direction === 'up') {
-        if (localUserVote === 'UPVOTE') {
-          // Already upvoted, clicking up again -> neutral
-          newVoteType = 'NEUTRAL';
-          countDelta = -1;
-        } else if (localUserVote === 'DOWNVOTE') {
-          // Was downvoted, clicking up -> upvote (swing of +2)
-          newVoteType = 'UPVOTE';
-          countDelta = 2;
-        } else {
-          // Neutral, clicking up -> upvote
-          newVoteType = 'UPVOTE';
-          countDelta = 1;
-        }
-      } else {
-        // direction === 'down'
-        if (localUserVote === 'DOWNVOTE') {
-          // Already downvoted, clicking down again -> neutral
-          newVoteType = 'NEUTRAL';
-          countDelta = 1;
-        } else if (localUserVote === 'UPVOTE') {
-          // Was upvoted, clicking down -> downvote (swing of -2)
-          newVoteType = 'DOWNVOTE';
-          countDelta = -2;
-        } else {
-          // Neutral, clicking down -> downvote
-          newVoteType = 'DOWNVOTE';
-          countDelta = -1;
-        }
-      }
+      const { nextVote, scoreDelta } = toggleVote(
+        localUserVote,
+        direction === 'up' ? 'UPVOTE' : 'DOWNVOTE'
+      );
 
       // Optimistic update: immediately update UI before API call
-      setLocalVoteCount((prev) => prev + countDelta);
-      setLocalUserVote(newVoteType);
+      setLocalVoteCount((prev) => prev + scoreDelta);
+      setLocalUserVote(nextVote);
 
-      vote(newVoteType);
+      vote(nextVote);
     });
   };
 
@@ -479,8 +450,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     !hideReportButton && (menuItems.length > 0 || canHideFromFeed) && !isTabletOrSmaller;
 
   // Calculate total awarded amount (tips + bounty awards)
-  const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
-  const totalAwarded = tipAmount + (awardedBountyAmount || 0);
+  const totalAwarded = sumTips(tips) + (awardedBountyAmount || 0);
 
   const canSave =
     !!relatedDocumentUnifiedDocumentId &&
