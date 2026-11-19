@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { Check, PenLine, Trophy } from 'lucide-react';
 import { FundButton } from '@/components/Funding/FundButton';
 import { Button } from '@/components/ui/Button';
@@ -13,7 +12,6 @@ import {
   getAwardPhase,
 } from '@/components/Funding/lib/fundingMechanism';
 import { isFundraiseActive } from '@/components/Fund/lib/fundraiseUtils';
-import { getLinkedGrantLink } from '@/components/work/lib/linkedGrant';
 import { isWorkAuthor } from '@/components/work/lib/workAuthors';
 import { useShowProposalTab } from '@/components/work/lib/workTabs';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -30,10 +28,8 @@ interface TimelineStep {
   readonly label: string;
   /** When it happened, beside the label. */
   readonly date?: string;
-  /** The line under the label: the RFP's name, a date, what is waited on. */
+  /** The line under the label: what was awarded, what is waited on. */
   readonly detail?: ReactNode;
-  /** The detail stays on one line, cut short: the RFP's name can run long. */
-  readonly truncate?: boolean;
   readonly done: boolean;
   /** It can no longer happen: the RFP closed or the proposal expired. */
   readonly disabled: boolean;
@@ -94,30 +90,17 @@ export function AwardProposalCard({
   const isAuthor = isWorkAuthor(work.authors, user?.authorProfile?.id);
   const hasUpdates = updatesCount > 0;
 
-  const rfp = getLinkedGrantLink({ linkedGrant } as Work);
   // The award is the funder's payment into the fundraise: its first
   // contribution dates it.
   const awardedDate = awarded ? firstContributionDate(fundraise) : undefined;
 
   const steps: TimelineStep[] = [
     {
+      // The RFP itself is the card under this one.
       key: 'rfp',
-      label: 'Applied to RFP',
+      label: 'Applied',
       // Publishing the proposal is what submits it to the RFP.
       date: publishedDate,
-      detail: rfp.title ? (
-        rfp.href ? (
-          <Link
-            href={rfp.href}
-            className="underline decoration-white/30 underline-offset-2 transition-colors hover:text-white hover:decoration-white/70"
-          >
-            {rfp.title}
-          </Link>
-        ) : (
-          rfp.title
-        )
-      ) : undefined,
-      truncate: true,
       done: true,
       disabled: false,
     },
@@ -233,7 +216,6 @@ export function AwardProposalCard({
                   <p
                     className={cn(
                       'mt-0.5 text-[13px] leading-[18px]',
-                      step.truncate && 'truncate',
                       step.disabled ? 'text-white/30' : 'text-white/60'
                     )}
                   >
