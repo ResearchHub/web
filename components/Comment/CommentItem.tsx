@@ -13,12 +13,57 @@ import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
-import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
-import { transformCommentToFeedItem, transformBountyCommentToFeedItem } from '@/types/feed';
+import { CommentRow } from '@/components/Comment/CommentRow';
+import { transformBountyCommentToFeedItem } from '@/types/feed';
 import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { cn } from '@/utils/styles';
+
+/**
+ * One line of a comment's thread. Replies show one level deep under the comment
+ * they belong to, so replies to replies are flattened into the same column in
+ * reading order, each remembering who it answers.
+ */
+type ThreadEntry =
+  | { kind: 'reply'; comment: Comment; parent: Comment }
+  | { kind: 'more'; parentId: number; remaining: number };
+
+const flattenThread = (parent: Comment): ThreadEntry[] => {
+  const entries: ThreadEntry[] = [];
+  for (const reply of parent.replies ?? []) {
+    entries.push({ kind: 'reply', comment: { ...reply, parentId: parent.id }, parent });
+    entries.push(...flattenThread(reply));
+  }
+  const loaded = parent.replies?.length ?? 0;
+  if (parent.childrenCount > loaded) {
+    entries.push({ kind: 'more', parentId: parent.id, remaining: parent.childrenCount - loaded });
+  }
+  return entries;
+};
+
+/** The curved line joining the thread to an entry, from under the parent's avatar. */
+const ThreadConnector = ({
+  isLast,
+  elbowClassName,
+}: {
+  isLast: boolean;
+  elbowClassName: string;
+}) => (
+  <>
+    {!isLast && (
+      <span aria-hidden="true" className="absolute -left-7 top-0 bottom-0 w-px bg-gray-300" />
+    )}
+    <span
+      aria-hidden="true"
+      className={cn(
+        'absolute -left-7 top-0 w-6 rounded-bl-[10px] border-b border-l border-gray-300',
+        elbowClassName
+      )}
+    />
+  </>
+);
 
 // Define the SolutionViewEvent interface (previously in BountyCard)
 interface SolutionViewEvent {
@@ -37,6 +82,10 @@ interface CommentItemProps {
   includeReplies?: boolean;
   showDebugInfo?: boolean;
   readOnly?: boolean;
+  /** Set on a reply drawn inside its top-level comment's flattened thread. */
+  isThreadReply?: boolean;
+  /** For a reply to a reply: the name of the person it answers. */
+  replyingTo?: string;
 }
 
 export const CommentItem = ({
@@ -49,6 +98,8 @@ export const CommentItem = ({
   includeReplies = true,
   showDebugInfo = false,
   readOnly = false,
+  isThreadReply = false,
+  replyingTo,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -79,6 +130,15 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
+  const isReply = isThreadReply || typeof comment.parentId === 'number';
+  // Bounties keep their own card, reply box and plain indented thread.
+  const isBountyComment =
+    comment.commentType === 'BOUNTY' ||
+    (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
+  // Only a top-level comment draws a thread; its replies come flattened beneath it.
+  const threadEntries = includeReplies && !isThreadReply ? flattenThread(comment) : [];
+  const isRootReplying = isReplying && !isThreadReply && !readOnly && !isBountyComment;
+  const hasThread = threadEntries.length > 0 || isRootReplying;
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -189,11 +249,6 @@ export const CommentItem = ({
 
   // Render the comment content based on whether it's being edited
   const renderContent = () => {
-    // Check if this is a bounty comment
-    const isBountyComment =
-      comment.commentType === 'BOUNTY' ||
-      (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
-
     const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
 
     // If we're editing and the comment is not a legacy comment(QUILL_EDITOR), show the editor
@@ -289,46 +344,40 @@ export const CommentItem = ({
       }
     }
 
-    // For regular comments, use FeedItemComment
-    // Transform the comment to a feed entry
-    const feedEntry = transformCommentToFeedItem(comment, contentType, work);
-
     return (
-      <div className="space-y-4">
-        <FeedItemComment
-          entry={feedEntry}
-          onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
-          onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
-          onDelete={readOnly ? undefined : () => handleDelete()}
-          showCreatorActions={!readOnly && isAuthor}
-          showTooltips={showTooltips}
-          showRelatedWork={false}
-          hideActions={readOnly || !includeReplies || comment.isRemoved}
-          actionLabels={{
-            comment: 'Reply',
-          }}
-          workContentType={workContentType}
-        />
-
-        {/* If we're replying, show the reply editor */}
-        {isReplying && !readOnly && (
-          <div className="mt-4 border-t pt-4 px-4 pb-4" data-testid="comment-reply-editor">
-            <h4 className="text-sm font-medium mb-2">Your reply:</h4>
-            <CommentEditor
-              onSubmit={handleReply}
-              onCancel={() => setReplyingToCommentId(null)}
-              placeholder="Write your reply..."
-              autoFocus={true}
-              isBountyReply={false}
-            />
-          </div>
-        )}
-      </div>
+      <CommentRow
+        comment={comment}
+        isReply={isReply}
+        work={work}
+        contentType={contentType}
+        onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
+        onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
+        onDelete={readOnly ? undefined : () => handleDelete()}
+        hideActions={readOnly || (!includeReplies && !isThreadReply)}
+        workContentType={workContentType}
+        replyingTo={replyingTo}
+        showThreadLine={hasThread}
+      >
+        {/* A reply's own reply box opens under it; the top-level one opens at the thread's end. */}
+        {isReplying && isThreadReply && !readOnly && renderReplyEditor(false)}
+      </CommentRow>
     );
   };
 
+  const renderReplyEditor = (isBountyReply: boolean) => (
+    <div className="mt-3" data-testid="comment-reply-editor">
+      <CommentEditor
+        onSubmit={handleReply}
+        onCancel={() => setReplyingToCommentId(null)}
+        placeholder="Add a reply…"
+        autoFocus={true}
+        isBountyReply={isBountyReply}
+      />
+    </div>
+  );
+
   return (
-    <div className="mt-4" id={`comment-${comment.id}`} data-testid="comment-item">
+    <div id={`comment-${comment.id}`} data-testid="comment-item">
       {/* Debug information for comment ID */}
       {showDebugInfo && (
         <div className="bg-gray-100 p-2 mb-2 rounded-md border border-gray-300">
@@ -410,49 +459,55 @@ export const CommentItem = ({
       {/* Comment content */}
       {renderContent()}
 
-      {/* Replies section - conditionally rendered based on includeReplies prop */}
-      {includeReplies && comment.replies && comment.replies.length > 0 ? (
-        <div className="-mt-1 pt-5 pl-6 border-l border-gray-200">
-          {comment.replies.map((reply) => (
-            <CommentItem
-              key={`reply-${reply.id}`}
-              comment={{
-                ...reply,
-                parentId: comment.id, // Ensure the parentId is explicitly set
-              }}
-              contentType={contentType}
-              commentType={commentType}
-              onCommentUpdate={onCommentUpdate}
-              onCommentDelete={onCommentDelete}
-              showTooltips={showTooltips}
-              includeReplies={includeReplies}
-              readOnly={readOnly}
-            />
-          ))}
-
-          {/* Load More Replies button */}
-          {comment.childrenCount > comment.replies.length && (
-            <div className="mt-2">
-              <LoadMoreReplies
-                commentId={comment.id}
-                remainingCount={comment.childrenCount - comment.replies.length}
-                isLoading={loading}
-              />
+      {/* The thread: every reply one level in, joined to the comment by a curved line. */}
+      {hasThread && (
+        <div className={isBountyComment ? 'ml-6 mt-2 border-l border-gray-200 pl-6' : 'ml-12'}>
+          {threadEntries.map((entry, index) => {
+            const isLast = index === threadEntries.length - 1 && !isRootReplying;
+            if (entry.kind === 'more') {
+              return (
+                <div key={`more-${entry.parentId}`} className="relative pt-3">
+                  {!isBountyComment && (
+                    <ThreadConnector isLast={isLast} elbowClassName="h-[22px]" />
+                  )}
+                  <LoadMoreReplies
+                    commentId={entry.parentId}
+                    remainingCount={entry.remaining}
+                    isLoading={loading}
+                  />
+                </div>
+              );
+            }
+            return (
+              <div key={`reply-${entry.comment.id}`} className="relative pt-4">
+                {!isBountyComment && <ThreadConnector isLast={isLast} elbowClassName="h-8" />}
+                <CommentItem
+                  comment={entry.comment}
+                  contentType={contentType}
+                  commentType={commentType}
+                  onCommentUpdate={onCommentUpdate}
+                  onCommentDelete={onCommentDelete}
+                  showTooltips={showTooltips}
+                  includeReplies={false}
+                  readOnly={readOnly}
+                  isThreadReply
+                  replyingTo={
+                    entry.parent.id === comment.id
+                      ? undefined
+                      : entry.parent.createdBy?.authorProfile?.fullName
+                  }
+                />
+              </div>
+            );
+          })}
+          {isRootReplying && (
+            <div className="relative pt-1">
+              <ThreadConnector isLast elbowClassName="h-8" />
+              {renderReplyEditor(false)}
             </div>
           )}
         </div>
-      ) : includeReplies && comment.childrenCount > 0 ? (
-        // No replies loaded yet, but there are replies to load
-        <div className="mt-4">
-          <div className="mt-2">
-            <LoadMoreReplies
-              commentId={comment.id}
-              remainingCount={comment.childrenCount}
-              isLoading={loading}
-            />
-          </div>
-        </div>
-      ) : null}
+      )}
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal

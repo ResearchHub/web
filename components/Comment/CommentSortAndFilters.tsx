@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { CommentFilter, CommentSort, CommentType } from '@/types/comment';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { Button } from '@/components/ui/Button';
 import { ChevronDown, Star, Clock, ArrowUp, MessageCircle, Filter } from 'lucide-react';
 import { useComments } from '@/contexts/CommentContext';
 import { BountyFilterType } from '@/contexts/CommentContext';
@@ -44,20 +43,14 @@ export const CommentSortAndFilters: FC<CommentSortAndFiltersProps> = ({
         <BaseMenu
           align="start"
           trigger={
-            <Button
-              variant="outlined"
-              size="sm"
-              className="flex items-center gap-1"
+            <button
+              type="button"
+              className="-mx-1 flex h-7 items-center gap-1 rounded px-1 text-[13px] font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               data-testid="comment-sort-trigger"
             >
-              {(() => {
-                const currentOption = sortOptions.find((option) => option.value === sortBy);
-                const Icon = currentOption?.icon || Star;
-                return <Icon className="h-4 w-4 mr-1" />;
-              })()}
               <span>{sortOptions.find((option) => option.value === sortBy)?.label || 'Sort'}</span>
-              <ChevronDown className="h-4 w-4" />
-            </Button>
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+            </button>
           }
         >
           {sortOptions.map((option) => {

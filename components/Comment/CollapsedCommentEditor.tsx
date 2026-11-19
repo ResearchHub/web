@@ -16,38 +16,38 @@ export const CollapsedCommentEditor = ({ commentType, onExpand }: CollapsedComme
   const isReview = commentType === 'REVIEW';
   const isAuthorUpdate = commentType === 'AUTHOR_UPDATE';
   const placeholder = isReview
-    ? 'Write a peer review…'
+    ? 'Write a peer review'
     : isAuthorUpdate
-      ? 'Post an update…'
-      : 'Write a comment…';
+      ? 'Post an update'
+      : 'Add a comment';
 
   return (
-    <button
-      type="button"
-      onClick={onExpand}
-      className="group w-full flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
-      data-testid="comment-editor-collapsed"
-    >
+    <div className="flex items-center gap-2">
       <Avatar
         src={authorProfile?.profileImage}
         alt={authorProfile?.fullName || 'You'}
         authorId={authorProfile?.id}
-        size="sm"
+        size="md"
         disableTooltip
       />
-      <div className="flex flex-1 items-center gap-3 min-w-0">
-        <span className="text-sm text-gray-600 group-hover:text-gray-800 truncate">
+      <button
+        type="button"
+        onClick={onExpand}
+        className="group flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full border border-gray-400 px-4 text-left transition-colors hover:border-gray-600 hover:bg-gray-50"
+        data-testid="comment-editor-collapsed"
+      >
+        <span className="flex-1 truncate text-sm text-gray-500 group-hover:text-gray-700">
           {placeholder}
         </span>
         {isReview && (
-          <div className="flex items-center gap-0.5">
+          <span className="flex items-center gap-0.5" aria-hidden="true">
             {[0, 1, 2, 3, 4].map((i) => (
               <Star key={i} className="h-3.5 w-3.5 text-gray-300" />
             ))}
-          </div>
+          </span>
         )}
-      </div>
-      <PenLine className="h-4 w-4 text-blue-500" />
-    </button>
+        <PenLine className="h-4 w-4 text-gray-500" aria-hidden="true" />
+      </button>
+    </div>
   );
 };

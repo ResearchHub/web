@@ -14,7 +14,7 @@ import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
 import { CommentService } from '@/services/comment.service';
-import { Plus, PenLine, User as UserIcon, Star } from 'lucide-react';
+import { Plus, PenLine, User as UserIcon, Star, Maximize2 } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
@@ -306,28 +306,30 @@ function CommentFeedContent({
         <button
           type="button"
           onClick={() => executeAuthenticatedAction(() => {})}
-          className="group w-full flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+          className="group w-full flex items-center gap-2 text-left"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 shrink-0">
-            <UserIcon className="h-4 w-4 text-gray-500" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 shrink-0">
+            <UserIcon className="h-5 w-5 text-gray-500" />
           </div>
-          <div className="flex flex-1 items-center gap-3 min-w-0">
-            <span className="text-sm text-gray-600 group-hover:text-gray-800 truncate">
-              {commentType === 'REVIEW'
-                ? 'Sign in to write a peer review…'
-                : commentType === 'AUTHOR_UPDATE'
-                  ? 'Sign in to post an update…'
-                  : 'Sign in to write a comment…'}
-            </span>
-            {commentType === 'REVIEW' && (
-              <div className="flex items-center gap-0.5">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-3.5 w-3.5 text-gray-300" />
-                ))}
-              </div>
-            )}
+          <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full border border-gray-400 px-4 transition-colors group-hover:border-gray-600 group-hover:bg-gray-50">
+            <div className="flex flex-1 items-center gap-3 min-w-0">
+              <span className="text-sm text-gray-600 group-hover:text-gray-800 truncate">
+                {commentType === 'REVIEW'
+                  ? 'Sign in to write a peer review…'
+                  : commentType === 'AUTHOR_UPDATE'
+                    ? 'Sign in to post an update…'
+                    : 'Sign in to write a comment…'}
+              </span>
+              {commentType === 'REVIEW' && (
+                <div className="flex items-center gap-0.5">
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <Star key={i} className="h-3.5 w-3.5 text-gray-300" />
+                  ))}
+                </div>
+              )}
+            </div>
+            <PenLine className="h-4 w-4 text-gray-500" />
           </div>
-          <PenLine className="h-4 w-4 text-blue-500" />
         </button>
       );
     },
@@ -348,12 +350,11 @@ function CommentFeedContent({
             />
           )}
           {belowEditor && <div className="mt-6">{belowEditor}</div>}
-          <div className="mt-12 mb-2">
-            {commentType !== 'BOUNTY' && (
+          {commentType !== 'BOUNTY' && (
+            <div className="mt-4">
               <CommentSortAndFilters commentType={commentType} commentCount={count} />
-            )}
-          </div>
-          <div className="h-px bg-gray-200 my-4"></div>
+            </div>
+          )}
         </div>
       )}
 
@@ -399,16 +400,21 @@ function CommentFeedContent({
             />
 
             {hasMoreComments && (
-              <div className="flex justify-center mt-4">
-                <Button
-                  variant="outlined"
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                  className="w-full md:w-auto"
-                >
-                  {loading ? 'Loading...' : `Load More`}
-                </Button>
-              </div>
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={loading}
+                className="group mt-6 flex items-center gap-3 rounded-full pr-3 text-[13px] font-semibold text-gray-700 hover:text-gray-900 disabled:cursor-default"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200">
+                  <Maximize2 className="h-4 w-4" aria-hidden="true" />
+                </span>
+                {loading
+                  ? 'Loading comments…'
+                  : `See ${count - filteredComments.length} more ${
+                      count - filteredComments.length === 1 ? 'comment' : 'comments'
+                    }`}
+              </button>
             )}
           </>
         )}
