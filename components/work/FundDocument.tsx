@@ -161,6 +161,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                 storageKey: `${storageKey}-update-feed-${work.id}`,
               }}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
@@ -182,6 +183,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                 storageKey: `${storageKey}-review-feed-${work.id}`,
               }}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
