@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { ActivityActor } from '@/components/Activity/cards/ActivityActor';
 import { ACTIVITY_CONTENT_DIVIDER } from '@/components/Activity/cards/ActivityCardShell';
@@ -51,6 +51,12 @@ interface CommentCardProps {
   showTooltips?: boolean;
   /** For the banner that explains why a legacy comment can't be edited. */
   workContentType?: ContentType;
+  /** What they did, when the comment's type doesn't say: "Opened a bounty". */
+  action?: ActivityActionLine;
+  /** Under the words, before the footer: a bounty's solutions. */
+  afterBody?: ReactNode;
+  /** Replaces votes, Tip and Reply, whatever `hideActions` says: a bounty's action row. */
+  footer?: ReactNode;
 }
 
 function getActionLine(
@@ -96,6 +102,9 @@ export const CommentCard: FC<CommentCardProps> = ({
   hideActions = false,
   showTooltips = true,
   workContentType,
+  action,
+  afterBody,
+  footer,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
@@ -123,7 +132,7 @@ export const CommentCard: FC<CommentCardProps> = ({
     <>
       <ActivityActor
         authors={[author]}
-        action={getActionLine(comment, depth, rating, replyTo)}
+        action={action ?? getActionLine(comment, depth, rating, replyTo)}
         timestamp={commentEntry.createdDate}
         editedAt={getEditedAt(commentEntry.createdDate, commentEntry.updatedDate)}
         size={isReply ? 'sm' : 'md'}
@@ -164,7 +173,11 @@ export const CommentCard: FC<CommentCardProps> = ({
           />
         </div>
 
-        {!hideActions && (
+        {afterBody}
+
+        {footer}
+
+        {!footer && !hideActions && (
           <ActivityFooterRow
             actions={
               <FeedItemActions

@@ -203,6 +203,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
                 storageKey: `${storageKey}-bounty-feed-${work.id}`,
               }}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
