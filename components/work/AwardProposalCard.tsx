@@ -75,7 +75,7 @@ export function AwardProposalCard({
     grantOpen,
     fundraise,
   });
-  const who = linkedGrant.organization.trim() || 'The funder';
+  const funder = linkedGrant.organization.trim();
   const headline =
     phase === 'none'
       ? formatCurrency({
@@ -108,10 +108,11 @@ export function AwardProposalCard({
       key: 'awarded',
       label: 'Awarded',
       date: awardedDate,
+      // Only a named funder says anything the step doesn't already.
       detail: awarded
-        ? `${headline} from ${who}`
+        ? funder && `From ${funder}`
         : stillOpen
-          ? `${who} picks who wins the prize once results are posted.`
+          ? funder && `${funder} picks who wins the prize once results are posted.`
           : 'The prize has closed',
       done: awarded,
       disabled: !awarded && !stillOpen,
@@ -120,6 +121,7 @@ export function AwardProposalCard({
       key: 'update',
       label: 'Update posted',
       date: hasUpdates ? latestUpdateDate : undefined,
+      // With none, the empty circle says so; only an author gets a nudge.
       detail: hasUpdates ? (
         <button
           type="button"
@@ -130,9 +132,7 @@ export function AwardProposalCard({
         </button>
       ) : isAuthor ? (
         'Share your progress and results.'
-      ) : (
-        'No updates yet'
-      ),
+      ) : undefined,
       done: hasUpdates,
       disabled: false,
     },
