@@ -331,11 +331,11 @@ function CommentFeedContent({
             />
           )}
           {belowEditor && <div className="mt-6">{belowEditor}</div>}
-          {commentType !== 'BOUNTY' && (
-            <div className="mt-4">
+          <div className="mt-4">
+            {commentType !== 'BOUNTY' && (
               <CommentSortAndFilters commentType={commentType} commentCount={count} />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
@@ -381,17 +381,19 @@ function CommentFeedContent({
             />
 
             {hasMoreComments && (
-              <button
-                type="button"
-                onClick={handleLoadMore}
-                disabled={loading}
-                className="group mt-6 flex items-center gap-3 rounded-full pr-3 text-[13px] font-semibold text-gray-700 hover:text-gray-900 disabled:cursor-default"
-              >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 group-hover:bg-gray-200">
-                  <Maximize2 className="h-4 w-4" aria-hidden="true" />
-                </span>
-                {loading ? 'Loading comments…' : moreCommentsLabel}
-              </button>
+              <div className="mt-6">
+                <Button
+                  variant="ghost"
+                  onClick={handleLoadMore}
+                  disabled={loading}
+                  className="group h-auto gap-3 rounded-full p-0 pr-3 text-[13px] font-semibold hover:bg-transparent hover:text-gray-900"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 group-hover:bg-gray-200">
+                    <Maximize2 className="h-4 w-4" />
+                  </span>
+                  {loading ? 'Loading...' : moreCommentsLabel}
+                </Button>
+              </div>
             )}
           </>
         )}

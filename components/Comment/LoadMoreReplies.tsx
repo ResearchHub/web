@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useComments } from '@/contexts/CommentContext';
+import { Button } from '@/components/ui/Button';
 
 interface LoadMoreRepliesProps {
   commentId: number;
@@ -7,7 +8,6 @@ interface LoadMoreRepliesProps {
   isLoading?: boolean;
 }
 
-/** "See N more replies", sitting in the thread where the unloaded replies belong. */
 const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   commentId,
   remainingCount,
@@ -15,11 +15,18 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
 }) => {
   const { loadMoreReplies } = useComments();
   const [loading, setLoading] = useState(false);
+  const [loadedReplies, setLoadedReplies] = useState(false);
+
+  // Reset loadedReplies state when commentId changes
+  useEffect(() => {
+    setLoadedReplies(false);
+  }, [commentId]);
 
   const handleLoadMore = async () => {
     setLoading(true);
     try {
       await loadMoreReplies(commentId);
+      setLoadedReplies(true);
     } catch (error) {
       console.error('[LoadMoreReplies] Error loading more replies:', error);
     } finally {
@@ -27,23 +34,46 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
     }
   };
 
+  // If there are no remaining replies, don't render the button
   if (remainingCount <= 0) {
     return null;
   }
 
   const isButtonLoading = loading || externalLoading;
-  const noun = remainingCount === 1 ? 'reply' : 'replies';
-  const label = isButtonLoading ? 'Loading replies…' : `See ${remainingCount} more ${noun}`;
 
   return (
-    <button
-      type="button"
-      onClick={handleLoadMore}
-      disabled={isButtonLoading}
-      className="-mx-1 rounded px-1 py-0.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-default disabled:hover:bg-transparent"
-    >
-      {label}
-    </button>
+    <div>
+      {loadedReplies ? (
+        <div className="text-sm text-green-600 mb-2 flex items-center">
+          <svg
+            className="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Replies loaded
+        </div>
+      ) : (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLoadMore}
+          disabled={isButtonLoading}
+          className="-mx-1 h-auto px-1 py-0.5 text-xs font-semibold text-gray-600 hover:text-gray-900"
+        >
+          {isButtonLoading ? (
+            'Loading...'
+          ) : (
+            <>
+              Show {remainingCount} more {remainingCount === 1 ? 'reply' : 'replies'}
+            </>
+          )}
+        </Button>
+      )}
+    </div>
   );
 };
 

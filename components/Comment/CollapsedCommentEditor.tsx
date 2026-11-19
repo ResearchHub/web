@@ -7,21 +7,19 @@ import { CommentType } from '@/types/comment';
 
 interface CollapsedCommentEditorProps {
   commentType?: CommentType;
-  /** Opens the editor; for a signed-out visitor, the sign-in prompt. */
   onExpand: () => void;
 }
-
-const PROMPTS: Partial<Record<CommentType, string>> = {
-  REVIEW: 'write a peer review',
-  AUTHOR_UPDATE: 'post an update',
-};
 
 export const CollapsedCommentEditor = ({ commentType, onExpand }: CollapsedCommentEditorProps) => {
   const { user } = useUser();
   const authorProfile = user?.authorProfile;
   const isReview = commentType === 'REVIEW';
-  const prompt = (commentType && PROMPTS[commentType]) || 'add a comment';
-  const placeholder = user ? prompt : `Sign in to ${prompt}`;
+  const isAuthorUpdate = commentType === 'AUTHOR_UPDATE';
+  const placeholder = isReview
+    ? 'Write a peer review…'
+    : isAuthorUpdate
+      ? 'Post an update…'
+      : 'Write a comment…';
 
   return (
     <div className="flex items-center gap-2">
@@ -38,17 +36,19 @@ export const CollapsedCommentEditor = ({ commentType, onExpand }: CollapsedComme
         className="group flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full border border-gray-400 px-4 text-left transition-colors hover:border-gray-600 hover:bg-gray-50"
         data-testid="comment-editor-collapsed"
       >
-        <span className="flex-1 truncate text-sm text-gray-500 first-letter:uppercase group-hover:text-gray-700">
-          {placeholder}
-        </span>
-        {isReview && (
-          <span className="flex items-center gap-0.5" aria-hidden="true">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Star key={i} className="h-3.5 w-3.5 text-gray-300" />
-            ))}
+        <div className="flex flex-1 items-center gap-3 min-w-0">
+          <span className="text-sm text-gray-600 group-hover:text-gray-800 truncate">
+            {user ? placeholder : `Sign in to ${placeholder.toLowerCase()}`}
           </span>
-        )}
-        <PenLine className="h-4 w-4 text-gray-500" aria-hidden="true" />
+          {isReview && (
+            <div className="flex items-center gap-0.5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Star key={i} className="h-3.5 w-3.5 text-gray-300" />
+              ))}
+            </div>
+          )}
+        </div>
+        <PenLine className="h-4 w-4 text-gray-500" />
       </button>
     </div>
   );

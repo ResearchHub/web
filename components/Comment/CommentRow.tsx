@@ -3,6 +3,7 @@
 import { FC, ReactNode, useState } from 'react';
 import Link from 'next/link';
 import {
+  CheckCircle,
   Flag,
   MessageCircle,
   MoreHorizontal,
@@ -15,13 +16,14 @@ import {
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Icon } from '@/components/ui/icons/Icon';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import { FoundationAwardedBadge } from '@/components/Comment/FoundationAwardedBadge';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
@@ -33,8 +35,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useFlagModal } from '@/hooks/useFlagging';
 import { useVote } from '@/hooks/useVote';
 import type { Comment } from '@/types/comment';
-import { toggleVote, UserVoteType } from '@/types/reaction';
-import { sumTips } from '@/types/tip';
+import { UserVoteType } from '@/types/reaction';
 import type { ContentType, Work } from '@/types/work';
 import { formatCurrency } from '@/utils/currency';
 import { formatTimeAgoShort } from '@/utils/date';
@@ -54,26 +55,21 @@ interface CommentRowProps {
   onDelete?: () => void;
   /** Hides the action row and the ⋯ menu. */
   hideActions?: boolean;
-  showTooltips?: boolean;
   workContentType?: ContentType;
-  /** For a flattened reply to a reply: whose comment this one answers. */
-  replyingTo?: string;
   /** Draw the thread line down from the avatar, joining this comment to its replies below. */
   showThreadLine?: boolean;
-  /** Rendered under the row, inside its text column (e.g. the reply editor). */
+  /** Rendered under the row, inside its text column (the reply editor). */
   children?: ReactNode;
 }
 
-const ACTION_BUTTON =
-  'flex h-8 items-center gap-1.5 rounded-md px-1.5 -mx-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:cursor-default';
+const ACTION_BUTTON = '-mx-1.5 gap-1.5 rounded-md px-1.5 text-sm font-normal hover:text-gray-900';
 
-const describeReplies = (count: number): string =>
-  count > 0 ? `Reply, ${count} ${count === 1 ? 'reply' : 'replies'} so far` : 'Reply';
+const VOTE_SCORES: Record<UserVoteType, number> = { UPVOTE: 1, NEUTRAL: 0, DOWNVOTE: -1 };
 
 /**
  * A comment, reply or peer review laid out like a professional-network thread:
  * avatar, name with headline under it, time and menu on the right, the words,
- * then icon-and-count actions (votes, reply, tip) with awards on the far right.
+ * then icon-and-count actions (votes, reply, tip) with tips on the far right.
  */
 export const CommentRow: FC<CommentRowProps> = ({
   comment,
@@ -85,9 +81,7 @@ export const CommentRow: FC<CommentRowProps> = ({
   onEdit,
   onDelete,
   hideActions = false,
-  showTooltips = true,
   workContentType,
-  replyingTo,
   showThreadLine = false,
   children,
 }) => {
@@ -108,7 +102,13 @@ export const CommentRow: FC<CommentRowProps> = ({
   const isVerified = createdBy.isVerified || author?.isVerified;
   const isReview = comment.commentType === 'REVIEW';
   const canTip = isFoundationUser(user?.id) && !isCurrentUserAuthor;
-  const totalAwarded = sumTips(comment.tips) + (comment.awardedBountyAmount ?? 0);
+  const isAssessedByFoundation =
+    isReview &&
+    comment.isAssessed &&
+    String(createdBy.id) !== process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
+  const tips = comment.tips ?? [];
+  const totalAwarded =
+    tips.reduce((total, tip) => total + tip.amount, 0) + (comment.awardedBountyAmount ?? 0);
   const relatedDocumentId = comment.thread?.objectId?.toString();
 
   const { vote, isVoting } = useVote({
@@ -126,8 +126,8 @@ export const CommentRow: FC<CommentRowProps> = ({
   const handleVote = (direction: UserVoteType) => {
     if (isVoting) return;
     executeAuthenticatedAction(() => {
-      const { nextVote, scoreDelta } = toggleVote(userVote, direction);
-      setScore((prev) => prev + scoreDelta);
+      const nextVote: UserVoteType = userVote === direction ? 'NEUTRAL' : direction;
+      setScore((prev) => prev + VOTE_SCORES[nextVote] - VOTE_SCORES[userVote ?? 'NEUTRAL']);
       setUserVote(nextVote);
       vote(nextVote);
     });
@@ -141,17 +141,10 @@ export const CommentRow: FC<CommentRowProps> = ({
     });
   };
 
-  const canEdit = isCurrentUserAuthor && !!onEdit && !comment.isRemoved;
-  const canDelete = isCurrentUserAuthor && !!onDelete && !comment.isRemoved;
-  const canReport = !isCurrentUserAuthor && !!relatedDocumentId && !comment.isRemoved;
+  const canEdit = isCurrentUserAuthor && !!onEdit;
+  const canDelete = isCurrentUserAuthor && !!onDelete;
+  const canReport = !isCurrentUserAuthor && !!relatedDocumentId;
   const showMenu = !hideActions && (canEdit || canDelete || canReport);
-
-  const tipTotal = (
-    <span className="flex cursor-default items-center gap-1 text-xs font-medium text-amber-800">
-      <Icon name="tipRSC" size={16} className="h-4 w-4" />
-      {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
-    </span>
-  );
 
   return (
     <div className="flex gap-2" data-testid="comment-row">
@@ -185,7 +178,7 @@ export const CommentRow: FC<CommentRowProps> = ({
                 </span>
               )}
               {isVerified && <VerifiedBadge size="sm" showTooltip />}
-              {isWorkAuthor && <AuthorBadge size="sm" className="py-0.5" />}
+              {isWorkAuthor && <AuthorBadge size="sm" />}
               {isReview && (
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <span aria-hidden="true">•</span>
@@ -198,14 +191,26 @@ export const CommentRow: FC<CommentRowProps> = ({
                   )}
                 </span>
               )}
+              {isAssessedByFoundation && (
+                <Tooltip
+                  content={
+                    <div className="flex items-start gap-3 text-left">
+                      <CheckCircle className="h-10 w-10 text-green-600" />
+                      <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
+                    </div>
+                  }
+                  position="top"
+                  width="w-[320px]"
+                >
+                  <Badge variant="success" className="cursor-pointer gap-1.5 border-green-600 py-1">
+                    <CheckCircle className="h-4 w-4" />
+                    Awarded
+                  </Badge>
+                </Tooltip>
+              )}
             </div>
             {author?.headline && (
               <p className="truncate text-xs leading-4 text-gray-500">{author.headline}</p>
-            )}
-            {replyingTo && (
-              <p className="truncate text-xs leading-4 text-gray-500">
-                Replying to <span className="font-medium text-gray-700">{replyingTo}</span>
-              </p>
             )}
           </div>
 
@@ -222,14 +227,15 @@ export const CommentRow: FC<CommentRowProps> = ({
             <BaseMenu
               align="end"
               trigger={
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="icon"
                   aria-label="More actions"
                   data-testid="feed-item-more-options"
-                  className="-my-1.5 -mr-1.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  className="-my-1.5 -mr-1.5 h-8 w-8 rounded-full text-gray-600 hover:text-gray-900"
                 >
                   <MoreHorizontal className="h-5 w-5" />
-                </button>
+                </Button>
               }
             >
               {canEdit && (
@@ -283,14 +289,15 @@ export const CommentRow: FC<CommentRowProps> = ({
           />
         </div>
 
-        {!hideActions && !comment.isRemoved && (
+        {!hideActions && (
           <div className="mt-1 flex items-center gap-5">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => handleVote('UPVOTE')}
                 aria-pressed={userVote === 'UPVOTE'}
-                aria-label={`Upvote, score ${score}`}
+                aria-label="Upvote"
                 className={cn(
                   ACTION_BUTTON,
                   userVote === 'UPVOTE' && 'font-medium text-primary-600 hover:text-primary-700'
@@ -301,76 +308,69 @@ export const CommentRow: FC<CommentRowProps> = ({
                   strokeWidth={1.75}
                 />
                 {score !== 0 && <span>{score}</span>}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => handleVote('DOWNVOTE')}
                 aria-pressed={userVote === 'DOWNVOTE'}
                 aria-label="Downvote"
-                className={cn(
-                  ACTION_BUTTON,
-                  userVote === 'DOWNVOTE' && 'text-gray-900 hover:text-gray-900'
-                )}
+                className={cn(ACTION_BUTTON, userVote === 'DOWNVOTE' && 'text-gray-900')}
               >
                 <ThumbsDown
                   className={cn('h-5 w-5', userVote === 'DOWNVOTE' && 'fill-gray-300')}
                   strokeWidth={1.75}
                 />
-              </button>
+              </Button>
             </div>
 
             {onReply && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => executeAuthenticatedAction(onReply)}
                 data-testid="feed-item-comment-action"
-                aria-label={describeReplies(comment.childrenCount)}
+                aria-label="Reply"
                 className={ACTION_BUTTON}
               >
                 <MessageCircle className="h-5 w-5" strokeWidth={1.75} />
                 {comment.childrenCount > 0 && <span>{comment.childrenCount}</span>}
-              </button>
+              </Button>
             )}
 
             {canTip && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setIsTipModalOpen(true)}
                 aria-label="Tip"
                 className={ACTION_BUTTON}
               >
                 <Icon name="tipRSC" size={20} className="h-5 w-5" />
-              </button>
+              </Button>
             )}
 
-            <div className="ml-auto flex items-center gap-3">
-              {totalAwarded > 0 &&
-                (showTooltips ? (
-                  <Tooltip
-                    content={
-                      <TipTooltip
-                        tips={comment.tips ?? []}
-                        awardedBountyAmount={comment.awardedBountyAmount}
-                        totalAwarded={totalAwarded}
-                        showUSD={showUSD}
-                        exchangeRate={exchangeRate}
-                      />
-                    }
-                    position="top"
-                    width="w-[320px]"
-                  >
-                    {tipTotal}
-                  </Tooltip>
-                ) : (
-                  tipTotal
-                ))}
-              {isReview && (
-                <FoundationAwardedBadge
-                  isAssessed={comment.isAssessed}
-                  authorUserId={createdBy.id}
-                />
-              )}
-            </div>
+            {totalAwarded > 0 && (
+              <Tooltip
+                content={
+                  <TipTooltip
+                    tips={tips}
+                    awardedBountyAmount={comment.awardedBountyAmount}
+                    totalAwarded={totalAwarded}
+                    showUSD={showUSD}
+                    exchangeRate={exchangeRate}
+                  />
+                }
+                position="top"
+                width="w-[320px]"
+                wrapperClassName="ml-auto"
+              >
+                <span className="flex cursor-default items-center gap-1 text-xs font-medium text-amber-800">
+                  <Icon name="tipRSC" size={16} className="h-4 w-4" />
+                  {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
+                </span>
+              </Tooltip>
+            )}
           </div>
         )}
 

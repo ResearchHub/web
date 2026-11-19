@@ -12,18 +12,6 @@ export type VoteTypeString = 'upvote' | 'neutralvote' | 'downvote';
 
 export type UserVoteType = 'UPVOTE' | 'NEUTRAL' | 'DOWNVOTE';
 
-const VOTE_SCORES: Record<UserVoteType, number> = { UPVOTE: 1, NEUTRAL: 0, DOWNVOTE: -1 };
-
-/**
- * Casts `direction` over the current vote: the same vote again clears it. Returns the
- * new vote and how far the score moves, two when switching sides.
- */
-export const toggleVote = (current: UserVoteType | undefined, direction: UserVoteType) => {
-  const nextVote: UserVoteType = current === direction ? 'NEUTRAL' : direction;
-  const scoreDelta = VOTE_SCORES[nextVote] - VOTE_SCORES[current ?? 'NEUTRAL'];
-  return { nextVote, scoreDelta };
-};
-
 // Subset of ContentType that can be voted on
 export type VotableContentType = 'comment' | 'paper' | 'researchhubpost';
 

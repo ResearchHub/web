@@ -24,17 +24,17 @@ import { cn } from '@/utils/styles';
 /**
  * One line of a comment's thread. Replies show one level deep under the comment
  * they belong to, so replies to replies are flattened into the same column in
- * reading order, each remembering who it answers.
+ * reading order.
  */
 type ThreadEntry =
-  | { kind: 'reply'; comment: Comment; parent: Comment }
+  | { kind: 'reply'; comment: Comment }
   | { kind: 'more'; parentId: number; remaining: number };
 
 const flattenThread = (parent: Comment): ThreadEntry[] => {
   const entries: ThreadEntry[] = [];
   for (const reply of parent.replies ?? []) {
     entries.push(
-      { kind: 'reply', comment: { ...reply, parentId: parent.id }, parent },
+      { kind: 'reply', comment: { ...reply, parentId: parent.id } },
       ...flattenThread(reply)
     );
   }
@@ -86,8 +86,6 @@ interface CommentItemProps {
   readOnly?: boolean;
   /** Set on a reply drawn inside its top-level comment's flattened thread. */
   isThreadReply?: boolean;
-  /** For a reply to a reply: the name of the person it answers. */
-  replyingTo?: string;
 }
 
 export const CommentItem = ({
@@ -101,7 +99,6 @@ export const CommentItem = ({
   showDebugInfo = false,
   readOnly = false,
   isThreadReply = false,
-  replyingTo,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -132,15 +129,12 @@ export const CommentItem = ({
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
-  const isReply = typeof comment.parentId === 'number';
-  // Bounties keep their own card, reply box and plain indented thread.
+  // Bounties keep their own card and a plain indented thread.
   const isBountyComment =
     comment.commentType === 'BOUNTY' ||
     (!!comment.bounties && Array.isArray(comment.bounties) && comment.bounties.length > 0);
   // Only a top-level comment draws a thread; its replies come flattened beneath it.
   const threadEntries = includeReplies && !isThreadReply ? flattenThread(comment) : [];
-  const isRootReplying = isReplying && !isThreadReply && !readOnly && !isBountyComment;
-  const hasThread = threadEntries.length > 0 || isRootReplying;
 
   // Handle editing a comment
   const handleEdit = async (params: {
@@ -349,36 +343,31 @@ export const CommentItem = ({
     return (
       <CommentRow
         comment={comment}
-        isReply={isReply}
+        isReply={typeof comment.parentId === 'number'}
         isCurrentUserAuthor={isAuthor}
         work={work}
         contentType={contentType}
         onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
         onEdit={readOnly ? undefined : () => setEditingCommentId(comment.id)}
         onDelete={readOnly ? undefined : () => handleDelete()}
-        hideActions={readOnly || (!includeReplies && !isThreadReply)}
-        showTooltips={showTooltips}
+        hideActions={readOnly || !includeReplies || comment.isRemoved}
         workContentType={workContentType}
-        replyingTo={replyingTo}
-        showThreadLine={hasThread}
+        showThreadLine={threadEntries.length > 0}
       >
-        {/* A reply's own reply box opens under it; the top-level one opens at the thread's end. */}
-        {isReplying && isThreadReply && !readOnly && renderReplyEditor()}
+        {isReplying && !readOnly && (
+          <div className="mt-3" data-testid="comment-reply-editor">
+            <CommentEditor
+              onSubmit={handleReply}
+              onCancel={() => setReplyingToCommentId(null)}
+              placeholder="Write your reply..."
+              autoFocus={true}
+              isBountyReply={false}
+            />
+          </div>
+        )}
       </CommentRow>
     );
   };
-
-  const renderReplyEditor = () => (
-    <div className="mt-3" data-testid="comment-reply-editor">
-      <CommentEditor
-        onSubmit={handleReply}
-        onCancel={() => setReplyingToCommentId(null)}
-        placeholder="Add a reply…"
-        autoFocus={true}
-        isBountyReply={false}
-      />
-    </div>
-  );
 
   return (
     <div id={`comment-${comment.id}`} data-testid="comment-item">
@@ -464,10 +453,10 @@ export const CommentItem = ({
       {renderContent()}
 
       {/* The thread: every reply one level in, joined to the comment by a curved line. */}
-      {hasThread && (
+      {threadEntries.length > 0 && (
         <div className={isBountyComment ? 'ml-6 mt-2 border-l border-gray-200 pl-6' : 'ml-12'}>
           {threadEntries.map((entry, index) => {
-            const isLast = index === threadEntries.length - 1 && !isRootReplying;
+            const isLast = index === threadEntries.length - 1;
             if (entry.kind === 'more') {
               return (
                 <div key={`more-${entry.parentId}`} className="relative pt-3">
@@ -492,24 +481,13 @@ export const CommentItem = ({
                   onCommentUpdate={onCommentUpdate}
                   onCommentDelete={onCommentDelete}
                   showTooltips={showTooltips}
-                  includeReplies={false}
+                  includeReplies={includeReplies}
                   readOnly={readOnly}
                   isThreadReply
-                  replyingTo={
-                    entry.parent.id === comment.id
-                      ? undefined
-                      : entry.parent.createdBy?.authorProfile?.fullName
-                  }
                 />
               </div>
             );
           })}
-          {isRootReplying && (
-            <div className="relative pt-1">
-              <ThreadConnector isLast elbowClassName="h-8" />
-              {renderReplyEditor()}
-            </div>
-          )}
         </div>
       )}
 

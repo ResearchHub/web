@@ -8,14 +8,15 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentType } from '@/types/work';
-import { Pen, Trash2, Star } from 'lucide-react';
+import { Pen, Trash2, CheckCircle, Star } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { TipContentModal } from '@/components/modals/TipContentModal';
-import { FoundationAwardedBadge } from '@/components/Comment/FoundationAwardedBadge';
+import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
 import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 
@@ -116,6 +117,10 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
   const canTip = isFoundationUser(user?.id) && !isCurrentUserAuthor;
+  const aiReviewUserId = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
+  const isAiReviewer =
+    aiReviewUserId != null && String(author?.user?.id ?? '') === String(aiReviewUserId);
+  const isAssessedByFoundation = Boolean(entry.isAssessed ?? comment.isAssessed) && !isAiReviewer;
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -144,6 +149,15 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
       });
     }
   }
+
+  const renderAwardedBadge = () => {
+    return (
+      <Badge variant="success" className="gap-1 border-green-600 cursor-pointer gap-1.5 py-1">
+        <CheckCircle className="h-4 w-4" />
+        Awarded
+      </Badge>
+    );
+  };
 
   return (
     <div className="space-y-3">
@@ -195,10 +209,20 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
             )}
             <div className="flex items-center gap-2">
               <ContentTypeBadge type="review" />
-              <FoundationAwardedBadge
-                isAssessed={entry.isAssessed ?? comment.isAssessed}
-                authorUserId={author?.user?.id}
-              />
+              {isAssessedByFoundation && (
+                <Tooltip
+                  content={
+                    <div className="flex items-start gap-3 text-left">
+                      <CheckCircle className="h-10 w-10 text-green-600" />
+                      <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
+                    </div>
+                  }
+                  position="top"
+                  width="w-[320px]"
+                >
+                  {renderAwardedBadge()}
+                </Tooltip>
+              )}
             </div>
           </div>
         )}
