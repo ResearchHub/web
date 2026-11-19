@@ -30,6 +30,7 @@ export const ReviewScoreStars: FC<ReviewScoreStarsProps> = ({
     return (
       <span
         className={cn('inline-flex items-center gap-0.5 font-semibold text-gray-700', className)}
+        role="img"
         aria-label={`Score: ${score.toFixed(1)} out of 5`}
       >
         <Star size={SIZES[size]} className="fill-amber-400 text-amber-400" aria-hidden />
@@ -39,14 +40,17 @@ export const ReviewScoreStars: FC<ReviewScoreStarsProps> = ({
   }
 
   return (
+    // `role="img"` so screen readers read the label instead of skipping the stars.
     <span
       className={cn('inline-flex items-center gap-0.5', className)}
+      role="img"
       aria-label={`Score: ${score.toFixed(1)} out of 5`}
     >
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
           size={SIZES[size]}
+          aria-hidden
           className={cn(
             i <= rounded ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'
           )}

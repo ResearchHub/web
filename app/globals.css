@@ -238,6 +238,55 @@ body {
   margin-bottom: 0.5rem !important;
 }
 
+/*
+  A comment in full, as a thread's own row draws it (`CommentReadOnly` variant
+  `full`): every block at the size its classes set, TipTap and Quill alike, headings
+  stepped and semibold, and the first block flush under the hairline above it.
+*/
+.comment-body-full
+  :is(
+    .tiptap-paragraph,
+    .tiptap-list-item,
+    .tiptap-blockquote,
+    .quill-document p,
+    .quill-document li
+  ) {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.comment-body-full :is(h1, h2, h3, h4, h5, h6) {
+  color: #111827;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.comment-body-full h1 {
+  font-size: 1.25rem;
+}
+
+.comment-body-full h2 {
+  font-size: 1.125rem;
+}
+
+.comment-body-full h3 {
+  font-size: 1.0625rem;
+}
+
+.comment-body-full :is(h4, h5, h6) {
+  font-size: 1em;
+}
+
+.comment-body-full :is(.tiptap-doc, .quill-document) > :first-child {
+  margin-top: 0 !important;
+}
+
+.comment-body-full :is(.tiptap-doc, .quill-document) > :last-child {
+  margin-bottom: 0 !important;
+}
+
 /* Search result highlighting */
 mark {
   background-color: #fef9c3;
