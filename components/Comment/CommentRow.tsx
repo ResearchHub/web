@@ -3,14 +3,14 @@
 import { FC, ReactNode, useState } from 'react';
 import Link from 'next/link';
 import {
+  ArrowDown,
+  ArrowUp,
   CheckCircle,
   Flag,
   MessageCircle,
   MoreHorizontal,
   Pen,
   Star,
-  ThumbsDown,
-  ThumbsUp,
   Trash2,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
@@ -63,6 +63,8 @@ interface CommentRowProps {
 }
 
 const ACTION_BUTTON = '-mx-1.5 gap-1.5 rounded-md px-1.5 text-sm font-normal hover:text-gray-900';
+
+const VOTE_BUTTON = 'h-7 w-7 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900';
 
 const VOTE_SCORES: Record<UserVoteType, number> = { UPVOTE: 1, NEUTRAL: 0, DOWNVOTE: -1 };
 
@@ -124,7 +126,6 @@ export const CommentRow: FC<CommentRowProps> = ({
   });
 
   const handleVote = (direction: UserVoteType) => {
-    if (isVoting) return;
     executeAuthenticatedAction(() => {
       const nextVote: UserVoteType = userVote === direction ? 'NEUTRAL' : direction;
       setScore((prev) => prev + VOTE_SCORES[nextVote] - VOTE_SCORES[userVote ?? 'NEUTRAL']);
@@ -291,36 +292,42 @@ export const CommentRow: FC<CommentRowProps> = ({
 
         {!hideActions && (
           <div className="mt-1 flex items-center gap-5">
-            <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                'flex h-8 items-center rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80 transition-all',
+                isVoting && 'opacity-50'
+              )}
+            >
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => handleVote('UPVOTE')}
+                disabled={isVoting}
                 aria-pressed={userVote === 'UPVOTE'}
                 aria-label="Upvote"
                 className={cn(
-                  ACTION_BUTTON,
-                  userVote === 'UPVOTE' && 'font-medium text-primary-600 hover:text-primary-700'
+                  VOTE_BUTTON,
+                  userVote === 'UPVOTE' && 'bg-green-50 text-green-600 hover:bg-green-50'
                 )}
               >
-                <ThumbsUp
-                  className={cn('h-5 w-5', userVote === 'UPVOTE' && 'fill-primary-100')}
-                  strokeWidth={1.75}
-                />
-                {score !== 0 && <span>{score}</span>}
+                <ArrowUp className="h-[18px] w-[18px]" />
               </Button>
+              <span className="min-w-[1.75rem] px-1 text-center text-xs font-semibold text-gray-900">
+                {score}
+              </span>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => handleVote('DOWNVOTE')}
+                disabled={isVoting}
                 aria-pressed={userVote === 'DOWNVOTE'}
                 aria-label="Downvote"
-                className={cn(ACTION_BUTTON, userVote === 'DOWNVOTE' && 'text-gray-900')}
+                className={cn(
+                  VOTE_BUTTON,
+                  userVote === 'DOWNVOTE' && 'bg-red-50 text-red-600 hover:bg-red-50'
+                )}
               >
-                <ThumbsDown
-                  className={cn('h-5 w-5', userVote === 'DOWNVOTE' && 'fill-gray-300')}
-                  strokeWidth={1.75}
-                />
+                <ArrowDown className="h-[18px] w-[18px]" />
               </Button>
             </div>
 
