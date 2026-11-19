@@ -2,6 +2,7 @@ import React from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { CommentItem } from './CommentItem';
 import { ContentType } from '@/types/work';
+import type { CommentRowStyle } from './lib/commentRowStyle';
 
 interface CommentListProps {
   comments: Comment[];
@@ -10,6 +11,7 @@ interface CommentListProps {
   contentType: ContentType;
   commentType?: CommentType;
   readOnly?: boolean;
+  rowStyle?: CommentRowStyle;
 }
 
 const CommentList: React.FC<CommentListProps> = ({
@@ -19,9 +21,14 @@ const CommentList: React.FC<CommentListProps> = ({
   contentType,
   commentType,
   readOnly = false,
+  rowStyle = 'card',
 }) => {
   return (
-    <div className="space-y-8" data-testid={isRootList ? 'comment-list' : undefined}>
+    // Feed rows space themselves, with a hairline between threads.
+    <div
+      className={rowStyle === 'feed' ? undefined : 'space-y-8'}
+      data-testid={isRootList ? 'comment-list' : undefined}
+    >
       {comments.map((comment) => (
         <CommentItem
           commentType={commentType}
@@ -29,6 +36,7 @@ const CommentList: React.FC<CommentListProps> = ({
           comment={comment}
           contentType={contentType}
           readOnly={readOnly}
+          rowStyle={rowStyle}
         />
       ))}
     </div>

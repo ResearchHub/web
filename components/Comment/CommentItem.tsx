@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { CommentEditor } from './CommentEditor';
@@ -14,11 +14,20 @@ import { CommentContent } from './lib/types';
 import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
-import { transformCommentToFeedItem, transformBountyCommentToFeedItem } from '@/types/feed';
+import {
+  toCommentAuthor,
+  transformCommentToFeedItem,
+  transformBountyCommentToFeedItem,
+} from '@/types/feed';
 import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { ACTIVITY_ROW_DIVIDER } from '@/components/Activity/cards/ActivityCardShell';
+import { cn } from '@/utils/styles';
+import { CommentCard } from './CommentCard';
+import type { CommentRowStyle } from './lib/commentRowStyle';
+import type { AuthorProfile } from '@/types/authorProfile';
 
 // Define the SolutionViewEvent interface (previously in BountyCard)
 interface SolutionViewEvent {
@@ -37,6 +46,34 @@ interface CommentItemProps {
   includeReplies?: boolean;
   showDebugInfo?: boolean;
   readOnly?: boolean;
+  /** `feed` draws the homepage's activity row; see `useCommentRowStyle`. */
+  rowStyle?: CommentRowStyle;
+  /** In a `feed` thread: 0 for its first comment, 1+ for the replies listed under it. */
+  depth?: number;
+  /** In a `feed` thread: whose comment a reply at depth 2+ answers. */
+  replyTo?: AuthorProfile;
+}
+
+type FlatReply =
+  | { kind: 'reply'; reply: Comment; parent: Comment; depth: number }
+  | { kind: 'more'; parent: Comment; remaining: number };
+
+/**
+ * A thread's replies at every depth as one list, in reading order: each reply, then
+ * the replies under it, then the button for any of its replies not loaded yet.
+ */
+function flattenReplies(root: Comment): FlatReply[] {
+  const items: FlatReply[] = [];
+  const walk = (parent: Comment, depth: number) => {
+    for (const reply of parent.replies ?? []) {
+      items.push({ kind: 'reply', reply: { ...reply, parentId: parent.id }, parent, depth });
+      walk(reply, depth + 1);
+    }
+    const remaining = parent.childrenCount - (parent.replies?.length ?? 0);
+    if (remaining > 0) items.push({ kind: 'more', parent, remaining });
+  };
+  walk(root, 1);
+  return items;
 }
 
 export const CommentItem = ({
@@ -49,6 +86,9 @@ export const CommentItem = ({
   includeReplies = true,
   showDebugInfo = false,
   readOnly = false,
+  rowStyle = 'card',
+  depth = 0,
+  replyTo,
 }: CommentItemProps) => {
   const {
     updateComment,
@@ -72,8 +112,16 @@ export const CommentItem = ({
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
   const { user } = useUser();
-  // Check if the current user is the author of the comment
-  const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
+  // Check if the current user is the author of the comment. A real id on both sides,
+  // so a signed-out reader is never taken for the author of a profile-less comment.
+  const viewerAuthorId = user?.authorProfile?.id;
+  const isAuthor =
+    viewerAuthorId != null && viewerAuthorId === comment?.createdBy?.authorProfile?.id;
+  const isFeedRow = rowStyle === 'feed';
+  const flatReplies = useMemo(
+    () => (isFeedRow && depth === 0 ? flattenReplies(comment) : []),
+    [isFeedRow, depth, comment]
+  );
   const canAwardBounty = canManageBounties(user);
 
   // Determine if this comment is being edited or replied to
@@ -293,6 +341,41 @@ export const CommentItem = ({
     // Transform the comment to a feed entry
     const feedEntry = transformCommentToFeedItem(comment, contentType, work);
 
+    if (isFeedRow) {
+      return (
+        <>
+          <CommentCard
+            entry={feedEntry}
+            depth={depth}
+            replyTo={replyTo}
+            isOwnComment={isAuthor}
+            onReply={readOnly ? undefined : () => setReplyingToCommentId(comment.id)}
+            onEdit={readOnly || !isAuthor ? undefined : () => setEditingCommentId(comment.id)}
+            onDelete={readOnly || !isAuthor ? undefined : () => handleDelete()}
+            hideActions={readOnly || !includeReplies || comment.isRemoved}
+            showTooltips={showTooltips}
+            workContentType={workContentType}
+          />
+
+          {isReplying && !readOnly && (
+            // Lined up with the row's words from the tablet up; the whole width on a phone.
+            <div
+              className={cn('mt-3', depth > 0 ? 'tablet:ml-11' : 'tablet:ml-[52px]')}
+              data-testid="comment-reply-editor"
+            >
+              <CommentEditor
+                onSubmit={handleReply}
+                onCancel={() => setReplyingToCommentId(null)}
+                placeholder="Write your reply..."
+                autoFocus={true}
+                isBountyReply={false}
+              />
+            </div>
+          )}
+        </>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <FeedItemComment
@@ -328,7 +411,18 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="mt-4" id={`comment-${comment.id}`} data-testid="comment-item">
+    <div
+      className={
+        isFeedRow
+          ? // A hairline under each whole thread, none between a thread's replies.
+            depth === 0
+            ? cn(ACTIVITY_ROW_DIVIDER, 'py-4')
+            : 'pt-4'
+          : 'mt-4'
+      }
+      id={`comment-${comment.id}`}
+      data-testid="comment-item"
+    >
       {/* Debug information for comment ID */}
       {showDebugInfo && (
         <div className="bg-gray-100 p-2 mb-2 rounded-md border border-gray-300">
@@ -410,8 +504,47 @@ export const CommentItem = ({
       {/* Comment content */}
       {renderContent()}
 
+      {/* A feed thread lists every reply in one column, one indent in, with a rail running
+          down from under the first comment's avatar. */}
+      {isFeedRow && includeReplies && flatReplies.length > 0 && (
+        <>
+          <div
+            aria-hidden
+            className="absolute bottom-6 left-[19px] top-16 w-0.5 rounded-full bg-gray-200"
+          />
+          <div className="pl-[52px]">
+            {flatReplies.map((item) =>
+              item.kind === 'reply' ? (
+                <CommentItem
+                  key={`reply-${item.reply.id}`}
+                  comment={item.reply}
+                  contentType={contentType}
+                  commentType={commentType}
+                  onCommentUpdate={onCommentUpdate}
+                  onCommentDelete={onCommentDelete}
+                  showTooltips={showTooltips}
+                  includeReplies={includeReplies}
+                  readOnly={readOnly}
+                  rowStyle="feed"
+                  depth={item.depth}
+                  replyTo={item.depth >= 2 ? toCommentAuthor(item.parent.createdBy) : undefined}
+                />
+              ) : (
+                <LoadMoreReplies
+                  key={`more-${item.parent.id}`}
+                  variant="feed"
+                  commentId={item.parent.id}
+                  remainingCount={item.remaining}
+                  isLoading={loading}
+                />
+              )
+            )}
+          </div>
+        </>
+      )}
+
       {/* Replies section - conditionally rendered based on includeReplies prop */}
-      {includeReplies && comment.replies && comment.replies.length > 0 ? (
+      {isFeedRow ? null : includeReplies && comment.replies && comment.replies.length > 0 ? (
         <div className="-mt-1 pt-5 pl-6 border-l border-gray-200">
           {comment.replies.map((reply) => (
             <CommentItem

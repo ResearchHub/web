@@ -24,6 +24,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { isPubliclyShareable } from '@/utils/share';
 import { buildWorkUrl } from '@/utils/url';
 import { useStorageKey } from '@/utils/storageKeys';
+import { CommentRowStyle, useCommentRowStyle } from './lib/commentRowStyle';
 
 interface CommentFeedProps {
   documentId: number;
@@ -40,6 +41,8 @@ interface CommentFeedProps {
   belowEditor?: React.ReactNode;
   readOnly?: boolean;
   onlyAssessedReviews?: boolean;
+  /** How this tab draws its comments; see `useCommentRowStyle`. */
+  rowStyle?: CommentRowStyle;
 }
 
 function CommentFeed({
@@ -57,7 +60,10 @@ function CommentFeed({
   belowEditor,
   readOnly = false,
   onlyAssessedReviews = false,
+  rowStyle = 'card',
 }: CommentFeedProps) {
+  const effectiveRowStyle = useCommentRowStyle(rowStyle);
+
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
     if (debug) {
@@ -105,6 +111,7 @@ function CommentFeed({
           belowEditor={belowEditor}
           readOnly={readOnly}
           onlyAssessedReviews={onlyAssessedReviews}
+          rowStyle={effectiveRowStyle}
         />
       </div>
       {!readOnly && canCreateBounty && (
@@ -121,6 +128,7 @@ function CommentFeed({
 // Remove memo wrapper but keep useCallback optimizations
 function CommentFeedContent({
   className,
+  rowStyle = 'card',
   editorProps = {},
   renderCommentActions = true,
   hideEditor = false,
@@ -379,7 +387,7 @@ function CommentFeedContent({
 
       <div className="comment-list-container">
         {loading || shouldLoadAssessedReviews ? (
-          <CommentLoader count={3} commentType={commentType} />
+          <CommentLoader count={3} commentType={commentType} rowStyle={rowStyle} />
         ) : shouldShowEmptyState ? (
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
@@ -396,6 +404,7 @@ function CommentFeedContent({
               isRootList={true}
               contentType={contentType}
               readOnly={readOnly}
+              rowStyle={rowStyle}
             />
 
             {hasMoreComments && (
