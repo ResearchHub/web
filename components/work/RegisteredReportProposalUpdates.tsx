@@ -19,7 +19,6 @@ export function RegisteredReportProposalUpdates({
         contentType="preregistration"
         commentType="AUTHOR_UPDATE"
         readOnly
-        rowStyle="feed"
       />
     </div>
   );
