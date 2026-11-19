@@ -564,8 +564,15 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         error: null,
       };
     case CommentActionType.DELETE_COMMENT_SUCCESS: {
+      const deletedId = action.payload.comment.id;
+      // Removes the comment wherever it sits in the tree, and takes it off its parent's reply count.
+      const comments = traverseCommentTree(state.comments, (comment) => {
+        if (comment.id === deletedId) return null;
+        return comment.replies?.some((reply) => reply.id === deletedId)
+          ? { ...comment, childrenCount: comment.childrenCount - 1 }
+          : comment;
+      });
       // The count is top-level comments only, so it drops only when one is removed here.
-      const comments = state.comments.filter((comment) => comment.id !== action.payload.comment.id);
       return {
         ...state,
         comments,
