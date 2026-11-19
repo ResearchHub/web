@@ -15,7 +15,7 @@ import { SetSwitcher } from './components/SetSwitcher';
 import { Claim, Timeline } from './components/Story';
 import { parseSet } from './theme';
 import { parseHero } from './sets/heroes';
-import { rfpPostId, rfpView } from './data/rfp';
+import { isCampaignRfp, rfpPostId, rfpView } from './data/rfp';
 import { LiveRfpActions } from './components/LiveRfpActions';
 import { PostService } from '@/services/post.service';
 import type { Work } from '@/types/work';
@@ -83,7 +83,12 @@ export default async function OrchOrPage({
   );
   if (!live) return page;
   return (
-    <LiveRfpActions grant={live.grant} title={live.work.title} imageUrl={live.work.image ?? null}>
+    <LiveRfpActions
+      grant={live.grant}
+      title={live.work.title}
+      imageUrl={live.work.image ?? null}
+      showTaxLine={isCampaignRfp(params.rfp)}
+    >
       {page}
     </LiveRfpActions>
   );

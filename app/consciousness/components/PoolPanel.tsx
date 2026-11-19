@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/utils/styles';
 import { deadlinePhrase, formatDate, formatUsd, poolPercent, type RfpView } from '../data/rfp';
@@ -33,15 +34,30 @@ export function PoolBar({ rfp, className }: { rfp: RfpView; className?: string }
   );
 }
 
-/** The top backers' faces, overlapping. */
-export function BackerFaces({ rfp, size }: { rfp: RfpView; size: number }) {
+/**
+ * The top backers' faces, overlapping, up to `max`. Each links to the backer's
+ * profile and shows their author tooltip on hover, above the row so it never
+ * covers the next face.
+ */
+export function BackerFaces({ rfp, size, max = 10 }: { rfp: RfpView; size: number; max?: number }) {
   const { pool } = poolFacts(rfp);
   if (pool.backers.length === 0) return null;
   return (
     <span className="flex shrink-0 -space-x-2">
-      {pool.backers.slice(0, 4).map((b) => (
-        <span key={b.id} className="rounded-full ring-2 ring-[var(--o-ink)]">
-          <Avatar src={b.avatarUrl} alt={b.name} size={size} disableTooltip />
+      {pool.backers.slice(0, max).map((b) => (
+        <span
+          key={b.id}
+          className="relative flex rounded-full ring-2 ring-[var(--o-ink)] hover:z-10"
+        >
+          <AuthorTooltip authorId={b.authorId} placement="top">
+            <Avatar
+              src={b.avatarUrl}
+              alt={b.name}
+              size={size}
+              authorId={b.authorId}
+              disableTooltip
+            />
+          </AuthorTooltip>
         </span>
       ))}
     </span>
@@ -118,7 +134,7 @@ export function PoolPanel({ rfp }: { rfp: RfpView }) {
           <ul className="mt-3 space-y-3">
             {pool.backers.map((b) => (
               <li key={b.id} className="flex items-center gap-3 text-[15px]">
-                <Avatar src={b.avatarUrl} alt={b.name} size={30} disableTooltip />
+                <Avatar src={b.avatarUrl} alt={b.name} size={30} authorId={b.authorId} />
                 <span className="min-w-0 flex-1 truncate">{b.name}</span>
                 <span className="tabular-nums text-[var(--o-soft)]">{formatUsd(b.amountUsd)}</span>
               </li>
