@@ -21,7 +21,7 @@ export function CatalystLoggedInBody({
   const isMobile = variant === 'mobile';
 
   const handleSignOut = () => {
-    signOutUser(route);
+    void signOutUser(route);
   };
 
   return (
