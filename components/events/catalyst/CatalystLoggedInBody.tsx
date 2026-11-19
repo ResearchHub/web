@@ -1,9 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
-import AnalyticsService from '@/services/analytics.service';
-import { AuthSharingService } from '@/services/auth-sharing.service';
+import { signOutUser } from '@/utils/auth';
 import { CATALYST_NYC_EVENT, formatCredit } from './constants';
 
 const { footer, loggedIn, creditAmount, route } = CATALYST_NYC_EVENT;
@@ -23,9 +21,7 @@ export function CatalystLoggedInBody({
   const isMobile = variant === 'mobile';
 
   const handleSignOut = () => {
-    AuthSharingService.removeSharedAuthToken();
-    AnalyticsService.clearUserSession();
-    signOut({ callbackUrl: route });
+    void signOutUser(route);
   };
 
   return (

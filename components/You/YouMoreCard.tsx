@@ -25,7 +25,7 @@ import { useChangelogSeen } from '@/components/changelog/useChangelogSeen';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useVerification } from '@/contexts/VerificationContext';
-import { AuthSharingService } from '@/services/auth-sharing.service';
+import { signOutUser } from '@/utils/auth';
 import type { User } from '@/types/user';
 import { cn } from '@/utils/styles';
 import { CurrencySwitch } from './CurrencySwitch';
@@ -245,7 +245,7 @@ export function YouAccountCard({
       </RowLink>
       <button
         type="button"
-        onClick={() => AuthSharingService.signOutFromBothApps()}
+        onClick={() => signOutUser()}
         className={YOU_ROW}
         data-testid="user-menu-signout"
       >
