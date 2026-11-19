@@ -21,7 +21,7 @@ const CommentList: React.FC<CommentListProps> = ({
   contentType,
   commentType,
   readOnly = false,
-  rowStyle = 'card',
+  rowStyle = 'feed',
 }) => {
   return (
     // Feed rows space themselves, with a hairline between threads.

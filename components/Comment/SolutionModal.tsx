@@ -9,7 +9,7 @@ import { Loader } from '@/components/ui/Loader';
 import { formatTimestamp } from '@/utils/date';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Avatar } from '@/components/ui/Avatar';
-import { CommentSkeleton } from '@/components/skeletons/CommentSkeleton';
+import { ActivityCardSkeleton } from '@/components/Activity/cards/ActivityCardSkeleton';
 
 interface SolutionModalProps {
   isOpen: boolean;
@@ -62,7 +62,7 @@ export const SolutionModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title={`Solution by ${solutionAuthorName}`}>
       <div className="space-y-6">
         {loading ? (
-          <CommentSkeleton commentType="ANSWER" />
+          <ActivityCardSkeleton showCover={false} />
         ) : error ? (
           <div className="text-red-500 text-center py-4">{error}</div>
         ) : comment ? (
