@@ -74,6 +74,7 @@ export const PostDocument = ({ work, metadata, content }: PostDocumentProps) => 
               }}
               key={`review-feed-${work.id}`}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
@@ -102,6 +103,7 @@ export const PostDocument = ({ work, metadata, content }: PostDocumentProps) => 
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
               work={work}
+              rowStyle="feed"
             />
           </div>
         );
