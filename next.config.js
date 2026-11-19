@@ -3,10 +3,46 @@
 // hence the surrounding `.*`.
 const MARKDOWN_ACCEPT = { type: 'header', key: 'accept', value: '.*text/markdown.*' };
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- next.config.js is CommonJS
+const consciousnessRfp = require('./app/consciousness/data/rfp.config.json');
+
+/**
+ * The RFP post that the /consciousness landing page stands in for: the one in
+ * `rfp.config.json` on production deploys, `CONSCIOUSNESS_RFP_POST_ID`
+ * anywhere else (post ids differ between environments). Must match
+ * `rfpPostId` in `app/consciousness/data/rfp.ts`.
+ */
+const CONSCIOUSNESS_RFP_POST_ID =
+  process.env.CONSCIOUSNESS_RFP_POST_ID ||
+  (process.env.VERCEL_ENV === 'production' ? String(consciousnessRfp.productionPostId) : null);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
+    // The consciousness RFP's own page sends visitors to its landing page.
+    // `?view=rfp` still opens the RFP page, for its author and moderators.
+    ...(CONSCIOUSNESS_RFP_POST_ID
+      ? [
+          {
+            source: `/rfp/${CONSCIOUSNESS_RFP_POST_ID}/:path*`,
+            missing: [{ type: 'query', key: 'view' }],
+            destination: '/consciousness',
+            permanent: false,
+          },
+        ]
+      : []),
+    // The page's first address, from its preview (PR #1298).
+    {
+      source: '/orch-or/figures',
+      destination: '/consciousness/figures',
+      permanent: true,
+    },
+    {
+      source: '/orch-or/:path*',
+      destination: '/consciousness',
+      permanent: true,
+    },
     {
       source: '/funding',
       destination: '/fund',
@@ -216,6 +252,28 @@ const nextConfig = {
         has: [MARKDOWN_ACCEPT],
         destination: '/llms.txt',
       },
+      // The page and a markdown response cannot share a segment, so the same
+      // Accept header used for the homepage is rewritten to a route handler.
+      {
+        source: '/rfp/:id/:slug',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/rfp/:id',
+      },
+      {
+        source: '/rfp/:id(\\d+)',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/rfp/:id',
+      },
+      {
+        source: '/proposal/:id/:slug',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/proposal/:id',
+      },
+      {
+        source: '/proposal/:id(\\d+)',
+        has: [MARKDOWN_ACCEPT],
+        destination: '/md/proposal/:id',
+      },
     ],
     // app/sitemap.ts uses generateSitemaps, which serves only /sitemap/<id>.xml,
     // and Next still reserves app/sitemap.xml for it, so the index lives at
@@ -239,6 +297,26 @@ const nextConfig = {
     // match the original request path, so this targets `/`, not `/llms.txt`.
     {
       source: '/',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/rfp/:id/:slug',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/rfp/:id(\\d+)',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/proposal/:id/:slug',
+      has: [MARKDOWN_ACCEPT],
+      headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
+    },
+    {
+      source: '/proposal/:id(\\d+)',
       has: [MARKDOWN_ACCEPT],
       headers: [{ key: 'Content-Type', value: 'text/markdown; charset=utf-8' }],
     },
@@ -273,6 +351,10 @@ const nextConfig = {
           value: 'index, follow',
         },
       ],
+    },
+    {
+      source: '/md/:path*',
+      headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
     },
     {
       // The OAuth consent page must never be framed or indexed

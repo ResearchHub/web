@@ -1,6 +1,6 @@
 # ai.txt — ResearchHub AI Policy
 # https://researchhub.com/ai.txt
-# Last updated: 2026-08-17
+# Last updated: 2026-11-14
 
 # This file states how AI systems may interact with public content
 # on researchhub.com. It is a policy declaration, not access control.
@@ -22,6 +22,7 @@ Disallow: /moderators/
 Disallow: /expert-finder/
 Disallow: /settings
 Disallow: /_next/
+Disallow: /md/
 Disallow: /sw.js
 
 # Licensing and AI/ML training policy

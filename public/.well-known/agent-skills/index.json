@@ -6,7 +6,7 @@
       "type": "skill-md",
       "description": "Find research funding opportunities, proposals, peer review bounties, and researcher profiles on ResearchHub.",
       "url": "/.well-known/agent-skills/navigate-researchhub/SKILL.md",
-      "digest": "sha256:7c827ee637979a7d395c0b4744bbccf1f1156324c97ccd1e4f8d5196409ffe80"
+      "digest": "sha256:88af19b7ffccf86e24784a05f1fba6b10f2afb8c6097969cabbf61ab7ed1c7f6"
     }
   ]
 }
