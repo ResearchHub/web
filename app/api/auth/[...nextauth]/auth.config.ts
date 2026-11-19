@@ -4,7 +4,6 @@ import GoogleProvider from 'next-auth/providers/google';
 import TwitterProvider from 'next-auth/providers/twitter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
-import { AuthSharingService } from '@/services/auth-sharing.service';
 
 // Debug flag - set to true to enable detailed authentication logging
 const DEBUG_AUTH = true;
@@ -70,7 +69,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         try {
-          // If we have an authToken from the shared cookie, use that directly
+          // Email verification and MFA sign in with an already-issued token.
           if (credentials?.authToken) {
             try {
               // Fetch user data using the provided authToken
@@ -83,7 +82,6 @@ export const authOptions: NextAuthOptions = {
                 authToken: credentials.authToken,
               };
             } catch (error) {
-              AuthSharingService.removeSharedAuthToken();
               return promptInvalidCredentials();
             }
           }

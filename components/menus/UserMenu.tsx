@@ -18,7 +18,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
-import { AuthSharingService } from '@/services/auth-sharing.service';
+import { signOutUser } from '@/utils/auth';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useVerification } from '@/contexts/VerificationContext';
 import { YouPanel } from '@/components/You/YouPanel';
@@ -213,7 +213,7 @@ export default function UserMenu({
         </Link>
 
         <BaseMenuItem
-          onClick={() => AuthSharingService.signOutFromBothApps()}
+          onClick={() => signOutUser()}
           className="w-full px-4 py-2"
           data-testid="user-menu-signout"
         >
