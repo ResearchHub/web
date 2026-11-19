@@ -1,0 +1,431 @@
+/* The literature-audit page. Everything is scoped under .audit.
+   The look is a marked-up proof: black type on paper, a red pencil for what
+   the audit flags, a ledger's margin rule down the page. */
+
+.audit {
+  --a-paper: #f3f0e8;
+  --a-paper-rgb: 243 240 232;
+  --a-paper-2: #eae6db;
+  --a-sheet: #fdfcf8;
+  --a-ink: #16150f;
+  --a-ink-rgb: 22 21 15;
+  --a-soft: #47443a;
+  --a-mute: #7a766a;
+  --a-red: #dd3a1e;
+  --a-red-rgb: 221 58 30;
+  --a-red-deep: #b92c14;
+  --a-blue: #2848c8;
+  --a-open: #1d8748;
+  --a-line: rgb(var(--a-ink-rgb) / 0.13);
+  --a-line-2: rgb(var(--a-ink-rgb) / 0.3);
+  --a-serif: var(--font-audit-serif), 'Iowan Old Style', Georgia, serif;
+  --a-mono: var(--font-audit-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+  background: var(--a-paper);
+  color: var(--a-ink);
+  color-scheme: light;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.audit ::selection {
+  background: rgb(var(--a-red-rgb) / 0.22);
+  color: var(--a-ink);
+}
+
+/* Headlines and numerals. */
+.audit .a-serif {
+  font-family: var(--a-serif);
+  font-weight: 400;
+  letter-spacing: -0.018em;
+  font-optical-sizing: auto;
+  text-wrap: balance;
+}
+/* Emphasis is flagged, the way a checker flags a word. */
+.audit .a-serif em,
+.audit .a-flag {
+  font-style: italic;
+  text-decoration: underline wavy var(--a-red);
+  text-decoration-thickness: max(1.5px, 0.045em);
+  text-underline-offset: 0.16em;
+  text-decoration-skip-ink: none;
+}
+
+/* Reading text is set in the serif, like the papers it is about. */
+.audit .a-prose {
+  font-family: var(--a-serif);
+  color: var(--a-soft);
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* The machine's voice: labels, figures' captions, margin notes. */
+.audit .a-mono {
+  font-family: var(--a-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.audit .a-rule {
+  border-color: var(--a-line);
+}
+
+/* A footnote mark. */
+.audit .a-ref {
+  font-family: var(--a-mono);
+  font-size: 0.68em;
+  vertical-align: super;
+  line-height: 0;
+  color: var(--a-red-deep);
+  padding: 0 0.1em;
+}
+.audit .a-ref:hover {
+  text-decoration: underline;
+}
+
+/* The two actions. */
+.audit .a-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  user-select: none;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    transform 0.15s;
+}
+.audit .a-btn:focus-visible {
+  outline: 2px solid var(--a-red);
+  outline-offset: 3px;
+}
+.audit .a-btn:active {
+  transform: translateY(1px);
+}
+.audit .a-btn-solid {
+  background: var(--a-ink);
+  color: var(--a-sheet);
+}
+.audit .a-btn-solid:hover {
+  background: var(--a-red-deep);
+}
+.audit .a-btn-line {
+  border: 1px solid var(--a-ink);
+  background: rgb(var(--a-paper-rgb) / 0.6);
+  color: var(--a-ink);
+}
+.audit .a-btn-line:hover {
+  background: var(--a-ink);
+  color: var(--a-sheet);
+}
+
+.audit .a-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--a-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--a-red);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+}
+.audit .a-link:hover {
+  color: var(--a-red-deep);
+}
+
+/* The margin rule: one red line down the page, as on ledger paper, with
+   each section's number hanging on it. */
+.audit .a-body {
+  position: relative;
+}
+@media (min-width: 768px) {
+  .audit .a-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(max(0px, (100% - 1200px) / 2) + 40px);
+    width: 1px;
+    background: rgb(var(--a-red-rgb) / 0.4);
+    pointer-events: none;
+  }
+}
+@media (min-width: 1440px) {
+  .audit .a-body::before {
+    left: calc(max(0px, (100% - 1200px) / 2) + 48px);
+  }
+}
+
+/* The hero's arrival. */
+@media (prefers-reduced-motion: no-preference) {
+  .audit .a-rise {
+    animation: a-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .audit .a-rise:nth-child(2) {
+    animation-delay: 0.08s;
+  }
+  .audit .a-rise:nth-child(3) {
+    animation-delay: 0.16s;
+  }
+}
+@keyframes a-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Text rises into place as it scrolls in: CSS only, and only where
+   scroll-driven animation is supported and motion is welcome. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .audit .a-reveal {
+      animation: a-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+    /* A proof mark draws itself as its line scrolls in. */
+    .audit .a-draw {
+      stroke-dasharray: 1;
+      animation: a-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 30% entry 90%;
+    }
+    .audit .a-grow {
+      transform-origin: left center;
+      animation: a-grow linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 70%;
+    }
+  }
+}
+@keyframes a-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes a-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes a-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* The dot beside the phase that is under way. */
+@media (prefers-reduced-motion: no-preference) {
+  .audit .a-live-ring {
+    animation: a-radiate 2.2s ease-out infinite;
+  }
+}
+@keyframes a-radiate {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.8);
+  }
+}
+
+.audit details[open] .a-plus {
+  transform: rotate(45deg);
+}
+.audit summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit .a-btn,
+  .audit .a-btn:active {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* The outcome icons (OutcomeIcons.tsx). Drawn complete; where motion is
+   welcome each runs one slow loop. */
+.audit .a-oi .a-oi-fix {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* 1. The red line gives way to the blue check. */
+  .audit .a-oi .a-oi-err {
+    animation: a-oi-err 6s ease-in-out infinite;
+  }
+  .audit .a-oi .a-oi-fix {
+    animation: a-oi-fix 6s ease-in-out infinite;
+  }
+  /* 2. The new sheet settles onto the stack. */
+  .audit .a-oi .a-oi-drop {
+    animation: a-oi-drop 5.5s cubic-bezier(0.3, 0, 0.2, 1) infinite;
+  }
+  /* 3. The question fades as its answer arrives. */
+  .audit .a-oi .a-oi-ask {
+    animation: a-oi-ask 7s ease-in-out infinite;
+  }
+  .audit .a-oi .a-oi-fix.a-oi-slow {
+    animation-duration: 7s;
+  }
+  /* 4. The scan crosses the three papers; each check appears behind it. */
+  .audit .a-oi .a-oi-scan {
+    animation: a-oi-scan 5.5s linear infinite;
+  }
+  .audit .a-oi .a-oi-t1 {
+    animation: a-oi-t1 5.5s linear infinite;
+  }
+  .audit .a-oi .a-oi-t2 {
+    animation: a-oi-t2 5.5s linear infinite;
+  }
+  .audit .a-oi .a-oi-t3 {
+    animation: a-oi-t3 5.5s linear infinite;
+  }
+}
+@keyframes a-oi-err {
+  0%,
+  34% {
+    opacity: 1;
+  }
+  46%,
+  88% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes a-oi-fix {
+  0%,
+  38% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50%,
+  88% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@keyframes a-oi-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-11px);
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(-11px);
+  }
+  44%,
+  90% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes a-oi-ask {
+  0%,
+  36% {
+    opacity: 1;
+  }
+  50%,
+  88% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes a-oi-scan {
+  0% {
+    opacity: 0;
+    transform: translateX(-61px);
+  }
+  5% {
+    opacity: 1;
+    transform: translateX(-61px);
+  }
+  55% {
+    opacity: 1;
+    transform: none;
+  }
+  63%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes a-oi-t1 {
+  0%,
+  15% {
+    opacity: 0;
+  }
+  18%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes a-oi-t2 {
+  0%,
+  32% {
+    opacity: 0;
+  }
+  35%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes a-oi-t3 {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  52%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
