@@ -42,7 +42,7 @@ export function ActionDock({ rfp }: { rfp: RfpView }) {
       {/* Wide screens: a floating bar. */}
       <div className="pointer-events-auto hidden w-full max-w-[920px] items-center gap-4 rounded-full border border-[color:rgb(var(--o-gold-rgb)/0.3)] bg-[rgb(var(--o-ink2-rgb)/0.96)] py-2.5 pl-2.5 pr-2.5 shadow-[0_18px_50px_-14px_rgb(var(--o-text-rgb)/0.45),0_0_0_4px_rgb(var(--o-gold-rgb)/0.06)] backdrop-blur-xl tablet:flex">
         <span className="pl-2">
-          <BackerFaces rfp={rfp} size={30} />
+          <BackerFaces rfp={rfp} size={30} max={4} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14.5px] leading-tight text-[var(--o-soft)]">

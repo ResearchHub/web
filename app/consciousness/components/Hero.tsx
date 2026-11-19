@@ -7,8 +7,7 @@ import { DEFAULT_HERO, HERO_INFO, type HeroId } from '../sets/heroes';
 import { HeroFigure } from './Figure';
 import { AddToPoolButton, SubmitProposalButton } from './OrchActions';
 import { BackButton } from './BackButton';
-import { HeroPhase } from './HeroPhase';
-import { daysLeft } from './PoolPanel';
+import { HeroCard } from './HeroCard';
 import type { RfpView } from '../data/rfp';
 
 /**
@@ -17,9 +16,12 @@ import type { RfpView } from '../data/rfp';
  */
 const SHOW_TALK_LINK = false;
 
-/** The hero's two buttons on phones: sharing one row, back to `lg` from tablet up. */
-const PHONE_CTA =
-  'flex-auto px-3 text-[13.5px] !gap-1.5 min-[380px]:text-[14px] tablet:flex-none tablet:px-6 tablet:text-[15px] tablet:!gap-2';
+/**
+ * The hero's two buttons, filling the card's width. Narrow screens drop the
+ * icons so both labels fit side by side; from tablet up the two are equal.
+ */
+const CARD_CTA =
+  'flex-auto px-3 text-[13.5px] !gap-1.5 min-[380px]:text-[14px] [&>svg]:hidden tablet:flex-1 tablet:text-[15px] min-[900px]:[&>svg]:block';
 
 export function Hero({
   set = 'ink',
@@ -79,27 +81,27 @@ export function Hero({
           test the leading theories of how consciousness arises.
         </p>
 
-        <div data-orch-hero-cta className="o-rise mt-7 flex flex-wrap gap-3">
-          {/* Side by side on phones too: tighter type and padding so both
-              fit in one row at 360px. No Share, Save or More here (Kobe,
-              2026-11-17): the RFP page keeps them. */}
-          <div className="flex w-full gap-2 tablet:w-auto tablet:gap-3">
-            <AddToPoolButton size="lg" className={PHONE_CTA} />
-            <SubmitProposalButton size="lg" className={PHONE_CTA} />
+        <HeroCard rfp={rfp}>
+          <div data-orch-hero-cta className="mt-5 flex flex-wrap gap-3">
+            {/* Side by side on phones too, stacking only where the two cannot
+                fit (under about 350px). No Share, Save or More here (Kobe,
+                2026-11-17): the RFP page keeps them. */}
+            <div className="flex w-full flex-wrap gap-2 tablet:gap-3">
+              <AddToPoolButton size="lg" className={CARD_CTA} />
+              <SubmitProposalButton size="lg" className={CARD_CTA} />
+            </div>
+            {SHOW_TALK_LINK && (
+              <a
+                href="#talk-to-us"
+                data-talk-link
+                className="flex h-12 items-center gap-2 px-2 text-[14.5px] text-[var(--o-soft)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
+              >
+                <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={2} />
+                Talk to us
+              </a>
+            )}
           </div>
-          {SHOW_TALK_LINK && (
-            <a
-              href="#talk-to-us"
-              data-talk-link
-              className="flex h-12 items-center gap-2 px-2 text-[14.5px] text-[var(--o-soft)] underline decoration-[color:var(--o-line-2)] underline-offset-4 hover:text-[var(--o-text)] hover:decoration-current"
-            >
-              <MessageCircle aria-hidden className="h-4 w-4" strokeWidth={2} />
-              Talk to us
-            </a>
-          )}
-        </div>
-
-        <HeroPhase rfp={rfp} daysLeft={daysLeft(rfp.goalBy)} />
+        </HeroCard>
       </div>
 
       <p className="absolute bottom-6 right-8 z-10 hidden max-w-[300px] text-right text-[12px] leading-[1.5] text-[var(--o-mute)] content-md:block">

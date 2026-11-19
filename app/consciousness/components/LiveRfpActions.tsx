@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { BadgeCheck } from 'lucide-react';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { handOffRfp } from '@/components/AIMode/rfpHandoff';
 import { newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { isGrantActive, type FundingPool, type Grant } from '@/types/grant';
+import { CAMPAIGN } from '../data/rfp';
 import { OrchActionsContext } from './OrchActions';
 
 /**
@@ -20,17 +22,20 @@ import { OrchActionsContext } from './OrchActions';
  *   `GrantPageProvider.applyToRfp` does. That provider is not used here
  *   because it also loads the RFP's activity feed, which this page loads
  *   only when its Activity tab is opened.
- * A pending or closed RFP says so instead.
+ * A pending or closed RFP says so instead. `showTaxLine` is for the campaign's
+ * own RFP only: the tax line must not appear on another RFP's pool.
  */
 export function LiveRfpActions({
   grant,
   title,
   imageUrl,
+  showTaxLine,
   children,
 }: {
   grant: Grant;
   title: string;
   imageUrl: string | null;
+  showTaxLine: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -92,7 +97,15 @@ export function LiveRfpActions({
           proposalTitle={title}
           variant="panel"
           topContent={
-            <WorkCoverCard title={title} eyebrow="RFP" imageUrl={imageUrl ?? undefined} />
+            <div className="space-y-3">
+              <WorkCoverCard title={title} eyebrow="RFP" imageUrl={imageUrl ?? undefined} />
+              {showTaxLine && (
+                <p className="flex items-center gap-1.5 text-[13px] leading-snug text-gray-600">
+                  <BadgeCheck aria-hidden className="h-4 w-4 shrink-0 text-primary-600" />
+                  {CAMPAIGN.taxDeductibleLine}
+                </p>
+              )}
+            </div>
           }
           isAward={isAwardMechanism(grant.fundingMechanism)}
           successText="Every dollar in the pool goes to the experiments funded under this call."

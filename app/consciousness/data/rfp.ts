@@ -24,13 +24,24 @@ export function rfpPostId(preview?: string | string[]): number | null {
 }
 
 /**
+ * Whether the page is showing the campaign's own RFP, and not another one
+ * opened with `?rfp=`. Terms that hold only for this RFP depend on it.
+ */
+export function isCampaignRfp(preview?: string | string[]): boolean {
+  const campaignPostId = rfpPostId();
+  return campaignPostId != null && rfpPostId(preview) === campaignPostId;
+}
+
+/**
  * The campaign's own terms, which the grant does not hold: Phase 1's target
- * and end date (Kobe, 2026-11-17), the typical award, and the tax note.
+ * and end date (Kobe, 2026-11-17), the typical award, and the tax wording:
+ * the short line for the hero and funding panel, the full note for the pool.
  */
 export const CAMPAIGN = {
   goalUsd: 1_000_000,
   goalBy: '2026-12-31',
   awardRangeLabel: '$50k – $250k',
+  taxDeductibleLine: 'Contributions are tax deductible',
   taxDeductibleNote:
     'Gifts go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3), so they are generally tax-deductible in the US.',
 } as const;
@@ -41,6 +52,8 @@ export interface Backer {
   amountUsd: number;
   /** Their ResearchHub avatar; null draws the app's generated one. */
   avatarUrl: string | null;
+  /** Their author profile, for the avatar's tooltip and link. */
+  authorId?: number;
 }
 
 export type RfpStatus = 'OPEN' | 'PENDING' | 'CLOSED';
@@ -87,6 +100,7 @@ export function rfpView(work: Work | null): RfpView {
       name: c.fullName,
       amountUsd: c.totalContribution.usd,
       avatarUrl: c.profileImage || null,
+      authorId: c.authorProfileId,
     })),
     distributedUsd: pool?.amountDistributed.usd ?? 0,
     proposalCount: grant?.applications?.length ?? 0,

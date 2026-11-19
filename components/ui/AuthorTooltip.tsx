@@ -63,6 +63,13 @@ const CustomTooltipWrapper: React.FC<{
           break;
       }
 
+      // Centered on an anchor near the screen's edge, it would be cut off.
+      if (position === 'top' || position === 'bottom') {
+        const margin = 8;
+        const maxLeft = window.innerWidth - tooltipWidth - margin;
+        left = Math.max(margin, Math.min(left, maxLeft));
+      }
+
       setTooltipPosition({ top, left });
     }
   }, [isVisible, position, anchorRef]);
