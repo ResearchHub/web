@@ -409,7 +409,6 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
       return {
         ...state,
         comments: addReplyToComments(state.comments, parentId, reply),
-        count: state.count + 1,
       };
     }
     case CommentActionType.UPDATE_COMMENT_VOTE: {
