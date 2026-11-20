@@ -16,6 +16,20 @@ const CONSCIOUSNESS_RFP_POST_ID =
   process.env.CONSCIOUSNESS_RFP_POST_ID ||
   (process.env.VERCEL_ENV === 'production' ? String(consciousnessRfp.productionPostId) : null);
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- next.config.js is CommonJS
+const auditRfp = require('./app/audit/data/rfp.config.json');
+
+/**
+ * The RFP post that the /audit landing page stands in for, picked the same
+ * way: `rfp.config.json` on production deploys, `AUDIT_RFP_POST_ID` anywhere
+ * else. Must match `rfpPostId` in `app/audit/data/rfp.ts`.
+ */
+const AUDIT_RFP_POST_ID =
+  process.env.AUDIT_RFP_POST_ID ||
+  (process.env.VERCEL_ENV === 'production' && auditRfp.productionPostId != null
+    ? String(auditRfp.productionPostId)
+    : null);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
@@ -28,6 +42,17 @@ const nextConfig = {
             source: `/rfp/${CONSCIOUSNESS_RFP_POST_ID}/:path*`,
             missing: [{ type: 'query', key: 'view' }],
             destination: '/consciousness',
+            permanent: false,
+          },
+        ]
+      : []),
+    // The audit RFP's own page sends visitors to its landing page, the same way.
+    ...(AUDIT_RFP_POST_ID
+      ? [
+          {
+            source: `/rfp/${AUDIT_RFP_POST_ID}/:path*`,
+            missing: [{ type: 'query', key: 'view' }],
+            destination: '/audit',
             permanent: false,
           },
         ]

@@ -8,8 +8,8 @@ import config from './rfp.config.json';
  * (`app/consciousness/data/rfp.ts`), with its own post and terms.
  *
  * Post ids differ between environments, so the id is picked per environment:
- * - production deploys use `productionPostId` in `rfp.config.json` (null
- *   until the RFP is posted);
+ * - production deploys use `productionPostId` in `rfp.config.json`, which
+ *   `next.config.js` also reads to send /rfp/<id>/<slug> here;
  * - anywhere else, `AUDIT_RFP_POST_ID` names one, and `?rfp=<post id>`
  *   previews any.
  * With none, the page shows an empty pool and its buttons only explain.
@@ -21,8 +21,7 @@ export function rfpPostId(preview?: string | string[]): number | null {
   }
   const fromEnv = Number(process.env.AUDIT_RFP_POST_ID);
   if (Number.isInteger(fromEnv) && fromEnv > 0) return fromEnv;
-  const fromConfig: number | null = config.productionPostId;
-  return isProductionDeploy ? fromConfig : null;
+  return isProductionDeploy ? config.productionPostId : null;
 }
 
 /**
@@ -63,7 +62,7 @@ export type RfpStatus = 'OPEN' | 'PENDING' | 'CLOSED';
 export interface RfpView {
   /** Null when no RFP is configured or it failed to load. */
   grantId: number | null;
-  /** The RFP's own page: its full proposal list and details. */
+  /** The RFP's own page, kept reachable with `?view=rfp`. */
   rfpHref: string | null;
   raisedUsd: number;
   goalUsd: number;
@@ -92,7 +91,7 @@ export function rfpView(work: Work | null): RfpView {
   if (grant && grant.status !== 'PENDING') status = isGrantActive(grant) ? 'OPEN' : 'CLOSED';
   return {
     grantId: grant?.id != null ? Number(grant.id) : null,
-    rfpHref: work && grant ? `/rfp/${work.id}/${work.slug}` : null,
+    rfpHref: work && grant ? `/rfp/${work.id}/${work.slug}?view=rfp` : null,
     raisedUsd: pool?.amountRaised.usd ?? 0,
     goalUsd: CAMPAIGN.goalUsd,
     goalBy: CAMPAIGN.goalBy,
