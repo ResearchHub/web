@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatRSC, getMaxDecimalPlaces } from '@/utils/number';
@@ -163,7 +164,7 @@ export function WithdrawModal({
       amountUserWillReceive > 0 &&
       isAddressValid &&
       destinationAddress &&
-      !isMfaStatusLoading,
+      isMfaEnabled,
     [
       amount,
       withdrawAmount,
@@ -175,7 +176,7 @@ export function WithdrawModal({
       amountUserWillReceive,
       isAddressValid,
       destinationAddress,
-      isMfaStatusLoading,
+      isMfaEnabled,
     ]
   );
 
@@ -446,7 +447,20 @@ export function WithdrawModal({
 
             {mfaStatusError && (
               <Alert variant="warning">
-                Could not verify MFA status. If you have MFA enabled, the withdrawal may fail.
+                Could not verify MFA status. Close this window and try again.
+              </Alert>
+            )}
+
+            {!isMfaStatusLoading && !mfaStatusError && !isMfaEnabled && (
+              <Alert
+                variant="warning"
+                className="bg-amber-50 border border-amber-200 text-amber-800"
+                icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
+              >
+                Two-factor authentication is required to withdraw.
+                <Link href="/settings" className="mt-1 block underline">
+                  Enable it in Settings
+                </Link>
               </Alert>
             )}
 
