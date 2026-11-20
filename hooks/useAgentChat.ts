@@ -14,6 +14,7 @@ import { useAgentChatSocket, type ChatSocketStatus } from '@/hooks/useAgentChatS
 import {
   isChatStreamSocketEvent,
   isActiveExecutionStatus,
+  type ChatArtifactDraftFields,
   type ChatExecution,
   type ChatExecutionStream,
   type ChatStreamDelta,
@@ -37,6 +38,8 @@ const MAX_STREAM_NARRATION_CHARS = 100_000;
 const MAX_STREAM_THINKING_CHARS = 4_000;
 /** Matches the server's own cap on a draft's extracted prose. */
 const MAX_STREAM_TOOL_DRAFT_CHARS = 20_000;
+/** An artifact draft streams its whole content, up to what one version holds. */
+const MAX_STREAM_ARTIFACT_CHARS = 100_000;
 
 const STREAM_CHAR_CAPS: Record<ChatStreamDelta['type'], number> = {
   narration: MAX_STREAM_NARRATION_CHARS,
@@ -125,6 +128,13 @@ function phaseForDelta(delta: ChatStreamDelta | undefined): ExecutionPhase {
   return { state: 'thinking', label: 'Thinking' };
 }
 
+function streamCharCap(delta: ChatStreamDelta): number {
+  if (delta.type === 'tool_draft' && delta.tool === 'create_artifact') {
+    return MAX_STREAM_ARTIFACT_CHARS;
+  }
+  return STREAM_CHAR_CAPS[delta.type];
+}
+
 /** The item a delta opens; a draft's identity comes off the frame itself. */
 function newStreamItem(delta: ChatStreamDelta, maximum: number): ChatStreamItem {
   const base = { id: delta.id, text: delta.delta.slice(0, maximum), at: delta.at };
@@ -135,8 +145,13 @@ function newStreamItem(delta: ChatStreamDelta, maximum: number): ChatStreamItem 
         tool: delta.tool,
         label: delta.label,
         blocks: Array.isArray(delta.blocks) ? delta.blocks : undefined,
+        artifact: isArtifactDraftFields(delta.artifact) ? delta.artifact : undefined,
       }
     : { ...base, type: delta.type };
+}
+
+function isArtifactDraftFields(value: unknown): value is ChatArtifactDraftFields {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 /** Append one batch's deltas to a copy of `current`; null = corrupt frame. */
@@ -146,7 +161,7 @@ function appendStreamDeltas(
 ): ChatStreamItem[] | null {
   const items = current.map((item) => ({ ...item }));
   for (const delta of deltas) {
-    const maximum = STREAM_CHAR_CAPS[delta.type];
+    const maximum = streamCharCap(delta);
     const existing = items.find((item) => item.id === delta.id);
     if (existing == null) {
       items.push(newStreamItem(delta, maximum));
@@ -158,6 +173,13 @@ function appendStreamDeltas(
         Array.isArray(delta.blocks)
       ) {
         existing.blocks = delta.blocks;
+      }
+      if (
+        existing.type === 'tool_draft' &&
+        delta.type === 'tool_draft' &&
+        isArtifactDraftFields(delta.artifact)
+      ) {
+        existing.artifact = delta.artifact;
       }
     } else {
       // An id changing type indicates an incompatible/corrupt frame. Recover

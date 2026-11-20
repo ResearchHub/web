@@ -10,6 +10,7 @@ import { answerRevealKey, isRevealable } from '@/hooks/useTextReveal';
 import { ExecutionProgress } from './ExecutionProgress';
 import { PendingThinkingRow } from './ActivityFeed';
 import { RoutedModelNote } from './RoutedModelNote';
+import { ArtifactViewerProvider } from './artifacts/ArtifactViewer';
 
 type TranscriptEntry =
   | { key: string; kind: 'user'; message: ChatMessage }
@@ -207,61 +208,63 @@ export function ChatTranscript({
     // Turns are separated by whitespace alone now that neither the assistant
     // answer nor its tool activity carries a card, so the gap between them has
     // to be larger than the gap within one turn.
-    <div className="space-y-5">
-      {entries.map((entry) => {
-        switch (entry.kind) {
-          case 'user':
-            return (
-              <UserBubble
-                key={entry.key}
-                text={entry.message.content}
-                attachments={entry.message.attachments}
-              />
-            );
-          case 'pending-user':
-            // Two siblings, not one wrapper: the echo stands in for a user
-            // entry and the execution entry about to follow it, so it has to
-            // take the same between-entry gap that pair will. Boxed together
-            // they took the within-turn 12px where the real pair takes 20px,
-            // and the placeholder dropped 8px the moment the refetch landed.
-            return (
-              <Fragment key={entry.key}>
-                <UserBubble text={entry.text} attachments={entry.attachments} />
-                <PendingThinkingRow />
-              </Fragment>
-            );
-          case 'execution':
-            return (
-              <div key={entry.key} className="space-y-3">
-                <ExecutionProgress
-                  execution={entry.execution}
-                  failureActions={renderFailureActions?.(entry.execution)}
+    <ArtifactViewerProvider chat={chat}>
+      <div className="space-y-5">
+        {entries.map((entry) => {
+          switch (entry.kind) {
+            case 'user':
+              return (
+                <UserBubble
+                  key={entry.key}
+                  text={entry.message.content}
+                  attachments={entry.message.attachments}
                 />
-                {entry.execution.routed_model && (
-                  <RoutedModelNote
-                    model={entry.execution.model}
-                    routedModel={entry.execution.routed_model}
+              );
+            case 'pending-user':
+              // Two siblings, not one wrapper: the echo stands in for a user
+              // entry and the execution entry about to follow it, so it has to
+              // take the same between-entry gap that pair will. Boxed together
+              // they took the within-turn 12px where the real pair takes 20px,
+              // and the placeholder dropped 8px the moment the refetch landed.
+              return (
+                <Fragment key={entry.key}>
+                  <UserBubble text={entry.text} attachments={entry.attachments} />
+                  <PendingThinkingRow />
+                </Fragment>
+              );
+            case 'execution':
+              return (
+                <div key={entry.key} className="space-y-3">
+                  <ExecutionProgress
+                    execution={entry.execution}
+                    failureActions={renderFailureActions?.(entry.execution)}
                   />
-                )}
-                {entry.answer && (
-                  <AssistantBubble
-                    content={entry.answer.content}
-                    revealKey={
-                      isRevealable(answerRevealKey(entry.execution.id))
-                        ? answerRevealKey(entry.execution.id)
-                        : null
-                    }
-                  />
-                )}
-                {renderExecutionExtra?.(entry.execution)}
-              </div>
-            );
-          case 'assistant':
-            return <AssistantBubble key={entry.key} content={entry.message.content} />;
-          default:
-            return null;
-        }
-      })}
-    </div>
+                  {entry.execution.routed_model && (
+                    <RoutedModelNote
+                      model={entry.execution.model}
+                      routedModel={entry.execution.routed_model}
+                    />
+                  )}
+                  {entry.answer && (
+                    <AssistantBubble
+                      content={entry.answer.content}
+                      revealKey={
+                        isRevealable(answerRevealKey(entry.execution.id))
+                          ? answerRevealKey(entry.execution.id)
+                          : null
+                      }
+                    />
+                  )}
+                  {renderExecutionExtra?.(entry.execution)}
+                </div>
+              );
+            case 'assistant':
+              return <AssistantBubble key={entry.key} content={entry.message.content} />;
+            default:
+              return null;
+          }
+        })}
+      </div>
+    </ArtifactViewerProvider>
   );
 }
