@@ -4,7 +4,6 @@ import { BackButton } from '@/app/consciousness/components/BackButton';
 import { AddToPoolButton, SubmitProposalButton } from './Actions';
 import { HeroArt } from './HeroArt';
 import { HeroCard } from './HeroCard';
-import { Ref } from './Parts';
 import type { RfpView } from '../data/rfp';
 
 /**
@@ -16,7 +15,7 @@ const CARD_CTA =
 
 /**
  * The same hero as /consciousness, in this page's own style: back and home
- * at the top left, the process link at the top right, the headline, one
+ * at the top left, a link to how the audit works at the top right, the headline, one
  * paragraph, and the card with the pool and both buttons. The figure is 3D
  * and sits behind: right of the text on wide screens, above it on phones.
  */
@@ -42,11 +41,11 @@ export function Hero({ rfp }: { rfp: RfpView }) {
           </Link>
         </div>
         <a
-          href="#how-it-works"
+          href="#proposal"
           className="whitespace-nowrap text-[14.5px] font-medium text-[var(--a-ink)] underline decoration-[color:var(--a-line-2)] underline-offset-4 hover:decoration-current"
         >
-          <span className="tablet:hidden">Our process</span>
-          <span className="hidden tablet:inline">Learn about our process</span>
+          <span className="tablet:hidden">How it works</span>
+          <span className="hidden tablet:inline">See how the audit works</span>
         </a>
       </header>
 
@@ -55,14 +54,12 @@ export function Hero({ rfp }: { rfp: RfpView }) {
           id="audit-title"
           className="a-rise a-serif max-w-[10.5em] text-[clamp(38px,4.9vw,72px)] leading-[0.98]"
         >
-          Fund the audit of everything science has <em>published.</em>
+          Fund the audit of biomedical <em>research.</em>
         </h1>
 
         <p className="a-rise a-prose mt-6 max-w-[31em] !text-[17px] tablet:!text-[19px]">
-          A machine audit of one field of astrophysics reported 872 errors in 433 papers. Only 47
-          had ever been challenged in print.
-          <Ref n={1} /> We are raising funds to audit more fields in the open, with experts checking
-          what the machines flag.
+          AI can now audit scientific papers at a fraction of the cost and time it once took. We are
+          raising funds to audit biomedical research, so that the results science builds on hold up.
         </p>
 
         <HeroCard rfp={rfp}>
@@ -72,11 +69,6 @@ export function Hero({ rfp }: { rfp: RfpView }) {
           </div>
         </HeroCard>
       </div>
-
-      <p className="a-mono absolute bottom-5 right-6 z-10 hidden max-w-[350px] bg-[rgb(var(--a-paper-rgb)/0.88)] px-3 py-2 text-right !text-[10.5px] leading-[1.6] text-[var(--a-mute)] backdrop-blur-sm content-md:block">
-        A field as stacks of paper, one sheet per paper. Red sheets hold an error; paler ones repeat
-        it. An illustration, not data.
-      </p>
     </section>
   );
 }

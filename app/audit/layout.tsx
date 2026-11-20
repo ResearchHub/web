@@ -23,13 +23,13 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
-    title: 'Fund the audit of everything science has published.',
+    title: 'Fund the audit of biomedical research.',
     description:
-      'A machine audit of one field of astrophysics reported 872 errors in 433 papers; 47 had ever been challenged in print. We are raising a pool to audit more fields in the open, with experts checking what the machines flag.',
+      'AI can now audit scientific papers at a fraction of the cost and time it once took. We are raising funds to audit biomedical research, so that the results science builds on hold up.',
     url: '/audit',
   }),
   title: {
-    default: 'Auditing the scientific literature: request for proposals',
+    default: 'Auditing biomedical research: request for proposals',
     template: `%s | ${SITE_CONFIG.name}`,
   },
   // Not indexed until the call's terms are final (see CAMPAIGN in data/rfp.ts).

@@ -2,16 +2,12 @@ import { ActionDock } from './components/ActionDock';
 import { Hero } from './components/Hero';
 import {
   AboutResearchHub,
-  Arithmetic,
   AuditFooter,
-  Call,
-  Evidence,
+  Benefits,
   Faq,
-  Finding,
-  HowItWorks,
-  Rules,
+  Problem,
+  Proposal,
   Sources,
-  Standing,
   TalkToUs,
 } from './components/Sections';
 import { rfpPostId, rfpView } from './data/rfp';
@@ -39,12 +35,12 @@ async function loadRfp(preview: string | string[] | undefined) {
 
 /**
  * The landing page for the literature-audit request for proposals: fund AI
- * audits of the published literature, field by field, with experts checking
- * what the machines flag. It shares its hero (pool, backers and both
- * buttons, from the live RFP) with /consciousness and nothing else: the
- * style is a marked-up proof, and the sections tell the audit's own story.
- * All text is server-rendered; the hero's 3D figure starts once its script
- * loads.
+ * audits of the open biomedical literature, with experts confirming what
+ * the models flag. It shares its hero (pool, backers and both buttons, from
+ * the live RFP) with /consciousness and nothing else: the style is a
+ * marked-up proof, and the page is three short sections (the problem, the
+ * proposal, its benefits). All text is server-rendered;
+ * the hero's 3D figure starts once its script loads.
  */
 export default async function AuditPage({
   searchParams,
@@ -58,13 +54,9 @@ export default async function AuditPage({
     <>
       <Hero rfp={rfp} />
       <div className="a-body">
-        <Finding />
-        <Evidence />
-        <Arithmetic />
-        <Call rfp={rfp} />
-        <Rules />
-        <HowItWorks />
-        <Standing rfp={rfp} />
+        <Problem />
+        <Proposal />
+        <Benefits />
         <AboutResearchHub />
         <TalkToUs />
         <Faq />
