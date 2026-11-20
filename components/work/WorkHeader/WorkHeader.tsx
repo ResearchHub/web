@@ -9,7 +9,6 @@ import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { WorkCover, type CoverEyebrowFace } from '@/components/work/WorkCover';
 import { Work } from '@/types/work';
-import { getWorkShareImageUrl } from '@/lib/metadata-helpers';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
@@ -17,7 +16,7 @@ import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { buildWorkUrl } from '@/utils/url';
-import { buildPublicSharePath, getPublicShareBlockReason, usesAiSharePost } from '@/utils/share';
+import { aiShareModalParams, buildPublicSharePath, getPublicShareBlockReason } from '@/utils/share';
 import { formatRSC } from '@/utils/number';
 import {
   findLatestFoundationBounty,
@@ -160,14 +159,12 @@ export function WorkHeader({
   const shareAction = () => {
     if (!canPublicShare) return;
 
-    const useAiPost = usesAiSharePost(work.contentType);
     showShareModal({
       url: `${globalThis.location.origin}${buildPublicSharePath(work)}`,
       docTitle: work.title,
       action: 'USER_SHARED_DOCUMENT',
       shouldShowConfetti: false,
-      aiPostId: useAiPost ? work.id : undefined,
-      previewImageUrl: useAiPost ? getWorkShareImageUrl(work) : undefined,
+      ...aiShareModalParams(work),
     });
   };
 

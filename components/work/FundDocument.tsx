@@ -14,7 +14,7 @@ import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { NewlyCreatedProposalModal } from '@/components/modals/NewlyCreatedProposalModal';
 import { useShareModalContext } from '@/contexts/ShareContext';
-import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
+import { aiShareModalParams, buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface FundDocumentProps {
@@ -87,6 +87,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
         docTitle: work.title,
         url: `${window.location.origin}${buildPublicSharePath(work)}`,
         shouldShowConfetti: true,
+        ...aiShareModalParams(work),
       });
     }
   }, [searchParams, router, work, showShareModal, isAuthorPostsExpEnabled]);

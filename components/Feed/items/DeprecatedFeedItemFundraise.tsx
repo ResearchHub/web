@@ -93,6 +93,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       url: `${window.location.origin}${fundingPageUrl}`,
       docTitle: post.title,
       action: 'USER_FUNDED_PROPOSAL',
+      aiPostId: post.id,
+      previewImageUrl: post.previewImage || undefined,
     });
     router.refresh();
   };

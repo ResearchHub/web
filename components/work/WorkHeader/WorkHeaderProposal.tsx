@@ -19,7 +19,7 @@ import { isFundraiseActive, getEffectiveStatus } from '@/components/Fund/lib/fun
 import { PostService } from '@/services/post.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { buildWorkUrl } from '@/utils/url';
-import { buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
+import { aiShareModalParams, buildPublicSharePath, isPubliclyShareable } from '@/utils/share';
 import toast from 'react-hot-toast';
 import { WorkHeader } from './WorkHeader';
 
@@ -92,6 +92,7 @@ export function WorkHeaderProposal({ work, metadata, preTitle }: WorkHeaderPropo
       url: `${globalThis.location.origin}${buildPublicSharePath(displayedWork)}`,
       docTitle: displayedWork.title,
       action: 'USER_FUNDED_PROPOSAL',
+      ...aiShareModalParams(displayedWork),
     });
   };
 
