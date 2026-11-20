@@ -107,8 +107,6 @@ export function AwardProposalCard({
       key: 'awarded',
       label: 'Awarded',
       date: awardedDate,
-      // Only a prize that closed without an award needs saying; the RFP card
-      // below already names the funder.
       detail: !awarded && !stillOpen ? 'The prize has closed' : undefined,
       done: awarded,
       disabled: !awarded && !stillOpen,
