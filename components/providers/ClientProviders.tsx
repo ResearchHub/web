@@ -13,7 +13,7 @@ import { UserProvider } from '@/contexts/UserContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
-import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
+import { LegacyAuthCookieCleanup } from '@/components/LegacyAuthCookieCleanup';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import { ShareModalProvider } from '@/contexts/ShareContext';
@@ -34,49 +34,48 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
   return (
     <>
       <ApmProvider />
+      <LegacyAuthCookieCleanup />
       <NavigationProvider>
         <OnchainProvider>
           <NextAuthProvider session={session}>
             <ReferralProvider>
-              <AuthSharingWrapper>
-                <AuthModalProvider>
-                  <>
-                    <UserProvider>
-                      <PendingCountsProvider>
-                        <VerificationProvider>
-                          <ExchangeRateProvider>
-                            <CurrencyPreferenceProvider>
-                              {/* Above the layouts because the left sidebar
-                                  carries the funding power card and mounts
-                                  outside PageLayout on some routes. */}
-                              <FundingPowerProvider>
-                                <NotificationProvider>
-                                  <OrganizationProvider>
-                                    {/* Above the layouts: every page's left
-                                        sidebar lists these documents, and
-                                        navigating must not fetch them again. */}
-                                    <FundingNotesProvider>
-                                      <UserListsProvider>
-                                        <DismissedFeaturesProvider>
-                                          {/* Inside the user providers: the share
-                                              modal's post preview shows the sharer. */}
-                                          <ShareModalProvider>{children}</ShareModalProvider>
-                                          <FeatureNotifications />
-                                        </DismissedFeaturesProvider>
-                                      </UserListsProvider>
-                                    </FundingNotesProvider>
-                                  </OrganizationProvider>
-                                </NotificationProvider>
-                              </FundingPowerProvider>
-                            </CurrencyPreferenceProvider>
-                          </ExchangeRateProvider>
-                        </VerificationProvider>
-                      </PendingCountsProvider>
-                    </UserProvider>
-                    <SignupModalContainer />
-                  </>
-                </AuthModalProvider>
-              </AuthSharingWrapper>
+              <AuthModalProvider>
+                <>
+                  <UserProvider>
+                    <PendingCountsProvider>
+                      <VerificationProvider>
+                        <ExchangeRateProvider>
+                          <CurrencyPreferenceProvider>
+                            {/* Above the layouts because the left sidebar
+                                carries the funding power card and mounts
+                                outside PageLayout on some routes. */}
+                            <FundingPowerProvider>
+                              <NotificationProvider>
+                                <OrganizationProvider>
+                                  {/* Above the layouts: every page's left
+                                      sidebar lists these documents, and
+                                      navigating must not fetch them again. */}
+                                  <FundingNotesProvider>
+                                    <UserListsProvider>
+                                      <DismissedFeaturesProvider>
+                                        {/* Inside the user providers: the share
+                                            modal's post preview shows the sharer. */}
+                                        <ShareModalProvider>{children}</ShareModalProvider>
+                                        <FeatureNotifications />
+                                      </DismissedFeaturesProvider>
+                                    </UserListsProvider>
+                                  </FundingNotesProvider>
+                                </OrganizationProvider>
+                              </NotificationProvider>
+                            </FundingPowerProvider>
+                          </CurrencyPreferenceProvider>
+                        </ExchangeRateProvider>
+                      </VerificationProvider>
+                    </PendingCountsProvider>
+                  </UserProvider>
+                  <SignupModalContainer />
+                </>
+              </AuthModalProvider>
             </ReferralProvider>
           </NextAuthProvider>
           <ToasterProvider />

@@ -18,6 +18,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
+import { isFoundationUser } from '@/components/Bounty/lib/bountyUtil';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -115,6 +116,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
+  const canTip = isFoundationUser(user?.id) && !isCurrentUserAuthor;
   const aiReviewUserId = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
   const isAiReviewer =
     aiReviewUserId != null && String(author?.user?.id ?? '') === String(aiReviewUserId);
@@ -265,7 +267,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
                 onComment={onReply}
-                onTip={!isCurrentUserAuthor ? () => setIsTipModalOpen(true) : undefined}
+                onTip={canTip ? () => setIsTipModalOpen(true) : undefined}
                 showTooltips={showTooltips}
                 menuItems={menuItems}
                 awardedBountyAmount={entry.awardedBountyAmount}
