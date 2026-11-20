@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { FileText, MessagesSquare, Sparkles } from 'lucide-react';
 import { ChatComposer } from '@/components/AgentChat/ChatComposer';
 import { ChatPicker } from '@/components/AgentChat/ChatPicker';
 import { ChatTranscript } from '@/components/AgentChat/ChatTranscript';
+import type { TranscriptAnchor } from '@/components/AgentChat/copilot/CopilotNotebookChat';
 import { JumpToLatestButton } from '@/components/AgentChat/JumpToLatestButton';
 import { ModelControls } from '@/components/AgentChat/ModelControls';
 import { RefusalActions } from '@/components/AgentChat/RefusalActions';
@@ -14,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { canSelectAIModel } from '@/types/researchAI';
 import type { ChatExecution } from '@/types/agentChat';
+import { isCopilotKitChatEnabled } from '@/utils/featureFlags';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from '../useAIModeChat';
 import { AI_MODE_GREETING } from '../copy';
@@ -28,6 +31,15 @@ import { StartPresets } from '../start/StartPresets';
 import { StartScreen } from '../start/StartScreen';
 import { ChatMenu } from './ChatMenu';
 import { ChatTitleField } from './ChatTitleField';
+
+// CopilotKit is large; only the flagged chat pays for it.
+const CopilotNotebookChat = dynamic(
+  () =>
+    import('@/components/AgentChat/copilot/CopilotNotebookChat').then(
+      (module) => module.CopilotNotebookChat
+    ),
+  { ssr: false, loading: () => <ChatTranscriptSkeleton /> }
+);
 
 interface ChatPaneProps {
   readonly state: AIModeChatState;
@@ -181,6 +193,30 @@ export function ChatPane({
     );
   };
 
+  // The CopilotKit transcript streams the chat's messages itself; what the
+  // workspace adds under a turn still comes from the session's copy of the chat.
+  const renderAfterAnchor = (anchor: TranscriptAnchor): ReactNode => {
+    const record = chat.chat;
+    if (!record) return null;
+    if (anchor.kind === 'answer') {
+      const executionId = record.messages.find(
+        (message) => message.id === anchor.chatMessageId
+      )?.execution_id;
+      const execution = record.executions.find((item) => item.id === executionId);
+      return execution ? renderExecutionExtra?.(execution) : null;
+    }
+    const execution = record.executions.find((item) => item.id === anchor.executionId);
+    if (!execution) return null;
+    // A turn with an answer adds under the answer instead.
+    const answered = record.messages.some((message) => message.execution_id === execution.id);
+    return (
+      <>
+        {renderFailureActions(execution)}
+        {!answered && renderExecutionExtra?.(execution)}
+      </>
+    );
+  };
+
   const aiBlocked = state.researchAI.budget?.tier === 'blocked';
   const canSelectModel = canSelectAIModel(state.researchAI.budget?.tier);
   const listBlocked = listReady && list.access === 'hidden';
@@ -308,6 +344,15 @@ export function ChatPane({
             questions along the way.
           </p>
         </div>
+      );
+    }
+    if (isCopilotKitChatEnabled() && state.note != null && chatId != null) {
+      return (
+        <CopilotNotebookChat
+          noteId={String(state.note.id)}
+          chatId={chatId}
+          renderAfter={renderAfterAnchor}
+        />
       );
     }
     return (
