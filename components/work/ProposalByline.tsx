@@ -23,8 +23,8 @@ import { cn } from '@/utils/styles';
 /**
  * Over a proposal's Proposal tab: who proposes it, with the lead author's
  * face, then chips for its review score, when it was posted, the RFP it
- * answers, whether it went in privately, and its DOI. The other tabs open
- * straight on their content.
+ * answers (below lg, where the sidebar is hidden), whether it went in
+ * privately, and its DOI. The other tabs open straight on their content.
  */
 export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkMetadata }) {
   const showTab = useShowProposalTab(work);
@@ -83,13 +83,14 @@ export function ProposalByline({ work, metadata }: { work: Work; metadata: WorkM
             Posted {formatTimestamp(postedDate, false)}
           </span>
         )}
+        {/* From lg up the sidebar's RFP card names it; below, the sidebar is hidden. */}
         {grantTitle &&
           (grantHref ? (
-            <Link href={grantHref} className={BYLINE_LINK_CHIP_CLASS}>
+            <Link href={grantHref} className={cn(BYLINE_LINK_CHIP_CLASS, 'lg:hidden')}>
               <span className="truncate">{grantTitle}</span>
             </Link>
           ) : (
-            <span className={BYLINE_CHIP_CLASS}>
+            <span className={cn(BYLINE_CHIP_CLASS, 'lg:hidden')}>
               <span className="truncate">{grantTitle}</span>
             </span>
           ))}
