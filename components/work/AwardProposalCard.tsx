@@ -75,7 +75,6 @@ export function AwardProposalCard({
     grantOpen,
     fundraise,
   });
-  const funder = linkedGrant.organization.trim();
   const headline =
     phase === 'none'
       ? formatCurrency({
@@ -108,12 +107,9 @@ export function AwardProposalCard({
       key: 'awarded',
       label: 'Awarded',
       date: awardedDate,
-      // Only a named funder says anything the step doesn't already.
-      detail: awarded
-        ? funder && `From ${funder}`
-        : stillOpen
-          ? funder && `${funder} picks who wins the prize once results are posted.`
-          : 'The prize has closed',
+      // Only a prize that closed without an award needs saying; the RFP card
+      // below already names the funder.
+      detail: !awarded && !stillOpen ? 'The prize has closed' : undefined,
       done: awarded,
       disabled: !awarded && !stillOpen,
     },
