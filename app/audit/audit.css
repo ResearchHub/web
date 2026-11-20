@@ -15,6 +15,8 @@
   --a-red-rgb: 221 58 30;
   --a-red-deep: #b92c14;
   --a-blue: #2848c8;
+  --a-blue-rgb: 40 72 200;
+  --a-blue-deep: #1d389f;
   --a-open: #1d8748;
   --a-line: rgb(var(--a-ink-rgb) / 0.13);
   --a-line-2: rgb(var(--a-ink-rgb) / 0.3);
@@ -41,13 +43,12 @@
   font-optical-sizing: auto;
   text-wrap: balance;
 }
-/* Emphasis is flagged, the way a checker flags a word. */
-.audit .a-serif em,
-.audit .a-flag {
+/* Emphasis is underlined in the red pencil. */
+.audit .a-serif em {
   font-style: italic;
-  text-decoration: underline wavy var(--a-red);
-  text-decoration-thickness: max(1.5px, 0.045em);
-  text-underline-offset: 0.16em;
+  text-decoration: underline solid var(--a-red);
+  text-decoration-thickness: max(2px, 0.05em);
+  text-underline-offset: 0.14em;
   text-decoration-skip-ink: none;
 }
 
@@ -103,18 +104,20 @@
     transform 0.15s;
 }
 .audit .a-btn:focus-visible {
-  outline: 2px solid var(--a-red);
+  outline: 2px solid var(--a-blue);
   outline-offset: 3px;
 }
 .audit .a-btn:active {
   transform: translateY(1px);
 }
+/* The primary action is the blue of a check, so it is never mistaken for
+   the red of an error or for the outlined button beside it. */
 .audit .a-btn-solid {
-  background: var(--a-ink);
-  color: var(--a-sheet);
+  background: var(--a-blue);
+  color: #fff;
 }
 .audit .a-btn-solid:hover {
-  background: var(--a-red-deep);
+  background: var(--a-blue-deep);
 }
 .audit .a-btn-line {
   border: 1px solid var(--a-ink);
@@ -122,8 +125,7 @@
   color: var(--a-ink);
 }
 .audit .a-btn-line:hover {
-  background: var(--a-ink);
-  color: var(--a-sheet);
+  background: rgb(var(--a-ink-rgb) / 0.08);
 }
 
 .audit .a-link {
@@ -197,19 +199,6 @@
       animation-timeline: view();
       animation-range: entry 0% entry 45%;
     }
-    /* A proof mark draws itself as its line scrolls in. */
-    .audit .a-draw {
-      stroke-dasharray: 1;
-      animation: a-draw linear both;
-      animation-timeline: view();
-      animation-range: entry 30% entry 90%;
-    }
-    .audit .a-grow {
-      transform-origin: left center;
-      animation: a-grow linear both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 70%;
-    }
   }
 }
 @keyframes a-reveal {
@@ -220,22 +209,6 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-@keyframes a-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes a-grow {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
   }
 }
 
@@ -271,7 +244,7 @@
   }
 }
 
-/* The outcome icons (OutcomeIcons.tsx). Drawn complete; where motion is
+/* The audit step icons (StepIcons.tsx). Drawn complete; where motion is
    welcome each runs one slow loop. */
 .audit .a-oi .a-oi-fix {
   transform-box: fill-box;
@@ -284,17 +257,6 @@
   }
   .audit .a-oi .a-oi-fix {
     animation: a-oi-fix 6s ease-in-out infinite;
-  }
-  /* 2. The new sheet settles onto the stack. */
-  .audit .a-oi .a-oi-drop {
-    animation: a-oi-drop 5.5s cubic-bezier(0.3, 0, 0.2, 1) infinite;
-  }
-  /* 3. The question fades as its answer arrives. */
-  .audit .a-oi .a-oi-ask {
-    animation: a-oi-ask 7s ease-in-out infinite;
-  }
-  .audit .a-oi .a-oi-fix.a-oi-slow {
-    animation-duration: 7s;
   }
   /* 4. The scan crosses the three papers; each check appears behind it. */
   .audit .a-oi .a-oi-scan {
@@ -337,38 +299,6 @@
   100% {
     opacity: 0;
     transform: scale(0.4);
-  }
-}
-@keyframes a-oi-drop {
-  0% {
-    opacity: 0;
-    transform: translateY(-11px);
-  }
-  14% {
-    opacity: 1;
-    transform: translateY(-11px);
-  }
-  44%,
-  90% {
-    opacity: 1;
-    transform: none;
-  }
-  100% {
-    opacity: 0;
-    transform: none;
-  }
-}
-@keyframes a-oi-ask {
-  0%,
-  36% {
-    opacity: 1;
-  }
-  50%,
-  88% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 1;
   }
 }
 @keyframes a-oi-scan {
@@ -427,5 +357,216 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+/* The tower (Figures.tsx): the red paper slips out and what stood on it
+   comes down, on a slow loop. Drawn standing; still with reduced motion. */
+.audit .a-tw .a-tw-up {
+  transform-box: view-box;
+  transform-origin: 180px 340px;
+}
+.audit .a-tw .a-tw-bad,
+.audit .a-tw .a-tw-loose {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .audit .a-tw {
+    animation: a-tw-reset 11s linear infinite;
+  }
+  .audit .a-tw .a-tw-bad {
+    animation: a-tw-bad 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  .audit .a-tw .a-tw-up {
+    animation: a-tw-up 11s linear infinite;
+  }
+  .audit .a-tw .a-tw-loose-1 {
+    animation: a-tw-loose-1 11s linear infinite;
+  }
+  .audit .a-tw .a-tw-loose-2 {
+    animation: a-tw-loose-2 11s linear infinite;
+  }
+}
+@keyframes a-tw-reset {
+  0% {
+    opacity: 0;
+  }
+  5%,
+  91% {
+    opacity: 1;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes a-tw-bad {
+  0%,
+  40% {
+    transform: none;
+  }
+  47%,
+  100% {
+    transform: translate(-58px, 0) rotate(-6deg);
+  }
+}
+@keyframes a-tw-up {
+  0%,
+  47% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.6, 0, 1, 0.5);
+  }
+  58% {
+    transform: rotate(-24.6deg);
+    animation-timing-function: ease-out;
+  }
+  61% {
+    transform: rotate(-22.4deg);
+    animation-timing-function: ease-in;
+  }
+  64%,
+  100% {
+    transform: rotate(-24.6deg);
+  }
+}
+@keyframes a-tw-loose-1 {
+  0%,
+  47% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.6, 0, 1, 0.5);
+  }
+  57% {
+    transform: translate(-100px, 22px) rotate(-26deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6);
+  }
+  66%,
+  100% {
+    transform: translate(-166px, 255px) rotate(-90deg);
+  }
+}
+@keyframes a-tw-loose-2 {
+  0%,
+  47% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.6, 0, 1, 0.5);
+  }
+  57% {
+    transform: translate(-96px, 40px) rotate(-30deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6);
+  }
+  68%,
+  100% {
+    transform: translate(-232px, 262px) rotate(-180deg);
+  }
+}
+
+/* On the blue section the headline's underline is white, not red. */
+.audit .a-tone-blue .a-serif em {
+  text-decoration-color: rgb(255 255 255 / 0.8);
+}
+.audit .a-tone-blue ::selection {
+  background: rgb(255 255 255 / 0.28);
+  color: #fff;
+}
+
+/* The benefits (BenefitIcons.tsx). When the section scrolls in, the four
+   arrive one after another (--i) and each icon assembles itself part by
+   part (--k). The server renders them complete; the Sequence box only arms
+   them where script runs and motion is welcome. */
+.audit .a-bn-part {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.audit [data-seq='armed'] .a-bn-part,
+.audit [data-seq='armed'] .a-bn-text {
+  opacity: 0;
+}
+.audit [data-seq='run'] .a-bn-text {
+  animation: a-bn-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 0.55s + 0.3s);
+}
+.audit [data-seq='run'] .a-bn-part {
+  animation: a-bn-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  animation-delay: calc(var(--i) * 0.55s + var(--k) * 0.13s);
+}
+.audit [data-seq='run'] .a-bn-drop {
+  animation-name: a-bn-drop;
+}
+.audit [data-seq='run'] .a-bn-spin {
+  animation-name: a-bn-spin;
+  animation-duration: 0.85s;
+}
+.audit .a-bn-draw {
+  stroke-dasharray: 1;
+}
+.audit [data-seq='run'] .a-bn-draw {
+  animation-name: a-bn-draw;
+  animation-timing-function: ease-out;
+}
+.audit [data-seq='run'] .a-bn-twinkle {
+  animation:
+    a-bn-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both,
+    a-bn-twinkle 2.6s ease-in-out infinite;
+  animation-delay:
+    calc(var(--i) * 0.55s + var(--k) * 0.13s), calc(var(--i) * 0.55s + var(--k) * 0.13s + 1s);
+}
+@keyframes a-bn-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes a-bn-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes a-bn-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes a-bn-spin {
+  from {
+    opacity: 0;
+    transform: rotate(-110deg) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes a-bn-draw {
+  from {
+    opacity: 1;
+    stroke-dashoffset: 1;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes a-bn-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
   }
 }

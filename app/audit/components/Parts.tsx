@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/utils/styles';
+import { sourceNumber, type SourceKey } from '../data/content';
 
 /** The page's column. On wide screens its text clears the margin rule. */
 export function Wrap({ children, className }: { children: ReactNode; className?: string }) {
@@ -15,8 +16,9 @@ export function Wrap({ children, className }: { children: ReactNode; className?:
   );
 }
 
-/** A footnote mark linking to its entry under Sources. */
-export function Ref({ n }: { n: number }) {
+/** A footnote mark: the source's number, linking to its entry under Sources. */
+export function Ref({ to }: { to: SourceKey }) {
+  const n = sourceNumber(to);
   return (
     <a href={`#source-${n}`} className="a-ref" aria-label={`Source ${n}`}>
       {n}
@@ -66,19 +68,20 @@ export function Section({
   labelledBy: string;
   n?: number;
   label?: string;
-  /** `dark` sets the section white on black. */
-  tone?: 'dark';
+  /** `blue` sets the section white on the blue pencil's colour. */
+  tone?: 'blue';
   children: ReactNode;
   className?: string;
 }) {
-  const dark = tone === 'dark';
+  const blue = tone === 'blue';
   return (
     <section
       id={id}
       aria-labelledby={labelledBy}
       className={cn(
         'a-rule scroll-mt-10 border-t py-20 tablet:py-28',
-        dark && 'border-t-0 bg-[var(--a-ink)] text-[var(--a-sheet)]',
+        // `relative` lifts the section over the page's red margin rule.
+        blue && 'a-tone-blue relative border-t-0 bg-[var(--a-blue)] text-white',
         className
       )}
     >
@@ -87,18 +90,18 @@ export function Section({
           <p
             className={cn(
               'a-mono sticky top-0 z-20 -mt-3 flex items-center gap-3 py-3 backdrop-blur-sm',
-              dark
-                ? 'bg-[rgb(var(--a-ink-rgb)/0.92)] text-[rgb(253_252_248/0.65)]'
+              blue
+                ? 'bg-[rgb(var(--a-blue-rgb)/0.92)] text-[rgb(255_255_255/0.78)]'
                 : 'bg-[rgb(var(--a-paper-rgb)/0.92)] text-[var(--a-mute)]'
             )}
           >
             <span
               aria-hidden
               className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--a-red)] text-[11px] tracking-normal tablet:absolute tablet:left-[-46px] tablet:top-1/2 tablet:-translate-y-1/2 content-lg:left-[-50px]',
-                dark
-                  ? 'bg-[var(--a-ink)] text-[#ff8a73]'
-                  : 'bg-[var(--a-paper)] text-[var(--a-red-deep)]'
+                'flex h-7 w-7 items-center justify-center rounded-full border text-[11px] tracking-normal tablet:absolute tablet:left-[-46px] tablet:top-1/2 tablet:-translate-y-1/2 content-lg:left-[-50px]',
+                blue
+                  ? 'border-[color:rgb(255_255_255/0.7)] bg-[var(--a-blue)] text-white'
+                  : 'border-[color:var(--a-red)] bg-[var(--a-paper)] text-[var(--a-red-deep)]'
               )}
             >
               {n}

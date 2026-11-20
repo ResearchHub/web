@@ -1,151 +1,96 @@
-import { cn } from '@/utils/styles';
-import { LEDGER, SPREAD } from '../data/content';
-import { Ref } from './Parts';
+/* The tower -------------------------------------------------------------------- */
 
-/* The funnel ---------------------------------------------------------------- */
-
-/**
- * How wide the funnel is at the top of each stage, as a share of its column;
- * the last value is the spout. Chosen to read as a funnel, not to scale:
- * the real figures span four orders of magnitude.
- */
-const FUNNEL_WIDTHS = [100, 76, 36, 36, 21, 11, 7];
-
-/**
- * The astrophysics audit as a funnel: papers go in at the top (black) and
- * narrow to the few that were recomputed; errors come out (red) and narrow
- * to the few anyone had challenged. Each stage's figure sits beside it.
- */
-export function Funnel() {
+/** One stack of papers in the tower: a block whose face is ruled into sheets. */
+function Block({
+  x,
+  y,
+  w,
+  h,
+  className,
+  bad,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  className?: string;
+  bad?: boolean;
+}) {
   return (
-    <figure>
-      <ol>
-        {LEDGER.map((row, i) => {
-          const top = FUNNEL_WIDTHS[i];
-          const bottom = FUNNEL_WIDTHS[i + 1];
-          const opensGroup = i === 0 || LEDGER[i - 1].flagged !== row.flagged;
-          return (
-            <li
-              key={row.label}
-              className="grid grid-cols-[minmax(0,26%)_minmax(0,1fr)] gap-x-5 tablet:grid-cols-[minmax(0,34%)_minmax(0,1fr)] tablet:gap-x-10"
-            >
-              <div aria-hidden className="relative">
-                <svg
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  className="absolute inset-0 h-full w-full"
-                >
-                  <polygon
-                    points={`${50 - top / 2},0 ${50 + top / 2},0 ${50 + bottom / 2},100 ${50 - bottom / 2},100`}
-                    fill={row.flagged ? 'var(--a-red)' : 'var(--a-ink)'}
-                  />
-                  {/* A hairline of paper between one stage and the next. */}
-                  {i > 0 && (
-                    <line
-                      x1={0}
-                      x2={100}
-                      y1={0}
-                      y2={0}
-                      stroke="var(--a-paper)"
-                      strokeWidth={4}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  )}
-                </svg>
-              </div>
-              <div
-                className={cn(
-                  'a-reveal border-t py-6 tablet:py-7',
-                  row.flagged ? 'border-[color:var(--a-red)]' : 'border-[color:var(--a-line-2)]'
-                )}
-              >
-                {opensGroup && (
-                  <p
-                    className={cn(
-                      'a-mono mb-3',
-                      row.flagged ? 'text-[var(--a-red-deep)]' : 'text-[var(--a-mute)]'
-                    )}
-                  >
-                    {row.flagged ? 'Errors out' : 'Papers in'}
-                  </p>
-                )}
-                <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span
-                    className={cn(
-                      'a-serif text-[clamp(34px,4.6vw,54px)] leading-none tabular-nums',
-                      row.flagged && 'text-[var(--a-red-deep)]'
-                    )}
-                  >
-                    {row.value}
-                  </span>
-                  <span className="text-[16px] font-semibold leading-snug">{row.label}</span>
-                </p>
-                <p className="mt-2 max-w-[30em] text-[15px] leading-[1.5] text-[var(--a-soft)]">
-                  {row.detail}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-      <figcaption className="a-mono mt-2 border-t border-[color:var(--a-line-2)] pt-4 !normal-case !tracking-normal text-[var(--a-mute)]">
-        The funnel is not drawn to scale. Figures from the audit’s own pages.
-        <Ref n={1} />
-        <Ref n={3} />
-      </figcaption>
-    </figure>
+    <rect
+      className={className}
+      x={x}
+      y={y}
+      width={w}
+      height={h}
+      rx={1.5}
+      fill={bad ? 'var(--a-red)' : 'url(#audit-sheets)'}
+      stroke="var(--a-ink)"
+      strokeWidth={2}
+      strokeLinejoin="round"
+    />
   );
 }
 
-/* How an error spreads ------------------------------------------------------ */
-
 /**
- * How the audit's errors travelled, as one ratio: the later papers that
- * repeated an error against the later papers that objected to one. No
- * graphic; the ratio is the figure.
+ * Later work stands on earlier papers. A tower of paper stacks rests on two
+ * supports, one of them a single small paper nobody re-checked (red). Where
+ * motion is welcome that paper slips out and what stood on it comes down,
+ * on a slow loop (audit.css); otherwise the tower simply stands on it.
  */
-export function Spread() {
-  const { copyingPapers, objectingPapers, challenged, stillCopied, laterCopies } = SPREAD;
-  const ratio = (copyingPapers / objectingPapers).toFixed(1);
+export function Tower() {
   return (
-    <figure className="a-reveal mt-14 border-y border-[color:var(--a-ink)] py-12 tablet:py-16">
-      <div className="grid grid-cols-1 gap-x-16 gap-y-10 content-md:grid-cols-12 content-md:items-end">
-        <p
-          aria-label={`${ratio} to 1`}
-          className="a-serif flex items-baseline gap-[0.16em] !whitespace-nowrap text-[clamp(96px,16.5vw,230px)] leading-[0.8] tabular-nums content-md:col-span-7"
-        >
-          <span className="text-[var(--a-red-deep)]">{ratio}</span>
-          <span className="text-[0.6em] text-[var(--a-mute)]">:</span>
-          <span className="text-[var(--a-blue)]">1</span>
-        </p>
+    <figure className="mx-auto w-full max-w-[440px]">
+      <svg
+        viewBox="-34 60 404 334"
+        className="a-tw block h-auto w-full overflow-visible"
+        role="img"
+      >
+        <title>
+          A tall tower of paper stacks resting partly on one small red paper. The red paper slips
+          out and the tower above it falls.
+        </title>
+        <defs>
+          <pattern id="audit-sheets" width="8" height="5" patternUnits="userSpaceOnUse">
+            <rect width="8" height="5" fill="var(--a-sheet)" />
+            <path d="M0 4.5H8" stroke="var(--a-ink)" strokeWidth="0.8" opacity="0.2" />
+          </pattern>
+        </defs>
 
-        <figcaption className="content-md:col-span-5">
-          <p className="a-serif text-[26px] leading-[1.16] tablet:text-[32px]">
-            For every later paper that objected to an error, more than five repeated one.
-          </p>
-          <dl className="mt-7 space-y-3 text-[15.5px] leading-snug text-[var(--a-soft)]">
-            <div className="flex items-baseline gap-3">
-              <dd className="a-serif w-[3.2rem] shrink-0 text-[24px] leading-none tabular-nums text-[var(--a-red-deep)]">
-                {copyingPapers}
-              </dd>
-              <dt>later papers repeated one of the audit’s errors.</dt>
-            </div>
-            <div className="flex items-baseline gap-3">
-              <dd className="a-serif w-[3.2rem] shrink-0 text-[24px] leading-none tabular-nums text-[var(--a-blue)]">
-                {objectingPapers}
-              </dd>
-              <dt>later papers objected to one.</dt>
-            </div>
-          </dl>
-        </figcaption>
-      </div>
+        <path
+          d="M-30 380H366"
+          stroke="var(--a-ink)"
+          strokeWidth={2}
+          strokeLinecap="round"
+          opacity={0.5}
+        />
 
-      <p className="mt-12 max-w-[52em] text-[14.5px] leading-[1.6] text-[var(--a-soft)]">
-        An objection did not end it. Of the {challenged} errors that were challenged in print,{' '}
-        {stillCopied} went on being copied, by {laterCopies} more papers. The audit read only the
-        citing papers with open text, so these counts are floors.
-        <Ref n={1} />
-      </p>
+        {/* The sound support. */}
+        <Block x={180} y={340} w={120} h={40} />
+
+        {/* Everything built on top: tips over the sound support's corner. */}
+        <g className="a-tw-up">
+          <Block x={84} y={312} w={226} h={28} />
+          <Block x={96} y={232} w={64} h={80} />
+          <Block x={206} y={252} w={90} h={60} />
+          <Block x={216} y={232} w={60} h={20} />
+          <Block x={90} y={208} w={200} h={24} />
+          <Block x={110} y={176} w={30} h={32} />
+          <Block x={150} y={118} w={76} h={90} />
+        </g>
+
+        {/* Two loose stacks at the very top, thrown clear as it goes. */}
+        <Block className="a-tw-loose a-tw-loose-1" x={160} y={92} w={40} h={26} />
+        <Block className="a-tw-loose a-tw-loose-2" x={206} y={100} w={24} h={18} />
+
+        {/* The one paper that does not hold. */}
+        <Block className="a-tw-bad" x={104} y={340} w={30} h={40} bad />
+      </svg>
+      <figcaption className="mt-5 flex items-start gap-3 text-[14px] leading-[1.5] text-[var(--a-soft)]">
+        <span aria-hidden className="mt-[5px] h-3 w-3 shrink-0 bg-[var(--a-red)]" />
+        Research is built on earlier papers. When one near the bottom is wrong, so is what stands on
+        it.
+      </figcaption>
     </figure>
   );
 }

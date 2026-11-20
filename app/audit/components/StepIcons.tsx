@@ -1,9 +1,8 @@
 /**
- * Drawn icons for the four outcomes under "What science gains when its
- * errors are found", as /consciousness has for its four tenets, in this
- * page's own hand: black line on paper, the red pencil for an error and the
- * blue pencil for a check. Each is complete as the server renders it; where
- * motion is welcome each then runs one small, slow loop (audit.css).
+ * Drawn icons for the four steps of an audit, in this page's own hand: black line on paper, the red pencil
+ * for an error and the blue pencil for a check. Each is complete as the
+ * server renders it; where motion is welcome each then runs one small, slow
+ * loop (audit.css).
  */
 
 const INK = 'var(--a-ink)';
@@ -69,7 +68,7 @@ function Check({ d, className }: { d: string; className?: string }) {
   );
 }
 
-/** 1. Fixed before they spread: the error is corrected in the paper that
+/** Published and corrected: the error is corrected in the paper that
  *  made it, and the two papers that draw on it stay clean. */
 function Fixed() {
   return (
@@ -128,80 +127,106 @@ function Fixed() {
   );
 }
 
-/** 2. Results that hold: new work, in black, set down on a stack that has
- *  been checked. */
-function Holds() {
+/** A line of a paper picked out in the red pencil. */
+function Highlight({ x, y, w, muted }: { x: number; y: number; w: number; muted?: boolean }) {
+  return (
+    <rect
+      x={x}
+      y={y - 3.5}
+      width={w}
+      height={7}
+      rx={1}
+      fill={muted ? INK : RED}
+      opacity={muted ? 0.12 : 0.28}
+    />
+  );
+}
+
+/** A small flag on a pole, in the margin beside a flagged line. */
+function Flag({ x, y }: { x: number; y: number }) {
+  return (
+    <g>
+      <path d={`M${x} ${y - 5} V${y + 6}`} stroke={RED} strokeWidth={1.8} strokeLinecap="round" />
+      <path d={`M${x} ${y - 5} l8.5 3 l-8.5 3 z`} fill={RED} stroke={RED} strokeLinejoin="round" />
+    </g>
+  );
+}
+
+/** It flags possible errors: two lines of a paper highlighted in red, each
+ *  with a flag in the margin. */
+function Flagged() {
   return (
     <>
-      <path d="M5 58 H59" stroke={INK} strokeWidth={2} strokeLinecap="round" opacity={0.5} />
-      {[
-        [13, 49],
-        [11, 41],
-        [14, 33],
-        [12, 25],
-      ].map(([x, y]) => (
-        <rect
-          key={y}
-          x={x}
-          y={y}
-          width={36}
-          height={8}
-          rx={1}
-          fill={SHEET}
-          stroke={INK}
-          strokeWidth={2}
-          strokeLinejoin="round"
-        />
-      ))}
-      <Check d="M52.5 41 l3 3.2 l5.5 -7.2" />
-      <rect
-        className="a-oi-drop"
-        x={14}
-        y={17}
-        width={36}
-        height={8}
-        rx={1}
-        fill={INK}
+      <Sheet
+        x={8}
+        y={6}
+        w={38}
+        h={52}
+        lines={[
+          [8, 26],
+          [14, 22],
+          [21, 24],
+          [28, 26],
+          [35, 21],
+          [42, 25],
+        ]}
+      />
+      <Highlight x={10.5} y={27} w={29} />
+      <Highlight x={10.5} y={41} w={26} />
+      <Flag x={51} y={27} />
+      <Flag x={51} y={41} />
+    </>
+  );
+}
+
+/** One of the experts: a head and shoulders. */
+function Person({ y }: { y: number }) {
+  return (
+    <g fill={SHEET} stroke={INK} strokeWidth={2} strokeLinejoin="round">
+      <path d={`M43 ${y + 12.5} a7.5 7 0 0 1 15 0 z`} />
+      <circle cx={50.5} cy={y} r={4.2} />
+    </g>
+  );
+}
+
+/** Experts check each flag: the flagged paper beside three reviewers. One
+ *  flag is confirmed (blue check), the other rejected (struck out). */
+function Experts() {
+  return (
+    <>
+      <Sheet
+        x={3}
+        y={7}
+        w={32}
+        h={50}
+        lines={[
+          [8, 18],
+          [14, 16],
+          [21, 15],
+          [28, 18],
+          [35, 14],
+          [42, 17],
+        ]}
+      />
+      <Highlight x={5.5} y={28} w={19} />
+      <Highlight x={5.5} y={42} w={18} muted />
+      <Check d="M25.5 28 l2.2 2.4 l4 -5.2" />
+      <path
+        d="M26.5 39.5 l5 5 M31.5 39.5 l-5 5"
         stroke={INK}
         strokeWidth={2}
-        strokeLinejoin="round"
+        strokeLinecap="round"
+        opacity={0.55}
       />
+      <Person y={11} />
+      <Person y={30} />
+      <Person y={49} />
     </>
   );
 }
 
-/** 3. Answered sooner: an open question, and the mark that it is settled. */
-function Answered() {
-  return (
-    <>
-      <Sheet x={11} y={6} w={36} h={50} />
-      <g className="a-oi-ask">
-        <path
-          d="M22 24 C22 14.5 37 14.5 37 24 C37 30.5 29.5 30.5 29.5 37.5"
-          fill="none"
-          stroke={INK}
-          strokeWidth={3.2}
-          strokeLinecap="round"
-        />
-        <circle cx={29.5} cy={45} r={2} fill={INK} />
-      </g>
-      <g className="a-oi-fix a-oi-slow">
-        <circle cx={47} cy={49} r={10.5} fill={BLUE} stroke={SHEET} strokeWidth={2} />
-        <path
-          d="M41.8 49.2 l3.6 3.7 l6.6 -8.2"
-          fill="none"
-          stroke={SHEET}
-          strokeWidth={2.6}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
-    </>
-  );
-}
-
-/** 4. Checked as it appears: the red line passes over each new paper in
- *  turn, and each gets its check. */
+/** AI reads the papers: the red line passes over each paper in turn,
+ *  and each gets its check. */
 function Checked() {
   const lines: [number, number][] = [
     [6, 8],
@@ -230,16 +255,17 @@ function Checked() {
   );
 }
 
-const ICONS = [Fixed, Holds, Answered, Checked];
+/** In the order of the audit's steps (`AUDIT_STEPS`). */
+const ICONS = [Checked, Flagged, Experts, Fixed];
 
-export function OutcomeIcon({ index }: { index: number }) {
+export function StepIcon({ index }: { index: number }) {
   const Art = ICONS[index];
   if (!Art) return null;
   return (
     <svg
       aria-hidden
       viewBox="0 0 64 64"
-      className="a-oi h-[60px] w-[60px] shrink-0 overflow-visible tablet:h-[88px] tablet:w-[88px]"
+      className="a-oi h-[64px] w-[64px] shrink-0 overflow-visible tablet:h-[84px] tablet:w-[84px]"
     >
       <Art />
     </svg>
