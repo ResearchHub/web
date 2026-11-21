@@ -27,10 +27,10 @@ export function rfpPostId(preview?: string | string[]): number | null {
 /**
  * The campaign's own terms, which the grant does not hold.
  *
- * DRAFT: every value here is a placeholder until the call's terms are set.
- * `taxDeductibleLine` is the short line in the hero card, worded as on
- * /consciousness (Kobe, 2026-11-20). `taxDeductibleNote`, the longer note
- * that names the fund, stays null until that is confirmed for this pool.
+ * The $100k goal was set on the 2026-11-20 call. No tax line: applicants
+ * are unlikely to be at a nonprofit institution, so the page does not claim
+ * contributions are tax deductible (both fields stay null). The date and
+ * award range are still placeholders.
  */
 export const CAMPAIGN: {
   goalUsd: number;
@@ -39,10 +39,10 @@ export const CAMPAIGN: {
   taxDeductibleLine: string | null;
   taxDeductibleNote: string | null;
 } = {
-  goalUsd: 250_000,
+  goalUsd: 100_000,
   goalBy: '2027-01-31',
   awardRangeLabel: '$5k – $100k',
-  taxDeductibleLine: 'Contributions are tax deductible',
+  taxDeductibleLine: null,
   taxDeductibleNote: null,
 };
 

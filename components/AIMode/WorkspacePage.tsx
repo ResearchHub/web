@@ -13,6 +13,7 @@ import { useAIMode } from './AIModeContext';
 import { ChatPane, chatPaneContent } from './chat/ChatPane';
 import { DocumentCard } from './chat/DocumentCard';
 import { newDraftTitle } from './copy';
+import { RfpGuidePanel } from './start/RfpGuidePanel';
 import { DocumentPane } from './document/DocumentPane';
 import {
   PublishAction,
@@ -29,6 +30,12 @@ import { useAIModeChat } from './useAIModeChat';
 import type { WorkspaceTarget } from './workspaceUrl';
 
 const CHAT_MIN_WIDTH = 360;
+/**
+ * Width from which the start screen has room for the RFP's guide beside the
+ * chat (its 420px column next to the composer's 680px); below it, the guide
+ * goes under the composer.
+ */
+const GUIDE_BESIDE_MIN_WIDTH = 1100;
 const DOCUMENT_MIN_WIDTH = 420;
 /** Share of the viewport the document opens at before the user drags it. */
 const DOCUMENT_DEFAULT_SHARE = 0.55;
@@ -225,6 +232,12 @@ export function WorkspacePage() {
   const [panesEl, setPanesEl] = useState<HTMLDivElement | null>(null);
   const panesWidth = useElementWidth(panesEl);
   const documentMaxWidth = Math.max(DOCUMENT_MIN_WIDTH, panesWidth - CHAT_MIN_WIDTH);
+  const guideGrant = state.selectedGrant;
+  const rfpGuide =
+    target.kind === 'new' && state.intent === 'need_funding' && guideGrant != null
+      ? state.rfpGuide
+      : null;
+  const guideBeside = rfpGuide != null && panesWidth >= GUIDE_BESIDE_MIN_WIDTH;
   const documentWidth = useResizableWidth({
     storageKey: 'ai-mode:document-width',
     min: DOCUMENT_MIN_WIDTH,
@@ -426,7 +439,11 @@ export function WorkspacePage() {
             documentMissing={doc.missing}
             held={!panes.revealed}
             renderExecutionExtra={renderDocumentCard}
+            guideInline={rfpGuide != null && !guideBeside}
           />
+        }
+        aside={
+          guideBeside && guideGrant ? <RfpGuidePanel guide={rfpGuide} grant={guideGrant} /> : null
         }
         document={
           showSwitch ? (

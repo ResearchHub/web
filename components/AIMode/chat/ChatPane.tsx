@@ -13,10 +13,13 @@ import { useJumpToLatest } from '@/hooks/useJumpToLatest';
 import { Button } from '@/components/ui/Button';
 import { ChatTranscriptSkeleton } from '@/components/skeletons/AIModeSkeleton';
 import { canSelectAIModel } from '@/types/researchAI';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import type { ChatExecution } from '@/types/agentChat';
 import { cn } from '@/utils/styles';
 import type { AIModeChatState } from '../useAIModeChat';
 import { AI_MODE_GREETING } from '../copy';
+import { firstBlank } from '../rfpGuide';
+import { RfpGuideRow } from '../start/RfpGuidePanel';
 import { StartContextChips } from '../start/StartContextChips';
 import {
   START_COMPOSER_MIN_ROWS,
@@ -40,6 +43,11 @@ interface ChatPaneProps {
   readonly held?: boolean;
   /** Under a turn, after its answer: the document's card, under the newest turn that wrote to it. */
   readonly renderExecutionExtra?: (execution: ChatExecution) => ReactNode;
+  /**
+   * The picked RFP's guide goes under the composer, on a start screen too
+   * narrow for it to stand beside the chat.
+   */
+  readonly guideInline?: boolean;
 }
 
 /** What the chat pane's body shows. */
@@ -95,6 +103,7 @@ export function ChatPane({
   documentMissing,
   held = false,
   renderExecutionExtra,
+  guideInline = false,
 }: ChatPaneProps) {
   const {
     chatId,
@@ -164,6 +173,53 @@ export function ChatPane({
     [clearNotice, setDraft]
   );
 
+  // ---- the RFP's starter ----
+  // Picking an RFP for a proposal (or arriving from its page) loads the box
+  // with a start that names it, unsent, with the first [blank] selected so
+  // typing replaces it. It never overwrites what the user wrote: only an
+  // empty box, or one still holding the previous starter word for word.
+  const { starterPrompt } = state;
+  const appliedStarterRef = useRef<string | null>(null);
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  useEffect(() => {
+    if (!onStart) {
+      appliedStarterRef.current = null;
+      return;
+    }
+    const previous = appliedStarterRef.current;
+    if (starterPrompt === previous) return;
+    appliedStarterRef.current = starterPrompt;
+    const current = draftRef.current;
+    if (current.trim() !== '' && current !== previous) return;
+    const next = starterPrompt ?? '';
+    setDraft(next);
+    const blank = firstBlank(next);
+    const textarea = composerRef.current;
+    if (!blank || !textarea) return;
+    // After React has put the text in the box.
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(blank.start, blank.end);
+    });
+  }, [onStart, starterPrompt, setDraft]);
+
+  // A proposal's first message to an RFP, for the funnel: whether it went
+  // out as the starter left it, and whether blanks were left unfilled.
+  const send = () => {
+    const grantId = onStart && state.intent === 'need_funding' ? state.selectedGrant?.id : null;
+    if (grantId != null && draft.trim()) {
+      AnalyticsService.logEvent(LogEvent.RFP_APPLY_MESSAGE_SENT, {
+        grant_id: grantId,
+        has_guide: state.rfpGuide != null && !state.rfpGuide.generic,
+        starter_unedited: starterPrompt != null && draft === starterPrompt,
+        blanks_left: firstBlank(draft) != null,
+        signed_in: !state.signedOut,
+      });
+    }
+    void state.send();
+  };
+
   // A refusal is about what was asked, so the same message would be refused
   // again: the newest turn's offers a way to reword it, or a new chat.
   const { openChat } = state;
@@ -218,7 +274,7 @@ export function ChatPane({
       value={draft}
       onChange={setDraft}
       // Not the handler itself: the button would hand it its click event as the text.
-      onSend={() => void state.send()}
+      onSend={send}
       onStop={state.stop}
       busy={composerBusy}
       canStop={canStop}
@@ -263,7 +319,11 @@ export function ChatPane({
             composer={composer}
             greeting={AI_MODE_GREETING}
             intent={state.intent}
-            applyingTo={state.intent === 'need_funding' ? state.selectedGrant : null}
+            guide={
+              guideInline && state.rfpGuide && state.selectedGrant ? (
+                <RfpGuideRow guide={state.rfpGuide} grant={state.selectedGrant} />
+              ) : undefined
+            }
             presets={
               // A funder sees what to ask for; a researcher brings their own topic.
               state.intent === 'fund' ? (

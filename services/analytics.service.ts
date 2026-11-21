@@ -30,6 +30,17 @@ export const LogEvent = {
   FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED: 'fundraise_contribution_payment_method_selected',
   FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL: 'fundraise_contribution_payment_successful',
   FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR: 'fundraise_contribution_payment_error',
+  // RFP application funnel: a landing page's buttons, the workspace start
+  // screen it leads to, the first message, the draft, and the submission.
+  // Every event carries `grant_id`; landing-page ones also carry `page`.
+  RFP_FUND_CLICKED: 'rfp_fund_clicked',
+  RFP_SUBMIT_PROPOSAL_CLICKED: 'rfp_submit_proposal_clicked',
+  RFP_HOW_TO_APPLY_CLICKED: 'rfp_how_to_apply_clicked',
+  RFP_APPLY_STARTED: 'rfp_apply_started',
+  RFP_GUIDE_READ_CLICKED: 'rfp_guide_read_clicked',
+  RFP_APPLY_MESSAGE_SENT: 'rfp_apply_message_sent',
+  RFP_APPLY_DRAFT_CREATED: 'rfp_apply_draft_created',
+  RFP_APPLICATION_SUBMITTED: 'rfp_application_submitted',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];

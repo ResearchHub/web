@@ -1,3 +1,5 @@
+import type { RfpGuide } from '@/components/AIMode/rfpGuide';
+
 /**
  * The page's words and figures: the problem in biomedicine, the audit the
  * call funds, what it makes possible, the FAQ and the sources. Every figure
@@ -104,7 +106,7 @@ export const PROBLEMS: Problem[] = [
   },
 ];
 
-/** The audit the pool funds, step by step. DRAFT scope. */
+/** The audit the call funds, step by step. DRAFT scope. */
 export interface AuditStep {
   title: string;
   text: string;
@@ -130,7 +132,38 @@ export const BENEFITS: Benefit[] = [
   { title: 'Smarter AI', text: 'Models learn from a literature that has been corrected.' },
 ];
 
+/**
+ * What a proposal should cover. Submit a proposal hands it to the workspace,
+ * which shows it beside the chat and opens the composer with `starter`; the
+ * FAQ's first answer says the same in a paragraph. The scope is open: any
+ * slice of biomedicine, any method (call, 2026-11-20). Keep it in step with
+ * the RFP post's own text, which is what the assistant reads.
+ */
+export const PROPOSAL_GUIDE: RfpGuide = {
+  summary:
+    'Pick any slice of biomedicine and any method. We fund proposals that complement each other.',
+  include: [
+    { title: 'Who you are', text: 'Why you can judge the papers.' },
+    { title: 'Which papers', text: 'The slice, and how you draw it.' },
+    { title: 'What you check', text: 'Methods, statistics, figures, data, results.' },
+    { title: 'How errors are confirmed', text: 'Who checks, and your false-positive rate.' },
+    { title: 'Budget and timeline', text: 'Model time, expert checking, results date.' },
+  ],
+  length: 'about 2 pages',
+  starter: [
+    'I’m applying to the call to audit biomedical research with AI.',
+    'About me: [your background, and why you can judge these papers]',
+    'What I’d audit: [which papers, what you’d check, and how errors get confirmed]',
+  ].join('\n\n'),
+  pageHref: '/audit',
+};
+
+/** The FAQ entry "See how to apply" opens. */
+export const HOW_TO_APPLY_ID = 'how-to-apply';
+
 export interface Faq {
+  /** An anchor for links to this entry. */
+  id?: string;
   q: string;
   a: string;
   sources?: SourceKey[];
@@ -138,8 +171,9 @@ export interface Faq {
 
 export const FAQ: Faq[] = [
   {
-    q: 'What makes a strong proposal?',
-    a: 'It names its corpus and how it is drawn, says how an error will be confirmed before it counts, and commits in advance to reporting its false-positive rate. It includes people qualified to judge the field.',
+    id: HOW_TO_APPLY_ID,
+    q: 'How do I apply?',
+    a: 'Click Submit a proposal and draft it with the AI assistant: about two pages on who you are, which papers you would audit and how you pick them, what you would check, how each error gets confirmed (and the false-positive rate you will report), and your budget. Any slice of biomedicine and any method is welcome; we fund proposals that complement each other.',
   },
   {
     q: 'Does an audit show whether a result replicates?',

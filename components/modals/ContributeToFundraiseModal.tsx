@@ -91,6 +91,8 @@ interface ContributeModalCommonProps {
   topContent?: ReactNode;
   /** Panel only: the line under "You added $X to the pool" once it lands. */
   successText?: string;
+  /** Panel only: replaces "You added $X to the pool"; gets the amount, e.g. "$1,000". */
+  successTitle?: (amount: string) => string;
 }
 
 export type ContributeToFundraiseModalProps = ContributeModalCommonProps &
@@ -162,6 +164,7 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
     variant = 'modal',
     topContent,
     successText,
+    successTitle,
     isAward: isAwardProp = false,
   } = props;
 
@@ -718,11 +721,13 @@ function ContributeToFundraiseModalInner(props: Readonly<ContributeToFundraiseMo
             <p className="mt-3.5 text-[22px] font-extrabold tracking-tight text-gray-900">
               {paid.fromPool
                 ? `You allocated ${paidDisplay} from the pool`
-                : isPoolMode
-                  ? `You added ${paidDisplay} to the pool`
-                  : isAward
-                    ? `You awarded ${paidDisplay}`
-                    : `You funded ${paidDisplay}`}
+                : successTitle
+                  ? successTitle(paidDisplay)
+                  : isPoolMode
+                    ? `You added ${paidDisplay} to the pool`
+                    : isAward
+                      ? `You awarded ${paidDisplay}`
+                      : `You funded ${paidDisplay}`}
             </p>
             {/* The page's line is about the funder's own money, which an allocation isn't. */}
             {successText && !paid.fromPool && (

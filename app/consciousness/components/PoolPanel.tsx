@@ -80,8 +80,8 @@ export function PoolPanel({ rfp }: { rfp: RfpView }) {
   const more = pool.backerCount - pool.backers.length;
 
   return (
-    <aside className="content-md:col-span-5" aria-label="Funding pool">
-      <p className="text-[14px] text-[var(--o-mute)]">Funding pool</p>
+    <aside className="content-md:col-span-5" aria-label="Funding">
+      <p className="text-[14px] text-[var(--o-mute)]">Raised so far</p>
       <p className="o-serif mt-1 text-[56px] leading-none tabular-nums">
         {formatUsd(pool.raisedUsd)}
       </p>
@@ -99,7 +99,7 @@ export function PoolPanel({ rfp }: { rfp: RfpView }) {
       </div>
 
       <p className="mt-5 text-[13.5px] leading-relaxed text-[var(--o-mute)]">
-        One pool, many backers. Every dollar goes to the experiments and theory funded under this
+        Many backers, one budget. Every dollar goes to the experiments and theory funded under this
         call, whichever answer they favour.
         {pool.distributedUsd > 0 && ` ${formatUsd(pool.distributedUsd)} allocated so far.`}
       </p>
