@@ -409,7 +409,6 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
       return {
         ...state,
         comments: addReplyToComments(state.comments, parentId, reply),
-        count: state.count + 1,
       };
     }
     case CommentActionType.UPDATE_COMMENT_VOTE: {
@@ -564,14 +563,24 @@ export const commentReducer = (state: CommentState, action: CommentAction): Comm
         loading: true,
         error: null,
       };
-    case CommentActionType.DELETE_COMMENT_SUCCESS:
+    case CommentActionType.DELETE_COMMENT_SUCCESS: {
+      const deletedId = action.payload.comment.id;
+      // Removes the comment wherever it sits in the tree, and takes it off its parent's reply count.
+      const comments = traverseCommentTree(state.comments, (comment) => {
+        if (comment.id === deletedId) return null;
+        return comment.replies?.some((reply) => reply.id === deletedId)
+          ? { ...comment, childrenCount: comment.childrenCount - 1 }
+          : comment;
+      });
+      // The count is top-level comments only, so it drops only when one is removed here.
       return {
         ...state,
-        comments: state.comments.filter((comment) => comment.id !== action.payload.comment.id),
-        count: state.count - 1,
+        comments,
+        count: comments.length < state.comments.length ? state.count - 1 : state.count,
         loading: false,
         error: null,
       };
+    }
     default:
       return state;
   }

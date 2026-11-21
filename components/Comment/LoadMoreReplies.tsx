@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useComments } from '@/contexts/CommentContext';
-import { Button } from '@/components/ui/Button';
-import { ChevronDown } from 'lucide-react';
 
 interface LoadMoreRepliesProps {
   commentId: number;
@@ -43,7 +41,7 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
   const isButtonLoading = loading || externalLoading;
 
   return (
-    <div className="mt-2 mb-3 ml-2">
+    <div>
       {loadedReplies ? (
         <div className="text-sm text-green-600 mb-2 flex items-center">
           <svg
@@ -58,22 +56,20 @@ const LoadMoreReplies: React.FC<LoadMoreRepliesProps> = ({
           Replies loaded
         </div>
       ) : (
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           onClick={handleLoadMore}
           disabled={isButtonLoading}
-          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 flex items-center text-sm font-medium border border-blue-200 bg-blue-50"
+          className="rounded text-xs font-semibold text-gray-600 hover:text-gray-900 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           {isButtonLoading ? (
             'Loading...'
           ) : (
             <>
-              <ChevronDown className="h-4 w-4 mr-1" />
               Show {remainingCount} more {remainingCount === 1 ? 'reply' : 'replies'}
             </>
           )}
-        </Button>
+        </button>
       )}
     </div>
   );

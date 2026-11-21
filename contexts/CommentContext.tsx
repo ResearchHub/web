@@ -383,10 +383,9 @@ export const CommentProvider = ({
           type: CommentActionType.DELETE_COMMENT_SUCCESS,
           payload: { comment: data.comment },
         });
-        dispatch({ type: CommentActionType.SET_COUNT, payload: state.count - 1 });
       }
     },
-    [documentId, contentType, state.count]
+    [documentId, contentType]
   );
 
   // Function to emit comment events
@@ -729,9 +728,6 @@ export const CommentProvider = ({
               payload: { comment: commentToDelete },
             });
           }
-
-          // Update the total count
-          dispatch({ type: CommentActionType.SET_COUNT, payload: state.count - 1 });
 
           // Emit the event for backward compatibility
           emitCommentEvent('comment_deleted', {

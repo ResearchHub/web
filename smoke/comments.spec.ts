@@ -240,11 +240,10 @@ test('a comment can be posted, then edited, then replied to', async ({ page }) =
   const comment = page.locator(`#comment-${commentId}`);
   await expect(comment).toContainText(body);
 
-  // Edit. The action bar is addressed by test id rather than by role:
-  // FeedItemComment renders it inside an aria-hidden wrapper, so none of its
-  // controls exist as far as an accessible-name lookup is concerned. The menu
-  // it opens is portalled to the body, which puts the item back in the tree
-  // but also out of the comment, so that one cannot be scoped to it.
+  // Edit. The comment's controls are addressed by test id, which feed cards
+  // share. `.first()` keeps this on the comment's own menu rather than a
+  // reply's. The menu it opens is portalled to the body, out of the comment,
+  // so that item cannot be scoped to it.
   const edited = `Smoke test comment, edited, please ignore ${randomUUID().slice(0, 8)}`;
 
   await comment.getByTestId('feed-item-more-options').first().click();
@@ -277,8 +276,8 @@ test('a comment can be posted, then edited, then replied to', async ({ page }) =
   // Reply.
   const replyBody = `Smoke test reply, please ignore ${randomUUID().slice(0, 8)}`;
 
-  // Same bar, same reason. `.first()` keeps this on the comment's own control
-  // rather than one belonging to a reply nested underneath it.
+  // `.first()` keeps this on the comment's own control rather than one
+  // belonging to a reply in its thread.
   await comment.getByTestId('feed-item-comment-action').first().click();
   const replyEditor = comment.getByTestId('comment-reply-editor');
   await expect(replyEditor).toBeVisible();

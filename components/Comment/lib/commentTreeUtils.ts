@@ -199,3 +199,30 @@ export const updateReplyDeep = (comments: Comment[], updatedComment: Comment): C
     return comment;
   });
 };
+
+/**
+ * One line of a comment's thread: a reply, or the "show more replies" control for
+ * the comment whose replies aren't all loaded yet.
+ */
+export type ThreadEntry =
+  | { kind: 'reply'; comment: Comment }
+  | { kind: 'more'; parentId: number; remaining: number };
+
+/**
+ * Flattens a comment's replies, and replies to those replies, into one column in
+ * reading order, so the thread shows only one level deep under its comment.
+ */
+export const flattenThread = (parent: Comment): ThreadEntry[] => {
+  const entries: ThreadEntry[] = [];
+  for (const reply of parent.replies ?? []) {
+    entries.push(
+      { kind: 'reply', comment: { ...reply, parentId: parent.id } },
+      ...flattenThread(reply)
+    );
+  }
+  const loaded = parent.replies?.length ?? 0;
+  if (parent.childrenCount > loaded) {
+    entries.push({ kind: 'more', parentId: parent.id, remaining: parent.childrenCount - loaded });
+  }
+  return entries;
+};

@@ -45,16 +45,11 @@ export const CommentSortAndFilters: FC<CommentSortAndFiltersProps> = ({
           align="start"
           trigger={
             <Button
-              variant="outlined"
+              variant="ghost"
               size="sm"
-              className="flex items-center gap-1"
+              className="-mx-1 h-7 gap-1 px-1 text-[13px] hover:text-gray-900"
               data-testid="comment-sort-trigger"
             >
-              {(() => {
-                const currentOption = sortOptions.find((option) => option.value === sortBy);
-                const Icon = currentOption?.icon || Star;
-                return <Icon className="h-4 w-4 mr-1" />;
-              })()}
               <span>{sortOptions.find((option) => option.value === sortBy)?.label || 'Sort'}</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
