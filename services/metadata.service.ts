@@ -5,6 +5,7 @@ import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
 import { Fundraise, transformFundraise } from '@/types/funding';
+import { Grant, transformGrant } from '@/types/grant';
 import { Bounty, transformBounty } from '@/types/bounty';
 import { countActiveBounties, countClosedBounties } from '@/components/Bounty/lib/bountyUtil';
 
@@ -14,6 +15,7 @@ export interface WorkMetadata {
   topics?: Topic[];
   metrics: ContentMetrics;
   fundraising?: Fundraise;
+  grant?: Grant;
   bounties: Bounty[];
   activeBounties: number;
   closedBounties: number;
@@ -48,6 +50,7 @@ function transformWorkMetadata(response: any): WorkMetadata {
       bountyComments: document.discussion_aggregates.bounty_count || 0,
     },
     fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
+    grant: response.grant ? transformGrant(response.grant) : undefined,
     bounties: bounties,
     activeBounties,
     closedBounties,

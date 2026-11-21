@@ -55,7 +55,7 @@ export function useWorkHeaderMenuItems({
   const [isClosingGrant, setIsClosingGrant] = useState(false);
   const [isInviteExpertsModalOpen, setIsInviteExpertsModalOpen] = useState(false);
 
-  const grant = work.note?.post?.grant;
+  const grant = metadata.grant ?? work.note?.post?.grant;
   const canCloseGrant =
     isModerator &&
     work.contentType === 'funding_request' &&
