@@ -16,6 +16,7 @@ import { FeedService } from '@/services/feed.service';
 import {
   STATUS_OPTIONS,
   SORT_OPTIONS,
+  GRANT_SORT_OPTIONS,
   type ProposalStatusFilter,
   type ProposalSortOption,
 } from '@/components/Funding/lib/proposalSortAndFilterConfig';
@@ -40,6 +41,7 @@ interface FundraiseContextValue {
   setTaxDeductible: (value: boolean) => void;
   sortBy: ProposalSortOption;
   setSortBy: (value: ProposalSortOption) => void;
+  sortOptions: { label: string; value: ProposalSortOption }[];
   isGrantScoped: boolean;
 
   /** Call once from the consuming component to trigger the initial fetch. */
@@ -55,6 +57,7 @@ interface FundraiseContextValue {
 const PAGE_SIZE = 20;
 const DEFAULT_STATUS: ProposalStatusFilter = 'all';
 const DEFAULT_SORT: ProposalSortOption = 'best';
+const DEFAULT_GRANT_SORT: ProposalSortOption = 'recommended';
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
 
 function resolveRestoredStatus(value: string | undefined): ProposalStatusFilter {
@@ -64,11 +67,12 @@ function resolveRestoredStatus(value: string | undefined): ProposalStatusFilter 
   return DEFAULT_STATUS;
 }
 
-function resolveRestoredSort(value: string | undefined): ProposalSortOption {
-  if (SORT_OPTIONS.some((option) => option.value === value)) {
+function resolveSort(value: string | undefined, isGrantScoped: boolean): ProposalSortOption {
+  const options = isGrantScoped ? GRANT_SORT_OPTIONS : SORT_OPTIONS;
+  if (options.some((option) => option.value === value)) {
     return value as ProposalSortOption;
   }
-  return DEFAULT_SORT;
+  return isGrantScoped ? DEFAULT_GRANT_SORT : DEFAULT_SORT;
 }
 
 interface FundraiseProviderProps {
@@ -96,7 +100,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const initialHasMore = restoredState?.hasMore ?? false;
   const initialPage = restoredState?.page ?? 1;
   const initialStatusFilter = resolveRestoredStatus(restoredState?.filters?.statusFilter);
-  const initialSortBy = resolveRestoredSort(restoredState?.filters?.sortBy);
+  const initialSortBy = resolveSort(restoredState?.filters?.sortBy, isGrantScoped);
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [totalCount, setTotalCount] = useState(initialEntries.length);
@@ -108,7 +112,10 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
 
   const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>(initialStatusFilter);
   const [taxDeductible, setTaxDeductible] = useState(false);
-  const [sortBy, setSortBy] = useState<ProposalSortOption>(initialSortBy);
+  const [selectedSortBy, setSortBy] = useState<ProposalSortOption>(initialSortBy);
+  // `recommended` is only valid with a grant_id (without one the backend ranks
+  // every proposal uncached), so fall back if the provider loses its grant.
+  const sortBy = resolveSort(selectedSortBy, isGrantScoped);
 
   const feedParams = useMemo(() => {
     const isStatusCompleted = statusFilter === 'completed';
@@ -212,6 +219,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       setTaxDeductible,
       sortBy,
       setSortBy,
+      sortOptions: isGrantScoped ? GRANT_SORT_OPTIONS : SORT_OPTIONS,
       isGrantScoped,
       activate,
       refresh: fetchProposals,
