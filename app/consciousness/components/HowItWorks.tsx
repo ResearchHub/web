@@ -193,8 +193,8 @@ const STEPS: {
 }[] = [
   {
     Art: BackersArt,
-    title: 'You add to the pool',
-    text: 'Any amount, pooled with every other backer.',
+    title: 'You fund the call',
+    text: 'Any amount, alongside every other backer.',
   },
   {
     Art: ExperimentsArt,
@@ -203,8 +203,8 @@ const STEPS: {
   },
   {
     Art: PoolArt,
-    title: 'Peers review, the pool pays',
-    text: 'Open review on ResearchHub. The strongest get funded.',
+    title: 'Peers review, the best get funded',
+    text: 'Open review on ResearchHub decides where the money goes.',
   },
   {
     Art: AnswersArt,
@@ -216,7 +216,7 @@ const STEPS: {
 /**
  * How it works from the reader's side: what a backer and a scientist each
  * do, in four stages on one dotted track (you give, scientists propose,
- * peers review and the pool pays, results are published). The programme's
+ * peers review and the best get funded, results are published). The programme's
  * dates and targets are in the phases, not here.
  */
 export function HowItWorks({ rfp }: { rfp: RfpView }) {
@@ -231,7 +231,7 @@ export function HowItWorks({ rfp }: { rfp: RfpView }) {
           id="how-title"
           className="o-reveal o-serif max-w-[16em] text-[clamp(28px,3vw,40px)] leading-[1.1]"
         >
-          How the pool works
+          How it works
         </h2>
 
         <Sequence className="relative mt-10 tablet:mt-14">

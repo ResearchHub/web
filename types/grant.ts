@@ -128,6 +128,8 @@ export interface SelectedGrantDetails {
   organization: string;
   applicationVisibility?: GrantApplicationVisibility;
   fundingMechanism: FundingMechanism;
+  /** The RFP's own page (`/rfp/<post id>/<slug>`), when whoever picked it knows it. */
+  pageHref?: string;
 }
 
 export const transformSelectedGrant = createTransformer<any, SelectedGrantDetails>((raw) => ({

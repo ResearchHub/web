@@ -15,6 +15,12 @@ interface WorkspacePanesProps {
   /** What shows of the two. On a phone, never `split`. Without a document, the chat. */
   readonly view: WorkspaceView;
   readonly documentWidth: ResizableWidth & { readonly min: number; readonly max: number };
+  /**
+   * A fixed column on the right while there is no document: on the start
+   * screen, what the picked RFP expects from a proposal, in the place the
+   * document takes once it exists.
+   */
+  readonly aside?: ReactNode;
 }
 
 /**
@@ -24,7 +30,13 @@ interface WorkspacePanesProps {
  * its editor, the assistant's changes wait in it to be reviewed, and its
  * publish dialog can open over the chat.
  */
-export function WorkspacePanes({ chat, document, view, documentWidth }: WorkspacePanesProps) {
+export function WorkspacePanes({
+  chat,
+  document,
+  view,
+  documentWidth,
+  aside,
+}: WorkspacePanesProps) {
   const hasDocument = document != null;
   const showDocument = hasDocument && view !== 'chat';
   const showChat = !showDocument || view === 'split';
@@ -56,6 +68,12 @@ export function WorkspacePanes({ chat, document, view, documentWidth }: Workspac
             />
           )}
           {document}
+        </aside>
+      )}
+
+      {!hasDocument && aside && (
+        <aside className="relative flex w-[420px] shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white animate-in fade-in duration-200">
+          {aside}
         </aside>
       )}
     </div>

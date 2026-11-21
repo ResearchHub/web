@@ -35,15 +35,17 @@ export function isCampaignRfp(preview?: string | string[]): boolean {
 /**
  * The campaign's own terms, which the grant does not hold: Phase 1's target
  * and end date (Kobe, 2026-11-17), the typical award, and the tax wording:
- * the short line for the hero and funding panel, the full note for the pool.
+ * the short line for the hero and funding panel, the full note under the
+ * funding total. Both say "qualifying": only money that reaches the fund at
+ * Endaoment is deductible, not a ResearchHub balance (call, 2026-11-20).
  */
 export const CAMPAIGN = {
   goalUsd: 1_000_000,
   goalBy: '2026-12-31',
   awardRangeLabel: '$50k – $250k',
-  taxDeductibleLine: 'Contributions are tax deductible',
+  taxDeductibleLine: 'Tax deductible on qualifying contributions',
   taxDeductibleNote:
-    'Gifts go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3), so they are generally tax-deductible in the US.',
+    'Qualifying contributions go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3), and are generally tax-deductible in the US.',
 } as const;
 
 export interface Backer {

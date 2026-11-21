@@ -9,6 +9,7 @@ import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Loader2 } from 'lucide-react';
 import { formatCompactAmount } from '@/utils/currency';
 import { GRANT_IMAGE_FALLBACK_GRADIENT, type SelectedGrantDetails } from '@/types/grant';
+import { buildWorkUrl } from '@/utils/url';
 
 interface SelectFundingOpportunityModalProps {
   isOpen: boolean;
@@ -85,6 +86,11 @@ export function SelectFundingOpportunityModal({
       fundingAmount: content.grant.amount?.usd || 0,
       organization: content.grant.organization || '',
       fundingMechanism: content.grant.fundingMechanism,
+      pageHref: buildWorkUrl({
+        id: content.id,
+        slug: content.slug,
+        contentType: 'funding_request',
+      }),
     });
     onClose();
   };

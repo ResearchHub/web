@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAIMode } from './AIModeContext';
 import { untitledDraftTitle } from './copy';
-import { readHandedOffRfp } from './rfpHandoff';
+import { genericRfpGuide, type RfpGuide } from './rfpGuide';
+import { readHandedOffRfp, readHandedOffRfpGuide } from './rfpHandoff';
 import { rememberWorkspaceView } from './shell/workspaceView';
 import { useFundingIntent } from './start/useFundingIntent';
 import { mostRecentChat, useWorkspaceTarget } from './useWorkspaceTarget';
@@ -15,6 +16,7 @@ import {
 } from '@/components/Funding/createFundingDraft';
 import type { FundingIntent } from '@/components/Funding/fundingDirection';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useFundingNotes } from '@/contexts/FundingNotesContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useUser } from '@/contexts/UserContext';
@@ -57,6 +59,14 @@ export interface AIModeChatState extends ChatSession {
   /** The RFP the next proposal answers, chosen on the start screen. */
   readonly selectedGrant: SelectedGrantDetails | null;
   readonly setSelectedGrant: (grant: SelectedGrantDetails | null) => void;
+  /** What the picked RFP expects from a proposal, when its landing page handed that over. */
+  readonly rfpGuide: RfpGuide | null;
+  /**
+   * What the composer opens with on a proposal's start screen once an RFP
+   * is picked: the RFP's own starter, or a generic one naming it. Null
+   * with no RFP picked, and anywhere but the start screen.
+   */
+  readonly starterPrompt: string | null;
   /** Open one of the document's chats, or a new one. */
   readonly openChat: (chat: number | 'new') => void;
   /** Rename the open chat. */
@@ -120,11 +130,34 @@ export function useAIModeChat(): AIModeChatState {
   // screen, with no request for it. It can still be changed. Without the
   // handover (a link opened in another tab) nothing is picked.
   const urlGrantId = target.kind === 'new' ? (target.grantId ?? null) : null;
+  // A landing page may hand over what the RFP expects too; it holds only
+  // while that RFP stays picked.
+  const [handedOffGuide, setHandedOffGuide] = useState<{
+    grantId: string;
+    guide: RfpGuide;
+  } | null>(null);
   useEffect(() => {
     if (urlGrantId == null) return;
     const handedOff = readHandedOffRfp(urlGrantId);
-    if (handedOff) setSelectedGrant(handedOff);
+    if (!handedOff) return;
+    setSelectedGrant(handedOff);
+    const guide = readHandedOffRfpGuide(urlGrantId);
+    setHandedOffGuide(guide ? { grantId: urlGrantId, guide } : null);
+    AnalyticsService.logEvent(LogEvent.RFP_APPLY_STARTED, {
+      grant_id: urlGrantId,
+      has_guide: guide != null,
+    });
   }, [urlGrantId]);
+  // Any picked RFP gets a guide: the one its landing page wrote, or the generic one.
+  const rfpGuide = useMemo(() => {
+    if (selectedGrant == null) return null;
+    if (handedOffGuide?.grantId === selectedGrant.id) return handedOffGuide.guide;
+    return genericRfpGuide(selectedGrant);
+  }, [selectedGrant, handedOffGuide]);
+  const starterPrompt =
+    target.kind === 'new' && intent === 'need_funding' && rfpGuide != null
+      ? rfpGuide.starter
+      : null;
 
   // ---- the first message of a new draft ----
   // It creates the document, then a chat on it, then goes out there. A note
@@ -190,6 +223,13 @@ export function useAIModeChat(): AIModeChatState {
       }
       const note = pendingNoteRef.current;
       if (note == null) return;
+      const grantId = draftInitRef.current.selectedGrant?.id;
+      if (grantId != null) {
+        AnalyticsService.logEvent(LogEvent.RFP_APPLY_DRAFT_CREATED, {
+          grant_id: grantId,
+          note_id: note.id,
+        });
+      }
       // The RFP went with the draft it was picked for.
       setSelectedGrant(null);
       selectTarget(documentTarget(note.id, created.conversation_id));
@@ -342,6 +382,8 @@ export function useAIModeChat(): AIModeChatState {
     intent,
     selectedGrant,
     setSelectedGrant,
+    rfpGuide,
+    starterPrompt,
     openChat,
     rename,
     deleteChat,

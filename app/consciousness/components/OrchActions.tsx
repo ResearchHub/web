@@ -28,7 +28,7 @@ export function OrchActionsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToPool = useCallback(() => {
-    toast('The pool opens soon.', { id: 'orch-action' });
+    toast('Funding opens soon.', { id: 'orch-action' });
   }, []);
 
   const value = useMemo(() => ({ submitProposal, addToPool }), [submitProposal, addToPool]);
@@ -73,7 +73,7 @@ export function SubmitProposalButton({
 
 export function AddToPoolButton({
   size = 'md',
-  label = 'Add to the pool',
+  label = 'Fund the research',
   className,
 }: {
   size?: Size;

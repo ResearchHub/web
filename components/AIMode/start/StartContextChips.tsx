@@ -123,6 +123,7 @@ function RfpChip({ selectedGrant, onSelectGrant }: StartContextChipsProps) {
           onClick={() => setOpen(true)}
           onRemove={() => onSelectGrant(null)}
           removeLabel="Remove RFP"
+          testId="workspace-applying-to"
         />
       ) : (
         <Chip
@@ -151,6 +152,7 @@ function Chip({
   onRemove,
   removeLabel,
   disabled = false,
+  testId,
 }: {
   /** A lucide glyph before the label, coloured with the chip. */
   readonly icon?: LucideIcon;
@@ -164,9 +166,11 @@ function Chip({
   readonly onRemove?: () => void;
   readonly removeLabel?: string;
   readonly disabled?: boolean;
+  readonly testId?: string;
 }) {
   return (
     <span
+      data-testid={testId}
       className={cn(
         // A long RFP title truncates rather than pushing the send button off the row.
         'inline-flex h-7 min-w-0 max-w-[300px] items-center rounded-full border text-xs font-medium transition-colors',

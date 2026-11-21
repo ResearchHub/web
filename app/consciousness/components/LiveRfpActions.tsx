@@ -8,9 +8,11 @@ import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFund
 import { WorkCoverCard } from '@/components/work/WorkCoverCard';
 import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
 import { handOffRfp } from '@/components/AIMode/rfpHandoff';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { isGrantActive, type FundingPool, type Grant } from '@/types/grant';
 import { CAMPAIGN } from '../data/rfp';
+import { PROPOSAL_GUIDE } from '../data/content';
 import { OrchActionsContext } from './OrchActions';
 
 /**
@@ -50,29 +52,43 @@ export function LiveRfpActions({
   const organization = grant.organization?.trim() || grant.createdBy?.authorProfile?.fullName || '';
 
   const submitProposal = useCallback(() => {
+    AnalyticsService.logEvent(LogEvent.RFP_SUBMIT_PROPOSAL_CLICKED, {
+      page: 'consciousness',
+      grant_id: grantId,
+      open: isActive,
+    });
     if (!isActive) {
       toast(notOpen, { id: 'orch-action' });
       return;
     }
-    handOffRfp({
-      id: grantId,
-      shortTitle: grant.shortTitle || title,
-      imageUrl: imageUrl ?? '',
-      fundingAmount: grant.amount.usd ?? 0,
-      organization,
-      applicationVisibility: grant.applicationVisibility,
-      fundingMechanism: grant.fundingMechanism ?? 'FUNDING',
-    });
+    handOffRfp(
+      {
+        id: grantId,
+        shortTitle: grant.shortTitle || title,
+        imageUrl: imageUrl ?? '',
+        fundingAmount: grant.amount.usd ?? 0,
+        organization,
+        applicationVisibility: grant.applicationVisibility,
+        fundingMechanism: grant.fundingMechanism ?? 'FUNDING',
+      },
+      { ...PROPOSAL_GUIDE, fundingLabel: `${CAMPAIGN.awardRangeLabel} awards` }
+    );
     router.push(workspaceHref(newDraftTarget('need_funding', grantId)));
   }, [isActive, notOpen, grant, grantId, title, imageUrl, organization, router]);
 
   const addToPool = useCallback(() => {
-    if (!isActive || pool?.status !== 'OPEN') {
-      toast(isActive ? 'The pool is not taking contributions.' : notOpen, { id: 'orch-action' });
+    const open = isActive && pool?.status === 'OPEN';
+    AnalyticsService.logEvent(LogEvent.RFP_FUND_CLICKED, {
+      page: 'consciousness',
+      grant_id: grantId,
+      open,
+    });
+    if (!open) {
+      toast(isActive ? 'This call is not taking contributions.' : notOpen, { id: 'orch-action' });
       return;
     }
     setIsPanelOpen(true);
-  }, [isActive, pool, notOpen]);
+  }, [isActive, pool, notOpen, grantId]);
 
   const handleContributeSuccess = useCallback(
     (updatedPool?: FundingPool) => {
@@ -96,6 +112,9 @@ export function LiveRfpActions({
           fundingPool={pool}
           proposalTitle={title}
           variant="panel"
+          headerTitle="Fund the research"
+          successTitle={(amount) => `You put ${amount} toward the research`}
+          successMessage="Thank you. Your contribution is in."
           topContent={
             <div className="space-y-3">
               <WorkCoverCard title={title} eyebrow="RFP" imageUrl={imageUrl ?? undefined} />
@@ -108,7 +127,7 @@ export function LiveRfpActions({
             </div>
           }
           isAward={isAwardMechanism(grant.fundingMechanism)}
-          successText="Every dollar in the pool goes to the experiments funded under this call."
+          successText="Every dollar goes to the experiments funded under this call."
         />
       )}
     </OrchActionsContext.Provider>

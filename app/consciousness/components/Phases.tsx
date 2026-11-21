@@ -92,8 +92,8 @@ function PhaseOne({ rfp }: { rfp: RfpView }) {
           Everything raised still funds experiments under this call; we fund fewer of them.
         </Fact>
         <Fact label="Tax receipts">
-          Gifts go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3) public charity, so
-          they are generally tax-deductible in the US.
+          Qualifying contributions go to the ResearchHub Foundation’s fund at Endaoment, a 501(c)(3)
+          public charity, and are generally tax-deductible in the US.
         </Fact>
       </dl>
     </PhaseCard>
@@ -104,7 +104,7 @@ function PhaseTwo({ rfp }: { rfp: RfpView }) {
   return (
     <PhaseCard n={2} status="next" title="Pick proposals, run the experiments">
       <p className="mt-6 text-[15px] leading-[1.6] text-[var(--o-soft)]">
-        Reviewers score the proposals in the open. The pool funds the strongest, and the results are
+        Reviewers score the proposals in the open. The strongest get funded, and the results are
         published.
       </p>
       <dl className="o-rule mt-6 divide-y divide-[color:var(--o-line)] border-t">

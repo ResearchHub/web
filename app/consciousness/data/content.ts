@@ -5,6 +5,8 @@
  * (pool, deadline) are not here; they come from the live RFP (`rfp.ts`).
  */
 
+import type { RfpGuide } from '@/components/AIMode/rfpGuide';
+
 export type SceneId = 'superradiance' | 'wigner' | 'anesthesia' | 'spacetime' | 'raster';
 /** Figures drawn only in the Poster set; every set shows the Poster one. */
 export type PosterOnlySceneId = 'turing';
@@ -702,6 +704,29 @@ export const QUESTIONS: Question[] = [
   },
 ];
 
+/**
+ * What the workspace shows beside the chat when someone applies from this
+ * page: the parts a proposal needs, and a starter message with blanks.
+ */
+export const PROPOSAL_GUIDE: RfpGuide = {
+  summary:
+    'Test how consciousness arises, quantum or not. Say up front which result would count against your view.',
+  include: [
+    { title: 'Your question', text: 'One of the six on the page, or your own.' },
+    { title: 'What would change your mind', text: 'The result for, and the result against.' },
+    { title: 'How you test it', text: 'Pre-registered; rerun single-lab claims first.' },
+    { title: 'Who runs it', text: 'Your team, ideally with a sceptic on it.' },
+    { title: 'Budget and timeline', text: '$50k–$250k, up to 10% overhead.' },
+  ],
+  length: 'about 2 pages',
+  starter: [
+    'I’m applying to the call on how consciousness arises.',
+    'The question: [one of the six questions on the page, or your own]',
+    'What would count against my view: [the result that would change your mind, decided before the data]',
+  ].join('\n\n'),
+  pageHref: '/consciousness',
+};
+
 export interface Faq {
   q: string;
   a: string;
@@ -737,7 +762,7 @@ export const FAQ: Faq[] = [
     a: 'Researchers keep their IP. Funded work is published openly on ResearchHub, with its data and code, whatever the result.',
   },
   {
-    q: 'Where does money added to the pool go?',
-    a: 'Only to proposals funded under this call: the experiments and theory that test these questions. The pool is the call’s whole budget, built by everyone who adds to it.',
+    q: 'Where does my money go?',
+    a: 'Only to proposals funded under this call: the experiments and theory that test these questions. Everyone who gives builds the call’s budget together.',
   },
 ];

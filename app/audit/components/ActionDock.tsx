@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/utils/styles';
 import { formatDateShort, formatUsd, formatUsdShort, type RfpView } from '../data/rfp';
-import { AddToPoolButton, SubmitProposalButton } from './Actions';
+import { AddToPoolButton, HowToApplyLink, SubmitProposalButton } from './Actions';
 import { BackerFaces, PoolBar } from './Pool';
 
 /**
@@ -52,6 +52,7 @@ export function ActionDock({ rfp }: { rfp: RfpView }) {
           <PoolBar rfp={rfp} className="mt-2 h-1.5 max-w-[300px]" />
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <HowToApplyLink placement="dock" className="mr-2 whitespace-nowrap" />
           <SubmitProposalButton size="md" />
           <AddToPoolButton size="md" />
         </div>
@@ -66,7 +67,7 @@ export function ActionDock({ rfp }: { rfp: RfpView }) {
             </span>{' '}
             raised toward {formatUsdShort(rfp.goalUsd)}
           </span>
-          <span>Phase 1 ends {formatDateShort(rfp.goalBy)}</span>
+          <HowToApplyLink placement="dock" className="text-[12px]" />
         </p>
         <PoolBar rfp={rfp} className="mb-2.5 h-1" />
         <div className="flex gap-2">

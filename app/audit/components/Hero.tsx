@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { BackButton } from '@/app/consciousness/components/BackButton';
-import { AddToPoolButton, SubmitProposalButton } from './Actions';
+import { AddToPoolButton, HowToApplyLink, SubmitProposalButton } from './Actions';
 import { HeroArt } from './HeroArt';
 import { HeroCard } from './HeroCard';
 import type { RfpView } from '../data/rfp';
@@ -67,6 +67,7 @@ export function Hero({ rfp }: { rfp: RfpView }) {
             <AddToPoolButton size="lg" className={CARD_CTA} />
             <SubmitProposalButton size="lg" className={CARD_CTA} />
           </div>
+          <HowToApplyLink placement="hero" className="mt-3.5" />
         </HeroCard>
       </div>
     </section>

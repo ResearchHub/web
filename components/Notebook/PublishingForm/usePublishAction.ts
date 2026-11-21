@@ -11,6 +11,7 @@ import type { NoteDetailsSaver } from '@/hooks/useNoteDetailsSaver';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 import { ApiError } from '@/services/types';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import type { NoteWithContent } from '@/types/note';
 import { mergeRegisteredReportPrefill } from '@/utils/registeredReportPrefill';
 import { isAwardMechanism } from '@/components/Funding/lib/fundingMechanism';
@@ -293,6 +294,13 @@ export function usePublishAction({
           },
           formData.workId
         );
+
+        if (grantId != null) {
+          AnalyticsService.logEvent(LogEvent.RFP_APPLICATION_SUBMITTED, {
+            grant_id: grantId,
+            post_id: response.id,
+          });
+        }
 
         const fundraiseId = response.fundraiseId || note.post?.fundraise?.id || undefined;
         const linked = await tryLinkNonprofit(formData, fundraiseId);

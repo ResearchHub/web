@@ -80,7 +80,7 @@ export function HeroCard({ rfp, children }: { rfp: RfpView; children: ReactNode 
       </div>
       <p className="flex items-center gap-2 border-t border-[color:var(--a-line)] bg-[rgb(var(--a-ink-rgb)/0.035)] px-5 py-3 text-[12.5px] leading-snug text-[var(--a-soft)] tablet:px-6">
         <CircleCheck aria-hidden className="h-4 w-4 shrink-0 text-[var(--a-red)]" strokeWidth={2} />
-        {CAMPAIGN.taxDeductibleLine ?? 'The pool pays only for audits funded under this call'}
+        {CAMPAIGN.taxDeductibleLine ?? 'Every dollar goes to audits funded under this call'}
       </p>
     </div>
   );

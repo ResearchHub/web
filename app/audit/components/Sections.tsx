@@ -235,7 +235,8 @@ export function Faq() {
           {FAQ.map((f) => (
             <details
               key={f.q}
-              className="group border-b border-[color:var(--a-line-2)] first:border-t"
+              id={f.id}
+              className="group scroll-mt-24 border-b border-[color:var(--a-line-2)] first:border-t"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-[family-name:var(--a-serif)] text-[21px] leading-snug hover:text-[var(--a-red-deep)]">
                 {f.q}

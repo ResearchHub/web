@@ -9,10 +9,11 @@ import {
   useState,
   ReactNode,
 } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { handOffRfp } from '@/components/AIMode/rfpHandoff';
 import { newDraftTarget, workspaceHref } from '@/components/AIMode/workspaceUrl';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { FeedEntry } from '@/types/feed';
 import type { Application } from '@/types/funding';
 import {
@@ -69,6 +70,8 @@ interface GrantPageContextValue {
    * new-proposal screen, with this RFP already picked.
    */
   applyToRfp: () => void;
+  /** Logs a Fund click for the funnel; the button opens the panel itself. */
+  logFundClicked: () => void;
 }
 
 /** The RFP's activity feed, which the Activity tab, its count and the sidebar card show. */
@@ -134,6 +137,7 @@ export function GrantPageProvider({
   imageUrl?: string | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<GrantBannerTab>(defaultTab);
   const [fundingPool, setFundingPool] = useState<FundingPool | null>(grant?.fundingPool ?? null);
 
@@ -163,6 +167,11 @@ export function GrantPageProvider({
   // here, so the workspace need not ask the server for what this page has.
   const applyToRfp = useCallback(() => {
     if (!grant || !grantId) return;
+    AnalyticsService.logEvent(LogEvent.RFP_SUBMIT_PROPOSAL_CLICKED, {
+      page: 'rfp',
+      grant_id: grantId,
+      open: isGrantActive(grant),
+    });
     handOffRfp({
       id: grantId,
       shortTitle: grant.shortTitle || title || '',
@@ -171,9 +180,18 @@ export function GrantPageProvider({
       organization: organization ?? '',
       applicationVisibility: grant.applicationVisibility,
       fundingMechanism: grant.fundingMechanism ?? 'FUNDING',
+      pageHref: pathname,
     });
     router.push(workspaceHref(newDraftTarget('need_funding', grantId)));
-  }, [grant, grantId, title, imageUrl, organization, router]);
+  }, [grant, grantId, title, imageUrl, organization, pathname, router]);
+
+  const logFundClicked = useCallback(() => {
+    AnalyticsService.logEvent(LogEvent.RFP_FUND_CLICKED, {
+      page: 'rfp',
+      grant_id: grantId,
+      open: fundingPool?.status === 'OPEN',
+    });
+  }, [grantId, fundingPool?.status]);
 
   const page = useMemo((): GrantPageContextValue => {
     const isActive = grant ? isGrantActive(grant) : false;
@@ -196,6 +214,7 @@ export function GrantPageProvider({
       applications: grant?.applications ?? [],
       grantCreatedByUserId: grant?.createdBy?.id ?? null,
       applyToRfp,
+      logFundClicked,
     };
   }, [
     activeTab,
@@ -206,6 +225,7 @@ export function GrantPageProvider({
     organization,
     organizationProfile,
     applyToRfp,
+    logFundClicked,
   ]);
 
   const {
